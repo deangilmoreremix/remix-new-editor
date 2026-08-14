@@ -252,12 +252,6 @@ export default async function LandingPage() {
     } catch (fabErr) {
       console.error('[Landing] failed to mount GTM Boost FAB:', fabErr);
     }
-
-    // Tear down media observers / timers if the landing page is ever unmounted.
-    container.cleanup = () => {
-      container.querySelectorAll('section').forEach((section) => section.cleanup?.());
-      heroEl._cleanup?.();
-    };
   } catch (error) {
     console.error('Error rendering landing page:', error);
     container.innerHTML = `

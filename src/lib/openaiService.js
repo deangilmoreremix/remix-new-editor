@@ -46,6 +46,38 @@ function resolveOpenAISize(value) {
   return ratios[value] || 'auto';
 }
 
+/**
+ * Map a storyboard aspect ratio (or explicit size) to a size supported by the
+ * OpenAI Image / Responses APIs. GPT Image (gpt-image-2) accepts any resolution
+ * whose longest edge <= 3840px, both edges are multiples of 16px, the ratio is
+ * <= 3:1, and total pixels are within [655360, 8294400]. We map the common
+ * storyboard ratios to the documented popular sizes and otherwise pass an
+ * explicit WxH through (validated against the popular set) or fall back to
+ * "auto".
+ * @param {string} value - e.g. "16:9", "9:16", "1:1", "4:3", "1536x1024"
+ * @returns {string}
+ */
+const OPENAI_POPULAR_SIZES = [
+  '1024x1024', '1536x1024', '1024x1536', '2048x2048',
+  '2048x1152', '3840x2160', '2160x3840'
+];
+
+function resolveOpenAISize(value) {
+  if (!value || value === 'auto') return 'auto';
+  if (/^\d+x\d+$/.test(value)) {
+    return OPENAI_POPULAR_SIZES.includes(value) ? value : 'auto';
+  }
+  const ratios = {
+    '16:9': '1536x1024',
+    '9:16': '1024x1536',
+    '1:1': '1024x1024',
+    '4:3': '1536x1024',
+    '3:4': '1024x1536',
+    '21:9': '2048x1152',
+  };
+  return ratios[value] || 'auto';
+}
+
 class OpenAIService {
   constructor() {
     this.config = openaiConfig;
@@ -646,9 +678,8 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
     aspectRatio,
     quality = 'auto',
     model,
-    outputFormat = 'png',
-    signal
-  } = {}) {
+    outputFormat = 'png'
+  }) {
     if (!this._hasKey()) {
       throw new Error(this.missingKeyMessage);
     }
@@ -676,8 +707,7 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
           quality,
           output_format: outputFormat,
           response_format: 'b64_json'
-        }),
-        signal
+        })
       });
 
       if (!response.ok) {
@@ -993,7 +1023,6 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
     moderation = 'auto',
     inputFidelity,
     partialImages = 0,
-    signal
   } = {}) {
     if (!this._hasKey()) throw new Error(this.missingKeyMessage);
     const openaiKey = this._getOpenAIKey();
@@ -1019,7 +1048,6 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${openaiKey}` },
         body: JSON.stringify(body),
-        signal
       });
       if (!response.ok) {
         const error = await response.json().catch(() => ({ error: { message: 'Unknown error' } }));
@@ -1067,7 +1095,6 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
     outputFormat = 'png',
     outputCompression,
     moderation = 'auto',
-    signal
   } = {}) {
     if (!this._hasKey()) throw new Error(this.missingKeyMessage);
     const openaiKey = this._getOpenAIKey();
@@ -1094,7 +1121,6 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${openaiKey}` },
         body: JSON.stringify(body),
-        signal
       });
       if (!response.ok) {
         const error = await response.json().catch(() => ({ error: { message: 'Unknown error' } }));
@@ -1146,7 +1172,6 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
     outputCompression,
     moderation = 'auto',
     previousResponseId,
-    signal
   } = {}) {
     if (!this._hasKey()) throw new Error(this.missingKeyMessage);
     if (!imageInputs || imageInputs.length === 0) {
@@ -1180,7 +1205,6 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${openaiKey}` },
         body: JSON.stringify(body),
-        signal
       });
       if (!response.ok) {
         const error = await response.json().catch(() => ({ error: { message: 'Unknown error' } }));
@@ -1225,8 +1249,7 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
     outputFormat = 'png',
     outputCompression,
     moderation = 'auto',
-    signal
-  } = {}) {
+  }) {
     if (!this._hasKey()) throw new Error(this.missingKeyMessage);
     const openaiKey = this._getOpenAIKey();
     if (!openaiKey) throw new Error(this.missingKeyMessage);
@@ -1251,7 +1274,6 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${openaiKey}` },
       body: JSON.stringify(body),
-      signal
     });
     if (!response.ok) {
       const error = await response.json().catch(() => ({ error: { message: 'Unknown error' } }));
@@ -1342,7 +1364,7 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
    * @param {string} [filename]
    * @returns {Promise<string>} file id
    */
-  async createFile(file, filename = 'image.png', { signal } = {}) {
+  async createFile(file, filename = 'image.png') {
     if (!this._hasKey()) throw new Error(this.missingKeyMessage);
     const openaiKey = this._getOpenAIKey();
     if (!openaiKey) throw new Error(this.missingKeyMessage);
@@ -1355,7 +1377,6 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
       method: 'POST',
       headers: { 'Authorization': `Bearer ${openaiKey}` },
       body: form,
-      signal
     });
     if (!response.ok) {
       const error = await response.json().catch(() => ({ error: { message: 'Unknown error' } }));

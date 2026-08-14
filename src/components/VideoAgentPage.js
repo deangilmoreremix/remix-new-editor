@@ -1,4 +1,5 @@
 import { navigate } from '../lib/router.js';
+import { mountStudioDrawer } from '../lib/studioChrome.js';
 import { showToast } from '../lib/loading.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 import { getSupabaseUrl, isSupabaseConfigured } from '../lib/supabase.js';
@@ -19,44 +20,57 @@ function getBackendBase() {
 }
 
 const AI_TOOLS = [
-    { id: 'scene-detection', name: 'Scene Detection', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 7h5M17 17h5"/></svg>', thumbnail: '/thumbnails/videoagent/scene-detection.png', color: 'blue', description: 'Identify scene boundaries', category: 'understanding' },
-    { id: 'clip-segmentation', name: 'Clip Segmentation', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="8" height="16" rx="1"/><rect x="14" y="4" width="8" height="16" rx="1"/><line x1="12" y1="4" x2="12" y2="20" stroke-dasharray="2 2"/></svg>', thumbnail: '/thumbnails/videoagent/clip-segmentation.png', color: 'purple', description: 'Split into clip segments', category: 'editing' },
-    { id: 'highlight-detection', name: 'Highlight Detection', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>', thumbnail: '/thumbnails/videoagent/highlight-detection.png', color: 'orange', description: 'Find key moments', category: 'understanding' },
-    { id: 'cosyvoice', name: 'CosyVoice', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>', thumbnail: '/thumbnails/videoagent/cosyvoice.png', color: 'pink', description: 'Voice cloning & TTS', category: 'audio' },
-    { id: 'fish-speech', name: 'Fish Speech', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M2 10c1.5-1 3-1.5 4.5-1s3 1.5 4.5 1 3-1.5 4.5-1 3 1 4.5 1"/></svg>', thumbnail: '/thumbnails/videoagent/fish-speech.png', color: 'cyan', description: 'Voice synthesis', category: 'audio' },
-    { id: 'seed-vc', name: 'Seed-VC', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M21 3l-7 7"/><path d="M3 3l7 7"/><path d="M3 21l7-7"/><path d="M21 21l-7-7"/></svg>', thumbnail: '/thumbnails/videoagent/seed-vc.png', color: 'teal', description: 'Voice conversion', category: 'audio' },
-    { id: 'whisper', name: 'Whisper', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>', thumbnail: '/thumbnails/videoagent/whisper.png', color: 'green', description: 'Audio transcription', category: 'audio' },
-    { id: 'imagebind', name: 'ImageBind', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>', thumbnail: '/thumbnails/videoagent/imagebind.png', color: 'indigo', description: 'Multimodal understanding', category: 'understanding' },
-    { id: 'dubbing', name: 'Cross-lingual Dub', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l6 6"/><path d="M4 14l6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="M22 22l-5-10-5 10"/><path d="M14 18h6"/></svg>', thumbnail: '/thumbnails/videoagent/dubbing.png', color: 'yellow', description: 'Translate & dub video', category: 'translate' },
-    { id: 'color-correct', name: 'Color Correction', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 22c-4.97 0-9-2.69-9-6v-.01C3 12.2 7.03 8.6 12 8.6s9 3.6 9 7.39V16c0 3.31-4.03 6-9 6z"/></svg>', thumbnail: '/thumbnails/videoagent/color-correct.png', color: 'rose', description: 'Adjust colors & tones', category: 'enhance' },
-    { id: 'upscale', name: 'Video Upscale', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>', thumbnail: '/thumbnails/videoagent/upscale.png', color: 'emerald', description: 'Enhance resolution', category: 'enhance' },
-    { id: 'stabilize', name: 'Stabilize', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>', thumbnail: '/thumbnails/videoagent/stabilize.png', color: 'violet', description: 'Fix shaky footage', category: 'enhance' },
-    // ── VideoDB + OpenAI Responses API Agents ──
-    { id: 'storyboarding', name: 'Storyboarding Agent', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="14" rx="2"/><path d="M3 9h18M8 21h8M12 17v4"/></svg>', thumbnail: '/thumbnails/videoagent/scene-detection.png', color: 'blue', description: 'Shot-by-shot storyboard from video', category: 'understanding' },
-    { id: 'highlights', name: 'Automated Highlights', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>', thumbnail: '/thumbnails/videoagent/highlight-detection.png', color: 'orange', description: 'Find & rank highlight moments', category: 'understanding' },
-    { id: 'text-to-movie', name: 'Text to Movie | GenAI', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M4 9h16M9 20V9"/></svg>', thumbnail: '/thumbnails/videoagent/clip-segmentation.png', color: 'purple', description: 'Generate a screenplay from a prompt', category: 'understanding' },
-    { id: 'visual-search', name: 'Visual Search', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>', thumbnail: '/thumbnails/videoagent/scene-detection.png', color: 'cyan', description: 'Find moments by what you see', category: 'understanding' },
-    { id: 'keyword-search', name: 'Keyword Search & Compile', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>', thumbnail: '/thumbnails/videoagent/highlight-detection.png', color: 'teal', description: 'Search spoken words, compile clips', category: 'understanding' },
-    { id: 'voice-cloning', name: 'Voice Cloning Agent', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>', thumbnail: '/thumbnails/videoagent/cosyvoice.png', color: 'pink', description: 'Synthesize a cloned voice sample', category: 'audio' },
-    { id: 'audio-overlay', name: 'Gen AI Audio Overlays', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>', thumbnail: '/thumbnails/videoagent/fish-speech.png', color: 'cyan', description: 'Generate & overlay AI narration', category: 'audio' },
-    { id: 'sales-assistant', name: 'Sales Assistant (CRM)', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3z"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>', thumbnail: '/thumbnails/videoagent/overview.png', color: 'emerald', description: 'Extract pitch + CRM follow-up', category: 'understanding' },
-    { id: 'comparison', name: 'Comparison Agent', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M5 8l-3 3 3 3M19 8l3 3-3 3"/></svg>', thumbnail: '/thumbnails/videoagent/qa.png', color: 'indigo', description: 'Compare two videos/descriptions', category: 'understanding' },
-    { id: 'output-formatting', name: 'Intelligent Output Formatting', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>', thumbnail: '/thumbnails/videoagent/color-correct.png', color: 'rose', description: 'Best export format per platform', category: 'understanding' },
-    { id: 'thumbnail', name: 'Thumbnail Agent', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>', thumbnail: '/thumbnails/videoagent/highlight-detection.png', color: 'amber', description: 'Pick best frame + title + tags', category: 'understanding' },
-    { id: 'profanity', name: 'Profanity Remover', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5-3 7-7 7-12V5l-7-3-7 3v5c0 5 2 9 7 12z"/></svg>', thumbnail: '/thumbnails/videoagent/whisper.png', color: 'red', description: 'Detect & clean unsafe language', category: 'understanding' },
-    { id: 'subtitle', name: 'Subtitle Agent', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 13h4M13 13h4M7 17h2M13 17h4"/></svg>', thumbnail: '/thumbnails/videoagent/whisper.png', color: 'green', description: 'Generate SRT subtitles', category: 'understanding' },
-    { id: 'slack', name: 'Slack Agent', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 10v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2"/><path d="M10 4h6a2 2 0 0 1 2 2v8"/></svg>', thumbnail: '/thumbnails/videoagent/overview.png', color: 'violet', description: 'Post video summary to Slack', category: 'understanding' },
-    // ── Content Factory ──
-    { id: 'faceless-video', name: 'Faceless Video Creator', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M10 9l5 3-5 3z"/></svg>', thumbnail: '/thumbnails/videoagent/clip-segmentation.png', color: 'blue', description: 'Script → faceless video plan', category: 'editing' },
-    { id: 'ai-ad-films', name: 'AI Ad Films', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l18-5v12L3 13z"/></svg>', thumbnail: '/thumbnails/videoagent/music-video.png', color: 'yellow', description: 'Generate product ad from text', category: 'editing' },
-    { id: 'kids-storyteller', name: 'Kids Storyteller', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15z"/></svg>', thumbnail: '/thumbnails/videoagent/scene-detection.png', color: 'pink', description: 'Animated educational story', category: 'editing' },
-    { id: 'trailer-narration', name: 'Trailer Narration', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>', thumbnail: '/thumbnails/videoagent/fish-speech.png', color: 'cyan', description: 'Cinematic trailer voice', category: 'editing' },
-    { id: 'tiktok-lyric', name: 'TikTok Lyric Videos', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>', thumbnail: '/thumbnails/videoagent/music-video.png', color: 'rose', description: 'Lyric-sync video plan', category: 'editing' },
-    { id: 'year-in-frames', name: 'Year in Frames', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M3 16h18"/></svg>', thumbnail: '/thumbnails/videoagent/clip-segmentation.png', color: 'emerald', description: 'Photo collection montage', category: 'editing' },
-    // ── Programmatic Editing ──
-    { id: 'intro-outro', name: 'Intro / Outro', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5v14l11-7z"/><path d="M16 5v14"/></svg>', thumbnail: '/thumbnails/videoagent/clip-segmentation.png', color: 'violet', description: 'Plan branded intro/outro', category: 'editing' },
-    { id: 'brand-elements', name: 'Brand Elements', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.4H22l-6 4.3 2.3 7.3L12 16.7 5.7 21l2.3-7.3-6-4.3h7.6z"/></svg>', thumbnail: '/thumbnails/videoagent/color-correct.png', color: 'amber', description: 'Logo + brand overlay plan', category: 'editing' },
-    { id: 'dynamic-ads', name: 'Dynamic Ads', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l18-5v12L3 13z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>', thumbnail: '/thumbnails/videoagent/music-video.png', color: 'yellow', description: 'Personalized ad variants', category: 'editing' },
+    // ── Perceive (watch & understand the footage) ──
+    { id: 'scene-detection', name: 'Scene Detection', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 7h5M17 17h5"/></svg>', thumbnail: '/thumbnails/videoagent/scene-detection.png', color: 'blue', description: 'Identify scene boundaries', category: 'understanding', group: 'perceive' },
+    { id: 'highlight-detection', name: 'Highlight Detection', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>', thumbnail: '/thumbnails/videoagent/highlight-detection.png', color: 'orange', description: 'Find key moments', category: 'understanding', group: 'perceive' },
+    { id: 'visual-search', name: 'Visual Search', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>', thumbnail: '/thumbnails/videoagent/scene-detection.png', color: 'cyan', description: 'Find moments by what you see', category: 'understanding', group: 'perceive' },
+    { id: 'keyword-search', name: 'Keyword Search & Compilation', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>', thumbnail: '/thumbnails/videoagent/highlight-detection.png', color: 'teal', description: 'Search spoken words, compile clips', category: 'understanding', group: 'perceive' },
+    { id: 'imagebind', name: 'ImageBind', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>', thumbnail: '/thumbnails/videoagent/imagebind.png', color: 'indigo', description: 'Multimodal understanding', category: 'understanding', group: 'perceive' },
+    { id: 'subtitle', name: 'Subtitle Agent', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="14" rx="2"/><path d="M7 13h4M13 13h4M7 17h2M13 17h4"/></svg>', thumbnail: '/thumbnails/videoagent/whisper.png', color: 'green', description: 'Generate SRT subtitles', category: 'understanding', group: 'perceive' },
+    { id: 'profanity', name: 'Profanity Remover', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5-3 7-7 7-12V5l-7-3-7 3v5c0 5 2 9 7 12z"/></svg>', thumbnail: '/thumbnails/videoagent/whisper.png', color: 'red', description: 'Detect & clean unsafe language', category: 'understanding', group: 'perceive' },
+    { id: 'highlights', name: 'Automated Video Highlights', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>', thumbnail: '/thumbnails/videoagent/highlight-detection.png', color: 'orange', description: 'Find & rank highlight moments', category: 'understanding', group: 'perceive' },
+
+    // ── Storyboard (plan the narrative / shot list) ──
+    { id: 'storyboarding', name: 'Storyboarding Agent', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="14" rx="2"/><path d="M3 9h18M8 21h8M12 17v4"/></svg>', thumbnail: '/thumbnails/videoagent/scene-detection.png', color: 'blue', description: 'Shot-by-shot storyboard from video', category: 'understanding', group: 'storyboard' },
+    { id: 'text-to-movie', name: 'Text to Movie | GenAI', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M4 9h16M9 20V9"/></svg>', thumbnail: '/thumbnails/videoagent/clip-segmentation.png', color: 'purple', description: 'Generate a screenplay from a prompt', category: 'understanding', group: 'storyboard' },
+    { id: 'text-to-video', name: 'Text-to-Video', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M12 8v8M8 12h8"/></svg>', thumbnail: '/thumbnails/videoagent/t2v-runway.webp.png', color: 'fuchsia', description: 'Prompt → AI-generated video', category: 'understanding', group: 'storyboard' },
+    { id: 'kids-storyteller', name: 'Kids Storyteller', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15z"/></svg>', thumbnail: '/thumbnails/videoagent/scene-detection.png', color: 'pink', description: 'Animated educational story', category: 'understanding', group: 'storyboard' },
+
+    // ── Generate (create new video/audio assets) ──
+    { id: 'faceless-video', name: 'Faceless Video Creator', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M10 9l5 3-5 3z"/></svg>', thumbnail: '/thumbnails/videoagent/clip-segmentation.png', color: 'blue', description: 'Script → faceless video plan', category: 'editing', group: 'generate' },
+    { id: 'ai-ad-films', name: 'AI Ad Films', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l18-5v12L3 13z"/></svg>', thumbnail: '/thumbnails/videoagent/music-video.png', color: 'yellow', description: 'Generate product ad from text', category: 'editing', group: 'generate' },
+    { id: 'tiktok-lyric', name: 'TikTok Lyric Videos', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>', thumbnail: '/thumbnails/videoagent/music-video.png', color: 'rose', description: 'Lyric-sync video plan', category: 'editing', group: 'generate' },
+    { id: 'year-in-frames', name: 'Year in Frames', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M3 16h18"/></svg>', thumbnail: '/thumbnails/videoagent/clip-segmentation.png', color: 'emerald', description: 'Photo collection montage', category: 'editing', group: 'generate' },
+    { id: 'trailer-narration', name: 'Trailer Narration', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>', thumbnail: '/thumbnails/videoagent/fish-speech.png', color: 'cyan', description: 'Cinematic trailer voice', category: 'audio', group: 'generate' },
+
+    // ── Voice (the agent's speech layer) ──
+    { id: 'cosyvoice', name: 'CosyVoice', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>', thumbnail: '/thumbnails/videoagent/cosyvoice.png', color: 'pink', description: 'Voice cloning & TTS', category: 'audio', group: 'voice' },
+    { id: 'fish-speech', name: 'Fish Speech', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M2 10c1.5-1 3-1.5 4.5-1s3 1.5 4.5 1 3-1.5 4.5-1 3 1 4.5 1"/></svg>', thumbnail: '/thumbnails/videoagent/fish-speech.png', color: 'cyan', description: 'Voice synthesis', category: 'audio', group: 'voice' },
+    { id: 'seed-vc', name: 'Seed-VC', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M21 3l-7 7"/><path d="M3 3l7 7"/><path d="M3 21l7-7"/><path d="M21 21l-7-7"/></svg>', thumbnail: '/thumbnails/videoagent/seed-vc.png', color: 'teal', description: 'Voice conversion', category: 'audio', group: 'voice' },
+    { id: 'whisper', name: 'Whisper', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>', thumbnail: '/thumbnails/videoagent/whisper.png', color: 'green', description: 'Audio transcription', category: 'audio', group: 'voice' },
+    { id: 'voice-cloning', name: 'Voice Cloning Agent', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>', thumbnail: '/thumbnails/videoagent/cosyvoice.png', color: 'pink', description: 'Synthesize a cloned voice sample', category: 'audio', group: 'voice' },
+    { id: 'audio-overlay', name: 'Gen AI Audio Overlays', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>', thumbnail: '/thumbnails/videoagent/fish-speech.png', color: 'cyan', description: 'Generate & overlay AI narration', category: 'audio', group: 'voice' },
+    { id: 'ai-voiceovers', name: 'AI Voiceovers', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>', thumbnail: '/thumbnails/videoagent/audio-tts.webp.png', color: 'sky', description: 'Studio-quality AI voiceover', category: 'audio', group: 'voice' },
+
+    // ── Localize (translate & dub for global reach) ──
+    { id: 'dubbing', name: 'Dubbing Agent', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l6 6"/><path d="M4 14l6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="M22 22l-5-10-5 10"/><path d="M14 18h6"/></svg>', thumbnail: '/thumbnails/videoagent/dubbing.png', color: 'yellow', description: 'Translate & dub video', category: 'translate', group: 'localize' },
+    { id: 'multi-lang-dubbing', name: 'Multi-Language Dubbing', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h12M3 10h8M3 15h12"/><path d="M15 13l6 4-6 4z"/></svg>', thumbnail: '/thumbnails/videoagent/dubbing.webp', color: 'lime', description: 'Dub into many languages', category: 'translate', group: 'localize' },
+
+    // ── Edit (assemble & polish the final cut) ──
+    { id: 'clip-segmentation', name: 'Clip Segmentation', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="8" height="16" rx="1"/><rect x="14" y="4" width="8" height="16" rx="1"/><line x1="12" y1="4" x2="12" y2="20" stroke-dasharray="2 2"/></svg>', thumbnail: '/thumbnails/videoagent/clip-segmentation.png', color: 'purple', description: 'Split into clip segments', category: 'editing', group: 'edit' },
+    { id: 'color-correct', name: 'Color Correction', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 22c-4.97 0-9-2.69-9-6v-.01C3 12.2 7.03 8.6 12 8.6s9 3.6 9 7.39V16c0 3.31-4.03 6-9 6z"/></svg>', thumbnail: '/thumbnails/videoagent/color-correct.png', color: 'rose', description: 'Adjust colors & tones', category: 'enhance', group: 'edit' },
+    { id: 'upscale', name: 'Video Upscale', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>', thumbnail: '/thumbnails/videoagent/upscale.png', color: 'emerald', description: 'Enhance resolution', category: 'enhance', group: 'edit' },
+    { id: 'stabilize', name: 'Stabilize', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>', thumbnail: '/thumbnails/videoagent/stabilize.png', color: 'violet', description: 'Fix shaky footage', category: 'enhance', group: 'edit' },
+    { id: 'intro-outro', name: 'Intro / Outro', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5v14l11-7z"/><path d="M16 5v14"/></svg>', thumbnail: '/thumbnails/videoagent/clip-segmentation.png', color: 'violet', description: 'Plan branded intro/outro', category: 'editing', group: 'edit' },
+    { id: 'brand-elements', name: 'Brand Elements', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.4H22l-6 4.3 2.3 7.3L12 16.7 5.7 21l2.3-7.3-6-4.3h7.6z"/></svg>', thumbnail: '/thumbnails/videoagent/color-correct.png', color: 'amber', description: 'Logo + brand overlay plan', category: 'editing', group: 'edit' },
+    { id: 'dynamic-ads', name: 'Dynamic Ads', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l18-5v12L3 13z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>', thumbnail: '/thumbnails/videoagent/music-video.png', color: 'yellow', description: 'Personalized ad variants', category: 'editing', group: 'edit' },
+    { id: 'output-formatting', name: 'Intelligent Output Formatting', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>', thumbnail: '/thumbnails/videoagent/color-correct.png', color: 'rose', description: 'Best export format per platform', category: 'editing', group: 'edit' },
+
+    // ── Connect (ship outputs to people & systems) ──
+    { id: 'sales-assistant', name: 'Sales Assistant Agent (CRM)', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3z"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>', thumbnail: '/thumbnails/videoagent/overview.png', color: 'emerald', description: 'Extract pitch + CRM follow-up', category: 'understanding', group: 'connect' },
+    { id: 'slack', name: 'Slack Agent', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 10v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2"/><path d="M10 4h6a2 2 0 0 1 2 2v8"/></svg>', thumbnail: '/thumbnails/videoagent/overview.png', color: 'violet', description: 'Post video summary to Slack', category: 'understanding', group: 'connect' },
+    { id: 'thumbnail', name: 'Thumbnail Agent', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>', thumbnail: '/thumbnails/videoagent/highlight-detection.png', color: 'amber', description: 'Pick best frame + title + tags', category: 'understanding', group: 'connect' },
+    { id: 'comparison', name: 'Comparison Agent', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M5 8l-3 3 3 3M19 8l3 3-3 3"/></svg>', thumbnail: '/thumbnails/videoagent/qa.png', color: 'indigo', description: 'Compare two videos/descriptions', category: 'understanding', group: 'connect' },
 ];
 
 const USE_CASES = [
@@ -71,6 +85,7 @@ const USE_CASES = [
 export function VideoAgentPage() {
     const container = document.createElement('div');
     container.className = 'w-full h-full flex flex-col items-center justify-center bg-app-bg relative p-4 md:p-6 overflow-y-auto custom-scrollbar overflow-x-hidden';
+  mountStudioChrome(container, { currentRoute: 'video-agent' });
 
     // AbortController for cancelling async operations
     const abortController = new AbortController();
@@ -106,8 +121,12 @@ export function VideoAgentPage() {
     contentWrapper.style.animationDelay = '0.1s';
     
     contentWrapper.innerHTML = `
-        <!-- Back Button -->
-        <div class="mb-6">
+        <!-- Back Button + All-Studios Menu -->
+        <div class="mb-6 flex items-center gap-2">
+            <button id="all-studios-btn" type="button" class="studio-nav-btn flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all text-white/70 hover:text-white" aria-label="All studios" title="All studios">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                <span class="hidden sm:inline">Studios</span>
+            </button>
             <button id="back-btn" class="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all text-white/70 hover:text-white">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M19 12H5M12 19l-7-7 7-7"/>
@@ -212,36 +231,35 @@ export function VideoAgentPage() {
                     </div>
                     <div class="p-4 md:p-6 pt-4">
                     <!-- Category Tabs -->
-                    <div class="flex border-b border-white/10 mb-4 -mx-4 px-4">
-                        <button class="category-tab flex-1 py-2 text-xs font-bold text-primary border-b-2 border-primary" data-category="all">
+                    <div class="flex flex-wrap border-b border-white/10 mb-4 -mx-4 px-4">
+                        <button class="category-tab flex-1 py-2 text-xs font-bold text-primary border-b-2 border-primary" data-group="all">
                             ALL
                         </button>
-                        <button class="category-tab flex-1 py-2 text-xs font-bold text-muted hover:text-white" data-category="understanding">
-                            UNDERSTAND
+                        <button class="category-tab flex-1 py-2 text-xs font-bold text-muted hover:text-white" data-group="perceive">
+                            PERCEIVE
                         </button>
-                        <button class="category-tab flex-1 py-2 text-xs font-bold text-muted hover:text-white" data-category="editing">
+                        <button class="category-tab flex-1 py-2 text-xs font-bold text-muted hover:text-white" data-group="storyboard">
+                            STORYBOARD
+                        </button>
+                        <button class="category-tab flex-1 py-2 text-xs font-bold text-muted hover:text-white" data-group="generate">
+                            GENERATE
+                        </button>
+                        <button class="category-tab flex-1 py-2 text-xs font-bold text-muted hover:text-white" data-group="voice">
+                            VOICE
+                        </button>
+                        <button class="category-tab flex-1 py-2 text-xs font-bold text-muted hover:text-white" data-group="localize">
+                            LOCALIZE
+                        </button>
+                        <button class="category-tab flex-1 py-2 text-xs font-bold text-muted hover:text-white" data-group="edit">
                             EDIT
                         </button>
-                        <button class="category-tab flex-1 py-2 text-xs font-bold text-muted hover:text-white" data-category="audio">
-                            AUDIO
+                        <button class="category-tab flex-1 py-2 text-xs font-bold text-muted hover:text-white" data-group="connect">
+                            CONNECT
                         </button>
                     </div>
                     
-                    <!-- AI Tools Grid -->
-                    <div id="tools-grid" class="grid grid-cols-2 gap-3 mb-6">
-                        ${AI_TOOLS.map(tool => `
-                            <button class="tool-btn overflow-hidden bg-white/5 hover:bg-white/10 border border-white/5 hover:border-primary/30 rounded-2xl text-left transition-all hover:scale-[1.02] cursor-pointer" data-tool="${tool.id}" data-category="${tool.category}">
-                                <div class="relative w-full aspect-square overflow-hidden">
-                                    <img src="${tool.thumbnail}" alt="${tool.name}" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'" />
-                                    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
-                                    <div class="absolute bottom-0 left-0 right-0 p-2.5">
-                                        <div class="font-bold text-white text-xs">${tool.name}</div>
-                                        <div class="text-[9px] text-white/60">${tool.description}</div>
-                                    </div>
-                                </div>
-                            </button>
-                        `).join('')}
-                    </div>
+                    <!-- AI Tools Grid (sectioned by creation group) -->
+                    <div id="tools-grid" class="space-y-6 mb-6"></div>
                     
                     <!-- Processing Queue -->
                     <div class="border-t border-white/10 pt-4 mb-4">
@@ -423,8 +441,21 @@ export function VideoAgentPage() {
     container.querySelector('#back-btn').onclick = () => {
         navigate('render', { videoId, videoUrl });
     };
+
+    // All-studios side-menu (drawer listing every SPA route). Mounted on
+    // document.body so it is never clipped by the studio's overflow container.
+    // Idempotent: drop any prior VA drawer first so re-renders don't stack.
+    const prevDrawer = document.getElementById('va-studio-drawer');
+    if (prevDrawer) prevDrawer.remove();
+    const studioDrawer = mountStudioDrawer(document.body, { currentRoute: 'video-agent' });
+    studioDrawer.element.id = 'va-studio-drawer';
+    const allStudiosBtn = container.querySelector('#all-studios-btn');
+    if (allStudiosBtn) {
+        allStudiosBtn.setAttribute('data-studio-menu', '');
+        allStudiosBtn.onclick = () => studioDrawer.toggle();
+    }
     
-    // Category tabs
+    // Category tabs (creation groups)
     container.querySelectorAll('.category-tab').forEach(tab => {
         tab.onclick = () => {
             container.querySelectorAll('.category-tab').forEach(t => {
@@ -433,26 +464,56 @@ export function VideoAgentPage() {
             });
             tab.classList.remove('text-muted');
             tab.classList.add('text-primary', 'border-primary');
-            
-            const category = tab.dataset.category;
-            container.querySelectorAll('.tool-btn').forEach(btn => {
-                if (category === 'all' || btn.dataset.category === category) {
-                    btn.style.display = 'block';
-                } else {
-                    btn.style.display = 'none';
-                }
-            });
+            renderToolsGrid(tab.dataset.group);
         };
     });
-    
-    // Tool buttons
-    container.querySelectorAll('.tool-btn').forEach(btn => {
-        btn.onclick = () => {
-            const toolId = btn.dataset.tool;
-            const tool = AI_TOOLS.find(t => t.id === toolId);
-            runTool(tool);
-        };
-    });
+
+    // Build the tool grid, sectioned by creation group. Pass a group key to
+    // show just that section, or 'all' to show every section with headers.
+    const TOOL_GROUPS = [
+        { key: 'perceive', label: 'Perceive' },
+        { key: 'storyboard', label: 'Storyboard' },
+        { key: 'generate', label: 'Generate' },
+        { key: 'voice', label: 'Voice' },
+        { key: 'localize', label: 'Localize' },
+        { key: 'edit', label: 'Edit' },
+        { key: 'connect', label: 'Connect' },
+    ];
+    function renderToolsGrid(group = 'all') {
+        const grid = container.querySelector('#tools-grid');
+        if (!grid) return;
+        const sections = TOOL_GROUPS.filter(g => group === 'all' || g.key === group);
+        grid.innerHTML = sections.map(section => {
+            const tools = AI_TOOLS.filter(t => t.group === section.key);
+            if (!tools.length) return '';
+            const cards = tools.map(tool => `
+                <button class="tool-btn overflow-hidden bg-white/5 hover:bg-white/10 border border-white/5 hover:border-primary/30 rounded-2xl text-left transition-all hover:scale-[1.02] cursor-pointer" data-tool="${tool.id}" data-group="${tool.group}" data-category="${tool.category}">
+                    <div class="relative w-full aspect-square overflow-hidden">
+                        <img src="${tool.thumbnail}" alt="${tool.name}" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'" />
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
+                        <div class="absolute bottom-0 left-0 right-0 p-2.5">
+                            <div class="font-bold text-white text-xs">${tool.name}</div>
+                            <div class="text-[9px] text-white/60">${tool.description}</div>
+                        </div>
+                    </div>
+                </button>`).join('');
+            const header = group === 'all'
+                ? `<h4 class="text-xs font-black text-white/80 tracking-wide uppercase mb-2 mt-1">${section.label}</h4>`
+                : '';
+            return `${header}<div class="grid grid-cols-2 gap-3">${cards}</div>`;
+        }).join('');
+        // Re-bind tool clicks for the freshly rendered cards.
+        grid.querySelectorAll('.tool-btn').forEach(btn => {
+            btn.onclick = () => {
+                const toolId = btn.dataset.tool;
+                const tool = AI_TOOLS.find(t => t.id === toolId);
+                runTool(tool);
+            };
+        });
+    }
+
+    // Initial render (all groups, sectioned).
+    renderToolsGrid('all');
     
     // Use case buttons
     container.querySelectorAll('.usecase-btn').forEach(btn => {
@@ -493,7 +554,7 @@ export function VideoAgentPage() {
         }
 
         // Voice/tts tools don't need a loaded video; everything else does.
-        const NO_VIDEO_TOOLS = ['cosyvoice', 'fish-speech', 'seed-vc'];
+        const NO_VIDEO_TOOLS = ['cosyvoice', 'fish-speech', 'seed-vc', 'ai-voiceovers', 'voice-cloning', 'audio-overlay', 'trailer-narration', 'storyboarding', 'text-to-movie', 'text-to-video', 'faceless-video', 'ai-ad-films', 'kids-storyteller', 'tiktok-lyric', 'year-in-frames'];
         if (!videoId && !videoUrl && !NO_VIDEO_TOOLS.includes(tool.id)) {
             showToast('Please load a video first', 'error');
             return;
@@ -995,9 +1056,36 @@ export function VideoAgentPage() {
             'whisper': ['Extracting audio...', 'Transcribing speech...', 'Formatting text...', 'Complete!'],
             'imagebind': ['Binding modalities...', 'Analyzing content...', 'Generating insights...', 'Complete!'],
             'dubbing': ['Translating content...', 'Synthesizing speech...', 'Syncing to video...', 'Complete!'],
+            'multi-lang-dubbing': ['Translating to languages...', 'Synthesizing voices...', 'Syncing tracks...', 'Complete!'],
             'color-correct': ['Analyzing color palette...', 'Applying corrections...', 'Balancing tones...', 'Final render...'],
             'upscale': ['Analyzing frames...', 'Enhancing resolution...', 'Applying AI scaling...', 'Complete!'],
             'stabilize': ['Analyzing motion...', 'Computing vectors...', 'Applying stabilization...', 'Done!'],
+            // VideoDB + OpenAI Responses API Agents
+            'storyboarding': ['Planning steps...', 'Generating script + voice + image per step...', 'Assembling timeline...', 'Compiling storyboard stream...'],
+            'highlights': ['Indexing video...', 'Ranking moments...', 'Writing summary...', 'Complete!'],
+            'text-to-movie': ['Writing screenplay...', 'Planning shots...', 'Finalizing...', 'Complete!'],
+            'text-to-video': ['Writing prompt...', 'Planning shots...', 'Finalizing...', 'Complete!'],
+            'visual-search': ['Searching frames...', 'Ranking matches...', 'Compiling results...', 'Complete!'],
+            'keyword-search': ['Transcribing speech...', 'Searching keywords...', 'Compiling clips...', 'Complete!'],
+            'voice-cloning': ['Loading voice model...', 'Synthesizing sample...', 'Finalizing...', 'Complete!'],
+            'audio-overlay': ['Writing narration...', 'Synthesizing audio...', 'Finalizing...', 'Complete!'],
+            'ai-voiceovers': ['Writing script...', 'Synthesizing voiceover...', 'Finalizing...', 'Complete!'],
+            'trailer-narration': ['Writing trailer script...', 'Synthesizing voice...', 'Finalizing...', 'Complete!'],
+            'sales-assistant': ['Transcribing pitch...', 'Extracting insights...', 'Drafting CRM task...', 'Complete!'],
+            'comparison': ['Analyzing A...', 'Analyzing B...', 'Comparing...', 'Complete!'],
+            'output-formatting': ['Reading target platform...', 'Choosing format...', 'Writing recommendation...', 'Complete!'],
+            'thumbnail': ['Picking frame...', 'Writing title...', 'Suggesting tags...', 'Complete!'],
+            'profanity': ['Transcribing...', 'Scanning language...', 'Suggesting edits...', 'Complete!'],
+            'subtitle': ['Transcribing...', 'Generating SRT...', 'Finalizing...', 'Complete!'],
+            'slack': ['Summarizing...', 'Posting to Slack...', 'Complete!'],
+            'kids-storyteller': ['Writing story...', 'Planning animation...', 'Finalizing...', 'Complete!'],
+            'faceless-video': ['Writing script...', 'Planning visuals...', 'Finalizing plan...', 'Complete!'],
+            'ai-ad-films': ['Writing ad...', 'Planning shots...', 'Finalizing...', 'Complete!'],
+            'tiktok-lyric': ['Writing lyrics...', 'Planning sync...', 'Finalizing...', 'Complete!'],
+            'year-in-frames': ['Collecting frames...', 'Ordering montage...', 'Finalizing...', 'Complete!'],
+            'intro-outro': ['Planning intro...', 'Planning outro...', 'Finalizing...', 'Complete!'],
+            'brand-elements': ['Placing logo...', 'Planning overlays...', 'Finalizing...', 'Complete!'],
+            'dynamic-ads': ['Reading variants...', 'Planning cuts...', 'Finalizing...', 'Complete!'],
         };
         return stepsMap[toolId] || ['Processing...', 'Finalizing...'];
     };
@@ -1155,6 +1243,9 @@ export function VideoAgentPage() {
     // Cleanup function to abort ongoing operations
     container.cleanup = () => {
         abortController.abort();
+        // Remove the all-studios drawer mounted on document.body for this page.
+        const d = document.getElementById('va-studio-drawer');
+        if (d) d.remove();
     };
 
     return container;

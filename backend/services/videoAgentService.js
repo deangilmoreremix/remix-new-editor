@@ -43,94 +43,148 @@ function resolveVideoDbKey(payload) {
 
 const VIDEODB_BASE_URL = 'https://api.videodb.io';
 
-/**
- * Retry wrapper for outbound calls (VideoDB, OpenAI, webhooks).
- *
- * baseDelay=500ms, maxDelay=8000ms, factor=2, jitter=true, maxAttempts=2.
- * Only retries on: network errors, 429, 5xx.
- * Skips retry on: 4xx (except 429), auth/validation errors.
- * Logs each retry attempt with jobId for debugging.
- */
-async function withRetry(fn, { maxAttempts = 2, baseDelay = 500, maxDelay = 8000 } = {}, jobId) {
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    try {
-      return await fn();
-    } catch (err) {
-      const status = err?.response?.status || err?.status;
-      const isNetwork = !err?.response && !err?.status;
-      const retryable = isNetwork || status === 429 || (typeof status === 'number' && status >= 500);
-      if (!retryable || attempt === maxAttempts) {
-        if (attempt > 1) {
-          console.error(`[videoagent:${jobId}] attempt ${attempt}/${maxAttempts} failed (status=${status || 'network'}) — exhausted`, { status, message: err?.message });
-        }
-        throw err;
-      }
-      const jitter = Math.random() * baseDelay;
-      const delay = Math.min(baseDelay * 2 ** (attempt - 1) + jitter, maxDelay);
-      console.warn(`[videoagent:${jobId}] attempt ${attempt}/${maxAttempts} failed (status=${status || 'network'}), retrying in ${Math.round(delay)}ms`);
-      await new Promise((resolve) => setTimeout(resolve, delay));
-    }
-  }
-}
-
 // Index/ingest a video URL into a VideoDB collection. Returns the media object.
-async function videoDbIndex(url, videoDbKey, { name, collectionId = 'default' } = {}, jobId) {
-  return withRetry(async () => {
-    const res = await fetch(`${VIDEODB_BASE_URL}/collection/${encodeURIComponent(collectionId)}/upload`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-access-token': videoDbKey },
-      body: JSON.stringify({ url, name, media_type: 'video' }),
-    });
-    const json = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(`VideoDB index failed (${res.status}): ${(json.error || json.message || '').toString().slice(0, 200)}`);
-    const data = json.data ?? json;
-    return { id: data.id || data.media_id || data.video_id, streamUrl: data.stream_url || data.player_url, raw: data };
-  }, {}, jobId);
+async function videoDbIndex(url, videoDbKey, { name, collectionId = 'default' } = {}) {
+  const res = await fetch(`${VIDEODB_BASE_URL}/collection/${encodeURIComponent(collectionId)}/upload`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-access-token': videoDbKey },
+    body: JSON.stringify({ url, name, media_type: 'video' }),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`VideoDB index failed (${res.status}): ${(json.error || json.message || '').toString().slice(0, 200)}`);
+  const data = json.data ?? json;
+  return { id: data.id || data.media_id || data.video_id, streamUrl: data.stream_url || data.player_url, raw: data };
 }
 
 // Semantic search a query within a single indexed video (or a collection).
-async function videoDbSearch(videoId, query, videoDbKey, { indexType = 'scene', searchType = 'semantic', resultThreshold = 10 } = {}, jobId) {
-  return withRetry(async () => {
-    const endpoint = videoId
-      ? `${VIDEODB_BASE_URL}/video/${encodeURIComponent(videoId)}/search/`
-      : `${VIDEODB_BASE_URL}/collection/default/search/`;
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-access-token': videoDbKey },
-      body: JSON.stringify({ query, index_type: indexType, search_type: searchType, result_threshold: resultThreshold }),
+async function videoDbSearch(videoId, query, videoDbKey, { indexType = 'scene', searchType = 'semantic', resultThreshold = 10 } = {}) {
+  const endpoint = videoId
+    ? `${VIDEODB_BASE_URL}/video/${encodeURIComponent(videoId)}/search/`
+    : `${VIDEODB_BASE_URL}/collection/default/search/`;
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-access-token': videoDbKey },
+    body: JSON.stringify({ query, index_type: indexType, search_type: searchType, result_threshold: resultThreshold }),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`VideoDB search failed (${res.status}): ${(json.error || json.message || '').toString().slice(0, 200)}`);
+  const data = json.data ?? json;
+  return Array.isArray(data) ? data : (data.results || []);
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// VideoDB generative-media helpers (Content Factory / Text-to-Video pipeline).
+// These follow the same raw-fetch + x-access-token pattern as videoDbIndex /
+// videoDbSearch and back the Storyboard Generator documented at
+// docs.videodb.io/examples-and-tutorials/content-factory/text-prompts
+// ─────────────────────────────────────────────────────────────────────────
+
+// Generate text (scripts/captions) via VideoDB's generation endpoint.
+// Returns { output, jobId } — jobId is the async id used to poll for completion.
+async function videoDbGenerateText(videoDbKey, prompt, { modelName = 'pro', responseType = 'text', collectionId = 'default' } = {}) {
+  const res = await fetch(`${VIDEODB_BASE_URL}/collection/${encodeURIComponent(collectionId)}/generate/text/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-access-token': videoDbKey },
+    body: JSON.stringify({ prompt, model_name: modelName, response_type: responseType }),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`VideoDB text-gen failed (${res.status}): ${(json.error || json.message || '').toString().slice(0, 200)}`);
+  const data = json.data ?? json;
+  return { output: data.output ?? data.text ?? '', jobId: data.id };
+}
+
+// Generate AI voice / audio. `audioType` is 'speech' for voiceovers/voice cloning.
+// Returns { id (a- prefix asset), jobId (async id for polling), url }.
+async function videoDbGenerateAudio(videoDbKey, { text, audioType = 'speech', voiceName, collectionId = 'default' } = {}) {
+  const res = await fetch(`${VIDEODB_BASE_URL}/collection/${encodeURIComponent(collectionId)}/generate/audio/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-access-token': videoDbKey },
+    body: JSON.stringify({ prompt: text, audio_type: audioType, voice_name: voiceName, text }),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`VideoDB audio-gen failed (${res.status}): ${(json.error || json.message || '').toString().slice(0, 200)}`);
+  const data = json.data ?? json;
+  // Audio IDs carry an `a-` prefix per VideoDB docs.
+  return { id: data.id || data.audio_id, jobId: data.id, url: data.output_url };
+}
+
+// Generate a storyboard concept image (i- prefix per VideoDB docs).
+// Returns { id (i- prefix asset), jobId (async id for polling), url }.
+async function videoDbGenerateImage(videoDbKey, prompt, { aspectRatio = '1:1', collectionId = 'default' } = {}) {
+  const res = await fetch(`${VIDEODB_BASE_URL}/collection/${encodeURIComponent(collectionId)}/generate/image/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-access-token': videoDbKey },
+    body: JSON.stringify({ prompt, aspect_ratio: aspectRatio }),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`VideoDB image-gen failed (${res.status}): ${(json.error || json.message || '').toString().slice(0, 200)}`);
+  const data = json.data ?? json;
+  return { id: data.id || data.image_id, jobId: data.id, url: data.output_url };
+}
+
+// Poll an async VideoDB operation (generation / indexing) until it completes.
+// GET /async-response/{response_id} → { status, data }.
+// Returns the completed `data` object. Throws on failure or timeout.
+async function videoDbPollAsync(videoDbKey, responseId, { timeoutMs = 120000, intervalMs = 2000 } = {}) {
+  if (!responseId) return null;
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const res = await fetch(`${VIDEODB_BASE_URL}/async-response/${encodeURIComponent(responseId)}`, {
+      method: 'GET',
+      headers: { 'x-access-token': videoDbKey },
     });
     const json = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(`VideoDB search failed (${res.status}): ${(json.error || json.message || '').toString().slice(0, 200)}`);
-    const data = json.data ?? json;
-    return Array.isArray(data) ? data : (data.results || []);
-  }, {}, jobId);
+    const status = (json.status || (json.data && json.data.status) || '').toLowerCase();
+    if (status === 'done' || status === 'completed') {
+      return json.data ?? json.result ?? json;
+    }
+    if (status === 'failed') {
+      throw new Error(`VideoDB async job ${responseId} failed: ${(json.message || json.error || '').toString().slice(0, 200)}`);
+    }
+    await sleep(intervalMs);
+  }
+  throw new Error(`VideoDB async job ${responseId} timed out after ${timeoutMs}ms`);
+}
+
+// Compile a Timeline v2 and return a playable stream URL.
+// timeline is the array-of-tracks payload documented at
+// /api-reference/timeline/create_timeline_v2 (request_type: 'compile').
+async function videoDbCompileTimeline(videoDbKey, timeline, { outputFormat = 'mp4', quality = 'high', collectionId = 'default' } = {}) {
+  const res = await fetch(`${VIDEODB_BASE_URL}/timeline_v2`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-access-token': videoDbKey },
+    body: JSON.stringify({ request_type: 'compile', timeline, output_format: outputFormat, quality, collection_id: collectionId }),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`VideoDB timeline compile failed (${res.status}): ${(json.error || json.message || '').toString().slice(0, 200)}`);
+  const data = json.data ?? json;
+  return { streamUrl: data.stream_url || data.streamUrl, duration: data.duration, format: data.format };
 }
 
 // OpenAI Responses API call (https://api.openai.com/v1/responses). Used for all
 // agent reasoning/generation in the Video Agent. Honors the user's own key.
-async function callResponsesApi(apiKey, { model = 'gpt-4.1', input, tools, text, temperature = 0.4 }, jobId) {
-  return withRetry(async () => {
-    if (!apiKey) throw new Error('An OpenAI API key is required. Add your key in Settings → OpenAI.');
-    const body = { model, input, temperature };
-    if (tools) body.tools = tools;
-    if (text) body.text = text;
-    const res = await fetch('https://api.openai.com/v1/responses', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) {
-      const t = await res.text();
-      throw new Error(`OpenAI Responses API failed (${res.status}): ${t.slice(0, 200)}`);
-    }
-    const json = await res.json();
-    const out = json.output || [];
-    const textParts = out
-      .filter((o) => o.type === 'message' || o.type === 'response.output_text')
-      .flatMap((o) => (o.content ? o.content.filter((c) => c.type === 'output_text').map((c) => c.text) : []));
-    const fullText = textParts.join('') || json.output_text || '';
-    return { text: fullText, raw: json };
-  }, {}, jobId);
+async function callResponsesApi(apiKey, { model = 'gpt-4.1', input, tools, text, temperature = 0.4 }) {
+  if (!apiKey) throw new Error('An OpenAI API key is required. Add your key in Settings → OpenAI.');
+  const body = { model, input, temperature };
+  if (tools) body.tools = tools;
+  if (text) body.text = text;
+  const res = await fetch('https://api.openai.com/v1/responses', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(`OpenAI Responses API failed (${res.status}): ${t.slice(0, 200)}`);
+  }
+  const json = await res.json();
+  // Extract the assistant text from the Responses API output items.
+  const out = json.output || [];
+  const textParts = out
+    .filter((o) => o.type === 'message' || o.type === 'response.output_text')
+    .flatMap((o) => (o.content ? o.content.filter((c) => c.type === 'output_text').map((c) => c.text) : []));
+  const fullText = textParts.join('') || json.output_text || '';
+  return { text: fullText, raw: json };
 }
 
 const jobs = new Map();
@@ -510,7 +564,7 @@ async function ensureIndexed(jobId, payload) {
   if (!payload.videoUrl || /^(blob:|data:)/i.test(payload.videoUrl)) return null;
   if (payload._videoDbId) return payload._videoDbId;
   updateJob(jobId, { stage: 'indexing-to-videodb' });
-  const indexed = await videoDbIndex(payload.videoUrl, videoDbKey, { name: payload.videoName || 'videoagent-source' }, jobId);
+  const indexed = await videoDbIndex(payload.videoUrl, videoDbKey, { name: payload.videoName || 'videoagent-source' });
   payload._videoDbId = indexed.id;
   return indexed.id;
 }
@@ -528,30 +582,23 @@ async function runAgentJob(jobId, agentId, payload) {
     const prompt = payload.prompt || payload.text || payload.query || '';
 
     switch (agentId) {
-      case 'storyboarding': {
-        updateJob(jobId, { progress: 40, currentStep: 2, stage: 'analyzing-scenes' });
-        const scenes = videoId ? await videoDbSearch(videoId, 'key scenes, actions and setting', videoDbKey, { indexType: 'scene' }, jobId) : [];
-        const sceneText = scenes.slice(0, 8).map((s, i) => `Scene ${i + 1} [${(s.start ?? 0)}s-${(s.end ?? 0)}s]: ${s.text || ''}`).join('\n');
-        const story = await callResponsesApi(apiKey, {
-          input: `You are a professional storyboard artist. Create a shot-by-shot storyboard for this video.\n\nVideo context:\n${sceneText || prompt}\n\nReturn a JSON array of shots, each with: shot_number, timestamp (seconds), description, camera (e.g. wide/close-up), and narration.`,
-        }, jobId);
-        return completeJob(jobId, { agent: 'storyboarding', storyboard: story.text, shots: parseJsonArray(story.text), source: 'videodb+openai', exported: false });
-      }
+      case 'storyboarding':
+        return runStoryboardJob(jobId, payload);
       case 'highlights': {
         updateJob(jobId, { progress: 40, currentStep: 2, stage: 'finding-highlights' });
-        const res = videoId ? await videoDbSearch(videoId, 'most exciting, important or emotional moments', videoDbKey, { indexType: 'scene', resultThreshold: 8 }, jobId) : [];
+        const res = videoId ? await videoDbSearch(videoId, 'most exciting, important or emotional moments', videoDbKey, { indexType: 'scene', resultThreshold: 8 }) : [];
         const moments = res.map((r, i) => ({ rank: i + 1, start: r.start ?? 0, end: r.end ?? 0, reason: (r.text || '').slice(0, 160) }));
         const summary = await callResponsesApi(apiKey, {
           input: `Summarize the top highlight moments of this video as a bulleted list. Moments:\n${moments.map((m) => `${m.start}s: ${m.reason}`).join('\n')}`,
-        }, jobId);
+        });
         return completeJob(jobId, { agent: 'highlights', highlights: moments, summary: summary.text, source: 'videodb+openai' });
       }
       case 'text-to-movie':
       case 'text-to-video': {
         updateJob(jobId, { progress: 40, currentStep: 2, stage: 'writing-screenplay' });
         const script = await callResponsesApi(apiKey, {
-          input: `You are a GenAI movie director. Turn this prompt into a cinematic shot list / screenplay for a short AI-generated film.\n\nPrompt: ${prompt}\n\nReturn JSON: { title, logline, shots: [{ shot, camera, action, voiceover }] }.`,
-        }, jobId);
+          input: `You are a GenAI movie director. Turn this prompt into a cinematic shot list / screenplay for a short AI-generated film.\n\nPrompt: ${prompt || 'A heroic journey across a sci-fi city at sunset'}\n\nReturn JSON: { title, logline, shots: [{ shot, camera, action, voiceover }] }.`,
+        });
         return completeJob(jobId, { agent: 'text-to-movie', screenplay: script.text, shots: parseJsonArray(script.text), source: 'openai-responses' });
       }
       case 'visual-search':
@@ -559,37 +606,33 @@ async function runAgentJob(jobId, agentId, payload) {
         updateJob(jobId, { progress: 40, currentStep: 2, stage: 'searching' });
         if (!videoId) return failJob(jobId, new Error('A video must be loaded (and a VideoDB key set) to search it.'));
         const idx = agentId === 'keyword-search' ? 'spoken' : 'visual';
-        const res = await videoDbSearch(videoId, prompt || 'anything notable', videoDbKey, { indexType: idx }, jobId);
+        const res = await videoDbSearch(videoId, prompt || 'anything notable', videoDbKey, { indexType: idx });
         const clips = res.map((r, i) => ({ index: i + 1, start: r.start ?? 0, end: r.end ?? 0, text: (r.text || '').slice(0, 200), score: r.score }));
         return completeJob(jobId, { agent: agentId, query: prompt, results: clips, count: clips.length, source: 'videodb' });
       }
       case 'voice-cloning': {
         updateJob(jobId, { progress: 40, currentStep: 2, stage: 'synthesizing' });
-        const text = payload.text;
-        if (!text) {
-          return failJob(jobId, new Error('text is required for voice cloning.'));
-        }
-        const syn = await synthesizeSpeech({ text, voice: payload.voice || 'alloy', apiKey }, jobId);
+        const text = payload.text || 'This is a cloned-voice sample narrating your video.';
+        const syn = await synthesizeSpeech({ text, voice: payload.voice || 'alloy', apiKey });
         const url = storeOutput(jobId, syn.audioBuffer, '.' + (syn.ext || 'mp3'));
         return completeJob(jobId, { agent: 'voice-cloning', audioUrl: url, downloadUrl: url, text, note: 'OpenAI voice (clone with a Voiceprint when available)', source: 'openai-tts' });
       }
       case 'audio-overlay':
-      case 'gen-audio-overlays': {
+      case 'gen-audio-overlays':
+      case 'ai-voiceovers': {
         updateJob(jobId, { progress: 40, currentStep: 2, stage: 'generating-audio' });
-        const text = payload.text || payload.description;
-        if (!text) {
-          return failJob(jobId, new Error('text or description is required for audio overlay.'));
-        }
-        const syn = await synthesizeSpeech({ text, voice: payload.voice || 'nova', apiKey }, jobId);
+        const isVoiceover = agentId === 'ai-voiceovers';
+        const text = payload.text || payload.description || (isVoiceover ? 'A studio-quality AI voiceover for your video.' : 'Add an energetic narration track over this video.');
+        const syn = await synthesizeSpeech({ text, voice: payload.voice || 'nova', apiKey });
         const url = storeOutput(jobId, syn.audioBuffer, '.' + (syn.ext || 'mp3'));
-        return completeJob(jobId, { agent: 'audio-overlay', audioUrl: url, downloadUrl: url, text, source: 'openai-tts' });
+        return completeJob(jobId, { agent: agentId, audioUrl: url, downloadUrl: url, text, source: 'openai-tts' });
       }
       case 'sales-assistant': {
         updateJob(jobId, { progress: 40, currentStep: 2, stage: 'analyzing-pitch' });
-        const transcript = videoId ? (await videoDbSearch(videoId, 'spoken words, product pitch, pricing, offer', videoDbKey, { indexType: 'spoken' }, jobId)).map((r) => r.text || '').join(' ') : (payload.transcript || '');
+        const transcript = videoId ? (await videoDbSearch(videoId, 'spoken words, product pitch, pricing, offer', videoDbKey, { indexType: 'spoken' })).map((r) => r.text || '').join(' ') : (payload.transcript || '');
         const plan = await callResponsesApi(apiKey, {
           input: `You are a sales-assistant CRM copilot. From this video/pitch, extract: customer pain, product offered, price, CTA, and a suggested CRM follow-up task + email. Pitch:\n${transcript.slice(0, 3000) || prompt}`,
-        }, jobId);
+        });
         return completeJob(jobId, { agent: 'sales-assistant', analysis: plan.text, crmTask: extractField(plan.text, 'follow-up'), source: 'videodb+openai' });
       }
       case 'comparison': {
@@ -598,7 +641,7 @@ async function runAgentJob(jobId, agentId, payload) {
         const b = payload.videoUrlB || payload.textB || '';
         const cmp = await callResponsesApi(apiKey, {
           input: `Compare these two videos/descriptions on: content, style, audience, strengths, weaknesses. A: ${a}\nB: ${b}`,
-        }, jobId);
+        });
         return completeJob(jobId, { agent: 'comparison', comparison: cmp.text, source: 'openai-responses' });
       }
       case 'output-formatting': {
@@ -606,39 +649,40 @@ async function runAgentJob(jobId, agentId, payload) {
         const fmt = payload.format || 'vertical 9:16';
         const out = await callResponsesApi(apiKey, {
           input: `Suggest the optimal export/output formatting for this video given target "${fmt}". Include resolution, aspect ratio, codec, platform (TikTok/IG/YT), and a caption template. Context: ${prompt}`,
-        }, jobId);
+        });
         return completeJob(jobId, { agent: 'output-formatting', recommendation: out.text, targetFormat: fmt, source: 'openai-responses' });
       }
       case 'dubbing':
+      case 'multi-lang-dubbing':
         return runDubbing(jobId, payload);
       case 'thumbnail': {
         updateJob(jobId, { progress: 40, currentStep: 2, stage: 'choosing-thumbnail' });
-        const shots = videoId ? await videoDbSearch(videoId, 'most visually striking frame', videoDbKey, { indexType: 'visual', resultThreshold: 5 }, jobId) : [];
+        const shots = videoId ? await videoDbSearch(videoId, 'most visually striking frame', videoDbKey, { indexType: 'visual', resultThreshold: 5 }) : [];
         const pick = await callResponsesApi(apiKey, {
           input: `Pick the best thumbnail frame and write a click-worthy title + 3 hashtags. Candidate frames:\n${shots.map((s, i) => `${i + 1}. ${s.text || ''} (${(s.start ?? 0)}s)`).join('\n')}\nVideo: ${prompt}`,
-        }, jobId);
+        });
         return completeJob(jobId, { agent: 'thumbnail', title: extractField(pick.text, 'title'), hashtags: extractHashtags(pick.text), rationale: pick.text, source: 'videodb+openai' });
       }
       case 'profanity': {
         updateJob(jobId, { progress: 40, currentStep: 2, stage: 'scanning-language' });
-        const transcript = videoId ? (await videoDbSearch(videoId, 'all spoken words', videoDbKey, { indexType: 'spoken', resultThreshold: 50 }, jobId)).map((r) => r.text || '').join(' ') : (payload.transcript || '');
+        const transcript = videoId ? (await videoDbSearch(videoId, 'all spoken words', videoDbKey, { indexType: 'spoken', resultThreshold: 50 })).map((r) => r.text || '').join(' ') : (payload.transcript || '');
         const clean = await callResponsesApi(apiKey, {
           input: `Detect and list any profanity/non-family-safe language in this transcript, with timestamps if available, and suggest clean replacements. Transcript:\n${transcript.slice(0, 4000)}`,
-        }, jobId);
+        });
         return completeJob(jobId, { agent: 'profanity', report: clean.text, hasProfanity: /profan|inappropriate|not safe/i.test(clean.text), source: 'videodb+openai' });
       }
       case 'subtitle': {
         updateJob(jobId, { progress: 40, currentStep: 2, stage: 'generating-subtitles' });
-        const transcript = videoId ? (await videoDbSearch(videoId, 'all spoken words with timing', videoDbKey, { indexType: 'spoken', resultThreshold: 50 }, jobId)).map((r) => r.text || '').join(' ') : '';
+        const transcript = videoId ? (await videoDbSearch(videoId, 'all spoken words with timing', videoDbKey, { indexType: 'spoken', resultThreshold: 50 })).map((r) => r.text || '').join(' ') : '';
         const sub = await callResponsesApi(apiKey, {
           input: `Generate SRT subtitles (timestamped) from this transcript. Transcript:\n${transcript.slice(0, 4000) || prompt}`,
-        }, jobId);
+        });
         const srtUrl = storeOutput(jobId, sub.text, '.srt');
         return completeJob(jobId, { agent: 'subtitle', srt: sub.text, srtUrl, downloadUrl: srtUrl, source: 'videodb+openai' });
       }
       case 'slack': {
         updateJob(jobId, { progress: 40, currentStep: 2, stage: 'posting-to-slack' });
-        const summary = videoId ? (await videoDbSearch(videoId, 'summary of this video', videoDbKey, { indexType: 'scene' }, jobId)).map((r) => r.text || '').join(' ') : prompt;
+        const summary = videoId ? (await videoDbSearch(videoId, 'summary of this video', videoDbKey, { indexType: 'scene' })).map((r) => r.text || '').join(' ') : prompt;
         const webhook = process.env.SLACK_WEBHOOK_URL || (payload.settings && payload.settings.slackWebhook);
         if (!webhook) return completeJob(jobId, { agent: 'slack', posted: false, note: 'Set SLACK_WEBHOOK_URL (Render env) or pass slackWebhook to post.', summary: summary.slice(0, 500) });
         await fetch(webhook, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: `🎬 Video Agent: ${summary.slice(0, 500)}` }) });
@@ -647,6 +691,173 @@ async function runAgentJob(jobId, agentId, payload) {
       default:
         return failJob(jobId, new Error(`Unsupported agent: ${agentId}`));
     }
+  } catch (err) {
+    failJob(jobId, err);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Storyboard Generator (VideoDB Content Factory — Text-to-Video pipeline)
+// Implements docs.videodb.io/examples-and-tutorials/content-factory/text-prompts
+//
+// Pipeline (per the doc):
+//   1. Collect steps (from payload.steps[], or derive from the OpenAI
+//      Responses API when only a free-text prompt is given).
+//   2. For each step: generate script (Text Gen) → generate voiceover
+//      (Voice Gen) → generate concept image (Image Gen).
+//   3. Upload a background video to act as the canvas.
+//   4. Assemble a Timeline v2: background track + centered image track +
+//      sequenced audio track + bottom step-label text track.
+//   5. Compile → playable stream URL.
+// ─────────────────────────────────────────────────────────────────────────
+async function runStoryboardJob(jobId, payload) {
+  const apiKey = resolveApiKey(payload);
+  const videoDbKey = resolveVideoDbKey(payload);
+  if (!videoDbKey) {
+    return failJob(jobId, new Error('A VideoDB API key is required for the Storyboard Generator. Add your key in Settings → VideoDB.'));
+  }
+  const prompt = (payload.prompt || payload.text || payload.query || '').toString().trim();
+  const appDescription = payload.appDescription || payload.app_description || prompt || 'A generic app walkthrough';
+  const rawSteps = Array.isArray(payload.steps) && payload.steps.length
+    ? payload.steps
+    : (typeof payload.steps === 'string' && payload.steps.trim() ? payload.steps.split('\n').map((s) => s.trim()).filter(Boolean) : null);
+
+  try {
+    updateJob(jobId, { progress: 10, currentStep: 1, stage: 'planning-steps' });
+
+    // Step 1: resolve the list of steps. If the user only gave a prompt, use
+    // the OpenAI Responses API to break it into a numbered user flow.
+    let steps = rawSteps;
+    if (!steps) {
+      if (!apiKey) {
+        return failJob(jobId, new Error('Provide either step list or an OpenAI key so the storyboard can be planned from your prompt.'));
+      }
+      const plan = await callResponsesApi(apiKey, {
+        input: `Break the following app concept into a numbered list of 3-6 short user-flow steps (one line each, no extra prose):\n"${appDescription}"`,
+      });
+      steps = plan.text
+        .split('\n')
+        .map((l) => l.replace(/^\s*\d+[.)]\s*/, '').trim())
+        .filter(Boolean)
+        .slice(0, 6);
+    }
+    if (!steps.length) return failJob(jobId, new Error('No storyboard steps could be determined.'));
+
+    // Step 2: kick off script + voice + image generation per step, then poll
+    // each async job to completion so we can read the real voiceover duration.
+    const storyboardAssets = [];
+    const asyncJobs = [];
+    for (let i = 0; i < steps.length; i++) {
+      const stepName = steps[i];
+      updateJob(jobId, { progress: 20 + Math.round((i / steps.length) * 45), currentStep: 2, stage: `generating-step-${i + 1}` });
+
+      // A. Script (Text Gen) — synchronous output.
+      const scriptText = await videoDbGenerateText(videoDbKey,
+        `Write a single conversational sentence for a video narration explaining the step: '${stepName}' for an app described as: '${appDescription}'. Keep it encouraging and brief.`);
+
+      // B. Voiceover (Voice Gen) — async; capture jobId for polling.
+      const voice = await videoDbGenerateAudio(videoDbKey, {
+        text: scriptText.output || stepName,
+        audioType: 'speech',
+        voiceName: payload.voice || 'Default',
+      });
+
+      // C. Concept image (Image Gen) — async; capture jobId for polling.
+      const image = await videoDbGenerateImage(videoDbKey,
+        `A minimal, stippling black ballpoint pen illustration of a user interface or scene representing: '${stepName}'. Context: ${appDescription}. Clean white background, professional storyboard style.`);
+
+      const asset = {
+        step_name: stepName,
+        script: scriptText.output,
+        audio_id: voice.id,
+        image_id: image.id,
+        duration: 5, // replaced with real duration after polling
+      };
+      storyboardAssets.push(asset);
+
+      // Track async jobs so we can poll them all concurrently below.
+      if (voice.jobId) asyncJobs.push({ kind: 'audio', asset, jobId: voice.jobId });
+      if (image.jobId) asyncJobs.push({ kind: 'image', asset, jobId: image.jobId });
+    }
+
+    // Step 3: poll every async generation job to completion. We mainly need
+    // the voiceover duration (VideoDB returns it on the asset as `length`),
+    // but polling also guarantees the image asset is ready before compile.
+    updateJob(jobId, { progress: 70, currentStep: 3, stage: 'polling-generation' });
+    await Promise.all(asyncJobs.map(async ({ kind, asset, jobId: respId }) => {
+      const result = await videoDbPollAsync(videoDbKey, respId);
+      // Async result shapes vary; pull the duration/length where present.
+      const dur = result && (result.length ?? result.duration ?? (result.asset && (result.asset.length ?? result.asset.duration)));
+      if (kind === 'audio' && dur) {
+        const seconds = typeof dur === 'string' ? parseFloat(dur) : dur;
+        if (seconds > 0) asset.duration = seconds;
+      }
+    }));
+
+    updateJob(jobId, { progress: 78, currentStep: 3, stage: 'assembling-timeline' });
+
+    // Step 4: background video (the canvas behind the storyboard frames).
+    const bgUrl = payload.backgroundUrl || 'https://www.youtube.com/watch?v=4dW1ybhA5bM';
+    const baseVid = await videoDbIndex(bgUrl, videoDbKey, { name: 'storyboard-bg', collectionId: 'default' });
+
+    // Step 5: assemble Timeline v2 (tracks array payload).
+    const totalDuration = storyboardAssets.reduce((s, a) => s + a.duration, 0);
+    const tracks = [
+      // Background video track
+      {
+        type: 'video',
+        clips: [{ asset_id: baseVid.id, start: 0, duration: totalDuration }],
+      },
+      // Image track (centered)
+      {
+        type: 'image',
+        clips: storyboardAssets.map((a, i) => ({
+          asset_id: a.image_id,
+          start: i * a.duration,
+          duration: a.duration,
+          position: 'center',
+        })),
+      },
+      // Audio track (voiceovers sequenced) — durations come from polling.
+      {
+        type: 'audio',
+        clips: storyboardAssets.map((a, i) => ({
+          asset_id: a.audio_id,
+          start: i * a.duration,
+          duration: a.duration,
+        })),
+      },
+      // Text track (step label at bottom)
+      {
+        type: 'text',
+        clips: storyboardAssets.map((a, i) => ({
+          text: a.step_name,
+          start: i * a.duration,
+          duration: a.duration,
+          position: 'bottom',
+          font: { family: 'League Spartan', size: 36, color: '#FFFAFA' },
+          background: { color: '#FF4500', border_width: 10, opacity: 1.0 },
+        })),
+      },
+    ];
+
+    // Step 6: compile → stream URL
+    const compiled = await videoDbCompileTimeline(videoDbKey, tracks, {
+      outputFormat: payload.format || 'mp4',
+      quality: 'high',
+    });
+
+    return completeJob(jobId, {
+      agent: 'storyboarding',
+      storyboard: storyboardAssets,
+      steps: storyboardAssets.map((a) => ({ step: a.step_name, script: a.script, duration: a.duration })),
+      streamUrl: compiled.streamUrl,
+      url: compiled.streamUrl,
+      downloadUrl: compiled.streamUrl,
+      duration: compiled.duration || totalDuration,
+      source: 'videodb-content-factory',
+      exported: true,
+    });
   } catch (err) {
     failJob(jobId, err);
   }
@@ -693,9 +904,6 @@ async function runToolJob(jobId, toolId, payload) {
       return runVoiceSynthesis(jobId, payload);
     case 'imagebind':
       return runAgentJob(jobId, 'visual-search', payload);
-    case 'meme':
-      // Meme generator: VideoDB scene context + OpenAI to write the meme concept.
-      return runMemeJob(jobId, payload);
     // ── New VideoDB + OpenAI Responses API agents ──
     case 'storyboarding':
     case 'highlights':
@@ -706,6 +914,7 @@ async function runToolJob(jobId, toolId, payload) {
     case 'voice-cloning':
     case 'audio-overlay':
     case 'gen-audio-overlays':
+    case 'ai-voiceovers':
     case 'sales-assistant':
     case 'comparison':
     case 'output-formatting':
@@ -722,6 +931,7 @@ async function runToolJob(jobId, toolId, payload) {
     case 'intro-outro':
     case 'brand-elements':
     case 'dynamic-ads':
+    case 'multi-lang-dubbing':
       return runAgentJob(jobId, toolId, payload);
     default:
       return failJob(jobId, new Error(`Unsupported tool: ${toolId}`));
@@ -777,8 +987,8 @@ async function runUseCaseJob(jobId, usecaseId, payload) {
     cleanup(input);
 
     const outputs = {
-      standup: { result: 'Video stabilized', exported: true },
-      'music-video': { result: 'Video finalized', exported: true },
+      standup: { result: 'Comedy timing applied (stabilized)', exported: true },
+      'music-video': { result: 'Music sync applied', exported: true },
     };
 
     const result = outputs[usecaseId] || { result: 'Processing complete', exported: !!finalOut };
@@ -805,10 +1015,10 @@ async function runMemeJob(jobId, payload) {
     updateJob(jobId, { progress: 30, currentStep: 1, stage: 'brainstorming-meme' });
     const videoDbKey = resolveVideoDbKey(payload);
     const videoId = await ensureIndexed(jobId, payload);
-    const ctx = videoId ? (await videoDbSearch(videoId, 'funny or relatable moment', videoDbKey, { indexType: 'scene' }, jobId)).map((r) => r.text || '').join(' ') : (payload.prompt || '');
+    const ctx = videoId ? (await videoDbSearch(videoId, 'funny or relatable moment', videoDbKey, { indexType: 'scene' })).map((r) => r.text || '').join(' ') : (payload.prompt || '');
     const meme = await callResponsesApi(apiKey, {
       input: `Create a viral meme based on this video. Return JSON: { topText, bottomText, format, caption }. Context: ${ctx.slice(0, 1500)}`,
-    }, jobId);
+    });
     const card = `MEME\n${(parseJsonObj(meme.text).topText) || ''}\n${(parseJsonObj(meme.text).bottomText) || ''}`;
     const url = storeOutput(jobId, card, '.txt');
     return completeJob(jobId, { agent: 'meme', meme: parseJsonObj(meme.text), text: card, downloadUrl: url, source: 'videodb+openai' });

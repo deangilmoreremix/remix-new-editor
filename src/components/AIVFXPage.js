@@ -1,3 +1,4 @@
+import { mountStudioChrome } from '../lib/studioChrome.js';
 // AI-VFX Studio Page
 // Embeds the ai-vfx studio as an iframe. In dev it points at the Vite
 // dev server on port 3002, and in production it loads the built files
@@ -6,6 +7,7 @@
 export function AIVFXPage() {
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col overflow-hidden bg-app-bg';
+  mountStudioChrome(container, { currentRoute: 'ai-vfx' });
 
   const header = document.createElement('div');
   header.className = 'flex items-center justify-between p-4 border-b border-white/5 bg-black/50';

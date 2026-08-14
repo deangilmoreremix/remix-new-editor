@@ -126,7 +126,6 @@ const stubLegacy = () => ({
     }
     if (id.startsWith('\0legacy-stub:')) {
       // Build named exports by parsing the importer's import statement.
-      console.warn('[stub-legacy] Stubbing unresolved import:', source, '←', importer);
       const payload = id.slice('\0legacy-stub:'.length);
       const [source, ...rest] = payload.split('::');
       const importer = rest.join('::');
@@ -399,16 +398,25 @@ function securityHeaders() {
                 // "@vitejs/plugin-react can't detect preamble". The sha256 below is the
                 // stable hash of that preamble for @vitejs/plugin-react.
                 const reactPreambleHash = "'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk='";
-                res.setHeader(
-                    'Content-Security-Policy',
-                    // Clerk: production loads clerk-js from the CNAMEd FAPI
-                    // (clerk.smartvid.app); local dev loads it from the dev
-                    // instance (*.clerk.accounts.dev). Smart CAPTCHA / bot
-                    // protection uses Cloudflare Turnstile
-                    // (challenges.cloudflare.com), which must be allowed in
-                    // script-src + frame-src or sign-up fails.
-                    "default-src 'self'; script-src 'self' " + reactPreambleHash + " https://clerk.smartvid.app https://*.clerk.accounts.dev https://challenges.cloudflare.com blob:; worker-src 'self' blob: https://clerk.smartvid.app https://*.clerk.accounts.dev; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' ws://localhost:3001 http://localhost:3001 ws://localhost:8000 http://localhost:8000 ws://localhost:8888 http://localhost:8888 https://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + " https://api.openai.com https://api.muapi.ai https://clerk.smartvid.app https://*.clerk.accounts.dev; frame-src 'self' https://clerk.smartvid.app https://*.clerk.accounts.dev https://challenges.cloudflare.com; media-src 'self' https: blob:;"
-                );
+
+                // clerkHostSrc is derived from VITE_CLERK_PUBLISHABLE_KEY at the
+                // export below and injected here so the dev CSP permits Clerk's
+                // JS/worker/network requests for whichever instance is configured
+                // (e.g. touched-stud-74.clerk.accounts.dev for the dev instance),
+                // while still allowing the production proxy domain clerk.smartvid.app.
+
+                const csp = [
+                  "default-src 'self'",
+                  `script-src 'self' ${reactPreambleHash}${clerkHostSrc} https://clerk.smartvid.app https://challenges.cloudflare.com blob:`,
+                  `worker-src 'self' blob:${clerkHostSrc} https://clerk.smartvid.app`,
+                  `style-src 'self' 'unsafe-inline'${clerkHostSrc}`,
+                  `img-src 'self' data: https: blob:${clerkHostSrc}`,
+                  `font-src 'self' data:${clerkHostSrc}`,
+                  "connect-src 'self' ws://localhost:3001 http://localhost:3001 ws://localhost:8000 http://localhost:8000 ws://localhost:8888 http://localhost:8888 https://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + " https://api.openai.com https://api.muapi.ai https://clerk.smartvid.app https://clerk-telemetry.com https://challenges.cloudflare.com" + clerkHostSrc,
+                  `frame-src 'self'${clerkHostSrc} https://clerk.smartvid.app https://challenges.cloudflare.com`,
+                  "media-src 'self' https: blob:",
+                ].join('; ');
+                res.setHeader('Content-Security-Policy', csp);
                 
                  // Prevent clickjacking
                  // In dev, allow framing for embedded studio iframes via CSP frame-src.
@@ -915,7 +923,6 @@ function modelCatalogBuildPlugin() {
  * failing. Real `.svg` files on disk are left untouched.
  */
 function svgMissingFallback() {
-  const fs = require('fs');
   const PLACEHOLDER =
     'data:image/svg+xml,' +
     encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"></svg>');
@@ -932,14 +939,9 @@ function svgMissingFallback() {
 }
 
 export default defineConfig({
-    plugins: [
-        tailwindcss(),
-        // react(),
-        securityHeaders(),
-        stubLegacy(),
-        svgMissingFallback(),
-        modelCatalogBuildPlugin(),
-    ],
+    define: {
+        'process.browser': 'true',
+    },
     resolve: {
         // Force a single React instance. @clerk/react is pre-bundled by
         // Vite's dep optimizer into its own chunk; without dedupe it can

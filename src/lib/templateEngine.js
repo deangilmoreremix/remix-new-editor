@@ -786,21 +786,10 @@ export class CinematicTemplateBuilder {
 // ============================================
 
 /**
- * Infer a film type from a story blueprint string or sceneStructure array
+ * Infer a film type from a story blueprint string
  */
 export function inferFilmTypeFromBlueprint(blueprint) {
-  let b = '';
-  if (Array.isArray(blueprint)) {
-    b = blueprint.join(' ').toLowerCase();
-  } else if (blueprint && typeof blueprint === 'object') {
-    if (Array.isArray(blueprint.acts)) {
-      b = blueprint.acts.flatMap(act => act.beats || []).join(' ').toLowerCase();
-    } else if (blueprint.id) {
-      b = String(blueprint.id).toLowerCase();
-    }
-  } else if (typeof blueprint === 'string') {
-    b = blueprint.toLowerCase();
-  }
+  const b = (blueprint || '').toLowerCase();
   if (b.includes('cta') || b.includes('offer')) return FILM_TYPES.PROMO_FILM;
   if (b.includes('origin') || b.includes('struggle')) return FILM_TYPES.FOUNDER_STORY_FILM;
   if (b.includes('problem') || b.includes('transformation')) return FILM_TYPES.TESTIMONIAL_FILM;
@@ -810,68 +799,26 @@ export function inferFilmTypeFromBlueprint(blueprint) {
   return FILM_TYPES.CINEMATIC_SHORT_FILM;
 }
 
-const OUTPUT_STYLE_TO_FILM_TYPE = {
-  'luxury_brand_promo': 'cinematic-commercial',
-  'documentary': 'documentary-style-film',
-  'emotional_brand_story': 'cinematic-short-film',
-  'bold_direct_response': 'promo-film',
-  'cinematic_commercial': 'cinematic-commercial',
-  'dramatic_trailer': 'dramatic-trailer',
-  'inspirational_founder': 'founder-story-film',
-  'customer_transformation': 'testimonial-film',
-  'cinematic_social_short': 'promo-film'
-};
-
 /**
- * Derive a canonical engine input object from a matrix/niche/standard template + form state.
+ * Derive a canonical engine input object from a matrix/standard template + form state.
  * Consumable by detectFilmType / detectNiche / buildTemplatePrompt.
  */
 export function deriveEngineInputFromTemplate(template = {}, formState = {}) {
   const isVertical = (template.aspectRatio && template.aspectRatio.includes('9:16')) ||
     (template.aspectRatios && template.aspectRatios.some((r) => r.includes('9:16')));
 
-  const isMatrix = !!template.filmFamily;
-  const isNiche = !isMatrix && (template.quickInputs || template.advancedInputs);
-
-  let rawIdea, templateType, objective, subject, niche, storyBlueprint;
-
-  if (isMatrix) {
-    rawIdea = formState.prompt || template.promptDirection || template.description || '';
-    templateType = template.filmFamily || formState.templateType ||
-      (template.storyBlueprint ? inferFilmTypeFromBlueprint(template.storyBlueprint) : '');
-    objective = formState.businessType || template.coreUseCase || '';
-    subject = formState.subject || template.name || '';
-    niche = formState.niche && formState.niche !== 'auto-detect' ? formState.niche : (template.niche || '');
-    storyBlueprint = template.storyBlueprint || '';
-  } else if (isNiche) {
-    const outputStyleId = template.outputStyle?.id;
-    rawIdea = formState.prompt || template.description || '';
-    templateType = OUTPUT_STYLE_TO_FILM_TYPE[outputStyleId] || formState.templateType || '';
-    objective = formState.businessType || template.description || '';
-    subject = formState.prompt || template.name || '';
-    niche = formState.niche && formState.niche !== 'auto-detect' ? formState.niche : (template.niche || '');
-    storyBlueprint = template.sceneStructure || '';
-  } else {
-    rawIdea = formState.prompt || template.promptDirection || template.description || '';
-    templateType = template.filmFamily || formState.templateType ||
-      (template.storyBlueprint ? inferFilmTypeFromBlueprint(template.storyBlueprint) : '');
-    objective = formState.businessType || template.coreUseCase || '';
-    subject = formState.subject || template.name || '';
-    niche = formState.niche && formState.niche !== 'auto-detect' ? formState.niche : (template.niche || '');
-    storyBlueprint = template.storyBlueprint || '';
-  }
-
   return {
-    rawIdea,
-    templateType: templateType || (storyBlueprint ? inferFilmTypeFromBlueprint(storyBlueprint) : ''),
-    objective,
+    rawIdea: formState.prompt || template.promptDirection || template.description || '',
+    templateType: template.filmFamily || formState.templateType ||
+      (template.storyBlueprint ? inferFilmTypeFromBlueprint(template.storyBlueprint) : ''),
+    objective: formState.businessType || template.coreUseCase || '',
     tone: formState.tone || 'professional',
     businessType: formState.businessType || '',
-    niche,
+    niche: formState.niche && formState.niche !== 'auto-detect' ? formState.niche : (template.niche || ''),
     productService: formState.subject || '',
     platform: formState.platform || (isVertical ? 'TikTok Reel' : 'general'),
     visualStyle: formState.visualStyle || 'commercial',
-    subject,
+    subject: formState.subject || template.name || '',
     duration: formState.duration ||
       (typeof template.duration === 'object' ? template.duration.default : template.duration) || 5,
     aspectRatio: template.aspectRatio || (template.aspectRatios && template.aspectRatios[0]) || '16:9',

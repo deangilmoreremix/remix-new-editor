@@ -423,8 +423,7 @@ export const MATRIX_TEMPLATES = [
     aspectRatios: ['16:9', '9:16', '1:1'],
     duration: { min: 15, max: 45, default: 30 },
     model: 'motion-controls',
-    modelType: 'i2v',
-    basePrompt: 'Med spa cinematic brand film, {prompt}, premium commercial look, polished composition, slow dolly or tracking movement, controlled lighting, clear subject focus, luxury commercial visuals',
+    modelType: 'i2v'
   },
 
   // SALON NICHE (10 templates)
@@ -447,8 +446,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Salon cinematic brand film, {prompt}, premium commercial look, polished composition, slow dolly or tracking movement, controlled lighting, clear subject focus, precision cutting details',
-  },
+  },,
 
     {
     id: 'salon-process-doc',
@@ -469,8 +467,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Salon documentary style film, {prompt}, documentary realism, natural light feel, observational framing, subtle handheld or measured movement, precision cutting details',
-  },
+  },,
 
     {
     id: 'salon-transformation-story',
@@ -491,8 +488,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Salon cinematic short film, {prompt}, more filmic narrative, emotional progression, premium textures, cinematic reveal moments, transformation moments',
-  },
+  },,
 
     {
     id: 'salon-testimonial',
@@ -513,8 +509,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Salon testimonial film, {prompt}, real customer energy, grounded realism, supportive b-roll, emotional proof moments, client confidence',
-  },
+  },,
 
     {
     id: 'salon-founder-doc',
@@ -535,8 +530,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Salon founder story film, {prompt}, portrait-led storytelling, premium close-ups, emotional pacing, authority framing, warm practical light, soft portrait lighting',
-  },
+  },,
 
     {
     id: 'salon-offer-promo',
@@ -557,8 +551,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Salon promo film, {prompt}, conversion-aware visuals, persuasive product/service framing, elegant momentum, clean CTA ending',
-  },
+  },,
 
     {
     id: 'salon-launch-trailer',
@@ -579,8 +572,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Salon dramatic trailer, {prompt}, high-impact pacing, moody contrast, reveal shots, bigger transitions, dramatic camera motion',
-  },
+  },,
 
     {
     id: 'salon-social-reel',
@@ -601,8 +593,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Salon promo film, {prompt}, conversion-aware visuals, persuasive product/service framing, elegant momentum, clean CTA ending, fast cuts',
-  },
+  },,
 
     {
     id: 'salon-atmosphere-piece',
@@ -623,8 +614,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Salon documentary style film, {prompt}, documentary realism, natural light feel, observational framing, subtle handheld or measured movement, salon atmosphere',
-  },
+  },,
 
     {
     id: 'salon-luxury-offer',
@@ -645,8 +635,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Salon cinematic brand film, {prompt}, premium commercial look, polished composition, slow dolly or tracking movement, controlled lighting, clear subject focus, luxury commercial visuals',
-  },
+  },,
 
   // FITNESS NICHE (10 templates)
     {
@@ -668,8 +657,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Fitness cinematic brand film, {prompt}, premium commercial look, polished composition, slow dolly or tracking movement, controlled lighting, clear subject focus, high-energy training visuals',
-  },
+  },,
 
     {
     id: 'fitness-process-doc',
@@ -690,8 +678,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Fitness documentary style film, {prompt}, documentary realism, natural light feel, observational framing, subtle handheld or measured movement, high-energy training visuals',
-  },
+  },,
 
     {
     id: 'fitness-transformation-story',
@@ -712,8 +699,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Fitness cinematic short film, {prompt}, more filmic narrative, emotional progression, premium textures, cinematic reveal moments, motivational transformation beats',
-  },
+  },,
 
     {
     id: 'fitness-testimonial',
@@ -734,8 +720,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Fitness testimonial film, {prompt}, real customer energy, grounded realism, supportive b-roll, emotional proof moments, dynamic gym atmosphere',
-  },
+  },,
 
     {
     id: 'fitness-founder-doc',
@@ -756,8 +741,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Fitness founder story film, {prompt}, portrait-led storytelling, premium close-ups, emotional pacing, authority framing, warm practical light, soft portrait lighting',
-  },
+  },,
 
     {
     id: 'fitness-offer-promo',
@@ -778,8 +762,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Fitness promo film, {prompt}, conversion-aware visuals, persuasive product/service framing, elegant momentum, clean CTA ending',
-  },
+  },,
 
     {
     id: 'fitness-launch-trailer',
@@ -800,8 +783,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Fitness dramatic trailer, {prompt}, high-impact pacing, moody contrast, reveal shots, bigger transitions, dramatic camera motion',
-  },
+  },,
 
     {
     id: 'fitness-social-reel',
@@ -822,8 +804,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Fitness promo film, {prompt}, conversion-aware visuals, persuasive product/service framing, elegant momentum, clean CTA ending, hook-first pacing',
-  },
+  },,
 
     {
     id: 'fitness-atmosphere-piece',
@@ -844,8 +825,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Fitness documentary style film, {prompt}, documentary realism, natural light feel, observational framing, subtle handheld or measured movement, dynamic gym atmosphere',
-  },
+  },,
 
     {
     id: 'fitness-luxury-offer',
@@ -866,8 +846,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Fitness cinematic brand film, {prompt}, premium commercial look, polished composition, slow dolly or tracking movement, controlled lighting, clear subject focus, luxury commercial visuals',
-  },
+  },,
 
   // REAL-ESTATE NICHE (10 templates)
     {
@@ -889,8 +868,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Real estate cinematic brand film, {prompt}, premium commercial look, polished composition, slow dolly or tracking movement, controlled lighting, clear subject focus, sweeping property reveals',
-  },
+  },,
 
     {
     id: 'real-estate-process-doc',
@@ -911,8 +889,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Real estate documentary style film, {prompt}, documentary realism, natural light feel, observational framing, subtle handheld or measured movement, architectural wide shots',
-  },
+  },,
 
     {
     id: 'real-estate-transformation-story',
@@ -933,8 +910,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Real estate cinematic short film, {prompt}, more filmic narrative, emotional progression, premium textures, cinematic reveal moments, elevated listing presentation',
-  },
+  },,
 
     {
     id: 'real-estate-testimonial',
@@ -955,8 +931,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Real estate testimonial film, {prompt}, real customer energy, grounded realism, supportive b-roll, emotional proof moments, luxury interior details',
-  },
+  },,
 
     {
     id: 'real-estate-founder-doc',
@@ -977,8 +952,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Real estate founder story film, {prompt}, portrait-led storytelling, premium close-ups, emotional pacing, authority framing, warm practical light, soft portrait lighting',
-  },
+  },,
 
     {
     id: 'real-estate-offer-promo',
@@ -999,8 +973,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Real estate promo film, {prompt}, conversion-aware visuals, persuasive product/service framing, elegant momentum, clean CTA ending, lifestyle-driven location shots',
-  },
+  },,
 
     {
     id: 'real-estate-launch-trailer',
@@ -1021,8 +994,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Real estate dramatic trailer, {prompt}, high-impact pacing, moody contrast, reveal shots, bigger transitions, dramatic camera motion',
-  },
+  },,
 
     {
     id: 'real-estate-social-reel',
@@ -1043,8 +1015,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Real estate promo film, {prompt}, conversion-aware visuals, persuasive product/service framing, elegant momentum, clean CTA ending, hook-first pacing',
-  },
+  },,
 
     {
     id: 'real-estate-atmosphere-piece',
@@ -1065,8 +1036,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Real estate documentary style film, {prompt}, documentary realism, natural light feel, observational framing, subtle handheld or measured movement, refined space storytelling',
-  },
+  },,
 
     {
     id: 'real-estate-luxury-offer',
@@ -1087,8 +1057,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Real estate cinematic brand film, {prompt}, premium commercial look, polished composition, slow dolly or tracking movement, controlled lighting, clear subject focus, luxury commercial visuals',
-  },
+  },,
 
   // DENTAL NICHE (10 templates)
     {
@@ -1110,8 +1079,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Dental cinematic brand film, {prompt}, premium commercial look, polished composition, slow dolly or tracking movement, controlled lighting, clear subject focus, clean modern clinic interiors',
-  },
+  },,
 
     {
     id: 'dental-process-doc',
@@ -1132,8 +1100,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Dental documentary style film, {prompt}, documentary realism, natural light feel, observational framing, subtle handheld or measured movement, treatment precision',
-  },
+  },,
 
     {
     id: 'dental-transformation-story',
@@ -1154,8 +1121,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Dental cinematic short film, {prompt}, more filmic narrative, emotional progression, premium textures, cinematic reveal moments, bright healthy smile reveals',
-  },
+  },,
 
     {
     id: 'dental-testimonial',
@@ -1176,8 +1142,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Dental testimonial film, {prompt}, real customer energy, grounded realism, supportive b-roll, emotional proof moments, comfort-focused patient moments',
-  },
+  },,
 
     {
     id: 'dental-founder-doc',
@@ -1198,8 +1163,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Dental founder story film, {prompt}, portrait-led storytelling, premium close-ups, emotional pacing, authority framing, warm practical light, soft portrait lighting',
-  },
+  },,
 
     {
     id: 'dental-offer-promo',
@@ -1220,8 +1184,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Dental promo film, {prompt}, conversion-aware visuals, persuasive product/service framing, elegant momentum, clean CTA ending, close-up treatment precision',
-  },
+  },,
 
     {
     id: 'dental-launch-trailer',
@@ -1242,8 +1205,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Dental dramatic trailer, {prompt}, high-impact pacing, moody contrast, reveal shots, bigger transitions, dramatic camera motion',
-  },
+  },,
 
     {
     id: 'dental-social-reel',
@@ -1264,8 +1226,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Dental promo film, {prompt}, conversion-aware visuals, persuasive product/service framing, elegant momentum, clean CTA ending, hook-first pacing',
-  },
+  },,
 
     {
     id: 'dental-atmosphere-piece',
@@ -1286,8 +1247,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Dental documentary style film, {prompt}, documentary realism, natural light feel, observational framing, subtle handheld or measured movement, refined space storytelling',
-  },
+  },,
 
     {
     id: 'dental-luxury-offer',
@@ -1308,8 +1268,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Dental cinematic brand film, {prompt}, premium commercial look, polished composition, slow dolly or tracking movement, controlled lighting, clear subject focus, luxury commercial visuals',
-  },
+  },,
 
   // CHIROPRACTIC NICHE (10 templates)
     {
@@ -1331,8 +1290,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Chiropractic cinematic brand film, {prompt}, premium commercial look, polished composition, slow dolly or tracking movement, controlled lighting, clear subject focus, wellness clinic environment',
-  },
+  },,
 
     {
     id: 'chiropractic-process-doc',
@@ -1353,8 +1311,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Chiropractic documentary style film, {prompt}, documentary realism, natural light feel, observational framing, subtle handheld or measured movement, adjustment technique precision',
-  },
+  },,
 
     {
     id: 'chiropractic-transformation-story',
@@ -1375,8 +1332,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Chiropractic cinematic short film, {prompt}, more filmic narrative, emotional progression, premium textures, cinematic reveal moments, balance and alignment themes',
-  },
+  },,
 
     {
     id: 'chiropractic-testimonial',
@@ -1397,8 +1353,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Chiropractic testimonial film, {prompt}, real customer energy, grounded realism, supportive b-roll, emotional proof moments, calm therapeutic atmosphere',
-  },
+  },,
 
     {
     id: 'chiropractic-founder-doc',
@@ -1419,8 +1374,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Chiropractic founder story film, {prompt}, portrait-led storytelling, premium close-ups, emotional pacing, authority framing, warm practical light, soft portrait lighting',
-  },
+  },,
 
     {
     id: 'chiropractic-offer-promo',
@@ -1441,8 +1395,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Chiropractic promo film, {prompt}, conversion-aware visuals, persuasive product/service framing, elegant momentum, clean CTA ending, holistic health approach',
-  },
+  },,
 
     {
     id: 'chiropractic-launch-trailer',
@@ -1463,8 +1416,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Chiropractic dramatic trailer, {prompt}, high-impact pacing, moody contrast, reveal shots, bigger transitions, dramatic camera motion',
-  },
+  },,
 
     {
     id: 'chiropractic-social-reel',
@@ -1485,8 +1437,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Chiropractic promo film, {prompt}, conversion-aware visuals, persuasive product/service framing, elegant momentum, clean CTA ending, hook-first pacing',
-  },
+  },,
 
     {
     id: 'chiropractic-atmosphere-piece',
@@ -1507,8 +1458,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Chiropractic documentary style film, {prompt}, documentary realism, natural light feel, observational framing, subtle handheld or measured movement, refined space storytelling',
-  },
+  },,
 
     {
     id: 'chiropractic-luxury-offer',
@@ -1529,8 +1479,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Chiropractic cinematic brand film, {prompt}, premium commercial look, polished composition, slow dolly or tracking movement, controlled lighting, clear subject focus, luxury commercial visuals',
-  },
+  },,
 
   // LEGAL NICHE (10 templates)
     {
@@ -1552,8 +1501,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Legal cinematic brand film, {prompt}, premium commercial look, polished composition, slow dolly or tracking movement, controlled lighting, clear subject focus, professional authority visuals',
-  },
+  },,
 
     {
     id: 'legal-process-doc',
@@ -1574,8 +1522,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Legal documentary style film, {prompt}, documentary realism, natural light feel, observational framing, subtle handheld or measured movement, confident attorney portrait moments',
-  },
+  },,
 
     {
     id: 'legal-transformation-story',
@@ -1596,8 +1543,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Legal cinematic short film, {prompt}, more filmic narrative, emotional progression, premium textures, cinematic reveal moments, credibility-focused visual storytelling',
-  },
+  },,
 
     {
     id: 'legal-testimonial',
@@ -1618,8 +1564,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Legal testimonial film, {prompt}, real customer energy, grounded realism, supportive b-roll, emotional proof moments, trust-building office atmosphere',
-  },
+  },,
 
     {
     id: 'legal-founder-doc',
@@ -1640,8 +1585,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Legal founder story film, {prompt}, portrait-led storytelling, premium close-ups, emotional pacing, authority framing, warm practical light, soft portrait lighting',
-  },
+  },,
 
     {
     id: 'legal-offer-promo',
@@ -1662,8 +1606,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Legal promo film, {prompt}, conversion-aware visuals, persuasive product/service framing, elegant momentum, clean CTA ending',
-  },
+  },,
 
     {
     id: 'legal-launch-trailer',
@@ -1684,8 +1627,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Legal dramatic trailer, {prompt}, high-impact pacing, moody contrast, reveal shots, bigger transitions, dramatic camera motion',
-  },
+  },,
 
     {
     id: 'legal-social-reel',
@@ -1706,8 +1648,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Legal promo film, {prompt}, conversion-aware visuals, persuasive product/service framing, elegant momentum, clean CTA ending, hook-first pacing',
-  },
+  },,
 
     {
     id: 'legal-atmosphere-piece',
@@ -1728,8 +1669,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Legal documentary style film, {prompt}, documentary realism, natural light feel, observational framing, subtle handheld or measured movement, refined space storytelling',
-  },
+  },,
 
     {
     id: 'legal-luxury-offer',
@@ -1750,8 +1690,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Legal cinematic brand film, {prompt}, premium commercial look, polished composition, slow dolly or tracking movement, controlled lighting, clear subject focus, luxury commercial visuals',
-  },
+  },,
 
   // AUTOMOTIVE NICHE (10 templates)
     {
@@ -1773,8 +1712,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Automotive cinematic brand film, {prompt}, premium commercial look, polished composition, slow dolly or tracking movement, controlled lighting, clear subject focus, reflective surface highlights',
-  },
+  },,
 
     {
     id: 'automotive-process-doc',
@@ -1795,8 +1733,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Automotive documentary style film, {prompt}, documentary realism, natural light feel, observational framing, subtle handheld or measured movement, luxury vehicle detail shots',
-  },
+  },,
 
     {
     id: 'automotive-transformation-story',
@@ -1817,8 +1754,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Automotive cinematic short film, {prompt}, more filmic narrative, emotional progression, premium textures, cinematic reveal moments, performance-driven pacing',
-  },
+  },,
 
     {
     id: 'automotive-testimonial',
@@ -1839,8 +1775,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Automotive testimonial film, {prompt}, real customer energy, grounded realism, supportive b-roll, emotional proof moments, cinematic machine presence',
-  },
+  },,
 
     {
     id: 'automotive-founder-doc',
@@ -1861,8 +1796,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Automotive founder story film, {prompt}, portrait-led storytelling, premium close-ups, emotional pacing, authority framing, warm practical light, soft portrait lighting',
-  },
+  },,
 
     {
     id: 'automotive-offer-promo',
@@ -1883,8 +1817,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Automotive promo film, {prompt}, conversion-aware visuals, persuasive product/service framing, elegant momentum, clean CTA ending',
-  },
+  },,
 
     {
     id: 'automotive-launch-trailer',
@@ -1905,8 +1838,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Automotive dramatic trailer, {prompt}, high-impact pacing, moody contrast, reveal shots, bigger transitions, dramatic camera motion',
-  },
+  },,
 
     {
     id: 'automotive-social-reel',
@@ -1927,8 +1859,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Automotive promo film, {prompt}, conversion-aware visuals, persuasive product/service framing, elegant momentum, clean CTA ending, hook-first pacing',
-  },
+  },,
 
     {
     id: 'automotive-atmosphere-piece',
@@ -1949,8 +1880,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Automotive documentary style film, {prompt}, documentary realism, natural light feel, observational framing, subtle handheld or measured movement, refined space storytelling',
-  },
+  },,
 
     {
     id: 'automotive-luxury-offer',
@@ -1971,8 +1901,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Automotive cinematic brand film, {prompt}, premium commercial look, polished composition, slow dolly or tracking movement, controlled lighting, clear subject focus, luxury commercial visuals',
-  },
+  },,
 
   // FASHION NICHE (10 templates)
     {
@@ -1994,8 +1923,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Fashion cinematic brand film, {prompt}, premium commercial look, polished composition, slow dolly or tracking movement, controlled lighting, clear subject focus, editorial styling',
-  },
+  },,
 
     {
     id: 'fashion-process-doc',
@@ -2016,8 +1944,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Fashion documentary style film, {prompt}, documentary realism, natural light feel, observational framing, subtle handheld or measured movement, fabric movement details',
-  },
+  },,
 
     {
     id: 'fashion-transformation-story',
@@ -2038,8 +1965,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Fashion cinematic short film, {prompt}, more filmic narrative, emotional progression, premium textures, cinematic reveal moments, luxury lifestyle framing',
-  },
+  },,
 
     {
     id: 'fashion-testimonial',
@@ -2060,8 +1986,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Fashion testimonial film, {prompt}, real customer energy, grounded realism, supportive b-roll, emotional proof moments, high-end visual polish',
-  },
+  },,
 
     {
     id: 'fashion-founder-doc',
@@ -2082,8 +2007,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Fashion founder story film, {prompt}, portrait-led storytelling, premium close-ups, emotional pacing, authority framing, warm practical light, soft portrait lighting',
-  },
+  },,
 
     {
     id: 'fashion-offer-promo',
@@ -2104,8 +2028,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Fashion promo film, {prompt}, conversion-aware visuals, persuasive product/service framing, elegant momentum, clean CTA ending',
-  },
+  },,
 
     {
     id: 'fashion-launch-trailer',
@@ -2126,8 +2049,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Fashion dramatic trailer, {prompt}, high-impact pacing, moody contrast, reveal shots, bigger transitions, dramatic camera motion',
-  },
+  },,
 
     {
     id: 'fashion-social-reel',
@@ -2148,8 +2070,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Fashion promo film, {prompt}, conversion-aware visuals, persuasive product/service framing, elegant momentum, clean CTA ending, hook-first pacing',
-  },
+  },,
 
     {
     id: 'fashion-atmosphere-piece',
@@ -2170,8 +2091,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Fashion documentary style film, {prompt}, documentary realism, natural light feel, observational framing, subtle handheld or measured movement, refined space storytelling',
-  },
+  },,
 
     {
     id: 'fashion-luxury-offer',
@@ -2192,8 +2112,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Fashion cinematic brand film, {prompt}, premium commercial look, polished composition, slow dolly or tracking movement, controlled lighting, clear subject focus, luxury commercial visuals',
-  },
+  },,
 
   // EVENT NICHE (10 templates)
     {
@@ -2215,8 +2134,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Event cinematic brand film, {prompt}, premium commercial look, polished composition, slow dolly or tracking movement, controlled lighting, clear subject focus, crowd energy',
-  },
+  },,
 
     {
     id: 'event-process-doc',
@@ -2237,8 +2155,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Event documentary style film, {prompt}, documentary realism, natural light feel, observational framing, subtle handheld or measured movement, stage or venue reveals',
-  },
+  },,
 
     {
     id: 'event-transformation-story',
@@ -2259,8 +2176,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Event cinematic short film, {prompt}, more filmic narrative, emotional progression, premium textures, cinematic reveal moments, premium event recap tone',
-  },
+  },,
 
     {
     id: 'event-testimonial',
@@ -2281,8 +2197,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Event testimonial film, {prompt}, real customer energy, grounded realism, supportive b-roll, emotional proof moments, celebration moments',
-  },
+  },,
 
     {
     id: 'event-founder-doc',
@@ -2303,8 +2218,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Event founder story film, {prompt}, portrait-led storytelling, premium close-ups, emotional pacing, authority framing, warm practical light, soft portrait lighting',
-  },
+  },,
 
     {
     id: 'event-offer-promo',
@@ -2325,8 +2239,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Event promo film, {prompt}, conversion-aware visuals, persuasive product/service framing, elegant momentum, clean CTA ending',
-  },
+  },,
 
     {
     id: 'event-launch-trailer',
@@ -2347,8 +2260,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Event dramatic trailer, {prompt}, high-impact pacing, moody contrast, reveal shots, bigger transitions, dramatic camera motion',
-  },
+  },,
 
     {
     id: 'event-social-reel',
@@ -2369,8 +2281,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Event promo film, {prompt}, conversion-aware visuals, persuasive product/service framing, elegant momentum, clean CTA ending, hook-first pacing',
-  },
+  },,
 
     {
     id: 'event-atmosphere-piece',
@@ -2391,8 +2302,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Event documentary style film, {prompt}, documentary realism, natural light feel, observational framing, subtle handheld or measured movement, refined space storytelling',
-  },
+  },,
 
     {
     id: 'event-luxury-offer',
@@ -2413,8 +2323,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Event cinematic brand film, {prompt}, premium commercial look, polished composition, slow dolly or tracking movement, controlled lighting, clear subject focus, luxury commercial visuals',
-  },
+  },,
 
   // LUXURY-BRAND NICHE (10 templates)
     {
@@ -2436,8 +2345,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Luxury brand cinematic brand film, {prompt}, premium commercial look, polished composition, slow dolly or tracking movement, controlled lighting, clear subject focus, luxury cinematic style',
-  },
+  },,
 
     {
     id: 'luxury-brand-process-doc',
@@ -2458,8 +2366,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Luxury brand documentary style film, {prompt}, documentary realism, natural light feel, observational framing, subtle handheld or measured movement, elegant production design',
-  },
+  },,
 
     {
     id: 'luxury-brand-transformation-story',
@@ -2480,8 +2387,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Luxury brand cinematic short film, {prompt}, more filmic narrative, emotional progression, premium textures, cinematic reveal moments, high-end commercial aesthetic',
-  },
+  },,
 
     {
     id: 'luxury-brand-testimonial',
@@ -2502,8 +2408,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Luxury brand testimonial film, {prompt}, real customer energy, grounded realism, supportive b-roll, emotional proof moments, premium visual atmosphere',
-  },
+  },,
 
     {
     id: 'luxury-brand-founder-doc',
@@ -2524,8 +2429,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Luxury brand founder story film, {prompt}, portrait-led storytelling, premium close-ups, emotional pacing, authority framing, warm practical light, soft portrait lighting',
-  },
+  },,
 
     {
     id: 'luxury-brand-offer-promo',
@@ -2546,8 +2450,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Luxury brand promo film, {prompt}, conversion-aware visuals, persuasive product/service framing, elegant momentum, clean CTA ending',
-  },
+  },,
 
     {
     id: 'luxury-brand-launch-trailer',
@@ -2568,8 +2471,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Luxury brand dramatic trailer, {prompt}, high-impact pacing, moody contrast, reveal shots, bigger transitions, dramatic camera motion',
-  },
+  },,
 
     {
     id: 'luxury-brand-social-reel',
@@ -2590,8 +2492,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Luxury brand promo film, {prompt}, conversion-aware visuals, persuasive product/service framing, elegant momentum, clean CTA ending, hook-first pacing',
-  },
+  },,
 
     {
     id: 'luxury-brand-atmosphere-piece',
@@ -2612,8 +2513,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Luxury brand documentary style film, {prompt}, documentary realism, natural light feel, observational framing, subtle handheld or measured movement, refined space storytelling',
-  },
+  },,
 
     {
     id: 'luxury-brand-luxury-offer',
@@ -2634,7 +2534,6 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-    basePrompt: 'Luxury brand cinematic brand film, {prompt}, premium commercial look, polished composition, slow dolly or tracking movement, controlled lighting, clear subject focus, luxury commercial visuals',
   },
 ];
 

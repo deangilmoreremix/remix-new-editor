@@ -1,5 +1,4 @@
 import { muapi } from '../lib/muapi.js';
-import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
@@ -38,20 +37,6 @@ export function EffectsStudio() {
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col bg-app-bg overflow-hidden relative';
   mountStudioChrome(container, { currentRoute: 'effects' });
-
-  // Comparison mode styles
-  const comparisonStyles = document.createElement('style');
-  comparisonStyles.textContent = `
-    .fx-comparison-wrapper { position: relative; flex: 1; display: flex; gap: 8px; min-height: 0; }
-    .fx-comparison-pane { flex: 1; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
-    .fx-comparison-pane .media-preview-media { max-height: 45vh; }
-    .fx-comparison-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #9ca3af; }
-    .fx-comparison-divider { width: 2px; background: linear-gradient(to bottom, rgba(255,255,255,0.1), rgba(255,255,255,0.3), rgba(255,255,255,0.1)); cursor: col-resize; flex-shrink: 0; }
-    .fx-comparison-slider { position: absolute; top: 0; bottom: 0; width: 3px; background: #fff; cursor: ew-resize; z-index: 10; box-shadow: 0 0 8px rgba(0,0,0,0.5); }
-    .fx-comparison-slider::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 28px; height: 28px; border-radius: 50%; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
-    .fx-hidden { display: none !important; }
-  `;
-  container.appendChild(comparisonStyles);
 
   let activeTab = EFFECT_TABS[0];
   let selectedEffect = null;

@@ -1,5 +1,4 @@
 import { muapi } from '../lib/muapi.js';
-import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
@@ -219,28 +218,6 @@ export function CharacterStudio() {
   promptInput.placeholder = 'e.g. wearing a leather jacket, standing in a neon-lit alley, cyberpunk style';
   promptInput.setAttribute('aria-label', 'Character description');
   formCard.appendChild(promptInput);
-
-  // Dynamic model-specific advanced controls
-  dynamicControlsContainer = document.createElement('div');
-  dynamicControlsContainer.className = 'flex flex-col gap-3';
-  formCard.appendChild(dynamicControlsContainer);
-
-  function buildDynamicControls() {
-    if (!dynamicControlsContainer) return;
-    if (dynamicControls) dynamicControls.destroy();
-    const model = getExtendedModel(getModelById(selectedModel.id));
-    if (!model || !model.inputs || Object.keys(model.inputs).length === 0) {
-      dynamicControlsContainer.classList.add('hidden');
-      return;
-    }
-    dynamicControlsContainer.classList.remove('hidden');
-    dynamicControls = createAdvancedControls({
-      model,
-      container: dynamicControlsContainer,
-      exclude: new Set(['prompt', 'image_url']),
-    });
-  }
-  buildDynamicControls();
 
     // GTM Boost entry point — opens the prompt enhancer themed for character
     // creation and loads the result straight into this prompt.

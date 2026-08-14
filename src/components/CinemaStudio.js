@@ -6,10 +6,9 @@ import { CameraControls } from './CameraControls.js';
 import { buildNanoBananaPrompt, CAMERA_MAP, LENS_MAP, FOCAL_PERSPECTIVE, APERTURE_EFFECT } from '../lib/promptUtils.js';
 import { AuthModal } from './AuthModal.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
-import { getVideoModelById, getI2VModelById, t2vModels, i2vModels, getDurationsForModel, getDurationsForI2VModel, getResolutionsForVideoModel, getResolutionsForI2VModel, getModelById } from '../lib/models.js';
-import { PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
+import { getVideoModelById, getI2VModelById, t2vModels, i2vModels, getDurationsForModel, getDurationsForI2VModel, getResolutionsForVideoModel, getResolutionsForI2VModel } from '../lib/models.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { createHeroSection } from '../lib/thumbnails.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
@@ -18,6 +17,34 @@ import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { CINEMATIC_THEME, cx } from '../lib/cinematicTheme.js';
+
+// Camera movements promised by the Cinema Studio intro copy
+// ("Select camera movement … dolly, crane, orbit, FPV drone").
+const CAMERA_MOVEMENTS = {
+  'Static': 'static locked-off shot',
+  'Dolly In': 'slow dolly in toward the subject',
+  'Dolly Out': 'slow dolly out revealing the scene',
+  'Crane Up': 'cinematic crane shot moving upward',
+  'Orbit': 'smooth 360 orbit around the subject',
+  'FPV Drone': 'immersive FPV drone fly-through',
+  'Handheld': 'subtle handheld camera movement',
+  'Pan': 'slow horizontal pan',
+  'Tilt': 'vertical tilt movement',
+  'Dolly Zom': 'Hitchcock dolly zoom (vertigo effect)',
+};
+
+// Film looks promised by the intro copy ("Choose … film look to set the
+// cinematic mood").
+const FILM_LOOKS = {
+  'Natural': 'natural color science',
+  'Anamorphic': 'anamorphic widescreen movie look with horizontal flares',
+  'Teal & Orange': 'teal and orange blockbuster grade',
+  'Moody Noir': 'moody film-noir contrast with deep shadows',
+  'Vintage': 'warm vintage film grain and faded tones',
+  'Neon Nights': 'neon-lit cyberpunk night grade',
+  'Documentary': 'clean neutral documentary look',
+  'Golden Hour': 'warm golden-hour glow',
+};
 
 // Camera movements promised by the Cinema Studio intro copy
 // ("Select camera movement … dolly, crane, orbit, FPV drone").
@@ -311,38 +338,6 @@ export function CinemaStudio() {
     });
     inputRow.appendChild(gtmBtn);
 
-    // Thumbnail studio button — next to GTM Boost, same design system
-    const thumbBtn = document.createElement('button');
-    thumbBtn.type = 'button';
-    thumbBtn.textContent = '🖼 Thumbnail';
-    thumbBtn.title = 'Generate a custom thumbnail';
-    thumbBtn.className = 'gtm-boost-btn shrink-0';
-    thumbBtn.addEventListener('click', () => {
-      const modal = new StudioThumbnailModal({
-        appTheme: 'cinema-studio',
-        studioId: 'cinema-studio',
-        studioName: 'Cinema Studio',
-        aspectRatio: currentSettings?.aspect_ratio || '16:9',
-        outputType: 'video',
-        onApply: ({ imageUrl }) => {
-          customThumbnailUrl = imageUrl;
-          saveCustomThumbnailToCache('cinema-studio', imageUrl);
-        },
-        onClear: () => {
-          customThumbnailUrl = null;
-          clearCustomThumbnailCache('cinema-studio');
-        },
-      });
-      mountStudioThumbnailModal(modal);
-      modal.open();
-    });
-    inputRow.appendChild(thumbBtn);
-
-    subscribeToGtmThumbnails(({ imageUrl }) => {
-      customThumbnailUrl = imageUrl;
-      saveCustomThumbnailToCache('cinema-studio', imageUrl);
-    });
-
     // --- Reference image upload (the "Upload your scene" step) ---
     // Real upload control that posts the still to the backend and stores the
     // returned URL on currentSettings.referenceUrl so generation can use it
@@ -377,35 +372,6 @@ export function CinemaStudio() {
     uploadPicker.panel.classList.add('mb-2');
     uploadRow.appendChild(uploadPicker.panel);
 
-    // Pexels browse button for reference scene
-    const pexelsRefBtn = document.createElement('button');
-    pexelsRefBtn.type = 'button';
-    pexelsRefBtn.title = 'Browse reference scene from Pexels';
-    pexelsRefBtn.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden';
-    pexelsRefBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>';
-    pexelsRefBtn.onclick = async () => {
-      const { browsePexelsImages } = await import('../lib/studioPexels.js');
-      browsePexelsImages({
-        title: 'Select Reference Scene',
-        studioName: 'Cinema Studio',
-        onSelect: (asset) => {
-          currentSettings.referenceUrl = asset.src?.large || asset.url || asset.original;
-          showReferenceThumb(asset.src?.large || asset.url || asset.original);
-          if (!i2vModels.some(m => m.id === currentSettings.model)) {
-            currentSettings.model = (i2vModels[0] && i2vModels[0].id) || currentSettings.model;
-          }
-          updateModelBtn();
-          updateControlsForModel();
-          const attrContainer = document.getElementById('pexels-cinema-attribution');
-          if (attrContainer) {
-            attrContainer.innerHTML = '';
-            import('../lib/attributionChip.js').then(mod => mod.renderAttributionChip(asset, attrContainer));
-          }
-        }
-      });
-    };
-    uploadRow.appendChild(pexelsRefBtn);
-
     function showReferenceThumb(url) {
       const thumb = container.querySelector('#reference-thumb');
       if (!thumb) return;
@@ -428,12 +394,6 @@ export function CinemaStudio() {
       <span class="text-[10px] text-secondary">Reference scene loaded — used as the seed for your cinematic shot.</span>
     `;
     leftColumn.appendChild(referencePill);
-
-    // Pexels attribution container
-    const pexelsCinemaAttr = document.createElement('div');
-    pexelsCinemaAttr.id = 'pexels-cinema-attribution';
-    pexelsCinemaAttr.className = 'mt-1';
-    leftColumn.appendChild(pexelsCinemaAttr);
 
     // 2. Settings Toolbar (Bottom Left)
     const settingsToolbar = document.createElement('div');
@@ -479,14 +439,7 @@ export function CinemaStudio() {
         const m = (currentSettings.referenceUrl ? i2vModels : t2vModels).find(x => x.id === currentSettings.model)
             || t2vModels.find(x => x.id === currentSettings.model)
             || t2vModels[0];
-        const provider = m?.provider || 'muapi';
-        const logoUrl = PROVIDER_LOGOS[provider];
-        if (logoUrl) {
-            modelBtn.innerHTML = `<div class="w-4 h-4 rounded overflow-hidden flex items-center justify-center bg-white/5 shrink-0"><img src="${logoUrl}" alt="" class="w-full h-full object-contain ${invertLogos.includes(provider) ? 'invert' : ''}" /></div> <span class="truncate">${m ? m.name : currentSettings.model}</span>`;
-        } else {
-            const style = getProviderStyle(provider);
-            modelBtn.innerHTML = `<div class="w-4 h-4 bg-primary rounded flex items-center justify-center shadow-lg shadow-primary/20"><span class="text-[8px] font-black text-black">${style.text}</span></div> <span class="truncate">${m ? m.name : currentSettings.model}</span>`;
-        }
+        modelBtn.innerHTML = `<div class="w-4 h-4 bg-primary rounded flex items-center justify-center shadow-lg shadow-primary/20"><span class="text-[8px] font-black text-black">V</span></div> ${m ? m.name : currentSettings.model}`;
     };
     updateModelBtn();
     modelBtn.onclick = (e) => { e.stopPropagation(); showModelDropdown(); };
@@ -501,76 +454,64 @@ export function CinemaStudio() {
     const closeModelDropdown = () => {
         modelDropdown.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
         modelDropdown.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
-        selectedProvider = 'all';
     };
 
     function showModelDropdown() {
         const isI2V = !!currentSettings.referenceUrl;
         const models = isI2V ? i2vModels : t2vModels;
-        const allModels = [...t2vModels, ...i2vModels];
-        const availableProviders = getAvailableProviders(allModels);
-        
         modelDropdown.innerHTML = `
-            <div class="flex gap-4 h-full max-h-[70vh] min-h-[350px] overflow-x-hidden">
-                <div data-provider-sidebar></div>
-                <div class="flex-1 flex flex-col gap-2 min-w-0">
-                    ${renderSearchBar()}
-                    <div class="text-xs font-semibold text-secondary py-1 shrink-0 flex items-center justify-between">
-                        <span>Available models</span>
-                        <span data-provider-badge class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60 hidden"></span>
+            <div class="flex flex-col h-full max-h-[70vh]">
+                <div class="px-2 pb-3 mb-2 border-b border-white/5 shrink-0">
+                    <div class="flex items-center gap-3 bg-white/5 rounded-xl px-4 py-2.5 border border-white/5">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="text-muted"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                        <input type="text" id="cs-model-search" placeholder="Search models..." class="bg-transparent border-none text-xs text-white focus:ring-0 w-full p-0">
                     </div>
-                    <div data-model-list></div>
                 </div>
+                <div class="text-[10px] font-bold text-secondary uppercase tracking-widest px-3 py-2 shrink-0">${isI2V ? 'Image-to-video models' : 'Text-to-video models'}</div>
+                <div id="cs-model-list" class="flex flex-col gap-1.5 overflow-y-auto custom-scrollbar pr-1 pb-2"></div>
             </div>
         `;
-        
-        const sidebarEl = modelDropdown.querySelector('[data-provider-sidebar]');
-        const modelListEl = modelDropdown.querySelector('[data-model-list]');
-        const providerBadge = modelDropdown.querySelector('[data-provider-badge]');
-        const searchInput = modelDropdown.querySelector('[data-provider-search]');
+        const list = modelDropdown.querySelector('#cs-model-list');
 
-        const refresh = () => {
-            sidebarEl.innerHTML = renderProviderSidebar(availableProviders, selectedProvider, (provider) => {
-                selectedProvider = provider;
-                refresh();
-            });
-            const query = searchInput ? searchInput.value : '';
-            const filtered = filterModels(models, query, selectedProvider);
-            const showProviderName = selectedProvider === 'all';
-            modelListEl.innerHTML = renderModelList(filtered, currentSettings.model, showProviderName, (m) => {
+        const makeItem = (m) => {
+            const item = document.createElement('div');
+            item.className = `flex items-center justify-between p-3.5 hover:bg-white/5 rounded-2xl cursor-pointer transition-all border border-transparent hover:border-white/5 ${currentSettings.model === m.id ? 'bg-white/5 border-white/5' : ''}`;
+            const iconColor = m.id.includes('kling') ? 'bg-blue-500/10 text-blue-400'
+                : m.id.includes('veo') ? 'bg-purple-500/10 text-purple-400'
+                : m.id.includes('sora') ? 'bg-rose-500/10 text-rose-400'
+                : m.id.includes('runway') ? 'bg-emerald-500/10 text-emerald-400'
+                : 'bg-primary/10 text-primary';
+            item.innerHTML = `
+                <div class="flex items-center gap-3.5">
+                    <div class="w-10 h-10 ${iconColor} border border-white/5 rounded-xl flex items-center justify-center font-black text-sm shadow-inner uppercase">${m.name.charAt(0)}</div>
+                    <div class="flex flex-col gap-0.5">
+                        <span class="text-xs font-bold text-white tracking-tight">${m.name}</span>
+                    </div>
+                </div>
+                ${currentSettings.model === m.id ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d9ff00" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+            `;
+            item.onclick = (e) => {
+                e.stopPropagation();
                 currentSettings.model = m.id;
                 updateModelBtn();
                 updateControlsForModel();
-                if (dynamicControls) {
-                  dynamicControls.update(getExtendedModel(getModelById(currentSettings.model)));
-                }
                 closeModelDropdown();
-            });
-
-            if (selectedProvider !== 'all') {
-                const pName = availableProviders.find(p => p.id === selectedProvider)?.name || selectedProvider;
-                providerBadge.textContent = pName;
-                providerBadge.classList.remove('hidden');
-            } else {
-                providerBadge.classList.add('hidden');
-            }
+            };
+            return item;
         };
 
-        refresh();
+        const renderModels = (filter = '') => {
+            list.innerHTML = '';
+            const lf = filter.toLowerCase();
+            models
+                .filter(m => m.name.toLowerCase().includes(lf) || m.id.toLowerCase().includes(lf))
+                .forEach(m => list.appendChild(makeItem(m)));
+        };
+        renderModels();
 
-        sidebarEl.addEventListener('click', (e) => {
-            const btn = e.target.closest('button[data-provider]');
-            if (!btn) return;
-            e.stopPropagation();
-            const provider = btn.getAttribute('data-provider');
-            if (provider) {
-                selectedProvider = provider;
-                refresh();
-            }
-        });
-
+        const searchInput = modelDropdown.querySelector('#cs-model-search');
         searchInput.onclick = (e) => e.stopPropagation();
-        searchInput.oninput = () => refresh();
+        searchInput.oninput = (e) => renderModels(e.target.value);
 
         modelDropdown.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
         modelDropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
@@ -590,15 +531,13 @@ export function CinemaStudio() {
         if (!model) return;
         const durations = isI2V ? getDurationsForI2VModel(model.id) : getDurationsForModel(model.id);
         const resolutions = isI2V ? getResolutionsForI2VModel(model.id) : getResolutionsForVideoModel(model.id);
+        // Only override the free-text resolution default when the model
+        // advertises supported values; otherwise leave the user's choice.
         if (resolutions && resolutions.length > 0 && !resBtn.dataset.touched) {
             updateResBtn(resolutions[0]);
         }
         if (durations && durations.length > 0) {
             currentSettings.duration = durations[0];
-        }
-        if (dynamicControls) {
-          dynamicControls.update(getExtendedModel(getModelById(currentSettings.model)));
-          dynamicControls.setValue('aspect_ratio', currentSettings.aspect_ratio);
         }
     }
 
@@ -1099,7 +1038,6 @@ export function CinemaStudio() {
     };
 
     downloadBtn.onclick = async () => {
-        if (!(await requireEntitlement())) return;
         const url = currentResultUrl;
         if (!url) return;
         const isVideo = /\.(mp4|webm|mov|m4v)(\?|$)|video\//i.test(url);
@@ -1163,39 +1101,41 @@ export function CinemaStudio() {
         ].filter(Boolean).join(', ');
 
         try {
-            const dynamicPayload = dynamicControls.getPayload({});
-            const resolution = (dynamicPayload.resolution || resBtn.dataset.value || '2k').toLowerCase();
+            const resolution = (resBtn.dataset.value || '1k').toLowerCase();
             const isRef = !!currentSettings.referenceUrl;
 
+            // Use the model the user picked in the catalog picker. Resolve it
+            // through the catalog so an unknown/renamed id degrades gracefully
+            // instead of 404-ing the backend. Falls back to a known-good Kling
+            // model when the selected id isn't in the catalog.
             const catalogModel = isRef ? getI2VModelById(currentSettings.model) : getVideoModelById(currentSettings.model);
             const resolvedModel = (catalogModel && catalogModel.id) || currentSettings.model
                 || (isRef ? 'kling-v2.6-pro-i2v' : 'kling-v2.6-pro-t2v');
 
+            // Honor the per-model duration if the catalog advertises one,
+            // otherwise keep the default 5s.
             const durations = isRef ? getDurationsForI2VModel(resolvedModel) : getDurationsForModel(resolvedModel);
-            const duration = dynamicPayload.duration || ((durations && durations.length > 0) ? durations[0] : (currentSettings.duration || 5));
+            const duration = (durations && durations.length > 0) ? durations[0] : (currentSettings.duration || 5);
 
             let res;
             if (isRef) {
-                const i2vParams = {
+                // Image-to-video: use the uploaded still as the seed.
+                res = await muapi.generateI2V({
                     model: resolvedModel,
                     image_url: currentSettings.referenceUrl,
                     prompt: finalPrompt,
-                    ...dynamicPayload,
+                    aspect_ratio: currentSettings.aspect_ratio,
                     duration,
                     resolution,
-                };
-                if (customThumbnailUrl) i2vParams.thumbnail_url = customThumbnailUrl;
-                res = await muapi.generateI2V(i2vParams);
+                });
             } else {
-                const t2vParams = {
+                res = await muapi.generateVideo({
                     model: resolvedModel,
                     prompt: finalPrompt,
-                    ...dynamicPayload,
+                    aspect_ratio: currentSettings.aspect_ratio,
                     duration,
                     resolution,
-                };
-                if (customThumbnailUrl) t2vParams.thumbnail_url = customThumbnailUrl;
-                res = await muapi.generateVideo(t2vParams);
+                });
             }
 
             if (res && res.url) {

@@ -1,4 +1,5 @@
 import { supabase, uploadFileToStorage } from '../lib/hybrid-supabase.js';
+import { initializeMediaLibraryDragDrop, setupEnhancedTooltips } from '../lib/editor/dragDrop.js';
 // MARKER_TEST_ABC123import { processFileUpload } from '../lib/editor/uploadPipeline.js';
 import { setupUploadSources } from '../lib/editor/uploadSources.js';
 import { saveProjectToStorage } from '../lib/editor/persistence.js';
@@ -10,6 +11,7 @@ import { renderMultiCameraToolbar, renderPipControls, renderSplitScreenControls 
 import { createTimelineState } from '../lib/editor/timelineEditorState.js';
 import { legacyToTimeline, getPreviewClipFromTimeline, syncTimelineFromState } from '../lib/editor/timeline-bridge.js';
 import { KeyframeSystem } from '../lib/editor/keyframeSystem.jsx';
+import { TransitionEditor } from '../lib/editor/transitionEditor.js';
 import { TimelineTransitions } from '../lib/editor/timelineTransitions.js';
 import { SceneDetector } from './timeline/SceneDetector.js';
 import { CameraEffects } from './timeline/CameraEffects.js';
@@ -69,19 +71,6 @@ import { ImportTimelineModal } from './ImportTimelineModal.jsx';
 import { ICLoraPanel } from './ICLoraPanel.jsx';
 // Category C Editor Surface imports removed - not implemented
 import { createHeroSection } from '../lib/thumbnails.js';
-// Timeline editor styles are imported here so Vite bundles them. Injecting them
-// via a runtime <link href="styles/timeline-editor-page.css"> 404s in production
-// because Vite never copies that path into dist (it was served as text/html).
-import '../styles/timeline-editor-page.css';
-
-// Initialize the global TimelineEditor registry at MODULE scope (not inside the
-// exported function). In the production bundle Rollup merges this module into a
-// shared chunk and can hoist the `const TLEditor` binding to module scope; when
-// that hoisted binding is touched during chunk evaluation before its
-// initializer runs it throws "Cannot access 'TLEditor' before initialization"
-// and the editor never mounts. Initializing it once here, at module-eval time,
-// guarantees it is always defined before TimelineEditorPage() is ever invoked.
-const TLEditor = (window.TimelineEditor = window.TimelineEditor || {});
 
 // Waveform cache: assetId -> waveformData (module-level, shared across editor instances)
 const waveformCache = new Map(); // assetId -> waveformData
@@ -90,8 +79,7 @@ export function TimelineEditorPage() {
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col overflow-hidden bg-app-bg relative';
 
-  // `TLEditor` is initialized at module scope (see top of file), so it is always
-  // defined by the time this function runs.
+  const TLEditor = (window.TimelineEditor = window.TimelineEditor || {});
 
   // Feature flags — single source of truth for gating optional behaviour.
   // Routines that are not yet wired end their bodies with a `// DISABLED:`
@@ -639,9 +627,18 @@ export function TimelineEditorPage() {
 `;
 
   function injectStyles() {
-    // Styles are bundled via the `import '../styles/timeline-editor-page.css'`
-    // at the top of this module (handled by Vite), so no runtime <link> is
-    // needed. Kept as a no-op hook in case callers expect it.
+    // No-op: the timeline design-system styles (timeline-tokens.css and
+    // timeline-editor-page.css) are now imported statically at the top of this
+    // module, so Vite bundles and emits them into the production build with
+    // correct (subpath-safe) URLs. Injecting them via a runtime <link> to a
+    // project-root path 404s in production because Vite never copies
+    // unreferenced files into dist/. Kept as a guard so existing call sites
+    // remain valid.
+    if (document.getElementById('timeline-editor-styles')) return;
+    const marker = document.createElement('meta');
+    marker.id = 'timeline-editor-styles';
+    marker.name = 'timeline-editor-styles-loaded';
+    document.head.appendChild(marker);
   }
 
   // Memoize SVG data-URI generation so identical posters are created once and
@@ -4195,18 +4192,11 @@ export function TimelineEditorPage() {
      }
 
     function initializeTransitionEditor() {
-      if (transitionEditor) return;
-      // Lazy-load the (heavy) TransitionEditor. Loading it dynamically — instead
-      // of a static import — keeps TimelineEditorPage out of the shared
-      // `transitionEditor-lazy` chunk, which in production avoided the
-      // module-graph reordering that surfaced as a TDZ crash on load.
-      import('../lib/editor/transitionEditor-lazy.js')
-        .then(({ TransitionEditor }) => {
-          transitionEditor = new TransitionEditor(els.transitionEditorContainer, (transition, params, duration) => {
-            // Handle transition application from editor
-          });
-        })
-        .catch((err) => console.warn('[Timeline] transition editor failed to load', err));
+      if (!transitionEditor) {
+        transitionEditor = new TransitionEditor(els.transitionEditorContainer, (transition, params, duration) => {
+          // Handle transition application from editor
+        });
+      }
     }
 
     function initializeTimelineTransitions() {
@@ -7322,16 +7312,8 @@ export function TimelineEditorPage() {
 
       renderAll();
       bindEvents();
-      // Tooltips + media-library drag/drop are loaded lazily so the heavy
-      // dragDrop module stays out of the editor's initial chunk. This also
-      // prevents the forced shared-chunk merge that caused the production
-      // "Cannot access 'TLEditor' before initialization" TDZ crash.
-      import('../lib/editor/dragDrop.js')
-        .then(({ setupEnhancedTooltips, initializeMediaLibraryDragDrop }) => {
-          setupEnhancedTooltips();
-          initializeMediaLibraryDragDrop(state, els.mediaGrid, { showToast });
-        })
-        .catch((err) => console.warn('[Timeline] drag/drop init failed', err));
+      setupEnhancedTooltips();
+      initializeMediaLibraryDragDrop(state, els.mediaGrid, { showToast });
       setupUploadSources({ state, showToast });
 
       // Initialize media ingest components

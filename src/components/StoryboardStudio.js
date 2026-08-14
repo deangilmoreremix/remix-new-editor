@@ -1,5 +1,4 @@
 import { muapi } from '../lib/muapi.js';
-import { CINEMATIC_THEME, cx } from '../lib/cinematicTheme.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createInlineInstructions } from './InlineInstructions.js';
@@ -7,33 +6,6 @@ import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCa
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { openaiService } from '../lib/openaiService.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
-import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
-import { requireEntitlement } from '../lib/clerkEntitlements.js';
-import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
-import { showToast } from '../lib/loading.js';
-import { ENHANCE_TAGS, QUICK_PROMPTS, buildNanoBananaPrompt } from '../lib/promptUtils.js';
-import { t2iModels, getModelById, getAspectRatiosForModel } from '../lib/models.js';
-import { PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
-import { createUploadPicker } from './UploadPicker.js';
-import { createFullscreenPreview } from './components/MediaPreview.js';
-import Store from '../stores/base/Store.js';
-import { createAutosave, saveProject, saveProjectSync, loadProjectFromStorage, setSupabaseClient } from '../lib/editor/persistence.js';
-import { generateStoryboardFromIntent } from '../lib/storyboardEngine.js';
-import { navigate } from '../lib/router.js';
-import { getVideoIntent, setVideoIntent, subscribeVideoIntent } from '../lib/videoIntentStore.js';
-import { createAdvancedControls } from '../lib/studioControls.js';
-import { getExtendedModel } from '../lib/modelInputExtensions.js';
-
-let supabaseAvailable = false;
-try {
-  const supabaseModule = await import('../lib/supabase.js');
-  if (supabaseModule.isSupabaseConfigured && supabaseModule.isSupabaseConfigured()) {
-    setSupabaseClient(supabaseModule.supabase);
-    supabaseAvailable = true;
-  }
-} catch (e) {
-  console.warn('[StoryboardStudio] Supabase not available:', e);
-}
 
 const SHOT_TYPES = ['Wide Shot', 'Medium Shot', 'Close-Up', 'Extreme Close-Up', 'POV', 'Overhead', 'Low Angle'];
 
@@ -171,13 +143,8 @@ export function StoryboardStudio(options = {}) {
   });
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col bg-app-bg overflow-y-auto relative storyboard-studio';
-  if (!embedded) {
-    mountStudioChrome(container, { currentRoute: 'storyboard', onBack });
-  }
+  mountStudioChrome(container, { currentRoute: 'storyboard' });
   container.setAttribute('data-app', 'storyboard');
-
-  const fullscreen = createFullscreenPreview();
-  container.appendChild(fullscreen.element);
 
   const topBar = document.createElement('div');
   topBar.className = 'px-4 md:px-8 pt-6 pb-4 shrink-0';
@@ -576,6 +543,36 @@ export function StoryboardStudio(options = {}) {
   genAllBtn.textContent = 'Generate All Frames';
   genAllBtn.setAttribute('aria-label', 'Generate all frames');
   controlBar.appendChild(genAllBtn);
+
+  // Premium GTM Boost entry point — opens the cinematic prompt enhancer.
+  // Produces a conversion-optimized base concept that is propagated to every
+  // frame (prepended to each frame's own prompt at generation time).
+  let enhancedConcept = '';
+  const gtmBtn = document.createElement('button');
+  gtmBtn.type = 'button';
+  gtmBtn.textContent = '🎯 GTM Boost';
+  gtmBtn.title = 'Enhance your storyboard with GTM conversion frameworks';
+  gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
+  gtmBtn.className = 'gtm-boost-btn shrink-0';
+  gtmBtn.addEventListener('click', () => {
+    import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+      openGTMPromptModal('storyboard', (prompt) => {
+        enhancedConcept = prompt;
+        gtmBtn.classList.add('active');
+        // Re-render so any visible "boosted" indicator stays in sync.
+        renderFrames();
+      });
+    }).catch((err) => console.error('[StoryboardStudio] GTM Boost failed:', err));
+  });
+  controlBar.appendChild(gtmBtn);
+
+  const personalizeTrigger = mountPersonalizeTrigger({ controlsContainer: controlBar, appId: 'storyboard', getTextarea: () => null });
+  // Live reference to the active personalization profile so generateFrame can
+  // resolve {{tokens}} at generation time without mutating the textarea.
+  const activeProfileRef = { value: null };
+  const syncProfile = () => { activeProfileRef.value = personalizeTrigger?.getActiveProfile?.() || null; };
+  syncProfile();
+  window.addEventListener('remix:contact-changed', syncProfile);
 
   const progressLabel = document.createElement('span');
   progressLabel.className = 'text-[10px] text-muted tabular-nums';
@@ -1209,6 +1206,7 @@ export function StoryboardStudio(options = {}) {
       promptInput.oninput = () => { frame.prompt = promptInput.value; autosave.schedule(getStoryboardState()); };
       card.appendChild(promptInput);
 
+      // Per-frame GTM Boost — enhances this single frame's prompt.
       const frameEnhanceBtn = document.createElement('button');
       frameEnhanceBtn.type = 'button';
       frameEnhanceBtn.className = 'self-start text-xs font-bold text-primary hover:text-white transition-colors frame-enhance-btn';
@@ -1216,7 +1214,7 @@ export function StoryboardStudio(options = {}) {
       frameEnhanceBtn.title = 'Enhance this frame with GTM conversion frameworks';
       frameEnhanceBtn.addEventListener('click', () => {
         import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-          openGTMPromptModal('storyboard-studio', (prompt) => {
+          openGTMPromptModal('storyboard', (prompt) => {
             frame.enhancedPrompt = prompt;
             frameEnhanceBtn.textContent = '🎯 Enhanced';
             frameEnhanceBtn.classList.add('active');
@@ -1232,6 +1230,7 @@ export function StoryboardStudio(options = {}) {
       enhanceRow.appendChild(frameEnhanceBtn);
       card.appendChild(enhanceRow);
 
+      // Narration input
       const narrationInput = document.createElement('input');
       narrationInput.type = 'text';
       narrationInput.className = 'w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs placeholder:text-muted focus:outline-none focus:border-primary/50';
@@ -1439,7 +1438,7 @@ export function StoryboardStudio(options = {}) {
 
   async function generateFrame(idx, btn, imageArea) {
     const frame = frames[idx];
-    if (!frame.prompt.trim()) { showToast('Enter a scene description', 'warning'); return; }
+    if (!frame.prompt.trim()) { alert('Enter a scene description'); return; }
     const hasKey = apiKeyManager.hasOpenAIKey() || apiKeyManager.hasMuapiKey();
     if (!hasKey) { AuthModal(() => generateFrame(idx, btn, imageArea)); return; }
 
@@ -1447,42 +1446,24 @@ export function StoryboardStudio(options = {}) {
     btn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span>';
 
     try {
+      // Resolve personalization tokens at generation time only (tokens stay
+      // visible in the textarea until now).
       let rawPrompt = frame.prompt;
       if (frame.enhancedPrompt) {
+        // Per-frame GTM Boost output takes precedence for this frame.
         rawPrompt = `${frame.enhancedPrompt} — ${frame.shot} composition`;
       } else if (enhancedConcept) {
+        // Global GTM Boost concept propagated to every frame.
         rawPrompt = `${enhancedConcept} Scene: ${frame.prompt} (${frame.shot})`;
       }
       const profile = activeProfileRef.value;
       const resolvedPrompt = profile ? replaceTokensInPrompt(rawPrompt, profile) : rawPrompt;
 
-      const cinematicPrompt = buildNanoBananaPrompt(
-        `${frame.shot} storyboard frame: ${resolvedPrompt}`,
-        'Full-Frame Cine Digital',
-        'Classic Anamorphic',
-        50,
-        'f/1.4'
-      ) + (selectedStyle !== 'None' ? `, ${selectedStyle.toLowerCase()} style` : '')
-      + (selectedLighting !== 'None' ? `, ${selectedLighting.toLowerCase()} lighting` : '')
-      + (selectedColor !== 'None' ? `, ${selectedColor.toLowerCase()} color grade` : '');
-
-      const url = await generateFrameImage(cinematicPrompt);
+      const prompt = `${frame.shot} cinematic storyboard frame: ${resolvedPrompt}, professional cinematography, 4K quality`;
+      const url = await generateFrameImage(prompt);
       if (url) {
         frame.imageUrl = url;
-        imageArea.innerHTML = '';
-        const img = document.createElement('img');
-        img.src = url;
-        img.className = 'w-full h-full object-cover cursor-pointer';
-        img.alt = `Storyboard frame ${idx + 1}`;
-        img.onclick = () => {
-          fullscreen.show(url, {
-            type: 'image',
-            prompt: frame.prompt,
-            model: selectedModelName,
-            shot: frame.shot,
-          });
-        };
-        imageArea.appendChild(img);
+        imageArea.innerHTML = `<img src="${url}" class="w-full h-full object-cover">`;
       }
     } catch (err) {
       showToast(`Error: ${err.message}`, 'error');
@@ -1493,36 +1474,38 @@ export function StoryboardStudio(options = {}) {
     }
   }
 
-  async function generateFrameImage(prompt) {
-    if (apiKeyManager.hasOpenAIKey()) {
-      try {
-        const { images } = await openaiService.generateImageResponses({
-          input: prompt,
-          size: resolveOpenAISize(selectedAr),
-          quality: 'auto',
-          outputFormat: 'png',
-          customThumbnailUrl: customThumbnailUrl || undefined,
-        });
-        const img = images?.[0];
-        if (!img) return null;
-        return img.base64 ? `data:image/png;base64,${img.base64}` : img.url || null;
-      } catch (err) {
-        if (!apiKeyManager.hasMuapiKey()) throw err;
-        console.warn('[StoryboardStudio] OpenAI Responses generation failed, falling back to MuAPI:', err.message);
-      }
-    }
-    const result = await muapi.generateImage({ model: selectedModel, prompt, aspect_ratio: selectedAr, customThumbnailUrl: customThumbnailUrl || undefined });
-    return result?.url || null;
-  }
+  /**
+   * Generate a single storyboard frame image. Prefers the user's OpenAI key
+   * (direct to the OpenAI Image API) and falls back to MuAPI when only a MuAPI
+   * key is configured.
+   * @param {string} prompt
+   * @returns {Promise<string|null>} image URL/data-URL or null
+   */
+   async function generateFrameImage(prompt) {
+     if (apiKeyManager.hasOpenAIKey()) {
+       try {
+         const { images } = await openaiService.generateImageResponses({
+           input: prompt,
+           size: '16:9',
+           quality: 'auto',
+           outputFormat: 'png',
+         });
+         const img = images?.[0];
+         if (!img) return null;
+         return img.base64 ? `data:image/png;base64,${img.base64}` : img.url || null;
+       } catch (err) {
+         // Surface OpenAI-specific failures clearly; MuAPI fallback below.
+         if (!apiKeyManager.hasMuapiKey()) throw err;
+         console.warn('[StoryboardStudio] OpenAI Responses generation failed, falling back to MuAPI:', err.message);
+       }
+     }
+     const result = await muapi.generateImage({ model: 'nano-banana', prompt, aspect_ratio: '16:9' });
+     return result?.url || null;
+   }
 
   genAllBtn.onclick = async () => {
     const hasKey = apiKeyManager.hasOpenAIKey() || apiKeyManager.hasMuapiKey();
     if (!hasKey) { AuthModal(() => genAllBtn.click()); return; }
-
-    generationProgress = { current: 0, total: frames.filter(f => f.prompt.trim()).length, failed: [] };
-    batchRetryCount = 0;
-    updateProgressLabel();
-    retryBtn.classList.add('hidden');
 
     genAllBtn.disabled = true;
     genAllBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Generating...';

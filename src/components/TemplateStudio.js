@@ -2,7 +2,6 @@ import { getTemplateById } from '../lib/templates.js';
 import { getTemplateThumbnailCandidates, saveCustomThumbnailToCache, clearCustomThumbnailCache, getCustomThumbnailFromCache } from '../lib/thumbnails.js';
 import { getTemplateSpecs, hasEnhancedSpecs } from '../lib/templateSpecs.js';
 import { muapi } from '../lib/muapi.js';
-import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { getNicheTerms, enrichPromptString, deriveEngineInputFromTemplate, composeNegativePrompt } from '../lib/templateEngine.js';
 import { NICHE_ENRICHMENT, FILM_FAMILIES } from '../lib/templateMatrix.js';
 import { t2iModels, i2iModels, i2vModels } from '../lib/models.js';
@@ -43,7 +42,6 @@ export function TemplateStudio(templateId) {
   let activeTab = 'Enhanced Prompt';
   let aiEnhancer = true;
   let lastBuiltPrompt = '';
-  const outputTabValues = {};
   let showAdvanced = false;
   let uploadedUrl = null;
   let isGenerating = false;
@@ -104,10 +102,6 @@ export function TemplateStudio(templateId) {
         <button class="text-white font-semibold" data-nav="templates">Templates</button>
         <button class="hover:text-white transition" data-nav="assist">Assist</button>
         <button class="hover:text-white transition" data-nav="community">Community</button>
-      </div>
-      <div id="api-key-indicator" class="ml-auto flex items-center gap-2">
-        <span class="api-key-dot w-2 h-2 rounded-full bg-zinc-600"></span>
-        <span class="api-key-text text-[10px] uppercase tracking-wider text-zinc-500">No API key</span>
       </div>
     </div>
   `;
@@ -569,13 +563,13 @@ export function TemplateStudio(templateId) {
   // GTM Boost affordance (opt-in enhancement via GTMPromptModal).
   // Uses the shared .gtm-boost-btn design (matches Image / Video studios);
   // the .template-studio ancestor class themes it emerald via gtm-prompt-modal.css.
-  const gtmBoostBtn = document.createElement('button');
-  gtmBoostBtn.type = 'button';
-  gtmBoostBtn.textContent = '🎯 GTM Boost';
-  gtmBoostBtn.title = 'Enhance your prompt with GTM conversion frameworks';
-  gtmBoostBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
-  gtmBoostBtn.className = 'gtm-boost-btn w-full mt-4';
-  leftPanel.appendChild(gtmBoostBtn);
+  const gtmBtn = document.createElement('button');
+  gtmBtn.type = 'button';
+  gtmBtn.textContent = '🎯 GTM Boost';
+  gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
+  gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
+  gtmBtn.className = 'gtm-boost-btn w-full mt-4';
+  leftPanel.appendChild(gtmBtn);
 
   // Advanced controls content
   const advancedControls = enhancerSection.querySelector('#advancedControls');
@@ -779,18 +773,18 @@ export function TemplateStudio(templateId) {
     const saved = outputTabValues[activeTab];
     switch (activeTab) {
       case 'Enhanced Prompt':
-        textarea.value = saved || lastBuiltPrompt || specs.enhancerKeywords || 'Click Generate to create an enhanced prompt...';
+        textarea.value = lastBuiltPrompt || specs.enhancerKeywords || 'Click Generate to create an enhanced prompt...';
         break;
       case 'Scene Beats': {
-        const beats = saved || (template.storyBlueprint && template.storyBlueprint.length ? template.storyBlueprint : (specs.sceneBlueprint || ['Hook','Subject','Movement','Payoff','CTA']));
-        textarea.value = Array.isArray(beats) ? beats.join(' → ') : beats;
+        const beats = (template.storyBlueprint && template.storyBlueprint.length) ? template.storyBlueprint : (specs.sceneBlueprint || ['Hook','Subject','Movement','Payoff','CTA']);
+        textarea.value = beats.join(' → ');
         break;
       }
       case 'Voiceover':
         textarea.value = saved || `Create a premium voiceover for a ${template.name}. Open with a fast hook, build emotional or commercial momentum, end with a clear call to action.`;
         break;
       case 'Negative Prompt':
-        textarea.value = saved || specs.negativePrompt || 'Low quality, blurry, amateur, poorly lit, generic stock look';
+        textarea.value = specs.negativePrompt || 'Low quality, blurry, amateur, poorly lit, generic stock look';
         break;
     }
   }
@@ -884,6 +878,32 @@ export function TemplateStudio(templateId) {
         } catch (e) {
           console.warn('[TemplateStudio] GTM Boost failed:', e);
           showInlineError(container, 'GTM Boost failed. Please try again.');
+        }
+      };
+    }
+
+    // GTM Boost button
+    if (gtmBtn) {
+      gtmBtn.onclick = () => {
+        try {
+          import('./modals/GTMPromptModal.jsx').then(({ GTMPromptModal }) => {
+            const modal = new GTMPromptModal({
+              appTheme: 'template-studio',
+              onPromptGenerated: (text) => {
+                const ta = document.getElementById('outputTextarea');
+                if (ta) {
+                  ta.value = text;
+                  lastBuiltPrompt = text;
+                }
+              }
+            });
+            modal.basePrompt = (document.getElementById('outputTextarea')?.value) || '';
+            modal.open();
+          }).catch((e) => {
+            console.warn('[TemplateStudio] GTM Boost modal load failed:', e);
+          });
+        } catch (e) {
+          console.warn('[TemplateStudio] GTM Boost failed:', e);
         }
       };
     }
@@ -1021,6 +1041,32 @@ export function TemplateStudio(templateId) {
     genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Generating...';
 
     try {
+      const params = { model: selectedModel || template.model, ...(template.defaultParams || {}) };
+
+      // Normalize aspect ratio for standard and matrix templates
+      const aspectRatio = template.aspectRatio || (template.aspectRatios ? template.aspectRatios[0] : null);
+      if (aspectRatio) params.aspect_ratio = aspectRatio;
+
+      // Normalize duration from template or defaultParams
+      const duration = template.duration
+        ? (typeof template.duration === 'object' ? template.duration.default : template.duration)
+        : template.defaultParams?.duration;
+      if (duration) params.duration = duration;
+
+      allInputs.forEach(input => {
+        if (formState[input.name]) {
+          params[input.name] = formState[input.name];
+        }
+      });
+
+      // Build prompt from all available template metadata and advanced options
+      params.prompt = buildEnrichedPrompt(template, specs, formState, params.prompt);
+      lastBuiltPrompt = params.prompt;
+
+      const negNiche = (formState.niche && formState.niche !== 'auto-detect') ? formState.niche : (template.niche || '');
+      const negativePrompt = composeNegativePrompt(template.filmFamily || '', negNiche, formState.visualStyle || 'commercial') || specs.negativePrompt || '';
+      if (negativePrompt) params.negative_prompt = negativePrompt;
+
       let result;
       if (template.modelType === 'i2v') {
         result = await muapi.generateI2V(params);
@@ -1081,15 +1127,12 @@ export function TemplateStudio(templateId) {
       if (base) parts.push(base);
     }
 
-    // Scene blueprint: custom override, matrix template.storyBlueprint else specs.sceneBlueprint
-    const customBlueprint = formState['_customSceneBlueprint'];
-    const sceneBlueprint = customBlueprint
-      ? (Array.isArray(customBlueprint) ? customBlueprint : String(customBlueprint).split('→').map(s => s.trim()).filter(Boolean))
-      : (template.storyBlueprint && template.storyBlueprint.length)
-        ? template.storyBlueprint
-        : (specs.sceneBlueprint || []);
+    // Scene blueprint: matrix template.storyBlueprint else specs.sceneBlueprint
+    const sceneBlueprint = (template.storyBlueprint && template.storyBlueprint.length)
+      ? template.storyBlueprint
+      : (specs.sceneBlueprint || []);
     if (sceneBlueprint.length) {
-      parts.push(`Scene structure: ${Array.isArray(sceneBlueprint) ? sceneBlueprint.join(' → ') : sceneBlueprint}`);
+      parts.push(`Scene structure: ${sceneBlueprint.join(' → ')}`);
     }
 
     // Cinematography
