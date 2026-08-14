@@ -51,8 +51,8 @@ export function SignUpPage() {
     if (signUp.status === 'complete') {
       await signUp.finalize({
         navigate: async ({ decorateUrl }) => {
-          const url = decorateUrl('/#/image');
-          window.location.href = url.startsWith('http') ? url : '/#/image';
+          const url = decorateUrl('/#/templates');
+          window.location.href = url.startsWith('http') ? url : '/#/templates';
         },
       });
       return;
@@ -82,8 +82,8 @@ export function SignUpPage() {
     if (signUp.status === 'complete') {
       await signUp.finalize({
         navigate: async ({ decorateUrl }) => {
-          const url = decorateUrl('/#/image');
-          window.location.href = url.startsWith('http') ? url : '/#/image';
+          const url = decorateUrl('/#/templates');
+          window.location.href = url.startsWith('http') ? url : '/#/templates';
         },
       });
       return;

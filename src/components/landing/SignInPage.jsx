@@ -80,9 +80,12 @@ export function SignInPage() {
 
   const advanceSignIn = async () => {
     if (signIn.status === 'complete') {
-      // Session is established server-side. Navigate to the app so the
-      // Clerk SDK on the next page load picks up the active session.
-      window.location.href = '/#' + AFTER_SIGN_IN_ROUTE;
+      await signIn.finalize({
+        navigate: async ({ session, decorateUrl }) => {
+          const url = decorateUrl('/#/templates');
+          window.location.href = url.startsWith('http') ? url : '/#/templates';
+        },
+      });
       return;
     }
 
