@@ -16,6 +16,7 @@ import modelCatalogService from './services/modelCatalogService.js';
 import videoDbProxyService from './services/videoDbProxyService.js';
 import gtmBoostService from './services/gtmBoostService.js';
 import storyboardService from './services/storyboardService.js';
+import pexelsProxyService from './services/pexelsProxyService.js';
 import { auth, optionalAuth } from './middleware/auth.js';
 
  const app = express();
@@ -30,6 +31,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 const videoAgentLimiter = rateLimit({ windowMs: 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false });
 const agentActionsLimiter = rateLimit({ windowMs: 60 * 1000, max: 20, standardHeaders: true, legacyHeaders: false });
 const videodbProxyLimiter = rateLimit({ windowMs: 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
+const pexelsSearchLimiter = rateLimit({ windowMs: 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
 
 // Authenticated API routes — every route below requires a valid Supabase
 // JWT in the `Authorization: Bearer <token>` header. The middleware attaches
@@ -53,6 +55,7 @@ app.use('/api/speech-transcription', optionalAuth, speechTranscriptionService);
 app.use('/api/agents', agentActionsLimiter, optionalAuth, agentActionsService);
 app.use('/api/model-catalog', optionalAuth, modelCatalogService);
 app.use('/api/videodb', videodbProxyLimiter, optionalAuth, videoDbProxyService);
+app.use('/api/pexels', pexelsSearchLimiter, optionalAuth, pexelsProxyService);
 app.use('/api/gtm-boost', optionalAuth, gtmBoostService);
 app.use('/api/storyboard', storyboardService);
 app.use('/videoagent', videoAgentLimiter, optionalAuth, videoAgentService);

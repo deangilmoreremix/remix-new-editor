@@ -41,6 +41,45 @@ export function ContentLibraryPage() {
   uploadBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Upload';
   controls.appendChild(uploadBtn);
 
+  const pexelsBtn = document.createElement('button');
+  pexelsBtn.type = 'button';
+  pexelsBtn.className = 'px-4 py-2 rounded-xl text-xs font-bold transition-all bg-white/5 border border-white/10 text-secondary hover:bg-white/10 hover:text-white flex items-center gap-2';
+  pexelsBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg> Browse Stock Media';
+  pexelsBtn.onclick = async () => {
+    const { browsePexels } = await import('../lib/studioPexels.js');
+    browsePexels({
+      accept: ['image', 'video'],
+      title: 'Stock Media',
+      studioName: 'Content Library',
+      onSelect: async (asset) => {
+        const url = asset.video_files?.[0]?.link || asset.url || asset.original || asset.src?.large || asset.src;
+        if (!url) return;
+        const filename = (asset.photographer || 'pexels') + '_' + (asset.id || Date.now());
+        const type = asset.asset_type === 'video' ? 'video' : 'image';
+        await saveContentLibraryEntry(url, {
+          filename: filename + (type === 'video' ? '.mp4' : '.jpg'),
+          type,
+          source: 'pexels',
+          attribution: (asset.photographer || 'Pexels') + ' on Pexels',
+          photographer: asset.photographer || (asset.user && asset.user.name) || '',
+          photographer_url: asset.photographer_url || (asset.user && asset.user.url) || 'https://www.pexels.com',
+          pexels_url: asset.url || '',
+        });
+        await refreshContent();
+      }
+    });
+  };
+  controls.appendChild(pexelsBtn);
+
+  topBar.appendChild(controls);
+  container.appendChild(topBar);
+
+  // Pexels attribution
+  const pexelsContentAttr = document.createElement('div');
+  pexelsContentAttr.id = 'pexels-content-library-attribution';
+  pexelsContentAttr.className = 'mt-1';
+  topBar.appendChild(pexelsContentAttr);
+
   // Filter tabs
   const filters = ['all', 'images', 'pdfs', 'videos'];
   const filterBtns = {};
@@ -60,9 +99,6 @@ export function ContentLibraryPage() {
   searchInput.className = 'ml-auto bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white text-xs placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors w-48';
   searchInput.oninput = () => { searchQuery = searchInput.value.toLowerCase(); renderGrid(); };
   controls.appendChild(searchInput);
-
-  topBar.appendChild(controls);
-  container.appendChild(topBar);
 
   // Status bar
   const statusBar = document.createElement('div');

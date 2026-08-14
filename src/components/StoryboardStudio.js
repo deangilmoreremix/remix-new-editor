@@ -1297,8 +1297,51 @@ export function StoryboardStudio(options = {}) {
       }
 
       refRow.appendChild(refTrigger);
+
+      // Pexels reference frame button
+      const pexelsRefBtn = document.createElement('button');
+      pexelsRefBtn.type = 'button';
+      pexelsRefBtn.title = 'Browse reference frame from Pexels';
+      pexelsRefBtn.className = 'w-8 h-8 shrink-0 rounded-md border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40';
+      pexelsRefBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>';
+      pexelsRefBtn.onclick = async () => {
+        const { browsePexelsImages } = await import('../lib/studioPexels.js');
+        browsePexelsImages({
+          title: 'Select Reference Frame',
+          studioName: 'Storyboard Studio',
+          onSelect: (asset) => {
+            frame.referenceImages = [{
+              url: asset.src?.large || asset.url || asset.original,
+              thumbnail: asset.src?.medium || asset.src?.small || asset.url || asset.original,
+              source: 'pexels',
+              attribution: {
+                photographer: asset.photographer || asset.user?.name || '',
+                photographerUrl: asset.photographer_url || asset.user?.url || '',
+                pexelsUrl: asset.url || '',
+              }
+            }];
+            refThumb.src = asset.src?.medium || asset.src?.small || asset.url || asset.original;
+            refThumbWrap.classList.remove('hidden');
+            refRemoveBtn.classList.remove('hidden');
+            autosave.schedule(getStoryboardState());
+            const attrContainer = document.getElementById(`pexels-storyboard-${idx}-attr`);
+            if (attrContainer) {
+              attrContainer.innerHTML = '';
+              import('../lib/attributionChip.js').then(mod => mod.renderAttributionChip(asset, attrContainer));
+            }
+          }
+        });
+      };
+      refRow.appendChild(pexelsRefBtn);
+
       refRow.appendChild(refThumbWrap);
       card.appendChild(refRow);
+
+      // Pexels attribution container
+      const storyboardAttr = document.createElement('div');
+      storyboardAttr.id = `pexels-storyboard-${idx}-attr`;
+      storyboardAttr.className = 'mt-1';
+      card.appendChild(storyboardAttr);
 
       const genFrameBtn = document.createElement('button');
       genFrameBtn.type = 'button';

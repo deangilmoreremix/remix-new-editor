@@ -40,15 +40,11 @@ function normalizeEffectName(name) {
 
 export class MuapiClient {
     constructor() {
-        // In dev, prefer the same-origin relative path so Vite can proxy it
-        // without triggering the Supabase function's cross-site Origin check.
-        // In production, keep using the configured Supabase proxy URL.
+        // Validate that Supabase URL is configured before building proxy URL
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        if (import.meta.env.DEV) {
-            this.proxyUrl = '/functions/v1/muapi-proxy';
-        } else if (!supabaseUrl) {
+        if (!supabaseUrl) {
             console.error('[MuapiClient] VITE_SUPABASE_URL is not configured');
-            this.proxyUrl = '/functions/v1/muapi-proxy';
+            this.proxyUrl = '/functions/v1/muapi-proxy'; // Fallback to relative path
         } else {
             this.proxyUrl = `${supabaseUrl}/functions/v1/muapi-proxy`;
         }
@@ -68,8 +64,7 @@ export class MuapiClient {
 
     _getMuapiHeaders() {
         const key = this.apiKeyManager.getMuapiKey();
-        const isPlaceholder = key === 'dev-bypass-key-not-real';
-        if (key && (!isDevBypass || !isPlaceholder)) {
+        if (key && !isDevBypass) {
             return { 'Content-Type': 'application/json', 'x-api-key': key };
         }
         return { 'Content-Type': 'application/json' };
@@ -492,14 +487,16 @@ export class MuapiClient {
         }
     }
 
-    async uploadFile(file) {
+    async uploadFile(file, { signal } = {}) {
         this._requireMuapiKey();
         await acquireRateLimitToken();
-        const key = this.getKey();
 
-        // Use the same magic-byte / MIME / extension chain as the rest of the
-        // editor so we don't mis-classify files whose browser-reported MIME is
-        // empty or generic (e.g. application/octet-stream).
+        const key = this.getKey();
+        const muapiKey = this.apiKeyManager.getMuapiKey();
+        if (key !== muapiKey) {
+            console.warn('[MuapiClient] getKey() and getMuapiKey() returned different values:', { getKey: key, getMuapiKey: muapiKey });
+        }
+
         let validation;
         try {
             validation = await validateFile(file);
@@ -518,9 +515,29 @@ export class MuapiClient {
         const formData = new FormData();
         formData.append('file', file);
 
-        const attemptUpload = async (signal) => {
+        const maxRetries = 2;
+        const retryableStatuses = new Set([502, 503, 429]);
+        let lastErr;
+
+        for (let attempt = 0; attempt <= maxRetries; attempt++) {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 60000);
+            let abortedByTimeout = false;
+
+            if (signal?.aborted) {
+                throw new Error('Request cancelled by user');
+            }
+
+            const timeoutId = setTimeout(() => {
+                abortedByTimeout = true;
+                controller.abort();
+            }, 60000);
+
+            const onCallerAbort = () => {
+                clearTimeout(timeoutId);
+                controller.abort();
+            };
+            signal?.addEventListener('abort', onCallerAbort, { once: true });
+
             try {
                 const response = await fetch(this.proxyUrl, {
                     method: 'POST',
@@ -532,21 +549,52 @@ export class MuapiClient {
                     signal: controller.signal
                 });
 
+                clearTimeout(timeoutId);
+                signal?.removeEventListener('abort', onCallerAbort);
+
                 if (!response.ok) {
-                    const errText = await response.text();
+                    let errText;
+                    try {
+                        const errData = await response.json();
+                        errText = JSON.stringify(errData);
+                    } catch {
+                        errText = await response.text();
+                    }
+
                     const status = response.status;
                     const err = new Error(`Upload failed: ${errText.slice(0, 200)}`);
                     err.status = status;
+
                     if (status === 402 || status === 403 || status === 413 || status === 422) {
                         err.retryable = false;
+                        throw err;
                     }
+
+                    if (retryableStatuses.has(status) && attempt < maxRetries) {
+                        const backoff = Math.pow(2, attempt) * 1000;
+                        console.warn(`[MuapiClient] Upload failed with ${status}, retrying in ${backoff}ms...`);
+                        await new Promise(resolve => setTimeout(resolve, backoff));
+                        lastErr = err;
+                        continue;
+                    }
+
+                    err.retryable = true;
                     throw err;
                 }
 
-                const result = await response.json();
+                let result;
+                try {
+                    result = await response.json();
+                } catch (e) {
+                    const err = new Error('Upload Failed: Non-JSON response from server');
+                    err.status = response.status;
+                    err.retryable = true;
+                    throw err;
+                }
+
                 if (result.error) {
                     const err = new Error(`Upload Failed: ${result.error}`);
-                    err.retryable = false;
+                    err.retryable = true;
                     throw err;
                 }
 
@@ -557,34 +605,60 @@ export class MuapiClient {
                     throw err;
                 }
                 return publicUrl;
-            } finally {
-                clearTimeout(timeoutId);
-            }
-        };
 
-        let lastErr;
-        for (let attempt = 0; attempt < 2; attempt++) {
-            try {
-                return await attemptUpload();
             } catch (err) {
-                lastErr = err;
-                if (err.retryable === false) break;
-                const status = err.status || (err.response?.status);
-                if (status === 402 || status === 403 || status === 413 || status === 422) break;
-                if (attempt === 0) {
-                    await new Promise(r => setTimeout(r, 800));
+                clearTimeout(timeoutId);
+                signal?.removeEventListener('abort', onCallerAbort);
+
+                if (err.name === 'AbortError') {
+                    if (abortedByTimeout && attempt < maxRetries) {
+                        const backoff = Math.pow(2, attempt) * 1000;
+                        console.warn(`[MuapiClient] Upload attempt ${attempt + 1} timed out, retrying in ${backoff}ms...`);
+                        await new Promise(resolve => setTimeout(resolve, backoff));
+                        continue;
+                    }
+                    throw new Error('Request cancelled by user');
                 }
+
+                lastErr = err;
+                const status = err.status || (err.response?.status);
+
+                if (retryableStatuses.has(status) && attempt < maxRetries) {
+                    const backoff = Math.pow(2, attempt) * 1000;
+                    console.warn(`[MuapiClient] Upload attempt ${attempt + 1} failed with ${status}, retrying in ${backoff}ms...`);
+                    await new Promise(resolve => setTimeout(resolve, backoff));
+                    continue;
+                }
+
+                if (!status && attempt < maxRetries) {
+                    const backoff = Math.pow(2, attempt) * 1000;
+                    console.warn(`[MuapiClient] Upload attempt ${attempt + 1} failed with network error, retrying in ${backoff}ms...`);
+                    await new Promise(resolve => setTimeout(resolve, backoff));
+                    continue;
+                }
+
+                break;
             }
         }
 
-        if (lastErr) {
-            console.warn('[MuapiClient] Proxy upload failed, falling back to Supabase Storage:', lastErr);
-            try {
-                return await uploadFileToStorage(file);
-            } catch (fallbackErr) {
-                console.error('[MuapiClient] Fallback upload also failed:', fallbackErr);
-                throw new Error(`Upload failed: ${lastErr.message || fallbackErr.message}`);
-            }
+        if (!lastErr) {
+            throw new Error('Upload failed: unknown error');
+        }
+
+        if (lastErr.retryable === false) {
+            throw lastErr;
+        }
+        const status = lastErr.status || (lastErr.response?.status);
+        if (status === 402 || status === 403 || status === 413 || status === 422) {
+            throw lastErr;
+        }
+
+        console.warn('[MuapiClient] Proxy upload failed, falling back to Supabase Storage:', lastErr);
+        try {
+            return await uploadFileToStorage(file);
+        } catch (fallbackErr) {
+            console.error('[MuapiClient] Fallback upload also failed:', fallbackErr);
+            throw new Error(`Upload failed: ${lastErr.message || fallbackErr.message}`);
         }
     }
 
@@ -750,8 +824,6 @@ export class MuapiClient {
         const finalPayload = {};
 
         if (params.prompt) finalPayload.prompt = params.prompt;
-        if (params.genre) finalPayload.genre = params.genre;
-        if (params.mood) finalPayload.mood = params.mood;
         if (params.duration) finalPayload.duration = params.duration;
         if (params.style) finalPayload.style = params.style;
         if (params.audio_url) finalPayload.audio_url = params.audio_url;
@@ -966,9 +1038,7 @@ export class MuapiClient {
         this._requireMuapiKey();
         await acquireRateLimitToken();
         const modelInfo = getTextModelById(params.model);
-        // Allow an explicit endpoint override (e.g. OpenRouter gateway pattern
-        // where the gateway endpoint differs from the target model name).
-        const endpoint = params.endpoint || modelInfo?.endpoint || params.model || 'text';
+        const endpoint = modelInfo?.endpoint || params.model || 'text';
         analytics.trackGeneration(params.model, 'text', { endpoint });
         const finalPayload = {};
 
@@ -1178,82 +1248,3 @@ export class MuapiClient {
 export default MuapiClient;
 
 export const muapi = new MuapiClient();
-
-// ============================================================================
-// THIN HELPERS used by generationService.js + tests
-// ============================================================================
-//
-// submitOnly / checkStatus / downloadResult are the lowest-level network
-// primitives. They isolate the network call from the rest of the
-// generationService so it can be mocked in tests and reused by
-// MuAPIProvider without re-implementing the proxy plumbing.
-
-/**
- * Submit a generation request to the muapi proxy and return the raw
- * submit response (typically { request_id, status }). The third arg is an
- * optional API key override (defaults to apiKeyManager's current key).
- *
- * @param {string} endpoint  e.g. '/api/v1/seedance/generate'
- * @param {Object} payload   request body
- * @param {string|null} [key]
- * @returns {Promise<{ requestId: string, submitData: any }>}
- */
-export async function submitOnly(endpoint, payload, key = null) {
-  const client = muapi;
-  const apiKey = key || client.getKey();
-  const url = `${client.proxyUrl}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(apiKey ? { 'X-API-Key': apiKey } : {}),
-    },
-    body: JSON.stringify(payload),
-  });
-  if (!response.ok) {
-    const txt = await response.text().catch(() => '');
-    throw new Error(`muapi submit failed: ${response.status} ${response.statusText} ${txt.slice(0, 200)}`);
-  }
-  const data = await response.json();
-  return {
-    requestId: data.request_id || data.id || data.requestId,
-    submitData: data,
-  };
-}
-
-/**
- * Check the status of a previously-submitted muapi request.
- * @param {string} requestId
- * @param {string|null} [key]
- * @returns {Promise<{ status: string, progress: number, url: string|null }>}
- */
-export async function checkStatus(requestId, key = null) {
-  const client = muapi;
-  const apiKey = key || client.getKey();
-  const url = `${client.proxyUrl}/requests/${encodeURIComponent(requestId)}`;
-  const response = await fetch(url, {
-    headers: apiKey ? { 'X-API-Key': apiKey } : {},
-  });
-  if (!response.ok) {
-    throw new Error(`muapi status check failed: ${response.status}`);
-  }
-  const data = await response.json();
-  return {
-    status: data.status || 'processing',
-    progress: typeof data.progress === 'number' ? data.progress : 0,
-    url: data.url || data.video_url || data.output_url || null,
-  };
-}
-
-/**
- * Download a result from the given URL and return it as a Blob.
- * @param {string} url
- * @returns {Promise<Blob>}
- */
-export async function downloadResult(url) {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`download failed: ${response.status}`);
-  }
-  return response.blob();
-}

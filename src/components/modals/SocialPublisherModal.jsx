@@ -1,4 +1,7 @@
+/* eslint-disable no-undef */
 import { BaseModal } from './BaseModal.jsx';
+import { seedThumbnailFieldsFromSocialCopy, validateSelectedThumbnail, getThumbnailPublishMetadata } from '../../lib/socialPublisherThumbnail.js';
+import { ThumbnailSocialPublisherBridge } from './thumbnail-explore/ThumbnailSocialPublisherBridge.jsx';
 
 const PLATFORMS = [
   { id: 'youtube', name: 'YouTube', icon: '▶', color: '#FF0000', description: 'Video sharing platform' },
@@ -48,34 +51,40 @@ export class SocialPublisherModal extends BaseModal {
       optimalPostTime: '9:00 AM - 11:00 AM'
     };
     this.step = 'select';
+    this.selectedThumbnail = null;
+    this.thumbnailBridge = null;
+    this.thumbnailFields = seedThumbnailFieldsFromSocialCopy({
+      platforms: this.selectedPlatforms,
+      postType: this.postType,
+      caption: '',
+    });
   }
 
   renderBody() {
+    const steps = ['select', 'write', 'thumbnail', 'destinations', 'publish'];
+    const stepLabels = {
+      select: 'Select Platforms',
+      write: 'Write',
+      thumbnail: 'Thumbnail',
+      destinations: 'Destinations',
+      publish: 'Publish'
+    };
+
     return `
       <div class="socialpublisher-container">
         <div class="publisher-header">
           <div class="step-tabs">
-            <button class="step-tab ${this.step === 'select' ? 'active' : ''}" data-step="select" data-tooltip="Select platforms to publish to">
-              <span class="step-num">1</span>
-              <span class="step-label">Select Platforms</span>
-            </button>
-            <button class="step-tab ${this.step === 'compose' ? 'active' : ''}" data-step="compose" data-tooltip="Compose your post caption and hashtags">
-              <span class="step-num">2</span>
-              <span class="step-label">Compose</span>
-            </button>
-            <button class="step-tab ${this.step === 'schedule' ? 'active' : ''}" data-step="schedule" data-tooltip="Schedule when to publish your post">
-              <span class="step-num">3</span>
-              <span class="step-label">Schedule</span>
-            </button>
-            <button class="step-tab ${this.step === 'review' ? 'active' : ''}" data-step="review" data-tooltip="Review and confirm before publishing">
-              <span class="step-num">4</span>
-              <span class="step-label">Review</span>
-            </button>
+            ${steps.map((step, idx) => `
+              <button class="step-tab ${this.step === step ? 'active' : ''}" data-step="${step}" data-tooltip="${stepLabels[step]}">
+                <span class="step-num">${idx + 1}</span>
+                <span class="step-label">${stepLabels[step]}</span>
+              </button>
+            `).join('')}
           </div>
         </div>
 
         <div class="publisher-content">
-          <div class="step-panel ${this.step === 'select' ? 'active' : ''}" data-panel="select">
+          <div class="step-panel" data-panel="select" style="display: ${this.step === 'select' ? 'block' : 'none'}">
             <div class="platforms-section">
               <h3>Choose Platforms</h3>
               <div class="platforms-grid">
@@ -112,7 +121,7 @@ export class SocialPublisherModal extends BaseModal {
             </div>
           </div>
 
-          <div class="step-panel" data-panel="compose" style="display: ${this.step === 'compose' ? 'block' : 'none'}">
+          <div class="step-panel" data-panel="write" style="display: ${this.step === 'write' ? 'block' : 'none'}">
             <div class="compose-section">
               <div class="caption-section">
                 <h3>Caption</h3>
@@ -151,6 +160,20 @@ export class SocialPublisherModal extends BaseModal {
                 </div>
               </div>
 
+              ${this.selectedThumbnail ? `
+                <div class="thumbnail-preview-section">
+                  <h3>Selected Thumbnail</h3>
+                  <div class="thumbnail-preview-card">
+                    <img src="${this.selectedThumbnail.dataUrl || this.selectedThumbnail.url || ''}" 
+                         alt="Selected thumbnail"
+                         class="thumbnail-preview-img" />
+                    <button class="thumbnail-edit-btn" data-action="edit-thumbnail" data-tooltip="Edit thumbnail">
+                      Edit Thumbnail
+                    </button>
+                  </div>
+                </div>
+              ` : ''}
+
               <div class="preview-section">
                 <h3>Preview</h3>
                 <div class="post-preview-card">
@@ -170,16 +193,45 @@ export class SocialPublisherModal extends BaseModal {
                     ` : ''}
                   </div>
                   <div class="preview-media">
-                    <div class="media-placeholder">
-                      <span>Video thumbnail</span>
-                    </div>
+                    ${this.selectedThumbnail ? `
+                      <img src="${this.selectedThumbnail.dataUrl || this.selectedThumbnail.url || ''}" 
+                           alt="Thumbnail preview"
+                           class="preview-thumbnail-img" />
+                    ` : `
+                      <div class="media-placeholder">
+                        <span>Video thumbnail</span>
+                      </div>
+                    `}
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div class="step-panel" data-panel="schedule" style="display: ${this.step === 'schedule' ? 'block' : 'none'}">
+          <div class="step-panel" data-panel="thumbnail" style="display: ${this.step === 'thumbnail' ? 'block' : 'none'}">
+            <div class="thumbnail-step-container" id="thumbnail-bridge-container">
+              ${this.selectedThumbnail ? `
+                <div class="thumbnail-step-preview">
+                  <h3>Current Thumbnail</h3>
+                  <div class="thumbnail-step-preview-card">
+                    <img src="${this.selectedThumbnail.dataUrl || this.selectedThumbnail.url || ''}" 
+                         alt="Current thumbnail"
+                         class="thumbnail-step-preview-img" />
+                    <button class="bridge-btn bridge-btn-secondary" data-action="change-thumbnail">
+                      Change Thumbnail
+                    </button>
+                  </div>
+                </div>
+              ` : `
+                <div class="thumbnail-step-empty">
+                  <p>Create a thumbnail to make your post stand out.</p>
+                </div>
+              `}
+              <div class="thumbnail-bridge-mount" data-bridge-mount></div>
+            </div>
+          </div>
+
+          <div class="step-panel" data-panel="schedule" style="display: ${this.step === 'destinations' ? 'block' : 'none'}">
             <div class="schedule-section">
               <div class="schedule-options">
                 <h3>When to Publish</h3>
@@ -214,10 +266,24 @@ export class SocialPublisherModal extends BaseModal {
                   <span>Optimal posting time: ${this.analyticsData.optimalPostTime}</span>
                 </div>
               </div>
+
+              ${this.selectedThumbnail ? `
+                <div class="destinations-thumbnail-section">
+                  <h3>Thumbnail</h3>
+                  <div class="destinations-thumbnail-card">
+                    <img src="${this.selectedThumbnail.dataUrl || this.selectedThumbnail.url || ''}" 
+                         alt="Selected thumbnail"
+                         class="destinations-thumbnail-img" />
+                    <button class="thumbnail-edit-btn" data-action="edit-thumbnail" data-tooltip="Edit thumbnail">
+                      Edit
+                    </button>
+                  </div>
+                </div>
+              ` : ''}
             </div>
           </div>
 
-          <div class="step-panel" data-panel="review" style="display: ${this.step === 'review' ? 'block' : 'none'}">
+          <div class="step-panel" data-panel="review" style="display: ${this.step === 'publish' ? 'block' : 'none'}">
             <div class="review-section">
               <h3>Review & Publish</h3>
 
@@ -255,6 +321,20 @@ export class SocialPublisherModal extends BaseModal {
                     <span class="detail-value">${this.getScheduleLabel()}</span>
                   </div>
                 </div>
+
+                ${this.selectedThumbnail ? `
+                  <div class="summary-card">
+                    <h4>Thumbnail</h4>
+                    <div class="review-thumbnail">
+                      <img src="${this.selectedThumbnail.dataUrl || this.selectedThumbnail.url || ''}" 
+                           alt="Selected thumbnail"
+                           class="review-thumbnail-img" />
+                      <button class="thumbnail-edit-btn" data-action="edit-thumbnail" data-tooltip="Edit thumbnail">
+                        Edit
+                      </button>
+                    </div>
+                  </div>
+                ` : ''}
               </div>
 
               <div class="estimated-reach">
@@ -281,8 +361,8 @@ export class SocialPublisherModal extends BaseModal {
                 ← Back
               </button>
             ` : ''}
-            <button class="nav-btn next-btn modal-btn modal-btn-primary" data-nav="next" data-tooltip="${this.step === 'review' ? 'Publish your post now' : 'Go to the next step'}">
-              ${this.step === 'review' ? '🚀 Publish Now' : 'Next →'}
+            <button class="nav-btn next-btn modal-btn modal-btn-primary" data-nav="next" data-tooltip="${this.step === 'publish' ? 'Publish your post now' : 'Go to the next step'}">
+              ${this.step === 'publish' ? '🚀 Publish Now' : 'Next →'}
             </button>
           </div>
         </div>
@@ -321,6 +401,11 @@ export class SocialPublisherModal extends BaseModal {
         } else {
           this.selectedPlatforms.push(platformId);
         }
+        this.thumbnailFields = seedThumbnailFieldsFromSocialCopy({
+          platforms: this.selectedPlatforms,
+          postType: this.postType,
+          caption: this.caption,
+        });
         this.updateBody(this.renderBody());
         this.setupEventListeners();
       });
@@ -329,6 +414,11 @@ export class SocialPublisherModal extends BaseModal {
     this.overlay.querySelectorAll('.post-type-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         this.postType = btn.dataset.type;
+        this.thumbnailFields = seedThumbnailFieldsFromSocialCopy({
+          platforms: this.selectedPlatforms,
+          postType: this.postType,
+          caption: this.caption,
+        });
         this.updateBody(this.renderBody());
         this.setupEventListeners();
       });
@@ -390,9 +480,28 @@ export class SocialPublisherModal extends BaseModal {
       });
     });
 
-    this.overlay.querySelector('.nav-btn[data-nav="next"]')?.addEventListener('click', () => {
-      const steps = ['select', 'compose', 'schedule', 'review'];
+    this.overlay.querySelectorAll('[data-action="edit-thumbnail"]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.step = 'thumbnail';
+        this.updateBody(this.renderBody());
+        this.setupEventListeners();
+      });
+    });
+
+    this.overlay.querySelector('[data-nav="next"]')?.addEventListener('click', () => {
+      const steps = ['select', 'write', 'thumbnail', 'destinations', 'publish'];
       const currentIdx = steps.indexOf(this.step);
+
+      if (this.step === 'write' && !this.selectedThumbnail) {
+        const validation = validateSelectedThumbnail(null);
+        if (!validation.valid) {
+          this.step = 'thumbnail';
+          this.updateBody(this.renderBody());
+          this.setupEventListeners();
+          return;
+        }
+      }
+
       if (currentIdx < steps.length - 1) {
         this.step = steps[currentIdx + 1];
         this.updateBody(this.renderBody());
@@ -402,8 +511,8 @@ export class SocialPublisherModal extends BaseModal {
       }
     });
 
-    this.overlay.querySelector('.nav-btn[data-nav="back"]')?.addEventListener('click', () => {
-      const steps = ['select', 'compose', 'schedule', 'review'];
+    this.overlay.querySelector('[data-nav="back"]')?.addEventListener('click', () => {
+      const steps = ['select', 'write', 'thumbnail', 'destinations', 'publish'];
       const currentIdx = steps.indexOf(this.step);
       if (currentIdx > 0) {
         this.step = steps[currentIdx - 1];
@@ -411,12 +520,52 @@ export class SocialPublisherModal extends BaseModal {
         this.setupEventListeners();
       }
     });
+
+    if (this.step === 'thumbnail') {
+      this.setupThumbnailBridge();
+    }
+  }
+
+  setupThumbnailBridge() {
+    const mountEl = this.overlay.querySelector('[data-bridge-mount]');
+    if (!mountEl) return;
+
+    if (mountEl.dataset.bridgeMounted === 'true') return;
+
+    this.thumbnailBridge = new ThumbnailSocialPublisherBridge({
+      headline: this.thumbnailFields.headline || this.caption,
+      hashtags: this.thumbnailFields.hashtags || this.hashtags,
+      platforms: this.selectedPlatforms,
+      postType: this.postType,
+      aspectRatio: this.thumbnailFields.aspectRatio,
+      onThumbnailSelected: (data) => {
+        this.selectedThumbnail = data;
+        this.thumbnailBridge = null;
+        this.updateBody(this.renderBody());
+        this.setupEventListeners();
+      },
+      onBack: () => {
+        this.step = 'write';
+        this.thumbnailBridge = null;
+        this.updateBody(this.renderBody());
+        this.setupEventListeners();
+      }
+    });
+
+    this.thumbnailBridge.mount(mountEl);
+    mountEl.dataset.bridgeMounted = 'true';
   }
 
   publishPost() {
     this.isPublishing = true;
     this.updateBody(this.renderBody());
     this.setupEventListeners();
+
+    const thumbnailMetadata = getThumbnailPublishMetadata(
+      this.selectedThumbnail,
+      this.selectedPlatforms,
+      this.postType
+    );
 
     setTimeout(() => {
       this.onConfirm({
@@ -426,7 +575,8 @@ export class SocialPublisherModal extends BaseModal {
         caption: this.caption,
         hashtags: this.hashtags,
         scheduleMode: this.scheduleMode,
-        scheduledTime: this.scheduledTime
+        scheduledTime: this.scheduledTime,
+        thumbnail: thumbnailMetadata,
       });
       this.isPublishing = false;
       this.close();

@@ -61,7 +61,7 @@ export async function uploadToContentLibrary(file) {
   return data;
 }
 
-export async function saveContentLibraryEntry(url) {
+export async function saveContentLibraryEntry(url, meta = {}) {
   if (!isSupabaseConfigured()) return;
 
   try {
@@ -69,17 +69,21 @@ export async function saveContentLibraryEntry(url) {
     const filename = decodeURIComponent(urlPath.split('/').pop()?.split('?')[0] || 'upload');
     const ext = (filename.split('.').pop() || '').toLowerCase();
 
-    let type = 'pdf';
-    if (ext === 'mp4' || ext === 'webm' || ext === 'mov' || ext === 'avi' || ext === 'mkv' || ext === 'm4v' || ext === 'flv' || ext === 'wmv' || ext === '3gp' || ext === 'ogv') {
-      type = 'video';
-    } else if (ext !== 'pdf') {
-      type = 'pdf';
+    let type = meta.type || 'pdf';
+    if (!meta.type) {
+      if (ext === 'mp4' || ext === 'webm' || ext === 'mov' || ext === 'avi' || ext === 'mkv' || ext === 'm4v' || ext === 'flv' || ext === 'wmv' || ext === '3gp' || ext === 'ogv') {
+        type = 'video';
+      } else if (ext === 'jpg' || ext === 'jpeg' || ext === 'png' || ext === 'webp' || ext === 'gif' || ext === 'svg' || ext === 'bmp') {
+        type = 'image';
+      } else if (ext !== 'pdf') {
+        type = 'pdf';
+      }
     }
 
     const storagePath = urlPath.split('/').slice(-2).join('/');
 
     let fileSize = 0;
-    let mimeType = type === 'pdf' ? 'application/pdf' : 'video/mp4';
+    let mimeType = type === 'pdf' ? 'application/pdf' : type === 'video' ? 'video/mp4' : 'image/jpeg';
     try {
       const head = await fetch(url, { method: 'HEAD' });
       if (head.ok) {
@@ -88,19 +92,31 @@ export async function saveContentLibraryEntry(url) {
         const contentType = head.headers.get('content-type');
         if (contentType) mimeType = contentType;
       }
-    } catch {}
+    } catch {
+      // ignore fetch errors; defaults are fine
+    }
+
+    const record = {
+      filename,
+      type,
+      url,
+      storage_path: storagePath,
+      size: fileSize,
+      mime_type: mimeType,
+      uploaded_by: getUserKey(),
+    };
+
+    if (meta.attribution !== undefined) record.attribution = meta.attribution;
+    if (meta.pexelsId !== undefined) record.pexels_id = meta.pexelsId;
+    if (meta.source !== undefined) record.source = meta.source;
+    if (meta.thumb !== undefined) record.thumb = meta.thumb;
+    if (meta.width !== undefined) record.width = meta.width;
+    if (meta.height !== undefined) record.height = meta.height;
+    if (meta.duration !== undefined) record.duration = meta.duration;
 
     const { data, error } = await supabase
       .from('content_library')
-      .insert({
-        filename,
-        type,
-        url,
-        storage_path: storagePath,
-        size: fileSize,
-        mime_type: mimeType,
-        uploaded_by: getUserKey(),
-      })
+      .insert(record)
       .select()
       .single();
 

@@ -612,6 +612,12 @@ export function DirectorPage() {
                         <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">🎞️</div>
                         <div><div class="font-bold text-white text-sm">Add B-Roll</div><div class="text-xs text-secondary">Overlay footage</div></div>
                     </button>
+                    <button id="pexels-director-btn" type="button" class="w-full p-3 bg-white/5 hover:bg-white/10 rounded-xl text-left flex items-center gap-3 transition-colors cursor-pointer">
+                        <div class="w-8 h-8 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+                        </div>
+                        <div><div class="font-bold text-white text-sm">Browse B-Roll from Pexels</div><div class="text-xs text-secondary">Stock footage library</div></div>
+                    </button>
                     <button class="action-btn w-full p-3 bg-white/5 hover:bg-white/10 rounded-xl text-left flex items-center gap-3 transition-colors cursor-pointer" data-action="voiceover" data-testid="quick-action-btn">
                         <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">🎙️</div>
                         <div><div class="font-bold text-white text-sm">Voiceover</div><div class="text-xs text-secondary">Add AI narration</div></div>
@@ -637,6 +643,9 @@ export function DirectorPage() {
                         <div class="text-xs text-secondary italic">Run an agent to see results here.</div>
                     </div>
                 </div>
+
+                <!-- Pexels Attribution -->
+                <div id="pexels-director-attribution" class="mt-3"></div>
             </div>
         </div>
     `;
@@ -709,6 +718,33 @@ export function DirectorPage() {
             }
         });
     };
+
+    const pexelsDirectorBtn = container.querySelector('#pexels-director-btn');
+    const pexelsDirectorAttr = container.querySelector('#pexels-director-attribution');
+    if (pexelsDirectorBtn) {
+        pexelsDirectorBtn.onclick = async () => {
+            const { browsePexelsVideos } = await import('../lib/studioPexels.js');
+            browsePexelsVideos({
+                title: 'Browse B-Roll',
+                studioName: 'Director',
+                onSelect: (asset) => {
+                    const detail = {
+                        url: asset.video_files?.[0]?.link || asset.url || asset.original,
+                        source: 'pexels',
+                        attribution: asset.photographer || (asset.user && asset.user.name) || 'Pexels',
+                        photographer_url: asset.photographer_url || (asset.user && asset.user.url) || 'https://www.pexels.com',
+                        pexelsUrl: asset.url || '',
+                    };
+                    window.dispatchEvent(new CustomEvent('addBRoll', { detail }));
+                    if (pexelsDirectorAttr) {
+                        pexelsDirectorAttr.innerHTML = '';
+                        import('../lib/attributionChip.js').then(mod => mod.renderAttributionChip(asset, pexelsDirectorAttr));
+                    }
+                    addMessage(`B-Roll selected: ${asset.photographer || 'Pexels video'}`, { isAction: true });
+                }
+            });
+        };
+    }
 
     // ── Chat persistence ──────────────────────────────────────────────
     const CHAT_STORAGE_KEY = 'director_chat_history';

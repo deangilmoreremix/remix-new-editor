@@ -217,8 +217,8 @@ export function TrainingStudio() {
 
   const imagePicker = createUploadPicker({
     anchorContainer: container,
-    accept: 'image/*',
-    multiple: true,
+    acceptVideo: false,
+    maxImages: 20,
     onSelect: ({ urls }) => { 
       uploadedImages = urls; 
       updateImageCount();

@@ -8,9 +8,6 @@ import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCa
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
-import { createAdvancedControls } from '../lib/studioControls.js';
-import { getExtendedModel } from '../lib/modelInputExtensions.js';
-import { getModelById } from '../lib/models.js';
 
 const UPSCALE_METHODS = [
   { id: 'ai-image-upscaler', name: 'AI Upscaler', description: 'General-purpose AI upscaling with 2x/4x factor', factors: ['2', '4'], provider: 'muapi', provider_name: 'MuAPI' },
@@ -25,13 +22,8 @@ export function UpscaleStudio() {
 
   let selectedMethod = UPSCALE_METHODS[0];
   let selectedFactor = '2';
-  let dynamicControls = null;
-  let dynamicControlsContainer = null;
   let uploadedUrl = null;
-  let originalUrl = null;
   let customThumbnailUrl = getCustomThumbnailFromCache('upscale-studio');
-  let denoiseLevel = 0;
-  let faceEnhance = false;
 
   const header = document.createElement('div');
   header.className = 'mb-8 animate-fade-in-up text-center w-full max-w-xl';
@@ -112,7 +104,6 @@ export function UpscaleStudio() {
           selectedFactor = selectedMethod.factors[0] || '';
           updateTrigger();
           updateFactorBtns();
-          buildDynamicControls();
           closeDropdown();
         });
         if (selectedProvider !== 'all') {
@@ -164,52 +155,53 @@ export function UpscaleStudio() {
   factorRow.className = 'flex gap-2 mb-6 justify-center';
   container.appendChild(factorRow);
 
-  const controlsCard = document.createElement('div');
-  controlsCard.className = 'w-full max-w-xl bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6 flex flex-col gap-5 animate-fade-in-up';
-  controlsCard.style.animationDelay = '0.2s';
+  const formCard = document.createElement('div');
+  formCard.className = 'w-full max-w-md bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6 flex flex-col gap-5 animate-fade-in-up';
+  formCard.style.animationDelay = '0.2s';
 
   const uploadRow = document.createElement('div');
   uploadRow.className = 'flex items-center gap-4';
   const picker = createUploadPicker({
     anchorContainer: container,
-    onSelect: ({ url }) => {
-      uploadedUrl = url;
-      originalUrl = url;
-    },
-    onClear: () => {
-      uploadedUrl = null;
-      originalUrl = null;
-    },
+    onSelect: ({ url }) => { uploadedUrl = url; },
+    onClear: () => { uploadedUrl = null; },
   });
   uploadRow.appendChild(picker.trigger);
+
+  const pexelsBtn = document.createElement('button');
+  pexelsBtn.type = 'button';
+  pexelsBtn.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden';
+  pexelsBtn.title = 'Browse stock photos from Pexels';
+  pexelsBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>';
+  pexelsBtn.onclick = async () => {
+    const { browsePexelsImages } = await import('../lib/studioPexels.js');
+    browsePexelsImages({
+      title: 'Select Reference Photo',
+      studioName: 'Upscale Suite',
+      onSelect: (asset) => {
+        uploadedUrl = asset.src?.large || asset.url || asset.original;
+        const attrContainer = document.getElementById('pexels-upscale-attribution');
+        if (attrContainer) {
+          attrContainer.innerHTML = '';
+          import('../lib/attributionChip.js').then(mod => mod.renderAttributionChip(asset, attrContainer));
+        }
+      }
+    });
+  };
+  uploadRow.appendChild(pexelsBtn);
+
   const hint = document.createElement('span');
   hint.className = 'text-sm text-muted';
   hint.textContent = 'Upload image or video to upscale';
   uploadRow.appendChild(hint);
-  controlsCard.appendChild(uploadRow);
+  formCard.appendChild(uploadRow);
+
+  const pexelsUpscaleAttr = document.createElement('div');
+  pexelsUpscaleAttr.id = 'pexels-upscale-attribution';
+  pexelsUpscaleAttr.className = 'mt-1';
+  formCard.appendChild(pexelsUpscaleAttr);
+
   container.appendChild(picker.panel);
-
-  // Dynamic model-specific advanced controls
-  dynamicControlsContainer = document.createElement('div');
-  dynamicControlsContainer.className = 'flex flex-col gap-3';
-  formCard.appendChild(dynamicControlsContainer);
-
-  function buildDynamicControls() {
-    if (!dynamicControlsContainer) return;
-    if (dynamicControls) dynamicControls.destroy();
-    const model = getExtendedModel(getModelById(selectedMethod.id));
-    if (!model || !model.inputs || Object.keys(model.inputs).length === 0) {
-      dynamicControlsContainer.classList.add('hidden');
-      return;
-    }
-    dynamicControlsContainer.classList.remove('hidden');
-    dynamicControls = createAdvancedControls({
-      model,
-      container: dynamicControlsContainer,
-      exclude: new Set(['image_url']),
-    });
-  }
-  buildDynamicControls();
 
   // Thumbnail studio button — next to creation controls, GTM Boost styling
   const thumbBtn = document.createElement('button');
@@ -236,76 +228,22 @@ export function UpscaleStudio() {
     mountStudioThumbnailModal(modal);
     modal.open();
   });
-  controlsCard.appendChild(thumbBtn);
-
-  const denoiseRow = document.createElement('div');
-  denoiseRow.className = 'flex flex-col gap-2';
-  denoiseRow.innerHTML = `
-    <div class="flex items-center justify-between">
-      <label class="text-xs font-bold text-secondary uppercase tracking-wider">Denoise Level</label>
-      <span id="denoise-val" class="text-xs font-bold text-primary">${denoiseLevel}</span>
-    </div>
-    <input type="range" id="denoise-slider" min="0" max="100" step="5" value="${denoiseLevel}"
-      class="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary">
-    <p class="text-[10px] text-muted">Higher values remove more noise but may soften details</p>
-  `;
-  controlsCard.appendChild(denoiseRow);
-
-  const denoiseSlider = denoiseRow.querySelector('#denoise-slider');
-  const denoiseVal = denoiseRow.querySelector('#denoise-val');
-  if (denoiseSlider) {
-    denoiseSlider.oninput = (e) => {
-      denoiseLevel = parseInt(e.target.value);
-      denoiseVal.textContent = denoiseLevel;
-    };
-  }
-
-  const faceRow = document.createElement('div');
-  faceRow.className = 'flex items-center justify-between bg-white/[0.03] border border-white/5 rounded-xl px-4 py-3';
-  faceRow.innerHTML = `
-    <div class="flex items-center gap-3">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary"><circle cx="12" cy="12" r="10"/><circle cx="9" cy="10" r="1.5" fill="currentColor"/><circle cx="15" cy="10" r="1.5" fill="currentColor"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/></svg>
-      <div>
-        <div class="text-xs font-bold text-white">Face Enhancement</div>
-        <div class="text-[10px] text-muted">Improve facial features and sharpness</div>
-      </div>
-    </div>
-    <button id="face-enhance-toggle" class="relative w-11 h-6 bg-white/10 rounded-full transition-colors" aria-label="Toggle face enhancement">
-      <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform"></span>
-    </button>
-  `;
-  controlsCard.appendChild(faceRow);
-
-  const faceToggle = faceRow.querySelector('#face-enhance-toggle');
-  if (faceToggle) {
-    faceToggle.onclick = () => {
-      faceEnhance = !faceEnhance;
-      if (faceEnhance) {
-        faceToggle.classList.remove('bg-white/10');
-        faceToggle.classList.add('bg-primary');
-        faceToggle.querySelector('span').classList.add('translate-x-5');
-      } else {
-        faceToggle.classList.add('bg-white/10');
-        faceToggle.classList.remove('bg-primary');
-        faceToggle.querySelector('span').classList.remove('translate-x-5');
-      }
-    };
-  }
+  formCard.appendChild(thumbBtn);
 
   const genBtn = document.createElement('button');
   genBtn.type = 'button';
-  genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all mt-2';
+  genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all';
   genBtn.textContent = 'Upscale Image';
   genBtn.setAttribute('aria-label', 'Upscale image');
-  controlsCard.appendChild(genBtn);
-  container.appendChild(controlsCard);
+  formCard.appendChild(genBtn);
+  container.appendChild(formCard);
 
   const inlineInstructions = createInlineInstructions('upscale');
-  inlineInstructions.classList.add('max-w-xl', 'mt-6');
+  inlineInstructions.classList.add('max-w-md', 'mt-6');
   container.appendChild(inlineInstructions);
 
   const resultArea = document.createElement('div');
-  resultArea.className = 'w-full max-w-xl mt-6 hidden';
+  resultArea.className = 'w-full max-w-md mt-6 hidden';
   resultArea.setAttribute('role', 'status');
   resultArea.setAttribute('aria-live', 'polite');
   container.appendChild(resultArea);
@@ -325,13 +263,6 @@ export function UpscaleStudio() {
     });
   }
 
-  function renderComparison(upscaledUrl) {
-    if (!originalUrl || !upscaledUrl) return;
-    resultArea.innerHTML = '';
-    const slider = createBeforeAfterSlider(originalUrl, upscaledUrl, 'Before', 'After');
-    resultArea.appendChild(slider);
-  }
-
   genBtn.onclick = async () => {
     if (!(await requireEntitlement())) return;
     if (!uploadedUrl) { alert('Upload an image or video first'); return; }
@@ -342,31 +273,17 @@ export function UpscaleStudio() {
     genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Upscaling...';
 
     try {
-      const params = {
-        model: selectedMethod.id,
-        image_url: uploadedUrl,
-        denoise_level: denoiseLevel / 100,
-        face_enhance: faceEnhance,
-        customThumbnailUrl: customThumbnailUrl || undefined,
-      };
+      const params = { model: selectedMethod.id, image_url: uploadedUrl, customThumbnailUrl: customThumbnailUrl || undefined };
       if (selectedFactor) params.upscale_factor = parseInt(selectedFactor);
-      if (dynamicControls) {
-        Object.assign(params, dynamicControls.getPayload({}));
-      }
       const result = await muapi.generateI2I(params);
       if (result?.url) {
         resultArea.classList.remove('hidden');
         resultArea.innerHTML = `
-          <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4 animate-fade-in-up">
+          <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4">
             <img src="${result.url}" class="w-full rounded-xl mb-3">
-            <div class="flex gap-3">
-              <a href="${result.url}" download class="flex-1 bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
-              <button class="flex-1 bg-white/10 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-white/20 transition-all regen-btn">Generate Again</button>
-            </div>
+            <a href="${result.url}" download class="block w-full bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
           </div>
         `;
-        resultArea.querySelector('.regen-btn').onclick = () => genBtn.click();
-        renderComparison(result.url);
       }
     } catch (err) {
       alert(`Error: ${err.message}`);

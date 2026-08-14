@@ -4,21 +4,88 @@ import { getUploadHistory, saveUpload, removeUpload } from '../lib/uploadHistory
 import { fetchUrlAsFile, processFileUpload } from '../lib/editor/uploadPipeline.js';
 import { showToast } from '../lib/loading.js';
 
-/**
- * Creates a self-contained upload picker: a trigger button + history panel.
- * Supports single-image (maxImages=1) and multi-image (maxImages>1) modes.
- *
- * @param {object} options
- * @param {HTMLElement} options.anchorContainer - The container element the panel is positioned relative to
- * @param {function({ url: string, urls: string[], thumbnail: string }): void} options.onSelect
- * @param {function(): void} [options.onClear]
- * @param {number} [options.maxImages=1] - Maximum number of images selectable
- * @returns {{ trigger: HTMLElement, panel: HTMLElement, reset: function, setMaxImages: function }}
- */
+// ── Module-level: dedupe global listeners across all picker instances ──────────
+const _globalCleanups = new Set();
+const _registeredOutsideClick = new WeakSet();
+const _registeredPaste = new WeakSet();
+
+function registerGlobalListeners() {
+    if (!_registeredOutsideClick.has(document)) {
+        const clickHandler = (e) => {
+            const panel = e.target?.closest?.('.upload-panel');
+            if (!panel) return;
+            const picker = panel.closest('[data-upload-picker]');
+            if (!picker) return;
+            const isOpen = panel.classList.contains('opacity-100');
+            if (!isOpen) return;
+            if (e.target === picker.querySelector('button[title]') || picker.querySelector('button[title]')?.contains(e.target)) return;
+            if (panel.contains(e.target)) return;
+            const close = panel._closeFn;
+            if (typeof close === 'function') close();
+        };
+        document.addEventListener('click', clickHandler, true);
+        _globalCleanups.add(() => document.removeEventListener('click', clickHandler, true));
+        _registeredOutsideClick.add(document);
+    }
+    if (!_registeredPaste.has(document)) {
+        const pasteHandler = (e) => {
+            const panel = e.target?.closest?.('.upload-panel');
+            if (!panel) return;
+            const picker = panel.closest('[data-upload-picker]');
+            if (!picker) return;
+            const isOpen = panel.classList.contains('opacity-100');
+            if (!isOpen) return;
+            const onPaste = picker._onPaste;
+            if (typeof onPaste === 'function') onPaste(e);
+        };
+        document.addEventListener('paste', pasteHandler);
+        _globalCleanups.add(() => document.removeEventListener('paste', pasteHandler));
+        _registeredPaste.add(document);
+    }
+}
+
+registerGlobalListeners();
+
 export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImages: initialMaxImages = 1, acceptVideo = false, onFilePreview = null }) {
     let panelOpen = false;
     let maxImages = initialMaxImages;
     let selectedEntries = [];
+
+    // Per-instance abort controller for in-flight uploads
+    let abortController = null;
+
+    // Retry helper for transient upload failures (502/503/timeout)
+    async function uploadWithRetry(file, opts, attempts = 0) {
+        const maxAttempts = 3; // initial + 2 retries
+        try {
+            return await processFileUpload(file, opts);
+        } catch (err) {
+            const status = err.status || err.response?.status;
+            const isTransient = status === 502 || status === 503 || err.name === 'AbortError' || err.message?.includes('timeout') || err.message?.includes('fetch');
+            if (!isTransient || attempts >= maxAttempts - 1) throw err;
+            const delay = Math.min(1000 * 2 ** attempts, 4000);
+            await new Promise((resolve, reject) => {
+                const timer = setTimeout(resolve, delay);
+                const ac = new AbortController();
+                abortController = ac;
+                ac.signal.addEventListener('abort', () => { clearTimeout(timer); reject(new Error('Upload cancelled')); });
+            });
+            return uploadWithRetry(file, opts, attempts + 1);
+        }
+    }
+
+    // ── Abort helpers ──────────────────────────────────────────────────────────
+    function getAbortSignal() {
+        abortController = new AbortController();
+        return abortController.signal;
+    }
+
+    function abortActiveUpload() {
+        if (abortController) {
+            abortController.abort();
+            abortController = null;
+        }
+    }
 
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
@@ -48,6 +115,11 @@ export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImag
     thumbnailState.className = 'hidden w-full h-full';
     const thumbImg = document.createElement('img');
     thumbImg.className = 'w-full h-full object-cover';
+    thumbImg.onerror = () => {
+        thumbImg.onerror = null;
+        thumbImg.src = '';
+        showIcon();
+    };
     const countBadge = document.createElement('div');
     countBadge.className = 'absolute bottom-0.5 right-0.5 min-w-[16px] h-4 bg-primary rounded-full flex items-center justify-center px-0.5';
     countBadge.innerHTML = `<svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>`;
@@ -175,6 +247,7 @@ export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImag
     };
 
     const closePanel = () => {
+        abortActiveUpload();
         panel.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
         panel.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
         panelOpen = false;
@@ -534,14 +607,43 @@ export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImag
                 return;
             }
             if (!apiKeyManager.getMuapiKey()) {
+                // Guard against infinite recursion: if auth modal fires and key
+                // is still missing after it returns, show an error instead of
+                // re-opening the modal forever.
                 AuthModal(doLoad);
                 return;
             }
             loadBtn.disabled = true;
             loadBtn.textContent = 'Loading…';
             setStatus('Fetching…');
+
+            const urlAbort = new AbortController();
+            const FETCH_TIMEOUT_MS = 30000;
+            const FETCH_TIMEOUT_ID = setTimeout(() => urlAbort.abort(), FETCH_TIMEOUT_MS);
+            const URL_BYTE_CAP = acceptVideo ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
+
             try {
+                let contentLength = null;
+                try {
+                    const head = await fetch(url, { method: 'HEAD', mode: 'cors', signal: urlAbort.signal });
+                    if (head.ok) {
+                        const cl = head.headers.get('content-length');
+                        if (cl) contentLength = parseInt(cl, 10);
+                    }
+                } catch { /* non-fatal: proceed without Content-Length */ }
+
+                if (contentLength !== null && contentLength > URL_BYTE_CAP) {
+                    const maxMB = URL_BYTE_CAP / 1024 / 1024;
+                    throw new Error(`Remote file is ${(contentLength / 1024 / 1024).toFixed(1)}MB; exceeds ${maxMB}MB limit.`);
+                }
+
+                clearTimeout(FETCH_TIMEOUT_ID);
                 const file = await fetchUrlAsFile(url);
+
+                if (file.size > URL_BYTE_CAP) {
+                    const maxMB = URL_BYTE_CAP / 1024 / 1024;
+                    throw new Error(`Downloaded file is ${(file.size / 1024 / 1024).toFixed(1)}MB; exceeds ${maxMB}MB limit.`);
+                }
                 // Filter by accepted type
                 const isImage = file.type.startsWith('image/');
                 const isVideo = file.type.startsWith('video/');
@@ -562,6 +664,8 @@ export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImag
             } catch (err) {
                 setStatus(err.message || 'Failed to fetch URL', 'error');
             } finally {
+                clearTimeout(FETCH_TIMEOUT_ID);
+                urlAbort.abort();
                 loadBtn.disabled = false;
                 loadBtn.textContent = 'Load';
             }
@@ -618,7 +722,9 @@ export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImag
     setupDragAndDrop();
 
     // ── Clipboard paste ──────────────────────────────────────────────────────
-    // Listen at document level so paste works while the panel is open.
+    // Handler exposed on the panel element so the module-level delegated
+    // document paste listener (registered once at import time) can route
+    // paste events to this instance without adding a per-instance listener.
     const onPaste = (e) => {
         if (!panelOpen) return;
         const items = e.clipboardData?.items;
@@ -641,7 +747,8 @@ export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImag
         fileInput.files = dt.files;
         fileInput.onchange({ target: fileInput });
     };
-    document.addEventListener('paste', onPaste);
+    // Expose on the DOM node so the module-level delegated listener can reach it
+    panel._onPaste = onPaste;
 
     // ── Trigger click ─────────────────────────────────────────────────────────
     trigger.onclick = (e) => {
@@ -650,14 +757,8 @@ export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImag
         else openPanel();
     };
 
-    // Close panel on outside click. Guard against the trigger and the panel
-    // itself so the click that opened the panel doesn't immediately close it.
-    window.addEventListener('click', (e) => {
-        if (!panelOpen) return;
-        if (e.target === trigger || trigger.contains(e.target)) return;
-        if (panel.contains(e.target)) return;
-        closePanel();
-    });
+    // Expose the panel close function for the module-level delegated listener
+    panel._closeFn = () => { if (panelOpen) closePanel(); };
 
     // ── File upload handler ───────────────────────────────────────────────────
     const minState = {
@@ -683,10 +784,17 @@ export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImag
 
         showSpinner();
 
+        // One signal per upload batch; aborting cancels all in-flight requests
+        const signal = getAbortSignal();
+
         try {
             if (maxImages === 1) {
                 const file = files[0];
-                const result = await processFileUpload(file, { state: minState, showToast });
+                const result = await uploadWithRetry(file, {
+                    state: minState,
+                    showToast,
+                    signal
+                });
                 if (!result.success) {
                     throw new Error(result.error || 'Upload failed');
                 }
@@ -697,15 +805,17 @@ export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImag
                 updateTrigger();
                 fireOnSelect();
             } else {
-                // Multi mode: upload all files (up to remaining slots)
+                // Multi mode: upload all files (up to remaining slots) with per-file retry
                 const slots = maxImages - selectedEntries.length;
                 const toUpload = files.slice(0, Math.max(slots, 1));
 
-                // Upload all in parallel; individual failures must not block
-                // successful uploads.
                 const results = await Promise.allSettled(
                     toUpload.map(async (file) => {
-                        const result = await processFileUpload(file, { state: minState, showToast });
+                        const result = await uploadWithRetry(file, {
+                            state: minState,
+                            showToast,
+                            signal
+                        });
                         if (!result.success) {
                             throw new Error(result.error || 'Upload failed');
                         }
@@ -733,17 +843,24 @@ export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImag
                 openPanel();
             }
         } catch (err) {
-            console.error('[UploadPicker] Upload failed:', err);
-            updateTrigger();
-            const uploadType = acceptVideo ? 'Media' : 'Image';
-            showToast(`${uploadType} upload failed: ${err.message}`, 'error');
+            // Silently swallow AbortError — user intentionally cancelled
+            if (err.message !== 'Upload cancelled' && err.name !== 'AbortError') {
+                console.error('[UploadPicker] Upload failed:', err);
+                updateTrigger();
+                const uploadType = acceptVideo ? 'Media' : 'Image';
+                showToast(`${uploadType} upload failed: ${err.message}`, 'error');
+            }
+        } finally {
+            // Always reset the file input so the same file can be re-selected
+            fileInput.value = '';
+            // Always restore spinner/icon state, even on abort or error
+            showIcon();
         }
-
-        fileInput.value = '';
     };
 
     // ── Public API ────────────────────────────────────────────────────────────
     const reset = () => {
+        abortActiveUpload();
         selectedEntries = [];
         showIcon();
         closePanel();

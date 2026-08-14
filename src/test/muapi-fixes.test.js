@@ -66,24 +66,24 @@ describe('MuapiClient Fixes', () => {
   });
 
   describe('response parsing handles data wrapper', () => {
-    test('unwrapResponse extracts nested data', async () => {
-      // Test the proxy's unwrapResponse logic indirectly
-      // by verifying client handles wrapped responses
-      const mockResponse = {
-        ok: true,
-        json: () => Promise.resolve({
-          data: {
-            request_id: 'test-123',
-            status: 'completed',
-            outputs: ['https://cdn.muapi.ai/result.png']
-          }
+    test('uploadFile extracts url from wrapped data response', async () => {
+      const mockFile = new File(['test'], 'test.png', { type: 'image/png' });
+
+      global.fetch = vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          status: 200,
+          statusText: 'OK',
+          json: () => Promise.resolve({
+            data: {
+              url: 'https://cdn.muapi.ai/wrapped-result.png'
+            }
+          }),
         })
-      };
+      );
 
-      global.fetch = vi.fn(() => Promise.resolve(mockResponse));
-
-      // This would normally poll - just verify it doesn't crash on wrapped response
-      expect(mockResponse).toBeDefined();
+      const result = await client.uploadFile(mockFile);
+      expect(result).toBe('https://cdn.muapi.ai/wrapped-result.png');
     });
   });
 });

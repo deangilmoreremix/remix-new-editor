@@ -169,14 +169,43 @@ export function VideoToolsStudio() {
 
   const videoPicker = createUploadPicker({
     anchorContainer: container,
-    accept: 'video/*',
+    acceptVideo: true,
     onSelect: ({ url }) => { 
       uploadedVideoUrl = url; 
     },
     onClear: () => { uploadedVideoUrl = null; },
   });
   videoUploadGroup.appendChild(videoPicker.trigger);
+
+  const pexelsVideoBtn = document.createElement('button');
+  pexelsVideoBtn.type = 'button';
+  pexelsVideoBtn.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden';
+  pexelsVideoBtn.title = 'Browse stock videos from Pexels';
+  pexelsVideoBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>';
+  pexelsVideoBtn.onclick = async () => {
+    const { browsePexelsVideos } = await import('../lib/studioPexels.js');
+    browsePexelsVideos({
+      title: 'Select Source Video',
+      studioName: 'Video Tools Studio',
+      onSelect: (asset) => {
+        uploadedVideoUrl = asset.video_files?.[0]?.link || asset.url || asset.original;
+        const attrContainer = document.getElementById('pexels-tools-attribution');
+        if (attrContainer) {
+          attrContainer.innerHTML = '';
+          import('../lib/attributionChip.js').then(mod => mod.renderAttributionChip(asset, attrContainer));
+        }
+      }
+    });
+  };
+  videoUploadGroup.appendChild(pexelsVideoBtn);
+
   formCard.appendChild(videoUploadGroup);
+
+  const pexelsToolsAttr = document.createElement('div');
+  pexelsToolsAttr.id = 'pexels-tools-attribution';
+  pexelsToolsAttr.className = 'mt-1';
+  formCard.appendChild(pexelsToolsAttr);
+
   container.appendChild(videoPicker.panel);
 
   // Prompt input (for models that support it)
@@ -244,7 +273,7 @@ export function VideoToolsStudio() {
   thumbBtn.className = 'gtm-boost-btn w-full';
   thumbBtn.addEventListener('click', () => {
     const modal = new StudioThumbnailModal({
-      appTheme: 'video-tools',
+      appTheme: 'video-tools-studio',
       studioId: 'videotools-studio',
       studioName: 'Video Tools Studio',
       aspectRatio: '16:9',

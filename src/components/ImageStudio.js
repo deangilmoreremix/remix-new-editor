@@ -146,6 +146,55 @@ export function ImageStudio() {
         }
     });
     topRow.appendChild(picker.trigger);
+
+    // Pexels browse button — opens stock media browser for reference images
+    const pexelsBtn = document.createElement('button');
+    pexelsBtn.type = 'button';
+    pexelsBtn.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden';
+    pexelsBtn.title = 'Browse stock photos from Pexels';
+    pexelsBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>';
+    pexelsBtn.onclick = async () => {
+      const { browsePexelsImages } = await import('../lib/studioPexels.js');
+      browsePexelsImages({
+        title: 'Select Reference Photo',
+        studioName: 'Image Studio',
+        onSelect: (asset) => {
+          uploadedImageUrls = [asset.src?.large || asset.url || asset.original];
+          if (!imageMode) {
+            imageMode = true;
+            selectedModel = i2iModels[0]?.id || selectedModel;
+            selectedModelName = i2iModels[0]?.name || selectedModelName;
+            selectedAr = getAspectRatiosForI2IModel(selectedModel)?.[0] || selectedAr;
+            const modelLabel = document.getElementById('model-btn-label');
+            const arLabel = document.getElementById('ar-btn-label');
+            if (modelLabel) modelLabel.textContent = selectedModelName;
+            if (arLabel) arLabel.textContent = selectedAr;
+            updateModelBtnIcon();
+            const validResolutions = getResolutionsForI2IModel(selectedModel);
+            qualityBtn.style.display = validResolutions.length > 0 ? 'flex' : 'none';
+            if (validResolutions.length > 0) {
+              const qLabel = document.getElementById('quality-btn-label');
+              if (qLabel) qLabel.textContent = validResolutions[0];
+            }
+            picker.setMaxImages(getMaxImagesForI2IModel(selectedModel));
+          }
+          textarea.placeholder = 'Describe how to transform this image (optional)';
+          const attrContainer = document.getElementById('pexels-image-attribution');
+          if (attrContainer) {
+            attrContainer.innerHTML = '';
+            import('../lib/attributionChip.js').then(mod => mod.renderAttributionChip(asset, attrContainer));
+          }
+        }
+      });
+    };
+    topRow.appendChild(pexelsBtn);
+
+    // Attribution container for Pexels images
+    const pexelsImageAttr = document.createElement('div');
+    pexelsImageAttr.id = 'pexels-image-attribution';
+    pexelsImageAttr.className = 'mt-1';
+    topRow.appendChild(pexelsImageAttr);
+
     container.appendChild(picker.panel);
 
     const textarea = document.createElement('textarea');

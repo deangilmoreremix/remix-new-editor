@@ -532,6 +532,7 @@ export function TimelineEditorPage() {
           <button class="media-item" draggable="true" data-type="audio" data-label="VO Raw"><span class="media-icon">🎙️</span><span class="media-copy"><span class="media-label">VO Raw</span><span class="media-desc">0:48 · WAV</span></span></button>
           <button class="media-item" draggable="true" data-type="image" data-label="Logo"><span class="media-icon">🖼️</span><span class="media-copy"><span class="media-label">Logo</span><span class="media-desc">PNG · 512</span></span></button>
           <button class="media-item" draggable="true" data-type="audio" data-label="Track"><span class="media-icon">🎵</span><span class="media-copy"><span class="media-label">Track</span><span class="media-desc">2:10 · MP3</span></span></button>
+          <button id="pexels-timeline-btn" type="button" class="media-item" data-action="pexels-browse"><span class="media-icon">🌐</span><span class="media-copy"><span class="media-label">Stock Media</span><span class="media-desc">Pexels library</span></span></button>
         </div>
         <button class="upload-btn" id="uploadBtn" style="margin-top:10px;">Upload media…</button>
       </aside>
@@ -6929,6 +6930,38 @@ export function TimelineEditorPage() {
 
       els.uploadBtn?.addEventListener('click', () => els.uploadInput?.click());
       els.uploadInput?.addEventListener('change', (event) => handleUpload(event.target.files?.[0]));
+
+      const pexelsTimelineBtn = root.querySelector('#pexels-timeline-btn');
+      if (pexelsTimelineBtn) {
+        pexelsTimelineBtn.addEventListener('click', async () => {
+          const { browsePexels } = await import('../lib/studioPexels.js');
+          browsePexels({
+            accept: ['image', 'video'],
+            title: 'Stock Media',
+            studioName: 'Timeline Editor',
+            onSelect: (asset) => {
+              const url = asset.video_files?.[0]?.link || asset.url || asset.original || asset.src?.large || asset.src;
+              if (!url) return;
+              const media = {
+                label: asset.photographer || (asset.user && asset.user.name) || 'Stock Media',
+                src: url,
+                type: asset.asset_type === 'video' ? 'video' : 'image',
+                source: 'pexels',
+                attribution: {
+                  photographer: asset.photographer || (asset.user && asset.user.name) || '',
+                  photographer_url: asset.photographer_url || (asset.user && asset.user.url) || 'https://www.pexels.com',
+                  pexels_url: asset.url || '',
+                }
+              };
+              if (typeof window.addMediaToTimeline === 'function') {
+                window.addMediaToTimeline(media);
+              } else if (typeof addMediaToTimeline === 'function') {
+                addMediaToTimeline(media, state.mediaLibrary?.length || 0, state, showToast);
+              }
+            }
+          });
+        });
+      }
 
       // VideoDB: add an indexed video to the timeline using the user's VideoDB
       // API key (configured in Settings).
