@@ -6,7 +6,6 @@
 import { isFeatureEnabled } from '../lib/featureFlags.js';
 import { loadAdaptedComponent } from '../lib/componentAdapter.js';
 import { GTMPromptModal } from '../components/modals/GTMPromptModal.jsx';
-import { dispatchGtmThumbnail } from '../lib/gtmThumbnailBridge.js';
 
 /**
  * Default GTM → Thumbnail bridge.
@@ -31,11 +30,6 @@ async function defaultGenerateThumbnail(prompt) {
       detail: { prompt, candidate: first }
     }));
   }
-  const imageUrl = first.dataUrl || first.imageUrl || first.url
-    || (first.b64_json ? `data:image/png;base64,${first.b64_json}` : null);
-  if (imageUrl) {
-    dispatchGtmThumbnail(prompt, imageUrl);
-  }
   return first;
 }
 
@@ -43,27 +37,14 @@ async function defaultGenerateThumbnail(prompt) {
  * Open the GTM Prompt Enhancer modal
  * Shared utility used by all apps (timeline-editor, image-studio, video-studio, etc.)
  * @param {string} appTheme - The app theme identifier for color customization
- * @param {Function|Object} onPromptGeneratedOrContext - Either a callback when a
- *        prompt is generated, OR a context object with `onPromptGenerated` and
- *        optional `templateContext` (for template-aware pre-fill).
+ * @param {Function} onPromptGenerated - Callback when a prompt is generated
  * @param {Function} [onGenerateThumbnail] - Optional override for thumbnail generation;
  *        defaults to defaultGenerateThumbnail which calls the ai-thumbnail-generator
  *        edge function and dispatches a `gtm:thumbnail-generated` window event.
  * @returns {GTMPromptModal|null} The modal instance or null on error
  */
-export function openGTMPromptModal(appTheme = 'timeline-editor', onPromptGeneratedOrContext = null, onGenerateThumbnail = null) {
+export function openGTMPromptModal(appTheme = 'timeline-editor', onPromptGenerated = null, onGenerateThumbnail = null) {
   try {
-    // Backward-compat: if the second arg is a plain function, treat it as the
-    // callback. If it's an object, pull `onPromptGenerated` and `templateContext`.
-    let onPromptGenerated = null;
-    let templateContext = null;
-    if (typeof onPromptGeneratedOrContext === 'function') {
-      onPromptGenerated = onPromptGeneratedOrContext;
-    } else if (onPromptGeneratedOrContext && typeof onPromptGeneratedOrContext === 'object') {
-      onPromptGenerated = onPromptGeneratedOrContext.onPromptGenerated || null;
-      templateContext = onPromptGeneratedOrContext.templateContext || null;
-    }
-
     const defaultPromptCallback = (generatedPrompt) => {
       const promptInput = document.querySelector(
         '#generation-prompt, textarea[placeholder*="Describe"], input[placeholder*="Describe"], textarea[placeholder*="prompt"], textarea[placeholder*="Prompt"], .studio-prompt-textarea, [data-prompt-input]'
@@ -84,7 +65,6 @@ export function openGTMPromptModal(appTheme = 'timeline-editor', onPromptGenerat
 
     const modal = new GTMPromptModal({
       appTheme,
-      templateContext: templateContext || undefined,
       onPromptGenerated: onPromptGenerated || defaultPromptCallback,
       onGenerateThumbnail: onGenerateThumbnail || defaultGenerateThumbnail,
     });
@@ -96,119 +76,7 @@ export function openGTMPromptModal(appTheme = 'timeline-editor', onPromptGenerat
   }
 }
 
-/**
- * Fetch GTM Boost options (roles, industries, methodologies, tonalities)
- * from the backend. Falls back to null on error so the modal can use its
- * built-in library.
- */
-export async function fetchGTMBoostOptions() {
-  try {
-    const res = await fetch('/api/gtm-boost/options');
-    if (!res.ok) return null;
-    return await res.json();
-  } catch (err) {
-    console.warn('[gtm-boost] fetchGTMBoostOptions failed:', err.message);
-    return null;
-  }
-}
 
-/**
- * Resolve template-aware defaults (industry, tonality, role, methodology,
- * basePrompt) from a template's category/niche. Uses the backend service
- * so the mapping stays in one place.
- */
-export async function fetchGTMTemplateContext(template) {
-  if (!template) return null;
-  try {
-    const res = await fetch('/api/gtm-boost/template-context', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        templateId: template.id,
-        category: template.category,
-        niche: template.niche,
-        name: template.name,
-        description: template.description,
-        outputType: template.outputType,
-      }),
-    });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch (err) {
-    console.warn('[gtm-boost] fetchGTMTemplateContext failed:', err.message);
-    return null;
-  }
-}
-
-/**
- * Extend context menus for clips with enhancement options
- */
-export function extendClipContextMenu(clipElement, clip, track, state, showToast) {
-  // Add enhancement options based on clip type
-  const menuItems = [];
-
-  // Image clips: OpenAI AI Image Editor (replaces all 3 previous editors)
-  if (clip.type === 'image') {
-    menuItems.push({
-      label: 'AI Image Editor (OpenAI)',
-      icon: '🤖',
-      action: () => openImageEditor(clip, state, showToast)
-    });
-  }
-
-  // Video clips: VideoPersonalizer, VideoAnalytics
-  if (clip.type === 'video') {
-    menuItems.push({
-      label: 'Personalize Video',
-      icon: '🎬',
-      action: () => openVideoPersonalizerModal(clip, state, showToast)
-    });
-    menuItems.push({
-      label: 'Video Analytics',
-      icon: '📊',
-      action: () => openVideoAnalyticsModal(clip, state, showToast)
-    });
-  }
-
-  // Text clips: VoiceModal (TTS), PersonalizationModal
-  if (clip.type === 'text') {
-    menuItems.push({
-      label: 'Generate Voice (TTS)',
-      icon: '🎤',
-      action: () => openVoiceModalTTS(clip, state, showToast)
-    });
-    menuItems.push({
-      label: 'Personalize Text',
-      icon: '👤',
-      action: () => openPersonalizationModal(clip, state, showToast)
-    });
-  }
-
-  // Audio clips: VoiceModal (recording)
-  if (clip.type === 'audio') {
-    menuItems.push({
-      label: 'Record Voice',
-      icon: '🎙️',
-      action: () => openVoiceModalRecording(clip, state, showToast)
-    });
-  }
-
-  // Add menu items to existing context menu
-  if (menuItems.length > 0) {
-    const existingMenu = clipElement.querySelector('.context-menu');
-    if (existingMenu) {
-      menuItems.forEach(item => {
-        const menuItem = document.createElement('div');
-        menuItem.className = 'context-menu-item';
-        menuItem.innerHTML = `${item.icon} ${item.label}`;
-        menuItem.addEventListener('click', item.action);
-        existingMenu.appendChild(menuItem);
-      });
-    }
-  }
-
-  return menuItems;
-}
 
 /**
  * Extend generation panel with new creation options
@@ -268,61 +136,7 @@ export function extendGenerationPanel(generationContainer, state, showToast) {
 /**
  * Extend media library with enhanced features
  */
-export function extendMediaLibrary(mediaGrid, state, showToast) {
-  if (!mediaGrid || !isFeatureEnabled('ENHANCED_MEDIA_LIBRARY')) return;
 
-  // Add enhanced library toggle
-  const libraryToggle = document.createElement('button');
-  libraryToggle.className = 'mini-btn';
-  libraryToggle.textContent = 'Enhanced Library';
-  libraryToggle.title = 'Toggle enhanced media library';
-  libraryToggle.addEventListener('click', () => toggleEnhancedLibrary(mediaGrid, state, showToast));
-
-  // Insert before existing media grid
-  mediaGrid.parentNode.insertBefore(libraryToggle, mediaGrid);
-}
-
-/**
- * Extend top actions bar with new features
- */
-export function extendTopActions(topActions, state, showToast) {
-  if (!topActions) return;
-
-  // Add social publishing action
-  if (isFeatureEnabled('SOCIAL_PUBLISHING')) {
-    const publishIcon = document.createElement('button');
-    publishIcon.className = 'top-icon';
-    publishIcon.textContent = '📤';
-    publishIcon.title = 'Publish to social media';
-    publishIcon.setAttribute('aria-label', 'Publish to social media');
-    publishIcon.addEventListener('click', () => openSocialPublisher(state, showToast));
-    topActions.appendChild(publishIcon);
-  }
-
-  // Add analytics action
-  if (isFeatureEnabled('VIDEO_ANALYTICS')) {
-    const analyticsIcon = document.createElement('button');
-    analyticsIcon.className = 'top-icon';
-    analyticsIcon.textContent = '📊';
-    analyticsIcon.title = 'View video analytics';
-    analyticsIcon.setAttribute('aria-label', 'View video analytics');
-    analyticsIcon.addEventListener('click', () => openVideoAnalytics(state, showToast));
-    topActions.appendChild(analyticsIcon);
-  }
-
-  // Add GTM Prompt Enhancer action
-  if (isFeatureEnabled('GTM_PROMPT_ENHANCER')) {
-    const gtmIcon = document.createElement('button');
-    gtmIcon.className = 'top-icon';
-    gtmIcon.textContent = '🎯';
-    gtmIcon.title = 'GTM Prompt Enhancer - Create conversion-optimized prompts';
-    gtmIcon.setAttribute('aria-label', 'GTM Prompt Enhancer - Create conversion-optimized prompts');
-    gtmIcon.addEventListener('click', () => openGTMPromptModal('timeline-editor', (generatedPrompt) => {
-      if (showToast) showToast('GTM prompt generated! Loaded into prompt input.', 'success');
-    }));
-    topActions.appendChild(gtmIcon);
-  }
-}
 
 /**
  * Modal management for enhancements
@@ -397,94 +211,11 @@ async function openAIVideoCreator(state, showToast) {
   }
 }
 
-async function openVideoPersonalizer(clip, state, showToast) {
-  try {
-    const modalManager = getModalManager();
-    await modalManager.openModal('VideoPersonalizer', {
-      clip,
-      onComplete: (result) => {
-        updateClipInTimeline(clip.id, result, state);
-      }
-    });
-  } catch (error) {
-  }
-}
 
-async function openImageEditor(clip, state, showToast) {
-  try {
-    // Import OpenAI image editor dynamically to avoid circular dependencies
-    const { OpenAIImageEditorModal } = await import('../components/modals/OpenAIImageEditorModal.jsx');
 
-    const modal = new OpenAIImageEditorModal({
-      title: 'AI Image Editor (OpenAI)',
-      size: 'full',
-      image: clip.src, // Pass base64 data if available
-      mode: clip.src ? 'edit' : 'generate', // Default to edit if clip has image
-      onConfirm: (result) => {
-        // For editing existing clips
-        if (result && result.editedImage) {
-          updateClipInTimeline(clip.id, { src: `data:image/png;base64,${result.editedImage}` }, state);
-        }
-      },
-      onAddToTimeline: async (generatedImage) => {
-        // For adding new generated images to timeline
-        try {
-          const { assetImportService } = await import('./editor/assetImportService.js');
-          const metadata = {
-            name: `AI Generated Image`,
-            prompt: generatedImage.revised_prompt || 'AI generated image',
-            revisedPrompt: generatedImage.revised_prompt,
-            model: 'gpt-image-2',
-            size: '1024x1024', // Would come from modal settings
-            quality: 'standard',
-            style: 'vivid',
-            format: 'png'
-          };
 
-          const newClip = await assetImportService.importImageToTimeline(
-            generatedImage.base64,
-            metadata,
-            state
-          );
 
-          // Add the new clip to the timeline
-          if (!state.tracks) state.tracks = [];
-          const targetTrack = state.tracks.find(t => t.id === newClip.trackId) ||
-                            state.tracks[0];
-          if (targetTrack) {
-            if (!targetTrack.clips) targetTrack.clips = [];
-            targetTrack.clips.push(newClip);
-          }
 
-        } catch (error) {
-          console.error('Failed to add generated image to timeline:', error);
-          throw error;
-        }
-      },
-      onCancel: () => {
-        // Modal cancelled, no action needed
-      }
-    });
-
-    modal.show();
-  } catch (error) {
-    console.error('Failed to open OpenAI Image Editor:', error);
-  }
-}
-
-async function openTextToSpeech(clip, state, showToast) {
-  try {
-    const modalManager = getModalManager();
-    await modalManager.openModal('TextToSpeechContent', {
-      text: clip.body || clip.heading,
-      onComplete: (audioUrl) => {
-        // Add audio track with generated voice
-        addAudioToTimeline(audioUrl, clip, state);
-      }
-    });
-  } catch (error) {
-  }
-}
 
 async function openTemplateBrowser(clip, state, showToast) {
   try {
@@ -510,134 +241,25 @@ async function openVideoRecorder(state, showToast) {
   }
 }
 
-async function toggleEnhancedLibrary(mediaGrid, state, showToast) {
-  try {
-    const modalManager = getModalManager();
-    await modalManager.openModal('Library', {
-      onSelect: (media) => {
-        addMediaToTimeline(media, state);
-      }
-    });
-  } catch (error) {
-  }
-}
 
-async function openSocialPublisher(state, showToast) {
-  try {
-    const modalManager = getModalManager();
-    await modalManager.openModal('SocialPublisherModal', {
-      project: state,
-      onComplete: () => {
-      }
-    });
-  } catch (error) {
-  }
-}
 
-async function openVideoAnalytics(state, showToast) {
-  try {
-    const modalManager = getModalManager();
-    await modalManager.openModal('VideoAnalytics', {
-      project: state,
-      onComplete: (analytics) => {
-      }
-    });
-  } catch (error) {
-  }
-}
 
-async function openImageCropperModal(clip, state, showToast) {
-  try {
-    const modalManager = getModalManager();
-    await modalManager.openModal('ImageCropperModal', {
-      image: clip.src,
-      onComplete: (result) => {
-        updateClipInTimeline(clip.id, { src: result }, state);
-      }
-    });
-  } catch (error) {
-  }
-}
 
-async function openImglyImageEditorModal(clip, state, showToast) {
-  try {
-    const modalManager = getModalManager();
-    await modalManager.openModal('ImglyImageEditorModal', {
-      image: clip.src,
-      onComplete: (result) => {
-        updateClipInTimeline(clip.id, { src: result }, state);
-      }
-    });
-  } catch (error) {
-  }
-}
 
-async function openVideoPersonalizerModal(clip, state, showToast) {
-  try {
-    const modalManager = getModalManager();
-    await modalManager.openModal('VideoPersonalizer', {
-      clip,
-      onComplete: (result) => {
-        updateClipInTimeline(clip.id, result, state);
-      }
-    });
-  } catch (error) {
-  }
-}
 
-async function openVideoAnalyticsModal(clip, state, showToast) {
-  try {
-    const modalManager = getModalManager();
-    await modalManager.openModal('VideoAnalytics', {
-      clip,
-      onComplete: (analytics) => {
-      }
-    });
-  } catch (error) {
-  }
-}
 
-async function openVoiceModalTTS(clip, state, showToast) {
-  try {
-    const modalManager = getModalManager();
-    await modalManager.openModal('VoiceModal', {
-      mode: 'tts',
-      text: clip.body || clip.heading,
-      onComplete: (result) => {
-        addAudioToTimeline(result, state);
-      }
-    });
-  } catch (error) {
-  // DISABLED:     console.log('Failed to open Voice Modal (TTS)', 'error');
-  }
-}
 
-async function openPersonalizationModal(clip, state, showToast) {
-  try {
-    const modalManager = getModalManager();
-    await modalManager.openModal('PersonalizationModal', {
-      text: clip.body || clip.heading,
-      onComplete: (result) => {
-        updateClipInTimeline(clip.id, { body: result.personalizedText }, state);
-      }
-    });
-  } catch (error) {
-  }
-}
 
-async function openVoiceModalRecording(clip, state, showToast) {
-  try {
-    const modalManager = getModalManager();
-    await modalManager.openModal('VoiceModal', {
-      mode: 'recording',
-      onComplete: (result) => {
-        updateClipInTimeline(clip.id, { src: result.audioUrl }, state);
-      }
-    });
-  } catch (error) {
-  // DISABLED:     console.log('Failed to open Voice Modal (Recording)', 'error');
-  }
-}
+
+
+
+
+
+
+
+
+
+
 
 // Helper functions
 function getModalManager() {
