@@ -191,6 +191,32 @@ export function CommercialStudio() {
   formCard.appendChild(uploadRow);
   container.appendChild(picker.panel);
 
+  const pexelsBtn = document.createElement('button');
+  pexelsBtn.type = 'button';
+  pexelsBtn.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden';
+  pexelsBtn.title = 'Browse stock photos from Pexels';
+  pexelsBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>';
+  pexelsBtn.onclick = async () => {
+    const { browsePexelsImages } = await import('../lib/studioPexels.js');
+    browsePexelsImages({
+      title: 'Select Reference Photo',
+      studioName: 'Commercial Studio',
+      onSelect: (asset) => {
+        uploadedUrl = asset.src?.large || asset.url || asset.original;
+        const attrContainer = document.getElementById('pexels-commercial-attribution');
+        if (attrContainer) {
+          attrContainer.innerHTML = '';
+          import('../lib/attributionChip.js').then(mod => mod.renderAttributionChip(asset, attrContainer));
+        }
+      }
+    });
+  };
+  uploadRow.appendChild(pexelsBtn);
+  const pexelsCommercialAttr = document.createElement('div');
+  pexelsCommercialAttr.id = 'pexels-commercial-attribution';
+  pexelsCommercialAttr.className = 'mt-1';
+  uploadRow.appendChild(pexelsCommercialAttr);
+
   const sceneLabel = document.createElement('label');
   sceneLabel.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
   sceneLabel.textContent = 'Scene Preset';

@@ -14,21 +14,184 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 //   supplied, the request is rejected with HTTP 500 and a clear error message.
 //
 //   A dev-bypass placeholder ("dev") is accepted so developers can exercise
-//   the proxy locally without a real Muapi key; it resolves to an empty string
-//   upstream. Remove or guard this bypass in production deployments.
+//   the proxy locally without a real Muapi key; remove or guard this bypass
+//   in production deployments.
 //
 // Other behaviors preserved:
 //   - OpenAI key forwarding (user-supplied openai_api_key, stripped from body)
-//   - CORS headers (unchanged)
 //   - Rate limiting, CSRF, endpoint validation, unwrapResponse
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey, X-Webhook-Signature, X-Endpoint, X-Api-Key",
-};
+// --- Constants ---
 
-// Rate limiting - simple in-memory store (use Redis for multi-instance deployments)
+const UPSTREAM_TIMEOUT_MS = 30_000;
+const MAX_BUFFER_BYTES = 100 * 1024 * 1024;
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
+const MAX_RETRIES = 2;
+const RETRYABLE_STATUSES = new Set([502, 503, 429]);
+
+// Simple MIME sniff: reads up to 12 bytes to identify image/video formats.
+function sniffMimeType(chunk: Uint8Array): string | null {
+  if (chunk.length < 4) return null;
+  const bytes = chunk;
+  if (
+    bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF
+  ) return 'image/jpeg';
+  if (
+    bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47
+  ) return 'image/png';
+  if (
+    bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46
+  ) return 'image/gif';
+  if (
+    bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46
+  ) return 'image/webp';
+  if (
+    bytes[0] === 0x00 && bytes[1] === 0x00 && bytes[2] === 0x00 &&
+    (bytes[3] === 0x1C || bytes[3] === 0x20) && bytes[4] === 0x66 && bytes[5] === 0x74
+  ) return 'video/mp4';
+  if (
+    bytes[0] === 0x1A && bytes[1] === 0x45 && bytes[2] === 0xDF && bytes[3] === 0xA3
+  ) return 'video/webm';
+  return null;
+}
+
+function sizeLimitForMime(mime: string | null): number {
+  if (!mime) return MAX_IMAGE_BYTES;
+  if (mime.startsWith('video/')) return MAX_VIDEO_BYTES;
+  return MAX_IMAGE_BYTES;
+}
+
+// --- CORS helpers ---
+
+function getAllowedOrigins(): string[] {
+  const raw = Deno.env.get('ALLOWED_ORIGINS') || '';
+  return raw.split(',').map(s => s.trim()).filter(Boolean);
+}
+
+function getCorsHeaders(req: Request): Record<string, string> {
+  const allowedOrigins = getAllowedOrigins();
+  const requestOrigin = req.headers.get('origin') || '';
+
+  const originHeader: string =
+    requestOrigin && allowedOrigins.includes(requestOrigin)
+      ? requestOrigin
+      : allowedOrigins.length > 0
+        ? allowedOrigins[0]
+        : '*';
+
+  if (originHeader === '*' && Deno.env.get('ENVIRONMENT') !== 'development') {
+    console.warn('[muapi-proxy] ALLOWED_ORIGINS not set; falling back to wildcard CORS in production');
+  }
+
+  return {
+    'Access-Control-Allow-Origin': originHeader,
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Client-Info, Apikey, X-Webhook-Signature, X-Endpoint, X-Api-Key',
+    'Vary': 'Origin',
+  };
+}
+
+// --- Retry logic ---
+
+async function fetchWithRetry(
+  url: string,
+  init: RequestInit,
+  signal: AbortSignal
+): Promise<Response> {
+  let attempt = 0;
+  while (true) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
+
+    try {
+      const mergedSignal = AbortSignal.any([signal, controller.signal]);
+      const response = await fetch(url, { ...init, signal: mergedSignal });
+      clearTimeout(timeoutId);
+
+      if (
+        !RETRYABLE_STATUSES.has(response.status) ||
+        attempt >= MAX_RETRIES
+      ) {
+        return response;
+      }
+
+      const backoffMs = 500 * Math.pow(2, attempt);
+      console.warn(
+        `[muapi-proxy] Retrying ${url} after ${response.status} ` +
+          `(attempt ${attempt + 1}/${MAX_RETRIES}, backoff ${backoffMs}ms)`
+      );
+      await new Promise(r => setTimeout(r, backoffMs));
+      attempt++;
+    } catch (err) {
+      clearTimeout(timeoutId);
+      if (attempt >= MAX_RETRIES) throw err;
+      const backoffMs = 500 * Math.pow(2, attempt);
+      console.warn(
+        `[muapi-proxy] Upstream error for ${url}: ${(err as Error).message}. ` +
+          `Retrying (attempt ${attempt + 1}/${MAX_RETRIES}, backoff ${backoffMs}ms)`
+      );
+      await new Promise(r => setTimeout(r, backoffMs));
+      attempt++;
+    }
+  }
+}
+
+// --- Body stream setup ---
+
+function setupMultipartBodyStream(
+  req: Request
+): { passThrough: PassThrough; sizeLimit: number; totalBytes: number } {
+  const contentType = req.headers.get('content-type') || '';
+  const isVideo = contentType.includes('video');
+
+  const passThrough = new PassThrough();
+  let totalBytes = 0;
+  let mimeSniffed = false;
+  let detectedMime: string | null = null;
+  const sniffBuffer = new Uint8Array(12);
+  let sniffOffset = 0;
+
+  if (!req.body) {
+    return { passThrough, sizeLimit: isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES, totalBytes: 0 };
+  }
+
+  (async () => {
+    try {
+      for await (const chunk of req.body as ReadableStream<Uint8Array>) {
+        if (!mimeSniffed && sniffOffset < sniffBuffer.length) {
+          const need = Math.min(chunk.length, sniffBuffer.length - sniffOffset);
+          sniffBuffer.set(chunk.subarray(0, need), sniffOffset);
+          sniffOffset += need;
+          if (sniffOffset >= sniffBuffer.length) {
+            detectedMime = sniffMimeType(sniffBuffer);
+            mimeSniffed = true;
+          }
+        }
+
+        totalBytes += chunk.length;
+
+        if (totalBytes > MAX_BUFFER_BYTES) {
+          passThrough.destroy(
+            new Error(`Request body exceeds maximum allowed size of ${MAX_BUFFER_BYTES} bytes`)
+          );
+          return;
+        }
+
+        passThrough.write(chunk);
+      }
+      passThrough.end();
+    } catch {
+      passThrough.destroy();
+    }
+  })();
+
+  const sizeLimit = sizeLimitForMime(detectedMime ?? (isVideo ? 'video/placeholder' : 'image/placeholder'));
+
+  return { passThrough, sizeLimit, totalBytes };
+}
+
+// --- Rate limiting ---
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_MAX = 100; // requests per window
 const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute
@@ -139,12 +302,12 @@ function verifyCsrfProtection(req: Request, auth: { reason: string }): { ok: boo
 }
 
 Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, {
-      status: 200,
-      headers: corsHeaders,
-    });
-  }
+   if (req.method === "OPTIONS") {
+     return new Response(null, {
+       status: 200,
+       headers: getCorsHeaders(req),
+     });
+   }
 
   // Rate limiting
   const clientId = getClientId(req);
@@ -153,7 +316,7 @@ Deno.serve(async (req: Request) => {
       JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
       {
         status: 429,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': '60' }
+        headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json', 'Retry-After': '60' }
       }
     );
   }
@@ -164,7 +327,7 @@ Deno.serve(async (req: Request) => {
       console.log(JSON.stringify({ type: 'csrf.rejected', reason: csrf.reason, ip: req.headers.get('cf-connecting-ip') }));
       return new Response(
         JSON.stringify({ error: 'Forbidden', reason: csrf.reason }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       );
     }
 
@@ -178,9 +341,32 @@ Deno.serve(async (req: Request) => {
           JSON.stringify({ error: 'Invalid or missing endpoint for multipart request' }),
           {
             status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
           }
         );
+      }
+
+      const contentType = req.headers.get('content-type') || '';
+      const isVideo = contentType.includes('video');
+
+      const incomingContentLength = req.headers.get('content-length');
+      if (incomingContentLength) {
+        const declaredSize = Number(incomingContentLength);
+        if (!Number.isFinite(declaredSize)) {
+          return new Response(
+            JSON.stringify({ error: 'Invalid Content-Length header' }),
+            { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          );
+        }
+        const maxAllowed = isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
+        if (declaredSize > maxAllowed) {
+          return new Response(
+            JSON.stringify({
+              error: `Payload Too Large: ${isVideo ? 'video' : 'image'} uploads are limited to ${maxAllowed} bytes (${(maxAllowed / 1024 / 1024).toFixed(0)} MB)`
+            }),
+            { status: 413, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          );
+        }
       }
 
       // Multipart requests cannot carry body-embedded keys; require the
@@ -194,51 +380,48 @@ Deno.serve(async (req: Request) => {
           }),
           {
             status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
           }
         );
       }
 
-    // Dev-bypass: allow a known placeholder value so developers can test the
-    // proxy locally without supplying a real Muapi key. Production callers
-    // must always supply their actual key.
-    const isDev = Deno.env.get('ENVIRONMENT') === 'development';
-    const DEV_BYPASS_KEY = 'dev';
-    const effectiveApiKey = (isDev && userApiKey === DEV_BYPASS_KEY) ? '' : userApiKey;
+      // Dev-bypass: allow a known placeholder value so developers can test the
+      // proxy locally without supplying a real Muapi key. Production callers
+      // must always supply their actual key.
+      const isDev = Deno.env.get('ENVIRONMENT') === 'development';
+      const DEV_BYPASS_KEY = 'dev';
+      const effectiveApiKey = (isDev && userApiKey === DEV_BYPASS_KEY) ? '' : userApiKey;
 
       const normalizedEndpoint = normalizeLegacyEndpoint(endpoint);
       const muapiUrl = `https://api.muapi.ai/api/v1/${normalizedEndpoint}`;
 
-      // Buffer the multipart body so we can set Content-Length. Some upstream
-      // servers reject chunked multipart uploads; a known length is required.
-      const chunks: Uint8Array[] = [];
-      let totalBytes = 0;
-      if (req.body) {
-        for await (const chunk of req.body) {
-          chunks.push(chunk);
-          totalBytes += chunk.length;
-        }
-      }
-      const bodyBuffer = new Uint8Array(totalBytes);
-      let offset = 0;
-      for (const chunk of chunks) {
-        bodyBuffer.set(chunk, offset);
-        offset += chunk.length;
-      }
+      const { passThrough, sizeLimit } = setupMultipartBodyStream(req);
 
       const forwardHeaders: Record<string, string> = {
         'x-api-key': effectiveApiKey,
         'content-type': contentType,
       };
-      if (totalBytes > 0) {
-        forwardHeaders['content-length'] = String(totalBytes);
+      if (incomingContentLength) {
+        forwardHeaders['content-length'] = incomingContentLength;
       }
 
-      const muapiResponse = await fetch(muapiUrl, {
+      let errorResponse: Response | null = null;
+      passThrough.on('error', () => {
+        if (!errorResponse) {
+          errorResponse = new Response(
+            JSON.stringify({ error: `Payload Too Large: body exceeds ${sizeLimit} bytes` }),
+            { status: 413, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          );
+        }
+      });
+
+      const muapiResponse = await fetchWithRetry(muapiUrl, {
         method: 'POST',
         headers: forwardHeaders,
-        body: bodyBuffer,
-      });
+        body: passThrough,
+      }, AbortSignal.timeout(UPSTREAM_TIMEOUT_MS));
+
+      if (errorResponse) return errorResponse;
 
       if (!muapiResponse.ok) {
         const errorText = await muapiResponse.text();
@@ -251,7 +434,7 @@ Deno.serve(async (req: Request) => {
           }),
           {
             status: muapiResponse.status,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
           }
         );
       }
@@ -268,7 +451,7 @@ Deno.serve(async (req: Request) => {
         JSON.stringify(result),
         {
           status: 200,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
         }
       );
     }
@@ -282,7 +465,7 @@ Deno.serve(async (req: Request) => {
         JSON.stringify({ error: 'Invalid endpoint' }),
         {
           status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
         }
       );
     }
@@ -293,7 +476,7 @@ Deno.serve(async (req: Request) => {
         JSON.stringify({ error: 'Invalid endpoint' }),
         {
           status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
         }
       );
     }
@@ -324,7 +507,7 @@ Deno.serve(async (req: Request) => {
         }),
         {
           status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
         }
       );
     }
@@ -387,7 +570,7 @@ Deno.serve(async (req: Request) => {
         }),
         {
           status: muapiResponse.status,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
         }
       );
     }
@@ -401,7 +584,7 @@ Deno.serve(async (req: Request) => {
       JSON.stringify(result),
       {
         status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
       }
     );
 
@@ -415,7 +598,7 @@ Deno.serve(async (req: Request) => {
       }),
       {
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
       }
     );
   }

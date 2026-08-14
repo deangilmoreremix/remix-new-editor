@@ -7,6 +7,25 @@ const ASPECT_RATIO_MAP = {
   '16:9': { width: 1920, height: 1080 },
 };
 
+const BLEND_MODES = {
+  'normal': 'source-over',
+  'multiply': 'multiply',
+  'screen': 'screen',
+  'overlay': 'overlay',
+  'soft-light': 'soft-light',
+  'hard-light': 'hard-light',
+  'color-dodge': 'color-dodge',
+  'color-burn': 'color-burn',
+  'darken': 'darken',
+  'lighten': 'lighten',
+  'difference': 'difference',
+  'exclusion': 'exclusion',
+  'hue': 'hue',
+  'saturation': 'saturation',
+  'color': 'color',
+  'luminosity': 'luminosity',
+};
+
 function getAspectDimensions(ratio) {
   return ASPECT_RATIO_MAP[ratio] || ASPECT_RATIO_MAP['16:9'];
 }
@@ -25,6 +44,28 @@ function applyRemixFilters(ctx, effects, width, height) {
   
   ctx.fillRect(0, 0, width, height);
   ctx.filter = 'none';
+}
+
+async function compositeEffectLayers(ctx, baseImageBitmap, layers, width, height) {
+  if (!layers || !Array.isArray(layers) || layers.length === 0) return;
+
+  // Draw base
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = 1.0;
+  if (baseImageBitmap) {
+    ctx.drawImage(baseImageBitmap, 0, 0, width, height);
+  }
+
+  for (const layer of layers) {
+    if (!layer || !layer.imageBitmap) continue;
+    
+    ctx.globalCompositeOperation = BLEND_MODES[layer.blendMode] || 'source-over';
+    ctx.globalAlpha = Math.max(0, Math.min(1, layer.opacity ?? 1));
+    ctx.drawImage(layer.imageBitmap, 0, 0, width, height);
+  }
+
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = 1.0;
 }
 
 async function createRecording(canvas, videoBitmap, durationMs, onProgress) {
@@ -96,11 +137,11 @@ self.onmessage = async (event) => {
   try {
     const { action, videoUrl, settings = {}, timeRange, effects } = event.data || {};
     
-    if (!action || !['export-video', 'trailer-cut', 'social-resize', 'remix-scene'].includes(action)) {
+    if (!action || !['export-video', 'trailer-cut', 'social-resize', 'remix-scene', 'composite-layers'].includes(action)) {
       throw new Error(`Unsupported action: ${action}`);
     }
     
-    if (action !== 'export-video' && !videoUrl) {
+    if (action !== 'export-video' && action !== 'composite-layers' && !videoUrl) {
       throw new Error('videoUrl is required');
     }
     
@@ -130,7 +171,13 @@ self.onmessage = async (event) => {
     const ctx = canvas.getContext('2d');
     
     if (action === 'remix-scene') {
-      applyRemixFilters(ctx, effects, width, height);
+      if (layers && Array.isArray(layers) && layers.length > 0) {
+        await compositeEffectLayers(ctx, videoBitmap, layers, width, height);
+      } else {
+        applyRemixFilters(ctx, effects, width, height);
+      }
+    } else if (action === 'composite-layers') {
+      await compositeEffectLayers(ctx, videoBitmap, layers || [], width, height);
     }
     
     const durationMs = action === 'trailer-cut' && timeRange

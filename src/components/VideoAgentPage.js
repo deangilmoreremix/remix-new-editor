@@ -145,16 +145,20 @@ export function VideoAgentPage() {
                             </div>
                         `}
                     </div>
-                    <div class="mt-3 flex items-center gap-3">
+                    <div class="mt-3 flex items-center gap-3 flex-wrap">
                         <button id="load-video-btn" class="flex items-center gap-2 px-4 py-2.5 bg-primary text-black font-bold rounded-xl hover:scale-[1.02] transition-transform text-sm">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
                             </svg>
                             Load Video
                         </button>
+                        <button id="pexels-videoagent-btn" type="button" title="Browse sample videos from Pexels" class="w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+                        </button>
                         <span id="load-video-status" class="text-xs text-muted truncate"></span>
                         <input id="video-file-input" type="file" accept="video/*" class="hidden" />
                     </div>
+                    <div id="pexels-videoagent-attribution" class="mt-2"></div>
                 </div>
                 
                 <!-- Agent Prompt (used by VideoDB + GenAI agents) -->
@@ -380,6 +384,28 @@ export function VideoAgentPage() {
 
     if (loadBtn) loadBtn.onclick = () => fileInput && fileInput.click();
     if (fileInput) fileInput.onchange = (e) => handleVideoFile(e.target.files && e.target.files[0]);
+
+    const pexelsVideoBtn = container.querySelector('#pexels-videoagent-btn');
+    const pexelsVideoAttr = container.querySelector('#pexels-videoagent-attribution');
+    if (pexelsVideoBtn) {
+        pexelsVideoBtn.onclick = async () => {
+            const { browsePexelsVideos } = await import('../lib/studioPexels.js');
+            browsePexelsVideos({
+                title: 'Use Sample Video',
+                studioName: 'VideoAgent',
+                onSelect: (asset) => {
+                    videoUrl = asset.video_files?.[0]?.link || asset.url || asset.original;
+                    renderVideoPreview();
+                    loadStatus.textContent = 'Loaded (Pexels) ✓';
+                    showToast('Sample video loaded', 'success');
+                    if (pexelsVideoAttr) {
+                        pexelsVideoAttr.innerHTML = '';
+                        import('../lib/attributionChip.js').then(mod => mod.renderAttributionChip(asset, pexelsVideoAttr));
+                    }
+                }
+            });
+        };
+    }
     // Drag & drop onto the preview stage
     if (previewStage) {
         previewStage.addEventListener('dragover', (e) => { e.preventDefault(); previewStage.classList.add('ring-2', 'ring-primary'); });

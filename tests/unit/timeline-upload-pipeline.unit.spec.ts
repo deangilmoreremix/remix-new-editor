@@ -76,11 +76,16 @@ vi.mock('../../src/lib/hybrid-supabase.js', () => ({
   })
 }));
 
+const uploadFileState = { error: null as string | null };
+
 vi.mock('../../src/lib/muapi.js', () => ({
   muapi: {
-    uploadFile: vi.fn(async (file) => {
+    async uploadFile(file) {
+      if (uploadFileState.error) {
+        throw new Error(uploadFileState.error);
+      }
       return `https://example.com/uploads/${encodeURIComponent(file.name || 'file')}`;
-    })
+    }
   }
 }));
 
@@ -196,6 +201,9 @@ vi.mock('file-type', () => ({
     }
     if (buffer[0] === 0x49 && buffer[1] === 0x44 && buffer[2] === 0x33) {
       return { ext: 'mp3', mime: 'audio/mpeg' };
+    }
+    if (buffer[0] === 0x4D && buffer[1] === 0x5A) {
+      return { ext: 'exe', mime: 'application/x-msdownload' };
     }
     return null;
   }),
@@ -436,6 +444,29 @@ describe('UploadPipeline — processFileUpload (full pipeline)', () => {
     expect(showToast).toHaveBeenCalled();
     expect(showToast.mock.calls[0][1]).toBe('error');
   });
+
+  it('surfaces upload errors and does not corrupt state', async () => {
+    const state = makeState();
+    const file = makeFile('a.mp4', 'video/mp4');
+
+    uploadFileState.error = 'Network error';
+    const showToast = vi.fn();
+    const r = await processFileUpload(file, { state, save: false, showToast });
+    uploadFileState.error = null;
+
+    expect(r.success).toBe(false);
+    expect(r.error).toBe('Network error');
+    expect(showToast).toHaveBeenCalledWith(expect.stringContaining('Upload failed'), 'error');
+    expect(state.assets.length).toBe(0);
+    expect(state.tracks[0].items.length).toBe(0);
+  });
+
+  it('rejects files with unknown extensions via validateFile (.exe)', async () => {
+    const file = new File(['random content'], 'malware.exe', { type: '' });
+    const result = await validateFile(file);
+    expect(result.valid).toBe(false);
+    expect(result.type).toBe('unknown');
+  });
 });
 
 describe('UploadPipeline — processMultipleFileUploads', () => {
@@ -450,6 +481,24 @@ describe('UploadPipeline — processMultipleFileUploads', () => {
     expect(results.length).toBe(3);
     expect(results.every(r => r.success)).toBe(true);
     expect(state.assets.length).toBe(3);
+  });
+
+  it('isolates state per file during concurrent uploads', async () => {
+    const state = makeState();
+    const files = [
+      makeFile('a.mp4', 'video/mp4'),
+      makeFile('b.mp4', 'video/mp4'),
+    ];
+
+    const results = await Promise.all(
+      files.map(f => processFileUpload(f, { state, save: false }))
+    );
+
+    expect(results.length).toBe(2);
+    expect(results.every(r => r.success)).toBe(true);
+    expect(results[0].asset.id).not.toBe(results[1].asset.id);
+    expect(state.assets.length).toBe(2);
+    expect(state.tracks[0].items.length).toBe(2);
   });
 });
 

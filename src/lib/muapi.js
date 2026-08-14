@@ -487,14 +487,16 @@ export class MuapiClient {
         }
     }
 
-    async uploadFile(file) {
+    async uploadFile(file, { signal } = {}) {
         this._requireMuapiKey();
         await acquireRateLimitToken();
-        const key = this.getKey();
 
-        // Use the same magic-byte / MIME / extension chain as the rest of the
-        // editor so we don't mis-classify files whose browser-reported MIME is
-        // empty or generic (e.g. application/octet-stream).
+        const key = this.getKey();
+        const muapiKey = this.apiKeyManager.getMuapiKey();
+        if (key !== muapiKey) {
+            console.warn('[MuapiClient] getKey() and getMuapiKey() returned different values:', { getKey: key, getMuapiKey: muapiKey });
+        }
+
         let validation;
         try {
             validation = await validateFile(file);
@@ -513,59 +515,150 @@ export class MuapiClient {
         const formData = new FormData();
         formData.append('file', file);
 
-        try {
-            const response = await fetch(this.proxyUrl, {
-                method: 'POST',
-                headers: {
-                    'x-api-key': key,
-                    'x-endpoint': 'upload_file',
-                },
-                body: formData
-            });
+        const maxRetries = 2;
+        const retryableStatuses = new Set([502, 503, 429]);
+        let lastErr;
 
-            if (!response.ok) {
-                const errText = await response.text();
-                const status = response.status;
-                const err = new Error(`Upload failed: ${errText.slice(0, 200)}`);
-                err.status = status;
-                // For client-side errors from muapi.ai (credits, quota, too large,
-                // unsupported type), do NOT fall back to Supabase — surface the
-                // real error so the user knows what to fix.
-                if (status === 402 || status === 403 || status === 413 || status === 422) {
+        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+            const controller = new AbortController();
+            let abortedByTimeout = false;
+
+            if (signal?.aborted) {
+                throw new Error('Request cancelled by user');
+            }
+
+            const timeoutId = setTimeout(() => {
+                abortedByTimeout = true;
+                controller.abort();
+            }, 60000);
+
+            const onCallerAbort = () => {
+                clearTimeout(timeoutId);
+                controller.abort();
+            };
+            signal?.addEventListener('abort', onCallerAbort, { once: true });
+
+            try {
+                const response = await fetch(this.proxyUrl, {
+                    method: 'POST',
+                    headers: {
+                        'x-api-key': key,
+                        'x-endpoint': 'upload_file',
+                    },
+                    body: formData,
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+                signal?.removeEventListener('abort', onCallerAbort);
+
+                if (!response.ok) {
+                    let errText;
+                    try {
+                        const errData = await response.json();
+                        errText = JSON.stringify(errData);
+                    } catch {
+                        errText = await response.text();
+                    }
+
+                    const status = response.status;
+                    const err = new Error(`Upload failed: ${errText.slice(0, 200)}`);
+                    err.status = status;
+
+                    if (status === 402 || status === 403 || status === 413 || status === 422) {
+                        err.retryable = false;
+                        throw err;
+                    }
+
+                    if (retryableStatuses.has(status) && attempt < maxRetries) {
+                        const backoff = Math.pow(2, attempt) * 1000;
+                        console.warn(`[MuapiClient] Upload failed with ${status}, retrying in ${backoff}ms...`);
+                        await new Promise(resolve => setTimeout(resolve, backoff));
+                        lastErr = err;
+                        continue;
+                    }
+
+                    err.retryable = true;
                     throw err;
                 }
-                throw new Error(`Upload Failed: ${status} ${response.statusText} - ${errText.slice(0, 100)}`);
-            }
 
-            const result = await response.json();
-            if (result.error) {
-                throw new Error(`Upload Failed: ${result.error}`);
-            }
+                let result;
+                try {
+                    result = await response.json();
+                } catch (e) {
+                    const err = new Error('Upload Failed: Non-JSON response from server');
+                    err.status = response.status;
+                    err.retryable = true;
+                    throw err;
+                }
 
-            const publicUrl = result.url || result.data?.url;
-            if (!publicUrl) {
-                const err = new Error('Upload Failed: No URL returned by the server');
-                err.retryable = false;
-                throw err;
+                if (result.error) {
+                    const err = new Error(`Upload Failed: ${result.error}`);
+                    err.retryable = true;
+                    throw err;
+                }
+
+                const publicUrl = result.url || result.data?.url;
+                if (!publicUrl) {
+                    const err = new Error('Upload Failed: No URL returned by the server');
+                    err.retryable = false;
+                    throw err;
+                }
+                return publicUrl;
+
+            } catch (err) {
+                clearTimeout(timeoutId);
+                signal?.removeEventListener('abort', onCallerAbort);
+
+                if (err.name === 'AbortError') {
+                    if (abortedByTimeout && attempt < maxRetries) {
+                        const backoff = Math.pow(2, attempt) * 1000;
+                        console.warn(`[MuapiClient] Upload attempt ${attempt + 1} timed out, retrying in ${backoff}ms...`);
+                        await new Promise(resolve => setTimeout(resolve, backoff));
+                        continue;
+                    }
+                    throw new Error('Request cancelled by user');
+                }
+
+                lastErr = err;
+                const status = err.status || (err.response?.status);
+
+                if (retryableStatuses.has(status) && attempt < maxRetries) {
+                    const backoff = Math.pow(2, attempt) * 1000;
+                    console.warn(`[MuapiClient] Upload attempt ${attempt + 1} failed with ${status}, retrying in ${backoff}ms...`);
+                    await new Promise(resolve => setTimeout(resolve, backoff));
+                    continue;
+                }
+
+                if (!status && attempt < maxRetries) {
+                    const backoff = Math.pow(2, attempt) * 1000;
+                    console.warn(`[MuapiClient] Upload attempt ${attempt + 1} failed with network error, retrying in ${backoff}ms...`);
+                    await new Promise(resolve => setTimeout(resolve, backoff));
+                    continue;
+                }
+
+                break;
             }
-            return publicUrl;
-        } catch (err) {
-            // Only fall back for genuine network/server errors, not for logical
-            // client errors or muapi.ai client-side rejections.
-            if (err.retryable === false) {
-                throw err;
-            }
-            const status = err.status || (err.response?.status);
-            if (status === 402 || status === 403 || status === 413 || status === 422) {
-                throw err;
-            }
-            console.warn('[MuapiClient] Proxy upload failed, falling back to Supabase Storage:', err);
-            try {
-                return await uploadFileToStorage(file);
-            } catch (fallbackErr) {
-                console.error('[MuapiClient] Fallback upload also failed:', fallbackErr);
-                throw new Error(`Upload failed: ${err.message || fallbackErr.message}`);
-            }
+        }
+
+        if (!lastErr) {
+            throw new Error('Upload failed: unknown error');
+        }
+
+        if (lastErr.retryable === false) {
+            throw lastErr;
+        }
+        const status = lastErr.status || (lastErr.response?.status);
+        if (status === 402 || status === 403 || status === 413 || status === 422) {
+            throw lastErr;
+        }
+
+        console.warn('[MuapiClient] Proxy upload failed, falling back to Supabase Storage:', lastErr);
+        try {
+            return await uploadFileToStorage(file);
+        } catch (fallbackErr) {
+            console.error('[MuapiClient] Fallback upload also failed:', fallbackErr);
+            throw new Error(`Upload failed: ${lastErr.message || fallbackErr.message}`);
         }
     }
 

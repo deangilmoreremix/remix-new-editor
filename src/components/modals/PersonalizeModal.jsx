@@ -115,7 +115,7 @@ function hexToRgba(hex, alpha) {
 export class PersonalizeModal extends BaseModal {
   constructor(options = {}) {
     super({
-      title: '🎯 Personalize for a contact',
+      title: '<span aria-hidden="true">🎯</span> Personalize for a contact',
       size: 'large',
       showFooter: true,
       footerContent: `
@@ -228,11 +228,19 @@ export class PersonalizeModal extends BaseModal {
 
   open() {
     super.open();
+    // Link the dialog to its descriptive subtitle for screen readers.
+    const dialog = this.overlay?.querySelector('.modal-overlay');
+    if (dialog) dialog.setAttribute('aria-describedby', 'pm-subtitle');
     this._wireEvents();
     this._refreshContactsList();
     this._refreshProfileSummary();
     this._loadSettings();
     this._loadHistory();
+    // Discover-first: move focus into the input after BaseModal's initial focus.
+    setTimeout(() => {
+      const input = this.overlay?.querySelector('#pm-input');
+      if (input && document.activeElement !== input) input.focus();
+    }, 80);
   }
 
   setBodyContent(html) {
@@ -247,26 +255,34 @@ export class PersonalizeModal extends BaseModal {
     const softAccent = hexToRgba(accent, 0.12);
     const activeTab = this._activeTab();
 
+    const tabAria = (tab) => {
+      const selected = activeTab === tab ? 'true' : 'false';
+      const tabIndex = activeTab === tab ? '0' : '-1';
+      return `role="tab" id="pm-tab-${tab}" aria-selected="${selected}" aria-controls="pm-panel-${tab}" tabindex="${tabIndex}"`;
+    };
+
     return `
       <div class="pm-modal ${this.darkMode ? 'pm-dark' : 'pm-light'}" data-theme="${this.darkMode ? 'dark' : 'light'}" style="--pm-primary: ${primary}; --pm-accent: ${accent}; --pm-soft: ${soft}; --pm-soft-accent: ${softAccent};">
-        <p class="pm-subtitle">Discover a contact, view Maigret intelligence, and insert personalized tokens into your prompt.</p>
+        <p id="pm-subtitle" class="pm-subtitle">Discover a contact, view Maigret intelligence, and insert personalized tokens into your prompt.</p>
+
+        <div class="pm-sr-only" role="status" aria-live="polite" id="pm-live"></div>
 
         ${this.errorMessage ? `<div class="pm-error" role="alert">⚠ ${escapeHtml(this.errorMessage)}</div>` : ''}
 
-        <div class="pm-tabs">
-          <button type="button" class="pm-tab ${activeTab === 'discover' ? 'pm-tab-active' : ''}" data-tab="discover">Discover</button>
-          <button type="button" class="pm-tab ${activeTab === 'results' ? 'pm-tab-active' : ''}" data-tab="results" ${!this.lastScanData ? 'disabled' : ''}>Results</button>
-          <button type="button" class="pm-tab ${activeTab === 'history' ? 'pm-tab-active' : ''}" data-tab="history">History</button>
+        <div class="pm-tabs" role="tablist" aria-label="Personalization sections">
+          <button type="button" class="pm-tab ${activeTab === 'discover' ? 'pm-tab-active' : ''}" data-tab="discover" ${tabAria('discover')}>Discover</button>
+          <button type="button" class="pm-tab ${activeTab === 'results' ? 'pm-tab-active' : ''}" data-tab="results" ${!this.lastScanData ? 'disabled' : ''} ${tabAria('results')}>Results</button>
+          <button type="button" class="pm-tab ${activeTab === 'history' ? 'pm-tab-active' : ''}" data-tab="history" ${tabAria('history')}>History</button>
         </div>
 
         <div class="pm-tab-panels">
-          <div class="pm-tab-panel ${activeTab === 'discover' ? 'pm-tab-panel-active' : ''}" data-panel="discover">
+          <div class="pm-tab-panel ${activeTab === 'discover' ? 'pm-tab-panel-active' : ''}" data-panel="discover" role="tabpanel" id="pm-panel-discover" aria-labelledby="pm-tab-discover" tabindex="0">
             ${this._renderDiscoverTab()}
           </div>
-          <div class="pm-tab-panel ${activeTab === 'results' ? 'pm-tab-panel-active' : ''}" data-panel="results">
+          <div class="pm-tab-panel ${activeTab === 'results' ? 'pm-tab-panel-active' : ''}" data-panel="results" role="tabpanel" id="pm-panel-results" aria-labelledby="pm-tab-results" tabindex="0">
             ${this.lastScanData ? this._renderResults() : '<div class="pm-empty">Run a discovery to see results here.</div>'}
           </div>
-          <div class="pm-tab-panel ${activeTab === 'history' ? 'pm-tab-panel-active' : ''}" data-panel="history">
+          <div class="pm-tab-panel ${activeTab === 'history' ? 'pm-tab-panel-active' : ''}" data-panel="history" role="tabpanel" id="pm-panel-history" aria-labelledby="pm-tab-history" tabindex="0">
             ${this._renderHistory()}
           </div>
         </div>
@@ -412,6 +428,102 @@ export class PersonalizeModal extends BaseModal {
           display: grid;
           grid-template-columns: repeat(2, 1fr);
           gap: 14px;
+        }
+
+        /* Accessible field label + hint */
+        .pm-form-group {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .pm-form-label {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          font-size: 11px;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: var(--text-secondary);
+        }
+
+        .pm-form-hint {
+          font-size: 11px;
+          font-weight: 400;
+          letter-spacing: 0.01em;
+          text-transform: none;
+          color: var(--text-muted);
+        }
+
+        /* Live prompt preview */
+        .pm-preview {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          padding: 12px 14px;
+          background: var(--bg-panel);
+          border: 1px solid var(--border-color);
+          border-radius: var(--border-radius-lg);
+        }
+
+        .pm-preview-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+
+        .pm-preview-label {
+          font-size: 10px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          color: var(--pm-accent);
+        }
+
+        .pm-preview-pill {
+          font-size: 10px;
+          font-weight: 600;
+          padding: 3px 10px;
+          border-radius: var(--border-radius-full);
+          background: var(--pm-soft);
+          color: var(--pm-primary);
+          border: 1px solid var(--pm-primary);
+        }
+
+        .pm-preview-pill-muted {
+          background: var(--bg-card);
+          color: var(--text-muted);
+          border-color: var(--border-color);
+        }
+
+        .pm-preview-text {
+          margin: 0;
+          font-family: 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+          font-size: 12px;
+          line-height: 1.55;
+          color: var(--text-primary);
+          background: var(--bg-app, #0b0f17);
+          border: 1px solid var(--border-color);
+          border-radius: var(--border-radius-md);
+          padding: 10px 12px;
+          max-height: 160px;
+          overflow: auto;
+          white-space: pre-wrap;
+          word-break: break-word;
+        }
+
+        .pm-preview-empty {
+          font-size: 12px;
+          color: var(--text-muted);
+          line-height: 1.5;
+        }
+
+        .pm-preview-actions {
+          display: flex;
+          gap: 8px;
         }
 
         /* Toggle advanced */
@@ -615,6 +727,32 @@ export class PersonalizeModal extends BaseModal {
           line-height: 1.5;
           color: var(--text-secondary);
           max-width: 56ch;
+        }
+
+        /* Visually hidden but available to assistive tech */
+        .pm-sr-only {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          padding: 0;
+          margin: -1px;
+          overflow: hidden;
+          clip: rect(0, 0, 0, 0);
+          white-space: nowrap;
+          border: 0;
+        }
+
+        /* Visible focus ring for keyboard users (2026 a11y best practice) */
+        .pm-tab:focus-visible,
+        .pm-token:focus-visible,
+        .pm-contact-row:focus-visible,
+        .pm-history-view:focus-visible,
+        .pm-export-btn:focus-visible,
+        .pm-action-btn:focus-visible,
+        .pm-icon-btn:focus-visible {
+          outline: none;
+          box-shadow: 0 0 0 2px var(--bg-app, #0b0f17), 0 0 0 4px var(--pm-primary);
+          border-radius: var(--border-radius-md);
         }
 
         .pm-section {
@@ -1503,6 +1641,23 @@ export class PersonalizeModal extends BaseModal {
           --bg-card: #ffffff;
           --border-color: #e5e7eb;
         }
+
+        /* Respect users who prefer reduced motion (2026 a11y baseline) */
+        @media (prefers-reduced-motion: reduce) {
+          .pm-modal,
+          .pm-tab-panel-active,
+          .pm-progress-fill,
+          .pm-btn,
+          .pm-action-btn,
+          .pm-toggle-advanced,
+          .pm-contact-row,
+          .pm-token,
+          .pm-icon-btn {
+            animation-duration: 0.001ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.001ms !important;
+          }
+        }
       </style>
     `;
   }
@@ -1515,7 +1670,7 @@ export class PersonalizeModal extends BaseModal {
     }).join('');
 
     return `
-      <div class="pm-progress">
+      <div class="pm-progress" role="status" aria-live="polite" aria-label="Discovery progress">
         <div class="pm-progress-bar">
           <div class="pm-progress-fill" style="width: ${pct}%"></div>
         </div>
@@ -1535,24 +1690,30 @@ export class PersonalizeModal extends BaseModal {
   _renderDiscoverTab() {
     return `
       <div class="pm-form">
-        <div class="pm-discover-row">
-          <div class="pm-discover-input-wrap">
-            <textarea id="pm-input" placeholder="@username1, @username2, email@x.com or website.com — one per line or comma/space separated" class="pm-input pm-textarea" rows="3" autocomplete="off">${escapeHtml(this.multiUsernameInput)}</textarea>
-            <div class="pm-discover-meta">
-              <span id="pm-username-count" class="pm-username-count">${this._parseUsernames(this.multiUsernameInput).length} username(s) detected</span>
+        <div class="pm-form-group">
+          <label for="pm-input" class="pm-form-label">
+            Username, email, or website
+            <span class="pm-form-hint">One per line or comma / space separated — up to 10</span>
+          </label>
+          <div class="pm-discover-row">
+            <div class="pm-discover-input-wrap">
+              <textarea id="pm-input" placeholder="@username1, @username2, email@x.com or website.com — one per line or comma/space separated" class="pm-input pm-textarea" rows="3" autocomplete="off" aria-describedby="pm-username-count">${escapeHtml(this.multiUsernameInput)}</textarea>
+              <div class="pm-discover-meta">
+                <span id="pm-username-count" class="pm-username-count" aria-live="polite">${this._parseUsernames(this.multiUsernameInput).length} username(s) detected</span>
+              </div>
             </div>
-          </div>
-          <div class="pm-discover-actions">
-            <button id="pm-discover" class="pm-btn pm-btn-primary" ${this.isDiscovering ? 'disabled' : ''}>${this.isDiscovering ? 'Discovering...' : 'Discover'}</button>
-            <button type="button" class="pm-icon-btn" data-action="toggle-theme" title="Toggle dark/light mode">${this.darkMode ? '☀' : '🌙'}</button>
+            <div class="pm-discover-actions">
+              <button id="pm-discover" class="pm-btn pm-btn-primary" ${this.isDiscovering ? 'disabled' : ''}>${this.isDiscovering ? 'Discovering…' : 'Discover'}</button>
+              <button type="button" class="pm-icon-btn" data-action="toggle-theme" aria-label="Toggle dark / light mode" title="Toggle dark / light mode"><span aria-hidden="true">${this.darkMode ? '☀' : '🌙'}</span></button>
+            </div>
           </div>
         </div>
 
-        <div class="pm-mode-row">
+        <div class="pm-mode-row" role="radiogroup" aria-label="Scan check mode">
           <span class="pm-mode-label">Check mode:</span>
           <label class="pm-radio">
             <input type="radio" name="pm-scan-mode" value="fast" ${this.scanMode === 'fast' ? 'checked' : ''} />
-            <span>Fast check (top ${this.scanMode === 'fast' ? this.topSites : this.topSites} sites)</span>
+            <span>Fast check (top ${this.topSites} sites)</span>
           </label>
           <label class="pm-radio">
             <input type="radio" name="pm-scan-mode" value="full" ${this.scanMode === 'full' ? 'checked' : ''} />
@@ -1560,7 +1721,7 @@ export class PersonalizeModal extends BaseModal {
           </label>
         </div>
 
-        <button type="button" class="pm-toggle-advanced" data-action="toggle-advanced">
+        <button type="button" class="pm-toggle-advanced" data-action="toggle-advanced" aria-expanded="${this.showAdvanced ? 'true' : 'false'}">
           ${this.showAdvanced ? 'Hide advanced options' : 'Advanced options'}
         </button>
 
@@ -1568,8 +1729,42 @@ export class PersonalizeModal extends BaseModal {
 
         ${this.isDiscovering ? this._renderProgress() : ''}
 
-        <button type="button" class="pm-icon-btn" data-action="toggle-settings" title="Settings" style="align-self:flex-start;">⚙ Settings</button>
+        ${this._renderPromptPreview()}
+
+        <button type="button" class="pm-icon-btn" data-action="toggle-settings" aria-label="Open personalizer settings" title="Settings" style="align-self:flex-start;"><span aria-hidden="true">⚙</span> Settings</button>
         ${this.showSettings ? this._renderSettings() : ''}
+      </div>
+    `;
+  }
+
+  _renderPromptPreview() {
+    const ta = typeof this.getTextarea === 'function' ? this.getTextarea() : null;
+    const raw = ta && ta.value ? ta.value : '';
+    if (!raw) {
+      return `
+        <div class="pm-preview" aria-hidden="true">
+          <div class="pm-preview-label">Prompt preview</div>
+          <div class="pm-preview-empty">Open this modal from a studio with a prompt to preview how personalization resolves.</div>
+        </div>
+      `;
+    }
+
+    const contactId = getSelectedContactId();
+    const profile = contactId ? _getProfile(contactId) : null;
+    const resolved = profile ? replaceTokensInPrompt(raw, profile) : raw;
+    const hasTokens = /\{\{[^}]+\}\}/.test(raw);
+    const isResolved = resolved === raw;
+
+    return `
+      <div class="pm-preview">
+        <div class="pm-preview-header">
+          <span class="pm-preview-label">Prompt preview</span>
+          ${profile ? `<span class="pm-preview-pill">Personalized for ${escapeHtml(profile.contact?.name || 'contact')}</span>` : (hasTokens ? `<span class="pm-preview-pill pm-preview-pill-muted">No contact selected — showing raw tokens</span>` : `<span class="pm-preview-pill pm-preview-pill-muted">No tokens to personalize</span>`)}
+        </div>
+        <pre class="pm-preview-text" tabindex="0">${escapeHtml(isResolved ? raw : resolved)}</pre>
+        <div class="pm-preview-actions">
+          <button type="button" class="pm-action-btn pm-action-secondary" data-action="copy-preview">Copy ${isResolved ? 'personalized' : 'prompt'}</button>
+        </div>
       </div>
     `;
   }
@@ -2057,7 +2252,7 @@ export class PersonalizeModal extends BaseModal {
       ? tokenEntries.map(([key, value]) => {
           const label = TOKEN_LABELS[key] || key;
           const preview = String(value).length > 18 ? String(value).slice(0, 16) + '…' : value;
-          return `<button type="button" class="pm-token" data-token="${escapeHtml(label)}" title="Insert {${escapeHtml(label)}} — current value: ${escapeHtml(value)}"><span>{${escapeHtml(label)}}</span><span class="pm-token-preview">${escapeHtml(preview)}</span></button>`;
+          return `<button type="button" class="pm-token" data-token="${escapeHtml(label)}" aria-label="Insert ${escapeHtml(label)} token into prompt" title="Insert {${escapeHtml(label)}} — current value: ${escapeHtml(value)}"><span>{${escapeHtml(label)}}</span><span class="pm-token-preview">${escapeHtml(preview)}</span></button>`;
         }).join('')
       : '<div style="font-size:10px;color:var(--text-muted);">No tokens yet — discover a contact to populate tokens.</div>';
 
@@ -2151,12 +2346,15 @@ export class PersonalizeModal extends BaseModal {
       // Body actions
       const scope = this.overlay.querySelector('.modal-body');
       if (scope) {
-        scope.querySelectorAll('[data-tab]').forEach((btn) => {
+        scope.querySelectorAll('[role="tab"]').forEach((btn) => {
           btn.onclick = (e) => {
             e.stopPropagation();
+            if (btn.disabled) return;
             this._forcedTab = btn.dataset.tab;
             this.refreshBody();
+            this._announce(`Showing ${btn.dataset.tab} tab`);
           };
+          btn.onkeydown = (e) => this._handleTabKeydown(e);
         });
 
         scope.querySelectorAll('[data-action="toggle-advanced"]').forEach((btn) => {
@@ -2183,6 +2381,13 @@ export class PersonalizeModal extends BaseModal {
             try { localStorage.setItem('remix:pm-dark', this.darkMode ? '1' : '0'); } catch {}
             this.refreshBody();
             this._saveSettings({ dark_mode: this.darkMode });
+          };
+        });
+
+        scope.querySelectorAll('[data-action="copy-preview"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._handleCopyPreview();
           };
         });
 
@@ -2242,6 +2447,7 @@ export class PersonalizeModal extends BaseModal {
             const ta = this.getTextarea?.();
             if (ta) {
               insertTokenAtCursor(ta, `{{${token}}}`);
+              this._announce(`Inserted ${token} token into prompt`);
             } else {
               this.errorMessage = 'No prompt textarea available in this studio.';
               this.refreshBody();
@@ -2373,6 +2579,7 @@ export class PersonalizeModal extends BaseModal {
         const ta = this.getTextarea?.();
         if (ta) {
           insertTokenAtCursor(ta, `{{${token}}}`);
+          this._announce(`Inserted ${token} token into prompt`);
         } else {
           this.errorMessage = 'No prompt textarea available in this studio.';
           this.refreshBody();
@@ -2960,6 +3167,44 @@ export class PersonalizeModal extends BaseModal {
     const bioName = scanData.platforms.find(p => p.ids_data?.bio)?.ids_data?.bio;
     if (bioName) return bioName.split(' ').slice(0, 2).join(' ');
     return value.replace(/[^a-zA-Z0-9 ]/g, '').trim() || value;
+  }
+
+  _announce(message) {
+    const live = this.overlay?.querySelector('#pm-live');
+    if (live) live.textContent = message;
+  }
+
+  _handleTabKeydown(e) {
+    const tabs = Array.from(this.overlay.querySelectorAll('[role="tab"]')).filter((t) => !t.disabled);
+    const idx = tabs.indexOf(document.activeElement);
+    if (idx === -1) return;
+    let next = null;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = tabs[(idx + 1) % tabs.length];
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = tabs[(idx - 1 + tabs.length) % tabs.length];
+    else if (e.key === 'Home') next = tabs[0];
+    else if (e.key === 'End') next = tabs[tabs.length - 1];
+    if (next) {
+      e.preventDefault();
+      this._forcedTab = next.dataset.tab;
+      this.refreshBody();
+      this.overlay.querySelector(`#pm-tab-${next.dataset.tab}`)?.focus();
+      this._announce(`Showing ${next.dataset.tab} tab`);
+    }
+  }
+
+  async _handleCopyPreview() {
+    const ta = typeof this.getTextarea === 'function' ? this.getTextarea() : null;
+    const raw = ta && ta.value ? ta.value : '';
+    if (!raw) return;
+    const contactId = getSelectedContactId();
+    const profile = contactId ? _getProfile(contactId) : null;
+    const text = profile ? replaceTokensInPrompt(raw, profile) : raw;
+    try {
+      await navigator.clipboard.writeText(text);
+      this._announce(profile ? 'Copied personalized prompt to clipboard' : 'Copied prompt to clipboard');
+    } catch {
+      this._announce('Copy failed — select the text manually');
+    }
   }
 
   refreshBody() {

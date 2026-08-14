@@ -47,6 +47,7 @@ const ROUTE_MAP = {
   'Library': 'library',
   'Content Library': 'content-library',
   'AI VFX': 'ai-vfx',
+  'Stock Media': 'pexels-media',
 };
 
 export function getRouteForItem(item) {
@@ -74,6 +75,7 @@ const pageLoaders = {
   videotools: () => import('../components/VideoToolsStudio.js').then(m => m.VideoToolsStudio()),
   chat: () => import('../components/ChatStudio.js').then(m => m.ChatStudio()),
   lipsync: () => import('../components/LipSyncStudio.js').then(m => m.LipSyncStudio()),
+  'pexels-media': () => import('../components/PexelsMediaPage.js').then(m => m.PexelsMediaPage()),
 
   assist: () => import('../components/AssistPage.js').then(m => m.AssistPage()),
   community: () => import('../components/CommunityPage.js').then(m => m.CommunityPage()),

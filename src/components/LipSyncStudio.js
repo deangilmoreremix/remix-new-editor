@@ -164,7 +164,55 @@ export function LipSyncStudio() {
     textarea.setAttribute('aria-label', 'Lip sync prompt');
 
     uploadsRow.appendChild(imageUploadBtn);
+
+    const pexelsImageBtn = document.createElement('button');
+    pexelsImageBtn.type = 'button';
+    pexelsImageBtn.className = 'flex-shrink-0 w-10 h-10 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden';
+    pexelsImageBtn.title = 'Browse stock photos from Pexels';
+    pexelsImageBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>';
+    pexelsImageBtn.onclick = async () => {
+      const { browsePexelsImages } = await import('../lib/studioPexels.js');
+      browsePexelsImages({
+        title: 'Select Portrait Photo',
+        studioName: 'Lip Sync Studio',
+        onSelect: (asset) => {
+          uploadedImageUrl = asset.src?.large || asset.url || asset.original;
+          updateImageUploadState('ready', 'Pexels image');
+          const attrContainer = document.getElementById('pexels-lipsync-attribution');
+          if (attrContainer) {
+            attrContainer.innerHTML = '';
+            import('../lib/attributionChip.js').then(mod => mod.renderAttributionChip(asset, attrContainer));
+          }
+        }
+      });
+    };
+    uploadsRow.appendChild(pexelsImageBtn);
+
     uploadsRow.appendChild(videoUploadBtn);
+
+    const pexelsVideoBtn = document.createElement('button');
+    pexelsVideoBtn.type = 'button';
+    pexelsVideoBtn.className = 'flex-shrink-0 w-10 h-10 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden';
+    pexelsVideoBtn.title = 'Browse stock videos from Pexels';
+    pexelsVideoBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>';
+    pexelsVideoBtn.onclick = async () => {
+      const { browsePexelsVideos } = await import('../lib/studioPexels.js');
+      browsePexelsVideos({
+        title: 'Select Source Video',
+        studioName: 'Lip Sync Studio',
+        onSelect: (asset) => {
+          uploadedVideoUrl = asset.video_files?.[0]?.link || asset.url || asset.original;
+          updateVideoUploadState('ready', 'Pexels video');
+          const attrContainer = document.getElementById('pexels-lipsync-attribution');
+          if (attrContainer) {
+            attrContainer.innerHTML = '';
+            import('../lib/attributionChip.js').then(mod => mod.renderAttributionChip(asset, attrContainer));
+          }
+        }
+      });
+    };
+    uploadsRow.appendChild(pexelsVideoBtn);
+
     uploadsRow.appendChild(audioUploadBtn);
     uploadsRow.appendChild(textarea);
 
@@ -205,6 +253,11 @@ export function LipSyncStudio() {
     statusRow.appendChild(document.createTextNode(' · '));
     statusRow.appendChild(audioStatusLabel);
     bar.appendChild(statusRow);
+
+    const pexelsLipSyncAttr = document.createElement('div');
+    pexelsLipSyncAttr.id = 'pexels-lipsync-attribution';
+    pexelsLipSyncAttr.className = 'mt-1';
+    bar.appendChild(pexelsLipSyncAttr);
 
     // ── Bottom Controls Row ──
     const bottomRow = document.createElement('div');

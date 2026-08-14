@@ -93,7 +93,56 @@ const supabase = SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
 // Types
 // ---------------------------------------------------------------------------
 
-type Action = "prompts" | "generate" | "refine" | "inpaint" | "save" | "brand-kit" | "platform" | "video-thumbnail" | "upload-reference";
+type Action = "prompts" | "generate" | "refine" | "inpaint" | "save" | "brand-kit" | "platform" | "video-thumbnail" | "upload-reference" | "recommend-templates" | "surprise-me";
+
+interface RecommendTemplatesRequest {
+  action: "recommend-templates";
+  context: {
+    postText?: string;
+    title?: string;
+    platforms?: string[];
+    mediaType?: string;
+    hasPersonReference?: boolean;
+    hasProductReference?: boolean;
+    aspectRatio?: string;
+  };
+  apiKey?: string;
+}
+
+interface SurpriseMeRequest {
+  action: "surprise-me";
+  context: {
+    postText?: string;
+    title?: string;
+    platforms?: string[];
+    mediaType?: string;
+    hasPersonReference?: boolean;
+    hasProductReference?: boolean;
+    aspectRatio?: string;
+  };
+  apiKey?: string;
+}
+
+interface RecommendTemplatesResponse {
+  recommended: Array<{
+    templateId: string;
+    score: number;
+    reason: string;
+  }>;
+}
+
+interface SurpriseMeResponse {
+  concept: {
+    name: string;
+    concept: string;
+    headline: string;
+    requiresReference: boolean;
+    referenceType?: string | null;
+    aspectRatio: string;
+    imagePrompt: string;
+    fields: Record<string, unknown>;
+  };
+}
 
 interface UploadReferenceRequest {
   action: "upload-reference";
@@ -270,13 +319,13 @@ interface SaveRequest {
   modelUsed?: string;
 }
 
-type RequestBody = PromptsRequest | GenerateRequest | RefineRequest | InpaintRequest | SaveRequest | BrandKitRequest | PlatformRequest | VideoThumbnailRequest | UploadReferenceRequest;
+type RequestBody = PromptsRequest | GenerateRequest | RefineRequest | InpaintRequest | SaveRequest | BrandKitRequest | PlatformRequest | VideoThumbnailRequest | UploadReferenceRequest | RecommendTemplatesRequest | SurpriseMeRequest;
 
 function validateBody(body: unknown): RequestBody {
   if (!body || typeof body !== "object") throw new Error("Invalid body");
   const b = body as Record<string, unknown>;
   const action = b.action as Action;
-  if (!action || !["prompts", "generate", "refine", "inpaint", "save", "brand-kit", "platform", "video-thumbnail"].includes(action)) {
+  if (!action || !["prompts", "generate", "refine", "inpaint", "save", "brand-kit", "platform", "video-thumbnail", "recommend-templates", "surprise-me"].includes(action)) {
     throw new Error("Missing or invalid action");
   }
   return body as RequestBody;
@@ -1220,6 +1269,253 @@ async function handleUploadReference(req: Request) {
   }
 }
 
+async function handleRecommendTemplates(body: RecommendTemplatesRequest) {
+  let openai: OpenAI;
+  let keySource: "user" | "server";
+  try {
+    const res = getOpenAIClient(body.apiKey);
+    openai = res.client;
+    keySource = res.source;
+  } catch (e) {
+    return jsonResponse({ error: e instanceof Error ? e.message : "Server not configured" }, 500);
+  }
+
+  const ctx = body.context || {};
+  const postText = (ctx.postText || "").trim();
+  const title = (ctx.title || "").trim();
+  const platforms = Array.isArray(ctx.platforms) ? ctx.platforms : [];
+  const mediaType = ctx.mediaType || "image";
+  const aspectRatio = ctx.aspectRatio || "16:9";
+
+  const { templates: registryTemplates, getTemplateIds } = await import(
+    "npm:./_registry.js"
+  );
+
+  const knownIds = getTemplateIds();
+  const compactList = knownIds.slice(0, 60).map((id) => {
+    const t = registryTemplates[id] || {};
+    return {
+      id,
+      name: t.name || id,
+      category: t.category || "",
+      niche: t.niche || "",
+      aspectRatio: t.aspectRatio || aspectRatio,
+      outputType: t.outputType || "image",
+    };
+  });
+
+  const systemInstruction = `You are a thumbnail template recommendation engine.
+Given the user's social context and a compact list of available templates, recommend 6-12 templates that best match their content.
+Score each recommendation 0-100.
+Return strict JSON only.`;
+
+  const userInstruction = `User context:
+- Post text: "${postText || "(none)"}"
+- Title: "${title || "(none)"}"
+- Platforms: ${platforms.join(", ") || "none"}
+- Media type: ${mediaType}
+- Aspect ratio: ${aspectRatio}
+
+Available templates:
+${JSON.stringify(compactList, null, 2)}
+
+Return JSON with shape:
+{ "recommended": [ { "templateId": string, "score": number, "reason": string } ] }`;
+
+  const recommendSchema = {
+    type: "object",
+    properties: {
+      recommended: {
+        type: "array",
+        minItems: 1,
+        maxItems: 12,
+        items: {
+          type: "object",
+          properties: {
+            templateId: { type: "string" },
+            score: { type: "number", minimum: 0, maximum: 100 },
+            reason: { type: "string" },
+          },
+          required: ["templateId", "score", "reason"],
+          additionalProperties: false,
+        },
+      },
+    },
+    required: ["recommended"],
+    additionalProperties: false,
+  };
+
+  try {
+    const completion = await executeWithModelFallback(async (model) => {
+      return await openai.responses.create({
+        model,
+        instructions: systemInstruction,
+        input: userInstruction,
+        store: false,
+        text: {
+          format: {
+            type: "json_schema",
+            name: "template_recommendations",
+            strict: true,
+            schema: recommendSchema,
+          },
+        },
+      });
+    });
+
+    let parsed: Record<string, unknown> = {};
+    const text = (completion.output_text as string) || "";
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      const match = text.match(/\{[\s\S]*\}/);
+      parsed = match ? JSON.parse(match[0]) : { recommended: [] };
+    }
+
+    const rawRecommended = (parsed.recommended as Array<Record<string, unknown>>) || [];
+
+    const recommended = rawRecommended
+      .filter((item) => knownIds.includes(item.templateId as string))
+      .map((item) => ({
+        templateId: item.templateId as string,
+        score: typeof item.score === "number" ? item.score : 50,
+        reason: (item.reason as string) || "Recommended",
+      }));
+
+    if (recommended.length === 0) {
+      const fallbackIds = knownIds.slice(0, 6);
+      return jsonResponse({
+        recommended: fallbackIds.map((id) => ({
+          templateId: id,
+          score: 50,
+          reason: "Popular template",
+        })),
+      });
+    }
+
+    return jsonResponse({ recommended });
+  } catch (error) {
+    const hint = moderationHint(error);
+    return jsonResponse({
+      error: hint ?? (error instanceof Error ? error.message : "Recommendation failed"),
+      ...(hint ? { moderation_blocked: true } : {}),
+      recommended: knownIds.slice(0, 6).map((id) => ({
+        templateId: id,
+        score: 50,
+        reason: "Popular template (fallback)",
+      })),
+    }, 502);
+  }
+}
+
+async function handleSurpriseMe(body: SurpriseMeRequest) {
+  let openai: OpenAI;
+  let keySource: "user" | "server";
+  try {
+    const res = getOpenAIClient(body.apiKey);
+    openai = res.client;
+    keySource = res.source;
+  } catch (e) {
+    return jsonResponse({ error: e instanceof Error ? e.message : "Server not configured" }, 500);
+  }
+
+  const ctx = body.context || {};
+  const postText = (ctx.postText || "").trim();
+  const title = (ctx.title || "").trim();
+  const platforms = Array.isArray(ctx.platforms) ? ctx.platforms : [];
+  const mediaType = ctx.mediaType || "image";
+  const aspectRatio = ctx.aspectRatio || "16:9";
+
+  const systemInstruction = `You are a creative thumbnail concept generator.
+Given the user's social media context, invent a completely NEW, original thumbnail concept that does NOT match any existing template.
+The concept should be vivid, specific, and ready to generate.
+Return strict JSON only. Do NOT reuse or copy existing template names.`;
+
+  const userInstruction = `User content:
+- Post text: "${postText || "(none)"}"
+- Title: "${title || "(none)"}"
+- Platforms: ${platforms.join(", ") || "none"}
+- Media type: ${mediaType}
+- Aspect ratio: ${aspectRatio}
+
+Invent a fresh thumbnail concept.`;
+
+  const surpriseSchema = {
+    type: "object",
+    properties: {
+      concept: {
+        type: "object",
+        properties: {
+          name: { type: "string", minLength: 3, maxLength: 80 },
+          concept: { type: "string", minLength: 10 },
+          headline: { type: "string", maxLength: 120 },
+          requiresReference: { type: "boolean" },
+          referenceType: { type: "string", enum: ["person", "product", "logo", "scene", "style", null] },
+          aspectRatio: { type: "string" },
+          imagePrompt: { type: "string", minLength: 20 },
+          fields: { type: "object" },
+        },
+        required: ["name", "concept", "imagePrompt", "requiresReference", "aspectRatio", "fields"],
+        additionalProperties: false,
+      },
+    },
+    required: ["concept"],
+    additionalProperties: false,
+  };
+
+  try {
+    const completion = await executeWithModelFallback(async (model) => {
+      return await openai.responses.create({
+        model,
+        instructions: systemInstruction,
+        input: userInstruction,
+        store: false,
+        text: {
+          format: {
+            type: "json_schema",
+            name: "surprise_me_concept",
+            strict: true,
+            schema: surpriseSchema,
+          },
+        },
+      });
+    });
+
+    let parsed: Record<string, unknown> = {};
+    const text = (completion.output_text as string) || "";
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      const match = text.match(/\{[\s\S]*\}/);
+      parsed = match ? JSON.parse(match[0]) : {};
+    }
+
+    const concept = parsed.concept as Record<string, unknown> | undefined;
+    if (!concept || !concept.name || !concept.imagePrompt) {
+      throw new Error("Incomplete Surprise Me concept from model");
+    }
+
+    return jsonResponse({
+      concept: {
+        name: String(concept.name),
+        concept: String(concept.concept || concept.name),
+        headline: String(concept.headline || ""),
+        requiresReference: Boolean(concept.requiresReference),
+        referenceType: concept.referenceType || null,
+        aspectRatio: String(concept.aspectRatio || aspectRatio),
+        imagePrompt: String(concept.imagePrompt),
+        fields: (concept.fields as Record<string, unknown>) || {},
+      },
+    });
+  } catch (error) {
+    const hint = moderationHint(error);
+    return jsonResponse({
+      error: hint ?? (error instanceof Error ? error.message : "Surprise Me failed"),
+      ...(hint ? { moderation_blocked: true } : {}),
+    }, 502);
+  }
+}
+
 async function handleVideoThumbnail(body: VideoThumbnailRequest) {
   let openai: OpenAI;
   let keySource: "user" | "server";
@@ -1370,6 +1666,10 @@ Deno.serve(async (req: Request) => {
         return handlePlatform(parsed as PlatformRequest);
       case "video-thumbnail":
         return handleVideoThumbnail(parsed as VideoThumbnailRequest);
+      case "recommend-templates":
+        return handleRecommendTemplates(parsed as RecommendTemplatesRequest);
+      case "surprise-me":
+        return handleSurpriseMe(parsed as SurpriseMeRequest);
       case "upload-reference":
         return jsonResponse({ error: "upload-reference requires multipart/form-data" }, 400);
       default:

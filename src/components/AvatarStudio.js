@@ -4,6 +4,8 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { avatarModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
+import { processFileUpload } from '../lib/editor/uploadPipeline.js';
+import { showToast } from '../lib/loading.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { createInlineInstructions } from './InlineInstructions.js';
@@ -164,7 +166,7 @@ export function AvatarStudio() {
 
   const videoPicker = createUploadPicker({
     anchorContainer: container,
-    accept: 'video/*,image/*',
+    acceptVideo: true,
     onSelect: ({ url, type }) => { 
       uploadedVideoUrl = url; 
     },
@@ -182,17 +184,59 @@ export function AvatarStudio() {
   audioLabel.textContent = 'Audio (for lip sync)';
   audioUploadGroup.appendChild(audioLabel);
 
-  const audioPicker = createUploadPicker({
-    anchorContainer: container,
-    accept: 'audio/*',
-    onSelect: ({ url }) => { 
-      uploadedAudioUrl = url; 
-    },
-    onClear: () => { uploadedAudioUrl = null; },
-  });
-  audioUploadGroup.appendChild(audioPicker.trigger);
+  const audioTrigger = document.createElement('button');
+  audioTrigger.type = 'button';
+  audioTrigger.title = 'Upload audio';
+  audioTrigger.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center relative overflow-hidden mt-1.5 bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group';
+  const audioIconState = document.createElement('div');
+  audioIconState.className = 'flex items-center justify-center w-full h-full';
+  audioIconState.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-muted group-hover:text-primary transition-colors"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>`;
+  audioTrigger.appendChild(audioIconState);
+
+  const audioInput = document.createElement('input');
+  audioInput.type = 'file';
+  audioInput.accept = 'audio/*';
+  audioInput.className = 'hidden';
+  audioTrigger.appendChild(audioInput);
+
+  audioTrigger.onclick = (e) => {
+    e.stopPropagation();
+    audioInput.click();
+  };
+
+  audioInput.onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const apiKey = apiKeyManager.getMuapiKey();
+    if (!apiKey) {
+      AuthModal(() => audioInput.click());
+      return;
+    }
+
+    try {
+      const minState = {
+        tracks: [],
+        assets: [],
+        mediaLibrary: [],
+        undoStack: [],
+        redoStack: [],
+        selectedClipId: null
+      };
+      const result = await processFileUpload(file, { state: minState, showToast });
+      if (!result.success) {
+        throw new Error(result.error || 'Upload failed');
+      }
+      uploadedAudioUrl = result.asset.url;
+    } catch (err) {
+      alert(`Error: ${err.message}`);
+    } finally {
+      audioInput.value = '';
+    }
+  };
+
+  audioUploadGroup.appendChild(audioTrigger);
   formCard.appendChild(audioUploadGroup);
-  container.appendChild(audioPicker.panel);
 
   // Prompt input (for some avatar models)
   const promptGroup = document.createElement('div');

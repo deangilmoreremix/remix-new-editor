@@ -288,6 +288,33 @@ export function SettingsModal(onClose) {
         },
     });
 
+    const pexelsForm = buildProviderForm({
+        title: 'Pexels API Key',
+        description: 'Used for searching and importing stock photos and videos from Pexels. Get a free key at pexels.com/api.',
+        grabUrl: 'https://www.pexels.com/api/',
+        getKey: () => apiKeyManager.getPexelsKey(),
+        setKey: (k, p) => apiKeyManager.setPexelsKey(k, p),
+        clearKey: () => apiKeyManager.clearPexelsKey(),
+        placeholder: 'Pexels API key',
+        testConnection: async (key) => {
+            const res = await fetch('/api/pexels/photos/search', {
+                method: 'GET',
+                headers: { 'x-pexels-api-key': key },
+                body: undefined,
+            });
+            // The proxy responds 200 even if upstream Pexels returns 401/403 with an error body.
+            if (res.ok) {
+                return { ok: true, message: 'Pexels key accepted ✓' };
+            }
+            let msg = `Connection failed (${res.status}).`;
+            try {
+                const body = await res.json();
+                if (body?.error?.message) msg = body.error.message;
+            } catch { /* ignore */ }
+            return { ok: false, message: msg };
+        },
+    });
+
     const closeRow = document.createElement('div');
     closeRow.className = 'mt-2 flex items-center justify-between gap-3';
 
@@ -309,6 +336,7 @@ export function SettingsModal(onClose) {
     modal.appendChild(muapiForm);
     modal.appendChild(openaiForm);
     modal.appendChild(videodbForm);
+    modal.appendChild(pexelsForm);
     modal.appendChild(closeRow);
     modal.appendChild(closeX);
 

@@ -373,6 +373,35 @@ export function CinemaStudio() {
     uploadPicker.panel.classList.add('mb-2');
     uploadRow.appendChild(uploadPicker.panel);
 
+    // Pexels browse button for reference scene
+    const pexelsRefBtn = document.createElement('button');
+    pexelsRefBtn.type = 'button';
+    pexelsRefBtn.title = 'Browse reference scene from Pexels';
+    pexelsRefBtn.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden';
+    pexelsRefBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>';
+    pexelsRefBtn.onclick = async () => {
+      const { browsePexelsImages } = await import('../lib/studioPexels.js');
+      browsePexelsImages({
+        title: 'Select Reference Scene',
+        studioName: 'Cinema Studio',
+        onSelect: (asset) => {
+          currentSettings.referenceUrl = asset.src?.large || asset.url || asset.original;
+          showReferenceThumb(asset.src?.large || asset.url || asset.original);
+          if (!i2vModels.some(m => m.id === currentSettings.model)) {
+            currentSettings.model = (i2vModels[0] && i2vModels[0].id) || currentSettings.model;
+          }
+          updateModelBtn();
+          updateControlsForModel();
+          const attrContainer = document.getElementById('pexels-cinema-attribution');
+          if (attrContainer) {
+            attrContainer.innerHTML = '';
+            import('../lib/attributionChip.js').then(mod => mod.renderAttributionChip(asset, attrContainer));
+          }
+        }
+      });
+    };
+    uploadRow.appendChild(pexelsRefBtn);
+
     function showReferenceThumb(url) {
       const thumb = container.querySelector('#reference-thumb');
       if (!thumb) return;
@@ -395,6 +424,12 @@ export function CinemaStudio() {
       <span class="text-[10px] text-secondary">Reference scene loaded — used as the seed for your cinematic shot.</span>
     `;
     leftColumn.appendChild(referencePill);
+
+    // Pexels attribution container
+    const pexelsCinemaAttr = document.createElement('div');
+    pexelsCinemaAttr.id = 'pexels-cinema-attribution';
+    pexelsCinemaAttr.className = 'mt-1';
+    leftColumn.appendChild(pexelsCinemaAttr);
 
     // 2. Settings Toolbar (Bottom Left)
     const settingsToolbar = document.createElement('div');

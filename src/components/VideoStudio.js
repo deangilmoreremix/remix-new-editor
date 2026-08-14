@@ -135,6 +135,46 @@ export function VideoStudio() {
         }
     });
     topRow.appendChild(picker.trigger);
+
+    // Pexels browse button for i2v reference image
+    const pexelsImageBtn = document.createElement('button');
+    pexelsImageBtn.type = 'button';
+    pexelsImageBtn.title = 'Browse stock photos for i2v reference';
+    pexelsImageBtn.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden';
+    pexelsImageBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>';
+    pexelsImageBtn.onclick = async () => {
+      const { browsePexelsImages } = await import('../lib/studioPexels.js');
+      browsePexelsImages({
+        title: 'Select Reference Image for Video',
+        studioName: 'Video Studio',
+        onSelect: (asset) => {
+          uploadedImageUrl = asset.src?.large || asset.url || asset.original;
+          if (v2vMode) {
+            uploadedVideoUrl = null;
+            v2vMode = false;
+            showVideoIcon();
+          }
+          if (!imageMode) {
+            imageMode = true;
+            selectedModel = i2vModels[0]?.id || selectedModel;
+            selectedModelName = i2vModels[0]?.name || selectedModelName;
+            const modelLabel = document.getElementById('v-model-btn-label');
+            if (modelLabel) modelLabel.textContent = selectedModelName;
+            updateModelBtnIcon();
+            updateControlsForModel(selectedModel);
+          }
+          textarea.placeholder = 'Describe the motion or effect (optional)';
+          textarea.disabled = false;
+          const attrContainer = document.getElementById('pexels-video-image-attribution');
+          if (attrContainer) {
+            attrContainer.innerHTML = '';
+            import('../lib/attributionChip.js').then(mod => mod.renderAttributionChip(asset, attrContainer));
+          }
+        }
+      });
+    };
+    topRow.appendChild(pexelsImageBtn);
+
     container.appendChild(picker.panel);
 
     // --- Video Upload Picker (Video-to-Video) ---
@@ -251,6 +291,54 @@ export function VideoStudio() {
     };
 
     topRow.appendChild(videoPickerBtn);
+
+    // Pexels browse button for v2v source video
+    const pexelsVideoBtn = document.createElement('button');
+    pexelsVideoBtn.type = 'button';
+    pexelsVideoBtn.title = 'Browse stock videos for v2v input';
+    pexelsVideoBtn.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden';
+    pexelsVideoBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>';
+    pexelsVideoBtn.onclick = async () => {
+      const { browsePexelsVideos } = await import('../lib/studioPexels.js');
+      browsePexelsVideos({
+        title: 'Select Source Video',
+        studioName: 'Video Studio',
+        onSelect: (asset) => {
+          uploadedVideoUrl = asset.video_files?.[0]?.link || asset.url || asset.original;
+          if (imageMode) {
+            picker.reset();
+            uploadedImageUrl = null;
+            imageMode = false;
+          }
+          v2vMode = true;
+          selectedModel = v2vModels[0]?.id || selectedModel;
+          selectedModelName = v2vModels[0]?.name || selectedModelName;
+          const modelLabel = document.getElementById('v-model-btn-label');
+          if (modelLabel) modelLabel.textContent = selectedModelName;
+          updateModelBtnIcon();
+          updateControlsForModel(selectedModel);
+          textarea.placeholder = 'Describe the video you want to create';
+          textarea.disabled = false;
+          const attrContainer = document.getElementById('pexels-video-video-attribution');
+          if (attrContainer) {
+            attrContainer.innerHTML = '';
+            import('../lib/attributionChip.js').then(mod => mod.renderAttributionChip(asset, attrContainer));
+          }
+        }
+      });
+    };
+    topRow.appendChild(pexelsVideoBtn);
+
+    // Attribution containers
+    const pexelsVideoImageAttr = document.createElement('div');
+    pexelsVideoImageAttr.id = 'pexels-video-image-attribution';
+    pexelsVideoImageAttr.className = 'mt-1';
+    topRow.appendChild(pexelsVideoImageAttr);
+
+    const pexelsVideoVideoAttr = document.createElement('div');
+    pexelsVideoVideoAttr.id = 'pexels-video-video-attribution';
+    pexelsVideoVideoAttr.className = 'mt-1';
+    topRow.appendChild(pexelsVideoVideoAttr);
 
     const textarea = document.createElement('textarea');
     textarea.id = 'v-prompt-textarea';
