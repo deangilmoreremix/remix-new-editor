@@ -1,25 +1,63 @@
-# TODO: NOT IMPLEMENTED YET
-
 import os
 import shutil
 import yaml
 import json
 import importlib
 import asyncio
-from typing import List, Dict
+from typing import List, Dict, Optional
 from langchain.embeddings import CacheBackedEmbeddings
 from langchain.storage import LocalFileStore
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from PIL import Image
 
-from components.event import Event
-from components.scene import Scene
-from components.character import CharacterInScene, CharacterInNovel, CharacterInEvent
-from pipelines.base import BasePipeline
+from interfaces.event import Event
+from interfaces.scene import Scene
+from interfaces.character import CharacterInScene, CharacterInNovel, CharacterInEvent
 from tenacity import retry
 
-class Novel2MoviePipeline(BasePipeline):
+from agents import NovelCompressor, EventExtractor, SceneExtractor, GlobalInformationPlanner
+from pipelines.script2video_pipeline import Script2VideoPipeline
+from langchain.chat_models import init_chat_model
+from utils.rate_limiter import RateLimiter
+import importlib
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
+class Novel2MoviePipeline:
+
+    def __init__(
+        self,
+        chat_model: str,
+        image_generator,
+        video_generator,
+        working_dir: str,
+        embeddings,
+        rerank_model,
+        rewriter,
+    ):
+        self.chat_model = chat_model
+        self.image_generator = image_generator
+        self.video_generator = video_generator
+        self.embeddings = embeddings
+        self.rerank_model = rerank_model
+        self.rewriter = rewriter
+
+        self.novel_compressor = NovelCompressor(chat_model=self.chat_model)
+        self.event_extractor = EventExtractor(chat_model=self.chat_model)
+        self.scene_extractor = SceneExtractor(chat_model=self.chat_model)
+        self.global_information_planner = GlobalInformationPlanner(chat_model=self.chat_model)
+        self.script2video_pipeline = Script2VideoPipeline(
+            chat_model=self.chat_model,
+            image_generator=self.image_generator,
+            video_generator=self.video_generator,
+            working_dir=working_dir,
+        )
+
+        self.working_dir = working_dir
+        os.makedirs(self.working_dir, exist_ok=True)
 
     async def __call__(
         self,
