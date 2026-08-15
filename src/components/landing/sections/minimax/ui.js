@@ -5,7 +5,7 @@
 // font-black headlines with an italic cyan emphasis span).
 
 import { navigate } from '../../../../lib/router.js';
-import { getCreateTarget } from '../../../../data/minimaxH3Demos.ts';
+import { getCreateTarget } from '../../../../data/minimaxH3Demos.js';
 
 let stylesInjected = false;
 

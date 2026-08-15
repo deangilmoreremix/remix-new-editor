@@ -5,7 +5,7 @@
 // The video never actually controls the page — a lightweight step cycle drives
 // the labels, and it only runs while the section is on screen.
 
-import { requireDemo } from '../../../data/minimaxH3Demos.ts';
+import { requireDemo } from '../../../data/minimaxH3Demos.js';
 import { createMediaFrame, cleanupFrames, prefersReducedMotion, revealOnScroll } from './minimax/mediaFrame.js';
 import { injectMinimaxStyles, sectionHeading, createStyleLink, escapeHtml } from './minimax/ui.js';
 import { handleViewPrompt } from './minimax/DemoPromptModal.js';
