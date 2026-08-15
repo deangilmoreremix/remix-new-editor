@@ -5,7 +5,7 @@
 // aspect ratio inside a social-styled shell rather than stretching it. When
 // true 9:16 SmartVideo renders replace the files, set FORCE_VERTICAL to true.
 
-import { getDemoBySlug, formatDuration, ratioToNumber } from '../../../data/minimaxH3Demos.ts';
+import { getDemoBySlug, formatDuration, ratioToNumber } from '../../../data/minimaxH3Demos.js';
 import { createMediaFrame, cleanupFrames, revealOnScroll } from './minimax/mediaFrame.js';
 import {
   injectMinimaxStyles,

@@ -8,7 +8,7 @@
 import {
   ACADEMY_ASSETS,
   ACADEMY_TRACKS,
-} from '../../../data/academy/catalog.ts';
+} from '../../../data/academy/catalog.js';
 import {
   createMediaFrame,
   cleanupFrames,

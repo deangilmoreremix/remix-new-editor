@@ -11,11 +11,11 @@ import {
   ACADEMY_TEMPLATE_META,
   getLessonById,
   getTemplateMeta,
-} from '../../data/academy/catalog.ts';
-import { ACADEMY_LESSONS as RICH_LESSONS } from '../../data/academy/lessons.ts';
-import { getAssetsForLesson } from '../../data/academyAssets.ts';
+} from '../../data/academy/catalog.js';
+import { ACADEMY_LESSONS as RICH_LESSONS } from '../../data/academy/lessons.js';
+import { getAssetsForLesson } from '../../data/academyAssets.js';
 import { executeRecipe } from '../../lib/recipes/executor.js';
-import { getTemplateRecipeId } from '../../data/academy/template-recipes/index.ts';
+import { getTemplateRecipeId } from '../../data/academy/template-recipes/index.js';
 import { TemplateEditor, AssetGallery } from './InteractiveTemplates.jsx';
 import { Markdown } from './Markdown.jsx';
 import { Icon } from './icons.jsx';

@@ -1,4 +1,4 @@
-import { getTemplateRecipeId } from '../../data/academy/template-recipes/index.ts';
+import { getTemplateRecipeId } from '../../data/academy/template-recipes/index.js';
 // Interactive Academy templates + shared UI primitives.
 // Each upstream Markdown template is rendered as a stateful editor that
 // produces typed data and links to a SmartVideo recipe ("Create With Smart Video" or
@@ -21,8 +21,8 @@ import {
   EXAMPLE_OUTREACH,
   BLANK_RETAINER,
   EXAMPLE_RETAINER,
-} from '../../data/academy/templates.ts';
-import { getAssetsForTemplate, getAssetById } from '../../data/academyAssets.ts';
+} from '../../data/academy/templates.js';
+import { getAssetsForTemplate, getAssetById } from '../../data/academyAssets.js';
 import { getRecipePrompt, executeRecipe } from '../../lib/recipes/executor.js';
 import { Icon } from './icons.jsx';
 

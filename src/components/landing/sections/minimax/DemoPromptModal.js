@@ -11,7 +11,7 @@ import {
   MINIMAX_MODEL,
   formatDuration,
   loadDemoPrompt,
-} from '../../../../data/minimaxH3Demos.ts';
+} from '../../../../data/minimaxH3Demos.js';
 import { createStyleLink, escapeHtml, injectMinimaxStyles } from './ui.js';
 
 const FOCUSABLE = [

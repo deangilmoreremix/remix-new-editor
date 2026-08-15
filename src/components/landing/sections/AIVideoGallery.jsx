@@ -13,7 +13,7 @@ import {
   MINIMAX_CATEGORIES,
   getCategoryCounts,
   formatDuration,
-} from '../../../data/minimaxH3Demos.ts';
+} from '../../../data/minimaxH3Demos.js';
 import { createMediaFrame, cleanupFrames, pauseFramesIn, revealOnScroll } from './minimax/mediaFrame.js';
 import {
   injectMinimaxStyles,

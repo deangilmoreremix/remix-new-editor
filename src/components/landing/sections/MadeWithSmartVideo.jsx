@@ -4,7 +4,7 @@
 // Videos never all autoplay: cards use hover (desktop) / tap (mobile) playback,
 // and the shared governor in mediaFrame.js caps concurrent playback at two.
 
-import { getDemosBySlugs, formatDuration } from '../../../data/minimaxH3Demos.ts';
+import { getDemosBySlugs, formatDuration } from '../../../data/minimaxH3Demos.js';
 import { createMediaFrame, cleanupFrames, revealOnScroll } from './minimax/mediaFrame.js';
 import {
   injectMinimaxStyles,

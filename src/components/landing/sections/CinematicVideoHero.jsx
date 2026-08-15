@@ -8,7 +8,7 @@
 // <video> element is only created during an idle callback after first paint, so
 // hero media never blocks FMP. The frame reserves its box, so there is no CLS.
 
-import { requireDemo } from '../../../data/minimaxH3Demos.ts';
+import { requireDemo } from '../../../data/minimaxH3Demos.js';
 import { createMediaFrame, cleanupFrames, prefersReducedMotion } from './minimax/mediaFrame.js';
 import { injectMinimaxStyles, goToRoute } from './minimax/ui.js';
 
