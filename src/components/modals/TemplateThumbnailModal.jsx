@@ -5,6 +5,7 @@ import { openaiConfig } from '../../lib/config/openaiConfig.js';
 import { PRESET_LIST, getPresetForTemplate, applyPresetToControls, applyPresetToBrief } from '../../lib/thumbnailPresets.js';
 import { ModelSelectorDropdown } from './ModelSelectorDropdown.jsx';
 import { t2iModels } from '../../lib/models.js';
+import { ThumbnailExploreIdeas } from './thumbnail-explore/ThumbnailExploreIdeas.jsx';
 
 /**
  * TemplateThumbnailModal — redesigned to match the GTM Boost modal design system.
@@ -155,6 +156,9 @@ export class TemplateThumbnailModal extends BaseModal {
 
     let main = '';
     switch (this.step) {
+      case 'explore':
+        main = `<div data-explore-mount></div>`;
+        break;
       case 'brief':
         main = this.renderBrief();
         break;
@@ -183,6 +187,11 @@ export class TemplateThumbnailModal extends BaseModal {
   renderBrief() {
     const opts = openaiConfig.getThumbnailOutputSettings();
     return `
+      <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:12px;">
+        <button type="button" class="gtm-action" data-action="explore-ideas" style="width:100%; background: linear-gradient(135deg, var(--app-primary), var(--app-accent)); color: #05070b; font-weight:600;">
+          ✨ Explore Ideas
+        </button>
+      </div>
       <div class="form-section">
         <label for="thumb-brief">Thumbnail Concept</label>
         <textarea id="thumb-brief" placeholder="Describe what this thumbnail should show...">${this.escapeHtml(this.brief)}</textarea>
@@ -681,7 +690,61 @@ export class TemplateThumbnailModal extends BaseModal {
       this._modelDropdown.destroy();
       this._modelDropdown = null;
     }
-    return super.updateBody(content);
+    this._destroyExploreInstance();
+    const result = super.updateBody(content);
+    if (this.step === 'explore') {
+      this._mountExploreInstance();
+    }
+    return result;
+  }
+
+  _destroyExploreInstance() {
+    this._exploreInstance = null;
+  }
+
+  _mountExploreInstance() {
+    const mountEl = this.overlay?.querySelector('[data-explore-mount]');
+    if (!mountEl) return;
+    this._exploreInstance = new ThumbnailExploreIdeas({
+      appColors: this.appColors,
+      onSelectTemplate: (data) => this._handleExploreSelect(data),
+      onBack: () => {
+        this._exploreInstance = null;
+        this.step = 'brief';
+        this.updateBody(this.renderBody());
+        this.setupEventListeners();
+      },
+    });
+    mountEl.innerHTML = this._exploreInstance.render();
+    this._exploreInstance.attachListeners(mountEl);
+  }
+
+  _handleExploreSelect(data) {
+    this._exploreInstance = null;
+    if (data?.template) {
+      this.applyTemplate(data.template, data.config);
+    }
+    this.step = 'brief';
+    this.updateBody(this.renderBody());
+    this.setupEventListeners();
+  }
+
+  applyTemplate(template, config = {}) {
+    this.template = template;
+    this.preset = getPresetForTemplate(template);
+    this.presetKey = this.preset.key;
+    this.brief = applyPresetToBrief(this.preset, this.buildInitialBrief());
+    this.controls = applyPresetToControls(this.preset, {
+      ...this.controls,
+      aspectRatio: template?.aspectRatio || '16:9',
+    });
+    if (config?.aspectRatio) {
+      this.controls.aspectRatio = config.aspectRatio;
+    }
+    this.candidates = [];
+    this.selectedIndex = -1;
+    this.selectedVariantIndex = -1;
+    this.variants = [];
   }
 
   // -------------------------------------------------------------------------
@@ -1118,7 +1181,9 @@ export class TemplateThumbnailModal extends BaseModal {
   }
 
   back() {
-    if (this.step === 'generate') {
+    if (this.step === 'explore') {
+      this.step = 'brief';
+    } else if (this.step === 'generate') {
       this.step = 'brief';
     } else if (this.step === 'refine') {
       this.step = 'generate';
@@ -1347,6 +1412,11 @@ export class TemplateThumbnailModal extends BaseModal {
     body.querySelector('[data-action="undo-mask"]')?.addEventListener('click', () => { this.undoMaskStroke(); this.updateBody(this.renderBody()); this.setupEventListeners(); });
     body.querySelector('[data-action="invert-mask"]')?.addEventListener('click', () => { this.invertMask(); this.updateBody(this.renderBody()); this.setupEventListeners(); });
     body.querySelector('[data-action="back"]')?.addEventListener('click', () => this.back());
+    body.querySelector('[data-action="explore-ideas"]')?.addEventListener('click', () => {
+      this.step = 'explore';
+      this.updateBody(this.renderBody());
+      this.setupEventListeners();
+    });
     body.querySelector('[data-action="dismiss-error"]')?.addEventListener('click', () => this.dismissError());
     body.querySelector('[data-action="show-diff"]')?.addEventListener('click', () => { this.showDiff = true; this.updateBody(this.renderBody()); this.setupEventListeners(); });
     body.querySelector('[data-action="hide-diff"]')?.addEventListener('click', () => { this.showDiff = false; this.updateBody(this.renderBody()); this.setupEventListeners(); });

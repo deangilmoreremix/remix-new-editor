@@ -26,17 +26,11 @@ export class ThumbnailCategoryFilter {
   getSoft() { return this.hexToRgba(this.primary, 0.12); }
 
   render() {
-    const labels = {
-      all: 'All',
-      recommended: 'Recommended',
-      popular: 'Popular',
-    };
-
     return `
       <div class="thumbnail-category-filter" style="--app-primary:${this.primary};--app-soft:${this.getSoft()}" role="tablist" aria-label="Template categories">
         ${this.categories.map((cat) => {
           const isActive = this.activeCategory === cat;
-          const label = labels[cat] || cat.charAt(0).toUpperCase() + cat.slice(1);
+          const label = cat === 'all' ? 'All' : cat.charAt(0).toUpperCase() + cat.slice(1);
           return `
             <button type="button"
                     class="category-chip ${isActive ? 'active' : ''}"

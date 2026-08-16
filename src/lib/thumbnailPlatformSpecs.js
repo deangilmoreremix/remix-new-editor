@@ -231,4 +231,33 @@ export function platformRequiresTextOverlay(platformKey) {
   return spec?.textOverlay || false;
 }
 
+/**
+ * Reference-type specific preservation rules for use in prompt builders.
+ */
+export const REFERENCE_TYPE_RULES = {
+  PERSON: 'Preserve facial identity, exact proportions, skin tone, hairstyle, age, and all distinguishing features. The reference face must remain recognizable.',
+  PRODUCT: 'Preserve exact product shape, proportions, colors, packaging, and branding. The reference product must remain instantly identifiable.',
+  LOGO: 'Preserve the logo exactly as provided. Do not alter shapes, colors, text, or proportions.',
+  SCENE: 'Preserve the reference scene composition, lighting, and key elements. Maintain the same visual context.',
+};
+
+/**
+ * Get platform-specific prompt text for injection into a generation prompt.
+ * @param {string} platformKey
+ * @param {string} [aspectRatio]
+ * @returns {string}
+ */
+export function getPlatformInjectionText(platformKey, aspectRatio) {
+  const spec = getPlatformSpec(platformKey);
+  if (!spec) return '';
+  const parts = [`Platform: ${spec.label} (${spec.key}). Recommended output size: ${spec.size}.`];
+  if (aspectRatio) {
+    parts.push(`Aspect ratio: ${aspectRatio}.`);
+  }
+  if (spec.textOverlay) {
+    parts.push('Text overlay is commonly used on this platform — leave clean space for overlaid headlines if appropriate.');
+  }
+  return parts.join(' ');
+}
+
 export default PLATFORM_SPECS;

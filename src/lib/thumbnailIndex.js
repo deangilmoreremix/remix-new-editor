@@ -17,6 +17,15 @@
 // Service layer
 export { ThumbnailService, default as thumbnailService } from './thumbnailService.js';
 
+// Prompt builder (Phase 2)
+export {
+  buildThumbnailPrompt,
+  buildBriefFromSocialCopy,
+} from './thumbnailPromptBuilder.js';
+
+// Recommendation service (Phase 2)
+export { ThumbnailRecommendationService } from './thumbnailRecommendationService.js';
+
 // Presets (legacy + current)
 export {
   THUMBNAIL_PRESETS,
@@ -37,6 +46,7 @@ export {
   getTemplatesByAspectRatio,
   searchTemplates,
   getTemplateCategories,
+  TEMPLATE_CATEGORIES,
   validateRegistryTemplate,
   validateTemplateFieldValues,
 } from './thumbnailTemplateRegistry.js';
@@ -49,6 +59,8 @@ export {
   resolvePlatformAspectRatio,
   resolvePlatformSize,
   platformRequiresTextOverlay,
+  getPlatformInjectionText,
+  REFERENCE_TYPE_RULES,
 } from './thumbnailPlatformSpecs.js';
 
 // Validation (Phase 2)

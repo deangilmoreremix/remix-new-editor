@@ -5,6 +5,7 @@ import { openaiConfig } from '../../lib/config/openaiConfig.js';
 import { PRESET_LIST, applyPresetToControls, getPresetForTemplate, applyPresetToBrief } from '../../lib/thumbnailPresets.js';
 import { ModelSelectorDropdown } from './ModelSelectorDropdown.jsx';
 import { t2iModels } from '../../lib/models.js';
+import { ThumbnailExploreIdeas } from './thumbnail-explore/ThumbnailExploreIdeas.jsx';
 
 /**
  * StudioThumbnailPanel — side drawer version of the thumbnail studio.
@@ -184,6 +185,7 @@ export class StudioThumbnailModal extends TemplateThumbnailModal {
     this.inputFidelity = openaiConfig.defaultConfig.thumbnailInputFidelity;
     this.refineMessages = [];
     this.refineChatResponseId = '';
+    this._exploreInstance = null;
 
     this.preset = getPresetForTemplate(this.template);
     this.presetKey = this.preset.key;
@@ -353,7 +355,7 @@ export class StudioThumbnailModal extends TemplateThumbnailModal {
   }
 
   _renderStepIndicator() {
-    const steps = ['Brief', 'Brand/Platform', 'Generate', 'Refine', 'Text Overlay', 'Saved'];
+    const steps = ['Explore', 'Brief', 'Brand/Platform', 'Generate', 'Refine', 'Text Overlay', 'Saved'];
     const currentIndex = steps.indexOf(this.step);
 
     const indicator = document.createElement('div');
@@ -379,6 +381,61 @@ export class StudioThumbnailModal extends TemplateThumbnailModal {
     return indicator;
   }
 
+  _renderExploreView() {
+    const container = document.createElement('div');
+    container.className = 'thumb-form';
+
+    const mountEl = document.createElement('div');
+    mountEl.setAttribute('data-explore-mount', '');
+    container.appendChild(mountEl);
+
+    return container;
+  }
+
+  _mountExploreInstance() {
+    const mountEl = this._panel.querySelector('[data-explore-mount]');
+    if (!mountEl) return;
+    this._exploreInstance = new ThumbnailExploreIdeas({
+      appColors: this.appColors,
+      onSelectTemplate: (data) => this._handleExploreSelect(data),
+      onBack: () => {
+        this._exploreInstance = null;
+        this.step = 'brief';
+        this._refreshPanel();
+      },
+    });
+    mountEl.innerHTML = this._exploreInstance.render();
+    this._exploreInstance.attachListeners(mountEl);
+  }
+
+  _handleExploreSelect(data) {
+    this._exploreInstance = null;
+    if (data?.template) {
+      this.applyTemplate(data.template, data.config);
+    }
+    this.step = 'brief';
+    this._refreshPanel();
+  }
+
+  applyTemplate(template, config = {}) {
+    this.template = template;
+    this.preset = getPresetForTemplate(template);
+    this.presetKey = this.preset.key;
+    this.brief = applyPresetToBrief(this.preset, this.buildInitialBrief());
+    this.controls = applyPresetToControls(this.preset, {
+      ...this.controls,
+      aspectRatio: template?.aspectRatio || '16:9',
+    });
+    if (config?.aspectRatio) {
+      this.controls.aspectRatio = config.aspectRatio;
+    }
+    if (config?.platform) {
+      this.platform = config.platform;
+    }
+    this.candidates = [];
+    this.selectedIndex = -1;
+  }
+
   _renderPanelBody() {
     const body = document.createElement('div');
     body.className = 'thumb-form';
@@ -395,6 +452,9 @@ export class StudioThumbnailModal extends TemplateThumbnailModal {
 
     let main = '';
     switch (this.step) {
+      case 'explore':
+        main = this._renderExploreView();
+        break;
       case 'brief':
         main = this._renderBriefForm();
         break;
@@ -418,10 +478,15 @@ export class StudioThumbnailModal extends TemplateThumbnailModal {
     return body;
   }
 
-  _renderBriefForm() {
+   _renderBriefForm() {
     const container = document.createElement('div');
     const opts = openaiConfig.getThumbnailOutputSettings();
     container.innerHTML = `
+      <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:12px;">
+        <button type="button" class="thumb-action-btn thumb-action-primary" data-action="explore-ideas" style="width:100%; background: linear-gradient(135deg, var(--app-primary), var(--app-accent)); color: #05070b; font-weight:600;">
+          ✨ Explore Ideas
+        </button>
+      </div>
       <div class="form-section">
         <label for="thumb-brief">Thumbnail Brief</label>
         <textarea id="thumb-brief" placeholder="Describe your thumbnail... e.g. 'Cinematic product shot with dramatic lighting, neon accents'">${this.escapeHtml(this.brief)}</textarea>
@@ -606,6 +671,15 @@ export class StudioThumbnailModal extends TemplateThumbnailModal {
       const cta = container.querySelector('#thumb-brief-cta');
       if (cta) cta.disabled = !e.target.value.trim() || this.isGenerating;
     });
+
+    const exploreBtn = container.querySelector('[data-action="explore-ideas"]');
+    if (exploreBtn) {
+      exploreBtn.addEventListener('click', () => {
+        this._exploreInstance = null;
+        this.step = 'explore';
+        this._refreshPanel();
+      });
+    }
 
     // Wire up the prominent in-body CTA.
     const cta = container.querySelector('#thumb-brief-cta');
@@ -1623,6 +1697,7 @@ export class StudioThumbnailModal extends TemplateThumbnailModal {
       this._modelDropdown.destroy();
       this._modelDropdown = null;
     }
+    this._exploreInstance = null;
     // Replace the body inside its scroll wrapper.
     const newBody = this._renderPanelBody();
     const bodyWrap = this._bodyWrap || this._panel.querySelector('.thumb-panel-body');
@@ -1651,6 +1726,10 @@ export class StudioThumbnailModal extends TemplateThumbnailModal {
     const oldIndicator = this._panel.querySelector('.thumb-step-indicator');
     if (oldIndicator) {
       this._panel.replaceChild(newIndicator, oldIndicator);
+    }
+
+    if (this.step === 'explore') {
+      this._mountExploreInstance();
     }
   }
 

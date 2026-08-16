@@ -11,7 +11,6 @@
  */
 
 import { validateTemplate, validateFieldValues } from './thumbnailTemplateValidation.js';
-import { PLATFORM_SPECS } from './thumbnailPlatformSpecs.js';
 
 /**
  * @typedef {import('./thumbnailTemplateValidation.js').ThumbnailTemplate} ThumbnailTemplate
@@ -1138,6 +1137,12 @@ export function getTemplateCategories() {
   const cats = new Set(getAllTemplates().map(t => t.category));
   return [...cats].sort();
 }
+
+/**
+ * Cached derived list of template categories.
+ * Other modules can import this directly instead of calling getTemplateCategories().
+ */
+export const TEMPLATE_CATEGORIES = getTemplateCategories();
 
 /**
  * Validate a template against the current schema.

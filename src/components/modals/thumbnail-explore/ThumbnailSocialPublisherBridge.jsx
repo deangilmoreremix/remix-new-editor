@@ -4,6 +4,8 @@
 import { ThumbnailService } from '../../../lib/thumbnailService.js';
 import { getPresetForTemplate, applyPresetToControls, PRESET_LIST } from '../../../lib/thumbnailPresets.js';
 import { getAllTemplates } from '../../../lib/thumbnailTemplateRegistry.js';
+import { ThumbnailExploreIdeas } from './ThumbnailExploreIdeas.jsx';
+import { ThumbnailConfigurator } from './ThumbnailConfigurator.jsx';
 
 const SAMPLE_TEMPLATES = getAllTemplates();
 
@@ -27,47 +29,60 @@ export class ThumbnailSocialPublisherBridge {
     this.selectedThumbnail = null;
     this.error = null;
     this.container = null;
+    this.bridgeState = 'explore';
+    this.exploreInstance = null;
+    this.configuratorInstance = null;
   }
 
   render() {
-    const selectedTemplate = this.selectedTemplate;
+    if (this.bridgeState === 'explore') {
+      return this.renderExplore();
+    }
+    return this.renderConfigure();
+  }
 
+  renderExplore() {
     return `
       <div class="thumbnail-bridge">
         <div class="bridge-header">
-          <h3>Thumbnail</h3>
-          <p class="bridge-subtitle">Create an eye-catching thumbnail for your post</p>
+          <h3>Choose a Template</h3>
+          <p class="bridge-subtitle">Browse AI-powered templates for your thumbnail</p>
+        </div>
+        <div class="bridge-explore-mount" data-explore-mount></div>
+      </div>
+    `;
+  }
+
+  renderConfigure() {
+    const selectedTemplate = this.selectedTemplate;
+    return `
+      <div class="thumbnail-bridge">
+        <div class="bridge-header">
+          <h3>Configure Template</h3>
+          <p class="bridge-subtitle">Customize ${selectedTemplate ? selectedTemplate.name : 'your template'}</p>
+          <button type="button" class="bridge-back-link" data-action="back-to-explore" data-tooltip="Back to template selection">
+            ← Change Template
+          </button>
         </div>
 
         <div class="bridge-section">
           <label class="bridge-label">Headline</label>
-          <input type="text" class="bridge-input" 
+          <input type="text" class="bridge-input"
                  value="${this.escapeHtml(this.headline)}"
                  placeholder="Enter a headline for your thumbnail..."
                  data-field="headline" />
         </div>
 
         <div class="bridge-section">
-          <label class="bridge-label">Template</label>
-          <div class="template-grid">
-            ${SAMPLE_TEMPLATES.map(t => `
-              <button class="template-card ${selectedTemplate === t.id ? 'selected' : ''}" 
-                      data-template="${t.id}"
-                      data-tooltip="Select ${t.name} template">
-                <div class="template-preview">
-                  <span class="template-ratio">${t.aspectRatio}</span>
-                </div>
-                <span class="template-name">${t.name}</span>
-              </button>
-            `).join('')}
-          </div>
+          <label class="bridge-label">Template Configuration</label>
+          <div class="bridge-configurator-mount" data-configurator-mount></div>
         </div>
 
         <div class="bridge-section">
           <label class="bridge-label">Style Preset</label>
           <div class="preset-chips">
             ${PRESET_LIST.map(p => `
-              <button class="preset-chip ${this.selectedPreset === p.key ? 'selected' : ''}" 
+              <button class="preset-chip ${this.selectedPreset === p.key ? 'selected' : ''}"
                       data-preset="${p.key}"
                       style="--preset-gradient: ${p.gradient}"
                       data-tooltip="${this.escapeHtml(p.description)}">
@@ -79,7 +94,7 @@ export class ThumbnailSocialPublisherBridge {
 
         <div class="bridge-section">
           <label class="bridge-label">Custom Prompt (optional)</label>
-          <textarea class="bridge-textarea" 
+          <textarea class="bridge-textarea"
                     data-field="customPrompt"
                     placeholder="Add specific details about what you want in the thumbnail..."
                     data-tooltip="Add custom details to guide thumbnail generation">${this.escapeHtml(this.customPrompt)}</textarea>
@@ -89,7 +104,7 @@ export class ThumbnailSocialPublisherBridge {
           <div class="bridge-section selected-preview">
             <label class="bridge-label">Selected Thumbnail</label>
             <div class="selected-thumbnail-preview">
-              <img src="${this.selectedThumbnail.dataUrl || this.selectedThumbnail.url || ''}" 
+              <img src="${this.selectedThumbnail.dataUrl || this.selectedThumbnail.url || ''}"
                    alt="Selected thumbnail"
                    class="selected-thumbnail-img" />
               <div class="selected-thumbnail-actions">
@@ -107,7 +122,7 @@ export class ThumbnailSocialPublisherBridge {
             <div class="candidates-grid">
               ${this.candidates.map((c, i) => `
                 <button class="candidate-card" data-candidate-index="${i}" data-tooltip="Select this thumbnail">
-                  <img src="${c.dataUrl || c.url || ''}" 
+                  <img src="${c.dataUrl || c.url || ''}"
                        alt="Candidate ${i + 1}"
                        class="candidate-img" />
                 </button>
@@ -132,11 +147,11 @@ export class ThumbnailSocialPublisherBridge {
         ` : ''}
 
         <div class="bridge-actions">
-          <button class="bridge-btn bridge-btn-secondary" data-action="back" data-tooltip="Go back to Write step">
+          <button class="bridge-btn bridge-btn-secondary" data-action="back" data-tooltip="Go back to template selection">
             ← Back
           </button>
           ${!this.selectedThumbnail ? `
-            <button class="bridge-btn bridge-btn-primary" data-action="generate" 
+            <button class="bridge-btn bridge-btn-primary" data-action="generate"
                     ${this.isGenerating ? 'disabled' : ''}
                     data-tooltip="Generate thumbnail candidates">
               ${this.isGenerating ? 'Generating...' : 'Generate Thumbnail'}
@@ -153,7 +168,57 @@ export class ThumbnailSocialPublisherBridge {
 
   mount(container) {
     this.container = container;
-    this.bindEvents(container);
+    if (this.bridgeState === 'explore') {
+      this.mountExplore();
+    } else {
+      this.mountConfigurator();
+      this.bindEvents(container);
+    }
+  }
+
+  mountExplore() {
+    const mountEl = this.container.querySelector('[data-explore-mount]');
+    if (!mountEl) return;
+
+    this.exploreInstance = new ThumbnailExploreIdeas({
+      appColors: this.appColors,
+      onTemplateSelect: (data) => {
+        this.selectedTemplate = data.template;
+        this.selectedConfig = data.config;
+        this.bridgeState = 'configure';
+        this.exploreInstance = null;
+        this.refresh();
+      },
+      onBack: () => {
+        this.bridgeState = 'explore';
+        this.exploreInstance = null;
+        this.refresh();
+      },
+    });
+
+    mountEl.innerHTML = this.exploreInstance.render();
+    this.exploreInstance.attachListeners(mountEl);
+  }
+
+  mountConfigurator() {
+    const mountEl = this.container.querySelector('[data-configurator-mount]');
+    if (!mountEl || !this.selectedTemplate) return;
+
+    this.configuratorInstance = new ThumbnailConfigurator({
+      template: this.selectedTemplate,
+      appColors: this.appColors,
+      onBack: () => {
+        this.bridgeState = 'explore';
+        this.configuratorInstance = null;
+        this.refresh();
+      },
+      onGenerate: (config) => {
+        this.handleGenerate(config);
+      },
+    });
+
+    mountEl.innerHTML = this.configuratorInstance.render();
+    this.configuratorInstance.attachListeners(mountEl);
   }
 
   bindEvents(container) {
@@ -170,16 +235,6 @@ export class ThumbnailSocialPublisherBridge {
         this.customPrompt = e.target.value;
       });
     }
-
-    container.querySelectorAll('.template-card').forEach(card => {
-      card.addEventListener('click', () => {
-        this.selectedTemplate = card.dataset.template;
-        this.selectedThumbnail = null;
-        this.candidates = [];
-        this.error = null;
-        this.refresh();
-      });
-    });
 
     container.querySelectorAll('.preset-chip').forEach(chip => {
       chip.addEventListener('click', () => {
@@ -205,7 +260,7 @@ export class ThumbnailSocialPublisherBridge {
         this.onThumbnailSelected({
           ...this.selectedThumbnail,
           headline: this.headline,
-          templateId: this.selectedTemplate,
+          templateId: this.selectedTemplate?.id || this.selectedTemplate,
           preset: this.selectedPreset,
           aspectRatio: this.selectedThumbnail.aspectRatio || this.initialAspectRatio,
         });
@@ -220,9 +275,15 @@ export class ThumbnailSocialPublisherBridge {
     container.querySelector('[data-action="back"]')?.addEventListener('click', () => {
       this.onBack();
     });
+
+    container.querySelector('[data-action="back-to-explore"]')?.addEventListener('click', () => {
+      this.bridgeState = 'explore';
+      this.configuratorInstance = null;
+      this.refresh();
+    });
   }
 
-  async handleGenerate() {
+  async handleGenerate(config) {
     if (!this.selectedTemplate) {
       this.error = 'Please select a template first.';
       this.refresh();
@@ -237,7 +298,7 @@ export class ThumbnailSocialPublisherBridge {
     this.refresh();
 
     try {
-      const template = SAMPLE_TEMPLATES.find(t => t.id === this.selectedTemplate);
+      const template = typeof this.selectedTemplate === 'object' ? this.selectedTemplate : SAMPLE_TEMPLATES.find(t => t.id === this.selectedTemplate);
       const preset = this.selectedPreset ? PRESET_LIST.find(p => p.key === this.selectedPreset) : getPresetForTemplate(template);
       const controls = applyPresetToControls(preset);
 
@@ -273,8 +334,14 @@ export class ThumbnailSocialPublisherBridge {
 
   refresh() {
     if (this.container) {
+      this.configuratorInstance = null;
       this.container.innerHTML = this.render();
-      this.bindEvents(this.container);
+      if (this.bridgeState === 'explore') {
+        this.mountExplore();
+      } else {
+        this.mountConfigurator();
+        this.bindEvents(this.container);
+      }
     }
   }
 
