@@ -46,33 +46,6 @@ const FILM_LOOKS = {
   'Golden Hour': 'warm golden-hour glow',
 };
 
-// Camera movements promised by the Cinema Studio intro copy
-// ("Select camera movement … dolly, crane, orbit, FPV drone").
-const CAMERA_MOVEMENTS = {
-  'Static': 'static locked-off shot',
-  'Dolly In': 'slow dolly in toward the subject',
-  'Dolly Out': 'slow dolly out revealing the scene',
-  'Crane Up': 'cinematic crane shot moving upward',
-  'Orbit': 'smooth 360 orbit around the subject',
-  'FPV Drone': 'immersive FPV drone fly-through',
-  'Handheld': 'subtle handheld camera movement',
-  'Pan': 'slow horizontal pan',
-  'Tilt': 'vertical tilt movement',
-  'Dolly Zom': 'Hitchcock dolly zoom (vertigo effect)',
-};
-
-// Film looks promised by the intro copy ("Choose … film look to set the
-// cinematic mood").
-const FILM_LOOKS = {
-  'Natural': 'natural color science',
-  'Anamorphic': 'anamorphic widescreen movie look with horizontal flares',
-  'Teal & Orange': 'teal and orange blockbuster grade',
-  'Moody Noir': 'moody film-noir contrast with deep shadows',
-  'Vintage': 'warm vintage film grain and faded tones',
-  'Neon Nights': 'neon-lit cyberpunk night grade',
-  'Documentary': 'clean neutral documentary look',
-  'Golden Hour': 'warm golden-hour glow',
-};
 
 export function CinemaStudio() {
     const container = document.createElement('div');

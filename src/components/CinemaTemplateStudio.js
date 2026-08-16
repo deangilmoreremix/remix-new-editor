@@ -1435,9 +1435,6 @@ export function CinemaTemplateStudio() {
     // Mirrors ImageStudio / VideoStudio: shared `.gtm-boost-btn shrink-0` design,
     // themed via the `cinema-template-studio` app theme. Placed next to the main
     // prompt input (the primary describe/prompt field, not other per-input fields).
-    const isPrimaryPromptField =
-      input.name === 'prompt' &&
-      (input.type === 'textarea' || input.type === 'text');
     if (isPrimaryPromptField) {
       // The editable element for this field is the last child appended above.
       const promptEl = field.querySelector('textarea, input');

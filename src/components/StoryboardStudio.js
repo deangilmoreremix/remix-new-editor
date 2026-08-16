@@ -610,25 +610,6 @@ export function StoryboardStudio(options = {}) {
   };
   controlBar.appendChild(retryBtn);
 
-  let enhancedConcept = '';
-  let customThumbnailUrl = getCustomThumbnailFromCache('storyboard-studio');
-  const gtmBtn = document.createElement('button');
-  gtmBtn.type = 'button';
-  gtmBtn.textContent = '🎯 GTM Boost';
-  gtmBtn.title = 'Enhance your storyboard with GTM conversion frameworks';
-  gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
-  gtmBtn.className = 'gtm-boost-btn shrink-0';
-  gtmBtn.addEventListener('click', () => {
-    import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-      openGTMPromptModal('storyboard-studio', (prompt) => {
-        enhancedConcept = prompt;
-        gtmBtn.classList.add('active');
-        renderFrames();
-      });
-    }).catch((err) => console.error('[StoryboardStudio] GTM Boost failed:', err));
-  });
-  controlBar.appendChild(gtmBtn);
-
   const thumbBtn = document.createElement('button');
   thumbBtn.type = 'button';
   thumbBtn.textContent = '🖼 Thumbnail';
@@ -660,12 +641,6 @@ export function StoryboardStudio(options = {}) {
     saveCustomThumbnailToCache('storyboard-studio', imageUrl);
     renderFrames();
   });
-
-  const personalizeTrigger = mountPersonalizeTrigger({ controlsContainer: controlBar, appId: 'storyboard', getTextarea: () => null });
-  const activeProfileRef = { value: null };
-  const syncProfile = () => { activeProfileRef.value = personalizeTrigger?.getActiveProfile?.() || null; };
-  syncProfile();
-  window.addEventListener('remix:contact-changed', syncProfile);
 
   const exportBtn = document.createElement('button');
   exportBtn.className = 'px-4 py-2 bg-white/10 border border-white/10 rounded-xl text-xs font-bold text-white hover:bg-white/20 transition-all ml-auto';

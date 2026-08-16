@@ -563,13 +563,13 @@ export function TemplateStudio(templateId) {
   // GTM Boost affordance (opt-in enhancement via GTMPromptModal).
   // Uses the shared .gtm-boost-btn design (matches Image / Video studios);
   // the .template-studio ancestor class themes it emerald via gtm-prompt-modal.css.
-  const gtmBtn = document.createElement('button');
-  gtmBtn.type = 'button';
-  gtmBtn.textContent = '🎯 GTM Boost';
-  gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
-  gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
-  gtmBtn.className = 'gtm-boost-btn w-full mt-4';
-  leftPanel.appendChild(gtmBtn);
+  const gtmBoostBtn = document.createElement('button');
+  gtmBoostBtn.type = 'button';
+  gtmBoostBtn.textContent = '🎯 GTM Boost';
+  gtmBoostBtn.title = 'Enhance your prompt with GTM conversion frameworks';
+  gtmBoostBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
+  gtmBoostBtn.className = 'gtm-boost-btn w-full mt-4';
+  leftPanel.appendChild(gtmBoostBtn);
 
   // Advanced controls content
   const advancedControls = enhancerSection.querySelector('#advancedControls');

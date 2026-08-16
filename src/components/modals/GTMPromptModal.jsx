@@ -766,6 +766,7 @@ export class GTMPromptModal extends BaseModal {
       console.warn('[GTM] Backend /api/gtm-boost/generate failed:', backendErr.message);
     }
 
+    try {
       const { data, error: fnError } = await Promise.race([request, timeout]);
       if (fnError) throw new Error(fnError.message || 'Generation failed');
       if (!data || !data.prompt) throw new Error('Empty response');
