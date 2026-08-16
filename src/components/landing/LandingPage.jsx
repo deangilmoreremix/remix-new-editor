@@ -196,7 +196,6 @@ export default async function LandingPage() {
     const hookSection = createLazySection(() => import('./sections/HookSection.jsx'), 'hook', {}, 1);
     const sixEngines = createLazySection(() => import('./sections/SixEnginesSection.jsx'), 'engines', {}, 2);
     const appsGrid = createLazySection(() => import('./sections/AppsGridSection.jsx'), 'apps', { apps: ALL_APPS }, 3);
-    const demos = createLazySection(() => import('./sections/DemosSection.jsx'), 'demos', {}, 4);
     const features = createLazySection(() => import('./sections/FeaturesSection.jsx'), 'features', {}, 5);
     const problem = createLazySection(() => import('./sections/ProblemSection.jsx'), 'problem', {}, 6);
     const workflow = createLazySection(() => import('./sections/WorkflowSection.jsx'), 'workflow', {}, 7);
@@ -222,7 +221,6 @@ export default async function LandingPage() {
     container.appendChild(appsGrid);
     container.appendChild(madeWith);        // NEW
     container.appendChild(ugcShowcase);     // NEW
-    container.appendChild(demos);
     container.appendChild(features);
     container.appendChild(videoGallery);    // NEW
     container.appendChild(academyShowcase); // NEW
