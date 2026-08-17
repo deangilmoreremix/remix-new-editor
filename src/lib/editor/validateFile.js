@@ -13,7 +13,38 @@
  */
 
 import { fileTypeFromBlob } from 'file-type';
-import mime from 'mime-types';
+
+const COMMON_MIME_TYPES = {
+  // images
+  jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif',
+  webp: 'image/webp', svg: 'image/svg+xml', bmp: 'image/bmp', tiff: 'image/tiff',
+  tif: 'image/tiff', heic: 'image/heic', heif: 'image/heif', avif: 'image/avif',
+  ico: 'image/x-icon',
+  // videos
+  mp4: 'video/mp4', mov: 'video/quicktime', avi: 'video/x-msvideo',
+  mkv: 'video/x-matroska', webm: 'video/webm', flv: 'video/x-flv',
+  wmv: 'video/x-ms-wmv', '3gp': 'video/3gpp', ogv: 'video/ogg', m4v: 'video/x-m4v',
+  // audio
+  mp3: 'audio/mpeg', wav: 'audio/wav', aac: 'audio/aac', ogg: 'audio/ogg',
+  flac: 'audio/flac', m4a: 'audio/mp4', opus: 'audio/opus', wma: 'audio/x-ms-wma',
+  aiff: 'audio/aiff', aif: 'audio/x-aiff',
+  // text
+  txt: 'text/plain', md: 'text/markdown', json: 'application/json', csv: 'text/csv',
+  xml: 'application/xml', html: 'text/html', htm: 'text/html', srt: 'application/x-subrip',
+  vtt: 'text/vtt', ass: 'text/plain',
+  // documents
+  pdf: 'application/pdf', doc: 'application/msword',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  xls: 'application/vnd.ms-excel',
+  xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  ppt: 'application/vnd.ms-powerpoint',
+  pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+};
+
+function lookupMimeType(ext) {
+  if (!ext) return '';
+  return COMMON_MIME_TYPES[ext.toLowerCase()] || '';
+}
 
 // ============================================================================
 // FILE TYPE CONFIGURATIONS (max sizes, icons, colors)
@@ -167,10 +198,10 @@ export async function validateFile(file, opts = {}) {
   // 2. Browser-reported MIME
   const browserMime = file.type || '';
 
-  // 3. Extension via mime-types
+  // 3. Extension via lookup
   const fileName = file.name || '';
   const ext = (fileName.split('.').pop() || '').toLowerCase();
-  const mimeFromExt = ext ? mime.lookup(ext) || '' : '';
+  const mimeFromExt = ext ? lookupMimeType(ext) || '' : '';
 
   // Pick the best category: prefer magic-byte result, then browser MIME, then extension
   let result;
@@ -236,7 +267,7 @@ export function validateFileSync(file) {
   const browserMime = file.type || '';
   const fileName = file.name || '';
   const ext = (fileName.split('.').pop() || '').toLowerCase();
-  const mimeFromExt = ext ? mime.lookup(ext) || '' : '';
+  const mimeFromExt = ext ? lookupMimeType(ext) || '' : '';
 
   const result = browserMime
     ? categorize(browserMime, ext)

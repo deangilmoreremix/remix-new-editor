@@ -63,6 +63,52 @@ function corsHeaders() {
   };
 }
 
+/**
+ * Normalize the incoming request path to a route relative to this function.
+ *
+ * `event.path` may arrive as either the original public path
+ * (`/api/intelligence/contacts`) or the rewritten function path
+ * (`/.netlify/functions/intelligence-api/contacts`) depending on the
+ * redirect rule, `netlify dev`, or the Vite dev proxy. Strip whichever
+ * prefix is present so routing works in every environment instead of
+ * silently falling through to the terminal 404.
+ */
+function normalizeRoute(rawPath) {
+  let route = String(rawPath || '');
+  route = route.split('?')[0];
+  for (const prefix of ['/.netlify/functions/intelligence-api', '/api/intelligence']) {
+    if (route.startsWith(prefix)) {
+      route = route.slice(prefix.length);
+      break;
+    }
+  }
+  if (route.length > 1 && route.endsWith('/')) route = route.slice(0, -1);
+  return route || '/';
+}
+
+/**
+ * Verify that `contactId` belongs to `userId`.
+ *
+ * This module's Supabase client uses the SERVICE_ROLE key and therefore
+ * bypasses Row Level Security, so every handler must filter by user_id
+ * itself. Several read routes (`/profile/:id`, `/assets/:id`,
+ * `/variables/:id`, `/auto-timeline/:id`) previously queried by contact_id
+ * alone, which let any authenticated user read any other user's contact
+ * intelligence, assets and derived scenes by guessing an id.
+ *
+ * @returns {boolean} true when the caller owns the contact
+ */
+async function userOwnsContact(contactId, userId) {
+  if (!contactId || !userId) return false;
+  const { data } = await supabaseService
+    .from('contacts')
+    .select('id')
+    .eq('id', contactId)
+    .eq('user_id', userId)
+    .maybeSingle();
+  return !!data;
+}
+
 export async function handler(event, context) {
   const headers = corsHeaders();
 
@@ -80,7 +126,7 @@ export async function handler(event, context) {
     return { statusCode: 429, headers, body: JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }) };
   }
 
-  const path = event.path.replace('/api/intelligence', '') || '/';
+  const path = normalizeRoute(event.path);
   let body = {};
   try { if (event.body) body = JSON.parse(event.body); } catch { return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid JSON' }) }; }
 
@@ -146,6 +192,11 @@ export async function handler(event, context) {
     // GET /api/intelligence/profile/:contactId
     if (path.startsWith('/profile/') && event.httpMethod === 'GET') {
       const contactId = path.replace('/profile/', '').split('?')[0];
+      // 404 rather than 403 so we don't confirm the existence of other
+      // users' contact ids.
+      if (!await userOwnsContact(contactId, userId)) {
+        return { statusCode: 404, headers, body: JSON.stringify({ error: 'Profile not found' }) };
+      }
       const { data: profile } = await supabaseService
         .from('contact_profiles')
         .select('*')
@@ -182,6 +233,9 @@ export async function handler(event, context) {
     // GET /api/intelligence/assets/:contactId
     if (path.startsWith('/assets/') && event.httpMethod === 'GET') {
       const contactId = path.replace('/assets/', '').split('?')[0];
+      if (!await userOwnsContact(contactId, userId)) {
+        return { statusCode: 404, headers, body: JSON.stringify({ error: 'Contact not found' }) };
+      }
       const { data: assets } = await supabaseService
         .from('contact_assets')
         .select('*')
@@ -194,6 +248,9 @@ export async function handler(event, context) {
     // GET /api/intelligence/variables/:contactId
     if (path.startsWith('/variables/') && event.httpMethod === 'GET') {
       const contactId = path.replace('/variables/', '').split('?')[0];
+      if (!await userOwnsContact(contactId, userId)) {
+        return { statusCode: 404, headers, body: JSON.stringify({ error: 'Contact not found' }) };
+      }
       const { data } = await supabaseService
         .from('contact_variables')
         .select('variables')
@@ -274,6 +331,9 @@ export async function handler(event, context) {
     // POST /api/intelligence/auto-timeline/:contactId
     if (path.startsWith('/auto-timeline/') && event.httpMethod === 'POST') {
       const contactId = path.replace('/auto-timeline/', '').split('?')[0];
+      if (!await userOwnsContact(contactId, userId)) {
+        return { statusCode: 404, headers, body: JSON.stringify({ error: 'Profile not found' }) };
+      }
       const { data: profileRow } = await supabaseService
         .from('contact_profiles')
         .select('profile')
@@ -448,17 +508,105 @@ export async function handler(event, context) {
     return { statusCode: 404, headers, body: JSON.stringify({ error: 'Not found' }) };
   } catch (err) {
     console.error('[intelligence-api] error:', err);
-    return { statusCode: 500, headers, body: JSON.stringify({ error: 'Internal server error', message: err.message }) };
+    // Don't leak internal error details (stack-adjacent messages, table
+    // names, upstream provider responses) to the client. The full error is
+    // still logged above for operators.
+    return { statusCode: 500, headers, body: JSON.stringify({ error: 'An internal error occurred. Please try again later.' }) };
   }
+}
+
+// ─── Server-side profile store ───────────────────────────────────────────────
+//
+// The discovery pipeline used to `await import('../../src/lib/contactStore.js')`
+// — a browser module backed by localStorage — from inside a Lambda. That file
+// does not exist, so the import threw immediately and EVERY /discover call
+// failed. Because /discover is fire-and-forget, callers still received
+// `200 {status:'discovering'}` while the pipeline silently died and the
+// profile was left marked 'failed'.
+//
+// These helpers replace it with the Supabase-backed equivalents the function
+// already has a client for.
+
+/** Load a contact's profile JSON, seeding the empty shape if absent. */
+async function loadProfile(contactId) {
+  const { data } = await supabaseService
+    .from('contact_profiles')
+    .select('profile')
+    .eq('contact_id', contactId)
+    .maybeSingle();
+  if (!data) return null;
+
+  const profile = data.profile || {};
+  // Guarantee the nested containers the pipeline writes into exist, so it
+  // doesn't have to null-guard every assignment.
+  profile.contact = profile.contact || {};
+  profile.company = profile.company || {};
+  profile.brand = profile.brand || {};
+  profile.social = profile.social || {};
+  profile.website = profile.website || {};
+  profile.assets = profile.assets || {};
+  profile.intelligence = profile.intelligence || {};
+  profile.history = profile.history || {};
+  profile.history.discoveries = profile.history.discoveries || [];
+  profile.variables = profile.variables || {};
+  return profile;
+}
+
+/** Persist the profile JSON for a contact. */
+async function saveProfile(contactId, profile) {
+  const { error } = await supabaseService
+    .from('contact_profiles')
+    .update({ profile, updated_at: new Date().toISOString() })
+    .eq('contact_id', contactId);
+  if (error) console.error('[intelligence] saveProfile failed:', error.message);
+}
+
+/**
+ * Record a discovery attempt, both in the audit table and on the profile's
+ * own history (which the asset extractors read back).
+ *
+ * The in-memory history push happens synchronously, before the awaited insert,
+ * because call sites intentionally don't await this — the asset discovery step
+ * later in the pipeline reads `profile.history.discoveries` and must see the
+ * Maigret entry regardless of DB latency.
+ */
+function recordDiscovery(contactId, profile, source, status, data = null, error = null, durationMs = null) {
+  if (profile?.history?.discoveries) {
+    profile.history.discoveries.push({
+      source,
+      status,
+      success: status === 'success',
+      timestamp: new Date().toISOString(),
+      data,
+      error,
+    });
+  }
+
+  return supabaseService
+    .from('contact_discoveries')
+    .insert({
+      contact_id: contactId,
+      source,
+      status,
+      data,
+      error,
+      duration_ms: durationMs,
+    })
+    .then(({ error: insertError }) => {
+      if (insertError) console.error('[intelligence] recordDiscovery insert failed:', insertError.message);
+    })
+    .catch((err) => console.error('[intelligence] recordDiscovery insert failed:', err.message));
 }
 
 async function runDiscoveryPipeline(contactId, sources) {
   // This is a simplified synchronous pipeline for the MVP.
   // In production, use a queue (BullMQ, etc.) and update status via webhook.
-  const { getProfile, updateProfile, addDiscovery } = await import('../../src/lib/contactStore.js');
-
-  const profile = getProfile(contactId);
+  const profile = await loadProfile(contactId);
   if (!profile) return;
+
+  // Bound to this contact + profile so the call sites stay terse.
+  const addDiscovery = (cid, source, status, data, error, durationMs) =>
+    recordDiscovery(contactId, profile, source, status, data, error, durationMs);
 
   // Maigret
   if (sources.includes('maigret')) {

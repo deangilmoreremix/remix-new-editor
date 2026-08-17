@@ -25,39 +25,14 @@ import { openaiConfig } from '../../lib/config/openaiConfig.js';
 import {
   insertTokenAtCursor,
   replaceTokensInPrompt,
+  inspectPromptTokens,
   getSelectedContactId,
   setSelectedContactId,
 } from '../personalize/personalizePopover.js';
+import { TOKEN_LABELS, buildVariables } from '../personalize/tokenSchema.js';
 
 const CONTACTS_KEY = 'remix_contacts';
 const PROFILES_KEY = 'remix_contact_profiles';
-
-const TOKEN_LABELS = {
-  firstName: 'First Name',
-  lastName: 'Last Name',
-  fullName: 'Full Name',
-  company: 'Company',
-  companyName: 'Company Name',
-  title: 'Title',
-  email: 'Email',
-  location: 'Location',
-  industry: 'Industry',
-  companySummary: 'Company Summary',
-  painPoint: 'Pain Point',
-  product: 'Product',
-  service: 'Service',
-  interest: 'Interest',
-  buyingSignal: 'Buying Signal',
-  tone: 'Tone',
-  intelligenceSummary: 'Summary',
-  brandColor: 'Brand Color',
-  logoUrl: 'Logo',
-  avatarUrl: 'Avatar',
-  github: 'GitHub',
-  linkedin: 'LinkedIn',
-  twitter: 'X / Twitter',
-  website: 'Website',
-};
 
 const DISCOVERY_STEPS = [
   'Scanning public profiles...',
@@ -229,8 +204,10 @@ export class PersonalizeModal extends BaseModal {
   open() {
     super.open();
     // Link the dialog to its descriptive subtitle for screen readers.
-    const dialog = this.overlay?.querySelector('.modal-overlay');
-    if (dialog) dialog.setAttribute('aria-describedby', 'pm-subtitle');
+    // `this.overlay` IS the .modal-overlay element (BaseModal builds it as the
+    // root node), so querySelector('.modal-overlay') would search descendants
+    // only and always return null — set the attribute on the overlay directly.
+    if (this.overlay) this.overlay.setAttribute('aria-describedby', 'pm-subtitle');
     this._wireEvents();
     this._refreshContactsList();
     this._refreshProfileSummary();
@@ -497,6 +474,13 @@ export class PersonalizeModal extends BaseModal {
           background: var(--bg-card);
           color: var(--text-muted);
           border-color: var(--border-color);
+        }
+
+        /* Partial resolution: some tokens still unresolved. */
+        .pm-preview-pill-warn {
+          background: rgba(245, 158, 11, 0.12);
+          color: #fbbf24;
+          border-color: rgba(245, 158, 11, 0.45);
         }
 
         .pm-preview-text {
@@ -1729,7 +1713,7 @@ export class PersonalizeModal extends BaseModal {
 
         ${this.isDiscovering ? this._renderProgress() : ''}
 
-        ${this._renderPromptPreview()}
+        <div id="pm-preview-host">${this._renderPromptPreview()}</div>
 
         <button type="button" class="pm-icon-btn" data-action="toggle-settings" aria-label="Open personalizer settings" title="Settings" style="align-self:flex-start;"><span aria-hidden="true">⚙</span> Settings</button>
         ${this.showSettings ? this._renderSettings() : ''}
@@ -1742,7 +1726,7 @@ export class PersonalizeModal extends BaseModal {
     const raw = ta && ta.value ? ta.value : '';
     if (!raw) {
       return `
-        <div class="pm-preview" aria-hidden="true">
+        <div class="pm-preview">
           <div class="pm-preview-label">Prompt preview</div>
           <div class="pm-preview-empty">Open this modal from a studio with a prompt to preview how personalization resolves.</div>
         </div>
@@ -1752,18 +1736,31 @@ export class PersonalizeModal extends BaseModal {
     const contactId = getSelectedContactId();
     const profile = contactId ? _getProfile(contactId) : null;
     const resolved = profile ? replaceTokensInPrompt(raw, profile) : raw;
-    const hasTokens = /\{\{[^}]+\}\}/.test(raw);
-    const isResolved = resolved === raw;
+    const { resolved: hits, unresolved } = inspectPromptTokens(raw, profile);
+    const totalTokens = hits.length + unresolved.length;
+
+    // Status pill: report exactly how many tokens will personalize, and name
+    // the ones that won't, so a raw {{token}} never reaches the model unnoticed.
+    let pill;
+    if (totalTokens === 0) {
+      pill = `<span class="pm-preview-pill pm-preview-pill-muted">No tokens to personalize</span>`;
+    } else if (!profile) {
+      pill = `<span class="pm-preview-pill pm-preview-pill-muted">${totalTokens} token${totalTokens > 1 ? 's' : ''} — select a contact to resolve</span>`;
+    } else if (unresolved.length === 0) {
+      pill = `<span class="pm-preview-pill">All ${totalTokens} token${totalTokens > 1 ? 's' : ''} resolved for ${escapeHtml(profile.contact?.name || 'contact')}</span>`;
+    } else {
+      pill = `<span class="pm-preview-pill pm-preview-pill-warn">${hits.length}/${totalTokens} resolved — missing: ${escapeHtml(unresolved.slice(0, 3).join(', '))}${unresolved.length > 3 ? '…' : ''}</span>`;
+    }
 
     return `
       <div class="pm-preview">
         <div class="pm-preview-header">
           <span class="pm-preview-label">Prompt preview</span>
-          ${profile ? `<span class="pm-preview-pill">Personalized for ${escapeHtml(profile.contact?.name || 'contact')}</span>` : (hasTokens ? `<span class="pm-preview-pill pm-preview-pill-muted">No contact selected — showing raw tokens</span>` : `<span class="pm-preview-pill pm-preview-pill-muted">No tokens to personalize</span>`)}
+          ${pill}
         </div>
-        <pre class="pm-preview-text" tabindex="0">${escapeHtml(isResolved ? raw : resolved)}</pre>
+        <pre class="pm-preview-text" tabindex="0">${escapeHtml(resolved)}</pre>
         <div class="pm-preview-actions">
-          <button type="button" class="pm-action-btn pm-action-secondary" data-action="copy-preview">Copy ${isResolved ? 'personalized' : 'prompt'}</button>
+          <button type="button" class="pm-action-btn pm-action-secondary" data-action="copy-preview">Copy ${profile ? 'personalized' : 'prompt'}</button>
         </div>
       </div>
     `;
@@ -2247,12 +2244,17 @@ export class PersonalizeModal extends BaseModal {
       : '<div style="font-size:11px;color:var(--text-muted);">No enrichment yet — click Discover to run Maigret, GitHub, and website intelligence.</div>';
 
     // Tokens
+    //
+    // The chip's `data-token` carries the *canonical camelCase key* — that is
+    // the wire format `replaceTokensInPrompt` resolves and the backend writes.
+    // The human label is display-only. Inserting the label here (the previous
+    // behaviour) produced tokens like `{{First Name}}` that never resolved.
     const tokenEntries = Object.entries(variables).filter(([, v]) => v && typeof v === 'string');
     const tokensHtml = tokenEntries.length
       ? tokenEntries.map(([key, value]) => {
           const label = TOKEN_LABELS[key] || key;
           const preview = String(value).length > 18 ? String(value).slice(0, 16) + '…' : value;
-          return `<button type="button" class="pm-token" data-token="${escapeHtml(label)}" aria-label="Insert ${escapeHtml(label)} token into prompt" title="Insert {${escapeHtml(label)}} — current value: ${escapeHtml(value)}"><span>{${escapeHtml(label)}}</span><span class="pm-token-preview">${escapeHtml(preview)}</span></button>`;
+          return `<button type="button" class="pm-token" data-token="${escapeHtml(key)}" aria-label="Insert ${escapeHtml(label)} token into prompt" title="Insert {{${escapeHtml(key)}}} — current value: ${escapeHtml(value)}"><span>${escapeHtml(label)}</span><span class="pm-token-preview">${escapeHtml(preview)}</span></button>`;
         }).join('')
       : '<div style="font-size:10px;color:var(--text-muted);">No tokens yet — discover a contact to populate tokens.</div>';
 
@@ -2443,19 +2445,45 @@ export class PersonalizeModal extends BaseModal {
         scope.querySelectorAll('.pm-token').forEach((chip) => {
           chip.onclick = (e) => {
             e.stopPropagation();
-            const token = chip.dataset.token;
-            const ta = this.getTextarea?.();
-            if (ta) {
-              insertTokenAtCursor(ta, `{{${token}}}`);
-              this._announce(`Inserted ${token} token into prompt`);
-            } else {
-              this.errorMessage = 'No prompt textarea available in this studio.';
-              this.refreshBody();
-            }
+            this._insertToken(chip);
           };
         });
       }
     }
+
+  /**
+   * Insert a token chip's canonical `{{key}}` at the host textarea's cursor.
+   * `data-token` holds the canonical camelCase key; the visible chip text is
+   * the human label, so announcements use the label for clarity.
+   */
+  _insertToken(chip) {
+    const key = chip?.dataset?.token;
+    if (!key) return;
+    const label = TOKEN_LABELS[key] || key;
+    const ta = this.getTextarea?.();
+    if (ta) {
+      insertTokenAtCursor(ta, `{{${key}}}`);
+      this._announce(`Inserted ${label} token into prompt`);
+      // Keep the live prompt preview in sync with the edit we just made.
+      this._refreshPromptPreview();
+    } else {
+      this.errorMessage = 'No prompt textarea available in this studio.';
+      this.refreshBody();
+    }
+  }
+
+  /** Re-render just the prompt preview panel, preserving the rest of the DOM. */
+  _refreshPromptPreview() {
+    const host = this.overlay?.querySelector('#pm-preview-host');
+    if (!host) return;
+    host.innerHTML = this._renderPromptPreview();
+    host.querySelectorAll('[data-action="copy-preview"]').forEach((btn) => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        this._handleCopyPreview();
+      };
+    });
+  }
 
   _clearContact() {
     setSelectedContactId(null);
@@ -2575,15 +2603,7 @@ export class PersonalizeModal extends BaseModal {
     scope.querySelectorAll('.pm-token').forEach((chip) => {
       chip.onclick = (e) => {
         e.stopPropagation();
-        const token = chip.dataset.token;
-        const ta = this.getTextarea?.();
-        if (ta) {
-          insertTokenAtCursor(ta, `{{${token}}}`);
-          this._announce(`Inserted ${token} token into prompt`);
-        } else {
-          this.errorMessage = 'No prompt textarea available in this studio.';
-          this.refreshBody();
-        }
+        this._insertToken(chip);
       };
     });
 
@@ -2936,7 +2956,10 @@ export class PersonalizeModal extends BaseModal {
         console.warn('[PersonalizeModal] Website crawl failed:', err);
       }
 
-      // 4) OpenAI enrichment
+      // 4) AI enrichment — asks the backend for *structured* intelligence
+      // (industry / painPoints / products / services / tone / brandColors)
+      // rather than prose, and passes the scan payload plus the scanId so the
+      // server can link the generation to the persisted scan.
       this.discoveryStep = 3;
       this.discoveryStatus = DISCOVERY_STEPS[3];
       this.refreshBody();
@@ -2952,15 +2975,20 @@ export class PersonalizeModal extends BaseModal {
               targetName: primaryUsername,
               targetCompany: scanData?.platforms?.[0]?.ids_data?.company,
               manualNotes: '',
+              scanId: this.lastScanId || undefined,
               scanResults: scanData,
             }),
           });
           if (enrichRes.ok) {
             const data = await enrichRes.json();
-            intelligence = data.output?.metadata || {};
+            // `intelligence` is the structured block; fall back to metadata for
+            // older server builds that only returned generation metadata.
+            intelligence = data.intelligence || data.output?.intelligence || data.output?.metadata || {};
+          } else {
+            console.warn('[PersonalizeModal] Enrichment returned', enrichRes.status);
           }
         } catch (err) {
-          console.warn('[PersonalizeModal] OpenAI enrichment failed:', err);
+          console.warn('[PersonalizeModal] AI enrichment failed:', err);
         }
       }
 
@@ -2980,6 +3008,9 @@ export class PersonalizeModal extends BaseModal {
         name,
         firstName,
         lastName,
+        // The contacts list renders `email || company`, and the profile token
+        // map reads contact.email — it was never populated before.
+        email: value.includes('@') ? value : '',
         company: scanData?.platforms?.[0]?.ids_data?.company || scanData?.website?.title || '',
         title: '',
         location: scanData?.platforms?.[0]?.ids_data?.location || '',
@@ -3004,42 +3035,81 @@ export class PersonalizeModal extends BaseModal {
         warnings: scanData?.warnings || [],
       };
 
-      const variables = {
-        firstName, lastName, fullName: name,
-        company: contact.company,
-        email: value.includes('@') ? value : '',
-        industry: intelligence.industry || '',
-        painPoint: intelligence.painPoints?.[0] || '',
-        product: intelligence.products?.[0] || '',
-        service: intelligence.services?.[0] || '',
-        tone: intelligence.tone || 'professional',
-        avatarUrl: contact.avatarUrl,
-      };
+      const email = value.includes('@') ? value : '';
+      const githubEntry = scanData?.platforms?.find(p => p.platform === 'github');
+      const platformIds = scanData?.platforms?.map(p => p.ids_data).filter(Boolean) || [];
+      const firstOf = (field) => platformIds.find(d => d?.[field])?.[field] || '';
 
+      // Collect avatars/logos from every platform that surfaced one, not just
+      // the first, so the assets block and {{avatarUrl}} have real coverage.
+      const avatarUrls = [
+        contact.avatarUrl,
+        ...platformIds.map(d => d?.avatar_url).filter(Boolean),
+      ].filter(Boolean);
+
+      const socialFor = (platform) => scanData?.platforms?.find(p => p.platform === platform)?.url || '';
+
+      // Build the nested profile first, then derive the flat token map from it
+      // via the shared schema. This guarantees every token the chips can show
+      // is actually resolvable, instead of the 11 hand-picked fields the modal
+      // used to write (which left industry/product/service/etc. empty).
       const profile = {
         id: contactId,
-        contact: { name, firstName, lastName, email: contact.email, company: contact.company, location: contact.location, avatarUrl: contact.avatarUrl },
-        company: { name: contact.company, industry: intelligence.industry },
-        brand: { colors: intelligence.brandColors || {} },
+        contact: {
+          name,
+          firstName,
+          lastName,
+          email,
+          company: contact.company,
+          title: contact.title || firstOf('title'),
+          location: contact.location,
+          avatarUrl: contact.avatarUrl,
+        },
+        company: {
+          name: intelligence.company?.name || contact.company,
+          domain: intelligence.company?.domain || '',
+          industry: intelligence.company?.industry || intelligence.industry || '',
+          size: intelligence.company?.size || '',
+          summary: intelligence.company?.summary || intelligence.companySummary || '',
+        },
+        brand: { colors: intelligence.brand?.colors || intelligence.brandColors || {} },
         social: {
-          github: scanData?.platforms?.find(p => p.platform === 'github')?.url,
-          website: scanData?.website?.url,
+          github: githubEntry?.url || socialFor('github'),
+          linkedin: socialFor('linkedin'),
+          twitter: socialFor('twitter') || socialFor('x'),
+          website: scanData?.website?.url || '',
         },
         website: scanData?.website || {},
-        assets: { avatar: contact.avatarUrl ? [contact.avatarUrl] : [] },
+        assets: {
+          avatar: [...new Set(avatarUrls)],
+          logos: [...new Set((intelligence.assets?.logos || []).filter(Boolean))],
+          productImages: [],
+          icons: [],
+          videos: [],
+        },
         intelligence: {
-          summary: scanData?.summary || intelligence.summary,
-          painPoints: intelligence.painPoints,
-          products: intelligence.products,
-          services: intelligence.services,
-          tone: intelligence.tone,
+          summary: intelligence.summary || scanData?.summary || '',
+          painPoints: intelligence.painPoints || [],
+          products: intelligence.products || [],
+          services: intelligence.services || [],
+          interests: intelligence.interests || [],
+          buyingSignals: intelligence.buyingSignals || [],
+          tone: intelligence.tone || 'professional',
         },
         campaign: {},
         history: { discoveries: [{ source: 'personalize-modal', timestamp: new Date().toISOString(), success: true, data: scanData }], generations: [], interactions: [] },
-        variables,
+        variables: {},
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
+
+      // Derive the complete token map from the profile via the shared schema.
+      profile.variables = buildVariables(profile, {
+        firstName,
+        lastName,
+        fullName: name,
+        email,
+      });
 
       const contacts = JSON.parse(localStorage.getItem(CONTACTS_KEY) || '[]');
       contacts.unshift(contact);
@@ -3207,11 +3277,50 @@ export class PersonalizeModal extends BaseModal {
     }
   }
 
+  /**
+   * Re-render the modal body in place.
+   *
+   * This is called on every state change (tab switch, discovery step, toggle),
+   * so it must not steal focus or re-register global listeners. It therefore
+   * refreshes BaseModal's cached `focusableElements` directly rather than
+   * calling `setupAccessibility()`, which would also auto-focus the first
+   * element and add a duplicate document keydown handler.
+   *
+   * Focus and caret position are preserved across the re-render so typing in
+   * the discover field isn't interrupted.
+   */
   refreshBody() {
     if (!this.overlay) return;
     const body = this.overlay.querySelector('.modal-body');
-    if (body) body.innerHTML = this.renderBody();
+    if (!body) return;
+
+    // Remember where the user was.
+    const active = document.activeElement;
+    const activeId = active && body.contains(active) ? active.id : null;
+    const selStart = activeId && 'selectionStart' in active ? active.selectionStart : null;
+    const selEnd = activeId && 'selectionEnd' in active ? active.selectionEnd : null;
+
+    body.innerHTML = this.renderBody();
     this._wireEvents();
+
+    // Recompute the focus trap's element list without side effects; the cached
+    // list would otherwise point at nodes we just detached, breaking Tab.
+    if (this.content) {
+      this.focusableElements = Array.from(
+        this.content.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
+      ).filter((el) => !el.disabled);
+    }
+
+    // Put the user back where they were.
+    if (activeId) {
+      const restored = body.querySelector(`#${CSS.escape(activeId)}`);
+      if (restored) {
+        restored.focus();
+        if (selStart !== null && typeof restored.setSelectionRange === 'function') {
+          try { restored.setSelectionRange(selStart, selEnd); } catch {}
+        }
+      }
+    }
   }
 }
 

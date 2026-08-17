@@ -104,6 +104,199 @@ function validateInput(value, type, maxLength = 500) {
   return trimmed;
 }
 
+// ─── Structured enrichment ───────────────────────────────────────────────────
+//
+// Modes that must return a machine-readable intelligence object rather than
+// prose. PersonalizeModal feeds the result straight into the contact's token
+// map, so free text is useless to it — this is why personalization used to
+// come back empty: /generate only ever returned
+// `metadata: { tone, offer, goal, cta, scanData: boolean }`, and the client
+// was reading `metadata.industry`, `metadata.painPoints`, etc.
+const ENRICHMENT_MODES = new Set(['lead-summary', 'contact-enrichment', 'enrich']);
+
+/** JSON schema for the structured intelligence block. */
+const INTELLIGENCE_SCHEMA = {
+  type: 'object',
+  properties: {
+    company: {
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+        domain: { type: 'string' },
+        industry: { type: 'string' },
+        size: { type: 'string' },
+        summary: { type: 'string' },
+      },
+      required: ['name'],
+    },
+    intelligence: {
+      type: 'object',
+      properties: {
+        summary: { type: 'string' },
+        products: { type: 'array', items: { type: 'string' } },
+        services: { type: 'array', items: { type: 'string' } },
+        painPoints: { type: 'array', items: { type: 'string' } },
+        interests: { type: 'array', items: { type: 'string' } },
+        buyingSignals: { type: 'array', items: { type: 'string' } },
+        tone: { type: 'string', enum: ['formal', 'casual', 'technical', 'friendly'] },
+      },
+    },
+    brand: {
+      type: 'object',
+      properties: {
+        colors: {
+          type: 'object',
+          properties: {
+            primary: { type: 'string' },
+            secondary: { type: 'string' },
+            accent: { type: 'string' },
+          },
+        },
+      },
+    },
+  },
+  required: ['company'],
+};
+
+/**
+ * Ask OpenAI for a structured intelligence object using JSON mode.
+ * Returns the parsed object, or null if the call or parse fails.
+ */
+async function callOpenAIStructured(apiKey, systemPrompt, userPrompt) {
+  const res = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      response_format: {
+        type: 'json_schema',
+        json_schema: { name: 'ContactIntelligence', strict: false, schema: INTELLIGENCE_SCHEMA },
+      },
+      temperature: 0.2,
+      max_tokens: 1200,
+    }),
+  }, 20000);
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`OpenAI structured call failed (${res.status}): ${text}`);
+  }
+  const data = await res.json();
+  const content = data?.choices?.[0]?.message?.content;
+  if (!content) throw new Error('OpenAI returned no content');
+  return JSON.parse(content);
+}
+
+/** Clamp a string to a max length, returning '' for non-strings. */
+function clampStr(value, max = 240) {
+  if (typeof value !== 'string') return '';
+  const trimmed = value.trim();
+  return trimmed.length > max ? trimmed.slice(0, max) : trimmed;
+}
+
+/** Clamp an array of strings: drop empties, cap item length and count. */
+function clampList(value, maxItems = 5, maxLen = 240) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((v) => clampStr(v, maxLen))
+    .filter(Boolean)
+    .slice(0, maxItems);
+}
+
+/** Accept only `#rgb` / `#rrggbb` colours so bad values can't reach the UI. */
+function sanitizeHexColor(value) {
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  return /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(trimmed) ? trimmed : undefined;
+}
+
+/**
+ * Normalize whatever the model returned into the exact shape the client's
+ * token schema expects. Everything is optional and bounded — the client must
+ * never be able to receive unbounded or malformed model output.
+ */
+function normalizeIntelligence(raw) {
+  const company = raw?.company || {};
+  const intel = raw?.intelligence || {};
+  const colors = raw?.brand?.colors || {};
+
+  const normalized = {
+    company: {
+      name: clampStr(company.name),
+      domain: clampStr(company.domain, 120),
+      industry: clampStr(company.industry, 120),
+      size: clampStr(company.size, 60),
+      summary: clampStr(company.summary, 400),
+    },
+    intelligence: {
+      summary: clampStr(intel.summary, 600),
+      products: clampList(intel.products),
+      services: clampList(intel.services),
+      painPoints: clampList(intel.painPoints),
+      interests: clampList(intel.interests),
+      buyingSignals: clampList(intel.buyingSignals),
+      tone: ['formal', 'casual', 'technical', 'friendly'].includes(intel.tone) ? intel.tone : 'professional',
+    },
+    brand: { colors: {} },
+  };
+
+  for (const key of ['primary', 'secondary', 'accent']) {
+    const hex = sanitizeHexColor(colors[key]);
+    if (hex) normalized.brand.colors[key] = hex;
+  }
+
+  // Flatten the fields the client reads directly, so both the nested and flat
+  // shapes work regardless of which the caller expects.
+  normalized.industry = normalized.company.industry;
+  normalized.companySummary = normalized.company.summary;
+  normalized.summary = normalized.intelligence.summary;
+  normalized.products = normalized.intelligence.products;
+  normalized.services = normalized.intelligence.services;
+  normalized.painPoints = normalized.intelligence.painPoints;
+  normalized.interests = normalized.intelligence.interests;
+  normalized.buyingSignals = normalized.intelligence.buyingSignals;
+  normalized.tone = normalized.intelligence.tone;
+  normalized.brandColors = normalized.brand.colors;
+
+  return normalized;
+}
+
+/**
+ * Derive intelligence from scan data without an LLM.
+ *
+ * Used when OpenAI isn't configured or fails, so discovery still yields a
+ * usable (if thinner) token map instead of an empty one.
+ */
+function deriveIntelligenceFromScan(scanData, targetName, targetCompany) {
+  const platforms = Array.isArray(scanData?.platforms) ? scanData.platforms : [];
+  const ids = platforms.map((p) => p.ids_data).filter(Boolean);
+  const pick = (field) => {
+    for (const d of ids) if (d?.[field]) return clampStr(String(d[field]), 400);
+    return '';
+  };
+
+  const bio = pick('bio');
+  const company = targetCompany || pick('company');
+  const website = scanData?.website || {};
+
+  return normalizeIntelligence({
+    company: {
+      name: company || clampStr(website.title, 120) || targetName,
+      domain: website.url ? clampStr(String(website.url).replace(/^https?:\/\//, '').split('/')[0], 120) : '',
+      summary: clampStr(website.description || bio, 400),
+    },
+    intelligence: {
+      summary: clampStr(scanData?.summary || bio || website.description, 600),
+      // A platform list is a genuine signal about where they're active.
+      interests: platforms.slice(0, 5).map((p) => p.platform).filter(Boolean),
+    },
+  });
+}
+
 function escapeHtml(str) {
   if (str == null) return '';
   return String(str)
@@ -124,6 +317,31 @@ function escapeCypherString(str) {
     .replace(/\r/g, '\\r');
 }
 
+/**
+ * Normalize the incoming request path to a route relative to this function.
+ *
+ * Depending on how the function is reached, `event.path` may be either the
+ * original public path (`/api/personalizer/scan`) or the rewritten function
+ * path (`/.netlify/functions/personalizer-api/scan`). Netlify is not
+ * consistent about this across redirect rules, `netlify dev`, and the Vite
+ * dev proxy, and a mismatch silently sends every request to the terminal
+ * 404. Strip whichever prefix is present so routing works in all cases.
+ */
+function normalizeRoute(rawPath) {
+  let route = String(rawPath || '');
+  // Drop any query string defensively.
+  route = route.split('?')[0];
+  for (const prefix of ['/.netlify/functions/personalizer-api', '/api/personalizer']) {
+    if (route.startsWith(prefix)) {
+      route = route.slice(prefix.length);
+      break;
+    }
+  }
+  // Collapse a trailing slash so '/scan/' matches '/scan'.
+  if (route.length > 1 && route.endsWith('/')) route = route.slice(0, -1);
+  return route || '/';
+}
+
 export async function handler(event, context) {
   const headers = {
     'Content-Type': 'application/json',
@@ -141,7 +359,7 @@ export async function handler(event, context) {
   const userId = auth.user.id;
   if (!await checkRateLimit(userId)) return { statusCode: 429, headers, body: JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }) };
 
-  const path = event.path.replace('/api/personalizer', '');
+  const path = normalizeRoute(event.path);
   let body = {};
   try { if (event.body) body = JSON.parse(event.body); } catch { return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid JSON' }) }; }
 
@@ -175,16 +393,43 @@ export async function handler(event, context) {
       }
 
       const opts = body.options || body;
+
+      // Clamp numeric options to the same ranges the worker and settings
+      // table enforce, so a hostile or buggy client can't request a 2-hour
+      // scan of 100k sites.
+      const clampInt = (value, min, max, fallback) => {
+        const n = parseInt(value, 10);
+        if (!Number.isFinite(n)) return fallback;
+        return Math.min(max, Math.max(min, n));
+      };
+
+      // NOTE: every option below is also accepted by the worker's ScanRequest
+      // schema. Previously only 8 of them were forwarded, so the UI's
+      // "Full check", Cloudflare bypass, custom timeout, Tor/I2P proxy,
+      // keywords and parse-URL controls all had no effect whatsoever.
       const maigretOptions = {
-        top: opts.top ? parseInt(opts.top) : 500,
+        top: clampInt(opts.top, 1, 2500, 500),
         tags: opts.tags || undefined,
+        keywords: opts.keywords || undefined,
         proxy: opts.proxy || undefined,
-        retries: opts.retries ? parseInt(opts.retries) : 1,
+        torProxy: opts.torProxy || undefined,
+        i2pProxy: opts.i2pProxy || undefined,
+        retries: clampInt(opts.retries, 0, 5, 1),
+        timeoutMs: clampInt(opts.timeoutMs, 5000, 60000, 15000),
         noRecursion: opts.noRecursion === true || opts.disableRecursive === true,
         isParsingEnabled: opts.isParsingEnabled !== false && opts.disableParsing !== true,
-        permute: opts.enablePermutations === true,
-        checkDomains: opts.withDomains === true,
+        permute: opts.permute === true || opts.enablePermutations === true,
+        checkDomains: opts.checkDomains === true || opts.withDomains === true,
+        parseUrl: opts.parseUrl || undefined,
+        enableCloudflareBypass: opts.enableCloudflareBypass === true,
+        useCookies: opts.useCookies === true,
+        useCache: opts.useCache !== false,
       };
+
+      // Drop undefined keys so the worker applies its own defaults.
+      for (const key of Object.keys(maigretOptions)) {
+        if (maigretOptions[key] === undefined) delete maigretOptions[key];
+      }
 
       // For multi-username, send as array
       const maigretPayload = { ...maigretOptions };
@@ -230,21 +475,98 @@ export async function handler(event, context) {
       const manualNotes = body.manualNotes ? validateInput(body.manualNotes, 'text', 2000) : null;
       const appId = validateInput(body.appId || 'ai-video-agency', 'text', 100);
 
+      // Resolve the scan to personalize against, in priority order:
+      //   1. an explicit `scanId` from the caller
+      //   2. the scan already linked to an existing project
+      //   3. the caller's inline `scanResults` payload
+      //   4. the user's most recent scan for this target
+      //
+      // Previously none of these were honoured: `scan_id` was read but never
+      // written, and the client's `scanResults` was ignored outright, so
+      // `{{scanData}}` always rendered "No scan data available" and every
+      // "personalized" generation was in fact generic.
+      let scanData = null;
+      let resolvedScanId = null;
+
+      const requestedScanId = body.scanId ? validateInput(String(body.scanId), 'text', 100) : null;
+      if (requestedScanId) {
+        const { data: scanRow } = await supabaseService
+          .from('profile_scan_results')
+          .select('id, scan_data')
+          .eq('id', requestedScanId)
+          .eq('user_id', userId)
+          .single();
+        if (scanRow) {
+          scanData = scanRow.scan_data;
+          resolvedScanId = scanRow.id;
+        }
+      }
+
       let project;
       const { data: existingProject } = await supabaseService.from('personalization_projects').select('*').eq('id', body.projectId || '').eq('user_id', userId).single();
       if (existingProject) {
         project = existingProject;
       } else {
-        const { data, error } = await supabaseService.from('personalization_projects').insert({ user_id: userId, app_id: appId, mode, target_name: targetName, target_company: targetCompany, manual_notes: manualNotes, status: 'generating' }).select().single();
+        const { data, error } = await supabaseService
+          .from('personalization_projects')
+          .insert({
+            user_id: userId,
+            app_id: appId,
+            mode,
+            target_name: targetName,
+            target_company: targetCompany,
+            manual_notes: manualNotes,
+            // Persist the link so later /generate, /generate-visual and
+            // /send-to-app calls on this project can read the scan back.
+            scan_id: resolvedScanId,
+            status: 'generating',
+          })
+          .select()
+          .single();
         if (error) throw error;
         project = data;
       }
 
-      let scanData = null;
-      if (project.scan_id) {
+      // Fall back to the project's existing link.
+      if (!scanData && project.scan_id) {
         const { data: scanResult } = await supabaseService.from('profile_scan_results').select('scan_data').eq('id', project.scan_id).eq('user_id', userId).single();
-        scanData = scanResult?.scan_data;
+        if (scanResult) {
+          scanData = scanResult.scan_data;
+          resolvedScanId = project.scan_id;
+        }
       }
+
+      // Accept the caller's inline scan payload (the modal already has it in
+      // memory and sends it as `scanResults`).
+      if (!scanData && body.scanResults && typeof body.scanResults === 'object') {
+        scanData = body.scanResults;
+      }
+
+      // Last resort: the most recent scan this user ran for this target.
+      if (!scanData) {
+        const { data: recentScan } = await supabaseService
+          .from('profile_scan_results')
+          .select('id, scan_data')
+          .eq('user_id', userId)
+          .eq('target_name', targetName)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (recentScan) {
+          scanData = recentScan.scan_data;
+          resolvedScanId = recentScan.id;
+        }
+      }
+
+      // Backfill the project link if we resolved a scan it didn't know about.
+      if (resolvedScanId && project.scan_id !== resolvedScanId) {
+        await supabaseService.from('personalization_projects').update({ scan_id: resolvedScanId }).eq('id', project.id).eq('user_id', userId);
+        project.scan_id = resolvedScanId;
+      }
+
+      // Cap the serialized scan so a large Maigret result can't blow the
+      // model's context window.
+      const scanDataText = scanData ? JSON.stringify(scanData, null, 2).slice(0, 12000) : 'No scan data available';
 
       const { data: templates } = await supabaseService.from('personalizer_templates').select('*').eq('app_id', appId).eq('mode', mode);
       const systemPrompt = templates?.find(t => t.template_type === 'system')?.content || 'You are a helpful assistant that generates personalized business content.';
@@ -253,7 +575,7 @@ export async function handler(event, context) {
         .replace(/\{\{targetName\}\}/g, targetName)
         .replace(/\{\{targetCompany\}\}/g, targetCompany || 'N/A')
         .replace(/\{\{manualNotes\}\}/g, manualNotes || 'N/A')
-        .replace(/\{\{scanData\}\}/g, scanData ? JSON.stringify(scanData, null, 2) : 'No scan data available')
+        .replace(/\{\{scanData\}\}/g, scanDataText)
         .replace(/\{\{offer\}\}/g, validateInput(body.offer, 'text', 500) || 'N/A')
         .replace(/\{\{goal\}\}/g, validateInput(body.goal, 'text', 500) || 'N/A')
         .replace(/\{\{tone\}\}/g, validateInput(body.tone, 'text', 50) || 'professional')
@@ -264,6 +586,58 @@ export async function handler(event, context) {
         .replace(/\{\{storyType\}\}/g, body.storyType || 'founder-story')
         .replace(/\{\{duration\}\}/g, body.durationSeconds || '30');
 
+      // ─── Enrichment modes return structured intelligence ─────────────────
+      if (ENRICHMENT_MODES.has(mode)) {
+        let intelligence = null;
+        let intelligenceSource = 'derived';
+
+        if (process.env.OPENAI_API_KEY) {
+          try {
+            const raw = await callOpenAIStructured(process.env.OPENAI_API_KEY, systemPrompt, userPrompt);
+            intelligence = normalizeIntelligence(raw);
+            intelligenceSource = 'openai';
+          } catch (err) {
+            console.error('Structured enrichment failed, deriving from scan:', err.message);
+          }
+        }
+
+        // Always produce something usable so the client's token map is never
+        // empty just because the LLM was unavailable.
+        if (!intelligence) {
+          intelligence = deriveIntelligenceFromScan(scanData, targetName, targetCompany);
+        }
+
+        const output = {
+          type: mode,
+          content: intelligence.intelligence.summary || `Enriched profile for ${targetName}`,
+          intelligence,
+          metadata: {
+            ...intelligence,
+            source: intelligenceSource,
+            scanData: !!scanData,
+            scanId: resolvedScanId,
+          },
+        };
+
+        const { error: outputError } = await supabaseService.from('personalization_outputs').insert({ project_id: project.id, output_type: mode, content: output });
+        if (outputError) throw outputError;
+
+        await supabaseService.from('personalization_projects').update({ status: 'complete', updated_at: new Date().toISOString() }).eq('id', project.id);
+
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify({
+            output,
+            // Top-level for convenience — this is what the client reads.
+            intelligence,
+            scanId: resolvedScanId,
+            project,
+          }),
+        };
+      }
+
+      // ─── Prose modes (scripts, emails, copy) ─────────────────────────────
       let generatedContent;
       try {
         if (process.env.OPENAI_API_KEY) {
@@ -277,17 +651,17 @@ export async function handler(event, context) {
           } else { throw new Error('Gemini API key not configured'); }
         } catch (geminiError) {
           console.error('Gemini failed:', geminiError.message);
-          generatedContent = `Generated ${mode} for ${targetName} at ${targetCompany || 'N/A'}.\n\nNotes: ${manualNotes || 'None'}\n\nScan Data: ${scanData ? JSON.stringify(scanData, null, 2) : 'None'}`;
+          generatedContent = `Generated ${mode} for ${targetName} at ${targetCompany || 'N/A'}.\n\nNotes: ${manualNotes || 'None'}\n\nScan Data: ${scanDataText}`;
         }
       }
 
-      const output = { type: mode, content: generatedContent, metadata: { tone: body.tone || 'professional', offer: body.offer || null, goal: body.goal || null, cta: body.cta || null, scanData: !!scanData } };
+      const output = { type: mode, content: generatedContent, metadata: { tone: body.tone || 'professional', offer: body.offer || null, goal: body.goal || null, cta: body.cta || null, scanData: !!scanData, scanId: resolvedScanId } };
       const { error: outputError } = await supabaseService.from('personalization_outputs').insert({ project_id: project.id, output_type: mode, content: output });
       if (outputError) throw outputError;
 
       await supabaseService.from('personalization_projects').update({ status: 'complete', updated_at: new Date().toISOString() }).eq('id', project.id);
 
-      return { statusCode: 200, headers, body: JSON.stringify({ output, project }) };
+      return { statusCode: 200, headers, body: JSON.stringify({ output, scanId: resolvedScanId, project }) };
     }
 
     // GET /api/personalizer/apps
@@ -303,7 +677,7 @@ export async function handler(event, context) {
       const offset = parseInt(event.queryStringParameters?.offset || '0');
       const { data, error, count } = await supabaseService.from('personalization_projects').select('*', { count: 'exact' }).eq('user_id', userId).order('created_at', { ascending: false }).range(offset, offset + limit - 1);
       if (error) throw error;
-      return { statusCode: 200, headers, body: JSON.stringify({ data, pagination: { total: count, limit, offset, hasMore: offset + (count || 0) > offset + limit } }) };
+      return { statusCode: 200, headers, body: JSON.stringify({ data, pagination: { total: count, limit, offset, hasMore: (count || 0) > offset + limit } }) };
     }
 
     // POST /api/personalizer/save
@@ -909,7 +1283,7 @@ Keep it concise. Do not invent information. If unsure, say "Unknown".`;
         confidence: row.scan_data?.confidence || 0,
         usernames: row.scan_data?.usernames || [row.target_name],
       }));
-      return { statusCode: 200, headers, body: JSON.stringify({ data: summary, pagination: { total: count, limit, offset, hasMore: offset + (count || 0) > offset + limit } }) };
+      return { statusCode: 200, headers, body: JSON.stringify({ data: summary, pagination: { total: count, limit, offset, hasMore: (count || 0) > offset + limit } }) };
     }
 
     // GET /api/personalizer/settings - get user scan settings

@@ -50,6 +50,8 @@ vi.mock('../src/lib/config/openaiConfig.js', () => ({
     getStudioColorScheme: () => ({ primary: '#10b981', accent: '#10b981' }),
     estimateCost: () => 0.05,
     isExperimentalSize: () => false,
+    isOpenAIImageModel: (modelId) =>
+      ['gpt-image-2', 'gpt-image-1.5', 'gpt-image-1', 'gpt-image-1-mini'].includes(modelId),
   },
 }));
 
