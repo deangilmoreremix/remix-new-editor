@@ -1,6 +1,6 @@
 // Custom Reset Password Page — app-styled, powered by Clerk's
 // useSignIn reset_password_email_code flow (current v6 API):
-//   const { signIn, errors, fetchStatus } = useSignIn()
+//   const { signIn, errors } = useSignIn()
 //   await signIn.resetPasswordEmailCode.verifyCode({ code })
 //   await signIn.resetPasswordEmailCode.submitPassword({ password })
 // Completes the password reset started on ForgotPasswordPage.
@@ -20,8 +20,8 @@ import {
 } from './AuthLayout.jsx';
 
 export function ResetPasswordPage() {
-  const { signIn, errors, fetchStatus } = useSignIn();
-  const isLoaded = fetchStatus !== 'fetching';
+  const { signIn, errors } = useSignIn();
+  const isLoaded = signIn !== undefined;
   const [email, setEmail] = useState(
     () => new URLSearchParams(window.location.search).get('email') || ''
   );
@@ -34,7 +34,7 @@ export function ResetPasswordPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!signIn || fetchStatus === 'fetching') return;
+    if (!signIn) return;
     setError('');
 
     if (password !== confirm) {

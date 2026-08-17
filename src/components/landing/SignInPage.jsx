@@ -1,6 +1,6 @@
 // Custom Sign In Page — your design, powered by Clerk's useSignIn hook.
 // Uses the current (v6) Clerk custom-flow API:
-//   const { signIn, errors, fetchStatus } = useSignIn()
+//   const { signIn, errors } = useSignIn()
 //   await signIn.password({ identifier, password })
 //   if (signIn.status === 'complete') await signIn.finalize({ navigate })
 // Requires a <ClerkProvider> ancestor (provided by ClerkGate in
@@ -11,8 +11,14 @@ import { useSignIn } from '@clerk/react';
 import { clerkErrorMessage, clerkWithTimeout, PasswordInput } from './AuthLayout.jsx';
 
 export function SignInPage() {
-  const { signIn, errors, fetchStatus } = useSignIn();
-  const isLoaded = fetchStatus !== 'fetching';
+  const { signIn, errors } = useSignIn();
+  const isLoaded = signIn !== undefined;
+
+  if (isLoaded && signIn.isSignedIn) {
+    window.location.href = '/#/templates';
+    return null;
+  }
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [code, setCode] = useState('');
@@ -23,10 +29,11 @@ export function SignInPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!signIn || fetchStatus === 'fetching') {
+    if (!signIn) {
       setError('Authentication is still loading. Please wait a moment and try again.');
       return;
     }
+    signIn.reset();
     setLoading(true);
     setError('');
     const { error: resultError } = await clerkWithTimeout(
@@ -86,7 +93,7 @@ export function SignInPage() {
 
   const handleVerify = async (e) => {
     e.preventDefault();
-    if (!signIn || fetchStatus === 'fetching') {
+    if (!signIn) {
       setError('Authentication is still loading. Please wait a moment and try again.');
       return;
     }

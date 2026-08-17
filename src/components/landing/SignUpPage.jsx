@@ -1,6 +1,6 @@
 // Custom Sign Up Page — your design, powered by Clerk's useSignUp hook.
 // Uses the current (v6) Clerk custom-flow API:
-//   const { signUp, errors, fetchStatus } = useSignUp()
+//   const { signUp, errors } = useSignUp()
 //   await signUp.password({ emailAddress, password, firstName })
 //   await signUp.verifications.sendEmailCode()
 //   await signUp.verifications.verifyEmailCode({ code })
@@ -13,8 +13,14 @@ import { useSignUp } from '@clerk/react';
 import { clerkErrorMessage, PasswordInput } from './AuthLayout.jsx';
 
 export function SignUpPage() {
-  const { signUp, errors, fetchStatus } = useSignUp();
-  const isLoaded = fetchStatus !== 'fetching';
+  const { signUp, errors } = useSignUp();
+  const isLoaded = signUp !== undefined;
+
+  if (isLoaded && signUp.isSignedIn) {
+    window.location.href = '/#/templates';
+    return null;
+  }
+
   const [firstName, setFirstName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,7 +31,11 @@ export function SignUpPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!signUp || fetchStatus === 'fetching') return;
+    if (!signUp) {
+      setError('Authentication is still loading. Please wait a moment and try again.');
+      return;
+    }
+    signUp.reset();
     setLoading(true);
     setError('');
     const { error: resultError } = await signUp.password({
@@ -60,7 +70,10 @@ export function SignUpPage() {
 
   const handleVerify = async (e) => {
     e.preventDefault();
-    if (!signUp || fetchStatus === 'fetching') return;
+    if (!signUp) {
+      setError('Authentication is still loading. Please wait a moment and try again.');
+      return;
+    }
     setLoading(true);
     setError('');
     const { error: resultError } = await signUp.verifications.verifyEmailCode({ code });
