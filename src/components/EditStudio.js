@@ -1,5 +1,4 @@
 import { muapi } from '../lib/muapi.js';
-import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
@@ -9,6 +8,8 @@ import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/pe
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { getI2IModelById } from '../lib/models.js';
+import { createAdvancedControls } from '../lib/studioControls.js';
+import { getExtendedModel } from '../lib/modelInputExtensions.js';
 
 const EDIT_AI_MODELS = [
   { id: 'flux-kontext-dev-i2i', name: 'Flux Kontext Dev I2I', hasPrompt: true },
@@ -83,7 +84,7 @@ export function EditStudio() {
   let watermarkScaleValue = '0.2';
 
   // Dynamic controls for dropdown models
-  const modelControlValues = {};
+  let dynamicControls = null;
   let dynamicControlsContainer = null;
 
   const topBar = document.createElement('div');
@@ -261,6 +262,18 @@ export function EditStudio() {
   workCard.appendChild(uploadSection);
   container.appendChild(picker.panel);
 
+  // Watermark image upload row (hidden by default)
+  const watermarkImageRow = document.createElement('div');
+  watermarkImageRow.className = 'watermark-image-row hidden flex flex-col gap-3';
+  const watermarkImageRowInner = document.createElement('div');
+  watermarkImageRowInner.className = 'flex items-center gap-4';
+  watermarkImageRowInner.appendChild(watermarkPicker.trigger);
+  watermarkImageRowInner.appendChild(watermarkImageHint);
+  watermarkImageRowInner.appendChild(watermarkClearBtn);
+  watermarkImageRow.appendChild(watermarkImageRowInner);
+  container.appendChild(watermarkPicker.panel);
+  workCard.appendChild(watermarkImageRow);
+
   const promptField = document.createElement('input');
   promptField.type = 'text';
   promptField.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors hidden';
@@ -398,6 +411,42 @@ export function EditStudio() {
     watermarkScaleValue = watermarkScaleInput.value;
   });
 
+  // Watermark image uploader (second image for watermark tool)
+  let watermarkImageUrl = null;
+  const watermarkImageHint = document.createElement('span');
+  watermarkImageHint.className = 'text-sm text-muted hidden';
+  watermarkImageHint.textContent = 'Upload watermark image';
+
+  const watermarkClearBtn = document.createElement('button');
+  watermarkClearBtn.type = 'button';
+  watermarkClearBtn.className = 'hidden text-xs font-bold text-red-400 hover:text-red-300 transition-colors';
+  watermarkClearBtn.textContent = 'Remove';
+
+  const watermarkPicker = createUploadPicker({
+    anchorContainer: container,
+    onSelect: ({ url }) => {
+      watermarkImageUrl = url;
+      watermarkImageHint.textContent = 'Watermark uploaded';
+      watermarkImageHint.classList.remove('hidden');
+      watermarkClearBtn.classList.remove('hidden');
+    },
+    onClear: () => {
+      watermarkImageUrl = null;
+      watermarkImageHint.textContent = 'Upload watermark image';
+      watermarkImageHint.classList.add('hidden');
+      watermarkClearBtn.classList.add('hidden');
+    },
+  });
+
+  watermarkClearBtn.onclick = (e) => {
+    e.stopPropagation();
+    watermarkPicker.reset();
+    watermarkImageUrl = null;
+    watermarkImageHint.textContent = 'Upload watermark image';
+    watermarkImageHint.classList.add('hidden');
+    watermarkClearBtn.classList.add('hidden');
+  };
+
   // Model selector dropdown — only shown for AI Edit card
   const modelSelect = document.createElement('select');
   modelSelect.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors hidden';
@@ -457,6 +506,11 @@ export function EditStudio() {
   editBtn.setAttribute('aria-label', 'Apply edit');
   workCard.appendChild(editBtn);
 
+  const errorArea = document.createElement('div');
+  errorArea.className = 'hidden mt-4';
+  errorArea.setAttribute('role', 'alert');
+  workCard.appendChild(errorArea);
+
   const resultArea = document.createElement('div');
   resultArea.className = 'hidden mt-4';
   resultArea.setAttribute('role', 'status');
@@ -479,78 +533,18 @@ export function EditStudio() {
       workCard.insertBefore(dynamicControlsContainer, controlsRow);
     }
 
-    dynamicControlsContainer.innerHTML = '';
-    const fields = Object.entries(model.inputs);
-
-    fields.forEach(([fieldName, fieldConfig]) => {
-      if (fieldName === 'prompt') return;
-
-      const field = document.createElement('select');
-      field.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors';
-      field.setAttribute('aria-label', fieldConfig.title || fieldName);
-
-      const defaultVal = fieldConfig.default ?? (fieldConfig.enum ? fieldConfig.enum[0] : null);
-
-      if (fieldConfig.enum) {
-        fieldConfig.enum.forEach(enumVal => {
-          const option = document.createElement('option');
-          option.value = String(enumVal);
-          option.textContent = String(enumVal);
-          if (String(enumVal) === String(defaultVal)) option.selected = true;
-          field.appendChild(option);
-        });
-      } else if (fieldConfig.type === 'int' || fieldConfig.type === 'integer') {
-        fieldConfig.minValue = fieldConfig.minValue ?? 0;
-        fieldConfig.maxValue = fieldConfig.maxValue ?? 100;
-        fieldConfig.step = fieldConfig.step ?? 1;
-        for (let v = fieldConfig.minValue; v <= fieldConfig.maxValue; v += fieldConfig.step) {
-          const option = document.createElement('option');
-          option.value = String(v);
-          option.textContent = String(v);
-          if (v === defaultVal) option.selected = true;
-          field.appendChild(option);
-        }
-      } else {
-        const option = document.createElement('option');
-        option.value = String(defaultVal ?? '');
-        option.textContent = String(defaultVal ?? '');
-        field.appendChild(option);
-      }
-
-      field.addEventListener('change', () => {
-        const raw = field.value;
-        if (fieldConfig.type === 'int' || fieldConfig.type === 'integer') {
-          modelControlValues[modelId + '_' + fieldName] = parseInt(raw, 10);
-        } else if (fieldConfig.type === 'number') {
-          modelControlValues[modelId + '_' + fieldName] = parseFloat(raw);
-        } else {
-          modelControlValues[modelId + '_' + fieldName] = raw;
-        }
-      });
-
-      // Initialize stored value
-      if (defaultVal !== null && defaultVal !== undefined) {
-        if (fieldConfig.type === 'int' || fieldConfig.type === 'integer') {
-          modelControlValues[modelId + '_' + fieldName] = parseInt(defaultVal, 10);
-        } else if (fieldConfig.type === 'number') {
-          modelControlValues[modelId + '_' + fieldName] = parseFloat(defaultVal);
-        } else {
-          modelControlValues[modelId + '_' + fieldName] = String(defaultVal);
-        }
-      }
-
-      const label = document.createElement('div');
-      label.className = 'text-[10px] text-muted mb-1';
-      label.textContent = fieldConfig.title || fieldName;
-
-      const wrapper = document.createElement('div');
-      wrapper.className = 'flex flex-col gap-1';
-      wrapper.appendChild(label);
-      wrapper.appendChild(field);
-      dynamicControlsContainer.appendChild(wrapper);
-    });
-
     dynamicControlsContainer.classList.remove('hidden');
+
+    if (dynamicControls) {
+      dynamicControls.destroy();
+    }
+
+    const extendedModel = getExtendedModel(model);
+    dynamicControls = createAdvancedControls({
+      model: extendedModel,
+      container: dynamicControlsContainer,
+      exclude: new Set(['prompt']),
+    });
   }
 
   function showControlsForTool(toolId) {
@@ -558,6 +552,7 @@ export function EditStudio() {
     promptField.classList.add('hidden');
     modelSelect.classList.add('hidden');
     if (dynamicControlsContainer) dynamicControlsContainer.classList.add('hidden');
+    container.querySelectorAll('.watermark-image-row').forEach(el => el.classList.add('hidden'));
 
     if (toolId === 'seedream-5.0-edit') {
       modelSelect.classList.remove('hidden');
@@ -582,6 +577,9 @@ export function EditStudio() {
       watermarkPositionSelect.value = watermarkPositionValue;
       watermarkOpacityInput.value = watermarkOpacityValue;
       watermarkScaleInput.value = watermarkScaleValue;
+      // Show watermark image upload row
+      const wmImgRow = container.querySelector('.watermark-image-row');
+      if (wmImgRow) wmImgRow.classList.remove('hidden');
     } else if (toolId === 'ai-image-face-swap') {
       controlsRow.classList.remove('hidden');
       controlsRow.appendChild(targetIndexInput);
@@ -607,17 +605,39 @@ export function EditStudio() {
 
     showControlsForTool(tool.id);
     resultArea.classList.add('hidden');
+    errorArea.classList.add('hidden');
   }
 
   editBtn.onclick = async () => {
     if (!(await requireEntitlement())) return;
     if (!activeTool) return;
-    if (!uploadedUrl) { alert('Upload an image or video first'); return; }
+    if (!uploadedUrl) { showError('Upload a source image first'); return; }
+
+    // Validate static controls
+    const faceIndex = parseInt(targetIndexValue, 10);
+    if (activeTool.id === 'ai-image-face-swap' && (isNaN(faceIndex) || faceIndex < 0 || faceIndex > 10)) {
+      showError('Target face index must be between 0 and 10'); return;
+    }
+    const wmOpacity = parseFloat(watermarkOpacityValue);
+    if (activeTool.id === 'add-image-watermark' && (isNaN(wmOpacity) || wmOpacity < 0 || wmOpacity > 1)) {
+      showError('Watermark opacity must be between 0 and 1'); return;
+    }
+    const wmScale = parseFloat(watermarkScaleValue);
+    if (activeTool.id === 'add-image-watermark' && (isNaN(wmScale) || wmScale < 0.1 || wmScale > 1)) {
+      showError('Watermark scale must be between 0.1 and 1'); return;
+    }
+    const numImages = parseInt(numImagesValue, 10);
+    if (activeTool.id === 'ideogram-v3-reframe' && (isNaN(numImages) || numImages < 1 || numImages > 4)) {
+      showError('Number of images must be between 1 and 4'); return;
+    }
+
     const apiKey = apiKeyManager.getMuapiKey();
     if (!apiKey) { AuthModal(() => editBtn.click()); return; }
 
     editBtn.disabled = true;
     editBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Processing...';
+    errorArea.classList.add('hidden');
+    resultArea.classList.add('hidden');
 
     try {
       const modelToUse = selectedModelId || activeTool.id;
@@ -638,27 +658,24 @@ export function EditStudio() {
         params.aspect_ratio = aspectRatioValue;
         params.render_speed = renderSpeedValue;
         params.style = styleValue;
-        params.num_images = parseInt(numImagesValue, 10);
+        params.num_images = numImages;
       }
       if (activeTool.id === 'add-image-watermark') {
         params.position = watermarkPositionValue;
-        params.opacity = parseFloat(watermarkOpacityValue);
-        params.scale = parseFloat(watermarkScaleValue);
+        params.opacity = wmOpacity;
+        params.scale = wmScale;
+        if (watermarkImageUrl) {
+          params.watermark_image_url = watermarkImageUrl;
+        }
       }
       if (activeTool.id === 'ai-image-face-swap') {
-        params.target_index = parseInt(targetIndexValue, 10);
+        params.target_index = faceIndex;
       }
 
-      // Append dynamic model-specific controls
-      const selectedModel = getI2IModelById(modelToUse);
-      if (selectedModel && selectedModel.inputs) {
-        Object.keys(selectedModel.inputs).forEach(key => {
-          if (key === 'prompt') return;
-          const storedKey = modelToUse + '_' + key;
-          if (storedKey in modelControlValues) {
-            params[key] = modelControlValues[storedKey];
-          }
-        });
+      // Append dynamic model-specific controls via the control engine
+      if (dynamicControls) {
+        const dynamicPayload = dynamicControls.getPayload({});
+        Object.assign(params, dynamicPayload);
       }
 
       const result = await muapi.generateI2I(params);
@@ -673,12 +690,17 @@ export function EditStudio() {
         resultArea.innerHTML = `<div class="text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-xl p-3">Edit completed, but no result image was returned. Please try again.</div>`;
       }
     } catch (err) {
-      alert(`Error: ${err.message}`);
+      showError(err.message || 'An unexpected error occurred');
     } finally {
       editBtn.disabled = false;
       editBtn.textContent = 'Apply Edit';
     }
   };
+
+  function showError(message) {
+    errorArea.classList.remove('hidden');
+    errorArea.innerHTML = `<div class="text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-xl p-3">${message}</div>`;
+  }
 
   return container;
 }

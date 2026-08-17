@@ -125,7 +125,7 @@ try {
 
   // Hash-based routing (e.g. /#/signin)
   if (hash && hash.startsWith('#/')) {
-    const hashPage = hash.slice(2);
+    const hashPage = hash.slice(2).replace(/^\//, '');
     if (hashPage) initialPage = hashPage;
   }
 
@@ -168,8 +168,9 @@ try {
   const body = document.createElement('div');
   body.className = 'flex flex-1';
 
-  const sidebar = Sidebar((page) => navigate(page));
+  const { sidebar, toggleBtn } = Sidebar((page) => navigate(page));
   body.appendChild(sidebar);
+  document.body.appendChild(toggleBtn);
 
   const contentArea = document.createElement('main');
   contentArea.id = 'content-area';

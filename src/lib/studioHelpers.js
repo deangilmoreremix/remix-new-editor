@@ -1,8 +1,84 @@
 /**
- * Shared studio helpers: abort-aware generation + inline error display.
+ * Shared studio helpers: abort-aware generation, inline errors, retry, progress.
+ *
+ * Usage:
+ *   import {
+ *     createAbortAwareGenerate,
+ *     showInlineError,
+ *     hideInlineError,
+ *     categorizeGenerationError,
+ *     startGenerationProgress,
+ *     withRetry,
+ *     escapeHtml
+ *   } from '../lib/studioHelpers.js';
  */
 
 import { showToast } from './loading.js';
+
+let generationTimer = null;
+
+/**
+ * Wrap an async generate function with AbortController support.
+ * Creates a fresh AbortController per invocation so callers can cancel
+ * in-flight work and the wrapper cleans up automatically.
+ *
+ * @param {(signal: AbortSignal, ...args: any[]) => Promise<any>} generateFn
+ *   Async function that receives an AbortSignal as its first argument.
+ * @param {(event: {phase: string, detail?: any}) => void} [onProgress]
+ *   Optional progress callback: called with {phase, detail} at start,
+ *   progress, and completion.
+ * @returns {{ run(...args): Promise<{result: any, cancelled: boolean}>,
+ *            reset(): void,
+ *            isCancelled(): boolean,
+ *            controller: AbortController }}
+ */
+export function createAbortAwareGenerate(generateFn, onProgress) {
+  let controller = null;
+
+  function getController() {
+    if (!controller) {
+      controller = new AbortController();
+    }
+    return controller;
+  }
+
+  async function run(...args) {
+    controller = new AbortController();
+    const signal = controller.signal;
+
+    onProgress?.({ phase: 'start' });
+
+    try {
+      const result = await generateFn(signal, ...args);
+      if (signal.aborted) {
+        onProgress?.({ phase: 'cancelled' });
+        return { result: null, cancelled: true };
+      }
+      onProgress?.({ phase: 'complete', detail: result });
+      return { result, cancelled: false };
+    } catch (err) {
+      if (err.name === 'AbortError' || signal.aborted) {
+        onProgress?.({ phase: 'cancelled' });
+        return { result: null, cancelled: true };
+      }
+      onProgress?.({ phase: 'error', detail: err });
+      throw err;
+    }
+  }
+
+  function reset() {
+    if (controller) {
+      controller.abort();
+    }
+    controller = null;
+  }
+
+  function isCancelled() {
+    return controller ? controller.signal.aborted : false;
+  }
+
+  return { run, reset, isCancelled, getController };
+}
 
 /**
  * Creates an AbortController wired to a cancel button next to the generate button.
@@ -10,7 +86,7 @@ import { showToast } from './loading.js';
  * @param {HTMLButtonElement} generateBtn
  * @returns {{ controller: AbortController, reset(): void, isCancelled(): boolean }}
  */
-export function createAbortAwareGenerate(generateBtn) {
+export function createAbortAwareGenerateButton(generateBtn) {
   const controller = new AbortController();
   let cancelBtn = null;
 
@@ -118,8 +194,6 @@ export function categorizeGenerationError(err) {
   return { message: `Generation failed: ${msg}`, category: 'unknown' };
 }
 
-let generationTimer = null;
-
 /**
  * Start a visible progress indicator with elapsed-time ticker.
  * Returns a handle with `.stop()` to remove the indicator.
@@ -169,8 +243,107 @@ export function startGenerationProgress(options = {}) {
   };
 }
 
-function escapeHtml(text) {
+/**
+ * Retry an async function with exponential backoff on transient errors.
+ * Eliminates duplicated retry loops across studio files.
+ *
+ * @param {(...args: any[]) => Promise<any>} fn
+ *   Async function to retry.
+ * @param {object} [options]
+ * @param {number} [options.maxAttempts=3]
+ * @param {number} [options.baseDelay=500]
+ * @param {number} [options.maxDelay=8000]
+ * @param {(event: {attempt: number, maxAttempts: number, error: Error}) => void} [onRetry]
+ * @param {(pct: number) => void} [onProgress]
+ * @returns {Promise<any>}
+ */
+export async function withRetry(fn, options = {}, onRetry, onProgress) {
+  const {
+    maxAttempts = 3,
+    baseDelay = 500,
+    maxDelay = 8000
+  } = options;
+
+  let lastError;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      onProgress?.(Math.round((attempt / maxAttempts) * 100));
+      return await fn();
+    } catch (err) {
+      lastError = err;
+
+      const isTransient =
+        err.name === 'AbortError' ||
+        /Network error|Rate limit|Service temporarily unavailable|5\d\d/i.test(err.message || '');
+
+      if (!isTransient || attempt >= maxAttempts) {
+        throw err;
+      }
+
+      onRetry?.({ attempt, maxAttempts, error: err });
+
+      const delay = Math.min(baseDelay * Math.pow(2, attempt - 1), maxDelay);
+      await sleep(delay);
+    }
+  }
+
+  throw lastError;
+}
+
+/**
+ * Validate required input fields and show inline errors for missing ones.
+ * Returns true if all inputs are present, false otherwise.
+ *
+ * @param {HTMLInputElement[]} inputs
+ *   Array of input elements to validate.
+ * @param {string[]} fieldNames
+ *   Human-readable names for each input (shown in error message).
+ * @param {HTMLElement} container
+ *   Container element for inline error display.
+ * @returns {boolean}
+ */
+export function validateRequiredInputs(inputs, fieldNames, container) {
+  for (let i = 0; i < inputs.length; i++) {
+    const val = inputs[i].value.trim();
+    if (!val) {
+      showInlineError(container, `Please enter a value for "${fieldNames[i]}" before generating.`);
+      inputs[i].focus();
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * Escape a string for safe insertion into innerHTML.
+ *
+ * @param {string} text
+ * @returns {string}
+ */
+export function escapeHtml(text) {
+  if (text == null) return '';
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
+}
+
+/**
+ * Debounce a function, delaying invocation until after `wait` ms have
+ * elapsed since the last call.
+ *
+ * @param {Function} fn
+ * @param {number} [wait=300]
+ * @returns {Function}
+ */
+export function debounce(fn, wait = 300) {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), wait);
+  };
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }

@@ -1423,6 +1423,35 @@ export class TemplateThumbnailModal extends BaseModal {
     body.querySelector('[data-action="apply-text-overlay"]')?.addEventListener('click', () => this.applyTextOverlay());
     body.querySelector('[data-action="skip-text-overlay"]')?.addEventListener('click', () => this.skipTextOverlay());
 
+    // Step navigation buttons (data-action="go-step-{key}")
+    body.querySelectorAll('[data-action^="go-step-"]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const stepKey = btn.getAttribute('data-action').replace('go-step-', '');
+        if (this.goToStep) {
+          this.goToStep(stepKey);
+        }
+      });
+    });
+
+    // Quick edit chips (studio variant)
+    body.querySelectorAll('.thumb-quick-edit-chip').forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const key = chip.getAttribute('data-quick-edit');
+        const edit = (openaiConfig.getThumbnailOutputSettings().quickEdits || []).find((e) => e.key === key);
+        if (!edit) return;
+        const input = document.getElementById('thumb-refine-input');
+        if (input) {
+          const current = input.value.trim();
+          const suffix = current ? `, ${edit.promptFragment}` : edit.promptFragment;
+          input.value = current + suffix;
+          this.refineInput = input.value;
+          // Re-render to update active state on chips
+          this.updateBody(this.renderBody());
+          this.setupEventListeners();
+        }
+      });
+    });
+
     // Brush size slider
     const brushSizeEl = body.querySelector('#thumb-brush-size');
     const brushSizeVal = body.querySelector('#thumb-brush-size-val');

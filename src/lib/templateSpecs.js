@@ -2,6 +2,7 @@
 // This file contains enhanced specifications for all templates
 
 import { NICHE_TEMPLATE_SPECS } from './nicheTemplateSpecs.js';
+import { MATRIX_TEMPLATE_SPECS } from './matrixTemplateSpecs.js';
 
 export const TEMPLATE_SPECS = {
   'tiktok-video': {
@@ -2013,10 +2014,8 @@ export const TEMPLATE_SPECS = {
     cinematography: 'Slow dolly or tracking movement, controlled lighting, clear subject focus',
     enhancerKeywords: 'luxury-brand cinematic commercial film, premium luxury-brand visuals, premium composition, luxury-brand brand atmosphere',
     negativePrompt: 'cheap look, cluttered frame, poor lighting, weak composition',
-     outputPackage: ['master prompt', 'scene prompts', 'luxury-brand reveal CTA']
+    outputPackage: ['master prompt', 'scene prompts', 'luxury-brand reveal CTA']
   },
-
-  ...NICHE_TEMPLATE_SPECS,
 
 };
 

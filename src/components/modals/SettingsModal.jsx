@@ -1,6 +1,11 @@
 import { BaseModal } from './BaseModal.jsx';
 import { apiKeyManager } from '../../lib/apiKeyManager.js';
 
+// Reuse the same validation logic as the vanilla setup modal so the
+// React settings tab rejects the same bad shapes (too short, whitespace,
+// duplicated token) instead of silently failing inside apiKeyManager.
+import { validateApiKeyFormat } from '../SettingsModal.js';
+
 const TABS = ['General', 'API', 'Audio', 'Video', 'Keyboard', 'Export'];
 
 const KEYBOARD_SHORTCUTS = {
@@ -84,7 +89,9 @@ export class SettingsModal extends BaseModal {
       videoBitrate: '10 Mbps'
     };
     this.apiSettings = {
+      muapiKey: apiKeyManager.getMuapiKey() || '',
       openAIKey: apiKeyManager.getOpenAIKey() || '',
+      videoDBKey: apiKeyManager.getVideoDBKey() || '',
     };
   }
 
@@ -177,14 +184,45 @@ export class SettingsModal extends BaseModal {
             <div class="settings-section">
               <h3>OpenAI</h3>
               <div class="setting-row">
+                <label class="setting-label">Muapi API Key</label>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                  <input type="password" id="settings-muapi-key" class="setting-select" placeholder="sk-... (Muapi key)" value="${this.escapeHtml(this.apiSettings.muapiKey || '')}" style="padding-right:80px;" />
+                  <span id="settings-muapi-error" style="font-size:12px; color:var(--color-danger); display:none;"></span>
+                  <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                    <span id="settings-muapi-status" style="font-size:12px; color: ${apiKeyManager.hasMuapiKey() ? 'var(--color-success)' : 'var(--text-muted)'};">${apiKeyManager.hasMuapiKey() ? '✓ Key saved' : 'No key set'}</span>
+                    <div style="display:flex; gap:8px;">
+                      <button type="button" class="text-btn" id="settings-muapi-clear" data-tooltip="Remove your saved Muapi key" ${!apiKeyManager.hasMuapiKey() ? 'disabled' : ''}>Clear</button>
+                      <button type="button" class="modal-btn modal-btn-primary" id="settings-muapi-save" style="min-height:32px; padding:6px 14px; font-size:12px;">Save Key</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="setting-row">
                 <label class="setting-label">OpenAI API Key</label>
                 <div style="display:flex; flex-direction:column; gap:8px;">
                   <input type="password" id="settings-openai-key" class="setting-select" placeholder="sk-..." value="${this.escapeHtml(this.apiSettings.openAIKey || '')}" style="padding-right:80px;" />
+                  <span id="settings-openai-error" style="font-size:12px; color:var(--color-danger); display:none;"></span>
                   <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
                     <span id="settings-openai-status" style="font-size:12px; color: ${apiKeyManager.hasOpenAIKey() ? 'var(--color-success)' : 'var(--text-muted)'};">${apiKeyManager.hasOpenAIKey() ? '✓ Key saved' : 'No key set'}</span>
                     <div style="display:flex; gap:8px;">
                       <button type="button" class="text-btn" id="settings-openai-clear" data-tooltip="Remove your saved OpenAI key" ${!apiKeyManager.hasOpenAIKey() ? 'disabled' : ''}>Clear</button>
                       <button type="button" class="modal-btn modal-btn-primary" id="settings-openai-save" style="min-height:32px; padding:6px 14px; font-size:12px;">Save Key</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="setting-row">
+                <label class="setting-label">VideoDB API Key</label>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                  <input type="password" id="settings-videodb-key" class="setting-select" placeholder="VideoDB access token" value="${this.escapeHtml(this.apiSettings.videoDBKey || '')}" style="padding-right:80px;" />
+                  <span id="settings-videodb-error" style="font-size:12px; color:var(--color-danger); display:none;"></span>
+                  <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                    <span id="settings-videodb-status" style="font-size:12px; color: ${apiKeyManager.hasVideoDBKey() ? 'var(--color-success)' : 'var(--text-muted)'};">${apiKeyManager.hasVideoDBKey() ? '✓ Key saved' : 'No key set'}</span>
+                    <div style="display:flex; gap:8px;">
+                      <button type="button" class="text-btn" id="settings-videodb-clear" data-tooltip="Remove your saved VideoDB key" ${!apiKeyManager.hasVideoDBKey() ? 'disabled' : ''}>Clear</button>
+                      <button type="button" class="modal-btn modal-btn-primary" id="settings-videodb-save" style="min-height:32px; padding:6px 14px; font-size:12px;">Save Key</button>
                     </div>
                   </div>
                 </div>
@@ -437,6 +475,9 @@ export class SettingsModal extends BaseModal {
     this.overlay.querySelectorAll('.nav-item').forEach(item => {
       item.addEventListener('click', () => {
         this.activeTab = item.dataset.tab;
+        if (this.activeTab === 'API') {
+          this._syncApiFieldsFromManager();
+        }
         this.updateBody(this.renderBody());
         this.setupEventListeners();
       });
@@ -469,6 +510,21 @@ export class SettingsModal extends BaseModal {
       });
     });
 
+    this.overlay.querySelector('#settings-muapi-save')?.addEventListener('click', () => {
+      this._persistMuapiKey();
+    });
+    this.overlay.querySelector('#settings-muapi-clear')?.addEventListener('click', () => {
+      this.apiSettings.muapiKey = '';
+      apiKeyManager.clearMuapiKey();
+      this._syncMuapiKeyField();
+    });
+    this.overlay.querySelector('#settings-muapi-key')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        this._persistMuapiKey();
+      }
+    });
+
     this.overlay.querySelector('#settings-openai-save')?.addEventListener('click', () => {
       this._persistOpenAIKey();
     });
@@ -481,6 +537,21 @@ export class SettingsModal extends BaseModal {
       if (e.key === 'Enter') {
         e.preventDefault();
         this._persistOpenAIKey();
+      }
+    });
+
+    this.overlay.querySelector('#settings-videodb-save')?.addEventListener('click', () => {
+      this._persistVideoDBKey();
+    });
+    this.overlay.querySelector('#settings-videodb-clear')?.addEventListener('click', () => {
+      this.apiSettings.videoDBKey = '';
+      apiKeyManager.clearVideoDBKey();
+      this._syncVideoDBKeyField();
+    });
+    this.overlay.querySelector('#settings-videodb-key')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        this._persistVideoDBKey();
       }
     });
 
@@ -505,14 +576,20 @@ export class SettingsModal extends BaseModal {
       this.audioSettings = { inputDevice: 'default', outputDevice: 'default', sampleRate: '48 kHz', normalizeAudio: true, noiseReduction: false, echoCancellation: true };
       this.videoSettings = { gpuAcceleration: true, hardwareDecoding: true, previewQuality: 'high', renderQuality: 'high', defaultResolution: '1080p' };
       this.exportSettings = { format: 'mp4', codec: 'h264', quality: 'high', audioBitrate: '320 kbps', videoBitrate: '10 Mbps' };
-      this.apiSettings = { openAIKey: '' };
+      this.apiSettings = { muapiKey: '', openAIKey: '', videoDBKey: '' };
+      this._syncMuapiKeyField();
       this._syncOpenAIKeyField();
+      this._syncVideoDBKeyField();
       this.updateBody(this.renderBody());
       this.setupEventListeners();
     });
 
-    this.overlay.querySelector('[data-action="save"]')?.addEventListener('click', () => {
-      this._persistOpenAIKey();
+    this.overlay.querySelector('[data-action="save"]')?.addEventListener('click', async () => {
+      await Promise.all([
+        this._persistMuapiKey(),
+        this._persistOpenAIKey(),
+        this._persistVideoDBKey(),
+      ]);
       this.onConfirm({
         action: 'settingsSaved',
         general: this.generalSettings,
@@ -525,10 +602,19 @@ export class SettingsModal extends BaseModal {
     });
   }
 
+  _syncApiFieldsFromManager() {
+    // Refresh local state from the single source of truth so values saved
+    // in the vanilla onboarding modal are reflected here too.
+    this.apiSettings.muapiKey = apiKeyManager.getMuapiKey() || '';
+    this.apiSettings.openAIKey = apiKeyManager.getOpenAIKey() || '';
+    this.apiSettings.videoDBKey = apiKeyManager.getVideoDBKey() || '';
+  }
+
   _syncOpenAIKeyField() {
     const input = this.overlay?.querySelector('#settings-openai-key');
     const status = this.overlay?.querySelector('#settings-openai-status');
     const clearBtn = this.overlay?.querySelector('#settings-openai-clear');
+    const errorEl = this.overlay?.querySelector('#settings-openai-error');
     if (input) input.value = this.apiSettings.openAIKey || '';
     if (status) {
       const hasKey = apiKeyManager.hasOpenAIKey();
@@ -536,18 +622,152 @@ export class SettingsModal extends BaseModal {
       status.style.color = hasKey ? 'var(--color-success)' : 'var(--text-muted)';
     }
     if (clearBtn) clearBtn.disabled = !apiKeyManager.hasOpenAIKey();
+    if (errorEl) {
+      errorEl.style.display = 'none';
+      errorEl.textContent = '';
+    }
   }
 
-  _persistOpenAIKey() {
+  _syncMuapiKeyField() {
+    const input = this.overlay?.querySelector('#settings-muapi-key');
+    const status = this.overlay?.querySelector('#settings-muapi-status');
+    const clearBtn = this.overlay?.querySelector('#settings-muapi-clear');
+    const errorEl = this.overlay?.querySelector('#settings-muapi-error');
+    if (input) input.value = this.apiSettings.muapiKey || '';
+    if (status) {
+      const hasKey = apiKeyManager.hasMuapiKey();
+      status.textContent = hasKey ? '✓ Key saved' : 'No key set';
+      status.style.color = hasKey ? 'var(--color-success)' : 'var(--text-muted)';
+    }
+    if (clearBtn) clearBtn.disabled = !apiKeyManager.hasMuapiKey();
+    if (errorEl) {
+      errorEl.style.display = 'none';
+      errorEl.textContent = '';
+    }
+  }
+
+  _syncVideoDBKeyField() {
+    const input = this.overlay?.querySelector('#settings-videodb-key');
+    const status = this.overlay?.querySelector('#settings-videodb-status');
+    const clearBtn = this.overlay?.querySelector('#settings-videodb-clear');
+    const errorEl = this.overlay?.querySelector('#settings-videodb-error');
+    if (input) input.value = this.apiSettings.videoDBKey || '';
+    if (status) {
+      const hasKey = apiKeyManager.hasVideoDBKey();
+      status.textContent = hasKey ? '✓ Key saved' : 'No key set';
+      status.style.color = hasKey ? 'var(--color-success)' : 'var(--text-muted)';
+    }
+    if (clearBtn) clearBtn.disabled = !apiKeyManager.hasVideoDBKey();
+    if (errorEl) {
+      errorEl.style.display = 'none';
+      errorEl.textContent = '';
+    }
+  }
+
+  async _persistOpenAIKey() {
     const input = this.overlay?.querySelector('#settings-openai-key');
     const value = input?.value?.trim() || '';
-    if (value) {
-      apiKeyManager.setOpenAIKey(value, true).catch(() => {});
-    } else {
-      apiKeyManager.clearOpenAIKey();
+    const errorEl = this.overlay?.querySelector('#settings-openai-error');
+
+    // Validate format before hitting storage — matches the vanilla setup modal.
+    const fmtErr = validateApiKeyFormat(value, 'OpenAI API Key');
+    if (fmtErr) {
+      if (errorEl) {
+        errorEl.textContent = fmtErr;
+        errorEl.style.display = 'block';
+      }
+      return;
     }
-    this.apiSettings.openAIKey = value;
+
+    try {
+      if (value) {
+        await apiKeyManager.setOpenAIKey(value, true);
+      } else {
+        apiKeyManager.clearOpenAIKey();
+      }
+      this.apiSettings.openAIKey = value;
+      if (errorEl) {
+        errorEl.style.display = 'none';
+        errorEl.textContent = '';
+      }
+    } catch (err) {
+      if (errorEl) {
+        errorEl.textContent = 'Failed to save key: ' + (err.message || 'Unknown error');
+        errorEl.style.display = 'block';
+      }
+      console.error('[SettingsModal] Failed to save OpenAI key:', err);
+    }
     this._syncOpenAIKeyField();
+  }
+
+  async _persistMuapiKey() {
+    const input = this.overlay?.querySelector('#settings-muapi-key');
+    const value = input?.value?.trim() || '';
+    const errorEl = this.overlay?.querySelector('#settings-muapi-error');
+
+    const fmtErr = validateApiKeyFormat(value, 'Muapi API Key');
+    if (fmtErr) {
+      if (errorEl) {
+        errorEl.textContent = fmtErr;
+        errorEl.style.display = 'block';
+      }
+      return;
+    }
+
+    try {
+      if (value) {
+        await apiKeyManager.setMuapiKey(value, true);
+      } else {
+        apiKeyManager.clearMuapiKey();
+      }
+      this.apiSettings.muapiKey = value;
+      if (errorEl) {
+        errorEl.style.display = 'none';
+        errorEl.textContent = '';
+      }
+    } catch (err) {
+      if (errorEl) {
+        errorEl.textContent = 'Failed to save key: ' + (err.message || 'Unknown error');
+        errorEl.style.display = 'block';
+      }
+      console.error('[SettingsModal] Failed to save Muapi key:', err);
+    }
+    this._syncMuapiKeyField();
+  }
+
+  async _persistVideoDBKey() {
+    const input = this.overlay?.querySelector('#settings-videodb-key');
+    const value = input?.value?.trim() || '';
+    const errorEl = this.overlay?.querySelector('#settings-videodb-error');
+
+    const fmtErr = validateApiKeyFormat(value, 'VideoDB API Key');
+    if (fmtErr) {
+      if (errorEl) {
+        errorEl.textContent = fmtErr;
+        errorEl.style.display = 'block';
+      }
+      return;
+    }
+
+    try {
+      if (value) {
+        await apiKeyManager.setVideoDBKey(value, true);
+      } else {
+        apiKeyManager.clearVideoDBKey();
+      }
+      this.apiSettings.videoDBKey = value;
+      if (errorEl) {
+        errorEl.style.display = 'none';
+        errorEl.textContent = '';
+      }
+    } catch (err) {
+      if (errorEl) {
+        errorEl.textContent = 'Failed to save key: ' + (err.message || 'Unknown error');
+        errorEl.style.display = 'block';
+      }
+      console.error('[SettingsModal] Failed to save VideoDB key:', err);
+    }
+    this._syncVideoDBKeyField();
   }
 }
 

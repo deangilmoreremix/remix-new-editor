@@ -39,6 +39,40 @@ const ALL_APPS = [
 
 let globalStylesAdded = false;
 
+// MiniMax H3 cinematic showcase.
+//
+// Set to false to fall back to the original hero-first ordering. Nothing is
+// removed either way — the existing HeroSection and all 13 original sections
+// always render; the cinematic hero is added above them.
+const ENABLE_CINEMATIC_HERO = true;
+
+/**
+ * Keeps the document to a single <h1> and a single banner landmark once the
+ * cinematic hero is added above the original hero.
+ *
+ * The original hero keeps 100% of its markup, classes, ids, copy and behaviour
+ * (including the typewriter spans) — only the wrapper tag is swapped h1 -> h2
+ * and the duplicate role="banner" is dropped, both of which are pure
+ * accessibility fixes for having two heroes on one page.
+ */
+function demoteLegacyHero(heroEl) {
+  heroEl.removeAttribute('role');
+  heroEl.setAttribute('aria-labelledby', 'hero-headline');
+
+  const legacyHeadline = heroEl.querySelector('h1#hero-headline');
+  if (!legacyHeadline) return;
+
+  const replacement = document.createElement('h2');
+  for (const attribute of Array.from(legacyHeadline.attributes)) {
+    replacement.setAttribute(attribute.name, attribute.value);
+  }
+  while (legacyHeadline.firstChild) {
+    replacement.appendChild(legacyHeadline.firstChild);
+  }
+  legacyHeadline.replaceWith(replacement);
+}
+
+
 function addGlobalStyles() {
   if (globalStylesAdded) return;
   globalStylesAdded = true;
@@ -140,8 +174,16 @@ export default async function LandingPage() {
     const headerEl = LandingHeader();
     container.appendChild(headerEl);
 
+    // NEW: cinematic MiniMax H3 video hero, added above the original hero.
+    if (ENABLE_CINEMATIC_HERO) {
+      const { CinematicVideoHero } = await import('./sections/CinematicVideoHero.jsx');
+      const cinematicHeroEl = CinematicVideoHero();
+      container.appendChild(cinematicHeroEl);
+    }
+
     const { HeroSection } = await import('./sections/HeroSection.jsx');
     const heroEl = HeroSection();
+    if (ENABLE_CINEMATIC_HERO) demoteLegacyHero(heroEl);
     heroEl.classList.add('animate-in');
     heroEl.classList.add('stagger-0');
     container.appendChild(heroEl);
@@ -154,7 +196,6 @@ export default async function LandingPage() {
     const hookSection = createLazySection(() => import('./sections/HookSection.jsx'), 'hook', {}, 1);
     const sixEngines = createLazySection(() => import('./sections/SixEnginesSection.jsx'), 'engines', {}, 2);
     const appsGrid = createLazySection(() => import('./sections/AppsGridSection.jsx'), 'apps', { apps: ALL_APPS }, 3);
-    const demos = createLazySection(() => import('./sections/DemosSection.jsx'), 'demos', {}, 4);
     const features = createLazySection(() => import('./sections/FeaturesSection.jsx'), 'features', {}, 5);
     const problem = createLazySection(() => import('./sections/ProblemSection.jsx'), 'problem', {}, 6);
     const workflow = createLazySection(() => import('./sections/WorkflowSection.jsx'), 'workflow', {}, 7);
@@ -164,12 +205,26 @@ export default async function LandingPage() {
     const offer = createLazySection(() => import('./sections/OfferSection.jsx'), 'offer', {}, 11);
     const finalCTA = createLazySection(() => import('./sections/FinalCTASection.jsx'), 'cta', {}, 12);
 
+    // NEW: MiniMax H3 showcase sections, lazy-loaded with the same observer
+    // pattern as every other section on this page.
+    const aiWorkflow = createLazySection(() => import('./sections/MinimaxWorkflowSection.jsx'), 'ai-workflow', {}, 2);
+    const madeWith = createLazySection(() => import('./sections/MadeWithSmartVideo.jsx'), 'made-with', {}, 4);
+    const ugcShowcase = createLazySection(() => import('./sections/UGCDemoShowcase.jsx'), 'ugc', {}, 5);
+    const videoGallery = createLazySection(() => import('./sections/AIVideoGallery.jsx'), 'gallery', {}, 6);
+    const academyShowcase = createLazySection(() => import('./sections/AcademyVideoShowcase.jsx'), 'academy', {}, 7);
+    const repoShowcase = createLazySection(() => import('./sections/RepoShowcase.jsx'), 'repos', {}, 8);
+
     container.appendChild(scrollingStrip);
     container.appendChild(hookSection);
+    container.appendChild(aiWorkflow);      // NEW
     container.appendChild(sixEngines);
     container.appendChild(appsGrid);
-    container.appendChild(demos);
+    container.appendChild(madeWith);        // NEW
+    container.appendChild(ugcShowcase);     // NEW
     container.appendChild(features);
+    container.appendChild(videoGallery);    // NEW
+    container.appendChild(academyShowcase); // NEW
+    container.appendChild(repoShowcase);    // NEW
     container.appendChild(problem);
     container.appendChild(workflow);
     container.appendChild(comparison);
@@ -177,6 +232,24 @@ export default async function LandingPage() {
     container.appendChild(agency);
     container.appendChild(offer);
     container.appendChild(finalCTA);
+
+    // Persistent floating entry point for the GTM Boost (cinematic prompt) modal,
+    // so it is reachable directly from the landing page without entering a studio.
+    try {
+      const gtmFab = document.createElement('button');
+      gtmFab.type = 'button';
+      gtmFab.textContent = '🎯 GTM Boost';
+      gtmFab.setAttribute('aria-label', 'Open GTM Boost prompt enhancer');
+      gtmFab.style.cssText = 'position:fixed;right:20px;bottom:20px;z-index:9999;padding:12px 18px;border:none;border-radius:9999px;background:linear-gradient(135deg,#3b82f6,#06b6d4);color:#fff;font-weight:600;font-size:14px;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,0.35);';
+      gtmFab.addEventListener('click', () => {
+        import('../../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+          openGTMPromptModal('timeline-editor', () => {});
+        }).catch((err) => console.error('[Landing] GTM Boost failed:', err));
+      });
+      container.appendChild(gtmFab);
+    } catch (fabErr) {
+      console.error('[Landing] failed to mount GTM Boost FAB:', fabErr);
+    }
   } catch (error) {
     console.error('Error rendering landing page:', error);
     container.innerHTML = `

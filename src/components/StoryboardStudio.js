@@ -6,28 +6,6 @@ import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCa
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { openaiService } from '../lib/openaiService.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
-import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
-import { requireEntitlement } from '../lib/clerkEntitlements.js';
-import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
-import { showToast } from '../lib/loading.js';
-import { t2iModels, getAspectRatiosForModel } from '../lib/models.js';
-import { ENHANCE_TAGS, QUICK_PROMPTS, buildNanoBananaPrompt } from '../lib/promptUtils.js';
-import { PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
-import { createUploadPicker } from './UploadPicker.js';
-import { createFullscreenPreview } from '../components/MediaPreview.js';
-import Store from '../stores/base/Store.js';
-import { createAutosave, saveProject, saveProjectSync, loadProjectFromStorage, setSupabaseClient } from '../lib/editor/persistence.js';
-
-let supabaseAvailable = false;
-try {
-  const supabaseModule = await import('../lib/supabase.js');
-  if (supabaseModule.isSupabaseConfigured && supabaseModule.isSupabaseConfigured()) {
-    setSupabaseClient(supabaseModule.supabase);
-    supabaseAvailable = true;
-  }
-} catch (e) {
-  console.warn('[StoryboardStudio] Supabase not available:', e);
-}
 
 const SHOT_TYPES = ['Wide Shot', 'Medium Shot', 'Close-Up', 'Extreme Close-Up', 'POV', 'Overhead', 'Low Angle'];
 
@@ -155,7 +133,8 @@ function createUndoRedo() {
   return { push, undo, redo, canUndo, canRedo };
 }
 
-export function StoryboardStudio() {
+export function StoryboardStudio(options = {}) {
+  const { embedded = false, onBack } = options;
   const undoRedo = createUndoRedo();
   const autosave = createAutosave({
     debounceMs: 1500,
@@ -167,20 +146,19 @@ export function StoryboardStudio() {
   mountStudioChrome(container, { currentRoute: 'storyboard' });
   container.setAttribute('data-app', 'storyboard');
 
-  const fullscreen = createFullscreenPreview();
-  container.appendChild(fullscreen.element);
-
   const topBar = document.createElement('div');
   topBar.className = 'px-4 md:px-8 pt-6 pb-4 shrink-0';
-  const storyBanner = createHeroSection('storyboard', 'h-32 md:h-44 mb-4');
-  if (storyBanner) {
-    const bannerText = document.createElement('div');
-    bannerText.className = 'absolute bottom-0 left-0 right-0 p-4 z-10';
-    bannerText.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Storyboard Studio</h1><p class="text-white/60 text-xs">Plan your scenes with AI-generated storyboard frames</p>';
-    storyBanner.appendChild(bannerText);
-    topBar.appendChild(storyBanner);
-  } else {
-    topBar.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Storyboard Studio</h1><p class="text-secondary text-xs mb-4">Plan your scenes with AI-generated storyboard frames</p>';
+  if (!embedded) {
+    const storyBanner = createHeroSection('storyboard', 'h-32 md:h-44 mb-4');
+    if (storyBanner) {
+      const bannerText = document.createElement('div');
+      bannerText.className = 'absolute bottom-0 left-0 right-0 p-4 z-10';
+      bannerText.innerHTML = `<h1 class="${CINEMATIC_THEME.text.title} text-white mb-1">Storyboard Studio</h1><p class="${CINEMATIC_THEME.text.eyebrow} text-white/60">Plan your scenes with AI-generated storyboard frames</p>`;
+      storyBanner.appendChild(bannerText);
+      topBar.appendChild(storyBanner);
+    } else {
+      topBar.innerHTML = `<h1 class="${CINEMATIC_THEME.text.title} text-white mb-1">Storyboard Studio</h1><p class="${CINEMATIC_THEME.text.eyebrow} text-secondary mb-4">Plan your scenes with AI-generated storyboard frames</p>`;
+    }
   }
   const inlineInstructions = createInlineInstructions('storyboard');
   inlineInstructions.classList.add('px-4', 'md:px-8', 'mt-2');
@@ -188,14 +166,211 @@ export function StoryboardStudio() {
 
   container.appendChild(topBar);
 
+  let generatedStoryboard = null;
+
+  const videoIntentSection = document.createElement('div');
+  videoIntentSection.className = 'px-4 md:px-8 mb-4';
+  videoIntentSection.innerHTML = `
+    <div class="bg-white/5 border border-white/10 rounded-xl p-4 md:p-6">
+      <button id="video-intent-toggle" class="flex items-center justify-between w-full text-left mb-4">
+        <span class="${CINEMATIC_THEME.text.body} font-bold text-white">Video Intent</span>
+        <svg id="video-intent-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="text-white/60 transition-transform"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div id="video-intent-form" class="hidden">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Video Type</label>
+            <select id="vi-videoType" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer">
+              <option value="commercial">Commercial</option>
+              <option value="brand film">Brand Film</option>
+              <option value="trailer">Trailer</option>
+              <option value="social reel">Social Reel</option>
+              <option value="testimonial">Testimonial</option>
+              <option value="documentary">Documentary</option>
+              <option value="short film">Short Film</option>
+              <option value="explainer">Explainer</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Duration (seconds)</label>
+            <input type="number" id="vi-duration" value="60" min="10" max="300" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Aspect Ratio</label>
+            <select id="vi-aspectRatio" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer">
+              <option value="16:9">16:9</option>
+              <option value="9:16">9:16</option>
+              <option value="1:1">1:1</option>
+              <option value="4:5">4:5</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Tone</label>
+            <select id="vi-tone" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer">
+              <option value="dramatic">Dramatic</option>
+              <option value="cinematic">Cinematic</option>
+              <option value="upbeat">Upbeat</option>
+              <option value="luxury">Luxury</option>
+              <option value="gritty">Gritty</option>
+              <option value="minimal">Minimal</option>
+              <option value="emotional">Emotional</option>
+              <option value="humorous">Humorous</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Style Preset</label>
+            <select id="vi-stylePreset" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer">
+              <option value="None">None</option>
+              <option value="Photorealistic">Photorealistic</option>
+              <option value="Cinematic">Cinematic</option>
+              <option value="Noir">Noir</option>
+              <option value="Anime">Anime</option>
+              <option value="Watercolor">Watercolor</option>
+              <option value="Oil Painting">Oil Painting</option>
+              <option value="Cyberpunk">Cyberpunk</option>
+              <option value="Fantasy">Fantasy</option>
+              <option value="Documentary">Documentary</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Lighting Preset</label>
+            <select id="vi-lightingPreset" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer">
+              <option value="None">None</option>
+              <option value="Golden Hour">Golden Hour</option>
+              <option value="Neon">Neon</option>
+              <option value="Studio">Studio</option>
+              <option value="Dramatic">Dramatic</option>
+              <option value="Soft">Soft</option>
+              <option value="Volumetric">Volumetric</option>
+              <option value="High Key">High Key</option>
+              <option value="Low Key">Low Key</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Color Grade</label>
+            <select id="vi-colorGrade" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer">
+              <option value="None">None</option>
+              <option value="Warm">Warm</option>
+              <option value="Cool">Cool</option>
+              <option value="Desaturated">Desaturated</option>
+              <option value="Vibrant">Vibrant</option>
+              <option value="Monochrome">Monochrome</option>
+              <option value="Sepia">Sepia</option>
+              <option value="Teal & Orange">Teal & Orange</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Target Audience</label>
+            <input type="text" id="vi-targetAudience" placeholder="e.g. Gen Z, professionals" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs placeholder:text-muted focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Call to Action (optional)</label>
+            <input type="text" id="vi-cta" placeholder="e.g. Buy now, Sign up" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs placeholder:text-muted focus:outline-none" />
+          </div>
+        </div>
+        <div class="mb-4">
+          <label class="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Subject</label>
+          <input type="text" id="vi-subject" placeholder="What is the video about?" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs placeholder:text-muted focus:outline-none" />
+        </div>
+        <div class="mb-4">
+          <label class="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Premise</label>
+          <textarea id="vi-premise" rows="3" placeholder="Core narrative or value prop..." class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs placeholder:text-muted focus:outline-none resize-none"></textarea>
+        </div>
+        <div class="flex items-center gap-3 flex-wrap">
+          <button id="vi-generate-btn" class="px-4 py-2 bg-primary text-black rounded-xl text-xs font-bold hover:shadow-glow transition-all">Generate Storyboard</button>
+          <button id="vi-template-btn" class="hidden px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-white hover:bg-white/10 transition-all">Send to Template Studio</button>
+          <span id="vi-status" class="text-[10px] text-muted"></span>
+        </div>
+        <p class="text-[10px] text-muted mt-3">Describe your video and we'll generate a complete storyboard with frames, shots, and prompts.</p>
+      </div>
+    </div>
+  `;
+
+  container.appendChild(videoIntentSection);
+
+  const toggleBtn = videoIntentSection.querySelector('#video-intent-toggle');
+  const formEl = videoIntentSection.querySelector('#video-intent-form');
+  const chevron = videoIntentSection.querySelector('#video-intent-chevron');
+  toggleBtn.addEventListener('click', () => {
+    const isHidden = formEl.classList.contains('hidden');
+    formEl.classList.toggle('hidden');
+    chevron.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+  });
+
+  // Sync standalone form into shared store
+  if (!embedded) {
+    const syncFormToStore = () => {
+      setVideoIntent({
+        videoType: videoIntentSection.querySelector('#vi-videoType')?.value || getVideoIntent().videoType,
+        duration: parseInt(videoIntentSection.querySelector('#vi-duration')?.value || getVideoIntent().duration, 10),
+        aspectRatio: videoIntentSection.querySelector('#vi-aspectRatio')?.value || getVideoIntent().aspectRatio,
+        tone: videoIntentSection.querySelector('#vi-tone')?.value || getVideoIntent().tone,
+        stylePreset: videoIntentSection.querySelector('#vi-stylePreset')?.value || getVideoIntent().stylePreset,
+        lightingPreset: videoIntentSection.querySelector('#vi-lightingPreset')?.value || getVideoIntent().lightingPreset,
+        colorGrade: videoIntentSection.querySelector('#vi-colorGrade')?.value || getVideoIntent().colorGrade,
+        targetAudience: videoIntentSection.querySelector('#vi-targetAudience')?.value || getVideoIntent().targetAudience,
+        cta: videoIntentSection.querySelector('#vi-cta')?.value || getVideoIntent().cta,
+        subject: videoIntentSection.querySelector('#vi-subject')?.value || getVideoIntent().subject,
+        premise: videoIntentSection.querySelector('#vi-premise')?.value || getVideoIntent().premise,
+      });
+    };
+    videoIntentSection.querySelectorAll('input, select, textarea').forEach(el => {
+      el.addEventListener('input', syncFormToStore);
+      el.addEventListener('change', syncFormToStore);
+    });
+  }
+
+  const generateBtn = videoIntentSection.querySelector('#vi-generate-btn');
+  const templateBtn = videoIntentSection.querySelector('#vi-template-btn');
+  const statusEl = videoIntentSection.querySelector('#vi-status');
+
+  generateBtn.addEventListener('click', async () => {
+    if (!(await requireEntitlement())) return;
+    const intent = {
+      ...getVideoIntent(),
+      model: selectedModel,
+      customThumbnailUrl: customThumbnailUrl || undefined,
+    };
+
+    generateBtn.disabled = true;
+    generateBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Generating...';
+    statusEl.textContent = 'Generating storyboard...';
+
+    try {
+      const result = await generateStoryboardFromIntent(intent, { generateImages: true });
+      generatedStoryboard = result;
+      frames.length = 0;
+      frames.push(...result.frames.map(f => ({ ...f, imageUrl: f.imageUrl || null })));
+      frameDurations = frames.map(() => Math.max(2, Math.round(intent.duration / frames.length)));
+      layout = 'grid';
+      layoutSelect.value = 'grid';
+      renderFrames();
+      templateBtn.classList.remove('hidden');
+      statusEl.textContent = `Generated ${result.frames.length} frames`;
+      showToast('Storyboard generated from intent', 'success');
+    } catch (err) {
+      statusEl.textContent = '';
+      showToast('Generation failed: ' + err.message, 'error');
+    } finally {
+      generateBtn.disabled = false;
+      generateBtn.textContent = 'Generate Storyboard';
+    }
+  });
+
+  templateBtn.addEventListener('click', () => {
+    if (!generatedStoryboard) return;
+    if (typeof window.useStoryboardInTemplate === 'function') {
+      window.useStoryboardInTemplate(generatedStoryboard);
+    } else {
+      navigate('cinema-template', { storyboard: JSON.stringify(generatedStoryboard) });
+    }
+  });
+
   const frames = [
     { prompt: '', narration: '', shot: 'Wide Shot', imageUrl: null, notes: '', referenceImages: [] },
     { prompt: '', narration: '', shot: 'Medium Shot', imageUrl: null, notes: '', referenceImages: [] },
     { prompt: '', narration: '', shot: 'Close-Up', imageUrl: null, notes: '', referenceImages: [] },
   ];
-
-  let comparisonMode = false;
-  let compareIndices = [0, 0];
 
   let frameDurations = frames.map(() => 3);
 
@@ -369,6 +544,36 @@ export function StoryboardStudio() {
   genAllBtn.setAttribute('aria-label', 'Generate all frames');
   controlBar.appendChild(genAllBtn);
 
+  // Premium GTM Boost entry point — opens the cinematic prompt enhancer.
+  // Produces a conversion-optimized base concept that is propagated to every
+  // frame (prepended to each frame's own prompt at generation time).
+  let enhancedConcept = '';
+  const gtmBtn = document.createElement('button');
+  gtmBtn.type = 'button';
+  gtmBtn.textContent = '🎯 GTM Boost';
+  gtmBtn.title = 'Enhance your storyboard with GTM conversion frameworks';
+  gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
+  gtmBtn.className = 'gtm-boost-btn shrink-0';
+  gtmBtn.addEventListener('click', () => {
+    import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+      openGTMPromptModal('storyboard', (prompt) => {
+        enhancedConcept = prompt;
+        gtmBtn.classList.add('active');
+        // Re-render so any visible "boosted" indicator stays in sync.
+        renderFrames();
+      });
+    }).catch((err) => console.error('[StoryboardStudio] GTM Boost failed:', err));
+  });
+  controlBar.appendChild(gtmBtn);
+
+  const personalizeTrigger = mountPersonalizeTrigger({ controlsContainer: controlBar, appId: 'storyboard', getTextarea: () => null });
+  // Live reference to the active personalization profile so generateFrame can
+  // resolve {{tokens}} at generation time without mutating the textarea.
+  const activeProfileRef = { value: null };
+  const syncProfile = () => { activeProfileRef.value = personalizeTrigger?.getActiveProfile?.() || null; };
+  syncProfile();
+  window.addEventListener('remix:contact-changed', syncProfile);
+
   const progressLabel = document.createElement('span');
   progressLabel.className = 'text-[10px] text-muted tabular-nums';
   progressLabel.textContent = '';
@@ -405,79 +610,6 @@ export function StoryboardStudio() {
   };
   controlBar.appendChild(retryBtn);
 
-  const styleLabel = document.createElement('span');
-  styleLabel.className = 'text-xs font-bold text-secondary';
-  styleLabel.textContent = 'Style:';
-  controlBar.appendChild(styleLabel);
-
-  const styleSelect = document.createElement('select');
-  styleSelect.className = 'bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer';
-  STYLE_OPTIONS.forEach(s => {
-    const opt = document.createElement('option');
-    opt.value = s;
-    opt.textContent = s;
-    opt.style.background = '#111';
-    if (s === selectedStyle) opt.selected = true;
-    styleSelect.appendChild(opt);
-  });
-  styleSelect.onchange = () => { selectedStyle = styleSelect.value; };
-  controlBar.appendChild(styleSelect);
-
-  const lightingLabel = document.createElement('span');
-  lightingLabel.className = 'text-xs font-bold text-secondary';
-  lightingLabel.textContent = 'Lighting:';
-  controlBar.appendChild(lightingLabel);
-
-  const lightingSelect = document.createElement('select');
-  lightingSelect.className = 'bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer';
-  LIGHTING_OPTIONS.forEach(l => {
-    const opt = document.createElement('option');
-    opt.value = l;
-    opt.textContent = l;
-    opt.style.background = '#111';
-    if (l === selectedLighting) opt.selected = true;
-    lightingSelect.appendChild(opt);
-  });
-  lightingSelect.onchange = () => { selectedLighting = lightingSelect.value; };
-  controlBar.appendChild(lightingSelect);
-
-  const colorLabel = document.createElement('span');
-  colorLabel.className = 'text-xs font-bold text-secondary';
-  colorLabel.textContent = 'Color:';
-  controlBar.appendChild(colorLabel);
-
-  const colorSelect = document.createElement('select');
-  colorSelect.className = 'bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer';
-  COLOR_OPTIONS.forEach(c => {
-    const opt = document.createElement('option');
-    opt.value = c;
-    opt.textContent = c;
-    opt.style.background = '#111';
-    if (c === selectedColor) opt.selected = true;
-    colorSelect.appendChild(opt);
-  });
-  colorSelect.onchange = () => { selectedColor = colorSelect.value; };
-  controlBar.appendChild(colorSelect);
-
-  let enhancedConcept = '';
-  let customThumbnailUrl = getCustomThumbnailFromCache('storyboard-studio');
-  const gtmBtn = document.createElement('button');
-  gtmBtn.type = 'button';
-  gtmBtn.textContent = '🎯 GTM Boost';
-  gtmBtn.title = 'Enhance your storyboard with GTM conversion frameworks';
-  gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
-  gtmBtn.className = 'gtm-boost-btn shrink-0';
-  gtmBtn.addEventListener('click', () => {
-    import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-      openGTMPromptModal('storyboard-studio', (prompt) => {
-        enhancedConcept = prompt;
-        gtmBtn.classList.add('active');
-        renderFrames();
-      });
-    }).catch((err) => console.error('[StoryboardStudio] GTM Boost failed:', err));
-  });
-  controlBar.appendChild(gtmBtn);
-
   const thumbBtn = document.createElement('button');
   thumbBtn.type = 'button';
   thumbBtn.textContent = '🖼 Thumbnail';
@@ -509,12 +641,6 @@ export function StoryboardStudio() {
     saveCustomThumbnailToCache('storyboard-studio', imageUrl);
     renderFrames();
   });
-
-  const personalizeTrigger = mountPersonalizeTrigger({ controlsContainer: controlBar, appId: 'storyboard', getTextarea: () => null });
-  const activeProfileRef = { value: null };
-  const syncProfile = () => { activeProfileRef.value = personalizeTrigger?.getActiveProfile?.() || null; };
-  syncProfile();
-  window.addEventListener('remix:contact-changed', syncProfile);
 
   const exportBtn = document.createElement('button');
   exportBtn.className = 'px-4 py-2 bg-white/10 border border-white/10 rounded-xl text-xs font-bold text-white hover:bg-white/20 transition-all ml-auto';
@@ -617,7 +743,7 @@ export function StoryboardStudio() {
               <span>Available models</span>
               <span data-provider-badge class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60 hidden"></span>
             </div>
-            <div data-model-list></div>
+            <div data-model-list"></div>
           </div>
         </div>
       `;
@@ -642,6 +768,10 @@ export function StoryboardStudio() {
           document.getElementById('model-btn-label').textContent = selectedModelName;
           document.getElementById('ar-btn-label').textContent = selectedAr;
           updateModelBtnIcon();
+          if (dynamicControls) {
+            dynamicControls.update(getExtendedModel(getModelById(selectedModel)));
+            dynamicControls.setValue('aspect_ratio', selectedAr);
+          }
           closeDropdown();
         });
 
@@ -768,12 +898,60 @@ export function StoryboardStudio() {
 
   container.appendChild(controlBar);
 
+  // ==========================================
+  // ADVANCED OPTIONS PANEL (control engine)
+  // ==========================================
+  const advancedPanel = document.createElement('div');
+  advancedPanel.className = 'px-4 md:px-8 mb-4 animate-fade-in-up';
+  advancedPanel.id = 'storyboard-advanced-panel';
+  const advancedCard = document.createElement('div');
+  advancedCard.className = 'bg-white/[0.06] backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex flex-col gap-4';
+  advancedPanel.appendChild(advancedCard);
+
+  const advHeader = document.createElement('div');
+  advHeader.className = 'flex items-center justify-between pb-3 border-b border-white/5';
+  advHeader.innerHTML = `
+    <h3 class="${CINEMATIC_THEME.text.body} font-bold text-white">Advanced Options</h3>
+    <button id="close-storyboard-adv-btn" class="text-white/40 hover:text-white transition-colors">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  `;
+  advancedPanel.appendChild(advHeader);
+
+  const advancedControlsContainer = document.createElement('div');
+  advancedControlsContainer.className = 'flex flex-col gap-4';
+  advancedCard.appendChild(advancedControlsContainer);
+
+  const dynamicControls = createAdvancedControls({
+    model: getExtendedModel(getModelById(selectedModel)),
+    state: {},
+    container: advancedControlsContainer,
+    exclude: new Set(['style', 'lighting', 'color', 'prompt', 'batch_count']),
+    extraInputs: {
+      style: { type: 'enum', title: 'Style', options: STYLE_OPTIONS, default: 'None', group: 'basic' },
+      lighting: { type: 'enum', title: 'Lighting', options: LIGHTING_OPTIONS, default: 'None', group: 'basic' },
+      color: { type: 'enum', title: 'Color Grade', options: COLOR_OPTIONS, default: 'None', group: 'basic' },
+    },
+    onChange: (key, value) => {
+      if (key === 'style')    { selectedStyle    = value; }
+      if (key === 'lighting') { selectedLighting = value; }
+      if (key === 'color')    { selectedColor    = value; }
+      if (key === 'aspect_ratio') { selectedAr = value; if (updateArBtn) updateArBtn(); }
+      if (key === 'negative_prompt') { currentSettings.negativePrompt = value; }
+    }
+  });
+  container.appendChild(advancedPanel);
+
+  advancedPanel.querySelector('#close-storyboard-adv-btn').onclick = () => {
+    advancedPanel.classList.add('hidden');
+  };
+
   const comparisonOverlay = document.createElement('div');
   comparisonOverlay.className = 'fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4';
   comparisonOverlay.innerHTML = `
     <div class="bg-app-bg border border-white/10 rounded-2xl shadow-4xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden">
       <div class="flex items-center justify-between px-6 py-4 border-b border-white/5 shrink-0">
-        <h2 class="text-sm font-bold text-white tracking-tight">Compare Frames</h2>
+        <h2 class="${CINEMATIC_THEME.text.body} font-bold text-white tracking-tight">Compare Frames</h2>
         <button class="compare-close-btn text-muted hover:text-white transition-colors text-lg leading-none px-2">&times;</button>
       </div>
       <div class="flex-1 overflow-y-auto p-6">
@@ -1003,6 +1181,7 @@ export function StoryboardStudio() {
       promptInput.oninput = () => { frame.prompt = promptInput.value; autosave.schedule(getStoryboardState()); };
       card.appendChild(promptInput);
 
+      // Per-frame GTM Boost — enhances this single frame's prompt.
       const frameEnhanceBtn = document.createElement('button');
       frameEnhanceBtn.type = 'button';
       frameEnhanceBtn.className = 'self-start text-xs font-bold text-primary hover:text-white transition-colors frame-enhance-btn';
@@ -1010,7 +1189,7 @@ export function StoryboardStudio() {
       frameEnhanceBtn.title = 'Enhance this frame with GTM conversion frameworks';
       frameEnhanceBtn.addEventListener('click', () => {
         import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-          openGTMPromptModal('storyboard-studio', (prompt) => {
+          openGTMPromptModal('storyboard', (prompt) => {
             frame.enhancedPrompt = prompt;
             frameEnhanceBtn.textContent = '🎯 Enhanced';
             frameEnhanceBtn.classList.add('active');
@@ -1026,6 +1205,7 @@ export function StoryboardStudio() {
       enhanceRow.appendChild(frameEnhanceBtn);
       card.appendChild(enhanceRow);
 
+      // Narration input
       const narrationInput = document.createElement('input');
       narrationInput.type = 'text';
       narrationInput.className = 'w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs placeholder:text-muted focus:outline-none focus:border-primary/50';
@@ -1144,7 +1324,11 @@ export function StoryboardStudio() {
       genFrameBtn.setAttribute('aria-label', 'Generate frame');
       genFrameBtn.onclick = async () => {
         if (!(await requireEntitlement())) return;
-        generateFrame(idx, genFrameBtn, imageArea);
+        try {
+          await generateFrame(idx, genFrameBtn, imageArea);
+        } catch (err) {
+          // Error already shown in generateFrame
+        }
       };
       card.appendChild(genFrameBtn);
 
@@ -1229,7 +1413,7 @@ export function StoryboardStudio() {
 
   async function generateFrame(idx, btn, imageArea) {
     const frame = frames[idx];
-    if (!frame.prompt.trim()) { showToast('Enter a scene description', 'warning'); return; }
+    if (!frame.prompt.trim()) { alert('Enter a scene description'); return; }
     const hasKey = apiKeyManager.hasOpenAIKey() || apiKeyManager.hasMuapiKey();
     if (!hasKey) { AuthModal(() => generateFrame(idx, btn, imageArea)); return; }
 
@@ -1237,42 +1421,24 @@ export function StoryboardStudio() {
     btn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span>';
 
     try {
+      // Resolve personalization tokens at generation time only (tokens stay
+      // visible in the textarea until now).
       let rawPrompt = frame.prompt;
       if (frame.enhancedPrompt) {
+        // Per-frame GTM Boost output takes precedence for this frame.
         rawPrompt = `${frame.enhancedPrompt} — ${frame.shot} composition`;
       } else if (enhancedConcept) {
+        // Global GTM Boost concept propagated to every frame.
         rawPrompt = `${enhancedConcept} Scene: ${frame.prompt} (${frame.shot})`;
       }
       const profile = activeProfileRef.value;
       const resolvedPrompt = profile ? replaceTokensInPrompt(rawPrompt, profile) : rawPrompt;
 
-      const cinematicPrompt = buildNanoBananaPrompt(
-        `${frame.shot} storyboard frame: ${resolvedPrompt}`,
-        'Full-Frame Cine Digital',
-        'Classic Anamorphic',
-        50,
-        'f/1.4'
-      ) + (selectedStyle !== 'None' ? `, ${selectedStyle.toLowerCase()} style` : '')
-      + (selectedLighting !== 'None' ? `, ${selectedLighting.toLowerCase()} lighting` : '')
-      + (selectedColor !== 'None' ? `, ${selectedColor.toLowerCase()} color grade` : '');
-
-      const url = await generateFrameImage(cinematicPrompt);
+      const prompt = `${frame.shot} cinematic storyboard frame: ${resolvedPrompt}, professional cinematography, 4K quality`;
+      const url = await generateFrameImage(prompt);
       if (url) {
         frame.imageUrl = url;
-        imageArea.innerHTML = '';
-        const img = document.createElement('img');
-        img.src = url;
-        img.className = 'w-full h-full object-cover cursor-pointer';
-        img.alt = `Storyboard frame ${idx + 1}`;
-        img.onclick = () => {
-          fullscreen.show(url, {
-            type: 'image',
-            prompt: frame.prompt,
-            model: selectedModelName,
-            shot: frame.shot,
-          });
-        };
-        imageArea.appendChild(img);
+        imageArea.innerHTML = `<img src="${url}" class="w-full h-full object-cover">`;
       }
     } catch (err) {
       showToast(`Error: ${err.message}`, 'error');
@@ -1283,36 +1449,38 @@ export function StoryboardStudio() {
     }
   }
 
-  async function generateFrameImage(prompt) {
-    if (apiKeyManager.hasOpenAIKey()) {
-      try {
-        const { images } = await openaiService.generateImageResponses({
-          input: prompt,
-          size: resolveOpenAISize(selectedAr),
-          quality: 'auto',
-          outputFormat: 'png',
-          customThumbnailUrl: customThumbnailUrl || undefined,
-        });
-        const img = images?.[0];
-        if (!img) return null;
-        return img.base64 ? `data:image/png;base64,${img.base64}` : img.url || null;
-      } catch (err) {
-        if (!apiKeyManager.hasMuapiKey()) throw err;
-        console.warn('[StoryboardStudio] OpenAI Responses generation failed, falling back to MuAPI:', err.message);
-      }
-    }
-    const result = await muapi.generateImage({ model: selectedModel, prompt, aspect_ratio: selectedAr, customThumbnailUrl: customThumbnailUrl || undefined });
-    return result?.url || null;
-  }
+  /**
+   * Generate a single storyboard frame image. Prefers the user's OpenAI key
+   * (direct to the OpenAI Image API) and falls back to MuAPI when only a MuAPI
+   * key is configured.
+   * @param {string} prompt
+   * @returns {Promise<string|null>} image URL/data-URL or null
+   */
+   async function generateFrameImage(prompt) {
+     if (apiKeyManager.hasOpenAIKey()) {
+       try {
+         const { images } = await openaiService.generateImageResponses({
+           input: prompt,
+           size: '16:9',
+           quality: 'auto',
+           outputFormat: 'png',
+         });
+         const img = images?.[0];
+         if (!img) return null;
+         return img.base64 ? `data:image/png;base64,${img.base64}` : img.url || null;
+       } catch (err) {
+         // Surface OpenAI-specific failures clearly; MuAPI fallback below.
+         if (!apiKeyManager.hasMuapiKey()) throw err;
+         console.warn('[StoryboardStudio] OpenAI Responses generation failed, falling back to MuAPI:', err.message);
+       }
+     }
+     const result = await muapi.generateImage({ model: 'nano-banana', prompt, aspect_ratio: '16:9' });
+     return result?.url || null;
+   }
 
   genAllBtn.onclick = async () => {
     const hasKey = apiKeyManager.hasOpenAIKey() || apiKeyManager.hasMuapiKey();
     if (!hasKey) { AuthModal(() => genAllBtn.click()); return; }
-
-    generationProgress = { current: 0, total: frames.filter(f => f.prompt.trim()).length, failed: [] };
-    batchRetryCount = 0;
-    updateProgressLabel();
-    retryBtn.classList.add('hidden');
 
     genAllBtn.disabled = true;
     genAllBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Generating...';

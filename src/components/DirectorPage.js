@@ -1,8 +1,8 @@
 import { navigate } from '../lib/router.js';
 import { showToast } from '../lib/loading.js';
-import { escapeHtml } from '../lib/security.js';
-import { apiKeyManager } from '../lib/apiKeyManager.js';
-import { requireEntitlement } from '../lib/clerkEntitlements.js';
+import { mountStudioChrome } from '../lib/studioChrome.js';
+import { supabase } from '../lib/supabase.js';
+import { createIcons, icons } from 'lucide';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  DIRECTOR AGENTS — 45 production-ready agents wired to the real backend.
@@ -400,8 +400,9 @@ const AGENT_STEPS = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function DirectorPage() {
-    const container = document.createElement('div');
-    container.className = 'w-full h-full flex flex-col overflow-hidden bg-app-bg';
+  const container = document.createElement('div');
+  container.className = 'w-full h-full overflow-hidden bg-[#08090b]';
+  mountStudioChrome(container, { currentRoute: 'director' });
 
     const urlParams = new URLSearchParams(window.location.search);
     const videoId = urlParams.get('videoId') || '';

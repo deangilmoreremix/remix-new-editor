@@ -304,30 +304,30 @@ export class StudioThumbnailModal extends TemplateThumbnailModal {
    * falls back to the broader Settings modal which also exposes the
    * OpenAI form.
    */
-  _openSettingsModal() {
-    const tryImport = (path) => import(/* @vite-ignore */ path).catch(() => null);
-    (async () => {
-      const mod =
-        (await tryImport('../../components/ApiKeyModal.js')) ||
-        (await tryImport('../../components/ApiKeyModal.jsx')) ||
-        (await tryImport('../../components/SettingsModal.js'));
-      if (!mod) return;
-      const Ctor = mod.default || mod.ApiKeyModal || mod.SettingsModal;
-      if (typeof Ctor !== 'function') return;
-      try {
-        const inst = new Ctor();
-        if (typeof inst.open === 'function') {
-          inst.open();
-        } else {
-          // Some modals are factory functions that return a DOM node.
-          const el = Ctor({ open: true });
-          if (el && el instanceof HTMLElement) document.body.appendChild(el);
-        }
-      } catch (err) {
-        console.warn('[thumbnail-panel] failed to open settings modal', err);
-      }
-    })();
-  }
+   _openSettingsModal() {
+     const tryImport = (path) => import(/* @vite-ignore */ path).catch(() => null);
+     (async () => {
+       const mod =
+         (await tryImport('../../components/ApiKeyModal.js')) ||
+         (await tryImport('../../components/ApiKeyModal.jsx')) ||
+         (await tryImport('../../components/SettingsModal.js'));
+       if (!mod) return;
+       const Ctor = mod.default || mod.ApiKeyModal || mod.SettingsModal;
+       if (typeof Ctor !== 'function') return;
+       try {
+         // The vanilla SettingsModal is a factory function that returns a
+         // DOM overlay. Class-based modals expose .open() instead.
+         const inst = new Ctor();
+         if (typeof inst.open === 'function') {
+           inst.open();
+         } else if (inst instanceof HTMLElement) {
+           document.body.appendChild(inst);
+         }
+       } catch (err) {
+         console.warn('[thumbnail-panel] failed to open settings modal', err);
+       }
+     })();
+   }
 
   /**
    * Update the key-source badge after an edge function call returns.

@@ -2,7 +2,6 @@ import { getTemplateById } from '../lib/templates.js';
 import { getTemplateThumbnailCandidates, saveCustomThumbnailToCache, clearCustomThumbnailCache, getCustomThumbnailFromCache } from '../lib/thumbnails.js';
 import { getTemplateSpecs, hasEnhancedSpecs } from '../lib/templateSpecs.js';
 import { muapi } from '../lib/muapi.js';
-import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { getNicheTerms, enrichPromptString, deriveEngineInputFromTemplate, composeNegativePrompt } from '../lib/templateEngine.js';
 import { NICHE_ENRICHMENT, FILM_FAMILIES } from '../lib/templateMatrix.js';
 import { t2iModels, i2iModels, i2vModels } from '../lib/models.js';
@@ -43,7 +42,6 @@ export function TemplateStudio(templateId) {
   let activeTab = 'Enhanced Prompt';
   let aiEnhancer = true;
   let lastBuiltPrompt = '';
-  const outputTabValues = {};
   let showAdvanced = false;
   let uploadedUrl = null;
   let isGenerating = false;
@@ -105,10 +103,6 @@ export function TemplateStudio(templateId) {
         <button class="hover:text-white transition" data-nav="assist">Assist</button>
         <button class="hover:text-white transition" data-nav="community">Community</button>
       </div>
-      <div id="api-key-indicator" class="ml-auto flex items-center gap-2">
-        <span class="api-key-dot w-2 h-2 rounded-full bg-zinc-600"></span>
-        <span class="api-key-text text-[10px] uppercase tracking-wider text-zinc-500">No API key</span>
-      </div>
     </div>
   `;
   main.appendChild(navHeader);
@@ -133,57 +127,6 @@ export function TemplateStudio(templateId) {
   backBtn.innerHTML = '&larr; Back to Apps';
   backBtn.onclick = () => navigate('templates');
   contentArea.appendChild(backBtn);
-
-  // Cinematic wizard CTA: opt-in alternative flow for templates flagged
-  // `cinematic: true`. Hidden by default; clicking mounts the wizard inline
-  // in place of the standard form.
-  let wizardMounted = false;
-  let wizardContainer = null;
-  if (template.cinematic) {
-    const wizardRow = document.createElement('div');
-    wizardRow.className = 'mb-6 flex items-center gap-3 p-3 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl';
-    wizardRow.innerHTML = `
-      <div class="flex-1 min-w-0">
-        <div class="text-sm font-bold text-white">Cinematic wizard available</div>
-        <div class="text-xs text-secondary">Step-by-step storyboard builder with scene structure, visual style, and brand context.</div>
-      </div>
-      <button id="open-wizard-btn" class="px-4 py-2 bg-emerald-500 text-black font-black rounded-xl text-sm hover:scale-[1.02] transition-transform">Open wizard</button>
-    `;
-    contentArea.appendChild(wizardRow);
-
-    wizardRow.querySelector('#open-wizard-btn').onclick = () => {
-      if (wizardMounted) return;
-      wizardMounted = true;
-      // Import the wizard lazily so non-cinematic templates don't pull it in
-      import('./CinematicTemplateWizard.js').then(({ CinematicTemplateWizard }) => {
-        wizardContainer = CinematicTemplateWizard({
-          template,
-          onCancel: () => {
-            if (wizardContainer && wizardContainer.parentNode) wizardContainer.parentNode.removeChild(wizardContainer);
-            wizardMounted = false;
-            wizardContainer = null;
-            wizardRow.style.display = '';
-          },
-          onGenerate: (result) => {
-            // Hand the result back to TemplateStudio's render flow by stashing
-            // it on the container. Future enhancement: render the player in
-            // the existing result area.
-            container.__wizardResult = result;
-          },
-        });
-        wizardContainer.className = 'mb-8';
-        contentArea.insertBefore(wizardContainer, centeredContainer);
-        wizardRow.style.display = 'none';
-      }).catch((e) => {
-        console.error('[TemplateStudio] wizard load failed:', e);
-        // Show user-facing feedback in the wizard CTA row
-        const errorMsg = document.createElement('div');
-        errorMsg.className = 'text-xs text-red-300 mt-2';
-        errorMsg.textContent = 'Cinematic wizard failed to load. You can still use the standard form below.';
-        wizardRow.appendChild(errorMsg);
-      });
-    };
-  }
 
   // Centered template container
   const centeredContainer = document.createElement('div');
@@ -830,18 +773,18 @@ export function TemplateStudio(templateId) {
     const saved = outputTabValues[activeTab];
     switch (activeTab) {
       case 'Enhanced Prompt':
-        textarea.value = saved || lastBuiltPrompt || specs.enhancerKeywords || 'Click Generate to create an enhanced prompt...';
+        textarea.value = lastBuiltPrompt || specs.enhancerKeywords || 'Click Generate to create an enhanced prompt...';
         break;
       case 'Scene Beats': {
-        const beats = saved || (template.storyBlueprint && template.storyBlueprint.length ? template.storyBlueprint : (specs.sceneBlueprint || ['Hook','Subject','Movement','Payoff','CTA']));
-        textarea.value = Array.isArray(beats) ? beats.join(' → ') : beats;
+        const beats = (template.storyBlueprint && template.storyBlueprint.length) ? template.storyBlueprint : (specs.sceneBlueprint || ['Hook','Subject','Movement','Payoff','CTA']);
+        textarea.value = beats.join(' → ');
         break;
       }
       case 'Voiceover':
         textarea.value = saved || `Create a premium voiceover for a ${template.name}. Open with a fast hook, build emotional or commercial momentum, end with a clear call to action.`;
         break;
       case 'Negative Prompt':
-        textarea.value = saved || specs.negativePrompt || 'Low quality, blurry, amateur, poorly lit, generic stock look';
+        textarea.value = specs.negativePrompt || 'Low quality, blurry, amateur, poorly lit, generic stock look';
         break;
     }
   }
@@ -935,6 +878,32 @@ export function TemplateStudio(templateId) {
         } catch (e) {
           console.warn('[TemplateStudio] GTM Boost failed:', e);
           showInlineError(container, 'GTM Boost failed. Please try again.');
+        }
+      };
+    }
+
+    // GTM Boost button
+    if (gtmBtn) {
+      gtmBtn.onclick = () => {
+        try {
+          import('./modals/GTMPromptModal.jsx').then(({ GTMPromptModal }) => {
+            const modal = new GTMPromptModal({
+              appTheme: 'template-studio',
+              onPromptGenerated: (text) => {
+                const ta = document.getElementById('outputTextarea');
+                if (ta) {
+                  ta.value = text;
+                  lastBuiltPrompt = text;
+                }
+              }
+            });
+            modal.basePrompt = (document.getElementById('outputTextarea')?.value) || '';
+            modal.open();
+          }).catch((e) => {
+            console.warn('[TemplateStudio] GTM Boost modal load failed:', e);
+          });
+        } catch (e) {
+          console.warn('[TemplateStudio] GTM Boost failed:', e);
         }
       };
     }
@@ -1072,6 +1041,32 @@ export function TemplateStudio(templateId) {
     genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Generating...';
 
     try {
+      const params = { model: selectedModel || template.model, ...(template.defaultParams || {}) };
+
+      // Normalize aspect ratio for standard and matrix templates
+      const aspectRatio = template.aspectRatio || (template.aspectRatios ? template.aspectRatios[0] : null);
+      if (aspectRatio) params.aspect_ratio = aspectRatio;
+
+      // Normalize duration from template or defaultParams
+      const duration = template.duration
+        ? (typeof template.duration === 'object' ? template.duration.default : template.duration)
+        : template.defaultParams?.duration;
+      if (duration) params.duration = duration;
+
+      allInputs.forEach(input => {
+        if (formState[input.name]) {
+          params[input.name] = formState[input.name];
+        }
+      });
+
+      // Build prompt from all available template metadata and advanced options
+      params.prompt = buildEnrichedPrompt(template, specs, formState, params.prompt);
+      lastBuiltPrompt = params.prompt;
+
+      const negNiche = (formState.niche && formState.niche !== 'auto-detect') ? formState.niche : (template.niche || '');
+      const negativePrompt = composeNegativePrompt(template.filmFamily || '', negNiche, formState.visualStyle || 'commercial') || specs.negativePrompt || '';
+      if (negativePrompt) params.negative_prompt = negativePrompt;
+
       let result;
       if (template.modelType === 'i2v') {
         result = await muapi.generateI2V(params);
@@ -1132,15 +1127,12 @@ export function TemplateStudio(templateId) {
       if (base) parts.push(base);
     }
 
-    // Scene blueprint: custom override, matrix template.storyBlueprint else specs.sceneBlueprint
-    const customBlueprint = formState['_customSceneBlueprint'];
-    const sceneBlueprint = customBlueprint
-      ? (Array.isArray(customBlueprint) ? customBlueprint : String(customBlueprint).split('→').map(s => s.trim()).filter(Boolean))
-      : (template.storyBlueprint && template.storyBlueprint.length)
-        ? template.storyBlueprint
-        : (specs.sceneBlueprint || []);
+    // Scene blueprint: matrix template.storyBlueprint else specs.sceneBlueprint
+    const sceneBlueprint = (template.storyBlueprint && template.storyBlueprint.length)
+      ? template.storyBlueprint
+      : (specs.sceneBlueprint || []);
     if (sceneBlueprint.length) {
-      parts.push(`Scene structure: ${Array.isArray(sceneBlueprint) ? sceneBlueprint.join(' → ') : sceneBlueprint}`);
+      parts.push(`Scene structure: ${sceneBlueprint.join(' → ')}`);
     }
 
     // Cinematography

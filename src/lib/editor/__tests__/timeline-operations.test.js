@@ -20,6 +20,7 @@ import {
   updateClipProperties,
   removeClip,
   moveClip,
+  setClipSpeed,
   trackSelectForward,
   calculateTimelineDuration,
   snapToHalfSecond,
@@ -31,6 +32,7 @@ import {
   duplicateClips,
   splitAllTracks,
   clipAtTime,
+  isTrackAudible,
 } from '../timeline-operations.js';
 import { clipEffectiveDuration, clipEndTime } from '../../../types/timeline.js';
 
@@ -661,5 +663,80 @@ describe('clipAtTime', () => {
     const track = tl.tracks.find((t) => t.id === clip.trackId);
     const found = clipAtTime(tl, track.id, 100);
     expect(found).toBeUndefined();
+  });
+});
+
+describe('isTrackAudible (derived solo read)', () => {
+  const t1 = { id: 't1', muted: false, solo: false };
+  const t2 = { id: 't2', muted: false, solo: false };
+  const t3 = { id: 't3', muted: true,  solo: false };
+
+  it('returns true for an unmuted track when no track is soloed', () => {
+    expect(isTrackAudible(t1, [t1, t2])).toBe(true);
+  });
+
+  it('returns false for a muted track regardless of solo', () => {
+    expect(isTrackAudible(t3, [t1, t2, t3])).toBe(false);
+  });
+
+  it('returns true for the soloed track even if others are unmuted', () => {
+    const s = { id: 's', muted: false, solo: true };
+    expect(isTrackAudible(s, [t1, s])).toBe(true);
+  });
+
+  it('returns false for a non-soloed track when another track is soloed', () => {
+    const s = { id: 's', muted: false, solo: true };
+    expect(isTrackAudible(t1, [t1, s])).toBe(false);
+  });
+
+  it('does not mutate other tracks when evaluating solo', () => {
+    // Snapshot the input tracks and verify they are unchanged after calling.
+    const before = [t1, t2, t3].map((t) => ({ ...t }));
+    isTrackAudible(t1, [t1, t2, t3]);
+    isTrackAudible(t2, [t1, t2, t3]);
+    expect([t1, t2, t3]).toEqual(before);
+  });
+
+  it('handles a soloed-but-muted track as inaudible', () => {
+    const s = { id: 's', muted: true, solo: true };
+    expect(isTrackAudible(s, [t1, s])).toBe(false);
+  });
+});
+
+describe('setClipSpeed (Phase 4)', () => {
+  it('clamps speed to 0.25 minimum (CineGen range)', () => {
+    let tl = buildBaseTimeline();
+    tl = addVideoClip(tl, mockAsset, 0);
+    const clip = tl.clips.find((c) => c.assetId === mockAsset.id && c.trackId === tl.tracks.find((t) => t.kind === 'video').id);
+    tl = setClipSpeed(tl, clip.id, -5);
+    expect(tl.clips.find((c) => c.id === clip.id).speed).toBe(0.25);
+  });
+
+  it('clamps speed to 4.0 maximum (CineGen range)', () => {
+    let tl = buildBaseTimeline();
+    tl = addVideoClip(tl, mockAsset, 0);
+    const clip = tl.clips.find((c) => c.assetId === mockAsset.id && c.trackId === tl.tracks.find((t) => t.kind === 'video').id);
+    tl = setClipSpeed(tl, clip.id, 10);
+    expect(tl.clips.find((c) => c.id === clip.id).speed).toBe(4.0);
+  });
+
+  it('propagates clamped speed to linked clips', () => {
+    let tl = buildBaseTimeline();
+    tl = addVideoClip(tl, mockAsset, 0);
+    const videoClip = tl.clips.find((c) => c.assetId === mockAsset.id && c.trackId === tl.tracks.find((t) => t.kind === 'video').id);
+    const linkedId = videoClip.linkedClipIds[0];
+    tl = setClipSpeed(tl, videoClip.id, 5);
+    const updatedVideo = tl.clips.find((c) => c.id === videoClip.id);
+    const linked = tl.clips.find((c) => c.id === linkedId);
+    expect(updatedVideo.speed).toBe(4.0);
+    expect(linked.speed).toBe(4.0);
+  });
+
+  it('leaves speed unchanged when within bounds', () => {
+    let tl = buildBaseTimeline();
+    tl = addVideoClip(tl, mockAsset, 0);
+    const clip = tl.clips.find((c) => c.assetId === mockAsset.id && c.trackId === tl.tracks.find((t) => t.kind === 'video').id);
+    tl = setClipSpeed(tl, clip.id, 1.5);
+    expect(tl.clips.find((c) => c.id === clip.id).speed).toBe(1.5);
   });
 });

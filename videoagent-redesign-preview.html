@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VideoAgent — Redesign Preview (grouped tools)</title>
+<style>
+  :root {
+    --primary: #d9ff00;
+    --primary-hover: #c4e600;
+    --app-bg: #050505;
+    --panel: rgba(17,17,17,0.9);
+    --card: rgba(255,255,255,0.05);
+    --card-hover: rgba(255,255,255,0.1);
+    --border: rgba(255,255,255,0.1);
+    --border-strong: rgba(255,255,255,0.06);
+    --muted: #52525b;
+    --white-60: rgba(255,255,255,0.6);
+    --white-70: rgba(255,255,255,0.7);
+    --white-50: rgba(255,255,255,0.5);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--app-bg);
+    color: #fff;
+    font-family: Inter, system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 1024px; margin: 0 auto; padding: 24px 16px; }
+  @media (min-width: 768px) { .wrap { padding: 24px 48px; } }
+
+  /* Hero */
+  .hero { position: relative; width: 100%; height: 128px; border-radius: 1rem; overflow: hidden; margin-bottom: 16px; }
+  @media (min-width: 768px) { .hero { height: 176px; } }
+  .hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .hero .overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.2), transparent); }
+  .hero .content { position: absolute; left: 0; right: 0; bottom: 0; padding: 24px; z-index: 2; }
+  .hero h1 { margin: 0; font-size: 28px; font-weight: 900; letter-spacing: -0.02em; }
+  @media (min-width: 768px) { .hero h1 { font-size: 36px; } }
+  .hero p { margin: 4px 0 0; font-size: 14px; color: var(--white-60); font-weight: 500; }
+
+  /* Back button */
+  .back-btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; color: var(--white-70); font-size: 14px; cursor: pointer; margin-bottom: 24px; }
+  .back-btn:hover { background: var(--card-hover); color: #fff; }
+
+  .layout { display: flex; flex-direction: column; gap: 24px; }
+  @media (min-width: 1024px) { .layout { flex-direction: row; } }
+  .col-left { flex: 1; display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+  .col-right { width: 100%; flex-shrink: 0; }
+  @media (min-width: 1024px) { .col-right { width: 384px; } }
+
+  /* Panels */
+  .panel { background: var(--panel); backdrop-filter: blur(16px); border: 1px solid var(--border); border-radius: 1.5rem; overflow: hidden; box-shadow: 0 35px 60px -15px rgba(0,0,0,0.8); }
+  .panel-pad { padding: 24px; }
+
+  /* Video preview */
+  .video-stage { aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center; }
+  .video-stage img.empty { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.4; }
+  .video-stage .center { position: relative; z-index: 2; text-align: center; padding: 32px; }
+  .video-stage .center p { margin: 8px 0 0; color: var(--white-50); }
+  .video-actions { margin-top: 12px; display: flex; align-items: center; gap: 12px; }
+  .btn-primary-solid { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--primary); color: #000; font-weight: 700; border: none; border-radius: 12px; font-size: 14px; cursor: pointer; }
+  .btn-primary-solid:hover { transform: scale(1.02); }
+
+  /* Prompt */
+  .label { display: block; font-size: 11px; font-weight: 700; color: var(--white-70); margin-bottom: 8px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .label span { color: var(--muted); font-weight: 400; text-transform: none; }
+  textarea, select { width: 100%; background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 12px; padding: 8px 12px; color: #fff; font-size: 14px; font-family: inherit; }
+  textarea { resize: none; }
+  textarea:focus, select:focus { outline: none; border-color: rgba(217,255,0,0.5); }
+  .hint { font-size: 11px; color: var(--muted); margin-top: 8px; }
+
+  /* Section header banner */
+  .sec-banner { position: relative; width: 100%; height: 112px; overflow: hidden; }
+  .sec-banner img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .sec-banner .overlay { position: absolute; inset: 0; background: linear-gradient(to top, var(--panel), rgba(17,17,17,0.5), transparent); }
+  .sec-banner h3 { position: absolute; left: 20px; bottom: 12px; margin: 0; font-size: 14px; font-weight: 900; letter-spacing: 0.04em; z-index: 2; }
+
+  /* Tabs */
+  .tabs { display: flex; flex-wrap: wrap; border-bottom: 1px solid var(--border); margin-bottom: 16px; margin-left: -16px; margin-right: -16px; padding-left: 16px; padding-right: 16px; }
+  .tab { flex: 1; min-width: 70px; padding: 8px 4px; font-size: 11px; font-weight: 700; color: var(--muted); background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; letter-spacing: 0.03em; }
+  .tab:hover { color: #fff; }
+  .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+  /* Section label (shown between tool groups in ALL view) */
+  .sec-label { font-size: 11px; font-weight: 900; color: var(--white-70); letter-spacing: 0.06em; text-transform: uppercase; margin: 4px 0 8px; }
+  .sec-label:not(:first-child) { margin-top: 20px; }
+
+  /* Grids */
+  .grid-tools { margin-bottom: 24px; }
+  .grid-group { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  @media (min-width: 768px) { .grid-group { grid-template-columns: repeat(3, 1fr); } }
+  .grid-usecases { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  @media (min-width: 768px) { .grid-usecases { grid-template-columns: repeat(3, 1fr); } }
+
+  .tool-btn, .usecase-btn { display: block; width: 100%; text-align: left; overflow: hidden; background: var(--card); border: 1px solid var(--border-strong); border-radius: 1rem; cursor: pointer; transition: all 0.15s; padding: 0; color: #fff; }
+  .tool-btn:hover, .usecase-btn:hover { background: var(--card-hover); border-color: rgba(217,255,0,0.3); transform: scale(1.02); }
+  .thumb-box { position: relative; width: 100%; aspect-ratio: 1/1; overflow: hidden; }
+  .thumb-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .thumb-box .grad { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.3), transparent); }
+  .thumb-box .cat-tag { position: absolute; top: 8px; right: 8px; font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 6px; border-radius: 4px; background: rgba(0,0,0,0.4); color: var(--white-70); }
+  .thumb-box .meta { position: absolute; bottom: 0; left: 0; right: 0; padding: 10px; }
+  .thumb-box .meta .name { font-weight: 700; font-size: 12px; color: #fff; }
+  .thumb-box .meta .desc { font-size: 9px; color: var(--white-60); margin-top: 2px; }
+  .usecase-btn .meta { padding: 12px; }
+  .usecase-btn .meta .name { font-size: 14px; }
+
+  /* Queue */
+  .queue-title { font-size: 14px; font-weight: 900; display: flex; align-items: center; gap: 8px; margin: 0 0 12px; }
+  .queue { border-top: 1px solid var(--border); padding-top: 16px; margin-bottom: 16px; }
+  .queue-empty { font-size: 14px; color: var(--muted); font-style: italic; padding: 8px; }
+
+  .pipeline-btn { width: 100%; padding: 16px; background: var(--primary); color: #000; font-weight: 900; border: none; border-radius: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 16px; }
+  .pipeline-btn:hover { transform: scale(1.02); }
+
+  .settings { border-top: 1px solid var(--border); padding-top: 16px; }
+  .settings h4 { font-size: 14px; font-weight: 900; margin: 0 0 12px; }
+  .settings .field { margin-bottom: 12px; }
+  .settings label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
+  .settings .row-between { display: flex; align-items: center; justify-content: space-between; }
+  .toggle { width: 40px; height: 20px; background: var(--primary); border-radius: 999px; position: relative; border: none; cursor: pointer; }
+  .toggle span { position: absolute; right: 2px; top: 2px; width: 16px; height: 16px; background: #000; border-radius: 999px; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- Hero -->
+    <div class="hero">
+      <img src="/thumbnails/heroes/videoagent.webp.png" alt="videoagent studio" onerror="this.style.display='none'" />
+      <div class="overlay"></div>
+      <div class="content">
+        <h1>VideoAgent</h1>
+        <p>AI-powered video processing &amp; enhancement</p>
+      </div>
+    </div>
+
+    <button class="back-btn">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Back to Video
+    </button>
+
+    <div class="layout">
+      <!-- LEFT -->
+      <div class="col-left">
+        <!-- Video preview -->
+        <div class="panel" style="padding:24px;">
+          <div class="video-stage">
+            <img class="empty" src="/thumbnails/videoagent/empty-video.png" alt="No video loaded" onerror="this.style.display='none'" />
+            <div class="center">
+              <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="color:var(--muted);"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              <p>No video loaded</p>
+              <p style="font-size:12px;color:var(--muted);">Upload a video to start processing</p>
+            </div>
+          </div>
+          <div class="video-actions">
+            <button class="btn-primary-solid">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+              Load Video
+            </button>
+          </div>
+        </div>
+
+        <!-- Agent prompt -->
+        <div class="panel" style="padding:24px;">
+          <label class="label">Agent Prompt <span>(optional — describe what you want, e.g. "find the moment the product is revealed")</span></label>
+          <textarea rows="2" placeholder="Describe the shot, search, or generation you want…"></textarea>
+          <div class="hint"></div>
+        </div>
+
+        <!-- Use cases -->
+        <div class="panel">
+          <div class="sec-banner">
+            <img src="/thumbnails/videoagent/header-use-cases.png" alt="AI Use Cases" onerror="this.style.display='none'" />
+            <div class="overlay"></div>
+            <h3>AI USE CASES</h3>
+          </div>
+          <div class="panel-pad">
+            <div id="usecases-grid" class="grid-usecases"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="col-right">
+        <div class="panel">
+          <div class="sec-banner">
+            <img src="/thumbnails/videoagent/header-tools.png" alt="AI Processing Tools" onerror="this.style.display='none'" />
+            <div class="overlay"></div>
+            <h3>AI PROCESSING TOOLS</h3>
+          </div>
+          <div class="panel-pad">
+            <div id="tabs" class="tabs">
+              <button class="tab active" data-group="all">ALL</button>
+              <button class="tab" data-group="perceive">PERCEIVE</button>
+              <button class="tab" data-group="storyboard">STORYBOARD</button>
+              <button class="tab" data-group="generate">GENERATE</button>
+              <button class="tab" data-group="voice">VOICE</button>
+              <button class="tab" data-group="localize">LOCALIZE</button>
+              <button class="tab" data-group="edit">EDIT</button>
+              <button class="tab" data-group="connect">CONNECT</button>
+            </div>
+
+            <div id="tools-grid" class="grid-tools"></div>
+
+            <div class="queue">
+              <h3 class="queue-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                PROCESSING QUEUE
+              </h3>
+              <div class="queue-empty">No jobs in queue</div>
+            </div>
+
+            <button class="pipeline-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              Run Full Pipeline
+            </button>
+
+            <div class="settings">
+              <h4>SETTINGS</h4>
+              <div class="field">
+                <label>Output Quality</label>
+                <select><option>720p</option><option selected>1080p</option><option>4K</option></select>
+              </div>
+              <div class="field">
+                <label>Output Format</label>
+                <select><option selected>MP4</option><option>WebM</option><option>MOV</option></select>
+              </div>
+              <div class="row-between">
+                <span style="font-size:12px;color:var(--muted);">Auto-save results</span>
+                <button class="toggle"><span></span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // Tool groups mirror the live VideoAgentPage (Perceive → Connect creation flow).
+  const TOOL_GROUPS = [
+    { key: 'perceive', label: 'Perceive' },
+    { key: 'storyboard', label: 'Storyboard' },
+    { key: 'generate', label: 'Generate' },
+    { key: 'voice', label: 'Voice' },
+    { key: 'localize', label: 'Localize' },
+    { key: 'edit', label: 'Edit' },
+    { key: 'connect', label: 'Connect' },
+  ];
+
+  const AI_TOOLS = [
+    // ── Perceive (watch & understand the footage) ──
+    { id: 'scene-detection', name: 'Scene Detection', thumbnail: '/thumbnails/videoagent/scene-detection.png', description: 'Identify scene boundaries', category: 'understanding', group: 'perceive' },
+    { id: 'highlight-detection', name: 'Highlight Detection', thumbnail: '/thumbnails/videoagent/highlight-detection.png', description: 'Find key moments', category: 'understanding', group: 'perceive' },
+    { id: 'visual-search', name: 'Visual Search', thumbnail: '/thumbnails/videoagent/scene-detection.png', description: 'Find moments by what you see', category: 'understanding', group: 'perceive' },
+    { id: 'keyword-search', name: 'Keyword Search & Compilation', thumbnail: '/thumbnails/videoagent/highlight-detection.png', description: 'Search spoken words, compile clips', category: 'understanding', group: 'perceive' },
+    { id: 'imagebind', name: 'ImageBind', thumbnail: '/thumbnails/videoagent/imagebind.png', description: 'Multimodal understanding', category: 'understanding', group: 'perceive' },
+    { id: 'subtitle', name: 'Subtitle Agent', thumbnail: '/thumbnails/videoagent/whisper.png', description: 'Generate SRT subtitles', category: 'understanding', group: 'perceive' },
+    { id: 'profanity', name: 'Profanity Remover', thumbnail: '/thumbnails/videoagent/whisper.png', description: 'Detect & clean unsafe language', category: 'understanding', group: 'perceive' },
+    { id: 'highlights', name: 'Automated Video Highlights', thumbnail: '/thumbnails/videoagent/highlight-detection.png', description: 'Find & rank highlight moments', category: 'understanding', group: 'perceive' },
+
+    // ── Storyboard (plan the narrative / shot list) ──
+    { id: 'storyboarding', name: 'Storyboarding Agent', thumbnail: '/thumbnails/videoagent/scene-detection.png', description: 'Shot-by-shot storyboard from video', category: 'understanding', group: 'storyboard' },
+    { id: 'text-to-movie', name: 'Text to Movie | GenAI', thumbnail: '/thumbnails/videoagent/clip-segmentation.png', description: 'Generate a screenplay from a prompt', category: 'understanding', group: 'storyboard' },
+    { id: 'text-to-video', name: 'Text-to-Video', thumbnail: '/thumbnails/videoagent/t2v-runway.webp.png', description: 'Prompt → AI-generated video', category: 'understanding', group: 'storyboard' },
+    { id: 'kids-storyteller', name: 'Kids Storyteller', thumbnail: '/thumbnails/videoagent/scene-detection.png', description: 'Animated educational story', category: 'understanding', group: 'storyboard' },
+
+    // ── Generate (create new video/audio assets) ──
+    { id: 'faceless-video', name: 'Faceless Video Creator', thumbnail: '/thumbnails/videoagent/clip-segmentation.png', description: 'Script → faceless video plan', category: 'editing', group: 'generate' },
+    { id: 'ai-ad-films', name: 'AI Ad Films', thumbnail: '/thumbnails/videoagent/music-video.png', description: 'Generate product ad from text', category: 'editing', group: 'generate' },
+    { id: 'tiktok-lyric', name: 'TikTok Lyric Videos', thumbnail: '/thumbnails/videoagent/music-video.png', description: 'Lyric-sync video plan', category: 'editing', group: 'generate' },
+    { id: 'year-in-frames', name: 'Year in Frames', thumbnail: '/thumbnails/videoagent/clip-segmentation.png', description: 'Photo collection montage', category: 'editing', group: 'generate' },
+    { id: 'trailer-narration', name: 'Trailer Narration', thumbnail: '/thumbnails/videoagent/fish-speech.png', description: 'Cinematic trailer voice', category: 'audio', group: 'generate' },
+
+    // ── Voice (the agent's speech layer) ──
+    { id: 'cosyvoice', name: 'CosyVoice', thumbnail: '/thumbnails/videoagent/cosyvoice.png', description: 'Voice cloning & TTS', category: 'audio', group: 'voice' },
+    { id: 'fish-speech', name: 'Fish Speech', thumbnail: '/thumbnails/videoagent/fish-speech.png', description: 'Voice synthesis', category: 'audio', group: 'voice' },
+    { id: 'seed-vc', name: 'Seed-VC', thumbnail: '/thumbnails/videoagent/seed-vc.png', description: 'Voice conversion', category: 'audio', group: 'voice' },
+    { id: 'whisper', name: 'Whisper', thumbnail: '/thumbnails/videoagent/whisper.png', description: 'Audio transcription', category: 'audio', group: 'voice' },
+    { id: 'voice-cloning', name: 'Voice Cloning Agent', thumbnail: '/thumbnails/videoagent/cosyvoice.png', description: 'Synthesize a cloned voice sample', category: 'audio', group: 'voice' },
+    { id: 'audio-overlay', name: 'Gen AI Audio Overlays', thumbnail: '/thumbnails/videoagent/fish-speech.png', description: 'Generate & overlay AI narration', category: 'audio', group: 'voice' },
+    { id: 'ai-voiceovers', name: 'AI Voiceovers', thumbnail: '/thumbnails/videoagent/audio-tts.webp.png', description: 'Studio-quality AI voiceover', category: 'audio', group: 'voice' },
+
+    // ── Localize (translate & dub for global reach) ──
+    { id: 'dubbing', name: 'Dubbing Agent', thumbnail: '/thumbnails/videoagent/dubbing.png', description: 'Translate & dub video', category: 'translate', group: 'localize' },
+    { id: 'multi-lang-dubbing', name: 'Multi-Language Dubbing', thumbnail: '/thumbnails/videoagent/dubbing.webp', description: 'Dub into many languages', category: 'translate', group: 'localize' },
+
+    // ── Edit (assemble & polish the final cut) ──
+    { id: 'clip-segmentation', name: 'Clip Segmentation', thumbnail: '/thumbnails/videoagent/clip-segmentation.png', description: 'Split into clip segments', category: 'editing', group: 'edit' },
+    { id: 'color-correct', name: 'Color Correction', thumbnail: '/thumbnails/videoagent/color-correct.png', description: 'Adjust colors & tones', category: 'enhance', group: 'edit' },
+    { id: 'upscale', name: 'Video Upscale', thumbnail: '/thumbnails/videoagent/upscale.png', description: 'Enhance resolution', category: 'enhance', group: 'edit' },
+    { id: 'stabilize', name: 'Stabilize', thumbnail: '/thumbnails/videoagent/stabilize.png', description: 'Fix shaky footage', category: 'enhance', group: 'edit' },
+    { id: 'intro-outro', name: 'Intro / Outro', thumbnail: '/thumbnails/videoagent/clip-segmentation.png', description: 'Plan branded intro/outro', category: 'editing', group: 'edit' },
+    { id: 'brand-elements', name: 'Brand Elements', thumbnail: '/thumbnails/videoagent/color-correct.png', description: 'Logo + brand overlay plan', category: 'editing', group: 'edit' },
+    { id: 'dynamic-ads', name: 'Dynamic Ads', thumbnail: '/thumbnails/videoagent/music-video.png', description: 'Personalized ad variants', category: 'editing', group: 'edit' },
+    { id: 'output-formatting', name: 'Intelligent Output Formatting', thumbnail: '/thumbnails/videoagent/color-correct.png', description: 'Best export format per platform', category: 'editing', group: 'edit' },
+
+    // ── Connect (ship outputs to people & systems) ──
+    { id: 'sales-assistant', name: 'Sales Assistant Agent (CRM)', thumbnail: '/thumbnails/videoagent/overview.png', description: 'Extract pitch + CRM follow-up', category: 'understanding', group: 'connect' },
+    { id: 'slack', name: 'Slack Agent', thumbnail: '/thumbnails/videoagent/overview.png', description: 'Post video summary to Slack', category: 'understanding', group: 'connect' },
+    { id: 'thumbnail', name: 'Thumbnail Agent', thumbnail: '/thumbnails/videoagent/highlight-detection.png', description: 'Pick best frame + title + tags', category: 'understanding', group: 'connect' },
+    { id: 'comparison', name: 'Comparison Agent', thumbnail: '/thumbnails/videoagent/qa.png', description: 'Compare two videos/descriptions', category: 'understanding', group: 'connect' },
+  ];
+
+  const USE_CASES = [
+    { id: 'standup', name: 'Stand-up Comedy', thumbnail: '/thumbnails/videoagent/standup.png', description: 'Transform video with comedy timing' },
+    { id: 'commentary', name: 'Commentary', thumbnail: '/thumbnails/videoagent/commentary.png', description: 'Add AI commentary overlay' },
+    { id: 'overview', name: 'Video Overview', thumbnail: '/thumbnails/videoagent/overview.png', description: 'Generate summary overview' },
+    { id: 'meme', name: 'Meme Generator', thumbnail: '/thumbnails/videoagent/meme.png', description: 'Create meme videos' },
+    { id: 'music-video', name: 'Music Video', thumbnail: '/thumbnails/videoagent/music-video.png', description: 'Set video to music' },
+    { id: 'qa', name: 'Video Q&A', thumbnail: '/thumbnails/videoagent/qa.png', description: 'Interactive video Q&A' },
+  ];
+
+  const toolsGrid = document.getElementById('tools-grid');
+  const useGrid = document.getElementById('usecases-grid');
+
+  function renderTools(group) {
+    // Mirror the live VideoAgentPage: 'all' shows every section with an
+    // uppercase header label; a single group shows just that section's grid
+    // (no header).
+    const sections = TOOL_GROUPS.filter(g => group === 'all' || g.key === group);
+    toolsGrid.innerHTML = sections.map(section => {
+      const tools = AI_TOOLS.filter(t => t.group === section.key);
+      if (!tools.length) return '';
+      const cards = tools.map(t => `
+        <button class="tool-btn" data-tool="${t.id}" data-group="${t.group}" data-category="${t.category}">
+          <div class="thumb-box">
+            <img src="${t.thumbnail}" alt="${t.name}" loading="lazy" onerror="this.style.display='none'" />
+            <div class="grad"></div>
+            <div class="cat-tag">${t.category}</div>
+            <div class="meta">
+              <div class="name">${t.name}</div>
+              <div class="desc">${t.description}</div>
+            </div>
+          </div>
+        </button>`).join('');
+      const header = group === 'all' ? `<div class="sec-label">${section.label}</div>` : '';
+      return `${header}<div class="grid-group">${cards}</div>`;
+    }).join('');
+  }
+
+  useGrid.innerHTML = USE_CASES.map(uc => `
+    <button class="usecase-btn" data-usecase="${uc.id}">
+      <div class="thumb-box">
+        <img src="${uc.thumbnail}" alt="${uc.name}" loading="lazy" onerror="this.style.display='none'" />
+        <div class="grad"></div>
+        <div class="meta">
+          <div class="name">${uc.name}</div>
+          <div class="desc">${uc.description}</div>
+        </div>
+      </div>
+    </button>`).join('');
+
+  document.getElementById('tabs').addEventListener('click', (e) => {
+    const btn = e.target.closest('.tab');
+    if (!btn) return;
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderTools(btn.dataset.group);
+  });
+
+  renderTools('all');
+</script>
+</body>
+</html>

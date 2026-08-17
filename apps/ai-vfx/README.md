@@ -156,7 +156,7 @@ npm start
 
 ## VFX API
 
-Powered by MuAPI – explore the API playground: [https://muapi.ai/playground/vfx](https://muapi.ai/playground/vfx)
+Explore the API playground: [https://muapi.ai/playground/vfx](https://muapi.ai/playground/vfx)
 
 ## Contributing
 

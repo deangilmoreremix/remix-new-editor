@@ -5,6 +5,7 @@ from .frame import Frame
 from .image_output import ImageOutput
 from .scene import Scene
 from .shot_description import ShotDescription, ShotBriefDescription
+from .state import State
 from .video_output import VideoOutput
 
 __all__ = [
@@ -18,5 +19,6 @@ __all__ = [
     "Scene",
     "ShotBriefDescription",
     "ShotDescription",
+    "State",
     "VideoOutput",
 ]

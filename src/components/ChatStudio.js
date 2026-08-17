@@ -8,6 +8,8 @@ import { createInlineInstructions } from './InlineInstructions.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
+import { getVideoIntent, setVideoIntent, resetVideoIntent } from '../lib/videoIntentStore.js';
+import { navigate } from '../lib/router.js';
 
 export function ChatStudio() {
   const container = document.createElement('div');
@@ -371,14 +373,197 @@ export function ChatStudio() {
     }
   }
 
+  // ── Video intent helpers (additive) ──────────────────────────────────────
+  const VIDEO_KEYWORDS = [
+    'commercial', 'trailer', 'social reel', 'testimonial', 'documentary',
+    'short film', 'explainer', 'brand film', 'video', 'cinematic', 'storyboard'
+  ];
+
+  function extractVideoIntent(text) {
+    const lower = (text || '').toLowerCase();
+    const intent = { ...getVideoIntent() };
+
+    const typeMap = {
+      'commercial': 'commercial',
+      'trailer': 'trailer',
+      'social reel': 'social reel',
+      'testimonial': 'testimonial',
+      'documentary': 'documentary',
+      'short film': 'short film',
+      'explainer': 'explainer',
+      'brand film': 'brand film',
+    };
+    for (const [key, value] of Object.entries(typeMap)) {
+      if (lower.includes(key)) {
+        intent.videoType = value;
+        break;
+      }
+    }
+
+    const durationMatch = lower.match(/(\d+)\s*(?:second|sec|s)\b/);
+    if (durationMatch) intent.duration = Math.max(5, Math.min(300, parseInt(durationMatch[1], 10) || 60));
+
+    const toneMap = {
+      dramatic: 'dramatic',
+      cinematic: 'cinematic',
+      upbeat: 'upbeat',
+      luxury: 'luxury',
+      gritty: 'gritty',
+      minimal: 'minimal',
+      emotional: 'emotional',
+      humorous: 'humorous',
+    };
+    for (const [key, value] of Object.entries(toneMap)) {
+      if (lower.includes(key)) {
+        intent.tone = value;
+        break;
+      }
+    }
+
+    const styleMap = {
+      photorealistic: 'Photorealistic',
+      cinematic: 'Cinematic',
+      noir: 'Noir',
+      anime: 'Anime',
+      watercolor: 'Watercolor',
+      'oil painting': 'Oil Painting',
+      cyberpunk: 'Cyberpunk',
+      fantasy: 'Fantasy',
+      documentary: 'Documentary',
+    };
+    for (const [key, value] of Object.entries(styleMap)) {
+      if (lower.includes(key)) {
+        intent.stylePreset = value;
+        break;
+      }
+    }
+
+    const lightingMap = {
+      'golden hour': 'Golden Hour',
+      neon: 'Neon',
+      studio: 'Studio',
+      dramatic: 'Dramatic',
+      soft: 'Soft',
+      volumetric: 'Volumetric',
+      'high key': 'High Key',
+      'low key': 'Low Key',
+    };
+    for (const [key, value] of Object.entries(lightingMap)) {
+      if (lower.includes(key)) {
+        intent.lightingPreset = value;
+        break;
+      }
+    }
+
+    const colorMap = {
+      warm: 'Warm',
+      cool: 'Cool',
+      desaturated: 'Desaturated',
+      vibrant: 'Vibrant',
+      monochrome: 'Monochrome',
+      sepia: 'Sepia',
+      'teal & orange': 'Teal & Orange',
+    };
+    for (const [key, value] of Object.entries(colorMap)) {
+      if (lower.includes(key)) {
+        intent.colorGrade = value;
+        break;
+      }
+    }
+
+    const aspectMap = {
+      '16:9': '16:9',
+      '9:16': '9:16',
+      '1:1': '1:1',
+      '4:5': '4:5',
+    };
+    for (const [key, value] of Object.entries(aspectMap)) {
+      if (lower.includes(key)) {
+        intent.aspectRatio = value;
+        break;
+      }
+    }
+
+    const subjectMatch = lower.match(/(?:about|for|of)\s+(.+?)(?:\s+with|\s+in|\s+using|\s*$)/i);
+    if (subjectMatch) intent.subject = subjectMatch[1].slice(0, 120);
+
+    return intent;
+  }
+
+  function looksLikeVideoRequest(text) {
+    const lower = (text || '').toLowerCase();
+    return VIDEO_KEYWORDS.some(k => lower.includes(k)) || lower.includes('create') || lower.includes('generate') || lower.includes('make');
+  }
+
+  function addVideoActionBubble(messageEl, intent) {
+    const action = document.createElement('div');
+    action.className = 'mt-2 flex flex-wrap gap-2';
+    action.innerHTML = `
+      <button class="chat-create-video-btn px-3 py-1.5 bg-primary text-black text-xs font-bold rounded-lg hover:scale-105 transition-transform">
+        Create Video
+      </button>
+      <button class="chat-create-storyboard-btn px-3 py-1.5 bg-white/5 text-white text-xs font-bold rounded-lg hover:bg-white/10 transition-colors">
+        Storyboard
+      </button>
+    `;
+    messageEl.appendChild(action);
+
+    action.querySelector('.chat-create-video-btn').addEventListener('click', () => {
+      setVideoIntent(intent);
+      navigate('cinema-template');
+    });
+
+    action.querySelector('.chat-create-storyboard-btn').addEventListener('click', () => {
+      setVideoIntent(intent);
+      navigate('cinema-template', { storyboardMode: '1' });
+    });
+  }
+
+  // Intercept user messages for slash commands
+  const originalHandleSend = handleSend;
+  handleSend = async function() {
+    const userMessage = textarea.value.trim();
+    if (!userMessage || isGenerating) return;
+
+    if (userMessage.startsWith('/create ')) {
+      const intent = extractVideoIntent(userMessage.slice('/create '.length));
+      setVideoIntent(intent);
+      addMessage(`Creating video from intent:\n${JSON.stringify(intent, null, 2)}`, false);
+      setTimeout(() => navigate('cinema-template'), 600);
+      return;
+    }
+
+    if (userMessage.startsWith('/storyboard ')) {
+      const intent = extractVideoIntent(userMessage.slice('/storyboard '.length));
+      setVideoIntent(intent);
+      addMessage(`Opening storyboard with intent:\n${JSON.stringify(intent, null, 2)}`, false);
+      setTimeout(() => navigate('cinema-template', { storyboardMode: '1' }), 600);
+      return;
+    }
+
+    await originalHandleSend();
+  };
+
   sendBtn.onclick = handleSend;
-  
-  textarea.addEventListener('keydown', (e) => {
+  textarea.onkeydown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
-  });
+  };
+
+  // After AI responses, append action buttons when intent is detected
+  const originalAddMessage = addMessage;
+  addMessage = function(content, isUser) {
+    originalAddMessage(content, isUser);
+    if (!isUser && looksLikeVideoRequest(content)) {
+      const lastMessage = chatContainer.lastElementChild;
+      if (lastMessage) {
+        const intent = extractVideoIntent(content);
+        addVideoActionBubble(lastMessage, intent);
+      }
+    }
+  };
 
   // Initialize
 

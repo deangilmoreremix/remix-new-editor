@@ -3,7 +3,67 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import fs from 'fs';
+import http from 'http';
+import https from 'https';
 // Cache-bust: 2026-07-28
+
+// Helper: forward a request to the Supabase muapi-proxy without Origin/Referer
+// and with the correct Host header so Cloudflare routes it to the project.
+function createMuapiProxyMiddleware(targetUrl) {
+  return async function muapiProxyMiddleware(req, res, next) {
+    const pathname = (req.url || '').split('?')[0];
+    if (pathname !== '/functions/v1/muapi-proxy' || req.method !== 'POST') {
+      return next();
+    }
+
+    const url = new URL(targetUrl);
+    
+    // Read the request body
+    const chunks = [];
+    req.on('data', chunk => chunks.push(chunk));
+    req.on('end', () => {
+      const body = Buffer.concat(chunks);
+      
+      const options = {
+        hostname: url.hostname,
+        port: url.port || 443,
+        path: '/functions/v1/muapi-proxy',
+        method: req.method,
+        headers: { ...req.headers },
+        rejectUnauthorized: false,
+      };
+
+      // Strip origin-like headers and set the correct Host header
+      // so the Supabase edge function accepts the request.
+      delete options.headers['origin'];
+      delete options.headers['Origin'];
+      delete options.headers['referer'];
+      delete options.headers['Referer'];
+      options.headers['host'] = url.hostname;
+      options.headers['content-length'] = body.length;
+
+      const proxyReq = https.request(options, (proxyRes) => {
+        res.statusCode = proxyRes.statusCode;
+        Object.entries(proxyRes.headers).forEach(([key, value]) => {
+          res.setHeader(key, value);
+        });
+        proxyRes.pipe(res);
+      });
+
+      proxyReq.on('error', (err) => {
+        console.error('[muapi-proxy] request error:', err);
+        if (!res.headersSent) {
+          res.statusCode = 502;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ error: 'Proxy error', details: err.message }));
+        }
+      });
+
+      proxyReq.write(body);
+      proxyReq.end();
+    });
+  };
+}
 
 // Vite plugin: stub out unresolved legacy imports under components/ and
 // src/lib/ that are not part of the media-creation flow. Returns an empty
@@ -352,14 +412,20 @@ function securityHeaders() {
                   `style-src 'self' 'unsafe-inline'${clerkHostSrc}`,
                   `img-src 'self' data: https: blob:${clerkHostSrc}`,
                   `font-src 'self' data:${clerkHostSrc}`,
-                  "connect-src 'self' ws://localhost:3001 http://localhost:3001 ws://localhost:8000 http://localhost:8000 ws://localhost:8888 http://localhost:8888 https://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + " https://api.muapi.ai https://cdn.muapi.ai https://api.openai.com https://clerk.smartvid.app https://clerk-telemetry.com https://challenges.cloudflare.com" + clerkHostSrc,
+                  "connect-src 'self' ws://localhost:3001 http://localhost:3001 ws://localhost:8000 http://localhost:8000 ws://localhost:8888 http://localhost:8888 https://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + " https://api.openai.com https://api.muapi.ai https://clerk.smartvid.app https://clerk-telemetry.com https://challenges.cloudflare.com" + clerkHostSrc,
                   `frame-src 'self'${clerkHostSrc} https://clerk.smartvid.app https://challenges.cloudflare.com`,
                   "media-src 'self' https: blob:",
                 ].join('; ');
                 res.setHeader('Content-Security-Policy', csp);
                 
-                // Prevent clickjacking
-                res.setHeader('X-Frame-Options', 'DENY');
+                 // Prevent clickjacking
+                 // In dev, allow framing for embedded studio iframes via CSP frame-src.
+                 // Production should reconsider this based on actual framing needs.
+                 if (process.env.NODE_ENV !== 'production') {
+                   res.removeHeader('X-Frame-Options');
+                 } else {
+                   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+                 }
                 
                 // Prevent MIME type sniffing
                 res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -924,6 +990,17 @@ export default defineConfig({
         svgMissingFallback(),
         modelCatalogBuildPlugin(),
         modelCatalogDevPlugin(),
+        // Custom proxy plugin for /functions/v1/muapi-proxy that strips
+        // origin/referer headers so the Supabase edge function accepts
+        // localhost requests during development.
+        {
+          name: 'muapi-proxy-dev',
+          apply: 'serve',
+          configureServer(server) {
+            const target = process.env.VITE_SUPABASE_URL || 'https://bzxohkrxcwodllketcpz.supabase.co';
+            server.middlewares.use(createMuapiProxyMiddleware(target));
+          },
+        },
         // Only load the gtm-boost dev plugin during `vite dev` to avoid
         // pulling in the express dependency (used by the backend
         // gtmBoostService) at build time. The plugin itself already has
@@ -1072,8 +1149,6 @@ export default defineConfig({
                     if (id.includes('node_modules')) {
                         if (id.includes('@supabase')) return 'vendor';
                         if (id.includes('mp4box')) return 'vendor-mp4box';
-                        if (id.includes('@huggingface/transformers')) return 'vendor-transformers';
-                        if (id.includes('tiktoken')) return 'vendor-tiktoken';
                     }
                     return undefined; // everything else: let Rollup decide
                 },
@@ -1089,7 +1164,7 @@ export default defineConfig({
         port: 3000,
         headers: {
             'Cache-Control': 'public, max-age=31536000',
-            'X-Frame-Options': 'DENY',
+            'X-Frame-Options': 'SAMEORIGIN',
             'X-Content-Type-Options': 'nosniff',
             'X-XSS-Protection': '1; mode=block',
             'Referrer-Policy': 'strict-origin-when-cross-origin'

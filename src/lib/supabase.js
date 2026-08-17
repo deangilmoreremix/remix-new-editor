@@ -59,11 +59,18 @@ export async function uploadFileToStorage(file) {
   const uniqueName = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}.${ext}`;
   const path = `${await getUserKey()}/${uniqueName}`;
 
-  const { error } = await supabase.storage
+  const timeoutMs = 60000;
+  const uploadPromise = supabase.storage
     .from('uploads')
     .upload(path, file, { contentType: file.type, upsert: false });
 
-  if (error) throw new Error(`Upload failed: ${error.message}`);
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => reject(new Error('Upload to storage timed out')), timeoutMs);
+  });
+
+  const { error } = await Promise.race([uploadPromise, timeoutPromise]).catch(err => ({ error: err }));
+
+  if (error) throw new Error(`Upload failed: ${error.message || error}`);
 
   const { data: urlData } = supabase.storage
     .from('uploads')

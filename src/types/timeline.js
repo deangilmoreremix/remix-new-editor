@@ -1,11 +1,3 @@
-/**
- * @typedef {'video' | 'audio'} TrackKind
- */
-
-/**
- * @typedef {'select' | 'trackForward' | 'blade' | 'ripple' | 'roll' | 'slip' | 'slide' | 'music' | 'fillGap' | 'extend' | 'mask'} ToolType
- */
-
 export const DEFAULT_VIDEO_COLOR = '#4a9fd6';
 export const DEFAULT_AUDIO_COLOR = '#5bbf5b';
 
@@ -13,6 +5,10 @@ export const TRACK_COLORS = [
   '#4a9fd6', '#5bbf5b', '#e74c3c', '#9b59b6', '#e67e22',
   '#1abc9c', '#f39c12', '#d466a8', '#e91e63', '#5bc5c5',
 ];
+
+/**
+ * @typedef {'video' | 'audio'} TrackKind
+ */
 
 /**
  * @typedef {Object} Track
@@ -25,6 +21,57 @@ export const TRACK_COLORS = [
  * @property {boolean} locked
  * @property {boolean} visible
  * @property {number} volume
+ */
+
+/**
+ * @typedef {'video' | 'audio' | 'image' | 'text'} ClipType
+ */
+
+/**
+ * @typedef {'blur' | 'sharpen' | 'glow' | 'vignette' | 'grain' | 'lut-cinematic' | 'lut-vintage' | 'lut-bw' | 'lut-cool' | 'lut-warm' | 'lut-muted' | 'lut-vivid'} EffectType
+ */
+
+/**
+ * @typedef {Object} EffectMask
+ * @property {boolean} enabled
+ * @property {'rectangle' | 'ellipse'} shape
+ * @property {number} x - 0-100 (%)
+ * @property {number} y - 0-100 (%)
+ * @property {number} width - 0-100 (%)
+ * @property {number} height - 0-100 (%)
+ * @property {number} feather - 0-100 (%)
+ * @property {boolean} invert
+ * @property {number} rotation - degrees
+ */
+
+/**
+ * @typedef {Object} ClipEffect
+ * @property {string} id
+ * @property {EffectType} type
+ * @property {boolean} enabled
+ * @property {Record<string, number>} params
+ * @property {EffectMask} [mask]
+ */
+
+/**
+ * @typedef {Object} ColorCorrection
+ * @property {number} brightness - -1 to 1, default 0
+ * @property {number} contrast - -1 to 1, default 0
+ * @property {number} saturation - -1 to 1, default 0
+ * @property {number} temperature - -1 to 1, default 0
+ * @property {number} tint - -1 to 1, default 0
+ * @property {number} exposure - -1 to 1, default 0
+ * @property {number} highlights - -1 to 1, default 0
+ * @property {number} shadows - -1 to 1, default 0
+ */
+
+/**
+ * @typedef {Object} LetterboxSettings
+ * @property {boolean} enabled
+ * @property {'2.35:1' | '2.39:1' | '2.76:1' | '1.85:1' | '4:3' | 'custom'} aspectRatio
+ * @property {number} [customRatio] - width/height when aspectRatio is 'custom'
+ * @property {string} color - hex color
+ * @property {number} opacity - 0-100
  */
 
 /**
@@ -44,6 +91,12 @@ export const TRACK_COLORS = [
  * @property {boolean} flipV
  * @property {Keyframe[]} keyframes
  * @property {string[]} [linkedClipIds] - linked video↔audio pairs (supports multiple linked clips)
+ * @property {ClipType} [type] - explicit clip type (our own concept, not in CineGen)
+ * @property {boolean} [muted] - independent of volume; when true the clip is silenced (our own concept)
+ * @property {boolean} [reversed] - play clip content backwards (our own concept)
+ * @property {ColorCorrection} [colorCorrection] - color grading applied to this clip (our own concept)
+ * @property {LetterboxSettings} [letterbox] - letterbox/pillarbox framing for this clip (our own concept)
+ * @property {ClipEffect[]} [effects] - non-destructive effects applied to this clip (our own concept)
  */
 
 /**
@@ -118,4 +171,34 @@ export const DEFAULT_EDITOR_LAYOUT = {
   sourceViewerVisible: true,
   rightPanelWidth: 280,
   inspectorVisible: false,
+};
+
+export const DEFAULT_COLOR_CORRECTION = {
+  brightness: 0,
+  contrast: 0,
+  saturation: 0,
+  temperature: 0,
+  tint: 0,
+  exposure: 0,
+  highlights: 0,
+  shadows: 0,
+};
+
+export const DEFAULT_LETTERBOX = {
+  enabled: false,
+  aspectRatio: '2.35:1',
+  color: '#000000',
+  opacity: 100,
+};
+
+export const DEFAULT_EFFECT_MASK = {
+  enabled: false,
+  shape: 'ellipse',
+  x: 50,
+  y: 50,
+  width: 40,
+  height: 40,
+  feather: 20,
+  invert: false,
+  rotation: 0,
 };

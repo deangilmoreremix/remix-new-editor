@@ -1,154 +1,32 @@
-# Pexels API Integration — Todo List
+# TODO: Merge PersonalizeModal + maigretGraph (Connection Graph) — STATUS
 
-## Phase 1: Backend Foundation
+Branch: `cleanup/remove-orphans` (worktree `coral-cemetery`). Plan: `tasks/plan.md`.
 
-- [ ] Task 1: Add Pexels environment configuration
-  - [ ] `PEXELS_API_KEY` added to `.env.example` with instructions
-  - [ ] Backend reads `PEXELS_API_KEY` from `process.env` with clear startup warning if missing
+## Phase 1–2 (UI, done)
+- [x] T1 `maigretGraph.js` — force-directed canvas renderer + zoom/pan/relayout + legend + `downloadGraph` (JSON/CSV/Neo4j/HTML).
+- [x] T2 `maigretSim.js` — `generateScan()` + `ensureGraph()` client fallback.
+- [x] T3 PersonalizeModal "Connection graph" section mounts `maigretGraph` after Discover.
+- [x] T4 Richer Maigret controls (scope/tags/keywords/proxy/recursion/permute/parsing/CF/AI).
+- [x] T5 `graph` + `scanOptions` persisted to `localStorage` profile.
+- [x] T6 Render real `scanData.graph` or simulator fallback; legend + zoom/pan + Download wired.
+- [x] BUG FIX: added missing `MaigretGraph.zoom()`.
 
-- [ ] Task 2: Create Pexels proxy service
-  - [ ] Express router mounted at `/api/pexels`
-  - [ ] Endpoints: `GET /photos/search`, `GET /photos/curated`, `GET /photos/:id`, `GET /videos/search`, `GET /videos/popular`, `GET /videos/:id`
-  - [ ] Server-side key used by default; optional `x-pexels-api-key` header allows caller override
-  - [ ] `withRetry` wrapper (maxAttempts=2, baseDelay=500ms) on all outbound Pexels calls
-  - [ ] Response shapes match Pexels docs exactly
-  - [ ] Rate-limit headers forwarded to the client
-  - [ ] 429 responses propagate with a clear error message
+## Phase 3 (backend real graph, DONE)
+- [x] T7 `scanner.py` `build_graph()` derives `graph` from real `platforms` (seed→claimed, alias_of, same_identity). Added to `ScanResult`.
+- [x] `main.py` `ScanResponse` includes `graph`; `/scan` returns it.
+- [x] T8 `personalizer-api.js` `/scan` passes worker `scanData` (incl. `graph`) to modal.
+- [x] T9 `/export/:scanId` supports JSON/CSV/MD/HTML; client `downloadGraph` adds Neo4j.
+- [x] `render.yaml` blueprint now also deploys `maigret-worker` (docker, oregon).
 
-- [ ] Task 3: Register Pexels routes in server.js
-  - [ ] `pexelsProxyService` imported in `backend/server.js`
-  - [ ] Mounted at `/api/pexels` with `optionalAuth`
-  - [ ] Rate limiter configured: 30 req/min per IP for search, 60 req/min for detail
+## Verification (all green)
+- `test-graph-render.mjs` → ALL CHECKS PASSED (13)
+- `test-personalize-functional.mjs` → ALL FUNCTIONAL CHECKS PASSED (20)
+- `test-personalize-trigger.mjs` → ALL TRIGGER CHECKS PASSED (4) — studio mount path
+- `modal-integration-test` (vitest) → 21 passed, 10 skipped
+- `pytest tests/test_scanner.py` → 5 passed, 1 skipped
+- Live worker: `GET /health` ok; `POST /scan` returns `graph`; no-key → 401
+- `ensureGraph(realScan)` keeps worker graph (simulator only when absent)
 
-### Checkpoint: After Tasks 1–3
-- [ ] Backend starts with new `/api/pexels` routes
-- [ ] Manual `curl` tests hit Pexels API through the proxy
-- [ ] Rate limiting and retry logic verified
-
----
-
-## Phase 2: Frontend Core
-
-- [ ] Task 4: Create Pexels API client helper
-  - [ ] Helper functions: `searchPhotos`, `searchVideos`, `getPhoto`, `getVideo`, `getCuratedPhotos`, `getPopularVideos`
-  - [ ] All calls go to `/api/pexels/...`
-  - [ ] Search results cached in `sessionStorage` keyed by query + filters for 5 minutes
-  - [ ] Cache hit returns instantly without network request
-  - [ ] Errors surface as thrown objects with `message` and optional `status`
-
-- [ ] Task 5: Build Pexels media browser page
-  - [ ] Route registered in `src/lib/router.js` as `pexels-media` → `PexelsMediaPage`
-  - [ ] Hero banner with title "Stock Media" and subtitle
-  - [ ] Filter tabs: Photos, Videos, All
-  - [ ] Search input with debounced query (300ms)
-  - [ ] Responsive grid: 2 cols mobile, 3 cols tablet, 4 cols desktop
-  - [ ] Infinite scroll pagination using `next_page` URLs
-  - [ ] Loading skeleton while fetching
-  - [ ] Empty state when no results found
-  - [ ] Error toast with retry button on fetch failure
-
-- [ ] Task 6: Implement preview modal
-  - [ ] Clicking a grid item opens the preview overlay
-  - [ ] Photos display the `large2x` or `original` src with aspect-ratio containment
-  - [ ] Videos display the `image` thumbnail with a play button overlay; clicking opens the actual video in a `<video>` element with controls
-  - [ ] Attribution panel shows: photographer/videographer name, Pexels profile link, Pexels content link
-  - [ ] "Import to Project" button that emits a custom event (`pexels:import`) with the full media object
-  - [ ] Close on backdrop click or Escape key
-  - [ ] Keyboard accessible: Tab trapped inside modal while open
-
-- [ ] Task 7: Wire import into project workflow
-  - [ ] Import action calls `saveContentLibraryEntry` with Pexels metadata
-  - [ ] Stored fields: `type`, `src`, `thumb`, `width`, `height`, `duration` (video), `attribution`, `pexelsId`, `source: 'pexels'`
-  - [ ] After import, show a success toast and close the preview
-  - [ ] Imported media appears in the user's Library page with a "Pexels" badge
-
-### Checkpoint: After Tasks 4–7
-- [ ] Users can search photos and videos
-- [ ] Preview modal works with attribution
-- [ ] Imported media appears in Library/Content Library
-- [ ] All tests pass
-
----
-
-## Phase 3: Settings & User Preferences
-
-- [ ] Task 8: Add Pexels API key to Settings
-  - [ ] Settings UI gains a "Pexels API Key" field
-  - [ ] Key stored via `ApiKeyManager` with kind `pexels`
-  - [ ] Backend proxy reads user-supplied key from `x-pexels-api-key` header and uses it instead of the server key
-  - [ ] Validation: key must be at least 20 chars
-  - [ ] "Test Connection" button that calls `/api/pexels/photos/search?query=test&per_page=1` and reports success/failure
-
-### Checkpoint: After Tasks 8
-- [ ] User API key flow works
-
----
-
-## Phase 4: Optimization & Scaling
-
-- [ ] Task 9: Implement backend caching layer
-  - [ ] Cache key: `method + url + query string`
-  - [ ] TTL: 300 seconds for search endpoints, 600 seconds for curated/popular, 3600 seconds for detail endpoints
-  - [ ] Max cache entries: 500
-  - [ ] Stale-while-revalidate: return cached response immediately, refresh in background if expired
-  - [ ] `Cache-Control` response headers set to `public, max-age=TTL`
-  - [ ] Logging: cache hit/miss rates logged per requestId
-
-- [ ] Task 10: Implement rate-limit awareness and graceful degradation
-  - [ ] Backend parses `X-Ratelimit-Remaining` and `X-Ratelimit-Reset` on every successful Pexels response
-  - [ ] When remaining < 50, frontend shows a subtle banner
-  - [ ] When remaining = 0, frontend disables search and shows a message
-  - [ ] Server logs a warning when remaining < 20
-  - [ ] Server rejects non-essential proactive requests when remaining < 10
-
-- [ ] Task 11: Add video download and transcoding guardrails
-  - [ ] Frontend auto-selects the smallest `video_files` entry that meets the project's minimum resolution
-  - [ ] Before import, show estimated file size
-  - [ ] Video import stores the `link` URL directly; no backend re-hosting
-
-### Checkpoint: After Tasks 9–11
-- [ ] Caching reduces redundant Pexels calls
-- [ ] Rate-limit warnings appear correctly
-- [ ] Video quality selection works
-
----
-
-## Phase 5: Compliance & Best Practices
-
-- [ ] Task 12: Enforce attribution in the UI
-  - [ ] Every preview and library card shows photographer/videographer name with link
-  - [ ] Every preview shows a link back to the original Pexels content page
-  - [ ] "Pexels" branding link is visible in the media browser footer
-  - [ ] When exporting, attribution metadata is included
-  - [ ] Global toggle in Settings: "Include Pexels attribution in exports" (default: on)
-
-- [ ] Task 13: Terms of Service and usage guardrails
-  - [ ] App does not allow bulk export of all Pexels metadata or images
-  - [ ] Search queries are rate-limited per user session (max 30 searches/minute)
-  - [ ] API key stored server-side only; client never sees the server's Pexels key
-  - [ ] Logging: all `/api/pexels` requests logged with `requestId`, endpoint, query, and `X-Ratelimit-Remaining`
-  - [ ] `robots.txt` ensures public pages do not expose Pexels media as indexable content
-
-### Checkpoint: After Tasks 12–13
-- [ ] Attribution is visible everywhere
-- [ ] ToS guardrails are in place
-
----
-
-## Phase 6: Testing & Polish
-
-- [ ] Task 14: Add unit and integration tests
-  - [ ] `pexelsProxyService.test.js` — tests for success, 429 handling, retry, user key override, rate-limit header forwarding
-  - [ ] `pexelsApi.test.js` — tests for cache hit, cache miss, error propagation
-  - [ ] `PexelsMediaPage.test.js` — tests for rendering, search, pagination, preview open/close
-  - [ ] All tests pass with `npm test -- --grep "pexels"`
-
-- [ ] Task 15: Documentation and deployment checklist
-  - [ ] `docs/pexels-integration.md` created with architecture, env vars, route map, cache TTLs, attribution requirements, troubleshooting
-  - [ ] `.env.example` updated with `PEXELS_API_KEY`
-  - [ ] `README.md` updated with a "Stock Media" feature mention
-  - [ ] Deployment checklist created
-
-### Checkpoint: Complete
-- [ ] All acceptance criteria met
-- [ ] Ready for review
+## Open (deploy-side, not code)
+- Set `MAIGRET_WORKER_URL` + `MAIGRET_WORKER_SECRET` in Netlify dashboard (from the Render maigret-worker service) so production Discover uses real graph data.
+- `public/maigret-graph-modal.html` retained as visual reference.

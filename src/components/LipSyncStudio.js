@@ -10,6 +10,9 @@ import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCa
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
+import { createAdvancedControls } from '../lib/studioControls.js';
+import { getExtendedModel } from '../lib/modelInputExtensions.js';
+import { getModelById } from '../lib/models.js';
 
 export function LipSyncStudio() {
     const container = document.createElement('div');
@@ -28,6 +31,7 @@ export function LipSyncStudio() {
     let uploadedVideoUrl = null;
     let uploadedAudioUrl = null;
     let dropdownOpen = null;
+    let showAdvanced = false;
 
     const getCurrentModels = () => inputMode === 'image' ? imageLipSyncModels : videoLipSyncModels;
     const getCurrentModel = () => lipsyncModels.find(m => m.id === selectedModel);
@@ -331,12 +335,59 @@ export function LipSyncStudio() {
     });
     bottomRow.appendChild(thumbBtn);
 
+    const advancedBtn = document.createElement('button');
+    advancedBtn.type = 'button';
+    advancedBtn.id = 'ls-advanced-btn';
+    advancedBtn.className = 'flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-primary/40 transition-all text-xs font-bold text-white group';
+    advancedBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-60 text-secondary"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l-.06-.06a1.65 1.65 0 001.82-.33 1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-1.82.33A1.65 1.65 0 0019.4 9a1.65 1.65 0 00-1.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span id="ls-advanced-btn-label">Advanced</span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted group-hover:text-white transition-colors"><polyline points="6 9 12 15 18 9"/></svg>`;
+    bottomRow.insertBefore(advancedBtn, generateBtn);
+
     bottomRow.appendChild(generateBtn);
     mountPersonalizeTrigger({ controlsContainer: bottomRow, getTextarea: () => textarea, appId: 'lip-sync' });
     bar.appendChild(bottomRow);
 
     promptWrapper.appendChild(bar);
     container.appendChild(promptWrapper);
+
+    const advancedPanel = document.createElement('div');
+    advancedPanel.className = 'w-full mt-6 animate-fade-in-up hidden';
+    advancedPanel.id = 'ls-advanced-panel';
+    const advancedCard = document.createElement('div');
+    advancedCard.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex flex-col gap-4';
+    advancedPanel.appendChild(advancedCard);
+
+    const advHeader = document.createElement('div');
+    advHeader.className = 'flex items-center justify-between pb-3 border-b border-white/5';
+    advHeader.innerHTML = `
+        <h3 class="text-sm font-bold text-white">Advanced Options</h3>
+        <button id="ls-close-adv-btn" class="text-white/40 hover:text-white transition-colors">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+    `;
+    advancedPanel.appendChild(advHeader);
+
+    const advancedControlsContainer = document.createElement('div');
+    advancedControlsContainer.className = 'flex flex-col gap-4';
+    advancedCard.appendChild(advancedControlsContainer);
+
+    const dynamicControls = createAdvancedControls({
+      model: getExtendedModel(getCurrentModel()),
+      state: { inputMode },
+      container: advancedControlsContainer,
+      exclude: new Set(['resolution']),
+      onChange: (key, value) => {
+      }
+    });
+    container.appendChild(advancedPanel);
+
+    const toggleAdvanced = () => {
+        showAdvanced = !showAdvanced;
+        advancedPanel.classList.toggle('hidden', !showAdvanced);
+        document.getElementById('ls-advanced-btn-label').textContent = showAdvanced ? 'Less' : 'Advanced';
+    };
+    advancedBtn.onclick = toggleAdvanced;
+    const closeAdvBtn = advancedPanel.querySelector('#ls-close-adv-btn');
+    if (closeAdvBtn) closeAdvBtn.onclick = toggleAdvanced;
 
     // ==========================================
     // 3. DROPDOWN SYSTEM
@@ -398,6 +449,9 @@ export function LipSyncStudio() {
                         resolutionBtn.classList.add('hidden');
                     }
                     textarea.style.display = m.hasPrompt ? '' : 'none';
+                    if (dynamicControls) {
+                        dynamicControls.update(getExtendedModel(getCurrentModel()));
+                    }
                     updateModelBtnIcon();
                     closeDropdown();
                 });
@@ -508,6 +562,10 @@ export function LipSyncStudio() {
 
         // Show/hide prompt
         textarea.style.display = models[0].hasPrompt ? '' : 'none';
+
+        if (dynamicControls) {
+            dynamicControls.update(getExtendedModel(getCurrentModel()));
+        }
     };
 
     imageModeBtn.onclick = () => {
@@ -928,11 +986,17 @@ export function LipSyncStudio() {
         };
 
         try {
+            const dynamicPayload = dynamicControls.getPayload({});
+
+            if (model?.hasSeed && !('seed' in dynamicPayload)) {
+                dynamicPayload.seed = -1;
+            }
+
             const lipsyncParams = {
-                model: selectedModel,
                 audio_url: uploadedAudioUrl,
                 customThumbnailUrl: customThumbnailUrl || undefined,
-                onRequestId
+                onRequestId,
+                ...dynamicPayload
             };
 
             if (inputMode === 'image') {
@@ -945,8 +1009,6 @@ export function LipSyncStudio() {
 
             const resolutions = getResolutionsForLipSyncModel(selectedModel);
             if (resolutions.length > 0) lipsyncParams.resolution = selectedResolution;
-
-            if (model?.hasSeed) lipsyncParams.seed = -1;
 
             const res = await muapi.processLipSync(lipsyncParams);
             console.log('[LipSyncStudio] Response:', res);

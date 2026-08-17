@@ -40,6 +40,7 @@ export const STUDIO_COLOR_SCHEMES = {
   'edit-studio':                { primary: '#f43f5e', accent: '#fb7185', secondary: '#64748b' },
   'video-tools-studio':         { primary: '#6366f1', accent: '#818cf8', secondary: '#64748b' },
   'upscale-studio':             { primary: '#22c55e', accent: '#4ade80', secondary: '#64748b' },
+  'ai-vfx':                     { primary: '#d9ff00', accent: '#a855f7', secondary: '#6b7280' },
 };
 
 class OpenAIConfig {

@@ -251,3 +251,42 @@ export function renderModelList(models, selectedModelId, showProviderName, onSel
   html += `</div>`;
   return html;
 }
+
+// Mount a complete model selector into an existing container element.
+// Returns the container element so callers can keep a reference for cleanup.
+export function mountModelSelector(container, options = {}) {
+  if (!container) return null;
+
+  const {
+    models = [],
+    selectedModelId,
+    selectedProvider,
+    search = '',
+    showProviderName = false,
+    onSelectModel,
+  } = options;
+
+  const availableProviders = getAvailableProviders(models);
+  const filteredModels = filterModels(models, search, selectedProvider);
+
+  container.innerHTML = '';
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'flex flex-col gap-3';
+
+  const sidebar = renderProviderSidebar(availableProviders, selectedProvider, (provider) => {
+    if (options.onSelectProvider) options.onSelectProvider(provider);
+  });
+  wrapper.appendChild(sidebar);
+
+  const searchEl = renderSearchBar();
+  wrapper.appendChild(searchEl);
+
+  const list = renderModelList(filteredModels, selectedModelId, showProviderName, (modelId) => {
+    if (onSelectModel) onSelectModel(modelId);
+  });
+  wrapper.appendChild(list);
+
+  container.appendChild(wrapper);
+  return wrapper;
+}

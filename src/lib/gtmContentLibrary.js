@@ -177,7 +177,7 @@ class GTMContentLibrary {
    * UI stays in sync with the library's canonical content.
    */
   getRoleOptions() {
-    return Object.entries(this.roles).map(([value, role]) => ({ value, label: role.title }));
+    return Object.entries(this.roles).map(([value, r]) => ({ value, label: r.name }));
   }
 
   getIndustryOptions() {
