@@ -95,7 +95,6 @@ export const STUDIO_ROUTES = {
   'video-to-video': { label: 'Video to Video', category: 'Generate' },
   'video-watermark': { label: 'Watermark Remover', category: 'Generate' },
   'character-page': { label: 'Character', category: 'Pages' },
-  'cinema-page': { label: 'Cinema', category: 'Pages' },
   'effects-page': { label: 'Vibe Motion', category: 'Pages' },
   'storyboard-page': { label: 'Storyboard', category: 'Pages' },
   'influencer-page': { label: 'AI Influencer', category: 'Pages' },
