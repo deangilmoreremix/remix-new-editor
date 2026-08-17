@@ -299,7 +299,7 @@ class OpenAIConfig {
    * @param {string} modelId
    * @returns {boolean}
    */
-  static isOpenAIImageModel(modelId) {
+  isOpenAIImageModel(modelId) {
     return ['gpt-image-2', 'gpt-image-1.5', 'gpt-image-1', 'gpt-image-1-mini'].includes(modelId);
   }
 
