@@ -5,6 +5,11 @@ import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
+import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
+import { openModelPicker } from '../lib/modelPickerIntegration.js';
+import { openRecipeModal } from '../lib/recipeIntegration.js';
+import { openMonetizationHub } from '../lib/monetizationIntegration.js';
+import { saveCharacterReference, getCharacterReference, listCharacterReferences } from '../lib/characterConsistency.js';
 
 const CHARACTER_MODELS = [
   { id: 'flux-pulid', name: 'Flux PuLID', description: 'Face ID preservation with text prompt' },
@@ -18,6 +23,10 @@ export function CharacterStudio() {
 
   let uploadedUrl = null;
   let selectedModel = CHARACTER_MODELS[0];
+  let omniUrl = null;
+  let firstFrameUrl = '';
+  let lastFrameUrl = '';
+  let characterConsistency = false;
 
   const header = document.createElement('div');
   header.className = 'mb-8 animate-fade-in-up text-center w-full max-w-lg';
@@ -58,6 +67,30 @@ export function CharacterStudio() {
     modelBtns[m.id] = btn;
     modelRow.appendChild(btn);
   });
+  // Model Picker button
+  const modelPickerBtn = document.createElement('button');
+  modelPickerBtn.type = 'button';
+  modelPickerBtn.textContent = 'AI Pick';
+  modelPickerBtn.title = 'Open intelligent model picker';
+  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
+  modelPickerBtn.className = 'text-[11px] font-bold text-cyan-400 border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 rounded-lg hover:bg-cyan-400/20 transition-colors ml-2 whitespace-nowrap';
+  modelPickerBtn.addEventListener('click', () => {
+    openModelPicker({
+      currentModelId: selectedModel.id,
+      onSelectModel: (id) => {
+        const m = CHARACTER_MODELS.find(x => x.id === id);
+        if (m) {
+          selectedModel = m;
+          Object.entries(modelBtns).forEach(([mid, b]) => {
+            b.className = mid === m.id
+              ? 'flex-1 px-4 py-3 rounded-xl text-xs font-bold transition-all border bg-primary/10 border-primary/30'
+              : 'flex-1 px-4 py-3 rounded-xl text-xs font-bold transition-all border bg-white/[0.03] border-white/10 hover:border-white/20';
+          });
+        }
+      }
+    }).catch((err) => console.error('[ModelPicker] open failed:', err));
+  });
+  modelRow.appendChild(modelPickerBtn);
   formCard.appendChild(modelRow);
 
   const uploadLabel = document.createElement('label');
@@ -80,6 +113,75 @@ export function CharacterStudio() {
   formCard.appendChild(uploadRow);
   container.appendChild(picker.panel);
 
+  // Character consistency: omni-reference + first/last frame
+  const consistencySection = document.createElement('div');
+  consistencySection.className = 'flex flex-col gap-3';
+  const consistencyLabel = document.createElement('label');
+  consistencyLabel.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
+  consistencyLabel.textContent = 'Character Consistency';
+  consistencySection.appendChild(consistencyLabel);
+
+  const omniRow = document.createElement('div');
+  omniRow.className = 'flex items-center gap-3';
+  const omniPicker = createUploadPicker({
+    anchorContainer: container,
+    acceptImage: true,
+    onSelect: ({ url }) => {
+      omniUrl = url;
+      saveCharacterReference({ id: 'character-omni', imageUrl: url, modelId: selectedModel.id });
+    },
+    onClear: () => { omniUrl = null; }
+  });
+  omniRow.appendChild(omniPicker.trigger);
+  const omniHint = document.createElement('span');
+  omniHint.className = 'text-sm text-muted';
+  omniHint.textContent = 'Omni-reference image (optional)';
+  omniRow.appendChild(omniHint);
+  consistencySection.appendChild(omniRow);
+  container.appendChild(omniPicker.panel);
+
+  const frameRow = document.createElement('div');
+  frameRow.className = 'flex gap-3';
+  const firstFrameInput = document.createElement('input');
+  firstFrameInput.type = 'text';
+  firstFrameInput.placeholder = 'First frame URL (optional)';
+  firstFrameInput.className = 'flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-xs placeholder:text-muted focus:outline-none focus:border-primary/50';
+  const lastFrameInput = document.createElement('input');
+  lastFrameInput.type = 'text';
+  lastFrameInput.placeholder = 'Last frame URL (optional)';
+  lastFrameInput.className = 'flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-xs placeholder:text-muted focus:outline-none focus:border-primary/50';
+  frameRow.appendChild(firstFrameInput);
+  frameRow.appendChild(lastFrameInput);
+  firstFrameInput.addEventListener('input', () => { firstFrameUrl = firstFrameInput.value.trim(); });
+  firstFrameInput.addEventListener('change', () => { firstFrameUrl = firstFrameInput.value.trim(); });
+  lastFrameInput.addEventListener('input', () => { lastFrameUrl = lastFrameInput.value.trim(); });
+  lastFrameInput.addEventListener('change', () => { lastFrameUrl = lastFrameInput.value.trim(); });
+  consistencySection.appendChild(frameRow);
+  formCard.appendChild(consistencySection);
+
+  const consistencyToggleRow = document.createElement('div');
+  consistencyToggleRow.className = 'flex items-center justify-between';
+  const consistencyToggleLabel = document.createElement('span');
+  consistencyToggleLabel.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
+  consistencyToggleLabel.textContent = 'Seedance 2.5 Consistency';
+  const consistencyToggle = document.createElement('button');
+  consistencyToggle.type = 'button';
+  consistencyToggle.className = 'relative h-7 w-12 rounded-full transition bg-white/10 border border-white/10';
+  consistencyToggle.setAttribute('data-consistency', 'false');
+  const consistencyKnob = document.createElement('span');
+  consistencyKnob.className = 'absolute top-1 h-5 w-5 rounded-full bg-white transition left-1';
+  consistencyToggle.appendChild(consistencyKnob);
+  consistencyToggle.onclick = () => {
+    characterConsistency = !characterConsistency;
+    consistencyToggle.setAttribute('data-consistency', String(characterConsistency));
+    consistencyToggle.style.background = characterConsistency ? 'var(--cyan)' : '';
+    consistencyToggle.style.borderColor = characterConsistency ? 'var(--cyan)' : '';
+    consistencyKnob.style.left = characterConsistency ? 'calc(100% - 22px)' : '4px';
+  };
+  consistencyToggleRow.appendChild(consistencyToggleLabel);
+  consistencyToggleRow.appendChild(consistencyToggle);
+  formCard.appendChild(consistencyToggleRow);
+
   const promptLabel = document.createElement('label');
   promptLabel.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
   promptLabel.textContent = 'Character Description';
@@ -91,24 +193,74 @@ export function CharacterStudio() {
   promptInput.placeholder = 'e.g. wearing a leather jacket, standing in a neon-lit alley, cyberpunk style';
   formCard.appendChild(promptInput);
 
-    // GTM Boost entry point — opens the prompt enhancer themed for character
-    // creation and loads the result straight into this prompt.
-    const gtmBtn = document.createElement('button');
-    gtmBtn.type = 'button';
-    gtmBtn.textContent = '🎯 GTM Boost';
-    gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
-    gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
-    gtmBtn.className = 'gtm-boost-btn shrink-0';
-    gtmBtn.addEventListener('click', () => {
-      import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-        openGTMPromptModal('character-studio', (prompt) => {
-          promptInput.value = prompt;
-          promptInput.dispatchEvent(new Event('input', { bubbles: true }));
-          promptInput.focus();
-        });
-      }).catch((err) => console.error('[CharacterStudio] GTM Boost failed:', err));
-    });
-    formCard.appendChild(gtmBtn);
+  // Prompt Gallery button
+  const promptGalleryBtn = document.createElement('button');
+  promptGalleryBtn.type = 'button';
+  promptGalleryBtn.textContent = '📚 Prompts';
+  promptGalleryBtn.title = 'Browse prompt gallery';
+  promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
+  promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
+  promptGalleryBtn.addEventListener('click', () => {
+    openPromptGallery({
+      appTheme: 'character-studio',
+      onSelect: (prompt) => {
+        const ta = document.querySelector('textarea');
+        if (ta) {
+          ta.value = prompt;
+          ta.dispatchEvent(new Event('input', { bubbles: true }));
+          ta.focus();
+        }
+      }
+    }).catch((err) => console.error('[PromptGallery] open failed:', err));
+  });
+  formCard.appendChild(promptGalleryBtn);
+
+  // Recipe Engine button
+  const recipeBtn = document.createElement('button');
+  recipeBtn.type = 'button';
+  recipeBtn.textContent = '📋 Recipes';
+  recipeBtn.title = 'Browse AI recipes';
+  recipeBtn.setAttribute('aria-label', 'Open recipe engine');
+  recipeBtn.className = 'gtm-boost-btn shrink-0';
+  recipeBtn.addEventListener('click', () => {
+    openRecipeModal({
+      onRunRecipe: (url) => {
+        console.log('[Recipe] finished:', url);
+      }
+    }).catch((err) => console.error('[Recipe] open failed:', err));
+  });
+  formCard.appendChild(recipeBtn);
+
+  // Monetization Hub button
+  const monetizationBtn = document.createElement('button');
+  monetizationBtn.type = 'button';
+  monetizationBtn.textContent = '💼 Monetize';
+  monetizationBtn.title = 'Open monetization hub';
+  monetizationBtn.setAttribute('aria-label', 'Open monetization hub');
+  monetizationBtn.className = 'gtm-boost-btn shrink-0';
+  monetizationBtn.addEventListener('click', () => {
+    openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+  });
+  formCard.appendChild(monetizationBtn);
+
+  // GTM Boost entry point — opens the prompt enhancer themed for character
+  // creation and loads the result straight into this prompt.
+  const gtmBtn = document.createElement('button');
+  gtmBtn.type = 'button';
+  gtmBtn.textContent = '🎯 GTM Boost';
+  gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
+  gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
+  gtmBtn.className = 'gtm-boost-btn shrink-0';
+  gtmBtn.addEventListener('click', () => {
+    import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+      openGTMPromptModal('character-studio', (prompt) => {
+        promptInput.value = prompt;
+        promptInput.dispatchEvent(new Event('input', { bubbles: true }));
+        promptInput.focus();
+      });
+    }).catch((err) => console.error('[CharacterStudio] GTM Boost failed:', err));
+  });
+  formCard.appendChild(gtmBtn);
 
   // Personalize trigger (opens PersonalizeModal as a pop-up)
   const personalizeControls = document.createElement('div');
@@ -226,6 +378,10 @@ export function CharacterStudio() {
         model: selectedModel.id,
         image_url: uploadedUrl,
         prompt: replaceTokensInPrompt(promptInput.value.trim(), activeProfile) || 'professional portrait photo',
+        reference_images: omniUrl ? [omniUrl] : undefined,
+        first_frame_url: firstFrameUrl || undefined,
+        last_frame_url: lastFrameUrl || undefined,
+        character_consistency: characterConsistency,
       };
       const result = await muapi.generateI2I(params);
       if (result?.url) {
