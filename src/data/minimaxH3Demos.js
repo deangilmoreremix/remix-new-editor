@@ -573,19 +573,24 @@ export async function loadDemoPrompt(slug) {
  *
  * Every value below is a real route key from src/lib/router.js pageLoaders.
  */
+// 2026-08-17: remapped to real, prefill-able studios. `ai-vfx` is an iframe
+// that cannot receive a prefill, so VFX/Web-UI demos now land in `effects`
+// (which reads the staged prefill). Images-driven demos (Commercial/Beauty/
+// Food) land in `commercial` for product shots but are also offered the video
+// route from the gallery.
 export const CATEGORY_ROUTES = {
   Commercial: 'commercial',
-  UGC: 'video',
+  UGC: 'influencer',
   Cinema: 'cinema',
   Action: 'cinema',
   Fashion: 'influencer',
   Animation: 'cinema',
   Characters: 'character',
-  Food: 'commercial',
+  Food: 'influencer',
   Beauty: 'commercial',
-  VFX: 'ai-vfx',
-  Social: 'video',
-  'Web / UI': 'video',
+  VFX: 'effects',
+  Social: 'storyboard',
+  'Web / UI': 'effects',
 };
 
 /** Fallback studio when a category has no explicit mapping. */
@@ -613,4 +618,53 @@ export function getCreateTarget(demo) {
 /** Convenience wrapper matching the requested helper name. */
 export function getCreateUrl(demo) {
   return getCreateTarget(demo).href;
+}
+
+/* --------------------------------- prefill-aware target resolution (2026-08) */
+
+export const MODEL_FOR_TARGET = {
+  video: 'minimax-hailuo-2.3-standard-t2v',
+  cinema: 'minimax-hailuo-2.3-standard-t2v',
+  commercial: 'ai-product-shot',
+  influencer: 'minimax-hailuo-2.3-standard-t2v',
+  character: 'minimax-hailuo-2.3-standard-t2v',
+  effects: 'minimax-hailuo-2.3-standard-t2v',
+  storyboard: 'minimax-hailuo-2.3-standard-t2v',
+  image: 'minimax-image-01',
+  audio: 'minimax-music',
+};
+
+/**
+ * Returns every demo annotated with the studio route + model it should open in
+ * ("Create This Style"). Centralises the category→studio decision so the
+ * landing sections, the in-studio examples rail, and the prompt modal all
+ * agree on where a demo goes.
+ */
+export function getMiniMaxDemosWithTargets() {
+  return minimaxH3Demos.map((d) => {
+    const route = CATEGORY_ROUTES[d.category] || DEFAULT_CREATE_ROUTE;
+    return { ...d, __route: route, __model: MODEL_FOR_TARGET[route] || MODEL_FOR_TARGET.video };
+  });
+}
+
+/** Direct, prefill-aware "open this demo in its studio" action. */
+export function openDemoInStudio(demo) {
+  // Lazy import avoids a circular dep with examplesRail/studioPrefill.
+  return import('../lib/studioPrefill.js').then(({ stageStudioPrefill }) =>
+    import('../lib/router.js').then(({ navigate }) => {
+      const route = demo.__route || CATEGORY_ROUTES[demo.category] || DEFAULT_CREATE_ROUTE;
+      const model = demo.__model || MODEL_FOR_TARGET[route] || MODEL_FOR_TARGET.video;
+      // aspect ratio -> one Hailuo supports
+      const [w, h] = (demo.aspectRatio || '16:9').split(':').map(Number);
+      const ratio = !w || !h ? '16:9' : w < h ? '9:16' : '16:9';
+      stageStudioPrefill({
+        route,
+        prompt: '', // filled by the consumer from loadDemoPrompt
+        model,
+        params: { aspect_ratio: ratio, _sourceSlug: demo.slug, _sourceTitle: demo.title },
+        ref: 'minimax-h3',
+      });
+      navigate(route);
+    })
+  );
 }

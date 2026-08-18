@@ -135,6 +135,7 @@ function createLazySection(importFn, sectionId, props = {}, index = 0) {
       if (entry.isIntersecting) {
         observer.unobserve(placeholder);
         importFn().then((module) => {
+          console.log('[Landing] section loaded:', sectionId, 'keys:', Object.keys(module));
           let section;
           if (module.default) {
             section = props.apps ? module.default({ apps: props.apps }) : module.default(props);
@@ -144,6 +145,10 @@ function createLazySection(importFn, sectionId, props = {}, index = 0) {
             const fnName = Object.keys(module).find((k) => k.includes('Section') || k.includes('Page'));
             section = fnName ? module[fnName](props) : module[Object.keys(module)[0]](props);
           }
+          console.log('[Landing] section created:', sectionId, 'type:', section?.constructor?.name || section?.tagName || typeof section);
+          if (!section || typeof section.appendChild !== 'function') {
+            throw new Error('Section ' + sectionId + ' returned invalid value: ' + typeof section);
+          }
           section.classList.add('animate-in');
           const staggerIndex = Math.min(index, 10);
           if (staggerIndex > 0) section.classList.add('stagger-' + staggerIndex);
@@ -151,7 +156,8 @@ function createLazySection(importFn, sectionId, props = {}, index = 0) {
           placeholder.replaceWith(section);
           requestAnimationFrame(() => section.classList.add('visible'));
         }).catch((err) => {
-          console.error('Failed to load section ' + sectionId, err);
+          console.error('[Landing] Failed to load section:', sectionId, err);
+          console.error('[Landing] Error stack:', err?.stack || 'no stack');
           placeholder.innerHTML = '<div class="text-red-400">Failed to load section</div>';
         });
       }
