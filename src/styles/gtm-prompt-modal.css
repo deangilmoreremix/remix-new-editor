@@ -328,7 +328,7 @@
 
 .gtm-prompt-modal .progress-step.active .progress-dot {
   background: var(--app-primary);
-  box-shadow: 0 0 0 3px var(--app-soft, rgba(59, 130, 246, 0.2));
+  box-shadow: 0 0 0 3px var(--app-soft, rgba(217, 255, 0, 0.12));
 }
 
 .gtm-prompt-modal .progress-step.done {
@@ -663,7 +663,7 @@
 
 .gtm-boost-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(217, 255, 0, 0.35);
+  box-shadow: 0 4px 14px rgba(217, 255, 0, 0.25);
   opacity: 0.95;
 }
 
@@ -698,7 +698,7 @@
 [data-app="image"] .gtm-boost-btn:hover,
 [data-app="video"] .gtm-boost-btn:hover,
 [data-app="template"] .gtm-boost-btn:hover {
-  box-shadow: 0 4px 14px rgba(217, 255, 0, 0.35);
+  box-shadow: 0 4px 14px rgba(217, 255, 0, 0.25);
 }
 
 @media (max-width: 640px) {

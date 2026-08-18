@@ -147,8 +147,8 @@ export class TemplateThumbnailModal extends BaseModal {
     // Panel-only state (only used when layout === 'panel'); harmless for modal.
     this.brandKitEnabled = false;
     this.brandName = '';
-    this.primaryColor = '#10b981';
-    this.secondaryColor = '#34d399';
+    this.primaryColor = this.appColors.primary;
+    this.secondaryColor = this.appColors.accent;
     this.logoUrl = '';
     this.useBrandColors = false;
     this.videoThumbEnabled = false;
@@ -211,7 +211,7 @@ export class TemplateThumbnailModal extends BaseModal {
         main = this.renderBrief();
     }
 
-    return `<div class="thumb-modal" style="--app-primary: ${primary}; --app-accent: ${accent}; --app-soft: ${this.hexToRgba(primary, 0.12)}; --app-soft-accent: ${this.hexToRgba(accent, 0.12)}">
+    return `<div class="thumb-modal" style="--app-primary: ${primary}; --app-accent: ${accent}; --app-on-primary: ${this.appColors.onPrimary || '#000000'}; --app-soft: ${this.hexToRgba(primary, 0.12)}; --app-soft-accent: ${this.hexToRgba(accent, 0.12)}; --app-glow: ${this.hexToRgba(primary, 0.25)}">
       <p class="thumb-subtitle">Generate AI thumbnails using image generation models. Create, refine, and apply custom thumbnails to your template.</p>
       <div class="thumb-form">${main}</div>
     </div>`;
@@ -504,7 +504,7 @@ export class TemplateThumbnailModal extends BaseModal {
           if (msg.role === 'user') {
             return `
               <div style="display:flex; justify-content:flex-end;">
-                <div style="max-width:80%; padding:10px 14px; border-radius:16px; border-bottom-right-radius:4px; background:var(--app-primary); color:#03131a; font-size:13px; line-height:1.5; word-break:break-word;">
+                 <div style="max-width:80%; padding:10px 14px; border-radius:16px; border-bottom-right-radius:4px; background:var(--app-primary); color:var(--app-on-primary); font-size:13px; line-height:1.5; word-break:break-word;">
                   ${this.escapeHtml(msg.text)}
                 </div>
               </div>`;
@@ -652,7 +652,7 @@ export class TemplateThumbnailModal extends BaseModal {
 
   renderLoading() {
     return `
-      <div class="thumb-modal" style="--app-primary: ${this.appColors.primary}; --app-accent: ${this.appColors.accent}; --app-soft: ${this.hexToRgba(this.appColors.primary, 0.12)}; --app-soft-accent: ${this.hexToRgba(this.appColors.accent, 0.12)}">
+      <div class="thumb-modal" style="--app-primary: ${this.appColors.primary}; --app-accent: ${this.appColors.accent}; --app-on-primary: ${this.appColors.onPrimary || '#000000'}; --app-soft: ${this.hexToRgba(this.appColors.primary, 0.12)}; --app-soft-accent: ${this.hexToRgba(this.appColors.accent, 0.12)}; --app-glow: ${this.hexToRgba(this.appColors.primary, 0.25)}">
         <div class="generation-progress">
           <div class="progress-bar"><div class="progress-fill" style="width:60%"></div></div>
           <div class="progress-steps">
@@ -666,7 +666,7 @@ export class TemplateThumbnailModal extends BaseModal {
   renderError() {
     const message = this.escapeHtml(String(this._error || this.generationMessage || ''));
     return `
-      <div class="thumb-modal" style="--app-primary: ${this.appColors.primary}; --app-accent: ${this.appColors.accent}; --app-soft: ${this.hexToRgba(this.appColors.primary, 0.12)}; --app-soft-accent: ${this.hexToRgba(this.appColors.accent, 0.12)}">
+      <div class="thumb-modal" style="--app-primary: ${this.appColors.primary}; --app-accent: ${this.appColors.accent}; --app-on-primary: ${this.appColors.onPrimary || '#000000'}; --app-soft: ${this.hexToRgba(this.appColors.primary, 0.12)}; --app-soft-accent: ${this.hexToRgba(this.appColors.accent, 0.12)}; --app-glow: ${this.hexToRgba(this.appColors.primary, 0.25)}">
         <div class="error-message" role="alert">
           <span>⚠️</span>
           <div>
@@ -718,9 +718,9 @@ export class TemplateThumbnailModal extends BaseModal {
   }
 
   hexToRgba(hex, alpha) {
-    if (typeof hex !== 'string') return `rgba(16, 185, 129, ${alpha})`;
+    if (typeof hex !== 'string') return `rgba(217, 255, 0, ${alpha})`;
     const m = hex.trim().match(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i);
-    if (!m) return `rgba(16, 185, 129, ${alpha})`;
+    if (!m) return `rgba(217, 255, 0, ${alpha})`;
     let h = m[1];
     if (h.length === 3) h = h.split('').map((c) => c + c).join('');
     const r = parseInt(h.slice(0, 2), 16);
@@ -1842,8 +1842,8 @@ export class TemplateThumbnailModal extends BaseModal {
     this.platform = this.platform || 'youtube';
     this.brandKitEnabled = false;
     this.brandName = '';
-    this.primaryColor = '#10b981';
-    this.secondaryColor = '#34d399';
+    this.primaryColor = this.appColors.primary;
+    this.secondaryColor = this.appColors.accent;
     this.logoUrl = '';
     this.useBrandColors = false;
     this.videoThumbEnabled = false;
@@ -2700,8 +2700,8 @@ export class TemplateThumbnailModal extends BaseModal {
       <div class="form-section">
         <label>Brand Colors</label>
         <div class="thumb-color-row">
-          <input type="color" id="thumb-primary-color" value="${this.primaryColor || '#10b981'}">
-          <input type="color" id="thumb-secondary-color" value="${this.secondaryColor || '#34d399'}">
+          <input type="color" id="thumb-primary-color" value="${this.primaryColor || this.appColors.primary}">
+          <input type="color" id="thumb-secondary-color" value="${this.secondaryColor || this.appColors.accent}">
         </div>
       </div>
       <div class="form-section">

@@ -153,7 +153,7 @@ export class GTMInfoModal extends BaseModal {
   renderBody() {
     const sections = this.getFilteredSections();
     return `
-      <div class="gtm-info-modal" style="--app-primary: ${this.appColors.primary}; --app-accent: ${this.appColors.accent}; --app-soft: ${this.hexToRgba(this.appColors.primary, 0.12)}; --app-soft-accent: ${this.hexToRgba(this.appColors.accent, 0.12)}">
+      <div class="gtm-info-modal" style="--app-primary: ${this.appColors.primary}; --app-accent: ${this.appColors.accent}; --app-on-primary: ${this.appColors.onPrimary || '#000000'}; --app-soft: ${this.hexToRgba(this.appColors.primary, 0.12)}; --app-soft-accent: ${this.hexToRgba(this.appColors.accent, 0.12)}; --app-glow: ${this.hexToRgba(this.appColors.primary, 0.25)}">
         <div class="gtm-info-header">
           <p class="gtm-info-subtitle">GTM Boost combines sales methodology with cinematic storytelling to transform basic prompts into conversion-optimized video prompts. Use this guide to understand each option.</p>
           <div class="gtm-info-controls">

@@ -13,7 +13,7 @@
    new rules.
    ------------------------------------------------------------------ */
 :root {
-  --bg: #05070b;
+  --bg: #050505;
   --panel: rgba(255,255,255,0.05);
   --panel-soft: rgba(255,255,255,0.03);
   --border: rgba(255,255,255,0.1);
@@ -25,7 +25,7 @@
   /* Brand primary — matches --color-primary in src/styles/variables.css */
   --primary: #d9ff00;
   --primary-hover: #c4e600;
-  --primary-soft: rgba(217,255,0,0.15);
+  --primary-soft: rgba(217,255,0,0.12);
   --primary-glow: rgba(217,255,0,0.25);
   /* Text/icons ON the primary. The primary is a high-luminance neon, so
      this must be black — white is unreadable on it. */
@@ -623,7 +623,7 @@
 }
 
 .invoice-status.paid {
-  background: rgba(196, 230, 0, 0.2);
+  background: rgba(196, 230, 0, 0.12);
   color: var(--emerald);
 }
 
@@ -791,7 +791,7 @@
   align-items: center;
   gap: 4px;
   padding: 4px 8px;
-  background: rgba(196, 230, 0, 0.2);
+  background: rgba(196, 230, 0, 0.12);
   color: var(--emerald);
   font-size: 11px;
   font-weight: 600;
@@ -3095,7 +3095,7 @@
 
 .center-mark {
   position: absolute;
-  background: rgba(217, 255, 0, 0.3);
+  background: rgba(217, 255, 0, 0.25);
 }
 
 .center-mark.h {
@@ -3299,7 +3299,7 @@
 .transform-btn.active {
   border-color: var(--emerald);
   color: var(--emerald);
-  background: rgba(196, 230, 0, 0.2);
+  background: rgba(196, 230, 0, 0.12);
 }
 
 .crop-info {
@@ -4122,7 +4122,7 @@
   cursor: pointer;
 }
 .connect-btn:hover,
-.gtm-action:hover { background: rgba(217, 255, 0, 0.8); }
+.gtm-action:hover { background: rgba(217, 255, 0, 0.25); }
 .disconnect-btn { background: var(--danger); color: #fff; }
 
 /* Contacts */
@@ -4474,7 +4474,7 @@
   gap: 10px;
   padding: 16px;
   background: var(--app-soft);
-  border: 1px solid rgba(16, 185, 129, 0.25);
+  border: 1px solid rgba(217, 255, 0, 0.25);
   border-radius: var(--border-radius-lg);
 }
 
@@ -4722,7 +4722,7 @@
   margin-top: 8px;
   padding: 10px 12px;
   background: var(--app-soft);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(196, 230, 0, 0.12);
   border-radius: var(--border-radius-md);
   font-size: 12px;
   color: var(--text-secondary);
@@ -5336,13 +5336,13 @@
   color: var(--text-secondary);
 }
 .studio-thumb-panel .thumb-key-badge--user {
-  border-color: rgba(16, 185, 129, 0.4);
-  background: rgba(16, 185, 129, 0.08);
+  border-color: var(--primary-soft);
+  background: var(--primary-soft);
   color: var(--text-primary);
 }
 .studio-thumb-panel .thumb-key-badge--server {
-  border-color: rgba(245, 158, 11, 0.4);
-  background: rgba(245, 158, 11, 0.08);
+  border-color: var(--primary-glow);
+  background: var(--primary-soft);
   color: var(--text-primary);
 }
 .studio-thumb-panel .thumb-key-dot {

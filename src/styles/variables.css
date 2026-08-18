@@ -6,9 +6,9 @@
   /* Text/icon color to use ON TOP of --color-primary. The primary is a
      high-luminance neon, so it must always pair with black — never white. */
   --color-on-primary: #000000;
-  --color-accent: #a855f7;
-  /* Creative Purple */
-  --color-accent-hover: #9333ea;
+  --color-accent: #c4e600;
+  /* Brand neon, darker step — aligns with STUDIO_SCHEME.accent */
+  --color-accent-hover: #a8e000;
   --color-danger: #ef4444;
   --color-success: #22c55e;
   --color-warning: #f59e0b;
@@ -57,7 +57,7 @@
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
   --shadow-glow: 0 0 20px rgba(217, 255, 0, 0.4);
-  --shadow-glow-accent: 0 0 20px rgba(168, 85, 247, 0.4);
+  --shadow-glow-accent: 0 0 20px rgba(196, 230, 0, 0.4);
   --backdrop-blur: blur(20px);
 
   /* Transitions */
