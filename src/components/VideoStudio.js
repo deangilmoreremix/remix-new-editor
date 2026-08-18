@@ -10,6 +10,7 @@ import { createHeroSection } from '../lib/thumbnails.js';
 import { mountPersonalizePopover, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { navigate } from '../lib/router.js';
 import { saveGeneratedAsset } from '../lib/assets/assetActions.js';
+import { saveCharacterReference, getCharacterReference } from '../lib/characterConsistency.js';
 
 export function VideoStudio() {
     const container = document.createElement('div');
@@ -27,6 +28,7 @@ export function VideoStudio() {
     let lastGenerationId = null;
     let lastGenerationModel = null;
     let nativeAudio = false;
+    let characterLock = false;
     let dropdownOpen = null;
     let uploadedImageUrl = null;
     let imageMode = false; // false = t2v models, true = i2v models
@@ -451,6 +453,13 @@ export function VideoStudio() {
                     <span class="absolute top-1 h-5 w-5 rounded-full bg-white transition left-1" id="v-native-audio-knob"></span>
                 </button>
             </div>
+            <!-- Character Lock -->
+            <div id="v-character-lock-row" class="flex items-center justify-between">
+                <label class="text-xs font-bold text-secondary uppercase tracking-wider">Character Lock</label>
+                <button id="v-character-lock-btn" class="relative h-7 w-12 rounded-full transition bg-white/10 border border-white/10" data-character-lock="false">
+                    <span class="absolute top-1 h-5 w-5 rounded-full bg-white transition left-1" id="v-character-lock-knob"></span>
+                </button>
+            </div>
             </div>
         </div>
     `;
@@ -490,6 +499,19 @@ export function VideoStudio() {
             vNativeAudioBtn.style.background = nativeAudio ? 'var(--cyan)' : '';
             vNativeAudioBtn.style.borderColor = nativeAudio ? 'var(--cyan)' : '';
             vNativeAudioKnob.style.left = nativeAudio ? 'calc(100% - 22px)' : '4px';
+        };
+    }
+
+    // Character Lock toggle
+    const vCharacterLockBtn = advancedPanel.querySelector('#v-character-lock-btn');
+    const vCharacterLockKnob = advancedPanel.querySelector('#v-character-lock-knob');
+    if (vCharacterLockBtn && vCharacterLockKnob) {
+        vCharacterLockBtn.onclick = () => {
+            characterLock = !characterLock;
+            vCharacterLockBtn.setAttribute('data-character-lock', String(characterLock));
+            vCharacterLockBtn.style.background = characterLock ? 'var(--cyan)' : '';
+            vCharacterLockBtn.style.borderColor = characterLock ? 'var(--cyan)' : '';
+            vCharacterLockKnob.style.left = characterLock ? 'calc(100% - 22px)' : '4px';
         };
     }
 
@@ -1212,6 +1234,11 @@ export function VideoStudio() {
                 if (selectedQuality) i2vParams.quality = selectedQuality;
                 if (nativeAudio) i2vParams.native_audio = nativeAudio;
 
+                if (characterLock) {
+                    const ref = await getCharacterReference('studio-character-lock');
+                    if (ref?.imageUrl) i2vParams.reference_images = [ref.imageUrl];
+                }
+
                 const res = await muapi.generateI2V(i2vParams);
                 console.log('[VideoStudio] I2V response:', res);
 
@@ -1225,6 +1252,9 @@ export function VideoStudio() {
                         lastGenerationModel = null;
                     }
                     addToHistory({ id: genId, url: res.url, prompt, model: selectedModel, aspect_ratio: selectedAr, duration: selectedDuration, timestamp: new Date().toISOString() });
+                    if (characterLock && res.url) {
+                        await saveCharacterReference({ id: 'studio-character-lock', imageUrl: res.url, modelId: selectedModel });
+                    }
                     showVideoInCanvas(res.url, selectedModel);
                 } else {
                     throw new Error('No video URL returned by API');
@@ -1256,6 +1286,11 @@ export function VideoStudio() {
             if (selectedQuality) params.quality = selectedQuality;
             if (nativeAudio) params.native_audio = nativeAudio;
 
+            if (characterLock) {
+                const ref = await getCharacterReference('studio-character-lock');
+                if (ref?.imageUrl) params.reference_images = [ref.imageUrl];
+            }
+
             const res = await muapi.generateVideo(params);
 
             console.log('[VideoStudio] Full response:', res);
@@ -1280,6 +1315,9 @@ export function VideoStudio() {
                     duration: selectedDuration,
                     timestamp: new Date().toISOString()
                 });
+                if (characterLock && res.url) {
+                    await saveCharacterReference({ id: 'studio-character-lock', imageUrl: res.url, modelId: selectedModel });
+                }
                 showVideoInCanvas(res.url, selectedModel);
             } else {
                 console.error('[VideoStudio] No video URL in response:', res);
