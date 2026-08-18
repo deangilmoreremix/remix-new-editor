@@ -1,4 +1,4 @@
-import { SOCIAL_PUBLISH_MODAL } from '../constants/modals';
+import { SOCIAL_PUBLISH_MODAL } from '../../lib/constants/modals';
 
 // Opens the SocialPublishModal from anywhere in the app (modern ModalContainer
 // path mounted by src/mountModalSystem.jsx). Safe no-op if the modal system
