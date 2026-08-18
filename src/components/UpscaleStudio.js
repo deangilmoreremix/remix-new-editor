@@ -1,4 +1,6 @@
 import { muapi } from '../lib/muapi.js';
+import { openSocialPublish } from '../lib/socialPublishHelpers.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
@@ -22,6 +24,7 @@ export function UpscaleStudio() {
   let selectedMethod = UPSCALE_METHODS[0];
   let selectedFactor = '2';
   let uploadedUrl = null;
+  let lastOutputUrl = null;
   let customThumbnailUrl = getCustomThumbnailFromCache('upscale-studio');
 
   const header = document.createElement('div');
@@ -276,13 +279,17 @@ export function UpscaleStudio() {
       if (selectedFactor) params.upscale_factor = parseInt(selectedFactor);
       const result = await muapi.generateI2I(params);
       if (result?.url) {
+        lastOutputUrl = result.url;
         resultArea.classList.remove('hidden');
         resultArea.innerHTML = `
           <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4">
             <img src="${result.url}" class="w-full rounded-xl mb-3">
             <a href="${result.url}" download class="block w-full bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
+            <button type="button" class="publish-social-btn block w-full mt-2 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
           </div>
         `;
+        const publishBtn = resultArea.querySelector('.publish-social-btn');
+        if (publishBtn) publishBtn.onclick = () => openSocialPublish({ mediaUrl: lastOutputUrl, mediaType: 'image' });
       }
     } catch (err) {
       alert(`Error: ${err.message}`);

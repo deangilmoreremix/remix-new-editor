@@ -13,6 +13,7 @@
 import { uploadFileToStorage } from '../hybrid-supabase.js';
 import { mediaWorker } from '../media-worker-manager.js';
 import { processFileUpload } from './uploadPipeline.js';
+import { formatErrorMessage } from '../errorMessages.js';
 
 // Enhanced drag state management
 const dragState = {
@@ -1550,8 +1551,9 @@ export function setupMediaLibraryDropZone(container, options = {}) {
     if (!e.dataTransfer || !e.dataTransfer.files || e.dataTransfer.files.length === 0) return;
     const { processFileUpload } = await import('./uploadPipeline.js');
     const files = Array.from(e.dataTransfer.files);
+    const safeToast = (m, t) => showToast && showToast(formatErrorMessage(m), t);
     for (const file of files) {
-      await processFileUpload(file, { state, showToast });
+      await processFileUpload(file, { state, showToast: safeToast });
     }
     if (typeof showToast === 'function') {
       showToast(`Added ${files.length} file${files.length === 1 ? '' : 's'} to library`, 'success');

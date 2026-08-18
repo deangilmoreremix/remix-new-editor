@@ -24,6 +24,7 @@
  */
 
 import { processFileUpload, fetchUrlAsFile, processUrlUpload } from './uploadPipeline.js';
+import { formatErrorMessage } from '../errorMessages.js';
 
 // ============================================================================
 // CLIPBOARD
@@ -67,8 +68,9 @@ export function wireClipboardUpload({ state, showToast, onUpload, target } = {})
     // Prevent default paste behavior (don't paste as text)
     event.preventDefault();
 
+    const safeToast = (m, t) => showToast && showToast(formatErrorMessage(m), t);
     for (const file of files) {
-      const result = await processFileUpload(file, { state, showToast });
+      const result = await processFileUpload(file, { state, showToast: safeToast });
       if (typeof onUpload === 'function') onUpload(result, file);
     }
   };
@@ -160,6 +162,7 @@ export async function apiUpload(file, options = {}) {
   const showToast = options.showToast;
   const state = options.state;
   const onUpload = options.onUpload;
+  const safeToast = (m, t) => showToast && showToast(formatErrorMessage(m), t);
 
   try {
     // Build multipart form
@@ -176,7 +179,7 @@ export async function apiUpload(file, options = {}) {
       // Server unreachable — fall back to client-side processFileUpload
       if (state) {
         if (showToast) showToast('API upload failed, using client upload', 'warning');
-        const result = await processFileUpload(file, { state, showToast });
+        const result = await processFileUpload(file, { state, showToast: safeToast });
         if (typeof onUpload === 'function') onUpload(result, file);
         return result;
       }
@@ -192,7 +195,7 @@ export async function apiUpload(file, options = {}) {
     // Network error — fall back to client-side
     if (state) {
       if (showToast) showToast('API unavailable, using client upload', 'warning');
-      const result = await processFileUpload(file, { state, showToast });
+      const result = await processFileUpload(file, { state, showToast: safeToast });
       if (typeof onUpload === 'function') onUpload(result, file);
       return result;
     }

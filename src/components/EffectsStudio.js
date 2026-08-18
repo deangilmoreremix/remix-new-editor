@@ -1,4 +1,6 @@
 import { muapi } from '../lib/muapi.js';
+import { openSocialPublish } from '../lib/socialPublishHelpers.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
@@ -380,6 +382,12 @@ export function EffectsStudio() {
   generateBtn.textContent = 'Apply Effect';
   generateBtn.setAttribute('aria-label', 'Apply effect');
     promptRow.appendChild(generateBtn);
+    const effectsPublishBtn = document.createElement('button');
+    effectsPublishBtn.type = 'button';
+    effectsPublishBtn.textContent = 'Publish to Social';
+    effectsPublishBtn.className = 'bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow transition-all whitespace-nowrap';
+    effectsPublishBtn.onclick = () => openSocialPublish({ mediaUrl: lastResultUrl, mediaType: lastResultType });
+    promptRow.appendChild(effectsPublishBtn);
     mountPersonalizeTrigger({ controlsContainer: promptRow, getTextarea: () => promptInput, appId: 'effects-studio' });
     previewTop.appendChild(promptRow);
 
@@ -811,6 +819,12 @@ export function EffectsStudio() {
   mobileGenBtn.textContent = 'Apply Effect';
   mobileGenBtn.setAttribute('aria-label', 'Apply effect');
   mobileControls.appendChild(mobileGenBtn);
+  const mobilePublishBtn = document.createElement('button');
+  mobilePublishBtn.type = 'button';
+  mobilePublishBtn.textContent = 'Publish to Social';
+  mobilePublishBtn.className = 'w-full bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-3 rounded-xl font-black text-sm hover:shadow-glow transition-all';
+  mobilePublishBtn.onclick = () => openSocialPublish({ mediaUrl: lastResultUrl, mediaType: lastResultType });
+  mobileControls.appendChild(mobilePublishBtn);
   container.appendChild(mobileControls);
 
   function switchTab(tab) {
@@ -945,6 +959,9 @@ export function EffectsStudio() {
   }
 
   searchInput.oninput = () => renderEffects(searchInput.value);
+
+  let lastOutputUrl = null;
+  let lastMediaType = 'image';
 
   async function handleGenerate() {
     if (!(await requireEntitlement())) return;

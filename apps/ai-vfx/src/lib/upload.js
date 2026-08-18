@@ -110,14 +110,14 @@ export async function uploadImageFile(file, { onProgress, signal } = {}) {
       const url = onProgress
         ? await uploadWithProgress(file, apiKey, onProgress, signal)
         : await muapiUploadFile(file).then(extractUploadUrl)
-      if (!url) throw new Error('Upload succeeded but returned no URL.')
+      if (!url) throw new Error('Upload failed: no URL returned by server.')
       return url
     } catch (err) {
       lastError = err
       // Don't retry client/validation errors or aborts.
       if (err.code === 'VALIDATION' || err.code === 'NO_API_KEY' || err.name === 'AbortError') break
       const status = err.status
-      if (status && (status === 400 || status === 401 || status === 403 || status === 413)) break
+      if (status && (status === 400 || status === 401 || status === 402 || status === 403 || status === 413)) break
       // Otherwise treat as transient and retry.
     }
   }
@@ -149,22 +149,17 @@ function uploadWithProgress(file, apiKey, onProgress, signal) {
             onProgress?.(100, { phase: 'done' })
             resolve(url)
           } else {
-            reject(Object.assign(new Error('Upload returned no URL.'), { status: xhr.status }))
+            reject(Object.assign(new Error('Upload failed: no URL returned by server.'), { status: xhr.status }))
           }
         } catch {
-          reject(Object.assign(new Error('Invalid upload response.'), { status: xhr.status }))
+          reject(Object.assign(new Error('Upload failed: invalid server response.'), { status: xhr.status }))
         }
       } else {
-        let detail = ''
-        try {
-          const body = JSON.parse(xhr.responseText)
-          detail = typeof body.detail === 'string' ? body.detail : JSON.stringify(body.detail || '')
-        } catch { /* ignore */ }
-        reject(
-          Object.assign(new Error(`Upload failed (${xhr.status}). ${detail || ''}`.trim()), {
-            status: xhr.status,
-          })
-        )
+        const isAuthCredit = xhr.status === 401 || xhr.status === 402 || xhr.status === 403
+        const message = isAuthCredit
+          ? 'Please sign in and add api credits.'
+          : `Upload failed (${xhr.status}).`
+        reject(Object.assign(new Error(message), { status: xhr.status }))
       }
     })
 
