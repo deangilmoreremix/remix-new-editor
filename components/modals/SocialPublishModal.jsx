@@ -284,13 +284,20 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
         onStatus: (s) => setProgress(statusLabel(s)),
         signal: abortRef.current?.signal,
       });
-      const out = result?.output || {};
-      const link = typeof out.url === 'string' ? out.url
-        : out.media_id || out.publish_id || '';
+      // muapi returns the post reference in different shapes per platform:
+      //   YouTube  -> { output: { url } }
+      //   Instagram -> { platform, media_id }
+      //   TikTok    -> { platform, publish_id }
+      const link =
+        result?.output?.url ||
+        result?.url ||
+        result?.media_id ||
+        result?.publish_id ||
+        '';
       setResultUrl(typeof link === 'string' ? link : '');
       setStatus('success');
       if (typeof opts.onPublished === 'function') {
-        opts.onPublished({ platform, url: typeof link === 'string' ? link : '', raw: out });
+        opts.onPublished({ platform, url: typeof link === 'string' ? link : '', raw: result });
       }
     } catch (e) {
       setErrorMsg(e.message || 'Publishing failed.');
