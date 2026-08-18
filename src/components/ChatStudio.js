@@ -4,6 +4,8 @@ import { textModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 import { createInlineInstructions } from './InlineInstructions.js';
+import { openRecipeModal } from '../lib/recipeIntegration.js';
+import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 
 export function ChatStudio() {
   const container = document.createElement('div');
@@ -96,6 +98,35 @@ export function ChatStudio() {
   sendBtn.className = 'px-6 py-3 bg-primary text-black font-bold rounded-xl hover:bg-primary/90 transition-colors self-end';
   sendBtn.innerHTML = '<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>';
   inputRow.appendChild(sendBtn);
+
+  // Recipe Engine button
+  const recipeBtn = document.createElement('button');
+  recipeBtn.type = 'button';
+  recipeBtn.textContent = '📋 Recipes';
+  recipeBtn.title = 'Browse AI recipes';
+  recipeBtn.setAttribute('aria-label', 'Open recipe engine');
+  recipeBtn.className = 'gtm-boost-btn shrink-0';
+  recipeBtn.addEventListener('click', () => {
+    openRecipeModal({
+      onRunRecipe: (url) => {
+        console.log('[Recipe] finished:', url);
+      }
+    }).catch((err) => console.error('[Recipe] open failed:', err));
+  });
+  inputRow.appendChild(recipeBtn);
+
+  // Monetization Hub button
+  const monetizationBtn = document.createElement('button');
+  monetizationBtn.type = 'button';
+  monetizationBtn.textContent = '💼 Monetize';
+  monetizationBtn.title = 'Open monetization hub';
+  monetizationBtn.setAttribute('aria-label', 'Open monetization hub');
+  monetizationBtn.className = 'gtm-boost-btn shrink-0';
+  monetizationBtn.addEventListener('click', () => {
+    openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+  });
+  inputRow.appendChild(monetizationBtn);
+
   inputArea.appendChild(inputRow);
 
   // Advanced options toggle

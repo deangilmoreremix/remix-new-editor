@@ -4,6 +4,8 @@ import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection } from '../lib/thumbnails.js';
+import { openRecipeModal } from '../lib/recipeIntegration.js';
+import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 
 const UPSCALE_METHODS = [
   { id: 'ai-image-upscaler', name: 'AI Upscaler', description: 'General-purpose AI upscaling with 2x/4x factor', factors: ['2', '4'] },
@@ -79,6 +81,35 @@ export function UpscaleStudio() {
   genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all';
   genBtn.textContent = 'Upscale Image';
   formCard.appendChild(genBtn);
+
+  // Recipe Engine button
+  const recipeBtn = document.createElement('button');
+  recipeBtn.type = 'button';
+  recipeBtn.textContent = '📋 Recipes';
+  recipeBtn.title = 'Browse AI recipes';
+  recipeBtn.setAttribute('aria-label', 'Open recipe engine');
+  recipeBtn.className = 'gtm-boost-btn shrink-0';
+  recipeBtn.addEventListener('click', () => {
+    openRecipeModal({
+      onRunRecipe: (url) => {
+        console.log('[Recipe] finished:', url);
+      }
+    }).catch((err) => console.error('[Recipe] open failed:', err));
+  });
+  formCard.appendChild(recipeBtn);
+
+  // Monetization Hub button
+  const monetizationBtn = document.createElement('button');
+  monetizationBtn.type = 'button';
+  monetizationBtn.textContent = '💼 Monetize';
+  monetizationBtn.title = 'Open monetization hub';
+  monetizationBtn.setAttribute('aria-label', 'Open monetization hub');
+  monetizationBtn.className = 'gtm-boost-btn shrink-0';
+  monetizationBtn.addEventListener('click', () => {
+    openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+  });
+  formCard.appendChild(monetizationBtn);
+
   container.appendChild(formCard);
 
   const inlineInstructions = createInlineInstructions('upscale');
