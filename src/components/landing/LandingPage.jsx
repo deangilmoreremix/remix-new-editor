@@ -1,6 +1,8 @@
 // AI Video Agency Studio Landing Page
 // Optimized with lazy loading for sections
 
+import { openMonetizationHub } from '../../lib/monetizationIntegration.js';
+
 const ALL_APPS = [
   { id: 'image', title: 'Image', description: 'Generate high-quality AI images for ads, thumbnails, product visuals, social media, websites, and client campaigns.', link: '/image' },
   { id: 'video', title: 'Video', description: 'Create text-to-video, image-to-video, video-to-video, and cinematic motion content for social, ads, and branded campaigns.', link: '/video' },
@@ -149,6 +151,21 @@ export default async function LandingPage() {
     requestAnimationFrame(() => {
       heroEl.classList.add('visible');
     });
+
+    const monetizeLauncher = document.createElement('div');
+    monetizeLauncher.className = 'monetize-launcher animate-in stagger-1';
+    monetizeLauncher.innerHTML = `
+      <div class="fixed bottom-6 right-6 z-30">
+        <button id="open-monetization-hub" class="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-xl shadow-lg hover:from-purple-400 hover:to-pink-400 transition-all duration-300">
+          <span>💼</span>
+          <span>Monetize</span>
+        </button>
+      </div>
+    `;
+    monetizeLauncher.querySelector('#open-monetization-hub').addEventListener('click', () => {
+      openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+    });
+    container.appendChild(monetizeLauncher);
 
     const scrollingStrip = createLazySection(() => import('./sections/ScrollingAppStrip.jsx'), 'scrolling', {}, 0);
     const hookSection = createLazySection(() => import('./sections/HookSection.jsx'), 'hook', {}, 1);
