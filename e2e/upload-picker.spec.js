@@ -254,4 +254,28 @@ test.describe('Upload — insufficient credits (402) shows actionable message', 
       `Expected friendly credits dialog, got: ${dialogs.join(' | ') || '(none)'}`
     ).toBe(true);
   });
+
+  test('cinema frame-mode picker shows "Please sign in and add api credits." on 402', async ({ page }) => {
+    const pageErrors = [];
+    page.on('pageerror', (e) => pageErrors.push(String(e)));
+
+    await page.goto('/#/cinema');
+    await page.waitForTimeout(1000);
+
+    // Cinema renders the shared UploadPicker in frame mode; its reference-media
+    // input is an input[type="file"] inside the trigger button. We do not click
+    // the trigger — setInputFiles works on the (hidden) input directly, matching
+    // the SUCCESS cinema test above.
+    const fileInput = page.locator('input[type="file"]').first();
+    await expect(fileInput).toBeAttached();
+    await fileInput.setInputFiles(IMG);
+
+    // The shared picker maps 402 → the single actionable toast.
+    await expect(
+      page.getByText('Please sign in and add api credits.', { exact: false }),
+      'cinema frame picker should surface the credits message on 402'
+    ).toBeVisible({ timeout: 8000 });
+
+    expect(pageErrors, `Uncaught errors in cinema picker: ${pageErrors.join(' | ')}`).toEqual([]);
+  });
 });

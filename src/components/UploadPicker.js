@@ -52,7 +52,7 @@ registerGlobalListeners();
 const MUAPI_LIMITS = {
     image: 10 * 1024 * 1024,
     video: 50 * 1024 * 1024,
-    audio: 50 * 1024 * 1024,
+    audio: 10 * 1024 * 1024,
     document: 10 * 1024 * 1024,
     text: 10 * 1024 * 1024,
     archive: 10 * 1024 * 1024,
