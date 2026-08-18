@@ -128,7 +128,7 @@ function createAudioFileUploader(label, value, onChange, apiKey) {
         </div>
         <div class="text-left">
           <div class="text-xs font-bold text-white">Upload audio track</div>
-          <div class="text-[11px] text-zinc-300 font-medium mt-0.5">MP3, WAV, M4A up to 20MB</div>
+          <div class="text-[11px] text-zinc-300 font-medium mt-0.5">MP3, WAV, M4A up to 10MB</div>
         </div>
       `;
       dropZone.onclick = () => fileInput.click();
@@ -168,8 +168,8 @@ function createAudioFileUploader(label, value, onChange, apiKey) {
   fileInput.addEventListener('change', async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 20 * 1024 * 1024) {
-      showToast('Audio file exceeds 20MB limit.', 'error');
+    if (file.size > 10 * 1024 * 1024) {
+      showToast('Audio file exceeds 10MB limit.', 'error');
       fileInput.value = '';
       return;
     }
@@ -1001,6 +1001,25 @@ export function AudioStudio() {
       schemaParams = typeof updater === 'function' ? updater(schemaParams) : updater;
       schedulePersist();
     }, schemaControlsContainer, apiKey);
+
+    // Voice-clone and music-extend/remix models take a reference audio file, but
+    // none declare an `audio` schema field, so renderSchemaControls above never
+    // mounts an uploader for them. Mount one explicitly and store the resulting
+    // URL as `audio_url` — the generate handler spreads `schemaParams` straight
+    // into muapi.generateAudio/generateMusic, both of which forward `audio_url`
+    // to muapi.ai. See muapi.js (generateAudio/generateMusic).
+    if (selectedModel && (selectedModel.requiresAudio || selectedModel.hasAudio)) {
+      const uploader = createAudioFileUploader(
+        selectedModel.requiresAudio ? 'Reference audio' : (selectedModel.hasAudio ? 'Reference audio' : 'Reference track'),
+        schemaParams.audio_url || '',
+        (url) => {
+          schemaParams = { ...schemaParams, audio_url: url };
+          schedulePersist();
+        },
+        apiKey
+      );
+      schemaControlsContainer.appendChild(uploader);
+    }
   }
 
   function cleanupResult() {

@@ -279,3 +279,112 @@ test.describe('Upload — insufficient credits (402) shows actionable message', 
     expect(pageErrors, `Uncaught errors in cinema picker: ${pageErrors.join(' | ')}`).toEqual([]);
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AudioStudio — reference audio upload (offline mock)
+//
+// Regression guard for the "Audio Studio upload" feature: AudioStudio only
+// mounts its createAudioFileUploader once a model that accepts a reference
+// track is selected (minimax-voice-clone => requiresAudio). Selecting that
+// model must render `input[accept="audio/*"]`, and the picked file must flow
+// through muapi.uploadFile (capped at 10MB) → the mocked muapi proxy.
+//
+// Covers both the happy path (200 → "Ready to generate") and the 402 path
+// (the uploader surfaces a toast rather than crashing).
+// ─────────────────────────────────────────────────────────────────────────────
+test.describe('AudioStudio — reference audio upload (offline mock)', () => {
+  // Self-contained: each test injects a fake key + arms its own proxy response
+  // (200 vs 402), so the two paths don't depend on describe-level route setup.
+  const AUDIO_FIXTURE = path.join(SPEC_DIR, 'fixtures', 'sample-audio.mp3');
+
+  // /#/audio lazy-imports AudioStudio from a heavy shared bundle (includes video
+  // plugin machinery), so cold-start render of the model list can exceed 10s.
+  test.setTimeout(90000);
+
+  async function injectMuapiKey(page) {
+    await page.addInitScript(({ key, storageKey, salt }) => {
+      try {
+        const obfuscated = btoa(salt + key);
+        sessionStorage.setItem(storageKey, obfuscated);
+        localStorage.setItem(storageKey, obfuscated);
+      } catch { /* storage may be disabled */ }
+    }, { key: FAKE_MUAPI_KEY, storageKey: MUAPI_STORAGE_KEY, salt: OBFUSCATION_SALT });
+  }
+
+  test('selecting a voice-clone model renders the audio uploader and uploads it (mocked 200)', async ({ page }) => {
+    const proxyCalls = [];
+    const pageErrors = [];
+    page.on('pageerror', (e) => pageErrors.push(String(e)));
+
+    await injectMuapiKey(page);
+
+    await page.route('**/muapi-proxy**', (route) => {
+      proxyCalls.push(route.request().url());
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ url: 'https://fake.test/uploaded.mp3' }),
+      });
+    });
+
+    await page.goto('/#/audio');
+    // Wait for the heavy lazy bundle to settle before asserting the model list.
+    await page.waitForLoadState('networkidle', { timeout: 25000 }).catch(() => {});
+    await page.waitForSelector('[data-model-id="minimax-voice-clone"]', { timeout: 30000 });
+
+    // Voice-clone is NOT the default; the uploader only appears after selecting
+    // a model that requires/accepts audio (requiresAudio/hasAudio flag in
+    // renderSchemaControlsSection).
+    await page.click('[data-model-id="minimax-voice-clone"]');
+    await page.waitForSelector('input[accept="audio/*"]', { state: 'attached', timeout: 8000 });
+
+    const fileInput = page.locator('input[accept="audio/*"]').first();
+    await fileInput.setInputFiles(AUDIO_FIXTURE);
+    await page.waitForTimeout(800);
+
+    expect(pageErrors, `Uncaught errors in audio studio: ${pageErrors.join(' | ')}`).toEqual([]);
+
+    expect(
+      proxyCalls.length,
+      `Expected the mocked muapi proxy to be hit on audio upload, got ${proxyCalls.length}: ${proxyCalls.join(', ')}`
+    ).toBeGreaterThan(0);
+
+    // The uploader reflects success (file picked + POST returned a URL).
+    await expect(
+      page.getByText('Ready to generate', { exact: false }),
+      'audio uploader should show the ready state after a successful upload'
+    ).toBeVisible({ timeout: 6000 });
+  });
+
+  test('voice-clone shows an actionable toast on 402 (no credits)', async ({ page }) => {
+    const pageErrors = [];
+    page.on('pageerror', (e) => pageErrors.push(String(e)));
+
+    await injectMuapiKey(page);
+
+    await page.route('**/muapi-proxy**', (route) =>
+      route.fulfill({
+        status: 402,
+        contentType: 'application/json',
+        body: JSON.stringify({ detail: 'Insufficient credits', code: 'INSUFFICIENT_CREDITS' }),
+      })
+    );
+
+    await page.goto('/#/audio');
+    await page.waitForSelector('[data-model-id="minimax-voice-clone"]', { timeout: 10000 });
+
+    await page.click('[data-model-id="minimax-voice-clone"]');
+    await page.waitForSelector('input[accept="audio/*"]', { state: 'attached', timeout: 8000 });
+
+    await page.locator('input[accept="audio/*"]').first().setInputFiles(AUDIO_FIXTURE);
+    await page.waitForTimeout(800);
+
+    // createAudioFileUploader surfaces 402 as a toast (not a crash).
+    await expect(
+      page.getByText(/Upload failed[\s\S]*402/),
+      'audio uploader should surface a 402 toast'
+    ).toBeVisible({ timeout: 8000 });
+
+    expect(pageErrors, `Uncaught errors in audio studio 402: ${pageErrors.join(' | ')}`).toEqual([]);
+  });
+});
