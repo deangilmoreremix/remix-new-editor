@@ -26,6 +26,7 @@ export function VideoStudio() {
     let selectedQuality = defaultModel.inputs?.quality?.default || '';
     let lastGenerationId = null;
     let lastGenerationModel = null;
+    let nativeAudio = false;
     let dropdownOpen = null;
     let uploadedImageUrl = null;
     let imageMode = false; // false = t2v models, true = i2v models
@@ -442,6 +443,14 @@ export function VideoStudio() {
                     placeholder="-1 for random"
                     value="-1"
                     class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors">
+
+            <!-- Native Audio -->
+            <div id="v-native-audio-row" class="flex items-center justify-between">
+                <label class="text-xs font-bold text-secondary uppercase tracking-wider">Native Audio</label>
+                <button id="v-native-audio-btn" class="relative h-7 w-12 rounded-full transition bg-white/10 border border-white/10" data-native-audio="false">
+                    <span class="absolute top-1 h-5 w-5 rounded-full bg-white transition left-1" id="v-native-audio-knob"></span>
+                </button>
+            </div>
             </div>
         </div>
     `;
@@ -470,6 +479,20 @@ export function VideoStudio() {
     const vSeedInput = advancedPanel.querySelector('#v-seed-input');
     if (vSeedInput) vSeedInput.oninput = (e) => { seed = parseInt(e.target.value) || -1; };
     
+
+    // Native audio toggle
+    const vNativeAudioBtn = advancedPanel.querySelector('#v-native-audio-btn');
+    const vNativeAudioKnob = advancedPanel.querySelector('#v-native-audio-knob');
+    if (vNativeAudioBtn && vNativeAudioKnob) {
+        vNativeAudioBtn.onclick = () => {
+            nativeAudio = !nativeAudio;
+            vNativeAudioBtn.setAttribute('data-native-audio', String(nativeAudio));
+            vNativeAudioBtn.style.background = nativeAudio ? 'var(--cyan)' : '';
+            vNativeAudioBtn.style.borderColor = nativeAudio ? 'var(--cyan)' : '';
+            vNativeAudioKnob.style.left = nativeAudio ? 'calc(100% - 22px)' : '4px';
+        };
+    }
+
     // Randomize seed button
     const vRandSeedBtn = advancedPanel.querySelector('#v-randomize-seed-btn');
     if (vRandSeedBtn) {
@@ -487,6 +510,14 @@ export function VideoStudio() {
 
     const updateControlsForModel = (modelId) => {
         const model = getCurrentModels().find(m => m.id === modelId);
+
+        // Native audio toggle — only show for models that support it
+        const vNativeAudioRow = advancedPanel.querySelector('#v-native-audio-row');
+        if (vNativeAudioRow) {
+            const supportsNativeAudio = model?.inputs?.native_audio && !v2vMode;
+            vNativeAudioRow.style.display = supportsNativeAudio ? 'flex' : 'none';
+            if (!supportsNativeAudio) nativeAudio = false;
+        }
 
         // In v2v mode, hide all parameter controls — no prompt/AR/duration/etc needed
         if (v2vMode) {
@@ -1179,6 +1210,7 @@ export function VideoStudio() {
                 const resolutions = getCurrentResolutions(selectedModel);
                 if (resolutions.length > 0) i2vParams.resolution = selectedResolution;
                 if (selectedQuality) i2vParams.quality = selectedQuality;
+                if (nativeAudio) i2vParams.native_audio = nativeAudio;
 
                 const res = await muapi.generateI2V(i2vParams);
                 console.log('[VideoStudio] I2V response:', res);
@@ -1222,6 +1254,7 @@ export function VideoStudio() {
             if (resolutions.length > 0) params.resolution = selectedResolution;
 
             if (selectedQuality) params.quality = selectedQuality;
+            if (nativeAudio) params.native_audio = nativeAudio;
 
             const res = await muapi.generateVideo(params);
 

@@ -877,6 +877,9 @@ export class MuapiClient {
         if (params.video_url) finalPayload.video_url = params.video_url;
         if (params.prompt) finalPayload.prompt = params.prompt;
 
+        // Native audio
+        if (params.native_audio) finalPayload.native_audio = params.native_audio;
+
         // Multimodal references (Phase 0)
         if (params.reference_images?.length) finalPayload.reference_images = params.reference_images;
         if (params.reference_videos?.length) finalPayload.reference_videos = params.reference_videos;

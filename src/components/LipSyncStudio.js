@@ -6,6 +6,10 @@ import { AuthModal } from './AuthModal.js';
 import { savePendingJob, removePendingJob, getPendingJobs } from '../lib/pendingJobs.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
+import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
+import { openModelPicker } from '../lib/modelPickerIntegration.js';
+import { openRecipeModal } from '../lib/recipeIntegration.js';
+import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 
 export function LipSyncStudio() {
     const container = document.createElement('div');
@@ -17,6 +21,7 @@ export function LipSyncStudio() {
     // 'video' mode: existing video + audio → lipsync video
     let inputMode = 'image';
     let selectedModel = imageLipSyncModels[0].id;
+    let nativeAudio = false;
     let selectedResolution = imageLipSyncModels[0].inputs?.resolution?.default || '480p';
     let uploadedImageUrl = null;
     let uploadedVideoUrl = null;
@@ -202,11 +207,71 @@ export function LipSyncStudio() {
     // ── Bottom Controls Row ──
     const bottomRow = document.createElement('div');
     bottomRow.className = 'flex items-center gap-2 md:gap-3 flex-wrap px-2';
+    // Native audio toggle
+    const nativeAudioRow = document.createElement('div');
+    nativeAudioRow.className = 'flex items-center justify-between px-2';
+    nativeAudioRow.innerHTML = `
+      <label class="text-xs font-bold text-secondary uppercase tracking-wider">Native Audio</label>
+      <button id="ls-native-audio-btn" class="relative h-7 w-12 rounded-full transition bg-white/10 border border-white/10" data-native-audio="false">
+        <span class="absolute top-1 h-5 w-5 rounded-full bg-white transition left-1" id="ls-native-audio-knob"></span>
+      </button>
+    `;
+    const lsNativeAudioBtn = nativeAudioRow.querySelector('#ls-native-audio-btn');
+    const lsNativeAudioKnob = nativeAudioRow.querySelector('#ls-native-audio-knob');
+    if (lsNativeAudioBtn && lsNativeAudioKnob) {
+      lsNativeAudioBtn.onclick = () => {
+        nativeAudio = !nativeAudio;
+        lsNativeAudioBtn.setAttribute('data-native-audio', String(nativeAudio));
+        lsNativeAudioBtn.style.background = nativeAudio ? 'var(--cyan)' : '';
+        lsNativeAudioBtn.style.borderColor = nativeAudio ? 'var(--cyan)' : '';
+        lsNativeAudioKnob.style.left = nativeAudio ? 'calc(100% - 22px)' : '4px';
+      };
+    }
+    bottomRow.appendChild(nativeAudioRow);
+
+    // Initially hide native audio toggle if the default model doesn't support it
+    if (!getCurrentModel()?.inputs?.native_audio) {
+        nativeAudioRow.classList.add('hidden');
+    }
+
 
     // Model selector
     const modelBtn = document.createElement('button');
     modelBtn.id = 'ls-model-btn';
     modelBtn.type = 'button';
+  // Model Picker button
+  const modelPickerBtn = document.createElement('button');
+  modelPickerBtn.type = 'button';
+  modelPickerBtn.textContent = 'AI Pick';
+  modelPickerBtn.title = 'Open intelligent model picker';
+  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
+  modelPickerBtn.className = 'text-[11px] font-bold text-cyan-400 border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 rounded-lg hover:bg-cyan-400/20 transition-colors ml-2 whitespace-nowrap';
+  modelPickerBtn.addEventListener('click', () => {
+    openModelPicker({
+      currentModelId: selectedModel,
+      onSelectModel: (id) => {
+        selectedModel = id;
+        document.getElementById('ls-model-btn-label').textContent = getCurrentModels().find(x => x.id === id)?.name || id;
+        const resolutions = getResolutionsForLipSyncModel(selectedModel);
+        if (resolutions.length > 0) {
+          selectedResolution = resolutions[0];
+          document.getElementById('ls-resolution-btn-label').textContent = selectedResolution;
+          document.getElementById('ls-resolution-btn').classList.remove('hidden');
+        } else {
+          document.getElementById('ls-resolution-btn').classList.add('hidden');
+        }
+        const model = getCurrentModels().find(x => x.id === id);
+        if (model?.inputs?.native_audio) {
+          nativeAudioRow.classList.remove('hidden');
+        } else {
+          nativeAudioRow.classList.add('hidden');
+          nativeAudio = false;
+        }
+      }
+    }).catch((err) => console.error('[ModelPicker] open failed:', err));
+  });
+  bottomRow.appendChild(modelPickerBtn);
+
     modelBtn.className = 'flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-primary/40 transition-all text-xs font-bold text-white group';
     modelBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-primary"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg><span id="ls-model-btn-label">${getCurrentModels()[0].name}</span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted group-hover:text-white transition-colors"><polyline points="6 9 12 15 18 9"/></svg>`;
 
@@ -268,6 +333,12 @@ export function LipSyncStudio() {
                         resolutionBtn.classList.add('hidden');
                     }
                     textarea.style.display = m.hasPrompt ? '' : 'none';
+                    if (m.inputs?.native_audio) {
+                        nativeAudioRow.classList.remove('hidden');
+                    } else {
+                        nativeAudioRow.classList.add('hidden');
+                        nativeAudio = false;
+                    }
                     closeDropdown();
                 };
                 dropdown.appendChild(item);
@@ -287,6 +358,56 @@ export function LipSyncStudio() {
                 dropdown.appendChild(item);
             });
         }
+
+    // Prompt Gallery button
+    const promptGalleryBtn = document.createElement('button');
+    promptGalleryBtn.type = 'button';
+    promptGalleryBtn.textContent = '📚 Prompts';
+    promptGalleryBtn.title = 'Browse prompt gallery';
+    promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
+    promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
+    promptGalleryBtn.addEventListener('click', () => {
+      openPromptGallery({
+        appTheme: 'lip-sync-studio',
+        onSelect: (prompt) => {
+          // Default: try to find a textarea in the studio
+          const ta = document.querySelector('textarea') || document.querySelector('[data-prompt]');
+          if (ta) {
+            ta.value = prompt;
+            ta.dispatchEvent(new Event('input', { bubbles: true }));
+            ta.focus();
+          }
+        }
+      }).catch((err) => console.error('[PromptGallery] open failed:', err));
+    });
+
+    // Recipe Engine button
+    const recipeBtn = document.createElement('button');
+    recipeBtn.type = 'button';
+    recipeBtn.textContent = '📋 Recipes';
+    recipeBtn.title = 'Browse AI recipes';
+    recipeBtn.setAttribute('aria-label', 'Open recipe engine');
+    recipeBtn.className = 'gtm-boost-btn shrink-0';
+    recipeBtn.addEventListener('click', () => {
+      openRecipeModal({
+        onRunRecipe: (url) => {
+          console.log('[Recipe] finished:', url);
+        }
+      }).catch((err) => console.error('[Recipe] open failed:', err));
+    });
+
+
+    // Monetization Hub button
+    const monetizationBtn = document.createElement('button');
+    monetizationBtn.type = 'button';
+    monetizationBtn.textContent = '💼 Monetize';
+    monetizationBtn.title = 'Open monetization hub';
+    monetizationBtn.setAttribute('aria-label', 'Open monetization hub');
+    monetizationBtn.className = 'gtm-boost-btn shrink-0';
+    monetizationBtn.addEventListener('click', () => {
+      openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+    });
+
     };
 
     const openDropdown = (type, anchorBtn) => {
@@ -349,6 +470,14 @@ export function LipSyncStudio() {
             resolutionBtn.classList.remove('hidden');
         } else {
             resolutionBtn.classList.add('hidden');
+        }
+
+        // Show/hide native audio toggle
+        if (models[0].inputs?.native_audio) {
+            nativeAudioRow.classList.remove('hidden');
+        } else {
+            nativeAudioRow.classList.add('hidden');
+            nativeAudio = false;
         }
 
         // Show/hide prompt
@@ -782,6 +911,8 @@ export function LipSyncStudio() {
             if (resolutions.length > 0) lipsyncParams.resolution = selectedResolution;
 
             if (model?.hasSeed) lipsyncParams.seed = -1;
+
+            if (nativeAudio) lipsyncParams.native_audio = nativeAudio;
 
             const res = await muapi.processLipSync(lipsyncParams);
             console.log('[LipSyncStudio] Response:', res);

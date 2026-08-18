@@ -6,6 +6,10 @@ import { createUploadPicker } from './UploadPicker.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { createInlineInstructions } from './InlineInstructions.js';
+import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
+import { openModelPicker } from '../lib/modelPickerIntegration.js';
+import { openRecipeModal } from '../lib/recipeIntegration.js';
+import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 
 export function AvatarStudio() {
   const container = document.createElement('div');
@@ -13,6 +17,7 @@ export function AvatarStudio() {
   mountStudioChrome(container, { currentRoute: 'avatar' });
 
   let selectedModel = avatarModels[0];
+  let nativeAudio = false;
   let uploadedVideoUrl = null;
   let uploadedAudioUrl = null;
   let prompt = '';
@@ -48,6 +53,27 @@ export function AvatarStudio() {
     modelBtns[m.id] = btn;
     modelRow.appendChild(btn);
   });
+  // Model Picker button
+  const modelPickerBtn = document.createElement('button');
+  modelPickerBtn.type = 'button';
+  modelPickerBtn.textContent = 'AI Pick';
+  modelPickerBtn.title = 'Open intelligent model picker';
+  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
+  modelPickerBtn.className = 'text-[11px] font-bold text-cyan-400 border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 rounded-lg hover:bg-cyan-400/20 transition-colors ml-2 whitespace-nowrap';
+  modelPickerBtn.addEventListener('click', () => {
+    openModelPicker({
+      currentModelId: selectedModel.id,
+      onSelectModel: (id) => {
+      const m = avatarModels.find(x => x.id === id);
+      if (m) {
+        selectedModel = m;
+        updateModelBtns();
+        updateFormVisibility();
+      }
+      }
+    }).catch((err) => console.error('[ModelPicker] open failed:', err));
+  });
+  modelRow.appendChild(modelPickerBtn);
   container.appendChild(modelRow);
 
   // Form card
@@ -129,6 +155,29 @@ export function AvatarStudio() {
   formCard.appendChild(promptGroup);
   mountPersonalizeTrigger({ controlsContainer: formCard, getTextarea: () => promptInput, appId: 'avatar-studio' });
 
+  // Native audio toggle
+  const nativeAudioRow = document.createElement('div');
+  nativeAudioRow.className = 'flex items-center justify-between';
+  nativeAudioRow.innerHTML = `
+    <label class="text-xs font-bold text-secondary uppercase tracking-wider">Native Audio</label>
+    <button id="av-native-audio-btn" class="relative h-7 w-12 rounded-full transition bg-white/10 border border-white/10" data-native-audio="false">
+      <span class="absolute top-1 h-5 w-5 rounded-full bg-white transition left-1" id="av-native-audio-knob"></span>
+    </button>
+  `;
+  formCard.appendChild(nativeAudioRow);
+
+  const nativeAudioBtn = nativeAudioRow.querySelector('#av-native-audio-btn');
+  const nativeAudioKnob = nativeAudioRow.querySelector('#av-native-audio-knob');
+  if (nativeAudioBtn && nativeAudioKnob) {
+    nativeAudioBtn.onclick = () => {
+      nativeAudio = !nativeAudio;
+      nativeAudioBtn.setAttribute('data-native-audio', String(nativeAudio));
+      nativeAudioBtn.style.background = nativeAudio ? 'var(--cyan)' : '';
+      nativeAudioBtn.style.borderColor = nativeAudio ? 'var(--cyan)' : '';
+      nativeAudioKnob.style.left = nativeAudio ? 'calc(100% - 22px)' : '4px';
+    };
+  }
+
   // Generate button
   const genBtn = document.createElement('button');
   genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all';
@@ -157,6 +206,56 @@ export function AvatarStudio() {
     });
   }
 
+
+    // Prompt Gallery button
+    const promptGalleryBtn = document.createElement('button');
+    promptGalleryBtn.type = 'button';
+    promptGalleryBtn.textContent = '📚 Prompts';
+    promptGalleryBtn.title = 'Browse prompt gallery';
+    promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
+    promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
+    promptGalleryBtn.addEventListener('click', () => {
+      openPromptGallery({
+        appTheme: 'avatar-studio',
+        onSelect: (prompt) => {
+          // Default: try to find a textarea in the studio
+          const ta = document.querySelector('textarea') || document.querySelector('[data-prompt]');
+          if (ta) {
+            ta.value = prompt;
+            ta.dispatchEvent(new Event('input', { bubbles: true }));
+            ta.focus();
+          }
+        }
+      }).catch((err) => console.error('[PromptGallery] open failed:', err));
+    });
+
+    // Recipe Engine button
+    const recipeBtn = document.createElement('button');
+    recipeBtn.type = 'button';
+    recipeBtn.textContent = '📋 Recipes';
+    recipeBtn.title = 'Browse AI recipes';
+    recipeBtn.setAttribute('aria-label', 'Open recipe engine');
+    recipeBtn.className = 'gtm-boost-btn shrink-0';
+    recipeBtn.addEventListener('click', () => {
+      openRecipeModal({
+        onRunRecipe: (url) => {
+          console.log('[Recipe] finished:', url);
+        }
+      }).catch((err) => console.error('[Recipe] open failed:', err));
+    });
+
+
+    // Monetization Hub button
+    const monetizationBtn = document.createElement('button');
+    monetizationBtn.type = 'button';
+    monetizationBtn.textContent = '💼 Monetize';
+    monetizationBtn.title = 'Open monetization hub';
+    monetizationBtn.setAttribute('aria-label', 'Open monetization hub');
+    monetizationBtn.className = 'gtm-boost-btn shrink-0';
+    monetizationBtn.addEventListener('click', () => {
+      openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+    });
+
   function updateFormVisibility() {
     // Show/hide video upload
     const needsVideo = selectedModel.hasVideo;
@@ -169,6 +268,11 @@ export function AvatarStudio() {
     // Show/hide prompt
     const needsPrompt = selectedModel.hasPrompt;
     promptGroup.classList.toggle('hidden', !needsPrompt);
+
+    // Show/hide native audio toggle based on model
+    const supportsNativeAudio = selectedModel.inputs?.native_audio;
+    nativeAudioRow.classList.toggle('hidden', !supportsNativeAudio);
+    if (!supportsNativeAudio) nativeAudio = false;
   }
 
   // Generate button handler
@@ -191,7 +295,8 @@ export function AvatarStudio() {
       const params = {
         model: selectedModel.id,
         video_url: uploadedVideoUrl,
-      };
+      }
+    if (nativeAudio) params.native_audio = nativeAudio;
 
       if (uploadedAudioUrl) params.audio_url = uploadedAudioUrl;
       if (prompt) params.prompt = replaceTokensInPrompt(prompt, activeProfile);
