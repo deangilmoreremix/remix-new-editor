@@ -673,9 +673,9 @@ export function AudioStudio() {
   promptGroup.appendChild(promptInput);
   const gtmBtn = document.createElement('button');
   gtmBtn.type = 'button';
-  gtmBtn.textContent = 'GTM Boost';
+  gtmBtn.textContent = '🎯 GTM Boost';
   gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
-  gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
+  gtmBtn.setAttribute('aria-label', '🎯 GTM Boost prompt enhancer');
   gtmBtn.className = 'gtm-boost-btn shrink-0';
   gtmBtn.addEventListener('click', () => {
     import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
