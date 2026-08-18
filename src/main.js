@@ -14,6 +14,7 @@ initPopcorn().then(() => {
 import { Header } from './components/Header.js';
 import { Sidebar } from './components/Sidebar.js';
 import { initRouter, navigate } from './lib/router.js';
+import { ensureClerkLoaded } from './lib/clerkInit.js';
 import { perfMonitor } from './lib/performance.js';
 import { analytics } from './lib/analytics.js';
 import { showToast } from './lib/loading.js';
@@ -200,6 +201,18 @@ try {
   // Preserve any deep-link query params (e.g. ?asset=<id> for Render) so the
   // target page can read them. navigate() serializes params into the URL.
   const initialParams = Object.fromEntries(new URLSearchParams(window.location.search).entries());
+  // Ensure the shared Clerk instance is loaded before the router checks
+  // authentication on gated studio pages. Without this, ensureStudioAccess
+  // in router.js calls waitForClerk() before ClerkProvider has set
+  // window.Clerk, causing a false "not signed in" redirect.
+  // This is a no-op for landing/auth pages (no Clerk gate) and dev bypass.
+  if (!isDevBypass && initialPage !== 'landing' && !['signin','signup','forgot-password','reset-password','account','profile'].includes(initialPage)) {
+    try {
+      await ensureClerkLoaded();
+    } catch (err) {
+      console.warn('[App] Clerk preload failed, continuing anyway:', err.message);
+    }
+  }
   navigate(initialPage, initialParams);
 
   // Show the provider API key setup popup once when the user lands in the app.

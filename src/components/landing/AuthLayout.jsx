@@ -10,7 +10,7 @@ import { navigate } from '../../lib/router.js';
 // but intercept the click to route through the hash router — a real
 // `href="/image"` would 404 in production because Netlify has no file or
 // SPA fallback for those paths.
-function handleNavClick(e, route) {
+export function handleNavClick(e, route) {
   e.preventDefault();
   navigate(route);
 }

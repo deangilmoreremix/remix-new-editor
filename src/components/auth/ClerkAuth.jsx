@@ -33,11 +33,14 @@ function ClerkGate({ children }) {
       </div>
     );
   }
-  // The app's own router mounts these pages at real path routes
-  // (/signin, /signup, …), not hash routes. Clerk must use path-based
-  // routing so its client can resolve the route and finish loading —
-  // with routing="hash" and an empty hash, useSignIn/useSignUp never
-  // report isLoaded and the submit buttons stay permanently disabled.
+  // ClerkProvider's getClerkJsEntryChunk checks globalThis.Clerk: if it's
+  // already set (by ensureClerkLoaded in main.js or by a prior ClerkProvider),
+  // it skips CDN loading and reuses the instance. No need to pass the Clerk
+  // class — passing it would create a second instance and overwrite the
+  // singleton, causing duplicate session fetches.
+  //
+  // routing="path" so Clerk resolves real path routes (/signin, /signup)
+  // and useSignIn/useSignUp report isLoaded immediately.
   return (
     <ClerkProvider publishableKey={PUBLISHABLE_KEY} routing="path">
       {children}

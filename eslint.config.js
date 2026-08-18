@@ -3,10 +3,15 @@ import js from '@eslint/js';
 export default [
   js.configs.recommended,
   {
-    files: ['src/**/*.{js,ts}'],
+    // Include .jsx/.tsx — BEFORE this change these were silently skipped,
+    // which allowed the handleNavClick ReferenceError to ship to production.
+    files: ['src/**/*.{js,jsx,ts,tsx}'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
+      ecmaFeatures: {
+        jsx: true,
+      },
       globals: {
         console: 'readonly',
         window: 'readonly',

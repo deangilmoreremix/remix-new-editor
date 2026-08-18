@@ -6,7 +6,7 @@ export function useEntitlement() {
   const { has, isLoaded, isSignedIn } = useAuth();
 
   if (!isLoaded) return { loading: true, hasFullAccess: false, isSignedIn: false };
-  if (!isSignedIn) return { loading: false, hasFullAccess: false, isSignedIn: true };
+  if (!isSignedIn) return { loading: false, hasFullAccess: false, isSignedIn: false };
 
   const hasFullAccess = has?.({ feature: PAID_FEATURE }) ?? false;
   return { loading: false, hasFullAccess, isSignedIn: true };

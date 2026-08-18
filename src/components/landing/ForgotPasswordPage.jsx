@@ -7,8 +7,8 @@
 // Requires a <ClerkProvider> ancestor (provided by ClerkGate in
 // ClerkAuth.jsx when this page is mounted at /forgot-password).
 
-import React, { useState } from 'react';
-import { useSignIn } from '@clerk/react';
+import React, { useState, useEffect } from 'react';
+import { useSignIn, useUser } from '@clerk/react';
 import {
   AuthPage,
   AuthError,
@@ -16,31 +16,44 @@ import {
   AuthFooter,
   authInputClass,
   clerkErrorMessage,
+  clerkWithTimeout,
 } from './AuthLayout.jsx';
 
 export function ForgotPasswordPage() {
   const { signIn, errors, fetchStatus } = useSignIn();
-  const isLoaded = fetchStatus !== 'fetching';
+  const { isSignedIn, isLoaded: userLoaded } = useUser();
+  const isLoaded = signIn !== undefined;
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // Redirect already-signed-in users
+  useEffect(() => {
+    if (userLoaded && isSignedIn) {
+      window.location.href = '/#/image';
+    }
+  }, [userLoaded, isSignedIn]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!signIn || fetchStatus === 'fetching') return;
+    if (!isLoaded || fetchStatus === 'fetching') return;
     setLoading(true);
     setError('');
     setSuccess(false);
 
-    const { error: createError } = await signIn.create({ identifier: email });
+    const { error: createError } = await clerkWithTimeout(
+      signIn.create({ identifier: email })
+    );
     if (createError) {
       setError(clerkErrorMessage(createError, errors) || 'Could not start password reset. Please try again.');
       setLoading(false);
       return;
     }
 
-    const { error: sendError } = await signIn.resetPasswordEmailCode.sendCode();
+    const { error: sendError } = await clerkWithTimeout(
+      signIn.resetPasswordEmailCode.sendCode()
+    );
     if (sendError) {
       setError(clerkErrorMessage(sendError, errors) || 'Could not send a reset code. Please check the email and try again.');
       setLoading(false);

@@ -7,8 +7,8 @@
 // Requires a <ClerkProvider> ancestor (provided by ClerkGate in
 // ClerkAuth.jsx when this page is mounted at /reset-password).
 
-import React, { useState } from 'react';
-import { useSignIn } from '@clerk/react';
+import React, { useState, useEffect } from 'react';
+import { useSignIn, useUser } from '@clerk/react';
 import {
   AuthPage,
   AuthError,
@@ -17,11 +17,13 @@ import {
   authInputClass,
   PasswordInput,
   clerkErrorMessage,
+  clerkWithTimeout,
 } from './AuthLayout.jsx';
 
 export function ResetPasswordPage() {
   const { signIn, errors, fetchStatus } = useSignIn();
-  const isLoaded = fetchStatus !== 'fetching';
+  const { isSignedIn, isLoaded: userLoaded } = useUser();
+  const isLoaded = signIn !== undefined;
   const [email, setEmail] = useState(
     () => new URLSearchParams(window.location.search).get('email') || ''
   );
@@ -32,9 +34,16 @@ export function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
 
+  // Redirect already-signed-in users to the app
+  useEffect(() => {
+    if (userLoaded && isSignedIn) {
+      window.location.href = '/#/image';
+    }
+  }, [userLoaded, isSignedIn]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!signIn || fetchStatus === 'fetching') return;
+    if (!isLoaded || fetchStatus === 'fetching') return;
     setError('');
 
     if (password !== confirm) {
@@ -48,7 +57,9 @@ export function ResetPasswordPage() {
 
     setLoading(true);
     // Step 1: verify the emailed code.
-    const { error: verifyError } = await signIn.resetPasswordEmailCode.verifyCode({ code });
+    const { error: verifyError } = await clerkWithTimeout(
+      signIn.resetPasswordEmailCode.verifyCode({ code })
+    );
     if (verifyError) {
       setError(clerkErrorMessage(verifyError, errors) || 'Invalid or expired code. Please request a new one.');
       setLoading(false);
@@ -56,10 +67,12 @@ export function ResetPasswordPage() {
     }
     // Step 2: submit the new password. On success the
     // sign-in is complete and the session is created.
-    const { error: submitError } = await signIn.resetPasswordEmailCode.submitPassword({
-      password,
-      signOutOfOtherSessions: true,
-    });
+    const { error: submitError } = await clerkWithTimeout(
+      signIn.resetPasswordEmailCode.submitPassword({
+        password,
+        signOutOfOtherSessions: true,
+      })
+    );
     if (submitError) {
       setError(clerkErrorMessage(submitError, errors) || 'Could not reset the password. Please try again.');
       setLoading(false);
@@ -67,17 +80,12 @@ export function ResetPasswordPage() {
     }
     if (signIn.status === 'complete') {
       setDone(true);
-      const { error: finalizeError } = await signIn.finalize({
+      await signIn.finalize({
         navigate: async ({ decorateUrl }) => {
           const url = decorateUrl('/#/image');
           window.location.href = url.startsWith('http') ? url : '/#/image';
         },
       });
-      if (finalizeError) {
-        setError(clerkErrorMessage(finalizeError, errors) || 'Could not complete sign-in. Please try again.');
-        setLoading(false);
-        return;
-      }
       return;
     }
     if (signIn.status === 'needs_second_factor') {

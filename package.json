@@ -9,12 +9,12 @@
     "apps/*"
   ],
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --port 3100",
     "dev:all": "concurrently -n root,aivfx -c magenta,green \"npm run dev\" \"npm run dev --workspace apps/ai-vfx\"",
     "build": "rm -rf dist && vite build && npm run build --workspace apps/ai-vfx && cp -R apps/ai-vfx/dist dist/ai-vfx",
     "build:analyze": "vite build --mode analyze",
     "preview": "vite preview",
-    "lint": "eslint src --ext .js,.ts",
+    "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
     "lint:cinema-hex": "node scripts/check-cinema-hex.mjs",
     "test": "vitest",
     "test:ui": "vitest --ui",

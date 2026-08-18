@@ -1,5 +1,5 @@
-import { Clerk } from '@clerk/clerk-js';
 import { isDevBypass } from './apiKeyManager.js';
+import { ensureClerkLoaded, isClerkReady } from './clerkInit.js';
 
 // Studio / gated pages that require an active pro plan.
 const STUDIO_PAGES = new Set([
@@ -13,45 +13,34 @@ const STUDIO_PAGES = new Set([
   'upscale-page','ai-vfx',
 ]);
 
-let clerkReady = null; // cached promise
-
-async function waitForClerk() {
-  if (!clerkReady) {
-    clerkReady = new Promise((resolve) => {
-      // The imported `Clerk` is the class; the loaded *instance* lives on
-      // window.Clerk once Clerk.js has initialized. Prefer the instance, but
-      // fall back to the class so we never throw on `.addListener`.
-      const clerkInstance = (typeof window !== 'undefined' && window.Clerk) ? window.Clerk : Clerk;
-      const done = (value) => resolve(value);
-
-      if (clerkInstance && clerkInstance.loaded) {
-        done(clerkInstance);
-        return;
-      }
-
-      const check = () => {
-        if (clerkInstance && clerkInstance.loaded) {
-          if (typeof clerkInstance.removeListener === 'function') {
-            clerkInstance.removeListener('ready', check);
-          }
-          done(clerkInstance);
-        }
-      };
-
-      if (clerkInstance && typeof clerkInstance.addListener === 'function') {
-        clerkInstance.addListener('ready', check);
-      }
-
-      // Timeout after 8 seconds so we never block navigation forever
-      setTimeout(() => {
-        if (clerkInstance && typeof clerkInstance.removeListener === 'function') {
-          clerkInstance.removeListener('ready', check);
-        }
-        done(clerkInstance);
-      }, 8000);
-    });
+// Ensure the shared Clerk instance is created + loaded before any studio
+// page auth check runs. This guarantees `window.Clerk` is an *instance* (not
+// the bare class), so `clerk.user` is available for the entitlement gate.
+export async function waitForClerk(timeoutMs = 10000) {
+  try {
+    const clerk = await ensureClerkLoaded();
+    if (clerk && clerk.loaded) return clerk;
+  } catch {
+    // load failed — fall through to timeout-based fallback
   }
-  return clerkReady;
+
+  // Fallback: poll window.Clerk (set async by ClerkProvider) if the singleton
+  // couldn't load (e.g. SSR, missing key).
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const c = typeof window !== 'undefined' && window.Clerk;
+    if (c && c.loaded && typeof c.user !== 'undefined') return c;
+    await new Promise((r) => setTimeout(r, 200));
+  }
+
+  // Last resort: return whatever window.Clerk is (may be class or instance)
+  return (typeof window !== 'undefined' && window.Clerk) || null;
+}
+
+// Synchronous check — used when we can't afford to await (e.g. button handlers).
+export function isClerkLoaded() {
+  return isClerkReady() ||
+    (typeof window !== 'undefined' && !!window.Clerk && window.Clerk.loaded);
 }
 
 async function ensureStudioAccess(page) {
@@ -62,7 +51,7 @@ async function ensureStudioAccess(page) {
   if (isDevBypass) return true;
 
   const clerk = await waitForClerk();
-  const user = clerk.user;
+  const user = clerk?.user;
 
   if (!user) {
     window.location.href = '/signin';
