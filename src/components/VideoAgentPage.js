@@ -1,5 +1,5 @@
 import { navigate } from '../lib/router.js';
-import { mountStudioDrawer } from '../lib/studioChrome.js';
+import { mountStudioChrome, mountStudioDrawer } from '../lib/studioChrome.js';
 import { showToast } from '../lib/loading.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 import { getSupabaseUrl, isSupabaseConfigured } from '../lib/supabase.js';
