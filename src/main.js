@@ -316,23 +316,7 @@ async function renderParentTimelineModal(modal, props = {}) {
     activeTimelineModal.container = container;
 
     if (modal === 'personalization') {
-      const { PersonalizationModal } = await import('../components/modals/PersonalizationModal.jsx');
-      content.innerHTML = '';
-      const { createRoot } = await import('react-dom/client');
-      const root = createRoot(content);
-      activeTimelineModal.instance = { root };
-      try {
-        const mod = await import('react');
-        root.render(mod.createElement(ErrorBoundary, null,
-          mod.createElement(PersonalizationModal, {
-            handleClose: () => { root.unmount?.(); activeTimelineModal.unmount?.(); },
-            options: { elementType: props.elementType, onAdd: props.onAdd, tokenModes: props.tokenModes }
-          })
-        ));
-      } catch (err) {
-        content.innerHTML = '<div style="padding:32px 24px;color:#fff;"><h2 style="margin:0 0 8px;">Personalizer</h2><p style="color:rgba(255,255,255,0.55);margin:0;">Open the timeline Personalizer inside the editor.</p></div>';
-        console.warn('[TimelineModalBridge] React unavailable for Personalization modal', err);
-      }
+      content.innerHTML = '<div style="padding:32px 24px;color:#fff;"><h2 style="margin:0 0 8px;">Personalizer</h2><p style="color:rgba(255,255,255,0.55);margin:0;">The Personalization modal is not available in this build.</p></div>';
       return;
     }
 
@@ -366,20 +350,6 @@ async function renderParentTimelineModal(modal, props = {}) {
 
     if (modal === 'social-publisher') {
       content.innerHTML = '<div style="padding:32px 24px;color:#fff;"><h2 style="margin:0 0 8px;">Social Publisher</h2><p style="color:rgba(255,255,255,0.55);margin:0;">Connect a platform account to publish from the timeline.</p></div>';
-      return;
-    }
-
-    if (modal === 'settings') {
-      const { default: SettingsModal } = await import('./components/modals/SettingsModal.js');
-      new SettingsModal().open();
-      activeTimelineModal.unmount();
-      return;
-    }
-
-    if (modal === 'project') {
-      const { default: CreateProjectModal } = await import('./components/modals/CreateProjectModal.js');
-      new CreateProjectModal().open();
-      activeTimelineModal.unmount();
       return;
     }
 

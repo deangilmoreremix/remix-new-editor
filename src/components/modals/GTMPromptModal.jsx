@@ -4,6 +4,7 @@ import { gtmContentLibrary } from '../../lib/gtmContentLibrary.js';
 import { gtmResponses, gtmStructuredToText, GTM_MODEL_OPTIONS, resolveGtmModel } from '../../lib/gtmResponses.js';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase.js';
 import { AuthModal } from '../AuthModal.js';
+import { GTMInfoModal } from './GTMInfoModal.jsx';
 
 /**
  * GTMPromptModal - GTM-Powered Prompt Enhancement Modal
