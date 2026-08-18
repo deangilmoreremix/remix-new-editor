@@ -1,4 +1,5 @@
 import { Clerk } from '@clerk/clerk-js';
+import { isDevBypass } from './apiKeyManager.js';
 
 // Studio / gated pages that require an active pro plan.
 const STUDIO_PAGES = new Set([
@@ -17,21 +18,36 @@ let clerkReady = null; // cached promise
 async function waitForClerk() {
   if (!clerkReady) {
     clerkReady = new Promise((resolve) => {
-      if (Clerk.loaded) {
-        resolve(Clerk);
+      // The imported `Clerk` is the class; the loaded *instance* lives on
+      // window.Clerk once Clerk.js has initialized. Prefer the instance, but
+      // fall back to the class so we never throw on `.addListener`.
+      const clerkInstance = (typeof window !== 'undefined' && window.Clerk) ? window.Clerk : Clerk;
+      const done = (value) => resolve(value);
+
+      if (clerkInstance && clerkInstance.loaded) {
+        done(clerkInstance);
         return;
       }
+
       const check = () => {
-        if (Clerk.loaded) {
-          Clerk.removeListener('ready', check);
-          resolve(Clerk);
+        if (clerkInstance && clerkInstance.loaded) {
+          if (typeof clerkInstance.removeListener === 'function') {
+            clerkInstance.removeListener('ready', check);
+          }
+          done(clerkInstance);
         }
       };
-      Clerk.addListener('ready', check);
+
+      if (clerkInstance && typeof clerkInstance.addListener === 'function') {
+        clerkInstance.addListener('ready', check);
+      }
+
       // Timeout after 8 seconds so we never block navigation forever
       setTimeout(() => {
-        Clerk.removeListener('ready', check);
-        resolve(Clerk);
+        if (clerkInstance && typeof clerkInstance.removeListener === 'function') {
+          clerkInstance.removeListener('ready', check);
+        }
+        done(clerkInstance);
       }, 8000);
     });
   }
@@ -40,6 +56,10 @@ async function waitForClerk() {
 
 async function ensureStudioAccess(page) {
   if (!STUDIO_PAGES.has(page)) return true;
+
+  // Local/dev auth bypass (VITE_DEV_BYPASS_AUTH or ?dev): skip the Clerk
+  // gate entirely so studios are usable without a real Clerk session.
+  if (isDevBypass) return true;
 
   const clerk = await waitForClerk();
   const user = clerk.user;
@@ -126,6 +146,7 @@ const pageLoaders = {
   cinema: () => import('../components/CinemaStudio.js').then(m => m.CinemaStudio()),
   'cinema-template': () => import('../components/CinemaTemplateStudio.js').then(m => m.CinemaTemplateStudio()),
   apps: () => import('../components/AppsHub.js').then(m => m.AppsHub()),
+  academy: () => import('../components/academy/AcademyPage.jsx').then(m => m.AcademyPage()),
   templates: () => import('../components/TemplatesPage.js').then(m => m.TemplatesPage()),
   effects: () => import('../components/EffectsStudio.js').then(m => m.EffectsStudio()),
   edit: () => import('../components/EditStudio.js').then(m => m.EditStudio()),
@@ -163,8 +184,8 @@ const pageLoaders = {
   render: () => import('../components/RenderPage.js').then(m => m.RenderPage()),
   'video-agent': () => import('../components/VideoAgentPage.js').then(m => m.VideoAgentPage()),
   director: () => import('../components/DirectorPage.js').then(m => m.DirectorPage()),
-  timeline: () => import('../components/TimelineEditorPage.js').then(m => m.TimelineEditorPage()),
-  spaces: () => import('../components/SpacesCanvas.jsx').then(m => m.SpacesCanvas()),
+  timeline: () => import('../components/TimelineEditorPage.jsx').then(m => m.TimelineEditorPage()),
+  spaces: () => Promise.resolve(document.createElement('div')),
   'ai-vfx': () => import('../components/AIVFXPage.js').then(m => m.AIVFXPage()),
   'timeline-iframe-warning': () => Promise.resolve(document.createElement('div'))
 };

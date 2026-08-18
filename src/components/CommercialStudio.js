@@ -101,7 +101,7 @@ export function CommercialStudio() {
       dropdown.dataset.populated = 'true';
       const availableProviders = getAvailableProviders(COMMERCIAL_MODELS);
       dropdown.innerHTML = `
-        <div class="flex gap-4 h-full max-h-[70vh] min-h-[350px] overflow-x-hidden">
+        <div class="flex gap-4 h-full max-h-[70vh] min-h-[350px] overflow-hidden">
           <div data-provider-sidebar></div>
           <div class="flex-1 flex flex-col gap-2 min-w-0">
             ${renderSearchBar()}
@@ -109,7 +109,7 @@ export function CommercialStudio() {
               <span>Available models</span>
               <span data-provider-badge class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60 hidden"></span>
             </div>
-            <div data-model-list></div>
+            <div data-model-list class="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-1"></div>
           </div>
         </div>
       `;
@@ -280,7 +280,7 @@ export function CommercialStudio() {
   function buildDynamicControls() {
     if (!dynamicControlsContainer) return;
     if (dynamicControls) dynamicControls.destroy();
-    const model = getExtendedModel(getModelById(selectedModel));
+    const model = getExtendedModel(COMMERCIAL_MODELS.find(m => m.id === selectedModel) || COMMERCIAL_MODELS[0]);
     if (!model || !model.inputs || Object.keys(model.inputs).length === 0) {
       dynamicControlsContainer.classList.add('hidden');
       return;

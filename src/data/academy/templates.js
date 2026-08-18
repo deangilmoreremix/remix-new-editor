@@ -7,7 +7,7 @@
 // 1. UGC Script Template
 // ---------------------------------------------------------------------------
 
-export const BLANK_UGC_SCRIPT: UGCScriptData = {
+export const BLANK_UGC_SCRIPT = {
   product: '',
   targetLength: '25-30 seconds (~75-90 words)',
   hook: { timing: '0-2 sec', line: '' },
@@ -23,7 +23,7 @@ export const BLANK_UGC_SCRIPT: UGCScriptData = {
   ],
 };
 
-export const EXAMPLE_UGC_SCRIPT: UGCScriptData = {
+export const EXAMPLE_UGC_SCRIPT = {
   product: "GripMount — magnetic phone car mount ($28)",
   targetLength: '28 seconds (~85 words)',
   hook: {
@@ -48,7 +48,7 @@ export const EXAMPLE_UGC_SCRIPT: UGCScriptData = {
 // ---------------------------------------------------------------------------
 // 2. Ad Brief Checklist
 // ---------------------------------------------------------------------------
-export const BLANK_AD_BRIEF: AdBriefData = {
+export const BLANK_AD_BRIEF = {
   product: '',
   platforms: '',
   variants: '',
@@ -57,7 +57,7 @@ export const BLANK_AD_BRIEF: AdBriefData = {
   assets: '',
   deadline: '',
 };
-export const EXAMPLE_AD_BRIEF: AdBriefData = {
+export const EXAMPLE_AD_BRIEF = {
   product: 'GripMount — $28 magnetic phone car mount',
   platforms: 'TikTok + Instagram Reels, 9:16',
   variants: '5 (see batch-matrix-template)',
@@ -70,20 +70,20 @@ export const EXAMPLE_AD_BRIEF: AdBriefData = {
 // ---------------------------------------------------------------------------
 // 3. Character Consistency Checklist
 // ---------------------------------------------------------------------------
-export const CHARACTER_CHECK_ITEMS: CharacterCheckItem[] = [
+export const CHARACTER_CHECK_ITEMS = [
   { id: 'facial', label: 'Facial structure matches across shots (face shape, eye spacing, nose)' },
   { id: 'age', label: 'Apparent age is consistent' },
   { id: 'features', label: 'Distinguishing features (freckles, scars, specific hairstyle) appear in every shot' },
   { id: 'skin', label: "Skin tone/lighting doesn't shift the apparent identity" },
   { id: 'outfit', label: 'Outfit continuity between cuts (if same scene)' },
 ];
-export const BLANK_CHARACTER_CHECKLIST: CharacterChecklistData = {
+export const BLANK_CHARACTER_CHECKLIST = {
   character: '',
   items: CHARACTER_CHECK_ITEMS,
   shots: ['Shot 1', 'Shot 2', 'Shot 3'],
   example: {},
 };
-export const EXAMPLE_CHARACTER_CHECKLIST: CharacterChecklistData = {
+export const EXAMPLE_CHARACTER_CHECKLIST = {
   character: 'Anchor woman, late 20s, brown hair, freckles',
   items: CHARACTER_CHECK_ITEMS,
   shots: ['Car interior', 'Kitchen counter', 'Walking outside'],
@@ -97,7 +97,7 @@ export const EXAMPLE_CHARACTER_CHECKLIST: CharacterChecklistData = {
 // ---------------------------------------------------------------------------
 // 4. Batch Matrix Template
 // ---------------------------------------------------------------------------
-export const BLANK_BATCH_MATRIX: BatchMatrixData = {
+export const BLANK_BATCH_MATRIX = {
   product: '',
   constants: 'product, core proof point, CTA',
   rows: [
@@ -108,7 +108,7 @@ export const BLANK_BATCH_MATRIX: BatchMatrixData = {
     { id: 'ad-5', hook: '', angle: '', notes: '' },
   ],
 };
-export const EXAMPLE_BATCH_MATRIX: BatchMatrixData = {
+export const EXAMPLE_BATCH_MATRIX = {
   product: 'GripMount — $28 magnetic phone car mount',
   constants: 'product demo, proof ("two weeks, potholes included"), CTA ("$28, link\'s below")',
   rows: [
@@ -132,16 +132,16 @@ const TEARDOWN_LAYER_DEFS = [
   { id: 'videoStructure', label: 'Video structure (talking-head vs b-roll ratio)' },
   { id: 'captions', label: 'Captions style' },
 ];
-export function blankTeardownLayers(): TeardownLayer[] {
+export function blankTeardownLayers() {
   return TEARDOWN_LAYER_DEFS.map((d) => ({ id: d.id, label: d.label, whatDone: '', why: '' }));
 }
-export const BLANK_TEARDOWN: TeardownData = {
+export const BLANK_TEARDOWN = {
   category: '',
   longevity: '',
   layers: blankTeardownLayers(),
   takeaway: '',
 };
-export const EXAMPLE_TEARDOWN: TeardownData = {
+export const EXAMPLE_TEARDOWN = {
   category: 'Skincare serum',
   longevity: '47 days, 6 near-identical variants — strong signal it\'s a kept winner',
   layers: [
@@ -160,7 +160,7 @@ export const EXAMPLE_TEARDOWN: TeardownData = {
 // ---------------------------------------------------------------------------
 // 6. Outreach Template
 // ---------------------------------------------------------------------------
-export const BLANK_OUTREACH: OutreachData = {
+export const BLANK_OUTREACH = {
   brand: '',
   name: '',
   product: '',
@@ -168,7 +168,7 @@ export const BLANK_OUTREACH: OutreachData = {
   days: '3',
   yourName: '',
 };
-export const EXAMPLE_OUTREACH: OutreachData = {
+export const EXAMPLE_OUTREACH = {
   brand: 'TrailGear Co.',
   name: 'Sam',
   product: 'GripMount phone mount',
@@ -180,7 +180,7 @@ export const EXAMPLE_OUTREACH: OutreachData = {
 // ---------------------------------------------------------------------------
 // 7. Retainer Proposal Template
 // ---------------------------------------------------------------------------
-export const BLANK_RETAINER: RetainerData = {
+export const BLANK_RETAINER = {
   client: '',
   scope: '',
   price: '',
@@ -189,7 +189,7 @@ export const BLANK_RETAINER: RetainerData = {
   term: 'month-to-month',
   why: '',
 };
-export const EXAMPLE_RETAINER: RetainerData = {
+export const EXAMPLE_RETAINER = {
   client: 'TrailGear Co.',
   scope: '8 ad variants/month, across 2 batches',
   price: '$2,000/month',

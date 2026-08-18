@@ -4,9 +4,7 @@
 // catalog entries in src/data/academy/catalog.ts so AcademyPage can match the
 // rich view.
 
-import type { Lesson } from '../lesson-types';
-
-export const LESSONS_03: Lesson[] = [
+export const LESSONS_03 = [
   {
     id: '03-faceless-ai-channels::01-niche-and-script',
     slug: '03-faceless-ai-channels::01-niche-and-script',

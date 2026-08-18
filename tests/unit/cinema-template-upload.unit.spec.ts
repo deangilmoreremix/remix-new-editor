@@ -16,8 +16,10 @@ describe('CinemaTemplateStudio image upload + model selection regression', () =>
 
   it('renders an image upload control in the form field switch', () => {
     expect(cinemaSrc).toContain("case 'image':");
+    expect(cinemaSrc).toContain("case 'frame':");
     expect(cinemaSrc).toContain('createUploadPicker');
-    expect(cinemaSrc).toContain('currentInputs[input.name] = url');
+    expect(cinemaSrc).toContain('currentInputs[input.name] = sel.url');
+    expect(cinemaSrc).toContain('frameMode: isFrame');
   });
 
   it('uses the user-selected model instead of hardcoding it', () => {

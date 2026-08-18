@@ -1,6 +1,5 @@
-import type { Lesson } from '../lesson-types';
 
-export const LESSONS_08: Lesson[] = [
+export const LESSONS_08 = [
   {
     id: '08-ai-fashion-and-virtual-tryon::01-garment-tryon',
     slug: '08-ai-fashion-and-virtual-tryon::01-garment-tryon',

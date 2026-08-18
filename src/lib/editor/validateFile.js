@@ -113,6 +113,18 @@ export const FILE_TYPE_CONFIG = {
     maxSize: 50 * 1024 * 1024,
     icon: '📑',
     color: '#f7b731'
+  },
+  archive: {
+    label: 'Archive',
+    extensions: ['zip', 'rar', '7z', 'tar', 'gz', 'bz2'],
+    mimeTypes: [
+      'application/zip', 'application/x-zip-compressed', 'application/x-rar-compressed',
+      'application/x-7z-compressed', 'application/gzip', 'application/x-tar',
+      'application/x-bzip2'
+    ],
+    maxSize: 10 * 1024 * 1024, // MuAPI "Others" limit
+    icon: '🗜️',
+    color: '#a78bfa'
   }
 };
 

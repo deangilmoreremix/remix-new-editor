@@ -222,7 +222,7 @@ export function renderModelList(models, selectedModelId, showProviderName, onSel
     return `<div class="text-xs text-white/30 text-center py-6">No models found</div>`;
   }
 
-  let html = `<div class="flex flex-col gap-1.5 overflow-y-auto custom-scrollbar pr-1 pb-2 flex-1">`;
+  let html = `<div class="flex flex-col gap-1.5 pb-2">`;
   for (const m of models) {
     const isSelected = m.id === selectedModelId;
     const itemClasses = isSelected
@@ -252,41 +252,153 @@ export function renderModelList(models, selectedModelId, showProviderName, onSel
   return html;
 }
 
-// Mount a complete model selector into an existing container element.
-// Returns the container element so callers can keep a reference for cleanup.
-export function mountModelSelector(container, options = {}) {
-  if (!container) return null;
+// Canonical split-pane shell shared by every model picker in the app.
+// Sidebar (provider filter) on the left, search + model list on the right.
+// Keeping this in one place guarantees the Image Studio / Video Studio /
+// Audio Studio / Influencer Studio pickers all render identically.
+export const MODEL_SELECTOR_PANEL_CLASS =
+  'flex gap-4 h-full max-h-[70vh] min-h-[350px] overflow-hidden';
 
+// Build the split-pane panel and wire its interactions. Returns an object with
+// the `root` element and a `refresh()` method so callers can re-render without
+// rebuilding the DOM (preserves search focus and scroll position).
+export function buildModelSelectorPanel(options = {}) {
   const {
     models = [],
     selectedModelId,
-    selectedProvider,
+    selectedProvider = 'all',
     search = '',
     showProviderName = false,
     onSelectModel,
+    onSelectProvider,
+    onSearch,
   } = options;
 
-  const availableProviders = getAvailableProviders(models);
-  const filteredModels = filterModels(models, search, selectedProvider);
+  const st = {
+    models,
+    selectedModelId,
+    selectedProvider,
+    search,
+    showProviderName,
+    availableProviders: getAvailableProviders(models),
+    onSelectModel,
+    onSelectProvider,
+    onSearch,
+  };
 
+  const root = document.createElement('div');
+  root.className = MODEL_SELECTOR_PANEL_CLASS;
+
+  const sidebarEl = document.createElement('div');
+  sidebarEl.setAttribute('data-provider-sidebar', '');
+
+  const mainEl = document.createElement('div');
+  mainEl.className = 'flex-1 flex flex-col gap-2 min-w-0';
+
+  const listEl = document.createElement('div');
+  listEl.className = 'flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-1';
+  listEl.setAttribute('data-model-list', '');
+
+  mainEl.innerHTML = renderSearchBar();
+  const header = document.createElement('div');
+  header.className =
+    'text-xs font-semibold text-secondary py-1 shrink-0 flex items-center justify-between';
+  header.innerHTML =
+    '<span>Available models</span><span data-provider-badge class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60 hidden"></span>';
+  mainEl.appendChild(header);
+  mainEl.appendChild(listEl);
+
+  root.appendChild(sidebarEl);
+  root.appendChild(mainEl);
+
+  const badgeEl = header.querySelector('[data-provider-badge]');
+  const searchInput = mainEl.querySelector('[data-provider-search]');
+
+  st.refresh = () => {
+    sidebarEl.innerHTML = renderProviderSidebar(st.availableProviders, st.selectedProvider, () => {});
+    const filtered = filterModels(st.models, st.search, st.selectedProvider);
+    const showName = st.showProviderName || st.selectedProvider === 'all';
+    listEl.innerHTML = renderModelList(filtered, st.selectedModelId, showName, (id) => {
+      st.selectedModelId = id;
+      if (st.onSelectModel) st.onSelectModel(id);
+    });
+
+    if (st.selectedProvider !== 'all') {
+      const pName = st.availableProviders.find((p) => p.id === st.selectedProvider)?.name || st.selectedProvider;
+      badgeEl.textContent = pName;
+      badgeEl.classList.remove('hidden');
+    } else {
+      badgeEl.classList.add('hidden');
+    }
+  };
+
+  // Provider selection via delegation on the sidebar.
+  sidebarEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-provider]');
+    if (!btn) return;
+    const provider = btn.getAttribute('data-provider');
+    if (provider) {
+      st.selectedProvider = provider;
+      if (st.onSelectProvider) st.onSelectProvider(provider);
+      st.refresh();
+    }
+  });
+
+  // Live search — re-render the list without losing input focus.
+  searchInput.addEventListener('click', (e) => e.stopPropagation());
+  searchInput.addEventListener('input', () => {
+    st.search = searchInput.value;
+    if (st.onSearch) st.onSearch(searchInput.value);
+    st.refresh();
+  });
+
+  st.root = root;
+  st.refresh();
+  return st;
+}
+
+// Mount a complete model selector into an existing container element.
+// Returns the root element so callers can keep a reference for cleanup.
+//
+// The mount is idempotent: calling it again on the same container refreshes
+// the existing panel instead of rebuilding it. This keeps the search input
+// focused and the scroll position stable while the user types or filters.
+export function mountModelSelector(container, options = {}) {
+  if (!container) return null;
+
+  const existing = container._msMount;
+  if (existing && existing.root.isConnected) {
+    const {
+      models = [],
+      selectedModelId,
+      selectedProvider,
+      search,
+      showProviderName,
+      onSelectModel,
+      onSelectProvider,
+      onSearch,
+    } = options;
+
+    existing.models = models;
+    existing.availableProviders = getAvailableProviders(models);
+    existing.selectedModelId = selectedModelId;
+    existing.showProviderName = showProviderName;
+    existing.onSelectModel = onSelectModel;
+    existing.onSelectProvider = onSelectProvider;
+    existing.onSearch = onSearch;
+    if (typeof selectedProvider === 'string') existing.selectedProvider = selectedProvider;
+    if (typeof search === 'string') {
+      existing.search = search;
+      const input = existing.root.querySelector('[data-provider-search]');
+      if (input && document.activeElement !== input) input.value = search;
+    }
+    existing.refresh();
+    return existing.root;
+  }
+
+  const st = buildModelSelectorPanel(options);
   container.innerHTML = '';
-
-  const wrapper = document.createElement('div');
-  wrapper.className = 'flex flex-col gap-3';
-
-  const sidebar = renderProviderSidebar(availableProviders, selectedProvider, (provider) => {
-    if (options.onSelectProvider) options.onSelectProvider(provider);
-  });
-  wrapper.appendChild(sidebar);
-
-  const searchEl = renderSearchBar();
-  wrapper.appendChild(searchEl);
-
-  const list = renderModelList(filteredModels, selectedModelId, showProviderName, (modelId) => {
-    if (onSelectModel) onSelectModel(modelId);
-  });
-  wrapper.appendChild(list);
-
-  container.appendChild(wrapper);
-  return wrapper;
+  container.appendChild(st.root);
+  container._msMount = st;
+  return st.root;
 }

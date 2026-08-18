@@ -10,6 +10,7 @@ import { escapeHtml, sanitizeUrl } from '../lib/security.js';
 import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 import { muapi } from '../lib/muapi.js';
 import { StoryboardStudio } from './StoryboardStudio.js';
+import { createUploadPicker } from './UploadPicker.js';
 import {
   getTemplateRegistry,
   SHOT_TYPES,
@@ -22,8 +23,19 @@ import {
   RenderHandoff,
   TemplateStorage
 } from '../lib/cinematicTemplates.js';
-import { getVideoIntent, setVideoIntent, subscribeVideoIntent } from '../lib/videoIntentStore.js';
+import { getVideoIntent, setVideoIntent, subscribeVideoIntent, resetVideoIntent } from '../lib/videoIntentStore.js';
+import { t2iModels, i2iModels, i2vModels } from '../lib/models.js';
 import { CINEMATIC_THEME, cx } from '../lib/cinematicTheme.js';
+
+import { getTemplateThumbnailCandidates, saveCustomThumbnailToCache, getCustomThumbnailFromCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
+import { AuthModal } from './AuthModal.js';
+import { getGtmContext } from '../lib/gtmContextStore.js';
+import { selectScenes } from '../lib/sceneSelector.js';
+import { getEnrichedModels } from '../lib/modelCatalog.js';
+import { PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
+import { enrichPromptString, composeNegativePrompt } from '../lib/templateEngine.js';
 
 export function CinemaTemplateStudio() {
   const container = document.createElement('div');
@@ -1341,23 +1353,38 @@ export function CinemaTemplateStudio() {
         break;
       }
 
-      case 'image': {
+      case 'image':
+      case 'frame': {
+        const isFrame = input.type === 'frame';
         const uploadTrigger = document.createElement('button');
         uploadTrigger.type = 'button';
         uploadTrigger.className = 'w-full flex items-center gap-3 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition text-left';
-        uploadTrigger.innerHTML = `<div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-muted shrink-0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><span class="text-sm text-white/80">${input.label || 'Upload image'}</span>`;
+        uploadTrigger.innerHTML = `<div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-muted shrink-0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><span class="text-sm text-white/80">${input.label || (isFrame ? 'Add start & end frames' : 'Upload image')}</span>`;
+
+        const setDone = (label) => {
+          uploadTrigger.innerHTML = `<div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-300 shrink-0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div><span class="text-sm text-emerald-200">${label}</span>`;
+        };
+        const setReset = () => {
+          uploadTrigger.innerHTML = `<div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-muted shrink-0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><span class="text-sm text-white/80">${input.label || (isFrame ? 'Add start & end frames' : 'Upload image')}</span>`;
+        };
 
         uploadTrigger.onclick = (e) => {
           e.stopPropagation();
           const picker = createUploadPicker({
             anchorContainer: container,
-            onSelect: ({ url }) => {
-              currentInputs[input.name] = url;
-              uploadTrigger.innerHTML = `<div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-300 shrink-0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div><span class="text-sm text-emerald-200">Image uploaded</span>`;
+            frameMode: isFrame,
+            onSelect: (sel) => {
+              if (isFrame) {
+                currentInputs[input.name] = { startUrl: sel.startUrl, endUrl: sel.endUrl, urls: sel.urls };
+                setDone(sel.endUrl ? 'Start & end frames set' : 'Start frame set');
+              } else {
+                currentInputs[input.name] = sel.url;
+                setDone('Image uploaded');
+              }
             },
             onClear: () => {
               currentInputs[input.name] = null;
-              uploadTrigger.innerHTML = `<div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-muted shrink-0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><span class="text-sm text-white/80">${input.label || 'Upload image'}</span>`;
+              setReset();
             }
           });
           container.appendChild(picker.panel);
@@ -1539,7 +1566,7 @@ export function CinemaTemplateStudio() {
         dropdown.dataset.populated = 'true';
 
         dropdown.innerHTML = `
-          <div class="flex gap-4 h-full max-h-[70vh] min-h-[350px] overflow-x-hidden">
+          <div class="flex gap-4 h-full max-h-[70vh] min-h-[350px] overflow-hidden">
             <div data-provider-sidebar></div>
             <div class="flex-1 flex flex-col gap-2 min-w-0">
               <div data-search-bar></div>
@@ -1547,7 +1574,7 @@ export function CinemaTemplateStudio() {
                 <span>Available models</span>
                 <span data-provider-badge class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60 hidden"></span>
               </div>
-              <div data-model-list></div>
+              <div data-model-list class="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-1"></div>
             </div>
           </div>
         `;

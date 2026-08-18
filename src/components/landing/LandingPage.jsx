@@ -18,7 +18,6 @@ const ALL_APPS = [
   { id: 'training', title: 'Training', description: 'Teach users how to use the platform, create sellable assets, package services, and build an AI video agency.', link: '/training' },
   { id: 'videotools', title: 'Video Tools', description: 'Access utility tools for enhancing, converting, modifying, preparing, and improving video assets.', link: '/videotools' },
   { id: 'render', title: 'Render', description: 'Preview, organize, export, and prepare final outputs for download, editing, delivery, or client presentation.', link: '/render' },
-  { id: 'video-agent', title: 'Video Agent', description: 'Use AI agents to assist with video creation, editing decisions, creative direction, workflow steps, and content generation.', link: '/video-agent' },
   { id: 'director', title: 'Director', description: 'Turn prompts, concepts, scripts, and creative ideas into directed cinematic scenes and structured video plans.', link: '/director' },
   { id: 'timeline', title: 'Timeline', description: 'Arrange scenes, assets, clips, shots, captions, audio, and creative elements inside a structured video timeline.', link: '/timeline' },
   { id: 'runway-motion', title: 'Motion', description: 'Generate camera movement, scene motion, product motion, character motion, and cinematic animation effects.', link: '/runway-motion' },
@@ -32,9 +31,7 @@ const ALL_APPS = [
   { id: 'community', title: 'Community', description: 'Showcase examples, discover creative workflows, highlight user creations, and build a community around AI video creation.', link: '/community' },
   { id: 'assist', title: 'Assist', description: 'Use guided AI help for prompts, workflows, studio selection, creative improvement, and project completion.', link: '/assist' },
   { id: 'lip-sync', title: 'Lip Sync', description: 'Generate accurate lip sync for any video, character, or avatar in any language for natural-looking dubbed content.', link: '/lipsync' },
-  { id: 'workflows', title: 'Workflows', description: 'Run repeatable AI creative workflows for generating, editing, enhancing, rendering, and packaging content faster.', link: '/workflows' },
   { id: 'agents', title: 'Agents', description: 'Use specialized AI agents for creative direction, editing, storyboarding, video creation, pitch improvement, and production planning.', link: '/agents' },
-  { id: 'mcp-cli', title: 'MCP & CLI', description: 'Control advanced workflows, connect tools, automate tasks, and extend the platform with agent-ready command and integration support.', link: '/mcp-cli' }
 ];
 
 let globalStylesAdded = false;
@@ -131,33 +128,42 @@ function createLazySection(importFn, sectionId, props = {}, index = 0) {
   placeholder.innerHTML = '<div class="animate-spin w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full"></div>';
 
   const observer = new IntersectionObserver((entries) => {
+    console.log('[LandingPage] IntersectionObserver fired for', sectionId, entries.map(e => ({ isIntersecting: e.isIntersecting, target: e.target.id })));
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
+        console.log('[LandingPage] Loading section:', sectionId);
         observer.unobserve(placeholder);
         importFn().then((module) => {
           let section;
-          if (module.default) {
-            section = props.apps ? module.default({ apps: props.apps }) : module.default(props);
-          } else if (module.AppsGridSection) {
-            section = module.AppsGridSection({ apps: ALL_APPS });
-          } else {
-            const fnName = Object.keys(module).find((k) => k.includes('Section') || k.includes('Page'));
-            section = fnName ? module[fnName](props) : module[Object.keys(module)[0]](props);
+          try {
+            if (module.default) {
+              section = props.apps ? module.default({ apps: props.apps }) : module.default(props);
+            } else if (module.AppsGridSection) {
+              section = module.AppsGridSection({ apps: ALL_APPS });
+            } else {
+              const fnName = Object.keys(module).find((k) => k.includes('Section') || k.includes('Page'));
+              section = fnName ? module[fnName](props) : module[Object.keys(module)[0]](props);
+            }
+            section.classList.add('animate-in');
+            const staggerIndex = Math.min(index, 10);
+            if (staggerIndex > 0) section.classList.add('stagger-' + staggerIndex);
+            section.querySelectorAll('button').forEach((btn) => btn.classList.add('btn-enhanced'));
+            placeholder.replaceWith(section);
+            requestAnimationFrame(() => section.classList.add('visible'));
+            console.log('[LandingPage] Section loaded:', sectionId);
+          } catch (err) {
+            console.error('Failed to render section ' + sectionId, err);
+            placeholder.innerHTML = '<div class="text-red-400">Failed to render section</div>';
           }
-          section.classList.add('animate-in');
-          const staggerIndex = Math.min(index, 10);
-          if (staggerIndex > 0) section.classList.add('stagger-' + staggerIndex);
-          section.querySelectorAll('button').forEach((btn) => btn.classList.add('btn-enhanced'));
-          placeholder.replaceWith(section);
-          requestAnimationFrame(() => section.classList.add('visible'));
         }).catch((err) => {
           console.error('Failed to load section ' + sectionId, err);
           placeholder.innerHTML = '<div class="text-red-400">Failed to load section</div>';
         });
       }
     });
-  }, { rootMargin: '200px' });
+  }, { rootMargin: '20000px' });
   observer.observe(placeholder);
+  console.log('[LandingPage] Observer created for:', sectionId, 'placeholder id:', placeholder.id);
   return placeholder;
 }
 
@@ -170,18 +176,40 @@ export default async function LandingPage() {
   container.setAttribute('dir', document.documentElement.dir || 'ltr');
 
   try {
-    const { LandingHeader } = await import('./common/Header.jsx');
+    let LandingHeader, CinematicVideoHero, HeroSection;
+    try {
+      const mod = await import('./common/Header.jsx');
+      LandingHeader = mod.LandingHeader;
+      console.log('[LandingPage] Header.jsx loaded');
+    } catch (e) {
+      console.error('[LandingPage] Header.jsx failed:', e);
+      throw e;
+    }
     const headerEl = LandingHeader();
     container.appendChild(headerEl);
 
     // NEW: cinematic MiniMax H3 video hero, added above the original hero.
     if (ENABLE_CINEMATIC_HERO) {
-      const { CinematicVideoHero } = await import('./sections/CinematicVideoHero.jsx');
+      try {
+        const mod = await import('./sections/CinematicVideoHero.jsx');
+        CinematicVideoHero = mod.CinematicVideoHero;
+        console.log('[LandingPage] CinematicVideoHero.jsx loaded');
+      } catch (e) {
+        console.error('[LandingPage] CinematicVideoHero.jsx failed:', e);
+        throw e;
+      }
       const cinematicHeroEl = CinematicVideoHero();
       container.appendChild(cinematicHeroEl);
     }
 
-    const { HeroSection } = await import('./sections/HeroSection.jsx');
+    try {
+      const mod = await import('./sections/HeroSection.jsx');
+      HeroSection = mod.HeroSection;
+      console.log('[LandingPage] HeroSection.jsx loaded');
+    } catch (e) {
+      console.error('[LandingPage] HeroSection.jsx failed:', e);
+      throw e;
+    }
     const heroEl = HeroSection();
     if (ENABLE_CINEMATIC_HERO) demoteLegacyHero(heroEl);
     heroEl.classList.add('animate-in');
@@ -225,6 +253,12 @@ export default async function LandingPage() {
     container.appendChild(videoGallery);    // NEW
     container.appendChild(academyShowcase); // NEW
     container.appendChild(repoShowcase);    // NEW
+
+    // NEW: GTM Boost feature section — shows the feature and how it works
+    // (replaces the old floating FAB, which is now reachable from here).
+    const gtmBoost = createLazySection(() => import('./sections/GTMBoostSection.jsx'), 'gtm-boost', {}, 8);
+    container.appendChild(gtmBoost);
+
     container.appendChild(problem);
     container.appendChild(workflow);
     container.appendChild(comparison);
@@ -232,24 +266,6 @@ export default async function LandingPage() {
     container.appendChild(agency);
     container.appendChild(offer);
     container.appendChild(finalCTA);
-
-    // Persistent floating entry point for the GTM Boost (cinematic prompt) modal,
-    // so it is reachable directly from the landing page without entering a studio.
-    try {
-      const gtmFab = document.createElement('button');
-      gtmFab.type = 'button';
-      gtmFab.textContent = '🎯 GTM Boost';
-      gtmFab.setAttribute('aria-label', 'Open GTM Boost prompt enhancer');
-      gtmFab.style.cssText = 'position:fixed;right:20px;bottom:20px;z-index:9999;padding:12px 18px;border:none;border-radius:9999px;background:linear-gradient(135deg,#3b82f6,#06b6d4);color:#fff;font-weight:600;font-size:14px;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,0.35);';
-      gtmFab.addEventListener('click', () => {
-        import('../../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-          openGTMPromptModal('timeline-editor', () => {});
-        }).catch((err) => console.error('[Landing] GTM Boost failed:', err));
-      });
-      container.appendChild(gtmFab);
-    } catch (fabErr) {
-      console.error('[Landing] failed to mount GTM Boost FAB:', fabErr);
-    }
   } catch (error) {
     console.error('Error rendering landing page:', error);
     container.innerHTML = `

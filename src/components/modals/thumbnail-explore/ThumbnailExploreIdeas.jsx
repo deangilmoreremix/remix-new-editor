@@ -17,7 +17,7 @@ const EDGE_FUNCTION = 'ai-thumbnail-generator';
 
 export class ThumbnailExploreIdeas {
   constructor(options = {}) {
-    this.appColors = options.appColors || { primary: '#22d3ee', accent: '#34d399' };
+    this.appColors = options.appColors || { primary: '#d9ff00', accent: '#c4e600' };
     this.onSelectTemplate = options.onSelectTemplate || (() => {});
     this.onTemplateSelect = options.onTemplateSelect || null;
     this.onBack = options.onBack || null;

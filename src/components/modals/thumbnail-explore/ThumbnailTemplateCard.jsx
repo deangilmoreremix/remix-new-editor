@@ -8,7 +8,7 @@
 export class ThumbnailTemplateCard {
   constructor(options = {}) {
     this.template = options.template || null;
-    this.appColors = options.appColors || { primary: '#22d3ee', accent: '#34d399' };
+    this.appColors = options.appColors || { primary: '#d9ff00', accent: '#c4e600' };
     this.onSelect = options.onSelect || (() => {});
     this.selected = options.selected || false;
   }

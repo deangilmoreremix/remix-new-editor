@@ -3,9 +3,7 @@
 // src/content/academy/15-ai-agents-and-vibe-coding/lessons/*.md,
 // powering the LEARN view. Matched to catalog lessons by `id`.
 
-import type { Lesson } from '../lesson-types';
-
-export const LESSONS_15: Lesson[] = [
+export const LESSONS_15 = [
   {
     id: '15-ai-agents-and-vibe-coding::01-what-coding-agents-actually-do',
     slug: '15-ai-agents-and-vibe-coding::01-what-coding-agents-actually-do',

@@ -84,8 +84,8 @@ export class ModelSelectorDropdown {
     container.className = 'model-selector-container';
     container.style.cssText = `
       display: flex;
-      width: 520px;
-      max-height: 360px;
+      width: min(520px, calc(100vw - 16px));
+      max-height: 70vh;
       background: #0a0a0b;
       border: 1px solid rgba(255,255,255,0.08);
       border-radius: 16px;
@@ -116,6 +116,7 @@ export class ModelSelectorDropdown {
       display: flex;
       flex-direction: column;
       min-width: 0;
+      min-height: 0;
     `;
 
     const searchWrap = document.createElement('div');
@@ -134,6 +135,8 @@ export class ModelSelectorDropdown {
       display: flex;
       flex-direction: column;
       min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
     `;
     this._modelList = modelList;
 

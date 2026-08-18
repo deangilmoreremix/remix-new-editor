@@ -7,41 +7,77 @@ import { apiKeyManager } from '../apiKeyManager.js';
 import { t2iModels } from '../models.js';
 
 /**
- * Studio / app color schemes. Single source of truth shared by
- * GTMPromptModal, TemplateThumbnailModal, StudioThumbnailPanel, and
- * any other component that needs to render with a studio's theme.
+ * The one studio color scheme.
  *
- * The `secondary` color is used for muted accents; `primary` and
- * `accent` drive the gradient buttons, borders, and glow effects.
+ * Every studio surface (Image Studio is the reference implementation) renders
+ * with the SmartVideo brand palette: neon `#d9ff00` primary on near-black,
+ * zinc-400 secondary text. Modals used to theme themselves per studio, which
+ * meant the GTM Boost / Thumbnail / Personalizer / Pexels dialogs looked
+ * amber inside Image Studio, emerald inside Template Studio, purple inside
+ * Video Studio, and so on — never matching the studio they were opened from.
+ *
+ * Keep this in sync with:
+ *   - `src/styles/variables.css`  (`--color-primary`, `--color-on-primary`)
+ *   - `src/styles/global.css`     (Tailwind `@theme` primary)
+ *   - `tailwind.config.js`        (`colors.primary`)
+ *
+ * `onPrimary` is the text/icon color to use ON TOP of `primary`. The primary
+ * is a high-luminance neon, so it must always be paired with black — never
+ * white — or the label becomes unreadable.
  */
-export const STUDIO_COLOR_SCHEMES = {
-  'timeline-editor':            { primary: '#3b82f6', accent: '#06b6d4', secondary: '#64748b' },
-  'video-studio':               { primary: '#8b5cf6', accent: '#a855f7', secondary: '#6b7280' },
-  'text-to-video':              { primary: '#059669', accent: '#10b981', secondary: '#4b5563' },
-  'image-to-video':             { primary: '#dc2626', accent: '#ef4444', secondary: '#6b7280' },
-  'image-studio':               { primary: '#f59e0b', accent: '#fbbf24', secondary: '#6b7280' },
-  'template-studio':            { primary: '#10b981', accent: '#34d399', secondary: '#6b7280' },
-  'cinema-studio':              { primary: '#ec4899', accent: '#f472b6', secondary: '#6b7280' },
-  'cinema-template-studio':     { primary: '#be123c', accent: '#dc2626', secondary: '#64748b' },
-  'editor-page':                { primary: '#06b6d4', accent: '#22d3ee', secondary: '#64748b' },
-  'lip-sync-studio':            { primary: '#8b5cf6', accent: '#a78bfa', secondary: '#6b7280' },
-  'director':                   { primary: '#d97706', accent: '#f59e0b', secondary: '#64748b' },
-  'video-agent':                { primary: '#7c3aed', accent: '#8b5cf6', secondary: '#6b7280' },
-  'character-studio':           { primary: '#f97316', accent: '#fb923c', secondary: '#6b7280' },
-  'avatar-studio':              { primary: '#06b6d4', accent: '#22d3ee', secondary: '#6b7280' },
-  'storyboard-studio':          { primary: '#84cc16', accent: '#a3e635', secondary: '#6b7280' },
-  'chat-studio':                { primary: '#ec4899', accent: '#f472b6', secondary: '#6b7280' },
-  'audio-studio':               { primary: '#a855f7', accent: '#c084fc', secondary: '#6b7280' },
-  'cinematic-template-wizard':  { primary: '#7c3aed', accent: '#a78bfa', secondary: '#6b7280' },
-  'influencer-studio':          { primary: '#ec4899', accent: '#f472b6', secondary: '#6b7280' },
-  'commercial-studio':          { primary: '#0ea5e9', accent: '#38bdf8', secondary: '#64748b' },
-  'effects-studio':             { primary: '#a855f7', accent: '#d946ef', secondary: '#6b7280' },
-  'training-studio':            { primary: '#14b8a6', accent: '#2dd4bf', secondary: '#64748b' },
-  'edit-studio':                { primary: '#f43f5e', accent: '#fb7185', secondary: '#64748b' },
-  'video-tools-studio':         { primary: '#6366f1', accent: '#818cf8', secondary: '#64748b' },
-  'upscale-studio':             { primary: '#22c55e', accent: '#4ade80', secondary: '#64748b' },
-  'ai-vfx':                     { primary: '#d9ff00', accent: '#a855f7', secondary: '#6b7280' },
-};
+export const STUDIO_SCHEME = Object.freeze({
+  primary: '#d9ff00',
+  accent: '#c4e600',
+  secondary: '#a1a1aa',
+  onPrimary: '#000000',
+});
+
+/**
+ * Theme keys that studios / pages pass to the shared modals. They all resolve
+ * to {@link STUDIO_SCHEME}; the keys are kept so callers (and
+ * `getAllStudioColorSchemes()`) keep working, and so a studio can be given a
+ * bespoke palette later without touching every call site.
+ */
+export const STUDIO_THEME_KEYS = Object.freeze([
+  'timeline-editor',
+  'video-studio',
+  'text-to-video',
+  'image-to-video',
+  'image-studio',
+  'template-studio',
+  'cinema-studio',
+  'cinema-template-studio',
+  'editor-page',
+  'lip-sync-studio',
+  'director',
+  'video-agent',
+  'character-studio',
+  'avatar-studio',
+  'storyboard-studio',
+  'chat-studio',
+  'audio-studio',
+  'cinematic-template-wizard',
+  'influencer-studio',
+  'commercial-studio',
+  'effects-studio',
+  'training-studio',
+  'edit-studio',
+  'video-tools-studio',
+  'upscale-studio',
+  'ai-vfx',
+]);
+
+/**
+ * Studio / app color schemes. Single source of truth shared by
+ * GTMPromptModal, TemplateThumbnailModal, StudioThumbnailPanel,
+ * PersonalizeModal, and the Pexels browser.
+ */
+export const STUDIO_COLOR_SCHEMES = Object.freeze(
+  STUDIO_THEME_KEYS.reduce((acc, key) => {
+    acc[key] = { ...STUDIO_SCHEME };
+    return acc;
+  }, {})
+);
 
 class OpenAIConfig {
   constructor() {
@@ -67,7 +103,9 @@ class OpenAIConfig {
         'gpt-5'
       ],
       // Thumbnail overrides used by ThumbnailService / ai-thumbnail-generator
-      thumbnailModel: 'flux-dev',
+      // Default to OpenAI's gpt-image-2 so the v2 image generation/editing path
+      // is the out-of-the-box experience (muapi models remain selectable).
+      thumbnailModel: 'gpt-image-2',
       thumbnailAllModels: [
         ...['gpt-image-2', 'gpt-image-1.5', 'gpt-image-1', 'gpt-image-1-mini'].map(id => ({
           id, name: id, provider: 'openai', provider_name: 'OpenAI',
@@ -478,12 +516,15 @@ class OpenAIConfig {
   /**
    * Resolve a studio / app theme name to its color scheme.
    * Single source of truth — used by GTMPromptModal, TemplateThumbnailModal,
-   * StudioThumbnailPanel, and any future thumbnail consumers.
+   * StudioThumbnailPanel, PersonalizeModal, and any future consumers.
+   *
+   * Always returns {@link STUDIO_SCHEME} so a modal opened from any studio
+   * matches the studio chrome around it.
    * @param {string} theme
-   * @returns {{ primary: string, accent: string, secondary: string }}
+   * @returns {{ primary: string, accent: string, secondary: string, onPrimary: string }}
    */
   getStudioColorScheme(theme) {
-    return STUDIO_COLOR_SCHEMES[theme] || STUDIO_COLOR_SCHEMES['video-studio'];
+    return STUDIO_COLOR_SCHEMES[theme] || { ...STUDIO_SCHEME };
   }
 
   /**

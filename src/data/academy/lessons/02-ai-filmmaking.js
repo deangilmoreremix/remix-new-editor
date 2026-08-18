@@ -3,9 +3,7 @@
 // titles, summaries, times, prerequisites and related ids mirror the catalog
 // entries in src/data/academy/catalog.ts so AcademyPage can match the rich view.
 
-import type { Lesson } from '../lesson-types';
-
-export const LESSONS_02: Lesson[] = [
+export const LESSONS_02 = [
   {
     id: '02-ai-filmmaking::01-screenplay-and-story',
     slug: '02-ai-filmmaking::01-screenplay-and-story',

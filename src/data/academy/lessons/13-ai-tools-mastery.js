@@ -3,9 +3,7 @@
 // from src/data/academy/catalog.ts; problem/concept/doIt/launchIt/exercises are
 // distilled from the upstream markdown in src/content/academy/13-ai-tools-mastery/lessons.
 
-import type { Lesson } from '../lesson-types';
-
-export const LESSONS_13: Lesson[] = [
+export const LESSONS_13 = [
   {
     id: '13-ai-tools-mastery::01-image-models-which-one-for-which-use-case',
     slug: '13-ai-tools-mastery::01-image-models-which-one-for-which-use-case',

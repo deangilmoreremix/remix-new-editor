@@ -1,7 +1,7 @@
 import { muapi } from '../lib/muapi.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
-import { processFileUpload } from '../lib/editor/uploadPipeline.js';
+import { formatErrorMessage } from '../lib/errorMessages.js';
 import { createSafeVideo } from '../lib/security.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
@@ -17,7 +17,10 @@ import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/Studio
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
+import { VIDEO_QUICK_PROMPTS } from '../lib/promptUtils.js';
 import { PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
+import { categorizeGenerationError, createAbortAwareGenerate, startGenerationProgress, showInlineError, hideInlineError } from '../lib/studioHelpers.js';
+import { showToast, createLoadingOverlay, createProgressBar } from '../lib/loading.js';
 
 export function VideoStudio() {
     const container = document.createElement('div');
@@ -221,7 +224,7 @@ export function VideoStudio() {
                     imageMode = true;
                     selectedModel = i2vModels[0].id;
                     selectedModelName = i2vModels[0].name;
-                    refreshVideoModelSelector();
+                    updateModelBtnIcon();
                     updateControlsForModel(selectedModel);
                 }
                 textarea.placeholder = 'Describe the motion or effect (optional)';
@@ -298,7 +301,7 @@ export function VideoStudio() {
         showVideoIcon();
         selectedModel = t2vModels[0].id;
         selectedModelName = t2vModels[0].name;
-        refreshVideoModelSelector();
+        updateModelBtnIcon();
         updateControlsForModel(selectedModel);
         textarea.placeholder = 'Describe the video you want to create';
         textarea.disabled = false;
@@ -325,8 +328,7 @@ export function VideoStudio() {
 
         showVideoSpinner();
         try {
-            const result = await processFileUpload(file);
-            const url = result.url || result.urls?.[0];
+            const url = await muapi.uploadFile(file);
             if (!url) throw new Error('Upload returned no URL');
             uploadedVideoUrl = url;
             showVideoReady(file.name);
@@ -348,7 +350,7 @@ export function VideoStudio() {
         } catch (err) {
             console.error('[VideoStudio] Video upload failed:', err);
             showVideoIcon();
-            alert(`Video upload failed: ${err.message}`);
+            alert(`Video upload failed: ${formatErrorMessage(err)}`);
         }
         videoFileInput.value = '';
     };
@@ -555,48 +557,7 @@ export function VideoStudio() {
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-60 text-secondary"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
     `, selectedQuality || 'basic', 'v-quality-btn', 'Set output quality');
 
-    // Model selector (provider-aware split-pane)
-    const videoModelSelectorContainer = document.createElement('div');
-    videoModelSelectorContainer.className = 'w-full mb-4';
-    bar.insertBefore(videoModelSelectorContainer, controlsLeft);
-
-    let videoSelectedProvider = 'all';
-    let videoSearchQuery = '';
-
-    const refreshVideoModelSelector = () => {
-      if (videoModelSelectorContainer) {
-        videoModelSelectorContainer.innerHTML = '';
-      }
-      const models = getCurrentModels();
-      mountModelSelector(videoModelSelectorContainer, {
-        models,
-        selectedModelId: selectedModel,
-        selectedProvider: videoSelectedProvider,
-        search: videoSearchQuery,
-        onSelectModel: (modelId) => {
-          selectedModel = modelId;
-          selectedModelName = models.find(m => m.id === modelId)?.name || selectedModelName;
-          updateControlsForModel(selectedModel);
-          if (v2vMode) {
-            textarea.placeholder = 'Upload a video using the 🎥 button, then click Generate';
-            textarea.disabled = true;
-          } else {
-            textarea.placeholder = imageMode ? 'Describe the motion or effect (optional)' : 'Describe the video you want to create';
-            textarea.disabled = false;
-          }
-        },
-        onSelectProvider: (provider) => {
-          videoSelectedProvider = provider;
-          refreshVideoModelSelector();
-        },
-        onSearch: (query) => {
-          videoSearchQuery = query;
-          refreshVideoModelSelector();
-        },
-      });
-    };
-    refreshVideoModelSelector();
-
+    controlsLeft.appendChild(modelBtn);
     controlsLeft.appendChild(arBtn);
     controlsLeft.appendChild(durationBtn);
     controlsLeft.appendChild(resolutionBtn);
@@ -1024,7 +985,7 @@ export function VideoStudio() {
             const availableProviders = getAvailableProviders(allCurrentModels);
 
             dropdown.innerHTML = `
-                <div class="flex gap-4 h-full max-h-[70vh] min-h-[350px] overflow-x-hidden">
+                <div class="flex gap-4 h-full max-h-[70vh] min-h-[350px] overflow-hidden">
                     <div data-provider-sidebar></div>
                     <div class="flex-1 flex flex-col gap-2 min-w-0">
                         ${renderSearchBar()}
@@ -1032,7 +993,7 @@ export function VideoStudio() {
                             <span>Available models</span>
                             <span data-provider-badge class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60 hidden"></span>
                         </div>
-                        <div data-model-list></div>
+                        <div data-model-list class="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-1"></div>
                     </div>
                 </div>
             `;
@@ -1286,6 +1247,7 @@ export function VideoStudio() {
         }
     };
 
+    modelBtn.onclick = toggleDropdown('model', modelBtn);
     arBtn.onclick = toggleDropdown('ar', arBtn);
     durationBtn.onclick = toggleDropdown('duration', durationBtn);
     resolutionBtn.onclick = toggleDropdown('resolution', resolutionBtn);
@@ -1592,7 +1554,7 @@ export function VideoStudio() {
         showVideoIcon();
         selectedModel = t2vModels[0].id;
         selectedModelName = t2vModels[0].name;
-        refreshVideoModelSelector();
+        updateModelBtnIcon();
         updateControlsForModel(selectedModel);
         textarea.placeholder = 'Describe the video you want to create';
         textarea.disabled = false;

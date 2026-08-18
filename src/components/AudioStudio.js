@@ -10,35 +10,7 @@ import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/Studio
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { mountModelSelector } from '../lib/modelSelectorUI.js';
 import { showToast } from '../lib/loading.js';
-
-export function formatErrorMessage(err, fallback = 'Generation failed') {
-  if (!err) return fallback;
-  let message = typeof err === 'string' ? err : (err.message || fallback);
-
-  if (message.includes('{') && message.includes('}')) {
-    try {
-      const jsonStart = message.indexOf('{');
-      const jsonStr = message.slice(jsonStart);
-      const data = JSON.parse(jsonStr);
-      if (data.detail && typeof data.detail === 'string') return data.detail;
-      if (data.error?.message && typeof data.error.message === 'string') return data.error.message;
-      if (data.message && typeof data.message === 'string') return data.message;
-    } catch { /* ignore JSON parse error */ }
-  }
-
-  if (message.includes('402') || message.includes('INSUFFICIENT_CREDITS') || message.toLowerCase().includes('insufficient credits')) {
-    return 'Insufficient credits. Please top up your wallet.';
-  }
-  if (message.includes('401') || message.includes('403')) {
-    return 'Authentication failed. Please check your account session or API key.';
-  }
-  if (message.includes('429')) {
-    return 'Too many requests. Please wait a moment and try again.';
-  }
-
-  message = message.replace(/^API Request Failed: \d+ [^-]+ - /, '');
-  return message.length > 150 ? message.slice(0, 147) + '...' : message;
-}
+import { formatErrorMessage } from '../lib/errorMessages.js';
 
 function scopedPersistKey(baseKey, apiKey) {
   if (!apiKey) return baseKey;
@@ -654,9 +626,6 @@ export function AudioStudio() {
   let searchQuery = '';
 
   const refreshModelSelector = () => {
-    if (modelSelectorEl) {
-      modelSelectorEl.remove();
-    }
     modelSelectorEl = mountModelSelector(modelWrapper, {
       models: audioModels,
       selectedModelId: selectedModel.id,

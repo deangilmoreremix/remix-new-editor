@@ -248,30 +248,49 @@ export function TemplateStudio(templateId) {
     `;
     fieldWrapper.appendChild(label);
 
-    if (input.type === 'image') {
-      const uploadArea = document.createElement('div');
-      uploadArea.className = 'flex h-16 items-center gap-4 rounded-[20px] border border-white/10 bg-white/[0.03] px-4 text-zinc-400 cursor-pointer hover:border-emerald-400/30 transition';
-      uploadArea.innerHTML = `
-        <div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg">↑</div>
-        <span class="text-sm">Click to upload an image</span>
-      `;
-      uploadArea.onclick = () => {
-        const picker = createUploadPicker({
-          anchorContainer: container,
-          onSelect: ({ url }) => {
-            uploadedUrl = url;
-            formState[input.name] = url;
-            uploadArea.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-500/10 text-lg">✓</div><span class="text-sm text-emerald-200">Image uploaded</span>`;
-          },
-          onClear: () => {
-            uploadedUrl = null;
-            formState[input.name] = null;
-          }
-        });
-        container.appendChild(picker.panel);
-      };
-      fieldWrapper.appendChild(uploadArea);
-    } else if (input.type === 'text' || input.type === 'textarea') {
+            if (input.type === 'image' || input.type === 'frame') {
+                const isFrame = input.type === 'frame';
+                const uploadArea = document.createElement('div');
+                uploadArea.className = 'flex h-16 items-center gap-4 rounded-[20px] border border-white/10 bg-white/[0.03] px-4 text-zinc-400 cursor-pointer hover:border-emerald-400/30 transition';
+                uploadArea.innerHTML = `
+                    <div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg">↑</div>
+                    <span class="text-sm">${isFrame ? 'Click to add start & end frames' : 'Click to upload an image'}</span>
+                `;
+                const setDone = (label) => {
+                    uploadArea.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-500/10 text-lg">✓</div><span class="text-sm text-emerald-200">${label}</span>`;
+                };
+                uploadArea.onclick = () => {
+                    const picker = createUploadPicker({
+                        anchorContainer: container,
+                        frameMode: isFrame,
+                        onSelect: (sel) => {
+                            if (isFrame) {
+                                // Start/end image pair for first/last-frame models
+                                formState[input.name] = { startUrl: sel.startUrl, endUrl: sel.endUrl, urls: sel.urls };
+                                setDone(sel.endUrl ? 'Start & end frames set' : 'Start frame set');
+                            } else {
+                                uploadedUrl = sel.url;
+                                formState[input.name] = sel.url;
+                                setDone('Image uploaded');
+                            }
+                        },
+                        onClear: () => {
+                            if (isFrame) {
+                                formState[input.name] = null;
+                            } else {
+                                uploadedUrl = null;
+                                formState[input.name] = null;
+                            }
+                            uploadArea.innerHTML = `
+                                <div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg">↑</div>
+                                <span class="text-sm">${isFrame ? 'Click to add start & end frames' : 'Click to upload an image'}</span>
+                            `;
+                        }
+                    });
+                    container.appendChild(picker.panel);
+                };
+                fieldWrapper.appendChild(uploadArea);
+            } else if (input.type === 'text' || input.type === 'textarea') {
       const el = document.createElement(input.type === 'textarea' ? 'textarea' : 'input');
       el.className = 'h-11 w-full rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] px-4 text-sm text-white outline-none transition focus:border-emerald-400/50';
       if (input.type === 'textarea') {
@@ -409,7 +428,7 @@ export function TemplateStudio(templateId) {
         dropdown.dataset.populated = 'true';
 
         dropdown.innerHTML = `
-          <div class="flex gap-4 h-full max-h-[70vh] min-h-[350px] overflow-x-hidden">
+          <div class="flex gap-4 h-full max-h-[70vh] min-h-[350px] overflow-hidden">
             <div data-provider-sidebar></div>
             <div class="flex-1 flex flex-col gap-2 min-w-0">
               <div data-search-bar></div>
@@ -417,7 +436,7 @@ export function TemplateStudio(templateId) {
                 <span>Available models</span>
                 <span data-provider-badge class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60 hidden"></span>
               </div>
-              <div data-model-list></div>
+              <div data-model-list class="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-1"></div>
             </div>
           </div>
         `;

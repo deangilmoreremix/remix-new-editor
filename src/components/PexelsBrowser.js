@@ -238,7 +238,7 @@ export function openPexelsBrowser({ accept = ['image', 'video'], onSelect, onCan
         card.appendChild(playBadge);
 
         const badge = document.createElement('div');
-        badge.className = 'absolute top-2 right-2 bg-blue-500/80 px-1.5 py-0.5 rounded text-[9px] font-bold text-white';
+        badge.className = 'absolute top-2 right-2 bg-[#d9ff00] px-1.5 py-0.5 rounded text-[9px] font-bold text-black';
         safeSetText(badge, 'VIDEO');
         card.appendChild(badge);
       } else {
@@ -264,7 +264,7 @@ export function openPexelsBrowser({ accept = ['image', 'video'], onSelect, onCan
         card.appendChild(mediaEl);
 
         const badge = document.createElement('div');
-        badge.className = 'absolute top-2 right-2 bg-emerald-500/80 px-1.5 py-0.5 rounded text-[9px] font-bold text-white z-20';
+        badge.className = 'absolute top-2 right-2 bg-[#d9ff00]/15 px-1.5 py-0.5 rounded text-[9px] font-bold text-[#d9ff00] border border-[#d9ff00]/40 z-20';
         safeSetText(badge, 'PHOTO');
         card.appendChild(badge);
       }

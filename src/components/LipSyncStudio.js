@@ -1,7 +1,7 @@
 import { muapi } from '../lib/muapi.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
-import { processFileUpload } from '../lib/editor/uploadPipeline.js';
+import { formatErrorMessage } from '../lib/errorMessages.js';
 import { lipsyncModels, imageLipSyncModels, videoLipSyncModels, getLipSyncModelById, getResolutionsForLipSyncModel } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
@@ -340,7 +340,7 @@ export function LipSyncStudio() {
     advancedBtn.id = 'ls-advanced-btn';
     advancedBtn.className = 'flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-primary/40 transition-all text-xs font-bold text-white group';
     advancedBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-60 text-secondary"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l-.06-.06a1.65 1.65 0 001.82-.33 1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-1.82.33A1.65 1.65 0 0019.4 9a1.65 1.65 0 00-1.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span id="ls-advanced-btn-label">Advanced</span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted group-hover:text-white transition-colors"><polyline points="6 9 12 15 18 9"/></svg>`;
-    bottomRow.insertBefore(advancedBtn, generateBtn);
+    bottomRow.appendChild(advancedBtn);
 
     bottomRow.appendChild(generateBtn);
     mountPersonalizeTrigger({ controlsContainer: bottomRow, getTextarea: () => textarea, appId: 'lip-sync' });
@@ -411,7 +411,7 @@ export function LipSyncStudio() {
             selectedProvider = 'all';
 
             dropdown.innerHTML = `
-                <div class="flex gap-3 h-full max-h-[60vh] min-h-[300px] overflow-x-hidden">
+                <div class="flex gap-4 h-full max-h-[70vh] min-h-[350px] overflow-hidden">
                     <div data-provider-sidebar></div>
                     <div class="flex-1 flex flex-col gap-2 min-w-0">
                         ${renderSearchBar()}
@@ -419,7 +419,7 @@ export function LipSyncStudio() {
                             <span>Available models</span>
                             <span data-provider-badge class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60 hidden"></span>
                         </div>
-                        <div data-model-list></div>
+                        <div data-model-list class="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-1"></div>
                     </div>
                 </div>
             `;
@@ -691,13 +691,13 @@ export function LipSyncStudio() {
         if (!apiKey) { AuthModal(() => imageFileInput.click()); return; }
         updateImageUploadState('loading');
         try {
-            const result = await processFileUpload(file);
-            uploadedImageUrl = result.url || result.urls?.[0];
+            const url = await muapi.uploadFile(file);
+            uploadedImageUrl = url;
             if (!uploadedImageUrl) throw new Error('Upload returned no URL');
             updateImageUploadState('ready', file.name);
         } catch (err) {
             updateImageUploadState('idle');
-            alert(`Image upload failed: ${err.message}`);
+            alert(`Image upload failed: ${formatErrorMessage(err)}`);
         }
         imageFileInput.value = '';
     };
@@ -719,13 +719,13 @@ export function LipSyncStudio() {
         if (!apiKey) { AuthModal(() => videoFileInput.click()); return; }
         updateVideoUploadState('loading');
         try {
-            const result = await processFileUpload(file);
-            uploadedVideoUrl = result.url || result.urls?.[0];
+            const url = await muapi.uploadFile(file);
+            uploadedVideoUrl = url;
             if (!uploadedVideoUrl) throw new Error('Upload returned no URL');
             updateVideoUploadState('ready', file.name);
         } catch (err) {
             updateVideoUploadState('idle');
-            alert(`Video upload failed: ${err.message}`);
+            alert(`Video upload failed: ${formatErrorMessage(err)}`);
         }
         videoFileInput.value = '';
     };
@@ -747,13 +747,13 @@ export function LipSyncStudio() {
         if (!apiKey) { AuthModal(() => audioFileInput.click()); return; }
         updateAudioUploadState('loading');
         try {
-            const result = await processFileUpload(file);
-            uploadedAudioUrl = result.url || result.urls?.[0];
+            const url = await muapi.uploadFile(file);
+            uploadedAudioUrl = url;
             if (!uploadedAudioUrl) throw new Error('Upload returned no URL');
             updateAudioUploadState('ready', file.name);
         } catch (err) {
             updateAudioUploadState('idle');
-            alert(`Audio upload failed: ${err.message}`);
+            alert(`Audio upload failed: ${formatErrorMessage(err)}`);
         }
         audioFileInput.value = '';
     };

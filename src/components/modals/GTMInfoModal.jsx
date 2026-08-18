@@ -78,9 +78,9 @@ export class GTMInfoModal extends BaseModal {
   }
 
   hexToRgba(hex, alpha) {
-    if (typeof hex !== 'string') return `rgba(59, 130, 246, ${alpha})`;
+    if (typeof hex !== 'string') return `rgba(217, 255, 0, ${alpha})`;
     const m = hex.trim().match(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i);
-    if (!m) return `rgba(59, 130, 246, ${alpha})`;
+    if (!m) return `rgba(217, 255, 0, ${alpha})`;
     let h = m[1];
     if (h.length === 3) h = h.split('').map((c) => c + c).join('');
     const r = parseInt(h.slice(0, 2), 16);

@@ -433,6 +433,15 @@ export class MuapiClient {
         if (p.duration) finalPayload.duration = p.duration;
         if (p.resolution) finalPayload.resolution = p.resolution;
         if (p.quality) finalPayload.quality = p.quality;
+        // First/last-frame control (start + end image). Forwarded from the raw
+        // params (not the sanitized object, which strips unknown keys) so
+        // first-last-frame models (e.g. seedance-2.5-first-last-frame) can pin
+        // both ends of the generated clip. Forward both camelCase and snake_case
+        // conventions since different model endpoints expect different keys.
+        if (params.firstFrameUrl || params.first_frame_url) finalPayload.firstFrameUrl = params.firstFrameUrl || params.first_frame_url;
+        if (params.lastFrameUrl || params.last_frame_url) finalPayload.lastFrameUrl = params.lastFrameUrl || params.last_frame_url;
+        if (params.startImageUrl) finalPayload.startImageUrl = params.startImageUrl;
+        if (params.endImageUrl) finalPayload.endImageUrl = params.endImageUrl;
         // Effect endpoints (generate_wan_ai_effects) REQUIRE `name`.
         // Forward it from the template's effect selection input or defaultParams.
         if (p.name) finalPayload.name = p.name;

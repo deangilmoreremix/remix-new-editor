@@ -6,6 +6,20 @@ import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCa
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { openaiService } from '../lib/openaiService.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
+import Store from '../stores/base/Store.js';
+import { t2iModels, getAspectRatiosForModel, getModelById } from '../lib/models.js';
+import { showToast } from '../lib/loading.js';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
+import { CINEMATIC_THEME } from '../lib/cinematicTheme.js';
+import { getVideoIntent, setVideoIntent } from '../lib/videoIntentStore.js';
+import { generateStoryboardFromIntent } from '../lib/storyboardEngine.js';
+import { createAutosave, saveProject } from '../lib/editor/persistence.js';
+import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
+import { createUploadPicker } from './UploadPicker.js';
+import { PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
+import { createAdvancedControls } from '../lib/studioControls.js';
+import { getExtendedModel } from '../lib/modelInputExtensions.js';
 
 const SHOT_TYPES = ['Wide Shot', 'Medium Shot', 'Close-Up', 'Extreme Close-Up', 'POV', 'Overhead', 'Low Angle'];
 
@@ -735,7 +749,7 @@ export function StoryboardStudio(options = {}) {
       const availableProviders = getAvailableProviders(t2iModels);
 
       dropdown.innerHTML = `
-        <div class="flex gap-4 h-full max-h-[70vh] min-h-[350px] overflow-x-hidden">
+        <div class="flex gap-4 h-full max-h-[70vh] min-h-[350px] overflow-hidden">
           <div data-provider-sidebar></div>
           <div class="flex-1 flex flex-col gap-2 min-w-0">
             ${renderSearchBar()}
@@ -743,7 +757,7 @@ export function StoryboardStudio(options = {}) {
               <span>Available models</span>
               <span data-provider-badge class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60 hidden"></span>
             </div>
-            <div data-model-list"></div>
+            <div data-model-list class="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-1"></div>
           </div>
         </div>
       `;

@@ -4,9 +4,7 @@
 // order/title/summary/time/prerequisites/relatedTemplateIds/relatedAssetIds are
 // copied verbatim from the catalog (src/data/academy/catalog.ts).
 
-import type { Lesson } from '../lesson-types';
-
-export const LESSONS_05: Lesson[] = [
+export const LESSONS_05 = [
   {
     id: '05-ai-avatars-and-influencers::01-consistent-character',
     slug: '05-ai-avatars-and-influencers::01-consistent-character',

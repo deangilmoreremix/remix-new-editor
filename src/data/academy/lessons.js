@@ -7,10 +7,7 @@
 // file under src/data/academy/lessons/*.ts and are aggregated in ACADEMY_LESSONS
 // via the import block near the bottom of this file.
 
-import type { Lesson } from './lesson-types';
-export type { Lesson } from './lesson-types';
-
-export const ACADEMY_LESSONS_TRACK01: Lesson[] = [
+export const ACADEMY_LESSONS_TRACK01 = [
   {
     id: 'how-ugc-works',
     slug: 'how-ugc-works',
@@ -230,7 +227,7 @@ import { LESSONS_13 } from './lessons/13-ai-tools-mastery';
 import { LESSONS_14 } from './lessons/14-ai-freelancing-and-agency-business';
 import { LESSONS_15 } from './lessons/15-ai-agents-and-vibe-coding';
 
-export const ACADEMY_LESSONS: Lesson[] = [
+export const ACADEMY_LESSONS = [
   ...ACADEMY_LESSONS_TRACK01,
   ...LESSONS_02,
   ...LESSONS_03,
@@ -248,6 +245,6 @@ export const ACADEMY_LESSONS: Lesson[] = [
   ...LESSONS_15,
 ];
 
-export function getLessonById(id): Lesson | undefined {
+export function getLessonById(id) {
   return ACADEMY_LESSONS.find((l) => l.id === id);
 }

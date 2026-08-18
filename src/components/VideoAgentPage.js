@@ -3,7 +3,8 @@ import { mountStudioDrawer } from '../lib/studioChrome.js';
 import { showToast } from '../lib/loading.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 import { getSupabaseUrl, isSupabaseConfigured } from '../lib/supabase.js';
-import { processFileUpload } from '../lib/editor/uploadPipeline.js';
+import { muapi } from '../lib/muapi.js';
+import { formatErrorMessage } from '../lib/errorMessages.js';
 import { browserVideoProcessor } from '../lib/browserVideoProcessor.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
@@ -377,15 +378,10 @@ export function VideoAgentPage() {
             showToast('Please choose a video file', 'error');
             return;
         }
-        if (!isSupabaseConfigured()) {
-            showToast('Storage not configured. Set VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY.', 'error');
-            return;
-        }
         try {
             loadStatus.textContent = 'Uploading…';
             loadBtn.disabled = true;
-            const result = await processFileUpload(file);
-            const url = result.url || result.urls?.[0];
+            const url = await muapi.uploadFile(file);
             if (!url) throw new Error('Upload returned no URL');
             videoUrl = url; // server-reachable https URL the backend can fetch
             renderVideoPreview();
@@ -394,7 +390,7 @@ export function VideoAgentPage() {
         } catch (err) {
             console.error('[VideoAgentPage] upload failed:', err);
             loadStatus.textContent = 'Upload failed';
-            showToast('Upload failed: ' + (err && err.message ? err.message : 'unknown error'), 'error');
+            showToast('Upload failed: ' + formatErrorMessage(err), 'error');
         } finally {
             loadBtn.disabled = false;
         }

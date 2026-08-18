@@ -32,7 +32,7 @@ const AutoCompleteSelect = React.forwardRef((
     label,
     perPage = 30,
     path,
-  }) => {
+  }, ref) => {
   const [open, setOpen] = useState(false);
   const [options, setOptions] = useState([]);
   const { getList } = useProjectStore();

@@ -4,6 +4,7 @@ import { avatarModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { processFileUpload } from '../lib/editor/uploadPipeline.js';
+import { formatErrorMessage } from '../lib/errorMessages.js';
 import { showToast } from '../lib/loading.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
@@ -80,7 +81,7 @@ export function AvatarStudio() {
       dropdown.dataset.populated = 'true';
       const availableProviders = getAvailableProviders(avatarModels);
       dropdown.innerHTML = `
-        <div class="flex gap-4 h-full max-h-[70vh] min-h-[350px] overflow-x-hidden">
+        <div class="flex gap-4 h-full max-h-[70vh] min-h-[350px] overflow-hidden">
           <div data-provider-sidebar></div>
           <div class="flex-1 flex flex-col gap-2 min-w-0">
             ${renderSearchBar()}
@@ -88,7 +89,7 @@ export function AvatarStudio() {
               <span>Available models</span>
               <span data-provider-badge class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60 hidden"></span>
             </div>
-            <div data-model-list></div>
+            <div data-model-list class="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-1"></div>
           </div>
         </div>
       `;
@@ -234,7 +235,7 @@ export function AvatarStudio() {
       }
       uploadedAudioUrl = result.asset.url;
     } catch (err) {
-      alert(`Error: ${err.message}`);
+      alert(`Error: ${formatErrorMessage(err)}`);
     } finally {
       audioInput.value = '';
     }
@@ -286,7 +287,7 @@ export function AvatarStudio() {
   function buildDynamicControls() {
     if (!dynamicControlsContainer) return;
     if (dynamicControls) dynamicControls.destroy();
-    const model = getExtendedModel(getModelById(selectedModel.id));
+    const model = getExtendedModel(selectedModel);
     if (!model || !model.inputs || Object.keys(model.inputs).length === 0) {
       dynamicControlsContainer.classList.add('hidden');
       return;
