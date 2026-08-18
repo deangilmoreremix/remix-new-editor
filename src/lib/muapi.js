@@ -761,6 +761,45 @@ export class MuapiClient {
         }
     }
 
+    // Generic JSON passthrough to the muapi proxy for non-generation
+    // endpoints (social publishing, result polling, account management).
+    // `generationType` maps to the proxy's GET/POST decision: 'list' and
+    // 'poll' become GET; anything else (e.g. 'social') becomes POST.
+    async proxyJson(endpoint, { method = 'POST', params = {}, generationType } = {}, signal) {
+        if (!endpoint || typeof endpoint !== 'string') {
+            throw new Error('Endpoint is required for proxyJson');
+        }
+        const resolvedGenerationType = generationType || (method === 'GET' ? 'list' : 'social');
+
+        try {
+            const response = await fetch(this.proxyUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    endpoint,
+                    params: params || {},
+                    generationType: resolvedGenerationType,
+                    studioType: 'social',
+                }),
+                signal,
+            });
+
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(`Social API failed: ${response.status} ${response.statusText} - ${errText.slice(0, 200)}`);
+            }
+
+            const data = await response.json();
+            if (data && data.error) {
+                throw new Error(`Social API error: ${data.error}${data.details ? ` — ${data.details}` : ''}`);
+            }
+            return data;
+        } catch (error) {
+            if (error.name === 'AbortError') throw new Error('Request cancelled by user');
+            throw error;
+        }
+    }
+
     async generateText(params, signal) {
         const modelInfo = getTextModelById(params.model);
         const endpoint = modelInfo?.endpoint || params.model || 'text';

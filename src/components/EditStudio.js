@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
@@ -31,6 +32,7 @@ export function EditStudio() {
 
   let activeTool = null;
   let uploadedUrl = null;
+  let lastOutputUrl = null;
   let customThumbnailUrl = getCustomThumbnailFromCache('edit-studio');
 
   const topBar = document.createElement('div');
@@ -237,11 +239,15 @@ export function EditStudio() {
       }
       const result = await muapi.generateI2I(params);
       if (result?.url) {
+        lastOutputUrl = result.url;
         resultArea.classList.remove('hidden');
         resultArea.innerHTML = `
           <img src="${result.url}" class="w-full rounded-xl border border-white/10 mb-3">
           <a href="${result.url}" download class="block w-full bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
+          <button type="button" class="publish-social-btn block w-full mt-2 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
         `;
+        const publishBtn = resultArea.querySelector('.publish-social-btn');
+        if (publishBtn) publishBtn.onclick = () => openSocialPublish({ mediaUrl: lastOutputUrl, mediaType: 'image' });
       }
     } catch (err) {
       alert(`Error: ${err.message}`);

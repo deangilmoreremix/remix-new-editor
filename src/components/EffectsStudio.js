@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
@@ -214,8 +215,14 @@ export function EffectsStudio() {
 
   const generateBtn = document.createElement('button');
   generateBtn.className = 'bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow transition-all whitespace-nowrap';
-  generateBtn.textContent = 'Apply Effect';
+    generateBtn.textContent = 'Apply Effect';
     promptRow.appendChild(generateBtn);
+    const effectsPublishBtn = document.createElement('button');
+    effectsPublishBtn.type = 'button';
+    effectsPublishBtn.textContent = 'Publish to Social';
+    effectsPublishBtn.className = 'bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow transition-all whitespace-nowrap';
+    effectsPublishBtn.onclick = () => openSocialPublish({ mediaUrl: lastOutputUrl, mediaType: lastMediaType });
+    promptRow.appendChild(effectsPublishBtn);
     mountPersonalizeTrigger({ controlsContainer: promptRow, getTextarea: () => promptInput, appId: 'effects-studio' });
     previewTop.appendChild(promptRow);
 
@@ -269,6 +276,12 @@ export function EffectsStudio() {
   mobileGenBtn.className = 'w-full bg-primary text-black py-3 rounded-xl font-black text-sm';
   mobileGenBtn.textContent = 'Apply Effect';
   mobileControls.appendChild(mobileGenBtn);
+  const mobilePublishBtn = document.createElement('button');
+  mobilePublishBtn.type = 'button';
+  mobilePublishBtn.textContent = 'Publish to Social';
+  mobilePublishBtn.className = 'w-full bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-3 rounded-xl font-black text-sm hover:shadow-glow transition-all';
+  mobilePublishBtn.onclick = () => openSocialPublish({ mediaUrl: lastOutputUrl, mediaType: lastMediaType });
+  mobileControls.appendChild(mobilePublishBtn);
   container.appendChild(mobileControls);
 
   function switchTab(tab) {
@@ -404,6 +417,9 @@ export function EffectsStudio() {
 
   searchInput.oninput = () => renderEffects(searchInput.value);
 
+  let lastOutputUrl = null;
+  let lastMediaType = 'image';
+
   async function handleGenerate() {
     if (!selectedEffect) { alert('Select an effect first'); return; }
     if (!uploadedUrl) { alert('Upload an image or video first'); return; }
@@ -440,6 +456,8 @@ export function EffectsStudio() {
 
       if (result?.url) {
         const mediaType = activeTab.type === 'i2v' ? 'video' : 'image';
+        lastOutputUrl = result.url;
+        lastMediaType = mediaType;
         outputPreview.load(result.url, { type: mediaType, model: activeTab.label, filename: `${selectedEffect}-${Date.now()}` });
         mobileOutputPreview.load(result.url, { type: mediaType });
 

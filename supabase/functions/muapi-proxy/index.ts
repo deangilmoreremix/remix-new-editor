@@ -57,12 +57,25 @@ function validateEndpoint(endpoint: string): boolean {
   //   - <model-name>
   //   - <category>-<model>
   //   - specialized app endpoints like ai-image-upscale, generate_wan_ai_effects, suno-create-music
+  //   - social endpoints with a query string, e.g. social/ext/accounts?external_user_id=user_123
   if (!endpoint || typeof endpoint !== 'string') return false;
   const trimmed = endpoint.trim();
   if (!trimmed) return false;
+
+  // Split off an optional query string so we can validate the path and the
+  // query portion independently. Social listing needs ?external_user_id=...
+  const [path, query] = trimmed.split('?');
+
   // Block path traversal but allow dots, hyphens, underscores, and slashes
-  if (trimmed.includes('..') || trimmed.startsWith('/') || trimmed.includes('//')) return false;
-  return /^[a-z0-9][a-z0-9_.\/-]*$/.test(trimmed);
+  if (path.includes('..') || path.startsWith('/') || path.includes('//')) return false;
+  if (!/^[a-z0-9][a-z0-9_.\/-]*$/.test(path)) return false;
+
+  // Query string (if present) must be a safe, url-encoded set of key=value pairs.
+  if (query !== undefined) {
+    if (query === '') return false;
+    if (!/^[a-z0-9_.\-=&%]*$/i.test(query)) return false;
+  }
+  return true;
 }
 
 // Map legacy/short endpoint names to the real muapi API names.

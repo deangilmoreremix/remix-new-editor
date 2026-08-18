@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { videoToolsModels } from '../lib/models.js';
@@ -16,6 +17,7 @@ export function VideoToolsStudio() {
 
   let selectedModel = videoToolsModels[0];
   let uploadedVideoUrl = null;
+  let lastOutputUrl = null;
   let prompt = '';
   let customThumbnailUrl = getCustomThumbnailFromCache('videotools-studio');
 
@@ -200,15 +202,19 @@ export function VideoToolsStudio() {
       }
 
        const result = await muapi.processVideoTool(params);
-      if (result?.url) {
-        resultArea.classList.remove('hidden');
-        resultArea.innerHTML = `
-          <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4">
-            <video controls class="w-full rounded-xl mb-3" src="${result.url}"></video>
-            <a href="${result.url}" download class="block w-full bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download Video</a>
-          </div>
-        `;
-      }
+       if (result?.url) {
+         lastOutputUrl = result.url;
+         resultArea.classList.remove('hidden');
+         resultArea.innerHTML = `
+           <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4">
+             <video controls class="w-full rounded-xl mb-3" src="${result.url}"></video>
+             <a href="${result.url}" download class="block w-full bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download Video</a>
+             <button type="button" class="publish-social-btn block w-full mt-2 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
+           </div>
+         `;
+         const publishBtn = resultArea.querySelector('.publish-social-btn');
+         if (publishBtn) publishBtn.onclick = () => openSocialPublish({ mediaUrl: lastOutputUrl, mediaType: 'video' });
+       }
     } catch (err) {
       alert(`Error: ${err.message}`);
     } finally {

@@ -1,12 +1,22 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ClerkProvider, useUser, useClerk, UserButton } from '@clerk/react';
+import { setExternalUserId } from '../../lib/socialPublishing';
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 function HeaderAuthButton() {
   const { isLoaded, isSignedIn, user } = useUser();
   const clerk = useClerk();
+
+  // Map the Clerk user to muapi's external_user_id so each user's connected
+  // social accounts are isolated (otherwise the service falls back to a
+  // per-browser localStorage id shared by everyone on the device).
+  useEffect(() => {
+    if (isSignedIn && user?.id) {
+      setExternalUserId(user.id);
+    }
+  }, [isSignedIn, user?.id]);
 
   if (!isLoaded) return null;
 

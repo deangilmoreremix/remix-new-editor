@@ -51,7 +51,7 @@ import { RecorderModal } from './modals/RecorderModal.jsx';
 import { EnhancedRecorderModal } from './modals/EnhancedRecorderModal.jsx';
 import { TemplateGeneratorModal } from './modals/TemplateGeneratorModal.jsx';
 import { TemplatePreviewModal } from './modals/TemplatePreviewModal.jsx';
-import { SocialPublisherModal } from './modals/SocialPublisherModal.jsx';
+import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { EmailCampaignModal } from './modals/EmailCampaignModal.jsx';
 import { UrlVideoModal } from './modals/UrlVideoModal.jsx';
 import { PageShotModal } from './modals/PageShotModal.jsx';
@@ -3090,14 +3090,13 @@ export function TimelineEditorPage() {
 
     function openSocialPublisherModal(state, showToast) {
       try {
-        const modal = new SocialPublisherModal({
-          projectData: state,
-          onComplete: (result) => {
-          },
-          onError: (error) => console.log(`Publishing failed: ${error}`, 'error')
-        });
-        modal.open();
+        // Open the muapi social publisher for the current generated video.
+        const mediaUrl = typeof state.lastGeneratedVideo === 'string'
+          ? state.lastGeneratedVideo
+          : (state.lastGeneratedVideo?.src || state.lastGeneratedVideo?.url || '');
+        openSocialPublish({ mediaUrl, mediaType: 'video' });
       } catch (error) {
+        console.error('[openSocialPublisherModal]', error);
       }
     }
 

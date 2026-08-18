@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createInlineInstructions } from './InlineInstructions.js';
@@ -239,6 +240,13 @@ export function StoryboardStudio() {
       genFrameBtn.textContent = 'Generate Frame';
       genFrameBtn.onclick = () => generateFrame(idx, genFrameBtn, imageArea);
       card.appendChild(genFrameBtn);
+
+      const publishFrameBtn = document.createElement('button');
+      publishFrameBtn.type = 'button';
+      publishFrameBtn.textContent = 'Publish to Social';
+      publishFrameBtn.className = 'w-full mt-2 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2 rounded-lg text-xs font-bold hover:shadow-glow transition-all';
+      publishFrameBtn.onclick = () => openSocialPublish({ mediaUrl: frame.imageUrl, mediaType: 'image' });
+      card.appendChild(publishFrameBtn);
 
       card.querySelector('.remove-frame').onclick = () => {
         if (frames.length > 1) { frames.splice(idx, 1); renderFrames(); }
