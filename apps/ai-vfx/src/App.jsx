@@ -7,7 +7,6 @@ import {
   Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter,
   ModalCloseButton, useDisclosure, IconButton, Divider
 } from '@chakra-ui/react'
-import { uploadToStorage } from './lib/supabase'
 import {
   applyVFX, applyMotion, applyAIEffects, imageToVideo, uploadFile, pollPrediction, generateWithPolling
 } from './lib/muapi'
@@ -460,9 +459,8 @@ function App() {
             </Card>
           )}
         </Box>
-        </Flex>
       </Flex>
-    </Box>
+      </Box>
     </ChakraProvider>
   )
 }
