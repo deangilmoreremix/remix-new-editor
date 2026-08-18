@@ -944,8 +944,9 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
         />
       )}
 
-      {/* Step 3: Copy */}
-      {activeStep === 'copy' && selectedAccount && (
+      {/* Step 3: Copy — always render so the post-writing fields (title/caption,
+          Enhance + Reroll, Tone) are visible even before an account is connected */}
+      {activeStep === 'copy' && (
         <div style={sectionStyle}>
           <div style={labelStyle}>Post details · {PLATFORM_BY_ID[platformOfSelected]?.label || platformOfSelected}</div>
 
@@ -966,7 +967,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
             Applied whenever you click ✨ Enhance on any field below.
           </div>
 
-          {(platformOfSelected === 'youtube' || platformOfSelected === 'tiktok') && (
+          {(platformOfSelected === 'youtube' || platformOfSelected === 'tiktok' || !platformOfSelected) && (
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 10 }}>
               <input
                 style={{ ...inputStyle, flex: 1 }}
