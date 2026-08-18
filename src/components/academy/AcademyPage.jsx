@@ -173,7 +173,7 @@ function LessonView({ lesson, onOpenTemplate }) {
 }
 
 function TrackView({ track, onOpenLesson, onOpenTemplate }) {
-  const lessons = ACADEMY_LESSONS.filter((l) => l.trackSlug === track.slug);
+  const lessons = ACADEMY_LESSONS.filter((l) => (track.lessonIds || []).includes(l.id));
   const templates = ACADEMY_TEMPLATE_META.filter((t) => t.trackSlug === track.slug);
   return (
     <div className="w-full max-w-5xl">
