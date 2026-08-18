@@ -15,10 +15,10 @@ import { CINEMATIC_THEME } from '../lib/cinematicTheme.js';
 import { getVideoIntent, setVideoIntent } from '../lib/videoIntentStore.js';
 import { generateStoryboardFromIntent } from '../lib/storyboardEngine.js';
 import { createAutosave, saveProject } from '../lib/editor/persistence.js';
-import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { createUploadPicker } from './UploadPicker.js';
-import { PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
+import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 
@@ -631,8 +631,9 @@ export function StoryboardStudio(options = {}) {
   thumbBtn.title = 'Generate a custom thumbnail';
   thumbBtn.className = 'gtm-boost-btn shrink-0';
   thumbBtn.addEventListener('click', () => {
-    const modal = new StudioThumbnailModal({
+    const modal = new TemplateThumbnailModal({
       appTheme: 'storyboard-studio',
+      layout: 'panel',
       studioId: 'storyboard-studio',
       studioName: 'Storyboard Studio',
       aspectRatio: selectedAr,
@@ -646,7 +647,7 @@ export function StoryboardStudio(options = {}) {
         clearCustomThumbnailCache('storyboard-studio');
       },
     });
-      mountStudioThumbnailModal(modal);
+      mountThumbnailModal(modal);
       modal.open();
     });
   controlBar.appendChild(thumbBtn);
@@ -745,39 +746,15 @@ export function StoryboardStudio(options = {}) {
     if (type === 'model') {
       dropdown.classList.add('w-[calc(100vw-2rem)]', 'md:w-[480px]', 'max-w-md');
       dropdown.classList.remove('max-w-xs', 'max-w-[240px]', 'max-w-[200px]');
-      selectedProvider = 'all';
-
-      const availableProviders = getAvailableProviders(t2iModels);
-
-      dropdown.innerHTML = `
-        <div class="flex gap-4 h-full max-h-[70vh] min-h-[350px] overflow-hidden">
-          <div data-provider-sidebar></div>
-          <div class="flex-1 flex flex-col gap-2 min-w-0">
-            ${renderSearchBar()}
-            <div class="text-xs font-semibold text-secondary py-1 shrink-0 flex items-center justify-between">
-              <span>Available models</span>
-              <span data-provider-badge class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60 hidden"></span>
-            </div>
-            <div data-model-list class="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-1"></div>
-          </div>
-        </div>
-      `;
-
-      const sidebarEl = dropdown.querySelector('[data-provider-sidebar]');
-      const modelListEl = dropdown.querySelector('[data-model-list]');
-      const providerBadge = dropdown.querySelector('[data-provider-badge]');
-      const searchInput = dropdown.querySelector('[data-provider-search]');
-
-      const refresh = () => {
-        sidebarEl.innerHTML = renderProviderSidebar(availableProviders, selectedProvider, (provider) => {
-          selectedProvider = provider;
-          refresh();
-        });
-        const filtered = filterModels(t2iModels, searchInput ? searchInput.value : '', selectedProvider);
-        const showProviderName = selectedProvider === 'all';
-        modelListEl.innerHTML = renderModelList(filtered, selectedModel, showProviderName, (m) => {
-          selectedModel = m.id;
-          selectedModelName = m.name;
+      const storyboardModels = t2iModels;
+      mountModelSelector(dropdown, {
+        models: storyboardModels,
+        selectedModelId: selectedModel,
+        showProviderName: true,
+        onSelectModel: (modelId) => {
+          selectedModel = modelId;
+          const model = storyboardModels.find((m) => m.id === modelId);
+          selectedModelName = model ? model.name : modelId;
           const availableArs = getAspectRatiosForModel(selectedModel);
           selectedAr = availableArs[0];
           document.getElementById('model-btn-label').textContent = selectedModelName;
@@ -788,32 +765,8 @@ export function StoryboardStudio(options = {}) {
             dynamicControls.setValue('aspect_ratio', selectedAr);
           }
           closeDropdown();
-        });
-
-        if (selectedProvider !== 'all') {
-          const pName = availableProviders.find(p => p.id === selectedProvider)?.name || selectedProvider;
-          providerBadge.textContent = pName;
-          providerBadge.classList.remove('hidden');
-        } else {
-          providerBadge.classList.add('hidden');
-        }
-      };
-
-      refresh();
-
-      sidebarEl.addEventListener('click', (e) => {
-        const btn = e.target.closest('button[data-provider]');
-        if (!btn) return;
-        e.stopPropagation();
-        const provider = btn.getAttribute('data-provider');
-        if (provider) {
-          selectedProvider = provider;
-          refresh();
-        }
+        },
       });
-
-      searchInput.onclick = (e) => e.stopPropagation();
-      searchInput.oninput = () => refresh();
 
     } else if (type === 'ar') {
       dropdown.classList.add('max-w-[240px]');

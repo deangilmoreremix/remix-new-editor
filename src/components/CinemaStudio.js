@@ -7,12 +7,12 @@ import { buildNanoBananaPrompt, CAMERA_MAP, LENS_MAP, FOCAL_PERSPECTIVE, APERTUR
 import { AuthModal } from './AuthModal.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { getVideoModelById, getI2VModelById, getModelById, t2vModels, i2vModels, getDurationsForModel, getDurationsForI2VModel, getResolutionsForVideoModel, getResolutionsForI2VModel } from '../lib/models.js';
-import { PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
+import { mountModelSelector } from '../lib/modelSelectorUI.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getCustomThumbnailFromCache } from '../lib/thumbnails.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
-import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
@@ -437,72 +437,22 @@ export function CinemaStudio() {
     function showModelDropdown() {
         const isI2V = !!currentSettings.referenceUrl;
         const models = isI2V ? i2vModels : t2vModels;
-        const availableProviders = getAvailableProviders(models);
-        let selectedProvider = 'all';
-
-        // Canonical split-pane: provider sidebar (left) + search/list (right).
-        // Mirrors Image Studio / Video Studio for a consistent model picker.
-        modelDropdown.innerHTML = `
-            <div class="flex gap-4 h-full max-h-[70vh] min-h-[350px] overflow-x-hidden">
-                <div data-provider-sidebar></div>
-                <div class="flex-1 flex flex-col gap-2 min-w-0">
-                    ${renderSearchBar()}
-                    <div class="text-xs font-semibold text-secondary py-1 shrink-0 flex items-center justify-between">
-                        <span>${isI2V ? 'Image-to-video models' : 'Text-to-video models'}</span>
-                        <span data-provider-badge class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60 hidden"></span>
-                    </div>
-                    <div data-model-list></div>
-                </div>
-            </div>
-        `;
-
-        const sidebarEl = modelDropdown.querySelector('[data-provider-sidebar]');
-        const modelListEl = modelDropdown.querySelector('[data-model-list]');
-        const providerBadge = modelDropdown.querySelector('[data-provider-badge]');
-        const searchInput = modelDropdown.querySelector('[data-provider-search]');
-
-        const refresh = () => {
-            sidebarEl.innerHTML = renderProviderSidebar(availableProviders, selectedProvider, (provider) => {
-                selectedProvider = provider;
-                refresh();
-            });
-            const filtered = filterModels(models, searchInput ? searchInput.value : '', selectedProvider);
-            const showProviderName = selectedProvider === 'all';
-            modelListEl.innerHTML = renderModelList(filtered, currentSettings.model, showProviderName, (m) => {
-                currentSettings.model = m.id;
-                updateModelBtn();
-                updateControlsForModel();
-                closeModelDropdown();
-            });
-
-            if (selectedProvider !== 'all') {
-                const pName = availableProviders.find(p => p.id === selectedProvider)?.name || selectedProvider;
-                providerBadge.textContent = pName;
-                providerBadge.classList.remove('hidden');
-            } else {
-                providerBadge.classList.add('hidden');
-            }
-        };
-
-        refresh();
-
-        sidebarEl.addEventListener('click', (e) => {
-            const btn = e.target.closest('button[data-provider]');
-            if (!btn) return;
-            e.stopPropagation();
-            const provider = btn.getAttribute('data-provider');
-            if (provider) {
-                selectedProvider = provider;
-                refresh();
-            }
+        mountModelSelector(modelDropdown, {
+          models,
+          selectedModelId: currentSettings.model,
+          showProviderName: true,
+          headerLabel: isI2V ? 'Image-to-video models' : 'Text-to-video models',
+          autoFocus: true,
+          onSelectModel: (modelId) => {
+            currentSettings.model = modelId;
+            updateModelBtn();
+            updateControlsForModel();
+            closeModelDropdown();
+          },
         });
-
-        searchInput.onclick = (e) => e.stopPropagation();
-        searchInput.oninput = () => refresh();
 
         modelDropdown.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
         modelDropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
-        searchInput.focus();
     }
 
     // Close the model dropdown when clicking elsewhere.

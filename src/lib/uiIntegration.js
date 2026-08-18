@@ -47,7 +47,20 @@ async function defaultGenerateThumbnail(prompt) {
  *        edge function and dispatches a `gtm:thumbnail-generated` window event.
  * @returns {GTMPromptModal|null} The modal instance or null on error
  */
-export function openGTMPromptModal(appTheme = 'timeline-editor', onPromptGenerated = null, onGenerateThumbnail = null) {
+export function openGTMPromptModal(appTheme = 'timeline-editor', onPromptGeneratedOrCtx = null, maybeCtx = null) {
+  let onPromptGenerated;
+  let templateContext = null;
+  let onGenerateThumbnail;
+
+  if (typeof onPromptGeneratedOrCtx === 'function') {
+    onPromptGenerated = onPromptGeneratedOrCtx;
+    onGenerateThumbnail = maybeCtx;
+  } else {
+    onPromptGenerated = onPromptGeneratedOrCtx?.onPromptGenerated;
+    templateContext = onPromptGeneratedOrCtx || null;
+    onGenerateThumbnail = maybeCtx;
+  }
+
   try {
     const defaultPromptCallback = (generatedPrompt) => {
       const promptInput = document.querySelector(
@@ -69,6 +82,7 @@ export function openGTMPromptModal(appTheme = 'timeline-editor', onPromptGenerat
 
     const modal = new GTMPromptModal({
       appTheme,
+      templateContext,
       onPromptGenerated: onPromptGenerated || defaultPromptCallback,
       onGenerateThumbnail: onGenerateThumbnail || defaultGenerateThumbnail,
     });

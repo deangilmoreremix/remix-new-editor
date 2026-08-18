@@ -9,8 +9,8 @@ export class ThumbnailTemplateCard {
   constructor(options = {}) {
     this.template = options.template || null;
     this.appColors = options.appColors || { primary: '#d9ff00', accent: '#c4e600' };
-    this.onSelect = options.onSelect || (() => {});
     this.selected = options.selected || false;
+    this.action = options.action || 'select-template';
   }
 
   get primary() { return this.appColors.primary; }
@@ -26,6 +26,15 @@ export class ThumbnailTemplateCard {
 
   getSoft() { return this.hexToRgba(this.primary, 0.12); }
 
+  escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
   render() {
     if (!this.template) return '';
     const t = this.template;
@@ -36,13 +45,13 @@ export class ThumbnailTemplateCard {
       : `linear-gradient(135deg, ${this.primary}, ${this.accent})`;
 
     return `
-      <div class="thumbnail-template-card ${isSelected ? 'selected' : ''}"
-           style="--app-primary:${this.primary};--app-soft:${soft}"
-           data-action="select-template" data-id="${t.id}"
-           tabindex="0"
-           role="button"
-           aria-pressed="${isSelected}"
-           aria-label="${t.name} template">
+        <div class="thumbnail-template-card ${isSelected ? 'selected' : ''}"
+             style="--app-primary:${this.primary};--app-soft:${soft}"
+             data-action="${this.action}" data-id="${this.escapeHtml(t.id)}"
+            tabindex="0"
+            role="button"
+            aria-pressed="${isSelected}"
+            aria-label="${this.escapeHtml(t.name)} template">
         <div class="template-card-preview" style="background: ${gradient}">
           ${t.requiresReference ? `
             <span class="template-card-badge reference-badge" title="Requires reference image">
@@ -53,13 +62,13 @@ export class ThumbnailTemplateCard {
               Ref
             </span>
           ` : ''}
-          <span class="template-card-badge category-badge">${t.category}</span>
+          <span class="template-card-badge category-badge">${this.escapeHtml(t.category)}</span>
         </div>
         <div class="template-card-info">
-          <h4 class="template-card-name">${t.name}</h4>
-          <p class="template-card-description">${t.description}</p>
+          <h4 class="template-card-name">${this.escapeHtml(t.name)}</h4>
+          <p class="template-card-description">${this.escapeHtml(t.description)}</p>
           <div class="template-card-tags">
-            ${t.tags.slice(0, 4).map((tag) => `<span class="template-tag">${tag}</span>`).join('')}
+            ${t.tags.slice(0, 4).map((tag) => `<span class="template-tag">${this.escapeHtml(tag)}</span>`).join('')}
           </div>
         </div>
       </div>

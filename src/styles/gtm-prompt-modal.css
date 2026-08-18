@@ -679,6 +679,7 @@
 /* Every studio uses the same trigger styling. These selectors are kept so
    studio-scoped markup keeps resolving to the shared palette instead of
    falling back to a per-studio hue. */
+.cinema-template-studio .gtm-boost-btn,
 .template-studio .gtm-boost-btn,
 .image-studio .gtm-boost-btn,
 .video-studio .gtm-boost-btn,
@@ -690,6 +691,7 @@
   box-shadow: 0 2px 8px rgba(217, 255, 0, 0.25);
 }
 
+.cinema-template-studio .gtm-boost-btn:hover,
 .template-studio .gtm-boost-btn:hover,
 .image-studio .gtm-boost-btn:hover,
 .video-studio .gtm-boost-btn:hover,

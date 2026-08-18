@@ -1055,6 +1055,320 @@ export const THUMBNAIL_TEMPLATES = {
     generationDefaults: { ...DEFAULT_GENERATION, quality: 'high', style: 'natural' },
     version: 1,
   },
+
+  // ─── Template Studio — visual style designs ──────────────────────────────
+  ghibliStorybook: {
+    id: 'ghibli-storybook',
+    name: 'Ghibli Storybook',
+    category: 'Template Studio',
+    tags: ['style', 'anime', 'ghibli', 'whimsical', 'hand-drawn', 'template-studio'],
+    description: 'Soft hand-drawn anime aesthetic with painterly backgrounds and warm nostalgia.',
+    previewUrl: '/thumbnails/templates/ghibli-style.webp',
+    previewPrompt: 'Studio Ghibli inspired thumbnail, hand-painted cloudy sky, lush green hills, soft watercolor palette, whimsical character, 4K.',
+    requiresReference: false,
+    referenceRequired: false,
+    referenceType: 'none',
+    minReferences: 0,
+    maxReferences: 0,
+    supportedAspectRatios: ['16:9', '9:16', '1:1'],
+    supportedPlatforms: ['youtube', 'youtube-shorts', 'instagram-post', 'instagram-reel', 'tiktok', 'linkedin', 'twitter', 'facebook'],
+    textMode: 'render-in-image',
+    fields: [
+      { ...COMMON_FIELDS.subject, required: true, placeholder: 'e.g. "a small town by the sea"' },
+      { ...COMMON_FIELDS.tone },
+      { key: 'palette', label: 'Palette', type: 'select', required: false, options: ['soft-pastel', 'warm-autumn', 'lush-green', 'golden-hour', 'moonlit'] },
+    ],
+    promptRecipe: buildRecipe({
+      baseStyle: 'Studio Ghibli inspired hand-drawn anime, painterly watercolor backgrounds, soft cel shading, whimsical, nostalgic, 4K',
+      composition: 'Establishing wide shot with a small hero subject, vast lush scenery, balanced negative space for a title',
+      subjectRules: 'Depict the subject in a gentle, storybook pose. Keep edges soft and hand-painted. No photorealistic texture.',
+      referenceRules: 'No reference images needed for this template.',
+      textMode: 'render-in-image',
+    }),
+    generationDefaults: { ...DEFAULT_GENERATION, quality: 'high', style: 'vivid', background: 'auto' },
+    version: 1,
+  },
+
+  cyberpunkNeon: {
+    id: 'cyberpunk-neon',
+    name: 'Cyberpunk Neon',
+    category: 'Template Studio',
+    tags: ['style', 'cyberpunk', 'neon', 'scifi', 'template-studio'],
+    description: 'Rain-slick neon cityscape with holographic signage and a moody magenta-cyan grade.',
+    previewUrl: '/thumbnails/templates/cyberpunk-style.webp',
+    previewPrompt: 'Cyberpunk thumbnail, neon-lit alley, rain on pavement, holographic signage, magenta-cyan color grade, blade-runner mood, 4K.',
+    requiresReference: false,
+    referenceRequired: false,
+    referenceType: 'none',
+    minReferences: 0,
+    maxReferences: 0,
+    supportedAspectRatios: ['16:9', '9:16', '1:1'],
+    supportedPlatforms: ['youtube', 'youtube-shorts', 'instagram-post', 'instagram-reel', 'tiktok', 'linkedin', 'twitter', 'facebook'],
+    textMode: 'render-in-image',
+    fields: [
+      { ...COMMON_FIELDS.subject, required: true, placeholder: 'e.g. "a lone netrunner on a rooftop"' },
+      { ...COMMON_FIELDS.tone },
+      { key: 'grade', label: 'Color Grade', type: 'select', required: false, options: ['magenta-cyan', 'toxic-green', 'amber-blue', 'violet-pink'] },
+    ],
+    promptRecipe: buildRecipe({
+      baseStyle: 'cyberpunk neon cityscape, rain-slick streets, holographic signage, magenta-cyan color grade, blade-runner mood, 4K',
+      composition: 'Dutch-angle medium shot, neon reflections in wet pavement, deep perspective down a glowing alley',
+      subjectRules: 'Depict the subject as a silhouette or chrome figure lit by neon. High contrast, glowing edges.',
+      referenceRules: 'No reference images needed for this template.',
+      textMode: 'render-in-image',
+    }),
+    generationDefaults: { ...DEFAULT_GENERATION, quality: 'high', style: 'vivid', background: 'auto' },
+    version: 1,
+  },
+
+  filmNoir: {
+    id: 'film-noir',
+    name: 'Film Noir',
+    category: 'Template Studio',
+    tags: ['style', 'noir', 'black-and-white', 'cinematic', 'template-studio'],
+    description: 'Classic high-contrast black-and-white detective mood with hard shadows and smoke.',
+    previewUrl: '/thumbnails/templates/film-noir.webp',
+    previewPrompt: 'Film noir thumbnail, hard venetian-blind shadows, smoke, fedora silhouette, high-contrast black and white, 1940s mood, 4K.',
+    requiresReference: false,
+    referenceRequired: false,
+    referenceType: 'none',
+    minReferences: 0,
+    maxReferences: 0,
+    supportedAspectRatios: ['16:9', '1:1', '4:3'],
+    supportedPlatforms: ['youtube', 'instagram-post', 'linkedin', 'twitter', 'facebook'],
+    textMode: 'render-in-image',
+    fields: [
+      { ...COMMON_FIELDS.subject, required: true, placeholder: 'e.g. "a detective in a dim office"' },
+      { ...COMMON_FIELDS.tone },
+    ],
+    promptRecipe: buildRecipe({
+      baseStyle: 'classic film noir, high-contrast black and white, hard shadows, smoke, venetian blinds light, 1940s detective mood, 4K',
+      composition: 'Low-key lighting, single key light, dramatic shadow across the frame, minimal background',
+      subjectRules: 'Render the subject as a noir silhouette or fedora figure. Crisp black-and-white contrast.',
+      referenceRules: 'No reference images needed for this template.',
+      textMode: 'render-in-image',
+    }),
+    generationDefaults: { ...DEFAULT_GENERATION, quality: 'high', style: 'natural', background: 'opaque' },
+    version: 1,
+  },
+
+  legoBrick: {
+    id: 'lego-brick',
+    name: 'LEGO Brick',
+    category: 'Template Studio',
+    tags: ['style', 'lego', 'toy', 'playful', 'template-studio'],
+    description: 'Bright blocky 3D toy render with visible studs and a playful plastic aesthetic.',
+    previewUrl: '/thumbnails/templates/lego-style.webp',
+    previewPrompt: 'LEGO brick-built thumbnail, bright primary colors, visible studs, playful toy render, white studio turntable, 4K.',
+    requiresReference: false,
+    referenceRequired: false,
+    referenceType: 'none',
+    minReferences: 0,
+    maxReferences: 0,
+    supportedAspectRatios: ['16:9', '1:1', '4:5'],
+    supportedPlatforms: ['youtube', 'youtube-shorts', 'instagram-post', 'instagram-reel', 'tiktok', 'facebook'],
+    textMode: 'render-in-image',
+    fields: [
+      { ...COMMON_FIELDS.subject, required: true, placeholder: 'e.g. "a race car built from bricks"' },
+      { key: 'palette', label: 'Palette', type: 'select', required: false, options: ['primary', 'pastel', 'neon', 'earthy'] },
+    ],
+    promptRecipe: buildRecipe({
+      baseStyle: 'LEGO brick-built 3D render, plastic studs, bright primary colors, playful toy aesthetic, 4K',
+      composition: 'Isometric hero build centered on a white studio turntable, soft ambient occlusion',
+      subjectRules: 'Depict the subject as a blocky LEGO minifigure or model. Exaggerated studs, no realistic texture.',
+      referenceRules: 'No reference images needed for this template.',
+      textMode: 'render-in-image',
+    }),
+    generationDefaults: { ...DEFAULT_GENERATION, quality: 'high', style: 'vivid', background: 'opaque' },
+    version: 1,
+  },
+
+  pixelArt: {
+    id: 'pixel-art',
+    name: 'Pixel Art',
+    category: 'Template Studio',
+    tags: ['style', 'pixel-art', 'retro-gaming', '8-bit', 'template-studio'],
+    description: 'Chunky 16-bit sprite aesthetic with a limited palette and visible pixels.',
+    previewUrl: '/thumbnails/templates/pixel-art.webp',
+    previewPrompt: '16-bit pixel art thumbnail, limited color palette, dithering, retro game sprite, chunky pixels, 4K upscaled.',
+    requiresReference: false,
+    referenceRequired: false,
+    referenceType: 'none',
+    minReferences: 0,
+    maxReferences: 0,
+    supportedAspectRatios: ['16:9', '1:1', '9:16'],
+    supportedPlatforms: ['youtube', 'youtube-shorts', 'instagram-post', 'instagram-reel', 'tiktok', 'twitter'],
+    textMode: 'render-in-image',
+    fields: [
+      { ...COMMON_FIELDS.subject, required: true, placeholder: 'e.g. "a hero sprite in a dungeon"' },
+      { key: 'palette', label: 'Palette', type: 'select', required: false, options: ['gameboy', 'nes', 'cga', 'custom'] },
+    ],
+    promptRecipe: buildRecipe({
+      baseStyle: '16-bit pixel art, limited color palette, dithering, retro game sprite aesthetic, 4K upscaled',
+      composition: 'Centered sprite on a flat background, chunky pixels, simple readable silhouette',
+      subjectRules: 'Render the subject as a pixel-art sprite with hard edges and visible pixels. No gradients.',
+      referenceRules: 'No reference images needed for this template.',
+      textMode: 'render-in-image',
+    }),
+    generationDefaults: { ...DEFAULT_GENERATION, quality: 'high', style: 'vivid', background: 'opaque' },
+    version: 1,
+  },
+
+  // ─── Effects Studio — cinematic / VFX designs ────────────────────────────
+  bulletTime: {
+    id: 'bullet-time',
+    name: 'Bullet Time',
+    category: 'Effects Studio',
+    tags: ['effect', 'bullet-time', 'cinematic', 'action', 'effects-studio'],
+    description: 'Frozen hero moment with radiating motion lines and a single accent color.',
+    previewUrl: '/thumbnails/templates/bullet-time.webp',
+    previewPrompt: 'Bullet-time thumbnail, hero frozen mid-action, radiating motion lines, desaturated mid-tones with one accent, cinematic, 4K.',
+    requiresReference: false,
+    referenceRequired: false,
+    referenceType: 'none',
+    minReferences: 0,
+    maxReferences: 0,
+    supportedAspectRatios: ['16:9', '9:16', '1:1'],
+    supportedPlatforms: ['youtube', 'youtube-shorts', 'instagram-post', 'instagram-reel', 'tiktok', 'facebook'],
+    textMode: 'leave-space-for-overlay',
+    fields: [
+      { ...COMMON_FIELDS.subject, required: true, placeholder: 'e.g. "a hero leaping through the air"' },
+      { key: 'accent', label: 'Accent Color', type: 'select', required: false, options: ['cyan', 'amber', 'magenta', 'white'] },
+    ],
+    promptRecipe: buildRecipe({
+      baseStyle: 'bullet-time cinematic freeze, radiating motion lines, desaturated mid-tones with a single accent, The Matrix meets Hero, 4K',
+      composition: 'Hero subject at center, environment fragments suspended around them, radial camera push',
+      subjectRules: 'Depict the subject mid-action, frozen, with shards or particles hovering. Dynamic but static.',
+      referenceRules: 'No reference images needed for this template.',
+      textMode: 'leave-space-for-overlay',
+    }),
+    generationDefaults: { ...DEFAULT_GENERATION, quality: 'high', style: 'vivid', background: 'auto' },
+    version: 1,
+  },
+
+  carChase: {
+    id: 'car-chase',
+    name: 'Car Chase',
+    category: 'Effects Studio',
+    tags: ['effect', 'car-chase', 'action', 'automotive', 'effects-studio'],
+    description: 'High-speed automotive action with motion blur, lens flare, and a teal-orange grade.',
+    previewUrl: '/thumbnails/templates/car-chase.webp',
+    previewPrompt: 'Car chase thumbnail, low tracking shot alongside a speeding hero vehicle, speed lines, dust and sparks, teal-orange grade, 4K.',
+    requiresReference: false,
+    referenceRequired: false,
+    referenceType: 'none',
+    minReferences: 0,
+    maxReferences: 0,
+    supportedAspectRatios: ['16:9', '9:16', '1:1'],
+    supportedPlatforms: ['youtube', 'youtube-shorts', 'instagram-post', 'instagram-reel', 'tiktok', 'facebook'],
+    textMode: 'leave-space-for-overlay',
+    fields: [
+      { ...COMMON_FIELDS.subject, required: true, placeholder: 'e.g. "a black sports car at dusk"' },
+      { key: 'weather', label: 'Conditions', type: 'select', required: false, options: ['dry', 'rain', 'night', 'desert'] },
+    ],
+    promptRecipe: buildRecipe({
+      baseStyle: 'high-speed car chase, motion-blur roads, lens flare, teal-orange grade, automotive action film, 4K',
+      composition: 'Low tracking shot alongside a speeding hero vehicle, speed lines, dust and sparks',
+      subjectRules: 'Feature the vehicle as the hero, aggressive perspective, strong sense of velocity.',
+      referenceRules: 'No reference images needed for this template.',
+      textMode: 'leave-space-for-overlay',
+    }),
+    generationDefaults: { ...DEFAULT_GENERATION, quality: 'high', style: 'vivid', background: 'auto' },
+    version: 1,
+  },
+
+  explosionFx: {
+    id: 'explosion-fx',
+    name: 'Explosion FX',
+    category: 'Effects Studio',
+    tags: ['effect', 'explosion', 'vfx', 'action', 'effects-studio'],
+    description: 'Cinematic blockbuster blast with fireball, debris, and volumetric smoke.',
+    previewUrl: '/thumbnails/templates/building-explosion.webp',
+    previewPrompt: 'Explosion VFX thumbnail, fireball and debris, volumetric smoke, dramatic rim light, building engulfed, blockbuster, 4K.',
+    requiresReference: false,
+    referenceRequired: false,
+    referenceType: 'none',
+    minReferences: 0,
+    maxReferences: 0,
+    supportedAspectRatios: ['16:9', '9:16', '1:1'],
+    supportedPlatforms: ['youtube', 'youtube-shorts', 'instagram-post', 'instagram-reel', 'tiktok', 'facebook'],
+    textMode: 'leave-space-for-overlay',
+    fields: [
+      { ...COMMON_FIELDS.subject, required: true, placeholder: 'e.g. "a fortress under siege"' },
+      { key: 'scale', label: 'Scale', type: 'select', required: false, options: ['small', 'medium', 'epic', 'world-ending'] },
+    ],
+    promptRecipe: buildRecipe({
+      baseStyle: 'cinematic explosion VFX, fireball and debris, volumetric smoke, dramatic rim light, blockbuster, 4K',
+      composition: 'Wide hero frame with the subject engulfed, shockwave toward camera, embers and flying debris',
+      subjectRules: 'Depict the subject at the center of the blast as a protected hero silhouette, epic scale.',
+      referenceRules: 'No reference images needed for this template.',
+      textMode: 'leave-space-for-overlay',
+    }),
+    generationDefaults: { ...DEFAULT_GENERATION, quality: 'high', style: 'vivid', background: 'auto' },
+    version: 1,
+  },
+
+  matrixRain: {
+    id: 'matrix-rain',
+    name: 'Matrix Rain',
+    category: 'Effects Studio',
+    tags: ['effect', 'matrix', 'digital', 'scifi', 'effects-studio'],
+    description: 'Falling green katakana code with a glowing figure in a virtual world.',
+    previewUrl: '/thumbnails/templates/matrix-shot.webp',
+    previewPrompt: 'Matrix digital rain thumbnail, falling green katakana code, dark virtual world, reflective black floor, glowing figure, 4K.',
+    requiresReference: false,
+    referenceRequired: false,
+    referenceType: 'none',
+    minReferences: 0,
+    maxReferences: 0,
+    supportedAspectRatios: ['16:9', '9:16', '1:1'],
+    supportedPlatforms: ['youtube', 'youtube-shorts', 'instagram-post', 'instagram-reel', 'tiktok', 'facebook'],
+    textMode: 'leave-space-for-overlay',
+    fields: [
+      { ...COMMON_FIELDS.subject, required: true, placeholder: 'e.g. "an agent standing in the code"' },
+      { key: 'hue', label: 'Code Hue', type: 'select', required: false, options: ['green', 'amber', 'blue', 'red'] },
+    ],
+    promptRecipe: buildRecipe({
+      baseStyle: 'Matrix digital rain, falling green katakana code, dark virtual world, reflective black floor, 4K',
+      composition: 'Subject standing in a column of cascading code, mirrored floor, god-rays of accent color',
+      subjectRules: 'Render the subject as a glowing figure within the code stream. Monochrome accent only.',
+      referenceRules: 'No reference images needed for this template.',
+      textMode: 'leave-space-for-overlay',
+    }),
+    generationDefaults: { ...DEFAULT_GENERATION, quality: 'high', style: 'vivid', background: 'auto' },
+    version: 1,
+  },
+
+  dollyZoom: {
+    id: 'dolly-zoom',
+    name: 'Vertigo Dolly Zoom',
+    category: 'Effects Studio',
+    tags: ['effect', 'dolly-zoom', 'vertigo', 'cinematic', 'effects-studio'],
+    description: 'Hitchcock vertigo effect with a warped, bending background perspective.',
+    previewUrl: '/thumbnails/templates/dolly-zoom.webp',
+    previewPrompt: 'Vertigo dolly-zoom thumbnail, warped background perspective, anxious tilt, subject held steady, Hitchcock cinematic, 4K.',
+    requiresReference: false,
+    referenceRequired: false,
+    referenceType: 'none',
+    minReferences: 0,
+    maxReferences: 0,
+    supportedAspectRatios: ['16:9', '9:16', '1:1'],
+    supportedPlatforms: ['youtube', 'youtube-shorts', 'instagram-post', 'instagram-reel', 'tiktok', 'facebook'],
+    textMode: 'leave-space-for-overlay',
+    fields: [
+      { ...COMMON_FIELDS.subject, required: true, placeholder: 'e.g. "a person realizing the truth"' },
+      { key: 'intensity', label: 'Intensity', type: 'select', required: false, options: ['subtle', 'moderate', 'extreme'] },
+    ],
+    promptRecipe: buildRecipe({
+      baseStyle: 'Vertigo effect dolly zoom, warped background perspective, anxious tilt, Hitchcock cinematic, 4K',
+      composition: 'Subject centered while the environment stretches or compresses behind them, unsettling depth',
+      subjectRules: 'Keep the subject the same size while the background bends. Psychological tension.',
+      referenceRules: 'No reference images needed for this template.',
+      textMode: 'leave-space-for-overlay',
+    }),
+    generationDefaults: { ...DEFAULT_GENERATION, quality: 'high', style: 'natural', background: 'auto' },
+    version: 1,
+  },
 };
 
 /**
@@ -1139,6 +1453,30 @@ export function getTemplateCategories() {
 }
 
 /**
+ * Curated subset of templates surfaced directly on the thumbnail modal's
+ * main view, so users can pick a design without opening "Explore Ideas".
+ *
+ * Prioritizes templates tagged `high-ctr` and `popular`, then fills the
+ * remaining slots with the rest of the catalog (preserving the registry
+ * order). Returns at most `limit` entries (default 12).
+ *
+ * The `limit` value is clamped to a non-negative integer; invalid inputs
+ * (e.g. negative, `NaN`, `undefined` after floor) resolve to an empty array.
+ * @param {number} [limit=12]
+ * @returns {import('./thumbnailTemplateValidation.js').ThumbnailTemplate[]}
+ */
+export function getFeaturedTemplates(limit = 12) {
+  const n = Math.max(0, Math.floor(limit));
+  const all = getAllTemplates();
+  const featured = all.filter(
+    (t) => t.tags.includes('high-ctr') || t.tags.includes('popular')
+  );
+  const seen = new Set(featured.map((t) => t.id));
+  const rest = all.filter((t) => !seen.has(t.id));
+  return [...featured, ...rest].slice(0, n);
+}
+
+/**
  * Cached derived list of template categories.
  * Other modules can import this directly instead of calling getTemplateCategories().
  */
@@ -1173,6 +1511,7 @@ export default {
   getTemplatesByAspectRatio,
   searchTemplates,
   getTemplateCategories,
+  getFeaturedTemplates,
   validateRegistryTemplate,
   validateTemplateFieldValues,
 };

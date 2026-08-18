@@ -218,6 +218,9 @@ interface GenerateRequest {
   params?: Record<string, any>;
   generationType?: 'image' | 'video' | 'i2i' | 'i2v' | 'v2v' | 'poll' | 'upload' | 'audio' | 'avatar' | 'text' | 'train' | 'video-tool' | 'lipsync' | 'list';
   studioType?: string;
+  // Optional upstream HTTP method (e.g. 'PATCH' / 'DELETE') for account
+  // management endpoints. When present it overrides the GET/POST default.
+  apiMethod?: string;
 }
 
 function unwrapResponse(body: any): any {
@@ -556,16 +559,23 @@ Deno.serve(async (req: Request) => {
 
     console.log(`[muapi-proxy] Forwarding ${generationType ?? 'request'} to ${endpoint} (normalized: ${normalizedEndpoint})`);
 
-    const method = (generationType === 'poll' || generationType === 'list') ? 'GET' : 'POST';
+    const defaultMethod = (generationType === 'poll' || generationType === 'list') ? 'GET' : 'POST';
+    // Allow the caller to request a specific upstream verb (e.g. PATCH/DELETE
+    // for account management). Falls back to the GET/POST default otherwise.
+    const upstreamMethod =
+      (typeof body.apiMethod === 'string' && body.apiMethod.trim())
+        ? body.apiMethod.trim().toUpperCase()
+        : defaultMethod;
+
     const fetchOptions: RequestInit = {
-      method,
+      method: upstreamMethod,
       headers: {
         'x-api-key': effectiveApiKey,
         ...(openaiApiKey ? { 'openai-api-key': openaiApiKey } : {}),
       }
     };
 
-    if (method === 'POST') {
+    if (upstreamMethod !== 'GET') {
       fetchOptions.headers['content-type'] = 'application/json';
       fetchOptions.body = JSON.stringify(params ?? {});
     }

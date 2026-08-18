@@ -10,7 +10,7 @@ import { ThumbnailTemplateGrid } from './ThumbnailTemplateGrid.jsx';
 import { ThumbnailCategoryFilter } from './ThumbnailCategoryFilter.jsx';
 import { ThumbnailSearch } from './ThumbnailSearch.jsx';
 import { ThumbnailConfigurator } from './ThumbnailConfigurator.jsx';
-import { THUMBNAIL_TEMPLATES, getTemplateCategories } from '../../../lib/thumbnailTemplateRegistry.js';
+import { THUMBNAIL_TEMPLATES, getAllTemplates, getTemplateCategories } from '../../../lib/thumbnailTemplateRegistry.js';
 import { supabase } from '../../../lib/supabase.js';
 
 const EDGE_FUNCTION = 'ai-thumbnail-generator';
@@ -24,12 +24,15 @@ export class ThumbnailExploreIdeas {
     this.selectedTemplateId = null;
     this.activeCategory = 'all';
     this.searchQuery = '';
-    this._searchDebounce = null;
+    this._searchDebounceTimer = null;
     this.categories = getTemplateCategories();
     this.recommendedTemplates = [];
     this.popularTemplates = [];
     this._recommendationsLoaded = false;
     this._loadingRecommendations = false;
+    this._searchInstance = null;
+    this._categoryInstance = null;
+    this._configuratorInstance = null;
     this.loadRecommendations().catch(() => {});
   }
 
@@ -109,11 +112,11 @@ export class ThumbnailExploreIdeas {
   }
 
   getCuratedRecommended() {
-    return THUMBNAIL_TEMPLATES.filter((t) => t.tags.includes('high-ctr')).slice(0, 4);
+    return getAllTemplates().filter((t) => t.tags.includes('high-ctr')).slice(0, 4);
   }
 
   getCuratedPopular() {
-    return THUMBNAIL_TEMPLATES.filter((t) => t.tags.includes('popular')).slice(0, 4);
+    return getAllTemplates().filter((t) => t.tags.includes('popular')).slice(0, 4);
   }
 
   render() {
@@ -131,6 +134,25 @@ export class ThumbnailExploreIdeas {
     const popular = this.getPopular();
     const filtered = this.getFilteredTemplates();
 
+    const searchInstance = new ThumbnailSearch({
+      appColors: this.appColors,
+      onSearch: (query) => {
+        this.searchQuery = query;
+        this.rerender();
+      },
+    });
+    const categoryInstance = new ThumbnailCategoryFilter({
+      appColors: this.appColors,
+      categories: this.categories,
+      activeCategory: this.activeCategory,
+      onSelectCategory: (cat) => {
+        this.activeCategory = cat;
+        this.rerender();
+      },
+    });
+    this._searchInstance = searchInstance;
+    this._categoryInstance = categoryInstance;
+
     return `<div class="explore-ideas-container" style="--app-primary:${this.primary};--app-accent:${this.accent};--app-soft:${this.getSoft()};--app-soft-accent:${this.getSoftAccent()}" role="region" aria-label="Explore Ideas">
       <div class="explore-header">
         <div class="explore-title-row">
@@ -141,25 +163,11 @@ export class ThumbnailExploreIdeas {
       </div>
 
       <div class="explore-search-section">
-        ${new ThumbnailSearch({
-          appColors: this.appColors,
-          onSearch: (query) => {
-            this.searchQuery = query;
-            this.rerender();
-          },
-        }).render()}
+        ${searchInstance.render()}
       </div>
 
       <div class="explore-filter-section">
-        ${new ThumbnailCategoryFilter({
-          appColors: this.appColors,
-          categories: this.categories,
-          activeCategory: this.activeCategory,
-          onSelectCategory: (cat) => {
-            this.activeCategory = cat;
-            this.rerender();
-          },
-        }).render()}
+        ${categoryInstance.render()}
       </div>
 
       <div class="explore-sections">
@@ -167,7 +175,7 @@ export class ThumbnailExploreIdeas {
           <section class="explore-section" aria-labelledby="section-recommended">
             <h3 id="section-recommended" class="explore-section-title">Recommended for You</h3>
             <div class="explore-section-grid">
-              ${recommended.map((t) => new ThumbnailTemplateCard({ template: t, appColors: this.appColors, onSelect: () => this.selectTemplate(t.id) }).render()).join('')}
+               ${recommended.map((t) => new ThumbnailTemplateCard({ template: t, appColors: this.appColors }).render()).join('')}
             </div>
           </section>
         ` : ''}
@@ -176,7 +184,7 @@ export class ThumbnailExploreIdeas {
           <section class="explore-section" aria-labelledby="section-popular">
             <h3 id="section-popular" class="explore-section-title">Popular Ideas</h3>
             <div class="explore-section-grid">
-              ${popular.map((t) => new ThumbnailTemplateCard({ template: t, appColors: this.appColors, onSelect: () => this.selectTemplate(t.id) }).render()).join('')}
+               ${popular.map((t) => new ThumbnailTemplateCard({ template: t, appColors: this.appColors }).render()).join('')}
             </div>
           </section>
         ` : ''}
@@ -189,7 +197,6 @@ export class ThumbnailExploreIdeas {
             ${new ThumbnailTemplateGrid({
               templates: filtered,
               appColors: this.appColors,
-              onSelect: (id) => this.selectTemplate(id),
             }).render()}
           </section>
         ` : ''}
@@ -204,7 +211,7 @@ export class ThumbnailExploreIdeas {
   }
 
   getFilteredTemplates() {
-    let result = THUMBNAIL_TEMPLATES;
+    let result = getAllTemplates();
     if (this.searchQuery.trim()) {
       const q = this.searchQuery.trim().toLowerCase();
       result = result.filter(
@@ -228,7 +235,7 @@ export class ThumbnailExploreIdeas {
   }
 
   selectTemplate(id) {
-    const template = THUMBNAIL_TEMPLATES.find((t) => t.id === id);
+    const template = getAllTemplates().find((t) => t.id === id);
     if (this.onTemplateSelect && template) {
       this.onTemplateSelect(template);
       return;
@@ -238,7 +245,7 @@ export class ThumbnailExploreIdeas {
   }
 
   renderConfigurator(template) {
-    return new ThumbnailConfigurator({
+    this._configuratorInstance = new ThumbnailConfigurator({
       template,
       appColors: this.appColors,
       onBack: () => {
@@ -248,19 +255,25 @@ export class ThumbnailExploreIdeas {
       onGenerate: (config) => {
         this.onSelectTemplate({ template, config });
       },
-    }).render();
+    });
+    return this._configuratorInstance.render();
   }
 
   rerender() {
-    const container = document.querySelector('.explore-ideas-container');
-    if (container) {
-      container.outerHTML = this.render();
+    clearTimeout(this._searchDebounceTimer);
+    const current = document.querySelector('.explore-ideas-container')
+      || document.querySelector('.thumbnail-configurator');
+    if (!current) return;
+    current.outerHTML = this.render();
+    if (this.selectedTemplateId && this._configuratorInstance) {
+      const cfg = document.querySelector('.thumbnail-configurator');
+      if (cfg) this._configuratorInstance.attachListeners(cfg);
+    } else {
       this.attachListeners();
     }
   }
 
-  attachListeners() {
-    const container = document.querySelector('.explore-ideas-container');
+  attachListeners(container = document.querySelector('.explore-ideas-container')) {
     if (!container) return;
     container.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-action]');
@@ -268,8 +281,19 @@ export class ThumbnailExploreIdeas {
       const action = btn.getAttribute('data-action');
       if (action === 'back' && this.onBack) {
         this.onBack();
+      } else if (action === 'select-template') {
+        const id = btn.getAttribute('data-id');
+        if (id) this.selectTemplate(id);
+      } else if (action === 'select-category') {
+        const cat = btn.getAttribute('data-category');
+        if (cat) {
+          this.activeCategory = cat;
+          this.rerender();
+        }
       }
     });
+    // Wire the search input + clear button (debounced via the component).
+    if (this._searchInstance) this._searchInstance.attachListeners(container);
   }
 }
 

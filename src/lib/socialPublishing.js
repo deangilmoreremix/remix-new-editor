@@ -108,6 +108,26 @@ function disconnectAccount(accountId) {
   });
 }
 
+// Rename a connected account (PATCH social/ext/accounts/{id} with {account_name}).
+function renameAccount(accountId, accountName) {
+  return muapi.proxyJson(`social/ext/accounts/${accountId}`, {
+    params: { account_name: accountName },
+    generationType: 'social',
+    apiMethod: 'PATCH',
+  });
+}
+
+// Permanently remove a connected account (DELETE social/ext/accounts/{id}).
+// Unlike the reversible disconnect, this fully removes the account and revokes
+// access on the platform side.
+function permanentDisconnect(accountId) {
+  return muapi.proxyJson(`social/ext/accounts/${accountId}`, {
+    params: {},
+    generationType: 'social',
+    apiMethod: 'DELETE',
+  });
+}
+
 function publish(platform, payload, signal) {
   return muapi.proxyJson(
     `${platform}-publish`,
@@ -168,6 +188,8 @@ const socialPublishing = {
   getConnectUrl,
   listAccounts,
   disconnectAccount,
+  renameAccount,
+  permanentDisconnect,
   publish,
   getResult,
   publishAndPoll,

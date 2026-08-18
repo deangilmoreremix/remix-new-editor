@@ -13,12 +13,12 @@ import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCa
 import { mountPersonalizePopover, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { navigate } from '../lib/router.js';
 import { saveGeneratedAsset } from '../lib/assets/assetActions.js';
-import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
 import { VIDEO_QUICK_PROMPTS } from '../lib/promptUtils.js';
-import { PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
+import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
 import { categorizeGenerationError, createAbortAwareGenerate, startGenerationProgress, showInlineError, hideInlineError } from '../lib/studioHelpers.js';
 import { showToast, createLoadingOverlay, createProgressBar } from '../lib/loading.js';
 
@@ -602,8 +602,9 @@ export function VideoStudio() {
     thumbBtn.title = 'Generate a custom thumbnail';
     thumbBtn.className = 'gtm-boost-btn shrink-0';
     thumbBtn.addEventListener('click', () => {
-      const modal = new StudioThumbnailModal({
-        appTheme: 'video-studio',
+    const modal = new TemplateThumbnailModal({
+      appTheme: 'video-studio',
+      layout: 'panel',
         studioId: 'video-studio',
         studioName: 'Video Studio',
         aspectRatio: selectedAr || '16:9',
@@ -617,7 +618,7 @@ export function VideoStudio() {
           clearCustomThumbnailCache('video-studio');
         },
       });
-      mountStudioThumbnailModal(modal);
+      mountThumbnailModal(modal);
       modal.open();
     });
     controlsLeft.appendChild(thumbBtn);
@@ -981,142 +982,50 @@ export function VideoStudio() {
 
             const generationModels = [...t2vModels, ...i2vModels];
             const allCurrentModels = [...generationModels, ...v2vModels];
-            const availableProviders = getAvailableProviders(allCurrentModels);
 
-            dropdown.innerHTML = `
-                <div class="flex gap-4 h-full max-h-[70vh] min-h-[350px] overflow-hidden">
-                    <div data-provider-sidebar></div>
-                    <div class="flex-1 flex flex-col gap-2 min-w-0">
-                        ${renderSearchBar()}
-                        <div class="text-xs font-semibold text-secondary py-1 shrink-0 flex items-center justify-between">
-                            <span>Available models</span>
-                            <span data-provider-badge class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60 hidden"></span>
-                        </div>
-                        <div data-model-list class="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-1"></div>
-                    </div>
-                </div>
-            `;
-
-            const sidebarEl = dropdown.querySelector('[data-provider-sidebar]');
-            const modelListEl = dropdown.querySelector('[data-model-list]');
-            const providerBadge = dropdown.querySelector('[data-provider-badge]');
-            const searchInput = dropdown.querySelector('[data-provider-search]');
-
-            const refresh = () => {
-                sidebarEl.innerHTML = renderProviderSidebar(availableProviders, selectedProvider, (provider) => {
-                    selectedProvider = provider;
-                    refresh();
-                });
-                const query = searchInput ? searchInput.value : '';
-                const filteredMain = filterModels(generationModels, query, selectedProvider);
-                const filteredV2V = filterModels(v2vModels, query, selectedProvider);
-                const showProviderName = selectedProvider === 'all';
-
-                let html = `<div class="flex flex-col gap-1.5 overflow-y-auto custom-scrollbar pr-1 pb-2 flex-1">`;
-                if (filteredMain.length === 0 && filteredV2V.length === 0) {
-                    html += `<div class="text-xs text-white/30 text-center py-6">No models found</div>`;
-                } else {
-                    for (const m of filteredMain) {
-                        const isSelected = m.id === selectedModel;
-                        const itemClasses = isSelected ? 'bg-white/5 border-white/5' : 'border border-transparent hover:border-white/5';
-                        const logoUrl = PROVIDER_LOGOS[m.provider];
-                        const hasLogo = Boolean(logoUrl);
-                        const iconHtml = hasLogo
-                            ? `<div class="w-8 h-8 rounded-full border border-white/5 overflow-hidden shrink-0 flex items-center justify-center bg-white/[0.02]"><img src="${logoUrl}" alt="${m.provider_name || ''}" class="w-full h-full object-contain p-1 ${invertLogos.includes(m.provider) ? 'invert' : ''}" /></div>`
-                            : `<div class="w-8 h-8 rounded-full border border-white/5 flex items-center justify-center font-bold text-xs shadow-inner uppercase ${(m.family === 'kontext' ? 'bg-blue-500/10 text-blue-400 border-blue-500/10' : m.family === 'effects' ? 'bg-purple-500/10 text-purple-400 border-purple-500/10' : 'bg-primary/10 text-primary border-primary/10')}">${(m.name || m.id).charAt(0)}</div>`;
-                        const providerLabel = showProviderName && m.provider_name ? `<span class="text-[9px] text-white/40">${m.provider_name}</span>` : '';
-                        const checkSvg = isSelected ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d9ff00" stroke-width="4"><polyline points="20 6 9 17 4 12" /></svg>' : '';
-
-                        html += `<div data-model-id="${m.id}" class="flex items-center justify-between p-3 hover:bg-white/5 rounded-2xl cursor-pointer transition-all ${itemClasses}">`;
-                        html += `<div class="flex items-center gap-3">${iconHtml}<div class="flex flex-col gap-0.5 min-w-0"><span class="text-xs font-bold text-white tracking-tight truncate">${m.name}</span>${providerLabel}</div></div>`;
-                        html += checkSvg;
-                        html += `</div>`;
-                    }
-
-                    if (filteredV2V.length > 0) {
-                        html += `<div class="text-[10px] font-bold text-orange-400/70 px-3 py-2 mt-1 border-t border-white/5">Video Tools</div>`;
-                        for (const m of filteredV2V) {
-                            const isSelected = m.id === selectedModel;
-                            const itemClasses = isSelected ? 'bg-white/5 border-white/5' : 'border border-transparent hover:border-white/5';
-                            const logoUrl = PROVIDER_LOGOS[m.provider];
-                            const hasLogo = Boolean(logoUrl);
-                            const iconHtml = hasLogo
-                                ? `<div class="w-8 h-8 rounded-full border border-white/5 overflow-hidden shrink-0 flex items-center justify-center bg-white/[0.02]"><img src="${logoUrl}" alt="${m.provider_name || ''}" class="w-full h-full object-contain p-1 ${invertLogos.includes(m.provider) ? 'invert' : ''}" /></div>`
-                                : `<div class="w-8 h-8 rounded-full border border-white/5 flex items-center justify-center font-bold text-xs shadow-inner uppercase bg-primary/10 text-primary border-primary/10">${(m.name || m.id).charAt(0)}</div>`;
-                            const checkSvg = isSelected ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d9ff00" stroke-width="4"><polyline points="20 6 9 17 4 12" /></svg>' : '';
-                            const helperText = m.imageField ? 'Upload a video and image' : 'Upload a video to use';
-                            const providerLabel = showProviderName && m.provider_name ? `<span class="text-[9px] text-white/40">${m.provider_name}</span>` : '';
-
-                            html += `<div data-model-id="${m.id}" data-is-v2v="true" class="flex items-center justify-between p-3 hover:bg-white/5 rounded-2xl cursor-pointer transition-all ${itemClasses}">`;
-                            html += `<div class="flex items-center gap-3">${iconHtml}<div class="flex flex-col gap-0.5 min-w-0"><span class="text-xs font-bold text-white tracking-tight truncate">${m.name}</span><span class="text-[9px] text-orange-400/70">${helperText}</span>${providerLabel}</div></div>`;
-                            html += checkSvg;
-                            html += `</div>`;
-                        }
-                    }
-                }
-                html += `</div>`;
-                modelListEl.innerHTML = html;
-
-                if (selectedProvider !== 'all') {
-                    const pName = availableProviders.find(p => p.id === selectedProvider)?.name || selectedProvider;
-                    providerBadge.textContent = pName;
-                    providerBadge.classList.remove('hidden');
-                } else {
-                    providerBadge.classList.add('hidden');
-                }
-            };
-
-            refresh();
-
-            sidebarEl.addEventListener('click', (e) => {
-                const btn = e.target.closest('button[data-provider]');
-                if (!btn) return;
-                e.stopPropagation();
-                const provider = btn.getAttribute('data-provider');
-                if (provider) {
-                    selectedProvider = provider;
-                    refresh();
-                }
-            });
-
-            searchInput.onclick = (e) => e.stopPropagation();
-            searchInput.oninput = () => refresh();
-
-            modelListEl.addEventListener('click', (e) => {
-                const item = e.target.closest('[data-model-id]');
-                if (!item) return;
-                e.stopPropagation();
-                const modelId = item.getAttribute('data-model-id');
-                const isV2V = item.getAttribute('data-is-v2v') === 'true';
-                const model = allCurrentModels.find(m => m.id === modelId);
+            mountModelSelector(dropdown, {
+              sections: [
+                { models: generationModels },
+                {
+                  models: v2vModels,
+                  label: 'Video Tools',
+                  rowOptions: (m) => ({ sublabel: m.imageField ? 'Upload a video and image' : 'Upload a video to use' }),
+                },
+              ],
+              selectedModelId: selectedModel,
+              showProviderName: true,
+              onSelectModel: (modelId) => {
+                const isV2V = v2vModels.some((m) => m.id === modelId);
+                const model = allCurrentModels.find((m) => m.id === modelId);
                 if (!model) return;
 
                 if (isV2V) {
-                    v2vMode = true;
-                    imageMode = false;
-                    picker.reset();
-                    uploadedImageUrl = null;
-                    selectedModel = model.id;
-                    selectedModelName = model.name;
-                    document.getElementById('v-model-btn-label').textContent = selectedModelName;
-                    updateControlsForModel(selectedModel);
-                    textarea.placeholder = 'Upload a video using the 🎥 button, then click Generate';
-                    textarea.disabled = true;
+                  v2vMode = true;
+                  imageMode = false;
+                  picker.reset();
+                  uploadedImageUrl = null;
+                  selectedModel = model.id;
+                  selectedModelName = model.name;
+                  document.getElementById('v-model-btn-label').textContent = selectedModelName;
+                  updateControlsForModel(selectedModel);
+                  textarea.placeholder = 'Upload a video using the 🎥 button, then click Generate';
+                  textarea.disabled = true;
                 } else {
-                    if (v2vMode) {
-                        v2vMode = false;
-                        uploadedVideoUrl = null;
-                        showVideoIcon();
-                        textarea.disabled = false;
-                    }
-                    selectedModel = model.id;
-                    selectedModelName = model.name;
-                    document.getElementById('v-model-btn-label').textContent = selectedModelName;
-                    updateControlsForModel(selectedModel);
-                    textarea.placeholder = imageMode ? 'Describe the motion or effect (optional)' : 'Describe the video you want to create';
+                  if (v2vMode) {
+                    v2vMode = false;
+                    uploadedVideoUrl = null;
+                    showVideoIcon();
+                    textarea.disabled = false;
+                  }
+                  selectedModel = model.id;
+                  selectedModelName = model.name;
+                  document.getElementById('v-model-btn-label').textContent = selectedModelName;
+                  updateControlsForModel(selectedModel);
+                  textarea.placeholder = imageMode ? 'Describe the motion or effect (optional)' : 'Describe the video you want to create';
                 }
                 updateModelBtnIcon();
                 closeDropdown();
+              },
             });
 
         } else if (type === 'ar') {

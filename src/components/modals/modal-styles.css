@@ -5982,6 +5982,27 @@
   letter-spacing: 0.05em;
 }
 
+/* Main-view design picker (visible grid on the thumbnail modal) */
+.thumb-design-picker {
+  margin-bottom: 16px;
+}
+
+.thumb-design-picker-head {
+  margin-bottom: 10px;
+}
+
+.thumb-section-hint {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.thumb-explore-all {
+  font-weight: 600;
+}
+
+
 .explore-section-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

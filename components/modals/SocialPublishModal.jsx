@@ -6,6 +6,8 @@ import socialPublishing, {
   getExternalUserId,
 } from '../../lib/socialPublishing';
 
+import { enhanceSocialPostText, TONALITIES } from '../../lib/socialPostEnhancer';
+
 // ---------------------------------------------------------------------------
 // SocialPublishModal
 //
@@ -102,6 +104,57 @@ function statusLabel(status) {
   }
 }
 
+const enhanceBtnStyle = (active) => ({
+  flexShrink: 0,
+  width: 36,
+  height: 36,
+  borderRadius: 9,
+  border: '1px solid rgba(255,255,255,0.15)',
+  background: active ? 'rgba(109,94,252,0.25)' : 'rgba(255,255,255,0.04)',
+  color: '#cbbcff',
+  fontSize: 16,
+  cursor: 'pointer',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+});
+
+// Small "Enhance writing" (✨) button shown next to editable post fields.
+// Calls OpenAI via enhanceSocialPostText. `active` shows a spinner.
+function EnhanceButton({ active, disabled, onClick }) {
+  const isDisabled = disabled || active;
+  return (
+    <button
+      type="button"
+      aria-label="Enhance writing with AI"
+      title="Enhance writing with AI"
+      disabled={isDisabled}
+      onClick={onClick}
+      style={{
+        ...enhanceBtnStyle(active),
+        opacity: isDisabled && !active ? 0.4 : 1,
+        cursor: isDisabled && !active ? 'not-allowed' : 'pointer',
+      }}
+    >
+      {active ? (
+        <span
+          style={{
+            display: 'inline-block',
+            width: 14,
+            height: 14,
+            border: '2px solid rgba(255,255,255,0.3)',
+            borderTopColor: '#fff',
+            borderRadius: 99,
+            animation: 'spin 0.8s linear infinite',
+          }}
+        />
+      ) : (
+        '✨'
+      )}
+    </button>
+  );
+}
+
 const SocialPublishModal = ({ options = {}, handleClose }) => {
   const opts = options || {};
   const initialType = opts.mediaType || inferMediaType(opts.mediaUrl);
@@ -121,6 +174,11 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
   const [errorMsg, setErrorMsg] = useState(null);
   const [resultUrl, setResultUrl] = useState('');
 
+  const [enhancing, setEnhancing] = useState(null); // field currently being AI-enhanced
+  const [renamingId, setRenamingId] = useState(null); // account id being renamed
+  const [renameValue, setRenameValue] = useState('');
+  const [toneId, setToneId] = useState(''); // selected tonality id ('' = none)
+
   // form fields
   const [form, setForm] = useState({
     title: opts.title || '',
@@ -128,6 +186,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
     tags: Array.isArray(opts.tags) ? opts.tags.join(', ') : (opts.tags || ''),
     privacy: 'public',
     category_id: '22',
+    made_for_kids: false,
     privacy_level: 'PUBLIC_TO_EVERYONE',
     disable_comment: false,
     disable_duet: false,
@@ -213,6 +272,62 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
     }
   }, [selectedAccountId, refreshAccounts]);
 
+  // --- Account management: rename + permanent removal -------------------
+  const startRename = (acc) => {
+    setRenamingId(String(acc.id));
+    setRenameValue(acc.account_name || '');
+  };
+
+  const cancelRename = () => {
+    setRenamingId(null);
+    setRenameValue('');
+  };
+
+  const saveRename = async (accountId) => {
+    try {
+      await socialPublishing.renameAccount(Number(accountId), renameValue.trim());
+      await refreshAccounts();
+    } catch (e) {
+      setErrorMsg(e.message || 'Could not rename account.');
+    }
+    setRenamingId(null);
+  };
+
+  const handlePermanentRemove = async (accountId) => {
+    try {
+      await socialPublishing.permanentDisconnect(Number(accountId));
+      if (String(selectedAccountId) === String(accountId)) setSelectedAccountId(null);
+      await refreshAccounts();
+    } catch (e) {
+      setErrorMsg(e.message || 'Could not remove account.');
+    }
+  };
+
+  // --- AI enhance writing (OpenAI) --------------------------------------
+  const handleEnhance = async (field) => {
+    if (enhancing) return;
+    const value = (form[field] || '').trim();
+    if (!value) {
+      setErrorMsg('Write something first, then enhance it.');
+      return;
+    }
+    setEnhancing(field);
+    setErrorMsg(null);
+    try {
+      const improved = await enhanceSocialPostText({
+        text: value,
+        field,
+        platform: platformOfSelected || 'social',
+        tone: toneId ? TONALITIES.find((t) => t.id === toneId) : null,
+      });
+      updateForm(field, improved);
+    } catch (e) {
+      setErrorMsg(e.message || 'Could not enhance text.');
+    } finally {
+      setEnhancing(null);
+    }
+  };
+
   const selectedAccount = useMemo(
     () => accounts.find((a) => String(a.id) === String(selectedAccountId)) || null,
     [accounts, selectedAccountId],
@@ -231,6 +346,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
         tags,
         privacy: form.privacy,
         category_id: String(form.category_id),
+        made_for_kids: !!form.made_for_kids,
       };
     }
     if (platform === 'tiktok') {
@@ -381,6 +497,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
             const p = PLATFORM_BY_ID[acc.platform_name] || { label: acc.platform_name, color: '#888' };
             const compatible = p.mediaKinds?.includes(mediaType);
             const checked = String(acc.id) === String(selectedAccountId);
+            const isRenaming = renamingId === String(acc.id);
             return (
               <div
                 key={acc.id}
@@ -396,26 +513,61 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
                   type="radio"
                   name="account"
                   checked={checked}
-                  disabled={!compatible}
+                  disabled={!compatible || isRenaming}
                   onChange={() => setSelectedAccountId(String(acc.id))}
                 />
                 <span style={{
                   width: 10, height: 10, borderRadius: 99, background: p.color, display: 'inline-block',
                 }} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600 }}>{acc.account_name || p.label}</div>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>
-                    {p.label}{acc.platform_user_id ? ` · ${acc.platform_user_id}` : ''}
-                    {!compatible ? ` · not supported for ${mediaType}` : ''}
-                  </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  {isRenaming ? (
+                    <input
+                      style={{ ...inputStyle, fontSize: 13 }}
+                      autoFocus
+                      value={renameValue}
+                      onChange={(e) => setRenameValue(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') saveRename(acc.id); if (e.key === 'Escape') cancelRename(); }}
+                    />
+                  ) : (
+                    <>
+                      <div style={{ fontSize: 14, fontWeight: 600 }}>{acc.account_name || p.label}</div>
+                      <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>
+                        {p.label}{acc.platform_user_id ? ` · ${acc.platform_user_id}` : ''}
+                        {!compatible ? ` · not supported for ${mediaType}` : ''}
+                      </div>
+                    </>
+                  )}
                 </div>
-                <button
-                  type="button"
-                  style={{ ...ghostBtn, padding: '5px 10px', fontSize: 12, color: '#ff9a9a', borderColor: 'rgba(255,120,120,0.3)' }}
-                  onClick={() => handleDisconnect(acc.id)}
-                >
-                  Disconnect
-                </button>
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
+                  {isRenaming ? (
+                    <>
+                      <button type="button" style={{ ...ghostBtn, padding: '5px 10px', fontSize: 12 }} onClick={() => saveRename(acc.id)}>Save</button>
+                      <button type="button" style={{ ...ghostBtn, padding: '5px 10px', fontSize: 12 }} onClick={cancelRename}>Cancel</button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        aria-label="Rename account"
+                        title="Rename"
+                        style={{ ...ghostBtn, padding: '5px 9px', fontSize: 13 }}
+                        onClick={() => startRename(acc)}
+                      >✎</button>
+                      <button
+                        type="button"
+                        style={{ ...ghostBtn, padding: '5px 10px', fontSize: 12, color: '#ff9a9a', borderColor: 'rgba(255,120,120,0.3)' }}
+                        onClick={() => handleDisconnect(acc.id)}
+                      >Disconnect</button>
+                      <button
+                        type="button"
+                        aria-label="Remove account permanently"
+                        title="Remove permanently"
+                        style={{ ...ghostBtn, padding: '5px 9px', fontSize: 13, color: '#ff9a9a', borderColor: 'rgba(255,120,120,0.3)' }}
+                        onClick={() => handlePermanentRemove(acc.id)}
+                      >🗑</button>
+                    </>
+                  )}
+                </div>
               </div>
             );
           })}
@@ -454,24 +606,47 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
         <div style={sectionStyle}>
           <div style={labelStyle}>Post details · {PLATFORM_BY_ID[platformOfSelected]?.label || platformOfSelected}</div>
 
+          <div style={{ display: 'flex', gap: 10, marginTop: 10, alignItems: 'center' }}>
+            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', whiteSpace: 'nowrap' }}>Tone:</span>
+            <select
+              style={{ ...inputStyle, flex: 1 }}
+              value={toneId}
+              onChange={(e) => setToneId(e.target.value)}
+            >
+              <option value="">Default (no specific tone)</option>
+              {TONALITIES.map((t) => (
+                <option key={t.id} value={t.id}>{t.label}{t.premium ? ' · Premium' : ''}</option>
+              ))}
+            </select>
+          </div>
+          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 4 }}>
+            Applied whenever you click ✨ Enhance on any field below.
+          </div>
+
           {(platformOfSelected === 'youtube' || platformOfSelected === 'tiktok') && (
-            <input
-              style={inputStyle}
-              placeholder={platformOfSelected === 'youtube' ? 'Video title (max 100)' : 'Caption / title (max 150)'}
-              maxLength={platformOfSelected === 'youtube' ? 100 : 150}
-              value={form.title}
-              onChange={(e) => updateForm('title', e.target.value)}
-            />
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <input
+                style={{ ...inputStyle, flex: 1 }}
+                placeholder={platformOfSelected === 'youtube' ? 'Video title (max 100)' : 'Caption / title (max 150)'}
+                maxLength={platformOfSelected === 'youtube' ? 100 : 150}
+                value={form.title}
+                onChange={(e) => updateForm('title', e.target.value)}
+              />
+              <EnhanceButton active={enhancing === 'title'} disabled={!form.title.trim()} onClick={() => handleEnhance('title')} />
+            </div>
           )}
 
           {platformOfSelected === 'youtube' && (
             <>
-              <textarea
-                style={{ ...inputStyle, marginTop: 10, minHeight: 64, resize: 'vertical' }}
-                placeholder="Description"
-                value={form.description}
-                onChange={(e) => updateForm('description', e.target.value)}
-              />
+              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginTop: 10 }}>
+                <textarea
+                  style={{ ...inputStyle, flex: 1, minHeight: 64, resize: 'vertical' }}
+                  placeholder="Description"
+                  value={form.description}
+                  onChange={(e) => updateForm('description', e.target.value)}
+                />
+                <EnhanceButton active={enhancing === 'description'} disabled={!form.description.trim()} onClick={() => handleEnhance('description')} />
+              </div>
               <input
                 style={{ ...inputStyle, marginTop: 10 }}
                 placeholder="Tags (comma separated)"
@@ -488,6 +663,10 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
                   {YOUTUBE_CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
                 </select>
               </div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, marginTop: 10 }}>
+                <input type="checkbox" checked={!!form.made_for_kids} onChange={(e) => updateForm('made_for_kids', e.target.checked)} />
+                Made for kids (COPPA)
+              </label>
             </>
           )}
 
@@ -514,12 +693,15 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
 
           {platformOfSelected === 'instagram' && (
             <>
-              <textarea
-                style={{ ...inputStyle, marginTop: 4, minHeight: 56, resize: 'vertical' }}
-                placeholder="Caption (supports #hashtags)"
-                value={form.caption}
-                onChange={(e) => updateForm('caption', e.target.value)}
-              />
+              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginTop: 4 }}>
+                <textarea
+                  style={{ ...inputStyle, flex: 1, minHeight: 56, resize: 'vertical' }}
+                  placeholder="Caption (supports #hashtags)"
+                  value={form.caption}
+                  onChange={(e) => updateForm('caption', e.target.value)}
+                />
+                <EnhanceButton active={enhancing === 'caption'} disabled={!form.caption.trim()} onClick={() => handleEnhance('caption')} />
+              </div>
               <div style={{ display: 'flex', gap: 10, marginTop: 10, flexWrap: 'wrap' }}>
                 <select style={{ ...inputStyle, flex: 1 }} value={form.media_type} onChange={(e) => updateForm('media_type', e.target.value)}>
                   <option value="VIDEO">Video (Reel)</option>

@@ -11,8 +11,8 @@ export class ThumbnailTemplateGrid {
   constructor(options = {}) {
     this.templates = options.templates || [];
     this.appColors = options.appColors || { primary: '#d9ff00', accent: '#c4e600' };
-    this.onSelect = options.onSelect || (() => {});
     this.selectedId = options.selectedId || null;
+    this.action = options.action || 'select-template';
   }
 
   get primary() { return this.appColors.primary; }
@@ -37,7 +37,7 @@ export class ThumbnailTemplateGrid {
             template: t,
             appColors: this.appColors,
             selected: isSelected,
-            onSelect: () => this.onSelect(t.id),
+            action: this.action,
           }).render();
         }).join('')}
       </div>

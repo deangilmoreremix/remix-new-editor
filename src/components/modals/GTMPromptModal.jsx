@@ -393,62 +393,6 @@ export class GTMPromptModal extends BaseModal {
 
   /**
    * Render the retrieved real GTM skill examples as clickable cards.
-   * Returns "" when there are no examples (keeps the UI clean).
-   */
-  renderSkillExamples() {
-    const examples = this.skillExamples || [];
-    if (examples.length === 0) return '';
-
-    const cards = examples.map((ex) => {
-      const difficulty = ex.difficulty ? `<span class="gtm-example-badge gtm-example-${ex.difficulty}">${ex.difficulty}</span>` : '';
-      const desc = ex.description ? `<p class="gtm-example-desc">${this.escapeHtml(ex.description)}</p>` : '';
-      return `
-        <div class="gtm-example-card" data-id="${this.escapeHtml(ex.id || '')}">
-          <div class="gtm-example-head">
-            <span class="gtm-example-title">${this.escapeHtml(ex.title || ex.id || 'Example')}</span>
-            ${difficulty}
-          </div>
-          ${desc}
-          <button type="button" class="gtm-action gtm-example-use" data-action="use-example" data-id="${this.escapeHtml(ex.id || '')}">Use as inspiration</button>
-        </div>
-      `;
-    }).join('');
-
-    return `
-      <div class="gtm-examples">
-        <div class="gtm-section-label">📚 Real GTM skill examples for your selection</div>
-        <div class="gtm-example-grid">${cards}</div>
-      </div>
-    `;
-  }
-
-  /**
-   * Seed the base prompt with a clicked example's full prompt text.
-   * If the box already has text, append so the user doesn't lose work.
-   */
-  handleUseExample(id) {
-    const ex = (this.skillExamples || []).find((e) => (e.id || '') === id);
-    if (!ex || !ex.prompt) return;
-    const seed = ex.prompt.trim();
-    if (this.basePrompt.trim()) {
-      this.basePrompt = `${this.basePrompt.trim()}\n\n${seed}`;
-    } else {
-      this.basePrompt = seed;
-    }
-    this.refreshBody();
-  }
-
-  escapeHtml(str) {
-    if (typeof str !== 'string') return '';
-    return str
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
-
-  /**
-   * Render the retrieved real GTM skill examples as clickable cards.
    * Returns "" when no role/industry/methodology is selected (keeps the
    * UI clean — the panel is meaningless against universal fallbacks) or
    * when the example list is empty.
@@ -756,39 +700,6 @@ export class GTMPromptModal extends BaseModal {
         this.missingOpenAIKey = true;
       }
       console.warn('[GTM] OpenAI Responses API (user key) unavailable, trying edge function:', error.message);
-    }
-
-    // Secondary path: server edge function (server-held key).
-    try {
-      if (!isSupabaseConfigured()) throw new Error('Supabase not configured');
-
-      const timeout = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Request timed out')), 12000)
-      );
-      const request = supabase.functions.invoke('ai-cinematic-prompt-generator', {
-        body: { ...this._gtmParams(), action: 'generate', studioType: this.appTheme }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data && data.prompt) {
-          this.generatedPrompt = data.prompt;
-          aiSucceeded = true;
-        }
-      }
-    } catch (backendErr) {
-      console.warn('[GTM] Backend /api/gtm-boost/generate failed:', backendErr.message);
-    }
-
-    try {
-      const { data, error: fnError } = await Promise.race([request, timeout]);
-      if (fnError) throw new Error(fnError.message || 'Generation failed');
-      if (!data || !data.prompt) throw new Error('Empty response');
-      this._setResult({ prompt: data.prompt, responseId: data.response_id, usage: data.usage });
-      this.isGenerating = false;
-      this.refreshBody();
-      return;
-    } catch (fnError) {
-      console.warn('[GTM] Edge function unavailable, using local library:', fnError.message);
     }
 
     // Tertiary path: local template library (always works offline).

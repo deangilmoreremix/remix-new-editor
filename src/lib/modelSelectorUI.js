@@ -126,9 +126,10 @@ export function getProviderStyle(provider) {
       return { text: 'CR', bg: 'bg-pink-500/10 text-pink-400 border-pink-500/25' };
     case 'openrouter':
       return { text: 'OR', bg: 'bg-gray-500/10 text-gray-400 border-gray-500/25' };
-    default:
+    default: {
       const text = (provider || 'AI').substring(0, 2).toUpperCase();
       return { text, bg: 'bg-primary/10 text-primary border-primary/25' };
+    }
   }
 }
 
@@ -217,6 +218,46 @@ export function getModelLogoHtml(model, sizeClasses = 'w-4 h-4') {
   return `<div class="${sizeClasses} bg-primary rounded-md flex items-center justify-center shadow-lg shadow-primary/20 shrink-0"><span class="text-[9px] font-black text-black">${style.text}</span></div>`;
 }
 
+// Render a single model row. Shared by the default list and any custom
+// sections (e.g. Video Studio's "Video Tools" group) so every studio's
+// picker renders identical rows with a consistent cyan checkmark.
+export function renderModelRow(model, opts = {}) {
+  const {
+    isSelected = false,
+    showProviderName = false,
+    sublabel = '',
+    checkColor = '#22d3ee',
+  } = opts;
+
+  const itemClasses = isSelected
+    ? 'bg-white/5 border-white/5'
+    : 'border border-transparent hover:border-white/5';
+
+  const logoUrl = PROVIDER_LOGOS[model.provider];
+  const hasLogo = Boolean(logoUrl);
+  const iconHtml = hasLogo
+    ? `<div class="w-8 h-8 rounded-full border border-white/5 overflow-hidden shrink-0 flex items-center justify-center bg-white/[0.02]"><img src="${logoUrl}" alt="${model.provider_name || ''}" class="w-full h-full object-contain p-1 ${invertLogos.includes(model.provider) ? 'invert' : ''}" /></div>`
+    : `<div class="w-8 h-8 rounded-full border border-white/5 flex items-center justify-center font-bold text-xs shadow-inner uppercase ${(model.family === 'kontext' ? 'bg-blue-500/10 text-blue-400 border-blue-500/10' : model.family === 'effects' ? 'bg-purple-500/10 text-purple-400 border-purple-500/10' : 'bg-primary/10 text-primary border-primary/10')}">${(model.name || model.id).charAt(0)}</div>`;
+
+  const providerLabel = showProviderName && model.provider_name
+    ? `<span class="text-[9px] text-white/40">${model.provider_name}</span>`
+    : '';
+
+  const sublabelHtml = sublabel
+    ? `<span class="text-[9px] text-orange-400/70">${sublabel}</span>`
+    : '';
+
+  const checkSvg = isSelected
+    ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${checkColor}" stroke-width="4"><polyline points="20 6 9 17 4 12" /></svg>`
+    : '';
+
+  let html = `<div data-model-id="${model.id}" class="flex items-center justify-between p-3 hover:bg-white/5 rounded-2xl cursor-pointer transition-all ${itemClasses}">`;
+  html += `<div class="flex items-center gap-3">${iconHtml}<div class="flex flex-col gap-0.5 min-w-0"><span class="text-xs font-bold text-white tracking-tight truncate">${model.name}</span>${providerLabel}${sublabelHtml}</div></div>`;
+  html += checkSvg;
+  html += `</div>`;
+  return html;
+}
+
 export function renderModelList(models, selectedModelId, showProviderName, onSelectModel) {
   if (models.length === 0) {
     return `<div class="text-xs text-white/30 text-center py-6">No models found</div>`;
@@ -224,30 +265,8 @@ export function renderModelList(models, selectedModelId, showProviderName, onSel
 
   let html = `<div class="flex flex-col gap-1.5 pb-2">`;
   for (const m of models) {
-    const isSelected = m.id === selectedModelId;
-    const itemClasses = isSelected
-      ? 'bg-white/5 border-white/5'
-      : 'border border-transparent hover:border-white/5';
-    const logoUrl = PROVIDER_LOGOS[m.provider];
-    const hasLogo = Boolean(logoUrl);
-    const iconHtml = hasLogo
-      ? `<div class="w-8 h-8 rounded-full border border-white/5 overflow-hidden shrink-0 flex items-center justify-center bg-white/[0.02]"><img src="${logoUrl}" alt="${m.provider_name || ''}" class="w-full h-full object-contain p-1 ${invertLogos.includes(m.provider) ? 'invert' : ''}" /></div>`
-      : `<div class="w-8 h-8 rounded-full border border-white/5 flex items-center justify-center font-bold text-xs shadow-inner uppercase ${(m.family === 'kontext' ? 'bg-blue-500/10 text-blue-400 border-blue-500/10' : m.family === 'effects' ? 'bg-purple-500/10 text-purple-400 border-purple-500/10' : 'bg-primary/10 text-primary border-primary/10')}">${(m.name || m.id).charAt(0)}</div>`;
-
-    const providerLabel = showProviderName && m.provider_name
-      ? `<span class="text-[9px] text-white/40">${m.provider_name}</span>`
-      : '';
-
-    const checkSvg = isSelected
-      ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="4"><polyline points="20 6 9 17 4 12" /></svg>`
-      : '';
-
-    html += `<div data-model-id="${m.id}" class="flex items-center justify-between p-3 hover:bg-white/5 rounded-2xl cursor-pointer transition-all ${itemClasses}">`;
-    html += `<div class="flex items-center gap-3">${iconHtml}<div class="flex flex-col gap-0.5 min-w-0"><span class="text-xs font-bold text-white tracking-tight truncate">${m.name}</span>${providerLabel}</div></div>`;
-    html += checkSvg;
-    html += `</div>`;
+    html += renderModelRow(m, { isSelected: m.id === selectedModelId, showProviderName });
   }
-
   html += `</div>`;
   return html;
 }
@@ -262,25 +281,55 @@ export const MODEL_SELECTOR_PANEL_CLASS =
 // Build the split-pane panel and wire its interactions. Returns an object with
 // the `root` element and a `refresh()` method so callers can re-render without
 // rebuilding the DOM (preserves search focus and scroll position).
+//
+// Options:
+//   models           - flat model list (used when `sections` is omitted)
+//   sections         - optional [{ models, label?, rowOptions?(m) }] for grouped
+//                      lists (e.g. generation models + a "Video Tools" group)
+//   selectedModelId  - id of the currently selected model
+//   selectedProvider - initial provider filter ('all' or a provider id)
+//   search           - initial search query
+//   showProviderName - always show the provider name under each model
+//   headerLabel      - text shown above the list
+//   checkColor       - checkmark color (default cyan #22d3ee)
+//   autoFocus        - focus the search input on open
+//   emptyText        - message shown when no models match
+//   loadingMessage   - message shown while `models` is empty and still loading
+//   onSelectModel    - (id) => void
+//   onSelectProvider - (provider) => void
+//   onSearch         - (query) => void
 export function buildModelSelectorPanel(options = {}) {
   const {
     models = [],
+    sections = null,
     selectedModelId,
     selectedProvider = 'all',
     search = '',
     showProviderName = false,
+    headerLabel = 'Available models',
+    checkColor = '#22d3ee',
+    autoFocus = false,
+    emptyText = 'No models found',
+    loadingMessage = null,
     onSelectModel,
     onSelectProvider,
     onSearch,
   } = options;
 
+  const allModels = sections ? sections.flatMap((s) => s.models) : models;
+
   const st = {
     models,
+    sections,
     selectedModelId,
     selectedProvider,
     search,
     showProviderName,
-    availableProviders: getAvailableProviders(models),
+    headerLabel,
+    checkColor,
+    emptyText,
+    loadingMessage,
+    availableProviders: getAvailableProviders(allModels),
     onSelectModel,
     onSelectProvider,
     onSearch,
@@ -304,7 +353,7 @@ export function buildModelSelectorPanel(options = {}) {
   header.className =
     'text-xs font-semibold text-secondary py-1 shrink-0 flex items-center justify-between';
   header.innerHTML =
-    '<span>Available models</span><span data-provider-badge class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60 hidden"></span>';
+    `<span>${headerLabel}</span><span data-provider-badge class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60 hidden"></span>`;
   mainEl.appendChild(header);
   mainEl.appendChild(listEl);
 
@@ -314,14 +363,39 @@ export function buildModelSelectorPanel(options = {}) {
   const badgeEl = header.querySelector('[data-provider-badge]');
   const searchInput = mainEl.querySelector('[data-provider-search]');
 
+  const renderListHtml = () => {
+    const showName = st.showProviderName || st.selectedProvider === 'all';
+    const groups = st.sections || [{ models: st.models }];
+    let html = '<div class="flex flex-col gap-1.5 pb-2">';
+    let any = false;
+    for (const g of groups) {
+      const filtered = filterModels(g.models, st.search, st.selectedProvider);
+      if (filtered.length === 0) continue;
+      any = true;
+      if (g.label) {
+        html += `<div class="text-[10px] font-bold text-orange-400/70 px-3 py-2 mt-1 border-t border-white/5">${g.label}</div>`;
+      }
+      for (const m of filtered) {
+        const sublabel = g.rowOptions ? g.rowOptions(m).sublabel : '';
+        html += renderModelRow(m, {
+          isSelected: m.id === st.selectedModelId,
+          showProviderName: showName,
+          sublabel,
+          checkColor: st.checkColor,
+        });
+      }
+    }
+    html += '</div>';
+    if (!any) {
+      const msg = st.models.length === 0 && st.loadingMessage ? st.loadingMessage : st.emptyText;
+      return `<div class="text-xs text-white/30 text-center py-6">${msg}</div>`;
+    }
+    return html;
+  };
+
   st.refresh = () => {
     sidebarEl.innerHTML = renderProviderSidebar(st.availableProviders, st.selectedProvider, () => {});
-    const filtered = filterModels(st.models, st.search, st.selectedProvider);
-    const showName = st.showProviderName || st.selectedProvider === 'all';
-    listEl.innerHTML = renderModelList(filtered, st.selectedModelId, showName, (id) => {
-      st.selectedModelId = id;
-      if (st.onSelectModel) st.onSelectModel(id);
-    });
+    listEl.innerHTML = renderListHtml();
 
     if (st.selectedProvider !== 'all') {
       const pName = st.availableProviders.find((p) => p.id === st.selectedProvider)?.name || st.selectedProvider;
@@ -332,6 +406,16 @@ export function buildModelSelectorPanel(options = {}) {
     }
   };
 
+  // Model selection via delegation on the list.
+  listEl.addEventListener('click', (e) => {
+    const item = e.target.closest('[data-model-id]');
+    if (!item) return;
+    e.stopPropagation();
+    const id = item.getAttribute('data-model-id');
+    st.selectedModelId = id;
+    if (st.onSelectModel) st.onSelectModel(id);
+  });
+
   // Provider selection via delegation on the sidebar.
   sidebarEl.addEventListener('click', (e) => {
     const btn = e.target.closest('button[data-provider]');
@@ -339,8 +423,8 @@ export function buildModelSelectorPanel(options = {}) {
     const provider = btn.getAttribute('data-provider');
     if (provider) {
       st.selectedProvider = provider;
-      if (st.onSelectProvider) st.onSelectProvider(provider);
       st.refresh();
+      if (st.onSelectProvider) st.onSelectProvider(provider);
     }
   });
 
@@ -353,7 +437,19 @@ export function buildModelSelectorPanel(options = {}) {
   });
 
   st.root = root;
+  st.scrollToSelected = () => {
+    try {
+      const items = listEl.querySelectorAll('[data-model-id]');
+      let el = null;
+      for (const it of items) {
+        if (it.getAttribute('data-model-id') === st.selectedModelId) { el = it; break; }
+      }
+      if (el && typeof el.scrollIntoView === 'function') el.scrollIntoView({ block: 'nearest' });
+    } catch (_) { /* ignore: scroll is cosmetic */ }
+  };
   st.refresh();
+  st.scrollToSelected();
+  if (autoFocus) searchInput.focus();
   return st;
 }
 
@@ -370,18 +466,32 @@ export function mountModelSelector(container, options = {}) {
   if (existing && existing.root.isConnected) {
     const {
       models = [],
+      sections = null,
       selectedModelId,
       selectedProvider,
       search,
       showProviderName,
+      headerLabel,
+      checkColor,
+      emptyText,
+      loadingMessage,
       onSelectModel,
       onSelectProvider,
       onSearch,
     } = options;
 
-    existing.models = models;
-    existing.availableProviders = getAvailableProviders(models);
+    if (sections) {
+      existing.sections = sections;
+      existing.availableProviders = getAvailableProviders(sections.flatMap((s) => s.models));
+    } else {
+      existing.models = models;
+      existing.availableProviders = getAvailableProviders(models);
+    }
     existing.selectedModelId = selectedModelId;
+    if (typeof headerLabel === 'string') existing.headerLabel = headerLabel;
+    if (typeof checkColor === 'string') existing.checkColor = checkColor;
+    if (typeof emptyText === 'string') existing.emptyText = emptyText;
+    if (typeof loadingMessage === 'string') existing.loadingMessage = loadingMessage;
     existing.showProviderName = showProviderName;
     existing.onSelectModel = onSelectModel;
     existing.onSelectProvider = onSelectProvider;

@@ -54,9 +54,9 @@ vi.mock('./personalize/personalizePopover.js', () => ({
   replaceTokensInPrompt: vi.fn((text) => text)
 }));
 
-vi.mock('./modals/StudioThumbnailPanel.jsx', () => ({
-  StudioThumbnailModal: vi.fn(() => ({ open: vi.fn() })),
-  mountStudioThumbnailModal: vi.fn()
+vi.mock('./modals/TemplateThumbnailModal.jsx', () => ({
+  TemplateThumbnailModal: vi.fn(() => ({ open: vi.fn() })),
+  mountThumbnailModal: vi.fn()
 }));
 
 vi.mock('./AuthModal.js', () => ({

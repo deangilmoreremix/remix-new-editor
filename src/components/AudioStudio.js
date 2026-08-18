@@ -6,7 +6,7 @@ import { AuthModal } from './AuthModal.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { mountModelSelector } from '../lib/modelSelectorUI.js';
 import { showToast } from '../lib/loading.js';
@@ -866,8 +866,9 @@ export function AudioStudio() {
   thumbBtn.title = 'Generate a custom thumbnail';
   thumbBtn.className = 'gtm-boost-btn w-full';
   thumbBtn.addEventListener('click', () => {
-    const modal = new StudioThumbnailModal({
+    const modal = new TemplateThumbnailModal({
       appTheme: 'audio-studio',
+      layout: 'panel',
       studioId: 'audio-studio',
       studioName: 'Audio Studio',
       aspectRatio: '16:9',
@@ -881,7 +882,7 @@ export function AudioStudio() {
         clearCustomThumbnailCache('audio-studio');
       },
     });
-    mountStudioThumbnailModal(modal);
+    mountThumbnailModal(modal);
     modal.open();
   });
   formCard.appendChild(thumbBtn);

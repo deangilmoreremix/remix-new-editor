@@ -1047,22 +1047,27 @@ export class MuapiClient {
     // endpoints (social publishing, result polling, account management).
     // `generationType` maps to the proxy's GET/POST decision: 'list' and
     // 'poll' become GET; anything else (e.g. 'social') becomes POST.
-    async proxyJson(endpoint, { method = 'POST', params = {}, generationType } = {}, signal) {
+    async proxyJson(endpoint, { method = 'POST', params = {}, generationType, apiMethod } = {}, signal) {
         if (!endpoint || typeof endpoint !== 'string') {
             throw new Error('Endpoint is required for proxyJson');
         }
         const resolvedGenerationType = generationType || (method === 'GET' ? 'list' : 'social');
 
+        const body = {
+            endpoint,
+            params: params || {},
+            generationType: resolvedGenerationType,
+            studioType: 'social',
+        };
+        // Optional upstream HTTP method (e.g. 'PATCH' / 'DELETE') for account
+        // management endpoints that the edge proxy forwards verbatim.
+        if (apiMethod) body.apiMethod = apiMethod;
+
         try {
             const response = await fetch(this.proxyUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    endpoint,
-                    params: params || {},
-                    generationType: resolvedGenerationType,
-                    studioType: 'social',
-                }),
+                body: JSON.stringify(body),
                 signal,
             });
 

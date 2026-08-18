@@ -172,27 +172,6 @@ class GTMContentLibrary {
   }
 
   /**
-   * Ordered dropdown data for the GTM Boost modal. Each entry is
-   * { value, label }. Order is preserved from the underlying maps so the
-   * UI stays in sync with the library's canonical content.
-   */
-  getRoleOptions() {
-    return Object.entries(this.roles).map(([value, r]) => ({ value, label: r.name }));
-  }
-
-  getIndustryOptions() {
-    return Object.entries(this.industries).map(([value, i]) => ({ value, label: i.name }));
-  }
-
-  getMethodologyOptions() {
-    return Object.entries(this.methodologies).map(([value, m]) => ({ value, label: m.name }));
-  }
-
-  getTonalityOptions() {
-    return Object.entries(this.tonalities).map(([value, t]) => ({ value, label: t.name }));
-  }
-
-  /**
    * Build the final optimized prompt
    */
   buildOptimizedPrompt({

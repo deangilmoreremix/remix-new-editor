@@ -6,7 +6,7 @@ import { getNicheTerms, enrichPromptString, deriveEngineInputFromTemplate, compo
 import { NICHE_ENRICHMENT, FILM_FAMILIES } from '../lib/templateMatrix.js';
 import { t2iModels, i2iModels, i2vModels } from '../lib/models.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
-import { PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
+import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { navigate } from '../lib/router.js';
@@ -173,6 +173,7 @@ export function TemplateStudio(templateId) {
     const modal = new TemplateThumbnailModal({
       appTheme: 'template-studio',
       template,
+      layout: 'panel',
       onApply: ({ imageUrl }) => {
         img.src = imageUrl + '?v=' + Date.now();
         customThumbnailUrl = imageUrl;
@@ -242,7 +243,7 @@ export function TemplateStudio(templateId) {
       ${showTextButtons ? `
         <div class="flex items-center gap-2">
           <button class="enhancer-btn rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] transition border-white/10 bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-white" data-field="${input.name}">Enhance</button>
-          ${isPrimaryPrompt ? `<button class="gtm-boost-btn rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] transition border-emerald-400/30 bg-emerald-500/10 text-emerald-200 hover:bg-emerald-500/20 hover:text-white" data-gtm-boost="primary" title="Enhance your prompt with GTM conversion frameworks" aria-label="GTM Boost prompt enhancer">🎯 GTM Boost</button>` : ''}
+          ${isPrimaryPrompt ? `<button class="gtm-boost-btn shrink-0" data-gtm-boost="primary" title="Enhance your prompt with GTM conversion frameworks" aria-label="GTM Boost prompt enhancer">🎯 GTM Boost</button>` : ''}
         </div>
       ` : ''}
     `;
@@ -348,19 +349,19 @@ export function TemplateStudio(templateId) {
           niche: template.niche,
           outputType: template.outputType,
         };
+        const onPromptGenerated = (generatedPrompt) => {
+          // Write into the DOM element so the user sees it, then update
+          // formState and dispatch input events so any other listeners
+          // (e.g. the AI Enhancer / extra instructions) pick it up.
+          promptEl.value = generatedPrompt;
+          promptEl.dispatchEvent(new Event('input', { bubbles: true }));
+          promptEl.dispatchEvent(new Event('change', { bubbles: true }));
+          formState[promptFieldName] = generatedPrompt;
+          promptEl.focus();
+        };
         import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-          openGTMPromptModal('template-studio', {
+          openGTMPromptModal('template-studio', onPromptGenerated, {
             templateContext,
-            onPromptGenerated: (generatedPrompt) => {
-              // Write into the DOM element so the user sees it, then update
-              // formState and dispatch input events so any other listeners
-              // (e.g. the AI Enhancer / extra instructions) pick it up.
-              promptEl.value = generatedPrompt;
-              promptEl.dispatchEvent(new Event('input', { bubbles: true }));
-              promptEl.dispatchEvent(new Event('change', { bubbles: true }));
-              formState[promptFieldName] = generatedPrompt;
-              promptEl.focus();
-            },
           });
         }).catch((err) => {
           console.error('[TemplateStudio] GTM Boost failed:', err);
@@ -427,79 +428,22 @@ export function TemplateStudio(templateId) {
       if (!dropdown.dataset.populated) {
         dropdown.dataset.populated = 'true';
 
-        dropdown.innerHTML = `
-          <div class="flex gap-4 h-full max-h-[70vh] min-h-[350px] overflow-hidden">
-            <div data-provider-sidebar></div>
-            <div class="flex-1 flex flex-col gap-2 min-w-0">
-              <div data-search-bar></div>
-              <div class="text-xs font-semibold text-secondary py-1 shrink-0 flex items-center justify-between">
-                <span>Available models</span>
-                <span data-provider-badge class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60 hidden"></span>
-              </div>
-              <div data-model-list class="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-1"></div>
-            </div>
-          </div>
-        `;
-
-        const sidebarEl = dropdown.querySelector('[data-provider-sidebar]');
-        const searchBarEl = dropdown.querySelector('[data-search-bar]');
-        const modelListEl = dropdown.querySelector('[data-model-list]');
-        const providerBadge = dropdown.querySelector('[data-provider-badge]');
-
-        const showLoading = () => {
-          modelListEl.innerHTML = `<div class="text-xs text-white/30 text-center py-6">Loading models...</div>`;
-        };
-        showLoading();
-
-        const refresh = (models) => {
-          const availableProviders = getAvailableProviders(models);
-          sidebarEl.innerHTML = renderProviderSidebar(availableProviders, 'all', () => {});
-          searchBarEl.innerHTML = renderSearchBar();
-          const searchInput = searchBarEl.querySelector('[data-provider-search]');
-          const showProviderName = true;
-          modelListEl.innerHTML = renderModelList(models, selectedModel, showProviderName, (m) => {
-            selectedModel = m.id;
-            updateTrigger();
-            closeDropdown();
-          });
-
-          if (searchInput) {
-            searchInput.onclick = (e) => e.stopPropagation();
-            searchInput.oninput = () => {
-              const filtered = filterModels(models, searchInput.value, 'all');
-              modelListEl.innerHTML = renderModelList(filtered, selectedModel, showProviderName, (m) => {
-                selectedModel = m.id;
-                updateTrigger();
-                closeDropdown();
-              });
-            };
-          }
-
-          sidebarEl.addEventListener('click', (e) => {
-            const btn = e.target.closest('button[data-provider]');
-            if (!btn) return;
-            e.stopPropagation();
-            const provider = btn.getAttribute('data-provider');
-            if (provider && provider !== 'all') {
-              const filtered = filterModels(models, '', provider);
-              modelListEl.innerHTML = renderModelList(filtered, selectedModel, false, (m) => {
-                selectedModel = m.id;
-                updateTrigger();
-                closeDropdown();
-              });
-              const pName = availableProviders.find(p => p.id === provider)?.name || provider;
-              providerBadge.textContent = pName;
-              providerBadge.classList.remove('hidden');
-            } else {
-              modelListEl.innerHTML = renderModelList(models, selectedModel, showProviderName, (m) => {
-                selectedModel = m.id;
-                updateTrigger();
-                closeDropdown();
-              });
-              providerBadge.classList.add('hidden');
-            }
+        const renderModelPanel = (models) => {
+          mountModelSelector(dropdown, {
+            models,
+            selectedModelId: selectedModel,
+            showProviderName: true,
+            loadingMessage: 'Loading models...',
+            onSelectModel: (modelId) => {
+              selectedModel = modelId;
+              updateTrigger();
+              closeDropdown();
+            },
           });
         };
+
+        // Show a loading state immediately, then populate once the catalog resolves.
+        renderModelPanel([]);
 
         // Timeout wrapper for model catalog fetch
         const withTimeout = (promise, ms = 5000) => {
@@ -513,12 +457,12 @@ export function TemplateStudio(templateId) {
           .then(enriched => {
             const models = enriched && enriched.length > 0 ? enriched : fallbackList;
             loadedModels = models;
-            refresh(models);
+            renderModelPanel(models);
           })
           .catch(err => {
             console.warn('[TemplateStudio] Failed to load enriched model catalog, using fallback:', err);
             loadedModels = fallbackList;
-            refresh(fallbackList);
+            renderModelPanel(fallbackList);
           });
       }
     };
@@ -868,27 +812,27 @@ export function TemplateStudio(templateId) {
             niche: template.niche,
             outputType: template.outputType,
           };
+          const onPromptGenerated = (text) => {
+            lastBuiltPrompt = text;
+            outputTabValues['Enhanced Prompt'] = text;
+            const ta = document.getElementById('outputTextarea');
+            if (ta) {
+              ta.value = text;
+              ta.dispatchEvent(new Event('input', { bubbles: true }));
+              ta.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            if (primaryPromptField) {
+              primaryPromptField.value = text;
+              primaryPromptField.dispatchEvent(new Event('input', { bubbles: true }));
+              primaryPromptField.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            if (promptFieldName) {
+              formState[promptFieldName] = text;
+            }
+          };
           import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-            openGTMPromptModal('template-studio', {
+            openGTMPromptModal('template-studio', onPromptGenerated, {
               templateContext,
-              onPromptGenerated: (text) => {
-                lastBuiltPrompt = text;
-                outputTabValues['Enhanced Prompt'] = text;
-                const ta = document.getElementById('outputTextarea');
-                if (ta) {
-                  ta.value = text;
-                  ta.dispatchEvent(new Event('input', { bubbles: true }));
-                  ta.dispatchEvent(new Event('change', { bubbles: true }));
-                }
-                if (primaryPromptField) {
-                  primaryPromptField.value = text;
-                  primaryPromptField.dispatchEvent(new Event('input', { bubbles: true }));
-                  primaryPromptField.dispatchEvent(new Event('change', { bubbles: true }));
-                }
-                if (promptFieldName) {
-                  formState[promptFieldName] = text;
-                }
-              }
             });
           }).catch((e) => {
             console.warn('[TemplateStudio] GTM Boost modal load failed:', e);
@@ -897,32 +841,6 @@ export function TemplateStudio(templateId) {
         } catch (e) {
           console.warn('[TemplateStudio] GTM Boost failed:', e);
           showInlineError(container, 'GTM Boost failed. Please try again.');
-        }
-      };
-    }
-
-    // GTM Boost button
-    if (gtmBtn) {
-      gtmBtn.onclick = () => {
-        try {
-          import('./modals/GTMPromptModal.jsx').then(({ GTMPromptModal }) => {
-            const modal = new GTMPromptModal({
-              appTheme: 'template-studio',
-              onPromptGenerated: (text) => {
-                const ta = document.getElementById('outputTextarea');
-                if (ta) {
-                  ta.value = text;
-                  lastBuiltPrompt = text;
-                }
-              }
-            });
-            modal.basePrompt = (document.getElementById('outputTextarea')?.value) || '';
-            modal.open();
-          }).catch((e) => {
-            console.warn('[TemplateStudio] GTM Boost modal load failed:', e);
-          });
-        } catch (e) {
-          console.warn('[TemplateStudio] GTM Boost failed:', e);
         }
       };
     }

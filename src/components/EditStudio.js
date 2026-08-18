@@ -7,7 +7,7 @@ import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getToolThumbnail, createThumbnailImg, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
-import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { getI2IModelById } from '../lib/models.js';
 import { mountModelSelector } from '../lib/modelSelectorUI.js';
@@ -512,8 +512,9 @@ export function EditStudio() {
   thumbBtn.title = 'Generate a custom thumbnail';
   thumbBtn.className = 'gtm-boost-btn w-full';
   thumbBtn.addEventListener('click', () => {
-    const modal = new StudioThumbnailModal({
+    const modal = new TemplateThumbnailModal({
       appTheme: 'edit-studio',
+      layout: 'panel',
       studioId: 'edit-studio',
       studioName: 'Edit Studio',
       aspectRatio: '1:1',
@@ -527,7 +528,7 @@ export function EditStudio() {
         clearCustomThumbnailCache('edit-studio');
       },
     });
-    mountStudioThumbnailModal(modal);
+    mountThumbnailModal(modal);
     modal.open();
   });
   workCard.appendChild(thumbBtn);

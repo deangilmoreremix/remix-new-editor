@@ -34,12 +34,12 @@ import { AuthModal } from './AuthModal.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
 import { selectScenes } from '../lib/sceneSelector.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
-import { PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
+import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
 import { enrichPromptString, composeNegativePrompt } from '../lib/templateEngine.js';
 
 export function CinemaTemplateStudio() {
   const container = document.createElement('div');
-  container.className = 'w-full h-full flex flex-col bg-black overflow-hidden';
+  container.className = 'cinema-template-studio w-full h-full flex flex-col bg-black overflow-hidden';
 
   // All-studios side menu (drawer)
   const studioDrawer = mountStudioDrawer(document.body, { currentRoute: 'cinema' });
@@ -282,6 +282,7 @@ export function CinemaTemplateStudio() {
       const modal = new TemplateThumbnailModal({
         appTheme: 'cinema-template-studio',
         template,
+        layout: 'panel',
         onApply: ({ imageUrl }) => {
           img.src = imageUrl + '?v=' + Date.now();
           customThumbnailUrl = imageUrl;
@@ -1458,35 +1459,6 @@ export function CinemaTemplateStudio() {
       field.appendChild(gtmBtn);
     }
 
-    // GTM Boost affordance for the primary user prompt field.
-    // Mirrors ImageStudio / VideoStudio: shared `.gtm-boost-btn shrink-0` design,
-    // themed via the `cinema-template-studio` app theme. Placed next to the main
-    // prompt input (the primary describe/prompt field, not other per-input fields).
-    if (isPrimaryPromptField) {
-      // The editable element for this field is the last child appended above.
-      const promptEl = field.querySelector('textarea, input');
-
-      const gtmBtn = document.createElement('button');
-      gtmBtn.type = 'button';
-      gtmBtn.textContent = '🎯 GTM Boost';
-      gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
-      gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
-      gtmBtn.className = 'gtm-boost-btn shrink-0';
-      gtmBtn.addEventListener('click', () => {
-        import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-          openGTMPromptModal('cinema-template-studio', (prompt) => {
-            const ta = promptEl || field.querySelector('textarea, input');
-            if (ta) {
-              ta.value = prompt;
-              ta.dispatchEvent(new Event('input', { bubbles: true }));
-              ta.focus();
-            }
-          });
-        }).catch((err) => console.error('[CinemaTemplateStudio] GTM Boost failed:', err));
-      });
-      field.appendChild(gtmBtn);
-    }
-
     return field;
   }
 
@@ -1565,79 +1537,21 @@ export function CinemaTemplateStudio() {
       if (!dropdown.dataset.populated) {
         dropdown.dataset.populated = 'true';
 
-        dropdown.innerHTML = `
-          <div class="flex gap-4 h-full max-h-[70vh] min-h-[350px] overflow-hidden">
-            <div data-provider-sidebar></div>
-            <div class="flex-1 flex flex-col gap-2 min-w-0">
-              <div data-search-bar></div>
-              <div class="text-xs font-semibold text-secondary py-1 shrink-0 flex items-center justify-between">
-                <span>Available models</span>
-                <span data-provider-badge class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60 hidden"></span>
-              </div>
-              <div data-model-list class="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-1"></div>
-            </div>
-          </div>
-        `;
-
-        const sidebarEl = dropdown.querySelector('[data-provider-sidebar]');
-        const searchBarEl = dropdown.querySelector('[data-search-bar]');
-        const modelListEl = dropdown.querySelector('[data-model-list]');
-        const providerBadge = dropdown.querySelector('[data-provider-badge]');
-
-        const showLoading = () => {
-          modelListEl.innerHTML = `<div class="text-xs text-white/30 text-center py-6">Loading models...</div>`;
-        };
-        showLoading();
-
-        const refresh = (models) => {
-          const availableProviders = getAvailableProviders(models);
-          sidebarEl.innerHTML = renderProviderSidebar(availableProviders, 'all', () => {});
-          searchBarEl.innerHTML = renderSearchBar();
-          const searchInput = searchBarEl.querySelector('[data-provider-search]');
-          const showProviderName = true;
-          modelListEl.innerHTML = renderModelList(models, selectedModel, showProviderName, (m) => {
-            selectedModel = m.id;
-            updateTrigger();
-            closeDropdown();
-          });
-
-          if (searchInput) {
-            searchInput.onclick = (e) => e.stopPropagation();
-            searchInput.oninput = () => {
-              const filtered = filterModels(models, searchInput.value, 'all');
-              modelListEl.innerHTML = renderModelList(filtered, selectedModel, showProviderName, (m) => {
-                selectedModel = m.id;
-                updateTrigger();
-                closeDropdown();
-              });
-            };
-          }
-
-          sidebarEl.addEventListener('click', (e) => {
-            const btn = e.target.closest('button[data-provider]');
-            if (!btn) return;
-            e.stopPropagation();
-            const provider = btn.getAttribute('data-provider');
-            if (provider && provider !== 'all') {
-              const filtered = filterModels(models, '', provider);
-              modelListEl.innerHTML = renderModelList(filtered, selectedModel, false, (m) => {
-                selectedModel = m.id;
-                updateTrigger();
-                closeDropdown();
-              });
-              const pName = availableProviders.find(p => p.id === provider)?.name || provider;
-              providerBadge.textContent = pName;
-              providerBadge.classList.remove('hidden');
-            } else {
-              modelListEl.innerHTML = renderModelList(models, selectedModel, showProviderName, (m) => {
-                selectedModel = m.id;
-                updateTrigger();
-                closeDropdown();
-              });
-              providerBadge.classList.add('hidden');
-            }
+        const renderModelPanel = (models) => {
+          mountModelSelector(dropdown, {
+            models,
+            selectedModelId: selectedModel,
+            showProviderName: true,
+            loadingMessage: 'Loading models...',
+            onSelectModel: (modelId) => {
+              selectedModel = modelId;
+              updateTrigger();
+              closeDropdown();
+            },
           });
         };
+
+        renderModelPanel([]);
 
         const withTimeout = (promise, ms = 5000) => {
           return Promise.race([
@@ -1650,7 +1564,7 @@ export function CinemaTemplateStudio() {
           .then(enriched => {
             const models = enriched && enriched.length > 0 ? enriched : fallbackList;
             loadedModels = models;
-            refresh(models);
+            renderModelPanel(models);
           })
           .catch(err => {
             console.warn('[CinemaTemplateStudio] Failed to load enriched model catalog, using fallback:', err);
@@ -1658,7 +1572,7 @@ export function CinemaTemplateStudio() {
             if (!fallbackList.find(x => x.id === selectedModel)) {
               selectedModel = fallbackList[0]?.id || selectedModel;
             }
-            refresh(fallbackList);
+            renderModelPanel(fallbackList);
           });
       }
     };
@@ -1694,12 +1608,12 @@ export function CinemaTemplateStudio() {
   // ================================
   function renderAiEnhancer(formPanel) {
     const enhancerSection = document.createElement('div');
-    enhancerSection.className = 'mt-6 rounded-2xl border border-emerald-400/15 bg-gradient-to-b from-emerald-500/10 to-indigo-500/5 p-4';
+    enhancerSection.className = 'mt-6 rounded-[24px] border border-emerald-400/15 bg-[linear-gradient(180deg,rgba(16,185,129,0.10),rgba(99,102,241,0.05))] p-4';
     enhancerSection.innerHTML = `
       <div class="flex items-center justify-between gap-4">
         <div>
-          <div class="${CINEMATIC_THEME.text.sectionTitle} text-white">AI Enhancer</div>
-          <div class="mt-1 text-xs leading-6 text-secondary">
+          <div class="text-sm font-semibold text-white">AI Enhancer</div>
+          <div class="mt-1 text-xs leading-6 text-zinc-400">
             Keeps the simple template flow, but auto-detects niche, applies cinematic prompt expansion, scene logic, and cleanup in the background.
           </div>
         </div>
@@ -1732,7 +1646,7 @@ export function CinemaTemplateStudio() {
         wrapper.innerHTML = `
           <div class="mb-3">
             <div class="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500 mb-1.5">${field.label}</div>
-            <select class="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-sm text-white outline-none transition focus:border-emerald-400/50 appearance-none cursor-pointer" data-advanced-field="${field.name}">
+            <select class="h-11 w-full rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] px-4 text-sm text-white outline-none transition focus:border-emerald-400/50 appearance-none cursor-pointer" data-advanced-field="${field.name}">
               ${field.options.map(opt => `<option value="${opt}" class="bg-zinc-950 text-white">${opt}</option>`).join('')}
             </select>
           </div>
@@ -1741,9 +1655,9 @@ export function CinemaTemplateStudio() {
         wrapper.innerHTML = `
           <div class="mb-3 flex items-center justify-between gap-3">
             <div class="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500">${field.label}</div>
-            <button class="enhancer-btn rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] transition border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white" data-field="${field.name}">✨ Enhance</button>
+            <button class="enhancer-btn rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] transition border-white/10 bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-white" data-field="${field.name}">Enhance</button>
           </div>
-          <input type="text" class="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-sm text-white outline-none transition focus:border-emerald-400/50" placeholder="${field.placeholder || ''}" data-advanced-field="${field.name}" />
+          <input type="text" class="h-11 w-full rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] px-4 text-sm text-white outline-none transition focus:border-emerald-400/50" placeholder="${field.placeholder || ''}" data-advanced-field="${field.name}" />
         `;
       }
       advancedControls.appendChild(wrapper);
@@ -1754,9 +1668,9 @@ export function CinemaTemplateStudio() {
     extraWrapper.innerHTML = `
       <div class="mb-3 flex items-center justify-between gap-3">
         <div class="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500">Extra Instructions</div>
-        <button class="enhancer-btn rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] transition border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white" data-field="extraInstructions">✨ Enhance</button>
+        <button class="enhancer-btn rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] transition border-white/10 bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-white" data-field="extraInstructions">Enhance</button>
       </div>
-      <textarea class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-emerald-400/50 resize-none" rows="4" placeholder="optional cinematic instructions" data-advanced-field="extraInstructions"></textarea>
+      <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none transition focus:border-emerald-400/50 resize-none" rows="4" placeholder="optional cinematic instructions" data-advanced-field="extraInstructions"></textarea>
     `;
     advancedControls.appendChild(extraWrapper);
 
@@ -2005,7 +1919,7 @@ export function CinemaTemplateStudio() {
     gtmBoostBtn.textContent = '🎯 GTM Boost';
     gtmBoostBtn.title = 'Enhance your prompt with GTM conversion frameworks';
     gtmBoostBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
-    gtmBoostBtn.className = 'w-full mt-4 py-3 bg-gradient-to-r from-emerald-500 to-emerald-400 text-black font-bold text-sm rounded-xl hover:opacity-90 transition';
+    gtmBoostBtn.className = 'gtm-boost-btn w-full mt-4';
     formPanel.appendChild(gtmBoostBtn);
 
     setTimeout(() => {
@@ -2022,24 +1936,22 @@ export function CinemaTemplateStudio() {
               niche: currentTemplate.niche,
               outputType: currentTemplate.outputType,
             };
+            const onPromptGenerated = (text) => {
+              lastBuiltPrompt = text;
+              outputTabValues['Enhanced Prompt'] = text;
+              const ta = document.getElementById('outputTextarea');
+              if (ta) {
+                ta.value = text;
+                ta.dispatchEvent(new Event('input', { bubbles: true }));
+                ta.dispatchEvent(new Event('change', { bubbles: true }));
+              }
+              const primaryPromptField = formPanel.querySelector('[name="prompt"]') || formPanel.querySelector('textarea, input');
+              if (primaryPromptField) {
+                primaryPromptField.value = text;
+              }
+            };
             import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-              openGTMPromptModal('cinema-template-studio', {
-                templateContext,
-                onPromptGenerated: (text) => {
-                  lastBuiltPrompt = text;
-                  outputTabValues['Enhanced Prompt'] = text;
-                  const ta = document.getElementById('outputTextarea');
-                  if (ta) {
-                    ta.value = text;
-                    ta.dispatchEvent(new Event('input', { bubbles: true }));
-                    ta.dispatchEvent(new Event('change', { bubbles: true }));
-                  }
-                  const primaryPromptField = formPanel.querySelector('[name="prompt"]') || formPanel.querySelector('textarea, input');
-                  if (primaryPromptField) {
-                    primaryPromptField.value = text;
-                  }
-                }
-              });
+              openGTMPromptModal('cinema-template-studio', onPromptGenerated, { templateContext });
             }).catch((e) => {
               console.warn('[CinemaTemplateStudio] GTM Boost modal load failed:', e);
             });

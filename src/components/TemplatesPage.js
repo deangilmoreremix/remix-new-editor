@@ -250,6 +250,7 @@ function createTemplateSection(category, catTemplates, isNiche) {
         const modal = new TemplateThumbnailModal({
           appTheme: 'template-studio',
           template: t,
+          layout: 'panel',
           onApply: ({ imageUrl }) => {
             // Update the cached thumbnail in the background
             const key = `templatesThumbCache:${t.id}`;

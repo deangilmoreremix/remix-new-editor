@@ -69,8 +69,8 @@ export const STUDIO_THEME_KEYS = Object.freeze([
 
 /**
  * Studio / app color schemes. Single source of truth shared by
- * GTMPromptModal, TemplateThumbnailModal, StudioThumbnailPanel,
- * PersonalizeModal, and the Pexels browser.
+  * GTMPromptModal, TemplateThumbnailModal, PersonalizeModal,
+  * and the Pexels browser.
  */
 export const STUDIO_COLOR_SCHEMES = Object.freeze(
   STUDIO_THEME_KEYS.reduce((acc, key) => {
@@ -516,7 +516,7 @@ class OpenAIConfig {
   /**
    * Resolve a studio / app theme name to its color scheme.
    * Single source of truth — used by GTMPromptModal, TemplateThumbnailModal,
-   * StudioThumbnailPanel, PersonalizeModal, and any future consumers.
+   * TemplateThumbnailModal, PersonalizeModal, and any future consumers.
    *
    * Always returns {@link STUDIO_SCHEME} so a modal opened from any studio
    * matches the studio chrome around it.
