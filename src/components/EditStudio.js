@@ -5,6 +5,9 @@ import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getToolThumbnail, createThumbnailImg } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
+import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
+import { openRecipeModal } from '../lib/recipeIntegration.js';
+import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 
 const EDIT_TOOLS = [
   { id: 'ai-object-eraser', name: 'Remove Object', description: 'Erase unwanted objects from images', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 5H9l-7 7 7 7h11a2 2 0 002-2V7a2 2 0 00-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>', hasPrompt: true, promptPlaceholder: 'What to remove...' },
@@ -81,6 +84,52 @@ export function EditStudio() {
   const personalizeRow = document.createElement('div');
   personalizeRow.className = 'flex items-center gap-2 px-4 md:px-8 pt-4';
   mountPersonalizeTrigger({ controlsContainer: personalizeRow, getTextarea: () => promptField, appId: 'edit-studio' });
+  // Prompt Gallery button
+  const promptGalleryBtn = document.createElement('button');
+  promptGalleryBtn.type = 'button';
+  promptGalleryBtn.textContent = '📚 Prompts';
+  promptGalleryBtn.title = 'Browse prompt gallery';
+  promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
+  promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
+  promptGalleryBtn.addEventListener('click', () => {
+    openPromptGallery({
+      appTheme: 'editor-page',
+      onSelect: (prompt) => {
+        const ta = document.querySelector('input[data-advanced-field="extraInstructions"], textarea, input');
+        if (ta) { ta.value = prompt; ta.dispatchEvent(new Event('input', { bubbles: true })); ta.focus(); }
+      }
+    }).catch((err) => console.error('[PromptGallery] open failed:', err));
+  });
+
+    // Recipe Engine button
+    const recipeBtn = document.createElement('button');
+    recipeBtn.type = 'button';
+    recipeBtn.textContent = '📋 Recipes';
+    recipeBtn.title = 'Browse AI recipes';
+    recipeBtn.setAttribute('aria-label', 'Open recipe engine');
+    recipeBtn.className = 'gtm-boost-btn shrink-0';
+    recipeBtn.addEventListener('click', () => {
+      openRecipeModal({
+        onRunRecipe: (url) => {
+          console.log('[Recipe] finished:', url);
+        }
+      }).catch((err) => console.error('[Recipe] open failed:', err));
+    });
+
+
+    // Monetization Hub button
+    const monetizationBtn = document.createElement('button');
+    monetizationBtn.type = 'button';
+    monetizationBtn.textContent = '💼 Monetize';
+    monetizationBtn.title = 'Open monetization hub';
+    monetizationBtn.setAttribute('aria-label', 'Open monetization hub');
+    monetizationBtn.className = 'gtm-boost-btn shrink-0';
+    monetizationBtn.addEventListener('click', () => {
+      openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+    });
+  personalizeRow.appendChild(recipeBtn);
+  personalizeRow.appendChild(monetizationBtn);
+  personalizeRow.appendChild(promptGalleryBtn);
   container.appendChild(personalizeRow);
 
   const workArea = document.createElement('div');

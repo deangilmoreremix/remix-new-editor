@@ -13,6 +13,9 @@ import { mountStudioDrawer, createStudioMenuButton } from '../lib/studioChrome.j
 import { sanitizeUrl } from '../lib/security.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
+import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
+import { openRecipeModal } from '../lib/recipeIntegration.js';
+import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 
 export function TemplateStudio(templateId) {
   const template = getTemplateById(templateId);
@@ -436,6 +439,52 @@ export function TemplateStudio(templateId) {
   genBtn.textContent = 'Generate';
   leftPanel.appendChild(genBtn);
   mountPersonalizeTrigger({ controlsContainer: leftPanel, appId: 'template-studio', getTextarea: () => document.getElementById('outputTextarea') || null });
+  // Prompt Gallery button
+  const promptGalleryBtn = document.createElement('button');
+  promptGalleryBtn.type = 'button';
+  promptGalleryBtn.textContent = '📚 Prompts';
+  promptGalleryBtn.title = 'Browse prompt gallery';
+  promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
+  promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
+  promptGalleryBtn.addEventListener('click', () => {
+    openPromptGallery({
+      appTheme: 'template-studio',
+      onSelect: (prompt) => {
+        const ta = document.getElementById('outputTextarea');
+        if (ta) { ta.value = prompt; ta.dispatchEvent(new Event('input', { bubbles: true })); ta.focus(); }
+      }
+    }).catch((err) => console.error('[PromptGallery] open failed:', err));
+  });
+
+    // Recipe Engine button
+    const recipeBtn = document.createElement('button');
+    recipeBtn.type = 'button';
+    recipeBtn.textContent = '📋 Recipes';
+    recipeBtn.title = 'Browse AI recipes';
+    recipeBtn.setAttribute('aria-label', 'Open recipe engine');
+    recipeBtn.className = 'gtm-boost-btn shrink-0';
+    recipeBtn.addEventListener('click', () => {
+      openRecipeModal({
+        onRunRecipe: (url) => {
+          console.log('[Recipe] finished:', url);
+        }
+      }).catch((err) => console.error('[Recipe] open failed:', err));
+    });
+
+
+    // Monetization Hub button
+    const monetizationBtn = document.createElement('button');
+    monetizationBtn.type = 'button';
+    monetizationBtn.textContent = '💼 Monetize';
+    monetizationBtn.title = 'Open monetization hub';
+    monetizationBtn.setAttribute('aria-label', 'Open monetization hub');
+    monetizationBtn.className = 'gtm-boost-btn shrink-0';
+    monetizationBtn.addEventListener('click', () => {
+      openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+    });
+  leftPanel.appendChild(recipeBtn);
+  leftPanel.appendChild(monetizationBtn);
+  leftPanel.appendChild(promptGalleryBtn);
 
   // Creative Intelligence section
   const intelligenceSection = document.createElement('div');

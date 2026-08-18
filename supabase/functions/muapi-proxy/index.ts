@@ -56,12 +56,14 @@ function validateEndpoint(endpoint: string): boolean {
   //   - predictions/<id>/result
   //   - <model-name>
   //   - <category>-<model>
-  //   - specialized app endpoints like ai-image-upscale, generate_wan_ai_effects, suno-create-music
+  //   - specialized app endpoints like ai-image-upscale, generate_wan_ai_effects
+  //   - new multimodal families: minimax-h3-*, wan-3.0-*, flux-3-*, grok-imagine-*, seedance-2.5-*
   if (!endpoint || typeof endpoint !== 'string') return false;
   const trimmed = endpoint.trim();
   if (!trimmed) return false;
   // Block path traversal but allow dots, hyphens, underscores, and slashes
   if (trimmed.includes('..') || trimmed.startsWith('/') || trimmed.includes('//')) return false;
+  // Allow dots for grok-imagine-image-2 style slugs
   return /^[a-z0-9][a-z0-9_.\/-]*$/.test(trimmed);
 }
 

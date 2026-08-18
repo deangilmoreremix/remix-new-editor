@@ -407,6 +407,8 @@ export function LipSyncStudio() {
     monetizationBtn.addEventListener('click', () => {
       openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
     });
+    if (!uploadsRow.querySelector('[aria-label="Open recipe engine"]')) uploadsRow.appendChild(recipeBtn);
+    if (!uploadsRow.querySelector('[aria-label="Open monetization hub"]')) uploadsRow.appendChild(monetizationBtn);
 
     };
 

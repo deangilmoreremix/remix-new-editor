@@ -234,6 +234,8 @@ export function VideoToolsStudio() {
     monetizationBtn.addEventListener('click', () => {
       openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
     });
+    promptGroup.appendChild(recipeBtn);
+    promptGroup.appendChild(monetizationBtn);
 
   function updateFormVisibility() {
     // Show/hide prompt based on model

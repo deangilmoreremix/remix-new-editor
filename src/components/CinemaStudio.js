@@ -1151,6 +1151,8 @@ export function CinemaStudio() {
     monetizationBtn.addEventListener('click', () => {
       openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
     });
+    if (!inputRow.querySelector('[aria-label="Open recipe engine"]')) inputRow.appendChild(recipeBtn);
+    if (!inputRow.querySelector('[aria-label="Open monetization hub"]')) inputRow.appendChild(monetizationBtn);
 
             if (res && res.url) {
                 // Save to history

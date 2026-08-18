@@ -4,6 +4,10 @@ import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection } from '../lib/thumbnails.js';
+import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
+import { openModelPicker } from '../lib/modelPickerIntegration.js';
+import { openRecipeModal } from '../lib/recipeIntegration.js';
+import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 
 const SCENE_PRESETS = [
   'Studio white background', 'Luxury marble surface', 'Outdoor natural light',
@@ -27,6 +31,7 @@ export function CommercialStudio() {
   let selectedScene = SCENE_PRESETS[0];
   let selectedFormat = FORMAT_PRESETS[0];
   let selectedModel = 'ai-product-shot';
+  let commercialPrompt = '';
 
   const header = document.createElement('div');
   header.className = 'mb-8 animate-fade-in-up text-center w-full';
@@ -51,10 +56,11 @@ export function CommercialStudio() {
 
   const modelRow = document.createElement('div');
   modelRow.className = 'flex gap-2';
-  [
+  const COMMERCIAL_MODELS = [
     { id: 'ai-product-shot', name: 'Product Shot' },
     { id: 'ai-product-photography', name: 'Product Photography' },
-  ].forEach(m => {
+  ];
+  COMMERCIAL_MODELS.forEach(m => {
     const btn = document.createElement('button');
     btn.className = m.id === selectedModel
       ? 'flex-1 px-4 py-2.5 rounded-xl text-xs font-bold bg-primary text-black transition-all'
@@ -70,6 +76,27 @@ export function CommercialStudio() {
     };
     modelRow.appendChild(btn);
   });
+  // Model Picker button
+  const modelPickerBtn = document.createElement('button');
+  modelPickerBtn.type = 'button';
+  modelPickerBtn.textContent = 'AI Pick';
+  modelPickerBtn.title = 'Open intelligent model picker';
+  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
+  modelPickerBtn.className = 'text-[11px] font-bold text-cyan-400 border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 rounded-lg hover:bg-cyan-400/20 transition-colors ml-2 whitespace-nowrap';
+  modelPickerBtn.addEventListener('click', () => {
+    openModelPicker({
+      currentModelId: selectedModel,
+      onSelectModel: (id) => {
+        selectedModel = id;
+        modelRow.querySelectorAll('button').forEach(b => {
+          b.className = b.textContent === (COMMERCIAL_MODELS.find(m => m.id === id)?.name || '')
+            ? 'flex-1 px-4 py-2.5 rounded-xl text-xs font-bold bg-primary text-black transition-all'
+            : 'flex-1 px-4 py-2.5 rounded-xl text-xs font-bold bg-white/5 text-secondary border border-white/10 hover:bg-white/10 transition-all';
+        });
+      }
+    }).catch((err) => console.error('[ModelPicker] open failed:', err));
+  });
+  modelRow.appendChild(modelPickerBtn);
   formCard.appendChild(modelRow);
 
   const uploadLabel = document.createElement('label');
@@ -147,6 +174,52 @@ export function CommercialStudio() {
   genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all mt-2';
   genBtn.textContent = 'Generate Product Shot';
   formCard.appendChild(genBtn);
+
+  // Prompt Gallery button
+  const promptGalleryBtn = document.createElement('button');
+  promptGalleryBtn.type = 'button';
+  promptGalleryBtn.textContent = '📚 Prompts';
+  promptGalleryBtn.title = 'Browse prompt gallery';
+  promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
+  promptGalleryBtn.className = 'w-full bg-white/5 border border-white/10 text-white py-2.5 rounded-xl font-bold text-xs hover:bg-white/10 transition-all mt-2';
+  promptGalleryBtn.addEventListener('click', () => {
+    openPromptGallery({
+      appTheme: 'commercial-studio',
+      onSelect: (prompt) => {
+        commercialPrompt = prompt;
+      }
+    }).catch((err) => console.error('[PromptGallery] open failed:', err));
+  });
+
+    // Recipe Engine button
+    const recipeBtn = document.createElement('button');
+    recipeBtn.type = 'button';
+    recipeBtn.textContent = '📋 Recipes';
+    recipeBtn.title = 'Browse AI recipes';
+    recipeBtn.setAttribute('aria-label', 'Open recipe engine');
+    recipeBtn.className = 'gtm-boost-btn shrink-0';
+    recipeBtn.addEventListener('click', () => {
+      openRecipeModal({
+        onRunRecipe: (url) => {
+          console.log('[Recipe] finished:', url);
+        }
+      }).catch((err) => console.error('[Recipe] open failed:', err));
+    });
+
+
+    // Monetization Hub button
+    const monetizationBtn = document.createElement('button');
+    monetizationBtn.type = 'button';
+    monetizationBtn.textContent = '💼 Monetize';
+    monetizationBtn.title = 'Open monetization hub';
+    monetizationBtn.setAttribute('aria-label', 'Open monetization hub');
+    monetizationBtn.className = 'gtm-boost-btn shrink-0';
+    monetizationBtn.addEventListener('click', () => {
+      openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+    });
+  formCard.appendChild(recipeBtn);
+  formCard.appendChild(monetizationBtn);
+  formCard.appendChild(promptGalleryBtn);
   container.appendChild(formCard);
 
   const inlineInstructions = createInlineInstructions('commercial');
@@ -169,7 +242,7 @@ export function CommercialStudio() {
       const params = {
         model: selectedModel,
         image_url: uploadedUrl,
-        prompt: `${selectedScene}, professional product photography, commercial quality`,
+        prompt: commercialPrompt || `${selectedScene}, professional product photography, commercial quality`,
         aspect_ratio: selectedFormat.ar,
       };
       const result = await muapi.generateI2I(params);

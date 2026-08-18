@@ -261,6 +261,8 @@ export function AudioStudio() {
     monetizationBtn.addEventListener('click', () => {
       openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
     });
+    promptGroup.appendChild(recipeBtn);
+    promptGroup.appendChild(monetizationBtn);
 
   function updateDurationBtns() {
     const durationRow = durationGroup.querySelector('.flex.gap-2');

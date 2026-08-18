@@ -255,6 +255,8 @@ export function AvatarStudio() {
     monetizationBtn.addEventListener('click', () => {
       openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
     });
+    promptGroup.appendChild(recipeBtn);
+    promptGroup.appendChild(monetizationBtn);
 
   function updateFormVisibility() {
     // Show/hide video upload
