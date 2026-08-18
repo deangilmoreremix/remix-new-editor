@@ -7,7 +7,6 @@ import {
   Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter,
   ModalCloseButton, useDisclosure, IconButton, Divider
 } from '@chakra-ui/react'
-import { uploadToStorage } from './lib/supabase'
 import {
   applyVFX, applyMotion, applyAIEffects, imageToVideo, uploadFile, pollPrediction, generateWithPolling
 } from './lib/muapi'
@@ -38,22 +37,22 @@ const VFX_EFFECTS = [
   { id: 'decay_timelapse', name: 'Decay Time-Lapse', icon: '💀', prompt: 'decay time-lapse effect' },
   { id: 'levitate', name: 'Levitate', icon: '🧘', prompt: 'person levitating' },
   { id: 'flying', name: 'Flying', icon: '🦅', prompt: 'person flying' },
-  { id: 'invisibility', name: 'Disintegration', icon: '👻', prompt: 'the person completely fades away and vanishes, becoming fully transparent and invisible, body disappearing into nothing' },
-  { id: 'tentacles', name: 'Flying', icon: '🐙', prompt: 'dark tentacles emerge from the character and wrap around the scene, slithering motion' },
+  { id: 'invisibility', name: 'Invisibility', icon: '👻', prompt: 'the person completely fades away and vanishes, becoming fully transparent and invisible, body disappearing into nothing' },
+  { id: 'tentacles', name: 'Tentacles', icon: '🐙', prompt: 'dark tentacles emerge from the character and wrap around the scene, slithering motion' },
+  { id: 'robotic_face_reveal', name: 'Robotic Face Reveal', icon: '🤖', prompt: 'robotic face reveal' },
 ]
 
 const AI_EFFECTS = [
-  { id: 'kissing', name: 'Kissing', icon: '💋', prompt: 'kissing effect' },
-  { id: 'hulk_transformation', name: 'Hulk Transformation', icon: '💪', prompt: 'hulk transformation' },
-  { id: 'muscle_show_off', name: 'Muscle Show Off', icon: '🏋️', prompt: 'muscle show off' },
-  { id: 'cakeify', name: 'Cakeify', icon: '🎂', prompt: 'cakeify effect' },
-  { id: 'robotic_face_reveal', name: 'Robotic Face Reveal', icon: '🤖', prompt: 'robotic face reveal' },
-  { id: 'vhs_footage', name: 'VHS Footage', icon: '📼', prompt: 'vhs retro footage' },
-  { id: 'samurai', name: 'Samurai It', icon: '⚔️', prompt: 'samurai style' },
-  { id: 'film_noir', name: 'Film Noir', icon: '🎬', prompt: 'film noir style' },
-  { id: 'inflate_it', name: 'Inflate It', icon: '🎈', prompt: 'inflate effect' },
-  { id: 'venom', name: 'Robotic Face Reveal', icon: '🕷️', prompt: 'a black symbiote spreads across the face and body like venom, oily organic transformation' },
-  { id: 'tiger_touch', name: 'Samurai It', icon: '🐯', prompt: 'tiger stripes and fur cover the body, tiger face transformation, animalistic features emerging' },
+  { id: 'kiss_me_ai', name: 'Kiss Me AI', icon: '😘', prompt: 'kiss me ai' },
+  { id: 'kiss', name: 'Kiss', icon: '💋', prompt: 'kiss' },
+  { id: 'venom', name: 'Venom', icon: '🕷️', prompt: 'a black symbiote spreads across the face and body like venom, oily organic transformation' },
+  { id: 'hulk', name: 'Hulk', icon: '💪', prompt: 'hulk transformation' },
+  { id: 'muscle_surge', name: 'Muscle Surge', icon: '🏋️', prompt: 'muscle show off' },
+  { id: 'tiger_touch', name: 'The Tiger Touch', icon: '🐯', prompt: 'tiger stripes and fur cover the body, tiger face transformation, animalistic features emerging' },
+  { id: 'anything_robot', name: 'Anything Robot', icon: '🤖', prompt: 'anything robot' },
+  { id: 'warmth_of_jesus', name: 'Warmth of Jesus', icon: '✝️', prompt: 'warmth of jesus' },
+  { id: 'holy_wings', name: 'Holy Wings', icon: '🪽', prompt: 'holy wings' },
+  { id: 'microwave', name: 'Microwave', icon: '🧊', prompt: 'microwave' },
 ]
 
 function EffectCard({ effect, onClick, selected }) {
@@ -460,9 +459,8 @@ function App() {
             </Card>
           )}
         </Box>
-        </Flex>
       </Flex>
-    </Box>
+      </Box>
     </ChakraProvider>
   )
 }
