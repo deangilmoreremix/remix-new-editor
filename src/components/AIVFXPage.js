@@ -1,8 +1,9 @@
 import { mountStudioChrome } from '../lib/studioChrome.js';
 // AI-VFX Studio Page
-// Embeds the ai-vfx studio as an iframe. In dev it points at the Vite
-// dev server on port 3002, and in production it loads the built files
-// from /ai-vfx/ inside the main app's dist folder.
+// Embeds the ai-vfx studio as an iframe. The iframe src is always '/ai-vfx/'
+// (same-origin). In dev, Vite proxies this path to the AI-VFX dev server on
+// port 3002 via server.proxy in vite.config.js. In production, the built files
+// are served from the /ai-vfx/ directory inside the main app's dist folder.
 
 export function AIVFXPage() {
   const container = document.createElement('div');
@@ -28,7 +29,9 @@ export function AIVFXPage() {
   container.appendChild(header);
 
   const iframe = document.createElement('iframe');
-  iframe.src = import.meta.env.DEV ? 'http://localhost:3002/ai-vfx/' : '/ai-vfx/';
+  // Always load from '/ai-vfx/' (same-origin). In dev, Vite proxies this path to
+  // the AI-VFX dev server on port 3002 via the server.proxy config in vite.config.js.
+  iframe.src = '/ai-vfx/';
   iframe.style.cssText = 'flex:1;min-height:0;border:none;width:100%;background:#0b0f19;';
   iframe.setAttribute('allow', 'clipboard-write');
   iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups');
