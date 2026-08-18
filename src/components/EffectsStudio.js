@@ -960,9 +960,6 @@ export function EffectsStudio() {
 
   searchInput.oninput = () => renderEffects(searchInput.value);
 
-  let lastOutputUrl = null;
-  let lastMediaType = 'image';
-
   async function handleGenerate() {
     if (!(await requireEntitlement())) return;
     if (!selectedEffect) { alert('Select an effect first'); return; }
