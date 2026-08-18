@@ -17,7 +17,7 @@ const CHARACTER_MODELS = [
   { id: 'minimax-image-01-subject-reference', name: 'Subject Reference', description: 'Maintain subject consistency across images', provider: 'minimax', provider_name: 'MiniMax' },
 ];
 
-export function CharacterStudio() {
+export async function CharacterStudio() {
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col items-center bg-app-bg overflow-y-auto p-6 md:p-10 relative';
   mountStudioChrome(container, { currentRoute: 'character' });
@@ -413,6 +413,28 @@ export function CharacterStudio() {
     }
   };
 
+
+  // MiniMax H3 example styles — demos that align with this studio, shown as
+  // examples at the bottom of the controls. Each card opens a detail modal;
+  // "Create This Style" opens this studio pre-filled with the selected style.
+  Promise.all([
+    import('./demos/DemoRail.jsx'),
+    import('../data/minimax/presets.js'),
+  ]).then(([{ createDemoRail }, { minimaxPresets }]) => {
+    const items = minimaxPresets.filter((p) => p.targetStudio === 'CharacterStudio');
+    if (!items.length) return;
+    const rail = createDemoRail({
+      items,
+      source: 'minimax',
+      variant: 'rail',
+      title: 'MiniMax H3 Example Styles',
+      subtitle: 'Examples for this studio — click any clip, or create in this style',
+      className: 'mt-10 max-w-6xl mx-auto',
+    });
+    container.appendChild(rail);
+  }).catch((e) => {
+    console.error('[CharacterStudio] demo rail failed', e);
+  });
 
   return container;
 }

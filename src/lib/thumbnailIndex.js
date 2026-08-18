@@ -90,6 +90,7 @@ export {
   getToolThumbnail,
   getCategoryThumbnail,
   getPageThumbnail,
+  getAppThumbnail,
   getTemplateThumbnail,
   getTemplateThumbnailCandidates,
   getTemplateThumbnailWithFallback,

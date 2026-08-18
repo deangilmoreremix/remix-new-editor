@@ -14,6 +14,7 @@ import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/pe
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
+import { consumeStudioPrefill } from '../lib/studioPrefill.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { CINEMATIC_THEME, cx } from '../lib/cinematicTheme.js';
@@ -98,6 +99,9 @@ export function CinemaStudio() {
     const inlineInstructions = createInlineInstructions('cinema');
     inlineInstructions.classList.add('mt-8', 'px-4');
     container.appendChild(inlineInstructions);
+
+    // (Aligned "MiniMax H3 Example Styles" rail is rendered at the bottom of
+    //  the controls, added at the end of this factory.)
 
     // ==========================================
     // 1.5. CINEMA PROMPT BUILDER
@@ -280,10 +284,23 @@ export function CinemaStudio() {
         this.style.height = 'auto';
         this.style.height = (this.scrollHeight) + 'px';
     };
-    const cinemaPrefill = localStorage.getItem('prefill_prompt');
+    let cinemaPrefill = '';
+    try {
+        const raw = localStorage.getItem('prefill_prompt');
+        if (raw) { localStorage.removeItem('prefill_prompt'); cinemaPrefill = raw; }
+    } catch { /* ignore */ }
+    if (!cinemaPrefill) {
+        const staged = consumeStudioPrefill('cinema');
+        if (staged) {
+            if (staged.model) {
+                if (typeof currentSettings !== 'undefined' && currentSettings) currentSettings.model = staged.model;
+                else if (typeof selectedModel !== 'undefined') selectedModel = staged.model;
+            }
+            cinemaPrefill = staged.prompt || '';
+        }
+    }
     if (cinemaPrefill) {
         textarea.value = cinemaPrefill;
-        localStorage.removeItem('prefill_prompt');
         requestAnimationFrame(() => {
             textarea.style.height = 'auto';
             textarea.style.height = textarea.scrollHeight + 'px';
@@ -1135,6 +1152,28 @@ export function CinemaStudio() {
             generateBtn.innerHTML = `GENERATE ✨`;
         }
     };
+
+    // MiniMax H3 example styles — demos that align with this studio, shown as
+    // examples at the bottom of the controls. Each card opens a detail modal;
+    // "Create This Style" opens this studio pre-filled with the selected style.
+    Promise.all([
+      import('./demos/DemoRail.jsx'),
+      import('../data/minimax/presets.js'),
+    ]).then(([{ createDemoRail }, { minimaxPresets }]) => {
+      const items = minimaxPresets.filter((p) => p.targetStudio === 'CinemaStudio');
+      if (!items.length) return;
+      const rail = createDemoRail({
+        items,
+        source: 'minimax',
+        variant: 'rail',
+        title: 'MiniMax H3 Example Styles',
+        subtitle: 'Examples for this studio — click any clip, or create in this style',
+        className: 'mt-10 max-w-6xl mx-auto',
+      });
+      container.appendChild(rail);
+    }).catch((e) => {
+      console.error('[CinemaStudio] demo rail failed', e);
+    });
 
     return container;
 }

@@ -702,5 +702,27 @@ export function EditStudio() {
     errorArea.innerHTML = `<div class="text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-xl p-3">${message}</div>`;
   }
 
+  // MiniMax H3 example styles — demos that align with this studio, shown as
+  // examples at the bottom of the controls. Each card opens a detail modal;
+  // "Create This Style" opens this studio pre-filled with the selected style.
+  Promise.all([
+    import('./demos/DemoRail.jsx'),
+    import('../data/minimax/presets.js'),
+  ]).then(([{ createDemoRail }, { minimaxPresets }]) => {
+    const items = minimaxPresets.filter((p) => p.targetStudio === 'EditStudio');
+    if (!items.length) return;
+    const rail = createDemoRail({
+      items,
+      source: 'minimax',
+      variant: 'rail',
+      title: 'MiniMax H3 Example Styles',
+      subtitle: 'Examples for this studio — click any clip, or create in this style',
+      className: 'mt-10 max-w-6xl mx-auto',
+    });
+    container.appendChild(rail);
+  }).catch((e) => {
+    console.error('[EditStudio] demo rail failed', e);
+  });
+
   return container;
 }

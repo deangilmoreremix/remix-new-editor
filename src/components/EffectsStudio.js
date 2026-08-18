@@ -33,7 +33,7 @@ function getEffectsForModel(modelId) {
   return [];
 }
 
-export function EffectsStudio() {
+export async function EffectsStudio() {
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col bg-app-bg overflow-hidden relative';
   mountStudioChrome(container, { currentRoute: 'effects' });

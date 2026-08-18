@@ -301,7 +301,7 @@ const SVG_SEED = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" st
 const SVG_HIST_DOWNLOAD = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>';
 const SVG_HIST_DELETE = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>';
 
-export function InfluencerStudio() {
+export async function InfluencerStudio() {
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col items-center bg-app-bg overflow-y-auto p-6 md:p-10 relative';
   mountStudioChrome(container, { currentRoute: 'influencer' });
@@ -682,6 +682,18 @@ export function InfluencerStudio() {
   promptInput.placeholder = 'Additional instructions (optional)';
   promptInput.setAttribute('aria-label', 'Influencer prompt');
   formCard.appendChild(promptInput);
+
+  // Apply a "Create This Style" deep-link if one was staged.
+  try {
+    const { consumeAndApply } = await import('../lib/examplesRail.js');
+    consumeAndApply('influencer', (staged) => {
+      if (staged.model) selectedModel = staged.model;
+      if (staged.prompt) {
+        promptInput.value = staged.prompt;
+        promptInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    });
+  } catch (e) { console.error('[InfluencerStudio] prefill failed', e); }
 
   const gtmBtn = document.createElement('button');
   gtmBtn.type = 'button';

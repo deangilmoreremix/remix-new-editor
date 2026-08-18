@@ -376,6 +376,60 @@ export function getPageThumbnail(pageId) {
   return PAGE_THUMBNAILS[pageId] || null;
 }
 
+// Canonical landing-page / app-card thumbnail mapping. Every one of the 33
+// creative apps (src/components/landing/LandingPage.jsx ALL_APPS) resolves to the
+// SAME image the application's own UI/UX uses, so the marketing cards stay in
+// sync with the product. Where the app had no dedicated asset for a feature
+// (ai-vfx, vfx, director, motion, tiktok, dubbing, workflows, agents, mcp-cli,
+// timeline), the closest existing product thumbnail is reused rather than
+// inventing a divergent asset.
+const APP_THUMBNAILS = {
+  // 16 core studios — match the in-product studio/feature PAGE hero that the
+  // app renders via createHeroSection(id) -> getHeroThumbnail(id)
+  // (src/components/*Studio.js). This is the actual image users see when they
+  // open the feature, not the separate AppsHub grid (which uses /studios/*).
+  image: '/thumbnails/heroes/image.webp',
+  video: '/thumbnails/heroes/video.webp',
+  cinema: '/thumbnails/heroes/cinema.webp',
+  character: '/thumbnails/heroes/character.webp',
+  storyboard: '/thumbnails/heroes/storyboard.webp',
+  effects: '/thumbnails/heroes/effects.webp',
+  edit: '/thumbnails/heroes/edit.webp',
+  upscale: '/thumbnails/heroes/upscale.webp',
+  commercial: '/thumbnails/heroes/commercial.webp',
+  influencer: '/thumbnails/heroes/influencer.webp',
+  audio: '/thumbnails/heroes/audio.webp.png',
+  avatar: '/thumbnails/heroes/avatar.webp.png',
+  training: '/thumbnails/heroes/training.webp.png',
+  videotools: '/thumbnails/heroes/videotools.webp.png',
+  chat: '/thumbnails/heroes/chat.webp.png',
+  lipsync: '/thumbnails/heroes/lipsync.webp.png',
+  render: '/thumbnails/heroes/render.webp.png',
+  'lip-sync': '/thumbnails/heroes/lipsync.webp.png',
+  // Features without a dedicated studio-page hero in the product — reuse the
+  // closest real product asset that the app actually ships.
+  'ai-vfx': '/thumbnails/categories/vfx.webp',
+  vfx: '/thumbnails/categories/vfx.webp',
+  director: '/thumbnails/heroes/cinema.webp',
+  timeline: '/thumbnails/heroes/timeline.webp.png',
+  motion: '/thumbnails/videoagent/effects-motion.webp.png',
+  'runway-motion': '/thumbnails/videoagent/effects-motion.webp.png',
+  tiktok: '/thumbnails/templates/tiktok-video.webp',
+  'tiktok-carousel': '/thumbnails/templates/tiktok-video.webp',
+  dubbing: '/thumbnails/videoagent/dubbing.webp',
+  'advanced-dubbing': '/thumbnails/videoagent/dubbing.webp',
+  templates: '/thumbnails/pages/templates.webp.png',
+  explore: '/thumbnails/pages/explore.webp.png',
+  library: '/thumbnails/pages/library.webp',
+  community: '/thumbnails/pages/community.webp',
+  assist: '/thumbnails/pages/assist.webp',
+  agents: '/thumbnails/heroes/videoagent.webp.png',
+};
+
+export function getAppThumbnail(appId) {
+  return APP_THUMBNAILS[appId] || null;
+}
+
 export function getTemplateThumbnail(templateId) {
   // First try .webp, then fall back to .webp.png (some generated images are PNG format)
   return `/thumbnails/templates/${templateId}.webp`;

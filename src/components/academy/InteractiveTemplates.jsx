@@ -24,6 +24,8 @@ import {
 } from '../../data/academy/templates.js';
 import { getAssetsForTemplate, getAssetById } from '../../data/academyAssets.js';
 import { getRecipePrompt, executeRecipe } from '../../lib/recipes/executor.js';
+import { openStyleInStudio } from '../../lib/examplesRail.js';
+import { getAcademyStudioRoute } from '../../data/academy/studioRoutes.ts';
 import { Icon } from './icons.jsx';
 
 // ---------------------------------------------------------------------------
@@ -130,6 +132,30 @@ function AssetCard({ asset, onOpen }) {
   );
 }
 
+// "Try this in Studio" — stages a studio prefill from the asset's title /
+// description and navigates to the mapped studio (per ACADEMY_STUDIO_ROUTES).
+// Uses the same `openStyleInStudio` → `stageStudioPrefill` → `navigate` channel
+// the MiniMax examples rail relies on.
+function TryInStudioButton({ asset }) {
+  const target = getAcademyStudioRoute(asset.category);
+  const route = target?.route || 'image';
+  const studioName = target?.studio || 'Studio';
+  const onClick = () => {
+    openStyleInStudio({
+      prompt: `${asset.title}. ${asset.description || ''}`.trim(),
+      route,
+      model: target?.model,
+      params: { _sourceSlug: asset.id, _sourceTitle: asset.title },
+      ref: 'academy',
+    });
+  };
+  return (
+    <PrimaryButton onClick={onClick} icon="Sparkles">
+      Try this in {studioName}
+    </PrimaryButton>
+  );
+}
+
 function Lightbox({ asset, onClose }) {
   if (!asset) return null;
   const isVideo = asset.type === 'video';
@@ -149,6 +175,9 @@ function Lightbox({ asset, onClose }) {
         )}
         <p className="text-white text-sm mt-3">{asset.title}</p>
         <p className="text-white/50 text-xs mt-1">{asset.description}</p>
+        <div className="mt-3">
+          <TryInStudioButton asset={asset} />
+        </div>
       </div>
     </div>
   );

@@ -106,7 +106,21 @@ export function injectMinimaxStyles() {
       animation: mmxChipPulse 2.4s ease-in-out infinite;
     }
 
+    /* RepoShowcase filterable grid */
+    @keyframes mmxPop {
+      from { opacity: 0; transform: translateY(10px) scale(0.985); }
+      to   { opacity: 1; transform: none; }
+    }
+    .mmx-card.mmx-pop { animation: mmxPop 0.42s cubic-bezier(0.22, 1, 0.36, 1) both; }
+    .mmx-filter-tab, .mmx-filter-model { cursor: pointer; }
+    .mmx-filter-tab:focus-visible,
+    .mmx-filter-model:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.5);
+    }
+
     @media (prefers-reduced-motion: reduce) {
+      .mmx-card.mmx-pop { animation: none; }
       .mmx-reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
       .mmx-card, .mmx-frame img { transition: none !important; }
       .mmx-card:hover { transform: none !important; }
@@ -148,12 +162,11 @@ export function goToRoute(route, params = {}) {
 /**
  * "Create This Style" CTA.
  *
- * Rendered as a real anchor so it is bookmarkable and keyboard/middle-click
- * friendly, but navigation is handled in-app by the hash router (a plain
- * `/commercial` request would 404 on the server — see common/Header.jsx).
- *
- * The destination comes from getCreateTarget() in the manifest; no component
- * ever hardcodes a studio URL.
+ * Rendered as a real anchor so it is bookmarkable and middle-click friendly,
+ * but a primary click stages a studio prefill (prompt + model + aspect ratio)
+ * and navigates in-app so the destination studio opens pre-filled. A plain
+ * `/commercial` request would 404 on the server (hash router), and even within
+ * the SPA the studio only reads the prefill we stage here.
  */
 export function createStyleLink(demo, options = {}) {
   const { label = 'Create This Style', variant = 'primary', block = false } = options;
@@ -184,13 +197,16 @@ export function createStyleLink(demo, options = {}) {
     </svg>`;
   link.setAttribute('aria-label', `${label}: ${demo.title}`);
 
-  link.addEventListener('click', (event) => {
-    // Preserve modifier-click / middle-click behaviour.
+  link.addEventListener('click', async (event) => {
+    // Preserve modifier-click / middle-click behaviour (open in new tab).
     if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
       return;
     }
     event.preventDefault();
-    goToRoute(target.route, target.params);
+    // Stage the prefill and route in-app. The destination studio loads the
+    // prompt text lazily from minimaxH3Prompts; we pass what we can now.
+    const { openDemoInStudio } = await import('../../../../data/minimaxH3Demos.js');
+    await openDemoInStudio(demo);
   });
 
   return link;
@@ -233,6 +249,12 @@ export function categoryBadge(text, options = {}) {
   const tones = {
     cyan: 'border-cyan-400/25 bg-cyan-400/10 text-cyan-300',
     neutral: 'border-white/12 bg-white/5 text-white/70',
+    // Academy source badge. `--color-accent` (#a855f7) lives in variables.css
+    // :root but is not registered in global.css @theme, so there is no
+    // `border-accent`/`bg-accent` utility — arbitrary properties keep the badge
+    // token-driven without relying on an opacity modifier over a CSS var.
+    purple:
+      '[border-color:color-mix(in_srgb,var(--color-accent)_30%,transparent)] [background-color:color-mix(in_srgb,var(--color-accent)_12%,transparent)] [color:var(--color-accent)]',
   };
   return `<span class="inline-flex items-center rounded-full border ${tones[tone] || tones.cyan} px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em]">${escapeHtml(text)}</span>`;
 }

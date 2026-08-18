@@ -18,7 +18,6 @@ const ALL_APPS = [
   { id: 'training', title: 'Training', description: 'Teach users how to use the platform, create sellable assets, package services, and build an AI video agency.', link: '/training' },
   { id: 'videotools', title: 'Video Tools', description: 'Access utility tools for enhancing, converting, modifying, preparing, and improving video assets.', link: '/videotools' },
   { id: 'render', title: 'Render', description: 'Preview, organize, export, and prepare final outputs for download, editing, delivery, or client presentation.', link: '/render' },
-  { id: 'video-agent', title: 'Video Agent', description: 'Use AI agents to assist with video creation, editing decisions, creative direction, workflow steps, and content generation.', link: '/video-agent' },
   { id: 'director', title: 'Director', description: 'Turn prompts, concepts, scripts, and creative ideas into directed cinematic scenes and structured video plans.', link: '/director' },
   { id: 'timeline', title: 'Timeline', description: 'Arrange scenes, assets, clips, shots, captions, audio, and creative elements inside a structured video timeline.', link: '/timeline' },
   { id: 'runway-motion', title: 'Motion', description: 'Generate camera movement, scene motion, product motion, character motion, and cinematic animation effects.', link: '/runway-motion' },
@@ -32,9 +31,7 @@ const ALL_APPS = [
   { id: 'community', title: 'Community', description: 'Showcase examples, discover creative workflows, highlight user creations, and build a community around AI video creation.', link: '/community' },
   { id: 'assist', title: 'Assist', description: 'Use guided AI help for prompts, workflows, studio selection, creative improvement, and project completion.', link: '/assist' },
   { id: 'lip-sync', title: 'Lip Sync', description: 'Generate accurate lip sync for any video, character, or avatar in any language for natural-looking dubbed content.', link: '/lipsync' },
-  { id: 'workflows', title: 'Workflows', description: 'Run repeatable AI creative workflows for generating, editing, enhancing, rendering, and packaging content faster.', link: '/workflows' },
   { id: 'agents', title: 'Agents', description: 'Use specialized AI agents for creative direction, editing, storyboarding, video creation, pitch improvement, and production planning.', link: '/agents' },
-  { id: 'mcp-cli', title: 'MCP & CLI', description: 'Control advanced workflows, connect tools, automate tasks, and extend the platform with agent-ready command and integration support.', link: '/mcp-cli' }
 ];
 
 let globalStylesAdded = false;
