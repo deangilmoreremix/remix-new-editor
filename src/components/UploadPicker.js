@@ -1068,8 +1068,15 @@ export function createUploadPicker({
                 // Upload a single file into the targeted frame slot.
                 const slot = pendingFrameSlot || firstEmptyFrameSlot();
                 const file = files[0];
-                const result = await uploadWithRetry(file, { state: minState, showToast, signal });
-                if (!result.success) throw new Error(result.error || 'Upload failed');
+                // Do NOT pass showToast: processFileUpload would otherwise show its
+                // own toast, and the catch below would show a duplicate. The picker
+                // owns the single user-facing message.
+                const result = await uploadWithRetry(file, { state: minState, showToast: null, signal });
+                if (!result.success) {
+                    const upErr = new Error(result.error || 'Upload failed');
+                    if (result.errorStatus) upErr.status = result.errorStatus;
+                    throw upErr;
+                }
                 const { asset } = result;
                 const entry = {
                     id: Date.now().toString() + Math.random(),
@@ -1090,11 +1097,13 @@ export function createUploadPicker({
                 const file = files[0];
                 const result = await uploadWithRetry(file, {
                     state: minState,
-                    showToast,
+                    showToast: null,
                     signal
                 });
                 if (!result.success) {
-                    throw new Error(result.error || 'Upload failed');
+                    const upErr = new Error(result.error || 'Upload failed');
+                    if (result.errorStatus) upErr.status = result.errorStatus;
+                    throw upErr;
                 }
                 const { asset } = result;
                 const entry = { id: Date.now().toString(), name: file.name, uploadedUrl: asset.url, thumbnail: asset.thumbnail, type: asset.type || muapiCategoryForFile(file) };
@@ -1111,7 +1120,7 @@ export function createUploadPicker({
                     toUpload.map(async (file) => {
                         const result = await uploadWithRetry(file, {
                             state: minState,
-                            showToast,
+                            showToast: null,
                             signal
                         });
                         if (!result.success) {

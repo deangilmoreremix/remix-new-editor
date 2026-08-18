@@ -1,7 +1,7 @@
 import { muapi } from '../lib/muapi.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
-import { formatErrorMessage } from '../lib/errorMessages.js';
+import { uploadMediaFile } from '../lib/editor/upload.js';
 import { createSafeVideo } from '../lib/security.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
@@ -328,8 +328,7 @@ export function VideoStudio() {
 
         showVideoSpinner();
         try {
-            const url = await muapi.uploadFile(file);
-            if (!url) throw new Error('Upload returned no URL');
+            const url = await uploadMediaFile(file);
             uploadedVideoUrl = url;
             showVideoReady(file.name);
 
@@ -350,7 +349,7 @@ export function VideoStudio() {
         } catch (err) {
             console.error('[VideoStudio] Video upload failed:', err);
             showVideoIcon();
-            alert(`Video upload failed: ${formatErrorMessage(err)}`);
+            alert(`Video upload failed: ${err.message}`);
         }
         videoFileInput.value = '';
     };

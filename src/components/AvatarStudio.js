@@ -3,9 +3,7 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { avatarModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
-import { processFileUpload } from '../lib/editor/uploadPipeline.js';
-import { formatErrorMessage } from '../lib/errorMessages.js';
-import { showToast } from '../lib/loading.js';
+import { uploadMediaFile } from '../lib/editor/upload.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { createInlineInstructions } from './InlineInstructions.js';
@@ -221,21 +219,9 @@ export function AvatarStudio() {
     }
 
     try {
-      const minState = {
-        tracks: [],
-        assets: [],
-        mediaLibrary: [],
-        undoStack: [],
-        redoStack: [],
-        selectedClipId: null
-      };
-      const result = await processFileUpload(file, { state: minState, showToast });
-      if (!result.success) {
-        throw new Error(result.error || 'Upload failed');
-      }
-      uploadedAudioUrl = result.asset.url;
+      uploadedAudioUrl = await uploadMediaFile(file);
     } catch (err) {
-      alert(`Error: ${formatErrorMessage(err)}`);
+      alert(`Error: ${err.message}`);
     } finally {
       audioInput.value = '';
     }

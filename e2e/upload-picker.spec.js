@@ -181,3 +181,77 @@ test.describe('UploadPicker — successful upload path (offline mock)', () => {
     ).toBeGreaterThanOrEqual(2);
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Insufficient credits / not signed in (402) path
+//
+// Offline mock: the muapi proxy returns 402 (no credits). The user must see the
+// SINGLE actionable message "Please sign in and add api credits." for BOTH the
+// image picker (toast) and the video studio (alert). This guards the regression
+// where every failure collapsed to the generic "Upload returned no URL".
+// ─────────────────────────────────────────────────────────────────────────────
+test.describe('Upload — insufficient credits (402) shows actionable message', () => {
+  test.beforeEach(async ({ page }) => {
+    // Inject a fake (obfuscated) MuAPI key so the no-key guard is bypassed and
+    // the upload actually reaches the (mocked) proxy.
+    await page.addInitScript(({ key, storageKey, salt }) => {
+      try {
+        const obfuscated = btoa(salt + key);
+        sessionStorage.setItem(storageKey, obfuscated);
+        localStorage.setItem(storageKey, obfuscated);
+      } catch (e) { /* storage may be disabled */ }
+    }, { key: FAKE_MUAPI_KEY, storageKey: MUAPI_STORAGE_KEY, salt: OBFUSCATION_SALT });
+
+    // Mock the proxy to reject with 402 (no credits).
+    await page.route('**/muapi-proxy**', (route) =>
+      route.fulfill({
+        status: 402,
+        contentType: 'application/json',
+        body: JSON.stringify({ detail: 'Insufficient credits', code: 'INSUFFICIENT_CREDITS' }),
+      })
+    );
+  });
+
+  test('image studio picker shows "Please sign in and add api credits." on 402', async ({ page }) => {
+    const pageErrors = [];
+    page.on('pageerror', (e) => pageErrors.push(String(e)));
+
+    await page.goto('/#/image');
+    await page.waitForTimeout(1000);
+
+    const fileInput = page.locator('input[type="file"]').first();
+    await fileInput.setInputFiles(IMG);
+
+    // The friendly, actionable message must be visible as a toast.
+    await expect(
+      page.getByText('Please sign in and add api credits.', { exact: false }),
+      'image picker should surface the credits message on 402'
+    ).toBeVisible({ timeout: 8000 });
+
+    expect(pageErrors, `Uncaught errors in image picker: ${pageErrors.join(' | ')}`).toEqual([]);
+  });
+
+  test('video studio shows "Please sign in and add api credits." on 402', async ({ page }) => {
+    const dialogs = [];
+    page.on('dialog', (d) => {
+      dialogs.push(d.message());
+      d.dismiss().catch(() => {});
+    });
+
+    await page.goto('/#/video');
+    await page.waitForTimeout(1000);
+
+    // Open the video upload picker, then choose a file via the file chooser.
+    const [fileChooser] = await Promise.all([
+      page.waitForEvent('filechooser'),
+      page.locator('button[title="Upload video to remove watermark"]').click(),
+    ]);
+    await fileChooser.setFiles(IMG);
+    await page.waitForTimeout(1500);
+
+    expect(
+      dialogs.some((m) => /Please sign in and add api credits\./.test(m)),
+      `Expected friendly credits dialog, got: ${dialogs.join(' | ') || '(none)'}`
+    ).toBe(true);
+  });
+});

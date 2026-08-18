@@ -453,7 +453,7 @@ export async function processFileUpload(file, options = {}) {
     publicUrl = await uploadWithRetry(() => muapi.uploadFile(file), opts);
   } catch (e) {
     if (opts.showToast) opts.showToast(uploadErrorToast(e, fileName), 'error');
-    return { success: false, error: e.message || 'Upload failed', validation };
+    return { success: false, error: e.message || 'Upload failed', errorStatus: e.status, validation };
   }
 
   // Step 4: Generate thumbnail (use the one from fullMeta, or fall back)
@@ -589,7 +589,8 @@ export async function processMultipleFileUploads(files, options = {}) {
       } else {
         results.push(result.value);
         if (result.value?.success === false && opts.showToast) {
-          opts.showToast(uploadErrorToast(result.value.error || `Upload failed for ${fileName}`, fileName), 'error');
+          const reason = { message: result.value.error || `Upload failed for ${fileName}`, status: result.value.errorStatus };
+          opts.showToast(uploadErrorToast(reason, fileName), 'error');
         }
       }
     }

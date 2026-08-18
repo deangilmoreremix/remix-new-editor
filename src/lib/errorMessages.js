@@ -37,14 +37,21 @@ export function formatErrorMessage(err, fallback = 'Request failed') {
     m.includes('api key not configured') ||
     m.includes('not configured') ||
     m.includes('sign in') ||
+    m.includes('forbidden') ||
     m.includes('401') ||
     m.includes('403');
 
   const isCredit =
-    status === 402 ||
+    status === 402 || status === 422 ||
     m.includes('insufficient credit') ||
     m.includes('402') ||
-    m.includes('credit');
+    m.includes('credit') ||
+    m.includes('payment') ||
+    m.includes('quota') ||
+    m.includes('balance') ||
+    m.includes('subscribe') ||
+    m.includes('expired') ||
+    m.includes('plan');
 
   if (isAuth || isCredit) {
     return 'Please sign in and add api credits.';

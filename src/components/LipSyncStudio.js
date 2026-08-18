@@ -1,7 +1,7 @@
 import { muapi } from '../lib/muapi.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
-import { formatErrorMessage } from '../lib/errorMessages.js';
+import { uploadMediaFile } from '../lib/editor/upload.js';
 import { lipsyncModels, imageLipSyncModels, videoLipSyncModels, getLipSyncModelById, getResolutionsForLipSyncModel } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
@@ -691,13 +691,12 @@ export function LipSyncStudio() {
         if (!apiKey) { AuthModal(() => imageFileInput.click()); return; }
         updateImageUploadState('loading');
         try {
-            const url = await muapi.uploadFile(file);
+            const url = await uploadMediaFile(file);
             uploadedImageUrl = url;
-            if (!uploadedImageUrl) throw new Error('Upload returned no URL');
             updateImageUploadState('ready', file.name);
         } catch (err) {
             updateImageUploadState('idle');
-            alert(`Image upload failed: ${formatErrorMessage(err)}`);
+            alert(`Image upload failed: ${err.message}`);
         }
         imageFileInput.value = '';
     };
@@ -719,13 +718,12 @@ export function LipSyncStudio() {
         if (!apiKey) { AuthModal(() => videoFileInput.click()); return; }
         updateVideoUploadState('loading');
         try {
-            const url = await muapi.uploadFile(file);
+            const url = await uploadMediaFile(file);
             uploadedVideoUrl = url;
-            if (!uploadedVideoUrl) throw new Error('Upload returned no URL');
             updateVideoUploadState('ready', file.name);
         } catch (err) {
             updateVideoUploadState('idle');
-            alert(`Video upload failed: ${formatErrorMessage(err)}`);
+            alert(`Video upload failed: ${err.message}`);
         }
         videoFileInput.value = '';
     };
@@ -747,13 +745,12 @@ export function LipSyncStudio() {
         if (!apiKey) { AuthModal(() => audioFileInput.click()); return; }
         updateAudioUploadState('loading');
         try {
-            const url = await muapi.uploadFile(file);
+            const url = await uploadMediaFile(file);
             uploadedAudioUrl = url;
-            if (!uploadedAudioUrl) throw new Error('Upload returned no URL');
             updateAudioUploadState('ready', file.name);
         } catch (err) {
             updateAudioUploadState('idle');
-            alert(`Audio upload failed: ${formatErrorMessage(err)}`);
+            alert(`Audio upload failed: ${err.message}`);
         }
         audioFileInput.value = '';
     };
