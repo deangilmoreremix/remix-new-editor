@@ -285,7 +285,6 @@ export function VideoStudio() {
     recipeBtn.addEventListener('click', () => {
       openRecipeModal({
         onRunRecipe: (url) => {
-          console.log('[Recipe] finished:', url);
         }
       }).catch((err) => console.error('[Recipe] open failed:', err));
     });
@@ -1233,7 +1232,6 @@ export function VideoStudio() {
         try {
             if (v2vMode) {
                 const res = await muapi.processV2V({ model: selectedModel, video_url: uploadedVideoUrl });
-                console.log('[VideoStudio] V2V response:', res);
                 if (res && res.url) {
                     const genId = res.id || res.request_id || Date.now().toString();
                     lastGenerationId = null;
@@ -1270,8 +1268,6 @@ export function VideoStudio() {
                 }
 
                 const res = await muapi.generateI2V(i2vParams);
-                console.log('[VideoStudio] I2V response:', res);
-
                 if (res && res.url) {
                     const genId = res.id || res.request_id || Date.now().toString();
                     if (selectedModel === 'seedance-v2.0-i2v') {
@@ -1322,8 +1318,6 @@ export function VideoStudio() {
             }
 
             const res = await muapi.generateVideo(params);
-
-            console.log('[VideoStudio] Full response:', res);
 
             if (res && res.url) {
                 const genId = res.id || res.request_id || Date.now().toString();

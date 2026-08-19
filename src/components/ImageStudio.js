@@ -160,7 +160,6 @@ export function ImageStudio() {
     recipeBtn.addEventListener('click', () => {
       openRecipeModal({
         onRunRecipe: (url) => {
-          console.log('[Recipe] finished:', url);
         }
       }).catch((err) => console.error('[Recipe] open failed:', err));
     });
@@ -1209,8 +1208,6 @@ export function ImageStudio() {
                 if (qualityField && qualityLabel) genParams[qualityField] = qualityLabel;
                 res = await muapi.generateImage(genParams);
             }
-
-            console.log('[ImageStudio] Full response:', res);
 
             if (res && res.url) {
                 // Add to history

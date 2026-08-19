@@ -391,7 +391,6 @@ export function LipSyncStudio() {
     recipeBtn.addEventListener('click', () => {
       openRecipeModal({
         onRunRecipe: (url) => {
-          console.log('[Recipe] finished:', url);
         }
       }).catch((err) => console.error('[Recipe] open failed:', err));
     });
@@ -917,8 +916,6 @@ export function LipSyncStudio() {
             if (nativeAudio) lipsyncParams.native_audio = nativeAudio;
 
             const res = await muapi.processLipSync(lipsyncParams);
-            console.log('[LipSyncStudio] Response:', res);
-
             if (res && res.url) {
                 if (capturedRequestId) removePendingJob(capturedRequestId);
                 const genId = res.id || capturedRequestId || Date.now().toString();
