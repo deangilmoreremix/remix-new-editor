@@ -7,6 +7,7 @@ import socialPublishing, {
 } from '../../lib/socialPublishing';
 
 import { enhanceSocialPostText, TONALITIES } from '../../lib/socialPostEnhancer';
+import openaiConfig from '../../lib/config/openaiConfig.js';
 // The thumbnail creator is lazy-loaded on demand (see handleCreateThumbnail) so
 // the publish modal stays lightweight until the user opts into a thumbnail.
 import { seedThumbnailFieldsFromSocialCopy } from '../../lib/socialPublisherThumbnail';
@@ -498,6 +499,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
   const [connectingPlatform, setConnectingPlatform] = useState(null);
   const [status, setStatus] = useState('idle'); // idle | connecting | publishing | success | error
   const [progress, setProgress] = useState('');
+  const [selectedModel, setSelectedModel] = useState(() => openaiConfig?.getResponsesModel?.() || 'gpt-4.1-mini');
   const [errorMsg, setErrorMsg] = useState(null);
   const [resultUrl, setResultUrl] = useState('');
 
@@ -649,6 +651,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
         field,
         platform: platformOfSelected || 'social',
         tone: toneId ? TONALITIES.find((t) => t.id === toneId) : null,
+        model: selectedModel,
       });
       updateForm(field, improved);
       setDraftSaved(false);
@@ -660,7 +663,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
   };
 
   // Re-enhance the CURRENT field content (the text already in the box) with a
-  // fresh angle/goal, so the user can keep rerolling until it's right.
+  // fresh angle/goal, so the user can keep rerolling until the copy is right.
   const handleReroll = async (field, goal, currentText) => {
     if (enhancing) return;
     const value = (currentText || form[field] || '').trim();
@@ -676,6 +679,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
         field,
         platform: platformOfSelected || 'social',
         tone: toneId ? TONALITIES.find((t) => t.id === toneId) : null,
+        model: selectedModel,
         goal,
       });
       updateForm(field, improved);
@@ -981,6 +985,18 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
               <option value="">Default (no specific tone)</option>
               {TONALITIES.map((t) => (
                 <option key={t.id} value={t.id}>{t.label}{t.premium ? ' · Premium' : ''}</option>
+              ))}
+            </select>
+          </div>
+          <div style={{ display: 'flex', gap: 10, marginTop: 10, alignItems: 'center' }}>
+            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', whiteSpace: 'nowrap' }}>Model:</span>
+            <select
+              style={{ ...inputStyle, flex: 1 }}
+              value={selectedModel}
+              onChange={(e) => setSelectedModel(e.target.value)}
+            >
+              {(openaiConfig?.defaultConfig?.supportedResponsesModels || []).map((m) => (
+                <option key={m} value={m}>{m}</option>
               ))}
             </select>
           </div>
