@@ -11,7 +11,8 @@
   "scripts": {
     "dev": "vite --port 3100",
     "dev:all": "concurrently -n root,aivfx -c magenta,green \"npm run dev\" \"npm run dev --workspace apps/ai-vfx\"",
-    "build": "rm -rf dist && vite build && npm run build --workspace apps/ai-vfx && cp -R apps/ai-vfx/dist dist/ai-vfx",
+    "build": "rm -rf dist && vite build",
+    "build:ai-vfx": "npm run build --workspace apps/ai-vfx",
     "build:analyze": "vite build --mode analyze",
     "preview": "vite preview",
     "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
@@ -20,6 +21,7 @@
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
     "clean": "rm -rf dist",
+    "clean:ai-vfx": "rm -rf apps/ai-vfx/.next",
     "build:packages": "npm run build --workspaces --if-present",
     "dev:packages": "npm run dev --workspaces --if-present",
     "dev:backend": "cd backend && npm run dev"

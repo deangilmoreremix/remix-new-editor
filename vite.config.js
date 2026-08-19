@@ -1125,11 +1125,13 @@ export default defineConfig({
                 secure: true,
                 rewrite: (path) => path.replace(/^\/api/, ''),
             },
-            // Proxy AI-VFX studio dev server so the iframe embed loads same-origin
-            // (localhost:3000/ai-vfx/) instead of cross-origin (localhost:3002/ai-vfx).
+            // Proxy AI-VFX studio dev server (Next.js app from upstream
+            // SamurAIGPT/AI-VFX) so the iframe embed loads same-origin
+            // (localhost:3100/ai-vfx/) instead of cross-origin (localhost:3000/ai-vfx).
             '/ai-vfx': {
-                target: 'http://localhost:3002',
+                target: 'http://localhost:3000',
                 changeOrigin: true,
+                ws: true,
             },
         },
     },
