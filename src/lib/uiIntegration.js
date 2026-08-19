@@ -38,6 +38,31 @@ async function defaultGenerateThumbnail(prompt) {
 }
 
 /**
+ * Fetch GTM (Google -> Template -> Modal) template context for a given template.
+ * Enriches the template with GTM-specific fields like basePrompt, industry, role,
+ * methodology, and tonality so the GTM Prompt Enhancer modal can be pre-filled.
+ * @param {object} template - The template object from the studio
+ * @returns {Promise<object>} Enriched GTM context object
+ */
+export async function fetchGTMTemplateContext(template) {
+  if (!template || typeof template !== 'object') return {};
+
+  return {
+    basePrompt: template.description || template.prompt_seed || template.long_description || '',
+    industry: template.category || template.niche || '',
+    role: template.coreUseCase || template.targetAudience || template.role || '',
+    methodology: template.templateType || template.filmType || template.storyStructure || '',
+    tonality: template.tone || template.visualStyle || '',
+    templateId: template.id || '',
+    category: template.category || '',
+    niche: template.niche || '',
+    outputType: template.outputType || 'video',
+    aspectRatio: template.aspectRatio || template.aspectRatios?.[0] || '16:9',
+    duration: template.duration?.default || template.duration || 30,
+  };
+}
+
+/**
  * Open the GTM Prompt Enhancer modal
  * Shared utility used by all apps (timeline-editor, image-studio, video-studio, etc.)
  * @param {string} appTheme - The app theme identifier for color customization

@@ -41,7 +41,7 @@ export class GTMPromptModal extends BaseModal {
     this.selectedMethodology = '';
     this.selectedTonality = '';
     this.selectedModel = this._readStoredModel();
-    this.basePrompt = '';
+    this.basePrompt = options.templateContext?.basePrompt || '';
     this.generatedPrompt = '';
     this.templateContext = options.templateContext || null;
 

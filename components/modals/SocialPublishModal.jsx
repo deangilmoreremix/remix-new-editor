@@ -500,7 +500,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
   const [status, setStatus] = useState('idle'); // idle | connecting | publishing | success | error
   const [progress, setProgress] = useState('');
   const [selectedModel, setSelectedModel] = useState(() => openaiConfig?.getResponsesModel?.() || 'gpt-4.1-mini');
-  const [lastResponseId, setLastResponseId] = useState('');
+  const [lastResponseIds, setLastResponseIds] = useState({}); // field -> responseId
   const [errorMsg, setErrorMsg] = useState(null);
   const [resultUrl, setResultUrl] = useState('');
 
@@ -655,7 +655,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
         model: selectedModel,
       });
       updateForm(field, improved);
-      if (responseId) setLastResponseId(responseId);
+      if (responseId) setLastResponseIds((prev) => ({ ...prev, [field]: responseId }));
       setDraftSaved(false);
     } catch (e) {
       setErrorMsg(e.message || 'Could not enhance text.');
@@ -682,11 +682,11 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
         platform: platformOfSelected || 'social',
         tone: toneId ? TONALITIES.find((t) => t.id === toneId) : null,
         model: selectedModel,
-        previousResponseId: lastResponseId || undefined,
+        previousResponseId: lastResponseIds[field] || undefined,
         goal,
       });
       updateForm(field, improved);
-      if (responseId) setLastResponseId(responseId);
+      if (responseId) setLastResponseIds((prev) => ({ ...prev, [field]: responseId }));
       setDraftSaved(false);
     } catch (e) {
       setErrorMsg(e.message || 'Could not enhance text.');

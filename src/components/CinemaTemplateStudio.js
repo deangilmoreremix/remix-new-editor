@@ -3,10 +3,9 @@
  * UI Component for the Cinematic Template System
  */
 
-import { navigate } from '../lib/router.js';
 import { mountStudioDrawer, createStudioMenuButton } from '../lib/studioChrome.js';
 import { showToast } from '../lib/loading.js';
-import { escapeHtml, sanitizeUrl } from '../lib/security.js';
+import { escapeHtml } from '../lib/security.js';
 import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 import { muapi } from '../lib/muapi.js';
 import { StoryboardStudio } from './StoryboardStudio.js';
@@ -25,7 +24,7 @@ import {
 } from '../lib/cinematicTemplates.js';
 import { getVideoIntent, setVideoIntent, subscribeVideoIntent, resetVideoIntent } from '../lib/videoIntentStore.js';
 import { t2iModels, i2iModels, i2vModels, t2vModels, v2vModels, getV2VModelById } from '../lib/models.js';
-import { CINEMATIC_THEME, cx } from '../lib/cinematicTheme.js';
+import { CINEMATIC_THEME } from '../lib/cinematicTheme.js';
 
 import { getTemplateThumbnailCandidates, saveCustomThumbnailToCache, getCustomThumbnailFromCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
@@ -751,17 +750,26 @@ export function CinemaTemplateStudio() {
       }
       if (container.querySelector('#add-scene-btn')) {
         container.querySelector('#add-scene-btn').onclick = () => {
-          if (!sceneBuilder) return;
-          const scenes = sceneBuilder.getScenes();
-          const nextNumber = scenes.length ? Math.max(...scenes.map(s => s.sceneNumber || 0)) + 1 : 1;
-          sceneBuilder.addScene({
-            sceneNumber: nextNumber,
-            beat: `Scene ${nextNumber}`,
-            duration: 5,
-            shots: [{ type: 'MEDIUM', movement: 'STATIC', duration: 3, order: 1 }]
-          });
-          renderSceneBuilder();
-          renderSceneTimeline();
+          try {
+            if (!sceneBuilder) {
+              console.warn('[CinemaTemplateStudio] add-scene-btn clicked but sceneBuilder is missing');
+              return;
+            }
+            const scenes = sceneBuilder.getScenes();
+            const nextNumber = scenes.length ? Math.max(...scenes.map(s => s.sceneNumber || 0)) + 1 : 1;
+            sceneBuilder.addScene({
+              sceneNumber: nextNumber,
+              beat: `Scene ${nextNumber}`,
+              duration: 5,
+              shots: [{ type: 'MEDIUM', movement: 'STATIC', duration: 3, order: 1 }]
+            });
+            renderSceneBuilder();
+            renderSceneTimeline();
+            console.log('[CinemaTemplateStudio] Added scene', nextNumber, 'total scenes', sceneBuilder.getScenes().length);
+          } catch (err) {
+            console.error('[CinemaTemplateStudio] Add scene failed:', err);
+            showToast('Failed to add scene', 'error');
+          }
         };
       }
     }
@@ -1210,22 +1218,34 @@ export function CinemaTemplateStudio() {
 
     list.querySelectorAll('.delete-scene-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        sceneBuilder.removeScene(btn.dataset.id);
-        renderSceneBuilder();
-        renderSceneTimeline();
+        try {
+          sceneBuilder.removeScene(btn.dataset.id);
+          renderSceneBuilder();
+          renderSceneTimeline();
+          console.log('[CinemaTemplateStudio] Removed scene', btn.dataset.id);
+        } catch (err) {
+          console.error('[CinemaTemplateStudio] Remove scene failed:', err);
+          showToast('Failed to remove scene', 'error');
+        }
       });
     });
 
     list.querySelectorAll('.move-scene-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        const idx = parseInt(btn.dataset.idx, 10);
-        const dir = btn.dataset.dir;
-        const scenes = sceneBuilder.getScenes();
-        const newIdx = dir === 'up' ? idx - 1 : idx + 1;
-        if (newIdx < 0 || newIdx >= scenes.length) return;
-        sceneBuilder.moveScene(scenes[idx].id, newIdx);
-        renderSceneBuilder();
-        renderSceneTimeline();
+        try {
+          const idx = parseInt(btn.dataset.idx, 10);
+          const dir = btn.dataset.dir;
+          const scenes = sceneBuilder.getScenes();
+          const newIdx = dir === 'up' ? idx - 1 : idx + 1;
+          if (newIdx < 0 || newIdx >= scenes.length) return;
+          sceneBuilder.moveScene(scenes[idx].id, newIdx);
+          renderSceneBuilder();
+          renderSceneTimeline();
+          console.log('[CinemaTemplateStudio] Moved scene', scenes[idx].id, dir, 'to', newIdx);
+        } catch (err) {
+          console.error('[CinemaTemplateStudio] Move scene failed:', err);
+          showToast('Failed to move scene', 'error');
+        }
       });
     });
   }
@@ -2142,7 +2162,13 @@ export function CinemaTemplateStudio() {
       if (gtmBoostBtn) {
         gtmBoostBtn.onclick = async () => {
           try {
-            const ctx = (await import('../lib/uiIntegration.js').then(m => m.fetchGTMTemplateContext(currentTemplate)).catch(() => null)) || {};
+            const ctx = await import('../lib/uiIntegration.js').then(async (m) => {
+              const result = m.fetchGTMTemplateContext?.(currentTemplate);
+              if (result && typeof (result).then === 'function') {
+                return await result;
+              }
+              return result;
+            }).catch(() => null) || {};
             const basePrompt = (document.getElementById('outputTextarea')?.value) || currentTemplate.description || '';
             const templateContext = {
               ...ctx,

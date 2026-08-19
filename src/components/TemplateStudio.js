@@ -373,7 +373,11 @@ export function TemplateStudio(templateId) {
       try {
         // Fetch template-aware defaults from the backend so the modal
         // opens with the right industry/tonality/methodology pre-selected.
-        const ctx = await import('../lib/uiIntegration.js').then(m => m.fetchGTMTemplateContext(template)).catch(() => null);
+        const ctx = await import('../lib/uiIntegration.js').then(async (m) => {
+          const result = m.fetchGTMTemplateContext?.(template);
+          if (result && typeof result.then === 'function') return await result;
+          return result;
+        }).catch(() => null);
         // Merge: any pre-existing user input wins over the backend defaults.
         const basePrompt = promptEl.value || (ctx && ctx.basePrompt) || template.description || '';
         const templateContext = {
@@ -881,7 +885,11 @@ export function TemplateStudio(templateId) {
     if (gtmBoostBtn) {
       gtmBoostBtn.onclick = async () => {
         try {
-          const ctx = (await import('../lib/uiIntegration.js').then(m => m.fetchGTMTemplateContext(template)).catch(() => null)) || {};
+          const ctx = await import('../lib/uiIntegration.js').then(async (m) => {
+            const result = m.fetchGTMTemplateContext?.(template);
+            if (result && typeof result.then === 'function') return await result;
+            return result;
+          }).catch(() => null) || {};
           const basePrompt = (document.getElementById('outputTextarea')?.value) || template.description || '';
           const templateContext = {
             ...ctx,
