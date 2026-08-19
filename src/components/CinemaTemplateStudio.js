@@ -78,10 +78,8 @@ export function CinemaTemplateStudio() {
       backBtn.parentElement.insertBefore(menuBtn, backBtn);
     });
   }
+  }
 
-  // ================================
-  // BROWSE VIEW
-  // ================================
   function renderBrowseView() {
     const header = document.createElement('div');
     header.className = 'flex items-center justify-between p-4 border-b border-white/10 bg-black/50';
@@ -112,18 +110,54 @@ export function CinemaTemplateStudio() {
         <button id="custom-btn" class="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-secondary text-sm rounded-lg transition-colors flex items-center gap-2">
           <span>✨</span> My Templates
         </button>
-        </div>
-      `;
-      } else {
-          TemplateStorage.addFavorite(template.id);
-        }
-        render();
-        return;
-      }
-      selectTemplate(template);
-    };
+      </div>
+    `;
+    container.appendChild(header);
 
-    return card;
+    const templatesGrid = document.createElement('div');
+    templatesGrid.className = 'flex-1 overflow-auto p-6';
+    templatesGrid.innerHTML = `
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        ${registry.getAll().map(template => `
+          <div class="template-card bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-primary/50 hover:bg-white/[0.07] transition-all cursor-pointer group" data-template-id="${template.id}">
+            <div class="flex items-start justify-between mb-3">
+              <div class="text-4xl">${template.icon}</div>
+              <button class="favorite-btn text-white/20 hover:text-red-400 transition-colors p-1" data-template-id="${template.id}">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+              </button>
+            </div>
+            <h3 class="text-white font-bold mb-1 group-hover:text-primary transition-colors">${escapeHtml(template.name)}</h3>
+            <p class="text-secondary text-sm mb-3 line-clamp-2">${escapeHtml(template.description || '')}</p>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-1 bg-white/5 rounded-md text-xs text-white/60">${template.category}</span>
+              <span class="px-2 py-1 bg-white/5 rounded-md text-xs text-white/60">${template.duration?.default || 30}s</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    container.appendChild(templatesGrid);
+
+    templatesGrid.querySelectorAll('.template-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('.favorite-btn')) return;
+        const templateId = card.dataset.templateId;
+        const template = registry.getById(templateId);
+        if (template) {
+          selectTemplate(template);
+        }
+      });
+    });
+
+    templatesGrid.querySelectorAll('.favorite-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const templateId = btn.dataset.templateId;
+        TemplateStorage.addFavorite(templateId);
+        showToast('Added to favorites!', 'success');
+      });
+    });
   }
 
   function selectTemplate(template) {
@@ -631,8 +665,6 @@ export function CinemaTemplateStudio() {
     autoGenBtn?.addEventListener('click', () => {
       autoGenerateStoryboard();
     });
-  }
-
 
     // Prompt Gallery button
     const promptGalleryBtn = document.createElement('button');
@@ -671,7 +703,6 @@ export function CinemaTemplateStudio() {
       }).catch((err) => console.error('[Recipe] open failed:', err));
     });
 
-
     // Monetization Hub button
     const monetizationBtn = document.createElement('button');
     monetizationBtn.type = 'button';
@@ -684,6 +715,7 @@ export function CinemaTemplateStudio() {
     });
     container.appendChild(recipeBtn);
     container.appendChild(monetizationBtn);
+  }
 
   function autoGenerateStoryboard() {
     if (!sceneBuilder || !storyboardBuilder) return;
