@@ -53,6 +53,15 @@ export class PromptGalleryModal extends BaseModal {
     return this.favorites.some(f => f.id === prompt.id);
   }
 
+  _escapeHtml(str) {
+    if (typeof str !== 'string') return '';
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
   _refresh() {
     if (this.container) {
       this.render();
