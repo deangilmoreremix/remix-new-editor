@@ -7,6 +7,7 @@ import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/pe
 import { openaiService } from '../lib/openaiService.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
+import { openModelPicker } from '../lib/modelPickerIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 
@@ -124,6 +125,18 @@ export function StoryboardStudio() {
     URL.revokeObjectURL(url);
   };
   controlBar.appendChild(exportBtn);
+
+  // Model Picker button
+  const modelPickerBtn = document.createElement('button');
+  modelPickerBtn.type = 'button';
+  modelPickerBtn.textContent = 'AI Pick';
+  modelPickerBtn.title = 'Open intelligent model picker';
+  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
+  modelPickerBtn.className = 'text-[11px] font-bold text-cyan-400 border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 rounded-lg hover:bg-cyan-400/20 transition-colors ml-2 whitespace-nowrap';
+  modelPickerBtn.addEventListener('click', () => {
+    openModelPicker({}).catch((err) => console.error('[ModelPicker] open failed:', err));
+  });
+  controlBar.appendChild(modelPickerBtn);
 
   container.appendChild(controlBar);
 

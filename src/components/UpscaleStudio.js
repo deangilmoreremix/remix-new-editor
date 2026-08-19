@@ -5,6 +5,7 @@ import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
+import { openModelPicker } from '../lib/modelPickerIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 
@@ -53,6 +54,28 @@ export function UpscaleStudio() {
     methodBtns[m.id] = btn;
     methodRow.appendChild(btn);
   });
+  // Model Picker button
+  const modelPickerBtn = document.createElement('button');
+  modelPickerBtn.type = 'button';
+  modelPickerBtn.textContent = 'AI Pick';
+  modelPickerBtn.title = 'Open intelligent model picker';
+  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
+  modelPickerBtn.className = 'text-[11px] font-bold text-cyan-400 border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 rounded-lg hover:bg-cyan-400/20 transition-colors ml-2 whitespace-nowrap';
+  modelPickerBtn.addEventListener('click', () => {
+    openModelPicker({
+      currentModelId: selectedMethod.id,
+      onSelectModel: (id) => {
+      const m = UPSCALE_METHODS.find(x => x.id === id);
+      if (m) {
+        selectedMethod = m;
+        selectedFactor = m.factors[0] || '';
+        updateMethodBtns();
+        updateFactorBtns();
+      }
+      }
+    }).catch((err) => console.error('[ModelPicker] open failed:', err));
+  });
+  methodRow.appendChild(modelPickerBtn);
   container.appendChild(methodRow);
 
   const factorRow = document.createElement('div');

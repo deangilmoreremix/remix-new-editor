@@ -8,6 +8,7 @@ import { i2iModels, i2vModels } from '../lib/models.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
+import { openModelPicker } from '../lib/modelPickerIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 
@@ -67,6 +68,23 @@ export function EffectsStudio() {
     tabButtons[tab.id] = btn;
     tabRow.appendChild(btn);
   });
+  // Model Picker button
+  const modelPickerBtn = document.createElement('button');
+  modelPickerBtn.type = 'button';
+  modelPickerBtn.textContent = 'AI Pick';
+  modelPickerBtn.title = 'Open intelligent model picker';
+  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
+  modelPickerBtn.className = 'text-[11px] font-bold text-cyan-400 border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 rounded-lg hover:bg-cyan-400/20 transition-colors ml-2 whitespace-nowrap';
+  modelPickerBtn.addEventListener('click', () => {
+    openModelPicker({
+      currentModelId: activeTab.id,
+      onSelectModel: (id) => {
+      const tab = EFFECT_TABS.find(t => t.id === id);
+      if (tab) switchTab(tab);
+      }
+    }).catch((err) => console.error('[ModelPicker] open failed:', err));
+  });
+  tabRow.appendChild(modelPickerBtn);
 
   topBar.appendChild(tabRow);
 

@@ -14,6 +14,7 @@ import { sanitizeUrl } from '../lib/security.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
+import { openModelPicker } from '../lib/modelPickerIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 
@@ -323,6 +324,25 @@ export function TemplateStudio(templateId) {
     `;
     const modelSelect = modelWrapper.querySelector('#templateModelSelect');
     modelSelect.onchange = () => { selectedModel = modelSelect.value; };
+    // Model Picker button
+    const modelPickerBtn = document.createElement('button');
+    modelPickerBtn.type = 'button';
+    modelPickerBtn.textContent = 'AI Pick';
+    modelPickerBtn.title = 'Open intelligent model picker';
+    modelPickerBtn.setAttribute('aria-label', 'Open model picker');
+    modelPickerBtn.className = 'text-[11px] font-bold text-cyan-400 border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 rounded-lg hover:bg-cyan-400/20 transition-colors ml-2 whitespace-nowrap';
+    modelPickerBtn.addEventListener('click', () => {
+      openModelPicker({
+        currentModelId: selectedModel,
+        onSelectModel: (id) => {
+          selectedModel = id;
+          if (modelSelect.querySelector(`option[value="${id}"]`)) {
+            modelSelect.value = id;
+          }
+        }
+      }).catch((err) => console.error('[ModelPicker] open failed:', err));
+    });
+    modelWrapper.appendChild(modelPickerBtn);
     leftPanel.appendChild(modelWrapper);
 
     let fallbackList = [];
