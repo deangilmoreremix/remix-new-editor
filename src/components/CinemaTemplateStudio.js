@@ -3,10 +3,9 @@
  * UI Component for the Cinematic Template System
  */
 
-import { navigate } from '../lib/router.js';
 import { mountStudioDrawer, createStudioMenuButton } from '../lib/studioChrome.js';
 import { showToast } from '../lib/loading.js';
-import { escapeHtml, sanitizeUrl } from '../lib/security.js';
+import { escapeHtml } from '../lib/security.js';
 import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 import { muapi } from '../lib/muapi.js';
 import { StoryboardStudio } from './StoryboardStudio.js';
@@ -25,7 +24,7 @@ import {
 } from '../lib/cinematicTemplates.js';
 import { getVideoIntent, setVideoIntent, subscribeVideoIntent, resetVideoIntent } from '../lib/videoIntentStore.js';
 import { t2iModels, i2iModels, i2vModels, t2vModels, v2vModels, getV2VModelById } from '../lib/models.js';
-import { CINEMATIC_THEME, cx } from '../lib/cinematicTheme.js';
+import { CINEMATIC_THEME } from '../lib/cinematicTheme.js';
 
 import { getTemplateThumbnailCandidates, saveCustomThumbnailToCache, getCustomThumbnailFromCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
@@ -2142,7 +2141,13 @@ export function CinemaTemplateStudio() {
       if (gtmBoostBtn) {
         gtmBoostBtn.onclick = async () => {
           try {
-            const ctx = (await import('../lib/uiIntegration.js').then(m => m.fetchGTMTemplateContext(currentTemplate)).catch(() => null)) || {};
+            const ctx = await import('../lib/uiIntegration.js').then(async (m) => {
+              const result = m.fetchGTMTemplateContext?.(currentTemplate);
+              if (result && typeof (result).then === 'function') {
+                return await result;
+              }
+              return result;
+            }).catch(() => null) || {};
             const basePrompt = (document.getElementById('outputTextarea')?.value) || currentTemplate.description || '';
             const templateContext = {
               ...ctx,
