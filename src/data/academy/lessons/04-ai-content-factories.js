@@ -4,9 +4,7 @@
 // summary/time/prerequisites/relatedTemplateIds/relatedAssetIds are copied verbatim
 // from the catalog (src/data/academy/catalog.ts).
 
-import type { Lesson } from '../lesson-types';
-
-export const LESSONS_04: Lesson[] = [
+export const LESSONS_04 = [
   {
     id: '04-ai-content-factories::01-production-pipeline',
     slug: '04-ai-content-factories::01-production-pipeline',

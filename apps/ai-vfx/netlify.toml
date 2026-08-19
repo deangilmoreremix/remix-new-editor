@@ -1,0 +1,26 @@
+# Netlify build configuration for the AI-VFX Next.js app
+# (upstream SamurAIGPT/AI-VFX) deployed as a separate site at ai-vfx.smartvid.app
+[build]
+  base = "apps/ai-vfx"
+  command = "npm ci && npm run build"
+  publish = "apps/ai-vfx/.next"
+
+[build.environment]
+  NODE_VERSION = "20"
+  NPM_FLAGS = "--include=optional"
+  NEXT_TELEMETRY_DISABLED = "1"
+
+# Security headers for the Next.js app
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    # Allow this app to be framed by the parent shell (smartvid.app)
+    Content-Security-Policy = "frame-ancestors 'self' https://smartvid.app https://www.smartvid.app https://ai-vfx.smartvid.app"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=()"
+
+# Allow the MUAPI API key to be set as a build env var
+[template.env]
+  MUAPI_API_KEY = "MuAPI AI VFX generation API key"

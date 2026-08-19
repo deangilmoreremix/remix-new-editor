@@ -13,11 +13,20 @@ const DESIGN_SYSTEM = {
     text: 'var(--text)',
     muted: 'var(--muted)',
     dim: 'var(--dim)',
+    // Brand primary (neon #d9ff00) + the black that must sit on top of it.
+    // Every studio surface uses this pair for its main CTA, so the modal
+    // chrome uses it too instead of the old cyan/emerald accent.
+    primary: 'var(--primary)',
+    primarySoft: 'var(--primary-soft)',
+    onPrimary: 'var(--on-primary)',
+    primaryGlow: 'var(--primary-glow)',
+    danger: 'var(--danger)',
+    dangerSoft: 'rgba(239,68,68,0.2)',
+    // Legacy aliases — kept so existing rules keep resolving. Both now point
+    // at the brand primary via modal-styles.css.
     cyan: 'var(--cyan)',
     cyanSoft: 'var(--cyan-soft)',
-    emerald: 'var(--emerald)',
-    danger: 'var(--danger)',
-    dangerSoft: 'rgba(239,68,68,0.2)'
+    emerald: 'var(--emerald)'
   },
   radii: {
     xl: 'var(--radius-xl)',
@@ -125,9 +134,9 @@ const BASE_MODAL_STYLES = `
   }
   
   .modal-close:hover {
-    border-color: ${DESIGN_SYSTEM.colors.cyan};
-    background: ${DESIGN_SYSTEM.colors.cyanSoft};
-    color: ${DESIGN_SYSTEM.colors.cyan};
+    border-color: ${DESIGN_SYSTEM.colors.primary};
+    background: ${DESIGN_SYSTEM.colors.primarySoft};
+    color: ${DESIGN_SYSTEM.colors.primary};
     transform: translateY(-1px);
   }
   
@@ -183,18 +192,18 @@ const BASE_MODAL_STYLES = `
   
   .modal-btn:focus {
     outline: none;
-    box-shadow: 0 0 0 2px ${DESIGN_SYSTEM.colors.bg}, 0 0 0 4px ${DESIGN_SYSTEM.colors.cyan};
+    box-shadow: 0 0 0 2px ${DESIGN_SYSTEM.colors.bg}, 0 0 0 4px ${DESIGN_SYSTEM.colors.primary};
   }
   
   .modal-btn-primary {
-    background: linear-gradient(135deg, ${DESIGN_SYSTEM.colors.cyan}, ${DESIGN_SYSTEM.colors.emerald});
-    color: #03131a;
+    background: ${DESIGN_SYSTEM.colors.primary};
+    color: ${DESIGN_SYSTEM.colors.onPrimary};
     border-color: transparent;
   }
   
   .modal-btn-primary:hover {
     transform: translateY(-1px);
-    box-shadow: 0 8px 24px rgba(34,211,238,0.25);
+    box-shadow: 0 8px 24px ${DESIGN_SYSTEM.colors.primaryGlow};
   }
   
   .modal-btn-primary:active {
@@ -208,9 +217,9 @@ const BASE_MODAL_STYLES = `
   }
   
   .modal-btn-secondary:hover {
-    border-color: ${DESIGN_SYSTEM.colors.cyan};
-    background: ${DESIGN_SYSTEM.colors.cyanSoft};
-    color: ${DESIGN_SYSTEM.colors.cyan};
+    border-color: ${DESIGN_SYSTEM.colors.primary};
+    background: ${DESIGN_SYSTEM.colors.primarySoft};
+    color: ${DESIGN_SYSTEM.colors.primary};
     transform: translateY(-1px);
   }
   
@@ -246,7 +255,7 @@ const BASE_MODAL_STYLES = `
     width: 40px;
     height: 40px;
     border: 3px solid ${DESIGN_SYSTEM.colors.border};
-    border-top-color: ${DESIGN_SYSTEM.colors.cyan};
+    border-top-color: ${DESIGN_SYSTEM.colors.primary};
     border-radius: 50%;
     animation: modal-spin 0.8s linear infinite;
   }
@@ -467,7 +476,7 @@ export class BaseModal {
               outline:none;
               transition:border-color ${DESIGN_SYSTEM.durations.fast} ease;
             "
-            onfocus="this.style.borderColor='${DESIGN_SYSTEM.colors.cyan}'"
+            onfocus="this.style.borderColor='${DESIGN_SYSTEM.colors.primary}'"
             onblur="this.style.borderColor='${DESIGN_SYSTEM.colors.border}'"
           />
         `,

@@ -4,9 +4,7 @@
 // Catalog metadata (id, order, title, summary, time, prerequisites,
 // relatedTemplateIds, relatedAssetIds) is copied verbatim from catalog.ts.
 
-import type { Lesson } from '../lesson-types';
-
-export const LESSONS_07: Lesson[] = [
+export const LESSONS_07 = [
   {
     id: '07-ai-product-photography::01-product-photography',
     slug: '07-ai-product-photography::01-product-photography',

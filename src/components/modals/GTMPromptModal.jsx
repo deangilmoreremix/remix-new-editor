@@ -1,9 +1,11 @@
 import { BaseModal } from './BaseModal.jsx';
 import { openaiService } from '../../lib/openaiService.js';
+import { openaiConfig } from '../../lib/config/openaiConfig.js';
 import { gtmContentLibrary } from '../../lib/gtmContentLibrary.js';
 import { gtmResponses, gtmStructuredToText, GTM_MODEL_OPTIONS, resolveGtmModel } from '../../lib/gtmResponses.js';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase.js';
 import { AuthModal } from '../AuthModal.js';
+import { GTMInfoModal } from './GTMInfoModal.jsx';
 
 /**
  * GTMPromptModal - GTM-Powered Prompt Enhancement Modal
@@ -93,21 +95,32 @@ export class GTMPromptModal extends BaseModal {
   }
 
   getAppColorScheme(theme) {
-    // Single source of truth — see STUDIO_COLOR_SCHEMES in openaiConfig.js.
-    // We preserve the historic 'timeline-editor' fallback here for parity
-    // with the prior local table.
-    const scheme = openaiConfig.getStudioColorScheme(theme);
-    if (theme === 'timeline-editor') return scheme;
-    // Historic fallback for unknown themes was 'timeline-editor'.
-    if (theme && !openaiConfig.getAllStudioColorSchemes()[theme]) {
-      return openaiConfig.getStudioColorScheme('timeline-editor');
-    }
-    return scheme;
+    // Single source of truth — see STUDIO_SCHEME in openaiConfig.js. Every
+    // theme key resolves to the shared studio palette so this modal always
+    // matches the studio it was opened from.
+    return openaiConfig.getStudioColorScheme(theme);
+  }
+
+  /**
+   * Inline `style` attribute that publishes the studio palette as the
+   * `--app-*` custom properties the modal stylesheet is written against.
+   * Shared by every render path so the theming can never drift.
+   */
+  themeVars() {
+    const { primary, accent, onPrimary } = this.appColors;
+    return [
+      `--app-primary: ${primary}`,
+      `--app-accent: ${accent}`,
+      `--app-on-primary: ${onPrimary || '#000000'}`,
+      `--app-soft: ${this.hexToRgba(primary, 0.12)}`,
+      `--app-soft-accent: ${this.hexToRgba(accent, 0.12)}`,
+      `--app-glow: ${this.hexToRgba(primary, 0.25)}`,
+    ].join('; ');
   }
 
   renderBody() {
     return `
-      <div class="gtm-prompt-modal" style="--app-primary: ${this.appColors.primary}; --app-accent: ${this.appColors.accent}; --app-soft: ${this.hexToRgba(this.appColors.primary, 0.12)}; --app-soft-accent: ${this.hexToRgba(this.appColors.accent, 0.12)}">
+      <div class="gtm-prompt-modal" style="${this.themeVars()}">
         <p class="gtm-subtitle">Transform basic prompts into professional cinematic videos with GTM methodologies and storytelling mastery</p>
         <div class="gtm-info-trigger-row">
           <button type="button" class="gtm-info-trigger" data-action="open-gtm-info" aria-label="What is GTM Boost?">What is GTM Boost?</button>
@@ -210,9 +223,9 @@ export class GTMPromptModal extends BaseModal {
    * Used to derive soft tints from the per-app primary/accent at render time.
    */
   hexToRgba(hex, alpha) {
-    if (typeof hex !== 'string') return `rgba(59, 130, 246, ${alpha})`;
+    if (typeof hex !== 'string') return `rgba(217, 255, 0, ${alpha})`;
     const m = hex.trim().match(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i);
-    if (!m) return `rgba(59, 130, 246, ${alpha})`;
+    if (!m) return `rgba(217, 255, 0, ${alpha})`;
     let h = m[1];
     if (h.length === 3) h = h.split('').map((c) => c + c).join('');
     const r = parseInt(h.slice(0, 2), 16);
@@ -376,62 +389,6 @@ export class GTMPromptModal extends BaseModal {
         </div>
       </div>
     `;
-  }
-
-  /**
-   * Render the retrieved real GTM skill examples as clickable cards.
-   * Returns "" when there are no examples (keeps the UI clean).
-   */
-  renderSkillExamples() {
-    const examples = this.skillExamples || [];
-    if (examples.length === 0) return '';
-
-    const cards = examples.map((ex) => {
-      const difficulty = ex.difficulty ? `<span class="gtm-example-badge gtm-example-${ex.difficulty}">${ex.difficulty}</span>` : '';
-      const desc = ex.description ? `<p class="gtm-example-desc">${this.escapeHtml(ex.description)}</p>` : '';
-      return `
-        <div class="gtm-example-card" data-id="${this.escapeHtml(ex.id || '')}">
-          <div class="gtm-example-head">
-            <span class="gtm-example-title">${this.escapeHtml(ex.title || ex.id || 'Example')}</span>
-            ${difficulty}
-          </div>
-          ${desc}
-          <button type="button" class="gtm-action gtm-example-use" data-action="use-example" data-id="${this.escapeHtml(ex.id || '')}">Use as inspiration</button>
-        </div>
-      `;
-    }).join('');
-
-    return `
-      <div class="gtm-examples">
-        <div class="gtm-section-label">📚 Real GTM skill examples for your selection</div>
-        <div class="gtm-example-grid">${cards}</div>
-      </div>
-    `;
-  }
-
-  /**
-   * Seed the base prompt with a clicked example's full prompt text.
-   * If the box already has text, append so the user doesn't lose work.
-   */
-  handleUseExample(id) {
-    const ex = (this.skillExamples || []).find((e) => (e.id || '') === id);
-    if (!ex || !ex.prompt) return;
-    const seed = ex.prompt.trim();
-    if (this.basePrompt.trim()) {
-      this.basePrompt = `${this.basePrompt.trim()}\n\n${seed}`;
-    } else {
-      this.basePrompt = seed;
-    }
-    this.refreshBody();
-  }
-
-  escapeHtml(str) {
-    if (typeof str !== 'string') return '';
-    return str
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
   }
 
   /**
@@ -743,39 +700,6 @@ export class GTMPromptModal extends BaseModal {
         this.missingOpenAIKey = true;
       }
       console.warn('[GTM] OpenAI Responses API (user key) unavailable, trying edge function:', error.message);
-    }
-
-    // Secondary path: server edge function (server-held key).
-    try {
-      if (!isSupabaseConfigured()) throw new Error('Supabase not configured');
-
-      const timeout = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Request timed out')), 12000)
-      );
-      const request = supabase.functions.invoke('ai-cinematic-prompt-generator', {
-        body: { ...this._gtmParams(), action: 'generate', studioType: this.appTheme }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data && data.prompt) {
-          this.generatedPrompt = data.prompt;
-          aiSucceeded = true;
-        }
-      }
-    } catch (backendErr) {
-      console.warn('[GTM] Backend /api/gtm-boost/generate failed:', backendErr.message);
-    }
-
-    try {
-      const { data, error: fnError } = await Promise.race([request, timeout]);
-      if (fnError) throw new Error(fnError.message || 'Generation failed');
-      if (!data || !data.prompt) throw new Error('Empty response');
-      this._setResult({ prompt: data.prompt, responseId: data.response_id, usage: data.usage });
-      this.isGenerating = false;
-      this.refreshBody();
-      return;
-    } catch (fnError) {
-      console.warn('[GTM] Edge function unavailable, using local library:', fnError.message);
     }
 
     // Tertiary path: local template library (always works offline).

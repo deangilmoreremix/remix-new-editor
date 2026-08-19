@@ -1,5 +1,6 @@
 import { supabase, isSupabaseConfigured, uploadFileToStorage } from './supabase.js';
 import { getUserKey } from './userKey.js';
+import { formatErrorMessage } from './errorMessages.js';
 
 export async function listContentLibrary() {
   if (!isSupabaseConfigured()) return [];
@@ -30,7 +31,12 @@ export async function uploadToContentLibrary(file) {
   }
 
   // 1. Upload file to storage
-  const url = await uploadFileToStorage(file);
+  let url;
+  try {
+    url = await uploadFileToStorage(file);
+  } catch (e) {
+    throw new Error(formatErrorMessage(e, 'Upload failed'), { cause: e });
+  }
 
   // 2. Derive full storage path from URL
   const urlPath = new URL(url).pathname;

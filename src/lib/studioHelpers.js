@@ -14,6 +14,7 @@
  */
 
 import { showToast } from './loading.js';
+import { formatErrorMessage } from './errorMessages.js';
 
 let generationTimer = null;
 
@@ -157,17 +158,23 @@ export function hideInlineError(container) {
 
 /**
  * Map an API error to a user-facing, actionable message.
+ *
+ * The text is produced by the shared `formatErrorMessage` (single source of
+ * truth for upload/generation error text, including the auth/credit message
+ * "Please sign in and add api credits."). This function only adds a `category`
+ * for callers that branch on it.
  */
 export function categorizeGenerationError(err) {
   if (!err) return { message: 'An unexpected error occurred.', category: 'unknown' };
 
   const msg = err.message || String(err);
+  const message = formatErrorMessage(err);
 
   if (err.name === 'AbortError' || /cancel/i.test(msg)) {
     return { message: 'Generation cancelled.', category: 'cancelled' };
   }
-  if (/Authentication failed/i.test(msg) || /\b401\b|\b403\b/.test(msg)) {
-    return { message: 'Authentication error. Please log in again.', category: 'auth' };
+  if (message === 'Please sign in and add api credits.') {
+    return { message, category: 'auth' };
   }
   if (/Rate limit/i.test(msg) || /\b429\b/.test(msg)) {
     return { message: 'Too many requests. Wait a moment and retry.', category: 'rate_limit' };
@@ -175,23 +182,11 @@ export function categorizeGenerationError(err) {
   if (/Network error/i.test(msg) || /Failed to fetch|Load failed|fetch failed|NetworkError/i.test(msg)) {
     return { message: 'Network error. Check your connection and retry.', category: 'network' };
   }
-  if (/Service temporarily unavailable/i.test(msg)) {
-    return { message: 'Service temporarily unavailable. Try again shortly.', category: 'upstream' };
-  }
-  if (/Polling timed out|Generation timed out/i.test(msg)) {
-    return { message: 'Generation is taking longer than expected. You can wait or cancel.', category: 'timeout' };
-  }
-  if (/Request timed out/i.test(msg)) {
-    return { message: 'Request timed out. Please try again with a simpler prompt or smaller image.', category: 'timeout' };
-  }
-  if (/No (?:image|video|output) (?:URL|returned|result)/i.test(msg)) {
-    return { message: 'Service temporarily unavailable. Try again shortly.', category: 'upstream' };
-  }
-  if (/\b5\d\d\b/.test(msg)) {
+  if (/\b5\d\d\b/.test(msg) || /Service temporarily unavailable|timed out|No (?:image|video|output)/i.test(msg)) {
     return { message: 'Service temporarily unavailable. Try again shortly.', category: 'upstream' };
   }
 
-  return { message: `Generation failed: ${msg}`, category: 'unknown' };
+  return { message, category: 'unknown' };
 }
 
 /**

@@ -1,13 +1,16 @@
 import { muapi } from '../lib/muapi.js';
+import { openSocialPublish } from '../lib/socialPublishHelpers.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getToolThumbnail, createThumbnailImg, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
-import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { getI2IModelById } from '../lib/models.js';
+import { mountModelSelector } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 
@@ -68,6 +71,7 @@ export function EditStudio() {
 
   let activeTool = null;
   let uploadedUrl = null;
+  let lastOutputUrl = null;
   let customThumbnailUrl = getCustomThumbnailFromCache('edit-studio');
   let currentBlobUrl = null;
   let selectedModelId = 'seedream-5.0-edit';
@@ -144,7 +148,7 @@ export function EditStudio() {
   workArea.className = 'flex-1 px-4 md:px-8 pb-8';
 
   const workCard = document.createElement('div');
-  workCard.className = 'max-w-xl mx-auto bg-white/[0.03] border border-white/5 rounded-2xl p-6 hidden flex-col gap-4';
+  workCard.className = 'relative max-w-xl mx-auto bg-white/[0.03] border border-white/5 rounded-2xl p-6 hidden flex-col gap-4';
 
   const toolTitle = document.createElement('div');
   toolTitle.className = 'text-sm font-bold text-primary';
@@ -261,6 +265,43 @@ export function EditStudio() {
   uploadSection.appendChild(previewImg);
   workCard.appendChild(uploadSection);
   container.appendChild(picker.panel);
+
+  // Watermark image uploader — declared here (before first use) to avoid a
+  // temporal-dead-zone ReferenceError when the row below appends .trigger/.panel.
+  let watermarkImageUrl = null;
+  const watermarkImageHint = document.createElement('span');
+  watermarkImageHint.className = 'text-sm text-muted hidden';
+  watermarkImageHint.textContent = 'Upload watermark image';
+
+  const watermarkClearBtn = document.createElement('button');
+  watermarkClearBtn.type = 'button';
+  watermarkClearBtn.className = 'hidden text-xs font-bold text-red-400 hover:text-red-300 transition-colors';
+  watermarkClearBtn.textContent = 'Remove';
+
+  const watermarkPicker = createUploadPicker({
+    anchorContainer: container,
+    onSelect: ({ url }) => {
+      watermarkImageUrl = url;
+      watermarkImageHint.textContent = 'Watermark uploaded';
+      watermarkImageHint.classList.remove('hidden');
+      watermarkClearBtn.classList.remove('hidden');
+    },
+    onClear: () => {
+      watermarkImageUrl = null;
+      watermarkImageHint.textContent = 'Upload watermark image';
+      watermarkImageHint.classList.add('hidden');
+      watermarkClearBtn.classList.add('hidden');
+    },
+  });
+
+  watermarkClearBtn.onclick = (e) => {
+    e.stopPropagation();
+    watermarkPicker.reset();
+    watermarkImageUrl = null;
+    watermarkImageHint.textContent = 'Upload watermark image';
+    watermarkImageHint.classList.add('hidden');
+    watermarkClearBtn.classList.add('hidden');
+  };
 
   // Watermark image upload row (hidden by default)
   const watermarkImageRow = document.createElement('div');
@@ -411,66 +452,58 @@ export function EditStudio() {
     watermarkScaleValue = watermarkScaleInput.value;
   });
 
-  // Watermark image uploader (second image for watermark tool)
-  let watermarkImageUrl = null;
-  const watermarkImageHint = document.createElement('span');
-  watermarkImageHint.className = 'text-sm text-muted hidden';
-  watermarkImageHint.textContent = 'Upload watermark image';
-
-  const watermarkClearBtn = document.createElement('button');
-  watermarkClearBtn.type = 'button';
-  watermarkClearBtn.className = 'hidden text-xs font-bold text-red-400 hover:text-red-300 transition-colors';
-  watermarkClearBtn.textContent = 'Remove';
-
-  const watermarkPicker = createUploadPicker({
-    anchorContainer: container,
-    onSelect: ({ url }) => {
-      watermarkImageUrl = url;
-      watermarkImageHint.textContent = 'Watermark uploaded';
-      watermarkImageHint.classList.remove('hidden');
-      watermarkClearBtn.classList.remove('hidden');
-    },
-    onClear: () => {
-      watermarkImageUrl = null;
-      watermarkImageHint.textContent = 'Upload watermark image';
-      watermarkImageHint.classList.add('hidden');
-      watermarkClearBtn.classList.add('hidden');
-    },
-  });
-
-  watermarkClearBtn.onclick = (e) => {
-    e.stopPropagation();
-    watermarkPicker.reset();
-    watermarkImageUrl = null;
-    watermarkImageHint.textContent = 'Upload watermark image';
-    watermarkImageHint.classList.add('hidden');
-    watermarkClearBtn.classList.add('hidden');
-  };
-
-  // Model selector dropdown — only shown for AI Edit card
-  const modelSelect = document.createElement('select');
-  modelSelect.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors hidden';
+  // Model selector — split-pane picker, consistent with the other studios.
+  // (Originally a native <select>; replaced to match the unified design.)
+  const modelSelect = document.createElement('button');
+  modelSelect.type = 'button';
+  modelSelect.className = 'flex items-center gap-2 w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm hover:bg-white/10 transition-colors hidden';
   modelSelect.setAttribute('aria-label', 'AI model');
-  
-  const defaultOption = document.createElement('option');
-  defaultOption.value = 'seedream-5.0-edit';
-  defaultOption.textContent = 'Seedream 5.0 Edit (Default)';
-  modelSelect.appendChild(defaultOption);
-  
-  const editModels = EDIT_AI_MODELS;
-  
-  editModels.sort((a, b) => a.name.localeCompare(b.name)).forEach(model => {
-    const option = document.createElement('option');
-    option.value = model.id;
-    option.textContent = model.name;
-    modelSelect.appendChild(option);
+  modelSelect.setAttribute('aria-haspopup', 'listbox');
+  const modelSelectLabel = document.createElement('span');
+  modelSelectLabel.className = 'flex-1 text-left truncate';
+  modelSelect.appendChild(modelSelectLabel);
+  modelSelect.insertAdjacentHTML('beforeend', '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-50 shrink-0"><path d="M6 9l6 6 6-6"/></svg>');
+
+  const modelSelectPopover = document.createElement('div');
+  modelSelectPopover.className = 'absolute left-0 top-full z-50 mt-2 hidden';
+  modelSelectPopover.style.minWidth = '320px';
+
+  const updateModelSelectLabel = () => {
+    const m = (EDIT_AI_MODELS.find(x => x.id === selectedModelId) || EDIT_AI_MODELS[0]);
+    modelSelectLabel.textContent = m ? m.name : selectedModelId;
+  };
+  updateModelSelectLabel();
+
+  let modelSelectOpen = false;
+  const closeModelSelect = () => {
+    modelSelectOpen = false;
+    modelSelectPopover.classList.add('hidden');
+  };
+  const openModelSelect = () => {
+    if (modelSelectOpen) { closeModelSelect(); return; }
+    modelSelectOpen = true;
+    modelSelectPopover.classList.remove('hidden');
+    mountModelSelector(modelSelectPopover, {
+      models: EDIT_AI_MODELS,
+      selectedModelId: selectedModelId,
+      showProviderName: true,
+      onSelectModel: (modelId) => {
+        selectedModelId = modelId;
+        updateModelSelectLabel();
+        buildDynamicControls(selectedModelId);
+        closeModelSelect();
+      },
+    });
+  };
+  modelSelect.onclick = (e) => { e.stopPropagation(); openModelSelect(); };
+  document.addEventListener('click', (e) => {
+    if (modelSelectOpen && !modelSelectPopover.contains(e.target) && e.target !== modelSelect) {
+      closeModelSelect();
+    }
   });
-  
-  modelSelect.addEventListener('change', () => {
-    selectedModelId = modelSelect.value;
-    buildDynamicControls(selectedModelId);
-  });
+
   workCard.appendChild(modelSelect);
+  workCard.appendChild(modelSelectPopover);
 
   // Thumbnail studio button — next to creation controls, GTM Boost styling
   const thumbBtn = document.createElement('button');
@@ -479,8 +512,9 @@ export function EditStudio() {
   thumbBtn.title = 'Generate a custom thumbnail';
   thumbBtn.className = 'gtm-boost-btn w-full';
   thumbBtn.addEventListener('click', () => {
-    const modal = new StudioThumbnailModal({
+    const modal = new TemplateThumbnailModal({
       appTheme: 'edit-studio',
+      layout: 'panel',
       studioId: 'edit-studio',
       studioName: 'Edit Studio',
       aspectRatio: '1:1',
@@ -494,7 +528,7 @@ export function EditStudio() {
         clearCustomThumbnailCache('edit-studio');
       },
     });
-    mountStudioThumbnailModal(modal);
+    mountThumbnailModal(modal);
     modal.open();
   });
   workCard.appendChild(thumbBtn);
@@ -551,11 +585,13 @@ export function EditStudio() {
     controlsRow.innerHTML = '';
     promptField.classList.add('hidden');
     modelSelect.classList.add('hidden');
+    modelSelectPopover.classList.add('hidden');
     if (dynamicControlsContainer) dynamicControlsContainer.classList.add('hidden');
     container.querySelectorAll('.watermark-image-row').forEach(el => el.classList.add('hidden'));
 
     if (toolId === 'seedream-5.0-edit') {
       modelSelect.classList.remove('hidden');
+      updateModelSelectLabel();
       promptField.classList.remove('hidden');
       promptField.placeholder = 'Describe the edit...';
       buildDynamicControls(selectedModelId || 'seedream-5.0-edit');
@@ -680,11 +716,15 @@ export function EditStudio() {
 
       const result = await muapi.generateI2I(params);
       if (result?.url) {
+        lastOutputUrl = result.url;
         resultArea.classList.remove('hidden');
         resultArea.innerHTML = `
           <img src="${result.url}" class="w-full rounded-xl border border-white/10 mb-3">
           <a href="${result.url}" download class="block w-full bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
+          <button type="button" class="publish-social-btn block w-full mt-2 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
         `;
+        const publishBtn = resultArea.querySelector('.publish-social-btn');
+        if (publishBtn) publishBtn.onclick = () => openSocialPublish({ mediaUrl: lastOutputUrl, mediaType: 'image' });
       } else {
         resultArea.classList.remove('hidden');
         resultArea.innerHTML = `<div class="text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-xl p-3">Edit completed, but no result image was returned. Please try again.</div>`;

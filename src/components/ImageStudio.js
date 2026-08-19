@@ -14,10 +14,10 @@ import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizePopover, replaceTokensInPrompt } from './personalize/personalizePopover.js';
-import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
-import { PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
+import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 
@@ -305,8 +305,9 @@ export function ImageStudio() {
     thumbBtn.title = 'Generate a custom thumbnail';
     thumbBtn.className = 'gtm-boost-btn shrink-0';
     thumbBtn.addEventListener('click', () => {
-      const modal = new StudioThumbnailModal({
-        appTheme: 'image-studio',
+    const modal = new TemplateThumbnailModal({
+      appTheme: 'image-studio',
+      layout: 'panel',
         studioId: 'image-studio',
         studioName: 'Image Studio',
         aspectRatio: selectedAr || '1:1',
@@ -320,7 +321,7 @@ export function ImageStudio() {
           clearCustomThumbnailCache('image-studio');
         },
       });
-      mountStudioThumbnailModal(modal);
+      mountThumbnailModal(modal);
       modal.open();
     });
     controlsLeft.appendChild(thumbBtn);
@@ -630,83 +631,33 @@ export function ImageStudio() {
         if (type === 'model') {
             dropdown.classList.add('w-[calc(100vw-2rem)]', 'md:w-[480px]', 'max-w-md');
             dropdown.classList.remove('max-w-xs', 'max-w-[240px]', 'max-w-[200px]');
-            selectedProvider = 'all';
-
             const currentModels = imageMode ? i2iModels : t2iModels;
-            const availableProviders = getAvailableProviders(currentModels);
-
-            dropdown.innerHTML = `
-                <div class="flex gap-4 h-full max-h-[70vh] min-h-[350px] overflow-x-hidden">
-                    <div data-provider-sidebar></div>
-                    <div class="flex-1 flex flex-col gap-2 min-w-0">
-                        ${renderSearchBar()}
-                        <div class="text-xs font-semibold text-secondary py-1 shrink-0 flex items-center justify-between">
-                            <span>Available models</span>
-                            <span data-provider-badge class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60 hidden"></span>
-                        </div>
-                        <div data-model-list></div>
-                    </div>
-                </div>
-            `;
-
-            const sidebarEl = dropdown.querySelector('[data-provider-sidebar]');
-            const modelListEl = dropdown.querySelector('[data-model-list]');
-            const providerBadge = dropdown.querySelector('[data-provider-badge]');
-            const searchInput = dropdown.querySelector('[data-provider-search]');
-
-            const refresh = () => {
-                sidebarEl.innerHTML = renderProviderSidebar(availableProviders, selectedProvider, (provider) => {
-                    selectedProvider = provider;
-                    refresh();
-                });
-                const filtered = filterModels(currentModels, searchInput ? searchInput.value : '', selectedProvider);
-                const showProviderName = selectedProvider === 'all';
-                modelListEl.innerHTML = renderModelList(filtered, selectedModel, showProviderName, (m) => {
-                    selectedModel = m.id;
-                    selectedModelName = m.name;
-                    const availableArs = getCurrentAspectRatios(selectedModel);
-                    selectedAr = availableArs[0];
-                    document.getElementById('model-btn-label').textContent = selectedModelName;
-                    document.getElementById('ar-btn-label').textContent = selectedAr;
-                    const validResolutions = getCurrentResolutions(selectedModel);
-                    qualityBtn.style.display = validResolutions.length > 0 ? 'flex' : 'none';
-                    if (validResolutions.length > 0) {
-                        document.getElementById('quality-btn-label').textContent = validResolutions[0];
-                    }
-                    if (imageMode) {
-                        picker.setMaxImages(getMaxImagesForI2IModel(selectedModel));
-                    }
-                    updateModelBtnIcon();
-                    if (dynamicControls) {
-                        dynamicControls.update(getExtendedModel(getModelById(selectedModel)));
-                    }
-                    closeDropdown();
-                });
-
-                if (selectedProvider !== 'all') {
-                    const pName = availableProviders.find(p => p.id === selectedProvider)?.name || selectedProvider;
-                    providerBadge.textContent = pName;
-                    providerBadge.classList.remove('hidden');
-                } else {
-                    providerBadge.classList.add('hidden');
+            mountModelSelector(dropdown, {
+              models: currentModels,
+              selectedModelId: selectedModel,
+              showProviderName: true,
+              onSelectModel: (modelId) => {
+                selectedModel = modelId;
+                selectedModelName = currentModels.find(m => m.id === modelId)?.name || modelId;
+                const availableArs = getCurrentAspectRatios(selectedModel);
+                selectedAr = availableArs[0];
+                document.getElementById('model-btn-label').textContent = selectedModelName;
+                document.getElementById('ar-btn-label').textContent = selectedAr;
+                const validResolutions = getCurrentResolutions(selectedModel);
+                qualityBtn.style.display = validResolutions.length > 0 ? 'flex' : 'none';
+                if (validResolutions.length > 0) {
+                  document.getElementById('quality-btn-label').textContent = validResolutions[0];
                 }
-            };
-
-            refresh();
-
-            sidebarEl.addEventListener('click', (e) => {
-                const btn = e.target.closest('button[data-provider]');
-                if (!btn) return;
-                e.stopPropagation();
-                const provider = btn.getAttribute('data-provider');
-                if (provider) {
-                    selectedProvider = provider;
-                    refresh();
+                if (imageMode) {
+                  picker.setMaxImages(getMaxImagesForI2IModel(selectedModel));
                 }
+                updateModelBtnIcon();
+                if (dynamicControls) {
+                  dynamicControls.update(getExtendedModel(getModelById(selectedModel)));
+                }
+                closeDropdown();
+              },
             });
-
-            searchInput.onclick = (e) => e.stopPropagation();
-            searchInput.oninput = () => refresh();
 
         } else if (type === 'ar') {
             dropdown.classList.add('max-w-[240px]');

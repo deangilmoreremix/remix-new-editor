@@ -5,7 +5,7 @@ import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
-import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { mountModelSelector } from '../lib/modelSelectorUI.js';
 import { i2iModels } from '../lib/models.js';
@@ -715,8 +715,9 @@ export function InfluencerStudio() {
   thumbBtn.title = 'Generate a custom thumbnail';
   thumbBtn.className = 'gtm-boost-btn w-full mt-2';
   thumbBtn.addEventListener('click', () => {
-    const modal = new StudioThumbnailModal({
+    const modal = new TemplateThumbnailModal({
       appTheme: 'influencer-studio',
+      layout: 'panel',
       studioId: 'influencer-studio',
       studioName: 'AI Influencer Studio',
       aspectRatio: selectedFormat.ar || '1:1',
@@ -730,7 +731,7 @@ export function InfluencerStudio() {
         clearCustomThumbnailCache('influencer-studio');
       },
     });
-    mountStudioThumbnailModal(modal);
+    mountThumbnailModal(modal);
     modal.open();
   });
   formCard.appendChild(thumbBtn);

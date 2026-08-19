@@ -561,7 +561,6 @@ export function PexelsMediaPage() {
           url: item.url || '',
           video_files: item.video_files,
           video_pictures: item.video_pictures,
-          src: item.src,
         });
         if (result) {
           showToast('Imported to library', 'success');

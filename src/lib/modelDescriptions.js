@@ -176,6 +176,9 @@ export const DESCRIPTIONS = {
     'kling-v3.0-standard-image-to-video': 'Kling V3.0 Standard image-to-video generation.',
     'seedance-v2.0-i2v': 'ByteDance Seedance 2.0 latest image-to-video generation.',
   },
+  v2v: {
+    'video-watermark-remover': 'Remove watermarks, logos, captions, and unwanted text from videos.',
+  },
 };
 
 /**

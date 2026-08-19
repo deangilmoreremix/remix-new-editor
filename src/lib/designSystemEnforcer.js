@@ -12,8 +12,8 @@ export const TIMELINE_DESIGN_SYSTEM = {
   // override the prototype design with stale values.
   variables: {
     // Surfaces
-    '--bg': '#07090d',
-    '--bg-app': '#07090d',
+    '--bg': '#050505',
+    '--bg-app': '#050505',
     '--surface-1': 'rgba(255,255,255,0.03)',
     '--surface-2': 'rgba(255,255,255,0.05)',
     '--surface-3': 'rgba(255,255,255,0.08)',
@@ -38,13 +38,16 @@ export const TIMELINE_DESIGN_SYSTEM = {
     '--panel': 'rgba(255,255,255,0.05)',
     '--panel-soft': 'rgba(255,255,255,0.03)',
 
-    // Brand accent
-    '--cyan': '#22d3ee',
-    '--cyan-soft': 'rgba(34,211,238,0.22)',
-    '--cyan-faint': 'rgba(34,211,238,0.10)',
-    '--cyan-glow': 'rgba(34,211,238,0.80)',
-    '--emerald': '#34d399',
-    '--accent-grad': 'linear-gradient(to right, #22d3ee, #34d399)',
+    // Brand accent — must match STUDIO_SCHEME from openaiConfig.js (#d9ff00 / #c4e600).
+    // Legacy --cyan/--emerald aliases now resolve to the brand primary so
+    // modal-styles.css rules (which reference var(--cyan)/var(--emerald)) never
+    // leak a non-brand hue into dialogs.
+    '--cyan': '#d9ff00',
+    '--cyan-soft': 'rgba(217,255,0,0.12)',
+    '--cyan-faint': 'rgba(217,255,0,0.12)',
+    '--cyan-glow': 'rgba(217,255,0,0.25)',
+    '--emerald': '#c4e600',
+    '--accent-grad': 'linear-gradient(to right, #d9ff00, #c4e600)',
 
     // Status
     '--amber': '#f59e0b',
@@ -66,7 +69,7 @@ export const TIMELINE_DESIGN_SYSTEM = {
     '--shadow': '0 20px 60px rgba(0,0,0,0.35)',
     '--shadow-card': '0 20px 60px rgba(0,0,0,0.35)',
     '--shadow-pop': '0 12px 40px rgba(0,0,0,0.5)',
-    '--shadow-focus': '0 0 0 4px rgba(34,211,238,0.30)',
+    '--shadow-focus': '0 0 0 4px rgba(217,255,0,0.25)',
   },
 
   // Component Styles - Predefined classes that enforce consistency

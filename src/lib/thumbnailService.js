@@ -311,6 +311,10 @@ export class ThumbnailService {
     if (opts.referenceImageB64) body.referenceImageB64 = opts.referenceImageB64;
     if (opts.referenceImageUrl) body.referenceImageUrl = opts.referenceImageUrl;
     if (opts.referenceImageFileId) body.referenceImageFileId = opts.referenceImageFileId;
+    // Style references — applied as visual style only (reference_type: 'style').
+    if (opts.referenceStyleB64) body.referenceStyleB64 = opts.referenceStyleB64;
+    if (opts.referenceStyleUrl) body.referenceStyleUrl = opts.referenceStyleUrl;
+    if (opts.referenceStyleFileId) body.referenceStyleFileId = opts.referenceStyleFileId;
     if (opts.user) body.user = opts.user;
     const userKey = resolveUserOpenAIKey(opts.apiKey);
     if (userKey) body.apiKey = userKey;
@@ -370,8 +374,10 @@ export class ThumbnailService {
     if (opts.referenceImageB64) body.referenceImageB64 = opts.referenceImageB64;
     if (opts.referenceImageUrl) body.referenceImageUrl = opts.referenceImageUrl;
     if (opts.referenceImageFileId) body.referenceImageFileId = opts.referenceImageFileId;
+    if (opts.referenceStyleB64) body.referenceStyleB64 = opts.referenceStyleB64;
+    if (opts.referenceStyleUrl) body.referenceStyleUrl = opts.referenceStyleUrl;
+    if (opts.referenceStyleFileId) body.referenceStyleFileId = opts.referenceStyleFileId;
     if (opts.imageDetail) body.imageDetail = opts.imageDetail;
-    if (opts.user) body.user = opts.user;
     const userKey = resolveUserOpenAIKey(opts.apiKey);
     if (userKey) body.apiKey = userKey;
 
@@ -485,6 +491,10 @@ export class ThumbnailService {
     };
     if (opts.presetKey) body.presetKey = opts.presetKey;
     if (opts.controls) body.controls = opts.controls;
+    if (opts.asGif) {
+      body.asGif = true;
+      body.gifData = opts.gifData || opts.imageB64;
+    }
 
     const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body });
     if (error) throw new Error(error.message || 'Failed to save thumbnail');

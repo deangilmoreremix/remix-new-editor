@@ -1,7 +1,19 @@
 /* BaseModal System Styles */
-/* Timeline Design System Variables */
+/* ------------------------------------------------------------------
+   Modal design tokens.
+
+   These are the studio palette, so every BaseModal-based dialog (GTM
+   Boost, Thumbnail Studio, Personalizer, Pexels browser, …) matches the
+   studio chrome it opens over. Backgrounds stay deliberately translucent
+   — the see-through glass look is intentional and unchanged.
+
+   `--cyan` / `--emerald` are LEGACY ALIASES. Hundreds of rules in this
+   file were written against them; rather than rename every one, they now
+   resolve to the brand primary. Prefer `--primary` / `--on-primary` in
+   new rules.
+   ------------------------------------------------------------------ */
 :root {
-  --bg: #05070b;
+  --bg: #050505;
   --panel: rgba(255,255,255,0.05);
   --panel-soft: rgba(255,255,255,0.03);
   --border: rgba(255,255,255,0.1);
@@ -9,9 +21,21 @@
   --text: #ffffff;
   --muted: rgba(255,255,255,0.6);
   --dim: rgba(255,255,255,0.4);
-  --cyan: #22d3ee;
-  --cyan-soft: rgba(34,211,238,0.2);
-  --emerald: #34d399;
+
+  /* Brand primary — matches --color-primary in src/styles/variables.css */
+  --primary: #d9ff00;
+  --primary-hover: #c4e600;
+  --primary-soft: rgba(217,255,0,0.12);
+  --primary-glow: rgba(217,255,0,0.25);
+  /* Text/icons ON the primary. The primary is a high-luminance neon, so
+     this must be black — white is unreadable on it. */
+  --on-primary: #000000;
+
+  /* Legacy accent aliases → brand primary (see note above) */
+  --cyan: var(--primary);
+  --cyan-soft: var(--primary-soft);
+  --emerald: var(--primary-hover);
+
   --danger: #ef4444;
   --shadow: 0 20px 60px rgba(0,0,0,0.45);
   --radius-xl: 28px;
@@ -599,7 +623,7 @@
 }
 
 .invoice-status.paid {
-  background: rgba(52, 211, 153, 0.2);
+  background: rgba(196, 230, 0, 0.12);
   color: var(--emerald);
 }
 
@@ -767,7 +791,7 @@
   align-items: center;
   gap: 4px;
   padding: 4px 8px;
-  background: rgba(52, 211, 153, 0.2);
+  background: rgba(196, 230, 0, 0.12);
   color: var(--emerald);
   font-size: 11px;
   font-weight: 600;
@@ -1980,7 +2004,7 @@
 
 .url-add-btn:hover:not(.disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(34, 211, 238, 0.25);
+  box-shadow: 0 8px 24px var(--primary-glow);
 }
 
 .url-add-btn.disabled {
@@ -2064,7 +2088,7 @@
 
 .generator-yes:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(34, 211, 238, 0.25);
+  box-shadow: 0 8px 24px var(--primary-glow);
 }
 
 .generator-no {
@@ -3071,7 +3095,7 @@
 
 .center-mark {
   position: absolute;
-  background: rgba(34, 211, 238, 0.3);
+  background: rgba(217, 255, 0, 0.25);
 }
 
 .center-mark.h {
@@ -3275,7 +3299,7 @@
 .transform-btn.active {
   border-color: var(--emerald);
   color: var(--emerald);
-  background: rgba(52, 211, 153, 0.2);
+  background: rgba(196, 230, 0, 0.12);
 }
 
 .crop-info {
@@ -3442,7 +3466,7 @@
 
 .animation-item:hover {
   border-color: var(--cyan);
-  background: rgba(34, 211, 238, 0.05);
+  background: rgba(217, 255, 0, 0.05);
 }
 
 .animation-item .animation-preview {
@@ -3504,7 +3528,7 @@
 }
 
 .search-btn:hover {
-  background: rgba(34, 211, 238, 0.8);
+  background: rgba(217, 255, 0, 0.8);
 }
 
 .giphy-results {
@@ -3614,7 +3638,7 @@
 
 .sticker-item:hover {
   border-color: var(--cyan);
-  background: rgba(34, 211, 238, 0.05);
+  background: rgba(217, 255, 0, 0.05);
 }
 
 /* Lower Thirds */
@@ -3650,7 +3674,7 @@
 }
 
 .create-lower-third-btn:hover {
-  background: rgba(34, 211, 238, 0.8);
+  background: rgba(217, 255, 0, 0.8);
 }
 
 .lower-thirds-templates {
@@ -3670,7 +3694,7 @@
 
 .template-item:hover {
   border-color: var(--cyan);
-  background: rgba(34, 211, 238, 0.05);
+  background: rgba(217, 255, 0, 0.05);
 }
 
 .template-preview {
@@ -3859,7 +3883,7 @@
 }
 
 .drop-zone.drag-over {
-  background: rgba(34, 211, 238, 0.1);
+  background: rgba(217, 255, 0, 0.1);
   border: 2px dashed var(--cyan);
 }
 
@@ -3924,7 +3948,7 @@
 }
 
 .apply-duration-btn:hover {
-  background: rgba(34, 211, 238, 0.8);
+  background: rgba(217, 255, 0, 0.8);
 }
 
 /* Overlay List Transitions */
@@ -3966,7 +3990,7 @@
 
 .transition-item:hover {
   border-color: var(--cyan);
-  background: rgba(34, 211, 238, 0.05);
+  background: rgba(217, 255, 0, 0.05);
 }
 
 .transition-icon {
@@ -4050,7 +4074,7 @@
 }
 
 .giphy-search-btn:hover {
-  background: rgba(34, 211, 238, 0.8);
+  background: rgba(217, 255, 0, 0.8);
 }
 
 /* === Appended modal-layout backfill (2026-07-09) ===
@@ -4098,7 +4122,7 @@
   cursor: pointer;
 }
 .connect-btn:hover,
-.gtm-action:hover { background: rgba(34, 211, 238, 0.8); }
+.gtm-action:hover { background: rgba(217, 255, 0, 0.25); }
 .disconnect-btn { background: var(--danger); color: #fff; }
 
 /* Contacts */
@@ -4154,13 +4178,20 @@
 
 /* ============================================
    Template Thumbnail Modal — GTM Design System
+   --------------------------------------------
+   Themed through the same `--app-*` contract as
+   .gtm-prompt-modal. The studio injects the
+   values inline; these are the fallbacks and
+   MUST match the studio palette.
    ============================================ */
 
 .thumb-modal {
-  --app-primary: #10b981;
-  --app-accent: #34d399;
-  --app-soft: rgba(16, 185, 129, 0.12);
-  --app-soft-accent: rgba(52, 211, 153, 0.12);
+  --app-primary: var(--color-primary, #d9ff00);
+  --app-accent: var(--color-primary-hover, #c4e600);
+  --app-on-primary: var(--color-on-primary, #000000);
+  --app-soft: rgba(217, 255, 0, 0.12);
+  --app-soft-accent: rgba(196, 230, 0, 0.12);
+  --app-glow: rgba(217, 255, 0, 0.25);
 
   color: var(--text-primary);
   font-family: var(--font-family);
@@ -4443,7 +4474,7 @@
   gap: 10px;
   padding: 16px;
   background: var(--app-soft);
-  border: 1px solid rgba(16, 185, 129, 0.25);
+  border: 1px solid rgba(217, 255, 0, 0.25);
   border-radius: var(--border-radius-lg);
 }
 
@@ -4515,7 +4546,7 @@
 
 .thumb-modal .gtm-action.copy-prompt-btn {
   background: var(--app-primary);
-  color: #03131a;
+  color: #000000;
 }
 
 .thumb-modal .gtm-action.copy-prompt-btn:hover:not(:disabled) {
@@ -4529,12 +4560,12 @@
 
 .thumb-modal .gtm-action.thumbnail-prompt-btn {
   background: var(--app-accent);
-  color: #03131a;
+  color: #000000;
 }
 
 .thumb-modal .gtm-action.thumbnail-prompt-btn:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(52, 211, 153, 0.25);
+  box-shadow: 0 4px 14px var(--primary-glow);
 }
 
 .thumb-modal .gtm-action.thumbnail-prompt-btn:active:not(:disabled) {
@@ -4666,10 +4697,11 @@
 
 /* Studio Thumbnail Modal — generalized wrapper */
 .studio-thumb-modal {
-  --app-primary: #8b5cf6;
-  --app-accent: #a855f7;
-  --app-soft: rgba(139, 92, 246, 0.12);
-  --app-soft-accent: rgba(168, 85, 247, 0.12);
+  --app-primary: var(--color-primary, #d9ff00);
+  --app-accent: var(--color-primary-hover, #c4e600);
+  --app-soft: rgba(217, 255, 0, 0.12);
+  --app-soft-accent: rgba(196, 230, 0, 0.12);
+  --app-glow: rgba(217, 255, 0, 0.25);
 
   color: var(--text-primary);
   font-family: var(--font-family);
@@ -4690,7 +4722,7 @@
   margin-top: 8px;
   padding: 10px 12px;
   background: var(--app-soft);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(196, 230, 0, 0.12);
   border-radius: var(--border-radius-md);
   font-size: 12px;
   color: var(--text-secondary);
@@ -4703,10 +4735,11 @@
 
 /* Studio Thumbnail Panel — full-screen modal overlay */
 .studio-thumb-panel {
-  --app-primary: #10b981;
-  --app-accent: #34d399;
-  --app-soft: rgba(16, 185, 129, 0.12);
-  --app-soft-accent: rgba(52, 211, 153, 0.12);
+  --app-primary: var(--color-primary, #d9ff00);
+  --app-accent: var(--color-primary-hover, #c4e600);
+  --app-soft: rgba(217, 255, 0, 0.12);
+  --app-soft-accent: rgba(196, 230, 0, 0.12);
+  --app-glow: rgba(217, 255, 0, 0.25);
 
   color: var(--text-primary);
   font-family: var(--font-family);
@@ -4793,7 +4826,7 @@
   border-radius: var(--border-radius-lg);
   border: 1px solid transparent;
   background: var(--app-primary);
-  color: #03131a;
+  color: #000000;
   box-shadow: 0 6px 20px var(--app-soft);
   cursor: pointer;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast);
@@ -5104,7 +5137,7 @@
 
 .studio-thumb-panel .thumb-action-primary {
   background: var(--app-primary);
-  color: #03131a;
+  color: #000000;
   border-color: var(--app-primary);
   box-shadow: 0 2px 8px var(--app-soft);
 }
@@ -5303,13 +5336,13 @@
   color: var(--text-secondary);
 }
 .studio-thumb-panel .thumb-key-badge--user {
-  border-color: rgba(16, 185, 129, 0.4);
-  background: rgba(16, 185, 129, 0.08);
+  border-color: var(--primary-soft);
+  background: var(--primary-soft);
   color: var(--text-primary);
 }
 .studio-thumb-panel .thumb-key-badge--server {
-  border-color: rgba(245, 158, 11, 0.4);
-  background: rgba(245, 158, 11, 0.08);
+  border-color: var(--primary-glow);
+  background: var(--primary-soft);
   color: var(--text-primary);
 }
 .studio-thumb-panel .thumb-key-dot {
@@ -5319,12 +5352,12 @@
   flex-shrink: 0;
 }
 .studio-thumb-panel .thumb-key-dot--user {
-  background: #10b981;
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+  background: var(--app-primary);
+  box-shadow: 0 0 0 2px var(--app-soft);
 }
 .studio-thumb-panel .thumb-key-dot--server {
-  background: #f59e0b;
-  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.25);
+  background: var(--app-accent);
+  box-shadow: 0 0 0 2px var(--app-soft-accent);
 }
 .studio-thumb-panel .thumb-key-badge a.thumb-key-link {
   color: var(--app-primary);
@@ -5574,13 +5607,13 @@
 
 .bridge-btn-primary {
   background: linear-gradient(135deg, var(--cyan), var(--emerald));
-  color: #03131a;
+  color: #000000;
   border-color: transparent;
 }
 
 .bridge-btn-primary:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(34,211,238,0.25);
+  box-shadow: 0 8px 24px var(--primary-glow);
 }
 
 .bridge-btn-primary:disabled {
@@ -5714,7 +5747,7 @@
 
 .thumbnail-edit-btn:hover {
   background: var(--cyan);
-  color: #03131a;
+  color: #000000;
 }
 
 .preview-thumbnail-img {
@@ -5949,6 +5982,27 @@
   letter-spacing: 0.05em;
 }
 
+/* Main-view design picker (visible grid on the thumbnail modal) */
+.thumb-design-picker {
+  margin-bottom: 16px;
+}
+
+.thumb-design-picker-head {
+  margin-bottom: 10px;
+}
+
+.thumb-section-hint {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.thumb-explore-all {
+  font-weight: 600;
+}
+
+
 .explore-section-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -6169,7 +6223,7 @@
 
 .configurator-generate:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(34, 211, 238, 0.25);
+  box-shadow: 0 8px 24px var(--primary-glow);
 }
 
 .configurator-generate:disabled {

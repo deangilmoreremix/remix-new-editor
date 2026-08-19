@@ -1,12 +1,14 @@
 import { muapi } from '../lib/muapi.js';
+import { openSocialPublish } from '../lib/socialPublishHelpers.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
-import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
-import { getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
+import { mountModelSelector, getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
 
 const UPSCALE_METHODS = [
   { id: 'ai-image-upscaler', name: 'AI Upscaler', description: 'General-purpose AI upscaling with 2x/4x factor', factors: ['2', '4'], provider: 'muapi', provider_name: 'MuAPI' },
@@ -22,6 +24,7 @@ export function UpscaleStudio() {
   let selectedMethod = UPSCALE_METHODS[0];
   let selectedFactor = '2';
   let uploadedUrl = null;
+  let lastOutputUrl = null;
   let customThumbnailUrl = getCustomThumbnailFromCache('upscale-studio');
 
   const header = document.createElement('div');
@@ -72,60 +75,18 @@ export function UpscaleStudio() {
     dropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
     if (!dropdown.dataset.populated) {
       dropdown.dataset.populated = 'true';
-      const availableProviders = getAvailableProviders(UPSCALE_METHODS);
-      dropdown.innerHTML = `
-        <div class="flex gap-4 h-full max-h-[70vh] min-h-[350px] overflow-x-hidden">
-          <div data-provider-sidebar></div>
-          <div class="flex-1 flex flex-col gap-2 min-w-0">
-            ${renderSearchBar()}
-            <div class="text-xs font-semibold text-secondary py-1 shrink-0 flex items-center justify-between">
-              <span>Available models</span>
-              <span data-provider-badge class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60 hidden"></span>
-            </div>
-            <div data-model-list></div>
-          </div>
-        </div>
-      `;
-      const sidebarEl = dropdown.querySelector('[data-provider-sidebar]');
-      const modelListEl = dropdown.querySelector('[data-model-list]');
-      const providerBadge = dropdown.querySelector('[data-provider-badge]');
-      const searchInput = dropdown.querySelector('[data-provider-search]');
-      let selectedProvider = 'all';
-      const refresh = () => {
-        sidebarEl.innerHTML = renderProviderSidebar(availableProviders, selectedProvider, (provider) => {
-          selectedProvider = provider;
-          refresh();
-        });
-        const filtered = filterModels(UPSCALE_METHODS, searchInput ? searchInput.value : '', selectedProvider);
-        const showProviderName = selectedProvider === 'all';
-        modelListEl.innerHTML = renderModelList(filtered, selectedMethod.id, showProviderName, (m) => {
-          selectedMethod = UPSCALE_METHODS.find(x => x.id === m.id) || m;
+      mountModelSelector(dropdown, {
+        models: UPSCALE_METHODS,
+        selectedModelId: selectedMethod.id,
+        showProviderName: true,
+        onSelectModel: (modelId) => {
+          selectedMethod = UPSCALE_METHODS.find(x => x.id === modelId) || { id: modelId };
           selectedFactor = selectedMethod.factors[0] || '';
           updateTrigger();
           updateFactorBtns();
           closeDropdown();
-        });
-        if (selectedProvider !== 'all') {
-          const pName = availableProviders.find(p => p.id === selectedProvider)?.name || selectedProvider;
-          providerBadge.textContent = pName;
-          providerBadge.classList.remove('hidden');
-        } else {
-          providerBadge.classList.add('hidden');
-        }
-      };
-      refresh();
-      sidebarEl.addEventListener('click', (e) => {
-        const btn = e.target.closest('button[data-provider]');
-        if (!btn) return;
-        e.stopPropagation();
-        const provider = btn.getAttribute('data-provider');
-        if (provider) {
-          selectedProvider = provider;
-          refresh();
-        }
+        },
       });
-      searchInput.onclick = (e) => e.stopPropagation();
-      searchInput.oninput = () => refresh();
     }
   };
 
@@ -209,8 +170,9 @@ export function UpscaleStudio() {
   thumbBtn.title = 'Generate a custom thumbnail';
   thumbBtn.className = 'gtm-boost-btn w-full';
   thumbBtn.addEventListener('click', () => {
-    const modal = new StudioThumbnailModal({
+    const modal = new TemplateThumbnailModal({
       appTheme: 'upscale-studio',
+      layout: 'panel',
       studioId: 'upscale-studio',
       studioName: 'Upscale Suite',
       aspectRatio: '1:1',
@@ -224,7 +186,7 @@ export function UpscaleStudio() {
         clearCustomThumbnailCache('upscale-studio');
       },
     });
-    mountStudioThumbnailModal(modal);
+    mountThumbnailModal(modal);
     modal.open();
   });
   formCard.appendChild(thumbBtn);
@@ -276,13 +238,17 @@ export function UpscaleStudio() {
       if (selectedFactor) params.upscale_factor = parseInt(selectedFactor);
       const result = await muapi.generateI2I(params);
       if (result?.url) {
+        lastOutputUrl = result.url;
         resultArea.classList.remove('hidden');
         resultArea.innerHTML = `
           <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4">
             <img src="${result.url}" class="w-full rounded-xl mb-3">
             <a href="${result.url}" download class="block w-full bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
+            <button type="button" class="publish-social-btn block w-full mt-2 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
           </div>
         `;
+        const publishBtn = resultArea.querySelector('.publish-social-btn');
+        if (publishBtn) publishBtn.onclick = () => openSocialPublish({ mediaUrl: lastOutputUrl, mediaType: 'image' });
       }
     } catch (err) {
       alert(`Error: ${err.message}`);

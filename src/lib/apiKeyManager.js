@@ -277,7 +277,7 @@ apiKeyManager.migrateFromLegacy();
  * key (so every `localStorage.getItem('muapi_key')` / `apiKeyManager.getKey()`
  * guard passes). Activated by either:
  *   - VITE_DEV_BYPASS_AUTH=true in the .env file, or
- *   - a `?dev` query param in the URL (e.g. http://localhost:3000/?dev)
+ *   - a `?dev` query param in the URL (e.g. http://localhost:3100/?dev)
  *
  * This only runs in the browser and never affects production builds where the
  * flag is unset. The placeholder key is NOT a real Muapi key, so live API calls

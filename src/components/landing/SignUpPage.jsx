@@ -8,13 +8,14 @@
 // Requires a <ClerkProvider> ancestor (provided by ClerkGate in
 // ClerkAuth.jsx when this page is mounted at /signup).
 
-import React, { useState } from 'react';
-import { useSignUp } from '@clerk/react';
-import { clerkErrorMessage } from './AuthLayout.jsx';
+import React, { useState, useEffect } from 'react';
+import { useSignUp, useUser } from '@clerk/react';
+import { clerkErrorMessage, clerkWithTimeout, handleNavClick } from './AuthLayout.jsx';
 
 export function SignUpPage() {
   const { signUp, errors, fetchStatus } = useSignUp();
-  const isLoaded = fetchStatus !== 'fetching';
+  const { isSignedIn, isLoaded: userLoaded } = useUser();
+  const isLoaded = signUp !== undefined;
   const [firstName, setFirstName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,16 +24,29 @@ export function SignUpPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Redirect already-signed-in users away from the sign-up form
+  useEffect(() => {
+    if (userLoaded && isSignedIn) {
+      window.location.href = '/#/image';
+    }
+  }, [userLoaded, isSignedIn]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!signUp || fetchStatus === 'fetching') return;
+    if (!isLoaded || fetchStatus === 'fetching') return;
     setLoading(true);
     setError('');
-    const { error: resultError } = await signUp.password({
-      emailAddress: email,
-      password,
-      ...(firstName ? { firstName } : {}),
-    });
+
+    // Clear any stale sign-up state before retrying
+    try { signUp.reset(); } catch {}
+
+    const { error: resultError } = await clerkWithTimeout(
+      signUp.password({
+        emailAddress: email,
+        password,
+        ...(firstName ? { firstName } : {}),
+      })
+    );
     if (resultError) {
       setError(clerkErrorMessage(resultError, errors) || 'Sign up failed. Please try again.');
       setLoading(false);
@@ -48,7 +62,9 @@ export function SignUpPage() {
       return;
     }
     // Instance requires email verification — send the code, move to step 2.
-    const { error: sendError } = await signUp.verifications.sendEmailCode();
+    const { error: sendError } = await clerkWithTimeout(
+      signUp.verifications.sendEmailCode()
+    );
     if (sendError) {
       setError(clerkErrorMessage(sendError, errors) || 'Could not send a verification code.');
       setLoading(false);
@@ -60,10 +76,12 @@ export function SignUpPage() {
 
   const handleVerify = async (e) => {
     e.preventDefault();
-    if (!signUp || fetchStatus === 'fetching') return;
+    if (!isLoaded || fetchStatus === 'fetching') return;
     setLoading(true);
     setError('');
-    const { error: resultError } = await signUp.verifications.verifyEmailCode({ code });
+    const { error: resultError } = await clerkWithTimeout(
+      signUp.verifications.verifyEmailCode({ code })
+    );
     if (resultError) {
       setError(clerkErrorMessage(resultError, errors) || 'Invalid verification code.');
       setLoading(false);

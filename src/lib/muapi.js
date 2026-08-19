@@ -259,6 +259,7 @@ export class MuapiClient {
         if (params.prompt) finalPayload.prompt = params.prompt;
         if (params.request_id) finalPayload.request_id = params.request_id;
         if (params.image_url) finalPayload.image_url = params.image_url;
+        if (params.video_url) finalPayload.video_url = params.video_url;
         if (params.aspect_ratio) finalPayload.aspect_ratio = params.aspect_ratio;
         if (params.duration) finalPayload.duration = params.duration;
         if (params.resolution) finalPayload.resolution = params.resolution;
@@ -433,6 +434,15 @@ export class MuapiClient {
         if (p.duration) finalPayload.duration = p.duration;
         if (p.resolution) finalPayload.resolution = p.resolution;
         if (p.quality) finalPayload.quality = p.quality;
+        // First/last-frame control (start + end image). Forwarded from the raw
+        // params (not the sanitized object, which strips unknown keys) so
+        // first-last-frame models (e.g. seedance-2.5-first-last-frame) can pin
+        // both ends of the generated clip. Forward both camelCase and snake_case
+        // conventions since different model endpoints expect different keys.
+        if (params.firstFrameUrl || params.first_frame_url) finalPayload.firstFrameUrl = params.firstFrameUrl || params.first_frame_url;
+        if (params.lastFrameUrl || params.last_frame_url) finalPayload.lastFrameUrl = params.lastFrameUrl || params.last_frame_url;
+        if (params.startImageUrl) finalPayload.startImageUrl = params.startImageUrl;
+        if (params.endImageUrl) finalPayload.endImageUrl = params.endImageUrl;
         // Effect endpoints (generate_wan_ai_effects) REQUIRE `name`.
         // Forward it from the template's effect selection input or defaultParams.
         if (p.name) finalPayload.name = p.name;
@@ -1027,6 +1037,50 @@ export class MuapiClient {
 
             const data = await response.json();
             this.validateResponse(data, 'custom');
+            return data;
+        } catch (error) {
+            if (error.name === 'AbortError') throw new Error('Request cancelled by user');
+            throw error;
+        }
+    }
+
+    // Generic JSON passthrough to the muapi proxy for non-generation
+    // endpoints (social publishing, result polling, account management).
+    // `generationType` maps to the proxy's GET/POST decision: 'list' and
+    // 'poll' become GET; anything else (e.g. 'social') becomes POST.
+    async proxyJson(endpoint, { method = 'POST', params = {}, generationType, apiMethod } = {}, signal) {
+        if (!endpoint || typeof endpoint !== 'string') {
+            throw new Error('Endpoint is required for proxyJson');
+        }
+        const resolvedGenerationType = generationType || (method === 'GET' ? 'list' : 'social');
+
+        const body = {
+            endpoint,
+            params: params || {},
+            generationType: resolvedGenerationType,
+            studioType: 'social',
+        };
+        // Optional upstream HTTP method (e.g. 'PATCH' / 'DELETE') for account
+        // management endpoints that the edge proxy forwards verbatim.
+        if (apiMethod) body.apiMethod = apiMethod;
+
+        try {
+            const response = await fetch(this.proxyUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+                signal,
+            });
+
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(`Social API failed: ${response.status} ${response.statusText} - ${errText.slice(0, 200)}`);
+            }
+
+            const data = await response.json();
+            if (data && data.error) {
+                throw new Error(`Social API error: ${data.error}${data.details ? ` — ${data.details}` : ''}`);
+            }
             return data;
         } catch (error) {
             if (error.name === 'AbortError') throw new Error('Request cancelled by user');

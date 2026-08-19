@@ -76,9 +76,9 @@ async function getSession() {
 }
 
 function hexToRgba(hex, alpha) {
-  if (typeof hex !== 'string') return `rgba(59, 130, 246, ${alpha})`;
+  if (typeof hex !== 'string') return `rgba(217, 255, 0, ${alpha})`;
   const m = hex.trim().match(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i);
-  if (!m) return `rgba(59, 130, 246, ${alpha})`;
+  if (!m) return `rgba(217, 255, 0, ${alpha})`;
   let h = m[1];
   if (h.length === 3) h = h.split('').map((c) => c + c).join('');
   const r = parseInt(h.slice(0, 2), 16);
@@ -193,7 +193,7 @@ export class PersonalizeModal extends BaseModal {
       const scheme = openaiConfig.getStudioColorScheme(theme);
       if (scheme && scheme.primary) return scheme;
     } catch {}
-    return { primary: '#d9ff00', accent: '#a855f7', secondary: '#64748b' };
+    return { primary: '#d9ff00', accent: '#c4e600', secondary: '#a1a1aa', onPrimary: '#000000' };
   }
 
   _activeTab() {
@@ -227,7 +227,7 @@ export class PersonalizeModal extends BaseModal {
 
   renderBody() {
     const primary = this.appColors.primary || '#d9ff00';
-    const accent = this.appColors.accent || '#a855f7';
+    const accent = this.appColors.accent || '#c4e600';
     const soft = hexToRgba(primary, 0.12);
     const softAccent = hexToRgba(accent, 0.12);
     const activeTab = this._activeTab();
@@ -239,7 +239,7 @@ export class PersonalizeModal extends BaseModal {
     };
 
     return `
-      <div class="pm-modal ${this.darkMode ? 'pm-dark' : 'pm-light'}" data-theme="${this.darkMode ? 'dark' : 'light'}" style="--pm-primary: ${primary}; --pm-accent: ${accent}; --pm-soft: ${soft}; --pm-soft-accent: ${softAccent};">
+      <div class="pm-modal ${this.darkMode ? 'pm-dark' : 'pm-light'}" data-theme="${this.darkMode ? 'dark' : 'light'}" style="--pm-primary: ${primary}; --pm-accent: ${accent}; --pm-on-primary: ${this.appColors.onPrimary || '#000000'}; --pm-soft: ${soft}; --pm-soft-accent: ${softAccent}; --pm-glow: ${hexToRgba(primary, 0.25)}; --app-primary: ${primary}; --app-accent: ${accent}; --app-on-primary: ${this.appColors.onPrimary || '#000000'}; --app-soft: ${soft}; --app-soft-accent: ${softAccent}; --app-glow: ${hexToRgba(primary, 0.25)};">
         <p id="pm-subtitle" class="pm-subtitle">Discover a contact, view Maigret intelligence, and insert personalized tokens into your prompt.</p>
 
         <div class="pm-sr-only" role="status" aria-live="polite" id="pm-live"></div>
@@ -283,8 +283,16 @@ export class PersonalizeModal extends BaseModal {
         .pm-modal {
           --pm-primary: ${primary};
           --pm-accent: ${accent};
+          --pm-on-primary: ${this.appColors.onPrimary || '#000000'};
           --pm-soft: ${soft};
           --pm-soft-accent: ${softAccent};
+          --pm-glow: ${hexToRgba(primary, 0.25)};
+          --app-primary: ${primary};
+          --app-accent: ${accent};
+          --app-on-primary: ${this.appColors.onPrimary || '#000000'};
+          --app-soft: ${soft};
+          --app-soft-accent: ${softAccent};
+          --app-glow: ${hexToRgba(primary, 0.25)};
           color: var(--text-primary);
           font-family: var(--font-family);
           padding: 0;
@@ -606,7 +614,7 @@ export class PersonalizeModal extends BaseModal {
 
         .pm-btn-primary {
           background: var(--pm-primary);
-          color: #03131a;
+          color: var(--pm-on-primary, #000000);
         }
 
         .pm-btn-primary:hover:not(:disabled) {
@@ -1344,7 +1352,7 @@ export class PersonalizeModal extends BaseModal {
 
         .pm-action-primary {
           background: var(--pm-primary);
-          color: #03131a;
+          color: var(--pm-on-primary, #000000);
         }
 
         .pm-action-primary:hover:not(:disabled) {
@@ -1366,7 +1374,7 @@ export class PersonalizeModal extends BaseModal {
 
         .pm-action-accent {
           background: var(--pm-accent);
-          color: #03131a;
+          color: var(--pm-on-primary, #000000);
         }
 
         .pm-action-accent:hover:not(:disabled) {
@@ -1598,7 +1606,7 @@ export class PersonalizeModal extends BaseModal {
         }
         .pm-history-view:hover {
           background: var(--pm-primary);
-          color: #03131a;
+          color: var(--pm-on-primary, #000000);
         }
 
         @media (max-width: 640px) {

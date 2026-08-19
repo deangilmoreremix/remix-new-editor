@@ -7,12 +7,29 @@
 
 import { ThumbnailTemplateCard } from './ThumbnailTemplateCard.jsx';
 
+// Register a one-time global img onerror handler so cards that use
+// getTemplateThumbnailCandidates can fall through to their fallback URLs.
+if (typeof window !== 'undefined' && !window.__thumbCardErr) {
+  window.__thumbCardErr = function (img) {
+    try {
+      const fallbacks = JSON.parse(img.getAttribute('data-fallbacks') || '[]');
+      const idx = img._fallbackIndex || 0;
+      if (idx < fallbacks.length) {
+        img._fallbackIndex = idx + 1;
+        img.src = fallbacks[idx];
+        return;
+      }
+    } catch { /* noop */ }
+    img.style.display = 'none';
+  };
+}
+
 export class ThumbnailTemplateGrid {
   constructor(options = {}) {
     this.templates = options.templates || [];
-    this.appColors = options.appColors || { primary: '#22d3ee', accent: '#34d399' };
-    this.onSelect = options.onSelect || (() => {});
+    this.appColors = options.appColors || { primary: '#d9ff00', accent: '#c4e600' };
     this.selectedId = options.selectedId || null;
+    this.action = options.action || 'select-template';
   }
 
   get primary() { return this.appColors.primary; }
@@ -37,7 +54,7 @@ export class ThumbnailTemplateGrid {
             template: t,
             appColors: this.appColors,
             selected: isSelected,
-            onSelect: () => this.onSelect(t.id),
+            action: this.action,
           }).render();
         }).join('')}
       </div>

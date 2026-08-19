@@ -33,6 +33,17 @@ import { mediaWorker } from '../media-worker-manager.js';
 import { saveProject } from './persistence.js';
 import { validateOrPass } from './schemas.js';
 import { extractMetadata as extractMetadataImpl, generateThumbnail as generateThumbnailImpl, extractWaveform as extractWaveformImpl } from './metadataExtractor.js';
+import { formatErrorMessage } from '../errorMessages.js';
+
+// Map an upload error to the message shown to the user. Auth (401/403) and
+// credit (402) failures collapse to the single actionable message; every
+// other failure keeps the conventional "Upload failed:" prefix (so existing
+// callers/tests that look for it still see it) with the raw server text
+// stripped by formatErrorMessage.
+function uploadErrorToast(err, fileName) {
+  const msg = formatErrorMessage(err, `Upload failed for ${fileName}`);
+  return msg === 'Please sign in and add api credits.' ? msg : `Upload failed: ${msg}`;
+}
 
 // ============================================================================
 // CONFIGURATION
@@ -441,8 +452,8 @@ export async function processFileUpload(file, options = {}) {
   try {
     publicUrl = await uploadWithRetry(() => muapi.uploadFile(file), opts);
   } catch (e) {
-    if (opts.showToast) opts.showToast(`Upload failed for ${fileName}`, 'error');
-    return { success: false, error: e.message || 'Upload failed', validation };
+    if (opts.showToast) opts.showToast(uploadErrorToast(e, fileName), 'error');
+    return { success: false, error: e.message || 'Upload failed', errorStatus: e.status, validation };
   }
 
   // Step 4: Generate thumbnail (use the one from fullMeta, or fall back)
@@ -573,12 +584,13 @@ export async function processMultipleFileUploads(files, options = {}) {
       const file = batch[j];
       const fileName = file?.name || 'file';
       if (result.status === 'rejected') {
-        if (opts.showToast) opts.showToast(`Upload failed for ${fileName}`, 'error');
+        if (opts.showToast) opts.showToast(uploadErrorToast(result.reason || `Upload failed for ${fileName}`, fileName), 'error');
         results.push({ success: false, error: result.reason?.message || 'Upload failed', validation: null });
       } else {
         results.push(result.value);
         if (result.value?.success === false && opts.showToast) {
-          opts.showToast(result.value.error || `Upload failed for ${fileName}`, 'error');
+          const reason = { message: result.value.error || `Upload failed for ${fileName}`, status: result.value.errorStatus };
+          opts.showToast(uploadErrorToast(reason, fileName), 'error');
         }
       }
     }
@@ -697,7 +709,7 @@ export async function processUrlUpload(url, options = {}) {
     const file = await fetchUrlAsFile(url);
     return await processFileUpload(file, { ...options, source: 'url' });
   } catch (e) {
-    if (options.showToast) options.showToast(`URL import failed: ${e.message}`, 'error');
+    if (options.showToast) options.showToast(uploadErrorToast(e, 'URL import'), 'error');
     return { success: false, error: e.message || 'URL import failed' };
   }
 }

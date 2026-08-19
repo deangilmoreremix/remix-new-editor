@@ -261,3 +261,65 @@ describe('validateFile — sync fallback (no magic bytes)', () => {
     expect(r.valid).toBe(false);
   });
 });
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Regression: FILE_TYPE_CONFIG size caps must match muapi.ai's documented upload
+// limits (Images 10 MB, Videos 50 MB, Others 10 MB). Previously image was 50MB
+// and video was 500MB, so oversized files passed picker validation only to be
+// rejected server-side with a generic error. With the aligned caps the picker
+// fails fast with a friendly message before any network request.
+//
+// Size is stubbed on a small blob (mirrors the existing oversize test above).
+// ──────────────────────────────────────────────────────────────────────────────
+describe('validateFile — muapi.ai documented size caps (10/50/10 MB)', () => {
+  it('enforces the documented 50MB video cap', async () => {
+    expect(FILE_TYPE_CONFIG.video.maxSize).toBe(50 * 1024 * 1024);
+
+    const within = new Blob([new Uint8Array(8)], { type: 'video/mp4' });
+    within.name = 'ok.mp4';
+    Object.defineProperty(within, 'size', { value: 49 * 1024 * 1024, configurable: true });
+    const pass = await validateFile(within);
+    expect(pass.valid).toBe(true);
+    expect(pass.type).toBe('video');
+
+    const over = new Blob([new Uint8Array(8)], { type: 'video/mp4' });
+    over.name = 'big.mp4';
+    Object.defineProperty(over, 'size', { value: 51 * 1024 * 1024, configurable: true });
+    const fail = await validateFile(over);
+    expect(fail.valid).toBe(false);
+    expect(fail.type).toBe('video');
+    expect(fail.error).toMatch(/too large/i);
+  });
+
+  it('enforces the documented 10MB image cap', async () => {
+    expect(FILE_TYPE_CONFIG.image.maxSize).toBe(10 * 1024 * 1024);
+
+    const over = new Blob([new Uint8Array(8)], { type: 'image/png' });
+    over.name = 'big.png';
+    Object.defineProperty(over, 'size', { value: 11 * 1024 * 1024, configurable: true });
+    const fail = await validateFile(over);
+    expect(fail.valid).toBe(false);
+    expect(fail.type).toBe('image');
+    expect(fail.error).toMatch(/too large/i);
+  });
+
+  it('enforces the 10MB cap for audio and documents (muapi "others")', async () => {
+    expect(FILE_TYPE_CONFIG.audio.maxSize).toBe(10 * 1024 * 1024);
+    expect(FILE_TYPE_CONFIG.document.maxSize).toBe(10 * 1024 * 1024);
+
+    const over = new Blob([new Uint8Array(8)], { type: 'audio/mpeg' });
+    over.name = 'big.mp3';
+    Object.defineProperty(over, 'size', { value: 11 * 1024 * 1024, configurable: true });
+    const fail = await validateFile(over);
+    expect(fail.valid).toBe(false);
+    expect(fail.error).toMatch(/too large/i);
+  });
+
+  it('client caps never exceed muapi.uploadFile server-side caps (10/50/10)', () => {
+    // muapi.uploadFile enforces: isImage ? 10MB : isVideo ? 50MB : 10MB.
+    expect(FILE_TYPE_CONFIG.video.maxSize).toBeLessThanOrEqual(50 * 1024 * 1024);
+    expect(FILE_TYPE_CONFIG.image.maxSize).toBeLessThanOrEqual(10 * 1024 * 1024);
+    expect(FILE_TYPE_CONFIG.audio.maxSize).toBeLessThanOrEqual(10 * 1024 * 1024);
+    expect(FILE_TYPE_CONFIG.document.maxSize).toBeLessThanOrEqual(10 * 1024 * 1024);
+  });
+});

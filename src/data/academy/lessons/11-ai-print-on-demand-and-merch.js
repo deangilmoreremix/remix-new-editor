@@ -2,9 +2,7 @@
 // Extracted from src/content/academy/11-ai-print-on-demand-and-merch/lessons/*.md.
 // Powers the LEARN view; AcademyPage matches rich lessons to catalog lessons by `id`.
 
-import type { Lesson } from '../lesson-types';
-
-export const LESSONS_11: Lesson[] = [
+export const LESSONS_11 = [
   {
     id: '11-ai-print-on-demand-and-merch::01-designing-sellable-ai-art-for-merch',
     slug: '11-ai-print-on-demand-and-merch::01-designing-sellable-ai-art-for-merch',

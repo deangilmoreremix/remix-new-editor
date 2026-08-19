@@ -14,6 +14,7 @@ initPopcorn().then(() => {
 import { Header } from './components/Header.js';
 import { Sidebar } from './components/Sidebar.js';
 import { initRouter, navigate } from './lib/router.js';
+import { ensureClerkLoaded } from './lib/clerkInit.js';
 import { perfMonitor } from './lib/performance.js';
 import { analytics } from './lib/analytics.js';
 import { showToast } from './lib/loading.js';
@@ -200,6 +201,18 @@ try {
   // Preserve any deep-link query params (e.g. ?asset=<id> for Render) so the
   // target page can read them. navigate() serializes params into the URL.
   const initialParams = Object.fromEntries(new URLSearchParams(window.location.search).entries());
+  // Ensure the shared Clerk instance is loaded before the router checks
+  // authentication on gated studio pages. Without this, ensureStudioAccess
+  // in router.js calls waitForClerk() before ClerkProvider has set
+  // window.Clerk, causing a false "not signed in" redirect.
+  // This is a no-op for landing/auth pages (no Clerk gate) and dev bypass.
+  if (!isDevBypass && initialPage !== 'landing' && !['signin','signup','forgot-password','reset-password','account','profile'].includes(initialPage)) {
+    try {
+      await ensureClerkLoaded();
+    } catch (err) {
+      console.warn('[App] Clerk preload failed, continuing anyway:', err.message);
+    }
+  }
   navigate(initialPage, initialParams);
 
   // Show the provider API key setup popup once when the user lands in the app.
@@ -316,23 +329,7 @@ async function renderParentTimelineModal(modal, props = {}) {
     activeTimelineModal.container = container;
 
     if (modal === 'personalization') {
-      const { PersonalizationModal } = await import('../components/modals/PersonalizationModal.jsx');
-      content.innerHTML = '';
-      const { createRoot } = await import('react-dom/client');
-      const root = createRoot(content);
-      activeTimelineModal.instance = { root };
-      try {
-        const mod = await import('react');
-        root.render(mod.createElement(ErrorBoundary, null,
-          mod.createElement(PersonalizationModal, {
-            handleClose: () => { root.unmount?.(); activeTimelineModal.unmount?.(); },
-            options: { elementType: props.elementType, onAdd: props.onAdd, tokenModes: props.tokenModes }
-          })
-        ));
-      } catch (err) {
-        content.innerHTML = '<div style="padding:32px 24px;color:#fff;"><h2 style="margin:0 0 8px;">Personalizer</h2><p style="color:rgba(255,255,255,0.55);margin:0;">Open the timeline Personalizer inside the editor.</p></div>';
-        console.warn('[TimelineModalBridge] React unavailable for Personalization modal', err);
-      }
+      content.innerHTML = '<div style="padding:32px 24px;color:#fff;"><h2 style="margin:0 0 8px;">Personalizer</h2><p style="color:rgba(255,255,255,0.55);margin:0;">The Personalization modal is not available in this build.</p></div>';
       return;
     }
 
@@ -366,20 +363,6 @@ async function renderParentTimelineModal(modal, props = {}) {
 
     if (modal === 'social-publisher') {
       content.innerHTML = '<div style="padding:32px 24px;color:#fff;"><h2 style="margin:0 0 8px;">Social Publisher</h2><p style="color:rgba(255,255,255,0.55);margin:0;">Connect a platform account to publish from the timeline.</p></div>';
-      return;
-    }
-
-    if (modal === 'settings') {
-      const { default: SettingsModal } = await import('./components/modals/SettingsModal.js');
-      new SettingsModal().open();
-      activeTimelineModal.unmount();
-      return;
-    }
-
-    if (modal === 'project') {
-      const { default: CreateProjectModal } = await import('./components/modals/CreateProjectModal.js');
-      new CreateProjectModal().open();
-      activeTimelineModal.unmount();
       return;
     }
 

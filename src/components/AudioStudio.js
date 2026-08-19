@@ -6,39 +6,11 @@ import { AuthModal } from './AuthModal.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { mountModelSelector } from '../lib/modelSelectorUI.js';
 import { showToast } from '../lib/loading.js';
-
-export function formatErrorMessage(err, fallback = 'Generation failed') {
-  if (!err) return fallback;
-  let message = typeof err === 'string' ? err : (err.message || fallback);
-
-  if (message.includes('{') && message.includes('}')) {
-    try {
-      const jsonStart = message.indexOf('{');
-      const jsonStr = message.slice(jsonStart);
-      const data = JSON.parse(jsonStr);
-      if (data.detail && typeof data.detail === 'string') return data.detail;
-      if (data.error?.message && typeof data.error.message === 'string') return data.error.message;
-      if (data.message && typeof data.message === 'string') return data.message;
-    } catch { /* ignore JSON parse error */ }
-  }
-
-  if (message.includes('402') || message.includes('INSUFFICIENT_CREDITS') || message.toLowerCase().includes('insufficient credits')) {
-    return 'Insufficient credits. Please top up your wallet.';
-  }
-  if (message.includes('401') || message.includes('403')) {
-    return 'Authentication failed. Please check your account session or API key.';
-  }
-  if (message.includes('429')) {
-    return 'Too many requests. Please wait a moment and try again.';
-  }
-
-  message = message.replace(/^API Request Failed: \d+ [^-]+ - /, '');
-  return message.length > 150 ? message.slice(0, 147) + '...' : message;
-}
+import { formatErrorMessage } from '../lib/errorMessages.js';
 
 function scopedPersistKey(baseKey, apiKey) {
   if (!apiKey) return baseKey;
@@ -156,7 +128,7 @@ function createAudioFileUploader(label, value, onChange, apiKey) {
         </div>
         <div class="text-left">
           <div class="text-xs font-bold text-white">Upload audio track</div>
-          <div class="text-[11px] text-zinc-300 font-medium mt-0.5">MP3, WAV, M4A up to 20MB</div>
+          <div class="text-[11px] text-zinc-300 font-medium mt-0.5">MP3, WAV, M4A up to 10MB</div>
         </div>
       `;
       dropZone.onclick = () => fileInput.click();
@@ -196,8 +168,8 @@ function createAudioFileUploader(label, value, onChange, apiKey) {
   fileInput.addEventListener('change', async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 20 * 1024 * 1024) {
-      showToast('Audio file exceeds 20MB limit.', 'error');
+    if (file.size > 10 * 1024 * 1024) {
+      showToast('Audio file exceeds 10MB limit.', 'error');
       fileInput.value = '';
       return;
     }
@@ -654,9 +626,6 @@ export function AudioStudio() {
   let searchQuery = '';
 
   const refreshModelSelector = () => {
-    if (modelSelectorEl) {
-      modelSelectorEl.remove();
-    }
     modelSelectorEl = mountModelSelector(modelWrapper, {
       models: audioModels,
       selectedModelId: selectedModel.id,
@@ -704,9 +673,9 @@ export function AudioStudio() {
   promptGroup.appendChild(promptInput);
   const gtmBtn = document.createElement('button');
   gtmBtn.type = 'button';
-  gtmBtn.textContent = 'GTM Boost';
+  gtmBtn.textContent = '🎯 GTM Boost';
   gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
-  gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
+  gtmBtn.setAttribute('aria-label', '🎯 GTM Boost prompt enhancer');
   gtmBtn.className = 'gtm-boost-btn shrink-0';
   gtmBtn.addEventListener('click', () => {
     import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
@@ -897,8 +866,9 @@ export function AudioStudio() {
   thumbBtn.title = 'Generate a custom thumbnail';
   thumbBtn.className = 'gtm-boost-btn w-full';
   thumbBtn.addEventListener('click', () => {
-    const modal = new StudioThumbnailModal({
+    const modal = new TemplateThumbnailModal({
       appTheme: 'audio-studio',
+      layout: 'panel',
       studioId: 'audio-studio',
       studioName: 'Audio Studio',
       aspectRatio: '16:9',
@@ -912,7 +882,7 @@ export function AudioStudio() {
         clearCustomThumbnailCache('audio-studio');
       },
     });
-    mountStudioThumbnailModal(modal);
+    mountThumbnailModal(modal);
     modal.open();
   });
   formCard.appendChild(thumbBtn);
@@ -1031,6 +1001,25 @@ export function AudioStudio() {
       schemaParams = typeof updater === 'function' ? updater(schemaParams) : updater;
       schedulePersist();
     }, schemaControlsContainer, apiKey);
+
+    // Voice-clone and music-extend/remix models take a reference audio file, but
+    // none declare an `audio` schema field, so renderSchemaControls above never
+    // mounts an uploader for them. Mount one explicitly and store the resulting
+    // URL as `audio_url` — the generate handler spreads `schemaParams` straight
+    // into muapi.generateAudio/generateMusic, both of which forward `audio_url`
+    // to muapi.ai. See muapi.js (generateAudio/generateMusic).
+    if (selectedModel && (selectedModel.requiresAudio || selectedModel.hasAudio)) {
+      const uploader = createAudioFileUploader(
+        selectedModel.requiresAudio ? 'Reference audio' : (selectedModel.hasAudio ? 'Reference audio' : 'Reference track'),
+        schemaParams.audio_url || '',
+        (url) => {
+          schemaParams = { ...schemaParams, audio_url: url };
+          schedulePersist();
+        },
+        apiKey
+      );
+      schemaControlsContainer.appendChild(uploader);
+    }
   }
 
   function cleanupResult() {

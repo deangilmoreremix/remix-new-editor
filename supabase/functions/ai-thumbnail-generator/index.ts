@@ -259,6 +259,11 @@ interface RefineRequest {
   referenceImageB64?: string | string[];
   referenceImageUrl?: string | string[];
   referenceImageFileId?: string | string[];
+  // Style references — applied as visual STYLE only (reference_type: 'style').
+  // Distinct from referenceImage* so the model copies the look, not the subject.
+  referenceStyleB64?: string | string[];
+  referenceStyleUrl?: string | string[];
+  referenceStyleFileId?: string | string[];
   // Mask for in-context editing via the Responses API tool config.
   inputImageMaskB64?: string;
   inputImageMaskFileId?: string;
@@ -317,6 +322,10 @@ interface SaveRequest {
   platform?: string;
   generationTimeMs?: number;
   modelUsed?: string;
+  /** Animated GIF support — when true, imageB64 (or gifData) contains a
+   * GIF byte stream and the file is saved with a .gif extension. */
+  asGif?: boolean;
+  gifData?: string;
 }
 
 type RequestBody = PromptsRequest | GenerateRequest | RefineRequest | InpaintRequest | SaveRequest | BrandKitRequest | PlatformRequest | VideoThumbnailRequest | UploadReferenceRequest | RecommendTemplatesRequest | SurpriseMeRequest;
@@ -987,7 +996,7 @@ function buildRefineReqBody(body: RefineRequest, model = IMG_GEN_MAINLINE_MODEL)
     if (userContent.length < 10) userContent.push(entry);
   };
 
-  const addB64Images = (b64?: string | string[], detail = "auto") => {
+  const addB64Images = (b64?: string | string[], detail = "auto", referenceType = "image") => {
     if (!b64) return;
     const items = Array.isArray(b64) ? b64 : [b64];
     for (const b of items) {
@@ -995,10 +1004,11 @@ function buildRefineReqBody(body: RefineRequest, model = IMG_GEN_MAINLINE_MODEL)
         type: "input_image",
         image_url: `data:image/png;base64,${b}`,
         detail,
+        reference_type: referenceType,
       });
     }
   };
-  const addUrlImages = (url?: string | string[], detail = "auto") => {
+  const addUrlImages = (url?: string | string[], detail = "auto", referenceType = "image") => {
     if (!url) return;
     const items = Array.isArray(url) ? url : [url];
     for (const u of items) {
@@ -1006,10 +1016,11 @@ function buildRefineReqBody(body: RefineRequest, model = IMG_GEN_MAINLINE_MODEL)
         type: "input_image",
         image_url: u,
         detail,
+        reference_type: referenceType,
       });
     }
   };
-  const addFileIdImages = (fileId?: string | string[], detail = "auto") => {
+  const addFileIdImages = (fileId?: string | string[], detail = "auto", referenceType = "image") => {
     if (!fileId) return;
     const items = Array.isArray(fileId) ? fileId : [fileId];
     for (const fid of items) {
@@ -1017,13 +1028,19 @@ function buildRefineReqBody(body: RefineRequest, model = IMG_GEN_MAINLINE_MODEL)
         type: "input_image",
         file_id: fid,
         detail,
+        reference_type: referenceType,
       });
     }
   };
 
-  addB64Images(body.referenceImageB64, body.imageDetail || "auto");
-  addUrlImages(body.referenceImageUrl, body.imageDetail || "auto");
-  addFileIdImages(body.referenceImageFileId, body.imageDetail || "auto");
+  // Subject references (default) — copy the actual subject/content.
+  addB64Images(body.referenceImageB64, body.imageDetail || "auto", "image");
+  addUrlImages(body.referenceImageUrl, body.imageDetail || "auto", "image");
+  addFileIdImages(body.referenceImageFileId, body.imageDetail || "auto", "image");
+  // Style references — copy the LOOK only, not the source subject.
+  addB64Images(body.referenceStyleB64, body.imageDetail || "auto", "style");
+  addUrlImages(body.referenceStyleUrl, body.imageDetail || "auto", "style");
+  addFileIdImages(body.referenceStyleFileId, body.imageDetail || "auto", "style");
 
   // Mask editing via the Responses API tool config (preferred for in-context refine).
   if (body.inputImageMaskFileId) {
@@ -1563,8 +1580,14 @@ async function handleSave(body: SaveRequest) {
   const startTime = Date.now();
 
   try {
-    const imageBuffer = await base64ToUint8Array(body.imageB64);
-    const filename = `${body.templateId}/${crypto.randomUUID()}.${body.controls?.outputFormat || "webp"}`;
+    // When saving an animated GIF, use gifData (or imageB64 if it is already
+    // a GIF byte stream) and save with a .gif extension.
+    const isGif = body.asGif === true;
+    const imageBuffer = isGif
+      ? await base64ToUint8Array(body.gifData || body.imageB64)
+      : await base64ToUint8Array(body.imageB64);
+    const fileExt = isGif ? "gif" : (body.controls?.outputFormat || "webp");
+    const filename = `${body.templateId}/${crypto.randomUUID()}.${fileExt}`;
     const imageUrl = await uploadBufferToStorage(imageBuffer, filename);
 
     await persistThumbnailRow({
@@ -1600,6 +1623,7 @@ async function handleSave(body: SaveRequest) {
     return jsonResponse({
       imageUrl,
       path: filename,
+      isGif: isGif,
       job: {
         templateId: body.templateId,
         presetKey: body.presetKey,

@@ -2,9 +2,7 @@
 // Extracted from src/content/academy/10-ai-headshots-and-portraits/lessons/*.md.
 // Powers the LEARN view; AcademyPage matches rich lessons to catalog lessons by `id`.
 
-import type { Lesson } from '../lesson-types';
-
-export const LESSONS_10: Lesson[] = [
+export const LESSONS_10 = [
   {
     id: '10-ai-headshots-and-portraits::01-consistent-headshot-generation',
     slug: '10-ai-headshots-and-portraits::01-consistent-headshot-generation',

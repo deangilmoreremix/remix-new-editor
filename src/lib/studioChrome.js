@@ -7,6 +7,7 @@
 // Used by the vanilla *Studio.js components and the *Page studio routes.
 import { navigate } from './router.js';
 import { getGroupedStudioRoutes, getStudioIcon, getStudioLabel } from './studioRoutes.js';
+import { openSocialPublish } from './socialPublishHelpers.js';
 
 const BACK_SVG = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>';
 const MENU_SVG = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>';
@@ -32,6 +33,22 @@ export function createStudioMenuButton(onToggle) {
   btn.setAttribute('aria-label', 'All studios');
   btn.innerHTML = MENU_SVG;
   btn.onclick = onToggle;
+  return btn;
+}
+
+const SOCIAL_PUBLISH_SVG = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/></svg>';
+
+// Always-visible entry point to the Social Publish modal, so users can open it
+// (and preview it) without first generating media. Opens with no mediaUrl; the
+// modal's media-URL field is editable.
+export function createStudioSocialPublishButton() {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'studio-social-publish-btn inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-white shrink-0 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] hover:opacity-90 hover:shadow-glow transition';
+  btn.setAttribute('data-studio-social-publish', '');
+  btn.setAttribute('aria-label', 'Publish to Social');
+  btn.innerHTML = `${SOCIAL_PUBLISH_SVG}<span>Publish to Social</span>`;
+  btn.onclick = () => openSocialPublish({});
   return btn;
 }
 
@@ -68,6 +85,8 @@ export function mountStudioChrome(rootContainer, { title, onBack, currentRoute }
   const spacer = document.createElement('div');
   spacer.className = 'studio-topbar__spacer';
   topbar.appendChild(spacer);
+
+  topbar.appendChild(createStudioSocialPublishButton());
 
   rootContainer.classList.add('studio-has-chrome');
   rootContainer.insertBefore(topbar, rootContainer.firstChild);

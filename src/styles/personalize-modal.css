@@ -76,7 +76,7 @@
 
 .pm-btn-primary {
   background: var(--pm-primary);
-  color: #03131a;
+  color: var(--pm-on-primary, #000000);
 }
 
 .pm-btn-primary:hover:not(:disabled) {
@@ -531,7 +531,7 @@
 
 .pm-action-primary {
   background: var(--pm-primary);
-  color: #03131a;
+  color: var(--pm-on-primary, #000000);
 }
 
 .pm-action-primary:hover:not(:disabled) {
@@ -553,7 +553,7 @@
 
 .pm-action-accent {
   background: var(--pm-accent);
-  color: #03131a;
+  color: var(--pm-on-primary, #000000);
 }
 
 .pm-action-accent:hover:not(:disabled) {

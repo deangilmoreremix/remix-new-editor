@@ -6,37 +6,57 @@
 // Requires a <ClerkProvider> ancestor (provided by ClerkGate in
 // ClerkAuth.jsx when this page is mounted at /signin).
 
-import React, { useState } from 'react';
-import { useSignIn } from '@clerk/react';
-import { clerkErrorMessage } from './AuthLayout.jsx';
+import React, { useState, useEffect } from 'react';
+import { useSignIn, useUser } from '@clerk/react';
+import { clerkErrorMessage, clerkWithTimeout, handleNavClick } from './AuthLayout.jsx';
 
 export function SignInPage() {
   const { signIn, errors, fetchStatus } = useSignIn();
-  const isLoaded = fetchStatus !== 'fetching';
+  const { isSignedIn, isLoaded: userLoaded, user } = useUser();
+  const clerk = useClerk();
+  const isLoaded = signIn !== undefined;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // If the user is already signed in, redirect them away from the sign-in
+  // page to the app. Without this check, signed-in users see the form and
+  // can't proceed — they're stuck on /signin with no usable navigation.
+  useEffect(() => {
+    if (userLoaded && isSignedIn) {
+      window.location.href = '/#/image';
+    }
+  }, [userLoaded, isSignedIn]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!signIn || fetchStatus === 'fetching') return;
+    if (!isLoaded || fetchStatus === 'fetching') return;
     setLoading(true);
     setError('');
-    const { error: resultError } = await signIn.password({ identifier: email, password });
+
+    // Clear any stale in-progress sign-in before retrying
+    try { signIn.reset(); } catch {}
+
+    const { error: resultError } = await clerkWithTimeout(
+      signIn.password({ identifier: email, password })
+    );
     if (resultError) {
       setError(clerkErrorMessage(resultError, errors) || 'Sign in failed. Please check your credentials.');
       setLoading(false);
       return;
     }
     if (signIn.status === 'needs_second_factor' || signIn.status === 'needs_client_trust') {
-      setError('Additional verification is required. This flow needs the email/authenticator code step.');
+      // MFA / passkey challenge required — this page doesn't have an MFA
+      // input step, so show a clear message rather than attempting an
+      // API call with an empty code (which would produce a confusing error).
+      setError('Additional verification is required. Please use an authenticator app, passkey, or check your email for a verification code.');
       setLoading(false);
       return;
     }
     if (signIn.status === 'complete') {
       await signIn.finalize({
-        navigate: async ({ session, decorateUrl }) => {
+        navigate: async ({ decorateUrl }) => {
           const url = decorateUrl('/#/image');
           window.location.href = url.startsWith('http') ? url : '/#/image';
         },

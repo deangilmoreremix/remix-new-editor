@@ -179,7 +179,10 @@ describe('UploadPicker — maxImages and multi-upload', () => {
     (muapi as any).uploadFile = vi.fn(async (file: File) => {
       callCount++;
       if (file.name === 'b.png') {
-        throw new Error('Simulated upload failure');
+        // Permanent (non-transient) failure: uploadWithRetry must NOT retry it.
+        const err = new Error('Simulated upload failure');
+        err.status = 400;
+        throw err;
       }
       return `https://example.com/${file.name}`;
     });

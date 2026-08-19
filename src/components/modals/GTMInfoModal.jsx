@@ -78,9 +78,9 @@ export class GTMInfoModal extends BaseModal {
   }
 
   hexToRgba(hex, alpha) {
-    if (typeof hex !== 'string') return `rgba(59, 130, 246, ${alpha})`;
+    if (typeof hex !== 'string') return `rgba(217, 255, 0, ${alpha})`;
     const m = hex.trim().match(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i);
-    if (!m) return `rgba(59, 130, 246, ${alpha})`;
+    if (!m) return `rgba(217, 255, 0, ${alpha})`;
     let h = m[1];
     if (h.length === 3) h = h.split('').map((c) => c + c).join('');
     const r = parseInt(h.slice(0, 2), 16);
@@ -153,7 +153,7 @@ export class GTMInfoModal extends BaseModal {
   renderBody() {
     const sections = this.getFilteredSections();
     return `
-      <div class="gtm-info-modal" style="--app-primary: ${this.appColors.primary}; --app-accent: ${this.appColors.accent}; --app-soft: ${this.hexToRgba(this.appColors.primary, 0.12)}; --app-soft-accent: ${this.hexToRgba(this.appColors.accent, 0.12)}">
+      <div class="gtm-info-modal" style="--app-primary: ${this.appColors.primary}; --app-accent: ${this.appColors.accent}; --app-on-primary: ${this.appColors.onPrimary || '#000000'}; --app-soft: ${this.hexToRgba(this.appColors.primary, 0.12)}; --app-soft-accent: ${this.hexToRgba(this.appColors.accent, 0.12)}; --app-glow: ${this.hexToRgba(this.appColors.primary, 0.25)}">
         <div class="gtm-info-header">
           <p class="gtm-info-subtitle">GTM Boost combines sales methodology with cinematic storytelling to transform basic prompts into conversion-optimized video prompts. Use this guide to understand each option.</p>
           <div class="gtm-info-controls">

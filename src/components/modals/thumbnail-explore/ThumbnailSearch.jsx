@@ -6,7 +6,7 @@
 
 export class ThumbnailSearch {
   constructor(options = {}) {
-    this.appColors = options.appColors || { primary: '#22d3ee', accent: '#34d399' };
+    this.appColors = options.appColors || { primary: '#d9ff00', accent: '#c4e600' };
     this.onSearch = options.onSearch || (() => {});
     this.placeholder = options.placeholder || 'Search templates...';
     this.value = options.value || '';

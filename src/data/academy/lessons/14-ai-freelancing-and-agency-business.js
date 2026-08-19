@@ -3,9 +3,7 @@
 // src/content/academy/14-ai-freelancing-and-agency-business/lessons/*.md,
 // powering the LEARN view. Matched to catalog lessons by `id`.
 
-import type { Lesson } from '../lesson-types';
-
-export const LESSONS_14: Lesson[] = [
+export const LESSONS_14 = [
   {
     id: '14-ai-freelancing-and-agency-business::01-pricing-your-services',
     slug: '14-ai-freelancing-and-agency-business::01-pricing-your-services',

@@ -319,7 +319,7 @@ const fixLegacyImports = () => {
         }
         // Extension fallback: legacy .js specifiers are often authored as
         // .jsx/.tsx/.ts/.mjs.
-        for (const ext of ['.jsx', '.tsx', '.ts', '.mjs']) {
+        for (const ext of ['.js', '.jsx', '.tsx', '.ts', '.mjs']) {
           const alt = abs.replace(/\.(js|jsx|ts|tsx|mjs)$/i, '') + ext;
           if (isFile(alt)) {
             return isPublic(alt) ? publicUrl(alt) : alt;
@@ -978,6 +978,9 @@ export default defineConfig({
         // legacy decorators + class-properties plugins so those modules parse.
         react({
             babel: {
+                presets: [
+                    '@babel/preset-typescript',
+                ],
                 plugins: [
                     ['@babel/plugin-proposal-decorators', { legacy: true }],
                     ['@babel/plugin-proposal-class-properties', { loose: true }],
@@ -1121,6 +1124,14 @@ export default defineConfig({
                 changeOrigin: true,
                 secure: true,
                 rewrite: (path) => path.replace(/^\/api/, ''),
+            },
+            // Proxy AI-VFX studio dev server (Next.js app from upstream
+            // SamurAIGPT/AI-VFX) so the iframe embed loads same-origin
+            // (localhost:3100/ai-vfx/) instead of cross-origin (localhost:3000/ai-vfx).
+            '/ai-vfx': {
+                target: 'http://localhost:3000',
+                changeOrigin: true,
+                ws: true,
             },
         },
     },

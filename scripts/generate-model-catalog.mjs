@@ -32,6 +32,8 @@ async function main() {
   const t2i = Array.isArray(modelsModule.t2iModels) ? modelsModule.t2iModels : [];
   const i2i = Array.isArray(modelsModule.i2iModels) ? modelsModule.i2iModels : [];
   const i2v = Array.isArray(modelsModule.i2vModels) ? modelsModule.i2vModels : [];
+  const t2v = Array.isArray(modelsModule.t2vModels) ? modelsModule.t2vModels : [];
+  const v2v = Array.isArray(modelsModule.v2vModels) ? modelsModule.v2vModels : [];
   const DESCRIPTIONS = (descModule && descModule.DESCRIPTIONS) || {};
 
   const seen = new Set();
@@ -56,6 +58,8 @@ async function main() {
     t2i: unique(t2i, 't2i'),
     i2i: unique(i2i, 'i2i'),
     i2v: unique(i2v, 'i2v'),
+    t2v: unique(t2v, 't2v'),
+    v2v: unique(v2v, 'v2v'),
   };
 
   const outDir  = join(PROJECT_ROOT, 'public', 'api');
@@ -63,7 +67,7 @@ async function main() {
   mkdirSync(outDir, { recursive: true });
   writeFileSync(outFile, JSON.stringify(catalog, null, 2), 'utf-8');
 
-  const total = catalog.t2i.length + catalog.i2i.length + catalog.i2v.length;
+  const total = catalog.t2i.length + catalog.i2i.length + catalog.i2v.length + catalog.t2v.length + catalog.v2v.length;
   console.log(`[generate-model-catalog] Wrote ${outFile} (${total} unique models)`);
 }
 

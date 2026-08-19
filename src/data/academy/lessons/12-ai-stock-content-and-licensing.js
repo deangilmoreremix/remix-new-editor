@@ -3,9 +3,7 @@
 // from src/data/academy/catalog.ts; problem/concept/doIt/launchIt/exercises are
 // distilled from the upstream markdown in src/content/academy/12-ai-stock-content-and-licensing/lessons.
 
-import type { Lesson } from '../lesson-types';
-
-export const LESSONS_12: Lesson[] = [
+export const LESSONS_12 = [
   {
     id: '12-ai-stock-content-and-licensing::01-what-actually-sells-on-stock-marketplaces',
     slug: '12-ai-stock-content-and-licensing::01-what-actually-sells-on-stock-marketplaces',

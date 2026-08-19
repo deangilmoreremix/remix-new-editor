@@ -1,4 +1,6 @@
 import { muapi } from '../lib/muapi.js';
+import { openSocialPublish } from '../lib/socialPublishHelpers.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
@@ -7,7 +9,7 @@ import { createInlineInstructions } from './InlineInstructions.js';
 import { i2iModels, i2vModels } from '../lib/models.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
-import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { navigate } from '../lib/router.js';
 import { saveGeneratedAsset } from '../lib/assets/assetActions.js';
@@ -98,12 +100,13 @@ export function EffectsStudio() {
     thumbBtn.title = 'Generate a custom thumbnail';
     thumbBtn.className = 'absolute top-3 right-3 z-20 px-3 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-violet-500 to-indigo-500 text-white hover:from-violet-400 hover:to-indigo-400 transition-all shadow-lg shadow-violet-500/25';
     thumbBtn.onclick = () => {
-      const modal = new StudioThumbnailModal({
+      const modal = new TemplateThumbnailModal({
         studioId: 'effects-studio',
+        layout: 'panel',
         studioLabel: 'Effects Studio',
         accentGradient: 'from-violet-500 to-indigo-500',
       });
-      mountStudioThumbnailModal(modal);
+      mountThumbnailModal(modal);
     };
   } else {
     topBar.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Effects Studio</h1><p class="text-secondary text-xs mb-4">Apply 350+ visual effects to your photos and videos</p>';
@@ -354,8 +357,9 @@ export function EffectsStudio() {
   thumbBtn.title = 'Generate a custom thumbnail';
   thumbBtn.className = 'gtm-boost-btn shrink-0';
   thumbBtn.addEventListener('click', () => {
-    const modal = new StudioThumbnailModal({
+    const modal = new TemplateThumbnailModal({
       appTheme: 'effects-studio',
+      layout: 'panel',
       studioId: 'effects-studio',
       studioName: 'Effects Studio',
       aspectRatio: '16:9',
@@ -369,7 +373,7 @@ export function EffectsStudio() {
         clearCustomThumbnailCache('effects-studio');
       },
     });
-    mountStudioThumbnailModal(modal);
+    mountThumbnailModal(modal);
     modal.open();
   });
   promptRow.appendChild(thumbBtn);
@@ -380,6 +384,12 @@ export function EffectsStudio() {
   generateBtn.textContent = 'Apply Effect';
   generateBtn.setAttribute('aria-label', 'Apply effect');
     promptRow.appendChild(generateBtn);
+    const effectsPublishBtn = document.createElement('button');
+    effectsPublishBtn.type = 'button';
+    effectsPublishBtn.textContent = 'Publish to Social';
+    effectsPublishBtn.className = 'bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow transition-all whitespace-nowrap';
+    effectsPublishBtn.onclick = () => openSocialPublish({ mediaUrl: lastResultUrl, mediaType: lastResultType });
+    promptRow.appendChild(effectsPublishBtn);
     mountPersonalizeTrigger({ controlsContainer: promptRow, getTextarea: () => promptInput, appId: 'effects-studio' });
     previewTop.appendChild(promptRow);
 
@@ -811,6 +821,12 @@ export function EffectsStudio() {
   mobileGenBtn.textContent = 'Apply Effect';
   mobileGenBtn.setAttribute('aria-label', 'Apply effect');
   mobileControls.appendChild(mobileGenBtn);
+  const mobilePublishBtn = document.createElement('button');
+  mobilePublishBtn.type = 'button';
+  mobilePublishBtn.textContent = 'Publish to Social';
+  mobilePublishBtn.className = 'w-full bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-3 rounded-xl font-black text-sm hover:shadow-glow transition-all';
+  mobilePublishBtn.onclick = () => openSocialPublish({ mediaUrl: lastResultUrl, mediaType: lastResultType });
+  mobileControls.appendChild(mobilePublishBtn);
   container.appendChild(mobileControls);
 
   function switchTab(tab) {
@@ -906,15 +922,14 @@ export function EffectsStudio() {
       card.className = 'bg-white/[0.03] border border-white/5 rounded-xl p-2 cursor-pointer hover:bg-white/[0.06] hover:border-white/10 transition-all group overflow-hidden';
       
       // Card HTML with thumbnail
+      const placeholderSVG = isVideo ?
+        '<svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>' :
+        '<svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>';
+
       card.innerHTML = `
         <div class="relative w-full aspect-square mb-2 rounded-lg overflow-hidden bg-white/5">
           ${thumbnailUrl ? `<img src="${thumbnailUrl}" alt="${name}" class="w-full h-full object-cover" loading="lazy" decoding="async" />` : `
-            <div class="w-full h-full flex items-center justify-center">
-              ${isVideo ? 
-                '<svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>' :
-                '<svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>'
-              }
-            </div>
+            <div class="w-full h-full flex items-center justify-center">${placeholderSVG}</div>
           `}
         </div>
         <div class="flex items-center gap-1.5">
@@ -923,6 +938,21 @@ export function EffectsStudio() {
         </div>
         <div class="text-[9px] text-muted mt-0.5">${isVideo ? 'Video' : 'Image'}</div>
       `;
+
+      // Graceful fallback: missing .webp.png -> .svg -> placeholder icon
+      const img = card.querySelector('img');
+      if (img) {
+        img.onerror = () => {
+          const svgSrc = img.getAttribute('src').replace(/\.webp\.png$/, '.svg');
+          img.onerror = () => {
+            const ph = document.createElement('div');
+            ph.className = 'w-full h-full flex items-center justify-center';
+            ph.innerHTML = placeholderSVG;
+            img.replaceWith(ph);
+          };
+          img.src = svgSrc;
+        };
+      }
       card.onclick = () => {
         selectedEffect = name;
         effectsGrid.querySelectorAll('[data-selected]').forEach(el => {

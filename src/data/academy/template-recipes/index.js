@@ -12,7 +12,7 @@ import { TEMPLATE_RECIPES_12 } from "./12-ai-stock-content-and-licensing";
 import { TEMPLATE_RECIPES_13 } from "./13-ai-tools-mastery";
 import { TEMPLATE_RECIPES_14 } from "./14-ai-freelancing-and-agency-business";
 import { TEMPLATE_RECIPES_15 } from "./15-ai-agents-and-vibe-coding";
-import { getTemplateMeta } from "../catalog.ts";
+import { getTemplateMeta } from "../catalog.js";
 
 const MAP = {
   ...TEMPLATE_RECIPES_02,   ...TEMPLATE_RECIPES_03,   ...TEMPLATE_RECIPES_04,   ...TEMPLATE_RECIPES_05,   ...TEMPLATE_RECIPES_06,

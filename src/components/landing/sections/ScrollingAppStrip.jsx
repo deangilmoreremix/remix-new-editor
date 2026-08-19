@@ -116,7 +116,6 @@ const APPS = [
   { name: 'Training', icon: '🏋️', color: 'emerald' },
   { name: 'Video Tools', icon: '🔧', color: 'cyan' },
   { name: 'Render', icon: '🚀', color: 'pink' },
-  { name: 'Video Agent', icon: '🤖', color: 'purple' },
   { name: 'Director', icon: '🎬', color: 'cyan' },
   { name: 'Timeline', icon: '⏱️', color: 'emerald' },
   { name: 'Motion', icon: '🎪', color: 'pink' },
@@ -130,9 +129,7 @@ const APPS = [
   { name: 'Community', icon: '👥', color: 'purple' },
   { name: 'Assist', icon: '🧠', color: 'emerald' },
   { name: 'Lip Sync', icon: '🎭', color: 'pink' },
-  { name: 'Workflows', icon: '⚙️', color: 'cyan' },
   { name: 'Agents', icon: '🤖', color: 'yellow' },
-  { name: 'MCP & CLI', icon: '💻', color: 'purple' }
 ];
 
 const ALL_FEATURES = Object.entries(FEATURE_CATEGORIES).flatMap(([category, features]) =>
@@ -142,7 +139,7 @@ const ALL_FEATURES = Object.entries(FEATURE_CATEGORIES).flatMap(([category, feat
 export function ScrollingAppStrip() {
   const section = document.createElement('section');
   section.className = 'py-12 md:py-16 bg-gradient-to-b from-[#020205] via-[#050810] to-[#020205] border-y border-cyan-400/20 overflow-hidden relative';
-  section.setAttribute('aria-label', '33 AI Creative Apps + 60+ features');
+  section.setAttribute('aria-label', '30 AI Creative Apps + 60+ features');
   section.setAttribute('data-testid', 'scrolling-app-strip');
 
   const appStrip = [...APPS, ...APPS, ...APPS];
@@ -182,7 +179,7 @@ export function ScrollingAppStrip() {
           <span class="w-3 h-3 rounded-full bg-cyan-400 animate-pulse shadow-lg shadow-cyan-400/50"></span>
         </div>
         <h2 class="text-3xl md:text-4xl lg:text-5xl font-black text-white mb-2">
-          <span class="text-cyan-400 italic">33</span> AI Creative Apps
+          <span class="text-cyan-400 italic">30</span> AI Creative Apps
         </h2>
         <p class="text-base text-gray-400 max-w-2xl mx-auto">
           One platform. Every creative tool. Build anything from cinematic videos to AI agents.

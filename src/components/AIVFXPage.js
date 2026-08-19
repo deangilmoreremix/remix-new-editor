@@ -1,8 +1,14 @@
 import { mountStudioChrome } from '../lib/studioChrome.js';
+
 // AI-VFX Studio Page
-// Embeds the ai-vfx studio as an iframe. In dev it points at the Vite
-// dev server on port 3002, and in production it loads the built files
-// from /ai-vfx/ inside the main app's dist folder.
+// Embeds the upstream SamurAIGPT/AI-VFX Next.js app as an iframe.
+// The iframe src is the AI-VFX app URL. In dev, Vite proxies /ai-vfx
+// to the Next.js dev server on port 3000. In production, the Next.js app
+// is deployed as a separate Netlify site at ai-vfx.smartvid.app.
+
+const AI_VFX_URL = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+  ? '/ai-vfx/'           // dev: Vite proxies to Next.js dev server
+  : 'https://ai-vfx.smartvid.app/';  // prod: separate Netlify site
 
 export function AIVFXPage() {
   const container = document.createElement('div');
@@ -28,10 +34,10 @@ export function AIVFXPage() {
   container.appendChild(header);
 
   const iframe = document.createElement('iframe');
-  iframe.src = import.meta.env.DEV ? 'http://localhost:3002/ai-vfx/' : '/ai-vfx/';
+  iframe.src = AI_VFX_URL;
   iframe.style.cssText = 'flex:1;min-height:0;border:none;width:100%;background:#0b0f19;';
-  iframe.setAttribute('allow', 'clipboard-write');
-  iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups');
+  iframe.setAttribute('allow', 'clipboard-write fullscreen');
+  iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-same-origin');
   container.appendChild(iframe);
 
   return container;

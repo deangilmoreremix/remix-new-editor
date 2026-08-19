@@ -2,7 +2,8 @@
 // category. This surfaces prompt libraries, model comparisons, SDKs, and
 // workflow templates alongside the existing video galleries.
 
-import { escapeHtml } from './minimax/ui.js';
+import { escapeHtml, injectMinimaxStyles } from './minimax/ui.js';
+import { revealOnScroll } from './minimax/mediaFrame.js';
 
 const REPO_CATEGORIES = [
   {
@@ -162,7 +163,11 @@ function createRepoCard(repo) {
 }
 
 export function RepoShowcase() {
-  injectMinimaxStyles();
+  try {
+    injectMinimaxStyles();
+  } catch (styleErr) {
+    console.warn('[RepoShowcase] injectMinimaxStyles skipped:', styleErr);
+  }
 
   const section = document.createElement('section');
   section.id = 'repo-ecosystem';

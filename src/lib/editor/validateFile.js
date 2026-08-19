@@ -59,7 +59,7 @@ export const FILE_TYPE_CONFIG = {
       'video/webm', 'video/x-flv', 'video/x-ms-wmv', 'video/3gpp', 'video/ogg',
       'video/x-m4v'
     ],
-    maxSize: 500 * 1024 * 1024, // 500MB
+    maxSize: 50 * 1024 * 1024, // MuAPI 50MB video limit
     icon: '🎥',
     color: '#ff6b6b'
   },
@@ -71,7 +71,7 @@ export const FILE_TYPE_CONFIG = {
       'audio/ogg', 'audio/flac', 'audio/mp4', 'audio/x-m4a', 'audio/opus',
       'audio/x-ms-wma', 'audio/aiff', 'audio/x-aiff'
     ],
-    maxSize: 100 * 1024 * 1024, // 100MB
+    maxSize: 10 * 1024 * 1024, // MuAPI "Others" 10MB limit
     icon: '🎵',
     color: '#4ecdc4'
   },
@@ -83,7 +83,7 @@ export const FILE_TYPE_CONFIG = {
       'image/bmp', 'image/tiff', 'image/heic', 'image/heif', 'image/avif',
       'image/x-icon'
     ],
-    maxSize: 50 * 1024 * 1024, // 50MB
+    maxSize: 10 * 1024 * 1024, // MuAPI 10MB image limit
     icon: '🖼️',
     color: '#45b7d1'
   },
@@ -110,9 +110,21 @@ export const FILE_TYPE_CONFIG = {
       'application/vnd.ms-powerpoint',
       'application/vnd.openxmlformats-officedocument.presentationml.presentation'
     ],
-    maxSize: 50 * 1024 * 1024,
+    maxSize: 10 * 1024 * 1024, // MuAPI "Others" 10MB limit
     icon: '📑',
     color: '#f7b731'
+  },
+  archive: {
+    label: 'Archive',
+    extensions: ['zip', 'rar', '7z', 'tar', 'gz', 'bz2'],
+    mimeTypes: [
+      'application/zip', 'application/x-zip-compressed', 'application/x-rar-compressed',
+      'application/x-7z-compressed', 'application/gzip', 'application/x-tar',
+      'application/x-bzip2'
+    ],
+    maxSize: 10 * 1024 * 1024, // MuAPI "Others" limit
+    icon: '🗜️',
+    color: '#a78bfa'
   }
 };
 
