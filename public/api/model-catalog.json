@@ -1357,5 +1357,14 @@
       "provider": "ltx",
       "provider_name": "LTX"
     }
+  ],
+  "v2v": [
+    {
+      "id": "video-watermark-remover",
+      "name": "AI Video Watermark Remover",
+      "provider": "muapi",
+      "provider_name": "MuAPI",
+      "description": "Remove watermarks, logos, captions, and unwanted text from videos."
+    }
   ]
 }
