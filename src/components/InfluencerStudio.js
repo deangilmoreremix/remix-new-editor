@@ -128,17 +128,14 @@ export function InfluencerStudio() {
     promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
     promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
     promptGalleryBtn.addEventListener('click', () => {
-      openPromptGallery({
-        appTheme: 'influencer-studio',
-        onSelect: (prompt) => {
-          const ta = document.getElementById('') || document.querySelector('textarea');
-          if (ta) {
-            ta.value = prompt;
-            ta.dispatchEvent(new Event('input', { bubbles: true }));
-            ta.focus();
+        openPromptGallery({
+          appTheme: 'influencer-studio',
+          onSelect: (prompt) => {
+            promptInput.value = prompt;
+            promptInput.dispatchEvent(new Event('input', { bubbles: true }));
+            promptInput.focus();
           }
-        }
-      }).catch((err) => console.error('[PromptGallery] open failed:', err));
+        }).catch((err) => console.error('[PromptGallery] open failed:', err));
     });
 
     // Recipe Engine button
