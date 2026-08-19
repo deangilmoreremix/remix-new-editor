@@ -1,19 +1,20 @@
 import { apiKeyManager } from './apiKeyManager.js';
+import openaiConfig from './config/openaiConfig.js';
 
 // ---------------------------------------------------------------------------
 // Social post copy enhancer
 //
 // Uses the user's own OpenAI key (from apiKeyManager, consistent with
 // gtmResponses.js / openaiResponses.js) to improve social-post copy via the
-// OpenAI Chat Completions API. Returns the improved text only.
+// OpenAI Responses API. Returns the improved text only.
 //
 // The OpenAI key is supplied by the caller (Settings > OpenAI API Key) and sent
 // directly to api.openai.com — the same client-side pattern the rest of the
 // app uses for OpenAI calls.
 // ---------------------------------------------------------------------------
 
-const OPENAI_CHAT_URL = 'https://api.openai.com/v1/chat/completions';
-const DEFAULT_MODEL = 'gpt-5.6-luna';
+const RESPONSES_URL = 'https://api.openai.com/v1/responses';
+const DEFAULT_MODEL = openaiConfig.getResponsesModel?.() || 'gpt-4.1-mini';
 
 // Tonalities are sourced verbatim from the GTM Skills repo
 // (https://gtm-skills.com/free-tools/tonalities) in lib/tonalities.js.
@@ -60,7 +61,7 @@ function buildSystemPrompt(field, platform, tone, opts = {}) {
  * @param {string} opts.field       One of 'title' | 'description' | 'caption' | 'tags'.
  * @param {string} opts.platform    Platform label (e.g. 'YouTube', 'TikTok', 'Instagram').
   * @param {object} [opts.tone]      Tonality descriptor from TONALITIES ({ label, description }).
-  * @param {string} [opts.model]     OpenAI model id (defaults to gpt-5.6-luna).
+  * @param {string} [opts.model]     OpenAI Responses API model id (defaults to openaiConfig.getResponsesModel()).
   * @param {AbortSignal} [opts.signal]
   * @param {string} [opts.goal]      Optional creative angle for a reroll (e.g. 'try a humor angle').
   * @returns {Promise<string>} The improved text.
@@ -76,7 +77,7 @@ export async function enhanceSocialPostText({ text, field = 'caption', platform 
     throw new Error('Write something first, then enhance it.');
   }
 
-  const res = await fetch(OPENAI_CHAT_URL, {
+  const res = await fetch(RESPONSES_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -84,28 +85,21 @@ export async function enhanceSocialPostText({ text, field = 'caption', platform 
     },
     body: JSON.stringify({
       model: model || DEFAULT_MODEL,
+      input: [{ role: 'user', content: trimmed }],
+      instructions: buildSystemPrompt(field, platform, tone, goal ? { goal } : {}),
       temperature: 0.8,
       max_tokens: 500,
-      messages: [
-        { role: 'system', content: buildSystemPrompt(field, platform, tone, goal ? { goal } : {}) },
-        { role: 'user', content: trimmed },
-      ],
     }),
     signal,
   });
 
   if (!res.ok) {
-    let detail = '';
-    try {
-      detail = (await res.json())?.error?.message || '';
-    } catch {
-      /* ignore parse errors */
-    }
-    throw new Error(`OpenAI request failed (${res.status})${detail ? `: ${detail}` : ''}`);
+    const txt = await res.text().catch(() => '');
+    throw new Error(`OpenAI Responses API returned ${res.status}: ${txt.slice(0, 200)}`);
   }
 
   const data = await res.json();
-  const out = data?.choices?.[0]?.message?.content?.trim();
+  const out = data?.output?.[0]?.content?.[0]?.text?.trim();
   return out || trimmed;
 }
 
