@@ -64,9 +64,10 @@ function buildSystemPrompt(field, platform, tone, opts = {}) {
   * @param {string} [opts.model]     OpenAI Responses API model id (defaults to openaiConfig.getResponsesModel()).
   * @param {AbortSignal} [opts.signal]
   * @param {string} [opts.goal]      Optional creative angle for a reroll (e.g. 'try a humor angle').
-  * @returns {Promise<string>} The improved text.
+  * @param {string} [opts.previousResponseId] Optional previous response id for multi-turn reroll.
+  * @returns {Promise<{text: string, responseId: string}>} The improved text and response id.
   */
-export async function enhanceSocialPostText({ text, field = 'caption', platform = 'Instagram', tone, model, signal, goal } = {}) {
+export async function enhanceSocialPostText({ text, field = 'caption', platform = 'Instagram', tone, model, signal, goal, previousResponseId } = {}) {
   const key = apiKeyManager.getOpenAIKey?.();
   if (!key) {
     throw new Error('Add your OpenAI API key in Settings to use Enhance writing.');
@@ -77,19 +78,26 @@ export async function enhanceSocialPostText({ text, field = 'caption', platform 
     throw new Error('Write something first, then enhance it.');
   }
 
+  const body = {
+    model: model || DEFAULT_MODEL,
+    input: [{ role: 'user', content: trimmed }],
+    instructions: buildSystemPrompt(field, platform, tone, goal ? { goal } : {}),
+    temperature: 0.8,
+    max_tokens: 500,
+    store: true,
+    include: ['input_tokens', 'output_tokens'],
+  };
+  if (previousResponseId) {
+    body.previous_response_id = previousResponseId;
+  }
+
   const res = await fetch(RESPONSES_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${key}`,
     },
-    body: JSON.stringify({
-      model: model || DEFAULT_MODEL,
-      input: [{ role: 'user', content: trimmed }],
-      instructions: buildSystemPrompt(field, platform, tone, goal ? { goal } : {}),
-      temperature: 0.8,
-      max_tokens: 500,
-    }),
+    body: JSON.stringify(body),
     signal,
   });
 
@@ -100,7 +108,7 @@ export async function enhanceSocialPostText({ text, field = 'caption', platform 
 
   const data = await res.json();
   const out = data?.output?.[0]?.content?.[0]?.text?.trim();
-  return out || trimmed;
+  return { text: out || trimmed, responseId: data?.id || '' };
 }
 
 export default enhanceSocialPostText;
