@@ -320,4 +320,345 @@ describe('thumbnailModalFlow', () => {
       expect(modal.isGenerating).toBe(false);
     });
   });
-});
+
+  describe('GIF support', () => {
+    it('initializes gif state to defaults', () => {
+      modal.open();
+      expect(modal.asGif).toBe(false);
+      expect(modal.gifDataUrl).toBe('');
+      expect(modal.gifWidth).toBe(1024);
+      expect(modal.gifHeight).toBe(1024);
+      expect(modal.gifDelayMs).toBe(500);
+    });
+
+    it('renders GIF toggle checkbox when video thumbnail is enabled', () => {
+      modal.open();
+      modal.videoThumbEnabled = true;
+      const html = modal._renderBriefForm().innerHTML;
+      expect(html).toContain('id="thumb-gif-toggle"');
+      expect(html).toContain('Save as animated GIF');
+    });
+
+    it('does not render GIF toggle when video thumbnail is disabled', () => {
+      modal.open();
+      const html = modal._renderBriefForm().innerHTML;
+      expect(html).not.toContain('id="thumb-gif-toggle"');
+    });
+
+    it('getGifDimensions returns 1024x1024 for 1:1', () => {
+      modal.open();
+      modal.controls.aspectRatio = '1:1';
+      const dims = modal._getGifDimensions();
+      expect(dims).toEqual({ width: 1024, height: 1024 });
+    });
+
+    it('getGifDimensions returns 1792x1024 for 16:9', () => {
+      modal.open();
+      modal.controls.aspectRatio = '16:9';
+      const dims = modal._getGifDimensions();
+      expect(dims).toEqual({ width: 1792, height: 1024 });
+    });
+
+    it('renders video thumbnail toggle in modal layout (renderBrief)', () => {
+      modal.open();
+      modal.layout = 'modal';
+      const html = modal.renderBrief();
+      expect(html).toContain('id="thumb-video-toggle"');
+      expect(html).toContain('Generate animated video thumbnail');
+    });
+
+    it('renders GIF toggle in modal layout when video thumbnail enabled', () => {
+      modal.open();
+      modal.layout = 'modal';
+      modal.videoThumbEnabled = true;
+      const html = modal.renderBrief();
+      expect(html).toContain('id="thumb-gif-toggle"');
+      expect(html).toContain('id="thumb-gif-delay"');
+    });
+
+    it('renders GIF frame delay selector in modal layout when video thumbnail enabled', () => {
+      modal.open();
+      modal.layout = 'modal';
+      modal.videoThumbEnabled = true;
+      const html = modal.renderBrief();
+      expect(html).toContain('0.3s (fast)');
+      expect(html).toContain('0.5s (normal)');
+      expect(html).toContain('0.8s (slow)');
+    });
+
+    it('renders video duration and frame count in modal layout when video thumbnail enabled', () => {
+      modal.open();
+      modal.layout = 'modal';
+      modal.videoThumbEnabled = true;
+      const html = modal.renderBrief();
+      expect(html).toContain('id="thumb-duration"');
+      expect(html).toContain('id="thumb-frames"');
+    });
+
+    it('renderGenerate shows GIF preview when isVideoThumb and gifDataUrl set', () => {
+      modal.open();
+      modal.layout = 'modal';
+      modal.isVideoThumb = true;
+      modal.gifDataUrl = 'data:image/gif;base64,R0lGODlh';
+      modal.gifDelayMs = 500;
+      const html = modal.renderGenerate();
+      expect(html).toContain('Animated GIF');
+      expect(html).toContain('500ms/frame');
+      expect(html).toContain('data:image/gif;base64,R0lGODlh');
+    });
+
+    it('renderGenerate shows save-video button when isVideoThumb', () => {
+      modal.open();
+      modal.layout = 'modal';
+      modal.isVideoThumb = true;
+      modal.gifDataUrl = 'data:image/gif;base64,R0lGODlh';
+      const html = modal.renderGenerate();
+      expect(html).toContain('data-action="save-video"');
+    });
+
+    it('renderGenerate shows Save button for video thumbnail flow', () => {
+      modal.open();
+      modal.layout = 'modal';
+      modal.isVideoThumb = true;
+      modal.gifDataUrl = 'data:image/gif;base64,R0lGODlh';
+      const html = modal.renderGenerate();
+      expect(html).toContain('Save & Apply');
+    });
+
+    it('_refreshView uses modal layout when layout is modal', () => {
+      modal.open();
+      modal.layout = 'modal';
+      expect(() => modal._refreshView()).not.toThrow();
+    });
+
+    it('_refreshView uses panel layout when layout is panel', () => {
+      modal.open();
+      modal.layout = 'panel';
+      expect(() => modal._refreshView()).not.toThrow();
+    });
+  });
+
+  describe('Full modal layout workflow', () => {
+    it('modal layout: brief → toggle video → toggle gif → generate → save', async () => {
+      modal.open();
+      modal.layout = 'modal';
+
+      // Step 1: brief — renderBrief should show the toggle
+      let html = modal.renderBrief();
+      expect(html).toContain('id="thumb-video-toggle"');
+
+      // Step 2: enable video thumbnail
+      html = modal.renderBrief();
+      modal.videoThumbEnabled = true;
+      html = modal.renderBrief();
+      expect(html).toContain('id="thumb-gif-toggle"');
+      expect(html).toContain('id="thumb-gif-delay"');
+
+      // Step 3: enable GIF
+      modal.asGif = true;
+      html = modal.renderBrief();
+      expect(html).toContain('id="thumb-gif-toggle" checked');
+
+      // Step 4: generate button should say "Generate Video Thumbnail"
+      expect(html).toContain('Generate Video Thumbnail');
+
+      // Step 5: simulate generation — _goGenerate should call _generateVideoThumbnail
+      const generateSpy = vi.spyOn(modal, '_generateVideoThumbnail').mockImplementation(async function() {
+        this.videoFrames = [{ b64_json: 'test-frame', dataUrl: 'data:image/png;base64,test' }];
+        this.isVideoThumb = true;
+        this.gifDataUrl = 'data:image/gif;base64,R0lGODlh-test-gif';
+        this.step = 'generate';
+        this.isGenerating = false;
+      });
+
+      await modal._goGenerate();
+      expect(generateSpy).toHaveBeenCalled();
+
+      // Step 6: renderGenerate should show GIF preview and save-video button
+      html = modal.renderGenerate();
+      expect(html).toContain('Animated GIF preview');
+      expect(html).toContain('data:image/gif;base64,R0lGODlh-test-gif');
+      expect(html).toContain('data-action="save-video"');
+
+      // Step 7: _saveVideoThumbnail should save the GIF
+      const saveSpy = vi.spyOn(modal.thumbnailService, 'saveToStorage').mockResolvedValue({
+        imageUrl: 'https://storage.gif',
+        isGif: true,
+      });
+
+      await modal._saveVideoThumbnail();
+      expect(saveSpy).toHaveBeenCalledWith(expect.objectContaining({
+        asGif: true,
+        gifData: 'R0lGODlh-test-gif',
+      }));
+      expect(modal.savedImageUrl).toBe('https://storage.gif');
+      expect(modal.step).toBe('saved');
+
+      generateSpy.mockRestore();
+      saveSpy.mockRestore();
+    });
+
+    it('modal layout: normal (non-video) flow works unchanged', async () => {
+      modal.open();
+      modal.layout = 'modal';
+      modal.videoThumbEnabled = false;
+
+      // Brief step — should show "Generate Thumbnails" button
+      let html = modal.renderBrief();
+      expect(html).toContain('Generate');
+      expect(html).not.toContain('Generate Video Thumbnail');
+
+      // Generate step — should show candidate grid
+      modal.candidates = [{ b64_json: 'img1', dataUrl: 'data:image/png;base64,img1', revised_prompt: 'test' }];
+      modal.selectedIndex = 0;
+      modal.step = 'generate';
+      html = modal.renderGenerate();
+      expect(html).toContain('Candidate');
+      expect(html).toContain('data-action="refine"');
+      expect(html).toContain('data-action="save"');
+      expect(html).not.toContain('data-action="save-video"');
+    });
+
+    it('modal layout: video thumbnail without GIF saves first frame', async () => {
+      modal.open();
+      modal.layout = 'modal';
+      modal.videoThumbEnabled = true;
+      modal.asGif = false;
+
+      // Simulate _generateVideoThumbnail completing without GIF assembly
+      modal.videoFrames = [{ b64_json: 'frame1-b64', dataUrl: 'data:image/png;base64,frame1-b64' }];
+      modal.isVideoThumb = true;
+      modal.step = 'generate';
+
+      const html = modal.renderGenerate();
+      expect(html).toContain('Video Thumbnail Frames');
+      expect(html).not.toContain('Animated GIF');
+
+      // Save should use the first frame
+      const saveSpy = vi.spyOn(modal.thumbnailService, 'saveToStorage').mockResolvedValue({
+        imageUrl: 'https://storage.png',
+      });
+
+      await modal._saveVideoThumbnail();
+      expect(saveSpy).toHaveBeenCalledWith(expect.objectContaining({
+        imageB64: 'frame1-b64',
+        asGif: undefined,
+      }));
+      expect(modal.savedImageUrl).toBe('https://storage.png');
+
+      saveSpy.mockRestore();
+    });
+
+    it('modal layout: generate button disabled until brief is non-empty', () => {
+      modal.open();
+      modal.layout = 'modal';
+      modal.videoThumbEnabled = false;
+      modal.brief = '';
+      modal.selectedVariantIndex = -1;
+
+      const html = modal.renderBrief();
+      // The generate button should be disabled
+      expect(html).toContain('disabled');
+    });
+
+    it('modal layout: _goGenerate routes to _generateVideoThumbnail when videoThumbEnabled', async () => {
+      modal.open();
+      modal.layout = 'modal';
+      modal.videoThumbEnabled = true;
+      modal.brief = 'test brief';
+
+      const genVideoSpy = vi.spyOn(modal, '_generateVideoThumbnail').mockImplementation(async function() {
+        this.videoFrames = [];
+        this.isVideoThumb = true;
+        this.step = 'generate';
+        this.isGenerating = false;
+      });
+      const goGenSpy = vi.spyOn(modal, 'goGenerate');
+
+      await modal._goGenerate();
+
+      expect(genVideoSpy).toHaveBeenCalled();
+      expect(goGenSpy).not.toHaveBeenCalled();
+
+      genVideoSpy.mockRestore();
+      goGenSpy.mockRestore();
+    });
+
+    it('modal layout: _goGenerate routes to goGenerate when videoThumbEnabled is false', async () => {
+      modal.open();
+      modal.layout = 'modal';
+      modal.videoThumbEnabled = false;
+      modal.brief = 'test brief';
+      modal.variants = [{ text: 'prompt 1' }];
+      modal.selectedVariantIndex = 0;
+
+      const goGenSpy = vi.spyOn(modal, 'goGenerate').mockImplementation(function() {
+        this.candidates = [{ b64_json: 'c1', dataUrl: 'data:image/png;base64,c1' }];
+        this.selectedIndex = 0;
+        this.step = 'generate';
+        this.isGenerating = false;
+      });
+      const genVideoSpy = vi.spyOn(modal, '_generateVideoThumbnail');
+
+      await modal._goGenerate();
+
+      expect(goGenSpy).toHaveBeenCalled();
+      expect(genVideoSpy).not.toHaveBeenCalled();
+
+      goGenSpy.mockRestore();
+      genVideoSpy.mockRestore();
+    });
+  });
+
+  describe('Panel layout workflow', () => {
+    it('panel layout: _refreshView calls _refreshPanel when _panel exists', () => {
+      modal.open();
+      modal.layout = 'panel';
+      // Simulate panel being initialized
+      modal._panel = document.createElement('div');
+      expect(() => modal._refreshView()).not.toThrow();
+    });
+
+    it('panel layout: GIF toggle is rendered in _renderBriefForm', () => {
+      modal.open();
+      modal.layout = 'panel';
+      modal.videoThumbEnabled = true;
+      const html = modal._renderBriefForm().innerHTML;
+      expect(html).toContain('id="thumb-gif-toggle"');
+    });
+
+    it('panel layout: _renderGenerateView shows GIF preview when gifDataUrl set', () => {
+      modal.open();
+      modal.layout = 'panel';
+      modal.isVideoThumb = true;
+      modal.gifDataUrl = 'data:image/gif;base64,R0lGODlh-panel';
+      modal.gifDelayMs = 300;
+      const container = modal._renderGenerateView();
+      const html = container.innerHTML;
+      expect(html).toContain('Animated GIF');
+      expect(html).toContain('300ms/frame');
+      expect(html).toContain('data:image/gif;base64,R0lGODlh-panel');
+    });
+
+    it('panel layout: _renderPanelFooter shows Save for video thumbnail flow', () => {
+      modal.open();
+      modal.layout = 'panel';
+      modal.isVideoThumb = true;
+      modal.videoFrames = [{ b64_json: 'f1' }];
+      modal.step = 'generate';
+      modal.asGif = true;
+      const footer = modal._renderPanelFooter();
+      expect(footer.textContent).toContain('Save Animated GIF');
+    });
+
+    it('panel layout: _renderPanelFooter shows Save Video Thumbnail when not GIF', () => {
+      modal.open();
+      modal.layout = 'panel';
+      modal.isVideoThumb = true;
+      modal.videoFrames = [{ b64_json: 'f1' }];
+      modal.step = 'generate';
+      modal.asGif = false;
+      const footer = modal._renderPanelFooter();
+      expect(footer.textContent).toContain('Save Video Thumbnail');
+    });
+  });

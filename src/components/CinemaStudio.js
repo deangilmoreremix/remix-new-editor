@@ -9,7 +9,7 @@ import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { getVideoModelById, getI2VModelById, getModelById, t2vModels, i2vModels, getDurationsForModel, getDurationsForI2VModel, getResolutionsForVideoModel, getResolutionsForI2VModel } from '../lib/models.js';
 import { mountModelSelector } from '../lib/modelSelectorUI.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { createHeroSection, getCustomThumbnailFromCache } from '../lib/thumbnails.js';
+import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
@@ -76,6 +76,12 @@ export function CinemaStudio() {
     let showAdvanced = false;
     let customThumbnailUrl = getCustomThumbnailFromCache('cinema-studio');
 
+    // Listen for thumbnails generated via GTM Boost and apply them.
+    subscribeToGtmThumbnails(({ imageUrl }) => {
+      customThumbnailUrl = imageUrl;
+      saveCustomThumbnailToCache('cinema-studio', imageUrl);
+    });
+
     // ==========================================
     // 1. HERO SECTION (Empty State)
     // ==========================================
@@ -93,11 +99,11 @@ export function CinemaStudio() {
         `;
         cinemaBanner.appendChild(bannerContent);
         heroSection.appendChild(cinemaBanner);
-    }
+     }
 
-    container.appendChild(heroSection);
+     container.appendChild(heroSection);
 
-    const inlineInstructions = createInlineInstructions('cinema');
+     const inlineInstructions = createInlineInstructions('cinema');
     inlineInstructions.classList.add('mt-8', 'px-4');
     container.appendChild(inlineInstructions);
 
@@ -570,8 +576,39 @@ export function CinemaStudio() {
     generateBtn.setAttribute('aria-label', 'Generate cinema shot');
     generateBtn.innerHTML = `GENERATE ✨`;
 
-    rightGroup.appendChild(summaryCard);
-    rightGroup.appendChild(generateBtn);
+     // Thumbnail Button — integrated into the creation workflow alongside
+     // the Generate button so users can create a custom thumbnail during
+     // the cinema generation process.
+     const thumbBtn = document.createElement('button');
+     thumbBtn.type = 'button';
+     thumbBtn.className = 'h-[56px] px-4 bg-gradient-to-r from-violet-500 to-indigo-500 text-white rounded-xl font-bold text-xs uppercase hover:from-violet-400 hover:to-indigo-400 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5';
+     thumbBtn.setAttribute('data-tooltip', 'Create custom thumbnail for Cinema Studio');
+     thumbBtn.setAttribute('aria-label', 'Create custom thumbnail');
+     thumbBtn.innerHTML = `<span>🖼</span> Thumbnail`;
+     thumbBtn.onclick = () => {
+       const modal = new TemplateThumbnailModal({
+         appTheme: 'cinema-studio',
+         layout: 'panel',
+         studioId: 'cinema-studio',
+         studioName: 'Cinema Studio',
+         outputType: 'video',
+         aspectRatio: '16:9',
+         onApply: ({ imageUrl }) => {
+           saveCustomThumbnailToCache('cinema-studio', imageUrl);
+           customThumbnailUrl = imageUrl;
+         },
+         onClear: () => {
+           clearCustomThumbnailCache('cinema-studio');
+           customThumbnailUrl = null;
+         },
+       });
+       mountThumbnailModal(modal);
+       modal.open();
+     };
+
+     rightGroup.appendChild(summaryCard);
+     rightGroup.appendChild(generateBtn);
+     rightGroup.appendChild(thumbBtn);
     promptBar.appendChild(rightGroup);
 
     promptBarWrapper.appendChild(promptBar);
@@ -1082,6 +1119,7 @@ export function CinemaStudio() {
                     aspect_ratio: currentSettings.aspect_ratio,
                     duration,
                     resolution,
+                    thumbnail_url: customThumbnailUrl || undefined,
                 });
             } else if (isRef) {
                 // Image-to-video: use the uploaded still as the seed.
@@ -1092,6 +1130,7 @@ export function CinemaStudio() {
                     aspect_ratio: currentSettings.aspect_ratio,
                     duration,
                     resolution,
+                    thumbnail_url: customThumbnailUrl || undefined,
                 });
             } else {
                 res = await muapi.generateVideo({
@@ -1100,6 +1139,7 @@ export function CinemaStudio() {
                     aspect_ratio: currentSettings.aspect_ratio,
                     duration,
                     resolution,
+                    thumbnail_url: customThumbnailUrl || undefined,
                 });
             }
 

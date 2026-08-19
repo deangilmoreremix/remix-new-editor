@@ -4,10 +4,11 @@ import { getTemplateSpecs, hasEnhancedSpecs } from '../lib/templateSpecs.js';
 import { muapi } from '../lib/muapi.js';
 import { getNicheTerms, enrichPromptString, deriveEngineInputFromTemplate, composeNegativePrompt } from '../lib/templateEngine.js';
 import { NICHE_ENRICHMENT, FILM_FAMILIES } from '../lib/templateMatrix.js';
-import { t2iModels, i2iModels, i2vModels } from '../lib/models.js';
+import { t2iModels, i2iModels, i2vModels, t2vModels, v2vModels, getV2VModelById } from '../lib/models.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
 import { AuthModal } from './AuthModal.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { navigate } from '../lib/router.js';
 import { mountStudioDrawer, createStudioMenuButton } from '../lib/studioChrome.js';
@@ -40,12 +41,14 @@ export function TemplateStudio(templateId) {
   // State management
   const formState = {};
   let activeTab = 'Enhanced Prompt';
+  const outputTabValues = {};
   let aiEnhancer = true;
   let lastBuiltPrompt = '';
   let showAdvanced = false;
   let uploadedUrl = null;
   let isGenerating = false;
-  let selectedModel = template.model;
+  let selectedModel = template.model || (template.modelType === 't2v' ? 'kling-v2.6-pro-t2v' : undefined);
+  let loadedModels = [];
   let primaryPromptField = null;
   let customThumbnailUrl = getCustomThumbnailFromCache(template.id);
 
@@ -264,6 +267,7 @@ export function TemplateStudio(templateId) {
                     const picker = createUploadPicker({
                         anchorContainer: container,
                         frameMode: isFrame,
+                        acceptVideo: false,
                         onSelect: (sel) => {
                             if (isFrame) {
                                 // Start/end image pair for first/last-frame models
@@ -285,6 +289,37 @@ export function TemplateStudio(templateId) {
                             uploadArea.innerHTML = `
                                 <div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg">↑</div>
                                 <span class="text-sm">${isFrame ? 'Click to add start & end frames' : 'Click to upload an image'}</span>
+                            `;
+                        }
+                    });
+                    container.appendChild(picker.panel);
+                };
+                fieldWrapper.appendChild(uploadArea);
+            } else if (input.type === 'video') {
+                const uploadArea = document.createElement('div');
+                uploadArea.className = 'flex h-16 items-center gap-4 rounded-[20px] border border-white/10 bg-white/[0.03] px-4 text-zinc-400 cursor-pointer hover:border-emerald-400/30 transition';
+                uploadArea.innerHTML = `
+                    <div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg">↑</div>
+                    <span class="text-sm">Click to upload a video</span>
+                `;
+                const setDone = (label) => {
+                    uploadArea.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-500/10 text-lg">✓</div><span class="text-sm text-emerald-200">${label}</span>`;
+                };
+                uploadArea.onclick = () => {
+                    const picker = createUploadPicker({
+                        anchorContainer: container,
+                        acceptVideo: true,
+                        onSelect: (sel) => {
+                            uploadedUrl = sel.url;
+                            formState[input.name] = sel.url;
+                            setDone('Video uploaded');
+                        },
+                        onClear: () => {
+                            uploadedUrl = null;
+                            formState[input.name] = null;
+                            uploadArea.innerHTML = `
+                                <div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg">↑</div>
+                                <span class="text-sm">Click to upload a video</span>
                             `;
                         }
                     });
@@ -375,17 +410,19 @@ export function TemplateStudio(templateId) {
   }
 
   // Model selector (async - fetches enriched catalog with descriptions)
-  const outputType = template.outputType || (template.modelType === 't2i' ? 'image' : 'video');
+  const outputType = template.outputType || (template.modelType === 't2i' || template.modelType === 'i2i' ? 'image' : 'video');
   if (outputType === 'video' || template.modelType === 'i2i' || template.modelType === 't2i') {
     const modelWrapper = document.createElement('div');
     modelWrapper.className = 'mt-6';
 
-    let fallbackList = [];
-    if (template.modelType === 'i2v') fallbackList = i2vModels;
-    else if (template.modelType === 'i2i') fallbackList = i2iModels;
-    else if (template.modelType === 't2i') fallbackList = t2iModels;
+     let fallbackList = [];
+     if (template.modelType === 'i2v') fallbackList = i2vModels;
+     else if (template.modelType === 'i2i') fallbackList = i2iModels;
+     else if (template.modelType === 't2i') fallbackList = t2iModels;
+     else if (template.modelType === 't2v') fallbackList = t2vModels;
+     else if (template.modelType === 'v2v') fallbackList = v2vModels;
 
-    let loadedModels = fallbackList;
+     loadedModels = fallbackList;
     const getModelName = (id) => {
       const m = loadedModels.find(x => x.id === id) || fallbackList.find(x => x.id === id);
       return m ? m.name : id;
@@ -442,8 +479,10 @@ export function TemplateStudio(templateId) {
           });
         };
 
-        // Show a loading state immediately, then populate once the catalog resolves.
+         // Show a loading state immediately, then populate once the catalog resolves.
         renderModelPanel([]);
+        modelLoadingStatus.textContent = 'Loading...';
+        modelLoadingStatus.className = 'text-[10px] text-zinc-400';
 
         // Timeout wrapper for model catalog fetch
         const withTimeout = (promise, ms = 5000) => {
@@ -458,11 +497,15 @@ export function TemplateStudio(templateId) {
             const models = enriched && enriched.length > 0 ? enriched : fallbackList;
             loadedModels = models;
             renderModelPanel(models);
+            modelLoadingStatus.textContent = models.length + ' models';
+            modelLoadingStatus.className = 'text-[10px] text-emerald-400/70';
           })
           .catch(err => {
             console.warn('[TemplateStudio] Failed to load enriched model catalog, using fallback:', err);
             loadedModels = fallbackList;
             renderModelPanel(fallbackList);
+            modelLoadingStatus.textContent = fallbackList.length + ' models (fallback)';
+            modelLoadingStatus.className = 'text-[10px] text-amber-400/70';
           });
       }
     };
@@ -490,6 +533,42 @@ export function TemplateStudio(templateId) {
     modelWrapper.appendChild(headerRow);
     modelWrapper.appendChild(dropdown);
     leftPanel.appendChild(modelWrapper);
+
+    // Video upload button — appears for video templates so v2v models
+    // (video-to-video) can accept a video source alongside image uploads.
+    if (outputType === 'video') {
+      const videoUploadWrapper = document.createElement('div');
+      videoUploadWrapper.className = 'mt-4';
+      videoUploadWrapper.innerHTML = `
+        <div class="flex items-center justify-between gap-3">
+          <label class="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500">Video Source (V2V)</label>
+          <button id="videoUploadBtn" type="button" class="text-[10px] font-semibold uppercase tracking-[0.18em] rounded-full border border-white/10 bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-white transition px-3 py-1">Upload video</button>
+        </div>
+      `;
+      leftPanel.appendChild(videoUploadWrapper);
+
+      const videoBtn = videoUploadWrapper.querySelector('#videoUploadBtn');
+      const setVideoDone = (label) => {
+        videoBtn.innerHTML = `<span class="text-emerald-200">✓ ${label}</span>`;
+      };
+      videoBtn.onclick = () => {
+        const picker = createUploadPicker({
+          anchorContainer: container,
+          acceptVideo: true,
+          onSelect: (sel) => {
+            uploadedUrl = sel.url;
+            formState['video_url'] = sel.url;
+            setVideoDone('Video uploaded');
+          },
+          onClear: () => {
+            uploadedUrl = null;
+            formState['video_url'] = null;
+            videoBtn.textContent = 'Upload video';
+          }
+        });
+        container.appendChild(picker.panel);
+      };
+    }
 
     // Close on outside click
     setTimeout(() => {
@@ -959,6 +1038,13 @@ export function TemplateStudio(templateId) {
       showInlineError(container, 'Please upload an image before generating.');
       return;
     }
+     // V2V models need a video_url instead of image_url
+     const selectedModelObj = loadedModels.find(m => m.id === selectedModel);
+     const isV2V = v2vModels.includes(selectedModelObj) || (selectedModelObj && selectedModelObj.videoField === 'video_url');
+     if (isV2V && !params.video_url) {
+      showInlineError(container, 'Please upload a video before generating.');
+      return;
+    }
     if (EFFECT_MODELS.includes(params.model) && !params.name) {
       showInlineError(container, 'Please enter a name before generating.');
       return;
@@ -978,7 +1064,9 @@ export function TemplateStudio(templateId) {
     genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Generating...';
 
     try {
-      const params = { model: selectedModel || template.model, ...(template.defaultParams || {}) };
+      // Merge template defaults with the params built by genBtn.onclick
+      const mergedParams = { model: selectedModel || template.model, ...(template.defaultParams || {}), ...params };
+      params = mergedParams;
 
       // Normalize aspect ratio for standard and matrix templates
       const aspectRatio = template.aspectRatio || (template.aspectRatios ? template.aspectRatios[0] : null);
@@ -1004,14 +1092,21 @@ export function TemplateStudio(templateId) {
       const negativePrompt = composeNegativePrompt(template.filmFamily || '', negNiche, formState.visualStyle || 'commercial') || specs.negativePrompt || '';
       if (negativePrompt) params.negative_prompt = negativePrompt;
 
-      let result;
-      if (template.modelType === 'i2v') {
-        result = await muapi.generateI2V(params);
-      } else if (template.modelType === 'i2i') {
-        result = await muapi.generateI2I(params);
-      } else {
-        result = await muapi.generateImage(params);
-      }
+       let result;
+       if (template.modelType === 'i2v') {
+         result = await muapi.generateI2V(params);
+       } else if (template.modelType === 'i2i') {
+         result = await muapi.generateI2I(params);
+       } else if (template.modelType === 't2v') {
+         const isV2V = getV2VModelById(selectedModel);
+         if (isV2V) {
+           result = await muapi.processV2V(params);
+         } else {
+           result = await muapi.generateVideo(params);
+         }
+       } else {
+         result = await muapi.generateImage(params);
+       }
 
       if (result && result.url) {
         showResult(result.url);

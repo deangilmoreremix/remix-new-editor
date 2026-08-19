@@ -1103,5 +1103,259 @@
       "provider_name": "ByteDance",
       "description": "ByteDance Seedance 2.0 latest image-to-video generation."
     }
+  ],
+  "t2v": [
+    {
+      "id": "seedance-lite-t2v",
+      "name": "Seedance Lite",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-pro-t2v",
+      "name": "Seedance Pro",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-pro-t2v-fast",
+      "name": "Seedance Pro Fast",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-v1.5-pro-t2v",
+      "name": "Seedance v1.5 Pro",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-v1.5-pro-t2v-fast",
+      "name": "Seedance v1.5 Pro Fast",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-v2.0-t2v",
+      "name": "Seedance 2.0",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-v2.0-extend",
+      "name": "Seedance 2.0 Extend",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "kling-v2.1-master-t2v",
+      "name": "Kling v2.1 Master",
+      "provider": "kling",
+      "provider_name": "Kling"
+    },
+    {
+      "id": "kling-v2.5-turbo-pro-t2v",
+      "name": "Kling v2.5 Turbo Pro",
+      "provider": "kling",
+      "provider_name": "Kling"
+    },
+    {
+      "id": "kling-v2.6-pro-t2v",
+      "name": "Kling v2.6 Pro",
+      "provider": "kling",
+      "provider_name": "Kling"
+    },
+    {
+      "id": "kling-o1-text-to-video",
+      "name": "Kling O1 Pro",
+      "provider": "kling",
+      "provider_name": "Kling"
+    },
+    {
+      "id": "kling-v3.0-pro-text-to-video",
+      "name": "Kling v3.0 Pro",
+      "provider": "kling",
+      "provider_name": "Kling"
+    },
+    {
+      "id": "kling-v3.0-standard-text-to-video",
+      "name": "Kling v3.0 Standard",
+      "provider": "kling",
+      "provider_name": "Kling"
+    },
+    {
+      "id": "veo3-text-to-video",
+      "name": "Veo 3",
+      "provider": "muapi",
+      "provider_name": "MuAPI"
+    },
+    {
+      "id": "veo3-fast-text-to-video",
+      "name": "Veo 3 Fast",
+      "provider": "muapi",
+      "provider_name": "MuAPI"
+    },
+    {
+      "id": "veo3.1-text-to-video",
+      "name": "Veo 3.1",
+      "provider": "muapi",
+      "provider_name": "MuAPI"
+    },
+    {
+      "id": "veo3.1-fast-text-to-video",
+      "name": "Veo 3.1 Fast",
+      "provider": "muapi",
+      "provider_name": "MuAPI"
+    },
+    {
+      "id": "runway-text-to-video",
+      "name": "Runway Gen-3",
+      "provider": "runway",
+      "provider_name": "Runway"
+    },
+    {
+      "id": "wan2.1-text-to-video",
+      "name": "Wan 2.1",
+      "provider": "wan",
+      "provider_name": "Wan"
+    },
+    {
+      "id": "wan2.2-text-to-video",
+      "name": "Wan 2.2",
+      "provider": "wan",
+      "provider_name": "Wan"
+    },
+    {
+      "id": "wan2.2-5b-fast-t2v",
+      "name": "Wan 2.2 Fast",
+      "provider": "wan",
+      "provider_name": "Wan"
+    },
+    {
+      "id": "wan2.5-text-to-video",
+      "name": "Wan 2.5",
+      "provider": "wan",
+      "provider_name": "Wan"
+    },
+    {
+      "id": "wan2.5-text-to-video-fast",
+      "name": "Wan 2.5 Fast",
+      "provider": "wan",
+      "provider_name": "Wan"
+    },
+    {
+      "id": "wan2.6-text-to-video",
+      "name": "Wan 2.6",
+      "provider": "wan",
+      "provider_name": "Wan"
+    },
+    {
+      "id": "hunyuan-text-to-video",
+      "name": "Hunyuan",
+      "provider": "hunyuan",
+      "provider_name": "Hunyuan"
+    },
+    {
+      "id": "hunyuan-fast-text-to-video",
+      "name": "Hunyuan Fast",
+      "provider": "hunyuan",
+      "provider_name": "Hunyuan"
+    },
+    {
+      "id": "pixverse-v4.5-t2v",
+      "name": "Pixverse v4.5",
+      "provider": "pixverse",
+      "provider_name": "Pixverse"
+    },
+    {
+      "id": "pixverse-v5-t2v",
+      "name": "Pixverse v5",
+      "provider": "pixverse",
+      "provider_name": "Pixverse"
+    },
+    {
+      "id": "pixverse-v5.5-t2v",
+      "name": "Pixverse v5.5",
+      "provider": "pixverse",
+      "provider_name": "Pixverse"
+    },
+    {
+      "id": "minimax-hailuo-02-standard-t2v",
+      "name": "Hailuo 02 Standard",
+      "provider": "minimax",
+      "provider_name": "MiniMax"
+    },
+    {
+      "id": "minimax-hailuo-02-pro-t2v",
+      "name": "Hailuo 02 Pro",
+      "provider": "minimax",
+      "provider_name": "MiniMax"
+    },
+    {
+      "id": "minimax-hailuo-2.3-pro-t2v",
+      "name": "Hailuo 2.3 Pro",
+      "provider": "minimax",
+      "provider_name": "MiniMax"
+    },
+    {
+      "id": "minimax-hailuo-2.3-standard-t2v",
+      "name": "Hailuo 2.3 Standard",
+      "provider": "minimax",
+      "provider_name": "MiniMax"
+    },
+    {
+      "id": "openai-sora",
+      "name": "Sora",
+      "provider": "openai",
+      "provider_name": "OpenAI"
+    },
+    {
+      "id": "openai-sora-2-text-to-video",
+      "name": "Sora 2",
+      "provider": "openai",
+      "provider_name": "OpenAI"
+    },
+    {
+      "id": "openai-sora-2-pro-text-to-video",
+      "name": "Sora 2 Pro",
+      "provider": "openai",
+      "provider_name": "OpenAI"
+    },
+    {
+      "id": "vidu-v2.0-t2v",
+      "name": "Vidu v2.0",
+      "provider": "vidu",
+      "provider_name": "Vidu"
+    },
+    {
+      "id": "ovi-text-to-video",
+      "name": "OVI",
+      "provider": "ovi",
+      "provider_name": "OVI"
+    },
+    {
+      "id": "grok-imagine-text-to-video",
+      "name": "Grok Imagine",
+      "provider": "grok",
+      "provider_name": "Grok"
+    },
+    {
+      "id": "ltx-2-pro-text-to-video",
+      "name": "LTX 2 Pro",
+      "provider": "ltx",
+      "provider_name": "LTX"
+    },
+    {
+      "id": "ltx-2-fast-text-to-video",
+      "name": "LTX 2 Fast",
+      "provider": "ltx",
+      "provider_name": "LTX"
+    },
+    {
+      "id": "ltx-2-19b-text-to-video",
+      "name": "LTX 2 19B",
+      "provider": "ltx",
+      "provider_name": "LTX"
+    }
   ]
 }

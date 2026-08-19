@@ -259,6 +259,7 @@ export class MuapiClient {
         if (params.prompt) finalPayload.prompt = params.prompt;
         if (params.request_id) finalPayload.request_id = params.request_id;
         if (params.image_url) finalPayload.image_url = params.image_url;
+        if (params.video_url) finalPayload.video_url = params.video_url;
         if (params.aspect_ratio) finalPayload.aspect_ratio = params.aspect_ratio;
         if (params.duration) finalPayload.duration = params.duration;
         if (params.resolution) finalPayload.resolution = params.resolution;

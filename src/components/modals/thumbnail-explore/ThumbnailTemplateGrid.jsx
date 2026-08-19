@@ -7,6 +7,23 @@
 
 import { ThumbnailTemplateCard } from './ThumbnailTemplateCard.jsx';
 
+// Register a one-time global img onerror handler so cards that use
+// getTemplateThumbnailCandidates can fall through to their fallback URLs.
+if (typeof window !== 'undefined' && !window.__thumbCardErr) {
+  window.__thumbCardErr = function (img) {
+    try {
+      const fallbacks = JSON.parse(img.getAttribute('data-fallbacks') || '[]');
+      const idx = img._fallbackIndex || 0;
+      if (idx < fallbacks.length) {
+        img._fallbackIndex = idx + 1;
+        img.src = fallbacks[idx];
+        return;
+      }
+    } catch { /* noop */ }
+    img.style.display = 'none';
+  };
+}
+
 export class ThumbnailTemplateGrid {
   constructor(options = {}) {
     this.templates = options.templates || [];

@@ -24,7 +24,7 @@ import {
   TemplateStorage
 } from '../lib/cinematicTemplates.js';
 import { getVideoIntent, setVideoIntent, subscribeVideoIntent, resetVideoIntent } from '../lib/videoIntentStore.js';
-import { t2iModels, i2iModels, i2vModels } from '../lib/models.js';
+import { t2iModels, i2iModels, i2vModels, t2vModels, v2vModels, getV2VModelById } from '../lib/models.js';
 import { CINEMATIC_THEME, cx } from '../lib/cinematicTheme.js';
 
 import { getTemplateThumbnailCandidates, saveCustomThumbnailToCache, getCustomThumbnailFromCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
@@ -345,7 +345,7 @@ export function CinemaTemplateStudio() {
     currentInputs = new TemplateInputBuilder(template, currentMode).getDefaults();
     if (lastModelType !== template.modelType) {
       const defaultModel = template.model || 'kling-v2.6-pro-t2v';
-      const candidates = template.modelType === 'i2i' ? i2iModels : template.modelType === 't2i' ? t2iModels : i2vModels;
+      const candidates = template.modelType === 'i2i' ? i2iModels : template.modelType === 't2i' ? t2iModels : template.modelType === 't2v' ? t2vModels : i2vModels;
       selectedModel = candidates.find(m => m.id === defaultModel) ? defaultModel : (candidates[0]?.id || defaultModel);
       lastModelType = template.modelType;
     }
@@ -425,79 +425,167 @@ export function CinemaTemplateStudio() {
 
     // Left: Form inputs
     const formPanel = document.createElement('div');
-    formPanel.className = 'flex-1 overflow-auto p-6';
-    formPanel.innerHTML = `
-      <div class="max-w-2xl mx-auto">
-        <div id="video-intent-section" class="mb-6">
-          <!-- Video Intent form rendered here -->
-        </div>
+    formPanel.className = 'rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.02))] p-6 shadow-[0_20px_80px_rgba(0,0,0,0.45)] overflow-auto';
 
-        <div class="mb-6">
-          <h2 class="${CINEMATIC_THEME.text.sectionTitle} text-white mb-2">Basic Information</h2>
-          <p class="text-sm text-secondary">Enter the key details for your video</p>
-        </div>
+    // Hero thumbnail section (matches TemplateStudio editor view)
+    const heroSection = document.createElement('div');
+    heroSection.className = 'mb-8 flex flex-col items-center text-center';
 
-        <div id="inputs-form" class="space-y-4">
-          <!-- Inputs will be rendered here -->
-        </div>
+    const thumbnailEl = document.createElement('div');
+    thumbnailEl.className = 'mb-4 h-24 w-24 rounded-[28px] border border-emerald-400/20 shadow-[0_0_40px_rgba(16,185,129,0.10)] overflow-hidden flex items-center justify-center';
 
-        ${currentTemplate.includeBrandContext ? `
-          <div class="mt-8 pt-8 border-t border-white/10">
-            <h2 class="${CINEMATIC_THEME.text.sectionTitle} text-white mb-2">Brand Context</h2>
-            <p class="text-sm text-secondary">Add your brand details for consistent messaging</p>
-            <div id="brand-form" class="space-y-4 mt-4">
-              <!-- Brand inputs -->
-            </div>
+    const img = document.createElement('img');
+    img.id = 'template-hero-thumb';
+    img.alt = currentTemplate.name;
+    img.className = 'w-full h-full object-cover';
+    const candidates = getTemplateThumbnailCandidates(currentTemplate);
+    let candidateIndex = 0;
+    img.src = candidates[0];
+    img.onerror = () => {
+      candidateIndex++;
+      if (candidateIndex < candidates.length) {
+        img.src = candidates[candidateIndex];
+        return;
+      }
+      img.style.display = 'none';
+      thumbnailEl.classList.add('thumb-fallback');
+      thumbnailEl.textContent = currentTemplate.icon || '🎬';
+    };
+    thumbnailEl.appendChild(img);
+    heroSection.appendChild(thumbnailEl);
+
+    // Thumbnail action button — matches TemplateStudio styling
+    const thumbAction = document.createElement('button');
+    thumbAction.className = 'mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition';
+    thumbAction.style.background = 'linear-gradient(135deg, #10b981, #34d399)';
+    thumbAction.style.boxShadow = '0 4px 14px rgba(16,185,129,0.3)';
+    thumbAction.style.color = '#022c22';
+    thumbAction.textContent = '🖼 Thumbnail';
+    thumbAction.onclick = () => {
+      const modal = new TemplateThumbnailModal({
+        appTheme: 'cinema-template-studio',
+        template: currentTemplate,
+        layout: 'panel',
+        onApply: ({ imageUrl }) => {
+          img.src = imageUrl + '?v=' + Date.now();
+          customThumbnailUrl = imageUrl;
+          saveCustomThumbnailToCache(currentTemplate.id, imageUrl);
+        },
+        onClear: () => {
+          customThumbnailUrl = null;
+          clearCustomThumbnailCache(currentTemplate.id);
+        },
+      });
+      mountThumbnailModal(modal);
+      modal.open();
+    };
+    heroSection.appendChild(thumbAction);
+
+    // Title
+    const title = document.createElement('h1');
+    title.className = 'text-5xl font-semibold tracking-tight';
+    title.textContent = currentTemplate.name;
+    heroSection.appendChild(title);
+
+    // Description
+    const desc = document.createElement('p');
+    desc.className = 'mt-3 text-lg text-zinc-400';
+    desc.textContent = currentTemplate.description || '';
+    heroSection.appendChild(desc);
+
+    // Pills
+    const pills = document.createElement('div');
+    pills.className = 'mt-5 flex flex-wrap gap-2 justify-center';
+    pills.innerHTML = `
+      <span class="inline-flex rounded-full border border-emerald-400/30 bg-emerald-500/12 px-3 py-1 text-xs font-medium text-emerald-100">${currentTemplate.outputType === 'video' ? 'Video' : 'Image'}</span>
+      <span class="inline-flex rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-medium text-white/75">${currentTemplate.category}</span>
+    `;
+    heroSection.appendChild(pills);
+
+    formPanel.appendChild(heroSection);
+
+    // Inner content wrapper (form fields, etc.)
+    const innerWrapper = document.createElement('div');
+    innerWrapper.className = 'max-w-2xl mx-auto';
+    innerWrapper.innerHTML = `
+      <div id="video-intent-section" class="mb-6">
+        <!-- Video Intent form rendered here -->
+      </div>
+
+      <div class="mb-6">
+        <h2 class="${CINEMATIC_THEME.text.sectionTitle} text-white mb-2">Basic Information</h2>
+        <p class="text-sm text-secondary">Enter the key details for your video</p>
+      </div>
+
+      <div id="inputs-form" class="space-y-4">
+        <!-- Inputs will be rendered here -->
+      </div>
+
+      ${currentTemplate.includeBrandContext ? `
+        <div class="mt-8 pt-8 border-t border-white/10">
+          <h2 class="${CINEMATIC_THEME.text.sectionTitle} text-white mb-2">Brand Context</h2>
+          <p class="text-sm text-secondary">Add your brand details for consistent messaging</p>
+          <div id="brand-form" class="space-y-4 mt-4">
+            <!-- Brand inputs -->
           </div>
-        ` : ''}
+        </div>
+      ` : ''}
 
-        ${currentTemplate.outputType === 'video' ? `
-          <div class="mt-8 pt-8 border-t border-white/10">
-            <div class="flex items-center justify-between mb-4">
-              <div>
-                <h2 class="${CINEMATIC_THEME.text.sectionTitle} text-white">Scene Timeline</h2>
-                <p class="text-sm text-secondary">Auto-selected scenes for your video</p>
-              </div>
-              <button id="refresh-scenes-btn" class="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-secondary text-xs font-bold rounded-lg transition-colors">
-                🔄 Refresh
+      ${currentTemplate.outputType === 'video' ? `
+        <div class="mt-8 pt-8 border-t border-white/10">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="${CINEMATIC_THEME.text.sectionTitle} text-white">Scene Timeline</h2>
+              <p class="text-sm text-secondary">Auto-selected scenes for your video</p>
+            </div>
+            <button id="refresh-scenes-btn" class="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-secondary text-xs font-bold rounded-lg transition-colors">
+              🔄 Refresh
+            </button>
+          </div>
+          <div id="scene-timeline" class="space-y-3">
+            <!-- Scene timeline will be rendered here -->
+          </div>
+        </div>
+      ` : ''}
+
+      ${currentTemplate.sceneBuilder ? `
+        <div class="mt-8 pt-8 border-t border-white/10">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="${CINEMATIC_THEME.text.sectionTitle} text-white">Scene Builder</h2>
+              <p class="text-sm text-secondary">Structure your video into scenes</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="add-scene-btn" class="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-secondary text-xs font-bold rounded-lg transition-colors">
+                + Add Scene
+              </button>
+              <button id="open-storyboard-btn" class="px-4 py-2 bg-primary text-black text-xs font-bold rounded-lg hover:scale-105 transition-transform">
+                🎨 Storyboard
               </button>
             </div>
-            <div id="scene-timeline" class="space-y-3">
-              <!-- Scene timeline will be rendered here -->
-            </div>
           </div>
-        ` : ''}
-
-        ${currentTemplate.sceneBuilder ? `
-          <div class="mt-8 pt-8 border-t border-white/10">
-            <div class="flex items-center justify-between mb-4">
-              <div>
-                <h2 class="${CINEMATIC_THEME.text.sectionTitle} text-white">Scene Builder</h2>
-                <p class="text-sm text-secondary">Structure your video into scenes</p>
-              </div>
-              <div class="flex items-center gap-2">
-                <button id="add-scene-btn" class="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-secondary text-xs font-bold rounded-lg transition-colors">
-                  + Add Scene
-                </button>
-                <button id="open-storyboard-btn" class="px-4 py-2 bg-primary text-black text-xs font-bold rounded-lg hover:scale-105 transition-transform">
-                  🎨 Storyboard
-                </button>
-              </div>
-            </div>
-            <div id="scenes-list" class="space-y-3">
-              <!-- Scenes will be rendered here -->
-            </div>
+          <div id="scenes-list" class="space-y-3">
+            <!-- Scenes will be rendered here -->
           </div>
-        ` : ''}
-      </div>
+        </div>
+      ` : ''}
     `;
+    formPanel.appendChild(innerWrapper);
     content.appendChild(formPanel);
 
     renderModelSelector(formPanel);
+    renderVideoUploadButton(formPanel);
     renderAiEnhancer(formPanel);
-    renderCreativeIntelligence(formPanel);
     renderGtmBoost(formPanel);
     renderGenerateButton(formPanel);
+
+    // Personalize trigger — matches TemplateStudio (mounted on leftPanel after Generate, before Creative Intelligence)
+    const personalizeEl = document.createElement('div');
+    personalizeEl.id = 'personalize-trigger';
+    personalizeEl.className = 'mt-6';
+    formPanel.appendChild(personalizeEl);
+
+    renderCreativeIntelligence(formPanel);
 
     // Right: Output panel
     const outputPanel = document.createElement('div');
@@ -536,10 +624,9 @@ export function CinemaTemplateStudio() {
           </div>
         </div>
 
-        <div id="personalize-trigger" class="mt-3"></div>
-      </div>
-    `;
-    content.appendChild(outputPanel);
+         </div>
+       `;
+     content.appendChild(outputPanel);
 
     renderOutputTabs(outputPanel);
     updateOutputContent();
@@ -650,10 +737,15 @@ export function CinemaTemplateStudio() {
       generateVideo();
     };
 
-    const personalizeEl = container.querySelector('#personalize-trigger');
-    if (personalizeEl) {
-      personalizeEl.innerHTML = '';
-      mountPersonalizeTrigger({ controlsContainer: personalizeEl, appId: 'cinema-template' });
+    // Personalize trigger wiring (element created in renderCreateView and appended to formPanel)
+    const personalizeTriggerEl = container.querySelector('#personalize-trigger');
+    if (personalizeTriggerEl) {
+      personalizeTriggerEl.innerHTML = '';
+      mountPersonalizeTrigger({ 
+        controlsContainer: personalizeTriggerEl, 
+        appId: 'cinema-template',
+        getTextarea: () => container.querySelector('#outputTextarea') || null 
+      });
     }
 
     if (currentTemplate.sceneBuilder) {
@@ -747,8 +839,15 @@ export function CinemaTemplateStudio() {
 
     formContainer.innerHTML = '';
 
+    // Identify the primary prompt field (mirrors TemplateStudio logic):
+    // prefer name === 'prompt' among text/textarea inputs, fall back to the
+    // first text/textarea input.
+    const primaryPromptInput = schema.find(i => i && i.name === 'prompt' && (i.type === 'text' || i.type === 'textarea'))
+      || schema.find(i => i && (i.type === 'text' || i.type === 'textarea'));
+    const primaryPromptFieldName = primaryPromptInput ? primaryPromptInput.name : null;
+
     schema.forEach(input => {
-      const field = createFormField(input);
+      const field = createFormField(input, primaryPromptFieldName);
       formContainer.appendChild(field);
     });
 
@@ -764,7 +863,7 @@ export function CinemaTemplateStudio() {
         ];
 
         brandFields.forEach(input => {
-          const field = createFormField(input);
+          const field = createFormField(input, null);
           brandContainer.appendChild(field);
         });
       }
@@ -1282,21 +1381,25 @@ export function CinemaTemplateStudio() {
     });
   }
 
-  function createFormField(input) {
+  function createFormField(input, primaryPromptFieldName) {
     const field = document.createElement('div');
-    field.className = 'space-y-1.5';
+    field.className = 'mt-6 first:mt-0';
 
-    const label = document.createElement('label');
-    label.className = 'block text-xs font-bold text-white uppercase tracking-wider';
-    label.textContent = input.label;
-    if (input.required) {
-      label.innerHTML += ' <span class="text-primary">*</span>';
-    }
+    const isPrimaryPromptField = primaryPromptFieldName && input.name === primaryPromptFieldName;
+
+    const label = document.createElement('div');
+    label.className = 'mb-3 flex items-center justify-between gap-3';
+    const showTextButtons = input.type === 'text' || input.type === 'textarea';
+    label.innerHTML = `
+      <div class="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500">${input.label}${input.required ? ' <span class="text-primary">*</span>' : ''}</div>
+      ${showTextButtons ? `
+        <div class="flex items-center gap-2">
+          <button class="enhancer-btn rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] transition border-white/10 bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-white" data-field="${input.name}">Enhance</button>
+          ${isPrimaryPromptField ? `<button class="gtm-boost-btn shrink-0" data-gtm-boost="primary" title="Enhance your prompt with GTM conversion frameworks" aria-label="GTM Boost prompt enhancer">🎯 GTM Boost</button>` : ''}
+        </div>
+      ` : ''}
+    `;
     field.appendChild(label);
-
-    const isPrimaryPromptField =
-      input.name === 'prompt' &&
-      (input.type === 'textarea' || input.type === 'text');
 
     switch (input.type) {
       case 'text':
@@ -1304,7 +1407,7 @@ export function CinemaTemplateStudio() {
         const textInput = document.createElement('input');
         textInput.type = input.type;
         textInput.name = input.name;
-        textInput.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder:text-muted focus:outline-none focus:border-primary/50';
+        textInput.className = 'h-11 w-full rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] px-4 text-sm text-white outline-none transition focus:border-emerald-400/50';
         textInput.placeholder = input.placeholder || '';
         textInput.value = currentInputs[input.name] || '';
         textInput.min = input.min;
@@ -1319,7 +1422,7 @@ export function CinemaTemplateStudio() {
       case 'textarea': {
         const textarea = document.createElement('textarea');
         textarea.name = input.name;
-        textarea.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder:text-muted focus:outline-none focus:border-primary/50 resize-none';
+        textarea.className = 'w-full rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] px-4 py-3 text-sm text-white outline-none transition focus:border-emerald-400/50 resize-none';
         textarea.placeholder = input.placeholder || '';
         textarea.rows = 3;
         textarea.value = currentInputs[input.name] || '';
@@ -1333,7 +1436,7 @@ export function CinemaTemplateStudio() {
       case 'select': {
         const select = document.createElement('select');
         select.name = input.name;
-        select.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-primary/50';
+        select.className = 'h-11 w-full rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] px-4 text-sm text-white outline-none transition focus:border-emerald-400/50 appearance-none cursor-pointer';
 
         if (input.options && input.options.length > 0) {
           input.options.forEach(opt => {
@@ -1359,14 +1462,14 @@ export function CinemaTemplateStudio() {
         const isFrame = input.type === 'frame';
         const uploadTrigger = document.createElement('button');
         uploadTrigger.type = 'button';
-        uploadTrigger.className = 'w-full flex items-center gap-3 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition text-left';
-        uploadTrigger.innerHTML = `<div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-muted shrink-0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><span class="text-sm text-white/80">${input.label || (isFrame ? 'Add start & end frames' : 'Upload image')}</span>`;
+         uploadTrigger.className = 'flex h-16 items-center gap-4 rounded-[20px] border border-white/10 bg-white/[0.03] px-4 text-zinc-400 cursor-pointer hover:border-emerald-400/30 transition';
+          uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg">↑</div><span class="text-sm">${isFrame ? 'Click to add start & end frames' : 'Click to upload an image'}</span>`;
 
         const setDone = (label) => {
-          uploadTrigger.innerHTML = `<div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-300 shrink-0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div><span class="text-sm text-emerald-200">${label}</span>`;
+          uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-500/10 text-lg">✓</div><span class="text-sm text-emerald-200">${label}</span>`;
         };
         const setReset = () => {
-          uploadTrigger.innerHTML = `<div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-muted shrink-0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><span class="text-sm text-white/80">${input.label || (isFrame ? 'Add start & end frames' : 'Upload image')}</span>`;
+          uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg">↑</div><span class="text-sm">${isFrame ? 'Click to add start & end frames' : 'Click to upload an image'}</span>`;
         };
 
         uploadTrigger.onclick = (e) => {
@@ -1374,6 +1477,7 @@ export function CinemaTemplateStudio() {
           const picker = createUploadPicker({
             anchorContainer: container,
             frameMode: isFrame,
+            acceptVideo: false,
             onSelect: (sel) => {
               if (isFrame) {
                 currentInputs[input.name] = { startUrl: sel.startUrl, endUrl: sel.endUrl, urls: sel.urls };
@@ -1382,6 +1486,39 @@ export function CinemaTemplateStudio() {
                 currentInputs[input.name] = sel.url;
                 setDone('Image uploaded');
               }
+            },
+            onClear: () => {
+              currentInputs[input.name] = null;
+              setReset();
+            }
+          });
+          container.appendChild(picker.panel);
+        };
+        field.appendChild(uploadTrigger);
+        break;
+      }
+
+      case 'video': {
+        const uploadTrigger = document.createElement('button');
+        uploadTrigger.type = 'button';
+        uploadTrigger.className = 'flex h-16 items-center gap-4 rounded-[20px] border border-white/10 bg-white/[0.03] px-4 text-zinc-400 cursor-pointer hover:border-emerald-400/30 transition';
+        uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg">↑</div><span class="text-sm">Click to upload a video</span>`;
+
+        const setDone = (label) => {
+          uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-500/10 text-lg">✓</div><span class="text-sm text-emerald-200">${label}</span>`;
+        };
+        const setReset = () => {
+          uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg">↑</div><span class="text-sm">Click to upload a video</span>`;
+        };
+
+        uploadTrigger.onclick = (e) => {
+          e.stopPropagation();
+          const picker = createUploadPicker({
+            anchorContainer: container,
+            acceptVideo: true,
+            onSelect: (sel) => {
+              currentInputs[input.name] = sel.url;
+              setDone('Video uploaded');
             },
             onClear: () => {
               currentInputs[input.name] = null;
@@ -1417,47 +1554,57 @@ export function CinemaTemplateStudio() {
       }
     }
 
-    const enhanceBtn = document.createElement('button');
-    enhanceBtn.type = 'button';
-    enhanceBtn.textContent = '✨ Enhance';
-    enhanceBtn.className = 'mt-1.5 text-xs px-3 py-1 rounded-full border border-white/10 bg-white/5 text-white/70 hover:bg-white/10 transition';
-    enhanceBtn.onclick = () => {
-      const el = field.querySelector('textarea, input');
-      if (el && el.value) {
-        const enhancedValue = `${el.value}, cinematic style, professional quality, premium aesthetic`;
-        el.value = enhancedValue;
-        currentInputs[input.name] = enhancedValue;
-        enhanceBtn.textContent = 'Enhanced ✓';
-        enhanceBtn.classList.add('border-emerald-400/40', 'bg-emerald-500/15', 'text-emerald-200');
-        setTimeout(() => {
-          enhanceBtn.textContent = '✨ Enhance';
-          enhanceBtn.classList.remove('border-emerald-400/40', 'bg-emerald-500/15', 'text-emerald-200');
-        }, 2000);
+    // Wire up Enhance and GTM Boost buttons created in the label HTML
+    setTimeout(() => {
+      const enhanceBtn = label.querySelector('button[data-field]');
+      if (enhanceBtn) {
+        enhanceBtn.onclick = () => {
+          const el = field.querySelector('textarea, input');
+          if (el && el.value) {
+            const enhancedValue = `${el.value}, cinematic style, professional quality, premium aesthetic`;
+            el.value = enhancedValue;
+            currentInputs[input.name] = enhancedValue;
+            enhanceBtn.textContent = 'Enhanced ✓';
+            enhanceBtn.classList.add('border-emerald-400/40', 'bg-emerald-500/15', 'text-emerald-200');
+            setTimeout(() => {
+              enhanceBtn.textContent = 'Enhance';
+              enhanceBtn.classList.remove('border-emerald-400/40', 'bg-emerald-500/15', 'text-emerald-200');
+            }, 2000);
+          }
+        };
       }
-    };
-    field.appendChild(enhanceBtn);
 
-    if (isPrimaryPromptField) {
-      const gtmBtn = document.createElement('button');
-      gtmBtn.type = 'button';
-      gtmBtn.textContent = '🎯 GTM Boost';
-      gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
-      gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
-      gtmBtn.className = 'gtm-boost-btn shrink-0';
-      gtmBtn.addEventListener('click', () => {
-        import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-          openGTMPromptModal('cinema-template-studio', (prompt) => {
+      const gtmBtn = label.querySelector('button[data-gtm-boost="primary"]');
+      if (gtmBtn) {
+        gtmBtn.addEventListener('click', () => {
+          const promptEl = field.querySelector('textarea, input');
+          const basePrompt = (promptEl && promptEl.value) || currentTemplate.description || '';
+          const templateContext = {
+            basePrompt,
+            templateId: currentTemplate.id,
+            category: currentTemplate.category,
+            niche: currentTemplate.niche,
+            outputType: currentTemplate.outputType,
+          };
+          const onPromptGenerated = (prompt) => {
             const ta = field.querySelector('textarea, input');
             if (ta) {
               ta.value = prompt;
               ta.dispatchEvent(new Event('input', { bubbles: true }));
+              ta.dispatchEvent(new Event('change', { bubbles: true }));
               ta.focus();
             }
-          });
-        }).catch((err) => console.error('[CinemaTemplateStudio] GTM Boost failed:', err));
-      });
-      field.appendChild(gtmBtn);
-    }
+          };
+          import('../lib/uiIntegration.js').then(async ({ fetchGTMTemplateContext, openGTMPromptModal }) => {
+            const ctx = await Promise.resolve(fetchGTMTemplateContext?.(currentTemplate)).catch(() => null) || {};
+            if (ctx?.basePrompt) {
+              templateContext.basePrompt = ctx.basePrompt;
+            }
+            openGTMPromptModal('cinema-template-studio', { onPromptGenerated, templateContext });
+          }).catch((err) => console.error('[CinemaTemplateStudio] GTM Boost failed:', err));
+        });
+      }
+    }, 0);
 
     return field;
   }
@@ -1466,17 +1613,19 @@ export function CinemaTemplateStudio() {
   // MODEL SELECTOR
   // ================================
   function renderModelSelector(formPanel) {
-    const outputType = currentTemplate.outputType || (currentTemplate.modelType === 't2i' ? 'image' : 'video');
+    const outputType = currentTemplate.outputType || (currentTemplate.modelType === 't2i' || currentTemplate.modelType === 'i2i' ? 'image' : 'video');
 
     if (outputType !== 'video' && currentTemplate.modelType !== 'i2i' && currentTemplate.modelType !== 't2i') return;
 
     const modelWrapper = document.createElement('div');
     modelWrapper.className = 'mt-6';
 
-    let fallbackList = [];
-    if (currentTemplate.modelType === 'i2i') fallbackList = i2iModels;
-    else if (currentTemplate.modelType === 't2i') fallbackList = t2iModels;
-    else fallbackList = i2vModels;
+     let fallbackList = [];
+     if (currentTemplate.modelType === 'i2i') fallbackList = i2iModels;
+     else if (currentTemplate.modelType === 't2i') fallbackList = t2iModels;
+     else if (currentTemplate.modelType === 't2v') fallbackList = t2vModels;
+     else if (currentTemplate.modelType === 'v2v') fallbackList = v2vModels;
+     else fallbackList = i2vModels;
 
     let loadedModels = fallbackList;
     const getModelName = (id) => {
@@ -1551,7 +1700,10 @@ export function CinemaTemplateStudio() {
           });
         };
 
+        // Show a loading state immediately, then populate once the catalog resolves.
         renderModelPanel([]);
+        modelLoadingStatus.textContent = 'Loading...';
+        modelLoadingStatus.className = 'text-[10px] text-zinc-400';
 
         const withTimeout = (promise, ms = 5000) => {
           return Promise.race([
@@ -1565,6 +1717,8 @@ export function CinemaTemplateStudio() {
             const models = enriched && enriched.length > 0 ? enriched : fallbackList;
             loadedModels = models;
             renderModelPanel(models);
+            modelLoadingStatus.textContent = models.length + ' models';
+            modelLoadingStatus.className = 'text-[10px] text-emerald-400/70';
           })
           .catch(err => {
             console.warn('[CinemaTemplateStudio] Failed to load enriched model catalog, using fallback:', err);
@@ -1573,6 +1727,8 @@ export function CinemaTemplateStudio() {
               selectedModel = fallbackList[0]?.id || selectedModel;
             }
             renderModelPanel(fallbackList);
+            modelLoadingStatus.textContent = fallbackList.length + ' models (fallback)';
+            modelLoadingStatus.className = 'text-[10px] text-amber-400/70';
           });
       }
     };
@@ -1599,9 +1755,51 @@ export function CinemaTemplateStudio() {
     headerRow.appendChild(triggerBtn);
     headerRow.appendChild(modelLoadingStatus);
     modelWrapper.appendChild(headerRow);
-    modelWrapper.appendChild(dropdown);
-    formPanel.appendChild(modelWrapper);
+     modelWrapper.appendChild(dropdown);
+     formPanel.appendChild(modelWrapper);
+   }
+
+  // ================================
+  // VIDEO UPLOAD BUTTON
+  // ================================
+  function renderVideoUploadButton(formPanel) {
+    // Video upload for v2v models — appears for video templates so users
+    // can upload a source video for video-to-video generation.
+    if (currentTemplate.outputType !== 'video') return;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'mt-4';
+    wrapper.innerHTML = `
+      <div class="flex items-center justify-between gap-3">
+        <label class="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500">Video Source (V2V)</label>
+        <button id="videoUploadBtn" type="button" class="text-[10px] font-semibold uppercase tracking-[0.18em] rounded-full border border-white/10 bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-white transition px-3 py-1">Upload video</button>
+      </div>
+    `;
+    formPanel.appendChild(wrapper);
+
+    const videoBtn = wrapper.querySelector('#videoUploadBtn');
+    const setVideoDone = (label) => {
+      videoBtn.innerHTML = `<span class="text-emerald-200">✓ ${label}</span>`;
+    };
+
+    videoBtn.onclick = (e) => {
+      e.stopPropagation();
+      const picker = createUploadPicker({
+        anchorContainer: container,
+        acceptVideo: true,
+        onSelect: (sel) => {
+          currentInputs['video_url'] = sel.url;
+          setVideoDone('Video uploaded');
+        },
+        onClear: () => {
+          currentInputs['video_url'] = null;
+          videoBtn.textContent = 'Upload video';
+        }
+      });
+      container.appendChild(picker.panel);
+    };
   }
+
 
   // ================================
   // AI ENHANCER SECTION
@@ -1624,7 +1822,7 @@ export function CinemaTemplateStudio() {
       <button id="advancedToggle" class="mt-4 text-sm font-medium text-emerald-200 transition hover:text-emerald-100">
         ${showAdvanced ? 'Hide Advanced Controls' : 'Show Advanced Controls'}
       </button>
-      <div id="advancedControls" class="mt-5 grid gap-4 md:grid-cols-2 ${showAdvanced ? '' : 'hidden'}"></div>
+      <div id="advancedControls" class="mt-5 grid gap-4 md:grid-cols-2 hidden"></div>
     `;
     formPanel.appendChild(enhancerSection);
 
@@ -1644,8 +1842,8 @@ export function CinemaTemplateStudio() {
       const wrapper = document.createElement('div');
       if (field.type === 'select') {
         wrapper.innerHTML = `
-          <div class="mb-3">
-            <div class="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500 mb-1.5">${field.label}</div>
+          <div class="mb-3 flex items-center justify-between gap-3">
+            <div class="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500">${field.label}</div>
             <select class="h-11 w-full rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] px-4 text-sm text-white outline-none transition focus:border-emerald-400/50 appearance-none cursor-pointer" data-advanced-field="${field.name}">
               ${field.options.map(opt => `<option value="${opt}" class="bg-zinc-950 text-white">${opt}</option>`).join('')}
             </select>
@@ -1701,35 +1899,35 @@ export function CinemaTemplateStudio() {
   // ================================
   function renderCreativeIntelligence(formPanel) {
     const intelligenceSection = document.createElement('div');
-    intelligenceSection.className = 'mt-6 rounded-2xl border border-white/10 bg-white/5 p-5';
+     intelligenceSection.className = 'mt-6 rounded-[28px] border border-white/10 bg-white/[0.03] p-5 shadow-[0_20px_80px_rgba(0,0,0,0.35)]';
     intelligenceSection.innerHTML = `
-      <h2 class="${CINEMATIC_THEME.text.sectionTitle} text-white">Creative Intelligence</h2>
-      <p class="mt-2 mb-5 text-sm text-secondary">These tiles show the cinematic structure, creative direction, and visual strategy this template will use.</p>
+      <h2 class="text-xl font-bold text-white">Creative Intelligence</h2>
+       <p class="mt-2 mb-5 text-sm text-zinc-400">These tiles show the cinematic structure, creative direction, and visual strategy this template will use to build your final video.</p>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div class="rounded-xl border border-white/10 bg-white/5 p-4 hover:border-blue-400/20 transition">
-          <div class="mb-3 text-2xl">🏷️</div>
-          <h3 class="text-sm font-bold text-white mb-2">Auto-Detected Niche</h3>
-          <textarea class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm leading-relaxed text-white/80 outline-none transition focus:border-emerald-400/50 resize-none" rows="3" data-tile="niche">${currentInputs.niche || 'general-business'}</textarea>
+        <div class="rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))] p-4 hover:border-blue-400/20 transition cursor-pointer">
+          <div class="mb-3 text-3xl">🏷️</div>
+          <h3 class="text-lg font-bold text-white mb-2">Auto-Detected Niche</h3>
+          <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-relaxed text-zinc-300 outline-none transition focus:border-emerald-400/50 resize-none" rows="3" data-tile="niche">${currentInputs.niche || 'general-business'}</textarea>
         </div>
-        <div class="rounded-xl border border-white/10 bg-white/5 p-4 hover:border-violet-400/20 transition">
-          <div class="mb-3 text-2xl">🎬</div>
-          <h3 class="text-sm font-bold text-white mb-2">Scene Structure</h3>
-          <textarea class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm leading-relaxed text-white/80 outline-none transition focus:border-emerald-400/50 resize-none" rows="3" data-tile="scene">${getSceneBeats(currentTemplate).join(' → ')}</textarea>
+        <div class="rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))] p-4 hover:border-violet-400/20 transition cursor-pointer">
+          <div class="mb-3 text-3xl">🎬</div>
+          <h3 class="text-lg font-bold text-white mb-2">Scene Structure</h3>
+          <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-relaxed text-zinc-300 outline-none transition focus:border-emerald-400/50 resize-none" rows="3" data-tile="scene">${getSceneBeats(currentTemplate).join(' → ')}</textarea>
         </div>
-        <div class="rounded-xl border border-white/10 bg-white/5 p-4 hover:border-emerald-400/20 transition">
-          <div class="mb-3 text-2xl">🎥</div>
-          <h3 class="text-sm font-bold text-white mb-2">Cinematic Enrichment</h3>
-          <textarea class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm leading-relaxed text-white/80 outline-none transition focus:border-emerald-400/50 resize-none" rows="3" data-tile="cinematic">Dynamic camera movement, shallow depth of field, professional lighting</textarea>
+        <div class="rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))] p-4 hover:border-emerald-400/20 transition cursor-pointer">
+          <div class="mb-3 text-3xl">🎥</div>
+          <h3 class="text-lg font-bold text-white mb-2">Cinematic Enrichment</h3>
+          <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-relaxed text-zinc-300 outline-none transition focus:border-emerald-400/50 resize-none" rows="3" data-tile="cinematic">Dynamic camera movement, shallow depth of field, professional lighting</textarea>
         </div>
-        <div class="rounded-xl border border-white/10 bg-white/5 p-4 hover:border-amber-400/20 transition">
-          <div class="mb-3 text-2xl">⚙️</div>
-          <h3 class="text-sm font-bold text-white mb-2">Visual Style</h3>
-          <textarea class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm leading-relaxed text-white/80 outline-none transition focus:border-emerald-400/50 resize-none" rows="3" data-tile="style">Polished, cinematic, high-contrast, premium aesthetic</textarea>
+        <div class="rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))] p-4 hover:border-amber-400/20 transition cursor-pointer">
+          <div class="mb-3 text-3xl">⚙️</div>
+          <h3 class="text-lg font-bold text-white mb-2">Visual Style</h3>
+          <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-relaxed text-zinc-300 outline-none transition focus:border-emerald-400/50 resize-none" rows="3" data-tile="style">Polished, cinematic, high-contrast, premium aesthetic</textarea>
         </div>
-        <div class="md:col-span-2 rounded-xl border border-white/10 bg-white/5 p-4 hover:border-rose-400/20 transition">
-          <div class="mb-3 text-2xl">✨</div>
-          <h3 class="text-sm font-bold text-white mb-2">Enhancer Keywords</h3>
-          <textarea class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm leading-relaxed text-white/80 outline-none transition focus:border-emerald-400/50 resize-none" rows="4" data-tile="keywords">cinematic, professional, 4K, high quality, premium</textarea>
+        <div class="md:col-span-2 rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))] p-4 hover:border-rose-400/20 transition cursor-pointer">
+          <div class="mb-3 text-3xl">✨</div>
+          <h3 class="text-lg font-bold text-white mb-2">Enhancer Keywords</h3>
+          <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-relaxed text-zinc-300 outline-none transition focus:border-emerald-400/50 resize-none" rows="4" data-tile="keywords">cinematic, professional, 4K, high quality, premium</textarea>
         </div>
       </div>
     `;
@@ -1948,10 +2146,12 @@ export function CinemaTemplateStudio() {
               const primaryPromptField = formPanel.querySelector('[name="prompt"]') || formPanel.querySelector('textarea, input');
               if (primaryPromptField) {
                 primaryPromptField.value = text;
+                primaryPromptField.dispatchEvent(new Event('input', { bubbles: true }));
+                primaryPromptField.dispatchEvent(new Event('change', { bubbles: true }));
               }
             };
             import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-              openGTMPromptModal('cinema-template-studio', onPromptGenerated, { templateContext });
+          openGTMPromptModal('cinema-template-studio', { onPromptGenerated, templateContext });
             }).catch((e) => {
               console.warn('[CinemaTemplateStudio] GTM Boost modal load failed:', e);
             });
@@ -1970,35 +2170,38 @@ export function CinemaTemplateStudio() {
     const genBtn = document.createElement('button');
     genBtn.type = 'button';
     genBtn.id = 'generate-btn';
-    genBtn.className = 'w-full py-3 bg-primary text-black font-black text-sm rounded-xl hover:scale-[1.02] transition-transform flex items-center justify-center gap-2';
-    genBtn.innerHTML = '<span>✨</span> Generate Video';
-    genBtn.setAttribute('aria-label', 'Generate video');
+    genBtn.className = 'mt-6 flex h-14 w-full items-center justify-center rounded-[20px] bg-white text-lg font-semibold text-black shadow-xl transition hover:opacity-90';
+    genBtn.textContent = 'Generate';
+    genBtn.setAttribute('aria-label', 'Generate template');
     formPanel.appendChild(genBtn);
 
     genBtn.onclick = () => {
       generateVideo();
     };
 
-    // Enhancer buttons
+    // Enhance buttons (advanced controls only — form-field Enhance buttons are wired in createFormField)
     setTimeout(() => {
-      document.querySelectorAll('.enhancer-btn').forEach(btn => {
-        btn.onclick = () => {
-          const fieldName = btn.dataset.field;
-          if (!fieldName) return;
-          const input = document.querySelector(`[data-advanced-field="${fieldName}"]`);
-          if (input && input.value) {
-            const enhancedValue = `${input.value}, cinematic style, professional quality, premium aesthetic`;
-            input.value = enhancedValue;
-            currentInputs[fieldName] = enhancedValue;
-            btn.classList.add('border-emerald-400/40', 'bg-emerald-500/15', 'text-emerald-200');
-            btn.textContent = 'Enhanced ✓';
-            setTimeout(() => {
-              btn.classList.remove('border-emerald-400/40', 'bg-emerald-500/15', 'text-emerald-200');
-              btn.textContent = '✨ Enhance';
-            }, 2000);
-          }
-        };
-      });
+      const advancedControls = document.getElementById('advancedControls');
+      if (advancedControls) {
+        advancedControls.querySelectorAll('.enhancer-btn').forEach(btn => {
+          btn.onclick = () => {
+            const fieldName = btn.dataset.field;
+            if (!fieldName) return;
+            const input = document.querySelector(`[data-advanced-field="${fieldName}"]`);
+            if (input && input.value) {
+              const enhancedValue = `${input.value}, cinematic style, professional quality, premium aesthetic`;
+              input.value = enhancedValue;
+              currentInputs[fieldName] = enhancedValue;
+              btn.classList.add('border-emerald-400/40', 'bg-emerald-500/15', 'text-emerald-200');
+              btn.textContent = 'Enhanced ✓';
+              setTimeout(() => {
+                btn.classList.remove('border-emerald-400/40', 'bg-emerald-500/15', 'text-emerald-200');
+                 btn.textContent = 'Enhance';
+              }, 2000);
+            }
+          };
+        });
+      }
 
       // Enhancer toggle
       const toggleBtn = document.getElementById('enhancerToggle');
@@ -2075,6 +2278,14 @@ export function CinemaTemplateStudio() {
 
     const isVideo = currentTemplate.outputType === 'video';
     const imageUrl = currentInputs.image_url || currentInputs.referenceImage || null;
+
+    // V2V models need a video_url instead of image_url
+    const isV2V = getV2VModelById(selectedModel);
+
+    if (isV2V && !currentInputs.video_url) {
+      showToast('Please upload a video before generating.', 'error');
+      return;
+    }
 
     let model = selectedModel;
     if (!model) {
@@ -2169,11 +2380,15 @@ export function CinemaTemplateStudio() {
       params.aspect_ratio = currentInputs.aspectRatio || '16:9';
     }
 
-    if (imageUrl) {
-      params.image_url = imageUrl;
-    }
+     if (imageUrl) {
+       params.image_url = imageUrl;
+     }
 
-    if (negativePrompt) {
+     if (isVideo && currentInputs.video_url) {
+       params.video_url = currentInputs.video_url;
+     }
+
+     if (negativePrompt) {
       params.negative_prompt = negativePrompt;
     }
 
@@ -2225,8 +2440,11 @@ export function CinemaTemplateStudio() {
       let result;
       const isVideo = currentTemplate.outputType === 'video';
       const hasImageUrl = !!params.image_url;
+      const isV2V = getV2VModelById(params.model);
 
-      if (isVideo && hasImageUrl) {
+      if (isV2V) {
+        result = await muapi.processV2V(params);
+      } else if (isVideo && hasImageUrl) {
         result = await muapi.generateI2V(params);
       } else if (isVideo) {
         result = await muapi.generateVideo(params);
@@ -2274,7 +2492,7 @@ export function CinemaTemplateStudio() {
 
       isGenerating = false;
       if (genBtn) {
-        genBtn.innerHTML = '<span>✨</span> Generate Video';
+        genBtn.textContent = 'Generate';
         genBtn.disabled = false;
       }
 
@@ -2287,7 +2505,7 @@ export function CinemaTemplateStudio() {
     isGenerating = false;
     genBtn = container.querySelector('#generate-btn');
     if (genBtn) {
-      genBtn.innerHTML = '<span>✨</span> Generate Video';
+      genBtn.textContent = 'Generate';
       genBtn.disabled = false;
     }
   }

@@ -491,6 +491,10 @@ export class ThumbnailService {
     };
     if (opts.presetKey) body.presetKey = opts.presetKey;
     if (opts.controls) body.controls = opts.controls;
+    if (opts.asGif) {
+      body.asGif = true;
+      body.gifData = opts.gifData || opts.imageB64;
+    }
 
     const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body });
     if (error) throw new Error(error.message || 'Failed to save thumbnail');

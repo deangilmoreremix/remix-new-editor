@@ -3,12 +3,15 @@ import { supabase } from '../../lib/supabase.js';
 import { ThumbnailService } from '../../lib/thumbnailService.js';
 import { openaiConfig } from '../../lib/config/openaiConfig.js';
 import { PRESET_LIST, getPresetForTemplate, applyPresetToControls, applyPresetToBrief } from '../../lib/thumbnailPresets.js';
+import { getTemplateThumbnailCandidates } from '../../lib/thumbnails.js';
 import { ModelSelectorDropdown } from './ModelSelectorDropdown.jsx';
 import { t2iModels } from '../../lib/models.js';
 import { ThumbnailExploreIdeas } from './thumbnail-explore/ThumbnailExploreIdeas.jsx';
 import { ThumbnailTemplateGrid } from './thumbnail-explore/ThumbnailTemplateGrid.jsx';
 import { THUMBNAIL_TEMPLATES, getAllTemplates, getFeaturedTemplates } from '../../lib/thumbnailTemplateRegistry.js';
 import { ThumbnailConfigurator } from './thumbnail-explore/ThumbnailConfigurator.jsx';
+import { TONALITIES, getTonality } from '../../lib/tonalities.js';
+import { encodeGif } from '../../lib/gifEncoder.js';
 
 /**
  * TemplateThumbnailModal — redesigned to match the GTM Boost modal design system.
@@ -156,11 +159,17 @@ export class TemplateThumbnailModal extends BaseModal {
     this.frameCount = 8;
     this.isVideoThumb = false;
     this.videoFrames = [];
+    this.asGif = false;
+    this.gifDataUrl = '';
+    this.gifWidth = 1024;
+    this.gifHeight = 1024;
+    this.gifDelayMs = 500;
     this.customSize = 'auto';
     this.platform = 'youtube';
-    this.studioId = 'studio';
-    this.studioName = 'Studio';
-    this.studioOutputType = 'video';
+    this.studioId = options.studioId || 'studio';
+    this.studioName = options.studioName || 'Studio';
+    this.studioOutputType = options.outputType || options.studioOutputType || 'video';
+    this.tonality = options.tonality || '';
     this.refineImageAction = 'auto';
     this.refineMaskB64 = '';
     this.generationTime = '0.0';
@@ -173,6 +182,20 @@ export class TemplateThumbnailModal extends BaseModal {
   getAppColorScheme(theme) {
     return openaiConfig.getStudioColorScheme(theme);
   }
+
+  /**
+   * Resolve a thumbnail preview URL for a template using the same candidate
+    * chain as TemplateStudio, so the design-grid thumbnails match what the
+    * studio pages show. Falls back to t.previewUrl if the candidate chain
+    * yields nothing new.
+    */
+   _resolveTemplateThumbnail(template) {
+     // Prefer the registry's previewUrl (now mapped to real on-disk assets),
+     // then fall through to the candidate chain for custom/special thumbnails.
+     if (template?.previewUrl) return template.previewUrl;
+     const candidates = getTemplateThumbnailCandidates(template);
+     return candidates.length > 0 ? candidates[0] : '';
+   }
 
   // -------------------------------------------------------------------------
   // Rendering — GTM design system
@@ -220,8 +243,14 @@ export class TemplateThumbnailModal extends BaseModal {
   renderBrief() {
     const opts = openaiConfig.getThumbnailOutputSettings();
     const featured = getFeaturedTemplates(12);
+    // Resolve real thumbnail images via the same candidate chain TemplateStudio
+    // uses, so the design-grid cards match the studio page thumbnails.
+    const featuredWithThumbs = featured.map((t) => ({
+      ...t,
+      previewUrl: this._resolveTemplateThumbnail(t),
+    }));
     const designGrid = new ThumbnailTemplateGrid({
-      templates: featured,
+      templates: featuredWithThumbs,
       appColors: this.appColors,
       action: 'select-design',
     }).render();
@@ -272,19 +301,66 @@ export class TemplateThumbnailModal extends BaseModal {
             ${opts.aspectRatios.map((r) => `<option value="${r}" ${this.controls.aspectRatio === r ? 'selected' : ''}>${r}</option>`).join('')}
           </select>
         </div>
+        <div class="form-section">
+          <label for="thumb-tonality">Writing Style</label>
+          <select id="thumb-tonality">
+            <option value="">— Default —</option>
+            ${TONALITIES.map((t) => `<option value="${this.escapeHtml(t.id)}" ${this.tonality === t.id ? 'selected' : ''}>${this.escapeHtml(t.label)}${t.premium ? ' ★' : ''}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; margin:8px 0;">
+        <button type="button" class="gtm-action" data-action="enhance-brief" style="flex:1; min-height:32px; font-size:12px;">
+          💡 Enhance Brief${this.tonality ? ` (${this.escapeHtml(getTonality(this.tonality)?.label || '')})` : ''}
+        </button>
       </div>
       <button type="button" class="toggle-advanced" data-action="toggle-advanced">
-        ${this.showAdvanced ? '▾' : '▸'} Advanced (model, size, quality, format, streaming…)
-      </button>
-      ${this.showAdvanced ? this.renderAdvancedSettings() : ''}
-      <div style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">
-        <button type="button" class="gtm-action copy-prompt-btn" data-action="draft" style="width:100%;">
-          ✨ Draft Prompts
-        </button>
-        <button type="button" class="gtm-action thumbnail-prompt-btn" data-action="generate" ${this.selectedVariantIndex < 0 ? 'disabled' : ""} style="width:100%;">
-          🎨 Generate Candidates
-        </button>
-      </div>
+         ${this.showAdvanced ? '▾' : '▸'} Advanced (model, size, quality, format, streaming…)
+       </button>
+       ${this.showAdvanced ? this.renderAdvancedSettings() : ''}
+       <div class="form-section">
+         <label class="thumb-brand-toggle">
+           <input type="checkbox" id="thumb-video-toggle" ${this.videoThumbEnabled ? 'checked' : ''}>
+           Generate animated video thumbnail (frame sequence)
+         </label>
+       </div>
+       ${this.videoThumbEnabled ? `
+       <div class="form-section">
+         <label class="thumb-brand-toggle">
+           <input type="checkbox" id="thumb-gif-toggle" ${this.asGif ? 'checked' : ''}>
+           Save as animated GIF (auto-playing)
+         </label>
+       </div>
+       <div class="form-section">
+         <label for="thumb-gif-delay">GIF frame delay</label>
+         <select id="thumb-gif-delay">
+           <option value="300" ${this.gifDelayMs === 300 ? 'selected' : ''}>0.3s (fast)</option>
+           <option value="500" ${this.gifDelayMs === 500 ? 'selected' : ''}>0.5s (normal)</option>
+           <option value="800" ${this.gifDelayMs === 800 ? 'selected' : ''}>0.8s (slow)</option>
+         </select>
+       </div>
+       <div class="form-section">
+         <label for="thumb-duration">Duration</label>
+         <select id="thumb-duration">
+           <option value="3s" ${this.videoDuration === '3s' ? 'selected' : ''}>3s</option>
+           <option value="5s" ${this.videoDuration === '5s' ? 'selected' : ''}>5s</option>
+           <option value="10s" ${this.videoDuration === '10s' ? 'selected' : ''}>10s</option>
+         </select>
+       </div>
+       <div class="form-section">
+         <label for="thumb-frames">Frame Count</label>
+         <select id="thumb-frames">
+           <option value="4" ${this.frameCount == 4 ? 'selected' : ''}>4 frames</option>
+           <option value="8" ${this.frameCount == 8 ? 'selected' : ''}>8 frames</option>
+           <option value="12" ${this.frameCount == 12 ? 'selected' : ''}>12 frames</option>
+         </select>
+       </div>
+       ` : ''}
+       <div style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">
+         <button type="button" class="gtm-action thumbnail-prompt-btn" data-action="generate" ${this.isGenerating || (this.videoThumbEnabled ? false : this.selectedVariantIndex < 0) ? 'disabled' : ""} style="width:100%;">
+           ${this.isGenerating ? 'Generating…' : (this.videoThumbEnabled ? 'Generate Video Thumbnail' : `Generate ${this.n} Thumbnail${this.n > 1 ? 's' : ''}`)}
+         </button>
+       </div>
       ${this._renderCostAndSizeWarning()}
     `;
   }
@@ -432,7 +508,15 @@ export class TemplateThumbnailModal extends BaseModal {
 
     return `
       <div class="generated-prompt-section">
-        <label>Candidates</label>
+        ${this.isVideoThumb && this.gifDataUrl ? `
+        <div class="gif-preview-container" style="text-align:center; margin-bottom:12px;">
+          <img src="${this.gifDataUrl}" alt="Animated GIF preview" style="max-width:100%; border-radius:12px; border:1px solid var(--border-color);" />
+          <div style="font-size:11px; color:var(--text-muted); margin-top:6px;">Animated GIF • ${this.gifDelayMs}ms/frame</div>
+        </div>
+        ` : ''}
+        ${this.isVideoThumb && !this.gifDataUrl ? `
+        <label>Video Thumbnail Frames</label>
+        ` : '<label>Candidates</label>'}
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">${candidateHtml}</div>
         ${this.candidates.length > 0 ? `<p style="font-size:11px;color:var(--text-muted);margin:6px 0 0 0;text-align:center;">⏱️ Generated in ${this.generationTime || '—'}s · Model: ${this.model || 'gpt-image-2'}${this._renderKeySourceBadge()}</p>` : ''}
       </div>
@@ -441,7 +525,11 @@ export class TemplateThumbnailModal extends BaseModal {
         <textarea id="thumb-prompt" placeholder="Edit the prompt before regenerating...">${this.escapeHtml(this.selectedPromptText())}</textarea>
       </div>
       <div style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">
-        ${this.selectedIndex >= 0 ? `
+        ${this.isVideoThumb ? `
+          <button type="button" class="gtm-action copy-prompt-btn" data-action="save-video" style="width:100%;">
+            💾 Save & Apply
+          </button>
+        ` : (this.selectedIndex >= 0 ? `
           <button type="button" class="gtm-action thumbnail-prompt-btn" data-action="refine" style="width:100%;">
             ✨ Refine Selected
           </button>
@@ -452,7 +540,7 @@ export class TemplateThumbnailModal extends BaseModal {
           <button type="button" class="gtm-action copy-prompt-btn" data-action="regenerate" style="width:100%;">
             🔄 Regenerate
           </button>
-        `}
+        `)}
         <button type="button" class="gtm-action" data-action="back" style="width:100%; background:var(--bg-panel);color:var(--text-secondary);border:1px solid var(--border-light);">
           ← Back to Brief
         </button>
@@ -840,6 +928,42 @@ export class TemplateThumbnailModal extends BaseModal {
   // -------------------------------------------------------------------------
   // Actions
   // -------------------------------------------------------------------------
+
+  /**
+   * Enhance the current brief by appending a writing-style directive from the
+   * selected tonalities entry (e.g. "Steve Jobs", "Seth Godin"). When no
+   * tonality is selected, a generic "make this thumbnail concept more vivid and
+   * compelling" enrichment is applied. The brief textarea is updated and the
+   * user can then click "Draft Prompts" to generate the 3 variants.
+   */
+  enhanceBrief() {
+    const briefText = document.getElementById('thumb-brief')?.value || this.brief;
+    this.brief = briefText;
+
+    const tonality = this.tonality ? getTonality(this.tonality) : null;
+    let directive = '';
+    if (tonality) {
+      directive = `\n\nWriting style directive: ${tonality.description}`;
+    } else {
+      directive = '\n\nEnhance: make this thumbnail concept more vivid, compelling, and optimized for social media engagement.';
+    }
+
+    const enhanced = briefText.trim() + directive;
+
+    // Update the textarea if it exists (modal or panel layout)
+    const textarea = document.getElementById('thumb-brief');
+    if (textarea) textarea.value = enhanced;
+    this.brief = enhanced;
+
+    // Re-render so the enhance button label updates to show active tonality
+    if (this.layout === 'panel') {
+      this._refreshPanel();
+    } else {
+      this.updateBody(this.renderBody());
+      this.setupEventListeners();
+    }
+  }
+
   async buildPrompts() {
     this.clearError();
     const briefText = document.getElementById('thumb-brief')?.value || this.brief;
@@ -1453,8 +1577,14 @@ export class TemplateThumbnailModal extends BaseModal {
         e.preventDefault();
         if (this.step === 'refine') {
           this.applyRefine();
-        } else if (this.step === 'brief' || this.step === 'generate') {
-          if (!this.isGenerating) this.goGenerate();
+        } else         if (this.step === 'brief' || this.step === 'generate') {
+          if (!this.isGenerating) {
+            if (this.videoThumbEnabled) {
+              this._goGenerate();
+            } else {
+              this.goGenerate();
+            }
+          }
         } else if (this.step === 'textoverlay') {
           this.applyTextOverlay();
         } else if (this.step === 'saved') {
@@ -1492,9 +1622,16 @@ export class TemplateThumbnailModal extends BaseModal {
     if (!body) return;
 
     body.querySelector('[data-action="draft"]')?.addEventListener('click', () => this.buildPrompts());
-    body.querySelector('[data-action="generate"]')?.addEventListener('click', () => this.goGenerate());
+    body.querySelector('[data-action="generate"]')?.addEventListener('click', () => {
+      if (this.videoThumbEnabled) {
+        this._goGenerate();
+      } else {
+        this.goGenerate();
+      }
+    });
     body.querySelector('[data-action="regenerate"]')?.addEventListener('click', () => this.regenerate());
     body.querySelector('[data-action="save"]')?.addEventListener('click', () => this.goSave());
+    body.querySelector('[data-action="save-video"]')?.addEventListener('click', () => this._saveVideoThumbnail());
     body.querySelector('[data-action="refine"]')?.addEventListener('click', () => this.goRefine());
     body.querySelector('[data-action="apply-refine"]')?.addEventListener('click', () => this.applyRefine());
     body.querySelector('[data-action="apply-inpaint"]')?.addEventListener('click', () => this.applyInpaint());
@@ -1502,6 +1639,43 @@ export class TemplateThumbnailModal extends BaseModal {
     body.querySelector('[data-action="undo-mask"]')?.addEventListener('click', () => { this.undoMaskStroke(); this.updateBody(this.renderBody()); this.setupEventListeners(); });
     body.querySelector('[data-action="invert-mask"]')?.addEventListener('click', () => { this.invertMask(); this.updateBody(this.renderBody()); this.setupEventListeners(); });
     body.querySelector('[data-action="back"]')?.addEventListener('click', () => this.back());
+
+    // Video thumbnail + GIF toggles (modal layout)
+    const videoToggle = body.querySelector('#thumb-video-toggle');
+    if (videoToggle) {
+      videoToggle.addEventListener('change', (e) => {
+        this.videoThumbEnabled = e.target.checked;
+        this.updateBody(this.renderBody());
+        this.setupEventListeners();
+      });
+    }
+    const gifToggle = body.querySelector('#thumb-gif-toggle');
+    if (gifToggle) {
+      gifToggle.addEventListener('change', (e) => {
+        this.asGif = e.target.checked;
+        this.updateBody(this.renderBody());
+        this.setupEventListeners();
+      });
+    }
+    const gifDelay = body.querySelector('#thumb-gif-delay');
+    if (gifDelay) {
+      gifDelay.addEventListener('change', (e) => {
+        this.gifDelayMs = parseInt(e.target.value, 10);
+      });
+    }
+    const durationSelect = body.querySelector('#thumb-duration');
+    if (durationSelect) {
+      durationSelect.addEventListener('change', (e) => {
+        this.videoDuration = e.target.value;
+      });
+    }
+    const frameCountSelect = body.querySelector('#thumb-frames');
+    if (frameCountSelect) {
+      frameCountSelect.addEventListener('change', (e) => {
+        this.frameCount = parseInt(e.target.value, 10);
+      });
+    }
+
     body.querySelector('[data-action="explore-ideas"]')?.addEventListener('click', () => {
       this.step = 'explore';
       this.updateBody(this.renderBody());
@@ -1649,6 +1823,22 @@ export class TemplateThumbnailModal extends BaseModal {
     const aspectSelect = body.querySelector('#thumb-aspect');
     if (aspectSelect) {
       aspectSelect.addEventListener('change', (e) => this.updateControl('aspectRatio', e.target.value));
+    }
+
+    // Tonality (writing style) select
+    const tonalitySelect = body.querySelector('#thumb-tonality');
+    if (tonalitySelect) {
+      tonalitySelect.addEventListener('change', (e) => {
+        this.tonality = e.target.value;
+        this.updateBody(this.renderBody());
+        this.setupEventListeners();
+      });
+    }
+
+    // Enhance brief button
+    const enhanceBtn = body.querySelector('[data-action="enhance-brief"]');
+    if (enhanceBtn) {
+      enhanceBtn.addEventListener('click', () => this.enhanceBrief());
     }
 
     // Advanced toggle
@@ -1852,6 +2042,11 @@ export class TemplateThumbnailModal extends BaseModal {
     this.generationTime = '0.0';
     this.isVideoThumb = false;
     this.videoFrames = [];
+    this.asGif = false;
+    this.gifDataUrl = '';
+    this.gifWidth = 1024;
+    this.gifHeight = 1024;
+    this.gifDelayMs = 500;
     this.showAdvanced = false;
     this.partialImages = openaiConfig.defaultConfig.thumbnailPartialImages;
     this.streaming = openaiConfig.defaultConfig.thumbnailStreamingEnabled;
@@ -2183,8 +2378,12 @@ export class TemplateThumbnailModal extends BaseModal {
     const container = document.createElement('div');
     const opts = openaiConfig.getThumbnailOutputSettings();
     const featured = getFeaturedTemplates(12);
+    const featuredWithThumbs = featured.map((t) => ({
+      ...t,
+      previewUrl: this._resolveTemplateThumbnail(t),
+    }));
     const designGrid = new ThumbnailTemplateGrid({
-      templates: featured,
+      templates: featuredWithThumbs,
       appColors: this.appColors,
       action: 'select-design',
     }).render();
@@ -2216,6 +2415,11 @@ export class TemplateThumbnailModal extends BaseModal {
             ${opts.styles.map((s) => `<option value="${s}" ${this.controls.style === s ? 'selected' : ''}>${s}</option>`).join('')}
           </select>
         </div>
+      </div>
+      <div style="display:flex; gap:8px; margin:8px 0;">
+        <button type="button" class="thumb-action-btn thumb-action-primary" id="thumb-enhance-brief" style="flex:1; min-height:36px; font-size:13px;">
+          💡 Enhance Brief${this.tonality ? ` (${this.escapeHtml(getTonality(this.tonality)?.label || '')})` : ''}
+        </button>
       </div>
       <button type="button" class="thumb-action-btn thumb-action-secondary" id="thumb-panel-advanced-toggle" style="align-self:flex-start;padding:6px 12px;min-height:32px;font-size:12px;">
         ${this.showAdvanced ? '▾' : '▸'} Advanced (model, size, format, streaming…)
@@ -2335,6 +2539,13 @@ export class TemplateThumbnailModal extends BaseModal {
         </select>
       </div>
       <div class="form-section">
+        <label for="thumb-tonality">Writing Style</label>
+        <select id="thumb-tonality" class="thumb-tonality-select">
+          <option value="">— Default —</option>
+          ${TONALITIES.map((t) => `<option value="${this.escapeHtml(t.id)}" ${this.tonality === t.id ? 'selected' : ''}>${this.escapeHtml(t.label)}${t.premium ? ' ★' : ''}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-section">
         <label class="thumb-brand-toggle">
           <input type="checkbox" id="thumb-brand-toggle" ${this.brandKitEnabled ? 'checked' : ''}>
           Use brand kit
@@ -2346,6 +2557,22 @@ export class TemplateThumbnailModal extends BaseModal {
           Generate animated video thumbnail (frame sequence)
         </label>
       </div>
+      ${this.videoThumbEnabled ? `
+      <div class="form-section">
+        <label class="thumb-brand-toggle">
+          <input type="checkbox" id="thumb-gif-toggle" ${this.asGif ? 'checked' : ''}>
+          Save as animated GIF (auto-playing)
+        </label>
+      </div>
+      <div class="form-section">
+        <label for="thumb-gif-delay">GIF frame delay</label>
+        <select id="thumb-gif-delay">
+          <option value="300" ${this.gifDelayMs === 300 ? 'selected' : ''}>0.3s (fast)</option>
+          <option value="500" ${this.gifDelayMs === 500 ? 'selected' : ''}>0.5s (normal)</option>
+          <option value="800" ${this.gifDelayMs === 800 ? 'selected' : ''}>0.8s (slow)</option>
+        </select>
+      </div>
+      ` : ''}
       ${this.videoThumbEnabled ? `
       <div class="thumb-video-section">
         <div class="form-section">
@@ -2417,6 +2644,12 @@ export class TemplateThumbnailModal extends BaseModal {
       cta.addEventListener('click', () => this._goGenerate());
     }
 
+    // Enhance brief button — rewrites the brief with the selected writing style
+    const enhanceBtn = container.querySelector('#thumb-enhance-brief');
+    if (enhanceBtn) {
+      enhanceBtn.addEventListener('click', () => this.enhanceBrief());
+    }
+
     const qualitySelect = container.querySelector('#thumb-quality');
     qualitySelect.addEventListener('change', (e) => {
       this.controls.quality = e.target.value;
@@ -2432,6 +2665,15 @@ export class TemplateThumbnailModal extends BaseModal {
       this.platform = e.target.value;
     });
 
+    // Tonality (writing style) select — only present in _renderBriefForm
+    const tonalitySelect = container.querySelector('#thumb-tonality');
+    if (tonalitySelect) {
+      tonalitySelect.addEventListener('change', (e) => {
+        this.tonality = e.target.value;
+        this._refreshPanel();
+      });
+    }
+
     const brandToggle = container.querySelector('#thumb-brand-toggle');
     brandToggle.addEventListener('change', (e) => {
       this.brandKitEnabled = e.target.checked;
@@ -2443,6 +2685,21 @@ export class TemplateThumbnailModal extends BaseModal {
       this.videoThumbEnabled = e.target.checked;
       this._refreshPanel();
     });
+
+    // GIF toggle + delay
+    const gifToggle = container.querySelector('#thumb-gif-toggle');
+    if (gifToggle) {
+      gifToggle.addEventListener('change', (e) => {
+        this.asGif = e.target.checked;
+        this._refreshPanel();
+      });
+    }
+    const gifDelay = container.querySelector('#thumb-gif-delay');
+    if (gifDelay) {
+      gifDelay.addEventListener('change', (e) => {
+        this.gifDelayMs = parseInt(e.target.value, 10);
+      });
+    }
 
     const durationSelect = container.querySelector('#thumb-duration');
     if (durationSelect) {
@@ -2738,18 +2995,63 @@ export class TemplateThumbnailModal extends BaseModal {
     const container = document.createElement('div');
 
     if (this.isVideoThumb && this.videoFrames.length > 0) {
-      const grid = document.createElement('div');
-      grid.className = 'candidate-grid';
-      this.videoFrames.forEach((frame, index) => {
-        const card = document.createElement('div');
-        card.className = 'candidate-card';
-        const img = document.createElement('img');
-        img.src = frame.dataUrl || frame.b64_json;
-        img.alt = `Frame ${index + 1}`;
-        card.appendChild(img);
-        grid.appendChild(card);
-      });
-      container.appendChild(grid);
+      if (this.gifDataUrl) {
+        // Show animated GIF preview — auto-plays in <img> tags
+        const gifContainer = document.createElement('div');
+        gifContainer.className = 'gif-preview-container';
+        const gifImg = document.createElement('img');
+        gifImg.src = this.gifDataUrl;
+        gifImg.alt = 'Animated GIF preview';
+        gifImg.className = 'gif-preview-image';
+        gifImg.draggable = false;
+        gifContainer.appendChild(gifImg);
+        const label = document.createElement('div');
+        label.className = 'gif-preview-label';
+        label.textContent = `Animated GIF • ${this.gifDelayMs}ms/frame`;
+        gifContainer.appendChild(label);
+        container.appendChild(gifContainer);
+
+        // Also show the individual frames as thumbnails for reference
+        const frameGrid = document.createElement('div');
+        frameGrid.className = 'candidate-grid';
+        frameGrid.style.marginTop = '1rem';
+        this.videoFrames.slice(0, 8).forEach((frame, index) => {
+          const card = document.createElement('div');
+          card.className = 'candidate-card';
+          card.style.opacity = '0.5';
+          const img = document.createElement('img');
+          img.src = frame.dataUrl || frame.b64_json;
+          img.alt = `Frame ${index + 1}`;
+          card.appendChild(img);
+          frameGrid.appendChild(card);
+        });
+        // Show "...+ N more" for extra frames
+        if (this.videoFrames.length > 8) {
+          const moreDiv = document.createElement('div');
+          moreDiv.className = 'candidate-card';
+          moreDiv.style.opacity = '0.3';
+          moreDiv.textContent = `+${this.videoFrames.length - 8} more frames`;
+          moreDiv.style.display = 'flex';
+          moreDiv.style.alignItems = 'center';
+          moreDiv.style.justifyContent = 'center';
+          frameGrid.appendChild(moreDiv);
+        }
+        container.appendChild(frameGrid);
+      } else {
+        // Fallback: show frame grid (no GIF assembly, e.g. assembly failed)
+        const grid = document.createElement('div');
+        grid.className = 'candidate-grid';
+        this.videoFrames.forEach((frame, index) => {
+          const card = document.createElement('div');
+          card.className = 'candidate-card';
+          const img = document.createElement('img');
+          img.src = frame.dataUrl || frame.b64_json;
+          img.alt = `Frame ${index + 1}`;
+          card.appendChild(img);
+          grid.appendChild(card);
+        });
+        container.appendChild(grid);
+      }
     } else if (this.candidates.length > 0) {
       const grid = document.createElement('div');
       grid.className = 'candidate-grid';
@@ -3213,10 +3515,10 @@ export class TemplateThumbnailModal extends BaseModal {
         await this.goGenerate();
         this._updateKeyBadge(this.lastKeySource);
       }
-    } finally {
-      this.generationTime = ((performance.now() - startTime) / 1000).toFixed(1);
-      this._refreshPanel();
-    }
+     } finally {
+       this.generationTime = ((performance.now() - startTime) / 1000).toFixed(1);
+       this._refreshView();
+     }
   }
 
   async _generateVideoThumbnail() {
@@ -3225,7 +3527,7 @@ export class TemplateThumbnailModal extends BaseModal {
     this.isGenerating = true;
     this.candidates = [];
     this.selectedIndex = -1;
-    this._refreshPanel();
+    this._refreshView();
 
     try {
       const frames = await this.thumbnailService.generateVideoThumbnail(promptText, {
@@ -3238,14 +3540,50 @@ export class TemplateThumbnailModal extends BaseModal {
       });
       this.videoFrames = frames || [];
       this.isVideoThumb = true;
+
+      // If saving as animated GIF, assemble the GIF from the generated frames.
+      if (this.asGif && this.videoFrames.length > 0) {
+        this.setLoading('Assembling animated GIF…');
+        this._refreshView();
+        try {
+          const { width, height } = this._getGifDimensions();
+          this.gifWidth = width;
+          this.gifHeight = height;
+          const frameDataUrls = this.videoFrames.map((f) =>
+            f.dataUrl || (f.b64_json ? ThumbnailService.b64ToDataUrl(f.b64_json) : '')
+          ).filter(Boolean);
+          this.gifDataUrl = encodeGif(frameDataUrls, width, height, this.gifDelayMs);
+        } catch (gifErr) {
+          console.error('[thumbnail] GIF assembly failed:', gifErr);
+          this.gifDataUrl = '';
+        }
+      }
+
       this.step = 'generate';
       this.isGenerating = false;
-      this._refreshPanel();
+      this._refreshView();
     } catch (err) {
       this.isGenerating = false;
       this.setError(err instanceof Error ? err.message : 'Failed to generate video thumbnail');
-      this._refreshPanel();
+      this._refreshView();
     }
+  }
+
+  /**
+   * Determine the GIF dimensions based on the selected aspect ratio.
+   * Uses gpt-image-2 safe resolutions (edges multiples of 16).
+   */
+  _getGifDimensions() {
+    const aspect = this.controls.aspectRatio || '16:9';
+    const dims = {
+      '1:1': { width: 1024, height: 1024 },
+      '9:16': { width: 1024, height: 1792 },
+      '16:9': { width: 1792, height: 1024 },
+      '4:3': { width: 1536, height: 1152 },
+      '3:4': { width: 1152, height: 1536 },
+      '21:9': { width: 1920, height: 882 },
+    };
+    return dims[aspect] || { width: 1024, height: 1024 };
   }
 
   async _goSave() {
@@ -3283,22 +3621,36 @@ export class TemplateThumbnailModal extends BaseModal {
     this.clearError();
     this.setLoading('Saving thumbnail…');
     try {
-      const frame = this.videoFrames[0];
-      const result = await this.thumbnailService.saveToStorage({
-        imageB64: frame.b64_json || frame.dataUrl,
-        promptUsed: this.brief,
-        presetKey: this.presetKey,
-        controls: { ...this.controls },
-      });
-      this.savedImageUrl = result?.imageUrl || '';
+      if (this.asGif && this.gifDataUrl) {
+        // Save the assembled GIF — strip the data URL prefix to get the base64
+        const gifB64 = this.gifDataUrl.split(',')[1] || '';
+        const result = await this.thumbnailService.saveToStorage({
+          imageB64: gifB64,
+          gifData: gifB64,
+          asGif: true,
+          promptUsed: this.brief,
+          presetKey: this.presetKey,
+          controls: { ...this.controls, outputFormat: 'gif' },
+        });
+        this.savedImageUrl = result?.imageUrl || '';
+      } else {
+        const frame = this.videoFrames[0];
+        const result = await this.thumbnailService.saveToStorage({
+          imageB64: frame.b64_json || frame.dataUrl,
+          promptUsed: this.brief,
+          presetKey: this.presetKey,
+          controls: { ...this.controls },
+        });
+        this.savedImageUrl = result?.imageUrl || '';
+      }
       this.step = 'saved';
       this.isGenerating = false;
-      this._refreshPanel();
+      this._refreshView();
       this.enableApplyButton();
     } catch (err) {
       this.isGenerating = false;
       this.setError(err instanceof Error ? err.message : 'Save failed');
-      this._refreshPanel();
+      this._refreshView();
     }
   }
 
@@ -3322,11 +3674,29 @@ export class TemplateThumbnailModal extends BaseModal {
       cancelBtn.addEventListener('click', () => this.close());
       footer.appendChild(cancelBtn);
 
-      const generateBtn = document.createElement('button');
-      generateBtn.className = 'thumb-action-btn thumb-action-primary';
-      generateBtn.textContent = 'Generate Thumbnail';
-      generateBtn.addEventListener('click', () => this._goGenerate());
-      footer.appendChild(generateBtn);
+      // Only render the Generate Thumbnail button after the user has completed
+      // the prerequisite steps: selecting a design, drafting prompts, and
+      // confirming a variant. Until then, show a status message.
+      const canGenerate = this.variants.length > 0 && this.selectedVariantIndex >= 0;
+      if (canGenerate) {
+        const generateBtn = document.createElement('button');
+        generateBtn.className = 'thumb-action-btn thumb-action-primary';
+        generateBtn.textContent = 'Generate Thumbnail';
+        generateBtn.addEventListener('click', () => this._goGenerate());
+        footer.appendChild(generateBtn);
+      } else {
+        const statusMsg = document.createElement('span');
+        statusMsg.className = 'thumb-footer-status';
+        statusMsg.style.fontSize = '12px';
+        statusMsg.style.color = 'var(--text-secondary)';
+        statusMsg.style.fontStyle = 'italic';
+        if (this.variants.length === 0) {
+          statusMsg.textContent = 'Draft prompts to continue →';
+        } else if (this.selectedVariantIndex < 0) {
+          statusMsg.textContent = 'Select a prompt variant';
+        }
+        footer.appendChild(statusMsg);
+      }
     } else if (this.step === 'generate') {
       const backBtn = document.createElement('button');
       backBtn.className = 'thumb-action-btn thumb-action-secondary';
@@ -3334,16 +3704,25 @@ export class TemplateThumbnailModal extends BaseModal {
       backBtn.addEventListener('click', () => { this.step = 'brief'; this._refreshPanel(); });
       footer.appendChild(backBtn);
 
-      const refineBtn = document.createElement('button');
-      refineBtn.className = 'thumb-action-btn thumb-action-primary';
-      refineBtn.textContent = 'Refine →';
-      refineBtn.disabled = this.selectedIndex < 0;
-      refineBtn.addEventListener('click', () => {
-        this.step = 'refine';
-        this.refineInput = '';
-        this._refreshPanel();
-      });
-      footer.appendChild(refineBtn);
+      if (this.isVideoThumb && this.videoFrames.length > 0) {
+        // Video thumbnail flow — save instead of refine
+        const saveBtn = document.createElement('button');
+        saveBtn.className = 'thumb-action-btn thumb-action-primary';
+        saveBtn.textContent = this.asGif ? '💾 Save Animated GIF' : '💾 Save Video Thumbnail';
+        saveBtn.addEventListener('click', () => this._saveVideoThumbnail());
+        footer.appendChild(saveBtn);
+      } else {
+        const refineBtn = document.createElement('button');
+        refineBtn.className = 'thumb-action-btn thumb-action-primary';
+        refineBtn.textContent = 'Refine →';
+        refineBtn.disabled = this.selectedIndex < 0;
+        refineBtn.addEventListener('click', () => {
+          this.step = 'refine';
+          this.refineInput = '';
+          this._refreshPanel();
+        });
+        footer.appendChild(refineBtn);
+      }
     } else if (this.step === 'refine') {
       const backBtn = document.createElement('button');
       backBtn.className = 'thumb-action-btn thumb-action-secondary';
@@ -3395,6 +3774,19 @@ export class TemplateThumbnailModal extends BaseModal {
     }
 
     return footer;
+  }
+
+  /**
+   * Layout-aware refresh: uses modal-style updateBody() for 'modal' layout,
+   * and _refreshPanel() for 'panel' layout.
+   */
+  _refreshView() {
+    if (this.layout === 'modal') {
+      this.updateBody(this.renderBody());
+      this.setupEventListeners();
+    } else if (this._panel) {
+      this._refreshPanel();
+    }
   }
 
   _refreshPanel() {
