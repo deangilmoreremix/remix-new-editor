@@ -114,6 +114,16 @@ function statusLabel(status) {
   }
 }
 
+function isValidMediaUrl(url) {
+  if (!url || typeof url !== 'string') return false;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 function recommendedAspectRatio(platform, mediaType) {
   if (mediaType === 'image') return '1:1';
   if (platform === 'tiktok') return '9:16';
@@ -557,22 +567,24 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
       const popup = window.open(url, 'muapi_oauth', 'width=600,height=720');
       if (!popup) window.open(url, '_blank'); // fallback if blocked
 
-      popupTimer.current = setInterval(async () => {
-        try {
-          await refreshAccounts();
-        } catch {
-          /* ignore transient errors while polling */
-        }
-        if (!popup || popup.closed) {
-          clearInterval(popupTimer.current);
-          popupTimer.current = null;
-          if (popup && popup.closed) {
+      if (popup) {
+        popupTimer.current = setInterval(async () => {
+          try {
             await refreshAccounts();
+          } catch {
+            /* ignore transient errors while polling */
           }
-          setStatus('idle');
-          setConnectingPlatform(null);
-        }
-      }, 2500);
+          if (!popup || popup.closed) {
+            clearInterval(popupTimer.current);
+            popupTimer.current = null;
+            if (popup && popup.closed) {
+              await refreshAccounts();
+            }
+            setStatus('idle');
+            setConnectingPlatform(null);
+          }
+        }, 2500);
+      }
     } catch (e) {
       setErrorMsg(e.message || 'Could not start connection.');
       setStatus('idle');
@@ -720,7 +732,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
   const platformOfSelected = selectedAccount?.platform_name;
   const publishDisabled =
     status === 'publishing' || status === 'connecting' || !selectedAccount
-    || !/^https?:\/\//i.test(mediaUrl);
+    || !isValidMediaUrl(mediaUrl);
 
   const updateForm = (key, value) => setForm((f) => ({ ...f, [key]: value }));
 
@@ -767,7 +779,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
   }, [selectedAccountId, mediaUrl, form, platformOfSelected]);
 
   const handlePublish = useCallback(async () => {
-    if (!/^https?:\/\//i.test(mediaUrl)) {
+    if (!isValidMediaUrl(mediaUrl)) {
       setErrorMsg('Enter a valid public http(s) media URL.');
       return;
     }
@@ -780,19 +792,20 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
       setErrorMsg(`${PLATFORM_BY_ID[platform]?.label || platform} requires a title.`);
       return;
     }
-    // Thumbnail is a strong recommendation, not a hard gate: remind but don't
-    // block, so the original publish flow is preserved.
     if (platform === 'instagram' && !form.thumbnail?.imageUrl) {
       setErrorMsg('Add a thumbnail to make your post pop (your media preview still works without one).');
+      return;
     }
 
     setStatus('publishing');
     setErrorMsg(null);
     setProgress('Submitting…');
+    const controller = new AbortController();
+    abortRef.current = controller;
     try {
       const result = await socialPublishing.publishAndPoll(platform, buildPayload(platform), {
         onStatus: (s) => setProgress(statusLabel(s)),
-        signal: abortRef.current?.signal,
+        signal: controller.signal,
       });
       // muapi returns the post reference in different shapes per platform:
       //   YouTube  -> { output: { url } }
@@ -818,10 +831,18 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
   // --- draft / preview helpers ----------------------------------------------
   const handleSaveDraft = () => {
     try {
-      localStorage.setItem(
-        'socialPublishDraft',
-        JSON.stringify({ mediaUrl, mediaType, form, selectedAccountId, toneId, updatedAt: Date.now() }),
-      );
+      const DRAFT_TTL_MS = 24 * 60 * 60 * 1000;
+      const draft = {
+        v: 1,
+        mediaUrl,
+        mediaType,
+        form,
+        selectedAccountId,
+        toneId,
+        savedAt: Date.now(),
+        expiresAt: Date.now() + DRAFT_TTL_MS,
+      };
+      localStorage.setItem('socialPublishDraft', JSON.stringify(draft));
       setDraftSaved(true);
       setTimeout(() => setDraftSaved(false), 1600);
     } catch {
@@ -838,7 +859,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
     return set;
   }, [mediaUrl, form.thumbnail, selectedAccount, form.title, form.caption]);
 
-  const canPreview = !!selectedAccount && /^https?:\/\//i.test(mediaUrl);
+  const canPreview = !!selectedAccount && isValidMediaUrl(mediaUrl);
 
   // Keyboard shortcuts (2026 micro-interactions):
   //   Space           → reroll current field
