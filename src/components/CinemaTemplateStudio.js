@@ -499,6 +499,7 @@ export function CinemaTemplateStudio() {
     pills.innerHTML = `
       <span class="inline-flex rounded-full border border-emerald-400/30 bg-emerald-500/12 px-3 py-1 text-xs font-medium text-emerald-100">${currentTemplate.outputType === 'video' ? 'Video' : 'Image'}</span>
       <span class="inline-flex rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-medium text-white/75">${currentTemplate.category}</span>
+      ${currentTemplate.coreUseCase ? `<span class="inline-flex rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-medium text-white/75">${currentTemplate.coreUseCase}</span>` : ''}
     `;
     heroSection.appendChild(pills);
 
@@ -596,33 +597,26 @@ export function CinemaTemplateStudio() {
           <h3 class="${CINEMATIC_THEME.text.eyebrow} text-white mb-4">Output</h3>
         <button id="close-output-btn" class="lg:hidden absolute top-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/70 hover:bg-white/20 transition" title="Close output">✕</button>
 
-        <div class="bg-white/5 rounded-2xl p-4 mb-4">
-          <div class="aspect-video bg-black rounded-xl mb-3 flex items-center justify-center overflow-hidden">
-            <img id="preview-thumb" src="" alt="" class="w-full h-full object-cover hidden" />
-            <div id="preview-thumb-fallback" class="text-center">
-              <div class="text-4xl mb-2">${escapeHtml(currentTemplate.icon)}</div>
-              <div class="text-xs text-secondary">Preview</div>
-            </div>
-          </div>
-          <div class="space-y-2 text-xs">
-            <div class="flex justify-between">
-              <span class="text-white/50">Template</span>
-              <span class="text-white">${escapeHtml(currentTemplate.name)}</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-white/50">Duration</span>
-              <span class="text-white">${currentInputs.duration || currentTemplate.duration?.default || 30}s</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-white/50">Aspect Ratio</span>
-              <span class="text-white">${currentInputs.aspectRatio || '16:9'}</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-white/50">Style</span>
-              <span class="text-white">${currentInputs.visualStyle || 'Cinematic'}</span>
-            </div>
-          </div>
-        </div>
+         <div class="rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.018))] p-5 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+           <div class="mb-4 flex flex-wrap items-center gap-2">
+             <span class="inline-flex rounded-full border border-emerald-400/30 bg-emerald-500/12 px-3 py-1 text-xs font-medium text-emerald-100">${currentTemplate.outputType === 'video' ? 'Video' : 'Image'}</span>
+             <span class="inline-flex rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-medium text-white/75">${currentTemplate.category}</span>
+             <span class="inline-flex rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-medium text-white/75">${currentInputs.aspectRatio || currentTemplate.aspectRatio || '16:9'}</span>
+           </div>
+           <div class="rounded-[26px] border border-white/10 bg-[radial-gradient(circle_at_50%_35%,rgba(16,185,129,0.14),transparent_40%),radial-gradient(circle_at_70%_20%,rgba(99,102,241,0.12),transparent_36%),linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] p-5">
+             <div class="aspect-[16/10] rounded-[22px] border border-white/10 bg-black/50 p-4">
+               <div class="flex h-full flex-col rounded-[18px] border border-white/10 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.10),transparent_55%),radial-gradient(circle_at_70%_20%,rgba(99,102,241,0.10),transparent_38%)] p-4">
+                 <div class="mb-3 flex items-center justify-between text-[11px] uppercase tracking-[0.18em] text-zinc-500">
+                   <span>Preview / Output Panel</span>
+                   <span>Standby State</span>
+                 </div>
+                 <div id="previewArea" class="flex flex-1 items-center justify-center rounded-[16px] border border-dashed border-white/10 bg-white/[0.02] text-center text-sm leading-6 text-zinc-400">
+                   Upload an image and click Generate to see results
+                 </div>
+               </div>
+             </div>
+           </div>
+         </div>
 
          </div>
        `;
@@ -803,16 +797,25 @@ export function CinemaTemplateStudio() {
   }
 
   function updatePreviewThumbnail() {
-    const thumbImg = container.querySelector('#preview-thumb');
-    const fallback = container.querySelector('#preview-thumb-fallback');
-    if (!thumbImg) return;
+    const previewArea = container.querySelector('#previewArea');
+    if (!previewArea) return;
+    // Clean up any previously inserted image
+    const existingImg = previewArea.querySelector('img#preview-thumb');
+    const existingFallback = previewArea.querySelector('#preview-thumb-fallback');
+    if (existingImg) existingImg.remove();
+    if (existingFallback) existingFallback.remove();
+
     if (customThumbnailUrl) {
-      thumbImg.src = customThumbnailUrl;
-      thumbImg.classList.remove('hidden');
-      if (fallback) fallback.classList.add('hidden');
-    } else {
-      thumbImg.classList.add('hidden');
-      if (fallback) fallback.classList.remove('hidden');
+      const img = document.createElement('img');
+      img.id = 'preview-thumb';
+      img.src = customThumbnailUrl;
+      img.alt = currentTemplate.name;
+      img.className = 'w-full h-full object-cover';
+      const fallback = document.createElement('div');
+      fallback.id = 'preview-thumb-fallback';
+      fallback.className = 'hidden';
+      previewArea.appendChild(img);
+      previewArea.appendChild(fallback);
     }
   }
 
@@ -1557,13 +1560,15 @@ export function CinemaTemplateStudio() {
     // Wire up Enhance and GTM Boost buttons created in the label HTML
     setTimeout(() => {
       const enhanceBtn = label.querySelector('button[data-field]');
-      if (enhanceBtn) {
-        enhanceBtn.onclick = () => {
-          const el = field.querySelector('textarea, input');
-          if (el && el.value) {
-            const enhancedValue = `${el.value}, cinematic style, professional quality, premium aesthetic`;
-            el.value = enhancedValue;
-            currentInputs[input.name] = enhancedValue;
+        if (enhanceBtn) {
+         enhanceBtn.onclick = () => {
+           const el = field.querySelector('textarea, input');
+           if (el && el.value) {
+             const enhancedValue = `${el.value}, cinematic style, professional quality, premium aesthetic`;
+             el.value = enhancedValue;
+             el.dispatchEvent(new Event('input', { bubbles: true }));
+             el.dispatchEvent(new Event('change', { bubbles: true }));
+             currentInputs[input.name] = enhancedValue;
             enhanceBtn.textContent = 'Enhanced ✓';
             enhanceBtn.classList.add('border-emerald-400/40', 'bg-emerald-500/15', 'text-emerald-200');
             setTimeout(() => {
@@ -1652,7 +1657,7 @@ export function CinemaTemplateStudio() {
     updateTrigger();
 
     const dropdown = document.createElement('div');
-    dropdown.className = 'fixed z-[100] bg-white/[0.04] border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom-left';
+    dropdown.className = 'fixed z-[100] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom-left';
     dropdown.style.width = 'calc(100vw - 2rem)';
     dropdown.style.maxWidth = '480px';
     dropdown.style.maxHeight = '70vh';
@@ -1951,19 +1956,19 @@ export function CinemaTemplateStudio() {
   function renderOutputTabs(outputPanel) {
     const outputTabs = ['Enhanced Prompt', 'Scene Beats', 'Voiceover', 'Negative Prompt'];
     const outputSection = document.createElement('div');
-    outputSection.className = 'mt-6 rounded-2xl border border-white/10 bg-white/5 p-5';
+    outputSection.className = 'mt-6 rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.018))] p-5';
 
     const tabRow = document.createElement('div');
     tabRow.className = 'mb-4 flex flex-wrap gap-2';
     tabRow.id = 'outputTabs';
     outputTabs.forEach(tab => {
       const tabBtn = document.createElement('button');
-      tabBtn.className = `rounded-full px-2 py-1.5 text-[11px] font-medium transition ${tab === activeTab ? 'border border-emerald-400/30 bg-emerald-500/12 text-emerald-100' : 'border border-white/10 bg-white/5 text-white/70 hover:bg-white/10'}`;
+      tabBtn.className = `rounded-full px-3 py-2 text-xs font-medium transition ${tab === activeTab ? 'border border-emerald-400/30 bg-emerald-500/12 text-emerald-100' : 'border border-white/10 bg-white/[0.04] text-zinc-100 hover:bg-white/[0.08]'}`;
       tabBtn.textContent = tab;
       tabBtn.onclick = () => {
         activeTab = tab;
         document.querySelectorAll('#outputTabs button').forEach(b => {
-          b.className = `rounded-full px-2 py-1.5 text-[11px] font-medium transition ${b.textContent === activeTab ? 'border border-emerald-400/30 bg-emerald-500/12 text-emerald-100' : 'border border-white/10 bg-white/5 text-white/70 hover:bg-white/10'}`;
+          b.className = `rounded-full px-3 py-2 text-xs font-medium transition ${b.textContent === activeTab ? 'border border-emerald-400/30 bg-emerald-500/12 text-emerald-100' : 'border border-white/10 bg-white/[0.04] text-zinc-100 hover:bg-white/[0.08]'}`;
         });
         updateOutputContent();
         if (activeTab === 'Enhanced Prompt') {
@@ -1979,15 +1984,15 @@ export function CinemaTemplateStudio() {
     outputSection.appendChild(tabRow);
 
     const outputContent = document.createElement('div');
-    outputContent.className = 'rounded-xl border border-white/10 bg-black/40 p-4';
+    outputContent.className = 'rounded-[22px] border border-white/10 bg-black/40 p-4';
     outputContent.innerHTML = `
       <div class="mb-3 flex items-center justify-between gap-3">
-        <div class="text-xs uppercase tracking-[0.18em] text-secondary">Editable Output</div>
+        <div class="text-xs uppercase tracking-[0.18em] text-zinc-500">Editable Output</div>
         <button id="wandBtn" class="flex h-8 w-8 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-500/12 text-emerald-200 transition hover:bg-emerald-500/18" title="Enhance with AI">✨</button>
       </div>
-      <textarea id="outputTextarea" class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm leading-7 text-white/80 outline-none transition focus:border-emerald-400/50 resize-none" rows="12">Click Generate to create an enhanced prompt...</textarea>
+      <textarea id="outputTextarea" class="w-full rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] px-4 py-3 text-sm leading-7 text-zinc-200 outline-none transition focus:border-emerald-400/50 resize-none" rows="12">Click Generate to create an enhanced prompt...</textarea>
       <div id="promptLengthCounter" class="mt-2 text-[11px] text-zinc-500 flex items-center justify-between"></div>
-      <button id="resetPromptBtn" class="mt-2 hidden w-full py-2 text-xs font-semibold text-zinc-400 border border-white/10 rounded-xl hover:bg-white/5 hover:text-white transition-colors" title="Reset to auto-generated prompt">↩ Reset to auto-generated prompt</button>
+      <button id="resetPromptBtn" class="mt-2 hidden w-full py-2 text-xs font-semibold text-zinc-400 border border-white/10 rounded-[20px] hover:bg-white/5 hover:text-white transition-colors" title="Reset to auto-generated prompt">↩ Reset to auto-generated prompt</button>
     `;
 
     const outputTextarea = outputContent.querySelector('#outputTextarea');
@@ -2023,10 +2028,23 @@ export function CinemaTemplateStudio() {
           lastBuiltPrompt = enhanced;
           outputTabValues['Enhanced Prompt'] = enhanced;
           textarea.value = enhanced;
+          textarea.dispatchEvent(new Event('input', { bubbles: true }));
+          textarea.dispatchEvent(new Event('change', { bubbles: true }));
           textarea.classList.add('border-emerald-400/50');
           setTimeout(() => textarea.classList.remove('border-emerald-400/50'), 1000);
           updatePromptLengthCounter(enhanced);
           updateResetButtonVisibility();
+          // Sync to primary prompt field in the form panel
+          promptManuallyEdited = true;
+          const formPanel = container.querySelector('.rounded-[34px]');
+          if (formPanel) {
+            const primaryPromptField = formPanel.querySelector('textarea[name], input[name]') || formPanel.querySelector('#inputs-form textarea, #inputs-form input');
+            if (primaryPromptField) {
+              primaryPromptField.value = enhanced;
+              primaryPromptField.dispatchEvent(new Event('input', { bubbles: true }));
+              primaryPromptField.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+          }
         };
       }
       const resetBtn = document.getElementById('resetPromptBtn');
@@ -2191,6 +2209,8 @@ export function CinemaTemplateStudio() {
             if (input && input.value) {
               const enhancedValue = `${input.value}, cinematic style, professional quality, premium aesthetic`;
               input.value = enhancedValue;
+              input.dispatchEvent(new Event('input', { bubbles: true }));
+              input.dispatchEvent(new Event('change', { bubbles: true }));
               currentInputs[fieldName] = enhancedValue;
               btn.classList.add('border-emerald-400/40', 'bg-emerald-500/15', 'text-emerald-200');
               btn.textContent = 'Enhanced ✓';
