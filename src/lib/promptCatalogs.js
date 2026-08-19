@@ -92,7 +92,7 @@ export const CATEGORIES = [
   { value: 'artistic', label: 'Artistic' },
   { value: 'action', label: 'Action' },
   { value: 'documentary', label: 'Documentary' },
-  { value: 'music', tags: 'Music' },
+  { value: 'music', label: 'Music' },
   { value: 'fun', label: 'Fun' }
 ];
 
