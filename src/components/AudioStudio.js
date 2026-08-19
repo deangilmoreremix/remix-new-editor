@@ -245,7 +245,7 @@ export function AudioStudio() {
     recipeBtn.addEventListener('click', () => {
       openRecipeModal({
         onRunRecipe: (url) => {
-          console.log('[Recipe] finished:', url);
+          // Recipe completed; result URL is handled by the modal
         }
       }).catch((err) => console.error('[Recipe] open failed:', err));
     });
