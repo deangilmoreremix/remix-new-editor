@@ -13,6 +13,7 @@ import { saveGeneratedAsset } from '../lib/assets/assetActions.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { saveCharacterReference, getCharacterReference } from '../lib/characterConsistency.js';
+import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 
 export function VideoStudio() {
     const container = document.createElement('div');
@@ -301,6 +302,30 @@ export function VideoStudio() {
       openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
     });
     topRow.appendChild(monetizationBtn);
+
+    // Prompt Gallery button
+    const promptGalleryBtn = document.createElement('button');
+    promptGalleryBtn.type = 'button';
+    promptGalleryBtn.textContent = '📚 Prompts';
+    promptGalleryBtn.title = 'Browse prompt gallery';
+    promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
+    promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
+    promptGalleryBtn.addEventListener('click', () => {
+      openPromptGallery({
+        appTheme: 'video-studio',
+        onSelect: (prompt) => {
+          const ta = document.getElementById('v-prompt-textarea');
+          if (ta) {
+            ta.value = prompt;
+            ta.dispatchEvent(new Event('input', { bubbles: true }));
+            ta.focus();
+            ta.style.height = 'auto';
+            ta.style.height = Math.min(ta.scrollHeight, 250) + 'px';
+          }
+        }
+      }).catch((err) => console.error('[PromptGallery] open failed:', err));
+    });
+    topRow.appendChild(promptGalleryBtn);
 
     bar.appendChild(topRow);
 

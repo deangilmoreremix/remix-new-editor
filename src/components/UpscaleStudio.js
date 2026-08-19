@@ -6,6 +6,7 @@ import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
+import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 
 const UPSCALE_METHODS = [
   { id: 'ai-image-upscaler', name: 'AI Upscaler', description: 'General-purpose AI upscaling with 2x/4x factor', factors: ['2', '4'] },
@@ -109,6 +110,28 @@ export function UpscaleStudio() {
     openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
   });
   formCard.appendChild(monetizationBtn);
+
+  // Prompt Gallery button
+  const promptGalleryBtn = document.createElement('button');
+  promptGalleryBtn.type = 'button';
+  promptGalleryBtn.textContent = '📚 Prompts';
+  promptGalleryBtn.title = 'Browse prompt gallery';
+  promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
+  promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
+  promptGalleryBtn.addEventListener('click', () => {
+    openPromptGallery({
+      appTheme: 'upscale-studio',
+      onSelect: (prompt) => {
+        const ta = document.querySelector('textarea');
+        if (ta) {
+          ta.value = prompt;
+          ta.dispatchEvent(new Event('input', { bubbles: true }));
+          ta.focus();
+        }
+      }
+    }).catch((err) => console.error('[PromptGallery] open failed:', err));
+  });
+  formCard.appendChild(promptGalleryBtn);
 
   container.appendChild(formCard);
 

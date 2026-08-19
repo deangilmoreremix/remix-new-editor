@@ -6,6 +6,7 @@ import { createHeroSection } from '../lib/thumbnails.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
+import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 
 export function ChatStudio() {
   const container = document.createElement('div');
@@ -125,9 +126,31 @@ export function ChatStudio() {
   monetizationBtn.addEventListener('click', () => {
     openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
   });
-  inputRow.appendChild(monetizationBtn);
+   inputRow.appendChild(monetizationBtn);
 
-  inputArea.appendChild(inputRow);
+   // Prompt Gallery button
+   const promptGalleryBtn = document.createElement('button');
+   promptGalleryBtn.type = 'button';
+   promptGalleryBtn.textContent = '📚 Prompts';
+   promptGalleryBtn.title = 'Browse prompt gallery';
+   promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
+   promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
+   promptGalleryBtn.addEventListener('click', () => {
+     openPromptGallery({
+       appTheme: 'chat-studio',
+       onSelect: (prompt) => {
+         const ta = document.querySelector('textarea');
+         if (ta) {
+           ta.value = prompt;
+           ta.dispatchEvent(new Event('input', { bubbles: true }));
+           ta.focus();
+         }
+       }
+     }).catch((err) => console.error('[PromptGallery] open failed:', err));
+   });
+   inputRow.appendChild(promptGalleryBtn);
+
+   inputArea.appendChild(inputRow);
 
   // Advanced options toggle
   const optionsToggle = document.createElement('button');
