@@ -225,7 +225,6 @@ export function CharacterStudio() {
   recipeBtn.addEventListener('click', () => {
     openRecipeModal({
       onRunRecipe: (url) => {
-        console.log('[Recipe] finished:', url);
       }
     }).catch((err) => console.error('[Recipe] open failed:', err));
   });
