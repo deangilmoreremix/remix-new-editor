@@ -11,6 +11,7 @@ import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/pe
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
+import { openModelPicker } from '../lib/modelPickerIntegration.js';
 import { 
   getTemplateRegistry,
   CINEMATIC_CATEGORIES,
@@ -715,6 +716,24 @@ export function CinemaTemplateStudio() {
     });
     container.appendChild(recipeBtn);
     container.appendChild(monetizationBtn);
+
+    // Model Picker button
+    const modelPickerBtn = document.createElement('button');
+    modelPickerBtn.type = 'button';
+    modelPickerBtn.textContent = '🤖 AI Pick';
+    modelPickerBtn.title = 'Compare and pick models';
+    modelPickerBtn.setAttribute('aria-label', 'Open model picker');
+    modelPickerBtn.className = 'gtm-boost-btn shrink-0';
+    modelPickerBtn.addEventListener('click', () => {
+      openModelPicker({
+        onSelect: (model) => {
+          if (model?.id) {
+            showToast('Model selected: ' + model.id, 'success');
+          }
+        }
+      }).catch((err) => console.error('[ModelPicker] open failed:', err));
+    });
+    container.appendChild(modelPickerBtn);
   }
 
   function autoGenerateStoryboard() {
