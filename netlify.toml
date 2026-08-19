@@ -1,6 +1,6 @@
 # Netlify build configuration
 [build]
-  command = "npm ci --include=optional && npm run build"
+  command = "npm install --include=optional && npm run build"
   publish = "dist"
 
 [build.environment]
@@ -38,7 +38,7 @@
     # embedding (dev via Vite proxy); https://ai-vfx.smartvid.app is the production
     # Next.js app. DENY blocked every embed and produced the browser
     # "This content is blocked" page on every deploy.
-    Content-Security-Policy = "frame-ancestors 'self' https://smartvid.app https://www.smartvid.app https://ai-vfx.smartvid.app"
+    Content-Security-Policy = "frame-ancestors 'self' https://smartvid.app https://www.smartvid.app https://ai-vfx.smartvid.app https://teal-puffpuff-ce9767.netlify.app"
     X-Content-Type-Options = "nosniff"
     X-XSS-Protection = "1; mode=block"
     Referrer-Policy = "strict-origin-when-cross-origin"
