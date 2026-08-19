@@ -7,7 +7,7 @@
 // ClerkAuth.jsx when this page is mounted at /signin).
 
 import React, { useState, useEffect } from 'react';
-import { useSignIn, useUser } from '@clerk/react';
+import { useSignIn, useUser, useClerk } from '@clerk/react';
 import { clerkErrorMessage, clerkWithTimeout, handleNavClick } from './AuthLayout.jsx';
 
 export function SignInPage() {
