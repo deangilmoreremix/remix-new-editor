@@ -205,6 +205,6 @@ export const LESSONS_02 = [
       'Hard: draft a full licensing term sheet for a 10-episode vertical series with regional exclusivity, payment milestones and revenue share.',
     ],
     relatedTemplateIds: [],
-    relatedAssetIds: [],
+    relatedAssetIds: ['02-ai-filmmaking::the-last-signal-poster'],
   },
 ];

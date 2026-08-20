@@ -41,6 +41,16 @@ function isMediaAsset(req) {
   );
 }
 
+// The Cache API's cache.put() rejects any response whose status is 206
+// (Partial Content) — a TypeError that is unsupported by the spec.
+// response.ok is true for 206 (it's in the 200–299 range), so we must
+// explicitly exclude it. We also exclude opaque responses (status 0)
+// from being written since they provide no useful cached body and can
+// mask network failures. See: https://developer.mozilla.org/en-US/docs/Web/API/Cache/put#exceptions
+function isCacheableResponse(response) {
+  return response.ok && response.status !== 206 && response.status !== 0;
+}
+
 // ── Install: pre-cache the app shell ─────────────────────────────────────────
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -87,7 +97,7 @@ async function handleRequest(request) {
   if (request.mode === 'navigate' || url.pathname === '/' || url.pathname === '/index.html') {
     try {
       const response = await fetch(request);
-      if (response.ok) {
+      if (isCacheableResponse(response)) {
         const cache = await caches.open(CACHE_ACADEMY);
         cache.put(request, response.clone());
       }
@@ -103,7 +113,7 @@ async function handleRequest(request) {
     const cached = await cache.match(request);
 
     const networkPromise = fetch(request).then((response) => {
-      if (response.ok) cache.put(request, response.clone());
+      if (isCacheableResponse(response)) cache.put(request, response.clone());
       return response;
     }).catch(() => cached);
 
@@ -122,12 +132,12 @@ async function handleRequest(request) {
     if (cached) {
       // Revalidate in background
       fetch(request).then((response) => {
-        if (response.ok) cache.put(request, response.clone());
+        if (isCacheableResponse(response)) cache.put(request, response.clone());
       }).catch(() => {});
       return cached;
     }
     const response = await fetch(request).then((res) => {
-      if (res.ok) {
+      if (isCacheableResponse(res)) {
         cache.put(request, res.clone());
       }
       return res;
@@ -138,7 +148,7 @@ async function handleRequest(request) {
   // ── Everything else: network-first, fallback to cache ──────────────────────
   try {
     const response = await fetch(request);
-    if (response.ok) {
+    if (isCacheableResponse(response)) {
       const cache = await caches.open(CACHE_ACADEMY);
       cache.put(request, response.clone());
     }
@@ -156,7 +166,7 @@ self.addEventListener('message', (event) => {
       Promise.all(
         urls.map((u) =>
           fetch(u).then((res) => {
-            if (res.ok) {
+            if (isCacheableResponse(res)) {
               const cache = caches.open(CACHE_ACADEMY);
               return cache.then((c) => c.put(u, res.clone()));
             }
