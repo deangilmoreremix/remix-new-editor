@@ -431,6 +431,17 @@ async function main() {
     };
   });
 
+  // Sort by category for organized display
+  demos.sort((a, b) => {
+    const catOrder = ['Action', 'Animation', 'Beauty', 'Characters', 'Cinema', 'Commercial', 'Fashion', 'Food', 'Social', 'UGC', 'VFX', 'Web / UI'];
+    const ai = catOrder.indexOf(a.category);
+    const bi = catOrder.indexOf(b.category);
+    return ai !== bi ? ai - bi : a.title.localeCompare(b.title);
+  });
+
+  // Reassign IDs after sorting
+  demos.forEach((d, i) => { d.id = i + 1; });
+
   // Write data files
   mkdirSync(OUT_DIR, { recursive: true });
 

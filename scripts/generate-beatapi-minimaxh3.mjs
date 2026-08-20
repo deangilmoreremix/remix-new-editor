@@ -468,6 +468,14 @@ async function main() {
     return d;
   });
 
+  // Sort by category for organized display
+  finalDemos.sort((a, b) => {
+    const catOrder = ['Action', 'Animation', 'Beauty', 'Characters', 'Cinema', 'Commercial', 'Fashion', 'Food', 'Social', 'UGC', 'VFX', 'Web / UI'];
+    const ai = catOrder.indexOf(a.category);
+    const bi = catOrder.indexOf(b.category);
+    return ai !== bi ? ai - bi : a.title.localeCompare(b.title);
+  });
+
   const jsContent = writeDemosJS(finalDemos, null, 'minimax-h3', 'minimax-h3-');
 
   mkdirSync(OUT_DIR, { recursive: true });

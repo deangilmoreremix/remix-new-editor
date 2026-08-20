@@ -412,7 +412,7 @@ function securityHeaders() {
                   `style-src 'self' 'unsafe-inline'${clerkHostSrc}`,
                   `img-src 'self' data: https: blob:${clerkHostSrc}`,
                   `font-src 'self' data:${clerkHostSrc}`,
-                  "connect-src 'self' ws://localhost:3001 http://localhost:3001 ws://localhost:8000 http://localhost:8000 ws://localhost:8888 http://localhost:8888 https://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + " https://api.openai.com https://api.muapi.ai https://clerk.smartvid.app https://clerk-telemetry.com https://challenges.cloudflare.com" + clerkHostSrc,
+                  "connect-src 'self' ws://localhost:3001 http://localhost:3001 ws://localhost:8000 http://localhost:8000 ws://localhost:8888 http://localhost:8888 https://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + " https://api.openai.com https://api.muapi.ai https://clerk.smartvid.app https://clerk-telemetry.com https://challenges.cloudflare.com https://raw.githubusercontent.com" + clerkHostSrc,
                   `frame-src 'self'${clerkHostSrc} https://clerk.smartvid.app https://challenges.cloudflare.com`,
                   "media-src 'self' https: blob:",
                 ].join('; ');
@@ -1133,6 +1133,16 @@ export default defineConfig({
             '/ai-vfx': {
                 target: 'http://localhost:3002',
                 changeOrigin: true,
+            },
+            '/proxy/video': {
+                target: 'https://video.twimg.com',
+                changeOrigin: true,
+                rewrite: (path) => path.replace(/^\/proxy\/video/, ''),
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Referer': 'https://x.com/',
+                    'Origin': 'https://x.com/',
+                },
             },
         },
     },

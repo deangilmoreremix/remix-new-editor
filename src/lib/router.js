@@ -176,6 +176,7 @@ const pageLoaders = {
   'video-agent': () => import('../components/VideoAgentPage.js').then(m => m.VideoAgentPage()),
   director: () => import('../components/DirectorPage.js').then(m => m.DirectorPage()),
   timeline: () => import('../components/TimelineEditorPage.jsx').then(m => m.TimelineEditorPage()),
+  viral: () => import('../components/SmartVideoViral.js').then(m => m.SmartVideoViral()),
   spaces: () => Promise.resolve(document.createElement('div')),
   'ai-vfx': () => import('../components/AIVFXPage.js').then(m => m.AIVFXPage()),
   'timeline-iframe-warning': () => Promise.resolve(document.createElement('div'))

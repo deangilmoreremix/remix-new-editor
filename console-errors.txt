@@ -1,0 +1,38 @@
+Total messages: 18 (Errors: 12, Warnings: 0)
+Returning 27 messages for level "error"
+
+[ERROR] WebSocket connection to 'ws://localhost:3100/?token=H9cxumfaT6O6' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3100/@vite/client:867
+[ERROR] WebSocket connection to 'ws://localhost:3100/?token=H9cxumfaT6O6' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3100/@vite/client:877
+[ERROR] [vite] failed to connect to websocket.
+your current setup:
+  (browser) localhost:3100/ <--[HTTP]--> localhost:3100/ (server)
+  (browser) localhost:3100/ <--[WebSocket (failing)]--> localhost:3100/ (server)
+Check out your Vite / network configuration and https://vite.dev/config/server-options.html#server-hmr . @ http://localhost:3100/@vite/client:887
+[ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/node_modules/.vite/deps/popcorn-js_ie8_popcorn__ie8.js?v=db9c3e65:0
+[ERROR] [popcorn-init] FAILED at: popcorn-ie8 TypeError: Failed to fetch dynamically imported module: http://localhost:3100/node_modules/.vite/deps/popcorn-js_ie8_popcorn__ie8.js?v=db9c3e65 @ http://localhost:3100/src/lib/popcornInit.js:52
+[ERROR] [popcorn] init failed TypeError: Failed to fetch dynamically imported module: http://localhost:3100/node_modules/.vite/deps/popcorn-js_ie8_popcorn__ie8.js?v=db9c3e65 @ http://localhost:3100/src/main.js?t=1787210694558:6
+[ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/src/components/landing/sections/CinematicVideoHero.jsx:0
+[ERROR] [LandingPage] CinematicVideoHero.jsx failed: TypeError: Failed to fetch dynamically imported module: http://localhost:3100/src/components/landing/sections/CinematicVideoHero.jsx @ http://localhost:3100/src/components/landing/LandingPage.jsx:180
+[ERROR] Error rendering landing page: TypeError: Failed to fetch dynamically imported module: http://localhost:3100/src/components/landing/sections/CinematicVideoHero.jsx @ http://localhost:3100/src/components/landing/LandingPage.jsx:243
+[ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/src/lib/editor/timelineEditorState.js:0
+[ERROR] [ModalSystem] mount failed TypeError: Failed to fetch dynamically imported module: http://localhost:3100/src/mountModalSystem.jsx @ http://localhost:3100/src/main.js?t=1787210694558:320
+[ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/node_modules/.vite/deps/lottie-web.js?v=db9c3e65:0
+[ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/node_modules/.vite/deps/chunk-F6BUX2EL.js?v=db9c3e65:0
+[ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/node_modules/.vite/deps/chunk-XBDCM2O2.js?v=db9c3e65:0
+[ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/node_modules/.vite/deps/chunk-A6AFYTQW.js?v=db9c3e65:0
+[ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/src/components/auth/HeaderAuth.jsx:0
+[ERROR] WebSocket connection to 'ws://localhost:3100/?token=H9cxumfaT6O6' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3100/@vite/client:867
+[ERROR] [App] Fatal initialization error: TypeError: Failed to fetch dynamically imported module: http://localhost:3100/src/components/auth/HeaderAuth.jsx @ http://localhost:3100/src/main.js?t=1787210694558:172
+[ERROR] WebSocket connection to 'ws://localhost:3100/?token=H9cxumfaT6O6' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3100/@vite/client:877
+[ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/node_modules/.vite/deps/popcorn-js_ie8_popcorn__ie8.js?v=db9c3e65:0
+[ERROR] [vite] failed to connect to websocket.
+your current setup:
+  (browser) localhost:3100/ <--[HTTP]--> localhost:3100/ (server)
+  (browser) localhost:3100/ <--[WebSocket (failing)]--> localhost:3100/ (server)
+Check out your Vite / network configuration and https://vite.dev/config/server-options.html#server-hmr . @ http://localhost:3100/@vite/client:887
+[ERROR] [popcorn-init] FAILED at: popcorn-ie8 TypeError: Failed to fetch dynamically imported module: http://localhost:3100/node_modules/.vite/deps/popcorn-js_ie8_popcorn__ie8.js?v=db9c3e65 @ http://localhost:3100/src/lib/popcornInit.js:52
+[ERROR] [popcorn] init failed TypeError: Failed to fetch dynamically imported module: http://localhost:3100/node_modules/.vite/deps/popcorn-js_ie8_popcorn__ie8.js?v=db9c3e65 @ http://localhost:3100/src/main.js?t=1787210694558:6
+[ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/node_modules/.vite/deps/chunk-A6AFYTQW.js?v=db9c3e65:0
+[ERROR] [ModalSystem] mount failed TypeError: Failed to fetch dynamically imported module: http://localhost:3100/src/mountModalSystem.jsx @ http://localhost:3100/src/main.js?t=1787210694558:320
+[ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/node_modules/.vite/deps/chunk-F6BUX2EL.js?v=db9c3e65:0
+[ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/node_modules/.vite/deps/chunk-XBDCM2O2.js?v=db9c3e65:0
