@@ -157,6 +157,6 @@ export const LESSONS_11 = [
       'Hard: build a dynamic matrix holding $8.00 min profit with 10% ad spend included.',
     ],
     relatedTemplateIds: [],
-    relatedAssetIds: [],
+    relatedAssetIds: ['11-ai-print-on-demand-and-merch::merch-design-vector-motion', '11-ai-print-on-demand-and-merch::vintage-botanical-mug-motion'],
   },
 ];

@@ -128,7 +128,7 @@ export const LESSONS_14 = [
       'Hard: script a 20-minute discovery call including 3 pain questions and 3 objection responses.',
     ],
     relatedTemplateIds: [],
-    relatedAssetIds: [],
+    relatedAssetIds: ['14-ai-freelancing-and-agency-business::client-dashboard-metrics'],
   },
   {
     id: '14-ai-freelancing-and-agency-business::04-scaling-from-freelancer-to-small-agency',
@@ -168,7 +168,7 @@ export const LESSONS_14 = [
       'Hard: design a 2-tier QC gate with a pass/fail checklist for a real deliverable.',
     ],
     relatedTemplateIds: [],
-    relatedAssetIds: [],
+    relatedAssetIds: ['14-ai-freelancing-and-agency-business::agency-pricing-deck-motion'],
   },
   {
     id: '14-ai-freelancing-and-agency-business::05-building-a-portfolio-that-sells',
@@ -208,6 +208,6 @@ export const LESSONS_14 = [
       'Hard: stand up an interactive before/after demo portal and embed a client video testimonial.',
     ],
     relatedTemplateIds: [],
-    relatedAssetIds: [],
+    relatedAssetIds: ['14-ai-freelancing-and-agency-business::client-dashboard-motion'],
   },
 ];
