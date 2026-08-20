@@ -1,4 +1,5 @@
 
+import { showToast } from '../lib/loading.js';
 import { muapi } from '../lib/muapi.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { createSafeImage } from '../lib/security.js';
@@ -1161,7 +1162,7 @@ export function CinemaStudio() {
 
         } catch (e) {
             console.error(e);
-            alert('Generation Failed: ' + e.message);
+            showToast('Generation Failed: ' + e.message, 'error');
         } finally {
             generateBtn.disabled = false;
             generateBtn.innerHTML = `GENERATE ✨`;

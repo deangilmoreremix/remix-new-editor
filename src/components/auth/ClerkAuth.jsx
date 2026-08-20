@@ -22,6 +22,7 @@ import { SignInPage } from '../landing/SignInPage.jsx';
 import { SignUpPage } from '../landing/SignUpPage.jsx';
 import { ForgotPasswordPage } from '../landing/ForgotPasswordPage.jsx';
 import { ResetPasswordPage } from '../landing/ResetPasswordPage.jsx';
+import { isClerkReady, getClerkInstance } from '../../lib/clerkInit.js';
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -33,6 +34,21 @@ function ClerkGate({ children }) {
       </div>
     );
   }
+
+  // If Clerk failed to load during app startup, don't render <ClerkProvider>
+  // because it will try to load Clerk JS from CDN again and crash.
+  const clerk = getClerkInstance();
+  if (!clerk || !clerk.loaded) {
+    return (
+      <div style={{ color: '#fff', padding: 24, textAlign: 'center' }}>
+        <h2 style={{ color: '#ff4444', marginBottom: 16 }}>Authentication Unavailable</h2>
+        <p style={{ color: '#aaa' }}>
+          Clerk failed to initialize. Please check your connection and refresh the page.
+        </p>
+      </div>
+    );
+  }
+
   // ClerkProvider's getClerkJsEntryChunk checks globalThis.Clerk: if it's
   // already set (by ensureClerkLoaded in main.js or by a prior ClerkProvider),
   // it skips CDN loading and reuses the instance. No need to pass the Clerk

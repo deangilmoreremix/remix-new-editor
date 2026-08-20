@@ -15,9 +15,11 @@ const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 let clerkInstance = null;
 let clerkLoadPromise = null;
+let clerkLoadFailed = false;
 
 export function getClerkInstance() {
   if (clerkInstance) return clerkInstance;
+  if (clerkLoadFailed) return null;
   if (!PUBLISHABLE_KEY) {
     console.warn('[Clerk] VITE_CLERK_PUBLISHABLE_KEY is not set');
     return null;
@@ -89,6 +91,13 @@ export async function ensureClerkLoaded() {
 
   clerkLoadPromise = clerk.load().then(() => clerk).catch((err) => {
     console.error('[Clerk] Failed to load:', err);
+    // Clean up the broken instance so <ClerkProvider> and other waiters
+    // don't try to reuse an unloaded Clerk and trigger another CDN load.
+    if (typeof window !== 'undefined' && window.Clerk === clerk) {
+      window.Clerk = undefined;
+    }
+    clerkInstance = null;
+    clerkLoadFailed = true;
     clerkLoadPromise = null;
     throw err;
   });

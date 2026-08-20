@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { ClerkProvider, useUser, useClerk, UserButton, useAuth } from '@clerk/react';
 import { setEntitlement } from '../../lib/clerkEntitlements.js';
 import { setExternalUserId } from '../../lib/socialPublishing';
+import { isClerkReady, getClerkInstance } from '../../lib/clerkInit.js';
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -65,6 +66,20 @@ function HeaderAuthButton() {
 
 export function mountHeaderAuth(container) {
   if (!PUBLISHABLE_KEY || !container) return;
+
+  // If Clerk failed to load during app startup, don't render <ClerkProvider>
+  // because it will try to load Clerk JS from CDN again and crash.
+  const clerk = getClerkInstance();
+  if (!clerk || !clerk.loaded) {
+    const root = createRoot(container);
+    root.render(
+      <a href="/signin" className="text-sm text-cyan-400 hover:text-cyan-300 font-medium transition px-3 py-2">
+        Sign In
+      </a>
+    );
+    return;
+  }
+
   const root = createRoot(container);
   root.render(
     <ClerkProvider publishableKey={PUBLISHABLE_KEY} routing="path">
