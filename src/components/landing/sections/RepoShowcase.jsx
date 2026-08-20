@@ -12,15 +12,21 @@ const REPO_CATEGORIES = [
     repos: [
       {
         name: 'awesome-minimax-h3-prompts',
-        url: 'https://github.com/Anil-matcha/awesome-minimax-h3-prompts',
-        description: '30 MiniMax H3 video examples with runnable MuAPI prompts and previews.',
-        tags: ['MiniMax H3', 'video', 'prompts'],
+        url: 'https://github.com/BeatAPI/awesome-minimax-h3-prompts',
+        description: '254 English MiniMax H3 video examples with source-verified prompts, attached videos, and BeatAPI-hosted previews.',
+        tags: ['MiniMax H3', 'BeatAPI', 'video', 'prompts', '254 demos'],
       },
       {
-        name: 'awesome-seedance-2.5-api-prompts',
-        url: 'https://github.com/Anil-matcha/awesome-seedance-2.5-api-prompts',
-        description: 'Curated Seedance 2.5 prompt templates, camera controls, and cinematic examples.',
-        tags: ['Seedance 2.5', 'prompts', 'camera'],
+        name: 'awesome-seedance-2.5-prompts',
+        url: 'https://github.com/BeatAPI/awesome-seedance-2-5-prompts',
+        description: '250 English Seedance 2.5 prompts with runnable API calls, source-verified outputs, and attached reference videos.',
+        tags: ['Seedance 2.5', 'BeatAPI', 'prompts', 'video', '250 demos'],
+      },
+      {
+        name: 'awesome-seedance',
+        url: 'https://github.com/ZeroLu/awesome-seedance',
+        description: '17 Seedance 2.0 reference videos and 19 English use-case prompts across cinema, commercial, social, and animation styles.',
+        tags: ['Seedance 2.0', 'ZeroLu', 'reference videos', '17 demos'],
       },
       {
         name: 'awesome-flux-3-api-prompts',
