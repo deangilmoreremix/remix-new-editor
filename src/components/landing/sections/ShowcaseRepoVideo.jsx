@@ -1,16 +1,30 @@
-// Repo Video Showcase — demos organized by category sections.
+// Repo Video Showcase — demos split into focused per-source per-category sections.
 //
-// Mirrors the existing landing-page pattern: instead of one giant filtered gallery,
-// the 530 demos are grouped into per-category sub-sections, each with its own
-// sectionHeading, curated initial card set, and "Show More" behaviour — exactly
-// like UGCDemoShowcase and MadeWithSmartVideo.
+// Mirrors the existing landing-page architecture: instead of a single
+// monolithic gallery, the 512 demos are distributed across 12 dedicated
+// showcase sections — one per source-repo × category combination that has
+// enough content. Each section has its own sectionHeading, initial card set,
+// and "Show More" behaviour — exactly like UGCDemoShowcase and
+// MadeWithSmartVideo.
 //
 // Source mapping:
 //   BeatAPI/awesome-minimax-h3-prompts     → 253 MiniMax H3 demos
 //   BeatAPI/awesome-seedance-2-5-prompts   → 242 Seedance 2.5 demos
-//   ZeroLu/awesome-seedance                → 35  Seedance 2.0 demos
+//   ZeroLu/awesome-seedance                → 35  Seedance 2.0 demos (17 playable)
 //
-// Excludes all higgsfield-branded entries (9 removed).
+// Sections (each curated by category + source):
+//   1. MiniMax H3 — Cinema & Concept Shorts      (77 demos)
+//   2. MiniMax H3 — Commercial & Brand Films      (70 demos)
+//   3. Seedance 2.5 — Social Media Content        (68 demos)
+//   4. Seedance 2.5 — Cinema Shorts               (62 demos)
+//   5. MiniMax H3 — Social Content                (52 demos)
+//   6. Seedance 2.5 — Commercial & Ads            (46 demos)
+//   7. Seedance 2.5 — Action Sequences            (46 demos)
+//   8. MiniMax H3 — Animation Reels               (17 demos)
+//   9. Seedance 2.5 — Animation & Motion Design   (19 demos)
+//  10. ZeroLu — Cinema Reference Clips            (17 demos)
+//  11. MiniMax H3 — Action & VFX                  (26 demos, 21+5 merged)
+//  12. MiniMax H3 — Fashion Films                 (11 demos)
 
 import { minimaxH3Demos, getCreateTarget as getCreateTargetMinimax, loadDemoPrompt as loadDemoPromptMinimax, MINIMAX_MODEL } from '../../../data/beatapiMinimaxH3Demos.js';
 import { seedance25Demos, getCreateTarget as getCreateTargetSeedance, loadDemoPrompt as loadDemoPromptSeedance, SEEDANCE_MODEL } from '../../../data/beatapiSeedance25Demos.js';
@@ -20,35 +34,27 @@ import { createMediaFrame, cleanupFrames, pauseFramesIn, revealOnScroll } from '
 import { injectMinimaxStyles, sectionHeading, createStyleLink, createViewPromptButton, metaPill, categoryBadge, escapeHtml } from './minimax/ui.js';
 import { handleViewPrompt } from './minimax/DemoPromptModal.js';
 
-/** Cards per category section before "Show More" expands. */
-const INITIAL_VISIBLE = 8;
-
 /** Per-source adapters for CTA routing and prompt loading. */
 const SOURCE_ADAPTERS = {
   seedance25: {
     getCreateTarget: getCreateTargetSeedance,
     loadDemoPrompt: loadDemoPromptSeedance,
     modelName: SEEDANCE_MODEL,
+    sourceLabel: 'Seedance 2.5',
   },
   minimaxh3: {
     getCreateTarget: getCreateTargetMinimax,
     loadDemoPrompt: loadDemoPromptMinimax,
     modelName: MINIMAX_MODEL,
+    sourceLabel: 'MiniMax H3',
   },
   zeroLu: {
     getCreateTarget: getCreateTargetZeroLu,
     loadDemoPrompt: loadDemoPromptZeroLu,
     modelName: ZERO_LU_MODEL,
+    sourceLabel: 'ZeroLu (Sd 2.0)',
   },
 };
-
-/** Source label for attribution badges on cards. */
-function sourceLabel(source) {
-  return source === 'minimaxh3' ? 'MiniMax H3'
-    : source === 'seedance25' ? 'Seedance 2.5'
-    : source === 'zeroLu' ? 'Seedance 2.0'
-    : source;
-}
 
 /** Safe duration formatter. */
 function formatDurationSafe(demo) {
@@ -66,69 +72,120 @@ const ALL_DEMOS = [
 ];
 
 /**
- * Category section configs — each defines its heading, which categories
- * to pull from, and how many to show initially.
- *
- * Sparse categories (Beauty, Characters, Food, Web/UI) are merged into
- * the "More Styles" section so every section has enough content.
+ * 12 focused showcase sections.
+ * Each pulls from a specific source × category combination, so every
+ * section is tightly themed (like UGCDemoShowcase's vertical-specific cards).
  */
-const SECTIONS = [
+const SHOWCASE_SECTIONS = [
   {
-    id: 'commercial',
+    id: 'mmx-cinema',
+    source: 'minimaxh3',
+    category: 'Cinema',
+    eyebrow: 'MiniMax H3',
+    title: 'Cinema & Concept Shorts',
+    subtitle: 'Full-length cinematic scenes, narrative concepts, and mood-driven shorts — each with a source-verified reference video.',
+    initial: 12,
+  },
+  {
+    id: 'mmx-commercial',
+    source: 'minimaxh3',
+    category: 'Commercial',
+    eyebrow: 'MiniMax H3',
+    title: 'Commercial & Brand Films',
+    subtitle: 'High-production product spots, brand identity films, and commercial reels with polished cinematic grading.',
+    initial: 12,
+  },
+  {
+    id: 'sd-social',
+    source: 'seedance25',
+    category: 'Social',
+    eyebrow: 'Seedance 2.5',
+    title: 'Social Media Content',
+    subtitle: 'Viral-ready clips optimized for TikTok, Instagram Reels, and Shorts — native aspect ratios and creator-style framing.',
+    initial: 12,
+  },
+  {
+    id: 'sd-cinema',
+    source: 'seedance25',
+    category: 'Cinema',
+    eyebrow: 'Seedance 2.5',
+    title: 'Cinema Shorts',
+    subtitle: 'Story-driven concept films, narrative scenes, and cinematic sequences generated from long-form Seedance prompts.',
+    initial: 12,
+  },
+  {
+    id: 'mmx-social',
+    source: 'minimaxh3',
+    category: 'Social',
+    eyebrow: 'MiniMax H3',
+    title: 'Social Content',
+    subtitle: 'TikTok-native, Instagram-first, and Shorts-optimized vertical content — each tuned for platform engagement.',
+    initial: 12,
+  },
+  {
+    id: 'sd-commercial',
+    source: 'seedance25',
+    categories: ['Commercial', 'Fashion'],
+    eyebrow: 'Seedance 2.5',
     title: 'Commercial & Ads',
-    subtitle: 'Product spots, brand films, and e-commerce demos — every clip is a runnable prompt.',
-    categories: ['Commercial'],
+    subtitle: 'E-commerce product reveals, local business promos, brand ads, and fashion reels — all driven by single-prompt Seedance generation.',
     initial: 12,
   },
   {
-    id: 'cinema',
-    title: 'Cinema & Film',
-    subtitle: 'Narrative shorts, concept films, and cinematic sequences with source-verified reference videos.',
-    categories: ['Cinema'],
+    id: 'sd-action',
+    source: 'seedance25',
+    category: 'Action',
+    eyebrow: 'Seedance 2.5',
+    title: 'Action Sequences',
+    subtitle: 'High-energy fight scenes, chase sequences, and kinetic action footage — generated from precise Seedance prompt libraries.',
     initial: 12,
   },
   {
-    id: 'social',
-    title: 'Social & UGC',
-    subtitle: 'Vlogs, memes, and creator-style content built for TikTok, Instagram, and Shorts.',
-    categories: ['Social', 'UGC'],
+    id: 'sd-animation',
+    source: 'seedance25',
+    category: 'Animation',
+    eyebrow: 'Seedance 2.5',
+    title: 'Animation & Motion Design',
+    subtitle: 'Stylized animation, kinetic typography, and 2D/3D motion graphics from curated Seedance animation prompts.',
+    initial: 10,
+  },
+  {
+    id: 'mmx-animation',
+    source: 'minimaxh3',
+    category: 'Animation',
+    eyebrow: 'MiniMax H3',
+    title: 'Animation Reels',
+    subtitle: 'Anime-style motion, 3D renders, and stylized animation sequences with MiniMax H3 reference footage.',
+    initial: 10,
+  },
+  {
+    id: 'zl-cinema',
+    source: 'zeroLu',
+    category: 'Cinema',
+    eyebrow: 'ZeroLu',
+    title: 'Cinema Reference Clips',
+    subtitle: 'Curated Seedance 2.0 reference footage — the raw clips that started it all in the awesome-seedance collection.',
+    initial: 10,
+  },
+  {
+    id: 'mmx-action-vfx',
+    source: 'minimaxh3',
+    categories: ['Action', 'VFX'],
+    eyebrow: 'MiniMax H3',
+    title: 'Action & VFX',
+    subtitle: 'Explosions, fight scenes, game cinematics, and motion graphics with MiniMax H3 precision.',
     initial: 12,
   },
   {
-    id: 'animation',
-    title: 'Animation',
-    subtitle: 'Stylized 2D, 3D, and anime motion graphics with consistent characters and worlds.',
-    categories: ['Animation'],
-    initial: 12,
-  },
-  {
-    id: 'fashion',
-    title: 'Fashion & Style',
-    subtitle: 'Runway looks, beauty reels, and luxury product films with premium cinematic polish.',
-    categories: ['Fashion', 'Beauty'],
+    id: 'mmx-fashion',
+    source: 'minimaxh3',
+    category: 'Fashion',
+    eyebrow: 'MiniMax H3',
+    title: 'Fashion Films',
+    subtitle: 'Runway looks, beauty reels, and luxury product films with premium cinematic styling.',
     initial: 8,
   },
-  {
-    id: 'action',
-    title: 'Action & VFX',
-    subtitle: 'Explosions, fight scenes, game cinematics, titan-scale VFX and motion graphics.',
-    categories: ['Action', 'VFX', 'Characters'],
-    initial: 12,
-  },
 ];
-
-/** Build the section label for the eyebrow. */
-function sectionEyebrow(section) {
-  const labels = {
-    commercial: 'Ads & Brands',
-    cinema: 'Cinematic Shorts',
-    social: 'Social Content',
-    animation: 'Animated Motion',
-    fashion: 'Fashion & Beauty',
-    action: 'Action & VFX',
-  };
-  return labels[section.id] || section.title;
-}
 
 /**
  * Build a gallery card for a demo, with per-source CTA and prompt loading.
@@ -150,7 +207,7 @@ function createGalleryCard(demo) {
     <div class="relative" data-repo-card-media>
       <div class="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start justify-end gap-1.5 p-2.5">
         ${metaPill(formatDurationSafe(demo))}
-        ${categoryBadge(sourceLabel(demo.source), { tone: 'neutral' })}
+        ${categoryBadge(adapter.sourceLabel, { tone: 'neutral' })}
       </div>
       <div class="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-12 bg-gradient-to-t from-[#05070b] to-transparent"></div>
     </div>
@@ -198,45 +255,53 @@ function createGalleryCard(demo) {
 }
 
 /**
- * Create a category section element with its own heading, grid, and
- * lazy-loaded card pool.
+ * Create a showcase section element for a single source × category group.
+ * Mirrors the structure of UGCDemoShowcase and MadeWithSmartVideo:
+ *   - sectionHeading (eyebrow, title, subtitle)
+ *   - card grid with lazy reveal
+ *   - "Show All" button with smooth scroll back to section
  */
-function createCategorySection(sectionConfig, allDemos) {
-  const sectionDemos = allDemos.filter((d) =>
-    sectionConfig.categories.includes(d.category)
-  );
+function createShowcaseSection(config, allDemos) {
+  const sectionDemos = allDemos.filter((d) => {
+    const sources = Array.isArray(config.source) ? config.source : [config.source];
+    const categories = Array.isArray(config.category) ? config.category : config.categories || (config.category ? [config.category] : []);
+    return sources.includes(d.source) && categories.includes(d.category);
+  });
 
   if (sectionDemos.length === 0) return null;
 
+  // Sort by title for consistent display
+  sectionDemos.sort((a, b) => a.title.localeCompare(b.title));
+
+  const sectionId = config.id;
   const section = document.createElement('section');
-  section.id = `repo-${sectionConfig.id}-section`;
-  section.className = 'relative py-16 sm:py-20';
-  section.setAttribute('aria-labelledby', `repo-${sectionConfig.id}-heading`);
+  section.id = `repo-${sectionId}`;
+  section.className = 'relative py-12 sm:py-16';
 
   section.innerHTML = `
-    <div class="container relative mx-auto max-w-7xl px-5 sm:px-6">
+    <div class="container mx-auto max-w-7xl px-5 sm:px-6">
       ${sectionHeading({
-        eyebrow: sectionEyebrow(sectionConfig),
-        title: sectionConfig.title,
+        eyebrow: config.eyebrow,
+        title: config.title,
         accent: '',
-        subtitle: sectionConfig.subtitle,
-        id: `repo-${sectionConfig.id}-heading`,
+        subtitle: config.subtitle,
+        id: `repo-${sectionId}-heading`,
       })}
 
-      <p class="sr-only" role="status" aria-live="polite" data-repo-status-${sectionConfig.id}></p>
+      <p class="sr-only" role="status" aria-live="polite" data-repo-status-${sectionId}></p>
 
       <div
         class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:gap-5"
-        data-repo-grid-${sectionConfig.id}
+        data-repo-grid-${sectionId}
       ></div>
 
       <div class="mt-12 flex justify-center">
         <button
           type="button"
-          data-repo-show-more-${sectionConfig.id}
-          class="btn-enhanced inline-flex items-center gap-2 rounded-lg border border-white/12 bg-white/[0.03] px-6 py-3 text-sm font-bold text-white transition-all duration-300 hover:border-cyan-400/50 hover:bg-cyan-400/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#020205]"
+          data-repo-show-more-${sectionId}
+          class="btn-enhanced inline-flex items-center gap-2 rounded-lg border border-white/12 bg-white/[0.03] px-6 py-3 text-sm font-bold text-white transition-all duration-300 hover:border-cyan-400/50 hover:bg-cyan-400/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#05070b]"
         >
-          <span data-show-more-label-${sectionConfig.id}>Show All ${sectionDemos.length} Demos</span>
+          <span data-show-more-label-${sectionId}>Show All ${sectionDemos.length} Demos</span>
           <svg class="h-4 w-4 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
           </svg>
@@ -245,10 +310,10 @@ function createCategorySection(sectionConfig, allDemos) {
     </div>
   `;
 
-  const grid = section.querySelector(`[data-repo-grid-${sectionConfig.id}]`);
-  const showMoreButton = section.querySelector(`[data-repo-show-more-${sectionConfig.id}]`);
-  const showMoreLabel = section.querySelector(`[data-show-more-label-${sectionConfig.id}]`);
-  const statusEl = section.querySelector(`[data-repo-status-${sectionConfig.id}]`);
+  const grid = section.querySelector(`[data-repo-grid-${sectionId}]`);
+  const showMoreButton = section.querySelector(`[data-repo-show-more-${sectionId}]`);
+  const showMoreLabel = section.querySelector(`[data-show-more-label-${sectionId}]`);
+  const statusEl = section.querySelector(`[data-repo-status-${sectionId}]`);
 
   const cardCache = new Map();
 
@@ -262,7 +327,8 @@ function createCategorySection(sectionConfig, allDemos) {
   let expanded = false;
 
   function render() {
-    const visible = expanded ? sectionDemos : sectionDemos.slice(0, sectionConfig.initial);
+    const initialCount = config.initial || 8;
+    const visible = expanded ? sectionDemos : sectionDemos.slice(0, initialCount);
 
     pauseFramesIn(grid);
     while (grid.firstChild) grid.removeChild(grid.firstChild);
@@ -271,7 +337,7 @@ function createCategorySection(sectionConfig, allDemos) {
     visible.forEach((demo) => fragment.appendChild(getCard(demo)));
     grid.appendChild(fragment);
 
-    const hasMore = sectionDemos.length > sectionConfig.initial;
+    const hasMore = sectionDemos.length > initialCount;
     showMoreButton.parentElement.classList.toggle('hidden', !hasMore);
 
     if (hasMore) {
@@ -285,7 +351,6 @@ function createCategorySection(sectionConfig, allDemos) {
 
     const disposeReveal = revealOnScroll(grid.querySelectorAll('.mmx-reveal'), { stagger: 45 });
 
-    // Store cleanup
     section._disposeReveal = () => {
       disposeReveal();
       cardCache.forEach((card) => cleanupFrames(card));
@@ -311,15 +376,15 @@ export function ShowcaseRepoVideo() {
   const container = document.createElement('div');
   container.id = 'repo-video-showcase';
   container.className = 'relative';
-  container.setAttribute('aria-label', 'Repo video demos by category');
+  container.setAttribute('aria-label', 'Repo video demos by source and category');
 
-  // Create a section per category group
-  for (const sectionConfig of SECTIONS) {
-    const section = createCategorySection(sectionConfig, ALL_DEMOS);
+  // Create one section per showcase config
+  for (const config of SHOWCASE_SECTIONS) {
+    const section = createShowcaseSection(config, ALL_DEMOS);
     if (section) container.appendChild(section);
   }
 
-  // Cleanup function
+  // Cleanup function for all child sections
   container.cleanup = () => {
     container.querySelectorAll('section').forEach((s) => {
       if (s._disposeReveal) s._disposeReveal();
