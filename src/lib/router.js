@@ -228,7 +228,12 @@ export async function navigate(page, params = {}) {
 
   const mergedParams = { ...getExistingParams(), ...params };
   const searchParams = new URLSearchParams(mergedParams).toString();
-  const newUrl = searchParams ? `/?${searchParams}#/${page}` : `/#/${page}`;
+  let hashPath = `/${page}`;
+  if (page === 'academy') {
+    const m = window.location.hash.match(/^#\/academy(\/.*)?$/);
+    if (m && m[1]) hashPath = `/academy${m[1]}`;
+  }
+  const newUrl = searchParams ? `/?${searchParams}#${hashPath}` : `#${hashPath}`;
   window.history.pushState({}, '', newUrl);
 
   currentPageEl?.cleanup?.();

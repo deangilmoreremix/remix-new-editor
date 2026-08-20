@@ -21,6 +21,8 @@ import { VIDEO_QUICK_PROMPTS } from '../lib/promptUtils.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
 import { categorizeGenerationError, createAbortAwareGenerate, startGenerationProgress, showInlineError, hideInlineError } from '../lib/studioHelpers.js';
 import { showToast, createLoadingOverlay, createProgressBar } from '../lib/loading.js';
+import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
+import ExampleGallery from './studios/ExampleGallery.jsx';
 
 export function VideoStudio() {
     const container = document.createElement('div');
@@ -1817,6 +1819,12 @@ export function VideoStudio() {
             }
         }
     };
+
+    const galleryAssets = getAssetsForStudio('video');
+    if (galleryAssets.length > 0) {
+      const gallery = ExampleGallery({ studioId: 'video', assets: galleryAssets, maxCards: 20 });
+      container.appendChild(gallery);
+    }
 
     return container;
 }

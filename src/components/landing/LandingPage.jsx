@@ -240,7 +240,8 @@ export default async function LandingPage() {
     const ugcShowcase = createLazySection(() => import('./sections/UGCDemoShowcase.jsx'), 'ugc', {}, 5);
     const videoGallery = createLazySection(() => import('./sections/AIVideoGallery.jsx'), 'gallery', {}, 6);
     const academyShowcase = createLazySection(() => import('./sections/AcademyVideoShowcase.jsx'), 'academy', {}, 7);
-    const repoShowcase = createLazySection(() => import('./sections/RepoShowcase.jsx'), 'repos', {}, 8);
+    const seedanceShowcase = createLazySection(() => import('./sections/SeedanceShowcase.jsx'), 'seedance', {}, 8);
+    const repoShowcase = createLazySection(() => import('./sections/RepoShowcase.jsx'), 'repos', {}, 9);
 
     container.appendChild(scrollingStrip);
     container.appendChild(hookSection);
@@ -252,6 +253,7 @@ export default async function LandingPage() {
     container.appendChild(features);
     container.appendChild(videoGallery);    // NEW
     container.appendChild(academyShowcase); // NEW
+    container.appendChild(seedanceShowcase);// NEW
     container.appendChild(repoShowcase);    // NEW
 
     // NEW: GTM Boost feature section — shows the feature and how it works

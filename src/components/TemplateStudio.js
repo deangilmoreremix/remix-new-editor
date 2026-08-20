@@ -177,10 +177,18 @@ export function TemplateStudio(templateId) {
       appTheme: 'template-studio',
       template,
       layout: 'panel',
-      onApply: ({ imageUrl }) => {
+      onApply: ({ imageUrl, revisedPrompt }) => {
         img.src = imageUrl + '?v=' + Date.now();
         customThumbnailUrl = imageUrl;
         saveCustomThumbnailToCache(template.id, imageUrl);
+        if (revisedPrompt && primaryPromptField) {
+          primaryPromptField.value = revisedPrompt;
+          primaryPromptField.dispatchEvent(new Event('input', { bubbles: true }));
+          primaryPromptField.dispatchEvent(new Event('change', { bubbles: true }));
+          if (promptFieldName) {
+            formState[promptFieldName] = revisedPrompt;
+          }
+        }
       },
       onClear: () => {
         customThumbnailUrl = null;
@@ -415,7 +423,7 @@ export function TemplateStudio(templateId) {
 
   // Model selector (async - fetches enriched catalog with descriptions)
   const outputType = template.outputType || (template.modelType === 't2i' || template.modelType === 'i2i' ? 'image' : 'video');
-  if (outputType === 'video' || template.modelType === 'i2i' || template.modelType === 't2i') {
+  if (outputType === 'video' || ['i2i', 't2i', 'i2v', 't2v'].includes(template.modelType)) {
     const modelWrapper = document.createElement('div');
     modelWrapper.className = 'mt-6';
 
@@ -436,6 +444,9 @@ export function TemplateStudio(templateId) {
     const triggerBtn = document.createElement('button');
     triggerBtn.type = 'button';
     triggerBtn.id = 'template-model-trigger';
+    triggerBtn.setAttribute('aria-haspopup', 'listbox');
+    triggerBtn.setAttribute('aria-expanded', 'false');
+    triggerBtn.setAttribute('aria-label', 'Select model');
     const updateTrigger = () => {
       const model = getModel(selectedModel);
       const provider = model?.provider || 'muapi';
@@ -452,19 +463,41 @@ export function TemplateStudio(templateId) {
 
     const dropdown = document.createElement('div');
     dropdown.className = 'fixed z-[100] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom-left';
+    dropdown.setAttribute('role', 'listbox');
+    dropdown.setAttribute('aria-label', 'Available models');
     dropdown.style.width = 'calc(100vw - 2rem)';
     dropdown.style.maxWidth = '480px';
     dropdown.style.maxHeight = '70vh';
     dropdown.style.minHeight = '350px';
 
+    let _modelSelectorOutsideClickHandler = null;
+
     const closeDropdown = () => {
       dropdown.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
       dropdown.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
+      triggerBtn.setAttribute('aria-expanded', 'false');
+      if (_modelSelectorOutsideClickHandler) {
+        document.removeEventListener('click', _modelSelectorOutsideClickHandler);
+        _modelSelectorOutsideClickHandler = null;
+      }
     };
 
     const openDropdown = () => {
       dropdown.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
       dropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
+      triggerBtn.setAttribute('aria-expanded', 'true');
+
+      if (_modelSelectorOutsideClickHandler) {
+        document.removeEventListener('click', _modelSelectorOutsideClickHandler);
+        _modelSelectorOutsideClickHandler = null;
+      }
+
+      _modelSelectorOutsideClickHandler = (e) => {
+        if (!dropdown.contains(e.target) && e.target !== triggerBtn) {
+          closeDropdown();
+        }
+      };
+      document.addEventListener('click', _modelSelectorOutsideClickHandler);
 
       if (!dropdown.dataset.populated) {
         dropdown.dataset.populated = 'true';
@@ -523,6 +556,14 @@ export function TemplateStudio(templateId) {
       }
     };
 
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape' && dropdown.classList.contains('opacity-100')) {
+        closeDropdown();
+        triggerBtn.focus();
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+
     const modelLoadingStatus = document.createElement('span');
     modelLoadingStatus.id = 'model-loading-status';
     modelLoadingStatus.className = 'text-[10px] text-zinc-500';
@@ -532,6 +573,7 @@ export function TemplateStudio(templateId) {
     const label = document.createElement('div');
     label.className = 'text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500';
     label.textContent = 'Model';
+    headerRow.appendChild(label);
     headerRow.appendChild(triggerBtn);
     headerRow.appendChild(modelLoadingStatus);
     modelWrapper.appendChild(headerRow);
@@ -574,14 +616,8 @@ export function TemplateStudio(templateId) {
       };
     }
 
-    // Close on outside click
-    setTimeout(() => {
-      document.addEventListener('click', (e) => {
-        if (!dropdown.contains(e.target) && e.target !== triggerBtn) {
-          closeDropdown();
-        }
-      });
-    }, 0);
+    // Close on outside click is handled by openDropdown via
+    // _modelSelectorOutsideClickHandler to avoid listener leaks.
   }
 
   // AI Enhancer section
@@ -1004,6 +1040,21 @@ export function TemplateStudio(templateId) {
     if (!userPrompt && !template.basePrompt) {
       showInlineError(container, 'Please enter a prompt or description before generating.');
       return;
+    }
+
+    // Validate that the selected model matches the template's model type.
+    const modelTypeMap = {
+      i2i: i2iModels,
+      t2i: t2iModels,
+      i2v: i2vModels,
+      t2v: t2vModels,
+      v2v: v2vModels,
+    };
+    const allowedModels = modelTypeMap[template.modelType];
+    if (allowedModels && !allowedModels.find(m => m.id === (selectedModel || template.model))) {
+      const fallback = allowedModels[0]?.id || template.model;
+      showInlineError(container, `Model "${selectedModel || template.model}" is not compatible with this template type. Falling back to ${fallback}.`);
+      selectedModel = fallback;
     }
 
     // Build params for potential retry

@@ -850,7 +850,7 @@ function modelCatalogDevPlugin() {
           // by returning the requested pool wrapped in { models: [...] }.
           const url = new URL(req.url, 'http://localhost');
           const modelType = url.searchParams.get('modelType');
-          const VALID = ['t2i', 'i2i', 'i2v'];
+          const VALID = ['t2i', 'i2i', 'i2v', 't2v'];
           if (modelType && VALID.includes(modelType)) {
             res.setHeader('Content-Type', 'application/json');
             res.end(JSON.stringify({ models: data[modelType] || [] }));
@@ -900,8 +900,9 @@ function modelCatalogBuildPlugin() {
           t2i: unique(modelsMod.t2iModels || [], 't2i'),
           i2i: unique(modelsMod.i2iModels || [], 'i2i'),
           i2v: unique(modelsMod.i2vModels || [], 'i2v'),
+          t2v: unique(modelsMod.t2vModels || [], 't2v'),
         };
-        const total = catalog.t2i.length + catalog.i2i.length + catalog.i2v.length;
+        const total = catalog.t2i.length + catalog.i2i.length + catalog.i2v.length + catalog.t2v.length;
         this.emitFile({
           type: 'asset',
           fileName: 'api/model-catalog.json',
@@ -941,6 +942,8 @@ function svgMissingFallback() {
 export default defineConfig({
     define: {
         'process.browser': 'true',
+        'process.env': '{}',
+        'process.env.__NEXT_ROUTER_BASEPATH': '""',
     },
     resolve: {
         // Force a single React instance. @clerk/react is pre-bundled by

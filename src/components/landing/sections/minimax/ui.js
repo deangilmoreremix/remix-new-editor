@@ -221,7 +221,7 @@ export function createViewPromptButton(demo, onOpen, options = {}) {
   button.setAttribute('aria-label', `View the full generation prompt for ${demo.title}`);
   button.setAttribute('aria-haspopup', 'dialog');
 
-  button.addEventListener('click', () => onOpen(demo, button));
+  button.addEventListener('click', () => onOpen(demo, button, options));
 
   return button;
 }

@@ -413,6 +413,7 @@ export function buildModelSelectorPanel(options = {}) {
     e.stopPropagation();
     const id = item.getAttribute('data-model-id');
     st.selectedModelId = id;
+    st.refresh();
     if (st.onSelectModel) st.onSelectModel(id);
   });
 

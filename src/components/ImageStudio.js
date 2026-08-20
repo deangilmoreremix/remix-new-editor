@@ -20,6 +20,8 @@ import { getGtmContext } from '../lib/gtmContextStore.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
+import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
+import ExampleGallery from './studios/ExampleGallery.jsx';
 
 export function ImageStudio() {
     const container = document.createElement('div');
@@ -1082,6 +1084,12 @@ export function ImageStudio() {
         generateBtn.disabled = false;
         generateBtn.innerHTML = `Generate ✨`;
     };
+
+    const galleryAssets = getAssetsForStudio('image');
+    if (galleryAssets.length > 0) {
+      const gallery = ExampleGallery({ studioId: 'image', assets: galleryAssets, maxCards: 20 });
+      container.appendChild(gallery);
+    }
 
     return container;
 }

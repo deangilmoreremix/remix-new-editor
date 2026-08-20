@@ -1546,9 +1546,8 @@ async function handleVideoThumbnail(body: VideoThumbnailRequest) {
 
   const size = mapAspectToSize(body.aspectRatio);
   const frameCount = Math.max(1, Math.min(body.frames, 10));
-  const frames: Array<{ b64: string; prompt: string }> = [];
 
-  for (let i = 0; i < frameCount; i++) {
+  const generateFrame = async (i: number): Promise<{ b64_json: string; revised_prompt: string }> => {
     const framePrompt = `${body.prompt}, ${VIDEO_THUMBNAIL_PROMPT}, frame ${i + 1} of ${frameCount}`;
     try {
       const frame = await executeWithModelFallback(async (model) => {
@@ -1560,18 +1559,31 @@ async function handleVideoThumbnail(body: VideoThumbnailRequest) {
         const imageCalls = completion.output.filter((o) => o.type === "image_generation_call");
         const first = imageCalls[0];
         return {
-          b64: first?.result ?? "",
-          prompt: framePrompt,
+          b64_json: first?.result ?? "",
+          revised_prompt: framePrompt,
         };
       });
-      frames.push(frame);
+      return frame;
     } catch (error) {
       console.error(`[ai-thumbnail-generator] Frame ${i + 1} generation failed:`, error);
-      frames.push({ b64: "", prompt: framePrompt });
+      return { b64_json: "", revised_prompt: framePrompt };
     }
+  };
+
+  const framePromises = Array.from({ length: frameCount }, (_, i) => generateFrame(i));
+  const results = await Promise.all(framePromises);
+  const frames = results.filter((f) => f.b64_json && f.b64_json.length > 0);
+
+  if (frames.length === 0) {
+    return jsonResponse({ error: "All frames failed to generate. Please try again." }, 502);
   }
 
-  return jsonResponse({ frames, duration: body.duration, aspectRatio: body.aspectRatio, key_source: keySource });
+  return jsonResponse({
+    frames,
+    duration: body.duration,
+    aspectRatio: body.aspectRatio,
+    key_source: keySource,
+  });
 }
 
 async function handleSave(body: SaveRequest) {

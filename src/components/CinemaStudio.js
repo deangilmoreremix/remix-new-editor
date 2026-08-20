@@ -19,6 +19,8 @@ import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { CINEMATIC_THEME, cx } from '../lib/cinematicTheme.js';
+import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
+import ExampleGallery from './studios/ExampleGallery.jsx';
 
 // Camera movements promised by the Cinema Studio intro copy
 // ("Select camera movement … dolly, crane, orbit, FPV drone").
@@ -1168,6 +1170,12 @@ export function CinemaStudio() {
             generateBtn.innerHTML = `GENERATE ✨`;
         }
     };
+
+    const galleryAssets = getAssetsForStudio('cinema');
+    if (galleryAssets.length > 0) {
+      const gallery = ExampleGallery({ studioId: 'cinema', assets: galleryAssets, maxCards: 20 });
+      container.appendChild(gallery);
+    }
 
     return container;
 }
