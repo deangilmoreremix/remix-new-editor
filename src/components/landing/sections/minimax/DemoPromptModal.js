@@ -152,7 +152,7 @@ export function openDemoPromptModal(demo, trigger) {
   const promptBody = backdrop.querySelector('[data-mmx-prompt-body]');
   const createSlot = backdrop.querySelector('[data-mmx-create-slot]');
 
-  createSlot.appendChild(createStyleLink(demo, { label: 'Create This Style', variant: 'primary' }));
+  createSlot.appendChild(createStyleLink(demo, { label: 'Create This Style', variant: 'primary', getTarget: options.getTarget }));
 
   let promptText = '';
 

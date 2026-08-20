@@ -156,8 +156,8 @@ export function goToRoute(route, params = {}) {
  * ever hardcodes a studio URL.
  */
 export function createStyleLink(demo, options = {}) {
-  const { label = 'Create This Style', variant = 'primary', block = false } = options;
-  const target = getCreateTarget(demo);
+  const { label = 'Create This Style', variant = 'primary', block = false, getTarget } = options;
+  const target = getTarget ? getTarget(demo) : getCreateTarget(demo);
 
   const link = document.createElement('a');
   link.href = target.href;
