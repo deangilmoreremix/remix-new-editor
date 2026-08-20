@@ -94,7 +94,7 @@ const EDIT_TOOLS = [
       { type: 'select', key: 'outfit_style', label: 'Style Preset', options: ['Casual', 'Formal', 'Sport', 'Traditional', 'Elegant', 'Statement'], default: 'Formal' },
       { type: 'color', key: 'outfit_color', label: 'Color', default: '#000000' },
       { type: 'select', key: 'fabric', label: 'Fabric Type', options: ['Silk', 'Cotton', 'Leather', 'Velvet', 'Denim', 'Lace'], default: 'Silk' },
-      { type: 'range', key: 'fit', label: 'Fit', min: 0, max: 100, step: 1, default: 50, unit: '%', unitLabel: 'Loose ← → Tight' },
+      { type: 'range', key: 'fit', label: 'Fit', min: 0, max: 100, step: 1, default: 50, unit: '%', unitLabel: 'Loose to Tight' },
       { type: 'select', key: 'lighting', label: 'Lighting', options: ['Studio Softbox', 'Natural Window', 'Dramatic', 'Flat Lay'], default: 'Studio Softbox' },
       { type: 'toggle', key: 'preserve_background', label: 'Preserve Background', default: true },
       { type: 'toggle', key: 'preserve_hair', label: 'Preserve Hair Details', default: true },
@@ -125,7 +125,7 @@ const EDIT_TOOLS = [
     controls: [
       { type: 'select', key: 'color_style', label: 'Style Preset', options: ['Realistic', 'Vintage', 'Vibrant', 'Pastel', 'Duotone'], default: 'Realistic' },
       { type: 'range', key: 'saturation', label: 'Saturation', min: 0, max: 100, step: 1, default: 60, unit: '%' },
-      { type: 'range', key: 'warmth', label: 'Color Temperature', min: 0, max: 100, step: 1, default: 50, unit: '%', unitLabel: 'Cool ← → Warm' },
+      { type: 'range', key: 'warmth', label: 'Color Temperature', min: 0, max: 100, step: 1, default: 50, unit: '%', unitLabel: 'Cool to Warm' },
       { type: 'range', key: 'intensity', label: 'Color Intensity', min: 0, max: 100, step: 1, default: 80, unit: '%' },
       { type: 'text', key: 'reference_colors', label: 'Reference Colors', placeholder: 'e.g. blue sky, green grass' },
     ],
@@ -143,7 +143,7 @@ const EDIT_TOOLS = [
       { type: 'range', key: 'scale', label: 'Size', min: 5, max: 100, step: 1, default: 20, unit: '%' },
       { type: 'text', key: 'font_family', label: 'Font Family', placeholder: 'Arial, Helvetica, etc.' },
       { type: 'color', key: 'text_color', label: 'Text Color', default: '#ffffff' },
-      { type: 'range', key: 'rotation', label: 'Rotation', min: -90, max: 90, step: 1, default: 0, unit: '°' },
+      { type: 'range', key: 'rotation', label: 'Rotation', min: -90, max: 90, step: 1, default: 0, unit: 'deg' },
       { type: 'toggle', key: 'shadow', label: 'Text Shadow', default: false },
       { type: 'toggle', key: 'tile', label: 'Tile Pattern', default: false },
     ],
@@ -190,7 +190,7 @@ const EDIT_TOOLS = [
     controls: [
       { type: 'select', key: 'lighting', label: 'Lighting Preset', options: ['Studio Softbox', 'Natural Window', 'Dramatic', 'Product Flat Lay', 'Ring Light'], default: 'Studio Softbox' },
       { type: 'select', key: 'background', label: 'Background Type', options: ['White', 'Gradient', 'Lifestyle', 'Transparent', 'Color'], default: 'White' },
-      { type: 'select', key: 'angle', label: 'Camera Angle', options: ['Front (0°)', '45° Angle', 'Top-Down', 'Macro Close-Up', 'Low Angle'], default: '45° Angle' },
+      { type: 'select', key: 'angle', label: 'Camera Angle', options: ['Front (0 deg)', '45 deg Angle', 'Top-Down', 'Macro Close-Up', 'Low Angle'], default: '45 deg Angle' },
       { type: 'select', key: 'shadow', label: 'Shadow', options: ['Soft Drop Shadow', 'Hard Shadow', 'Floating', 'None'], default: 'Soft Drop Shadow' },
       { type: 'select', key: 'reflection', label: 'Reflection', options: ['Floor Reflection', 'Surface Reflection', 'None'], default: 'Floor Reflection' },
     ],
@@ -206,7 +206,7 @@ const EDIT_TOOLS = [
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>',
     hasPrompt: false,
     controls: [
-      { type: 'select', key: 'style_variant', label: 'Ghibli Style', options: ['My Neighbor Totoro', 'Spirited Away', 'Princess Mononoke', 'Kiki\'s Delivery', 'Howl\'s Moving Castle', 'Ponyo', 'Auto'], default: 'Auto' },
+      { type: 'select', key: 'style_variant', label: 'Ghibli Style', options: ['Auto', 'My Neighbor Totoro', 'Spirited Away', 'Princess Mononoke', 'Kiki Delivery', 'Howl Moving Castle', 'Ponyo'], default: 'Auto' },
       { type: 'range', key: 'strength', label: 'Style Intensity', min: 0, max: 100, step: 1, default: 85, unit: '%' },
       { type: 'select', key: 'color_palette', label: 'Color Palette', options: ['Muted Pastels', 'Vibrant', 'Natural', 'Dreamy'], default: 'Muted Pastels' },
       { type: 'select', key: 'render_style', label: 'Render Style', options: ['Hand-Painted', 'Line Art', 'Watercolor Wash'], default: 'Hand-Painted' },
@@ -216,11 +216,6 @@ const EDIT_TOOLS = [
   },
 ];
 
-const ADVANCED_CONTROL_KEYS = new Set([
-  'negative_prompt', 'seed', 'num_images', 'output_format',
-  'reference_image', 'reference_images',
-]);
-
 export function EditStudio() {
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col bg-app-bg overflow-y-auto relative';
@@ -229,7 +224,6 @@ export function EditStudio() {
   let activeTool = null;
   let uploadedUrl = null;
   let referenceImageUrl = null;
-  let generationController = null;
   let progressPoll = null;
   let progress = 0;
   let controlValues = {};
@@ -283,7 +277,26 @@ export function EditStudio() {
 
   const personalizeRow = document.createElement('div');
   personalizeRow.className = 'flex items-center gap-2 px-4 md:px-8 pt-4';
-  mountPersonalizeTrigger({ controlsContainer: personalizeRow, getTextarea: () => promptField, appId: 'edit-studio' });
+
+  const recipeBtn = document.createElement('button');
+  recipeBtn.type = 'button';
+  recipeBtn.textContent = 'Recipes';
+  recipeBtn.title = 'Browse AI recipes';
+  recipeBtn.setAttribute('aria-label', 'Open recipe engine');
+  recipeBtn.className = 'gtm-boost-btn shrink-0';
+  recipeBtn.addEventListener('click', () => {
+    openRecipeModal({ onRunRecipe: () => {} }).catch((err) => console.error('[Recipe] open failed:', err));
+  });
+
+  const monetizationBtn = document.createElement('button');
+  monetizationBtn.type = 'button';
+  monetizationBtn.textContent = 'Monetize';
+  monetizationBtn.title = 'Open monetization hub';
+  monetizationBtn.setAttribute('aria-label', 'Open monetization hub');
+  monetizationBtn.className = 'gtm-boost-btn shrink-0';
+  monetizationBtn.addEventListener('click', () => {
+    openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+  });
 
   const promptGalleryBtn = document.createElement('button');
   promptGalleryBtn.type = 'button';
@@ -301,33 +314,6 @@ export function EditStudio() {
     }).catch((err) => console.error('[PromptGallery] open failed:', err));
   });
 
-  const recipeBtn = document.createElement('button');
-  recipeBtn.type = 'button';
-  recipeBtn.textContent = 'Recipes';
-  recipeBtn.title = 'Browse AI recipes';
-  recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-  recipeBtn.className = 'gtm-boost-btn shrink-0';
-  recipeBtn.addEventListener('click', () => {
-    openRecipeModal({
-      onRunRecipe: (url) => {
-      }
-    }).catch((err) => console.error('[Recipe] open failed:', err));
-  });
-
-  const monetizationBtn = document.createElement('button');
-  monetizationBtn.type = 'button';
-  monetizationBtn.textContent = 'Monetize';
-  monetizationBtn.title = 'Open monetization hub';
-  monetizationBtn.setAttribute('aria-label', 'Open monetization hub');
-  monetizationBtn.className = 'gtm-boost-btn shrink-0';
-  monetizationBtn.addEventListener('click', () => {
-    openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
-  });
-
-  personalizeRow.appendChild(recipeBtn);
-  personalizeRow.appendChild(monetizationBtn);
-  personalizeRow.appendChild(promptGalleryBtn);
-
   const modelPickerBtn = document.createElement('button');
   modelPickerBtn.type = 'button';
   modelPickerBtn.textContent = 'AI Pick';
@@ -337,6 +323,10 @@ export function EditStudio() {
   modelPickerBtn.addEventListener('click', () => {
     openModelPicker({}).catch((err) => console.error('[ModelPicker] open failed:', err));
   });
+
+  personalizeRow.appendChild(recipeBtn);
+  personalizeRow.appendChild(monetizationBtn);
+  personalizeRow.appendChild(promptGalleryBtn);
   personalizeRow.appendChild(modelPickerBtn);
   container.appendChild(personalizeRow);
 
@@ -366,6 +356,7 @@ export function EditStudio() {
   uploadSection.className = 'flex flex-col gap-3';
   const uploadRow = document.createElement('div');
   uploadRow.className = 'flex items-center gap-4';
+
   const picker = createUploadPicker({
     anchorContainer: container,
     onSelect: ({ url }) => {
@@ -406,43 +397,6 @@ export function EditStudio() {
   uploadSection.appendChild(uploadRow);
   uploadSection.appendChild(previewImg);
   workCard.appendChild(uploadSection);
-  container.appendChild(picker.panel);
-
-  const promptField = document.createElement('input');
-  promptField.type = 'text';
-  promptField.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors hidden';
-  workCard.appendChild(promptField);
-
-  const controlsContainer = document.createElement('div');
-  controlsContainer.className = 'w-full flex flex-col gap-3 hidden';
-
-  const advancedSection = document.createElement('div');
-  advancedSection.className = 'w-full flex-col gap-3 hidden';
-
-  const advancedToggleBtn = document.createElement('button');
-  advancedToggleBtn.type = 'button';
-  advancedToggleBtn.className = 'text-xs font-bold text-secondary hover:text-white transition-colors text-left flex items-center gap-1';
-  advancedToggleBtn.innerHTML = '<span>▼</span> Advanced Controls';
-  advancedToggleBtn.onclick = () => {
-    advancedOpen = !advancedOpen;
-    advancedSection.classList.toggle('hidden');
-    const icon = advancedToggleBtn.querySelector('span');
-    icon.textContent = advancedOpen ? '▲' : '▼';
-  };
-  controlsContainer.appendChild(advancedToggleBtn);
-
-  const advancedDivider = document.createElement('div');
-  advancedDivider.className = 'h-px bg-white/5';
-  advancedSection.appendChild(advancedDivider);
-
-  const advancedGrid = document.createElement('div');
-  advancedGrid.className = 'flex flex-col gap-3';
-  advancedSection.appendChild(advancedGrid);
-
-  const referenceToggleBtn = document.createElement('button');
-  referenceToggleBtn.type = 'button';
-  referenceToggleBtn.className = 'text-xs font-bold text-secondary hover:text-white transition-colors text-left';
-  referenceToggleBtn.textContent = '+ Add Reference Image';
 
   const referencePicker = createUploadPicker({
     anchorContainer: container,
@@ -454,22 +408,22 @@ export function EditStudio() {
     },
     onClear: () => {
       referenceImageUrl = null;
+      referencePreview.src = '';
       referencePreview.classList.add('hidden');
       referenceRow.classList.add('hidden');
     },
   });
-  referenceToggleBtn.onclick = () => referencePicker.pick();
-  container.appendChild(picker.panel);
 
   const referenceRow = document.createElement('div');
   referenceRow.className = 'flex items-center gap-3 hidden mt-2';
 
   const referencePreview = document.createElement('img');
   referencePreview.className = 'w-12 h-12 object-cover rounded border border-white/10';
+
   const refClearBtn = document.createElement('button');
   refClearBtn.type = 'button';
   refClearBtn.className = 'text-xs font-bold text-red-400 hover:text-red-300';
-  refClearBtn.textContent = '×';
+  refClearBtn.textContent = 'x';
   refClearBtn.onclick = () => {
     referenceImageUrl = null;
     referencePreview.src = '';
@@ -478,11 +432,42 @@ export function EditStudio() {
   };
   referenceRow.appendChild(referencePreview);
   referenceRow.appendChild(refClearBtn);
-  advancedSection.appendChild(referenceRow);
-  advancedSection.appendChild(referenceToggleBtn);
 
+  const promptField = document.createElement('input');
+  promptField.type = 'text';
+  promptField.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors hidden';
+
+  const negativePromptField = document.createElement('input');
+  negativePromptField.type = 'text';
+  negativePromptField.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors hidden';
+
+  const negativePromptLabel = document.createElement('label');
+  negativePromptLabel.className = 'text-xs font-bold text-secondary uppercase tracking-wider hidden';
+  negativePromptLabel.textContent = 'Negative Prompt';
+
+  const controlsContainer = document.createElement('div');
+  controlsContainer.className = 'w-full flex flex-col gap-3';
+
+  const advancedToggleBtn = document.createElement('button');
+  advancedToggleBtn.type = 'button';
+  advancedToggleBtn.className = 'text-xs font-bold text-secondary hover:text-white transition-colors text-left flex items-center gap-1';
+  advancedToggleBtn.innerHTML = '<span>▼</span> Advanced Controls';
+  advancedToggleBtn.onclick = () => {
+    advancedOpen = !advancedOpen;
+    renderControls(activeTool);
+  };
+
+  const referenceToggleBtn = document.createElement('button');
+  referenceToggleBtn.type = 'button';
+  referenceToggleBtn.className = 'text-xs font-bold text-secondary hover:text-white transition-colors text-left mt-2';
+  referenceToggleBtn.textContent = '+ Add Reference Image';
+  referenceToggleBtn.onclick = () => referencePicker.pick();
+
+  workCard.appendChild(uploadSection);
+  workCard.appendChild(promptField);
+  workCard.appendChild(negativePromptLabel);
+  workCard.appendChild(negativePromptField);
   workCard.appendChild(controlsContainer);
-  controlsContainer.appendChild(advancedSection);
 
   const editBtn = document.createElement('button');
   editBtn.className = 'w-full bg-primary text-black py-3 rounded-xl font-black text-sm hover:shadow-glow transition-all';
@@ -515,19 +500,20 @@ export function EditStudio() {
   workArea.appendChild(workCard);
   container.appendChild(workArea);
 
+  mountPersonalizeTrigger({ controlsContainer: personalizeRow, getTextarea: () => promptField, appId: 'edit-studio' });
+
   function createRangeControl(control) {
     const wrapper = document.createElement('div');
     wrapper.className = 'flex flex-col gap-1.5';
 
     const labelRow = document.createElement('div');
     labelRow.className = 'flex justify-between items-baseline';
+
     const label = document.createElement('label');
     label.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
     label.textContent = control.label;
     labelRow.appendChild(label);
 
-    const sliderRow = document.createElement('div');
-    sliderRow.className = 'flex items-center gap-2';
     const slider = document.createElement('input');
     slider.type = 'range';
     slider.min = control.min;
@@ -538,9 +524,19 @@ export function EditStudio() {
 
     const valueSpan = document.createElement('span');
     valueSpan.className = 'text-xs font-bold text-white w-16 text-right';
+
+    const sliderRow = document.createElement('div');
+    sliderRow.className = 'flex items-center gap-2';
+    sliderRow.appendChild(slider);
+    sliderRow.appendChild(valueSpan);
+
     const unitLabel = control.unitLabel || '';
     const updateValueSpan = (val) => {
-      valueSpan.textContent = `${Math.round(val)}${control.unit || ''} ${unitLabel}`.trim();
+      if (control.unit === 'deg') {
+        valueSpan.textContent = `${Math.round(val)} deg`;
+      } else {
+        valueSpan.textContent = `${Math.round(val)}${control.unit || ''} ${unitLabel}`.trim();
+      }
     };
     updateValueSpan(control.default);
 
@@ -548,15 +544,13 @@ export function EditStudio() {
       const val = parseFloat(slider.value);
       controlValues[control.key] = val;
       updateValueSpan(val);
-      const rawVal = parseFloat(slider.value);
-      if (control.unit === '°') valueSpan.textContent = `${Math.round(rawVal)}°`;
     };
 
     controlValues[control.key] = parseFloat(control.default);
-    sliderRow.appendChild(slider);
-    sliderRow.appendChild(valueSpan);
-    labelRow.appendChild(sliderRow);
+
+    labelRow.appendChild(label);
     wrapper.appendChild(labelRow);
+    wrapper.appendChild(sliderRow);
 
     if (control.description) {
       const desc = document.createElement('span');
@@ -593,16 +587,13 @@ export function EditStudio() {
 
   function createToggleControl(control) {
     const wrapper = document.createElement('div');
-    wrapper.className = 'flex items-center justify-between';
+    wrapper.className = 'flex items-center justify-between py-1';
 
     const isOn = control.default !== false;
     const toggle = document.createElement('button');
     toggle.type = 'button';
     toggle.dataset.on = isOn;
     toggle.className = 'relative inline-flex h-6 w-10 items-center rounded-full';
-    const toggleLabel = document.createElement('span');
-    toggleLabel.className = 'text-xs text-secondary';
-    toggleLabel.textContent = control.label;
 
     const updateToggle = () => {
       const on = toggle.dataset.on === 'true';
@@ -622,6 +613,10 @@ export function EditStudio() {
     });
     controlValues[control.key] = isOn;
     updateToggle();
+
+    const toggleLabel = document.createElement('span');
+    toggleLabel.className = 'text-xs text-secondary';
+    toggleLabel.textContent = control.label;
 
     wrapper.appendChild(toggleLabel);
     wrapper.appendChild(toggle);
@@ -670,7 +665,7 @@ export function EditStudio() {
     wrapper.className = 'flex flex-col gap-1.5';
 
     const label = document.createElement('label');
-    label.className = 'text-xs font-bold text-secondary uppercase tracking-witer';
+    label.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
     label.textContent = control.label;
     wrapper.appendChild(label);
 
@@ -724,7 +719,7 @@ export function EditStudio() {
 
   function createDirectionsControl(control) {
     const wrapper = document.createElement('div');
-    wrapper.className = 'flex flex-col gap-1.5';
+    wrapper.className = 'flex flex-col gap-2';
 
     const label = document.createElement('label');
     label.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
@@ -803,40 +798,41 @@ export function EditStudio() {
     controlsContainer.innerHTML = '';
     controlValues = {};
 
-    const standardControls = tool.controls || [];
-    const advancedControls = tool.advancedControls || [];
-
-    standardControls.forEach(ctrl => {
-      const factory = CONTROL_FACTORIES[ctrl.type];
-      if (factory) {
-        const controlEl = factory(ctrl);
-        controlsContainer.appendChild(controlEl);
-      }
-    });
-
-    if (advancedControls.length > 0 || referenceToggleBtn) {
-      advancedGrid.innerHTML = '';
-      advancedControls.forEach(ctrl => {
+    if (tool.controls) {
+      tool.controls.forEach(ctrl => {
         const factory = CONTROL_FACTORIES[ctrl.type];
-        if (factory) {
-          const controlEl = factory(ctrl);
-          advancedGrid.appendChild(controlEl);
-        }
+        if (factory) controlsContainer.appendChild(factory(ctrl));
       });
-
-      advancedGrid.appendChild(referenceToggleBtn);
-      advancedGrid.appendChild(referenceRow);
-
-      controlsContainer.appendChild(advancedToggleBtn);
-      controlsContainer.appendChild(advancedSection);
     }
+
+    const hasAdvanced = tool.advancedControls && tool.advancedControls.length > 0;
+
+    negativePromptField.value = '';
 
     if (tool.hasPrompt) {
       promptField.classList.remove('hidden');
       promptField.placeholder = tool.promptPlaceholder || 'Describe...';
-      promptField.value = '';
+      negativePromptLabel.classList.remove('hidden');
+      negativePromptField.classList.remove('hidden');
+      negativePromptField.placeholder = 'What to avoid...';
     } else {
       promptField.classList.add('hidden');
+      negativePromptLabel.classList.add('hidden');
+      negativePromptField.classList.add('hidden');
+    }
+
+    if (hasAdvanced) {
+      controlsContainer.appendChild(advancedToggleBtn);
+      advancedToggleBtn.innerHTML = `<span>${advancedOpen ? '▲' : '▼'}</span> Advanced Controls`;
+
+      if (advancedOpen) {
+        tool.advancedControls.forEach(ctrl => {
+          const factory = CONTROL_FACTORIES[ctrl.type];
+          if (factory) controlsContainer.appendChild(factory(ctrl));
+        });
+        controlsContainer.appendChild(referenceToggleBtn);
+        controlsContainer.appendChild(referenceRow);
+      }
     }
 
     controlsContainer.classList.remove('hidden');
@@ -854,18 +850,13 @@ export function EditStudio() {
     workCard.classList.remove('hidden');
     workCard.classList.add('flex');
     toolTitle.textContent = tool.name;
-
+    advancedOpen = false;
     renderControls(tool);
 
     referenceImageUrl = null;
+    referencePreview.src = '';
     referencePreview.classList.add('hidden');
     referenceRow.classList.add('hidden');
-    referencePreview.src = '';
-
-    advancedOpen = false;
-    advancedSection.classList.add('hidden');
-    const advIcon = advancedToggleBtn.querySelector('span');
-    if (advIcon) advIcon.textContent = '▼';
 
     resultArea.classList.add('hidden');
     updateProgress(null);
@@ -901,7 +892,10 @@ export function EditStudio() {
 
     cancelBtn.classList.remove('hidden');
     cancelBtn.onclick = () => {
-      if (generationController) generationController.abort();
+      if (progressPoll) { clearInterval(progressPoll); progressPoll = null; }
+      updateProgress(null);
+      editBtn.disabled = false;
+      editBtn.textContent = 'Apply Edit';
       cancelBtn.classList.add('hidden');
     };
 
@@ -918,7 +912,7 @@ export function EditStudio() {
         }
       }
 
-      const negPrompt = negativePromptField?.value?.trim();
+      const negPrompt = negativePromptField.value?.trim();
       if (negPrompt) {
         params.negative_prompt = negPrompt;
       }
@@ -926,8 +920,6 @@ export function EditStudio() {
       if (referenceImageUrl) {
         params.reference_images = [referenceImageUrl];
       }
-
-      lastParams = params;
 
       const result = await muapi.generateI2I(params);
       updateProgress(null);

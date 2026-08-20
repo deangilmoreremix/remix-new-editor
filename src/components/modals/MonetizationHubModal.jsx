@@ -64,6 +64,24 @@ export class MonetizationHubModal extends BaseModal {
         }
       };
     });
+
+    root.querySelectorAll("[data-action=\"download-template\"]").forEach(btn => {
+      btn.onclick = () => {
+        const id = btn.dataset.downloadTemplate;
+        const tpl = getTemplateById(id);
+        if (tpl) {
+          const blob = new Blob([tpl.body], { type: "text/plain" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = tpl.title.replace(/\s+/g, "_").toLowerCase() + ".txt";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }
+      };
+    });
   }
 
   _refresh() {
@@ -145,6 +163,7 @@ export class MonetizationHubModal extends BaseModal {
                 <pre class="template-preview">${selectedTemplate.body}</pre>
                 <div class="detail-actions">
                   <button type="button" class="modal-btn modal-btn-primary" data-action="copy-template" data-copy-template="${selectedTemplate.id}"><span class="copy-label">Copy</span></button>
+                  <button type="button" class="modal-btn modal-btn-secondary" data-action="download-template" data-download-template="${selectedTemplate.id}"><span class="download-label">Download</span></button>
                 </div>
               ` : '<div class="empty-state">Select a template to preview.</div>'}
             </div>
