@@ -10,39 +10,8 @@ import FormTextArea from '../form/FormTextArea';
 
 import useProjectStore from '../hooks/useProjectStore';
 
-// Safe wrappers that handle the case where react-sortable-hoc's class-based
-// HOCs are stubbed in certain environments (e.g. esbuild/vite dev server
-// without full React class component support). The standard call
-// `SortableElement(...)` throws "Class constructor cannot be invoked without
-// 'new'", so we fall back to `new` and then to a plain pass-through wrapper.
-function safeSortableElement(factory) {
-  try {
-    return SortableElement(factory);
-  } catch (e) {
-    try {
-      return new SortableElement(factory);
-    } catch (e2) {
-      // Fall back to the raw component (no drag sorting) in broken environments
-      return factory;
-    }
-  }
-}
-
-function safeSortableContainer(factory) {
-  try {
-    return SortableContainer(factory);
-  } catch (e) {
-    try {
-      return new SortableContainer(factory);
-    } catch (e2) {
-      // Fall back to the raw component (no drag sorting) in broken environments
-      return factory;
-    }
-  }
-}
-
-const SortableItem = safeSortableElement(({ value }) => <ListItem>{value}</ListItem>);
-const SortableList = safeSortableContainer(({ items }) => (
+const SortableItem = SortableElement(({ value }) => <ListItem>{value}</ListItem>);
+const SortableList = SortableContainer(({ items }) => (
   <List component="nav" aria-label="secondary">
     {items.map((value, index) => (
       <SortableItem
@@ -65,7 +34,7 @@ const RetargetOptInModal = observer(({ handleClose }) => {
     const movedTokens = arrayMove(tokens, oldIndex, newIndex);
     toggleTokens(movedTokens);
     const textarea = textareaRef.current;
-    if (textarea) textarea.select();
+    textarea.select();
   };
 
   return (
