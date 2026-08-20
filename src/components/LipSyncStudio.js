@@ -399,15 +399,15 @@ export function LipSyncStudio() {
     // Monetization Hub button
     const monetizationBtn = document.createElement('button');
     monetizationBtn.type = 'button';
-    monetizationBtn.textContent = "💼 Smart Video AI Monetize";;
-    monetizationBtn.title = "Open Smart Video AI Monetization Hub";;
+    monetizationBtn.textContent = "💼 Smart Video AI Monetize";
+    monetizationBtn.title = "Open Smart Video AI Monetization Hub";
     monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
     monetizationBtn.className = 'gtm-boost-btn shrink-0';
     monetizationBtn.addEventListener('click', () => {
       openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
     });
     if (!uploadsRow.querySelector('[aria-label="Open recipe engine"]')) uploadsRow.appendChild(recipeBtn);
-    if (!uploadsRow.querySelector('[aria-label="Open Smart Video AI Monetization Hub";]')) uploadsRow.appendChild(monetizationBtn);
+    if (!uploadsRow.querySelector('[aria-label="Open Smart Video AI Monetization Hub"]')) uploadsRow.appendChild(monetizationBtn);
 
     };
 

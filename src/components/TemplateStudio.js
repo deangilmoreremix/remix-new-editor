@@ -494,8 +494,8 @@ export function TemplateStudio(templateId) {
     // Monetization Hub button
     const monetizationBtn = document.createElement('button');
     monetizationBtn.type = 'button';
-    monetizationBtn.textContent = "💼 Smart Video AI Monetize";;
-    monetizationBtn.title = "Open Smart Video AI Monetization Hub";;
+    monetizationBtn.textContent = "💼 Smart Video AI Monetize";
+    monetizationBtn.title = "Open Smart Video AI Monetization Hub";
     monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
     monetizationBtn.className = 'gtm-boost-btn shrink-0';
     monetizationBtn.addEventListener('click', () => {
