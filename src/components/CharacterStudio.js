@@ -11,6 +11,8 @@ import { mountModelSelector, getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getP
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { getModelById } from '../lib/models.js';
+import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
+import ExampleGallery from './studios/ExampleGallery.js';
 
 const CHARACTER_MODELS = [
   { id: 'flux-pulid', name: 'Flux PuLID', description: 'Face ID preservation with text prompt', provider: 'blackforest', provider_name: 'Black Forest Labs' },
@@ -25,8 +27,8 @@ export function CharacterStudio() {
   let uploadedUrl = null;
   let customThumbnailUrl = getCustomThumbnailFromCache('character-studio');
   let selectedModel = CHARACTER_MODELS[0];
-  let dynamicControls = null;
-  let dynamicControlsContainer = null;
+  const dynamicControls = null;
+  const dynamicControlsContainer = null;
 
   const header = document.createElement('div');
   header.className = 'mb-8 animate-fade-in-up text-center w-full max-w-lg';
@@ -373,5 +375,11 @@ export function CharacterStudio() {
   };
 
 
-  return container;
+    const galleryAssets = getAssetsForStudio('character');
+    if (galleryAssets.length > 0) {
+      const gallery = ExampleGallery({ studioId: 'character', assets: galleryAssets, maxCards: 20 });
+      container.appendChild(gallery);
+    }
+
+    return container;
 }

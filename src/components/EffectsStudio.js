@@ -16,6 +16,8 @@ import { saveGeneratedAsset } from '../lib/assets/assetActions.js';
 import { showToast } from '../lib/loading.js';
 import { validateEffectParams, EFFECT_PARAM_SCHEMA, createSliderControl, createAdvancedSection } from '../lib/effectParamValidator.js';
 import { EffectCompositor } from '../lib/editor/effectCompositor.js';
+import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
+import ExampleGallery from './studios/ExampleGallery.js';
 
 const EFFECT_TABS = [
   { id: 'image-effects', label: 'Image Effects', type: 'i2i', field: 'name' },
@@ -1398,5 +1400,11 @@ export function EffectsStudio() {
   };
 
   switchTab(EFFECT_TABS[0]);
-  return container;
+    const galleryAssets = getAssetsForStudio('effects');
+    if (galleryAssets.length > 0) {
+      const gallery = ExampleGallery({ studioId: 'effects', assets: galleryAssets, maxCards: 20 });
+      container.appendChild(gallery);
+    }
+
+    return container;
 }

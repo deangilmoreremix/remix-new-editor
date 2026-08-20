@@ -74,7 +74,7 @@ export function CinemaStudio() {
         // picker as Video Studio; defaults to the first text-to-video model.
         model: (t2vModels[0] && t2vModels[0].id) || 'kling-v2.6-pro-t2v',
     };
-    let selectedProvider = 'all';
+    const selectedProvider = 'all';
     
     // Camera builder panel state
     let showCameraBuilder = false;

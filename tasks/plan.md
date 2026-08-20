@@ -157,7 +157,53 @@ Both use the same in-studio gallery pattern with "View Prompt" and "Create This 
 - Not changing Minimax integration — additive parallel system
 - Not claiming academy prompts are complete — they're frameworks/scripts for user adaptation
 
+## Work State
+
+### Completed
+- `src/data/academy/catalog.js` — Auto-generated 103-entry `ACADEMY_ASSETS` manifest with `getAssetById`, `thumbnail`/`src` paths, and `ACADEMY_TRACKS`/`ACADEMY_LESSONS`/`ACADEMY_TEMPLATE_META`.
+- `src/data/academyAssets.js` — Thin public re-export wrapper around `academy/catalog.js`.
+- `src/data/academyStudioAdapters.js` — 31 studio adapter entries mapping academy asset IDs to studio routes, prompts, style presets, aspect ratios, and tags.
+- `src/data/minimaxH3Demos.js` — 30-entry demo manifest with `posterSrc`, `videoSrc`, `CATEGORY_ROUTES`, and `getCreateTarget()`.
+- `src/lib/exampleGalleryBridge.js` — Unified bridge handling `handleCreateThisStyle` and `handleViewPrompt` for both Minimax and Academy sources.
+- `src/components/studios/ExampleGallery.js` — Reusable horizontal-scroll gallery component.
+- `public/media/minimax-h3/` — 30 videos (`/media/minimax-h3/videos/*.webm`) and 30 previews (`/media/minimax-h3/previews/*.webp`/`.jpg`); all 30 poster and video paths verified present.
+- `public/academy/` — Mirrored upstream media (images, gifs, videos) for tracks 02, 03, 07, 10, 11, 12; all 103 academy `thumbnail`/`src` paths verified present.
+- Studio integration (partial):
+  - Cinema Studio — mounted
+  - Video Studio — mounted
+  - Image Studio — mounted
+- Landing page — academy showcase section mounted in `LandingPage.jsx`.
+
+### Remaining
+- `src/lib/academyTemplateBridge.js` — Not created (functionality absorbed into `exampleGalleryBridge.js`).
+- `src/lib/minimaxTemplateBridge.js` — Not created (functionality absorbed into `exampleGalleryBridge.js`).
+- Studio integration (7 studios remaining):
+  - Audio Studio
+  - Character Studio
+  - Commercial Studio
+  - Edit Studio
+  - Effects Studio
+  - Influencer Studio
+  - Storyboard Studio
+- Verify remaining academy tracks (04, 05, 06, 08, 09, 13, 14, 15) have mirrored media in `public/academy/` if not already present.
+
+## MiniMax + Academy Gallery Summary
+
+### File List
+| Layer | Files |
+|---|---|
+| Data | `src/data/minimaxH3Demos.js`, `src/data/academy/catalog.js`, `src/data/academyAssets.js`, `src/data/academyStudioAdapters.js` |
+| Logic | `src/lib/exampleGalleryBridge.js` |
+| UI | `src/components/studios/ExampleGallery.js` |
+| Media | `public/media/minimax-h3/{videos,previews}/`, `public/academy/{track-XX}/{images,gifs,videos}/` |
+
+### Routing Behavior
+- **MiniMax (30 demos):** Each demo carries `posterSrc` and `videoSrc` under `/media/minimax-h3/`. "Create This Style" uses `CATEGORY_ROUTES[demo.category]` to navigate to a studio route with query params `template=minimax-h3-{slug}&ref=minimax-h3`. "View Prompt" lazy-loads `minimaxH3Prompts.js` and shows a modal.
+- **Academy (103 assets):** Each adapter references an asset ID resolved via `getAssetById()` in `academy/catalog.js`. Thumbnails fall back to `asset.src`. "Create This Style" uses `getAcademyCreateTarget()` to navigate to the adapter's `studio` route with `academy-template={assetId}` plus prompt/style/aspect_ratio/duration params. "View Prompt" navigates to `#/academy?template={assetId}`.
+- **Gallery component:** `ExampleGallery({ studioId, assets, maxCards })` filters the shared `EXAMPLE_ASSETS` array by studio, renders up to `maxCards` cards with poster/video preview, title, tags, and two action buttons. Studios without matching assets render an empty state.
+
 ## Key Risks
+
 | Risk | Impact | Mitigation |
 |---|---|---|
 | 103 academy media files add bundle weight | High | Lazy-load gallery videos; use poster images |

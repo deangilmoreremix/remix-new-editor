@@ -10,6 +10,8 @@ import { mountModelSelector, getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getP
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { getModelById } from '../lib/models.js';
+import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
+import ExampleGallery from './studios/ExampleGallery.js';
 
 const SCENE_PRESETS = [
   'Studio white background', 'Luxury marble surface', 'Outdoor natural light',
@@ -344,5 +346,11 @@ export function CommercialStudio() {
     }
   };
 
-  return container;
+    const galleryAssets = getAssetsForStudio('commercial');
+    if (galleryAssets.length > 0) {
+      const gallery = ExampleGallery({ studioId: 'commercial', assets: galleryAssets, maxCards: 20 });
+      container.appendChild(gallery);
+    }
+
+    return container;
 }

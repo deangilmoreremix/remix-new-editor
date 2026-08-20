@@ -11,6 +11,8 @@ import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { mountModelSelector } from '../lib/modelSelectorUI.js';
 import { showToast } from '../lib/loading.js';
 import { formatErrorMessage } from '../lib/errorMessages.js';
+import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
+import ExampleGallery from './studios/ExampleGallery.js';
 
 function scopedPersistKey(baseKey, apiKey) {
   if (!apiKey) return baseKey;
@@ -1338,6 +1340,12 @@ export function AudioStudio() {
   }
 
   renderHistoryGrid();
+
+  const galleryAssets = getAssetsForStudio('audio');
+  if (galleryAssets.length > 0) {
+    const gallery = ExampleGallery({ studioId: 'audio', assets: galleryAssets, maxCards: 20 });
+    container.appendChild(gallery);
+  }
 
   return container;
 }

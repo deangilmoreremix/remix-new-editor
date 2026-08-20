@@ -1,4 +1,6 @@
 import { mountStudioChrome } from '../lib/studioChrome.js';
+import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
+import ExampleGallery from './studios/ExampleGallery.js';
 // AI-VFX Studio Page
 // Embeds the ai-vfx studio as an iframe. The iframe src is always '/ai-vfx/'
 // (same-origin). In dev, Vite proxies this path to the AI-VFX dev server on
@@ -37,5 +39,11 @@ export function AIVFXPage() {
   iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups');
   container.appendChild(iframe);
 
-  return container;
+    const galleryAssets = getAssetsForStudio('ai-vfx');
+    if (galleryAssets.length > 0) {
+      const gallery = ExampleGallery({ studioId: 'ai-vfx', assets: galleryAssets, maxCards: 20 });
+      container.appendChild(gallery);
+    }
+
+    return container;
 }
