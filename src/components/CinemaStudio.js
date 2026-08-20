@@ -20,7 +20,9 @@ import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { CINEMATIC_THEME, cx } from '../lib/cinematicTheme.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
-import ExampleGallery from './studios/ExampleGallery.jsx';
+import ExampleGallery from './studios/ExampleGallery.js';
+import { getMinimaxTemplateById } from '../lib/minimaxTemplates.js';
+import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 
 // Camera movements promised by the Cinema Studio intro copy
 // ("Select camera movement … dolly, crane, orbit, FPV drone").
@@ -84,6 +86,35 @@ export function CinemaStudio() {
       customThumbnailUrl = imageUrl;
       saveCustomThumbnailToCache('cinema-studio', imageUrl);
     });
+
+    // Read gallery / deep-link params and apply them as studio defaults.
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const templateParam = urlParams.get('template');
+      const academyParam = urlParams.get('academy-template');
+      const promptParam = urlParams.get('prompt');
+      const styleParam = urlParams.get('style');
+      const arParam = urlParams.get('aspect_ratio');
+      const durationParam = urlParams.get('duration');
+
+      if (templateParam) {
+        const tpl = getMinimaxTemplateById(templateParam);
+        if (tpl) {
+          if (tpl.model) currentSettings.model = tpl.model;
+          if (tpl.aspectRatio) currentSettings.aspect_ratio = tpl.aspectRatio;
+          if (tpl.duration) currentSettings.duration = tpl.duration;
+          if (tpl.basePrompt) currentSettings.prompt = tpl.basePrompt;
+        }
+      }
+
+      if (academyParam || promptParam) {
+        const target = academyParam ? getAcademyCreateTarget(academyParam) : null;
+        const params = target?.params || {};
+        if (params.prompt) currentSettings.prompt = params.prompt;
+        if (params.aspect_ratio) currentSettings.aspect_ratio = params.aspect_ratio;
+        if (params.duration) currentSettings.duration = params.duration;
+      }
+    } catch { /* ignore */ }
 
     // ==========================================
     // 1. HERO SECTION (Empty State)

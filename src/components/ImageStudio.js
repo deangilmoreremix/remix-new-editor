@@ -21,7 +21,9 @@ import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } fro
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
-import ExampleGallery from './studios/ExampleGallery.jsx';
+import ExampleGallery from './studios/ExampleGallery.js';
+import { getMinimaxTemplateById } from '../lib/minimaxTemplates.js';
+import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 
 export function ImageStudio() {
     const container = document.createElement('div');
@@ -70,6 +72,41 @@ export function ImageStudio() {
     
     // Quick tools panel state
     let showToolsPanel = false;
+
+    // Read gallery / deep-link params and apply them as studio defaults.
+    (async () => {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const templateParam = urlParams.get('template');
+        const academyParam = urlParams.get('academy-template');
+        const promptParam = urlParams.get('prompt');
+        const styleParam = urlParams.get('style');
+        const arParam = urlParams.get('aspect_ratio');
+
+        if (templateParam) {
+          const tpl = getMinimaxTemplateById(templateParam);
+          if (tpl) {
+            if (tpl.model) selectedModel = tpl.model;
+            if (tpl.aspectRatio) selectedAr = tpl.aspectRatio;
+            if (tpl.basePrompt) {
+              const textarea = document.getElementById('prompt-textarea');
+              if (textarea) textarea.value = tpl.basePrompt;
+            }
+          }
+        }
+
+        if (academyParam || promptParam) {
+          const target = academyParam ? getAcademyCreateTarget(academyParam) : null;
+          const params = target?.params || {};
+          if (params.prompt) {
+            const textarea = document.getElementById('prompt-textarea');
+            if (textarea) textarea.value = params.prompt;
+          }
+          if (params.style) selectedStyle = params.style;
+          if (params.aspect_ratio) selectedAr = params.aspect_ratio;
+        }
+      } catch { /* ignore */ }
+    })();
 
     const getCurrentModels = () => imageMode ? i2iModels : t2iModels;
     const getCurrentAspectRatios = (id) => imageMode ? getAspectRatiosForI2IModel(id) : getAspectRatiosForModel(id);

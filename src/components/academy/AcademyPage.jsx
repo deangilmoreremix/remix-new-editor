@@ -307,9 +307,9 @@ function LessonView({ lesson, trackSlug, onOpenTemplate, onBackToTrack, isBookma
     <div className="w-full max-w-4xl">
       <div className="mb-4">
         <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3 flex-1 min-w-0'>
+          <div className="flex items-center gap-3 flex-1 min-w-0">
             <LessonRowCheck status={status} onToggle={onToggleCompleted} />
-            <div className="flex-1 min-w-0'>
+            <div className="flex-1 min-w-0">
               <p className="text-xs uppercase tracking-wide text-white/40">Lesson {lesson.order}{lesson.time ? ' · ' + lesson.time : ''}</p>
               <h2 className="text-2xl font-bold text-white">{lesson.title}</h2>
               <p className="text-sm text-white/60 mt-1">{lesson.summary}</p>
@@ -454,7 +454,7 @@ function TrackView({ track, onOpenLesson, onOpenTemplate, onBackToHub, bookmarks
                 >
                   <LessonRowCheck status={status} onToggle={() => progressApi.toggleCompleted(l.id)} />
                   <span className="text-lg font-black text-white/30 w-6 text-center">{l.order}</span>
-                  <span className="flex-1 min-w-0'>
+                  <span className="flex-1 min-w-0">
                     <span className="block text-sm font-semibold text-white truncate">{l.title}</span>
                     <span className="block text-xs text-white/50 line-clamp-1">{l.summary}</span>
                   </span>
@@ -553,7 +553,7 @@ function Hub({ onOpenTrack, bookmarks, onToggleBookmark, onOpenLesson, progressA
                 className={cardCls + ' w-full text-left hover:border-white/25 transition flex items-center gap-3'}
               >
                 <span className="text-lg shrink-0">⭐</span>
-                <span className="flex-1 min-w-0'>
+                <span className="flex-1 min-w-0">
                   <span className="block text-sm font-semibold text-white truncate">{l.title}</span>
                   <span className="block text-xs text-white/50 line-clamp-1">{l.summary}</span>
                 </span>
