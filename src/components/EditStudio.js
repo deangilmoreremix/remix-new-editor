@@ -290,9 +290,9 @@ export function EditStudio() {
 
   const monetizationBtn = document.createElement('button');
   monetizationBtn.type = 'button';
-  monetizationBtn.textContent = 'Monetize';
-  monetizationBtn.title = 'Open monetization hub';
-  monetizationBtn.setAttribute('aria-label', 'Open monetization hub');
+  monetizationBtn.textContent = '💼 Smart Video AI Monetize';
+  monetizationBtn.title = "Open Smart Video AI Monetization Hub"
+  monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
   monetizationBtn.className = 'gtm-boost-btn shrink-0';
   monetizationBtn.addEventListener('click', () => {
     openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));

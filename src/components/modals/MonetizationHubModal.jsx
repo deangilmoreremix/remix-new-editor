@@ -5,7 +5,7 @@ import { searchTemplates, getTemplateById } from '../../lib/businessTemplates.js
 export class MonetizationHubModal extends BaseModal {
   constructor(options = {}) {
     super({
-      title: 'Monetization Hub',
+      title: 'Smart Video AI Monetization Hub',
       size: 'full',
       showFooter: false,
       ...options

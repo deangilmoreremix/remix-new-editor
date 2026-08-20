@@ -158,7 +158,7 @@ export default async function LandingPage() {
       <div class="fixed bottom-6 right-6 z-30">
         <button id="open-monetization-hub" class="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-xl shadow-lg hover:from-purple-400 hover:to-pink-400 transition-all duration-300">
           <span>💼</span>
-          <span>Monetize</span>
+          <span>Smart Video AI Monetize</span>
         </button>
       </div>
     `;
