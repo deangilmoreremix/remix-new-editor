@@ -568,25 +568,56 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
     try {
       const { url } = await socialPublishing.getConnectUrl(platform, externalUserId, redirectTo);
       const popup = window.open(url, 'muapi_oauth', 'width=600,height=720');
-      if (!popup) window.open(url, '_blank'); // fallback if blocked
+      const fallbackTab = !popup ? window.open(url, '_blank') : null;
+
+      const onFocus = async () => {
+        try {
+          await refreshAccounts();
+        } catch {
+          /* ignore transient errors while refreshing */
+        }
+      };
+
+      const stop = () => {
+        if (popupTimer.current) {
+          clearInterval(popupTimer.current);
+          popupTimer.current = null;
+        }
+        window.removeEventListener('focus', onFocus);
+        setStatus('idle');
+        setConnectingPlatform(null);
+      };
 
       if (popup) {
+        window.addEventListener('focus', onFocus);
         popupTimer.current = setInterval(async () => {
           try {
             await refreshAccounts();
           } catch {
             /* ignore transient errors while polling */
           }
-          if (!popup || popup.closed) {
-            clearInterval(popupTimer.current);
-            popupTimer.current = null;
-            if (popup && popup.closed) {
-              await refreshAccounts();
-            }
-            setStatus('idle');
-            setConnectingPlatform(null);
+          if (popup.closed) {
+            await refreshAccounts();
+            stop();
           }
         }, 2500);
+      } else if (fallbackTab) {
+        // Popup was blocked: poll on a timer and refresh when the user returns
+        // to the app tab so the new connected account appears without a manual
+        // refresh.
+        window.addEventListener('focus', onFocus);
+        popupTimer.current = setInterval(async () => {
+          try {
+            await refreshAccounts();
+          } catch {
+            /* ignore transient errors while polling */
+          }
+        }, 2500);
+      } else {
+        // Both popup and fallback failed (e.g. browser blocked both).
+        setErrorMsg('Could not open the connection page. Please allow popups and try again.');
+        setStatus('idle');
+        setConnectingPlatform(null);
       }
     } catch (e) {
       setErrorMsg(e.message || 'Could not start connection.');
@@ -798,10 +829,6 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
     const platform = selectedAccount.platform_name;
     if ((platform === 'youtube' || platform === 'tiktok') && !form.title.trim()) {
       setErrorMsg(`${PLATFORM_BY_ID[platform]?.label || platform} requires a title.`);
-      return;
-    }
-    if (platform === 'instagram' && !form.thumbnail?.imageUrl) {
-      setErrorMsg('Add a thumbnail to make your post pop (your media preview still works without one).');
       return;
     }
 
