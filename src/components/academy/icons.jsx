@@ -44,6 +44,7 @@ const PATHS = {
   ),
   X: <path d="M18 6 6 18M6 6l12 12" />,
   ArrowRight: <path d="M5 12h14M13 6l6 6-6 6" />,
+  ExternalLink: <path d="M18 6l-6 6M6 6h12v12" />,
   Layers: <path d="M12 3 3 8l9 5 9-5-9-5Zm0 9-9-5v7l9 5 9-5v-7l-9 5Z" />,
   User: (
     <>

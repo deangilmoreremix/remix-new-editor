@@ -197,7 +197,9 @@ export const ACADEMY_TRACKS = [
       "06-ai-audio-and-music::singing-vocal-studio-clip",
       "06-ai-audio-and-music::singing-vocal-studio",
       "06-ai-audio-and-music::voice-studio-clip",
-      "06-ai-audio-and-music::voice-studio-setup"
+      "06-ai-audio-and-music::voice-studio-setup",
+      "06-ai-audio-and-music::rachel-vocal-cloned",
+      "06-ai-audio-and-music::rachel-vocal-dubbed"
     ]
   },
   {
@@ -462,7 +464,11 @@ export const ACADEMY_LESSONS = [
       "character-consistency-checklist"
     ],
     "relatedAssetIds": [
-      "character-drift-car"
+      "character-anchor",
+      "character-drift-car",
+      "character-drift-kitchen",
+      "character-drift-outside",
+      "gripmount-hook-clip"
     ]
   },
   {
@@ -495,7 +501,10 @@ export const ACADEMY_LESSONS = [
       "outreach",
       "retainer"
     ],
-    "relatedAssetIds": []
+    "relatedAssetIds": [
+      "character-anchor",
+      "gripmount-hook-clip"
+    ]
   },
   {
     "id": "case-study-teardown",
@@ -509,7 +518,9 @@ export const ACADEMY_LESSONS = [
     "relatedTemplateIds": [
       "teardown"
     ],
-    "relatedAssetIds": []
+    "relatedAssetIds": [
+      "gripmount-ad3-pov"
+    ]
   },
   {
     "id": "02-ai-filmmaking::01-screenplay-and-story",
@@ -578,7 +589,9 @@ export const ACADEMY_LESSONS = [
     "prerequisites": "Screenplay & Story Generation, Assembling a Short Film",
     "rawPath": "/academy/02-ai-filmmaking/raw/lessons/05-selling-short-films.md",
     "relatedTemplateIds": [],
-    "relatedAssetIds": []
+    "relatedAssetIds": [
+      "02-ai-filmmaking::the-last-signal-poster"
+    ]
   },
   {
     "id": "03-faceless-ai-channels::01-niche-and-script",
@@ -857,7 +870,9 @@ export const ACADEMY_LESSONS = [
     "relatedTemplateIds": [],
     "relatedAssetIds": [
       "06-ai-audio-and-music::podcast-audio-console",
-      "06-ai-audio-and-music::podcast-console-clip"
+      "06-ai-audio-and-music::podcast-console-clip",
+      "06-ai-audio-and-music::rachel-vocal-cloned",
+      "06-ai-audio-and-music::rachel-vocal-dubbed"
     ]
   },
   {
@@ -1094,7 +1109,10 @@ export const ACADEMY_LESSONS = [
     "prerequisites": "[01: Consistent Headshot Generation](01-consistent-headshot-generation.md), [02: Standing Out Against Fiverr Competition](02-standing-out-against-fiverr-competition.md)",
     "rawPath": "/academy/10-ai-headshots-and-portraits/raw/lessons/03-batch-headshots-for-remote-teams.md",
     "relatedTemplateIds": [],
-    "relatedAssetIds": []
+    "relatedAssetIds": [
+      "10-ai-headshots-and-portraits::corporate-executive-headshot",
+      "10-ai-headshots-and-portraits::headshot-transformation-motion"
+    ]
   },
   {
     "id": "10-ai-headshots-and-portraits::04-creative-headshots-and-stylized-portraits",
@@ -1163,7 +1181,10 @@ export const ACADEMY_LESSONS = [
     "prerequisites": "[01: Designing Sellable AI Art](01-designing-sellable-ai-art-for-merch.md), [02: POD Platform Basics](02-print-on-demand-platform-basics.md), [03: Building a Catalog](03-building-a-catalog-without-repeating.md)",
     "rawPath": "/academy/11-ai-print-on-demand-and-merch/raw/lessons/04-pricing-and-passive-income-math.md",
     "relatedTemplateIds": [],
-    "relatedAssetIds": []
+    "relatedAssetIds": [
+      "11-ai-print-on-demand-and-merch::cyberpunk-cat-merch-tshirt",
+      "11-ai-print-on-demand-and-merch::merch-design-motion"
+    ]
   },
   {
     "id": "12-ai-stock-content-and-licensing::01-what-actually-sells-on-stock-marketplaces",
@@ -1204,7 +1225,10 @@ export const ACADEMY_LESSONS = [
     "prerequisites": "[01: What Sells on Stock Marketplaces](01-what-actually-sells-on-stock-marketplaces.md), [02: Batch-Generating a Catalog](02-batch-generating-a-licensable-catalog.md)",
     "rawPath": "/academy/12-ai-stock-content-and-licensing/raw/lessons/03-licensing-models-and-passive-income.md",
     "relatedTemplateIds": [],
-    "relatedAssetIds": []
+    "relatedAssetIds": [
+      "12-ai-stock-content-and-licensing::corporate-handshake-stock",
+      "12-ai-stock-content-and-licensing::future-technology-stock-motion"
+    ]
   },
   {
     "id": "13-ai-tools-mastery::01-image-models-which-one-for-which-use-case",
@@ -1245,7 +1269,10 @@ export const ACADEMY_LESSONS = [
     "prerequisites": "[01: Image Models](01-image-models-which-one-for-which-use-case.md), [02: Video Models](02-video-models-which-one-for-which-use-case.md)",
     "rawPath": "/academy/13-ai-tools-mastery/raw/lessons/03-voice-audio-models-which-one-for-which-use-case.md",
     "relatedTemplateIds": [],
-    "relatedAssetIds": []
+    "relatedAssetIds": [
+      "13-ai-tools-mastery::model-benchmark-comparison",
+      "13-ai-tools-mastery::tools-workflow-motion"
+    ]
   },
   {
     "id": "13-ai-tools-mastery::04-api-vs-local-decision-framework",
@@ -1257,7 +1284,10 @@ export const ACADEMY_LESSONS = [
     "prerequisites": "[01: Image Models](01-image-models-which-one-for-which-use-case.md), [02: Video Models](02-video-models-which-one-for-which-use-case.md), [03: Voice & Audio Models](03-voice-audio-models-which-one-for-which-use-case.md)",
     "rawPath": "/academy/13-ai-tools-mastery/raw/lessons/04-api-vs-local-decision-framework.md",
     "relatedTemplateIds": [],
-    "relatedAssetIds": []
+    "relatedAssetIds": [
+      "13-ai-tools-mastery::camera-motion-matrix",
+      "13-ai-tools-mastery::camera-motion-matrix-motion"
+    ]
   },
   {
     "id": "14-ai-freelancing-and-agency-business::01-pricing-your-services",
@@ -1299,7 +1329,10 @@ export const ACADEMY_LESSONS = [
     "prerequisites": "",
     "rawPath": "/academy/14-ai-freelancing-and-agency-business/raw/lessons/03-finding-and-closing-clients.md",
     "relatedTemplateIds": [],
-    "relatedAssetIds": []
+    "relatedAssetIds": [
+      "14-ai-freelancing-and-agency-business::agency-pricing-deck-mockup",
+      "14-ai-freelancing-and-agency-business::agency-pricing-deck-motion"
+    ]
   },
   {
     "id": "14-ai-freelancing-and-agency-business::04-scaling-from-freelancer-to-small-agency",
@@ -1311,7 +1344,10 @@ export const ACADEMY_LESSONS = [
     "prerequisites": "",
     "rawPath": "/academy/14-ai-freelancing-and-agency-business/raw/lessons/04-scaling-from-freelancer-to-small-agency.md",
     "relatedTemplateIds": [],
-    "relatedAssetIds": []
+    "relatedAssetIds": [
+      "14-ai-freelancing-and-agency-business::client-dashboard-metrics",
+      "14-ai-freelancing-and-agency-business::client-dashboard-motion"
+    ]
   },
   {
     "id": "14-ai-freelancing-and-agency-business::05-building-a-portfolio-that-sells",
@@ -1323,7 +1359,9 @@ export const ACADEMY_LESSONS = [
     "prerequisites": "",
     "rawPath": "/academy/14-ai-freelancing-and-agency-business/raw/lessons/05-building-a-portfolio-that-sells.md",
     "relatedTemplateIds": [],
-    "relatedAssetIds": []
+    "relatedAssetIds": [
+      "14-ai-freelancing-and-agency-business::agency-pricing-deck-mockup"
+    ]
   },
   {
     "id": "15-ai-agents-and-vibe-coding::01-what-coding-agents-actually-do",
@@ -1335,7 +1373,10 @@ export const ACADEMY_LESSONS = [
     "prerequisites": "None",
     "rawPath": "/academy/15-ai-agents-and-vibe-coding/raw/lessons/01-what-coding-agents-actually-do.md",
     "relatedTemplateIds": [],
-    "relatedAssetIds": []
+    "relatedAssetIds": [
+      "15-ai-agents-and-vibe-coding::vibe-coding-workspace",
+      "15-ai-agents-and-vibe-coding::vibe-coding-workspace-motion"
+    ]
   },
   {
     "id": "15-ai-agents-and-vibe-coding::02-building-your-first-sellable-micro-tool",
@@ -1347,7 +1388,10 @@ export const ACADEMY_LESSONS = [
     "prerequisites": "[01: What Coding Agents Actually Do](01-what-coding-agents-actually-do.md)",
     "rawPath": "/academy/15-ai-agents-and-vibe-coding/raw/lessons/02-building-your-first-sellable-micro-tool.md",
     "relatedTemplateIds": [],
-    "relatedAssetIds": []
+    "relatedAssetIds": [
+      "15-ai-agents-and-vibe-coding::micro-tool-app-interface",
+      "15-ai-agents-and-vibe-coding::micro-tool-app-motion"
+    ]
   },
   {
     "id": "15-ai-agents-and-vibe-coding::03-vibe-coding-workflow",
@@ -1359,7 +1403,9 @@ export const ACADEMY_LESSONS = [
     "prerequisites": "[01: What Coding Agents Actually Do](01-what-coding-agents-actually-do.md), [02: Building Your First Sellable Micro-Tool](02-building-your-first-sellable-micro-tool.md)",
     "rawPath": "/academy/15-ai-agents-and-vibe-coding/raw/lessons/03-vibe-coding-workflow.md",
     "relatedTemplateIds": [],
-    "relatedAssetIds": []
+    "relatedAssetIds": [
+      "15-ai-agents-and-vibe-coding::vibe-coding-workspace-motion"
+    ]
   },
   {
     "id": "15-ai-agents-and-vibe-coding::04-pricing-and-selling-tools",
@@ -1371,7 +1417,9 @@ export const ACADEMY_LESSONS = [
     "prerequisites": "[02: Building Your First Sellable Micro-Tool](02-building-your-first-sellable-micro-tool.md), [03: The Vibe-Coding Workflow](03-vibe-coding-workflow.md)",
     "rawPath": "/academy/15-ai-agents-and-vibe-coding/raw/lessons/04-pricing-and-selling-tools.md",
     "relatedTemplateIds": [],
-    "relatedAssetIds": []
+    "relatedAssetIds": [
+      "15-ai-agents-and-vibe-coding::micro-tool-app-interface"
+    ]
   }
 ];
 
@@ -2893,6 +2941,32 @@ export const ACADEMY_ASSETS = [
     "thumbnail": "/academy/06-ai-audio-and-music/images/voice-studio-setup.jpg",
     "lesson": "06-ai-audio-and-music::01-voice-cloning-tts",
     "description": "Voice Studio Setup",
+    "tags": [
+      "06-ai-audio-and-music"
+    ]
+  },
+  {
+    "id": "06-ai-audio-and-music::rachel-vocal-cloned",
+    "title": "Rachel Vocal Cloned",
+    "type": "audio",
+    "category": "06-ai-audio-and-music",
+    "src": "/academy/06-ai-audio-and-music/audio/rachel-vocal-cloned.mp3",
+    "thumbnail": "/academy/06-ai-audio-and-music/audio/rachel-vocal-cloned.mp3",
+    "lesson": "06-ai-audio-and-music::03-podcast-production",
+    "description": "Rachel Vocal Cloned",
+    "tags": [
+      "06-ai-audio-and-music"
+    ]
+  },
+  {
+    "id": "06-ai-audio-and-music::rachel-vocal-dubbed",
+    "title": "Rachel Vocal Dubbed",
+    "type": "audio",
+    "category": "06-ai-audio-and-music",
+    "src": "/academy/06-ai-audio-and-music/audio/rachel-vocal-dubbed.mp3",
+    "thumbnail": "/academy/06-ai-audio-and-music/audio/rachel-vocal-dubbed.mp3",
+    "lesson": "06-ai-audio-and-music::03-podcast-production",
+    "description": "Rachel Vocal Dubbed",
     "tags": [
       "06-ai-audio-and-music"
     ]

@@ -14,6 +14,7 @@ import {
 } from '../../data/academy/catalog.js';
 import { ACADEMY_LESSONS as RICH_LESSONS } from '../../data/academy/lessons.js';
 import { getAssetsForLesson } from '../../data/academyAssets.js';
+import { getAppForLesson, getTrackAppName } from '../../data/academyApps.js';
 import { executeRecipe } from '../../lib/recipes/executor.js';
 import { getTemplateRecipeId } from '../../data/academy/template-recipes/index.js';
 import { TemplateEditor, AssetGallery } from './InteractiveTemplates.jsx';
@@ -367,12 +368,48 @@ function LessonView({ lesson, trackSlug, onOpenTemplate, onBackToTrack, isBookma
         </div>
       ) : null}
 
-      {tab === 'see' ? (
-        <div>
-          <p className="text-sm text-white/60 mb-3">Example media referenced in this lesson.</p>
-          <AssetGallery assetIds={lesson.relatedAssetIds} />
-        </div>
-      ) : null}
+  {tab === 'see' ? (
+    <div>
+      <p className="text-sm text-white/60 mb-3">Example media referenced in this lesson.</p>
+      <AssetGallery assetIds={lesson.relatedAssetIds} />
+      {(() => {
+        const appInfo = lesson.trackSlug ? getAppForLesson(lesson.trackSlug, lesson.id) : null;
+        if (!appInfo) return null;
+        if (appInfo.format === 'studio') {
+          return (
+            <div className="mt-4">
+              <button
+                onClick={() => navigate(appInfo.pageId)}
+                className="inline-flex items-center gap-2 rounded-xl border border-white/15 text-white text-sm px-3 py-2 hover:bg-white/5 transition"
+              >
+                Open {appInfo.app_name} <Icon name="ArrowRight" size={14} />
+              </button>
+            </div>
+          );
+        }
+        if (appInfo.status === 'existing' && appInfo.repo_link) {
+          return (
+            <div className="mt-4">
+              <a
+                href={appInfo.repo_link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl border border-white/15 text-white text-sm px-3 py-2 hover:bg-white/5 transition"
+              >
+                View App Source <Icon name="ExternalLink" size={14} />
+              </a>
+            </div>
+          );
+        }
+        if (appInfo.status === 'needed') {
+          return (
+            <p className="text-sm text-white/40 mt-4">App for this lesson is under development.</p>
+          );
+        }
+        return null;
+      })()}
+    </div>
+  ) : null}
 
       {tab === 'create' ? (
         <div className="space-y-3">
