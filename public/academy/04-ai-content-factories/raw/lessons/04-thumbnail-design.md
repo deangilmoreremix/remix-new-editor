@@ -62,10 +62,10 @@ Zoom out your editor screen until the thumbnail is the size of a coin (approx. 1
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/get-rich-automated-thumbnail.jpg" alt="Thumbnail Design" width="280">
-<img src="templates/examples/thumbnail-motion-clip.gif" alt="Glowing Thumbnail Motion (I2V)" width="280">
+<img src="../images/get-rich-automated-thumbnail.jpg" alt="Thumbnail Design" width="280">
+<img src="../gifs/thumbnail-motion-clip.gif" alt="Glowing Thumbnail Motion (I2V)" width="280">
 </p>
-<p align="center"><sub>High-CTR Thumbnail Image (Left) ──► Image-to-Video Motion (Right) · Video File: <a href="templates/examples/thumbnail-motion-clip.mp4">templates/examples/thumbnail-motion-clip.mp4</a></sub></p>
+<p align="center"><sub>High-CTR Thumbnail Image (Left) ──► Image-to-Video Motion (Right) · Video File: <a href="../videos/thumbnail-motion-clip.mp4">../videos/thumbnail-motion-clip.mp4</a></sub></p>
 
 **Thumbnail Design: "Get Rich Automated"**
 
@@ -86,7 +86,7 @@ Zoom out your editor screen until the thumbnail is the size of a coin (approx. 1
 
 **The thumbnail below is real, not a mockup** — generated via `nano-banana-2` (16:9 widescreen aspect ratio) with the text overlay added programmatically, so you can see what a final high-CTR composition actually looks like:
 
-<p align="center"><img src="templates/examples/get-rich-automated-thumbnail.jpg" alt="Generated high-CTR thumbnail example" width="280"></p>
+<p align="center"><img src="../images/get-rich-automated-thumbnail.jpg" alt="Generated high-CTR thumbnail example" width="280"></p>
 
 *How this was actually produced, end to end, via the muapi API & script:*
 1. Generated the base background scene with **`nano-banana-2`** (text-to-image, $0.06/image) with a widescreen `16:9` aspect ratio.

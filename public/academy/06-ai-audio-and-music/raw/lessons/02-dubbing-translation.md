@@ -56,10 +56,10 @@ Listen to the generated foreign dub. Zoom in to the timeline in your editor:
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/dubbing-studio.jpg" alt="Dubbing Studio" width="280">
-<img src="templates/examples/dubbing-studio-clip.gif" alt="Global Dubbing Motion (I2V)" width="280">
+<img src="../images/dubbing-studio.jpg" alt="Dubbing Studio" width="280">
+<img src="../gifs/dubbing-studio-clip.gif" alt="Global Dubbing Motion (I2V)" width="280">
 </p>
-<p align="center"><sub>Dubbing Studio Image (Left) ──► Image-to-Video Dubbing Motion (Right) · Audio File: <a href="templates/examples/rachel-vocal-dubbed.mp3">templates/examples/rachel-vocal-dubbed.mp3</a> · Video File: <a href="templates/examples/dubbing-studio-clip.mp4">templates/examples/dubbing-studio-clip.mp4</a></sub></p>
+<p align="center"><sub>Dubbing Studio Image (Left) ──► Image-to-Video Dubbing Motion (Right) · Audio File: <a href="../audio/rachel-vocal-dubbed.mp3">../audio/rachel-vocal-dubbed.mp3</a> · Video File: <a href="../videos/dubbing-studio-clip.mp4">../videos/dubbing-studio-clip.mp4</a></sub></p>
 
 **Translating a SaaS Tutorial Video (English to Spanish)**
 
@@ -74,7 +74,7 @@ Listen to the generated foreign dub. Zoom in to the timeline in your editor:
 * **The Result:** The Spanish dub sits perfectly on the original video timeline. The user can export and publish the video directly.
 
 > [!NOTE]
-> You can listen to a demo of a tone-preserved Spanish dub generated with this workflow here: [rachel-vocal-dubbed.mp3](templates/examples/rachel-vocal-dubbed.mp3).
+> You can listen to a demo of a tone-preserved Spanish dub generated with this workflow here: [rachel-vocal-dubbed.mp3](../audio/rachel-vocal-dubbed.mp3).
 
 ---
 

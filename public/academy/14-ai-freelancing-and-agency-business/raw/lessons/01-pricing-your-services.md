@@ -125,8 +125,8 @@ When a corporate client asks for a discount (*"Can you do this for $3,000 instea
 2. **Benchmark Local Market Rates:** Research what traditional production houses in your area charge for video shoot days and photo retouching.
 3. **Download the Pricing Calculator Template:** Use [`templates/agency-pricing-calculator.md`](templates/agency-pricing-calculator.md) to calculate exact gross margins before sending proposals.
 4. **Inspect Agency Pitch Deck Proposal:** View the commercial pitch deck mockup graphic:
-   ![Agency Pitch Deck Proposal Mockup](templates/examples/agency-pricing-deck-mockup.jpg)
-   *Watch the proposal motion video loop ([agency-pricing-deck-motion.mp4](templates/examples/agency-pricing-deck-motion.mp4) / [.gif](templates/examples/agency-pricing-deck-motion.gif)).*
+   ![Agency Pitch Deck Proposal Mockup](../images/agency-pricing-deck-mockup.jpg)
+   *Watch the proposal motion video loop ([agency-pricing-deck-motion.mp4](../videos/agency-pricing-deck-motion.mp4) / [.gif](../gifs/agency-pricing-deck-motion.gif)).*
 
 ---
 

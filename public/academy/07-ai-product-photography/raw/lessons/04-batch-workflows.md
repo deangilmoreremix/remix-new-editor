@@ -60,10 +60,10 @@ Import your isolated PNG masks into the template:
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/batch-skincare-grid.jpg" alt="Skincare Grid" width="280">
-<img src="templates/examples/batch-skincare-grid-clip.gif" alt="Catalog Batch Motion (I2V)" width="280">
+<img src="../images/batch-skincare-grid.jpg" alt="Skincare Grid" width="280">
+<img src="../gifs/batch-skincare-grid-clip.gif" alt="Catalog Batch Motion (I2V)" width="280">
 </p>
-<p align="center"><sub>Skincare Collection Catalog Image (Left) ──► Image-to-Video Batch Lighting Motion (Right) · Video File: <a href="templates/examples/batch-skincare-grid-clip.mp4">templates/examples/batch-skincare-grid-clip.mp4</a></sub></p>
+<p align="center"><sub>Skincare Collection Catalog Image (Left) ──► Image-to-Video Batch Lighting Motion (Right) · Video File: <a href="../videos/batch-skincare-grid-clip.mp4">../videos/batch-skincare-grid-clip.mp4</a></sub></p>
 
 **Batch Catalog Refurbishing for a Skincare Brand**
 

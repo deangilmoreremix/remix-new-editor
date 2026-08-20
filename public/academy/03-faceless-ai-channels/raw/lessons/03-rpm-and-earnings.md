@@ -57,10 +57,10 @@ Calculate how many views you need to secure a digital product conversion. If you
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/faceless-finance-niche.jpg" alt="Finance Niche Studio" width="280">
-<img src="templates/examples/faceless-finance-clip.gif" alt="Finance Channel Video Motion (I2V)" width="280">
+<img src="../images/faceless-finance-niche.jpg" alt="Finance Niche Studio" width="280">
+<img src="../gifs/faceless-finance-clip.gif" alt="Finance Channel Video Motion (I2V)" width="280">
 </p>
-<p align="center"><sub>High-RPM Finance Studio Image (Left) ──► Image-to-Video Motion (Right) · Video File: <a href="templates/examples/faceless-finance-clip.mp4">templates/examples/faceless-finance-clip.mp4</a></sub></p>
+<p align="center"><sub>High-RPM Finance Studio Image (Left) ──► Image-to-Video Motion (Right) · Video File: <a href="../videos/faceless-finance-clip.mp4">../videos/faceless-finance-clip.mp4</a></sub></p>
 
 **Profitability Comparison: Niche & Format Optimization**
 

@@ -91,8 +91,8 @@ Ensure the client is legally responsible if they provide trademarked or copyrigh
 2. **Set Rigid Revision Limits:** Always state revision limits in writing in your initial project proposal.
 3. **Use Watermarked Proofing:** Deliver low-resolution watermarked previews prior to final milestone release.
 4. **Review Client Performance Dashboard:** View the client metrics dashboard report graphic:
-   ![Client Metrics Dashboard](templates/examples/client-dashboard-metrics.jpg)
-   *Watch the analytics motion video loop ([client-dashboard-motion.mp4](templates/examples/client-dashboard-motion.mp4) / [.gif](templates/examples/client-dashboard-motion.gif)).*
+   ![Client Metrics Dashboard](../images/client-dashboard-metrics.jpg)
+   *Watch the analytics motion video loop ([client-dashboard-motion.mp4](../videos/client-dashboard-motion.mp4) / [.gif](../gifs/client-dashboard-motion.gif)).*
 
 ---
 

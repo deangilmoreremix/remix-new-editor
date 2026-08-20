@@ -58,7 +58,7 @@ Set motion strength scale:
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/camera-motion-matrix.jpg" alt="Cinematic Camera Motion Matrix Graphic" width="480">
+<img src="../images/camera-motion-matrix.jpg" alt="Cinematic Camera Motion Matrix Graphic" width="480">
 </p>
 <p align="center"><sub>Cinematic Camera Motion Reference Graphic (Studio Camera Setup)</sub></p>
 

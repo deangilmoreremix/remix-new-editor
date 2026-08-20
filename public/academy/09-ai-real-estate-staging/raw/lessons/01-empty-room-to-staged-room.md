@@ -68,10 +68,10 @@ Inspect the output at 100% zoom:
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/staged-living-room.jpg" alt="Staged Living Room AI Image" width="320">
-<img src="templates/examples/living-room-staging-motion.gif" alt="Staged Living Room Motion Loop (I2V)" width="320">
+<img src="../images/staged-living-room.jpg" alt="Staged Living Room AI Image" width="320">
+<img src="../gifs/living-room-staging-motion.gif" alt="Staged Living Room Motion Loop (I2V)" width="320">
 </p>
-<p align="center"><sub>AI Staged Living Room Image (Left) ──► Image-to-Video Walkthrough Loop (Right) · Video File: <a href="templates/examples/living-room-staging-motion.mp4">templates/examples/living-room-staging-motion.mp4</a></sub></p>
+<p align="center"><sub>AI Staged Living Room Image (Left) ──► Image-to-Video Walkthrough Loop (Right) · Video File: <a href="../videos/living-room-staging-motion.mp4">../videos/living-room-staging-motion.mp4</a></sub></p>
 
 **Staging Execution Breakdown for "Oakridge Listing"**
 

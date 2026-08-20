@@ -51,7 +51,7 @@ Enable **Automatic Fulfillment** in your supplier settings so incoming store ord
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/vintage-botanical-mug-mockup.jpg" alt="Vintage Botanical Ceramic Mug Mockup" width="480">
+<img src="../images/vintage-botanical-mug-mockup.jpg" alt="Vintage Botanical Ceramic Mug Mockup" width="480">
 </p>
 <p align="center"><sub>AI Vintage Botanical Coffee Mug Mockup (Product Showcase)</sub></p>
 

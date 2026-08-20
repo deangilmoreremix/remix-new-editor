@@ -58,11 +58,11 @@ Apply a color balance adjustment layer clipped to the product layer:
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/perfume-before-after.jpg" alt="Perfume Bottle Before and After AI Studio Backdrop" width="560">
+<img src="../images/perfume-before-after.jpg" alt="Perfume Bottle Before and After AI Studio Backdrop" width="560">
 <br>
-<img src="templates/examples/perfume-motion.gif" alt="Perfume Bottle Motion Loop (I2V)" width="320">
+<img src="../gifs/perfume-motion.gif" alt="Perfume Bottle Motion Loop (I2V)" width="320">
 </p>
-<p align="center"><sub>Raw Photo vs. AI Studio Backdrop (Top) ──► Image-to-Video Reflection Loop (Bottom) · Video File: <a href="templates/examples/perfume-motion.mp4">templates/examples/perfume-motion.mp4</a></sub></p>
+<p align="center"><sub>Raw Photo vs. AI Studio Backdrop (Top) ──► Image-to-Video Reflection Loop (Bottom) · Video File: <a href="../videos/perfume-motion.mp4">../videos/perfume-motion.mp4</a></sub></p>
 
 **Backdrop Shift for an Organic Aloe Vera Gel Tube**
 
@@ -76,7 +76,7 @@ Apply a color balance adjustment layer clipped to the product layer:
 **The Result:** The product looks like it was shot in a high-end luxury spa, instantly raising its perceived value.
 
 > [!NOTE]
-> You can view a high-end product photography backdrop example here: [perfume-bottle-studio.jpg](templates/examples/perfume-bottle-studio.jpg) and its corresponding silent animation loop here: [perfume-motion.gif](templates/examples/perfume-motion.gif).
+> You can view a high-end product photography backdrop example here: [perfume-bottle-studio.jpg](../images/perfume-bottle-studio.jpg) and its corresponding silent animation loop here: [perfume-motion.gif](../gifs/perfume-motion.gif).
 
 ---
 

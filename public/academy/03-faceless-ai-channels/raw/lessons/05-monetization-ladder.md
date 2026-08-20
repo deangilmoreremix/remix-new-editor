@@ -59,10 +59,10 @@ Set up an automated workflow inside your email marketing software (e.g., Convert
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/faceless-monetization.jpg" alt="Monetization Storefront" width="280">
-<img src="templates/examples/faceless-monetization-clip.gif" alt="Digital Product Launch Motion (I2V)" width="280">
+<img src="../images/faceless-monetization.jpg" alt="Monetization Storefront" width="280">
+<img src="../gifs/faceless-monetization-clip.gif" alt="Digital Product Launch Motion (I2V)" width="280">
 </p>
-<p align="center"><sub>Product Launch Image (Left) ──► Image-to-Video Storefront Motion (Right) · Video File: <a href="templates/examples/faceless-monetization-clip.mp4">templates/examples/faceless-monetization-clip.mp4</a></sub></p>
+<p align="center"><sub>Product Launch Image (Left) ──► Image-to-Video Storefront Motion (Right) · Video File: <a href="../videos/faceless-monetization-clip.mp4">../videos/faceless-monetization-clip.mp4</a></sub></p>
 
 **Monetization of "Automate Smarter" at 2,500 Subscribers**
 

@@ -28,9 +28,9 @@ Documented, large-scale AI-UGC ad campaigns are useful teardown subjects precise
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/gripmount-ad3-pov.gif" alt="Case Study Winning UGC Video Ad" width="320">
+<img src="../gifs/gripmount-ad3-pov.gif" alt="Case Study Winning UGC Video Ad" width="320">
 </p>
-<p align="center"><sub>Image-to-Video Winning UGC Ad Teardown Loop · <a href="templates/examples/gripmount-ad3-pov.mp4">Download MP4</a></sub></p>
+<p align="center"><sub>Image-to-Video Winning UGC Ad Teardown Loop · <a href="../videos/gripmount-ad3-pov.mp4">Download MP4</a></sub></p>
 
 Say you're prospecting a skincare-serum brand and want a teardown to open the conversation. You pull up **Meta Ads Library** (free, no login needed) and search the brand's page.
 

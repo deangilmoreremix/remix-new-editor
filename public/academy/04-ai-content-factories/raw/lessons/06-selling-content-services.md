@@ -58,10 +58,10 @@ Upon payment, open a shared folder (Google Drive or Dropbox) with the client. Se
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/agency-client-pitch.jpg" alt="Agency Pitch" width="280">
-<img src="templates/examples/agency-pitch-clip.gif" alt="Pitch Boardroom Motion (I2V)" width="280">
+<img src="../images/agency-client-pitch.jpg" alt="Agency Pitch" width="280">
+<img src="../gifs/agency-pitch-clip.gif" alt="Pitch Boardroom Motion (I2V)" width="280">
 </p>
-<p align="center"><sub>Agency Pitch Image (Left) ──► Image-to-Video Boardroom Presentation (Right) · Video File: <a href="templates/examples/agency-pitch-clip.mp4">templates/examples/agency-pitch-clip.mp4</a></sub></p>
+<p align="center"><sub>Agency Pitch Image (Left) ──► Image-to-Video Boardroom Presentation (Right) · Video File: <a href="../videos/agency-pitch-clip.mp4">../videos/agency-pitch-clip.mp4</a></sub></p>
 
 **Retainer Deal: "Apex Bookkeeping" Agency Agreement**
 

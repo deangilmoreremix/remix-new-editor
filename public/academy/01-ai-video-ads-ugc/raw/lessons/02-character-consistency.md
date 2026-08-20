@@ -32,11 +32,11 @@ A fixed **seed** (the random-number starting point for generation) also helps wi
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/character-anchor.jpg" alt="Master Profile" width="220">
-<img src="templates/examples/character-drift-car.jpg" alt="Consistent Render" width="220">
-<img src="templates/examples/gripmount-hook-clip.gif" alt="Consistent Character Motion (I2V)" width="220">
+<img src="../images/character-anchor.jpg" alt="Master Profile" width="220">
+<img src="../images/character-drift-car.jpg" alt="Consistent Render" width="220">
+<img src="../gifs/gripmount-hook-clip.gif" alt="Consistent Character Motion (I2V)" width="220">
 </p>
-<p align="center"><sub>Master Character (Left) ──► Car Interior Render (Center) ──► Image-to-Video Motion (Right) · <a href="templates/examples/gripmount-hook-clip.mp4">MP4</a></sub></p>
+<p align="center"><sub>Master Character (Left) ──► Car Interior Render (Center) ──► Image-to-Video Motion (Right) · <a href="../videos/gripmount-hook-clip.mp4">MP4</a></sub></p>
 
 Say you generated an anchor image for a recurring "creator" — a woman in her late-20s, front-facing, neutral lighting, brown hair, freckles across her nose — to front your GripMount ads (Module 1) across a whole batch.
 

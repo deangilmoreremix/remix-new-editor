@@ -56,10 +56,10 @@ Place `merch-graphic-transparent.png` onto a heavy cotton t-shirt mockup in your
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/cyberpunk-cat-merch-tshirt.jpg" alt="Cyberpunk Cat Merch T-Shirt Mockup" width="320">
-<img src="templates/examples/merch-design-motion.gif" alt="Merch Product Showcase Motion (I2V)" width="320">
+<img src="../images/cyberpunk-cat-merch-tshirt.jpg" alt="Cyberpunk Cat Merch T-Shirt Mockup" width="320">
+<img src="../gifs/merch-design-motion.gif" alt="Merch Product Showcase Motion (I2V)" width="320">
 </p>
-<p align="center"><sub>AI Merch Design Mockup (Left) ──► Image-to-Video Showcase Motion (Right) · Video File: <a href="templates/examples/merch-design-motion.mp4">templates/examples/merch-design-motion.mp4</a></sub></p>
+<p align="center"><sub>AI Merch Design Mockup (Left) ──► Image-to-Video Showcase Motion (Right) · Video File: <a href="../videos/merch-design-motion.mp4">../videos/merch-design-motion.mp4</a></sub></p>
 
 **Merch Design Execution for "Cyberpunk Cat Tee"**
 

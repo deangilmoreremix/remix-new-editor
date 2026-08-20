@@ -53,7 +53,7 @@ Generate a `metadata.csv` file mapping titles and 30 keywords to each file. Uplo
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/future-technology-stock.jpg" alt="Future Technology Commercial Stock Photo" width="480">
+<img src="../images/future-technology-stock.jpg" alt="Future Technology Commercial Stock Photo" width="480">
 </p>
 <p align="center"><sub>Commercial High-Tech Stock Photograph (Batch Catalog Asset)</sub></p>
 

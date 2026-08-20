@@ -58,11 +58,11 @@ If the face in the cafe generation drifts slightly from the master, use the `/z-
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/emma-master.jpg" alt="Master Profile: Emma" width="220">
-<img src="templates/examples/emma-cafe-consistent.jpg" alt="Face-Swapped Consistent Render" width="220">
-<img src="templates/examples/emma-cafe-motion.gif" alt="Avatar Character Motion Loop (I2V)" width="220">
+<img src="../images/emma-master.jpg" alt="Master Profile: Emma" width="220">
+<img src="../images/emma-cafe-consistent.jpg" alt="Face-Swapped Consistent Render" width="220">
+<img src="../gifs/emma-cafe-motion.gif" alt="Avatar Character Motion Loop (I2V)" width="220">
 </p>
-<p align="center"><sub>Master Avatar (Left) ──► Face-Swapped Output (Center) ──► Image-to-Video Motion (Right) · Video File: <a href="templates/examples/emma-cafe-motion.mp4">templates/examples/emma-cafe-motion.mp4</a></sub></p>
+<p align="center"><sub>Master Avatar (Left) ──► Face-Swapped Output (Center) ──► Image-to-Video Motion (Right) · Video File: <a href="../videos/emma-cafe-motion.mp4">../videos/emma-cafe-motion.mp4</a></sub></p>
 
 **Creating "Emma" (Tech Influencer Avatar)**
 
@@ -78,9 +78,9 @@ If the face in the cafe generation drifts slightly from the master, use the `/z-
 **The comparison below is real, not a mockup** — showing Emma's Master Portrait side-by-side with her consistent cafe render (the master face was projected onto the target cafe scene via `ai-image-face-swap`):
 
 <p align="center">
-  <img src="templates/examples/emma-master.jpg" alt="Emma Master Portrait (1:1)" width="200">
+  <img src="../images/emma-master.jpg" alt="Emma Master Portrait (1:1)" width="200">
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="templates/examples/emma-cafe-consistent.jpg" alt="Emma consistent cafe scene (9:16)" width="158">
+  <img src="../images/emma-cafe-consistent.jpg" alt="Emma consistent cafe scene (9:16)" width="158">
 </p>
 
 *How this was actually produced via the muapi API:*

@@ -66,10 +66,10 @@ Upload the videos to YouTube Studio, TikTok Studio, and Instagram Creator Studio
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/faceless-workstation.jpg" alt="Production Workstation" width="280">
-<img src="templates/examples/faceless-workstation-clip.gif" alt="Multi-Channel Video Motion (I2V)" width="280">
+<img src="../images/faceless-workstation.jpg" alt="Production Workstation" width="280">
+<img src="../gifs/faceless-workstation-clip.gif" alt="Multi-Channel Video Motion (I2V)" width="280">
 </p>
-<p align="center"><sub>Multi-Channel Workstation Image (Left) ──► Image-to-Video Playback (Right) · Video File: <a href="templates/examples/faceless-workstation-clip.mp4">templates/examples/faceless-workstation-clip.mp4</a></sub></p>
+<p align="center"><sub>Multi-Channel Workstation Image (Left) ──► Image-to-Video Playback (Right) · Video File: <a href="../videos/faceless-workstation-clip.mp4">../videos/faceless-workstation-clip.mp4</a></sub></p>
 
 **Operating a 2-Channel Batch (Total Weekly Time: 6 hours)**
 
