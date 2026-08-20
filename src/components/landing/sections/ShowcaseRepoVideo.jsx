@@ -1,74 +1,27 @@
-// Unified repo video showcase — merges MiniMax H3, Seedance 2.5, and ZeroLu Seedance
-// demos into a single filtered gallery with per-source CTA routing and prompt loading.
+// Repo Video Showcase — demos organized by category sections.
 //
-// Replaces the legacy SeedanceShowcase component with a broader, CDN-backed gallery
-// that pulls from three BeatAPI/ZeroLu GitHub repos instead of one curated set.
+// Mirrors the existing landing-page pattern: instead of one giant filtered gallery,
+// the 530 demos are grouped into per-category sub-sections, each with its own
+// sectionHeading, curated initial card set, and "Show More" behaviour — exactly
+// like UGCDemoShowcase and MadeWithSmartVideo.
 //
-// Performance contract (mirrors AIVideoGallery):
-//  - only INITIAL_VISIBLE cards mount on first render,
-//  - every card renders its poster first; the <video> is created only when the
-//    card approaches the viewport and is paused the moment it leaves,
-//  - filtering detaches cards and pauses their video rather than orphaned players.
+// Source mapping:
+//   BeatAPI/awesome-minimax-h3-prompts     → 253 MiniMax H3 demos
+//   BeatAPI/awesome-seedance-2-5-prompts   → 242 Seedance 2.5 demos
+//   ZeroLu/awesome-seedance                → 35  Seedance 2.0 demos
+//
+// Excludes all higgsfield-branded entries (9 removed).
 
-import { minimaxH3Demos } from '../../../data/beatapiMinimaxH3Demos.js';
-import { getCreateTarget as getCreateTargetMinimax } from '../../../data/beatapiMinimaxH3Demos.js';
-import { loadDemoPrompt as loadDemoPromptMinimax } from '../../../data/beatapiMinimaxH3Demos.js';
-import { MINIMAX_MODEL } from '../../../data/beatapiMinimaxH3Demos.js';
-
-import { seedance25Demos } from '../../../data/beatapiSeedance25Demos.js';
-import { getCreateTarget as getCreateTargetSeedance } from '../../../data/beatapiSeedance25Demos.js';
-import { loadDemoPrompt as loadDemoPromptSeedance } from '../../../data/beatapiSeedance25Demos.js';
-import { SEEDANCE_MODEL } from '../../../data/beatapiSeedance25Demos.js';
-
-import { zeroLuDemos } from '../../../data/zeroLuDemos.js';
-import { getCreateTarget as getCreateTargetZeroLu } from '../../../data/zeroLuDemos.js';
-import { loadDemoPrompt as loadDemoPromptZeroLu } from '../../../data/zeroLuDemos.js';
-import { ZERO_LU_MODEL } from '../../../data/zeroLuDemos.js';
+import { minimaxH3Demos, getCreateTarget as getCreateTargetMinimax, loadDemoPrompt as loadDemoPromptMinimax, MINIMAX_MODEL } from '../../../data/beatapiMinimaxH3Demos.js';
+import { seedance25Demos, getCreateTarget as getCreateTargetSeedance, loadDemoPrompt as loadDemoPromptSeedance, SEEDANCE_MODEL } from '../../../data/beatapiSeedance25Demos.js';
+import { zeroLuDemos, getCreateTarget as getCreateTargetZeroLu, loadDemoPrompt as loadDemoPromptZeroLu, ZERO_LU_MODEL } from '../../../data/zeroLuDemos.js';
 
 import { createMediaFrame, cleanupFrames, pauseFramesIn, revealOnScroll } from './minimax/mediaFrame.js';
-import {
-  injectMinimaxStyles,
-  sectionHeading,
-  createStyleLink,
-  createViewPromptButton,
-  metaPill,
-  categoryBadge,
-  escapeHtml,
-} from './minimax/ui.js';
+import { injectMinimaxStyles, sectionHeading, createStyleLink, createViewPromptButton, metaPill, categoryBadge, escapeHtml } from './minimax/ui.js';
 import { handleViewPrompt } from './minimax/DemoPromptModal.js';
 
-/** Cards rendered before the visitor asks for more. */
-const INITIAL_VISIBLE = 12;
-
-/** Unified 12-label category vocabulary (matches ui.js design system). */
-const SHOWCASE_CATEGORIES = [
-  'All',
-  'Action',
-  'Animation',
-  'Beauty',
-  'Characters',
-  'Cinema',
-  'Commercial',
-  'Fashion',
-  'Food',
-  'Social',
-  'UGC',
-  'VFX',
-  'Web / UI',
-];
-
-/**
- * Merges the three repo demo arrays into one, tagging each with its source
- * so the card can pick the correct CTA target and prompt loader.
- *
- * Demos without a playable video (poster-only) are excluded from the main
- * gallery but remain available in their source data module if needed later.
- */
-const ALL_DEMOS = [
-  ...seedance25Demos.map((d) => ({ ...d, source: 'seedance25' })),
-  ...minimaxH3Demos.map((d) => ({ ...d, source: 'minimaxh3' })),
-  ...zeroLuDemos.filter((d) => d.videoSrc).map((d) => ({ ...d, source: 'zeroLu' })),
-];
+/** Cards per category section before "Show More" expands. */
+const INITIAL_VISIBLE = 8;
 
 /** Per-source adapters for CTA routing and prompt loading. */
 const SOURCE_ADAPTERS = {
@@ -76,33 +29,110 @@ const SOURCE_ADAPTERS = {
     getCreateTarget: getCreateTargetSeedance,
     loadDemoPrompt: loadDemoPromptSeedance,
     modelName: SEEDANCE_MODEL,
-    modelRef: 'seedance-2.5',
   },
   minimaxh3: {
     getCreateTarget: getCreateTargetMinimax,
     loadDemoPrompt: loadDemoPromptMinimax,
     modelName: MINIMAX_MODEL,
-    modelRef: 'minimax-h3',
   },
   zeroLu: {
     getCreateTarget: getCreateTargetZeroLu,
     loadDemoPrompt: loadDemoPromptZeroLu,
     modelName: ZERO_LU_MODEL,
-    modelRef: 'seedance-2.0',
   },
 };
 
 /** Source label for attribution badges on cards. */
 function sourceLabel(source) {
-  return source === 'minimaxh3'
-    ? 'MiniMax H3'
-    : source === 'seedance25'
-    ? 'Seedance 2.5'
-    : source === 'zeroLu'
-    ? 'Seedance 2.0'
+  return source === 'minimaxh3' ? 'MiniMax H3'
+    : source === 'seedance25' ? 'Seedance 2.5'
+    : source === 'zeroLu' ? 'Seedance 2.0'
     : source;
 }
 
+/** Safe duration formatter. */
+function formatDurationSafe(demo) {
+  if (!demo.duration) return '—';
+  return demo.duration + 's';
+}
+
+/**
+ * Merge all three repo demo arrays, tagging each with its source.
+ */
+const ALL_DEMOS = [
+  ...seedance25Demos.map((d) => ({ ...d, source: 'seedance25' })),
+  ...minimaxH3Demos.map((d) => ({ ...d, source: 'minimaxh3' })),
+  ...zeroLuDemos.filter((d) => d.videoSrc).map((d) => ({ ...d, source: 'zeroLu' })),
+];
+
+/**
+ * Category section configs — each defines its heading, which categories
+ * to pull from, and how many to show initially.
+ *
+ * Sparse categories (Beauty, Characters, Food, Web/UI) are merged into
+ * the "More Styles" section so every section has enough content.
+ */
+const SECTIONS = [
+  {
+    id: 'commercial',
+    title: 'Commercial & Ads',
+    subtitle: 'Product spots, brand films, and e-commerce demos — every clip is a runnable prompt.',
+    categories: ['Commercial'],
+    initial: 12,
+  },
+  {
+    id: 'cinema',
+    title: 'Cinema & Film',
+    subtitle: 'Narrative shorts, concept films, and cinematic sequences with source-verified reference videos.',
+    categories: ['Cinema'],
+    initial: 12,
+  },
+  {
+    id: 'social',
+    title: 'Social & UGC',
+    subtitle: 'Vlogs, memes, and creator-style content built for TikTok, Instagram, and Shorts.',
+    categories: ['Social', 'UGC'],
+    initial: 12,
+  },
+  {
+    id: 'animation',
+    title: 'Animation',
+    subtitle: 'Stylized 2D, 3D, and anime motion graphics with consistent characters and worlds.',
+    categories: ['Animation'],
+    initial: 12,
+  },
+  {
+    id: 'fashion',
+    title: 'Fashion & Style',
+    subtitle: 'Runway looks, beauty reels, and luxury product films with premium cinematic polish.',
+    categories: ['Fashion', 'Beauty'],
+    initial: 8,
+  },
+  {
+    id: 'action',
+    title: 'Action & VFX',
+    subtitle: 'Explosions, fight scenes, game cinematics, titan-scale VFX and motion graphics.',
+    categories: ['Action', 'VFX', 'Characters'],
+    initial: 12,
+  },
+];
+
+/** Build the section label for the eyebrow. */
+function sectionEyebrow(section) {
+  const labels = {
+    commercial: 'Ads & Brands',
+    cinema: 'Cinematic Shorts',
+    social: 'Social Content',
+    animation: 'Animated Motion',
+    fashion: 'Fashion & Beauty',
+    action: 'Action & VFX',
+  };
+  return labels[section.id] || section.title;
+}
+
+/**
+ * Build a gallery card for a demo, with per-source CTA and prompt loading.
+ */
 function createGalleryCard(demo) {
   const adapter = SOURCE_ADAPTERS[demo.source] || SOURCE_ADAPTERS.minimaxh3;
 
@@ -111,8 +141,8 @@ function createGalleryCard(demo) {
     'repo-card mmx-reveal group flex flex-col overflow-hidden rounded-xl border border-white/8 bg-white/[0.025]';
   card.dataset.mmxSlug = demo.slug;
   card.dataset.mmxCategory = demo.category;
+  card.dataset.repoSource = demo.source;
 
-  // Determine aspect ratio for the video frame (defaults to 16:9).
   const [w, h] = (demo.aspectRatio || '16:9').split(':').map(Number);
   const ratio = w && h ? w / h : 16 / 9;
 
@@ -128,7 +158,7 @@ function createGalleryCard(demo) {
     <div class="flex flex-1 flex-col p-4">
       <span class="text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-400/80">${escapeHtml(demo.category)}</span>
       <h3 class="mt-1.5 text-sm font-bold leading-snug text-white">${escapeHtml(demo.title)}</h3>
-      <p class="mt-1 flex-1 text-xs leading-relaxed text-gray-500">${escapeHtml(demo.useCase || '')}</p>
+      <p class="mt-1 flex-1 text-xs leading-relaxed text-gray-500">${escapeHtml(demo.useCase || demo.category)}</p>
       <div class="mt-4 flex flex-wrap items-center gap-2" data-repo-card-actions></div>
     </div>
   `;
@@ -158,84 +188,56 @@ function createGalleryCard(demo) {
       getTarget: adapter.getCreateTarget,
     })
   );
-  actions.appendChild(createStyleLink(demo, { label: 'Create This Style', variant: 'ghost', getTarget: adapter.getCreateTarget }));
+  actions.appendChild(createStyleLink(demo, {
+    label: 'Create This Style',
+    variant: 'ghost',
+    getTarget: adapter.getCreateTarget,
+  }));
 
   return card;
 }
 
-/** Safe duration formatter that tolerates undefined demos. */
-function formatDurationSafe(demo) {
-  if (!demo.duration) return '—';
-  return demo.duration + 's';
-}
+/**
+ * Create a category section element with its own heading, grid, and
+ * lazy-loaded card pool.
+ */
+function createCategorySection(sectionConfig, allDemos) {
+  const sectionDemos = allDemos.filter((d) =>
+    sectionConfig.categories.includes(d.category)
+  );
 
-/** Counts demos per category from the merged set. */
-function getMergedCategoryCounts() {
-  return ALL_DEMOS.reduce((acc, demo) => {
-    acc[demo.category] = (acc[demo.category] || 0) + 1;
-    return acc;
-  }, {});
-}
-
-export function ShowcaseRepoVideo() {
-  injectMinimaxStyles();
-
-  const counts = getMergedCategoryCounts();
+  if (sectionDemos.length === 0) return null;
 
   const section = document.createElement('section');
-  section.id = 'repo-video-showcase';
-  section.className =
-    'relative overflow-hidden bg-gradient-to-b from-[#020205] via-[#05070b] to-[#020205] px-5 py-20 sm:px-6 md:py-28';
-  section.setAttribute('aria-labelledby', 'repo-showcase-heading');
-  section.setAttribute('data-testid', 'repo-video-showcase');
+  section.id = `repo-${sectionConfig.id}-section`;
+  section.className = 'relative py-16 sm:py-20';
+  section.setAttribute('aria-labelledby', `repo-${sectionConfig.id}-heading`);
 
   section.innerHTML = `
-    <div class="container relative z-10 mx-auto max-w-7xl">
+    <div class="container relative mx-auto max-w-7xl px-5 sm:px-6">
       ${sectionHeading({
-        eyebrow: `${ALL_DEMOS.length} AI video demos`,
-        title: 'Every Style You Can',
-        accent: 'Generate Today',
-        subtitle:
-          'Commercials, UGC, cinema, VFX, animation, and social content — every clip below started as a single prompt from three curated GitHub repos.',
-        id: 'repo-showcase-heading',
+        eyebrow: sectionEyebrow(sectionConfig),
+        title: sectionConfig.title,
+        accent: '',
+        subtitle: sectionConfig.subtitle,
+        id: `repo-${sectionConfig.id}-heading`,
       })}
 
-      <!-- category filter -->
-      <div class="mmx-reveal mb-8 flex flex-wrap justify-center gap-2" role="group" aria-label="Filter demos by category" data-repo-filters>
-        ${SHOWCASE_CATEGORIES.map((category) => {
-          const count = category === 'All' ? ALL_DEMOS.length : counts[category] || 0;
-          return `
-            <button
-              type="button"
-              data-repo-filter="${escapeHtml(category)}"
-              aria-pressed="${category === 'All' ? 'true' : 'false'}"
-              class="inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-1.5 text-xs font-semibold transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#020205]"
-            >
-              <span>${escapeHtml(category)}</span>
-              <span class="text-[10px] tabular-nums opacity-50">${count}</span>
-            </button>`;
-        }).join('')}
-      </div>
-
-      <p class="sr-only" role="status" aria-live="polite" data-repo-gallery-status></p>
+      <p class="sr-only" role="status" aria-live="polite" data-repo-status-${sectionConfig.id}></p>
 
       <div
         class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:gap-5"
-        data-repo-gallery-grid
+        data-repo-grid-${sectionConfig.id}
       ></div>
-
-      <p class="mt-10 hidden text-center text-sm text-gray-500" data-repo-empty>
-        No demos in this category yet.
-      </p>
 
       <div class="mt-12 flex justify-center">
         <button
           type="button"
-          data-repo-show-more
+          data-repo-show-more-${sectionConfig.id}
           class="btn-enhanced inline-flex items-center gap-2 rounded-lg border border-white/12 bg-white/[0.03] px-6 py-3 text-sm font-bold text-white transition-all duration-300 hover:border-cyan-400/50 hover:bg-cyan-400/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#020205]"
         >
-          <span data-repo-show-more-label>Show More</span>
-          <svg class="h-4 w-4 transition-transform duration-300" data-repo-show-more-icon fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <span data-show-more-label-${sectionConfig.id}>Show All ${sectionDemos.length} Demos</span>
+          <svg class="h-4 w-4 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
           </svg>
         </button>
@@ -243,48 +245,25 @@ export function ShowcaseRepoVideo() {
     </div>
   `;
 
-  const grid = section.querySelector('[data-repo-gallery-grid]');
-  const filterHost = section.querySelector('[data-repo-filters]');
-  const filterButtons = Array.from(section.querySelectorAll('[data-repo-filter]'));
-  const showMoreButton = section.querySelector('[data-repo-show-more]');
-  const showMoreLabel = section.querySelector('[data-repo-show-more-label]');
-  const showMoreIcon = section.querySelector('[data-repo-show-more-icon]');
-  const statusEl = section.querySelector('[data-repo-gallery-status]');
-  const emptyEl = section.querySelector('[data-repo-empty]');
+  const grid = section.querySelector(`[data-repo-grid-${sectionConfig.id}]`);
+  const showMoreButton = section.querySelector(`[data-repo-show-more-${sectionConfig.id}]`);
+  const showMoreLabel = section.querySelector(`[data-show-more-label-${sectionConfig.id}]`);
+  const statusEl = section.querySelector(`[data-repo-status-${sectionConfig.id}]`);
 
-  /** Cards are built once and reused across filter changes. */
   const cardCache = new Map();
 
   function getCard(demo) {
-    if (!cardCache.has(demo.slug)) cardCache.set(demo.slug, createGalleryCard(demo));
+    if (!cardCache.has(demo.slug)) {
+      cardCache.set(demo.slug, createGalleryCard(demo));
+    }
     return cardCache.get(demo.slug);
   }
 
-  let activeCategory = 'All';
   let expanded = false;
-  let disposeReveal = () => {};
-
-  const FILTER_ACTIVE = ['border-cyan-400/50', 'bg-cyan-400/10', 'text-cyan-200'];
-  const FILTER_IDLE = ['border-white/10', 'bg-white/[0.03]', 'text-white/60'];
-
-  function paintFilters() {
-    filterButtons.forEach((button) => {
-      const active = button.dataset.repoFilter === activeCategory;
-      button.setAttribute('aria-pressed', String(active));
-      FILTER_ACTIVE.forEach((cls) => button.classList.toggle(cls, active));
-      FILTER_IDLE.forEach((cls) => button.classList.toggle(cls, !active));
-    });
-  }
 
   function render() {
-    const filtered =
-      activeCategory === 'All'
-        ? ALL_DEMOS
-        : ALL_DEMOS.filter((demo) => demo.category === activeCategory);
+    const visible = expanded ? sectionDemos : sectionDemos.slice(0, sectionConfig.initial);
 
-    const visible = expanded ? filtered : filtered.slice(0, INITIAL_VISIBLE);
-
-    // Detach current cards without destroying them, pausing any active video.
     pauseFramesIn(grid);
     while (grid.firstChild) grid.removeChild(grid.firstChild);
 
@@ -292,36 +271,26 @@ export function ShowcaseRepoVideo() {
     visible.forEach((demo) => fragment.appendChild(getCard(demo)));
     grid.appendChild(fragment);
 
-    emptyEl.classList.toggle('hidden', filtered.length > 0);
-
-    // Show More is only meaningful when the filter has more than we render.
-    const hasMore = filtered.length > INITIAL_VISIBLE;
+    const hasMore = sectionDemos.length > sectionConfig.initial;
     showMoreButton.parentElement.classList.toggle('hidden', !hasMore);
+
     if (hasMore) {
       showMoreLabel.textContent = expanded
         ? 'Show Less'
-        : 'Show All ' + filtered.length + ' Demos';
-      showMoreIcon.classList.toggle('rotate-180', expanded);
+        : 'Show All ' + sectionDemos.length + ' Demos';
       showMoreButton.setAttribute('aria-expanded', String(expanded));
     }
 
-    statusEl.textContent = 'Showing ' + visible.length + ' of ' + filtered.length + ' demos' +
-      (activeCategory === 'All' ? '' : ' in ' + activeCategory) + '.';
+    statusEl.textContent = 'Showing ' + visible.length + ' of ' + sectionDemos.length + ' demos.';
 
-    disposeReveal();
-    disposeReveal = revealOnScroll(grid.querySelectorAll('.mmx-reveal'), { stagger: 55 });
+    const disposeReveal = revealOnScroll(grid.querySelectorAll('.mmx-reveal'), { stagger: 45 });
+
+    // Store cleanup
+    section._disposeReveal = () => {
+      disposeReveal();
+      cardCache.forEach((card) => cleanupFrames(card));
+    };
   }
-
-  filterHost.addEventListener('click', (event) => {
-    const button = event.target.closest('[data-repo-filter]');
-    if (!button) return;
-    const next = button.dataset.repoFilter;
-    if (next === activeCategory) return;
-    activeCategory = next;
-    expanded = false;
-    paintFilters();
-    render();
-  });
 
   showMoreButton.addEventListener('click', () => {
     expanded = !expanded;
@@ -331,23 +300,34 @@ export function ShowcaseRepoVideo() {
     }
   });
 
-  paintFilters();
   render();
 
-  // Reveal the heading / filter row too.
-  const disposeHeaderReveal = revealOnScroll(
-    section.querySelectorAll(':scope > .container > .mmx-reveal')
-  );
+  return section;
+}
 
-  section.cleanup = () => {
-    disposeReveal();
-    disposeHeaderReveal();
-    cardCache.forEach((card) => cleanupFrames(card));
-    cardCache.clear();
-    cleanupFrames(section);
+export function ShowcaseRepoVideo() {
+  injectMinimaxStyles();
+
+  const container = document.createElement('div');
+  container.id = 'repo-video-showcase';
+  container.className = 'relative';
+  container.setAttribute('aria-label', 'Repo video demos by category');
+
+  // Create a section per category group
+  for (const sectionConfig of SECTIONS) {
+    const section = createCategorySection(sectionConfig, ALL_DEMOS);
+    if (section) container.appendChild(section);
+  }
+
+  // Cleanup function
+  container.cleanup = () => {
+    container.querySelectorAll('section').forEach((s) => {
+      if (s._disposeReveal) s._disposeReveal();
+      cleanupFrames(s);
+    });
   };
 
-  return section;
+  return container;
 }
 
 export default ShowcaseRepoVideo;
