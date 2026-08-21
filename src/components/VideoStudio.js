@@ -23,7 +23,7 @@ import { categorizeGenerationError, createAbortAwareGenerate, startGenerationPro
 import { showToast, createLoadingOverlay, createProgressBar } from '../lib/loading.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import ExampleGallery from './studios/ExampleGallery.js';
-import { getMinimaxTemplateById } from '../lib/minimaxTemplates.js';
+import { resolveTemplate } from '../lib/showcaseTemplateResolver.js';
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 
 export function VideoStudio() {
@@ -88,7 +88,7 @@ export function VideoStudio() {
 
       if (templateParam) {
         // MiniMax / template deep-link: resolve template and apply defaults.
-        const tpl = getMinimaxTemplateById(templateParam);
+        const tpl = resolveTemplate(templateParam);
         if (tpl) {
           if (tpl.model) selectedModel = tpl.model;
           if (tpl.aspectRatio) selectedAr = tpl.aspectRatio;

@@ -21,7 +21,7 @@ import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { CINEMATIC_THEME, cx } from '../lib/cinematicTheme.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import ExampleGallery from './studios/ExampleGallery.js';
-import { getMinimaxTemplateById } from '../lib/minimaxTemplates.js';
+import { resolveTemplate } from '../lib/showcaseTemplateResolver.js';
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 
 // Camera movements promised by the Cinema Studio intro copy
@@ -98,7 +98,7 @@ export function CinemaStudio() {
       const durationParam = urlParams.get('duration');
 
       if (templateParam) {
-        const tpl = getMinimaxTemplateById(templateParam);
+        const tpl = resolveTemplate(templateParam);
         if (tpl) {
           if (tpl.model) currentSettings.model = tpl.model;
           if (tpl.aspectRatio) currentSettings.aspect_ratio = tpl.aspectRatio;

@@ -22,7 +22,7 @@ import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import ExampleGallery from './studios/ExampleGallery.js';
-import { getMinimaxTemplateById } from '../lib/minimaxTemplates.js';
+import { resolveTemplate } from '../lib/showcaseTemplateResolver.js';
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 
 export function ImageStudio() {
@@ -84,7 +84,7 @@ export function ImageStudio() {
         const arParam = urlParams.get('aspect_ratio');
 
         if (templateParam) {
-          const tpl = getMinimaxTemplateById(templateParam);
+          const tpl = resolveTemplate(templateParam);
           if (tpl) {
             if (tpl.model) selectedModel = tpl.model;
             if (tpl.aspectRatio) selectedAr = tpl.aspectRatio;
