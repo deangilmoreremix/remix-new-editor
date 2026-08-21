@@ -130,7 +130,6 @@ export function CinemaTemplateStudio() {
       backBtn.parentElement.insertBefore(menuBtn, backBtn);
     });
   }
-  }
 
   function renderBrowseView() {
     const favCount = registry.getAll().filter(t => TemplateStorage.isFavorite(t.id)).length;

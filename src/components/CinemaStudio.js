@@ -1228,8 +1228,10 @@ generateBtn.type = 'button';
                     aspect_ratio: currentSettings.aspect_ratio,
                     duration,
                     resolution,
-thumbnail_url: customThumbnailUrl || undefined,
-                });
+                    thumbnail_url: customThumbnailUrl || undefined,
+                };
+                if (refImages) i2vParams.reference_images = refImages;
+                res = await muapi.generateI2V(i2vParams);
             } else {
                 const t2vParams = {
                     model: resolvedModel,
@@ -1237,8 +1239,10 @@ thumbnail_url: customThumbnailUrl || undefined,
                     aspect_ratio: currentSettings.aspect_ratio,
                     duration,
                     resolution,
-thumbnail_url: customThumbnailUrl || undefined,
-                });
+                    thumbnail_url: customThumbnailUrl || undefined,
+                };
+                if (refImages) t2vParams.reference_images = refImages;
+                res = await muapi.generateVideo(t2vParams);
             }
 
 
