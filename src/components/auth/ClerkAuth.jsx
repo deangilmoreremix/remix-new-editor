@@ -84,7 +84,7 @@ export function ClerkSignUp() {
 function AccountShell() {
   const { isLoaded, isSignedIn, user } = useUser();
   if (!isLoaded) return <div style={{ color: '#94a3b8', padding: 24 }}>Loading…</div>;
-  if (!isSignedIn) return <SignInPage />;
+  if (!isSignedIn || !user) return <SignInPage />;
 
   const createdAt = user?.createdAt
     ? new Date(user.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
@@ -170,7 +170,7 @@ function AccountShell() {
 function ProfileShell() {
   const { isLoaded, isSignedIn, user } = useUser();
   if (!isLoaded) return <div style={{ color: '#94a3b8', padding: 24 }}>Loading…</div>;
-  if (!isSignedIn) return <SignUpPage />;
+  if (!isSignedIn || !user) return <SignUpPage />;
 
   return (
     <div className="min-h-screen bg-[#020205] text-white">

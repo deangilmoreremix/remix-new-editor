@@ -10,7 +10,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSignUp, useUser } from '@clerk/react';
-import { clerkErrorMessage, clerkWithTimeout, handleNavClick } from './AuthLayout.jsx';
+import { clerkErrorMessage, clerkWithTimeout, handleNavClick, clearClerkSession } from './AuthLayout.jsx';
 
 export function SignUpPage() {
   const { signUp, errors, fetchStatus } = useSignUp();
@@ -26,10 +26,15 @@ export function SignUpPage() {
 
   // Redirect already-signed-in users away from the sign-up form
   useEffect(() => {
-    if (userLoaded && isSignedIn) {
+    if (!userLoaded) return;
+    if (isSignedIn && !user) {
+      clearClerkSession({ reload: true });
+      return;
+    }
+    if (isSignedIn) {
       window.location.href = '/#/image';
     }
-  }, [userLoaded, isSignedIn]);
+  }, [userLoaded, isSignedIn, user]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

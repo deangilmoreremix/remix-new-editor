@@ -8,7 +8,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSignIn, useUser, useClerk } from '@clerk/react';
-import { clerkErrorMessage, clerkWithTimeout, handleNavClick } from './AuthLayout.jsx';
+import { clerkErrorMessage, clerkWithTimeout, handleNavClick, clearClerkSession } from './AuthLayout.jsx';
 
 export function SignInPage() {
   const { signIn, errors, fetchStatus } = useSignIn();
@@ -22,11 +22,21 @@ export function SignInPage() {
   // If the user is already signed in, redirect them away from the sign-in
   // page to the app. Without this check, signed-in users see the form and
   // can't proceed — they're stuck on /signin with no usable navigation.
+  //
+  // Guard against the stale-session state where Clerk reports isSignedIn=true
+  // but user is null/undefined. In that case the session cookies are invalid,
+  // so clearing them and reloading is safer than redirecting into a broken
+  // authenticated state or a redirect loop.
   useEffect(() => {
-    if (userLoaded && isSignedIn) {
+    if (!userLoaded) return;
+    if (isSignedIn && !user) {
+      clearClerkSession({ reload: true });
+      return;
+    }
+    if (isSignedIn) {
       window.location.href = '/#/image';
     }
-  }, [userLoaded, isSignedIn]);
+  }, [userLoaded, isSignedIn, user]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

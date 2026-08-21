@@ -18,6 +18,7 @@ import {
   PasswordInput,
   clerkErrorMessage,
   clerkWithTimeout,
+  clearClerkSession,
 } from './AuthLayout.jsx';
 
 export function ResetPasswordPage() {
@@ -36,10 +37,15 @@ export function ResetPasswordPage() {
 
   // Redirect already-signed-in users to the app
   useEffect(() => {
-    if (userLoaded && isSignedIn) {
+    if (!userLoaded) return;
+    if (isSignedIn && !user) {
+      clearClerkSession({ reload: true });
+      return;
+    }
+    if (isSignedIn) {
       window.location.href = '/#/image';
     }
-  }, [userLoaded, isSignedIn]);
+  }, [userLoaded, isSignedIn, user]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

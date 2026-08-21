@@ -17,6 +17,7 @@ import {
   authInputClass,
   clerkErrorMessage,
   clerkWithTimeout,
+  clearClerkSession,
 } from './AuthLayout.jsx';
 
 export function ForgotPasswordPage() {
@@ -30,10 +31,15 @@ export function ForgotPasswordPage() {
 
   // Redirect already-signed-in users
   useEffect(() => {
-    if (userLoaded && isSignedIn) {
+    if (!userLoaded) return;
+    if (isSignedIn && !user) {
+      clearClerkSession({ reload: true });
+      return;
+    }
+    if (isSignedIn) {
       window.location.href = '/#/image';
     }
-  }, [userLoaded, isSignedIn]);
+  }, [userLoaded, isSignedIn, user]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
