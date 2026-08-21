@@ -46,18 +46,18 @@ export function SignUpPage() {
     try { signUp.reset(); } catch {}
 
     const { error: resultError } = await clerkWithTimeout(
-      signUp.password({
+signUp.password({
         emailAddress: email,
         password,
         ...(firstName ? { firstName } : {}),
       })
     );
     if (resultError) {
-      setError(clerkErrorMessage(resultError, errors) || 'Sign up failed. Please try again.');
+      setError(clerkErrorMessage(resultError, errors) || 'Could not create your account. Please try again.');
       setLoading(false);
       return;
     }
-    if (signUp.status === 'complete') {
+if (signUp.status === 'complete') {
       await signUp.finalize({
         navigate: async ({ decorateUrl }) => {
           const url = decorateUrl('/#/image');
@@ -71,10 +71,11 @@ export function SignUpPage() {
       signUp.verifications.sendEmailCode()
     );
     if (sendError) {
-      setError(clerkErrorMessage(sendError, errors) || 'Could not send a verification code.');
+      setError(clerkErrorMessage(sendError, errors) || 'Could not send verification email. Please try again.');
       setLoading(false);
       return;
     }
+
     setStep('verify');
     setLoading(false);
   };
@@ -84,16 +85,18 @@ export function SignUpPage() {
     if (!isLoaded || fetchStatus === 'fetching') return;
     setLoading(true);
     setError('');
+
     const { error: resultError } = await clerkWithTimeout(
       signUp.verifications.verifyEmailCode({ code })
     );
     if (resultError) {
-      setError(clerkErrorMessage(resultError, errors) || 'Invalid verification code.');
+      setError(clerkErrorMessage(resultError, errors) || 'Verification failed. Please check your code and try again.');
       setLoading(false);
       return;
     }
+
     if (signUp.status === 'complete') {
-      await signUp.finalize({
+await signUp.finalize({
         navigate: async ({ decorateUrl }) => {
           const url = decorateUrl('/#/image');
           window.location.href = url.startsWith('http') ? url : '/#/image';
@@ -101,12 +104,12 @@ export function SignUpPage() {
       });
       return;
     }
-    setError(clerkErrorMessage(null, errors) || 'Verification could not be completed. Please try again.');
+
     setLoading(false);
   };
 
   return (
-    <div
+<div
       className="signup-page min-h-screen bg-[#020205] flex flex-col"
       lang={document.documentElement.lang || 'en'}
     >
@@ -134,10 +137,8 @@ export function SignUpPage() {
             <a href="/signin" className="px-4 py-2 text-sm text-[#e4e4e7] hover:text-[#22d3ee] transition font-medium">Sign In</a>
             <a href="#/apps" onClick={(e) => handleNavClick(e, 'apps')} className="px-4 py-2 text-sm bg-cyan-400 text-[#020205] hover:bg-cyan-300 transition font-medium" style={{ letterSpacing: '0.05em', textTransform: 'uppercase' }}>Home</a>
           </div>
-        </nav>
-      </header>
 
-      {/* Main Content */}
+{/* Main Content */}
       <main className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md mx-auto">
           {/* Sign Up Card */}
@@ -296,8 +297,52 @@ export function SignUpPage() {
               </>
             )}
           </div>
-        </div>
-      </main>
-    </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={loading || !isLoaded}
+            className="w-full px-6 py-3 bg-gradient-to-r from-cyan-400 to-cyan-300 text-[#020205] font-bold rounded-lg hover:from-cyan-300 hover:to-cyan-200 transition-all duration-200 shadow-lg shadow-cyan-400/25 hover:shadow-cyan-300/40 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Creating Account…' : 'Create Account'}
+          </button>
+          <div id="clerk-captcha" />
+
+          <AuthFooterComponent>
+            Already have an account?{' '}
+            <button type="button" onClick={() => navigate('/signin')} className="text-cyan-400 hover:text-cyan-300 font-medium transition">
+              Sign in
+            </button>
+          </AuthFooterComponent>
+        </form>
+      ) : (
+        <form onSubmit={handleVerify} className="space-y-5">
+          <p className="text-sm text-slate-300">We sent a verification code to <span className="text-cyan-300">{email}</span>.</p>
+
+          {/* Verification Code */}
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-2">Verification Code</label>
+            <input
+              type="text"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder="Enter the 6-digit code"
+              className={authInputClass}
+              required
+            />
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={loading || !isLoaded}
+            className="w-full px-6 py-3 bg-gradient-to-r from-cyan-400 to-cyan-300 text-[#020205] font-bold rounded-lg hover:from-cyan-300 hover:to-cyan-200 transition-all duration-200 shadow-lg shadow-cyan-400/25 hover:shadow-cyan-300/40 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Verifying…' : 'Verify Email'}
+          </button>
+          <div id="clerk-captcha" />
+        </form>
+      )}
+    </AuthPageComponent>
   );
 }

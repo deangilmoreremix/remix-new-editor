@@ -575,7 +575,7 @@ export function StoryboardStudio(options = {}) {
   controlBar.appendChild(addFrameBtn);
 
   const genAllBtn = document.createElement('button');
-  genAllBtn.type = 'button';
+genAllBtn.type = 'button';
   genAllBtn.className = 'px-4 py-2 bg-primary text-black rounded-xl text-xs font-bold hover:shadow-glow transition-all';
   genAllBtn.textContent = 'Generate All Frames';
   genAllBtn.setAttribute('aria-label', 'Generate all frames');
@@ -743,7 +743,7 @@ export function StoryboardStudio(options = {}) {
   };
   controlBar.appendChild(exportBtn);
 
-  const compareBtn = document.createElement('button');
+const compareBtn = document.createElement('button');
   compareBtn.type = 'button';
   compareBtn.className = 'px-4 py-2 bg-white/10 border border-white/10 rounded-xl text-xs font-bold text-white hover:bg-white/20 transition-all';
   compareBtn.textContent = 'Compare';
@@ -783,7 +783,12 @@ export function StoryboardStudio(options = {}) {
           document.getElementById('ar-btn-label').textContent = selectedAr;
           updateModelBtnIcon();
           if (dynamicControls) {
-            dynamicControls.update(getExtendedModel(getModelById(selectedModel)));
+            const resolved = getModelById(selectedModel)
+              || getI2IModelById(selectedModel)
+              || getI2VModelById(selectedModel)
+              || getV2VModelById(selectedModel)
+              || { id: selectedModel, inputs: {} };
+            dynamicControls.update(getExtendedModel(resolved));
             dynamicControls.setValue('aspect_ratio', selectedAr);
           }
           closeDropdown();
@@ -1407,6 +1412,57 @@ export function StoryboardStudio(options = {}) {
     row.appendChild(totalLabel);
     timelineStrip.appendChild(row);
   }
+
+
+    // Prompt Gallery button
+    const promptGalleryBtn = document.createElement('button');
+    promptGalleryBtn.type = 'button';
+    promptGalleryBtn.textContent = '📚 Prompts';
+    promptGalleryBtn.title = 'Browse prompt gallery';
+    promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
+    promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
+    promptGalleryBtn.addEventListener('click', () => {
+      openPromptGallery({
+        appTheme: 'storyboard-studio',
+        onSelect: (prompt) => {
+          // Default: try to find a textarea in the studio
+          const ta = document.querySelector('textarea') || document.querySelector('[data-prompt]');
+          if (ta) {
+            ta.value = prompt;
+            ta.dispatchEvent(new Event('input', { bubbles: true }));
+            ta.focus();
+          }
+        }
+      }).catch((err) => console.error('[PromptGallery] open failed:', err));
+    });
+
+    // Recipe Engine button
+    const recipeBtn = document.createElement('button');
+    recipeBtn.type = 'button';
+    recipeBtn.textContent = '📋 Recipes';
+    recipeBtn.title = 'Browse AI recipes';
+    recipeBtn.setAttribute('aria-label', 'Open recipe engine');
+    recipeBtn.className = 'gtm-boost-btn shrink-0';
+    recipeBtn.addEventListener('click', () => {
+      openRecipeModal({
+        onRunRecipe: (url) => {
+        }
+      }).catch((err) => console.error('[Recipe] open failed:', err));
+    });
+
+
+    // Monetization Hub button
+    const monetizationBtn = document.createElement('button');
+    monetizationBtn.type = 'button';
+    monetizationBtn.textContent = "💼 Smart Video AI Monetize";
+    monetizationBtn.title = "Open Smart Video AI Monetization Hub";
+    monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
+    monetizationBtn.className = 'gtm-boost-btn shrink-0';
+    monetizationBtn.addEventListener('click', () => {
+      openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+    });
+  controlBar.appendChild(recipeBtn);
+  controlBar.appendChild(monetizationBtn);
 
   async function generateFrame(idx, btn, imageArea) {
     const frame = frames[idx];

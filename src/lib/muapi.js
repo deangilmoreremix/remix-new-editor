@@ -115,6 +115,13 @@ export class MuapiClient {
         if (params.resolution) finalPayload.resolution = params.resolution;
         if (params.quality) finalPayload.quality = params.quality;
 
+        // Multimodal references (Phase 0): forward arrays + last_image_url + sheet_url
+        if (params.reference_images?.length) finalPayload.reference_images = params.reference_images;
+        if (params.reference_videos?.length) finalPayload.reference_videos = params.reference_videos;
+        if (params.reference_audios?.length) finalPayload.reference_audios = params.reference_audios;
+        if (params.last_image_url) finalPayload.last_image_url = params.last_image_url;
+        if (params.sheet_url) finalPayload.sheet_url = params.sheet_url;
+
         if (params.image_url) {
             finalPayload.image_url = params.image_url;
             finalPayload.strength = params.strength || 0.6;
@@ -278,6 +285,16 @@ export class MuapiClient {
 
         if (params.thumbnail_url) finalPayload.thumbnail_url = params.thumbnail_url;
 
+        // Multimodal references (Phase 0)
+        if (params.reference_images?.length) finalPayload.reference_images = params.reference_images;
+        if (params.reference_videos?.length) finalPayload.reference_videos = params.reference_videos;
+        if (params.reference_audios?.length) finalPayload.reference_audios = params.reference_audios;
+        if (params.last_image_url) finalPayload.last_image_url = params.last_image_url;
+        if (params.sheet_url) finalPayload.sheet_url = params.sheet_url;
+
+        // Native audio (Phase 7)
+        if (params.native_audio) finalPayload.native_audio = params.native_audio;
+
         try {
             const response = await fetch(this.proxyUrl, {
                 method: 'POST',
@@ -364,6 +381,18 @@ export class MuapiClient {
         if (p.prompt_extend) finalPayload.prompt_extend = true;
 
         if (p.thumbnail_url) finalPayload.thumbnail_url = p.thumbnail_url;
+
+        // Multimodal references (Phase 0)
+        if (params.reference_images?.length) finalPayload.reference_images = params.reference_images;
+        if (params.reference_videos?.length) finalPayload.reference_videos = params.reference_videos;
+        if (params.reference_audios?.length) finalPayload.reference_audios = params.reference_audios;
+        if (params.last_image_url) finalPayload.last_image_url = params.last_image_url;
+        if (params.sheet_url) finalPayload.sheet_url = params.sheet_url;
+
+        // Character consistency params
+        if (params.first_frame_url) finalPayload.first_frame_url = params.first_frame_url;
+        if (params.last_frame_url) finalPayload.last_frame_url = params.last_frame_url;
+        if (params.character_consistency !== undefined) finalPayload.character_consistency = params.character_consistency;
 
         try {
             const response = await fetch(this.proxyUrl, {
@@ -460,6 +489,16 @@ export class MuapiClient {
 
         if (p.thumbnail_url) finalPayload.thumbnail_url = p.thumbnail_url;
 
+        // Multimodal references (Phase 0)
+        if (params.reference_images?.length) finalPayload.reference_images = params.reference_images;
+        if (params.reference_videos?.length) finalPayload.reference_videos = params.reference_videos;
+        if (params.reference_audios?.length) finalPayload.reference_audios = params.reference_audios;
+        if (params.last_image_url) finalPayload.last_image_url = params.last_image_url;
+        if (params.sheet_url) finalPayload.sheet_url = params.sheet_url;
+
+        // Native audio (Phase 7)
+        if (params.native_audio) finalPayload.native_audio = params.native_audio;
+
         try {
             const response = await fetch(this.proxyUrl, {
                 method: 'POST',
@@ -488,6 +527,7 @@ export class MuapiClient {
             const videoUrl = result.outputs?.[0] || result.url || result.output?.url;
             analytics.trackGenerationComplete(params.model, 'i2v', true);
             return { ...result, url: videoUrl };
+
         } catch (error) {
             if (error.name === 'AbortError') {
                 throw new Error('Request cancelled by user');
@@ -737,6 +777,16 @@ export class MuapiClient {
         if (params.audio_url) finalPayload.audio_url = params.audio_url;
         if (params.prompt) finalPayload.prompt = params.prompt;
 
+        // Multimodal references (Phase 0)
+        if (params.reference_images?.length) finalPayload.reference_images = params.reference_images;
+        if (params.reference_videos?.length) finalPayload.reference_videos = params.reference_videos;
+        if (params.reference_audios?.length) finalPayload.reference_audios = params.reference_audios;
+        if (params.last_image_url) finalPayload.last_image_url = params.last_image_url;
+        if (params.sheet_url) finalPayload.sheet_url = params.sheet_url;
+
+        // Native audio (Phase 7)
+        if (params.native_audio) finalPayload.native_audio = params.native_audio;
+
         try {
             const response = await fetch(this.proxyUrl, {
                 method: 'POST',
@@ -789,6 +839,16 @@ export class MuapiClient {
         if (params.style) finalPayload.style = params.style;
         if (params.audio_url) finalPayload.audio_url = params.audio_url;
 
+        // Multimodal references (Phase 0)
+        if (params.reference_images?.length) finalPayload.reference_images = params.reference_images;
+        if (params.reference_videos?.length) finalPayload.reference_videos = params.reference_videos;
+        if (params.reference_audios?.length) finalPayload.reference_audios = params.reference_audios;
+        if (params.last_image_url) finalPayload.last_image_url = params.last_image_url;
+        if (params.sheet_url) finalPayload.sheet_url = params.sheet_url;
+
+        // Native audio (Phase 7)
+        if (params.native_audio) finalPayload.native_audio = params.native_audio;
+
         try {
             const response = await fetch(this.proxyUrl, {
                 method: 'POST',
@@ -838,6 +898,13 @@ export class MuapiClient {
         if (params.style) finalPayload.style = params.style;
         if (params.audio_url) finalPayload.audio_url = params.audio_url;
         if (params.instrumental !== undefined) finalPayload.instrumental = params.instrumental;
+
+        // Multimodal references (Phase 0)
+        if (params.reference_images?.length) finalPayload.reference_images = params.reference_images;
+        if (params.reference_videos?.length) finalPayload.reference_videos = params.reference_videos;
+        if (params.reference_audios?.length) finalPayload.reference_audios = params.reference_audios;
+        if (params.last_image_url) finalPayload.last_image_url = params.last_image_url;
+        if (params.sheet_url) finalPayload.sheet_url = params.sheet_url;
 
         try {
             const response = await fetch(this.proxyUrl, {
@@ -940,6 +1007,13 @@ export class MuapiClient {
         if (p.prompt_extend) {
             finalPayload.prompt_extend = true;
         }
+
+        // Multimodal references (Phase 0)
+        if (params.reference_images?.length) finalPayload.reference_images = params.reference_images;
+        if (params.reference_videos?.length) finalPayload.reference_videos = params.reference_videos;
+        if (params.reference_audios?.length) finalPayload.reference_audios = params.reference_audios;
+        if (params.last_image_url) finalPayload.last_image_url = params.last_image_url;
+        if (params.sheet_url) finalPayload.sheet_url = params.sheet_url;
 
         try {
             const response = await fetch(this.proxyUrl, {
@@ -1193,6 +1267,16 @@ export class MuapiClient {
         if (params.video_url) finalPayload.video_url = params.video_url;
         if (params.prompt) finalPayload.prompt = params.prompt;
 
+        // Native audio
+        if (params.native_audio) finalPayload.native_audio = params.native_audio;
+
+        // Multimodal references (Phase 0)
+        if (params.reference_images?.length) finalPayload.reference_images = params.reference_images;
+        if (params.reference_videos?.length) finalPayload.reference_videos = params.reference_videos;
+        if (params.reference_audios?.length) finalPayload.reference_audios = params.reference_audios;
+        if (params.last_image_url) finalPayload.last_image_url = params.last_image_url;
+        if (params.sheet_url) finalPayload.sheet_url = params.sheet_url;
+
         try {
             const response = await fetch(this.proxyUrl, {
                 method: 'POST',
@@ -1245,6 +1329,16 @@ export class MuapiClient {
         if (params.prompt) finalPayload.prompt = params.prompt;
         if (params.resolution) finalPayload.resolution = params.resolution;
         if (params.seed !== undefined && params.seed !== -1) finalPayload.seed = params.seed;
+
+        // Multimodal references (Phase 0)
+        if (params.reference_images?.length) finalPayload.reference_images = params.reference_images;
+        if (params.reference_videos?.length) finalPayload.reference_videos = params.reference_videos;
+        if (params.reference_audios?.length) finalPayload.reference_audios = params.reference_audios;
+        if (params.last_image_url) finalPayload.last_image_url = params.last_image_url;
+        if (params.sheet_url) finalPayload.sheet_url = params.sheet_url;
+
+        // Native audio (Phase 7)
+        if (params.native_audio) finalPayload.native_audio = params.native_audio;
 
         console.log('[Muapi] LipSync Request:', endpoint, finalPayload);
 

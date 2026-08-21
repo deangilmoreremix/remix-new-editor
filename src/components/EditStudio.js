@@ -71,7 +71,7 @@ export function EditStudio() {
 
   let activeTool = null;
   let uploadedUrl = null;
-  let lastOutputUrl = null;
+let lastOutputUrl = null;
   let customThumbnailUrl = getCustomThumbnailFromCache('edit-studio');
   let currentBlobUrl = null;
   let selectedModelId = 'seedream-5.0-edit';
@@ -135,13 +135,61 @@ export function EditStudio() {
   const inlineInstructions = createInlineInstructions('edit');
   inlineInstructions.classList.add('px-4', 'md:px-8', 'mt-2');
   topBar.appendChild(inlineInstructions);
-
   container.appendChild(topBar);
 
-  // Personalize trigger (opens PersonalizeModal as a pop-up)
   const personalizeRow = document.createElement('div');
   personalizeRow.className = 'flex items-center gap-2 px-4 md:px-8 pt-4';
-  mountPersonalizeTrigger({ controlsContainer: personalizeRow, getTextarea: () => promptField, appId: 'edit-studio' });
+
+  const recipeBtn = document.createElement('button');
+  recipeBtn.type = 'button';
+  recipeBtn.textContent = 'Recipes';
+  recipeBtn.title = 'Browse AI recipes';
+  recipeBtn.setAttribute('aria-label', 'Open recipe engine');
+  recipeBtn.className = 'gtm-boost-btn shrink-0';
+  recipeBtn.addEventListener('click', () => {
+    openRecipeModal({ onRunRecipe: () => {} }).catch((err) => console.error('[Recipe] open failed:', err));
+  });
+
+  const monetizationBtn = document.createElement('button');
+  monetizationBtn.type = 'button';
+  monetizationBtn.textContent = '💼 Smart Video AI Monetize';
+  monetizationBtn.title = "Open Smart Video AI Monetization Hub"
+  monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
+  monetizationBtn.className = 'gtm-boost-btn shrink-0';
+  monetizationBtn.addEventListener('click', () => {
+    openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+  });
+
+  const promptGalleryBtn = document.createElement('button');
+  promptGalleryBtn.type = 'button';
+  promptGalleryBtn.textContent = 'Prompts';
+  promptGalleryBtn.title = 'Browse prompt gallery';
+  promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
+  promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
+  promptGalleryBtn.addEventListener('click', () => {
+    openPromptGallery({
+      appTheme: 'editor-page',
+      onSelect: (prompt) => {
+        const ta = document.querySelector('input[data-advanced-field="extraInstructions"], textarea, input');
+        if (ta) { ta.value = prompt; ta.dispatchEvent(new Event('input', { bubbles: true })); ta.focus(); }
+      }
+    }).catch((err) => console.error('[PromptGallery] open failed:', err));
+  });
+
+  const modelPickerBtn = document.createElement('button');
+  modelPickerBtn.type = 'button';
+  modelPickerBtn.textContent = 'AI Pick';
+  modelPickerBtn.title = 'Open intelligent model picker';
+  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
+  modelPickerBtn.className = 'text-[11px] font-bold text-cyan-400 border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 rounded-lg hover:bg-cyan-400/20 transition-colors ml-2 whitespace-nowrap';
+  modelPickerBtn.addEventListener('click', () => {
+    openModelPicker({}).catch((err) => console.error('[ModelPicker] open failed:', err));
+  });
+
+  personalizeRow.appendChild(recipeBtn);
+  personalizeRow.appendChild(monetizationBtn);
+  personalizeRow.appendChild(promptGalleryBtn);
+  personalizeRow.appendChild(modelPickerBtn);
   container.appendChild(personalizeRow);
 
   const workArea = document.createElement('div');
@@ -155,7 +203,7 @@ export function EditStudio() {
   workCard.appendChild(toolTitle);
 
   const previewImg = document.createElement('img');
-  previewImg.className = 'hidden w-full h-48 object-cover rounded-xl border border-white/10';
+  previewImg.className = 'hidden w-full h-48 object-cover rounded-xl border border-white/10 cursor-zoom-in';
 
   const uploadHint = document.createElement('span');
   uploadHint.className = 'text-sm text-muted';
@@ -170,6 +218,7 @@ export function EditStudio() {
   uploadSection.className = 'flex flex-col gap-3';
   const uploadRow = document.createElement('div');
   uploadRow.className = 'flex items-center gap-4';
+
   const picker = createUploadPicker({
     anchorContainer: container,
     onSelect: ({ url }) => {
@@ -266,7 +315,7 @@ export function EditStudio() {
   workCard.appendChild(uploadSection);
   container.appendChild(picker.panel);
 
-  // Watermark image uploader — declared here (before first use) to avoid a
+// Watermark image uploader — declared here (before first use) to avoid a
   // temporal-dead-zone ReferenceError when the row below appends .trigger/.panel.
   let watermarkImageUrl = null;
   const watermarkImageHint = document.createElement('span');
@@ -318,8 +367,11 @@ export function EditStudio() {
   const promptField = document.createElement('input');
   promptField.type = 'text';
   promptField.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors hidden';
-  promptField.setAttribute('aria-label', 'Edit prompt');
+promptField.setAttribute('aria-label', 'Edit prompt');
   workCard.appendChild(promptField);
+  workCard.appendChild(negativePromptLabel);
+  workCard.appendChild(negativePromptField);
+  workCard.appendChild(controlsContainer);
 
   const controlsRow = document.createElement('div');
   controlsRow.className = 'flex flex-col gap-3 hidden';
@@ -540,7 +592,7 @@ export function EditStudio() {
   editBtn.setAttribute('aria-label', 'Apply edit');
   workCard.appendChild(editBtn);
 
-  const errorArea = document.createElement('div');
+const errorArea = document.createElement('div');
   errorArea.className = 'hidden mt-4';
   errorArea.setAttribute('role', 'alert');
   workCard.appendChild(errorArea);
@@ -554,7 +606,7 @@ export function EditStudio() {
   workArea.appendChild(workCard);
   container.appendChild(workArea);
 
-  function buildDynamicControls(modelId) {
+function buildDynamicControls(modelId) {
     const model = getI2IModelById(modelId);
     if (!model || !model.inputs || Object.keys(model.inputs).length === 0) {
       if (dynamicControlsContainer) dynamicControlsContainer.classList.add('hidden');
@@ -638,8 +690,15 @@ export function EditStudio() {
     workCard.classList.remove('hidden');
     workCard.classList.add('flex');
     toolTitle.textContent = tool.name;
+    advancedOpen = false;
+    renderControls(tool);
 
-    showControlsForTool(tool.id);
+    referenceImageUrl = null;
+    referencePreview.src = '';
+    referencePreview.classList.add('hidden');
+    referenceRow.classList.add('hidden');
+
+showControlsForTool(tool.id);
     resultArea.classList.add('hidden');
     errorArea.classList.add('hidden');
   }
@@ -672,7 +731,7 @@ export function EditStudio() {
 
     editBtn.disabled = true;
     editBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Processing...';
-    errorArea.classList.add('hidden');
+errorArea.classList.add('hidden');
     resultArea.classList.add('hidden');
 
     try {
@@ -686,7 +745,7 @@ export function EditStudio() {
         params.prompt = replaceTokensInPrompt(promptField.value.trim(), activeProfile);
       }
 
-      if (activeTool.id === 'seedream-5.0-edit' || modelToUse === 'seedream-5.0-edit') {
+if (activeTool.id === 'seedream-5.0-edit' || modelToUse === 'seedream-5.0-edit') {
         params.aspect_ratio = aspectRatioValue;
         params.quality = qualityValue;
       }
@@ -715,11 +774,13 @@ export function EditStudio() {
       }
 
       const result = await muapi.generateI2I(params);
+      updateProgress(null);
+
       if (result?.url) {
         lastOutputUrl = result.url;
         resultArea.classList.remove('hidden');
         resultArea.innerHTML = `
-          <img src="${result.url}" class="w-full rounded-xl border border-white/10 mb-3">
+<img src="${result.url}" class="w-full rounded-xl border border-white/10 mb-3">
           <a href="${result.url}" download class="block w-full bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
           <button type="button" class="publish-social-btn block w-full mt-2 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
         `;
@@ -734,6 +795,7 @@ export function EditStudio() {
     } finally {
       editBtn.disabled = false;
       editBtn.textContent = 'Apply Edit';
+      cancelBtn.classList.add('hidden');
     }
   };
 

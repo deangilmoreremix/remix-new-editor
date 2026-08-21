@@ -172,6 +172,9 @@ export function filterModels(models, search, selectedProvider) {
 // HTML generators for the split-pane dropdown
 // ---------------------------------------------------------------------------
 
+const LOGO_FALLBACK_HTML = (provider, text) =>
+  `<div class="w-8 h-8 rounded-full border border-white/5 flex items-center justify-center font-bold text-xs shadow-inner uppercase bg-primary/10 text-primary border-primary/10">${text}</div>`;
+
 export function renderProviderSidebar(availableProviders, selectedProvider, onSelectProvider) {
   const allSelected = selectedProvider === 'all';
   const allClasses = allSelected
@@ -193,7 +196,8 @@ export function renderProviderSidebar(availableProviders, selectedProvider, onSe
     html += `<button type="button" data-provider="${p.id}" class="w-8 h-8 flex-shrink-0 rounded-full flex items-center justify-center font-black text-[10px] border transition-all flex-shrink-0 cursor-pointer overflow-hidden ${itemClasses}" title="${p.name}">`;
     if (hasLogo) {
       const invertClass = invertLogos.includes(p.id) ? 'invert' : '';
-      html += `<img src="${logoUrl}" alt="${p.name}" class="w-full h-full rounded-full object-contain ${invertClass}" />`;
+      const sidebarBadge = LOGO_FALLBACK_HTML(p.id, getProviderStyle(p.id).text).replace(/'/g, "&#39;");
+      html += `<img src="${logoUrl}" alt="${p.name}" class="w-full h-full rounded-full object-contain ${invertClass}" onerror="this.outerHTML='${sidebarBadge}'" />`;
     } else {
       html += `<span>${style.text}</span>`;
     }
@@ -212,7 +216,8 @@ export function getModelLogoHtml(model, sizeClasses = 'w-4 h-4') {
   const provider = model?.provider || 'muapi';
   const logoUrl = PROVIDER_LOGOS[provider];
   if (logoUrl) {
-    return `<div class="${sizeClasses} rounded-md flex items-center justify-center overflow-hidden bg-white/5 shrink-0"><img src="${logoUrl}" alt="" class="w-full h-full object-contain ${invertLogos.includes(provider) ? 'invert' : ''}" /></div>`;
+    const logoBadge = LOGO_FALLBACK_HTML(provider, getProviderStyle(provider).text).replace(/'/g, "&#39;");
+    return `<div class="${sizeClasses} rounded-md flex items-center justify-center overflow-hidden bg-white/5 shrink-0"><img src="${logoUrl}" alt="" class="w-full h-full object-contain ${invertLogos.includes(provider) ? 'invert' : ''}" onerror="this.outerHTML='${logoBadge}'" /></div>`;
   }
   const style = getProviderStyle(provider);
   return `<div class="${sizeClasses} bg-primary rounded-md flex items-center justify-center shadow-lg shadow-primary/20 shrink-0"><span class="text-[9px] font-black text-black">${style.text}</span></div>`;
@@ -235,8 +240,9 @@ export function renderModelRow(model, opts = {}) {
 
   const logoUrl = PROVIDER_LOGOS[model.provider];
   const hasLogo = Boolean(logoUrl);
+  const modelBadge = LOGO_FALLBACK_HTML(model.provider, getProviderStyle(model.provider).text).replace(/'/g, "&#39;");
   const iconHtml = hasLogo
-    ? `<div class="w-8 h-8 rounded-full border border-white/5 overflow-hidden shrink-0 flex items-center justify-center bg-white/[0.02]"><img src="${logoUrl}" alt="${model.provider_name || ''}" class="w-full h-full object-contain p-1 ${invertLogos.includes(model.provider) ? 'invert' : ''}" /></div>`
+    ? `<div class="w-8 h-8 rounded-full border border-white/5 overflow-hidden shrink-0 flex items-center justify-center bg-white/[0.02]"><img src="${logoUrl}" alt="${model.provider_name || ''}" class="w-full h-full object-contain p-1 ${invertLogos.includes(model.provider) ? 'invert' : ''}" onerror="this.outerHTML='${modelBadge}'" /></div>`
     : `<div class="w-8 h-8 rounded-full border border-white/5 flex items-center justify-center font-bold text-xs shadow-inner uppercase ${(model.family === 'kontext' ? 'bg-blue-500/10 text-blue-400 border-blue-500/10' : model.family === 'effects' ? 'bg-purple-500/10 text-purple-400 border-purple-500/10' : 'bg-primary/10 text-primary border-primary/10')}">${(model.name || model.id).charAt(0)}</div>`;
 
   const providerLabel = showProviderName && model.provider_name

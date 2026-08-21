@@ -1,0 +1,1019 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - generic [ref=e6] [cursor=pointer]
+          - navigation [ref=e12]:
+            - generic [ref=e13] [cursor=pointer]: Explore
+            - generic [ref=e14] [cursor=pointer]: Image
+            - generic [ref=e15] [cursor=pointer]: Video
+            - generic [ref=e16] [cursor=pointer]: Tools
+            - generic [ref=e17] [cursor=pointer]: Storyboard
+            - generic [ref=e18] [cursor=pointer]: Edit
+            - generic [ref=e19] [cursor=pointer]: Character
+            - generic [ref=e20] [cursor=pointer]: Vibe Motion
+            - generic [ref=e21] [cursor=pointer]: Cinema Studio
+            - generic [ref=e22] [cursor=pointer]: Cinema Template Studio
+            - generic [ref=e23] [cursor=pointer]: AI Influencer
+            - generic [ref=e24] [cursor=pointer]: Viral Studio
+            - generic [ref=e25] [cursor=pointer]: Apps
+            - generic [ref=e26] [cursor=pointer]: Templates
+            - generic [ref=e27] [cursor=pointer]: Assist
+            - generic [ref=e28] [cursor=pointer]: Community
+            - generic [ref=e29] [cursor=pointer]: Content Library
+        - generic [ref=e30]:
+          - button "Update API Key" [ref=e31]
+          - link "Sign In" [ref=e236] [cursor=pointer]:
+            - /url: /signin
+    - generic [ref=e34]:
+      - complementary [ref=e35]:
+        - generic [ref=e36]:
+          - generic [ref=e37] [cursor=pointer]:
+            - button [ref=e38]
+            - generic [ref=e44]: Apps
+          - generic [ref=e45] [cursor=pointer]:
+            - button [ref=e46]
+            - generic [ref=e51]: Image
+          - generic [ref=e52] [cursor=pointer]:
+            - button [ref=e53]
+            - generic [ref=e57]: Video
+          - generic [ref=e58] [cursor=pointer]:
+            - button [ref=e59]
+            - generic [ref=e62]: Cinema Studio
+          - generic [ref=e63] [cursor=pointer]:
+            - button [ref=e64]
+            - generic [ref=e67]: Cinema Template Studio
+          - generic [ref=e68] [cursor=pointer]:
+            - button [ref=e69]
+            - generic [ref=e72]: Viral Studio
+          - generic [ref=e73] [cursor=pointer]:
+            - button [ref=e74]
+            - generic [ref=e82]: Storyboard
+          - generic [ref=e83] [cursor=pointer]:
+            - button [ref=e84]
+            - generic [ref=e87]: Effects
+          - generic [ref=e88] [cursor=pointer]:
+            - button [ref=e89]
+            - generic [ref=e93]: Edit
+          - generic [ref=e94] [cursor=pointer]:
+            - button [ref=e95]
+            - generic [ref=e101]: Upscale
+          - generic [ref=e102] [cursor=pointer]:
+            - button [ref=e103]
+            - generic [ref=e108]: Audio
+          - generic [ref=e109] [cursor=pointer]:
+            - button [ref=e110]
+            - generic [ref=e115]: Avatar
+          - generic [ref=e116] [cursor=pointer]:
+            - button [ref=e117]
+            - generic [ref=e122]: Training
+          - generic [ref=e123] [cursor=pointer]:
+            - button [ref=e124]
+            - generic [ref=e128]: Smart Video Academy
+          - generic [ref=e129] [cursor=pointer]:
+            - button [ref=e130]
+            - generic [ref=e134]: Video Tools
+          - generic [ref=e135] [cursor=pointer]:
+            - button [ref=e136]
+            - generic [ref=e139]: Render
+          - generic [ref=e140] [cursor=pointer]:
+            - button [ref=e141]
+            - generic [ref=e146]: Video Agent
+          - generic [ref=e147] [cursor=pointer]:
+            - button [ref=e148]
+            - generic [ref=e152]: Director
+          - generic [ref=e153] [cursor=pointer]:
+            - button [ref=e154]
+            - generic [ref=e160]: Timeline
+          - generic [ref=e161] [cursor=pointer]:
+            - button [ref=e162]
+            - generic [ref=e165]: Chat
+          - generic [ref=e166] [cursor=pointer]:
+            - button [ref=e167]
+            - generic [ref=e171]: Commercial
+          - generic [ref=e172] [cursor=pointer]:
+            - button [ref=e173]
+            - generic [ref=e176]: Templates
+          - generic [ref=e177] [cursor=pointer]:
+            - button [ref=e178]
+            - generic [ref=e182]: Explore
+          - generic [ref=e183] [cursor=pointer]:
+            - button [ref=e184]
+            - generic [ref=e188]: Library
+          - generic [ref=e189] [cursor=pointer]:
+            - button [ref=e190]
+            - generic [ref=e193]: Content
+          - generic [ref=e194] [cursor=pointer]:
+            - button [ref=e195]
+            - generic [ref=e201]: Community
+          - generic [ref=e202] [cursor=pointer]:
+            - button [ref=e203]
+            - generic [ref=e208]: Assist
+          - generic [ref=e209] [cursor=pointer]:
+            - button [ref=e210]
+            - generic [ref=e214]: Commits (0)
+          - generic [ref=e215] [cursor=pointer]:
+            - button [ref=e216]
+            - generic [ref=e220]: AI VFX
+          - generic [ref=e221] [cursor=pointer]:
+            - button [ref=e222]
+            - generic [ref=e226]: Stock Media
+        - generic [ref=e228] [cursor=pointer]:
+          - button [ref=e229]
+          - generic [ref=e233]: Settings
+      - main [ref=e234]:
+        - generic [ref=e237]:
+          - generic [ref=e238]:
+            - button "All studios" [ref=e239]
+            - button "Back" [ref=e245]
+          - generic [ref=e250]:
+            - generic [ref=e251]:
+              - heading "Smart Video Viral" [level=1] [ref=e252]
+              - paragraph [ref=e253]: Continuously refreshed feed of trending AI prompts from X — copy any prompt into your studio and create.
+              - generic [ref=e254]:
+                - generic [ref=e255]:
+                  - generic [ref=e256]: 1,726
+                  - generic [ref=e257]: prompts
+                - generic [ref=e258]:
+                  - generic [ref=e259]: "821"
+                  - generic [ref=e260]: videos
+                - generic [ref=e261]:
+                  - generic [ref=e262]: "905"
+                  - generic [ref=e263]: images
+                - generic [ref=e264]:
+                  - generic [ref=e265]: "3"
+                  - generic [ref=e266]: providers
+            - generic [ref=e268]:
+              - img "Trending preview" [ref=e269]
+              - paragraph [ref=e271]: 15-second hyper-realistic cinematic luxury jewelry commercial featuring an East Asian woman and diamond necklace
+          - generic [ref=e273]:
+            - textbox "Search prompts, tags, or authors… (press /)" [ref=e275]
+            - generic [ref=e279]:
+              - button "All" [ref=e280]
+              - button "Images" [ref=e281]
+              - button "Videos" [ref=e282]
+            - combobox [ref=e283]:
+              - option "All Categories" [selected]
+              - option "Animation"
+              - option "Architecture"
+              - option "Camera Moves"
+              - option "Character"
+              - option "Cinematic"
+              - option "Food & Drink"
+              - option "Illustration 3D"
+              - option "Nature"
+              - option "Photography"
+              - option "Poster Design"
+              - option "Product Ads"
+              - option "Product Brand"
+              - option "Travel"
+              - option "Ugc"
+              - option "UI Graphic"
+            - combobox [ref=e284]:
+              - option "Newest First" [selected]
+              - option "Most Popular"
+              - option "Most Likes"
+            - button "Exclude Chinese" [ref=e285]
+          - generic [ref=e289]:
+            - generic [ref=e290]: 1674 prompts loaded (of 1726, 52 Chinese excluded)
+            - generic [ref=e291]:
+              - generic [ref=e292]: Updated Today at 10:58
+              - button "Refresh" [ref=e293]
+              - button "Export" [ref=e297]
+          - navigation "Page sections" [ref=e301]:
+            - button "Hero" [ref=e302] [cursor=pointer]
+            - button "Feed" [ref=e303] [cursor=pointer]
+          - generic [ref=e305]:
+            - generic [ref=e306]:
+              - generic [ref=e307]:
+                - generic [ref=e308]:
+                  - button "Play video"
+                - generic [ref=e310]:
+                  - generic [ref=e311]: seedance
+                  - generic [ref=e312]: Video
+              - generic [ref=e316]:
+                - heading "Granny Beatbox Breakdance talent show" [level=3] [ref=e317]
+                - generic [ref=e318]:
+                  - paragraph [ref=e319]: "{ \"archetype\": \"Real live TV talent show\", \"duration\": \"30s\", \"prompt\": { \"concept\": { \"title\": \"Granny Beatbox Breakdance\", \"description\": \"Sweet 70-year-old grandma in a fl…"
+                  - button "View Full Prompt ›" [ref=e320]
+                - generic [ref=e321]:
+                  - generic [ref=e322]:
+                    - generic [ref=e323]: "@Strength04_X"
+                    - generic [ref=e324]: ·
+                    - generic [ref=e325]: Today
+                  - generic [ref=e326]: 🔥 102
+                - generic [ref=e327]: character
+                - generic [ref=e329]:
+                  - button "Copy Prompt" [ref=e330]
+                  - link "Source" [ref=e331] [cursor=pointer]:
+                    - /url: https://x.com/Strength04_X/status/2090399966988550435
+            - generic [ref=e332]:
+              - generic [ref=e333]:
+                - img "Ultra-photorealistic cinematic fashion editorial of a male model in dynamic low crouch pose" [ref=e334]
+                - generic [ref=e335]:
+                  - generic [ref=e336]: gptimage
+                  - generic [ref=e337]: Image
+              - generic [ref=e342]:
+                - heading "Ultra-photorealistic cinematic fashion editorial of a male model in dynamic low crouch pose" [level=3] [ref=e343]
+                - generic [ref=e344]:
+                  - paragraph [ref=e345]: Use the uploaded reference image as the exact facial identity reference for the male subject. Preserve his facial structure, eyes, nose, lips, jawline, beard, hairstyle, hair textu…
+                  - button "View Full Prompt ›" [ref=e346]
+                - generic [ref=e347]:
+                  - generic [ref=e348]:
+                    - generic [ref=e349]: "@Sheldon056"
+                    - generic [ref=e350]: ·
+                    - generic [ref=e351]: Today
+                  - generic [ref=e352]: 🔥 98
+                - generic [ref=e353]: photography
+                - generic [ref=e355]:
+                  - button "Copy Prompt" [ref=e356]
+                  - link "Source" [ref=e357] [cursor=pointer]:
+                    - /url: https://x.com/Sheldon056/status/2090280751871012958
+            - generic [ref=e358]:
+              - generic [ref=e359]:
+                - generic [ref=e360]:
+                  - button "Play video"
+                - generic [ref=e362]:
+                  - generic [ref=e363]: seedance
+                  - generic [ref=e364]: Video
+              - generic [ref=e368]:
+                - heading "First dragon flight – 30s two-shot video" [level=3] [ref=e369]
+                - generic [ref=e370]:
+                  - paragraph [ref=e371]: SCENE CONTEXT A first dragon flight. A nervous first-time girl rider in white-silver armor, sits in the saddle of a colossal opalescent dragon perched at the cliff's edge. She bar…
+                  - button "View Full Prompt ›" [ref=e372]
+                - generic [ref=e373]:
+                  - generic [ref=e374]:
+                    - generic [ref=e375]: "@AIwithSarah_"
+                    - generic [ref=e376]: ·
+                    - generic [ref=e377]: Today
+                  - generic [ref=e378]: 🔥 88
+                - generic [ref=e379]:
+                  - generic [ref=e380]: Camera Moves
+                  - generic [ref=e381]: character
+                  - generic [ref=e382]: cinematic
+                - generic [ref=e383]:
+                  - button "Copy Prompt" [ref=e384]
+                  - link "Source" [ref=e385] [cursor=pointer]:
+                    - /url: https://x.com/AIwithSarah_/status/2090365772585689411
+            - generic [ref=e386]:
+              - generic [ref=e387]:
+                - button "Play video" [ref=e390]
+                - generic [ref=e394]:
+                  - generic [ref=e395]: seedance
+                  - generic [ref=e396]: Video
+              - generic [ref=e400]:
+                - heading "Handheld garden vlog with wind‑blown papers" [level=3] [ref=e401]
+                - generic [ref=e402]:
+                  - paragraph [ref=e403]: Montage, multi-shot handheld home-video vlog — 7 shots. One-handed phone filming, snapshot-like realism, slightly tilted framing, visible handheld shake, warm late-afternoon light,…
+                  - button "View Full Prompt ›" [ref=e404]
+                - generic [ref=e405]:
+                  - generic [ref=e406]:
+                    - generic [ref=e407]: "@iamahmedfaraz66"
+                    - generic [ref=e408]: ·
+                    - generic [ref=e409]: Today
+                  - generic [ref=e410]: 🔥 79
+                - generic [ref=e411]: ugc
+                - generic [ref=e413]:
+                  - button "Copy Prompt" [ref=e414]
+                  - link "Source" [ref=e415] [cursor=pointer]:
+                    - /url: https://x.com/iamahmedfaraz66/status/2090405989560561830
+            - generic [ref=e416]:
+              - generic [ref=e417]:
+                - img "Beautiful young woman holding teddy bear in cozy bedroom" [ref=e418]
+                - generic [ref=e419]:
+                  - generic [ref=e420]: gptimage
+                  - generic [ref=e421]: Image
+              - generic [ref=e426]:
+                - heading "Beautiful young woman holding teddy bear in cozy bedroom" [level=3] [ref=e427]
+                - generic [ref=e428]:
+                  - paragraph [ref=e429]: A beautiful young woman with long straight dark brown hair parted in the middle, wearing two cute black bear-shaped hair clips on top of her head, soft fair skin, large expressive …
+                  - button "View Full Prompt ›" [ref=e430]
+                - generic [ref=e431]:
+                  - generic [ref=e432]:
+                    - generic [ref=e433]: "@ayzalnooor24521"
+                    - generic [ref=e434]: ·
+                    - generic [ref=e435]: Today
+                  - generic [ref=e436]: 🔥 107
+                - generic [ref=e437]: photography
+                - generic [ref=e439]:
+                  - button "Copy Prompt" [ref=e440]
+                  - link "Source" [ref=e441] [cursor=pointer]:
+                    - /url: https://x.com/ayzalnooor24521/status/2090433901252800899
+            - generic [ref=e442]:
+              - generic [ref=e443]:
+                - img "Toronto Autumn with Red Leaf" [ref=e444]
+                - generic [ref=e445]:
+                  - generic [ref=e446]: gptimage
+                  - generic [ref=e447]: Image
+              - generic [ref=e452]:
+                - heading "Toronto Autumn with Red Leaf" [level=3] [ref=e453]
+                - generic [ref=e454]:
+                  - paragraph [ref=e455]: Create a premium cinematic photorealistic image of Toronto in peak autumn. A beautiful elegant woman wearing a long camel coat walks along the Toronto waterfront / Toronto Islands …
+                  - button "View Full Prompt ›" [ref=e456]
+                - generic [ref=e457]:
+                  - generic [ref=e458]:
+                    - generic [ref=e459]: "@nagarjuncreates"
+                    - generic [ref=e460]: ·
+                    - generic [ref=e461]: Today
+                  - generic [ref=e462]: 🔥 98
+                - generic [ref=e463]: photography
+                - generic [ref=e465]:
+                  - button "Copy Prompt" [ref=e466]
+                  - link "Source" [ref=e467] [cursor=pointer]:
+                    - /url: https://x.com/nagarjuncreates/status/2090362461954482485
+            - generic [ref=e468]:
+              - generic [ref=e469]:
+                - button "Play video" [ref=e472]
+                - generic [ref=e476]:
+                  - generic [ref=e477]: seedance
+                  - generic [ref=e478]: Video
+              - generic [ref=e482]:
+                - heading "Ultra-realistic cinematic physics demonstration video" [level=3] [ref=e483]
+                - generic [ref=e484]:
+                  - paragraph [ref=e485]: "Create an ultra-realistic cinematic 15-second vertical 9:16 video demonstrating real-world physics through one continuous, believable sequence. Scene: a young woman walks along a r…"
+                  - button "View Full Prompt ›" [ref=e486]
+                - generic [ref=e487]:
+                  - generic [ref=e488]:
+                    - generic [ref=e489]: "@Lianaalane"
+                    - generic [ref=e490]: ·
+                    - generic [ref=e491]: Today
+                  - generic [ref=e492]: 🔥 110
+                - generic [ref=e493]: cinematic
+                - generic [ref=e495]:
+                  - button "Copy Prompt" [ref=e496]
+                  - link "Source" [ref=e497] [cursor=pointer]:
+                    - /url: https://x.com/Lianaalane/status/2090372863631225290
+            - generic [ref=e498]:
+              - generic [ref=e499]:
+                - button "Play video" [ref=e502]
+                - generic [ref=e506]:
+                  - generic [ref=e507]: seedance
+                  - generic [ref=e508]: Video
+              - generic [ref=e512]:
+                - heading "Sibling moment smartphone vlog in Korean bedroom" [level=3] [ref=e513]
+                - generic [ref=e514]:
+                  - paragraph [ref=e515]: Create a 30-second, 16:9 photorealistic handheld smartphone home-video vlog with exactly 7 distinct shots, each using a clearly different camera angle or framing. Use @ image_1 as …
+                  - button "View Full Prompt ›" [ref=e516]
+                - generic [ref=e517]:
+                  - generic [ref=e518]:
+                    - generic [ref=e519]: "@saniaspeaks_"
+                    - generic [ref=e520]: ·
+                    - generic [ref=e521]: Today
+                  - generic [ref=e522]: 🔥 120
+                - generic [ref=e523]: ugc
+                - generic [ref=e525]:
+                  - button "Copy Prompt" [ref=e526]
+                  - link "Source" [ref=e527] [cursor=pointer]:
+                    - /url: https://x.com/saniaspeaks_/status/2090401970657829335
+            - generic [ref=e528]:
+              - generic [ref=e529]:
+                - img "All-black fashion editorial portrait" [ref=e530]
+                - generic [ref=e531]:
+                  - generic [ref=e532]: gptimage
+                  - generic [ref=e533]: Image
+              - generic [ref=e538]:
+                - heading "All-black fashion editorial portrait" [level=3] [ref=e539]
+                - generic [ref=e540]:
+                  - paragraph [ref=e541]: A stylish man a sleek, all-black outfit poses confidently against a pitch-black background. He wears a tailored black suit, a black shirt with the top buttons open, and a subtle go…
+                  - button "View Full Prompt ›" [ref=e542]
+                - generic [ref=e543]:
+                  - generic [ref=e544]:
+                    - generic [ref=e545]: "@harboriis"
+                    - generic [ref=e546]: ·
+                    - generic [ref=e547]: Today
+                  - generic [ref=e548]: 🔥 79
+                - generic [ref=e549]: photography
+                - generic [ref=e551]:
+                  - button "Copy Prompt" [ref=e552]
+                  - link "Source" [ref=e553] [cursor=pointer]:
+                    - /url: https://x.com/harboriis/status/2090383330487550289
+            - generic [ref=e554]:
+              - generic [ref=e555]:
+                - img "Wide-angle first-person POV outdoor photograph of a young woman in an alpine valley" [ref=e556]
+                - generic [ref=e557]:
+                  - generic [ref=e558]: gptimage
+                  - generic [ref=e559]: Image
+              - generic [ref=e564]:
+                - heading "Wide-angle first-person POV outdoor photograph of a young woman in an alpine valley" [level=3] [ref=e565]
+                - generic [ref=e566]:
+                  - paragraph [ref=e567]: "Wide-angle first-person POV outdoor photograph: The same young woman from the reference image, preserving her facial identity and overall appearance, is relaxing on her back in a l…"
+                  - button "View Full Prompt ›" [ref=e568]
+                - generic [ref=e569]:
+                  - generic [ref=e570]:
+                    - generic [ref=e571]: "@mehvishs25"
+                    - generic [ref=e572]: ·
+                    - generic [ref=e573]: Yesterday
+                  - generic [ref=e574]: 🔥 83
+                - generic [ref=e575]: photography
+                - generic [ref=e577]:
+                  - button "Copy Prompt" [ref=e578]
+                  - link "Source" [ref=e579] [cursor=pointer]:
+                    - /url: https://x.com/mehvishs25/status/2090268481698832535
+            - generic [ref=e580]:
+              - generic [ref=e581]:
+                - button "Play video" [ref=e584]
+                - generic [ref=e588]:
+                  - generic [ref=e589]: seedance
+                  - generic [ref=e590]: Video
+              - generic [ref=e594]:
+                - heading "Surreal Futuristic Ocean Energy Drink Product Reveal" [level=3] [ref=e595]
+                - generic [ref=e596]:
+                  - paragraph [ref=e597]: "Style: Hollywood live-action commercial cinematic, IMAX quality, ultra-realistic, photorealistic textures, Unreal Engine 5 realism, premium advertising aesthetic, no CGI feel, HDR,…"
+                  - button "View Full Prompt ›" [ref=e598]
+                - generic [ref=e599]:
+                  - generic [ref=e600]:
+                    - generic [ref=e601]: "@Noor_ul_ain43"
+                    - generic [ref=e602]: ·
+                    - generic [ref=e603]: Yesterday
+                  - generic [ref=e604]: 🔥 79
+                - generic [ref=e605]:
+                  - generic [ref=e606]: cinematic
+                  - generic [ref=e607]: Food & Drink
+                  - generic [ref=e608]: Product Ads
+                - generic [ref=e609]:
+                  - button "Copy Prompt" [ref=e610]
+                  - link "Source" [ref=e611] [cursor=pointer]:
+                    - /url: https://x.com/Noor_ul_ain43/status/2090353158036078673
+            - generic [ref=e612]:
+              - generic [ref=e613]:
+                - button "Play video" [ref=e616]
+                - generic [ref=e620]:
+                  - generic [ref=e621]: seedance
+                  - generic [ref=e622]: Video
+              - generic [ref=e626]:
+                - heading "Tiny Workers Repairing a Broken USB Drive" [level=3] [ref=e627]
+                - generic [ref=e628]:
+                  - paragraph [ref=e629]: "{ \"title\": \"Tiny Workers Repairing a Broken USB Drive\", \"duration\": \"15 seconds\", \"style\": \"cinematic miniature stop-motion, photorealistic\", \"prompt\": \"A macro cinematic scene…"
+                  - button "View Full Prompt ›" [ref=e630]
+                - generic [ref=e631]:
+                  - generic [ref=e632]:
+                    - generic [ref=e633]: "@drzubi01"
+                    - generic [ref=e634]: ·
+                    - generic [ref=e635]: Yesterday
+                  - generic [ref=e636]: 🔥 76
+                - generic [ref=e637]: cinematic
+                - generic [ref=e639]:
+                  - button "Copy Prompt" [ref=e640]
+                  - link "Source" [ref=e641] [cursor=pointer]:
+                    - /url: https://x.com/drzubi01/status/2090307471797780641
+            - generic [ref=e642]:
+              - generic [ref=e643]:
+                - button "Play video" [ref=e646]
+                - generic [ref=e650]:
+                  - generic [ref=e651]: seedance
+                  - generic [ref=e652]: Video
+              - generic [ref=e656]:
+                - heading "Morning Coffee Ritual" [level=3] [ref=e657]
+                - generic [ref=e658]:
+                  - paragraph [ref=e659]: Morning Coffee Ritual A fictional Western actress wakes up in a modern bedroom as warm morning sunlight filters through the curtains. She opens the curtains, walks into the kitche…
+                  - button "View Full Prompt ›" [ref=e660]
+                - generic [ref=e661]:
+                  - generic [ref=e662]:
+                    - generic [ref=e663]: "@AIwithZeeshi"
+                    - generic [ref=e664]: ·
+                    - generic [ref=e665]: Yesterday
+                  - generic [ref=e666]: 🔥 76
+                - generic [ref=e667]:
+                  - generic [ref=e668]: cinematic
+                  - generic [ref=e669]: Food & Drink
+                - generic [ref=e670]:
+                  - button "Copy Prompt" [ref=e671]
+                  - link "Source" [ref=e672] [cursor=pointer]:
+                    - /url: https://x.com/AIwithZeeshi/status/2090310481970143606
+            - generic [ref=e673]:
+              - generic [ref=e674]:
+                - button "Play video" [ref=e677]
+                - generic [ref=e681]:
+                  - generic [ref=e682]: seedance
+                  - generic [ref=e683]: Video
+              - generic [ref=e687]:
+                - heading "Vintage family documentary of autumn apple picking" [level=3] [ref=e688]
+                - generic [ref=e689]:
+                  - paragraph [ref=e690]: Create a 30-second ultra-realistic vintage family documentary video of a young woman spending an autumn morning picking apples in her family's old countryside orchard. VISUAL STYL…
+                  - button "View Full Prompt ›" [ref=e691]
+                - generic [ref=e692]:
+                  - generic [ref=e693]:
+                    - generic [ref=e694]: "@SeharShinwari"
+                    - generic [ref=e695]: ·
+                    - generic [ref=e696]: Yesterday
+                  - generic [ref=e697]: 🔥 98
+                - generic [ref=e698]: ugc
+                - generic [ref=e700]:
+                  - button "Copy Prompt" [ref=e701]
+                  - link "Source" [ref=e702] [cursor=pointer]:
+                    - /url: https://x.com/SeharShinwari/status/2090350402281624033
+            - generic [ref=e703]:
+              - generic [ref=e704]:
+                - img "Ultra-realistic candid outdoor photograph of woman in a mountain stream" [ref=e705]
+                - generic [ref=e706]:
+                  - generic [ref=e707]: gptimage
+                  - generic [ref=e708]: Image
+              - generic [ref=e713]:
+                - heading "Ultra-realistic candid outdoor photograph of woman in a mountain stream" [level=3] [ref=e714]
+                - generic [ref=e715]:
+                  - paragraph [ref=e716]: Ultra-realistic candid outdoor photograph of the same adult woman from the reference image, preserving her facial identity, distinctive facial features, hairstyle characteristics, …
+                  - button "View Full Prompt ›" [ref=e717]
+                - generic [ref=e718]:
+                  - generic [ref=e719]:
+                    - generic [ref=e720]: "@mehvishs25"
+                    - generic [ref=e721]: ·
+                    - generic [ref=e722]: Yesterday
+                  - generic [ref=e723]: 🔥 79
+                - generic [ref=e724]: photography
+                - generic [ref=e726]:
+                  - button "Copy Prompt" [ref=e727]
+                  - link "Source" [ref=e728] [cursor=pointer]:
+                    - /url: https://x.com/mehvishs25/status/2090117676295499870
+            - generic [ref=e729]:
+              - generic [ref=e730]:
+                - button "Play video" [ref=e733]
+                - generic [ref=e737]:
+                  - generic [ref=e738]: seedance
+                  - generic [ref=e739]: Video
+              - generic [ref=e743]:
+                - heading "NESCAFÉ Classic 9-second warm rustic 2D animated promotional video" [level=3] [ref=e744]
+                - generic [ref=e745]:
+                  - paragraph [ref=e746]: "Create a 9-second warm, rustic 2D animated promotional video for NESCAFÉ Classic: show a hand scooping coffee granules from the jar into the signature red mug, pouring hot water, s…"
+                  - button "View Full Prompt ›" [ref=e747]
+                - generic [ref=e748]:
+                  - generic [ref=e749]:
+                    - generic [ref=e750]: "@luciaverseai"
+                    - generic [ref=e751]: ·
+                    - generic [ref=e752]: Yesterday
+                  - generic [ref=e753]: 🔥 89
+                - generic [ref=e754]: animation
+                - generic [ref=e756]:
+                  - button "Copy Prompt" [ref=e757]
+                  - link "Source" [ref=e758] [cursor=pointer]:
+                    - /url: https://x.com/luciaverseai/status/2090346777711100082
+            - generic [ref=e759]:
+              - generic [ref=e760]:
+                - button "Play video" [ref=e763]
+                - generic [ref=e767]:
+                  - generic [ref=e768]: seedance
+                  - generic [ref=e769]: Video
+              - generic [ref=e773]:
+                - heading "Ultra-Premium Shampoo 15-Second Cinematic Advertisement" [level=3] [ref=e774]
+                - generic [ref=e775]:
+                  - paragraph [ref=e776]: Create a 15-second ultra-premium shampoo advertisement featuring a beautiful young woman with long, naturally thick, glossy hair. The entire film should look like a high-budget int…
+                  - button "View Full Prompt ›" [ref=e777]
+                - generic [ref=e778]:
+                  - generic [ref=e779]:
+                    - generic [ref=e780]: "@Rosey_watson"
+                    - generic [ref=e781]: ·
+                    - generic [ref=e782]: Yesterday
+                  - generic [ref=e783]: 🔥 129
+                - generic [ref=e784]: Product Ads
+                - generic [ref=e786]:
+                  - button "Copy Prompt" [ref=e787]
+                  - link "Source" [ref=e788] [cursor=pointer]:
+                    - /url: https://x.com/Rosey_watson/status/2090369532435083731
+            - generic [ref=e789]:
+              - generic [ref=e790]:
+                - img "Vintage halftone bold poster-art style portrait illustration prompt" [ref=e791]
+                - generic [ref=e792]:
+                  - generic [ref=e793]: gptimage
+                  - generic [ref=e794]: Image
+              - generic [ref=e799]:
+                - heading "Vintage halftone bold poster-art style portrait illustration prompt" [level=3] [ref=e800]
+                - generic [ref=e801]:
+                  - paragraph [ref=e802]: "\"task\": \"Convert the uploaded reference photo (or a well-known likeness of the named person) into a vintage halftone bold poster-art style portrait illustration.\", \"input\": { \"su…"
+                  - button "View Full Prompt ›" [ref=e803]
+                - generic [ref=e804]:
+                  - generic [ref=e805]:
+                    - generic [ref=e806]: "@ChillaiKalan__"
+                    - generic [ref=e807]: ·
+                    - generic [ref=e808]: Yesterday
+                  - generic [ref=e809]: 🔥 97
+                - generic [ref=e810]: Poster Design
+                - generic [ref=e812]:
+                  - button "Copy Prompt" [ref=e813]
+                  - link "Source" [ref=e814] [cursor=pointer]:
+                    - /url: https://x.com/ChillaiKalan__/status/2090301971127480546
+            - generic [ref=e815]:
+              - generic [ref=e816]:
+                - img "Accidental candid iPhone front-camera photo in a convenience store" [ref=e817]
+                - generic [ref=e818]:
+                  - generic [ref=e819]: gptimage
+                  - generic [ref=e820]: Image
+              - generic [ref=e825]:
+                - heading "Accidental candid iPhone front-camera photo in a convenience store" [level=3] [ref=e826]
+                - generic [ref=e827]:
+                  - paragraph [ref=e828]: Accidental candid iPhone front-camera photo captured inside a small neighborhood convenience store. A young Korean woman stands in the checkout line, casually wiping a trace of swe…
+                  - button "View Full Prompt ›" [ref=e829]
+                - generic [ref=e830]:
+                  - generic [ref=e831]:
+                    - generic [ref=e832]: "@john_my07"
+                    - generic [ref=e833]: ·
+                    - generic [ref=e834]: Yesterday
+                  - generic [ref=e835]: 🔥 85
+                - generic [ref=e836]: photography
+                - generic [ref=e838]:
+                  - button "Copy Prompt" [ref=e839]
+                  - link "Source" [ref=e840] [cursor=pointer]:
+                    - /url: https://x.com/john_my07/status/2090106714289049691
+            - generic [ref=e841]:
+              - generic [ref=e842]:
+                - img "Layered papercut travel poster" [ref=e843]
+                - generic [ref=e844]:
+                  - generic [ref=e845]: gptimage
+                  - generic [ref=e846]: Image
+              - generic [ref=e851]:
+                - heading "Layered papercut travel poster" [level=3] [ref=e852]
+                - generic [ref=e853]:
+                  - paragraph [ref=e854]: "CITY = {CITY} Create a refined vertical 3:4 travel poster of {CITY} as a handcrafted layered papercut illustration. First identify the city, country, architecture, landscape, cli…"
+                  - button "View Full Prompt ›" [ref=e855]
+                - generic [ref=e856]:
+                  - generic [ref=e857]:
+                    - generic [ref=e858]: "@Goodmanprotocol"
+                    - generic [ref=e859]: ·
+                    - generic [ref=e860]: Yesterday
+                  - generic [ref=e861]: 🔥 110
+                - generic [ref=e862]: travel
+                - generic [ref=e864]:
+                  - button "Copy Prompt" [ref=e865]
+                  - link "Source" [ref=e866] [cursor=pointer]:
+                    - /url: https://x.com/Goodmanprotocol/status/2090294202688999565
+            - generic [ref=e867]:
+              - generic [ref=e868]:
+                - button "Play video" [ref=e871]
+                - generic [ref=e875]:
+                  - generic [ref=e876]: seedance
+                  - generic [ref=e877]: Video
+              - generic [ref=e881]:
+                - heading "30-second photorealistic iPhone travel vlog in Dearborn, Michigan" [level=3] [ref=e882]
+                - generic [ref=e883]:
+                  - paragraph [ref=e884]: Create a 30-second 16:9 horizontal photorealistic iPhone travel vlog filmed in Dearborn, Michigan. The video must feel like authentic spontaneous UGC recorded by a real woman, not …
+                  - button "View Full Prompt ›" [ref=e885]
+                - generic [ref=e886]:
+                  - generic [ref=e887]:
+                    - generic [ref=e888]: "@Naiknelofar788"
+                    - generic [ref=e889]: ·
+                    - generic [ref=e890]: Yesterday
+                  - generic [ref=e891]: 🔥 72
+                - generic [ref=e892]:
+                  - generic [ref=e893]: travel
+                  - generic [ref=e894]: ugc
+                - generic [ref=e895]:
+                  - button "Copy Prompt" [ref=e896]
+                  - link "Source" [ref=e897] [cursor=pointer]:
+                    - /url: https://x.com/Naiknelofar788/status/2090131477145227354
+            - generic [ref=e898]:
+              - generic [ref=e899]:
+                - img "Photorealistic outdoor portrait of a young East Asian woman in a park" [ref=e900]
+                - generic [ref=e901]:
+                  - generic [ref=e902]: gptimage
+                  - generic [ref=e903]: Image
+              - generic [ref=e908]:
+                - heading "Photorealistic outdoor portrait of a young East Asian woman in a park" [level=3] [ref=e909]
+                - generic [ref=e910]:
+                  - paragraph [ref=e911]: Photorealistic candid outdoor portrait of a young East Asian woman enjoying a sunny afternoon in a quiet green park. She has smooth shoulder-length dark brown hair with full straig…
+                  - button "View Full Prompt ›" [ref=e912]
+                - generic [ref=e913]:
+                  - generic [ref=e914]:
+                    - generic [ref=e915]: "@saniaspeaks_"
+                    - generic [ref=e916]: ·
+                    - generic [ref=e917]: Yesterday
+                  - generic [ref=e918]: 🔥 89
+                - generic [ref=e919]: photography
+                - generic [ref=e921]:
+                  - button "Copy Prompt" [ref=e922]
+                  - link "Source" [ref=e923] [cursor=pointer]:
+                    - /url: https://x.com/saniaspeaks_/status/2090284820069048481
+            - generic [ref=e924]:
+              - generic [ref=e925]:
+                - img "Luxury Travel Magazine Cover – The Country Behind the Glass" [ref=e926]
+                - generic [ref=e927]:
+                  - generic [ref=e928]: gptimage
+                  - generic [ref=e929]: Image
+              - generic [ref=e934]:
+                - heading "Luxury Travel Magazine Cover – The Country Behind the Glass" [level=3] [ref=e935]
+                - generic [ref=e936]:
+                  - paragraph [ref=e937]: Create a breathtaking 4:5 vertical luxury travel artwork for [COUNTRY], inspired by high-end editorial magazine covers, vintage European travel posters, fine-art photography, and s…
+                  - button "View Full Prompt ›" [ref=e938]
+                - generic [ref=e939]:
+                  - generic [ref=e940]:
+                    - generic [ref=e941]: "@Naiknelofar788"
+                    - generic [ref=e942]: ·
+                    - generic [ref=e943]: Yesterday
+                  - generic [ref=e944]: 🔥 69
+                - generic [ref=e945]:
+                  - generic [ref=e946]: Poster Design
+                  - generic [ref=e947]: travel
+                - generic [ref=e948]:
+                  - button "Copy Prompt" [ref=e949]
+                  - link "Source" [ref=e950] [cursor=pointer]:
+                    - /url: https://x.com/Naiknelofar788/status/2090290723677749525
+            - generic [ref=e951]:
+              - generic [ref=e952]:
+                - button "Play video" [ref=e955]
+                - generic [ref=e959]:
+                  - generic [ref=e960]: seedance
+                  - generic [ref=e961]: Video
+              - generic [ref=e965]:
+                - heading "Seedance 2.5 purikura booth video prompt" [level=3] [ref=e966]
+                - generic [ref=e967]:
+                  - paragraph [ref=e968]: "Person: Use Image1 as the exact face/hairstyle reference. Preserve identity and facial features completely; ignore its outfit, background, pose, and text. Casual everyday streetwea…"
+                  - button "View Full Prompt ›" [ref=e969]
+                - generic [ref=e970]:
+                  - generic [ref=e971]:
+                    - generic [ref=e972]: "@QAiStudio"
+                    - generic [ref=e973]: ·
+                    - generic [ref=e974]: Yesterday
+                  - generic [ref=e975]: 🔥 119
+                - generic [ref=e976]: ugc
+                - generic [ref=e978]:
+                  - button "Copy Prompt" [ref=e979]
+                  - link "Source" [ref=e980] [cursor=pointer]:
+                    - /url: https://x.com/QAiStudio/status/2090318927012167948
+            - generic [ref=e981]:
+              - generic [ref=e982]:
+                - button "Play video" [ref=e985]
+                - generic [ref=e989]:
+                  - generic [ref=e990]: seedance
+                  - generic [ref=e991]: Video
+              - generic [ref=e995]:
+                - heading "Bullet Time Milkshake Diner Sequence" [level=3] [ref=e996]
+                - generic [ref=e997]:
+                  - paragraph [ref=e998]: "Bullet Time effect Style & Mood: Photorealistic 1950s American diner, modern lived-in documentary grit — chrome stools, deep red vinyl booths, checkerboard tile floor, neon glow mi…"
+                  - button "View Full Prompt ›" [ref=e999]
+                - generic [ref=e1000]:
+                  - generic [ref=e1001]:
+                    - generic [ref=e1002]: "@AIwithkhan"
+                    - generic [ref=e1003]: ·
+                    - generic [ref=e1004]: Yesterday
+                  - generic [ref=e1005]: 🔥 111
+                - generic [ref=e1006]: cinematic
+                - generic [ref=e1008]:
+                  - button "Copy Prompt" [ref=e1009]
+                  - link "Source" [ref=e1010] [cursor=pointer]:
+                    - /url: https://x.com/AIwithkhan/status/2090306815833899065
+            - generic [ref=e1011]:
+              - generic [ref=e1012]:
+                - button "Play video" [ref=e1015]
+                - generic [ref=e1019]:
+                  - generic [ref=e1020]: seedance
+                  - generic [ref=e1021]: Video
+              - generic [ref=e1025]:
+                - heading "Apocalypse Unleashed" [level=3] [ref=e1026]
+                - generic [ref=e1027]:
+                  - paragraph [ref=e1028]: "1. 0–1.3s: Woman laughs with friends on Korean rooftop under string lights; suddenly rigid, eyes wide. 2. 1.3–2.6s: Head snaps down violently, veins darken; friends fall silent, ch…"
+                  - button "View Full Prompt ›" [ref=e1029]
+                - generic [ref=e1030]:
+                  - generic [ref=e1031]:
+                    - generic [ref=e1032]: "@doctorwasif"
+                    - generic [ref=e1033]: ·
+                    - generic [ref=e1034]: Yesterday
+                  - generic [ref=e1035]: 🔥 69
+                - generic [ref=e1036]: cinematic
+                - generic [ref=e1038]:
+                  - button "Copy Prompt" [ref=e1039]
+                  - link "Source" [ref=e1040] [cursor=pointer]:
+                    - /url: https://x.com/doctorwasif/status/2090305873373810874
+            - generic [ref=e1041]:
+              - generic [ref=e1042]:
+                - button "Play video" [ref=e1045]
+                - generic [ref=e1049]:
+                  - generic [ref=e1050]: seedance
+                  - generic [ref=e1051]: Video
+              - generic [ref=e1055]:
+                - heading "Ultra-realistic cinematic urban skate chase" [level=3] [ref=e1056]
+                - generic [ref=e1057]:
+                  - paragraph [ref=e1058]: Create an ultra-realistic cinematic action sequence featuring a young woman wearing fitted blue jeans, a stylish crop top, sneakers, and protective inline skates. Maintain perfect …
+                  - button "View Full Prompt ›" [ref=e1059]
+                - generic [ref=e1060]:
+                  - generic [ref=e1061]:
+                    - generic [ref=e1062]: "@AIwithSynthia"
+                    - generic [ref=e1063]: ·
+                    - generic [ref=e1064]: Yesterday
+                  - generic [ref=e1065]: 🔥 104
+                - generic [ref=e1066]:
+                  - generic [ref=e1067]: Camera Moves
+                  - generic [ref=e1068]: character
+                  - generic [ref=e1069]: cinematic
+                - generic [ref=e1070]:
+                  - button "Copy Prompt" [ref=e1071]
+                  - link "Source" [ref=e1072] [cursor=pointer]:
+                    - /url: https://x.com/AIwithSynthia/status/2090302151142822253
+            - generic [ref=e1073]:
+              - generic [ref=e1074]:
+                - button "Play video" [ref=e1077]
+                - generic [ref=e1081]:
+                  - generic [ref=e1082]: seedance
+                  - generic [ref=e1083]: Video
+              - generic [ref=e1087]:
+                - heading "30 seconds of ambush attack on US forces in Afghanistan" [level=3] [ref=e1088]
+                - generic [ref=e1089]:
+                  - paragraph [ref=e1090]: "30 seconds of ambush attack on US forces in afghanistan. Try it with prompt : PROJECTCONVOY AMBUSHFORMAT30 seconds | 16:9 | live-action military combat dramaFictional dramatizatio…"
+                  - button "View Full Prompt ›" [ref=e1091]
+                - generic [ref=e1092]:
+                  - generic [ref=e1093]:
+                    - generic [ref=e1094]: "@Diplomeme"
+                    - generic [ref=e1095]: ·
+                    - generic [ref=e1096]: Yesterday
+                  - generic [ref=e1097]: 🔥 90
+                - generic [ref=e1098]: cinematic
+                - generic [ref=e1100]:
+                  - button "Copy Prompt" [ref=e1101]
+                  - link "Source" [ref=e1102] [cursor=pointer]:
+                    - /url: https://x.com/Diplomeme/status/2090303876734022064
+            - generic [ref=e1103]:
+              - generic [ref=e1104]:
+                - img "Vertical vintage travel illustration of Manhattan skyline in city park" [ref=e1105]
+                - generic [ref=e1106]:
+                  - generic [ref=e1107]: gptimage
+                  - generic [ref=e1108]: Image
+              - generic [ref=e1113]:
+                - heading "Vertical vintage travel illustration of Manhattan skyline in city park" [level=3] [ref=e1114]
+                - generic [ref=e1115]:
+                  - paragraph [ref=e1116]: Create a vertical editorial travel illustration inspired by vintage European travel posters, featuring a peaceful summer afternoon in a grand city park with a recognizable Manhatta…
+                  - button "View Full Prompt ›" [ref=e1117]
+                - generic [ref=e1118]:
+                  - generic [ref=e1119]:
+                    - generic [ref=e1120]: "@Taaruk_"
+                    - generic [ref=e1121]: ·
+                    - generic [ref=e1122]: Yesterday
+                  - generic [ref=e1123]: 🔥 82
+                - generic [ref=e1124]: Poster Design
+                - generic [ref=e1126]:
+                  - button "Copy Prompt" [ref=e1127]
+                  - link "Source" [ref=e1128] [cursor=pointer]:
+                    - /url: https://x.com/Taaruk_/status/2090307485374578755
+            - generic [ref=e1129]:
+              - generic [ref=e1130]:
+                - img "Premium Handcrafted Paper-Collage Diorama with Photorealistic Girl" [ref=e1131]
+                - generic [ref=e1132]:
+                  - generic [ref=e1133]: gptimage
+                  - generic [ref=e1134]: Image
+              - generic [ref=e1139]:
+                - heading "Premium Handcrafted Paper-Collage Diorama with Photorealistic Girl" [level=3] [ref=e1140]
+                - generic [ref=e1141]:
+                  - paragraph [ref=e1142]: Create a premium whimsical handcrafted paper-collage diorama inspired exactly by the uploaded reference image. Use the uploaded girl reference as the ONLY human subject. Preserve …
+                  - button "View Full Prompt ›" [ref=e1143]
+                - generic [ref=e1144]:
+                  - generic [ref=e1145]:
+                    - generic [ref=e1146]: "@AiwithLariab"
+                    - generic [ref=e1147]: ·
+                    - generic [ref=e1148]: Yesterday
+                  - generic [ref=e1149]: 🔥 106
+                - generic [ref=e1150]: Illustration 3D
+                - generic [ref=e1152]:
+                  - button "Copy Prompt" [ref=e1153]
+                  - link "Source" [ref=e1154] [cursor=pointer]:
+                    - /url: https://x.com/AiwithLariab/status/2090297565732585554
+          - generic [ref=e1156]:
+            - generic [ref=e1157]:
+              - heading "Trending" [level=2] [ref=e1158]
+              - generic [ref=e1159]:
+                - button "Scroll left" [ref=e1160]
+                - button "Scroll right" [ref=e1163]
+            - list [ref=e1166]:
+              - listitem [ref=e1167]:
+                - generic [ref=e1169] [cursor=pointer]:
+                  - generic [ref=e1170]: Video
+                  - paragraph [ref=e1172]: POV River-to-Campfire Trout Cooking Sequence (30s Video)
+              - listitem [ref=e1173]:
+                - generic [ref=e1175] [cursor=pointer]:
+                  - generic [ref=e1176]: Video
+                  - paragraph [ref=e1178]: Handheld 16mm gym vlog POV of CHASE in an evening gym
+              - listitem [ref=e1179]:
+                - paragraph [ref=e1183] [cursor=pointer]: Photorealistic woman in black leather outfit inside a mirrored elevator
+              - listitem [ref=e1184]:
+                - generic [ref=e1186] [cursor=pointer]:
+                  - generic [ref=e1187]: Video
+                  - paragraph [ref=e1189]: Oliver the Teddy Bear Adventure
+              - listitem [ref=e1190]:
+                - generic [ref=e1192] [cursor=pointer]:
+                  - generic [ref=e1193]: Video
+                  - paragraph [ref=e1195]: Oliver the Teddy Bear Adventure
+              - listitem [ref=e1196]:
+                - generic [ref=e1198] [cursor=pointer]:
+                  - generic [ref=e1199]: Video
+                  - paragraph [ref=e1201]: Oliver the Teddy Bear Adventure
+              - listitem [ref=e1202]:
+                - generic [ref=e1204] [cursor=pointer]:
+                  - generic [ref=e1205]: Video
+                  - paragraph [ref=e1207]: Oliver the Teddy Bear Adventure
+              - listitem [ref=e1208]:
+                - generic [ref=e1210] [cursor=pointer]:
+                  - generic [ref=e1211]: Video
+                  - paragraph [ref=e1213]: 15-second hyper-realistic cinematic luxury jewelry commercial featuring an East Asian woman and diamond necklace
+              - listitem [ref=e1214]:
+                - generic [ref=e1216] [cursor=pointer]:
+                  - generic [ref=e1217]: Video
+                  - paragraph [ref=e1219]: Tresemmé Luxury Haircare Commercial
+              - listitem [ref=e1220]:
+                - paragraph [ref=e1224] [cursor=pointer]: Night pool portrait of Dua Lipa in 8k RAW
+              - listitem [ref=e1225]:
+                - generic [ref=e1227] [cursor=pointer]:
+                  - generic [ref=e1228]: Video
+                  - paragraph [ref=e1230]: 30-second ultra-realistic cinematic horror-comedy ad for Philosophy Fresh Cream Body Lotion
+              - listitem [ref=e1231]:
+                - generic [ref=e1233] [cursor=pointer]:
+                  - generic [ref=e1234]: Video
+                  - paragraph [ref=e1236]: Cinematic Korean Convenience Store Snack Challenge Vlog
+              - listitem [ref=e1237]:
+                - generic [ref=e1239] [cursor=pointer]:
+                  - generic [ref=e1240]: Video
+                  - paragraph [ref=e1242]: Curious Fox & Mountain Stream Vlog
+              - listitem [ref=e1243]:
+                - generic [ref=e1245] [cursor=pointer]:
+                  - generic [ref=e1246]: Video
+                  - paragraph [ref=e1248]: Handheld selfie vlog eating oden in hotel room
+              - listitem [ref=e1249]:
+                - paragraph [ref=e1253] [cursor=pointer]: SHARON'S REAL FACE portrait
+              - listitem [ref=e1254]:
+                - paragraph [ref=e1258] [cursor=pointer]: Ariel Winter in red swimsuit submerged in tropical resort pool
+              - listitem [ref=e1259]:
+                - generic [ref=e1261] [cursor=pointer]:
+                  - generic [ref=e1262]: Video
+                  - paragraph [ref=e1264]: Whole Life Cycle Time-lapse of a Seed in a Glass Jar
+              - listitem [ref=e1265]:
+                - generic [ref=e1267] [cursor=pointer]:
+                  - generic [ref=e1268]: Video
+                  - paragraph [ref=e1270]: "Cinematic Parisian Morning: Coffee, Croissant, and Sunlit Streets"
+              - listitem [ref=e1271]:
+                - paragraph [ref=e1275] [cursor=pointer]: AI Image Enhancement Prompt
+              - listitem [ref=e1276]:
+                - generic [ref=e1278] [cursor=pointer]:
+                  - generic [ref=e1279]: Video
+                  - paragraph [ref=e1281]: Cinematic fashion video of a young woman on a terracotta spiral staircase
+          - generic [ref=e1282]:
+            - generic [ref=e1283]:
+              - heading "Categories" [level=2] [ref=e1284]
+              - generic [ref=e1285]:
+                - button "Scroll left" [ref=e1286]
+                - button "Scroll right" [ref=e1289]
+            - list [ref=e1292]:
+              - button "Animation 105" [ref=e1293]
+              - button "Architecture 16" [ref=e1294]
+              - button "Camera Moves 123" [ref=e1295]
+              - button "Character 197" [ref=e1296]
+              - button "Cinematic 606" [ref=e1297]
+              - button "Food & Drink 79" [ref=e1298]
+              - button "Illustration 3D 52" [ref=e1299]
+              - button "Nature 36" [ref=e1300]
+              - button "Photography 570" [ref=e1301]
+              - button "Poster Design 91" [ref=e1302]
+              - button "Product Ads 93" [ref=e1303]
+              - button "Product Brand 4" [ref=e1304]
+              - button "Travel 86" [ref=e1305]
+              - button "Ugc 90" [ref=e1306]
+              - button "UI Graphic 4" [ref=e1307]
+          - generic [ref=e1308]:
+            - generic [ref=e1309]:
+              - heading "Providers" [level=2] [ref=e1310]
+              - generic [ref=e1311]:
+                - button "Scroll left" [ref=e1312]
+                - button "Scroll right" [ref=e1315]
+            - list [ref=e1318]:
+              - generic [ref=e1320]:
+                - generic [ref=e1321]: GP
+                - paragraph [ref=e1322]: gptimage
+                - paragraph [ref=e1323]: 830 prompts
+              - generic [ref=e1325]:
+                - generic [ref=e1326]: NA
+                - paragraph [ref=e1327]: nanobanana
+                - paragraph [ref=e1328]: 75 prompts
+              - generic [ref=e1330]:
+                - generic [ref=e1331]: SE
+                - paragraph [ref=e1332]: seedance
+                - paragraph [ref=e1333]: 821 prompts
+  - dialog "Filter prompts" [ref=e1334]:
+    - generic [ref=e1336]:
+      - generic [ref=e1337]:
+        - generic [ref=e1338]: Media Type
+        - generic [ref=e1339]:
+          - button "All" [ref=e1340]
+          - button "Images" [ref=e1341]
+          - button "Videos" [ref=e1342]
+      - generic [ref=e1343]:
+        - generic [ref=e1344]: Category
+        - combobox [ref=e1345]:
+          - option "All Categories" [selected]
+          - option "Animation"
+          - option "Architecture"
+          - option "Camera Moves"
+          - option "Character"
+          - option "Cinematic"
+          - option "Food & Drink"
+          - option "Illustration 3D"
+          - option "Nature"
+          - option "Photography"
+          - option "Poster Design"
+          - option "Product Ads"
+          - option "Product Brand"
+          - option "Travel"
+          - option "Ugc"
+          - option "UI Graphic"
+      - generic [ref=e1346]:
+        - generic [ref=e1347]: Sort
+        - combobox [ref=e1348]:
+          - option "Newest First" [selected]
+          - option "Most Popular"
+          - option "Most Likes"
+      - generic [ref=e1349]:
+        - generic [ref=e1350]: Exclude Chinese content
+        - button "On" [ref=e1351]
+      - button "Apply Filters" [ref=e1352]

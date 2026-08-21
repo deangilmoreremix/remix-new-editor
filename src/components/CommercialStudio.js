@@ -36,7 +36,7 @@ export function CommercialStudio() {
   let selectedScene = SCENE_PRESETS[0];
   let selectedFormat = FORMAT_PRESETS[0];
   let selectedModel = 'ai-product-shot';
-  let dynamicControls = null;
+let dynamicControls = null;
   let dynamicControlsContainer = null;
   let customThumbnailUrl = getCustomThumbnailFromCache('commercial-studio');
 
@@ -61,7 +61,7 @@ export function CommercialStudio() {
   modelLabel.textContent = 'Model';
   formCard.appendChild(modelLabel);
 
-  const COMMERCIAL_MODELS = [
+const COMMERCIAL_MODELS = [
     { id: 'ai-product-shot', name: 'Product Shot', provider: 'muapi', provider_name: 'MuAPI' },
     { id: 'ai-product-photography', name: 'Product Photography', provider: 'muapi', provider_name: 'MuAPI' },
   ];
@@ -284,11 +284,56 @@ export function CommercialStudio() {
   formCard.appendChild(thumbBtn);
 
   const genBtn = document.createElement('button');
-  genBtn.type = 'button';
+genBtn.type = 'button';
   genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all mt-2';
   genBtn.textContent = 'Generate Product Shot';
   genBtn.setAttribute('aria-label', 'Generate product shot');
   formCard.appendChild(genBtn);
+
+  // Prompt Gallery button
+  const promptGalleryBtn = document.createElement('button');
+  promptGalleryBtn.type = 'button';
+  promptGalleryBtn.textContent = '📚 Prompts';
+  promptGalleryBtn.title = 'Browse prompt gallery';
+  promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
+  promptGalleryBtn.className = 'w-full bg-white/5 border border-white/10 text-white py-2.5 rounded-xl font-bold text-xs hover:bg-white/10 transition-all mt-2';
+  promptGalleryBtn.addEventListener('click', () => {
+    openPromptGallery({
+      appTheme: 'commercial-studio',
+      onSelect: (prompt) => {
+        commercialPrompt = prompt;
+      }
+    }).catch((err) => console.error('[PromptGallery] open failed:', err));
+  });
+
+    // Recipe Engine button
+    const recipeBtn = document.createElement('button');
+    recipeBtn.type = 'button';
+    recipeBtn.textContent = '📋 Recipes';
+    recipeBtn.title = 'Browse AI recipes';
+    recipeBtn.setAttribute('aria-label', 'Open recipe engine');
+    recipeBtn.className = 'gtm-boost-btn shrink-0';
+    recipeBtn.addEventListener('click', () => {
+      openRecipeModal({
+        onRunRecipe: (url) => {
+        }
+      }).catch((err) => console.error('[Recipe] open failed:', err));
+    });
+
+
+    // Monetization Hub button
+    const monetizationBtn = document.createElement('button');
+    monetizationBtn.type = 'button';
+    monetizationBtn.textContent = "💼 Smart Video AI Monetize";
+    monetizationBtn.title = "Open Smart Video AI Monetization Hub";
+    monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
+    monetizationBtn.className = 'gtm-boost-btn shrink-0';
+    monetizationBtn.addEventListener('click', () => {
+      openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+    });
+  formCard.appendChild(recipeBtn);
+  formCard.appendChild(monetizationBtn);
+  formCard.appendChild(promptGalleryBtn);
   container.appendChild(formCard);
 
   const inlineInstructions = createInlineInstructions('commercial');
@@ -314,7 +359,7 @@ export function CommercialStudio() {
       const params = {
         model: selectedModel,
         image_url: uploadedUrl,
-        customThumbnailUrl: customThumbnailUrl || undefined,
+customThumbnailUrl: customThumbnailUrl || undefined,
       };
       if (dynamicControls) {
         Object.assign(params, dynamicControls.getPayload({}));

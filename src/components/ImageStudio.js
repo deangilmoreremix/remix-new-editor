@@ -255,6 +255,57 @@ export function ImageStudio() {
 
     const textarea = document.createElement('textarea');
     textarea.id = 'i-prompt-textarea';
+    // Prompt Gallery button
+    const promptGalleryBtn = document.createElement('button');
+    promptGalleryBtn.type = 'button';
+    promptGalleryBtn.textContent = '📚 Prompts';
+    promptGalleryBtn.title = 'Browse prompt gallery';
+    promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
+    promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
+    promptGalleryBtn.addEventListener('click', () => {
+      openPromptGallery({
+        appTheme: 'image-studio',
+        onSelect: (prompt) => {
+          const ta = document.getElementById('i-prompt-textarea') || document.querySelector('textarea');
+          if (ta) {
+            ta.value = prompt;
+            ta.dispatchEvent(new Event('input', { bubbles: true }));
+            ta.focus();
+          }
+        }
+      }).catch((err) => console.error('[PromptGallery] open failed:', err));
+    });
+
+    // Recipe Engine button
+    const recipeBtn = document.createElement('button');
+    recipeBtn.type = 'button';
+    recipeBtn.textContent = '📋 Recipes';
+    recipeBtn.title = 'Browse AI recipes';
+    recipeBtn.setAttribute('aria-label', 'Open recipe engine');
+    recipeBtn.className = 'gtm-boost-btn shrink-0';
+    recipeBtn.addEventListener('click', () => {
+      openRecipeModal({
+        onRunRecipe: (url) => {
+        }
+      }).catch((err) => console.error('[Recipe] open failed:', err));
+    });
+
+
+    // Monetization Hub button
+    const monetizationBtn = document.createElement('button');
+    monetizationBtn.type = 'button';
+    monetizationBtn.textContent = "💼 Smart Video AI Monetize";
+    monetizationBtn.title = "Open Smart Video AI Monetization Hub";
+    monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
+    monetizationBtn.className = 'gtm-boost-btn shrink-0';
+    monetizationBtn.addEventListener('click', () => {
+      openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+    });
+    promptWrapper.appendChild(recipeBtn);
+    promptWrapper.appendChild(monetizationBtn);
+    promptWrapper.appendChild(promptGalleryBtn);
+
+
     textarea.placeholder = 'Describe the image you want to create';
     textarea.className = 'flex-1 bg-transparent border-none text-white text-base md:text-xl placeholder:text-muted focus:outline-none resize-none pt-2.5 leading-relaxed min-h-[40px] max-h-[150px] md:max-h-[250px] overflow-y-auto custom-scrollbar';
     textarea.rows = 1;
@@ -392,6 +443,32 @@ export function ImageStudio() {
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-60 text-secondary"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 001.82-.33 1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-1.82.33A1.65 1.65 0 0019.4 9a1.65 1.65 0 00-1.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
     `, 'Advanced', 'advanced-btn', 'Show advanced options');
     controlsLeft.appendChild(advancedBtn);
+  // Model Picker button
+  const modelPickerBtn = document.createElement('button');
+  modelPickerBtn.type = 'button';
+  modelPickerBtn.textContent = 'AI Pick';
+  modelPickerBtn.title = 'Open intelligent model picker';
+  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
+  modelPickerBtn.className = 'text-[11px] font-bold text-cyan-400 border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 rounded-lg hover:bg-cyan-400/20 transition-colors ml-2 whitespace-nowrap';
+  modelPickerBtn.addEventListener('click', () => {
+    openModelPicker({
+      currentModelId: selectedModel,
+      onSelectModel: (id) => {
+        selectedModel = id;
+        const m = getCurrentModels().find(x => x.id === id);
+        selectedModelName = m ? m.name : id;
+        document.getElementById('model-btn-label').textContent = selectedModelName;
+        const availableArs = getCurrentAspectRatios(selectedModel);
+        selectedAr = availableArs[0];
+        document.getElementById('ar-btn-label').textContent = selectedAr;
+        const validResolutions = getCurrentResolutions(selectedModel);
+        qualityBtn.style.display = validResolutions.length > 0 ? 'flex' : 'none';
+        if (validResolutions.length > 0) document.getElementById('quality-btn-label').textContent = validResolutions[0];
+      }
+    }).catch((err) => console.error('[ModelPicker] open failed:', err));
+  });
+  controlsLeft.appendChild(modelPickerBtn);
+
     
     // Quick Tools toggle button
     const toolsBtn = createControlBtn(`
@@ -416,7 +493,7 @@ export function ImageStudio() {
     }
 
     const generateBtn = document.createElement('button');
-    generateBtn.type = 'button';
+generateBtn.type = 'button';
     generateBtn.className = 'bg-primary text-black px-6 md:px-8 py-3 md:py-3.5 rounded-xl md:rounded-[1.5rem] font-black text-sm md:text-base hover:shadow-glow hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2.5 w-full sm:w-auto shadow-lg';
     generateBtn.setAttribute('data-tooltip', 'Generate AI image from prompt');
     generateBtn.setAttribute('aria-label', 'Generate image');
@@ -709,7 +786,12 @@ export function ImageStudio() {
                 }
                 updateModelBtnIcon();
                 if (dynamicControls) {
-                  dynamicControls.update(getExtendedModel(getModelById(selectedModel)));
+                  const resolved = getModelById(selectedModel)
+                    || getI2IModelById(selectedModel)
+                    || getI2VModelById(selectedModel)
+                    || getV2VModelById(selectedModel)
+                    || { id: selectedModel, inputs: {} };
+                  dynamicControls.update(getExtendedModel(resolved));
                 }
                 closeDropdown();
               },
@@ -1115,8 +1197,6 @@ export function ImageStudio() {
                 if (qualityField && qualityLabel) genParams[qualityField] = qualityLabel;
                 res = await muapi.generateImage(genParams);
             }
-
-            console.log('[ImageStudio] Full response:', res);
 
             if (res && res.url) {
                 // Add to history

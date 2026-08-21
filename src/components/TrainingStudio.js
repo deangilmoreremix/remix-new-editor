@@ -39,7 +39,7 @@ export function TrainingStudio() {
   modelWrapper.className = 'mb-6 flex flex-col items-center gap-2 animate-fade-in-up';
   modelWrapper.style.animationDelay = '0.1s';
 
-  const triggerBtn = document.createElement('button');
+const triggerBtn = document.createElement('button');
   triggerBtn.type = 'button';
   triggerBtn.className = 'flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all border bg-white/5 text-secondary border-white/10 hover:bg-white/10';
   const updateTrigger = () => {
@@ -264,11 +264,61 @@ export function TrainingStudio() {
 
   // Train button
   const trainBtn = document.createElement('button');
-  trainBtn.type = 'button';
+trainBtn.type = 'button';
   trainBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all';
   trainBtn.textContent = 'Train LoRA';
   trainBtn.setAttribute('aria-label', 'Train LoRA');
   formCard.appendChild(trainBtn);
+
+  // Recipe Engine button
+  const recipeBtn = document.createElement('button');
+  recipeBtn.type = 'button';
+  recipeBtn.textContent = '📋 Recipes';
+  recipeBtn.title = 'Browse AI recipes';
+  recipeBtn.setAttribute('aria-label', 'Open recipe engine');
+  recipeBtn.className = 'gtm-boost-btn shrink-0';
+  recipeBtn.addEventListener('click', () => {
+    openRecipeModal({
+      onRunRecipe: (url) => {
+      }
+    }).catch((err) => console.error('[Recipe] open failed:', err));
+  });
+  formCard.appendChild(recipeBtn);
+
+  // Monetization Hub button
+  const monetizationBtn = document.createElement('button');
+  monetizationBtn.type = 'button';
+  monetizationBtn.textContent = "💼 Smart Video AI Monetize";
+  monetizationBtn.title = "Open Smart Video AI Monetization Hub";
+  monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
+  monetizationBtn.className = 'gtm-boost-btn shrink-0';
+  monetizationBtn.addEventListener('click', () => {
+    openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+  });
+  formCard.appendChild(monetizationBtn);
+
+  // Prompt Gallery button
+  const promptGalleryBtn = document.createElement('button');
+  promptGalleryBtn.type = 'button';
+  promptGalleryBtn.textContent = '📚 Prompts';
+  promptGalleryBtn.title = 'Browse prompt gallery';
+  promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
+  promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
+  promptGalleryBtn.addEventListener('click', () => {
+    openPromptGallery({
+      appTheme: 'training-studio',
+      onSelect: (prompt) => {
+        const ta = document.querySelector('textarea');
+        if (ta) {
+          ta.value = prompt;
+          ta.dispatchEvent(new Event('input', { bubbles: true }));
+          ta.focus();
+        }
+      }
+    }).catch((err) => console.error('[PromptGallery] open failed:', err));
+  });
+  formCard.appendChild(promptGalleryBtn);
+
   container.appendChild(formCard);
 
   // Instructions

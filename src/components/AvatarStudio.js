@@ -24,6 +24,7 @@ export function AvatarStudio() {
   mountStudioChrome(container, { currentRoute: 'avatar' });
 
   let selectedModel = avatarModels[0];
+  let nativeAudio = false;
   let uploadedVideoUrl = null;
   let uploadedAudioUrl = null;
   let prompt = '';
@@ -49,7 +50,7 @@ export function AvatarStudio() {
   modelWrapper.className = 'mb-6 flex flex-col items-center gap-2 animate-fade-in-up';
   modelWrapper.style.animationDelay = '0.1s';
 
-  const triggerBtn = document.createElement('button');
+const triggerBtn = document.createElement('button');
   triggerBtn.type = 'button';
   triggerBtn.className = 'flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all border bg-white/5 text-secondary border-white/10 hover:bg-white/10';
   const updateTrigger = () => {
@@ -227,7 +228,7 @@ export function AvatarStudio() {
   formCard.appendChild(promptGroup);
   mountPersonalizeTrigger({ controlsContainer: formCard, getTextarea: () => promptInput, appId: 'avatar-studio' });
 
-  // Dynamic model-specific advanced controls
+// Dynamic model-specific advanced controls
   dynamicControlsContainer = document.createElement('div');
   dynamicControlsContainer.className = 'flex flex-col gap-3';
   formCard.appendChild(dynamicControlsContainer);
@@ -300,6 +301,57 @@ export function AvatarStudio() {
 
   // Helper functions
 
+
+    // Prompt Gallery button
+    const promptGalleryBtn = document.createElement('button');
+    promptGalleryBtn.type = 'button';
+    promptGalleryBtn.textContent = '📚 Prompts';
+    promptGalleryBtn.title = 'Browse prompt gallery';
+    promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
+    promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
+    promptGalleryBtn.addEventListener('click', () => {
+      openPromptGallery({
+        appTheme: 'avatar-studio',
+        onSelect: (prompt) => {
+          // Default: try to find a textarea in the studio
+          const ta = document.querySelector('textarea') || document.querySelector('[data-prompt]');
+          if (ta) {
+            ta.value = prompt;
+            ta.dispatchEvent(new Event('input', { bubbles: true }));
+            ta.focus();
+          }
+        }
+      }).catch((err) => console.error('[PromptGallery] open failed:', err));
+    });
+
+    // Recipe Engine button
+    const recipeBtn = document.createElement('button');
+    recipeBtn.type = 'button';
+    recipeBtn.textContent = '📋 Recipes';
+    recipeBtn.title = 'Browse AI recipes';
+    recipeBtn.setAttribute('aria-label', 'Open recipe engine');
+    recipeBtn.className = 'gtm-boost-btn shrink-0';
+    recipeBtn.addEventListener('click', () => {
+      openRecipeModal({
+        onRunRecipe: (url) => {
+        }
+      }).catch((err) => console.error('[Recipe] open failed:', err));
+    });
+
+
+    // Monetization Hub button
+    const monetizationBtn = document.createElement('button');
+    monetizationBtn.type = 'button';
+    monetizationBtn.textContent = "💼 Smart Video AI Monetize";
+    monetizationBtn.title = "Open Smart Video AI Monetization Hub";
+    monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
+    monetizationBtn.className = 'gtm-boost-btn shrink-0';
+    monetizationBtn.addEventListener('click', () => {
+      openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+    });
+    promptGroup.appendChild(recipeBtn);
+    promptGroup.appendChild(monetizationBtn);
+
   function updateFormVisibility() {
     // Show/hide video upload
     const needsVideo = selectedModel.hasVideo;
@@ -312,6 +364,11 @@ export function AvatarStudio() {
     // Show/hide prompt
     const needsPrompt = selectedModel.hasPrompt;
     promptGroup.classList.toggle('hidden', !needsPrompt);
+
+    // Show/hide native audio toggle based on model
+    const supportsNativeAudio = selectedModel.inputs?.native_audio;
+    nativeAudioRow.classList.toggle('hidden', !supportsNativeAudio);
+    if (!supportsNativeAudio) nativeAudio = false;
   }
 
   // Generate button handler
@@ -335,7 +392,7 @@ export function AvatarStudio() {
     genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Generating...';
 
     try {
-       const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
+const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
         const params = {
           model: selectedModel.id,
           video_url: uploadedVideoUrl,

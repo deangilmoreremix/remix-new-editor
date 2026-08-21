@@ -28,7 +28,7 @@ export function CharacterStudio() {
   let uploadedUrl = null;
   let customThumbnailUrl = getCustomThumbnailFromCache('character-studio');
   let selectedModel = CHARACTER_MODELS[0];
-  const dynamicControls = null;
+const dynamicControls = null;
   const dynamicControlsContainer = null;
 
   const header = document.createElement('div');
@@ -98,7 +98,7 @@ export function CharacterStudio() {
           closeDropdown();
         },
       });
-    }
+}
   };
 
   triggerBtn.onclick = (e) => {
@@ -142,7 +142,7 @@ export function CharacterStudio() {
   formCard.appendChild(uploadRow);
   container.appendChild(picker.panel);
 
-  const pexelsBtn = document.createElement('button');
+const pexelsBtn = document.createElement('button');
   pexelsBtn.type = 'button';
   pexelsBtn.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden';
   pexelsBtn.title = 'Browse stock photos from Pexels';
@@ -180,24 +180,73 @@ export function CharacterStudio() {
   promptInput.setAttribute('aria-label', 'Character description');
   formCard.appendChild(promptInput);
 
-    // GTM Boost entry point — opens the prompt enhancer themed for character
-    // creation and loads the result straight into this prompt.
-    const gtmBtn = document.createElement('button');
-    gtmBtn.type = 'button';
-    gtmBtn.textContent = '🎯 GTM Boost';
-    gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
-    gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
-    gtmBtn.className = 'gtm-boost-btn shrink-0';
-    gtmBtn.addEventListener('click', () => {
-      import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-        openGTMPromptModal('character-studio', (prompt) => {
-          promptInput.value = prompt;
-          promptInput.dispatchEvent(new Event('input', { bubbles: true }));
-          promptInput.focus();
-        });
-      }).catch((err) => console.error('[CharacterStudio] GTM Boost failed:', err));
-    });
-    formCard.appendChild(gtmBtn);
+  // Prompt Gallery button
+  const promptGalleryBtn = document.createElement('button');
+  promptGalleryBtn.type = 'button';
+  promptGalleryBtn.textContent = '📚 Prompts';
+  promptGalleryBtn.title = 'Browse prompt gallery';
+  promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
+  promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
+  promptGalleryBtn.addEventListener('click', () => {
+    openPromptGallery({
+      appTheme: 'character-studio',
+      onSelect: (prompt) => {
+        const ta = document.querySelector('textarea');
+        if (ta) {
+          ta.value = prompt;
+          ta.dispatchEvent(new Event('input', { bubbles: true }));
+          ta.focus();
+        }
+      }
+    }).catch((err) => console.error('[PromptGallery] open failed:', err));
+  });
+  formCard.appendChild(promptGalleryBtn);
+
+  // Recipe Engine button
+  const recipeBtn = document.createElement('button');
+  recipeBtn.type = 'button';
+  recipeBtn.textContent = '📋 Recipes';
+  recipeBtn.title = 'Browse AI recipes';
+  recipeBtn.setAttribute('aria-label', 'Open recipe engine');
+  recipeBtn.className = 'gtm-boost-btn shrink-0';
+  recipeBtn.addEventListener('click', () => {
+    openRecipeModal({
+      onRunRecipe: (url) => {
+      }
+    }).catch((err) => console.error('[Recipe] open failed:', err));
+  });
+  formCard.appendChild(recipeBtn);
+
+  // Monetization Hub button
+  const monetizationBtn = document.createElement('button');
+  monetizationBtn.type = 'button';
+  monetizationBtn.textContent = "💼 Smart Video AI Monetize";
+  monetizationBtn.title = "Open Smart Video AI Monetization Hub";
+  monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
+  monetizationBtn.className = 'gtm-boost-btn shrink-0';
+  monetizationBtn.addEventListener('click', () => {
+    openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+  });
+  formCard.appendChild(monetizationBtn);
+
+  // GTM Boost entry point — opens the prompt enhancer themed for character
+  // creation and loads the result straight into this prompt.
+  const gtmBtn = document.createElement('button');
+  gtmBtn.type = 'button';
+  gtmBtn.textContent = '🎯 GTM Boost';
+  gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
+  gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
+  gtmBtn.className = 'gtm-boost-btn shrink-0';
+  gtmBtn.addEventListener('click', () => {
+    import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+      openGTMPromptModal('character-studio', (prompt) => {
+        promptInput.value = prompt;
+        promptInput.dispatchEvent(new Event('input', { bubbles: true }));
+        promptInput.focus();
+      });
+    }).catch((err) => console.error('[CharacterStudio] GTM Boost failed:', err));
+  });
+  formCard.appendChild(gtmBtn);
 
   // Personalize trigger (opens PersonalizeModal as a pop-up)
   const personalizeControls = document.createElement('div');
@@ -238,7 +287,7 @@ export function CharacterStudio() {
   formCard.appendChild(thumbBtn);
 
   const genBtn = document.createElement('button');
-  genBtn.type = 'button';
+genBtn.type = 'button';
   genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all mt-2';
   genBtn.textContent = 'Generate Character';
   genBtn.setAttribute('aria-label', 'Generate character');
@@ -348,7 +397,7 @@ export function CharacterStudio() {
         model: selectedModel.id,
         image_url: uploadedUrl,
         prompt: replaceTokensInPrompt(promptInput.value.trim(), activeProfile) || 'professional portrait photo',
-        customThumbnailUrl: customThumbnailUrl || undefined,
+customThumbnailUrl: customThumbnailUrl || undefined,
       };
       if (dynamicControls) {
         Object.assign(params, dynamicControls.getPayload({}));

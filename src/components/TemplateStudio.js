@@ -434,8 +434,7 @@ export function TemplateStudio(templateId) {
   if (outputType === 'video' || ['i2i', 't2i', 'i2v', 't2v'].includes(template.modelType)) {
     const modelWrapper = document.createElement('div');
     modelWrapper.className = 'mt-6';
-
-     let fallbackList = [];
+let fallbackList = [];
      if (template.modelType === 'i2v') fallbackList = i2vModels;
      else if (template.modelType === 'i2i') fallbackList = i2iModels;
      else if (template.modelType === 't2i') fallbackList = t2iModels;
@@ -717,6 +716,51 @@ export function TemplateStudio(templateId) {
   genBtn.setAttribute('aria-label', 'Generate template');
   leftPanel.appendChild(genBtn);
   mountPersonalizeTrigger({ controlsContainer: leftPanel, appId: 'template-studio', getTextarea: () => document.getElementById('outputTextarea') || null });
+  // Prompt Gallery button
+  const promptGalleryBtn = document.createElement('button');
+  promptGalleryBtn.type = 'button';
+  promptGalleryBtn.textContent = '📚 Prompts';
+  promptGalleryBtn.title = 'Browse prompt gallery';
+  promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
+  promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
+  promptGalleryBtn.addEventListener('click', () => {
+    openPromptGallery({
+      appTheme: 'template-studio',
+      onSelect: (prompt) => {
+        const ta = document.getElementById('outputTextarea');
+        if (ta) { ta.value = prompt; ta.dispatchEvent(new Event('input', { bubbles: true })); ta.focus(); }
+      }
+    }).catch((err) => console.error('[PromptGallery] open failed:', err));
+  });
+
+    // Recipe Engine button
+    const recipeBtn = document.createElement('button');
+    recipeBtn.type = 'button';
+    recipeBtn.textContent = '📋 Recipes';
+    recipeBtn.title = 'Browse AI recipes';
+    recipeBtn.setAttribute('aria-label', 'Open recipe engine');
+    recipeBtn.className = 'gtm-boost-btn shrink-0';
+    recipeBtn.addEventListener('click', () => {
+      openRecipeModal({
+        onRunRecipe: (url) => {
+        }
+      }).catch((err) => console.error('[Recipe] open failed:', err));
+    });
+
+
+    // Monetization Hub button
+    const monetizationBtn = document.createElement('button');
+    monetizationBtn.type = 'button';
+    monetizationBtn.textContent = "💼 Smart Video AI Monetize";
+    monetizationBtn.title = "Open Smart Video AI Monetization Hub";
+    monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
+    monetizationBtn.className = 'gtm-boost-btn shrink-0';
+    monetizationBtn.addEventListener('click', () => {
+      openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+    });
+  leftPanel.appendChild(recipeBtn);
+  leftPanel.appendChild(monetizationBtn);
+  leftPanel.appendChild(promptGalleryBtn);
 
   // Creative Intelligence section
   const intelligenceSection = document.createElement('div');

@@ -44,7 +44,7 @@ export function ChatStudio() {
   modelWrapper.className = 'mb-6 flex flex-col items-center gap-2 animate-fade-in-up';
   modelWrapper.style.animationDelay = '0.1s';
 
-  const triggerBtn = document.createElement('button');
+const triggerBtn = document.createElement('button');
   triggerBtn.type = 'button';
   triggerBtn.className = 'flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all border bg-white/5 text-secondary border-white/10 hover:bg-white/10';
   const updateTrigger = () => {
@@ -197,13 +197,13 @@ export function ChatStudio() {
   inputRow.appendChild(textarea);
 
   const sendBtn = document.createElement('button');
-  sendBtn.type = 'button';
+sendBtn.type = 'button';
   sendBtn.className = 'px-6 py-3 bg-primary text-black font-bold rounded-xl hover:bg-primary/90 transition-colors self-end';
   sendBtn.innerHTML = '<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>';
   sendBtn.setAttribute('aria-label', 'Send message');
   inputRow.appendChild(sendBtn);
 
-  // Thumbnail studio button — next to creation controls, GTM Boost styling
+// Thumbnail studio button — next to creation controls, GTM Boost styling
   const thumbBtn = document.createElement('button');
   thumbBtn.type = 'button';
   thumbBtn.textContent = '🖼 Thumbnail';
