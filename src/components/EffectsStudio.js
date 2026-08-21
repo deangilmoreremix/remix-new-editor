@@ -189,7 +189,7 @@ export function EffectsStudio() {
   promptRow.appendChild(promptInput);
 
   const generateBtn = document.createElement('button');
-  generateBtn.className = 'bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow transition-all whitespace-nowrap';
+  generateBtn.className = 'bg-primary text-black px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:shadow-glow transition-all whitespace-nowrap';
   generateBtn.textContent = 'Apply Effect';
     promptRow.appendChild(generateBtn);
     mountPersonalizeTrigger({ controlsContainer: promptRow, getTextarea: () => promptInput, appId: 'effects-studio' });

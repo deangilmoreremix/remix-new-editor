@@ -286,7 +286,7 @@ export function LipSyncStudio() {
     const generateBtn = document.createElement('button');
     generateBtn.id = 'ls-generate-btn';
     generateBtn.type = 'button';
-    generateBtn.className = 'ml-auto px-6 py-2.5 bg-primary text-black font-black text-sm rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-glow disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100';
+    generateBtn.className = 'ml-auto px-[14px] py-2 min-h-[40px] bg-primary text-black text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:scale-105 active:scale-95 transition-all shadow-glow disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100';
     generateBtn.textContent = 'Generate ✨';
 
     bottomRow.appendChild(modelBtn);

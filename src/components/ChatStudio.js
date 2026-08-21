@@ -117,7 +117,7 @@ export function ChatStudio() {
   inputRow.appendChild(textarea);
 
   const sendBtn = document.createElement('button');
-  sendBtn.className = 'px-6 py-3 bg-primary text-black font-bold rounded-xl hover:bg-primary/90 transition-colors self-end';
+  sendBtn.className = 'px-[14px] py-2 min-h-[40px] bg-primary text-black text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:bg-primary/90 transition-colors self-end';
   sendBtn.innerHTML = '<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>';
   inputRow.appendChild(sendBtn);
 

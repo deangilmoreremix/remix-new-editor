@@ -634,7 +634,7 @@ export function CinemaStudio() {
 
     // Generate Button
     const generateBtn = document.createElement('button');
-    generateBtn.className = 'h-[56px] px-8 bg-[#d9ff00] text-black rounded-xl font-black text-xs uppercase hover:bg-white transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed';
+    generateBtn.className = 'px-[14px] py-2 min-h-[40px] bg-primary text-black text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:bg-white transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed uppercase';
     generateBtn.setAttribute('data-tooltip', 'Generate cinema shot');
     generateBtn.innerHTML = `GENERATE ✨`;
 

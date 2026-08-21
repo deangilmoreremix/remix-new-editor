@@ -75,7 +75,7 @@ export function StoryboardStudio() {
   controlBar.appendChild(addFrameBtn);
 
   const genAllBtn = document.createElement('button');
-  genAllBtn.className = 'px-4 py-2 bg-primary text-black rounded-xl text-xs font-bold hover:shadow-glow transition-all';
+  genAllBtn.className = 'px-[14px] py-2 min-h-[40px] bg-primary text-black text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:shadow-glow transition-all';
   genAllBtn.textContent = 'Generate All Frames';
   controlBar.appendChild(genAllBtn);
 
