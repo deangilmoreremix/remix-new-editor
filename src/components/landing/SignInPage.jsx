@@ -181,6 +181,7 @@ export function SignInPage() {
               >
                 {loading ? 'Signing In…' : 'Sign In'}
               </button>
+              <div id="clerk-captcha" />
             </form>
 
             {/* Sign Up Link */}

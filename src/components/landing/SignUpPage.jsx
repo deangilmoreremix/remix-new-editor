@@ -218,6 +218,7 @@ export function SignUpPage() {
                   >
                     {loading ? 'Creating Account…' : 'Create Account'}
                   </button>
+                  <div id="clerk-captcha" />
                 </form>
 
                 <div className="mt-8 text-center">
