@@ -349,7 +349,7 @@ function createShowcaseSection(config, allDemos) {
 
     statusEl.textContent = 'Showing ' + visible.length + ' of ' + sectionDemos.length + ' demos.';
 
-    const disposeReveal = revealOnScroll(grid.querySelectorAll('.mmx-reveal'), { stagger: 45 });
+    const disposeReveal = revealOnScroll(section.querySelectorAll('.mmx-reveal'), { stagger: 45 });
 
     section._disposeReveal = () => {
       disposeReveal();
