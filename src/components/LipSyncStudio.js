@@ -1091,10 +1091,8 @@ mountModelSelector(dropdown, {
             const resolutions = getResolutionsForLipSyncModel(selectedModel);
             if (resolutions.length > 0) lipsyncParams.resolution = selectedResolution;
 
-const res = await muapi.processLipSync(lipsyncParams);
-            console.log('[LipSyncStudio] Response:', res);
-
             const res = await muapi.processLipSync(lipsyncParams);
+            console.log('[LipSyncStudio] Response:', res);
             if (res && res.url) {
                 if (capturedRequestId) removePendingJob(capturedRequestId);
                 const genId = res.id || capturedRequestId || Date.now().toString();

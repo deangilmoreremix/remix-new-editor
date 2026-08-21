@@ -13,7 +13,6 @@ import { clerkErrorMessage, clerkWithTimeout, handleNavClick, clearClerkSession 
 export function SignInPage() {
   const { signIn, errors, fetchStatus } = useSignIn();
   const { isSignedIn, isLoaded: userLoaded, user } = useUser();
-
   const isLoaded = signIn !== undefined;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -57,7 +56,7 @@ export function SignInPage() {
       return;
     }
     if (signIn.status === 'needs_second_factor' || signIn.status === 'needs_client_trust') {
-// MFA / passkey challenge required — this page doesn't have an MFA
+      // MFA / passkey challenge required — this page doesn't have an MFA
       // input step, so show a clear message rather than attempting an
       // API call with an empty code (which would produce a confusing error).
       setError('Additional verification is required. Please use an authenticator app, passkey, or check your email for a verification code.');
@@ -78,7 +77,7 @@ export function SignInPage() {
   };
 
   return (
-<div
+    <div
       className="signin-page min-h-screen bg-[#020205] flex flex-col"
       lang={document.documentElement.lang || 'en'}
     >
@@ -206,48 +205,7 @@ export function SignInPage() {
             </div>
           </div>
         </div>
-
-        {/* Password */}
-        <div>
-          <label className="block text-sm font-medium text-slate-300 mb-2">Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter your password"
-            className={authInputClass}
-            required
-          />
-        </div>
-
-        {/* Remember me + Forgot password */}
-        <div className="flex items-center justify-between text-sm">
-          <label className="flex items-center gap-2 text-slate-300 cursor-pointer">
-            <input type="checkbox" className="rounded border-white/20 bg-white/5 text-cyan-400 focus:ring-cyan-400/50" />
-            Remember me
-          </label>
-            <button type="button" onClick={() => navigate('/forgot-password')} className="text-cyan-400 hover:text-cyan-300 transition">
-              Forgot password?
-            </button>
-        </div>
-
-        {/* Submit Button */}
-        <button
-          type="submit"
-          disabled={loading || !isLoaded}
-          className="w-full px-6 py-3 bg-gradient-to-r from-cyan-400 to-cyan-300 text-[#020205] font-bold rounded-lg hover:from-cyan-300 hover:to-cyan-200 transition-all duration-200 shadow-lg shadow-cyan-400/25 hover:shadow-cyan-300/40 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? 'Signing In…' : 'Sign In'}
-        </button>
-        <div id="clerk-captcha" />
-      </form>
-
-      <AuthFooterComponent>
-        Don&apos;t have an account?{' '}
-        <button type="button" onClick={() => navigate('/signup')} className="text-cyan-400 hover:text-cyan-300 font-medium transition">
-          Sign up
-        </button>
-      </AuthFooterComponent>
-    </AuthPageComponent>
+      </main>
+    </div>
   );
 }

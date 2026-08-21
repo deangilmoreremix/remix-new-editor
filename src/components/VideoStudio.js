@@ -809,13 +809,8 @@ generateBtn.type = 'button';
     advancedBtn.onclick = toggleAdvanced;
     const vCloseAdvBtn = advancedPanel.querySelector('#v-close-adv-btn');
     if (vCloseAdvBtn) vCloseAdvBtn.onclick = toggleAdvanced;
-// ===================================
-        };
-    }
 
     // Camera speed slider
-    const vCameraSpeed = motionStylePanel.querySelector('#v-camera-speed');
-    const vCameraSpeedVal = motionStylePanel.querySelector('#v-camera-speed-value');
     if (vCameraSpeed && vCameraSpeedVal) {
         vCameraSpeed.oninput = (e) => {
             cameraSpeed = parseInt(e.target.value);
