@@ -1,9 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ClerkProvider, useUser, useClerk, UserButton, useAuth } from '@clerk/react';
 import { setEntitlement } from '../../lib/clerkEntitlements.js';
 import { setExternalUserId } from '../../lib/socialPublishing';
-import { isClerkReady, getClerkInstance } from '../../lib/clerkInit.js';
+import { ensureClerkLoaded } from '../../lib/clerkInit.js';
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -29,9 +29,6 @@ function HeaderAuthButton() {
   const { isLoaded, isSignedIn, user } = useUser();
   const clerk = useClerk();
 
-  // Map the Clerk user to muapi's external_user_id so each user's connected
-  // social accounts are isolated (otherwise the service falls back to a
-  // per-browser localStorage id shared by everyone on the device).
   useEffect(() => {
     if (isSignedIn && user?.id) {
       setExternalUserId(user.id);
@@ -67,27 +64,53 @@ function HeaderAuthButton() {
   );
 }
 
-export function mountHeaderAuth(container) {
-  if (!PUBLISHABLE_KEY || !container) return;
+function HeaderAuthRoot() {
+  const [isReady, setIsReady] = useState(false);
+  const [loadError, setLoadError] = useState(null);
 
-  // If Clerk failed to load during app startup, don't render <ClerkProvider>
-  // because it will try to load Clerk JS from CDN again and crash.
-  const clerk = getClerkInstance();
-  if (!clerk || !clerk.loaded) {
-    const root = createRoot(container);
-    root.render(
+  useEffect(() => {
+    if (!PUBLISHABLE_KEY) {
+      setLoadError('missing_key');
+      return;
+    }
+
+    let cancelled = false;
+    ensureClerkLoaded()
+      .then((clerk) => {
+        if (cancelled) return;
+        if (clerk && clerk.loaded) {
+          setIsReady(true);
+        } else {
+          setLoadError('load_failed');
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setLoadError('load_failed');
+      });
+
+    return () => { cancelled = true; };
+  }, []);
+
+  if (!PUBLISHABLE_KEY || loadError) {
+    return (
       <a href="/signin" className="text-sm text-cyan-400 hover:text-cyan-300 font-medium transition px-3 py-2">
         Sign In
       </a>
     );
-    return;
   }
 
-  const root = createRoot(container);
-  root.render(
+  if (!isReady) return null;
+
+  return (
     <ClerkProvider publishableKey={PUBLISHABLE_KEY} routing="path">
       <EntitlementBridge />
       <HeaderAuthButton />
     </ClerkProvider>
   );
+}
+
+export function mountHeaderAuth(container) {
+  if (!container) return;
+  const root = createRoot(container);
+  root.render(<HeaderAuthRoot />);
 }
