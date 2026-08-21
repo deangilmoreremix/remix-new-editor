@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ClerkProvider, useUser, useClerk, UserButton, useAuth } from '@clerk/react';
 import { setEntitlement } from '../../lib/clerkEntitlements.js';
 import { setExternalUserId } from '../../lib/socialPublishing';
+import { ensureClerkLoaded } from '../../lib/clerkInit.js';
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -25,9 +26,6 @@ function HeaderAuthButton() {
   const { isLoaded, isSignedIn, user } = useUser();
   const clerk = useClerk();
 
-  // Map the Clerk user to muapi's external_user_id so each user's connected
-  // social accounts are isolated (otherwise the service falls back to a
-  // per-browser localStorage id shared by everyone on the device).
   useEffect(() => {
     if (isSignedIn && user?.id) {
       setExternalUserId(user.id);
@@ -63,13 +61,53 @@ function HeaderAuthButton() {
   );
 }
 
-export function mountHeaderAuth(container) {
-  if (!PUBLISHABLE_KEY || !container) return;
-  const root = createRoot(container);
-  root.render(
+function HeaderAuthRoot() {
+  const [isReady, setIsReady] = useState(false);
+  const [loadError, setLoadError] = useState(null);
+
+  useEffect(() => {
+    if (!PUBLISHABLE_KEY) {
+      setLoadError('missing_key');
+      return;
+    }
+
+    let cancelled = false;
+    ensureClerkLoaded()
+      .then((clerk) => {
+        if (cancelled) return;
+        if (clerk && clerk.loaded) {
+          setIsReady(true);
+        } else {
+          setLoadError('load_failed');
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setLoadError('load_failed');
+      });
+
+    return () => { cancelled = true; };
+  }, []);
+
+  if (!PUBLISHABLE_KEY || loadError) {
+    return (
+      <a href="/signin" className="text-sm text-cyan-400 hover:text-cyan-300 font-medium transition px-3 py-2">
+        Sign In
+      </a>
+    );
+  }
+
+  if (!isReady) return null;
+
+  return (
     <ClerkProvider publishableKey={PUBLISHABLE_KEY} routing="path">
       <EntitlementBridge />
       <HeaderAuthButton />
     </ClerkProvider>
   );
+}
+
+export function mountHeaderAuth(container) {
+  if (!container) return;
+  const root = createRoot(container);
+  root.render(<HeaderAuthRoot />);
 }

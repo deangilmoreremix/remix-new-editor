@@ -8,6 +8,7 @@
 // too (ForgotPasswordPage / ResetPasswordPage), built on Clerk's
 // reset_password_email_code strategy so they match the app's design.
 
+import { ensureClerkLoaded } from '../../lib/clerkInit.js';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import {
@@ -26,6 +27,32 @@ import { ResetPasswordPage } from '../landing/ResetPasswordPage.jsx';
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 function ClerkGate({ children }) {
+  const [isLoaded, setIsLoaded] = React.useState(false);
+  const [loadError, setLoadError] = React.useState(null);
+
+  React.useEffect(() => {
+    if (!PUBLISHABLE_KEY) {
+      setLoadError('missing_key');
+      return;
+    }
+
+    let cancelled = false;
+    ensureClerkLoaded()
+      .then((clerk) => {
+        if (cancelled) return;
+        if (clerk && clerk.loaded) {
+          setIsLoaded(true);
+        } else {
+          setLoadError('load_failed');
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setLoadError('load_failed');
+      });
+
+    return () => { cancelled = true; };
+  }, []);
+
   if (!PUBLISHABLE_KEY) {
     return (
       <div style={{ color: '#fff', padding: 24, textAlign: 'center' }}>
@@ -33,14 +60,26 @@ function ClerkGate({ children }) {
       </div>
     );
   }
-  // ClerkProvider's getClerkJsEntryChunk checks globalThis.Clerk: if it's
-  // already set (by ensureClerkLoaded in main.js or by a prior ClerkProvider),
-  // it skips CDN loading and reuses the instance. No need to pass the Clerk
-  // class — passing it would create a second instance and overwrite the
-  // singleton, causing duplicate session fetches.
-  //
-  // routing="path" so Clerk resolves real path routes (/signin, /signup)
-  // and useSignIn/useSignUp report isLoaded immediately.
+
+  if (loadError) {
+    return (
+      <div style={{ color: '#fff', padding: 24, textAlign: 'center' }}>
+        <h2 style={{ color: '#ff4444', marginBottom: 16 }}>Authentication Unavailable</h2>
+        <p style={{ color: '#aaa' }}>
+          Clerk failed to initialize. Please check your connection and refresh the page.
+        </p>
+      </div>
+    );
+  }
+
+  if (!isLoaded) {
+    return (
+      <div style={{ color: '#fff', padding: 24, textAlign: 'center' }}>
+        <p style={{ color: '#aaa' }}>Loading authentication…</p>
+      </div>
+    );
+  }
+
   return (
     <ClerkProvider publishableKey={PUBLISHABLE_KEY} routing="path">
       {children}

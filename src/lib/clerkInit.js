@@ -18,11 +18,27 @@ let clerkLoadPromise = null;
 
 export function getClerkInstance() {
   if (clerkInstance) return clerkInstance;
+  if (clerkLoadFailed) return null;
   if (!PUBLISHABLE_KEY) {
     console.warn('[Clerk] VITE_CLERK_PUBLISHABLE_KEY is not set');
     return null;
   }
   clerkInstance = new Clerk(PUBLISHABLE_KEY);
+
+  if (!clerkInstance.loaded && typeof window !== 'undefined') {
+    window.Clerk = clerkInstance;
+    clerkLoadPromise = clerkInstance.load().then(() => clerkInstance).catch((err) => {
+      console.error('[Clerk] Auto-load failed:', err);
+      if (typeof window !== 'undefined' && window.Clerk === clerkInstance) {
+        window.Clerk = undefined;
+      }
+      clerkInstance = null;
+      clerkLoadFailed = true;
+      clerkLoadPromise = null;
+      throw err;
+    });
+  }
+
   return clerkInstance;
 }
 
