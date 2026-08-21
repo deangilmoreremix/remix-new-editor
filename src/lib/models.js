@@ -1879,7 +1879,16 @@ export const t2iModels = [
   }
 ];;
 
-export const getModelById = (id) => t2iModels.find(m => m.id === id);
+export const getModelById = (id) => {
+  return (
+    t2iModels.find(m => m.id === id) ||
+    i2iModels.find(m => m.id === id) ||
+    i2vModels.find(m => m.id === id) ||
+    v2vModels.find(m => m.id === id) ||
+    lipsyncModels.find(m => m.id === id) ||
+    undefined
+  );
+};
 
 export const getAspectRatiosForModel = (modelId) => {
   const model = getModelById(modelId);
