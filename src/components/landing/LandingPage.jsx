@@ -233,28 +233,49 @@ export default async function LandingPage() {
     const offer = createLazySection(() => import('./sections/OfferSection.jsx'), 'offer', {}, 11);
     const finalCTA = createLazySection(() => import('./sections/FinalCTASection.jsx'), 'cta', {}, 12);
 
-    // NEW: MiniMax H3 showcase sections, lazy-loaded with the same observer
-    // pattern as every other section on this page.
+    // MiniMax H3 + Seedance 2.5 + ZeroLu showcase sections — each category
+    // is a standalone lazy-loaded section so they interleave with the rest
+    // of the landing page instead of nesting inside one component.
     const aiWorkflow = createLazySection(() => import('./sections/MinimaxWorkflowSection.jsx'), 'ai-workflow', {}, 2);
     const madeWith = createLazySection(() => import('./sections/MadeWithSmartVideo.jsx'), 'made-with', {}, 4);
     const ugcShowcase = createLazySection(() => import('./sections/UGCDemoShowcase.jsx'), 'ugc', {}, 5);
     const videoGallery = createLazySection(() => import('./sections/AIVideoGallery.jsx'), 'gallery', {}, 6);
     const academyShowcase = createLazySection(() => import('./sections/AcademyVideoShowcase.jsx'), 'academy', {}, 7);
-    const seedanceShowcase = createLazySection(() => import('./sections/ShowcaseRepoVideo.jsx'), 'seedance', {}, 8);
+
+    // 12 repo showcase sections — one per source × category combination
+    const repoSections = [
+      { key: 'repo-cinema',       section: () => import('./sections/ShowcaseRepoVideo.jsx').then(m => ({ default: m.MmxCinemaSection })),          stagger: 8 },
+      { key: 'repo-commercial',   section: () => import('./sections/ShowcaseRepoVideo.jsx').then(m => ({ default: m.MmxCommercialSection })),    stagger: 9 },
+      { key: 'repo-social-ads',   section: () => import('./sections/ShowcaseRepoVideo.jsx').then(m => ({ default: m.SdSocialSection })),         stagger: 10 },
+      { key: 'repo-narrative',    section: () => import('./sections/ShowcaseRepoVideo.jsx').then(m => ({ default: m.SdCinemaSection })),        stagger: 11 },
+      { key: 'repo-vertical',     section: () => import('./sections/ShowcaseRepoVideo.jsx').then(m => ({ default: m.MmxSocialSection })),         stagger: 12 },
+      { key: 'repo-ecommerce',    section: () => import('./sections/ShowcaseRepoVideo.jsx').then(m => ({ default: m.SdCommercialSection })),      stagger: 8 },
+      { key: 'repo-kinetic',      section: () => import('./sections/ShowcaseRepoVideo.jsx').then(m => ({ default: m.SdActionSection })),         stagger: 9 },
+      { key: 'repo-animated',     section: () => import('./sections/ShowcaseRepoVideo.jsx').then(m => ({ default: m.SdAnimationSection })),       stagger: 10 },
+      { key: 'repo-animation',    section: () => import('./sections/ShowcaseRepoVideo.jsx').then(m => ({ default: m.MmxAnimationSection })),      stagger: 11 },
+      { key: 'repo-reference',    section: () => import('./sections/ShowcaseRepoVideo.jsx').then(m => ({ default: m.ZlCinemaSection })),          stagger: 12 },
+      { key: 'repo-vfx',          section: () => import('./sections/ShowcaseRepoVideo.jsx').then(m => ({ default: m.MmxActionVfxSection })),      stagger: 8 },
+      { key: 'repo-fashion',      section: () => import('./sections/ShowcaseRepoVideo.jsx').then(m => ({ default: m.MmxFashionSection })),       stagger: 9 },
+    ];
+    const lazyRepoSections = repoSections.map((cfg) =>
+      createLazySection(cfg.section, cfg.key, {}, cfg.stagger)
+    );
+
     const repoShowcase = createLazySection(() => import('./sections/RepoShowcase.jsx'), 'repos', {}, 9);
 
     container.appendChild(scrollingStrip);
     container.appendChild(hookSection);
-    container.appendChild(aiWorkflow);      // NEW
+    container.appendChild(aiWorkflow);
     container.appendChild(sixEngines);
     container.appendChild(appsGrid);
-    container.appendChild(madeWith);        // NEW
-    container.appendChild(ugcShowcase);     // NEW
+    container.appendChild(madeWith);
+    container.appendChild(ugcShowcase);
     container.appendChild(features);
-    container.appendChild(videoGallery);    // NEW
-    container.appendChild(academyShowcase); // NEW
-    container.appendChild(seedanceShowcase);// NEW
-    container.appendChild(repoShowcase);    // NEW
+    container.appendChild(videoGallery);
+    container.appendChild(academyShowcase);
+    // Append each of the 12 repo showcase sections
+    lazyRepoSections.forEach((section) => container.appendChild(section));
+    container.appendChild(repoShowcase);
 
     // NEW: GTM Boost feature section — shows the feature and how it works
     // (replaces the old floating FAB, which is now reachable from here).
