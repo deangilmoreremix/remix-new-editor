@@ -46,7 +46,7 @@ export function SignUpPage() {
     try { signUp.reset(); } catch {}
 
     const { error: resultError } = await clerkWithTimeout(
-signUp.password({
+      signUp.password({
         emailAddress: email,
         password,
         ...(firstName ? { firstName } : {}),
@@ -57,7 +57,7 @@ signUp.password({
       setLoading(false);
       return;
     }
-if (signUp.status === 'complete') {
+    if (signUp.status === 'complete') {
       await signUp.finalize({
         navigate: async ({ decorateUrl }) => {
           const url = decorateUrl('/#/image');
@@ -85,7 +85,6 @@ if (signUp.status === 'complete') {
     if (!isLoaded || fetchStatus === 'fetching') return;
     setLoading(true);
     setError('');
-
     const { error: resultError } = await clerkWithTimeout(
       signUp.verifications.verifyEmailCode({ code })
     );
@@ -96,7 +95,7 @@ if (signUp.status === 'complete') {
     }
 
     if (signUp.status === 'complete') {
-await signUp.finalize({
+      await signUp.finalize({
         navigate: async ({ decorateUrl }) => {
           const url = decorateUrl('/#/image');
           window.location.href = url.startsWith('http') ? url : '/#/image';
@@ -109,7 +108,7 @@ await signUp.finalize({
   };
 
   return (
-<div
+    <div
       className="signup-page min-h-screen bg-[#020205] flex flex-col"
       lang={document.documentElement.lang || 'en'}
     >
@@ -137,8 +136,10 @@ await signUp.finalize({
             <a href="/signin" className="px-4 py-2 text-sm text-[#e4e4e7] hover:text-[#22d3ee] transition font-medium">Sign In</a>
             <a href="#/apps" onClick={(e) => handleNavClick(e, 'apps')} className="px-4 py-2 text-sm bg-cyan-400 text-[#020205] hover:bg-cyan-300 transition font-medium" style={{ letterSpacing: '0.05em', textTransform: 'uppercase' }}>Home</a>
           </div>
+        </nav>
+      </header>
 
-{/* Main Content */}
+      {/* Main Content */}
       <main className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md mx-auto">
           {/* Sign Up Card */}
@@ -184,7 +185,7 @@ await signUp.finalize({
                         placeholder="you@example.com"
                       />
                       <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002 2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v10a2 2 0 002 2z" />
                       </svg>
                     </div>
                   </div>
@@ -297,52 +298,8 @@ await signUp.finalize({
               </>
             )}
           </div>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={loading || !isLoaded}
-            className="w-full px-6 py-3 bg-gradient-to-r from-cyan-400 to-cyan-300 text-[#020205] font-bold rounded-lg hover:from-cyan-300 hover:to-cyan-200 transition-all duration-200 shadow-lg shadow-cyan-400/25 hover:shadow-cyan-300/40 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Creating Account…' : 'Create Account'}
-          </button>
-          <div id="clerk-captcha" />
-
-          <AuthFooterComponent>
-            Already have an account?{' '}
-            <button type="button" onClick={() => navigate('/signin')} className="text-cyan-400 hover:text-cyan-300 font-medium transition">
-              Sign in
-            </button>
-          </AuthFooterComponent>
-        </form>
-      ) : (
-        <form onSubmit={handleVerify} className="space-y-5">
-          <p className="text-sm text-slate-300">We sent a verification code to <span className="text-cyan-300">{email}</span>.</p>
-
-          {/* Verification Code */}
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Verification Code</label>
-            <input
-              type="text"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              placeholder="Enter the 6-digit code"
-              className={authInputClass}
-              required
-            />
-          </div>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={loading || !isLoaded}
-            className="w-full px-6 py-3 bg-gradient-to-r from-cyan-400 to-cyan-300 text-[#020205] font-bold rounded-lg hover:from-cyan-300 hover:to-cyan-200 transition-all duration-200 shadow-lg shadow-cyan-400/25 hover:shadow-cyan-300/40 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Verifying…' : 'Verify Email'}
-          </button>
-          <div id="clerk-captcha" />
-        </form>
-      )}
-    </AuthPageComponent>
+        </div>
+      </main>
+    </div>
   );
 }

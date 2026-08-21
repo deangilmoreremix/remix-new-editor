@@ -22,7 +22,7 @@ import { navigate } from '../../lib/router.js';
 
 export function ForgotPasswordPage() {
   const { signIn, errors, fetchStatus } = useSignIn();
-const { isSignedIn, isLoaded: userLoaded } = useUser();
+  const { isSignedIn, isLoaded: userLoaded } = useUser();
   const isLoaded = signIn !== undefined;
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
@@ -53,15 +53,6 @@ const { isSignedIn, isLoaded: userLoaded } = useUser();
     );
     if (createError) {
       setError(clerkErrorMessage(createError, errors) || 'Could not start password reset. Please try again.');
-setLoading(false);
-      return;
-    }
-
-    const { error: sendError } = await clerkWithTimeout(
-      signIn.resetPasswordEmailCode.sendCode()
-    );
-    if (sendError) {
-      setError(clerkErrorMessage(sendError, errors) || 'Could not send a reset code. Please check the email and try again.');
       setLoading(false);
       return;
     }
@@ -70,7 +61,7 @@ setLoading(false);
       signIn.resetPasswordEmailCode.sendCode()
     );
     if (sendError) {
-      setError(clerkErrorMessage(sendError, errors) || 'Could not send reset code. Please try again.');
+      setError(clerkErrorMessage(sendError, errors) || 'Could not send a reset code. Please check the email and try again.');
       setLoading(false);
       return;
     }
@@ -85,7 +76,7 @@ setLoading(false);
         <div className="space-y-6 text-center">
           <div className="w-16 h-16 rounded-full bg-cyan-400/10 border border-cyan-400/20 flex items-center justify-center mx-auto">
             <svg className="w-8 h-8 text-cyan-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v10a2 2 0 002 2z" />
             </svg>
           </div>
           <div>

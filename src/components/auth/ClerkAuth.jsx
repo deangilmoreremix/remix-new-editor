@@ -34,6 +34,14 @@ function ClerkGate({ children }) {
     );
   }
 
+  // ClerkProvider's getClerkJsEntryChunk checks globalThis.Clerk: if it's
+  // already set (by ensureClerkLoaded in main.js or by a prior ClerkProvider),
+  // it skips CDN loading and reuses the instance. No need to pass the Clerk
+  // class — passing it would create a second instance and overwrite the
+  // singleton, causing duplicate session fetches.
+  //
+  // routing="path" so Clerk resolves real path routes (/signin, /signup)
+  // and useSignIn/useSignUp report isLoaded immediately.
   return (
     <ClerkProvider publishableKey={PUBLISHABLE_KEY} routing="path">
       {children}
