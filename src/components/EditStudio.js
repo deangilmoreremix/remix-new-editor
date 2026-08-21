@@ -397,6 +397,7 @@ export function EditStudio() {
   uploadSection.appendChild(uploadRow);
   uploadSection.appendChild(previewImg);
   workCard.appendChild(uploadSection);
+  container.appendChild(picker.panel);
 
   const referencePicker = createUploadPicker({
     anchorContainer: container,
@@ -413,6 +414,7 @@ export function EditStudio() {
       referenceRow.classList.add('hidden');
     },
   });
+  container.appendChild(referencePicker.panel);
 
   const referenceRow = document.createElement('div');
   referenceRow.className = 'flex items-center gap-3 hidden mt-2';
@@ -461,7 +463,7 @@ export function EditStudio() {
   referenceToggleBtn.type = 'button';
   referenceToggleBtn.className = 'text-xs font-bold text-secondary hover:text-white transition-colors text-left mt-2';
   referenceToggleBtn.textContent = '+ Add Reference Image';
-  referenceToggleBtn.onclick = () => referencePicker.pick();
+  referenceToggleBtn.onclick = () => referencePicker.trigger.click();
 
   workCard.appendChild(uploadSection);
   workCard.appendChild(promptField);
