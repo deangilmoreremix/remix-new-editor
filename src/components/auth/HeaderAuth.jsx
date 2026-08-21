@@ -10,7 +10,7 @@ function HeaderAuthButton() {
 
   if (!isLoaded) return null;
 
-  if (!isSignedIn) {
+  if (!isSignedIn || !user) {
     return (
       <a
         href="/signin"

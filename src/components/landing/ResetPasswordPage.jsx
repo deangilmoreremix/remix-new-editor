@@ -1,14 +1,14 @@
 // Custom Reset Password Page — app-styled, powered by Clerk's
 // useSignIn reset_password_email_code flow (current v6 API):
-//   const { signIn, errors } = useSignIn()
+//   const { signIn, errors, fetchStatus } = useSignIn()
 //   await signIn.resetPasswordEmailCode.verifyCode({ code })
 //   await signIn.resetPasswordEmailCode.submitPassword({ password })
 // Completes the password reset started on ForgotPasswordPage.
 // Requires a <ClerkProvider> ancestor (provided by ClerkGate in
 // ClerkAuth.jsx when this page is mounted at /reset-password).
 
-import React, { useState } from 'react';
-import { useSignIn } from '@clerk/react';
+import React, { useState, useEffect } from 'react';
+import { useSignIn, useUser } from '@clerk/react';
 import {
   AuthPage,
   AuthError,
@@ -17,10 +17,13 @@ import {
   authInputClass,
   PasswordInput,
   clerkErrorMessage,
+  clerkWithTimeout,
+  clearClerkSession,
 } from './AuthLayout.jsx';
 
 export function ResetPasswordPage() {
-  const { signIn, errors } = useSignIn();
+  const { signIn, errors, fetchStatus } = useSignIn();
+  const { isSignedIn, isLoaded: userLoaded, user } = useUser();
   const isLoaded = signIn !== undefined;
   const [email, setEmail] = useState(
     () => new URLSearchParams(window.location.search).get('email') || ''
@@ -32,9 +35,21 @@ export function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
 
+  // Redirect already-signed-in users to the app
+  useEffect(() => {
+    if (!userLoaded) return;
+    if (isSignedIn && !user) {
+      clearClerkSession({ reload: true });
+      return;
+    }
+    if (isSignedIn) {
+      window.location.href = '/#/image';
+    }
+  }, [userLoaded, isSignedIn, user]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!signIn) return;
+    if (!isLoaded || fetchStatus === 'fetching') return;
     setError('');
 
     if (password !== confirm) {
@@ -48,144 +63,111 @@ export function ResetPasswordPage() {
 
     setLoading(true);
     // Step 1: verify the emailed code.
-    const { error: verifyError } = await signIn.resetPasswordEmailCode.verifyCode({ code });
+    const { error: verifyError } = await clerkWithTimeout(
+      signIn.resetPasswordEmailCode.verifyCode({ code })
+    );
     if (verifyError) {
-      setError(clerkErrorMessage(verifyError, errors) || 'Invalid or expired code. Please request a new one.');
+      setError(clerkErrorMessage(verifyError, errors) || 'Invalid or expired code.');
       setLoading(false);
       return;
     }
-    // Step 2: submit the new password. On success the
-    // sign-in is complete and the session is created.
-    const { error: submitError } = await signIn.resetPasswordEmailCode.submitPassword({ password });
+
+    // Step 2: submit the new password.
+    const { error: submitError } = await clerkWithTimeout(
+      signIn.resetPasswordEmailCode.submitPassword({ password })
+    );
     if (submitError) {
-      setError(clerkErrorMessage(submitError, errors) || 'Could not reset the password. Please try again.');
+      setError(clerkErrorMessage(submitError, errors) || 'Could not reset password. Please try again.');
       setLoading(false);
       return;
     }
-    if (signIn.status === 'complete') {
-      setDone(true);
-      await signIn.finalize({
-        navigate: async ({ decorateUrl }) => {
-          const url = decorateUrl('/#/image');
-          window.location.href = url.startsWith('http') ? url : '/#/image';
-        },
-      });
-      return;
-    }
-    setError(clerkErrorMessage(null, errors) || 'Could not reset the password. Please try again.');
+
+    setDone(true);
     setLoading(false);
   };
 
-  if (done) {
-    return (
-      <AuthPage title="Password Updated" subtitle="Redirecting you to the app…">
-        <AuthFooter>
-          <p>
-            <a href="/signin" className="text-cyan-400 hover:text-cyan-300 font-medium transition">
-              Back to sign in
-            </a>
-          </p>
-        </AuthFooter>
-      </AuthPage>
-    );
-  }
-
   return (
-    <AuthPage
-      title="Set New Password"
-      subtitle={email ? `Resetting password for ${email}` : 'Enter the code from your email'}
-    >
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {!email && (
+    <AuthPage title="Reset Password" subtitle="Enter the code from your email and choose a new password">
+      {done ? (
+        <div className="space-y-6 text-center">
+          <div className="w-16 h-16 rounded-full bg-cyan-400/10 border border-cyan-400/20 flex items-center justify-center mx-auto">
+            <svg className="w-8 h-8 text-cyan-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-white mb-2">
-              Email Address
-            </label>
+            <h3 className="text-lg font-bold text-white mb-2">Password updated</h3>
+            <p className="text-slate-300 text-sm">You can now sign in with your new password.</p>
+          </div>
+          <AuthSubmitButton onClick={() => { window.location.href = '/signin'; }}>
+            Go to Sign In
+          </AuthSubmitButton>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Email */}
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-2">Email Address</label>
             <input
-              id="email"
               type="email"
-              name="email"
-              required
-              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={authInputClass}
               placeholder="you@example.com"
+              className={authInputClass}
+              required
             />
           </div>
-        )}
 
-        <div>
-          <label htmlFor="code" className="block text-sm font-medium text-white mb-2">
-            Verification Code
-          </label>
-          <input
-            id="code"
-            type="text"
-            name="code"
-            required
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            className={`${authInputClass} tracking-widest text-center text-lg`}
-            placeholder="123456"
-          />
-        </div>
+          {/* Code */}
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-2">Reset Code</label>
+            <input
+              type="text"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder="Enter the 6-digit code"
+              className={authInputClass}
+              required
+            />
+          </div>
 
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium text-white mb-2">
-            New Password
-          </label>
+          {/* New Password */}
           <PasswordInput
-            id="password"
-            name="password"
-            required
-            autoComplete="new-password"
+            label="New Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter a new password"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="confirm" className="block text-sm font-medium text-white mb-2">
-            Confirm New Password
-          </label>
-          <PasswordInput
-            id="confirm"
-            name="confirm"
+            placeholder="At least 8 characters"
             required
-            autoComplete="new-password"
+          />
+
+          {/* Confirm Password */}
+          <PasswordInput
+            label="Confirm New Password"
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
-            placeholder="Re-enter your new password"
+            placeholder="Repeat your new password"
+            required
           />
-        </div>
 
-        <AuthError message={error} />
+          {/* Error */}
+          {error && <AuthError message={error} />}
 
-        <AuthSubmitButton
-          loading={loading}
-          disabled={!isLoaded}
-          loadingLabel="Updating…"
-          label="Update Password"
-        />
+          {/* Submit Button */}
+          <AuthSubmitButton type="submit" loading={loading} disabled={!isLoaded}>
+            Reset Password
+          </AuthSubmitButton>
 
-        {/* Required for custom auth flows: Clerk's Smart CAPTCHA widget
-            renders into this element so password-reset requests pass
-            bot protection instead of silently failing on edge traffic. */}
-        <div id="clerk-captcha" />
-      </form>
-
-      <AuthFooter>
-        <p>
-          Didn't get a code?
-          <a href="/forgot-password" className="ml-1 text-cyan-400 hover:text-cyan-300 font-medium transition">
-            Request again
-          </a>
-        </p>
-      </AuthFooter>
+          <AuthFooter>
+            <button type="button" onClick={() => window.location.href = '/forgot-password'} className="text-cyan-400 hover:text-cyan-300 font-medium transition">
+              Request again
+            </button>
+            <span className="text-slate-500">|</span>
+            <button type="button" onClick={handleNavClick.bind(null, '/signin')} className="text-cyan-400 hover:text-cyan-300 font-medium transition">
+              Back to sign in
+            </button>
+          </AuthFooter>
+        </form>
+      )}
     </AuthPage>
   );
 }
