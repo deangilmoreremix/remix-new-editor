@@ -5,7 +5,7 @@ WORKDIR /app
 # When dockerContext is repo root, copy only the backend subtree so
 # requirements.txt, pyproject.toml, and the `director/` package all land
 # at /app/ as expected.
-COPY apps/director/backend/ /app/
+COPY . /app/
 
 RUN pip install --no-cache-dir -r requirements.txt
 
