@@ -28,7 +28,7 @@ export function CharacterStudio() {
   let uploadedUrl = null;
   let customThumbnailUrl = getCustomThumbnailFromCache('character-studio');
   let selectedModel = CHARACTER_MODELS[0];
-  const dynamicControls = null;
+const dynamicControls = null;
   const dynamicControlsContainer = null;
 
   const header = document.createElement('div');
@@ -98,7 +98,7 @@ export function CharacterStudio() {
           closeDropdown();
         },
       });
-    }
+}
   };
 
   triggerBtn.onclick = (e) => {
@@ -142,7 +142,7 @@ export function CharacterStudio() {
   formCard.appendChild(uploadRow);
   container.appendChild(picker.panel);
 
-  const pexelsBtn = document.createElement('button');
+const pexelsBtn = document.createElement('button');
   pexelsBtn.type = 'button';
   pexelsBtn.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden';
   pexelsBtn.title = 'Browse stock photos from Pexels';
@@ -287,7 +287,7 @@ export function CharacterStudio() {
   formCard.appendChild(thumbBtn);
 
   const genBtn = document.createElement('button');
-  genBtn.type = 'button';
+genBtn.type = 'button';
   genBtn.className = 'w-full bg-primary text-black px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:shadow-glow transition-all mt-2';
   genBtn.textContent = 'Generate Character';
   genBtn.setAttribute('aria-label', 'Generate character');
@@ -397,7 +397,7 @@ export function CharacterStudio() {
         model: selectedModel.id,
         image_url: uploadedUrl,
         prompt: replaceTokensInPrompt(promptInput.value.trim(), activeProfile) || 'professional portrait photo',
-        customThumbnailUrl: customThumbnailUrl || undefined,
+customThumbnailUrl: customThumbnailUrl || undefined,
       };
       if (dynamicControls) {
         Object.assign(params, dynamicControls.getPayload({}));

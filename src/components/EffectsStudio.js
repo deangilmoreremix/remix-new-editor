@@ -398,7 +398,7 @@ export function EffectsStudio() {
   promptRow.appendChild(thumbBtn);
 
   const generateBtn = document.createElement('button');
-  generateBtn.type = 'button';
+generateBtn.type = 'button';
   generateBtn.className = 'bg-primary text-black px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:shadow-glow transition-all whitespace-nowrap';
   generateBtn.textContent = 'Apply Effect';
   generateBtn.setAttribute('aria-label', 'Apply effect');

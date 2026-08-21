@@ -541,7 +541,7 @@ export function AudioStudio() {
   mountStudioChrome(container, { currentRoute: 'audio' });
 
   let selectedModel = audioModels[0];
-  let selectedModelId = selectedModel.id;
+let selectedModelId = selectedModel.id;
   let prompt = '';
   let style = '';
   let duration = '30';
@@ -624,7 +624,7 @@ export function AudioStudio() {
   modelWrapper.style.animationDelay = '0.1s';
   container.appendChild(modelWrapper);
 
-  let modelSelectorEl = null;
+let modelSelectorEl = null;
   let selectedProvider = 'all';
   let searchQuery = '';
 
@@ -915,7 +915,7 @@ export function AudioStudio() {
 
   // Generate button
   const genBtn = document.createElement('button');
-  genBtn.type = 'button';
+genBtn.type = 'button';
   genBtn.className = 'w-full bg-primary text-black px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:shadow-glow transition-all';
   genBtn.textContent = 'Generate Audio';
   genBtn.setAttribute('aria-label', 'Generate audio');
@@ -1063,7 +1063,7 @@ export function AudioStudio() {
     const supportsStyles = selectedModel.supportsStyles || modelType === 'music';
     styleGroup.classList.toggle('hidden', !supportsStyles);
 
-    const supportsVoice = modelType === 'tts';
+const supportsVoice = modelType === 'tts';
     voiceGroup.classList.toggle('hidden', !supportsVoice);
 
     const supportsSpeedPitch = modelType === 'tts';
@@ -1352,7 +1352,7 @@ export function AudioStudio() {
     cleanupResult();
 
     try {
-      const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
+const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
       const processedPrompt = replaceTokensInPrompt(prompt, activeProfile);
       let result;
       const modelType = selectedModel.type;

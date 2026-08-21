@@ -575,7 +575,7 @@ export function StoryboardStudio(options = {}) {
   controlBar.appendChild(addFrameBtn);
 
   const genAllBtn = document.createElement('button');
-  genAllBtn.type = 'button';
+genAllBtn.type = 'button';
   genAllBtn.className = 'px-[14px] py-2 min-h-[40px] bg-primary text-black text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:shadow-glow transition-all';
   genAllBtn.textContent = 'Generate All Frames';
   genAllBtn.setAttribute('aria-label', 'Generate all frames');
@@ -743,7 +743,7 @@ export function StoryboardStudio(options = {}) {
   };
   controlBar.appendChild(exportBtn);
 
-  const compareBtn = document.createElement('button');
+const compareBtn = document.createElement('button');
   compareBtn.type = 'button';
   compareBtn.className = 'px-4 py-2 bg-white/10 border border-white/10 rounded-xl text-xs font-bold text-white hover:bg-white/20 transition-all';
   compareBtn.textContent = 'Compare';
@@ -783,7 +783,12 @@ export function StoryboardStudio(options = {}) {
           document.getElementById('ar-btn-label').textContent = selectedAr;
           updateModelBtnIcon();
           if (dynamicControls) {
-            dynamicControls.update(getExtendedModel(getModelById(selectedModel)));
+            const resolved = getModelById(selectedModel)
+              || getI2IModelById(selectedModel)
+              || getI2VModelById(selectedModel)
+              || getV2VModelById(selectedModel)
+              || { id: selectedModel, inputs: {} };
+            dynamicControls.update(getExtendedModel(resolved));
             dynamicControls.setValue('aspect_ratio', selectedAr);
           }
           closeDropdown();

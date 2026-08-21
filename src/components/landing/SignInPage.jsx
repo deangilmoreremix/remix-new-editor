@@ -13,6 +13,7 @@ import { clerkErrorMessage, clerkWithTimeout, handleNavClick, clearClerkSession 
 export function SignInPage() {
   const { signIn, errors, fetchStatus } = useSignIn();
   const { isSignedIn, isLoaded: userLoaded, user } = useUser();
+
   const isLoaded = signIn !== undefined;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -56,7 +57,7 @@ export function SignInPage() {
       return;
     }
     if (signIn.status === 'needs_second_factor' || signIn.status === 'needs_client_trust') {
-      // MFA / passkey challenge required — this page doesn't have an MFA
+// MFA / passkey challenge required — this page doesn't have an MFA
       // input step, so show a clear message rather than attempting an
       // API call with an empty code (which would produce a confusing error).
       setError('Additional verification is required. Please use an authenticator app, passkey, or check your email for a verification code.');
@@ -77,7 +78,7 @@ export function SignInPage() {
   };
 
   return (
-    <div
+<div
       className="signin-page min-h-screen bg-[#020205] flex flex-col"
       lang={document.documentElement.lang || 'en'}
     >

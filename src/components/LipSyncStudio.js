@@ -470,7 +470,7 @@ export function LipSyncStudio() {
         dropdown.innerHTML = '';
         if (type === 'model') {
             const models = getCurrentModels();
-            mountModelSelector(dropdown, {
+mountModelSelector(dropdown, {
               models,
               selectedModelId: selectedModel,
               showProviderName: true,
@@ -1091,7 +1091,7 @@ export function LipSyncStudio() {
             const resolutions = getResolutionsForLipSyncModel(selectedModel);
             if (resolutions.length > 0) lipsyncParams.resolution = selectedResolution;
 
-            const res = await muapi.processLipSync(lipsyncParams);
+const res = await muapi.processLipSync(lipsyncParams);
             console.log('[LipSyncStudio] Response:', res);
 
             const res = await muapi.processLipSync(lipsyncParams);

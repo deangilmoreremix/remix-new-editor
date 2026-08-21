@@ -71,7 +71,7 @@ export function EditStudio() {
 
   let activeTool = null;
   let uploadedUrl = null;
-  let lastOutputUrl = null;
+let lastOutputUrl = null;
   let customThumbnailUrl = getCustomThumbnailFromCache('edit-studio');
   let currentBlobUrl = null;
   let selectedModelId = 'seedream-5.0-edit';
@@ -315,7 +315,7 @@ export function EditStudio() {
   workCard.appendChild(uploadSection);
   container.appendChild(picker.panel);
 
-  // Watermark image uploader — declared here (before first use) to avoid a
+// Watermark image uploader — declared here (before first use) to avoid a
   // temporal-dead-zone ReferenceError when the row below appends .trigger/.panel.
   let watermarkImageUrl = null;
   const watermarkImageHint = document.createElement('span');
@@ -367,7 +367,7 @@ export function EditStudio() {
   const promptField = document.createElement('input');
   promptField.type = 'text';
   promptField.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors hidden';
-  promptField.setAttribute('aria-label', 'Edit prompt');
+promptField.setAttribute('aria-label', 'Edit prompt');
   workCard.appendChild(promptField);
   workCard.appendChild(negativePromptLabel);
   workCard.appendChild(negativePromptField);
@@ -592,7 +592,7 @@ export function EditStudio() {
   editBtn.setAttribute('aria-label', 'Apply edit');
   workCard.appendChild(editBtn);
 
-  const errorArea = document.createElement('div');
+const errorArea = document.createElement('div');
   errorArea.className = 'hidden mt-4';
   errorArea.setAttribute('role', 'alert');
   workCard.appendChild(errorArea);
@@ -606,7 +606,7 @@ export function EditStudio() {
   workArea.appendChild(workCard);
   container.appendChild(workArea);
 
-  function buildDynamicControls(modelId) {
+function buildDynamicControls(modelId) {
     const model = getI2IModelById(modelId);
     if (!model || !model.inputs || Object.keys(model.inputs).length === 0) {
       if (dynamicControlsContainer) dynamicControlsContainer.classList.add('hidden');
@@ -698,7 +698,7 @@ export function EditStudio() {
     referencePreview.classList.add('hidden');
     referenceRow.classList.add('hidden');
 
-    showControlsForTool(tool.id);
+showControlsForTool(tool.id);
     resultArea.classList.add('hidden');
     errorArea.classList.add('hidden');
   }
@@ -731,7 +731,7 @@ export function EditStudio() {
 
     editBtn.disabled = true;
     editBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Processing...';
-    errorArea.classList.add('hidden');
+errorArea.classList.add('hidden');
     resultArea.classList.add('hidden');
 
     try {
@@ -745,7 +745,7 @@ export function EditStudio() {
         params.prompt = replaceTokensInPrompt(promptField.value.trim(), activeProfile);
       }
 
-      if (activeTool.id === 'seedream-5.0-edit' || modelToUse === 'seedream-5.0-edit') {
+if (activeTool.id === 'seedream-5.0-edit' || modelToUse === 'seedream-5.0-edit') {
         params.aspect_ratio = aspectRatioValue;
         params.quality = qualityValue;
       }
@@ -780,7 +780,7 @@ export function EditStudio() {
         lastOutputUrl = result.url;
         resultArea.classList.remove('hidden');
         resultArea.innerHTML = `
-          <img src="${result.url}" class="w-full rounded-xl border border-white/10 mb-3">
+<img src="${result.url}" class="w-full rounded-xl border border-white/10 mb-3">
           <a href="${result.url}" download class="block w-full bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
           <button type="button" class="publish-social-btn block w-full mt-2 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
         `;

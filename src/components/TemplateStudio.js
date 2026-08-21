@@ -434,8 +434,7 @@ export function TemplateStudio(templateId) {
   if (outputType === 'video' || ['i2i', 't2i', 'i2v', 't2v'].includes(template.modelType)) {
     const modelWrapper = document.createElement('div');
     modelWrapper.className = 'mt-6';
-
-     let fallbackList = [];
+let fallbackList = [];
      if (template.modelType === 'i2v') fallbackList = i2vModels;
      else if (template.modelType === 'i2i') fallbackList = i2iModels;
      else if (template.modelType === 't2i') fallbackList = t2iModels;

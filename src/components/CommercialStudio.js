@@ -36,7 +36,7 @@ export function CommercialStudio() {
   let selectedScene = SCENE_PRESETS[0];
   let selectedFormat = FORMAT_PRESETS[0];
   let selectedModel = 'ai-product-shot';
-  let dynamicControls = null;
+let dynamicControls = null;
   let dynamicControlsContainer = null;
   let customThumbnailUrl = getCustomThumbnailFromCache('commercial-studio');
 
@@ -61,7 +61,7 @@ export function CommercialStudio() {
   modelLabel.textContent = 'Model';
   formCard.appendChild(modelLabel);
 
-  const COMMERCIAL_MODELS = [
+const COMMERCIAL_MODELS = [
     { id: 'ai-product-shot', name: 'Product Shot', provider: 'muapi', provider_name: 'MuAPI' },
     { id: 'ai-product-photography', name: 'Product Photography', provider: 'muapi', provider_name: 'MuAPI' },
   ];
@@ -284,7 +284,7 @@ export function CommercialStudio() {
   formCard.appendChild(thumbBtn);
 
   const genBtn = document.createElement('button');
-  genBtn.type = 'button';
+genBtn.type = 'button';
   genBtn.className = 'w-full bg-primary text-black px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:shadow-glow transition-all mt-2';
   genBtn.textContent = 'Generate Product Shot';
   genBtn.setAttribute('aria-label', 'Generate product shot');
@@ -359,7 +359,7 @@ export function CommercialStudio() {
       const params = {
         model: selectedModel,
         image_url: uploadedUrl,
-        customThumbnailUrl: customThumbnailUrl || undefined,
+customThumbnailUrl: customThumbnailUrl || undefined,
       };
       if (dynamicControls) {
         Object.assign(params, dynamicControls.getPayload({}));

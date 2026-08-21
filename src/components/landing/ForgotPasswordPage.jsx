@@ -22,7 +22,7 @@ import { navigate } from '../../lib/router.js';
 
 export function ForgotPasswordPage() {
   const { signIn, errors, fetchStatus } = useSignIn();
-  const { isSignedIn, isLoaded: userLoaded } = useUser();
+const { isSignedIn, isLoaded: userLoaded } = useUser();
   const isLoaded = signIn !== undefined;
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
@@ -53,7 +53,7 @@ export function ForgotPasswordPage() {
     );
     if (createError) {
       setError(clerkErrorMessage(createError, errors) || 'Could not start password reset. Please try again.');
-      setLoading(false);
+setLoading(false);
       return;
     }
 

@@ -79,7 +79,7 @@ export function CinemaStudio() {
     
     // Camera builder panel state
     let showCameraBuilder = false;
-    let showAdvanced = false;
+let showAdvanced = false;
     let customThumbnailUrl = getCustomThumbnailFromCache('cinema-studio');
 
     // Listen for thumbnails generated via GTM Boost and apply them.
@@ -652,7 +652,7 @@ export function CinemaStudio() {
 
     // Generate Button
     const generateBtn = document.createElement('button');
-    generateBtn.type = 'button';
+generateBtn.type = 'button';
     generateBtn.className = 'px-[14px] py-2 min-h-[40px] bg-primary text-black text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:bg-white transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed uppercase';
     generateBtn.setAttribute('data-tooltip', 'Generate cinema shot');
     generateBtn.setAttribute('aria-label', 'Generate cinema shot');
@@ -1228,7 +1228,7 @@ export function CinemaStudio() {
                     aspect_ratio: currentSettings.aspect_ratio,
                     duration,
                     resolution,
-                    thumbnail_url: customThumbnailUrl || undefined,
+thumbnail_url: customThumbnailUrl || undefined,
                 });
             } else {
                 const t2vParams = {
@@ -1237,7 +1237,7 @@ export function CinemaStudio() {
                     aspect_ratio: currentSettings.aspect_ratio,
                     duration,
                     resolution,
-                    thumbnail_url: customThumbnailUrl || undefined,
+thumbnail_url: customThumbnailUrl || undefined,
                 });
             }
 

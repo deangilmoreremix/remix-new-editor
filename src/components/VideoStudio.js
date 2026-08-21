@@ -674,7 +674,7 @@ export function VideoStudio() {
     `, 'Advanced', 'v-advanced-btn', 'Show advanced options');
     controlsLeft.appendChild(advancedBtn);
 
-    // Motion & Style toggle button
+// Motion & Style toggle button
     const motionStyleBtn = createControlBtn(`
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-60 text-secondary"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
     `, 'Motion & Style', 'v-motion-style-btn', 'Camera movement, motion strength & style presets');
@@ -735,7 +735,7 @@ export function VideoStudio() {
     });
 
     const generateBtn = document.createElement('button');
-    generateBtn.type = 'button';
+generateBtn.type = 'button';
     generateBtn.className = 'bg-primary text-black px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:shadow-glow hover:scale-105 active:scale-95 transition-all w-full sm:w-auto shadow-lg';
     generateBtn.setAttribute('data-tooltip', 'Generate AI video from prompt');
     generateBtn.setAttribute('aria-label', 'Generate video');
@@ -765,7 +765,7 @@ export function VideoStudio() {
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
                 </button>
             </div>
-            <div id="v-advanced-controls-container" class="flex flex-col gap-4"></div>
+<div id="v-advanced-controls-container" class="flex flex-col gap-4"></div>
         </div>
     `;
     container.appendChild(advancedPanel);
@@ -809,160 +809,7 @@ export function VideoStudio() {
     advancedBtn.onclick = toggleAdvanced;
     const vCloseAdvBtn = advancedPanel.querySelector('#v-close-adv-btn');
     if (vCloseAdvBtn) vCloseAdvBtn.onclick = toggleAdvanced;
-
-    // ==========================================
-    // 3.5. MOTION & STYLE PANEL
-    // ==========================================
-    const motionStylePanel = document.createElement('div');
-    motionStylePanel.className = 'w-full mt-6 animate-fade-in-up hidden';
-    motionStylePanel.id = 'v-motion-style-panel';
-    motionStylePanel.innerHTML = `
-        <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex flex-col gap-4">
-            <div class="flex items-center justify-between pb-3 border-b border-white/5">
-                <h3 class="text-sm font-bold text-white">Motion & Style</h3>
-                <button id="v-close-motion-btn" class="text-white/40 hover:text-white transition-colors">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                </button>
-            </div>
-            
-            <!-- Camera Movement -->
-            <div class="flex flex-col gap-2">
-                <label class="text-xs font-bold text-secondary uppercase tracking-wider">Camera Movement</label>
-                <select id="v-camera-movement" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none appearance-none cursor-pointer">
-                    <option value="Static">Static (Locked Shot)</option>
-                    <option value="Pan">Pan (Horizontal)</option>
-                    <option value="Tilt">Tilt (Vertical)</option>
-                    <option value="Zoom In">Zoom In</option>
-                    <option value="Zoom Out">Zoom Out</option>
-                    <option value="Dolly In">Dolly In</option>
-                    <option value="Dolly Out">Dolly Out</option>
-                    <option value="Crane Up">Crane Up</option>
-                    <option value="Orbit">Orbit (360°)</option>
-                    <option value="FPV Drone">FPV Drone</option>
-                    <option value="Handheld">Handheld</option>
-                    <option value="Dolly Zoom">Dolly Zoom (Vertigo)</option>
-                </select>
-            </div>
-            
-            <!-- Motion Strength -->
-            <div class="flex flex-col gap-2">
-                <div class="flex items-center justify-between">
-                    <label class="text-xs font-bold text-secondary uppercase tracking-wider">Motion Strength</label>
-                    <span id="v-motion-strength-value" class="text-xs font-bold text-primary">50%</span>
-                </div>
-                <input type="range" id="v-motion-strength" min="0" max="100" step="5" value="50" 
-                    class="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary">
-            </div>
-            
-            <!-- Camera Speed -->
-            <div class="flex flex-col gap-2">
-                <div class="flex items-center justify-between">
-                    <label class="text-xs font-bold text-secondary uppercase tracking-wider">Camera Speed</label>
-                    <span id="v-camera-speed-value" class="text-xs font-bold text-primary">5</span>
-                </div>
-                <input type="range" id="v-camera-speed" min="1" max="10" step="1" value="5" 
-                    class="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary">
-            </div>
-            
-            <!-- Style Presets -->
-            <div class="flex flex-col gap-2">
-                <label class="text-xs font-bold text-secondary uppercase tracking-wider">Style Preset</label>
-                <div class="flex gap-2 flex-wrap">
-                    ${['None', 'Photorealistic', 'Anime', 'Cinematic', 'Oil Painting', 'Watercolor', 'Digital Art', 'Concept Art', 'Cyberpunk'].map(s => 
-                        `<button class="v-style-preset-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-white/5 text-secondary hover:bg-white/10 transition-all border border-white/5" data-style="${s}">${s}</button>`
-                    ).join('')}
-                </div>
-            </div>
-            
-            <!-- Guidance Scale (CFG) -->
-            <div class="flex flex-col gap-2">
-                <div class="flex items-center justify-between">
-                    <label class="text-xs font-bold text-secondary uppercase tracking-wider">Guidance Scale (CFG)</label>
-                    <span id="v-guidance-value" class="text-xs font-bold text-primary">7.5</span>
-                </div>
-                <input type="range" id="v-guidance-slider" min="1" max="20" step="0.5" value="7.5" 
-                    class="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary">
-                <p class="text-[10px] text-muted">Lower = more creative freedom, Higher = stricter prompt adherence</p>
-            </div>
-        </div>
-    `;
-    container.appendChild(motionStylePanel);
-
-    // ==========================================
-    // 3.6. VIDEO QUICK STARTERS
-    // ==========================================
-    const quickStartersPanel = document.createElement('div');
-    quickStartersPanel.className = 'w-full mt-6 animate-fade-in-up hidden';
-    quickStartersPanel.id = 'v-quick-starters';
-    quickStartersPanel.innerHTML = `
-        <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex flex-col gap-4">
-            <div class="flex items-center justify-between pb-3 border-b border-white/5">
-                <h3 class="text-sm font-bold text-white">Quick Starters</h3>
-                <button id="v-close-quick-btn" class="text-white/40 hover:text-white transition-colors">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                </button>
-            </div>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                ${VIDEO_QUICK_PROMPTS.map(q => `
-                    <button class="v-quick-starter-btn px-3 py-2 rounded-lg text-xs font-bold bg-white/5 text-secondary hover:bg-white/10 hover:text-primary transition-all text-left border border-white/5 hover:border-primary/30" data-prompt="${q.prompt}">
-                        ${q.label}
-                    </button>
-                `).join('')}
-            </div>
-        </div>
-    `;
-    container.appendChild(quickStartersPanel);
-
-    // Quick starters toggle
-    const quickStartersBtn = createControlBtn(`
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-60 text-secondary"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
-    `, 'Quick Starters', 'v-quick-starters-btn', 'Video quick prompt starters');
-    controlsLeft.appendChild(quickStartersBtn);
-
-    let showQuickStarters = false;
-    const toggleQuickStarters = () => {
-        showQuickStarters = !showQuickStarters;
-        quickStartersPanel.classList.toggle('hidden', !showQuickStarters);
-        document.getElementById('v-quick-starters-btn-label').textContent = showQuickStarters ? 'Starters' : 'Quick Starters';
-    };
-    quickStartersBtn.onclick = toggleQuickStarters;
-    const vCloseQuickBtn = quickStartersPanel.querySelector('#v-close-quick-btn');
-    if (vCloseQuickBtn) vCloseQuickBtn.onclick = toggleQuickStarters;
-
-    const vQuickStarterBtns = quickStartersPanel.querySelectorAll('.v-quick-starter-btn');
-    vQuickStarterBtns.forEach(btn => {
-        btn.onclick = () => {
-            textarea.value = btn.dataset.prompt;
-            textarea.style.height = 'auto';
-            textarea.style.height = Math.min(textarea.scrollHeight, 250) + 'px';
-            toggleQuickStarters();
-        };
-    });
-
-    // Motion & Style panel toggle logic
-    let showMotionStyle = false;
-    const toggleMotionStyle = () => {
-        showMotionStyle = !showMotionStyle;
-        motionStylePanel.classList.toggle('hidden', !showMotionStyle);
-        document.getElementById('v-motion-style-btn-label').textContent = showMotionStyle ? 'Motion' : 'Motion & Style';
-    };
-    motionStyleBtn.onclick = toggleMotionStyle;
-    const vCloseMotionBtn = motionStylePanel.querySelector('#v-close-motion-btn');
-    if (vCloseMotionBtn) vCloseMotionBtn.onclick = toggleMotionStyle;
-
-    // Camera movement select
-    const vCameraMovement = motionStylePanel.querySelector('#v-camera-movement');
-    if (vCameraMovement) {
-        vCameraMovement.onchange = (e) => { cameraMovement = e.target.value; };
-    }
-
-    // Motion strength slider
-    const vMotionStrength = motionStylePanel.querySelector('#v-motion-strength');
-    const vMotionStrengthVal = motionStylePanel.querySelector('#v-motion-strength-value');
-    if (vMotionStrength && vMotionStrengthVal) {
-        vMotionStrength.oninput = (e) => {
-            motionStrength = parseInt(e.target.value);
-            vMotionStrengthVal.textContent = motionStrength + '%';
+// ===================================
         };
     }
 
@@ -1801,7 +1648,7 @@ export function VideoStudio() {
 
         try {
             if (v2vMode) {
-                const v2vParams = { model: selectedModel, video_url: uploadedVideoUrl, signal: abortController.signal };
+const v2vParams = { model: selectedModel, video_url: uploadedVideoUrl, signal: abortController.signal };
                 if (customThumbnailUrl) v2vParams.thumbnail_url = customThumbnailUrl;
                 const res = await muapi.processV2V(v2vParams);
                 console.log('[VideoStudio] V2V response:', res);
@@ -1831,6 +1678,7 @@ export function VideoStudio() {
                 const resolutions = getCurrentResolutions(selectedModel);
                 if (resolutions.length > 0) i2vParams.resolution = selectedResolution;
 
+
                 const res = await muapi.generateI2V(i2vParams);
                 if (res && res.url) {
                     const genId = res.id || res.request_id || Date.now().toString();
@@ -1841,7 +1689,7 @@ export function VideoStudio() {
                         lastGenerationId = null;
                         lastGenerationModel = null;
                     }
-                    addToHistory({ id: genId, url: res.url, prompt: enrichedPrompt, model: selectedModel, aspect_ratio: selectedAr, duration: selectedDuration, timestamp: new Date().toISOString() });
+addToHistory({ id: genId, url: res.url, prompt: enrichedPrompt, model: selectedModel, aspect_ratio: selectedAr, duration: selectedDuration, timestamp: new Date().toISOString() });
                     showVideoInCanvas(res.url, selectedModel);
                 } else {
                     throw new Error('No video URL returned by API');
@@ -1871,14 +1719,14 @@ export function VideoStudio() {
                 if (seed && seed !== -1) params.seed = seed;
                 if (guidanceScale && guidanceScale !== 7.5) params.guidance_scale = guidanceScale;
 
-                // Extend mode: pass stored request_id, skip aspect_ratio
+// Extend mode: pass stored request_id, skip aspect_ratio
                 if (isExtendMode) {
                     params.request_id = lastGenerationId;
                 } else {
                     params.aspect_ratio = selectedAr;
                 }
 
-                const durations = getCurrentDurations(selectedModel);
+const durations = getCurrentDurations(selectedModel);
                 if (durations.length > 0) params.duration = selectedDuration;
 
                 const resolutions = getCurrentResolutions(selectedModel);

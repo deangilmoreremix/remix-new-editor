@@ -244,7 +244,7 @@ function validateEndpoint(endpoint: string): boolean {
   //   - predictions/<id>/result
   //   - <model-name>
   //   - <category>-<model>
-  //   - specialized app endpoints like ai-image-upscale, generate_wan_ai_effects, suno-create-music
+//   - specialized app endpoints like ai-image-upscale, generate_wan_ai_effects, suno-create-music
   //   - social endpoints with a query string, e.g. social/ext/accounts?external_user_id=user_123
   if (!endpoint || typeof endpoint !== 'string') return false;
   const trimmed = endpoint.trim();
@@ -255,7 +255,7 @@ function validateEndpoint(endpoint: string): boolean {
   const [path, query] = trimmed.split('?');
 
   // Block path traversal but allow dots, hyphens, underscores, and slashes
-  if (path.includes('..') || path.startsWith('/') || path.includes('//')) return false;
+if (path.includes('..') || path.startsWith('/') || path.includes('//')) return false;
   if (!/^[a-z0-9][a-z0-9_.\/-]*$/.test(path)) return false;
 
   // Query string (if present) must be a safe, url-encoded set of key=value pairs.

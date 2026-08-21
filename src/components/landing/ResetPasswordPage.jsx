@@ -24,7 +24,7 @@ import { navigate } from '../../lib/router.js';
 
 export function ResetPasswordPage() {
   const { signIn, errors, fetchStatus } = useSignIn();
-  const { isSignedIn, isLoaded: userLoaded } = useUser();
+const { isSignedIn, isLoaded: userLoaded } = useUser();
   const isLoaded = signIn !== undefined;
   const [email, setEmail] = useState(
     () => new URLSearchParams(window.location.search).get('email') || ''
@@ -72,7 +72,7 @@ export function ResetPasswordPage() {
       setLoading(false);
       return;
     }
-    // Step 2: submit the new password. On success the
+// Step 2: submit the new password. On success the
     // sign-in is complete and the session is created.
     const { error: submitError } = await clerkWithTimeout(
       signIn.resetPasswordEmailCode.submitPassword({
@@ -85,7 +85,7 @@ export function ResetPasswordPage() {
       setLoading(false);
       return;
     }
-    if (signIn.status === 'complete') {
+if (signIn.status === 'complete') {
       setDone(true);
       await signIn.finalize({
         navigate: async ({ decorateUrl }) => {

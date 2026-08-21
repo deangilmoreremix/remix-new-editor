@@ -177,8 +177,7 @@ export function CinemaTemplateStudio() {
       </div>
     `;
     container.appendChild(header);
-
-    container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favorites'; render(); };
+container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favorites'; render(); };
     container.querySelector('#recent-btn').onclick = () => { browseFilter = 'recent'; render(); };
     container.querySelector('#custom-btn').onclick = () => { browseFilter = 'custom'; render(); };
 
@@ -2640,7 +2639,7 @@ export function CinemaTemplateStudio() {
       render();
     };
 
-    const firstChild = storyboardRoot.firstElementChild;
+const firstChild = storyboardRoot.firstElementChild;
     if (firstChild) {
       storyboardRoot.insertBefore(backBtn, firstChild);
     } else {

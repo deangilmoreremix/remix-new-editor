@@ -21,12 +21,13 @@ export const EXAMPLE_ASSETS = [
     const asset = getAcademyAssetById(adapter.id);
     if (!asset) return null;
     return {
-      id: asset.id,
+id: asset.id,
       source: 'academy',
       studio: adapter.studio,
       title: asset.title,
       category: adapter.tags?.[0] || asset.category || '',
       thumbnail: asset.thumbnail || asset.src || '',
+
       tags: adapter.tags || asset.tags || [],
       stylePreset: adapter.stylePreset ?? null,
       prompt: adapter.prompt ?? null,

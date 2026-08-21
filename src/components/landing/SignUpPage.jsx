@@ -46,7 +46,7 @@ export function SignUpPage() {
     try { signUp.reset(); } catch {}
 
     const { error: resultError } = await clerkWithTimeout(
-      signUp.password({
+signUp.password({
         emailAddress: email,
         password,
         ...(firstName ? { firstName } : {}),
@@ -57,7 +57,7 @@ export function SignUpPage() {
       setLoading(false);
       return;
     }
-    if (signUp.status === 'complete') {
+if (signUp.status === 'complete') {
       await signUp.finalize({
         navigate: async ({ decorateUrl }) => {
           const url = decorateUrl('/#/image');
@@ -85,6 +85,7 @@ export function SignUpPage() {
     if (!isLoaded || fetchStatus === 'fetching') return;
     setLoading(true);
     setError('');
+
     const { error: resultError } = await clerkWithTimeout(
       signUp.verifications.verifyEmailCode({ code })
     );
@@ -95,7 +96,7 @@ export function SignUpPage() {
     }
 
     if (signUp.status === 'complete') {
-      await signUp.finalize({
+await signUp.finalize({
         navigate: async ({ decorateUrl }) => {
           const url = decorateUrl('/#/image');
           window.location.href = url.startsWith('http') ? url : '/#/image';
@@ -108,7 +109,7 @@ export function SignUpPage() {
   };
 
   return (
-    <div
+<div
       className="signup-page min-h-screen bg-[#020205] flex flex-col"
       lang={document.documentElement.lang || 'en'}
     >
@@ -137,7 +138,7 @@ export function SignUpPage() {
             <a href="#/apps" onClick={(e) => handleNavClick(e, 'apps')} className="px-4 py-2 text-sm bg-cyan-400 text-[#020205] hover:bg-cyan-300 transition font-medium" style={{ letterSpacing: '0.05em', textTransform: 'uppercase' }}>Home</a>
           </div>
 
-      {/* Main Content */}
+{/* Main Content */}
       <main className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md mx-auto">
           {/* Sign Up Card */}
