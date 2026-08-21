@@ -170,6 +170,7 @@ export function getModelInputExtensions(modelId) {
 }
 
 export function getExtendedModel(model) {
+  if (!model) return model;
   const extra = getModelInputExtensions(model.id);
   if (Object.keys(extra).length === 0) return model;
   return {

@@ -141,7 +141,7 @@ export function goToRoute(route, params = {}) {
     return;
   }
   const query = new URLSearchParams(params).toString();
-  window.location.assign(query ? `/?${query}#/${route}` : `/#/${route}`);
+  window.location.assign(`/?${query}#/${route}`);
 }
 
 

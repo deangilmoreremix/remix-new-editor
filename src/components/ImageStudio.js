@@ -86,6 +86,13 @@ export function ImageStudio() {
         if (templateParam) {
           const tpl = resolveTemplate(templateParam);
           if (tpl) {
+            // If the template's model is not an image model, redirect to
+            // TemplateStudio instead of rendering a blank ImageStudio.
+            const imageModelIds = new Set([...t2iModels, ...i2iModels].map(m => m.id));
+            if (tpl.model && !imageModelIds.has(tpl.model)) {
+              window.location.assign(`/?template=${encodeURIComponent(templateParam)}#/template/${encodeURIComponent(templateParam)}`);
+              return;
+            }
             if (tpl.model) selectedModel = tpl.model;
             if (tpl.aspectRatio) selectedAr = tpl.aspectRatio;
             if (tpl.basePrompt) {
