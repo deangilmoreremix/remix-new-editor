@@ -1,4 +1,5 @@
 import { getTemplateById } from '../lib/templates.js';
+import { resolveTemplate } from '../lib/showcaseTemplateResolver.js';
 import { getTemplateThumbnailCandidates, saveCustomThumbnailToCache, clearCustomThumbnailCache, getCustomThumbnailFromCache } from '../lib/thumbnails.js';
 import { getTemplateSpecs, hasEnhancedSpecs } from '../lib/templateSpecs.js';
 import { muapi } from '../lib/muapi.js';
@@ -18,8 +19,14 @@ import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
 
 export function TemplateStudio(templateId) {
-  const template = getTemplateById(templateId);
-  
+  let template = getTemplateById(templateId);
+
+  // Fallback: if the template isn't in the built-in templates.js registry,
+  // try the unified showcase resolver (covers all 512 MiniMax H3 / Seedance 2.5 / ZeroLu demos).
+  if (!template) {
+    template = resolveTemplate(templateId);
+  }
+
   if (!template) {
     const errorContainer = document.createElement('div');
     errorContainer.className = 'min-h-screen bg-[#0a0a0b] text-white flex items-center justify-center';
