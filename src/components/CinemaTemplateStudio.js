@@ -62,7 +62,7 @@ export function CinemaTemplateStudio() {
 
   let _modelSelectorOutsideClickHandler = null;
 
-  let selectedModel = null;
+  let selectedModel = 'kling-v2.6-pro-t2v';
   let lastModelType = null;
   let isAiEnhancer = true;
   let customThumbnailUrl = null;
@@ -342,10 +342,12 @@ export function CinemaTemplateStudio() {
     currentTemplate = template;
     currentMode = 'quick';
     currentInputs = new TemplateInputBuilder(template, currentMode).getDefaults();
-    const defaultModel = template.model || 'kling-v2.6-pro-t2v';
-    const candidates = template.modelType === 'i2i' ? i2iModels : template.modelType === 't2i' ? t2iModels : template.modelType === 't2v' ? t2vModels : i2vModels;
-    selectedModel = candidates.find(m => m.id === defaultModel) ? defaultModel : (candidates[0]?.id || defaultModel);
-    lastModelType = template.modelType;
+    if (lastModelType !== template.modelType) {
+      const defaultModel = template.model || 'kling-v2.6-pro-t2v';
+      const candidates = template.modelType === 'i2i' ? i2iModels : template.modelType === 't2i' ? t2iModels : template.modelType === 't2v' ? t2vModels : i2vModels;
+      selectedModel = candidates.find(m => m.id === defaultModel) ? defaultModel : (candidates[0]?.id || defaultModel);
+      lastModelType = template.modelType;
+    }
     outputTabValues = {};
     activeTab = 'Enhanced Prompt';
     showAdvanced = false;
@@ -748,26 +750,17 @@ export function CinemaTemplateStudio() {
       }
       if (container.querySelector('#add-scene-btn')) {
         container.querySelector('#add-scene-btn').onclick = () => {
-          try {
-            if (!sceneBuilder) {
-              console.warn('[CinemaTemplateStudio] add-scene-btn clicked but sceneBuilder is missing');
-              return;
-            }
-            const scenes = sceneBuilder.getScenes();
-            const nextNumber = scenes.length ? Math.max(...scenes.map(s => s.sceneNumber || 0)) + 1 : 1;
-            sceneBuilder.addScene({
-              sceneNumber: nextNumber,
-              beat: `Scene ${nextNumber}`,
-              duration: 5,
-              shots: [{ type: 'MEDIUM', movement: 'STATIC', duration: 3, order: 1 }]
-            });
-            renderSceneBuilder();
-            renderSceneTimeline();
-            console.log('[CinemaTemplateStudio] Added scene', nextNumber, 'total scenes', sceneBuilder.getScenes().length);
-          } catch (err) {
-            console.error('[CinemaTemplateStudio] Add scene failed:', err);
-            showToast('Failed to add scene', 'error');
-          }
+          if (!sceneBuilder) return;
+          const scenes = sceneBuilder.getScenes();
+          const nextNumber = scenes.length ? Math.max(...scenes.map(s => s.sceneNumber || 0)) + 1 : 1;
+          sceneBuilder.addScene({
+            sceneNumber: nextNumber,
+            beat: `Scene ${nextNumber}`,
+            duration: 5,
+            shots: [{ type: 'MEDIUM', movement: 'STATIC', duration: 3, order: 1 }]
+          });
+          renderSceneBuilder();
+          renderSceneTimeline();
         };
       }
     }
@@ -1216,34 +1209,22 @@ export function CinemaTemplateStudio() {
 
     list.querySelectorAll('.delete-scene-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        try {
-          sceneBuilder.removeScene(btn.dataset.id);
-          renderSceneBuilder();
-          renderSceneTimeline();
-          console.log('[CinemaTemplateStudio] Removed scene', btn.dataset.id);
-        } catch (err) {
-          console.error('[CinemaTemplateStudio] Remove scene failed:', err);
-          showToast('Failed to remove scene', 'error');
-        }
+        sceneBuilder.removeScene(btn.dataset.id);
+        renderSceneBuilder();
+        renderSceneTimeline();
       });
     });
 
     list.querySelectorAll('.move-scene-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        try {
-          const idx = parseInt(btn.dataset.idx, 10);
-          const dir = btn.dataset.dir;
-          const scenes = sceneBuilder.getScenes();
-          const newIdx = dir === 'up' ? idx - 1 : idx + 1;
-          if (newIdx < 0 || newIdx >= scenes.length) return;
-          sceneBuilder.moveScene(scenes[idx].id, newIdx);
-          renderSceneBuilder();
-          renderSceneTimeline();
-          console.log('[CinemaTemplateStudio] Moved scene', scenes[idx].id, dir, 'to', newIdx);
-        } catch (err) {
-          console.error('[CinemaTemplateStudio] Move scene failed:', err);
-          showToast('Failed to move scene', 'error');
-        }
+        const idx = parseInt(btn.dataset.idx, 10);
+        const dir = btn.dataset.dir;
+        const scenes = sceneBuilder.getScenes();
+        const newIdx = dir === 'up' ? idx - 1 : idx + 1;
+        if (newIdx < 0 || newIdx >= scenes.length) return;
+        sceneBuilder.moveScene(scenes[idx].id, newIdx);
+        renderSceneBuilder();
+        renderSceneTimeline();
       });
     });
   }
@@ -1660,9 +1641,6 @@ export function CinemaTemplateStudio() {
     const triggerBtn = document.createElement('button');
     triggerBtn.type = 'button';
     triggerBtn.className = 'w-full flex items-center gap-3 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition';
-    triggerBtn.setAttribute('aria-haspopup', 'listbox');
-    triggerBtn.setAttribute('aria-expanded', 'false');
-    triggerBtn.setAttribute('aria-label', 'Select model');
     const updateTrigger = () => {
       const model = getModel(selectedModel);
       const provider = model?.provider || 'muapi';
@@ -1679,8 +1657,6 @@ export function CinemaTemplateStudio() {
 
     const dropdown = document.createElement('div');
     dropdown.className = 'fixed z-[100] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom-left';
-    dropdown.setAttribute('role', 'listbox');
-    dropdown.setAttribute('aria-label', 'Available models');
     dropdown.style.width = 'calc(100vw - 2rem)';
     dropdown.style.maxWidth = '480px';
     dropdown.style.maxHeight = '70vh';
@@ -1689,7 +1665,6 @@ export function CinemaTemplateStudio() {
     const closeDropdown = () => {
       dropdown.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
       dropdown.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
-      triggerBtn.setAttribute('aria-expanded', 'false');
       if (_modelSelectorOutsideClickHandler) {
         document.removeEventListener('click', _modelSelectorOutsideClickHandler);
         _modelSelectorOutsideClickHandler = null;
@@ -1699,7 +1674,6 @@ export function CinemaTemplateStudio() {
     const openDropdown = () => {
       dropdown.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
       dropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
-      triggerBtn.setAttribute('aria-expanded', 'true');
 
       if (_modelSelectorOutsideClickHandler) {
         document.removeEventListener('click', _modelSelectorOutsideClickHandler);
@@ -1771,14 +1745,6 @@ export function CinemaTemplateStudio() {
         openDropdown();
       }
     };
-
-    const onKeyDown = (e) => {
-      if (e.key === 'Escape' && dropdown.classList.contains('opacity-100')) {
-        closeDropdown();
-        triggerBtn.focus();
-      }
-    };
-    document.addEventListener('keydown', onKeyDown);
 
     const modelLoadingStatus = document.createElement('span');
     modelLoadingStatus.id = 'model-loading-status';
@@ -2337,21 +2303,6 @@ export function CinemaTemplateStudio() {
 
     const isVideo = currentTemplate.outputType === 'video';
     const imageUrl = currentInputs.image_url || currentInputs.referenceImage || null;
-
-    // Validate that the selected model matches the template's model type.
-    const modelTypeMap = {
-      i2i: i2iModels,
-      t2i: t2iModels,
-      i2v: i2vModels,
-      t2v: t2vModels,
-      v2v: v2vModels,
-    };
-    const allowedModels = modelTypeMap[currentTemplate.modelType];
-    if (allowedModels && !allowedModels.find(m => m.id === selectedModel)) {
-      const fallback = allowedModels[0]?.id || 'kling-v2.6-pro-t2v';
-      showToast(`Model "${selectedModel}" is not compatible with this template type. Falling back to ${fallback}.`, 'error');
-      selectedModel = fallback;
-    }
 
     // V2V models need a video_url instead of image_url
     const isV2V = getV2VModelById(selectedModel);

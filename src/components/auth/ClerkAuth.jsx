@@ -8,6 +8,7 @@
 // too (ForgotPasswordPage / ResetPasswordPage), built on Clerk's
 // reset_password_email_code strategy so they match the app's design.
 
+import { ensureClerkLoaded } from '../../lib/clerkInit.js';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import {

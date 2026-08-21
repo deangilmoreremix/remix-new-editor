@@ -1,11 +1,14 @@
 import { mountStudioChrome } from '../lib/studioChrome.js';
-import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
-import ExampleGallery from './studios/ExampleGallery.js';
+
 // AI-VFX Studio Page
-// Embeds the ai-vfx studio as an iframe. The iframe src is always '/ai-vfx/'
-// (same-origin). In dev, Vite proxies this path to the AI-VFX dev server on
-// port 3002 via server.proxy in vite.config.js. In production, the built files
-// are served from the /ai-vfx/ directory inside the main app's dist folder.
+// Embeds the upstream SamurAIGPT/AI-VFX Next.js app as an iframe.
+// The iframe src is the AI-VFX app URL. In dev, Vite proxies /ai-vfx
+// to the Next.js dev server on port 3000. In production, the Next.js app
+// is deployed as a separate Netlify site at ai-vfx.smartvid.app.
+
+const AI_VFX_URL = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+  ? '/ai-vfx/'           // dev: Vite proxies to Next.js dev server
+  : 'https://ai-vfx.smartvid.app/';  // prod: separate Netlify site
 
 export function AIVFXPage() {
   const container = document.createElement('div');
@@ -31,19 +34,11 @@ export function AIVFXPage() {
   container.appendChild(header);
 
   const iframe = document.createElement('iframe');
-  // Always load from '/ai-vfx/' (same-origin). In dev, Vite proxies this path to
-  // the AI-VFX dev server on port 3002 via the server.proxy config in vite.config.js.
-  iframe.src = '/ai-vfx/';
+  iframe.src = AI_VFX_URL;
   iframe.style.cssText = 'flex:1;min-height:0;border:none;width:100%;background:#0b0f19;';
-  iframe.setAttribute('allow', 'clipboard-write');
-  iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups');
+  iframe.setAttribute('allow', 'clipboard-write fullscreen');
+  iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-same-origin');
   container.appendChild(iframe);
 
-    const galleryAssets = getAssetsForStudio('ai-vfx');
-    if (galleryAssets.length > 0) {
-      const gallery = ExampleGallery({ studioId: 'ai-vfx', assets: galleryAssets, maxCards: 20 });
-      container.appendChild(gallery);
-    }
-
-    return container;
+  return container;
 }

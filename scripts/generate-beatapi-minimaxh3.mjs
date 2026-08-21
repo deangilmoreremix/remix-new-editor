@@ -468,6 +468,7 @@ async function main() {
     return d;
   });
 
+<<<<<<< HEAD
   // Sort by category for organized display
   finalDemos.sort((a, b) => {
     const catOrder = ['Action', 'Animation', 'Beauty', 'Characters', 'Cinema', 'Commercial', 'Fashion', 'Food', 'Social', 'UGC', 'VFX', 'Web / UI'];
@@ -476,6 +477,8 @@ async function main() {
     return ai !== bi ? ai - bi : a.title.localeCompare(b.title);
   });
 
+=======
+>>>>>>> temp-deploy
   const jsContent = writeDemosJS(finalDemos, null, 'minimax-h3', 'minimax-h3-');
 
   mkdirSync(OUT_DIR, { recursive: true });

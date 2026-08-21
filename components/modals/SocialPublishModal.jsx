@@ -500,7 +500,10 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
   const [status, setStatus] = useState('idle'); // idle | connecting | publishing | success | error
   const [progress, setProgress] = useState('');
   const [selectedModel, setSelectedModel] = useState(() => openaiConfig?.getResponsesModel?.() || 'gpt-4.1-mini');
+<<<<<<< HEAD
   const [lastResponseIds, setLastResponseIds] = useState({}); // field -> responseId
+=======
+>>>>>>> temp-deploy
   const [errorMsg, setErrorMsg] = useState(null);
   const [resultUrl, setResultUrl] = useState('');
 
@@ -570,6 +573,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
       const popup = window.open(url, 'muapi_oauth', 'width=600,height=720');
       const fallbackTab = !popup ? window.open(url, '_blank') : null;
 
+<<<<<<< HEAD
       const onFocus = async () => {
         try {
           await refreshAccounts();
@@ -590,12 +594,16 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
 
       if (popup) {
         window.addEventListener('focus', onFocus);
+=======
+      if (popup) {
+>>>>>>> temp-deploy
         popupTimer.current = setInterval(async () => {
           try {
             await refreshAccounts();
           } catch {
             /* ignore transient errors while polling */
           }
+<<<<<<< HEAD
           if (popup.closed) {
             await refreshAccounts();
             stop();
@@ -618,6 +626,18 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
         setErrorMsg('Could not open the connection page. Please allow popups and try again.');
         setStatus('idle');
         setConnectingPlatform(null);
+=======
+          if (!popup || popup.closed) {
+            clearInterval(popupTimer.current);
+            popupTimer.current = null;
+            if (popup && popup.closed) {
+              await refreshAccounts();
+            }
+            setStatus('idle');
+            setConnectingPlatform(null);
+          }
+        }, 2500);
+>>>>>>> temp-deploy
       }
     } catch (e) {
       setErrorMsg(e.message || 'Could not start connection.');
@@ -713,7 +733,10 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
         platform: platformOfSelected || 'social',
         tone: toneId ? TONALITIES.find((t) => t.id === toneId) : null,
         model: selectedModel,
+<<<<<<< HEAD
         previousResponseId: lastResponseIds[field] || undefined,
+=======
+>>>>>>> temp-deploy
         goal,
       });
       updateForm(field, improved);
@@ -831,6 +854,13 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
       setErrorMsg(`${PLATFORM_BY_ID[platform]?.label || platform} requires a title.`);
       return;
     }
+<<<<<<< HEAD
+=======
+    if (platform === 'instagram' && !form.thumbnail?.imageUrl) {
+      setErrorMsg('Add a thumbnail to make your post pop (your media preview still works without one).');
+      return;
+    }
+>>>>>>> temp-deploy
 
     setStatus('publishing');
     setErrorMsg(null);

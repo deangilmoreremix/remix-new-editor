@@ -12,6 +12,7 @@ import { i2iModels } from '../lib/models.js';
 import { createSafeImage } from '../lib/security.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import ExampleGallery from './studios/ExampleGallery.js';
+import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 
 const STYLE_PRESETS = [
   'Realistic', 'DigitalCam', 'Quiet luxury', 'FashionShow', '90s Grain', 'Sunset beach',
