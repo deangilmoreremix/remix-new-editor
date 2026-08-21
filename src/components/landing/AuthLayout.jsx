@@ -3,6 +3,17 @@
 // across every authentication surface while each page owns its own form.
 
 import React, { useState } from 'react';
+import { navigate } from '../../lib/router.js';
+
+// In-app nav handler used by every <a> in the auth header. We keep the
+// hrefs as `href="#/<route>"` so the links remain valid and bookmarkable,
+// but intercept the click to route through the hash router — a real
+// `href="/image"` would 404 in production because Netlify has no file or
+// SPA fallback for those paths.
+export function handleNavClick(e, route) {
+  e.preventDefault();
+  navigate(route);
+}
 
 // The exact top navigation chrome used by SignInPage / SignUpPage, reused
 // here so the auth pages never drift in appearance.

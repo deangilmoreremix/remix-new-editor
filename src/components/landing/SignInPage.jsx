@@ -8,7 +8,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSignIn, useUser, useClerk } from '@clerk/react';
-import { clerkErrorMessage, clerkWithTimeout, handleNavClick, clearClerkSession } from './AuthLayout.jsx';
+import { clerkErrorMessage, clerkWithTimeout, clearClerkSession } from './AuthLayout.jsx';
+import { navigate } from '../../lib/router.js';
 
 export function SignInPage() {
   const { signIn, errors, fetchStatus } = useSignIn();
@@ -102,9 +103,9 @@ export function SignInPage() {
             <input type="checkbox" className="rounded border-white/20 bg-white/5 text-cyan-400 focus:ring-cyan-400/50" />
             Remember me
           </label>
-          <button type="button" onClick={handleNavClick.bind(null, '/forgot-password')} className="text-cyan-400 hover:text-cyan-300 transition">
-            Forgot password?
-          </button>
+            <button type="button" onClick={() => navigate('/forgot-password')} className="text-cyan-400 hover:text-cyan-300 transition">
+              Forgot password?
+            </button>
         </div>
 
         {/* Submit Button */}
@@ -120,7 +121,7 @@ export function SignInPage() {
 
       <AuthFooter>
         Don&apos;t have an account?{' '}
-        <button type="button" onClick={handleNavClick.bind(null, '/signup')} className="text-cyan-400 hover:text-cyan-300 font-medium transition">
+        <button type="button" onClick={() => navigate('/signup')} className="text-cyan-400 hover:text-cyan-300 font-medium transition">
           Sign up
         </button>
       </AuthFooter>

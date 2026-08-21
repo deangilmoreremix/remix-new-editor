@@ -18,6 +18,7 @@ import {
   clerkWithTimeout,
   clearClerkSession,
 } from './AuthLayout.jsx';
+import { navigate } from '../../lib/router.js';
 
 export function ForgotPasswordPage() {
   const { signIn, errors, fetchStatus } = useSignIn();
@@ -95,7 +96,7 @@ export function ForgotPasswordPage() {
             </button>
           </div>
           <AuthFooter>
-            <button type="button" onClick={handleNavClick.bind(null, '/signin')} className="text-cyan-400 hover:text-cyan-300 font-medium transition">
+            <button type="button" onClick={() => navigate('/signin')} className="text-cyan-400 hover:text-cyan-300 font-medium transition">
               Back to sign in
             </button>
           </AuthFooter>
@@ -124,8 +125,8 @@ export function ForgotPasswordPage() {
           </AuthSubmitButton>
 
           <AuthFooter>
-            Remember your password?{' '}
-            <button type="button" onClick={handleNavClick.bind(null, '/signin')} className="text-cyan-400 hover:text-cyan-300 font-medium transition">
+            {'Remember your password? '}
+            <button type="button" onClick={() => navigate('/signin')} className="text-cyan-400 hover:text-cyan-300 font-medium transition">
               Back to sign in
             </button>
           </AuthFooter>

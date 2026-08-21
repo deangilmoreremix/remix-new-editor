@@ -10,7 +10,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSignUp, useUser } from '@clerk/react';
-import { clerkErrorMessage, clerkWithTimeout, handleNavClick, clearClerkSession } from './AuthLayout.jsx';
+import { clerkErrorMessage, clerkWithTimeout, clearClerkSession } from './AuthLayout.jsx';
+import { navigate } from '../../lib/router.js';
 
 export function SignUpPage() {
   const { signUp, errors, fetchStatus } = useSignUp();
@@ -151,7 +152,7 @@ export function SignUpPage() {
 
           <AuthFooter>
             Already have an account?{' '}
-            <button type="button" onClick={handleNavClick.bind(null, '/signin')} className="text-cyan-400 hover:text-cyan-300 font-medium transition">
+            <button type="button" onClick={() => navigate('/signin')} className="text-cyan-400 hover:text-cyan-300 font-medium transition">
               Sign in
             </button>
           </AuthFooter>

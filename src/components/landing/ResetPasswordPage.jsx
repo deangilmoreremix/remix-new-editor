@@ -20,6 +20,7 @@ import {
   clerkWithTimeout,
   clearClerkSession,
 } from './AuthLayout.jsx';
+import { navigate } from '../../lib/router.js';
 
 export function ResetPasswordPage() {
   const { signIn, errors, fetchStatus } = useSignIn();
@@ -162,7 +163,7 @@ export function ResetPasswordPage() {
               Request again
             </button>
             <span className="text-slate-500">|</span>
-            <button type="button" onClick={handleNavClick.bind(null, '/signin')} className="text-cyan-400 hover:text-cyan-300 font-medium transition">
+            <button type="button" onClick={() => navigate('/signin')} className="text-cyan-400 hover:text-cyan-300 font-medium transition">
               Back to sign in
             </button>
           </AuthFooter>
