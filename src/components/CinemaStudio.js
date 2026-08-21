@@ -21,7 +21,7 @@ import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { CINEMATIC_THEME, cx } from '../lib/cinematicTheme.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import ExampleGallery from './studios/ExampleGallery.js';
-import { resolveTemplate } from '../lib/showcaseTemplateResolver.js';
+import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 
 // Camera movements promised by the Cinema Studio intro copy
@@ -103,7 +103,13 @@ export function CinemaStudio() {
           if (tpl.model) currentSettings.model = tpl.model;
           if (tpl.aspectRatio) currentSettings.aspect_ratio = tpl.aspectRatio;
           if (tpl.duration) currentSettings.duration = tpl.duration;
-          if (tpl.basePrompt) currentSettings.prompt = tpl.basePrompt;
+          if (tpl.basePrompt) {
+            currentSettings.prompt = tpl.basePrompt;
+          } else if (tpl.slug) {
+            loadTemplatePrompt(templateParam)
+              .then((prompt) => { if (prompt) currentSettings.prompt = prompt; })
+              .catch(() => {});
+          }
         }
       }
 

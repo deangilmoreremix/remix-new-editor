@@ -23,7 +23,7 @@ import { categorizeGenerationError, createAbortAwareGenerate, startGenerationPro
 import { showToast, createLoadingOverlay, createProgressBar } from '../lib/loading.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import ExampleGallery from './studios/ExampleGallery.js';
-import { resolveTemplate } from '../lib/showcaseTemplateResolver.js';
+import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 
 export function VideoStudio() {
@@ -96,6 +96,15 @@ export function VideoStudio() {
           if (tpl.basePrompt) {
             const textarea = document.getElementById('prompt-textarea');
             if (textarea) textarea.value = tpl.basePrompt;
+          } else if (tpl.slug) {
+            loadTemplatePrompt(templateParam)
+              .then((prompt) => {
+                if (prompt) {
+                  const textarea = document.getElementById('prompt-textarea');
+                  if (textarea) textarea.value = prompt;
+                }
+              })
+              .catch(() => {});
           }
         }
       }

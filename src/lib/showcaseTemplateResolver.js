@@ -8,9 +8,9 @@
 //
 // Studios import this single resolver instead of getMinimaxTemplateById().
 
-import { minimaxH3Demos, MINIMAX_MODEL } from '../data/beatapiMinimaxH3Demos.js';
-import { seedance25Demos, SEEDANCE_MODEL } from '../data/beatapiSeedance25Demos.js';
-import { zeroLuDemos, ZERO_LU_MODEL } from '../data/zeroLuDemos.js';
+import { minimaxH3Demos, MINIMAX_MODEL, loadDemoPrompt as loadMinimaxPrompt } from '../data/beatapiMinimaxH3Demos.js';
+import { seedance25Demos, SEEDANCE_MODEL, loadDemoPrompt as loadSeedance25Prompt } from '../data/beatapiSeedance25Demos.js';
+import { zeroLuDemos, ZERO_LU_MODEL, loadDemoPrompt as loadZeroLuPrompt } from '../data/zeroLuDemos.js';
 
 /** Fast lookup: templateId → demo object with source/model metadata. */
 const TEMPLATE_MAP = new Map();
@@ -67,4 +67,35 @@ export function hasTemplate(templateId) {
  */
 export function getTemplateCount() {
   return TEMPLATE_MAP.size;
+}
+
+/**
+ * Async prompt loader — resolves the template, then lazy-loads the full
+ * prompt text from the per-source JSON prompt file.
+ *
+ * Studios should use this as a fallback when `resolveTemplate().prompt`
+ * is null/undefined (the prompt field is not inlined in the demo metadata
+ * to keep the JS bundle small).
+ *
+ * @param {string} templateId
+ * @returns {Promise<string|null>} full prompt text, or null if unavailable
+ */
+export async function loadTemplatePrompt(templateId) {
+  const tpl = TEMPLATE_MAP.get(templateId);
+  if (!tpl) return null;
+
+  try {
+    switch (tpl.source) {
+      case 'minimaxh3':
+        return await loadMinimaxPrompt(tpl.slug);
+      case 'seedance25':
+        return await loadSeedance25Prompt(tpl.slug);
+      case 'zeroLu':
+        return await loadZeroLuPrompt(tpl.slug);
+      default:
+        return null;
+    }
+  } catch {
+    return null;
+  }
 }

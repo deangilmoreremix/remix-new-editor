@@ -22,7 +22,7 @@ import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import ExampleGallery from './studios/ExampleGallery.js';
-import { resolveTemplate } from '../lib/showcaseTemplateResolver.js';
+import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 
 export function ImageStudio() {
@@ -91,6 +91,15 @@ export function ImageStudio() {
             if (tpl.basePrompt) {
               const textarea = document.getElementById('prompt-textarea');
               if (textarea) textarea.value = tpl.basePrompt;
+            } else if (tpl.slug) {
+              loadTemplatePrompt(templateParam)
+                .then((prompt) => {
+                  if (prompt) {
+                    const textarea = document.getElementById('prompt-textarea');
+                    if (textarea) textarea.value = prompt;
+                  }
+                })
+                .catch(() => {});
             }
           }
         }
