@@ -16,7 +16,7 @@ const STUDIO_PAGES = new Set([
 // Ensure the shared Clerk instance is created + loaded before any studio
 // page auth check runs. This guarantees `window.Clerk` is an *instance* (not
 // the bare class), so `clerk.user` is available for the entitlement gate.
-export async function waitForClerk(timeoutMs = 10000) {
+async function waitForClerk(timeoutMs = 10000) {
   try {
     const clerk = await ensureClerkLoaded();
     if (clerk && clerk.loaded) return clerk;
@@ -38,7 +38,7 @@ export async function waitForClerk(timeoutMs = 10000) {
 }
 
 // Synchronous check — used when we can't afford to await (e.g. button handlers).
-export function isClerkLoaded() {
+function isClerkLoaded() {
   return isClerkReady() ||
     (typeof window !== 'undefined' && !!window.Clerk && window.Clerk.loaded);
 }
@@ -135,7 +135,6 @@ const pageLoaders = {
   cinema: () => import('../components/CinemaStudio.js').then(m => m.CinemaStudio()),
   'cinema-template': () => import('../components/CinemaTemplateStudio.js').then(m => m.CinemaTemplateStudio()),
   apps: () => import('../components/AppsHub.js').then(m => m.AppsHub()),
-  academy: () => import('../components/academy/AcademyPage.jsx').then(m => m.AcademyPage()),
   templates: () => import('../components/TemplatesPage.js').then(m => m.TemplatesPage()),
   effects: () => import('../components/EffectsStudio.js').then(m => m.EffectsStudio()),
   edit: () => import('../components/EditStudio.js').then(m => m.EditStudio()),
