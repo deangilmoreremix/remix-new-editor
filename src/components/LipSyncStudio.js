@@ -363,7 +363,7 @@ export function LipSyncStudio() {
     const generateBtn = document.createElement('button');
     generateBtn.id = 'ls-generate-btn';
     generateBtn.type = 'button';
-    generateBtn.className = 'ml-auto px-[14px] py-2 min-h-[40px] bg-primary text-black text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:scale-105 active:scale-95 transition-all shadow-glow disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100';
+    generateBtn.className = 'btn-primary-modern ml-auto px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed';
     generateBtn.textContent = 'Generate ✨';
     generateBtn.setAttribute('aria-label', 'Generate lip sync video');
 
@@ -375,7 +375,7 @@ export function LipSyncStudio() {
     thumbBtn.type = 'button';
     thumbBtn.textContent = '🖼 Thumbnail';
     thumbBtn.title = 'Generate a custom thumbnail';
-    thumbBtn.className = 'gtm-boost-btn shrink-0';
+    thumbBtn.className = 'btn-ghost-modern shrink-0';
     thumbBtn.addEventListener('click', () => {
     const modal = new TemplateThumbnailModal({
       appTheme: 'lip-sync-studio',
@@ -518,7 +518,7 @@ mountModelSelector(dropdown, {
     promptGalleryBtn.textContent = '📚 Prompts';
     promptGalleryBtn.title = 'Browse prompt gallery';
     promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
-    promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
+    promptGalleryBtn.className = 'btn-ghost-modern shrink-0';
     promptGalleryBtn.addEventListener('click', () => {
       openPromptGallery({
         appTheme: 'lip-sync-studio',
@@ -540,7 +540,7 @@ mountModelSelector(dropdown, {
     recipeBtn.textContent = '📋 Recipes';
     recipeBtn.title = 'Browse AI recipes';
     recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-    recipeBtn.className = 'gtm-boost-btn shrink-0';
+    recipeBtn.className = 'btn-ghost-modern shrink-0';
     recipeBtn.addEventListener('click', () => {
       openRecipeModal({
         onRunRecipe: (url) => {
@@ -555,7 +555,7 @@ mountModelSelector(dropdown, {
     monetizationBtn.textContent = "💼 Smart Video AI Monetize";
     monetizationBtn.title = "Open Smart Video AI Monetization Hub";
     monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-    monetizationBtn.className = 'gtm-boost-btn shrink-0';
+    monetizationBtn.className = 'btn-ghost-modern shrink-0';
     monetizationBtn.addEventListener('click', () => {
       openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
     });
@@ -880,7 +880,7 @@ mountModelSelector(dropdown, {
     regenerateBtn.textContent = '↻ Regenerate';
 
     const downloadBtn = document.createElement('button');
-    downloadBtn.className = 'bg-primary text-black px-6 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-glow active:scale-95';
+    downloadBtn.className = 'btn-secondary-modern px-6 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-glow active:scale-95';
     downloadBtn.textContent = '↓ Download';
 
     const newBtn = document.createElement('button');

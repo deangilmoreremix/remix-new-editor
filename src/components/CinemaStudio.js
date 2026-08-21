@@ -221,7 +221,7 @@ let showAdvanced = false;
     lensSelect.select.onchange = updateCine;
 
     const cineUseBtn = document.createElement('button');
-    cineUseBtn.className = 'px-5 py-2.5 bg-primary text-black rounded-xl text-xs font-bold hover:shadow-glow transition-all';
+    cineUseBtn.className = 'btn-secondary-modern px-5 py-2.5 rounded-xl text-xs font-bold transition-all';
     cineUseBtn.textContent = 'Use in Prompt';
     cineUseBtn.onclick = () => {
         const prompt = cineOutput.textContent;
@@ -653,7 +653,7 @@ let showAdvanced = false;
     // Generate Button
     const generateBtn = document.createElement('button');
 generateBtn.type = 'button';
-    generateBtn.className = 'px-[14px] py-2 min-h-[40px] bg-primary text-black text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:bg-white transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed uppercase';
+    generateBtn.className = 'btn-primary-modern px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:bg-white transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed uppercase';
     generateBtn.setAttribute('data-tooltip', 'Generate cinema shot');
     generateBtn.setAttribute('aria-label', 'Generate cinema shot');
     generateBtn.innerHTML = `GENERATE ✨`;
@@ -767,7 +767,7 @@ generateBtn.type = 'button';
         <div class="flex flex-col gap-2">
             <label class="text-[10px] font-bold text-muted uppercase">Preview</label>
             <div id="builder-preview" class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white text-xs min-h-[40px]"></div>
-            <button id="apply-builder-btn" class="px-4 py-2 bg-primary text-black rounded-lg text-xs font-bold hover:shadow-glow transition-all">
+            <button id="apply-builder-btn" class="btn-secondary-modern px-4 py-2 rounded-lg text-xs font-bold transition-all">
                 Use This Setup
             </button>
         </div>
@@ -934,7 +934,7 @@ generateBtn.type = 'button';
     const createActionBtn = (label, primary = false) => {
         const btn = document.createElement('button');
         btn.className = primary
-            ? 'bg-primary text-black px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wide hover:bg-white transition-colors shadow-glow-sm hover:scale-105 active:scale-95'
+            ? 'btn-secondary-modern px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wide hover:bg-white transition-colors shadow-glow-sm hover:scale-105 active:scale-95'
             : 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wide transition-all border border-white/5 backdrop-blur-lg text-white hover:border-white/20';
         btn.textContent = label;
         return btn;
@@ -1252,7 +1252,7 @@ generateBtn.type = 'button';
     promptGalleryBtn.textContent = '📚 Prompts';
     promptGalleryBtn.title = 'Browse prompt gallery';
     promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
-    promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
+    promptGalleryBtn.className = 'btn-ghost-modern shrink-0';
     promptGalleryBtn.addEventListener('click', () => {
       openPromptGallery({
         appTheme: 'cinema-studio',
@@ -1274,7 +1274,7 @@ generateBtn.type = 'button';
     recipeBtn.textContent = '📋 Recipes';
     recipeBtn.title = 'Browse AI recipes';
     recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-    recipeBtn.className = 'gtm-boost-btn shrink-0';
+    recipeBtn.className = 'btn-ghost-modern shrink-0';
     recipeBtn.addEventListener('click', () => {
       openRecipeModal({
         onRunRecipe: (url) => {
@@ -1289,7 +1289,7 @@ generateBtn.type = 'button';
     monetizationBtn.textContent = "💼 Smart Video AI Monetize";
     monetizationBtn.title = "Open Smart Video AI Monetization Hub";
     monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-    monetizationBtn.className = 'gtm-boost-btn shrink-0';
+    monetizationBtn.className = 'btn-ghost-modern shrink-0';
     monetizationBtn.addEventListener('click', () => {
       openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
     });

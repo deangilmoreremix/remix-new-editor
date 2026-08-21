@@ -186,7 +186,7 @@ const pexelsBtn = document.createElement('button');
   promptGalleryBtn.textContent = '📚 Prompts';
   promptGalleryBtn.title = 'Browse prompt gallery';
   promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
-  promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
+  promptGalleryBtn.className = 'btn-ghost-modern shrink-0';
   promptGalleryBtn.addEventListener('click', () => {
     openPromptGallery({
       appTheme: 'character-studio',
@@ -208,7 +208,7 @@ const pexelsBtn = document.createElement('button');
   recipeBtn.textContent = '📋 Recipes';
   recipeBtn.title = 'Browse AI recipes';
   recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-  recipeBtn.className = 'gtm-boost-btn shrink-0';
+  recipeBtn.className = 'btn-ghost-modern shrink-0';
   recipeBtn.addEventListener('click', () => {
     openRecipeModal({
       onRunRecipe: (url) => {
@@ -223,7 +223,7 @@ const pexelsBtn = document.createElement('button');
   monetizationBtn.textContent = "💼 Smart Video AI Monetize";
   monetizationBtn.title = "Open Smart Video AI Monetization Hub";
   monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-  monetizationBtn.className = 'gtm-boost-btn shrink-0';
+  monetizationBtn.className = 'btn-ghost-modern shrink-0';
   monetizationBtn.addEventListener('click', () => {
     openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
   });
@@ -263,7 +263,7 @@ const pexelsBtn = document.createElement('button');
   thumbBtn.type = 'button';
   thumbBtn.textContent = '🖼 Thumbnail';
   thumbBtn.title = 'Generate a custom thumbnail';
-  thumbBtn.className = 'gtm-boost-btn w-full mt-2';
+  thumbBtn.className = 'btn-ghost-modern w-full';
   thumbBtn.addEventListener('click', () => {
     const modal = new TemplateThumbnailModal({
       appTheme: 'character-studio',
@@ -288,7 +288,7 @@ const pexelsBtn = document.createElement('button');
 
   const genBtn = document.createElement('button');
 genBtn.type = 'button';
-  genBtn.className = 'w-full bg-primary text-black px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:shadow-glow transition-all mt-2';
+  genBtn.className = 'btn-primary-modern w-full px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all mt-2';
   genBtn.textContent = 'Generate Character';
   genBtn.setAttribute('aria-label', 'Generate character');
   formCard.appendChild(genBtn);
@@ -409,7 +409,7 @@ customThumbnailUrl: customThumbnailUrl || undefined,
            <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4 animate-fade-in-up">
              <img src="${result.url}" class="w-full rounded-xl mb-3">
              <div class="flex gap-3">
-               <a href="${result.url}" download class="flex-1 bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
+               <a href="${result.url}" download class="flex-1 btn-secondary-modern py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
                <button class="flex-1 bg-white/10 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-white/20 transition-all" onclick="this.closest('.bg-\\\\[\\\\#111\\\\]').remove()">Generate Again</button>
                <button type="button" class="publish-social-btn flex-1 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
              </div>

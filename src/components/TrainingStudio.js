@@ -194,7 +194,7 @@ const triggerBtn = document.createElement('button');
   ['5', '10', '20', '30'].forEach(e => {
     const btn = document.createElement('button');
     btn.className = e === epochs 
-      ? 'px-4 py-2 rounded-lg text-xs font-bold bg-primary text-black' 
+      ? 'px-4 py-2 rounded-lg text-xs font-bold btn-secondary-modern' 
       : 'px-4 py-2 rounded-lg text-xs font-bold bg-white/5 text-secondary hover:bg-white/10';
     btn.textContent = e;
     btn.onclick = () => {
@@ -239,7 +239,7 @@ const triggerBtn = document.createElement('button');
   thumbBtn.type = 'button';
   thumbBtn.textContent = '🖼 Thumbnail';
   thumbBtn.title = 'Generate a custom thumbnail';
-  thumbBtn.className = 'gtm-boost-btn w-full';
+  thumbBtn.className = 'btn-ghost-modern w-full';
   thumbBtn.addEventListener('click', () => {
     const modal = new TemplateThumbnailModal({
       appTheme: 'training-studio',
@@ -265,7 +265,7 @@ const triggerBtn = document.createElement('button');
   // Train button
   const trainBtn = document.createElement('button');
 trainBtn.type = 'button';
-  trainBtn.className = 'w-full bg-primary text-black px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:shadow-glow transition-all';
+  trainBtn.className = 'btn-primary-modern w-full px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all';
   trainBtn.textContent = 'Train LoRA';
   trainBtn.setAttribute('aria-label', 'Train LoRA');
   formCard.appendChild(trainBtn);
@@ -276,7 +276,7 @@ trainBtn.type = 'button';
   recipeBtn.textContent = '📋 Recipes';
   recipeBtn.title = 'Browse AI recipes';
   recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-  recipeBtn.className = 'gtm-boost-btn shrink-0';
+  recipeBtn.className = 'btn-ghost-modern shrink-0';
   recipeBtn.addEventListener('click', () => {
     openRecipeModal({
       onRunRecipe: (url) => {
@@ -291,7 +291,7 @@ trainBtn.type = 'button';
   monetizationBtn.textContent = "💼 Smart Video AI Monetize";
   monetizationBtn.title = "Open Smart Video AI Monetization Hub";
   monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-  monetizationBtn.className = 'gtm-boost-btn shrink-0';
+  monetizationBtn.className = 'btn-ghost-modern shrink-0';
   monetizationBtn.addEventListener('click', () => {
     openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
   });
@@ -303,7 +303,7 @@ trainBtn.type = 'button';
   promptGalleryBtn.textContent = '📚 Prompts';
   promptGalleryBtn.title = 'Browse prompt gallery';
   promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
-  promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
+  promptGalleryBtn.className = 'btn-ghost-modern shrink-0';
   promptGalleryBtn.addEventListener('click', () => {
     openPromptGallery({
       appTheme: 'training-studio',
@@ -340,7 +340,7 @@ trainBtn.type = 'button';
     Array.from(epochsRow.children).forEach((btn, i) => {
       const e = ['5', '10', '20', '30'][i];
       btn.className = e === epochs 
-        ? 'px-4 py-2 rounded-lg text-xs font-bold bg-primary text-black' 
+        ? 'px-4 py-2 rounded-lg text-xs font-bold btn-secondary-modern' 
         : 'px-4 py-2 rounded-lg text-xs font-bold bg-white/5 text-secondary hover:bg-white/10';
     });
   }
@@ -386,7 +386,7 @@ trainBtn.type = 'button';
           <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4">
             <div class="text-green-400 font-bold mb-3">Training Complete!</div>
             <p class="text-white/60 text-sm mb-3">Your LoRA model has been trained successfully.</p>
-            <a href="${result.lora_url}" download class="block w-full bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download LoRA</a>
+            <a href="${result.lora_url}" download class="block w-full btn-secondary-modern py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download LoRA</a>
           </div>
         `;
       }

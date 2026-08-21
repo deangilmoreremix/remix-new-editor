@@ -261,7 +261,7 @@ export function ImageStudio() {
     promptGalleryBtn.textContent = '📚 Prompts';
     promptGalleryBtn.title = 'Browse prompt gallery';
     promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
-    promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
+    promptGalleryBtn.className = 'btn-ghost-modern shrink-0';
     promptGalleryBtn.addEventListener('click', () => {
       openPromptGallery({
         appTheme: 'image-studio',
@@ -282,7 +282,7 @@ export function ImageStudio() {
     recipeBtn.textContent = '📋 Recipes';
     recipeBtn.title = 'Browse AI recipes';
     recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-    recipeBtn.className = 'gtm-boost-btn shrink-0';
+    recipeBtn.className = 'btn-ghost-modern shrink-0';
     recipeBtn.addEventListener('click', () => {
       openRecipeModal({
         onRunRecipe: (url) => {
@@ -297,7 +297,7 @@ export function ImageStudio() {
     monetizationBtn.textContent = "💼 Smart Video AI Monetize";
     monetizationBtn.title = "Open Smart Video AI Monetization Hub";
     monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-    monetizationBtn.className = 'gtm-boost-btn shrink-0';
+    monetizationBtn.className = 'btn-ghost-modern shrink-0';
     monetizationBtn.addEventListener('click', () => {
       openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
     });
@@ -410,7 +410,7 @@ export function ImageStudio() {
     thumbBtn.type = 'button';
     thumbBtn.textContent = '🖼 Thumbnail';
     thumbBtn.title = 'Generate a custom thumbnail';
-    thumbBtn.className = 'gtm-boost-btn shrink-0';
+    thumbBtn.className = 'btn-ghost-modern shrink-0';
     thumbBtn.addEventListener('click', () => {
     const modal = new TemplateThumbnailModal({
       appTheme: 'image-studio',
@@ -494,7 +494,7 @@ export function ImageStudio() {
 
     const generateBtn = document.createElement('button');
 generateBtn.type = 'button';
-    generateBtn.className = 'bg-primary text-black px-6 md:px-8 py-3 md:py-3.5 rounded-xl md:rounded-[1.5rem] font-black text-sm md:text-base hover:shadow-glow hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2.5 w-full sm:w-auto shadow-lg';
+    generateBtn.className = 'btn-primary-modern px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:scale-105 active:scale-95 transition-all w-full sm:w-auto shadow-lg';
     generateBtn.setAttribute('data-tooltip', 'Generate AI image from prompt');
     generateBtn.setAttribute('aria-label', 'Generate image');
     generateBtn.innerHTML = `Generate ✨`;
@@ -563,7 +563,7 @@ generateBtn.type = 'button';
                                 <button id="copy-enhanced-btn" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-white/5 text-secondary hover:bg-white/10 transition-all">
                                     Copy
                                 </button>
-                                <button id="use-enhanced-btn" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-primary text-black hover:shadow-glow transition-all">
+                                <button id="use-enhanced-btn" class="btn-ghost-modern px-3 py-1.5 rounded-lg text-xs font-bold transition-all">
                                     Use in Generator
                                 </button>
                             </div>
@@ -950,7 +950,7 @@ generateBtn.type = 'button';
     regenerateBtn.textContent = '↻ Regenerate';
 
     const downloadBtn = document.createElement('button');
-    downloadBtn.className = 'bg-primary text-black px-6 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-glow active:scale-95';
+    downloadBtn.className = 'btn-secondary-modern px-6 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-glow active:scale-95';
     downloadBtn.textContent = '↓ Download';
 
     const newPromptBtn = document.createElement('button');

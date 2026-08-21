@@ -168,7 +168,7 @@ const triggerBtn = document.createElement('button');
   thumbBtn.type = 'button';
   thumbBtn.textContent = '🖼 Thumbnail';
   thumbBtn.title = 'Generate a custom thumbnail';
-  thumbBtn.className = 'gtm-boost-btn w-full';
+  thumbBtn.className = 'btn-ghost-modern w-full';
   thumbBtn.addEventListener('click', () => {
     const modal = new TemplateThumbnailModal({
       appTheme: 'upscale-studio',
@@ -193,7 +193,7 @@ const triggerBtn = document.createElement('button');
 
   const genBtn = document.createElement('button');
 genBtn.type = 'button';
-  genBtn.className = 'w-full bg-primary text-black px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:shadow-glow transition-all';
+  genBtn.className = 'btn-primary-modern w-full px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all';
   genBtn.textContent = 'Upscale Image';
   genBtn.setAttribute('aria-label', 'Upscale image');
   formCard.appendChild(genBtn);
@@ -204,7 +204,7 @@ genBtn.type = 'button';
   recipeBtn.textContent = '📋 Recipes';
   recipeBtn.title = 'Browse AI recipes';
   recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-  recipeBtn.className = 'gtm-boost-btn shrink-0';
+  recipeBtn.className = 'btn-ghost-modern shrink-0';
   recipeBtn.addEventListener('click', () => {
     openRecipeModal({
       onRunRecipe: (url) => {
@@ -219,7 +219,7 @@ genBtn.type = 'button';
   monetizationBtn.textContent = "💼 Smart Video AI Monetize";
   monetizationBtn.title = "Open Smart Video AI Monetization Hub";
   monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-  monetizationBtn.className = 'gtm-boost-btn shrink-0';
+  monetizationBtn.className = 'btn-ghost-modern shrink-0';
   monetizationBtn.addEventListener('click', () => {
     openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
   });
@@ -231,7 +231,7 @@ genBtn.type = 'button';
   promptGalleryBtn.textContent = '📚 Prompts';
   promptGalleryBtn.title = 'Browse prompt gallery';
   promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
-  promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
+  promptGalleryBtn.className = 'btn-ghost-modern shrink-0';
   promptGalleryBtn.addEventListener('click', () => {
     openPromptGallery({
       appTheme: 'upscale-studio',
@@ -266,7 +266,7 @@ genBtn.type = 'button';
     selectedMethod.factors.forEach(f => {
       const btn = document.createElement('button');
       btn.className = f === selectedFactor
-        ? 'px-4 py-2 rounded-lg text-xs font-bold bg-primary text-black'
+        ? 'px-4 py-2 rounded-lg text-xs font-bold btn-secondary-modern'
         : 'px-4 py-2 rounded-lg text-xs font-bold bg-white/5 text-secondary hover:bg-white/10';
       btn.textContent = `${f}x`;
       btn.onclick = () => { selectedFactor = f; updateFactorBtns(); };
@@ -293,7 +293,7 @@ genBtn.type = 'button';
         resultArea.innerHTML = `
           <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4">
             <img src="${result.url}" class="w-full rounded-xl mb-3">
-            <a href="${result.url}" download class="block w-full bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
+            <a href="${result.url}" download class="block w-full btn-secondary-modern py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
             <button type="button" class="publish-social-btn block w-full mt-2 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
           </div>
         `;

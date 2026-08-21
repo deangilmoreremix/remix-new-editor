@@ -546,7 +546,7 @@ export function InfluencerStudio() {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = f.name === selectedFormat.name
-      ? 'px-4 py-2 rounded-xl text-xs font-bold bg-primary text-black transition-all'
+      ? 'px-4 py-2 rounded-xl text-xs font-bold btn-secondary-modern transition-all'
       : 'px-4 py-2 rounded-xl text-xs font-bold bg-white/5 text-secondary hover:bg-white/10 transition-all border border-white/10';
     btn.textContent = `${f.name} (${f.ar})`;
     btn.onclick = () => {
@@ -554,7 +554,7 @@ export function InfluencerStudio() {
       formatRow.querySelectorAll('button').forEach((b) => {
         const isActive = b.textContent.includes(f.name);
         b.className = isActive
-          ? 'px-4 py-2 rounded-xl text-xs font-bold bg-primary text-black transition-all'
+          ? 'px-4 py-2 rounded-xl text-xs font-bold btn-secondary-modern transition-all'
           : 'px-4 py-2 rounded-xl text-xs font-bold bg-white/5 text-secondary hover:bg-white/10 transition-all border border-white/10';
       });
     };
@@ -686,7 +686,7 @@ export function InfluencerStudio() {
     promptGalleryBtn.textContent = '📚 Prompts';
     promptGalleryBtn.title = 'Browse prompt gallery';
     promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
-    promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
+    promptGalleryBtn.className = 'btn-ghost-modern shrink-0';
     promptGalleryBtn.addEventListener('click', () => {
         openPromptGallery({
           appTheme: 'influencer-studio',
@@ -704,7 +704,7 @@ export function InfluencerStudio() {
     recipeBtn.textContent = '📋 Recipes';
     recipeBtn.title = 'Browse AI recipes';
     recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-    recipeBtn.className = 'gtm-boost-btn shrink-0';
+    recipeBtn.className = 'btn-ghost-modern shrink-0';
     recipeBtn.addEventListener('click', () => {
       openRecipeModal({
         onRunRecipe: (url) => {
@@ -719,7 +719,7 @@ export function InfluencerStudio() {
     monetizationBtn.textContent = "💼 Smart Video AI Monetize";
     monetizationBtn.title = "Open Smart Video AI Monetization Hub";
     monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-    monetizationBtn.className = 'gtm-boost-btn shrink-0';
+    monetizationBtn.className = 'btn-ghost-modern shrink-0';
     monetizationBtn.addEventListener('click', () => {
       openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
     });
@@ -773,7 +773,7 @@ export function InfluencerStudio() {
   thumbBtn.type = 'button';
   thumbBtn.textContent = '🖼 Thumbnail';
   thumbBtn.title = 'Generate a custom thumbnail';
-  thumbBtn.className = 'gtm-boost-btn w-full mt-2';
+  thumbBtn.className = 'btn-ghost-modern w-full';
   thumbBtn.addEventListener('click', () => {
     const modal = new TemplateThumbnailModal({
       appTheme: 'influencer-studio',
@@ -798,7 +798,7 @@ export function InfluencerStudio() {
 
   const genBtn = document.createElement('button');
 genBtn.type = 'button';
-  genBtn.className = 'w-full bg-primary text-black px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:shadow-glow transition-all mt-2';
+  genBtn.className = 'btn-primary-modern w-full px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all mt-2';
   genBtn.textContent = 'Generate Content';
   genBtn.setAttribute('aria-label', 'Generate content');
   formCard.appendChild(genBtn);
@@ -819,14 +819,14 @@ genBtn.type = 'button';
     arBtn.textContent = r;
     const isActive = r === selectedFormat.ar;
     arBtn.className = isActive
-      ? 'px-3 py-1.5 rounded-lg text-xs font-bold bg-primary text-black transition-all'
+      ? 'px-3 py-1.5 rounded-lg text-xs font-bold btn-secondary-modern transition-all'
       : 'px-3 py-1.5 rounded-lg text-xs font-bold text-gray-400 hover:text-white hover:bg-white/10 transition-all';
     arBtn.onclick = () => {
       selectedFormat = { name: selectedFormat.name, ar: r };
       arGroup.querySelectorAll('button').forEach((b) => {
         const active = b.textContent === r;
         b.className = active
-          ? 'px-3 py-1.5 rounded-lg text-xs font-bold bg-primary text-black transition-all'
+          ? 'px-3 py-1.5 rounded-lg text-xs font-bold btn-secondary-modern transition-all'
           : 'px-3 py-1.5 rounded-lg text-xs font-bold text-gray-400 hover:text-white hover:bg-white/10 transition-all';
       });
     };
@@ -857,7 +857,7 @@ genBtn.type = 'button';
   const previewGenBtn = document.createElement('button');
   previewGenBtn.type = 'button';
   previewGenBtn.innerHTML = `${SVG_BOLT} Generate`;
-  previewGenBtn.className = 'flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold bg-primary text-black hover:shadow-glow transition-all';
+  previewGenBtn.className = 'btn-secondary-modern flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold transition-all';
   previewGenBtn.onclick = () => genBtn.click();
   actionGroup.appendChild(previewGenBtn);
 
@@ -1036,7 +1036,7 @@ genBtn.type = 'button';
           <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4 animate-fade-in-up">
             <img src="${entry.url}" class="w-full rounded-xl mb-3">
             <div class="flex gap-3">
-              <a href="${entry.url}" download class="flex-1 bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
+              <a href="${entry.url}" download class="flex-1 btn-secondary-modern py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
               <button class="flex-1 bg-white/10 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-white/20 transition-all regen-btn">Generate Again</button>
             </div>
           </div>

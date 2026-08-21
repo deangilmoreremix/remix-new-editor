@@ -289,7 +289,7 @@ export function EffectsStudio() {
 
   const downloadActionBtn = document.createElement('button');
   downloadActionBtn.type = 'button';
-  downloadActionBtn.className = 'flex-1 min-w-[100px] bg-primary text-black px-3 py-2 rounded-xl text-[10px] font-black hover:shadow-glow transition-all active:scale-95';
+  downloadActionBtn.className = 'btn-secondary-modern flex-1 min-w-[100px] px-3 py-2 rounded-xl text-[10px] font-bold transition-all active:scale-95';
   downloadActionBtn.textContent = '↓ Download';
   downloadActionBtn.title = 'Download result';
   downloadActionBtn.onclick = () => {
@@ -374,7 +374,7 @@ export function EffectsStudio() {
   thumbBtn.type = 'button';
   thumbBtn.textContent = '🖼 Thumbnail';
   thumbBtn.title = 'Generate a custom thumbnail';
-  thumbBtn.className = 'gtm-boost-btn shrink-0';
+  thumbBtn.className = 'btn-ghost-modern shrink-0';
   thumbBtn.addEventListener('click', () => {
     const modal = new TemplateThumbnailModal({
       appTheme: 'effects-studio',
@@ -399,7 +399,7 @@ export function EffectsStudio() {
 
   const generateBtn = document.createElement('button');
 generateBtn.type = 'button';
-  generateBtn.className = 'bg-primary text-black px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:shadow-glow transition-all whitespace-nowrap';
+  generateBtn.className = 'btn-primary-modern px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all whitespace-nowrap';
   generateBtn.textContent = 'Apply Effect';
   generateBtn.setAttribute('aria-label', 'Apply effect');
     promptRow.appendChild(generateBtn);
@@ -416,7 +416,7 @@ generateBtn.type = 'button';
   promptGalleryBtn.textContent = '📚 Prompts';
   promptGalleryBtn.title = 'Browse prompt gallery';
   promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
-  promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
+  promptGalleryBtn.className = 'btn-ghost-modern shrink-0';
   promptGalleryBtn.addEventListener('click', () => {
     openPromptGallery({
       appTheme: 'video-studio',
@@ -433,7 +433,7 @@ generateBtn.type = 'button';
     recipeBtn.textContent = '📋 Recipes';
     recipeBtn.title = 'Browse AI recipes';
     recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-    recipeBtn.className = 'gtm-boost-btn shrink-0';
+    recipeBtn.className = 'btn-ghost-modern shrink-0';
     recipeBtn.addEventListener('click', () => {
       openRecipeModal({
         onRunRecipe: (url) => {
@@ -448,7 +448,7 @@ generateBtn.type = 'button';
     monetizationBtn.textContent = "💼 Smart Video AI Monetize";
     monetizationBtn.title = "Open Smart Video AI Monetization Hub";
     monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-    monetizationBtn.className = 'gtm-boost-btn shrink-0';
+    monetizationBtn.className = 'btn-ghost-modern shrink-0';
     monetizationBtn.addEventListener('click', () => {
       openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
     });
@@ -881,7 +881,7 @@ generateBtn.type = 'button';
 
   const mobileGenBtn = document.createElement('button');
   mobileGenBtn.type = 'button';
-  mobileGenBtn.className = 'w-full bg-primary text-black px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5';
+  mobileGenBtn.className = 'btn-primary-modern w-full px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all';
   mobileGenBtn.textContent = 'Apply Effect';
   mobileGenBtn.setAttribute('aria-label', 'Apply effect');
   mobileControls.appendChild(mobileGenBtn);
@@ -900,7 +900,7 @@ generateBtn.type = 'button';
     selectedBadge.className = 'text-xs font-bold text-muted';
     Object.entries(tabButtons).forEach(([id, btn]) => {
       btn.className = id === tab.id
-        ? 'px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all bg-primary text-black'
+        ? 'px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all btn-secondary-modern'
         : 'px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all bg-white/5 text-secondary hover:bg-white/10';
     });
     renderEffects();

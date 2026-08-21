@@ -735,7 +735,7 @@ let modelSelectorEl = null;
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = d === duration
-      ? 'px-4 py-2 rounded-lg text-xs font-bold bg-primary text-black'
+      ? 'px-4 py-2 rounded-lg text-xs font-bold btn-secondary-modern'
       : 'px-4 py-2 rounded-lg text-xs font-bold bg-white/5 text-secondary hover:bg-white/10';
     btn.textContent = `${d}s`;
     btn.onclick = () => {
@@ -890,7 +890,7 @@ let modelSelectorEl = null;
   thumbBtn.type = 'button';
   thumbBtn.textContent = 'Thumbnail';
   thumbBtn.title = 'Generate a custom thumbnail';
-  thumbBtn.className = 'gtm-boost-btn w-full';
+  thumbBtn.className = 'btn-ghost-modern w-full';
   thumbBtn.addEventListener('click', () => {
     const modal = new TemplateThumbnailModal({
       appTheme: 'audio-studio',
@@ -916,7 +916,7 @@ let modelSelectorEl = null;
   // Generate button
   const genBtn = document.createElement('button');
 genBtn.type = 'button';
-  genBtn.className = 'w-full bg-primary text-black px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:shadow-glow transition-all';
+  genBtn.className = 'btn-primary-modern w-full px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all';
   genBtn.textContent = 'Generate Audio';
   genBtn.setAttribute('aria-label', 'Generate audio');
   formCard.appendChild(genBtn);
@@ -960,7 +960,7 @@ genBtn.type = 'button';
         <span id="fade-status" class="text-[10px] text-muted"></span>
       </div>
       <div class="flex items-center gap-2">
-        <button id="apply-edits-btn" class="px-4 py-2 bg-primary text-black rounded-xl text-xs font-bold hover:shadow-glow transition-all">Apply Edits</button>
+        <button id="apply-edits-btn" class="px-4 py-2 btn-secondary-modern rounded-xl text-xs font-bold hover:shadow-glow transition-all">Apply Edits</button>
         <button id="reset-edits-btn" class="px-4 py-2 bg-white/5 border border-white/10 text-white rounded-xl text-xs font-bold hover:bg-white/10 transition-all">Reset</button>
       </div>
     </div>
@@ -1000,7 +1000,7 @@ genBtn.type = 'button';
     promptGalleryBtn.textContent = '📚 Prompts';
     promptGalleryBtn.title = 'Browse prompt gallery';
     promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
-    promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
+    promptGalleryBtn.className = 'btn-ghost-modern shrink-0';
     promptGalleryBtn.addEventListener('click', () => {
       openPromptGallery({
         appTheme: 'audio-studio',
@@ -1022,7 +1022,7 @@ genBtn.type = 'button';
     recipeBtn.textContent = '📋 Recipes';
     recipeBtn.title = 'Browse AI recipes';
     recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-    recipeBtn.className = 'gtm-boost-btn shrink-0';
+    recipeBtn.className = 'btn-ghost-modern shrink-0';
     recipeBtn.addEventListener('click', () => {
       openRecipeModal({
         onRunRecipe: (url) => {
@@ -1038,7 +1038,7 @@ genBtn.type = 'button';
     monetizationBtn.textContent = "💼 Smart Video AI Monetize";
     monetizationBtn.title = "Open Smart Video AI Monetization Hub";
     monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-    monetizationBtn.className = 'gtm-boost-btn shrink-0';
+    monetizationBtn.className = 'btn-ghost-modern shrink-0';
     monetizationBtn.addEventListener('click', () => {
       openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
     });
@@ -1050,7 +1050,7 @@ genBtn.type = 'button';
     Array.from(durationRow.children).forEach((btn, i) => {
       const d = ['15', '30', '60', '120'][i];
       btn.className = d === duration
-        ? 'px-4 py-2 rounded-lg text-xs font-bold bg-primary text-black'
+        ? 'px-4 py-2 rounded-lg text-xs font-bold btn-secondary-modern'
         : 'px-4 py-2 rounded-lg text-xs font-bold bg-white/5 text-secondary hover:bg-white/10';
     });
   }
@@ -1120,7 +1120,7 @@ const supportsVoice = modelType === 'tts';
           <span id="waveform-time" class="text-xs font-bold text-secondary tabular-nums">0:00 / 0:00</span>
         </div>
         <audio id="waveform-audio" class="hidden" src="${url}" type="audio/mpeg"></audio>
-        <a href="${url}" download class="block w-full bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download Audio</a>
+        <a href="${url}" download class="block w-full btn-secondary-modern py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download Audio</a>
       <button type="button" class="publish-social-btn block w-full mt-2 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
       </div>
       <div id="audio-editor-controls" class="mt-4 bg-[#111]/80 border border-white/10 rounded-2xl p-4 flex flex-col gap-4">
@@ -1144,7 +1144,7 @@ const supportsVoice = modelType === 'tts';
           <span id="fade-status" class="text-[10px] text-muted"></span>
         </div>
         <div class="flex items-center gap-2">
-          <button id="apply-edits-btn" class="px-4 py-2 bg-primary text-black rounded-xl text-xs font-bold hover:shadow-glow transition-all">Apply Edits</button>
+        <button id="apply-edits-btn" class="btn-secondary-modern px-4 py-2 rounded-xl text-xs font-bold transition-all">Apply Edits</button>
           <button id="reset-edits-btn" class="px-4 py-2 bg-white/5 border border-white/10 text-white rounded-xl text-xs font-bold hover:bg-white/10 transition-all">Reset</button>
         </div>
       </div>
