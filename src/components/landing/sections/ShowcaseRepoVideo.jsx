@@ -395,4 +395,39 @@ export function ShowcaseRepoVideo() {
   return container;
 }
 
+/**
+ * Individual section exports — each can be lazy-loaded as a standalone
+ * landing-page section via createLazySection in LandingPage.jsx.
+ *
+ * Usage in LandingPage:
+ *   createLazySection(
+ *     () => import('./sections/ShowcaseRepoVideo.jsx').then(m => ({ default: m.CinemaSection })),
+ *     'repo-cinema', {}, N
+ *   );
+ */
+const SECTION_FACTORIES = {};
+for (const config of SHOWCASE_SECTIONS) {
+  const exportName = config.id
+    .split('-')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join('') + 'Section';
+  SECTION_FACTORIES[exportName] = function () {
+    injectMinimaxStyles();
+    return createShowcaseSection(config, ALL_DEMOS);
+  };
+}
+
+export const MmxCinemaSection = SECTION_FACTORIES.MmxCinemaSection;
+export const MmxCommercialSection = SECTION_FACTORIES.MmxCommercialSection;
+export const SdSocialSection = SECTION_FACTORIES.SdSocialSection;
+export const SdCinemaSection = SECTION_FACTORIES.SdCinemaSection;
+export const MmxSocialSection = SECTION_FACTORIES.MmxSocialSection;
+export const SdCommercialSection = SECTION_FACTORIES.SdCommercialSection;
+export const SdActionSection = SECTION_FACTORIES.SdActionSection;
+export const SdAnimationSection = SECTION_FACTORIES.SdAnimationSection;
+export const MmxAnimationSection = SECTION_FACTORIES.MmxAnimationSection;
+export const ZlCinemaSection = SECTION_FACTORIES.ZlCinemaSection;
+export const MmxActionVfxSection = SECTION_FACTORIES.MmxActionVfxSection;
+export const MmxFashionSection = SECTION_FACTORIES.MmxFashionSection;
+
 export default ShowcaseRepoVideo;
