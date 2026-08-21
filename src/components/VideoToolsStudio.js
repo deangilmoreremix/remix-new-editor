@@ -21,6 +21,7 @@ export function VideoToolsStudio() {
   mountStudioChrome(container, { currentRoute: 'videotools' });
 
   let selectedModel = videoToolsModels[0];
+  let nativeAudio = false;
   let uploadedVideoUrl = null;
   let lastOutputUrl = null;
   let prompt = '';
@@ -261,6 +262,18 @@ export function VideoToolsStudio() {
   genBtn.setAttribute('aria-label', 'Process video');
   formCard.appendChild(genBtn);
   container.appendChild(formCard);
+    // Native audio toggle
+    const vtNativeAudioBtn = nativeAudioRow.querySelector('#vt-native-audio-btn');
+    const vtNativeAudioKnob = nativeAudioRow.querySelector('#vt-native-audio-knob');
+    if (vtNativeAudioBtn && vtNativeAudioKnob) {
+      vtNativeAudioBtn.onclick = () => {
+        nativeAudio = !nativeAudio;
+        vtNativeAudioBtn.setAttribute('data-native-audio', String(nativeAudio));
+        vtNativeAudioBtn.style.background = nativeAudio ? 'var(--cyan)' : '';
+        vtNativeAudioBtn.style.borderColor = nativeAudio ? 'var(--cyan)' : '';
+        vtNativeAudioKnob.style.left = nativeAudio ? 'calc(100% - 22px)' : '4px';
+      };
+    }
 
   // Instructions
   const inlineInstructions = createInlineInstructions('videotools');
@@ -276,10 +289,66 @@ export function VideoToolsStudio() {
 
   // Helper functions
 
+
+    // Prompt Gallery button
+    const promptGalleryBtn = document.createElement('button');
+    promptGalleryBtn.type = 'button';
+    promptGalleryBtn.textContent = '📚 Prompts';
+    promptGalleryBtn.title = 'Browse prompt gallery';
+    promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
+    promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
+    promptGalleryBtn.addEventListener('click', () => {
+      openPromptGallery({
+        appTheme: 'video-tools',
+        onSelect: (prompt) => {
+          // Default: try to find a textarea in the studio
+          const ta = document.querySelector('textarea') || document.querySelector('[data-prompt]');
+          if (ta) {
+            ta.value = prompt;
+            ta.dispatchEvent(new Event('input', { bubbles: true }));
+            ta.focus();
+          }
+        }
+      }).catch((err) => console.error('[PromptGallery] open failed:', err));
+    });
+
+    // Recipe Engine button
+    const recipeBtn = document.createElement('button');
+    recipeBtn.type = 'button';
+    recipeBtn.textContent = '📋 Recipes';
+    recipeBtn.title = 'Browse AI recipes';
+    recipeBtn.setAttribute('aria-label', 'Open recipe engine');
+    recipeBtn.className = 'gtm-boost-btn shrink-0';
+    recipeBtn.addEventListener('click', () => {
+      openRecipeModal({
+        onRunRecipe: (url) => {
+        }
+      }).catch((err) => console.error('[Recipe] open failed:', err));
+    });
+
+
+    // Monetization Hub button
+    const monetizationBtn = document.createElement('button');
+    monetizationBtn.type = 'button';
+    monetizationBtn.textContent = "💼 Smart Video AI Monetize";
+    monetizationBtn.title = "Open Smart Video AI Monetization Hub";
+    monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
+    monetizationBtn.className = 'gtm-boost-btn shrink-0';
+    monetizationBtn.addEventListener('click', () => {
+      openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+    });
+    promptGroup.appendChild(recipeBtn);
+    promptGroup.appendChild(monetizationBtn);
+
   function updateFormVisibility() {
     // Show/hide prompt based on model
     const supportsPrompt = selectedModel.hasPrompt;
     promptGroup.classList.toggle('hidden', !supportsPrompt);
+
+    // Show/hide native audio toggle based on model
+    const supportsNativeAudio = selectedModel.inputs?.native_audio;
+    nativeAudioRow.classList.toggle('hidden', !supportsNativeAudio);
+    if (!supportsNativeAudio) nativeAudio = false;
   }
 
   // Generate button handler

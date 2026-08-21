@@ -135,13 +135,61 @@ export function EditStudio() {
   const inlineInstructions = createInlineInstructions('edit');
   inlineInstructions.classList.add('px-4', 'md:px-8', 'mt-2');
   topBar.appendChild(inlineInstructions);
-
   container.appendChild(topBar);
 
-  // Personalize trigger (opens PersonalizeModal as a pop-up)
   const personalizeRow = document.createElement('div');
   personalizeRow.className = 'flex items-center gap-2 px-4 md:px-8 pt-4';
-  mountPersonalizeTrigger({ controlsContainer: personalizeRow, getTextarea: () => promptField, appId: 'edit-studio' });
+
+  const recipeBtn = document.createElement('button');
+  recipeBtn.type = 'button';
+  recipeBtn.textContent = 'Recipes';
+  recipeBtn.title = 'Browse AI recipes';
+  recipeBtn.setAttribute('aria-label', 'Open recipe engine');
+  recipeBtn.className = 'gtm-boost-btn shrink-0';
+  recipeBtn.addEventListener('click', () => {
+    openRecipeModal({ onRunRecipe: () => {} }).catch((err) => console.error('[Recipe] open failed:', err));
+  });
+
+  const monetizationBtn = document.createElement('button');
+  monetizationBtn.type = 'button';
+  monetizationBtn.textContent = '💼 Smart Video AI Monetize';
+  monetizationBtn.title = "Open Smart Video AI Monetization Hub"
+  monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
+  monetizationBtn.className = 'gtm-boost-btn shrink-0';
+  monetizationBtn.addEventListener('click', () => {
+    openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+  });
+
+  const promptGalleryBtn = document.createElement('button');
+  promptGalleryBtn.type = 'button';
+  promptGalleryBtn.textContent = 'Prompts';
+  promptGalleryBtn.title = 'Browse prompt gallery';
+  promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
+  promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
+  promptGalleryBtn.addEventListener('click', () => {
+    openPromptGallery({
+      appTheme: 'editor-page',
+      onSelect: (prompt) => {
+        const ta = document.querySelector('input[data-advanced-field="extraInstructions"], textarea, input');
+        if (ta) { ta.value = prompt; ta.dispatchEvent(new Event('input', { bubbles: true })); ta.focus(); }
+      }
+    }).catch((err) => console.error('[PromptGallery] open failed:', err));
+  });
+
+  const modelPickerBtn = document.createElement('button');
+  modelPickerBtn.type = 'button';
+  modelPickerBtn.textContent = 'AI Pick';
+  modelPickerBtn.title = 'Open intelligent model picker';
+  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
+  modelPickerBtn.className = 'text-[11px] font-bold text-cyan-400 border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 rounded-lg hover:bg-cyan-400/20 transition-colors ml-2 whitespace-nowrap';
+  modelPickerBtn.addEventListener('click', () => {
+    openModelPicker({}).catch((err) => console.error('[ModelPicker] open failed:', err));
+  });
+
+  personalizeRow.appendChild(recipeBtn);
+  personalizeRow.appendChild(monetizationBtn);
+  personalizeRow.appendChild(promptGalleryBtn);
+  personalizeRow.appendChild(modelPickerBtn);
   container.appendChild(personalizeRow);
 
   const workArea = document.createElement('div');
@@ -155,7 +203,7 @@ export function EditStudio() {
   workCard.appendChild(toolTitle);
 
   const previewImg = document.createElement('img');
-  previewImg.className = 'hidden w-full h-48 object-cover rounded-xl border border-white/10';
+  previewImg.className = 'hidden w-full h-48 object-cover rounded-xl border border-white/10 cursor-zoom-in';
 
   const uploadHint = document.createElement('span');
   uploadHint.className = 'text-sm text-muted';
@@ -170,6 +218,7 @@ export function EditStudio() {
   uploadSection.className = 'flex flex-col gap-3';
   const uploadRow = document.createElement('div');
   uploadRow.className = 'flex items-center gap-4';
+
   const picker = createUploadPicker({
     anchorContainer: container,
     onSelect: ({ url }) => {
@@ -320,6 +369,9 @@ export function EditStudio() {
   promptField.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors hidden';
   promptField.setAttribute('aria-label', 'Edit prompt');
   workCard.appendChild(promptField);
+  workCard.appendChild(negativePromptLabel);
+  workCard.appendChild(negativePromptField);
+  workCard.appendChild(controlsContainer);
 
   const controlsRow = document.createElement('div');
   controlsRow.className = 'flex flex-col gap-3 hidden';
@@ -638,6 +690,13 @@ export function EditStudio() {
     workCard.classList.remove('hidden');
     workCard.classList.add('flex');
     toolTitle.textContent = tool.name;
+    advancedOpen = false;
+    renderControls(tool);
+
+    referenceImageUrl = null;
+    referencePreview.src = '';
+    referencePreview.classList.add('hidden');
+    referenceRow.classList.add('hidden');
 
     showControlsForTool(tool.id);
     resultArea.classList.add('hidden');
@@ -715,6 +774,8 @@ export function EditStudio() {
       }
 
       const result = await muapi.generateI2I(params);
+      updateProgress(null);
+
       if (result?.url) {
         lastOutputUrl = result.url;
         resultArea.classList.remove('hidden');
@@ -734,6 +795,7 @@ export function EditStudio() {
     } finally {
       editBtn.disabled = false;
       editBtn.textContent = 'Apply Edit';
+      cancelBtn.classList.add('hidden');
     }
   };
 

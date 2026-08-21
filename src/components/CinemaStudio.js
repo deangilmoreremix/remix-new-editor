@@ -470,6 +470,25 @@ export function CinemaStudio() {
     modelBtn.onclick = (e) => { e.stopPropagation(); showModelDropdown(); };
     settingsToolbar.appendChild(modelBtn);
 
+    // Model Picker button
+    const modelPickerBtn = document.createElement('button');
+    modelPickerBtn.type = 'button';
+    modelPickerBtn.textContent = 'AI Pick';
+    modelPickerBtn.title = 'Open intelligent model picker';
+    modelPickerBtn.setAttribute('aria-label', 'Open model picker');
+    modelPickerBtn.className = 'text-[11px] font-bold text-cyan-400 border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 rounded-lg hover:bg-cyan-400/20 transition-colors ml-2 whitespace-nowrap';
+    modelPickerBtn.addEventListener('click', () => {
+      openModelPicker({
+        currentModelId: currentSettings.model,
+        onSelectModel: (id) => {
+          currentSettings.model = id;
+          updateModelBtn();
+          updateControlsForModel();
+        }
+      }).catch((err) => console.error('[ModelPicker] open failed:', err));
+    });
+    settingsToolbar.appendChild(modelPickerBtn);
+
     // Shared model dropdown (glass panel) — lists T2V models, or I2V models
     // when a reference image is loaded, with live search + per-model metadata.
     const modelDropdown = document.createElement('div');
@@ -560,6 +579,28 @@ export function CinemaStudio() {
     cameraBuilderBtn.setAttribute('data-tooltip', 'Quick camera builder');
     cameraBuilderBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/></svg> Builder`;
     settingsToolbar.appendChild(cameraBuilderBtn);
+
+    // Character Lock toggle
+    const characterLockWrap = document.createElement('div');
+    characterLockWrap.className = 'flex items-center gap-1.5';
+    characterLockWrap.innerHTML = `
+        <span class="text-[9px] font-bold text-secondary uppercase">Character Lock</span>
+        <button id="cs-character-lock-btn" class="relative h-6 w-11 rounded-full transition bg-white/5 border border-white/10" data-character-lock="false">
+            <span class="absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all duration-200 left-0.5" id="cs-character-lock-knob"></span>
+        </button>
+    `;
+    settingsToolbar.appendChild(characterLockWrap);
+    const csCharacterLockBtn = characterLockWrap.querySelector('#cs-character-lock-btn');
+    const csCharacterLockKnob = characterLockWrap.querySelector('#cs-character-lock-knob');
+    if (csCharacterLockBtn && csCharacterLockKnob) {
+        csCharacterLockBtn.onclick = () => {
+            characterLock = !characterLock;
+            csCharacterLockBtn.setAttribute('data-character-lock', String(characterLock));
+            csCharacterLockBtn.style.background = characterLock ? 'var(--cyan)' : '';
+            csCharacterLockBtn.style.borderColor = characterLock ? 'var(--cyan)' : '';
+            csCharacterLockKnob.style.left = characterLock ? 'calc(100% - 4px)' : '4px';
+        };
+    }
 
     // Personalize trigger (opens PersonalizeModal as a pop-up)
     mountPersonalizeTrigger({
@@ -1159,6 +1200,12 @@ export function CinemaStudio() {
                 : getDurationsForModel(resolvedModel);
             const duration = (durations && durations.length > 0) ? durations[0] : (currentSettings.duration || 5);
 
+            let refImages = null;
+            if (characterLock) {
+                const ref = await getCharacterReference('studio-character-lock');
+                if (ref?.imageUrl) refImages = [ref.imageUrl];
+            }
+
             let res;
             if (useFrameToFrame) {
                 // First/last-frame: pin both the start and end of the clip.
@@ -1174,7 +1221,7 @@ export function CinemaStudio() {
                 });
             } else if (isRef) {
                 // Image-to-video: use the uploaded still as the seed.
-                res = await muapi.generateI2V({
+                const i2vParams = {
                     model: resolvedModel,
                     image_url: currentSettings.referenceUrl,
                     prompt: finalPrompt,
@@ -1184,7 +1231,7 @@ export function CinemaStudio() {
                     thumbnail_url: customThumbnailUrl || undefined,
                 });
             } else {
-                res = await muapi.generateVideo({
+                const t2vParams = {
                     model: resolvedModel,
                     prompt: finalPrompt,
                     aspect_ratio: currentSettings.aspect_ratio,
@@ -1193,6 +1240,57 @@ export function CinemaStudio() {
                     thumbnail_url: customThumbnailUrl || undefined,
                 });
             }
+
+
+    // Prompt Gallery button
+    const promptGalleryBtn = document.createElement('button');
+    promptGalleryBtn.type = 'button';
+    promptGalleryBtn.textContent = '📚 Prompts';
+    promptGalleryBtn.title = 'Browse prompt gallery';
+    promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
+    promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
+    promptGalleryBtn.addEventListener('click', () => {
+      openPromptGallery({
+        appTheme: 'cinema-studio',
+        onSelect: (prompt) => {
+          // Default: try to find a textarea in the studio
+          const ta = document.querySelector('textarea') || document.querySelector('[data-prompt]');
+          if (ta) {
+            ta.value = prompt;
+            ta.dispatchEvent(new Event('input', { bubbles: true }));
+            ta.focus();
+          }
+        }
+      }).catch((err) => console.error('[PromptGallery] open failed:', err));
+    });
+
+    // Recipe Engine button
+    const recipeBtn = document.createElement('button');
+    recipeBtn.type = 'button';
+    recipeBtn.textContent = '📋 Recipes';
+    recipeBtn.title = 'Browse AI recipes';
+    recipeBtn.setAttribute('aria-label', 'Open recipe engine');
+    recipeBtn.className = 'gtm-boost-btn shrink-0';
+    recipeBtn.addEventListener('click', () => {
+      openRecipeModal({
+        onRunRecipe: (url) => {
+        }
+      }).catch((err) => console.error('[Recipe] open failed:', err));
+    });
+
+
+    // Monetization Hub button
+    const monetizationBtn = document.createElement('button');
+    monetizationBtn.type = 'button';
+    monetizationBtn.textContent = "💼 Smart Video AI Monetize";
+    monetizationBtn.title = "Open Smart Video AI Monetization Hub";
+    monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
+    monetizationBtn.className = 'gtm-boost-btn shrink-0';
+    monetizationBtn.addEventListener('click', () => {
+      openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+    });
+    if (!inputRow.querySelector('[aria-label="Open recipe engine"]')) inputRow.appendChild(recipeBtn);
+    if (!inputRow.querySelector('[aria-label="Open Smart Video AI Monetization Hub"]')) inputRow.appendChild(monetizationBtn);
 
             if (res && res.url) {
                 addToHistory({
@@ -1204,6 +1302,10 @@ export function CinemaStudio() {
                         resolution: dynamicPayload.resolution || resBtn.dataset.value
                     }
                 });
+
+                if (characterLock) {
+                    await saveCharacterReference({ id: 'studio-character-lock', imageUrl: res.url, modelId: currentSettings.model });
+                }
 
                 showCanvas(res.url);
             } else {

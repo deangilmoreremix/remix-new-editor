@@ -205,7 +205,48 @@ export function SignInPage() {
             </div>
           </div>
         </div>
-      </main>
-    </div>
+
+        {/* Password */}
+        <div>
+          <label className="block text-sm font-medium text-slate-300 mb-2">Password</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Enter your password"
+            className={authInputClass}
+            required
+          />
+        </div>
+
+        {/* Remember me + Forgot password */}
+        <div className="flex items-center justify-between text-sm">
+          <label className="flex items-center gap-2 text-slate-300 cursor-pointer">
+            <input type="checkbox" className="rounded border-white/20 bg-white/5 text-cyan-400 focus:ring-cyan-400/50" />
+            Remember me
+          </label>
+            <button type="button" onClick={() => navigate('/forgot-password')} className="text-cyan-400 hover:text-cyan-300 transition">
+              Forgot password?
+            </button>
+        </div>
+
+        {/* Submit Button */}
+        <button
+          type="submit"
+          disabled={loading || !isLoaded}
+          className="w-full px-6 py-3 bg-gradient-to-r from-cyan-400 to-cyan-300 text-[#020205] font-bold rounded-lg hover:from-cyan-300 hover:to-cyan-200 transition-all duration-200 shadow-lg shadow-cyan-400/25 hover:shadow-cyan-300/40 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? 'Signing In…' : 'Sign In'}
+        </button>
+        <div id="clerk-captcha" />
+      </form>
+
+      <AuthFooterComponent>
+        Don&apos;t have an account?{' '}
+        <button type="button" onClick={() => navigate('/signup')} className="text-cyan-400 hover:text-cyan-300 font-medium transition">
+          Sign up
+        </button>
+      </AuthFooterComponent>
+    </AuthPageComponent>
   );
 }

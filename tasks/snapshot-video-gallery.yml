@@ -1,0 +1,55 @@
+- generic [ref=f12e2]:
+  - banner [ref=f12e3]:
+    - generic [ref=f12e4]:
+      - generic [ref=f12e5]:
+        - generic [ref=f12e6] [cursor=pointer]
+        - navigation [ref=f12e12]
+      - generic [ref=f12e30]:
+        - button "Update API Key" [ref=f12e31]
+        - link "Sign In" [ref=f12e236] [cursor=pointer]:
+          - /url: /signin
+  - generic [ref=f12e34]:
+    - complementary [ref=f12e35]:
+      - generic:
+        - generic [ref=f12e37] [cursor=pointer]
+        - generic [ref=f12e45] [cursor=pointer]
+        - generic [ref=f12e52] [cursor=pointer]
+        - generic [ref=f12e58] [cursor=pointer]
+        - generic [ref=f12e63] [cursor=pointer]
+        - generic [ref=f12e68] [cursor=pointer]
+        - generic [ref=f12e73] [cursor=pointer]
+        - generic [ref=f12e83] [cursor=pointer]
+        - generic [ref=f12e88] [cursor=pointer]
+        - generic [ref=f12e94] [cursor=pointer]
+        - generic [ref=f12e102] [cursor=pointer]
+        - generic [ref=f12e109] [cursor=pointer]
+        - generic [ref=f12e116] [cursor=pointer]
+        - generic [ref=f12e123] [cursor=pointer]
+        - generic [ref=f12e129] [cursor=pointer]
+        - generic [ref=f12e135] [cursor=pointer]
+        - generic [ref=f12e140] [cursor=pointer]
+        - generic [ref=f12e147] [cursor=pointer]
+        - generic [ref=f12e153] [cursor=pointer]
+        - generic [ref=f12e161] [cursor=pointer]
+        - generic [ref=f12e166] [cursor=pointer]
+        - generic [ref=f12e172] [cursor=pointer]
+        - generic [ref=f12e177] [cursor=pointer]
+        - generic [ref=f12e183] [cursor=pointer]
+        - generic [ref=f12e189] [cursor=pointer]
+        - generic [ref=f12e194] [cursor=pointer]
+        - generic [ref=f12e202] [cursor=pointer]
+        - generic [ref=f12e209] [cursor=pointer]
+        - generic [ref=f12e215] [cursor=pointer]
+        - generic [ref=f12e221] [cursor=pointer]
+      - generic [ref=f12e228] [cursor=pointer]:
+        - button [ref=f12e229]
+        - generic [ref=f12e233]: Settings
+    - main [ref=f12e234]:
+      - generic [ref=f12e237]:
+        - generic [ref=f12e238]
+        - generic [ref=f12e249]
+        - generic [ref=f12e256]
+        - generic [ref=f12e338]
+        - generic [ref=f12e379]: History
+        - status
+        - generic [ref=f12e381]

@@ -42,6 +42,8 @@ export function VideoStudio() {
     let selectedQuality = defaultModel.inputs?.quality?.default || '';
     let lastGenerationId = null;
     let lastGenerationModel = null;
+    let nativeAudio = false;
+    let characterLock = false;
     let dropdownOpen = null;
     let selectedProvider = 'all';
     let uploadedImageUrl = null;
@@ -503,6 +505,57 @@ export function VideoStudio() {
     });
     topRow.appendChild(gtmBtn);
 
+    // Recipe Engine button
+    const recipeBtn = document.createElement('button');
+    recipeBtn.type = 'button';
+    recipeBtn.textContent = '📋 Recipes';
+    recipeBtn.title = 'Browse AI recipes';
+    recipeBtn.setAttribute('aria-label', 'Open recipe engine');
+    recipeBtn.className = 'gtm-boost-btn shrink-0';
+    recipeBtn.addEventListener('click', () => {
+      openRecipeModal({
+        onRunRecipe: (url) => {
+        }
+      }).catch((err) => console.error('[Recipe] open failed:', err));
+    });
+    topRow.appendChild(recipeBtn);
+
+    // Monetization Hub button
+    const monetizationBtn = document.createElement('button');
+    monetizationBtn.type = 'button';
+    monetizationBtn.textContent = "💼 Smart Video AI Monetize";
+    monetizationBtn.title = "Open Smart Video AI Monetization Hub";
+    monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
+    monetizationBtn.className = 'gtm-boost-btn shrink-0';
+    monetizationBtn.addEventListener('click', () => {
+      openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+    });
+    topRow.appendChild(monetizationBtn);
+
+    // Prompt Gallery button
+    const promptGalleryBtn = document.createElement('button');
+    promptGalleryBtn.type = 'button';
+    promptGalleryBtn.textContent = '📚 Prompts';
+    promptGalleryBtn.title = 'Browse prompt gallery';
+    promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
+    promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
+    promptGalleryBtn.addEventListener('click', () => {
+      openPromptGallery({
+        appTheme: 'video-studio',
+        onSelect: (prompt) => {
+          const ta = document.getElementById('v-prompt-textarea');
+          if (ta) {
+            ta.value = prompt;
+            ta.dispatchEvent(new Event('input', { bubbles: true }));
+            ta.focus();
+            ta.style.height = 'auto';
+            ta.style.height = Math.min(ta.scrollHeight, 250) + 'px';
+          }
+        }
+      }).catch((err) => console.error('[PromptGallery] open failed:', err));
+    });
+    topRow.appendChild(promptGalleryBtn);
+
     bar.appendChild(topRow);
 
     // Personalized chip — shows when a contact is active
@@ -955,6 +1008,14 @@ export function VideoStudio() {
 
     const updateControlsForModel = (modelId) => {
         const model = getCurrentModels().find(m => m.id === modelId);
+
+        // Native audio toggle — only show for models that support it
+        const vNativeAudioRow = advancedPanel.querySelector('#v-native-audio-row');
+        if (vNativeAudioRow) {
+            const supportsNativeAudio = model?.inputs?.native_audio && !v2vMode;
+            vNativeAudioRow.style.display = supportsNativeAudio ? 'flex' : 'none';
+            if (!supportsNativeAudio) nativeAudio = false;
+        }
 
         // In v2v mode, hide all parameter controls — no prompt/AR/duration/etc needed
         if (v2vMode) {
@@ -1771,8 +1832,6 @@ export function VideoStudio() {
                 if (resolutions.length > 0) i2vParams.resolution = selectedResolution;
 
                 const res = await muapi.generateI2V(i2vParams);
-                console.log('[VideoStudio] I2V response:', res);
-
                 if (res && res.url) {
                     const genId = res.id || res.request_id || Date.now().toString();
                     if (selectedModel === 'seedance-v2.0-i2v') {

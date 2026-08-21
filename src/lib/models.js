@@ -1971,7 +1971,16 @@ export const t2iModels = [
   }
 ];;
 
-export const getModelById = (id) => t2iModels.find(m => m.id === id);
+export const getModelById = (id) => {
+  return (
+    t2iModels.find(m => m.id === id) ||
+    i2iModels.find(m => m.id === id) ||
+    i2vModels.find(m => m.id === id) ||
+    v2vModels.find(m => m.id === id) ||
+    lipsyncModels.find(m => m.id === id) ||
+    undefined
+  );
+};
 
 export const getImageModelsForThumbnail = () => t2iModels.filter(m => m.inputs?.prompt);
 
@@ -2470,7 +2479,222 @@ export const t2vModels = [
       "resolution": { "enum": ["480p", "720p", "1080p"], "title": "Resolution", "name": "resolution", "type": "string", "description": "The resolution of the generated video.", "default": "720p" }
     }
   }
-];
+,
+{
+  "id": "minimax-h3-t2v",
+  "name": "MiniMax H3 Text-to-Video",
+  "endpoint": "minimax-h3-t2v",
+  "inputs": {
+    "prompt": {
+      "type": "string",
+      "title": "Prompt",
+      "name": "prompt",
+      "description": "Text prompt describing the video."
+    },
+    "aspect_ratio": {
+      "enum": [
+        "16:9",
+        "9:16",
+        "1:1"
+      ],
+      "title": "Aspect Ratio",
+      "name": "aspect_ratio",
+      "type": "string",
+      "default": "16:9"
+    },
+    "duration": {
+      "title": "Duration",
+      "name": "duration",
+      "type": "int",
+      "default": 5,
+      "minValue": 3,
+      "maxValue": 15,
+      "step": 1
+    },
+    "resolution": {
+      "enum": [
+        "480p",
+        "720p",
+        "1080p"
+      ],
+      "title": "Resolution",
+      "name": "resolution",
+      "type": "string",
+      "default": "720p"
+    }
+  }
+},
+{
+  "id": "wan-3.0-t2v",
+  "name": "Wan 3.0 Text-to-Video",
+  "endpoint": "wan-3.0-t2v",
+  "inputs": {
+    "prompt": {
+      "type": "string",
+      "title": "Prompt",
+      "name": "prompt",
+      "description": "Text prompt describing the video."
+    },
+    "aspect_ratio": {
+      "enum": [
+        "16:9",
+        "9:16",
+        "1:1"
+      ],
+      "title": "Aspect Ratio",
+      "name": "aspect_ratio",
+      "type": "string",
+      "default": "16:9"
+    },
+    "duration": {
+      "title": "Duration",
+      "name": "duration",
+      "type": "int",
+      "default": 5,
+      "minValue": 3,
+      "maxValue": 15,
+      "step": 1
+    },
+    "resolution": {
+      "enum": [
+        "480p",
+        "720p",
+        "1080p"
+      ],
+      "title": "Resolution",
+      "name": "resolution",
+      "type": "string",
+      "default": "720p"
+    },
+    "native_audio": {
+      "title": "Native Audio",
+      "name": "native_audio",
+      "type": "boolean",
+      "default": false,
+      "description": "Generate native audio track with the video."
+    }
+  }
+},
+{
+  "id": "flux-3-t2v",
+  "name": "FLUX 3 Text-to-Video",
+  "endpoint": "flux-3-t2v",
+  "inputs": {
+    "prompt": {
+      "type": "string",
+      "title": "Prompt",
+      "name": "prompt",
+      "description": "Text prompt describing the video."
+    },
+    "aspect_ratio": {
+      "enum": [
+        "16:9",
+        "9:16",
+        "1:1"
+      ],
+      "title": "Aspect Ratio",
+      "name": "aspect_ratio",
+      "type": "string",
+      "default": "16:9"
+    },
+    "duration": {
+      "title": "Duration",
+      "name": "duration",
+      "type": "int",
+      "default": 5,
+      "minValue": 3,
+      "maxValue": 15,
+      "step": 1
+    },
+    "resolution": {
+      "enum": [
+        "480p",
+        "720p",
+        "1080p"
+      ],
+      "title": "Resolution",
+      "name": "resolution",
+      "type": "string",
+      "default": "720p"
+    },
+    "native_audio": {
+      "title": "Native Audio",
+      "name": "native_audio",
+      "type": "boolean",
+      "default": false,
+      "description": "Generate native audio track with the video."
+    }
+  }
+},
+{
+  "id": "seedance-2.5-t2v",
+  "name": "Seedance 2.5 Text-to-Video",
+  "endpoint": "seedance-2.5-t2v",
+  "inputs": {
+    "prompt": {
+      "type": "string",
+      "title": "Prompt",
+      "name": "prompt",
+      "description": "Text prompt describing the video."
+    },
+    "aspect_ratio": {
+      "enum": [
+        "16:9",
+        "9:16",
+        "1:1"
+      ],
+      "title": "Aspect Ratio",
+      "name": "aspect_ratio",
+      "type": "string",
+      "default": "16:9"
+    },
+    "duration": {
+      "title": "Duration",
+      "name": "duration",
+      "type": "int",
+      "default": 5,
+      "minValue": 3,
+      "maxValue": 15,
+      "step": 1
+    },
+    "resolution": {
+      "enum": [
+        "480p",
+        "720p",
+        "1080p"
+      ],
+      "title": "Resolution",
+      "name": "resolution",
+      "type": "string",
+      "default": "720p"
+    },
+    "character_consistency": {
+      "title": "Character Consistency",
+      "name": "character_consistency",
+      "type": "boolean",
+      "default": false,
+      "description": "Enable character consistency across frames."
+    },
+    "first_frame_url": {
+      "title": "First Frame URL",
+      "name": "first_frame_url",
+      "type": "string",
+      "description": "URL of the first frame image."
+    },
+    "last_frame_url": {
+      "title": "Last Frame URL",
+      "name": "last_frame_url",
+      "type": "string",
+      "description": "URL of the last frame image."
+    },
+    "omni_reference": {
+      "title": "Omni Reference",
+      "name": "omni_reference",
+      "type": "string",
+      "description": "Omni-reference image URL for character/style consistency."
+    }
+  }
+}];
 
 export const getVideoModelById = (id) => t2vModels.find(m => m.id === id);
 
@@ -4678,7 +4902,156 @@ export const i2iModels = [
       }
     }
   }
-];;
+,
+{
+  "id": "flux-3-i2i",
+  "name": "FLUX 3 Image-to-Image",
+  "endpoint": "flux-3-i2i",
+  "inputs": {
+    "prompt": {
+      "type": "string",
+      "title": "Prompt",
+      "name": "prompt",
+      "description": "Text prompt describing the transformation."
+    },
+    "image_url": {
+      "type": "string",
+      "title": "Image URL",
+      "name": "image_url",
+      "description": "URL of the input image."
+    },
+    "aspect_ratio": {
+      "enum": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4",
+        "3:2",
+        "2:3",
+        "21:9"
+      ],
+      "title": "Aspect Ratio",
+      "name": "aspect_ratio",
+      "type": "string",
+      "default": "1:1"
+    },
+    "strength": {
+      "title": "Strength",
+      "name": "strength",
+      "type": "int",
+      "default": 0.6,
+      "minValue": 0,
+      "maxValue": 1,
+      "step": 0.01
+    },
+    "native_audio": {
+      "title": "Native Audio",
+      "name": "native_audio",
+      "type": "boolean",
+      "default": false
+    }
+  }
+},
+{
+  "id": "grok-imagine-image-2",
+  "name": "Grok Imagine 2 Image Edit",
+  "endpoint": "grok-imagine-image-2",
+  "inputs": {
+    "prompt": {
+      "type": "string",
+      "title": "Prompt",
+      "name": "prompt",
+      "description": "Text prompt describing the edit."
+    },
+    "reference_images": {
+      "type": "array",
+      "title": "Reference Images",
+      "name": "reference_images",
+      "description": "Up to 5 reference images for editing.",
+      "items": {
+        "type": "string",
+        "format": "url"
+      },
+      "maxItems": 5
+    },
+    "aspect_ratio": {
+      "enum": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4",
+        "3:2",
+        "2:3",
+        "21:9"
+      ],
+      "title": "Aspect Ratio",
+      "name": "aspect_ratio",
+      "type": "string",
+      "default": "1:1"
+    },
+    "strength": {
+      "title": "Strength",
+      "name": "strength",
+      "type": "int",
+      "default": 0.6,
+      "minValue": 0,
+      "maxValue": 1,
+      "step": 0.01
+    }
+  }
+},
+{
+  "id": "wan-3.0-i2i",
+  "name": "Wan 3.0 Image-to-Image",
+  "endpoint": "wan-3.0-i2i",
+  "inputs": {
+    "prompt": {
+      "type": "string",
+      "title": "Prompt",
+      "name": "prompt",
+      "description": "Text prompt describing the transformation."
+    },
+    "image_url": {
+      "type": "string",
+      "title": "Image URL",
+      "name": "image_url",
+      "description": "URL of the input image."
+    },
+    "aspect_ratio": {
+      "enum": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4",
+        "3:2",
+        "2:3",
+        "21:9"
+      ],
+      "title": "Aspect Ratio",
+      "name": "aspect_ratio",
+      "type": "string",
+      "default": "1:1"
+    },
+    "strength": {
+      "title": "Strength",
+      "name": "strength",
+      "type": "int",
+      "default": 0.6,
+      "minValue": 0,
+      "maxValue": 1,
+      "step": 0.01
+    },
+    "native_audio": {
+      "title": "Native Audio",
+      "name": "native_audio",
+      "type": "boolean",
+      "default": false
+    }
+  }
+}];;
 
 // Auto-generated from schema_data.json — Image to Video models
 export const i2vModels = [
@@ -7768,7 +8141,237 @@ export const i2vModels = [
       }
     }
   }
-];;
+,
+{
+  "id": "minimax-h3-i2v",
+  "name": "MiniMax H3 Image-to-Video",
+  "endpoint": "minimax-h3-i2v",
+  "inputs": {
+    "prompt": {
+      "type": "string",
+      "title": "Prompt",
+      "name": "prompt",
+      "description": "Text prompt describing the video."
+    },
+    "image_url": {
+      "type": "string",
+      "title": "Image URL",
+      "name": "image_url",
+      "description": "URL of the start frame image."
+    },
+    "aspect_ratio": {
+      "enum": [
+        "16:9",
+        "9:16",
+        "1:1"
+      ],
+      "title": "Aspect Ratio",
+      "name": "aspect_ratio",
+      "type": "string",
+      "default": "16:9"
+    },
+    "duration": {
+      "title": "Duration",
+      "name": "duration",
+      "type": "int",
+      "default": 5,
+      "minValue": 3,
+      "maxValue": 15,
+      "step": 1
+    },
+    "resolution": {
+      "enum": [
+        "480p",
+        "720p",
+        "1080p"
+      ],
+      "title": "Resolution",
+      "name": "resolution",
+      "type": "string",
+      "default": "720p"
+    }
+  }
+},
+{
+  "id": "wan-3.0-i2v",
+  "name": "Wan 3.0 Image-to-Video",
+  "endpoint": "wan-3.0-i2v",
+  "inputs": {
+    "prompt": {
+      "type": "string",
+      "title": "Prompt",
+      "name": "prompt",
+      "description": "Text prompt describing the video."
+    },
+    "image_url": {
+      "type": "string",
+      "title": "Image URL",
+      "name": "image_url",
+      "description": "URL of the start frame image."
+    },
+    "aspect_ratio": {
+      "enum": [
+        "16:9",
+        "9:16",
+        "1:1"
+      ],
+      "title": "Aspect Ratio",
+      "name": "aspect_ratio",
+      "type": "string",
+      "default": "16:9"
+    },
+    "duration": {
+      "title": "Duration",
+      "name": "duration",
+      "type": "int",
+      "default": 5,
+      "minValue": 3,
+      "maxValue": 15,
+      "step": 1
+    },
+    "resolution": {
+      "enum": [
+        "480p",
+        "720p",
+        "1080p"
+      ],
+      "title": "Resolution",
+      "name": "resolution",
+      "type": "string",
+      "default": "720p"
+    },
+    "native_audio": {
+      "title": "Native Audio",
+      "name": "native_audio",
+      "type": "boolean",
+      "default": false
+    }
+  }
+},
+{
+  "id": "flux-3-i2v",
+  "name": "FLUX 3 Image-to-Video",
+  "endpoint": "flux-3-i2v",
+  "inputs": {
+    "prompt": {
+      "type": "string",
+      "title": "Prompt",
+      "name": "prompt",
+      "description": "Text prompt describing the video."
+    },
+    "image_url": {
+      "type": "string",
+      "title": "Image URL",
+      "name": "image_url",
+      "description": "URL of the start frame image."
+    },
+    "aspect_ratio": {
+      "enum": [
+        "16:9",
+        "9:16",
+        "1:1"
+      ],
+      "title": "Aspect Ratio",
+      "name": "aspect_ratio",
+      "type": "string",
+      "default": "16:9"
+    },
+    "duration": {
+      "title": "Duration",
+      "name": "duration",
+      "type": "int",
+      "default": 5,
+      "minValue": 3,
+      "maxValue": 15,
+      "step": 1
+    },
+    "resolution": {
+      "enum": [
+        "480p",
+        "720p",
+        "1080p"
+      ],
+      "title": "Resolution",
+      "name": "resolution",
+      "type": "string",
+      "default": "720p"
+    },
+    "native_audio": {
+      "title": "Native Audio",
+      "name": "native_audio",
+      "type": "boolean",
+      "default": false
+    }
+  }
+},
+{
+  "id": "seedance-2.5-i2v",
+  "name": "Seedance 2.5 Image-to-Video",
+  "endpoint": "seedance-2.5-i2v",
+  "inputs": {
+    "prompt": {
+      "type": "string",
+      "title": "Prompt",
+      "name": "prompt",
+      "description": "Text prompt describing the video."
+    },
+    "image_url": {
+      "type": "string",
+      "title": "Image URL",
+      "name": "image_url",
+      "description": "URL of the start frame image."
+    },
+    "aspect_ratio": {
+      "enum": [
+        "16:9",
+        "9:16",
+        "1:1"
+      ],
+      "title": "Aspect Ratio",
+      "name": "aspect_ratio",
+      "type": "string",
+      "default": "16:9"
+    },
+    "duration": {
+      "title": "Duration",
+      "name": "duration",
+      "type": "int",
+      "default": 5,
+      "minValue": 3,
+      "maxValue": 15,
+      "step": 1
+    },
+    "resolution": {
+      "enum": [
+        "480p",
+        "720p",
+        "1080p"
+      ],
+      "title": "Resolution",
+      "name": "resolution",
+      "type": "string",
+      "default": "720p"
+    },
+    "character_consistency": {
+      "title": "Character Consistency",
+      "name": "character_consistency",
+      "type": "boolean",
+      "default": false
+    },
+    "last_frame_url": {
+      "title": "Last Frame URL",
+      "name": "last_frame_url",
+      "type": "string",
+      "description": "URL of the last frame image."
+    },
+    "omni_reference": {
+      "title": "Omni Reference",
+      "name": "omni_reference",
+      "type": "string",
+      "description": "Omni-reference image URL for character/style consistency."
+    }
+  }
+}];;
 
 export const getI2IModelById = (id) => i2iModels.find(m => m.id === id);
 export const getI2VModelById = (id) => i2vModels.find(m => m.id === id);
@@ -7985,7 +8588,55 @@ export const lipsyncModels = [
       "resolution": { "type": "string", "title": "Resolution", "name": "resolution", "enum": ["480p", "720p"], "default": "480p" }
     }
   }
-];
+,
+{
+  "id": "flux-3-lipsync",
+  "name": "FLUX 3 Lip Sync",
+  "endpoint": "flux-3-lipsync",
+  "inputs": {
+    "audio_url": {
+      "type": "string",
+      "title": "Audio URL",
+      "name": "audio_url",
+      "description": "URL of the audio file."
+    },
+    "image_url": {
+      "type": "string",
+      "title": "Image URL",
+      "name": "image_url",
+      "description": "URL of the portrait image."
+    },
+    "video_url": {
+      "type": "string",
+      "title": "Video URL",
+      "name": "video_url",
+      "description": "URL of the source video."
+    },
+    "prompt": {
+      "type": "string",
+      "title": "Prompt",
+      "name": "prompt",
+      "description": "Optional text guidance."
+    },
+    "resolution": {
+      "enum": [
+        "480p",
+        "720p",
+        "1080p"
+      ],
+      "title": "Resolution",
+      "name": "resolution",
+      "type": "string",
+      "default": "720p"
+    },
+    "native_audio": {
+      "title": "Native Audio",
+      "name": "native_audio",
+      "type": "boolean",
+      "default": false
+    }
+  }
+}];
 
 export const getLipSyncModelById = (id) => lipsyncModels.find(m => m.id === id);
 
@@ -8071,7 +8722,54 @@ export const audioModels = [
     "hasAudio": true,
     "description": "Remix audio in a new style"
   }
-];;
+,
+{
+  "id": "flux-3-audio",
+  "name": "FLUX 3 Audio",
+  "endpoint": "flux-3-audio",
+  "inputs": {
+    "prompt": {
+      "type": "string",
+      "title": "Prompt",
+      "name": "prompt",
+      "description": "Text prompt describing the audio."
+    },
+    "duration": {
+      "title": "Duration",
+      "name": "duration",
+      "type": "int",
+      "default": 30,
+      "minValue": 15,
+      "maxValue": 120,
+      "step": 15
+    },
+    "style": {
+      "enum": [
+        "Pop",
+        "Rock",
+        "Electronic",
+        "Classical",
+        "Jazz",
+        "Hip Hop",
+        "Ambient"
+      ],
+      "title": "Style",
+      "name": "style",
+      "type": "string",
+      "default": "Pop"
+    },
+    "reference_audios": {
+      "type": "array",
+      "title": "Reference Audios",
+      "name": "reference_audios",
+      "description": "Reference audio URLs for style matching.",
+      "items": {
+        "type": "string",
+        "format": "url"
+      }
+    }
+  }
+}];;
 
 export const getAudioModelById = (id) => audioModels.find(m => m.id === id);
 
@@ -8233,7 +8931,44 @@ export const avatarModels = [
     "hasPrompt": false,
     "description": "Lip sync video to video"
   }
-];;
+,
+{
+  "id": "flux-3-avatar",
+  "name": "FLUX 3 Avatar",
+  "endpoint": "flux-3-avatar",
+  "inputs": {
+    "prompt": {
+      "type": "string",
+      "title": "Prompt",
+      "name": "prompt",
+      "description": "Text prompt describing the avatar."
+    },
+    "image_url": {
+      "type": "string",
+      "title": "Image URL",
+      "name": "image_url",
+      "description": "URL of the source portrait image."
+    },
+    "audio_url": {
+      "type": "string",
+      "title": "Audio URL",
+      "name": "audio_url",
+      "description": "URL of the audio file for lip sync."
+    },
+    "video_url": {
+      "type": "string",
+      "title": "Video URL",
+      "name": "video_url",
+      "description": "URL of the source video."
+    },
+    "native_audio": {
+      "title": "Native Audio",
+      "name": "native_audio",
+      "type": "boolean",
+      "default": false
+    }
+  }
+}];
 
 export const getAvatarModelById = (id) => avatarModels.find(m => m.id === id);
 
@@ -8265,7 +9000,39 @@ export const trainingModels = [
     "description": "Train LoRA for image-to-video generation",
     "requiresImages": true
   }
-];;
+,
+{
+  "id": "flux-3-lora-trainer",
+  "name": "FLUX 3 LoRA Trainer",
+  "endpoint": "flux-3-lora-trainer",
+  "inputs": {
+    "images": {
+      "type": "array",
+      "title": "Training Images",
+      "name": "images",
+      "description": "Training image URLs.",
+      "items": {
+        "type": "string",
+        "format": "url"
+      }
+    },
+    "trigger_word": {
+      "type": "string",
+      "title": "Trigger Word",
+      "name": "trigger_word",
+      "description": "Optional trigger word for the LoRA."
+    },
+    "epochs": {
+      "title": "Epochs",
+      "name": "epochs",
+      "type": "int",
+      "default": 10,
+      "minValue": 5,
+      "maxValue": 30,
+      "step": 5
+    }
+  }
+}];;
 
 export const getTrainingModelById = (id) => trainingModels.find(m => m.id === id);
 
@@ -8407,7 +9174,32 @@ export const videoToolsModels = [
     "hasPrompt": false,
     "description": "Remove watermarks from videos"
   }
-];
+,
+{
+  "id": "wan-3.0-upscale",
+  "name": "Wan 3.0 Upscale",
+  "endpoint": "wan-3.0-upscale",
+  "inputs": {
+    "video_url": {
+      "type": "string",
+      "title": "Video URL",
+      "name": "video_url",
+      "description": "URL of the input video."
+    },
+    "prompt": {
+      "type": "string",
+      "title": "Prompt",
+      "name": "prompt",
+      "description": "Optional text guidance."
+    },
+    "native_audio": {
+      "title": "Native Audio",
+      "name": "native_audio",
+      "type": "boolean",
+      "default": false
+    }
+  }
+}];
 
 export const getVideoToolById = (id) => videoToolsModels.find(m => m.id === id);
 
@@ -8446,6 +9238,43 @@ export const textModels = [
     "hasPrompt": true,
     "description": "LLM with vision capabilities"
   }
-];;
+,
+{
+  "id": "grok-imagine-text",
+  "name": "Grok Imagine Text",
+  "endpoint": "grok-imagine-text",
+  "inputs": {
+    "prompt": {
+      "type": "string",
+      "title": "Prompt",
+      "name": "prompt",
+      "description": "Text prompt for generation."
+    },
+    "system_prompt": {
+      "type": "string",
+      "title": "System Prompt",
+      "name": "system_prompt",
+      "description": "Optional system prompt."
+    },
+    "temperature": {
+      "title": "Temperature",
+      "name": "temperature",
+      "type": "number",
+      "default": 0.7,
+      "minValue": 0,
+      "maxValue": 2,
+      "step": 0.1
+    },
+    "max_tokens": {
+      "title": "Max Tokens",
+      "name": "max_tokens",
+      "type": "int",
+      "default": 1024,
+      "minValue": 1,
+      "maxValue": 4096,
+      "step": 1
+    }
+  }
+}];;
 
 export const getTextModelById = (id) => textModels.find(m => m.id === id);

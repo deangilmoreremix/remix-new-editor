@@ -746,7 +746,30 @@ export function AudioStudio() {
     durationRow.appendChild(btn);
   });
   durationGroup.appendChild(durationRow);
-  formCard.appendChild(durationGroup);
+   formCard.appendChild(durationGroup);
+
+   // Native audio toggle
+   const nativeAudioRow = document.createElement('div');
+   nativeAudioRow.className = 'flex items-center justify-between';
+   nativeAudioRow.innerHTML = `
+     <label class="text-xs font-bold text-secondary uppercase tracking-wider">Native Audio</label>
+     <button id="a-native-audio-btn" class="relative h-7 w-12 rounded-full transition bg-white/10 border border-white/10" data-native-audio="false">
+       <span class="absolute top-1 h-5 w-5 rounded-full bg-white transition left-1" id="a-native-audio-knob"></span>
+     </button>
+   `;
+   formCard.appendChild(nativeAudioRow);
+
+   const nativeAudioBtn = nativeAudioRow.querySelector('#a-native-audio-btn');
+   const nativeAudioKnob = nativeAudioRow.querySelector('#a-native-audio-knob');
+   if (nativeAudioBtn && nativeAudioKnob) {
+     nativeAudioBtn.onclick = () => {
+       nativeAudio = !nativeAudio;
+       nativeAudioBtn.setAttribute('data-native-audio', String(nativeAudio));
+       nativeAudioBtn.style.background = nativeAudio ? 'var(--cyan)' : '';
+       nativeAudioBtn.style.borderColor = nativeAudio ? 'var(--cyan)' : '';
+       nativeAudioKnob.style.left = nativeAudio ? 'calc(100% - 22px)' : '4px';
+     };
+   }
 
   // Voice selector (for TTS models)
   const voiceGroup = document.createElement('div');
@@ -969,6 +992,58 @@ export function AudioStudio() {
     loadingOverlay.classList.add('hidden');
     loadingOverlay.classList.remove('flex');
   }
+
+
+    // Prompt Gallery button
+    const promptGalleryBtn = document.createElement('button');
+    promptGalleryBtn.type = 'button';
+    promptGalleryBtn.textContent = '📚 Prompts';
+    promptGalleryBtn.title = 'Browse prompt gallery';
+    promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
+    promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
+    promptGalleryBtn.addEventListener('click', () => {
+      openPromptGallery({
+        appTheme: 'audio-studio',
+        onSelect: (prompt) => {
+          // Default: try to find a textarea in the studio
+          const ta = document.querySelector('textarea') || document.querySelector('[data-prompt]');
+          if (ta) {
+            ta.value = prompt;
+            ta.dispatchEvent(new Event('input', { bubbles: true }));
+            ta.focus();
+          }
+        }
+      }).catch((err) => console.error('[PromptGallery] open failed:', err));
+    });
+
+    // Recipe Engine button
+    const recipeBtn = document.createElement('button');
+    recipeBtn.type = 'button';
+    recipeBtn.textContent = '📋 Recipes';
+    recipeBtn.title = 'Browse AI recipes';
+    recipeBtn.setAttribute('aria-label', 'Open recipe engine');
+    recipeBtn.className = 'gtm-boost-btn shrink-0';
+    recipeBtn.addEventListener('click', () => {
+      openRecipeModal({
+        onRunRecipe: (url) => {
+          // Recipe completed; result URL is handled by the modal
+        }
+      }).catch((err) => console.error('[Recipe] open failed:', err));
+    });
+
+
+    // Monetization Hub button
+    const monetizationBtn = document.createElement('button');
+    monetizationBtn.type = 'button';
+    monetizationBtn.textContent = "💼 Smart Video AI Monetize";
+    monetizationBtn.title = "Open Smart Video AI Monetization Hub";
+    monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
+    monetizationBtn.className = 'gtm-boost-btn shrink-0';
+    monetizationBtn.addEventListener('click', () => {
+      openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+    });
+    promptGroup.appendChild(recipeBtn);
+    promptGroup.appendChild(monetizationBtn);
 
   function updateDurationBtns() {
     const durationRow = durationGroup.querySelector('.flex.gap-2');

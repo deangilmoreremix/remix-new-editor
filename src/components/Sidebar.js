@@ -1,3 +1,5 @@
+import { openMonetizationHub } from '../lib/monetizationIntegration.js';
+
 export function Sidebar(navigate) {
   const element = document.createElement('aside');
   element.className = 'hidden md:flex flex-col items-center py-4 z-40 border-r border-white/5 bg-panel-bg overflow-y-auto custom-scrollbar';
@@ -63,6 +65,10 @@ export function Sidebar(navigate) {
       if (item.id === 'settings') {
         const event = new CustomEvent('navigate', { detail: { page: 'settings' } });
         window.dispatchEvent(event);
+        return;
+      }
+      if (item.id === 'monetize') {
+        openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
         return;
       }
       navigate(item.id);
