@@ -399,7 +399,7 @@ export function EffectsStudio() {
 
   const generateBtn = document.createElement('button');
   generateBtn.type = 'button';
-  generateBtn.className = 'bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow transition-all whitespace-nowrap';
+  generateBtn.className = 'bg-primary text-black px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:shadow-glow transition-all whitespace-nowrap';
   generateBtn.textContent = 'Apply Effect';
   generateBtn.setAttribute('aria-label', 'Apply effect');
     promptRow.appendChild(generateBtn);
@@ -881,7 +881,7 @@ export function EffectsStudio() {
 
   const mobileGenBtn = document.createElement('button');
   mobileGenBtn.type = 'button';
-  mobileGenBtn.className = 'w-full bg-primary text-black py-3 rounded-xl font-black text-sm';
+  mobileGenBtn.className = 'w-full bg-primary text-black px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5';
   mobileGenBtn.textContent = 'Apply Effect';
   mobileGenBtn.setAttribute('aria-label', 'Apply effect');
   mobileControls.appendChild(mobileGenBtn);

@@ -292,7 +292,7 @@ export function StoryboardStudio(options = {}) {
           <textarea id="vi-premise" rows="3" placeholder="Core narrative or value prop..." class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs placeholder:text-muted focus:outline-none resize-none"></textarea>
         </div>
         <div class="flex items-center gap-3 flex-wrap">
-          <button id="vi-generate-btn" class="px-4 py-2 bg-primary text-black rounded-xl text-xs font-bold hover:shadow-glow transition-all">Generate Storyboard</button>
+          <button id="vi-generate-btn" class="px-[14px] py-2 min-h-[40px] bg-primary text-black text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:shadow-glow transition-all">Generate Storyboard</button>
           <button id="vi-template-btn" class="hidden px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-white hover:bg-white/10 transition-all">Send to Template Studio</button>
           <span id="vi-status" class="text-[10px] text-muted"></span>
         </div>
@@ -576,7 +576,7 @@ export function StoryboardStudio(options = {}) {
 
   const genAllBtn = document.createElement('button');
   genAllBtn.type = 'button';
-  genAllBtn.className = 'px-4 py-2 bg-primary text-black rounded-xl text-xs font-bold hover:shadow-glow transition-all';
+  genAllBtn.className = 'px-[14px] py-2 min-h-[40px] bg-primary text-black text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:shadow-glow transition-all';
   genAllBtn.textContent = 'Generate All Frames';
   genAllBtn.setAttribute('aria-label', 'Generate all frames');
   controlBar.appendChild(genAllBtn);
