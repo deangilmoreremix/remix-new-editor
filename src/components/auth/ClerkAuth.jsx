@@ -179,7 +179,7 @@ function ProfileShell() {
           <div className="rounded-2xl border border-white/10 bg-white/5 p-6 flex flex-col items-center text-center">
             <img
               src={user?.imageUrl || '/assets/placeholder-avatar.png'}
-              alt={user?.fullName || 'Avatar'}
+              alt={user?.fullName || 'User'}
               className="w-20 h-20 rounded-full border border-white/10 bg-white/5 mb-4"
             />
             <h2 className="text-lg font-bold text-white">{user?.fullName || 'User'}</h2>
