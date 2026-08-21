@@ -431,7 +431,6 @@ async function main() {
     };
   });
 
-<<<<<<< HEAD
   // Sort by category for organized display
   demos.sort((a, b) => {
     const catOrder = ['Action', 'Animation', 'Beauty', 'Characters', 'Cinema', 'Commercial', 'Fashion', 'Food', 'Social', 'UGC', 'VFX', 'Web / UI'];
@@ -443,8 +442,6 @@ async function main() {
   // Reassign IDs after sorting
   demos.forEach((d, i) => { d.id = i + 1; });
 
-=======
->>>>>>> temp-deploy
   // Write data files
   mkdirSync(OUT_DIR, { recursive: true });
 
