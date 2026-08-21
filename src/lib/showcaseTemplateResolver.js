@@ -73,16 +73,12 @@ export function getTemplateCount() {
  * Async prompt loader — resolves the template, then lazy-loads the full
  * prompt text from the per-source JSON prompt file.
  *
- * Studios should use this as a fallback when `resolveTemplate().prompt`
- * is null/undefined (the prompt field is not inlined in the demo metadata
- * to keep the JS bundle small).
- *
- * @param {string} templateId
+ * @param {string} templateId - e.g. "minimax-h3-cinematic-wide-shot"
  * @returns {Promise<string|null>} full prompt text, or null if unavailable
  */
 export async function loadTemplatePrompt(templateId) {
   const tpl = TEMPLATE_MAP.get(templateId);
-  if (!tpl) return null;
+  if (!tpl || !tpl.slug) return null;
 
   try {
     switch (tpl.source) {

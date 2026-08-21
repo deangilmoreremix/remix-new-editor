@@ -196,6 +196,36 @@ export function createStyleLink(demo, options = {}) {
   return link;
 }
 
+/**
+ * Small studio icon button — used on showcase cards to jump directly into
+ * a specific studio with the demo's template pre-loaded.
+ *
+ * Each icon is a 28×28 round button with a 1-2 char label. The click
+ * handler uses goToRoute so it works for both hash-routed studios and
+ * the path-routed TemplateStudio (`template/{templateId}`).
+ */
+export function createStudioIcon(demo, options = {}) {
+  const { route, params = {}, label, title } = options;
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.dataset.mmxCta = 'studio-icon';
+  button.dataset.mmxRoute = route;
+  button.title = title || route;
+
+  const base =
+    'inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/12 text-[10px] font-bold uppercase tracking-tight text-white/70 transition-all duration-200 hover:border-cyan-400/60 hover:text-cyan-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#020205]';
+
+  button.className = base;
+  button.textContent = label;
+
+  button.addEventListener('click', () => {
+    goToRoute(route, params);
+  });
+
+  return button;
+}
+
 /** "View Prompt" trigger — a real <button>, never a div with a handler. */
 export function createViewPromptButton(demo, onOpen, options = {}) {
   const { label = 'View Prompt', variant = 'ghost' } = options;
