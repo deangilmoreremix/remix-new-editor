@@ -9,10 +9,10 @@
 import React, { useState, useEffect } from 'react';
 import { useSignIn, useUser } from '@clerk/react';
 import {
-  AuthPage,
-  AuthError,
-  AuthSubmitButton,
-  AuthFooter,
+  AuthPage as AuthPageComponent,
+  AuthError as AuthErrorComponent,
+  AuthSubmitButton as AuthSubmitButtonComponent,
+  AuthFooter as AuthFooterComponent,
   authInputClass,
   clerkErrorMessage,
   clerkWithTimeout,
@@ -71,7 +71,7 @@ export function ForgotPasswordPage() {
   };
 
   return (
-    <AuthPage title="Forgot Password" subtitle="Enter your email and we'll send you a reset code">
+    <AuthPageComponent title="Forgot Password" subtitle="Enter your email and we'll send you a reset code">
       {success ? (
         <div className="space-y-6 text-center">
           <div className="w-16 h-16 rounded-full bg-cyan-400/10 border border-cyan-400/20 flex items-center justify-center mx-auto">
@@ -84,9 +84,9 @@ export function ForgotPasswordPage() {
             <p className="text-slate-300 text-sm">We sent a reset code to <span className="text-cyan-300">{email}</span>.</p>
           </div>
           <div className="space-y-3">
-            <AuthSubmitButton onClick={() => window.location.href = `/reset-password?email=${encodeURIComponent(email)}`}>
+            <AuthSubmitButtonComponent onClick={() => window.location.href = `/reset-password?email=${encodeURIComponent(email)}`}>
               Enter Reset Code
-            </AuthSubmitButton>
+            </AuthSubmitButtonComponent>
             <button
               type="button"
               onClick={() => setSuccess(false)}
@@ -95,11 +95,11 @@ export function ForgotPasswordPage() {
               Request again
             </button>
           </div>
-          <AuthFooter>
+          <AuthFooterComponent>
             <button type="button" onClick={() => navigate('/signin')} className="text-cyan-400 hover:text-cyan-300 font-medium transition">
               Back to sign in
             </button>
-          </AuthFooter>
+          </AuthFooterComponent>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -117,21 +117,21 @@ export function ForgotPasswordPage() {
           </div>
 
           {/* Error */}
-          {error && <AuthError message={error} />}
+          {error && <AuthErrorComponent message={error} />}
 
           {/* Submit Button */}
-          <AuthSubmitButton type="submit" loading={loading} disabled={!isLoaded}>
+          <AuthSubmitButtonComponent type="submit" loading={loading} disabled={!isLoaded}>
             Send Reset Code
-          </AuthSubmitButton>
+          </AuthSubmitButtonComponent>
 
-          <AuthFooter>
+          <AuthFooterComponent>
             {'Remember your password? '}
             <button type="button" onClick={() => navigate('/signin')} className="text-cyan-400 hover:text-cyan-300 font-medium transition">
               Back to sign in
             </button>
-          </AuthFooter>
+          </AuthFooterComponent>
         </form>
       )}
-    </AuthPage>
+    </AuthPageComponent>
   );
 }

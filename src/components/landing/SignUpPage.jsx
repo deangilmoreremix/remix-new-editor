@@ -10,7 +10,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSignUp, useUser } from '@clerk/react';
-import { clerkErrorMessage, clerkWithTimeout, clearClerkSession } from './AuthLayout.jsx';
+import { clerkErrorMessage, clerkWithTimeout, clearClerkSession, AuthPage as AuthPageComponent, AuthError as AuthErrorComponent, AuthSubmitButton as AuthSubmitButtonComponent, AuthFooter as AuthFooterComponent, authInputClass, PasswordInput as PasswordInputComponent } from './AuthLayout.jsx';
 import { navigate } from '../../lib/router.js';
 
 export function SignUpPage() {
@@ -98,7 +98,7 @@ export function SignUpPage() {
   };
 
   return (
-    <AuthPage title="Create Your Account" subtitle="Start your creative journey with SmartVideo">
+    <AuthPageComponent title="Create Your Account" subtitle="Start your creative journey with SmartVideo">
       {step === 'form' ? (
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Full Name */}
@@ -150,12 +150,12 @@ export function SignUpPage() {
           </button>
           <div id="clerk-captcha" />
 
-          <AuthFooter>
+          <AuthFooterComponent>
             Already have an account?{' '}
             <button type="button" onClick={() => navigate('/signin')} className="text-cyan-400 hover:text-cyan-300 font-medium transition">
               Sign in
             </button>
-          </AuthFooter>
+          </AuthFooterComponent>
         </form>
       ) : (
         <form onSubmit={handleVerify} className="space-y-5">
@@ -185,6 +185,6 @@ export function SignUpPage() {
           <div id="clerk-captcha" />
         </form>
       )}
-    </AuthPage>
+    </AuthPageComponent>
   );
 }

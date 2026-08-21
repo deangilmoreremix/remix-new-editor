@@ -10,12 +10,12 @@
 import React, { useState, useEffect } from 'react';
 import { useSignIn, useUser } from '@clerk/react';
 import {
-  AuthPage,
-  AuthError,
-  AuthSubmitButton,
-  AuthFooter,
+  AuthPage as AuthPageComponent,
+  AuthError as AuthErrorComponent,
+  AuthSubmitButton as AuthSubmitButtonComponent,
+  AuthFooter as AuthFooterComponent,
   authInputClass,
-  PasswordInput,
+  PasswordInput as PasswordInputComponent,
   clerkErrorMessage,
   clerkWithTimeout,
   clearClerkSession,
@@ -88,7 +88,7 @@ export function ResetPasswordPage() {
   };
 
   return (
-    <AuthPage title="Reset Password" subtitle="Enter the code from your email and choose a new password">
+    <AuthPageComponent title="Reset Password" subtitle="Enter the code from your email and choose a new password">
       {done ? (
         <div className="space-y-6 text-center">
           <div className="w-16 h-16 rounded-full bg-cyan-400/10 border border-cyan-400/20 flex items-center justify-center mx-auto">
@@ -100,9 +100,9 @@ export function ResetPasswordPage() {
             <h3 className="text-lg font-bold text-white mb-2">Password updated</h3>
             <p className="text-slate-300 text-sm">You can now sign in with your new password.</p>
           </div>
-          <AuthSubmitButton onClick={() => { window.location.href = '/signin'; }}>
+          <AuthSubmitButtonComponent onClick={() => { window.location.href = '/signin'; }}>
             Go to Sign In
-          </AuthSubmitButton>
+          </AuthSubmitButtonComponent>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -133,7 +133,7 @@ export function ResetPasswordPage() {
           </div>
 
           {/* New Password */}
-          <PasswordInput
+          <PasswordInputComponent
             label="New Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -142,7 +142,7 @@ export function ResetPasswordPage() {
           />
 
           {/* Confirm Password */}
-          <PasswordInput
+          <PasswordInputComponent
             label="Confirm New Password"
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
@@ -151,14 +151,14 @@ export function ResetPasswordPage() {
           />
 
           {/* Error */}
-          {error && <AuthError message={error} />}
+          {error && <AuthErrorComponent message={error} />}
 
           {/* Submit Button */}
-          <AuthSubmitButton type="submit" loading={loading} disabled={!isLoaded}>
+          <AuthSubmitButtonComponent type="submit" loading={loading} disabled={!isLoaded}>
             Reset Password
-          </AuthSubmitButton>
+          </AuthSubmitButtonComponent>
 
-          <AuthFooter>
+          <AuthFooterComponent>
             <button type="button" onClick={() => window.location.href = '/forgot-password'} className="text-cyan-400 hover:text-cyan-300 font-medium transition">
               Request again
             </button>
@@ -166,9 +166,9 @@ export function ResetPasswordPage() {
             <button type="button" onClick={() => navigate('/signin')} className="text-cyan-400 hover:text-cyan-300 font-medium transition">
               Back to sign in
             </button>
-          </AuthFooter>
+          </AuthFooterComponent>
         </form>
       )}
-    </AuthPage>
+    </AuthPageComponent>
   );
 }

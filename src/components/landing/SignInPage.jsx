@@ -8,7 +8,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSignIn, useUser, useClerk } from '@clerk/react';
-import { clerkErrorMessage, clerkWithTimeout, clearClerkSession } from './AuthLayout.jsx';
+import { clerkErrorMessage, clerkWithTimeout, clearClerkSession, AuthPage as AuthPageComponent, AuthError as AuthErrorComponent, AuthSubmitButton as AuthSubmitButtonComponent, AuthFooter as AuthFooterComponent, authInputClass, PasswordInput as PasswordInputComponent } from './AuthLayout.jsx';
 import { navigate } from '../../lib/router.js';
 
 export function SignInPage() {
@@ -69,7 +69,7 @@ export function SignInPage() {
   };
 
   return (
-    <AuthPage title="Welcome Back" subtitle="Sign in to continue your creative journey">
+    <AuthPageComponent title="Welcome Back" subtitle="Sign in to continue your creative journey">
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Email */}
         <div>
@@ -119,12 +119,12 @@ export function SignInPage() {
         <div id="clerk-captcha" />
       </form>
 
-      <AuthFooter>
+      <AuthFooterComponent>
         Don&apos;t have an account?{' '}
         <button type="button" onClick={() => navigate('/signup')} className="text-cyan-400 hover:text-cyan-300 font-medium transition">
           Sign up
         </button>
-      </AuthFooter>
-    </AuthPage>
+      </AuthFooterComponent>
+    </AuthPageComponent>
   );
 }
