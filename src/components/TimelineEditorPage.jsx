@@ -1848,18 +1848,6 @@ export function TimelineEditorPage() {
       if (connectBtn) connectBtn.addEventListener('click', () => openConnectModal(state, showToast));
       if (agentsBtn) agentsBtn.addEventListener('click', () => openAIAgentsPanel(state, showToast));
       if (saveBtn) saveBtn.addEventListener('click', () => openSaveProjectModal(state, showToast));
-      // Persistent Social Publish entry point (visible without generated media).
-      const socialPublishBtn = document.createElement('button');
-      socialPublishBtn.type = 'button';
-      socialPublishBtn.className = 'top-icon studio-social-publish-btn';
-      socialPublishBtn.setAttribute('aria-label', 'Publish to Social');
-      socialPublishBtn.title = 'Publish to Social';
-      socialPublishBtn.textContent = '📡';
-      socialPublishBtn.style.cssText =
-        'background:linear-gradient(90deg,#6d5efc,#a855f7);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;padding:0 10px;';
-      socialPublishBtn.onclick = () =>
-        openSocialPublish({ mediaUrl: state.lastGeneratedVideo?.src || '', mediaType: 'video' });
-      els.topActions.appendChild(socialPublishBtn);
     }
 
     function renderTools() {

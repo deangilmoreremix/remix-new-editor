@@ -31,7 +31,7 @@ import { seedance25Demos, getCreateTarget as getCreateTargetSeedance, loadDemoPr
 import { zeroLuDemos, getCreateTarget as getCreateTargetZeroLu, loadDemoPrompt as loadDemoPromptZeroLu, ZERO_LU_MODEL } from '../../../data/zeroLuDemos.js';
 
 import { createMediaFrame, cleanupFrames, pauseFramesIn, revealOnScroll } from './minimax/mediaFrame.js';
-import { injectMinimaxStyles, sectionHeading, createStyleLink, createViewPromptButton, metaPill, categoryBadge, escapeHtml } from './minimax/ui.js';
+import { injectMinimaxStyles, sectionHeading, createStyleLink, createViewPromptButton, createStudioIcon, metaPill, categoryBadge, escapeHtml } from './minimax/ui.js';
 import { handleViewPrompt } from './minimax/DemoPromptModal.js';
 
 /** Per-source adapters for CTA routing and prompt loading. */
@@ -251,6 +251,31 @@ function createGalleryCard(demo) {
     getTarget: adapter.getCreateTarget,
   }));
 
+  // Studio icons — jump directly into a specific studio with the demo's
+  // template pre-loaded. The templateId comes from the same adapter that
+  // powers "Create This Style", so routing stays in one place.
+  const target = adapter.getCreateTarget(demo);
+  const templateId = target.params.template;
+  if (templateId) {
+    const studioIcons = [
+      { route: 'template/' + templateId,    label: 'T', title: 'Open in Template Studio' },
+      { route: 'cinema-template',           label: 'C', title: 'Open in Cinema Template Studio', params: { template: templateId } },
+      { route: 'cinema',                    label: 'F', title: 'Open in Cinema Studio',          params: { template: templateId } },
+      { route: 'video',                     label: 'V', title: 'Open in Video Studio',           params: { template: templateId } },
+      { route: 'image',                     label: 'I', title: 'Open in Image Studio',           params: { template: templateId } },
+    ];
+    studioIcons.forEach((icon) => {
+      actions.appendChild(
+        createStudioIcon(demo, {
+          route: icon.route,
+          params: icon.params || {},
+          label: icon.label,
+          title: icon.title,
+        })
+      );
+    });
+  }
+
   return card;
 }
 
@@ -349,7 +374,7 @@ function createShowcaseSection(config, allDemos) {
 
     statusEl.textContent = 'Showing ' + visible.length + ' of ' + sectionDemos.length + ' demos.';
 
-    const disposeReveal = revealOnScroll(grid.querySelectorAll('.mmx-reveal'), { stagger: 45 });
+    const disposeReveal = revealOnScroll(section.querySelectorAll('.mmx-reveal'), { stagger: 45 });
 
     section._disposeReveal = () => {
       disposeReveal();

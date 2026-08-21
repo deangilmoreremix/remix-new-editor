@@ -21,8 +21,9 @@ import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { CINEMATIC_THEME, cx } from '../lib/cinematicTheme.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import ExampleGallery from './studios/ExampleGallery.js';
-import { getMinimaxTemplateById } from '../lib/minimaxTemplates.js';
+import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
+import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 
 // Camera movements promised by the Cinema Studio intro copy
 // ("Select camera movement … dolly, crane, orbit, FPV drone").
@@ -98,12 +99,18 @@ export function CinemaStudio() {
       const durationParam = urlParams.get('duration');
 
       if (templateParam) {
-        const tpl = getMinimaxTemplateById(templateParam);
+        const tpl = resolveTemplate(templateParam);
         if (tpl) {
           if (tpl.model) currentSettings.model = tpl.model;
           if (tpl.aspectRatio) currentSettings.aspect_ratio = tpl.aspectRatio;
           if (tpl.duration) currentSettings.duration = tpl.duration;
-          if (tpl.basePrompt) currentSettings.prompt = tpl.basePrompt;
+          if (tpl.basePrompt) {
+            currentSettings.prompt = tpl.basePrompt;
+          } else if (tpl.slug) {
+            loadTemplatePrompt(templateParam)
+              .then((prompt) => { if (prompt) currentSettings.prompt = prompt; })
+              .catch(() => {});
+          }
         }
       }
 
@@ -899,6 +906,14 @@ export function CinemaStudio() {
     canvasControls.appendChild(regenerateBtn);
     canvasControls.appendChild(downloadBtn);
     canvasControls.appendChild(newPromptBtn);
+
+    const publishBtn = document.createElement('button');
+    publishBtn.type = 'button';
+    publishBtn.className = 'bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white px-6 py-2.5 rounded-xl text-xs font-bold transition-all hover:shadow-glow';
+    publishBtn.textContent = 'Publish to Social';
+
+    canvasControls.appendChild(publishBtn);
+
     canvas.appendChild(canvasControls);
 
     container.appendChild(canvas);
@@ -1012,6 +1027,8 @@ export function CinemaStudio() {
         canvas.classList.add('opacity-100', 'translate-y-0', 'scale-100');
         canvasControls.classList.remove('opacity-0');
         canvasControls.classList.add('opacity-100');
+
+        publishBtn.onclick = () => { const mediaUrl = currentResultUrl; if (mediaUrl) { const isVid = /\.(mp4|webm|mov|m4v)(\?|$)|video\//i.test(mediaUrl); openSocialPublish({ mediaUrl, mediaType: isVid ? 'video' : 'image' }); } };
     };
 
     const resetToPrompt = () => {

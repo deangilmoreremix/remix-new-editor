@@ -23,8 +23,9 @@ import { categorizeGenerationError, createAbortAwareGenerate, startGenerationPro
 import { showToast, createLoadingOverlay, createProgressBar } from '../lib/loading.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import ExampleGallery from './studios/ExampleGallery.js';
-import { getMinimaxTemplateById } from '../lib/minimaxTemplates.js';
+import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
+import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 
 export function VideoStudio() {
     const container = document.createElement('div');
@@ -88,7 +89,7 @@ export function VideoStudio() {
 
       if (templateParam) {
         // MiniMax / template deep-link: resolve template and apply defaults.
-        const tpl = getMinimaxTemplateById(templateParam);
+        const tpl = resolveTemplate(templateParam);
         if (tpl) {
           if (tpl.model) selectedModel = tpl.model;
           if (tpl.aspectRatio) selectedAr = tpl.aspectRatio;
@@ -96,6 +97,15 @@ export function VideoStudio() {
           if (tpl.basePrompt) {
             const textarea = document.getElementById('prompt-textarea');
             if (textarea) textarea.value = tpl.basePrompt;
+          } else if (tpl.slug) {
+            loadTemplatePrompt(templateParam)
+              .then((prompt) => {
+                if (prompt) {
+                  const textarea = document.getElementById('prompt-textarea');
+                  if (textarea) textarea.value = prompt;
+                }
+              })
+              .catch(() => {});
           }
         }
       }
@@ -1320,6 +1330,13 @@ export function VideoStudio() {
     canvasControls.appendChild(renderBtn);
     canvasControls.appendChild(newPromptBtn);
 
+    const publishBtn = document.createElement('button');
+    publishBtn.type = 'button';
+    publishBtn.className = 'bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white px-6 py-2.5 rounded-2xl text-xs font-bold transition-all hover:shadow-glow';
+    publishBtn.textContent = 'Publish to Social';
+
+    canvasControls.appendChild(publishBtn);
+
     canvas.appendChild(videoContainer);
     canvas.appendChild(canvasControls);
     container.appendChild(canvas);
@@ -1340,6 +1357,7 @@ export function VideoStudio() {
             canvasControls.classList.remove('opacity-0');
             canvasControls.classList.add('opacity-100');
         };
+        publishBtn.onclick = () => { const url = resultVideo.src; if (url) openSocialPublish({ mediaUrl: url, mediaType: 'video' }); };
     };
 
     // --- Helper: Add to history ---

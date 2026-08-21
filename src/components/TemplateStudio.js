@@ -1,4 +1,5 @@
 import { getTemplateById } from '../lib/templates.js';
+import { resolveTemplate } from '../lib/showcaseTemplateResolver.js';
 import { getTemplateThumbnailCandidates, saveCustomThumbnailToCache, clearCustomThumbnailCache, getCustomThumbnailFromCache } from '../lib/thumbnails.js';
 import { getTemplateSpecs, hasEnhancedSpecs } from '../lib/templateSpecs.js';
 import { muapi } from '../lib/muapi.js';
@@ -16,10 +17,17 @@ import { sanitizeUrl } from '../lib/security.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
+import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 
 export function TemplateStudio(templateId) {
-  const template = getTemplateById(templateId);
-  
+  let template = getTemplateById(templateId);
+
+  // Fallback: if the template isn't in the built-in templates.js registry,
+  // try the unified showcase resolver (covers all 512 MiniMax H3 / Seedance 2.5 / ZeroLu demos).
+  if (!template) {
+    template = resolveTemplate(templateId);
+  }
+
   if (!template) {
     const errorContainer = document.createElement('div');
     errorContainer.className = 'min-h-screen bg-[#0a0a0b] text-white flex items-center justify-center';
@@ -1345,6 +1353,7 @@ export function TemplateStudio(templateId) {
         </div>
         <div class="flex gap-3 mt-4">
           <a href="${url}" download="${template.id}-${Date.now()}" class="flex-1 bg-white text-black py-3 rounded-xl font-bold text-sm text-center hover:opacity-90 transition">Download</a>
+          <button type="button" class="publish-social-btn flex-1 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-3 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
           <button id="generateAgainBtn" class="flex-1 border border-white/10 bg-white/[0.04] text-white py-3 rounded-xl font-bold text-sm hover:bg-white/[0.08] transition">Generate Again</button>
         </div>
       </div>
@@ -1354,6 +1363,11 @@ export function TemplateStudio(templateId) {
       const againBtn = document.getElementById('generateAgainBtn');
       if (againBtn) {
         againBtn.onclick = () => genBtn.click();
+      }
+      const publishBtn = resultArea.querySelector('.publish-social-btn');
+      if (publishBtn) {
+        const mediaType = template.outputType === 'video' ? 'video' : 'image';
+        publishBtn.onclick = () => openSocialPublish({ mediaUrl: url, mediaType });
       }
     }, 0);
   }

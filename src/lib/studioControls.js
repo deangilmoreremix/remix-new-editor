@@ -7,6 +7,7 @@ import { ValidatedState } from './controls/ValidatedState.js';
 import { buildApiPayload } from './controls/payload.js';
 
 export function createAdvancedControls({ model, state, container, extraInputs = {}, onChange, exclude = new Set() }) {
+  if (!model) return;
   const generator = new ControlGenerator();
 
   // Seed defaults from model inputs

@@ -1,4 +1,4 @@
-import { minimaxH3Demos, MINIMAX_MODEL } from '../data/minimaxH3Demos.js';
+import { minimaxH3Demos, MINIMAX_MODEL } from '../data/beatapiMinimaxH3Demos.js';
 
 export const minimaxH3Templates = minimaxH3Demos.map((demo) => ({
   id: `minimax-h3-${demo.slug}`,
@@ -7,7 +7,7 @@ export const minimaxH3Templates = minimaxH3Demos.map((demo) => ({
   modelType: ['UGC', 'Web / UI', 'Social'].includes(demo.category) ? 'i2v' : 't2v',
   aspectRatio: demo.aspectRatio,
   duration: demo.duration,
-  basePrompt: null,
+  basePrompt: demo.prompt || null,
   tags: demo.tags,
   category: demo.category,
   useCase: demo.useCase,

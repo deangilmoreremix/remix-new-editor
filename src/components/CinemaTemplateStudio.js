@@ -6,8 +6,10 @@
 import { mountStudioDrawer, createStudioMenuButton } from '../lib/studioChrome.js';
 import { showToast } from '../lib/loading.js';
 import { escapeHtml } from '../lib/security.js';
+import { resolveTemplate } from '../lib/showcaseTemplateResolver.js';
 import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 import { muapi } from '../lib/muapi.js';
+import { navigate } from '../lib/router.js';
 import { StoryboardStudio } from './StoryboardStudio.js';
 import { createUploadPicker } from './UploadPicker.js';
 import {
@@ -31,6 +33,7 @@ import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateTh
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { AuthModal } from './AuthModal.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
+import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { selectScenes } from '../lib/sceneSelector.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
@@ -59,6 +62,7 @@ export function CinemaTemplateStudio() {
 
   let incomingStoryboard = null;
   let storyboardProjectId = null;
+  let incomingCinemaTemplateId = null;
 
   let _modelSelectorOutsideClickHandler = null;
 
@@ -360,12 +364,16 @@ export function CinemaTemplateStudio() {
     try {
       const params = new URLSearchParams(window.location.hash.split('?')[1] || '');
       const storyboardParam = params.get('storyboard');
+      const cinemaTemplateParam = params.get('template');
       if (storyboardParam) {
         incomingStoryboard = JSON.parse(storyboardParam);
         storyboardProjectId = incomingStoryboard.id || incomingStoryboard.projectId || null;
       }
+      if (cinemaTemplateParam) {
+        incomingCinemaTemplateId = cinemaTemplateParam;
+      }
     } catch (e) {
-      console.warn('[CinemaTemplateStudio] Failed to parse incoming storyboard:', e);
+      console.warn('[CinemaTemplateStudio] Failed to parse incoming params:', e);
     }
     view = 'create';
     render();
@@ -745,7 +753,27 @@ export function CinemaTemplateStudio() {
       if (container.querySelector('#open-storyboard-btn')) {
         container.querySelector('#open-storyboard-btn').onclick = () => {
           view = 'storyboard';
-          render();
+  render();
+
+  // If a template ID was passed via the `template` query param, try to
+  // select it in this studio. If it's not in the cinematic template
+  // registry, fall back to TemplateStudio which can resolve all 512
+  // showcase demos via the unified resolver.
+  if (incomingCinemaTemplateId) {
+    const cinematicTemplate = registry.get(incomingCinemaTemplateId);
+    if (cinematicTemplate) {
+      selectTemplate(cinematicTemplate);
+    } else {
+      // Not a cinematic template — redirect to TemplateStudio which
+      // falls back to the unified showcase resolver.
+      try {
+        const resolved = resolveTemplate(incomingCinemaTemplateId);
+        if (resolved) {
+          navigate('template/' + incomingCinemaTemplateId);
+        }
+      } catch { /* ignore */ }
+    }
+  }
         };
       }
       if (container.querySelector('#add-scene-btn')) {
@@ -2622,6 +2650,17 @@ export function CinemaTemplateStudio() {
     actions.appendChild(backBtn);
     actions.appendChild(newTabBtn);
     actions.appendChild(downloadBtn);
+
+    const mediaType = currentTemplate?.outputType === 'video' ? 'video' : 'image';
+    const publishBtn = document.createElement('button');
+    publishBtn.type = 'button';
+    publishBtn.className = 'publish-social-btn px-4 py-2 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white text-sm font-bold rounded-lg hover:scale-105 transition-transform';
+    publishBtn.textContent = 'Publish to Social';
+    publishBtn.onclick = () => {
+      const target = generationResult || resultImg.src || '';
+      if (target) openSocialPublish({ mediaUrl: target, mediaType });
+    };
+    actions.appendChild(publishBtn);
 
     preview.appendChild(resultImg);
     preview.appendChild(actions);
