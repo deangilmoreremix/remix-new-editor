@@ -1,9 +1,10 @@
 # Netlify build configuration
 [build]
-  command = "npm install --include=optional && npm run build"
+  command = "npm ci --include=optional && npm run build"
   publish = "dist"
 
 [build.environment]
+  NPM_FLAGS = "--include=optional"
   NODE_VERSION = "20"
   SECRETS_SCAN_OMIT_KEYS = "CLERK_SECRET_KEY,MAIGRET_WORKER_SECRET,MAIGRET_WORKER_URL"
 
@@ -33,12 +34,11 @@
   for = "/*"
   [headers.values]
     X-Frame-Options = "SAMEORIGIN"
-    # Allow the AI VFX Studio (deployed as a separate Next.js app on ai-vfx.smartvid.app)
-    # to be embedded in its parent shell via iframe. 'self' permits same-origin
-    # embedding (dev via Vite proxy); https://ai-vfx.smartvid.app is the production
-    # Next.js app. DENY blocked every embed and produced the browser
-    # "This content is blocked" page on every deploy.
-    Content-Security-Policy = "frame-ancestors 'self' https://smartvid.app https://www.smartvid.app https://ai-vfx.smartvid.app https://teal-puffpuff-ce9767.netlify.app"
+    # Allow the AI VFX Studio to be embedded in its parent shell (iframe).
+    # 'self' permits same-origin embedding; add other shell origins here if the
+    # studio is framed from a different domain. DENY blocked every embed and
+    # produced the browser "This content is blocked" page on every deploy.
+    Content-Security-Policy = "frame-ancestors 'self' https://smartvid.app"
     X-Content-Type-Options = "nosniff"
     X-XSS-Protection = "1; mode=block"
     Referrer-Policy = "strict-origin-when-cross-origin"

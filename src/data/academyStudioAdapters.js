@@ -284,15 +284,19 @@ export const ACADEMY_STUDIO_ADAPTERS = [
 export function getAcademyCreateTarget(assetId) {
   const adapter = ACADEMY_STUDIO_ADAPTERS.find((a) => a.id === assetId);
   if (!adapter) return null;
+  const params = {
+    prompt: adapter.prompt,
+    style: adapter.stylePreset,
+    aspect_ratio: adapter.aspectRatio,
+    duration: adapter.duration,
+    'academy-template': assetId,
+  };
+  Object.keys(params).forEach((key) => {
+    if (params[key] == null) delete params[key];
+  });
   return {
     route: adapter.studio,
-    params: {
-      prompt: adapter.prompt,
-      style: adapter.stylePreset,
-      aspect_ratio: adapter.aspectRatio,
-      duration: adapter.duration,
-      'academy-template': assetId,
-    },
+    params,
   };
 }
 
