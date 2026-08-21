@@ -13,6 +13,7 @@ import { showToast } from '../lib/loading.js';
 import { formatErrorMessage } from '../lib/errorMessages.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import ExampleGallery from './studios/ExampleGallery.js';
+import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 
 function scopedPersistKey(baseKey, apiKey) {
   if (!apiKey) return baseKey;
@@ -1045,6 +1046,7 @@ export function AudioStudio() {
         </div>
         <audio id="waveform-audio" class="hidden" src="${url}" type="audio/mpeg"></audio>
         <a href="${url}" download class="block w-full bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download Audio</a>
+      <button type="button" class="publish-social-btn block w-full mt-2 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
       </div>
       <div id="audio-editor-controls" class="mt-4 bg-[#111]/80 border border-white/10 rounded-2xl p-4 flex flex-col gap-4">
         <div class="text-xs font-bold text-secondary uppercase tracking-wider">Audio Editor</div>
@@ -1072,6 +1074,9 @@ export function AudioStudio() {
         </div>
       </div>
     `;
+
+    const publishBtn = resultArea.querySelector('.publish-social-btn');
+    if (publishBtn) publishBtn.onclick = () => openSocialPublish({ mediaUrl: url, mediaType: 'audio' });
 
     try {
       const WaveSurfer = (await import('wavesurfer.js')).default;

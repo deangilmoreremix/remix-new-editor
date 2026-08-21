@@ -17,6 +17,7 @@ import { mountPersonalizePopover, replaceTokensInPrompt } from './personalize/pe
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
+import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
@@ -878,6 +879,13 @@ export function ImageStudio() {
     canvasControls.appendChild(downloadBtn);
     canvasControls.appendChild(newPromptBtn);
 
+    const publishBtn = document.createElement('button');
+    publishBtn.type = 'button';
+    publishBtn.className = 'bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white px-6 py-2.5 rounded-2xl text-xs font-bold transition-all hover:shadow-glow';
+    publishBtn.textContent = 'Publish to Social';
+
+    canvasControls.appendChild(publishBtn);
+
     canvas.appendChild(imageContainer);
     canvas.appendChild(canvasControls);
     container.appendChild(canvas);
@@ -895,6 +903,7 @@ export function ImageStudio() {
             canvasControls.classList.remove('opacity-0');
             canvasControls.classList.add('opacity-100');
         };
+        publishBtn.onclick = () => openSocialPublish({ mediaUrl: imageUrl, mediaType: 'image' });
     };
 
     // --- Helper: Add to history ---

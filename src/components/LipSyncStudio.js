@@ -13,6 +13,7 @@ import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } fro
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { getModelById } from '../lib/models.js';
+import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 
 export function LipSyncStudio() {
     const container = document.createElement('div');
@@ -769,6 +770,14 @@ export function LipSyncStudio() {
     canvasControls.appendChild(regenerateBtn);
     canvasControls.appendChild(downloadBtn);
     canvasControls.appendChild(newBtn);
+
+    const publishBtn = document.createElement('button');
+    publishBtn.type = 'button';
+    publishBtn.className = 'bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white px-6 py-2.5 rounded-2xl text-xs font-bold transition-all hover:shadow-glow';
+    publishBtn.textContent = 'Publish to Social';
+
+    canvasControls.appendChild(publishBtn);
+
     canvas.appendChild(videoContainer);
     canvas.appendChild(canvasControls);
     container.appendChild(canvas);
@@ -783,6 +792,7 @@ export function LipSyncStudio() {
             canvasControls.classList.remove('opacity-0');
             canvasControls.classList.add('opacity-100');
         };
+        publishBtn.onclick = () => openSocialPublish({ mediaUrl: videoUrl, mediaType: 'video' });
     };
 
     const addToHistory = (entry) => {

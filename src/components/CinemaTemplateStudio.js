@@ -33,6 +33,7 @@ import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateTh
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { AuthModal } from './AuthModal.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
+import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { selectScenes } from '../lib/sceneSelector.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
@@ -2649,6 +2650,17 @@ export function CinemaTemplateStudio() {
     actions.appendChild(backBtn);
     actions.appendChild(newTabBtn);
     actions.appendChild(downloadBtn);
+
+    const mediaType = currentTemplate?.outputType === 'video' ? 'video' : 'image';
+    const publishBtn = document.createElement('button');
+    publishBtn.type = 'button';
+    publishBtn.className = 'publish-social-btn px-4 py-2 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white text-sm font-bold rounded-lg hover:scale-105 transition-transform';
+    publishBtn.textContent = 'Publish to Social';
+    publishBtn.onclick = () => {
+      const target = generationResult || resultImg.src || '';
+      if (target) openSocialPublish({ mediaUrl: target, mediaType });
+    };
+    actions.appendChild(publishBtn);
 
     preview.appendChild(resultImg);
     preview.appendChild(actions);

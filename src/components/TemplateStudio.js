@@ -17,6 +17,7 @@ import { sanitizeUrl } from '../lib/security.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
+import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 
 export function TemplateStudio(templateId) {
   let template = getTemplateById(templateId);
@@ -1352,6 +1353,7 @@ export function TemplateStudio(templateId) {
         </div>
         <div class="flex gap-3 mt-4">
           <a href="${url}" download="${template.id}-${Date.now()}" class="flex-1 bg-white text-black py-3 rounded-xl font-bold text-sm text-center hover:opacity-90 transition">Download</a>
+          <button type="button" class="publish-social-btn flex-1 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-3 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
           <button id="generateAgainBtn" class="flex-1 border border-white/10 bg-white/[0.04] text-white py-3 rounded-xl font-bold text-sm hover:bg-white/[0.08] transition">Generate Again</button>
         </div>
       </div>
@@ -1361,6 +1363,11 @@ export function TemplateStudio(templateId) {
       const againBtn = document.getElementById('generateAgainBtn');
       if (againBtn) {
         againBtn.onclick = () => genBtn.click();
+      }
+      const publishBtn = resultArea.querySelector('.publish-social-btn');
+      if (publishBtn) {
+        const mediaType = template.outputType === 'video' ? 'video' : 'image';
+        publishBtn.onclick = () => openSocialPublish({ mediaUrl: url, mediaType });
       }
     }, 0);
   }
