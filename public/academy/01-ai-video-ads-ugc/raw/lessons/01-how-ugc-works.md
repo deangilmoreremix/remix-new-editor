@@ -40,10 +40,10 @@ The reason this pipeline matters more than any single "best model" is that each 
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/character-anchor.jpg" alt="UGC Character Anchor" width="240">
-<img src="templates/examples/gripmount-hook-clip.gif" alt="UGC Hook Video Motion (I2V)" width="240">
+<img src="../images/character-anchor.jpg" alt="UGC Character Anchor" width="240">
+<img src="../gifs/gripmount-hook-clip.gif" alt="UGC Hook Video Motion (I2V)" width="240">
 </p>
-<p align="center"><sub>AI UGC Character Image (Left) ──► Image-to-Video Motion Loop (Right) · <a href="templates/examples/gripmount-hook-clip.mp4">MP4</a></sub></p>
+<p align="center"><sub>AI UGC Character Image (Left) ──► Image-to-Video Motion Loop (Right) · <a href="../videos/gripmount-hook-clip.mp4">MP4</a></sub></p>
 
 Product: a $28 magnetic phone car mount ("GripMount").
 

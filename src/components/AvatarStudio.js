@@ -14,6 +14,8 @@ import { mountModelSelector, getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getP
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { getModelById } from '../lib/models.js';
+import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
+import ExampleGallery from './studios/ExampleGallery.js';
 
 export function AvatarStudio() {
   const container = document.createElement('div');
@@ -364,5 +366,11 @@ export function AvatarStudio() {
   };
 
   updateFormVisibility();
-  return container;
+    const galleryAssets = getAssetsForStudio('avatar');
+    if (galleryAssets.length > 0) {
+      const gallery = ExampleGallery({ studioId: 'avatar', assets: galleryAssets, maxCards: 20 });
+      container.appendChild(gallery);
+    }
+
+    return container;
 }

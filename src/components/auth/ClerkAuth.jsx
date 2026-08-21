@@ -23,6 +23,7 @@ import { SignInPage } from '../landing/SignInPage.jsx';
 import { SignUpPage } from '../landing/SignUpPage.jsx';
 import { ForgotPasswordPage } from '../landing/ForgotPasswordPage.jsx';
 import { ResetPasswordPage } from '../landing/ResetPasswordPage.jsx';
+import { ensureClerkLoaded } from '../../lib/clerkInit.js';
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 

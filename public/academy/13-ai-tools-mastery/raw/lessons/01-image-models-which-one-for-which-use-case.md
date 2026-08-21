@@ -54,10 +54,10 @@ Inspect edges, text legibility, and finger geometry to confirm the model choice 
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/model-benchmark-comparison.jpg" alt="AI Image Model Benchmark Comparison" width="480">
-<img src="templates/examples/tools-workflow-motion.gif" alt="Tools Workflow Motion Loop (I2V)" width="480">
+<img src="../images/model-benchmark-comparison.jpg" alt="AI Image Model Benchmark Comparison" width="480">
+<img src="../gifs/tools-workflow-motion.gif" alt="Tools Workflow Motion Loop (I2V)" width="480">
 </p>
-<p align="center"><sub>AI Image Model Benchmark Infographic (Left) ──► Image-to-Video Workflow Loop (Right) · Video File: <a href="templates/examples/tools-workflow-motion.mp4">templates/examples/tools-workflow-motion.mp4</a></sub></p>
+<p align="center"><sub>AI Image Model Benchmark Infographic (Left) ──► Image-to-Video Workflow Loop (Right) · Video File: <a href="../videos/tools-workflow-motion.mp4">../videos/tools-workflow-motion.mp4</a></sub></p>
 
 **Model Decision Case Study: "High-Fashion Apparel Campaign"**
 

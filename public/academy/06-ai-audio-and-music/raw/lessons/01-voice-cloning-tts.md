@@ -61,10 +61,10 @@ Save your ideal configurations in the cloning log.
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/voice-studio-setup.jpg" alt="Voice Studio" width="280">
-<img src="templates/examples/voice-studio-clip.gif" alt="Voice Recording Motion (I2V)" width="280">
+<img src="../images/voice-studio-setup.jpg" alt="Voice Studio" width="280">
+<img src="../gifs/voice-studio-clip.gif" alt="Voice Recording Motion (I2V)" width="280">
 </p>
-<p align="center"><sub>Voice Recording Booth Image (Left) ──► Image-to-Video Studio Motion (Right) · Audio File: <a href="templates/examples/rachel-vocal-cloned.mp3">templates/examples/rachel-vocal-cloned.mp3</a> · Video File: <a href="templates/examples/voice-studio-clip.mp4">templates/examples/voice-studio-clip.mp4</a></sub></p>
+<p align="center"><sub>Voice Recording Booth Image (Left) ──► Image-to-Video Studio Motion (Right) · Audio File: <a href="../audio/rachel-vocal-cloned.mp3">../audio/rachel-vocal-cloned.mp3</a> · Video File: <a href="../videos/voice-studio-clip.mp4">../videos/voice-studio-clip.mp4</a></sub></p>
 
 **Creating "Arthur" (B2B SaaS Spokesperson)**
 
@@ -79,7 +79,7 @@ Save your ideal configurations in the cloning log.
 **The Result:** "Arthur" is ready for bulk voice synthesis. The output reads complex software documentation with the tone of a professional tech founder.
 
 > [!NOTE]
-> You can listen to a demo of a high-fidelity cloned vocal generated with this workflow here: [rachel-vocal-cloned.mp3](templates/examples/rachel-vocal-cloned.mp3).
+> You can listen to a demo of a high-fidelity cloned vocal generated with this workflow here: [rachel-vocal-cloned.mp3](../audio/rachel-vocal-cloned.mp3).
 
 ---
 

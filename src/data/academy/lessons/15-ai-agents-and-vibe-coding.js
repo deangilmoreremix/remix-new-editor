@@ -42,7 +42,7 @@ export const LESSONS_15 = [
       'Hard: build a script that generates 5 prompt variations from a subject/style/angle, reading a CSV and writing a CSV.',
     ],
     relatedTemplateIds: [],
-    relatedAssetIds: [],
+    relatedAssetIds: ['15-ai-agents-and-vibe-coding::micro-tool-app-interface'],
   },
   {
     id: '15-ai-agents-and-vibe-coding::02-building-your-first-sellable-micro-tool',
@@ -82,7 +82,7 @@ export const LESSONS_15 = [
       'Hard: package your tool with README, sample input, and `requirements.txt`; have a peer run it cold.',
     ],
     relatedTemplateIds: [],
-    relatedAssetIds: [],
+    relatedAssetIds: ['15-ai-agents-and-vibe-coding::micro-tool-app-motion'],
   },
   {
     id: '15-ai-agents-and-vibe-coding::03-vibe-coding-workflow',
@@ -125,7 +125,7 @@ export const LESSONS_15 = [
       'Hard: complete Prompt→Build→Test→Ship for a tool of your choice and write its Gumroad product copy.',
     ],
     relatedTemplateIds: [],
-    relatedAssetIds: [],
+    relatedAssetIds: ['15-ai-agents-and-vibe-coding::vibe-coding-workspace-motion'],
   },
   {
     id: '15-ai-agents-and-vibe-coding::04-pricing-and-selling-tools',
@@ -168,6 +168,6 @@ export const LESSONS_15 = [
       'Hard: list a real tool on Gumroad at a price, post in one community, and report week-1 results.',
     ],
     relatedTemplateIds: [],
-    relatedAssetIds: [],
+    relatedAssetIds: ['15-ai-agents-and-vibe-coding::vibe-coding-workspace'],
   },
 ];

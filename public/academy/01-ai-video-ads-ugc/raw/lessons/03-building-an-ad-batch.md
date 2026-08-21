@@ -32,10 +32,10 @@ Varying all three per ad would make every ad different in every way, making it i
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/gripmount-ad2-problem-first.gif" alt="Ad Variation 2: Problem-First Loop" width="240">
-<img src="templates/examples/gripmount-ad3-pov.gif" alt="Ad Variation 3: POV Demonstration Loop" width="240">
+<img src="../gifs/gripmount-ad2-problem-first.gif" alt="Ad Variation 2: Problem-First Loop" width="240">
+<img src="../gifs/gripmount-ad3-pov.gif" alt="Ad Variation 3: POV Demonstration Loop" width="240">
 </p>
-<p align="center"><sub>Image-to-Video Problem-First Hook (Left) ──► POV Product Demonstration Loop (Right) · <a href="templates/examples/gripmount-ad2-problem-first.mp4">Ad 2 MP4</a> · <a href="templates/examples/gripmount-ad3-pov.mp4">Ad 3 MP4</a></sub></p>
+<p align="center"><sub>Image-to-Video Problem-First Hook (Left) ──► POV Product Demonstration Loop (Right) · <a href="../videos/gripmount-ad2-problem-first.mp4">Ad 2 MP4</a> · <a href="../videos/gripmount-ad3-pov.mp4">Ad 3 MP4</a></sub></p>
 
 Continuing the GripMount ad (Module 1) with the consistent "creator" from Module 2. Here's a real 5-ad test batch matrix:
 

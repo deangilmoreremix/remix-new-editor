@@ -21,5 +21,5 @@
 * [`templates/video-audio-stack-matrix.md`](templates/video-audio-stack-matrix.md) — Motion control parameters, camera movement guides, and model speed benchmarks.
 * [`templates/api-cost-calculator.md`](templates/api-cost-calculator.md) — API cost formulas, GPU payback calculators, and hardware VRAM decision trees.
 * [`templates/tool-evaluation-framework.md`](templates/tool-evaluation-framework.md) — A 5-point evaluation checklist for testing new AI models.
-* [`templates/examples/model-benchmark-comparison.jpg`](templates/examples/model-benchmark-comparison.jpg) — AI image model benchmark comparison infographic ([tools-workflow-motion.mp4](templates/examples/tools-workflow-motion.mp4) / [.gif](templates/examples/tools-workflow-motion.gif)).
-* [`templates/examples/camera-motion-matrix.jpg`](templates/examples/camera-motion-matrix.jpg) — Cinematic camera motion reference graphic ([camera-motion-matrix-motion.mp4](templates/examples/camera-motion-matrix-motion.mp4) / [.gif](templates/examples/camera-motion-matrix-motion.gif)).
+* [`../images/model-benchmark-comparison.jpg`](../images/model-benchmark-comparison.jpg) — AI image model benchmark comparison infographic ([tools-workflow-motion.mp4](../videos/tools-workflow-motion.mp4) / [.gif](../gifs/tools-workflow-motion.gif)).
+* [`../images/camera-motion-matrix.jpg`](../images/camera-motion-matrix.jpg) — Cinematic camera motion reference graphic ([camera-motion-matrix-motion.mp4](../videos/camera-motion-matrix-motion.mp4) / [.gif](../gifs/camera-motion-matrix-motion.gif)).

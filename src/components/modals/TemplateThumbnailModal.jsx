@@ -77,6 +77,7 @@ export class TemplateThumbnailModal extends BaseModal {
     this.candidates = []; // { b64_json, revised_prompt, dataUrl? }
     this.selectedIndex = -1;
     this.isGenerating = false;
+    this._isGeneratingVideo = false;
     this.generationMessage = '';
     this.refineInput = '';
     this.lastResponseId = '';
@@ -174,6 +175,7 @@ export class TemplateThumbnailModal extends BaseModal {
     this.refineMaskB64 = '';
     this.generationTime = '0.0';
     this.moderation = openaiConfig.defaultConfig.thumbnailModeration;
+    this.controls.moderation = this.moderation;
   }
 
   // -------------------------------------------------------------------------
@@ -280,6 +282,11 @@ export class TemplateThumbnailModal extends BaseModal {
             `).join('')
           }
         </div>
+        ${this.variants.length === 0 ? `
+          <button type="button" class="gtm-action" data-action="draft" style="width:100%; margin-top:8px; min-height:32px; font-size:12px;">
+            ✨ Draft Prompts
+          </button>
+        ` : ''}
       </div>
       <div class="form-section">
         <label>Preset</label>
@@ -355,15 +362,17 @@ export class TemplateThumbnailModal extends BaseModal {
            <option value="12" ${this.frameCount == 12 ? 'selected' : ''}>12 frames</option>
          </select>
        </div>
-       ` : ''}
-       <div style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">
-         <button type="button" class="gtm-action thumbnail-prompt-btn" data-action="generate" ${this.isGenerating || (this.videoThumbEnabled ? false : this.selectedVariantIndex < 0) ? 'disabled' : ""} style="width:100%;">
-           ${this.isGenerating ? 'Generating…' : (this.videoThumbEnabled ? 'Generate Video Thumbnail' : `Generate ${this.n} Thumbnail${this.n > 1 ? 's' : ''}`)}
-         </button>
-       </div>
-      ${this._renderCostAndSizeWarning()}
-    `;
-  }
+        ` : ''}
+        <div id="thumb-brief-generate-area" style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">
+          ${this._canGenerate() ? `
+            <button type="button" class="gtm-action thumbnail-prompt-btn" data-action="generate" ${this.isGenerating ? 'disabled' : ""} style="width:100%;">
+              ${this.isGenerating ? 'Generating…' : (this.videoThumbEnabled ? 'Generate Video Thumbnail' : `Generate ${this.n} Thumbnail${this.n > 1 ? 's' : ''}`)}
+            </button>
+          ` : this._renderGenerateStatus()}
+        </div>
+       ${this._renderCostAndSizeWarning()}
+     `;
+   }
 
   _renderKeySourceBadge() {
     if (this.lastKeySource === 'user') {
@@ -378,7 +387,6 @@ export class TemplateThumbnailModal extends BaseModal {
   _renderCostAndSizeWarning() {
     const quality = this.controls.quality || 'high';
     const model = this.model || 'gpt-image-2';
-    // Map aspect ratio to size for cost estimate
     const aspectToSize = { '16:9': '1792x1024', '9:16': '1024x1792', '1:1': '1024x1024', '3:2': '1536x1024', '2:3': '1024x1536', '4:5': '1024x1280', '4:3': '1536x1024', '3:4': '1024x1536', '2:1': '2048x1024', '21:9': '2048x882', 'auto': '1024x1024' };
     const size = aspectToSize[this.controls.aspectRatio || '16:9'] || '1024x1024';
     const cost = openaiConfig.estimateCost(model, quality, size, this.n || 3);
@@ -389,6 +397,10 @@ export class TemplateThumbnailModal extends BaseModal {
     }
     if (is2K) {
       lines.push(`<span style="color:#f59e0b;">⚠️ <strong>Experimental:</strong> outputs above 2560×1440 are experimental per OpenAI docs.</span>`);
+    }
+    if (this.videoThumbEnabled && this.frameCount > 0) {
+      const frameCost = typeof cost === 'number' ? (cost * this.frameCount).toFixed(3) : '—';
+      lines.push(`<span style="color:#f59e0b;">🎬 Video thumbnail: <strong>${this.frameCount} frames</strong> · est. ~$${frameCost} total (${this.asGif ? 'GIF' : 'frame sequence'})</span>`);
     }
     if (lines.length === 0) return '';
     return `<div style="font-size:11px; color:var(--text-muted); margin-top:4px; padding:8px 10px; background:var(--bg-panel); border:1px solid var(--border-color); border-radius:var(--border-radius-md); display:flex; flex-direction:column; gap:4px;">${lines.join('')}</div>`;
@@ -527,7 +539,7 @@ export class TemplateThumbnailModal extends BaseModal {
       <div style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">
         ${this.isVideoThumb ? `
           <button type="button" class="gtm-action copy-prompt-btn" data-action="save-video" style="width:100%;">
-            💾 Save & Apply
+            💾 ${this.asGif ? 'Save Animated GIF' : 'Save Video Thumbnail'}
           </button>
         ` : (this.selectedIndex >= 0 ? `
           <button type="button" class="gtm-action thumbnail-prompt-btn" data-action="refine" style="width:100%;">
@@ -795,6 +807,18 @@ export class TemplateThumbnailModal extends BaseModal {
 
   clearError() {
     this._error = null;
+  }
+
+  _canGenerate() {
+    return Boolean(this.brief?.trim()) && (this.videoThumbEnabled || this.selectedVariantIndex >= 0);
+  }
+
+  _renderGenerateStatus() {
+    const missing = [];
+    if (!this.brief?.trim()) missing.push('Enter a thumbnail concept');
+    if (!this.videoThumbEnabled && this.selectedVariantIndex < 0) missing.push('Select a prompt variant');
+    const message = missing.join(' and ') || 'Complete the steps above to continue';
+    return `<span style="font-size:12px; color:var(--text-secondary); font-style:italic; text-align:center; display:block; padding:8px 0;">${message}</span>`;
   }
 
   escapeHtml(str) {
@@ -1091,24 +1115,6 @@ export class TemplateThumbnailModal extends BaseModal {
     this.updateBody(this.renderBody());
   }
 
-  async loadReferenceFile(input) {
-    const file = input.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = String(reader.result || '');
-      const b64 = dataUrl.split(',')[1] || '';
-      this.referenceImage = { source: 'b64', value: b64, previewDataUrl: dataUrl };
-      this.updateBody(this.renderBody());
-    };
-    reader.readAsDataURL(file);
-  }
-
-  clearReference() {
-    this.referenceImage = null;
-    this.updateBody(this.renderBody());
-  }
-
   goRefine() {
     if (this.selectedIndex < 0) return;
     this.step = 'refine';
@@ -1252,9 +1258,17 @@ export class TemplateThumbnailModal extends BaseModal {
       responsesModel: this.responsesModel,
       imageAction: this.imageAction,
       imageDetail: this.imageDetail,
-      referenceImageB64: this.referenceImage?.source === 'b64' ? this.referenceImage.value : undefined,
-      referenceImageUrl: this.referenceImage?.source === 'url' ? this.referenceImage.value : undefined,
-      referenceImageFileId: this.referenceImage?.source === 'fileId' ? this.referenceImage.value : undefined,
+      // Reference images: always include the selected candidate (b64),
+      // then any extra user-uploaded/referenced images as arrays.
+      referenceImageB64: this.referenceImages.length > 0
+        ? [selected.b64_json, ...this.referenceImages.filter((r) => r.source === 'b64').map((r) => r.value)]
+        : [selected.b64_json],
+      referenceImageUrl: this.referenceImages
+        .filter((r) => r.source === 'url')
+        .map((r) => r.value),
+      referenceImageFileId: this.referenceImages
+        .filter((r) => r.source === 'fileId')
+        .map((r) => r.value),
       user: this.userId || undefined,
     };
 
@@ -1552,7 +1566,8 @@ export class TemplateThumbnailModal extends BaseModal {
   // Footer button state
   // -------------------------------------------------------------------------
   enableApplyButton() {
-    const btn = this.overlay?.querySelector('[data-action="apply"]');
+    const footer = this.overlay?.querySelector('.modal-footer');
+    const btn = footer?.querySelector('[data-action="apply"]') || this.overlay?.querySelector('[data-action="apply"]');
     if (btn) btn.disabled = false;
   }
 
@@ -1572,13 +1587,16 @@ export class TemplateThumbnailModal extends BaseModal {
 
     // Keyboard shortcuts: Cmd/Ctrl+Enter to generate/refine/save,
     // 1/2/3 to select candidate, Esc to close (handled by BaseModal).
+    if (this._boundKeydown) {
+      document.removeEventListener('keydown', this._boundKeydown);
+    }
     this._boundKeydown = (e) => {
       if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         if (this.step === 'refine') {
           this.applyRefine();
-        } else         if (this.step === 'brief' || this.step === 'generate') {
-          if (!this.isGenerating) {
+        } else if (this.step === 'brief' || this.step === 'generate') {
+          if (!this.isGenerating && this._canGenerate()) {
             if (this.videoThumbEnabled) {
               this._goGenerate();
             } else {
@@ -1602,14 +1620,6 @@ export class TemplateThumbnailModal extends BaseModal {
     };
     document.addEventListener('keydown', this._boundKeydown);
 
-    const clearBtn = this.overlay?.querySelector('[data-action="clear"]');
-    if (clearBtn) {
-      clearBtn.addEventListener('click', () => {
-        this.onClear();
-        this.clearCustom();
-      });
-    }
-
     const applyBtn = this.overlay?.querySelector('[data-action="apply"]');
     if (applyBtn) {
       applyBtn.addEventListener('click', () => {
@@ -1617,11 +1627,15 @@ export class TemplateThumbnailModal extends BaseModal {
       });
     }
 
+    const cancelBtn = this.overlay?.querySelector('[data-action="cancel"]');
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', () => this.close());
+    }
+
     // Body actions
     const body = this.overlay?.querySelector('.modal-body');
     if (!body) return;
 
-    body.querySelector('[data-action="draft"]')?.addEventListener('click', () => this.buildPrompts());
     body.querySelector('[data-action="generate"]')?.addEventListener('click', () => {
       if (this.videoThumbEnabled) {
         this._goGenerate();
@@ -1629,6 +1643,7 @@ export class TemplateThumbnailModal extends BaseModal {
         this.goGenerate();
       }
     });
+    body.querySelector('[data-action="draft"]')?.addEventListener('click', () => this.buildPrompts());
     body.querySelector('[data-action="regenerate"]')?.addEventListener('click', () => this.regenerate());
     body.querySelector('[data-action="save"]')?.addEventListener('click', () => this.goSave());
     body.querySelector('[data-action="save-video"]')?.addEventListener('click', () => this._saveVideoThumbnail());
@@ -1705,16 +1720,6 @@ export class TemplateThumbnailModal extends BaseModal {
     body.querySelector('[data-action="apply-text-overlay"]')?.addEventListener('click', () => this.applyTextOverlay());
     body.querySelector('[data-action="skip-text-overlay"]')?.addEventListener('click', () => this.skipTextOverlay());
 
-    // Step navigation buttons (data-action="go-step-{key}")
-    body.querySelectorAll('[data-action^="go-step-"]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const stepKey = btn.getAttribute('data-action').replace('go-step-', '');
-        if (this.goToStep) {
-          this.goToStep(stepKey);
-        }
-      });
-    });
-
     // Quick edit chips (studio variant)
     body.querySelectorAll('.thumb-quick-edit-chip').forEach((chip) => {
       chip.addEventListener('click', () => {
@@ -1774,21 +1779,6 @@ export class TemplateThumbnailModal extends BaseModal {
     if (overlayTextEl) {
       overlayTextEl.addEventListener('input', (e) => { this.textOverlay.text = e.target.value; });
     }
-
-    body.querySelectorAll('.thumb-quick-edit-chip').forEach((chip) => {
-      chip.addEventListener('click', () => {
-        const key = chip.getAttribute('data-quick-edit');
-        const edit = (openaiConfig.getThumbnailOutputSettings().quickEdits || []).find((e) => e.key === key);
-        if (!edit) return;
-        const input = document.getElementById('thumb-refine-input');
-        if (input) {
-          const current = input.value.trim();
-          const suffix = current ? `, ${edit.promptFragment}` : edit.promptFragment;
-          input.value = current + suffix;
-          this.refineInput = input.value;
-        }
-      });
-    });
 
     body.querySelector('[data-action="select-variant"]')?.addEventListener('click', (e) => {
       const idx = parseInt(e.currentTarget.dataset.index || '0', 10);
@@ -1937,6 +1927,7 @@ export class TemplateThumbnailModal extends BaseModal {
     this.candidates = [];
     this.selectedIndex = -1;
     this.isGenerating = false;
+    this._isGeneratingVideo = false;
     this._error = null;
     this.refineInput = '';
     this.lastResponseId = '';
@@ -2023,6 +2014,7 @@ export class TemplateThumbnailModal extends BaseModal {
     this.candidates = [];
     this.selectedIndex = -1;
     this.isGenerating = false;
+    this._isGeneratingVideo = false;
     this.variants = [];
     this.refineInput = '';
     this.refineImageAction = 'auto';
@@ -2055,6 +2047,7 @@ export class TemplateThumbnailModal extends BaseModal {
     this.imageAction = openaiConfig.defaultConfig.thumbnailImageAction;
     this.imageDetail = openaiConfig.defaultConfig.thumbnailImageDetail;
     this.moderation = openaiConfig.defaultConfig.thumbnailModeration;
+    this.controls.moderation = this.moderation;
     this.customSize = openaiConfig.defaultConfig.thumbnailDefaultSize;
     this.referenceImage = null;
     this.referenceImages = [];
@@ -2155,7 +2148,7 @@ export class TemplateThumbnailModal extends BaseModal {
         e.preventDefault();
         if (this.step === 'refine' && !this.isGenerating) {
           this._applyRefine();
-        } else if ((this.step === 'brief' || this.step === 'generate') && !this.isGenerating && this.brief?.trim()) {
+        } else if ((this.step === 'brief' || this.step === 'generate') && !this.isGenerating && this._canGenerate()) {
           this._goGenerate();
         } else if (this.step === 'textoverlay') {
           this._applyTextOverlay();
@@ -2186,10 +2179,11 @@ export class TemplateThumbnailModal extends BaseModal {
    _openSettingsModal() {
      const tryImport = (path) => import(/* @vite-ignore */ path).catch(() => null);
      (async () => {
-       const mod =
-         (await tryImport('../../components/ApiKeyModal.js')) ||
-         (await tryImport('../../components/ApiKeyModal.jsx')) ||
-         (await tryImport('../../components/SettingsModal.js'));
+        const mod =
+          (await tryImport('../../components/ApiKeyModal.js')) ||
+          (await tryImport('../../components/ApiKeyModal.jsx')) ||
+          (await tryImport('../../components/SettingsModal.js')) ||
+          (await tryImport('../../components/modals/SettingsModal.jsx'));
        if (!mod) return;
        const Ctor = mod.default || mod.ApiKeyModal || mod.SettingsModal;
        if (typeof Ctor !== 'function') return;
@@ -2464,7 +2458,7 @@ export class TemplateThumbnailModal extends BaseModal {
           <div class="form-section">
             <label for="thumb-moderation">Moderation</label>
             <select id="thumb-moderation">
-              ${opts.moderationOptions.map((m) => `<option value="${m}" ${this.moderation === m ? 'selected' : ''}>${m}</option>`).join('')}
+              ${opts.moderationOptions.map((m) => `<option value="${m}" ${this.controls.moderation === m ? 'selected' : ''}>${m}</option>`).join('')}
             </select>
           </div>
         </div>
@@ -2606,7 +2600,34 @@ export class TemplateThumbnailModal extends BaseModal {
 
     const textarea = container.querySelector('#thumb-brief');
     textarea.addEventListener('input', (e) => {
+      const hadContent = Boolean(this.brief?.trim());
       this.brief = e.target.value;
+      const hasContent = Boolean(e.target.value.trim());
+      
+      // Check if we need to refresh the generate area when toggling empty/non-empty
+      if (hadContent !== hasContent) {
+        const generateArea = container.querySelector('#thumb-brief-generate-area');
+        if (generateArea) {
+          generateArea.innerHTML = this._canGenerate() ? `
+            <button type="button" class="gtm-action thumbnail-prompt-btn" data-action="generate" ${this.isGenerating ? 'disabled' : ""} style="width:100%;">
+              ${this.isGenerating ? 'Generating…' : (this.videoThumbEnabled ? 'Generate Video Thumbnail' : `Generate ${this.n} Thumbnail${this.n > 1 ? 's' : ''}`)}
+            </button>
+          ` : this._renderGenerateStatus();
+          
+          // Re-attach event listener if button was recreated
+          const newBtn = generateArea.querySelector('[data-action="generate"]');
+          if (newBtn) {
+            newBtn.addEventListener('click', () => {
+              if (this.videoThumbEnabled) {
+                this._goGenerate();
+              } else {
+                this.goGenerate();
+              }
+            });
+          }
+        }
+      }
+      
       const cta = container.querySelector('#thumb-brief-cta');
       if (cta) cta.disabled = !e.target.value.trim() || this.isGenerating;
     });
@@ -2733,7 +2754,7 @@ export class TemplateThumbnailModal extends BaseModal {
     bindSelect('#thumb-responses-model', 'responsesModel', 'this');
     bindSelect('#thumb-custom-size', 'customSize', 'this');
     bindSelect('#thumb-background', 'background', 'controls');
-    bindSelect('#thumb-moderation', 'moderation', 'this');
+    bindSelect('#thumb-moderation', 'moderation', 'controls');
     bindSelect('#thumb-format', 'outputFormat', 'controls');
     bindSelect('#thumb-n-candidates', 'n', 'this');
     bindSelect('#thumb-input-fidelity', 'inputFidelity', 'this');
@@ -2817,14 +2838,6 @@ export class TemplateThumbnailModal extends BaseModal {
       });
     }
     // Legacy single-clear button (for the old UI rendering path).
-    const refClear = container.querySelector('#thumb-reference-clear');
-    if (refClear) {
-      refClear.addEventListener('click', () => {
-        this.referenceImage = null;
-        this._refreshPanel();
-      });
-    }
-    // New multi-image remove buttons.
     container.querySelectorAll('.thumb-remove-ref').forEach((btn) => {
       btn.addEventListener('click', () => {
         const idx = parseInt(btn.getAttribute('data-index') || '0', 10);
@@ -3020,7 +3033,7 @@ export class TemplateThumbnailModal extends BaseModal {
           card.className = 'candidate-card';
           card.style.opacity = '0.5';
           const img = document.createElement('img');
-          img.src = frame.dataUrl || frame.b64_json;
+          img.src = frame.dataUrl || ThumbnailService.b64ToDataUrl(frame.b64_json);
           img.alt = `Frame ${index + 1}`;
           card.appendChild(img);
           frameGrid.appendChild(card);
@@ -3045,7 +3058,7 @@ export class TemplateThumbnailModal extends BaseModal {
           const card = document.createElement('div');
           card.className = 'candidate-card';
           const img = document.createElement('img');
-          img.src = frame.dataUrl || frame.b64_json;
+          img.src = frame.dataUrl || ThumbnailService.b64ToDataUrl(frame.b64_json);
           img.alt = `Frame ${index + 1}`;
           card.appendChild(img);
           grid.appendChild(card);
@@ -3114,7 +3127,8 @@ export class TemplateThumbnailModal extends BaseModal {
       const preview = document.createElement('div');
       preview.className = 'generated-preview';
       const img = document.createElement('img');
-      img.src = this.candidates[this.selectedIndex].dataUrl || this.candidates[this.selectedIndex].b64_json;
+      const candidate = this.candidates[this.selectedIndex];
+      img.src = candidate.dataUrl || ThumbnailService.b64ToDataUrl(candidate.b64_json);
       preview.appendChild(img);
       container.appendChild(preview);
     }
@@ -3266,7 +3280,7 @@ export class TemplateThumbnailModal extends BaseModal {
       background: this.controls.background,
       outputFormat: this.controls.outputFormat,
       outputCompression: this.controls.outputCompression,
-      moderation: this.moderation,
+      moderation: this.controls.moderation,
       size: this.customSize && this.customSize !== 'auto' ? this.customSize : undefined,
       partialImages: this.partialImages,
       store: this.storeResponses,
@@ -3377,7 +3391,7 @@ export class TemplateThumbnailModal extends BaseModal {
       <label>Status</label>
       <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">
         ✓ Thumbnail generated in ${this.generationTime}s<br>
-        Model used: gpt-4.1<br>
+        Model used: ${this.escapeHtml(this.model || 'gpt-image-2')}<br>
         Platform: ${this.getPlatformLabel()}
       </p>
     `;
@@ -3478,8 +3492,29 @@ export class TemplateThumbnailModal extends BaseModal {
         return;
       }
     }
-    // Proceed to save
-    await this._goSave();
+
+    // Now actually save the (possibly composited) image.
+    this.setLoading('Saving thumbnail…');
+    try {
+      const result = await this.thumbnailService.saveToStorage({
+        imageB64: selected.b64_json,
+        promptUsed: selected.revised_prompt || this.brief,
+        presetKey: this.presetKey,
+        controls: { ...this.controls },
+      });
+      this.savedImageUrl = result?.imageUrl || '';
+      this.savedPromptUsed = selected.revised_prompt || this.brief;
+      this.completedAt = result?.job?.completedAt || new Date().toISOString();
+      this.revisedPrompt = selected.revised_prompt || '';
+      this.step = 'saved';
+      this.isGenerating = false;
+      this._refreshPanel();
+      this.enableApplyButton();
+    } catch (err) {
+      this.isGenerating = false;
+      this.setError(err instanceof Error ? err.message : 'Save failed');
+      this._refreshPanel();
+    }
   }
 
 
@@ -3495,15 +3530,18 @@ export class TemplateThumbnailModal extends BaseModal {
   }
 
   async _goGenerate() {
+    if (this._isGeneratingVideo) return;
+    this._isGeneratingVideo = true;
     const startTime = performance.now();
     try {
       if (this.videoThumbEnabled) {
         await this._generateVideoThumbnail();
+        this._updateKeyBadge(this.lastKeySource);
       } else {
         this.controls = {
           ...this.controls,
           size: this.customSize && this.customSize !== 'auto' ? this.customSize : (this.controls.size || undefined),
-          moderation: this.moderation,
+          moderation: this.controls.moderation,
         };
         this.partialImages = this.partialImages;
         this.streaming = this.streaming;
@@ -3516,9 +3554,10 @@ export class TemplateThumbnailModal extends BaseModal {
         this._updateKeyBadge(this.lastKeySource);
       }
      } finally {
+       this._isGeneratingVideo = false;
        this.generationTime = ((performance.now() - startTime) / 1000).toFixed(1);
        this._refreshView();
-     }
+    }
   }
 
   async _generateVideoThumbnail() {
@@ -3530,7 +3569,7 @@ export class TemplateThumbnailModal extends BaseModal {
     this._refreshView();
 
     try {
-      const frames = await this.thumbnailService.generateVideoThumbnail(promptText, {
+      const result = await this.thumbnailService.generateVideoThumbnail(promptText, {
         duration: this.videoDuration,
         frameCount: this.frameCount,
         platform: this.platform,
@@ -3538,20 +3577,41 @@ export class TemplateThumbnailModal extends BaseModal {
         quality: this.controls.quality,
         style: this.controls.style,
       });
-      this.videoFrames = frames || [];
+      this.lastKeySource = result.keySource || this.lastKeySource;
+
+      const rawFrames = result?.frames || [];
+      if (rawFrames.length === 0) {
+        throw new Error('No frames were generated. Please try again.');
+      }
+
+      const validFrames = rawFrames.filter((f) => f.b64_json && f.b64_json.trim().length > 0);
+      if (validFrames.length === 0) {
+        throw new Error('All frames failed to generate. Please try again or use a different prompt.');
+      }
+      if (validFrames.length < rawFrames.length) {
+        console.warn(`[thumbnail] ${rawFrames.length - validFrames.length} of ${rawFrames.length} frames failed; using ${validFrames.length} valid frames`);
+      }
+
+      const frames = validFrames.map((f) => ({
+        ...f,
+        dataUrl: f.dataUrl || (f.b64_json ? ThumbnailService.b64ToDataUrl(f.b64_json) : ''),
+      }));
+      this.videoFrames = frames;
       this.isVideoThumb = true;
 
-      // If saving as animated GIF, assemble the GIF from the generated frames.
-      if (this.asGif && this.videoFrames.length > 0) {
+      if (this.asGif && frames.length > 0) {
         this.setLoading('Assembling animated GIF…');
         this._refreshView();
         try {
           const { width, height } = this._getGifDimensions();
           this.gifWidth = width;
           this.gifHeight = height;
-          const frameDataUrls = this.videoFrames.map((f) =>
-            f.dataUrl || (f.b64_json ? ThumbnailService.b64ToDataUrl(f.b64_json) : '')
-          ).filter(Boolean);
+          const frameDataUrls = frames
+            .map((f) => this._normalizeFrameDataUrl(f.dataUrl, width, height))
+            .filter(Boolean);
+          if (frameDataUrls.length === 0) {
+            throw new Error('No valid frame data available for GIF assembly');
+          }
           this.gifDataUrl = encodeGif(frameDataUrls, width, height, this.gifDelayMs);
         } catch (gifErr) {
           console.error('[thumbnail] GIF assembly failed:', gifErr);
@@ -3586,6 +3646,44 @@ export class TemplateThumbnailModal extends BaseModal {
     return dims[aspect] || { width: 1024, height: 1024 };
   }
 
+  /**
+   * Normalize a frame data URL to the target dimensions by drawing it
+   * onto a canvas of the correct size. Returns a new data URL string,
+   * or the original input if normalization fails.
+   */
+  _normalizeFrameDataUrl(dataUrl, targetWidth, targetHeight) {
+    if (!dataUrl || !dataUrl.startsWith('data:image')) return dataUrl;
+    try {
+      const url = URL.createObjectURL(
+        ThumbnailService.b64ToBlob(
+          dataUrl.replace(/^data:image\/\w+;base64,/, ''),
+          'image/png'
+        )
+      );
+      let result = dataUrl;
+      const img = new Image();
+      img.src = url;
+      if (img.complete || img.readyState >= 2) {
+        if (img.naturalWidth === targetWidth && img.naturalHeight === targetHeight) {
+          URL.revokeObjectURL(url);
+          return dataUrl;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+          result = canvas.toDataURL('image/png');
+        }
+      }
+      URL.revokeObjectURL(url);
+      return result;
+    } catch {
+      return dataUrl;
+    }
+  }
+
   async _goSave() {
     this.clearError();
     const selected = this.candidates[this.selectedIndex];
@@ -3595,35 +3693,34 @@ export class TemplateThumbnailModal extends BaseModal {
       return;
     }
 
-    this.setLoading('Saving thumbnail…');
-    try {
-      const result = await this.thumbnailService.saveToStorage({
-        imageB64: selected.b64_json,
-        promptUsed: selected.revised_prompt || this.brief,
-        presetKey: this.presetKey,
-        controls: { ...this.controls },
-      });
-      this.savedImageUrl = result?.imageUrl || '';
-      this.savedPromptUsed = selected.revised_prompt || this.brief;
-      this.completedAt = result?.job?.completedAt || new Date().toISOString();
-      this.step = 'saved';
-      this.isGenerating = false;
-      this._refreshPanel();
-      this.enableApplyButton();
-    } catch (err) {
-      this.isGenerating = false;
-      this.setError(err instanceof Error ? err.message : 'Save failed');
-      this._refreshPanel();
-    }
+    // Route to text overlay step first, then actually save.
+    this.step = 'textoverlay';
+    this._refreshPanel();
   }
 
   async _saveVideoThumbnail() {
     this.clearError();
     this.setLoading('Saving thumbnail…');
+
+    if (this.videoFrames.length === 0) {
+      this.setError('No video frames to save. Generate frames first.');
+      this._refreshView();
+      return;
+    }
+
+    const validFrames = this.videoFrames.filter((f) => f.b64_json && f.b64_json.trim().length > 0);
+    if (validFrames.length === 0) {
+      this.setError('No valid frames available to save. Please regenerate.');
+      this._refreshView();
+      return;
+    }
+
     try {
-      if (this.asGif && this.gifDataUrl) {
-        // Save the assembled GIF — strip the data URL prefix to get the base64
+      if (this.asGif) {
         const gifB64 = this.gifDataUrl.split(',')[1] || '';
+        if (!gifB64) {
+          throw new Error('GIF data is empty. GIF assembly may have failed.');
+        }
         const result = await this.thumbnailService.saveToStorage({
           imageB64: gifB64,
           gifData: gifB64,
@@ -3633,8 +3730,10 @@ export class TemplateThumbnailModal extends BaseModal {
           controls: { ...this.controls, outputFormat: 'gif' },
         });
         this.savedImageUrl = result?.imageUrl || '';
+        this.savedPromptUsed = this.brief;
+        this.revisedPrompt = '';
       } else {
-        const frame = this.videoFrames[0];
+        const frame = validFrames[0];
         const result = await this.thumbnailService.saveToStorage({
           imageB64: frame.b64_json || frame.dataUrl,
           promptUsed: this.brief,
@@ -3642,11 +3741,14 @@ export class TemplateThumbnailModal extends BaseModal {
           controls: { ...this.controls },
         });
         this.savedImageUrl = result?.imageUrl || '';
+        this.savedPromptUsed = this.brief;
+        this.revisedPrompt = '';
       }
       this.step = 'saved';
       this.isGenerating = false;
       this._refreshView();
       this.enableApplyButton();
+      this._updateKeyBadge(this.lastKeySource);
     } catch (err) {
       this.isGenerating = false;
       this.setError(err instanceof Error ? err.message : 'Save failed');
@@ -3655,6 +3757,7 @@ export class TemplateThumbnailModal extends BaseModal {
   }
 
   _goClear() {
+    this.onClear();
     this.savedImageUrl = '';
     this.savedPromptUsed = '';
     this.completedAt = null;
@@ -3674,27 +3777,25 @@ export class TemplateThumbnailModal extends BaseModal {
       cancelBtn.addEventListener('click', () => this.close());
       footer.appendChild(cancelBtn);
 
-      // Only render the Generate Thumbnail button after the user has completed
-      // the prerequisite steps: selecting a design, drafting prompts, and
-      // confirming a variant. Until then, show a status message.
-      const canGenerate = this.variants.length > 0 && this.selectedVariantIndex >= 0;
-      if (canGenerate) {
+      // Use the shared _canGenerate() helper to determine if generation is ready
+      if (this._canGenerate()) {
         const generateBtn = document.createElement('button');
         generateBtn.className = 'thumb-action-btn thumb-action-primary';
-        generateBtn.textContent = 'Generate Thumbnail';
+        generateBtn.textContent = this.videoThumbEnabled ? 'Generate Video Thumbnail' : `Generate ${this.n} Thumbnail${this.n > 1 ? 's' : ''}`;
         generateBtn.addEventListener('click', () => this._goGenerate());
         footer.appendChild(generateBtn);
       } else {
+        // Show contextual status message based on what's missing
         const statusMsg = document.createElement('span');
         statusMsg.className = 'thumb-footer-status';
         statusMsg.style.fontSize = '12px';
         statusMsg.style.color = 'var(--text-secondary)';
         statusMsg.style.fontStyle = 'italic';
-        if (this.variants.length === 0) {
-          statusMsg.textContent = 'Draft prompts to continue →';
-        } else if (this.selectedVariantIndex < 0) {
-          statusMsg.textContent = 'Select a prompt variant';
-        }
+        
+        const missing = [];
+        if (!this.brief?.trim()) missing.push('Enter a thumbnail concept');
+        if (!this.videoThumbEnabled && this.selectedVariantIndex < 0) missing.push('Select a prompt variant');
+        statusMsg.textContent = missing.join(' and ') || 'Complete the steps above to continue';
         footer.appendChild(statusMsg);
       }
     } else if (this.step === 'generate') {
@@ -3760,6 +3861,12 @@ export class TemplateThumbnailModal extends BaseModal {
       applyBtn.addEventListener('click', () => this._applyTextOverlay());
       footer.appendChild(applyBtn);
     } else if (this.step === 'saved') {
+      const backBtn = document.createElement('button');
+      backBtn.className = 'thumb-action-btn thumb-action-secondary';
+      backBtn.textContent = '← Back';
+      backBtn.addEventListener('click', () => { this.step = 'generate'; this._refreshPanel(); });
+      footer.appendChild(backBtn);
+
       const clearBtn = document.createElement('button');
       clearBtn.className = 'thumb-action-btn thumb-action-danger';
       clearBtn.textContent = 'Remove Custom';
@@ -3769,7 +3876,7 @@ export class TemplateThumbnailModal extends BaseModal {
       const doneBtn = document.createElement('button');
       doneBtn.className = 'thumb-action-btn thumb-action-primary';
       doneBtn.textContent = 'Done';
-      doneBtn.addEventListener('click', () => this.close());
+      doneBtn.addEventListener('click', () => this.confirmApply());
       footer.appendChild(doneBtn);
     }
 
@@ -3853,6 +3960,9 @@ export class TemplateThumbnailModal extends BaseModal {
   }
 
   close() {
+    if (window._thumbModal === this) {
+      window._thumbModal = null;
+    }
     if (this._panel) {
       this._panelClose();
     } else if (typeof super.close === 'function') {
@@ -3872,6 +3982,9 @@ export class TemplateThumbnailModal extends BaseModal {
 }
 
 export function mountThumbnailModal(modal) {
+  if (window._thumbModal && typeof window._thumbModal.close === 'function') {
+    try { window._thumbModal.close(); } catch { /* ignore */ }
+  }
   window._thumbModal = modal;
 }
 

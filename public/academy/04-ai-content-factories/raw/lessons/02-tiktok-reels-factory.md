@@ -55,10 +55,10 @@ At the 15-second or 30-second mark, insert a sudden visual scale-up (e.g. zoom-i
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/fitness-reel-preview.jpg" alt="TikTok/Reels Fitness Video Model" width="240">
-<img src="templates/examples/fitness-reel-clip.gif" alt="Fitness Reel Video Animation (I2V)" width="240">
+<img src="../images/fitness-reel-preview.jpg" alt="TikTok/Reels Fitness Video Model" width="240">
+<img src="../gifs/fitness-reel-clip.gif" alt="Fitness Reel Video Animation (I2V)" width="240">
 </p>
-<p align="center"><sub>TikTok/Reels Model Image (Left) ──► Image-to-Video Motion Loop (Right) · Video File: <a href="templates/examples/fitness-reel-clip.mp4">templates/examples/fitness-reel-clip.mp4</a></sub></p>
+<p align="center"><sub>TikTok/Reels Model Image (Left) ──► Image-to-Video Motion Loop (Right) · Video File: <a href="../videos/fitness-reel-clip.mp4">../videos/fitness-reel-clip.mp4</a></sub></p>
 
 **Timeline Construction for "Peak Performance" (Fitness Niche)**
 

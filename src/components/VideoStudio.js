@@ -21,6 +21,10 @@ import { VIDEO_QUICK_PROMPTS } from '../lib/promptUtils.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
 import { categorizeGenerationError, createAbortAwareGenerate, startGenerationProgress, showInlineError, hideInlineError } from '../lib/studioHelpers.js';
 import { showToast, createLoadingOverlay, createProgressBar } from '../lib/loading.js';
+import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
+import ExampleGallery from './studios/ExampleGallery.js';
+import { getMinimaxTemplateById } from '../lib/minimaxTemplates.js';
+import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 
 export function VideoStudio() {
     const container = document.createElement('div');
@@ -70,6 +74,45 @@ export function VideoStudio() {
 
     // Guidance scale / CFG
     let guidanceScale = 7.5;
+
+    // Read gallery / deep-link params and apply them as studio defaults.
+    // This lets "Create This Style" from ExampleGallery pre-fill the studio.
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const templateParam = urlParams.get('template');
+      const academyParam = urlParams.get('academy-template');
+      const promptParam = urlParams.get('prompt');
+      const styleParam = urlParams.get('style');
+      const arParam = urlParams.get('aspect_ratio');
+      const durationParam = urlParams.get('duration');
+
+      if (templateParam) {
+        // MiniMax / template deep-link: resolve template and apply defaults.
+        const tpl = getMinimaxTemplateById(templateParam);
+        if (tpl) {
+          if (tpl.model) selectedModel = tpl.model;
+          if (tpl.aspectRatio) selectedAr = tpl.aspectRatio;
+          if (tpl.duration) selectedDuration = tpl.duration;
+          if (tpl.basePrompt) {
+            const textarea = document.getElementById('prompt-textarea');
+            if (textarea) textarea.value = tpl.basePrompt;
+          }
+        }
+      }
+
+      if (academyParam || promptParam) {
+        // Academy / direct-studio deep-link.
+        const target = academyParam ? getAcademyCreateTarget(academyParam) : null;
+        const params = target?.params || {};
+        if (params.prompt) {
+          const textarea = document.getElementById('prompt-textarea');
+          if (textarea) textarea.value = params.prompt;
+        }
+        if (params.style) selectedStyle = params.style;
+        if (params.aspect_ratio) selectedAr = params.aspect_ratio;
+        if (params.duration) selectedDuration = params.duration;
+      }
+    } catch { /* ignore */ }
 
     const getCurrentModels = () => v2vMode ? v2vModels : (imageMode ? i2vModels : t2vModels);
     const getCurrentAspectRatios = (id) => imageMode ? getAspectRatiosForI2VModel(id) : getAspectRatiosForVideoModel(id);
@@ -1817,6 +1860,12 @@ export function VideoStudio() {
             }
         }
     };
+
+    const galleryAssets = getAssetsForStudio('video');
+    if (galleryAssets.length > 0) {
+      const gallery = ExampleGallery({ studioId: 'video', assets: galleryAssets, maxCards: 20 });
+      container.appendChild(gallery);
+    }
 
     return container;
 }

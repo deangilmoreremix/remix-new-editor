@@ -82,7 +82,7 @@ After successfully delivering their first listing package, present the **Brokera
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/empty-to-staged-before-after.jpg" alt="Empty to Staged Real Estate Transformation" width="560">
+<img src="../images/empty-to-staged-before-after.jpg" alt="Empty to Staged Real Estate Transformation" width="560">
 </p>
 <p align="center"><sub>Vacant Property Photo vs. AI Virtual Staging Transformation (Before & After Split View)</sub></p>
 

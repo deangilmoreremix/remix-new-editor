@@ -63,11 +63,11 @@ Allow the test to run for at least 14 days to capture mid-week and weekend shopp
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/coffee-before-after.jpg" alt="Coffee Bag Before/After AI Redesign" width="480">
+<img src="../images/coffee-before-after.jpg" alt="Coffee Bag Before/After AI Redesign" width="480">
 <br>
-<img src="templates/examples/coffee-motion.gif" alt="Coffee Product Motion Loop (I2V)" width="360">
+<img src="../gifs/coffee-motion.gif" alt="Coffee Product Motion Loop (I2V)" width="360">
 </p>
-<p align="center"><sub>AI Product Image Redesign (Top) ──► Image-to-Video Steam Loop (Bottom) · Video File: <a href="templates/examples/coffee-motion.mp4">templates/examples/coffee-motion.mp4</a></sub></p>
+<p align="center"><sub>AI Product Image Redesign (Top) ──► Image-to-Video Steam Loop (Bottom) · Video File: <a href="../videos/coffee-motion.mp4">../videos/coffee-motion.mp4</a></sub></p>
 
 **Redesigning a High-End Specialty Coffee Bag Listing**
 

@@ -412,7 +412,7 @@ function securityHeaders() {
                   `style-src 'self' 'unsafe-inline'${clerkHostSrc}`,
                   `img-src 'self' data: https: blob:${clerkHostSrc}`,
                   `font-src 'self' data:${clerkHostSrc}`,
-                  "connect-src 'self' ws://localhost:3001 http://localhost:3001 ws://localhost:8000 http://localhost:8000 ws://localhost:8888 http://localhost:8888 https://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + " https://api.openai.com https://api.muapi.ai https://clerk.smartvid.app https://clerk-telemetry.com https://challenges.cloudflare.com" + clerkHostSrc,
+                  "connect-src 'self' ws://localhost:3001 http://localhost:3001 ws://localhost:8000 http://localhost:8000 ws://localhost:8888 http://localhost:8888 https://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + " https://api.openai.com https://api.muapi.ai https://clerk.smartvid.app https://clerk-telemetry.com https://challenges.cloudflare.com https://raw.githubusercontent.com" + clerkHostSrc,
                   `frame-src 'self'${clerkHostSrc} https://clerk.smartvid.app https://challenges.cloudflare.com`,
                   "media-src 'self' https: blob:",
                 ].join('; ');
@@ -850,7 +850,7 @@ function modelCatalogDevPlugin() {
           // by returning the requested pool wrapped in { models: [...] }.
           const url = new URL(req.url, 'http://localhost');
           const modelType = url.searchParams.get('modelType');
-          const VALID = ['t2i', 'i2i', 'i2v'];
+          const VALID = ['t2i', 'i2i', 'i2v', 't2v'];
           if (modelType && VALID.includes(modelType)) {
             res.setHeader('Content-Type', 'application/json');
             res.end(JSON.stringify({ models: data[modelType] || [] }));
@@ -900,8 +900,9 @@ function modelCatalogBuildPlugin() {
           t2i: unique(modelsMod.t2iModels || [], 't2i'),
           i2i: unique(modelsMod.i2iModels || [], 'i2i'),
           i2v: unique(modelsMod.i2vModels || [], 'i2v'),
+          t2v: unique(modelsMod.t2vModels || [], 't2v'),
         };
-        const total = catalog.t2i.length + catalog.i2i.length + catalog.i2v.length;
+        const total = catalog.t2i.length + catalog.i2i.length + catalog.i2v.length + catalog.t2v.length;
         this.emitFile({
           type: 'asset',
           fileName: 'api/model-catalog.json',
@@ -941,6 +942,8 @@ function svgMissingFallback() {
 export default defineConfig({
     define: {
         'process.browser': 'true',
+        'process.env': '{}',
+        'process.env.__NEXT_ROUTER_BASEPATH': '""',
     },
     resolve: {
         // Force a single React instance. @clerk/react is pre-bundled by
@@ -1132,6 +1135,16 @@ export default defineConfig({
                 target: 'http://localhost:3000',
                 changeOrigin: true,
                 ws: true,
+            },
+            '/proxy/video': {
+                target: 'https://video.twimg.com',
+                changeOrigin: true,
+                rewrite: (path) => path.replace(/^\/proxy\/video/, ''),
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Referer': 'https://x.com/',
+                    'Origin': 'https://x.com/',
+                },
             },
         },
     },

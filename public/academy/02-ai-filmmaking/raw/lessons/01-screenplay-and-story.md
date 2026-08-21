@@ -60,10 +60,10 @@ Create a style sheet with your prompt prefixes (lighting, film stock, aspect rat
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/astronaut-anchor.jpg" alt="Hero Portrait for The Last Signal: Astronaut in flight suit" width="320">
-<img src="templates/examples/astronaut-intro-clip.gif" alt="Hero Character Motion Clip (I2V)" width="320">
+<img src="../images/astronaut-anchor.jpg" alt="Hero Portrait for The Last Signal: Astronaut in flight suit" width="320">
+<img src="../gifs/astronaut-intro-clip.gif" alt="Hero Character Motion Clip (I2V)" width="320">
 </p>
-<p align="center"><sub>AI Hero Character Anchor Image (Left) ──► Image-to-Video Animation (Right) · Video File: <a href="templates/examples/astronaut-intro-clip.mp4">templates/examples/astronaut-intro-clip.mp4</a></sub></p>
+<p align="center"><sub>AI Hero Character Anchor Image (Left) ──► Image-to-Video Animation (Right) · Video File: <a href="../videos/astronaut-intro-clip.mp4">../videos/astronaut-intro-clip.mp4</a></sub></p>
 
 **Film Brief: "The Last Signal"**
 * **Character:** John (40s), a tired astronaut.

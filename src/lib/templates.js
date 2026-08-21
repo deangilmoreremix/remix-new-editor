@@ -1,5 +1,6 @@
 import { ALL_NICHE_TEMPLATES, RESTAURANT_TEMPLATES, MED_SPA_TEMPLATES, SALON_TEMPLATES, FITNESS_TEMPLATES, REAL_ESTATE_TEMPLATES, DENTAL_TEMPLATES, CHIROPRACTIC_TEMPLATES, LEGAL_TEMPLATES, AUTOMOTIVE_TEMPLATES, FASHION_TEMPLATES, EVENT_TEMPLATES, LUXURY_TEMPLATES } from './nicheTemplatesIndex.js';
 import { MATRIX_TEMPLATES } from './templateMatrix.js';
+import { getMinimaxTemplateById } from './minimaxTemplates.js';
 
 export const TEMPLATE_CATEGORIES = {
   SOCIAL: 'Social Media',
@@ -942,7 +943,9 @@ export const allTemplates = [...templates, ...ALL_NICHE_TEMPLATES, ...MATRIX_TEM
 
 export function getTemplateById(id) {
   const list = Array.isArray(allTemplates) ? allTemplates : [];
-  return list.find(t => t && t.id === id);
+  const found = list.find(t => t && t.id === id);
+  if (found) return found;
+  return getMinimaxTemplateById(id) || null;
 }
 
 export function getTemplatesByCategory(category) {

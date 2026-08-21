@@ -56,10 +56,10 @@ Read your finished draft script out loud. If you stumble on a sentence, or if it
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/faceless-anchor.jpg" alt="Faceless Channel Visual Anchor" width="240">
-<img src="templates/examples/faceless-niche-intro.gif" alt="Faceless Niche Video Loop (I2V)" width="240">
+<img src="../images/faceless-anchor.jpg" alt="Faceless Channel Visual Anchor" width="240">
+<img src="../gifs/faceless-niche-intro.gif" alt="Faceless Niche Video Loop (I2V)" width="240">
 </p>
-<p align="center"><sub>Faceless Channel Image (Left) ──► Image-to-Video Motion Loop (Right) · Video File: <a href="templates/examples/faceless-niche-intro.mp4">templates/examples/faceless-niche-intro.mp4</a></sub></p>
+<p align="center"><sub>Faceless Channel Image (Left) ──► Image-to-Video Motion Loop (Right) · Video File: <a href="../videos/faceless-niche-intro.mp4">../videos/faceless-niche-intro.mp4</a></sub></p>
 
 **Niche Evaluation & Script for "Automate Smarter" (SaaS Automation Niche)**
 

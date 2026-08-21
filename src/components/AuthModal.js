@@ -10,6 +10,7 @@ export function AuthModal(onSuccess) {
                 onSuccess();
             }
         });
+        overlay.setAttribute('data-auth-modal', '');
         document.body.appendChild(overlay);
     }).catch((err) => {
         console.error('[AuthModal] Failed to open settings modal:', err);

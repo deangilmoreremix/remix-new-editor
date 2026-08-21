@@ -44,6 +44,7 @@ const PATHS = {
   ),
   X: <path d="M18 6 6 18M6 6l12 12" />,
   ArrowRight: <path d="M5 12h14M13 6l6 6-6 6" />,
+  ExternalLink: <path d="M18 6l-6 6M6 6h12v12" />,
   Layers: <path d="M12 3 3 8l9 5 9-5-9-5Zm0 9-9-5v7l9 5 9-5v-7l-9 5Z" />,
   User: (
     <>
@@ -85,10 +86,16 @@ const PATHS = {
   ),
   Play: <path d="M6 4l14 8-14 8V4Z" />,
   ChevronRight: <path d="m9 6 6 6-6 6" />,
+  Search: <path d="M21 21l-4.3-4.3M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16Z" />,
   ClipboardList: (
     <>
       <rect x="6" y="4" width="12" height="17" rx="2" />
       <path d="M9 4V3h6v1M9 10h6M9 14h4" />
+    </>
+  ),
+  Bookmark: (
+    <>
+      <path d="M5 3h14v18l-7-5-7 5V3Z" />
     </>
   ),
 };

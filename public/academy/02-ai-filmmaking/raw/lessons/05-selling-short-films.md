@@ -61,10 +61,10 @@ Reach out to licensing representatives of vertical vertical-video networks. Pitc
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/the-last-signal-poster.jpg" alt="Licensing Poster" width="280">
-<img src="templates/examples/last-signal-assembly-clip.gif" alt="Pitch Trailer Motion (I2V)" width="280">
+<img src="../images/the-last-signal-poster.jpg" alt="Licensing Poster" width="280">
+<img src="../gifs/last-signal-assembly-clip.gif" alt="Pitch Trailer Motion (I2V)" width="280">
 </p>
-<p align="center"><sub>Licensing Pitch Art (Left) ──► Image-to-Video Film Trailer Motion (Right) · Video File: <a href="templates/examples/last-signal-assembly-clip.mp4">templates/examples/last-signal-assembly-clip.mp4</a></sub></p>
+<p align="center"><sub>Licensing Pitch Art (Left) ──► Image-to-Video Film Trailer Motion (Right) · Video File: <a href="../videos/last-signal-assembly-clip.mp4">../videos/last-signal-assembly-clip.mp4</a></sub></p>
 
 **Licensing "The Last Signal" Series to a Mobile App**
 

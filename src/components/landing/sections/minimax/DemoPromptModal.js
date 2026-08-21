@@ -10,7 +10,7 @@
 import {
   MINIMAX_MODEL,
   formatDuration,
-  loadDemoPrompt,
+  loadDemoPrompt as loadMiniMaxDemoPrompt,
 } from '../../../../data/minimaxH3Demos.js';
 import { createStyleLink, escapeHtml, injectMinimaxStyles } from './ui.js';
 
@@ -54,12 +54,18 @@ function metaCell(label, value) {
  * Opens the prompt modal for a demo.
  * @param {object} demo         manifest entry
  * @param {HTMLElement} trigger element that opened it (focus returns here)
+ * @param {object} [options]
+ * @param {function(string): Promise<string>} [options.loadPrompt]
+ * @param {string} [options.model]
  */
-export function openDemoPromptModal(demo, trigger) {
+export function openDemoPromptModal(demo, trigger, options = {}) {
   injectMinimaxStyles();
 
   // Only one modal at a time.
   if (activeModal) activeModal.close(true);
+
+  const loadPrompt = options.loadPrompt || loadMiniMaxDemoPrompt;
+  const model = options.model || MINIMAX_MODEL;
 
   const titleId = `mmx-prompt-title-${demo.slug}`;
   const descId = `mmx-prompt-desc-${demo.slug}`;
@@ -103,7 +109,7 @@ export function openDemoPromptModal(demo, trigger) {
       </header>
 
       <dl class="grid shrink-0 grid-cols-2 gap-4 border-b border-white/8 px-5 py-4 sm:grid-cols-4 sm:px-7">
-        ${metaCell('Model', MINIMAX_MODEL)}
+        ${metaCell('Model', model)}
         ${metaCell('Duration', formatDuration(demo))}
         ${metaCell('Aspect ratio', demo.aspectRatio || '—')}
         ${metaCell('Category', demo.category)}
@@ -158,7 +164,7 @@ export function openDemoPromptModal(demo, trigger) {
 
   /* ------------------------------------------------------------- prompt load */
 
-  loadDemoPrompt(demo.slug)
+  loadPrompt(demo.slug)
     .then((text) => {
       promptText = text || '';
       if (!promptText) {
@@ -287,6 +293,6 @@ export function openDemoPromptModal(demo, trigger) {
 }
 
 /** Convenience handler passed straight to createViewPromptButton. */
-export function handleViewPrompt(demo, trigger) {
-  openDemoPromptModal(demo, trigger);
+export function handleViewPrompt(demo, trigger, options = {}) {
+  openDemoPromptModal(demo, trigger, options);
 }

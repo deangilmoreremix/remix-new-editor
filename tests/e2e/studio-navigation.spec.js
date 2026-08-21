@@ -47,3 +47,27 @@ test.describe('Studio navigation chrome', () => {
     });
   }
 });
+
+// Publish-to-Social placement rules (see plans/publish-to-social-placement-plan.md):
+//  - The button must NOT live in shared chrome (topbar), because chrome is mounted
+//    on every studio surface — including landing/nav pages that don't generate media.
+//  - The button also must NOT exist before media is generated (result area starts hidden).
+// These assertions are deterministic and require no live generation.
+test.describe('Publish-to-Social button is not in chrome', () => {
+  for (const route of STUDIO_ROUTES) {
+    test(`studio "${route}" has no publish-to-social button in the chrome topbar`, async ({ page }) => {
+      await page.goto(`/#/${route}`);
+      await page.waitForTimeout(800);
+
+      // The old chrome-injected button exposed this data attribute; it must be gone.
+      const chromePublishBtn = page.locator('[data-studio-social-publish]');
+      await expect(chromePublishBtn).toHaveCount(0);
+
+      // The shared topbar (nav only) must not carry a "Publish to Social" action.
+      const topbar = page.locator('.studio-topbar');
+      await expect(topbar).toHaveCount(1);
+      const topbarPublish = topbar.getByRole('button', { name: /publish to social/i });
+      await expect(topbarPublish).toHaveCount(0);
+    });
+  }
+});

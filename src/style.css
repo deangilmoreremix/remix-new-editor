@@ -1,6 +1,7 @@
 @import './styles/variables.css';
 @import './styles/global.css';
 @import './styles/studio.css';
+@import './styles/example-gallery.css';
 
 @import './styles/gtm-prompt-modal.css';
 #app {

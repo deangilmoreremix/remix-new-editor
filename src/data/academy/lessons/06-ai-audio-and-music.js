@@ -126,6 +126,8 @@ export const LESSONS_06 = [
     relatedAssetIds: [
       '06-ai-audio-and-music::podcast-audio-console',
       '06-ai-audio-and-music::podcast-console-clip',
+      '06-ai-audio-and-music::rachel-vocal-cloned',
+      '06-ai-audio-and-music::rachel-vocal-dubbed',
     ],
   },
   {

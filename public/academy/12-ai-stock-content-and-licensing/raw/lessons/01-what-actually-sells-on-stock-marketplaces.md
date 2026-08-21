@@ -65,10 +65,10 @@ Use an IPTC editor (ExifTool or stock tagger) to embed 30+ targeted commercial k
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/corporate-handshake-stock.jpg" alt="Corporate Handshake Commercial Stock Photo" width="480">
-<img src="templates/examples/stock-catalog-motion.gif" alt="Stock Catalog Video Motion (I2V)" width="480">
+<img src="../images/corporate-handshake-stock.jpg" alt="Corporate Handshake Commercial Stock Photo" width="480">
+<img src="../gifs/stock-catalog-motion.gif" alt="Stock Catalog Video Motion (I2V)" width="480">
 </p>
-<p align="center"><sub>Commercial Stock Photograph (Left) ──► Image-to-Video Stock Motion Clip (Right) · Video File: <a href="templates/examples/stock-catalog-motion.mp4">templates/examples/stock-catalog-motion.mp4</a></sub></p>
+<p align="center"><sub>Commercial Stock Photograph (Left) ──► Image-to-Video Stock Motion Clip (Right) · Video File: <a href="../videos/stock-catalog-motion.mp4">../videos/stock-catalog-motion.mp4</a></sub></p>
 
 **Stock Asset Performance Analysis for "Corporate Handshake Concept"**
 

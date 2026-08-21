@@ -58,10 +58,10 @@ Export the completed lookbook files as high-quality WebP.
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/fashion-lookbook-model.jpg" alt="Editorial Fashion Lookbook Model" width="240">
-<img src="templates/examples/fashion-lookbook-loop.gif" alt="Lookbook Motion Loop (I2V)" width="240">
+<img src="../images/fashion-lookbook-model.jpg" alt="Editorial Fashion Lookbook Model" width="240">
+<img src="../gifs/fashion-lookbook-loop.gif" alt="Lookbook Motion Loop (I2V)" width="240">
 </p>
-<p align="center"><sub>Editorial Studio Lookbook Image (Left) ──► Image-to-Video Camera Motion (Right) · Video File: <a href="templates/examples/fashion-lookbook-loop.mp4">templates/examples/fashion-lookbook-loop.mp4</a></sub></p>
+<p align="center"><sub>Editorial Studio Lookbook Image (Left) ──► Image-to-Video Camera Motion (Right) · Video File: <a href="../videos/fashion-lookbook-loop.mp4">../videos/fashion-lookbook-loop.mp4</a></sub></p>
 
 **Cashmere Collection Lookbook (Nordic Autumn Theme)**
 
@@ -79,7 +79,7 @@ Export the completed lookbook files as high-quality WebP.
 **The Result:** The brand received a 10-page editorial lookbook ready for print and web launch, looking exactly like a premium studio shoot.
 
 > [!NOTE]
-> You can view a high-end studio lookbook model photography example here: [fashion-lookbook-model.jpg](templates/examples/fashion-lookbook-model.jpg) and its corresponding silent animation loop here: [fashion-lookbook-loop.gif](templates/examples/fashion-lookbook-loop.gif).
+> You can view a high-end studio lookbook model photography example here: [fashion-lookbook-model.jpg](../images/fashion-lookbook-model.jpg) and its corresponding silent animation loop here: [fashion-lookbook-loop.gif](../gifs/fashion-lookbook-loop.gif).
 
 ---
 

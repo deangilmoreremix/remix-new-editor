@@ -119,7 +119,7 @@ export const LESSONS_10 = [
       'Hard: run a batch generating 5 headshots with a unified studio background.',
     ],
     relatedTemplateIds: [],
-    relatedAssetIds: [],
+    relatedAssetIds: ['10-ai-headshots-and-portraits::creative-studio-headshot-motion', '10-ai-headshots-and-portraits::headshot-transformation-motion'],
   },
   {
     id: '10-ai-headshots-and-portraits::04-creative-headshots-and-stylized-portraits',

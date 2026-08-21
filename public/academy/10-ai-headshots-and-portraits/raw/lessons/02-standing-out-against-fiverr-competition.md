@@ -100,7 +100,7 @@ Deliver completed team headshots organized by employee name folders containing:
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/headshot-transformation-before-after.jpg" alt="Casual Selfie vs AI Corporate Headshot Comparison" width="480">
+<img src="../images/headshot-transformation-before-after.jpg" alt="Casual Selfie vs AI Corporate Headshot Comparison" width="480">
 </p>
 <p align="center"><sub>Casual Smartphone Selfie (Left) ──► Studio-Grade AI Corporate Executive Headshot (Right)</sub></p>
 

@@ -125,7 +125,7 @@ export const LESSONS_13 = [
       'Hard: produce a full audio mix (voiceover + music + subtitles) for a 60s video ad.',
     ],
     relatedTemplateIds: [],
-    relatedAssetIds: [],
+    relatedAssetIds: ['13-ai-tools-mastery::camera-motion-matrix-motion'],
   },
   {
     id: '13-ai-tools-mastery::04-api-vs-local-decision-framework',
@@ -168,6 +168,6 @@ export const LESSONS_13 = [
       'Hard: build a hybrid plan combining Cloud API mobile submission with Local GPU batch processing.',
     ],
     relatedTemplateIds: [],
-    relatedAssetIds: [],
+    relatedAssetIds: ['13-ai-tools-mastery::model-benchmark-comparison'],
   },
 ];

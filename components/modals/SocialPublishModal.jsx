@@ -500,6 +500,10 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
   const [status, setStatus] = useState('idle'); // idle | connecting | publishing | success | error
   const [progress, setProgress] = useState('');
   const [selectedModel, setSelectedModel] = useState(() => openaiConfig?.getResponsesModel?.() || 'gpt-4.1-mini');
+<<<<<<< HEAD
+  const [lastResponseIds, setLastResponseIds] = useState({}); // field -> responseId
+=======
+>>>>>>> temp-deploy
   const [errorMsg, setErrorMsg] = useState(null);
   const [resultUrl, setResultUrl] = useState('');
 
@@ -567,15 +571,62 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
     try {
       const { url } = await socialPublishing.getConnectUrl(platform, externalUserId, redirectTo);
       const popup = window.open(url, 'muapi_oauth', 'width=600,height=720');
-      if (!popup) window.open(url, '_blank'); // fallback if blocked
+      const fallbackTab = !popup ? window.open(url, '_blank') : null;
+
+<<<<<<< HEAD
+      const onFocus = async () => {
+        try {
+          await refreshAccounts();
+        } catch {
+          /* ignore transient errors while refreshing */
+        }
+      };
+
+      const stop = () => {
+        if (popupTimer.current) {
+          clearInterval(popupTimer.current);
+          popupTimer.current = null;
+        }
+        window.removeEventListener('focus', onFocus);
+        setStatus('idle');
+        setConnectingPlatform(null);
+      };
 
       if (popup) {
+        window.addEventListener('focus', onFocus);
+=======
+      if (popup) {
+>>>>>>> temp-deploy
         popupTimer.current = setInterval(async () => {
           try {
             await refreshAccounts();
           } catch {
             /* ignore transient errors while polling */
           }
+<<<<<<< HEAD
+          if (popup.closed) {
+            await refreshAccounts();
+            stop();
+          }
+        }, 2500);
+      } else if (fallbackTab) {
+        // Popup was blocked: poll on a timer and refresh when the user returns
+        // to the app tab so the new connected account appears without a manual
+        // refresh.
+        window.addEventListener('focus', onFocus);
+        popupTimer.current = setInterval(async () => {
+          try {
+            await refreshAccounts();
+          } catch {
+            /* ignore transient errors while polling */
+          }
+        }, 2500);
+      } else {
+        // Both popup and fallback failed (e.g. browser blocked both).
+        setErrorMsg('Could not open the connection page. Please allow popups and try again.');
+        setStatus('idle');
+        setConnectingPlatform(null);
+=======
           if (!popup || popup.closed) {
             clearInterval(popupTimer.current);
             popupTimer.current = null;
@@ -586,6 +637,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
             setConnectingPlatform(null);
           }
         }, 2500);
+>>>>>>> temp-deploy
       }
     } catch (e) {
       setErrorMsg(e.message || 'Could not start connection.');
@@ -646,7 +698,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
     setEnhancing(field);
     setErrorMsg(null);
     try {
-      const improved = await enhanceSocialPostText({
+      const { text: improved, responseId } = await enhanceSocialPostText({
         text: value,
         field,
         platform: platformOfSelected || 'social',
@@ -654,6 +706,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
         model: selectedModel,
       });
       updateForm(field, improved);
+      if (responseId) setLastResponseIds((prev) => ({ ...prev, [field]: responseId }));
       setDraftSaved(false);
     } catch (e) {
       setErrorMsg(e.message || 'Could not enhance text.');
@@ -674,15 +727,20 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
     setEnhancing(field);
     setErrorMsg(null);
     try {
-      const improved = await enhanceSocialPostText({
+      const { text: improved, responseId } = await enhanceSocialPostText({
         text: value,
         field,
         platform: platformOfSelected || 'social',
         tone: toneId ? TONALITIES.find((t) => t.id === toneId) : null,
         model: selectedModel,
+<<<<<<< HEAD
+        previousResponseId: lastResponseIds[field] || undefined,
+=======
+>>>>>>> temp-deploy
         goal,
       });
       updateForm(field, improved);
+      if (responseId) setLastResponseIds((prev) => ({ ...prev, [field]: responseId }));
       setDraftSaved(false);
     } catch (e) {
       setErrorMsg(e.message || 'Could not enhance text.');
@@ -796,10 +854,13 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
       setErrorMsg(`${PLATFORM_BY_ID[platform]?.label || platform} requires a title.`);
       return;
     }
+<<<<<<< HEAD
+=======
     if (platform === 'instagram' && !form.thumbnail?.imageUrl) {
       setErrorMsg('Add a thumbnail to make your post pop (your media preview still works without one).');
       return;
     }
+>>>>>>> temp-deploy
 
     setStatus('publishing');
     setErrorMsg(null);

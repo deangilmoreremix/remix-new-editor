@@ -1,0 +1,169 @@
+- generic [ref=e2] [box=0,0,1280,720]:
+  - banner [ref=e3] [box=0,0,1280,56]:
+    - generic [ref=e4] [box=0,0,1280,56]:
+      - generic [ref=e5] [box=24,12,1406,32]:
+        - generic [ref=e6] [cursor=pointer] [box=24,12,32,32]
+        - navigation [ref=e12] [box=80,18,1350,20]:
+          - generic [ref=e13] [cursor=pointer] [box=80,18,49,20]: Explore
+          - generic [ref=e14] [cursor=pointer] [box=149,18,40,20]: Image
+          - generic [ref=e15] [cursor=pointer] [box=208,18,37,20]: Video
+          - generic [ref=e16] [cursor=pointer] [box=266,18,34,20]: Tools
+          - generic [ref=e17] [cursor=pointer] [box=320,18,73,20]: Storyboard
+          - generic [ref=e18] [cursor=pointer] [box=413,18,25,20]: Edit
+          - generic [ref=e19] [cursor=pointer] [box=458,18,65,20]: Character
+          - generic [ref=e20] [cursor=pointer] [box=543,18,77,20]: Vibe Motion
+          - generic [ref=e21] [cursor=pointer] [box=640,18,94,20]: Cinema Studio
+          - generic [ref=e22] [cursor=pointer] [box=754,18,157,20]: Cinema Template Studio
+          - generic [ref=e23] [cursor=pointer] [box=931,18,83,20]: AI Influencer
+          - generic [ref=e24] [cursor=pointer] [box=1034,18,33,20]: Apps
+          - generic [ref=e25] [cursor=pointer] [box=1087,18,67,20]: Templates
+          - generic [ref=e26] [cursor=pointer] [box=1174,18,40,20]: Assist
+          - generic [ref=e27] [cursor=pointer] [box=1234,18,74,20]: Community
+          - generic [ref=e28] [cursor=pointer] [box=1328,18,101,20]: Content Library
+      - generic [ref=e29] [box=1430,0,99,56]:
+        - button "Update API Key" [ref=e30] [box=1430,11,34,34]
+        - link "Sign In" [ref=e230] [cursor=pointer] [box=1476,0,53,56]:
+          - /url: /signin
+  - generic [ref=e33] [box=0,56,1280,2072]:
+    - complementary [ref=e34] [box=0,56,1,2072]:
+      - generic [box=0,72,0,1981]:
+        - generic [ref=e36] [cursor=pointer] [box=-8,80,16,56]:
+          - button [ref=e37] [box=-20,80,40,40]
+          - generic [ref=e43] [box=-14,122,27,14]: Apps
+        - generic [ref=e44] [cursor=pointer] [box=-8,144,16,56]:
+          - button [ref=e45] [box=-20,144,40,40]
+          - generic [ref=e50] [box=-16,186,33,14]: Image
+        - generic [ref=e51] [cursor=pointer] [box=-8,207,16,56]:
+          - button [ref=e52] [box=-20,207,40,40]
+          - generic [ref=e56] [box=-16,249,32,14]: Video
+        - generic [ref=e57] [cursor=pointer] [box=-8,271,16,69]:
+          - button [ref=e58] [box=-20,271,40,40]
+          - generic [ref=e61] [box=-20,313,41,27]: Cinema Studio
+        - generic [ref=e62] [cursor=pointer] [box=-8,348,16,83]:
+          - button [ref=e63] [box=-20,348,40,40]
+          - generic [ref=e66] [box=-27,390,54,41]: Cinema Template Studio
+        - generic [ref=e67] [cursor=pointer] [box=-8,438,16,56]:
+          - button [ref=e68] [box=-20,438,40,40]
+          - generic [ref=e76] [box=-35,480,70,14]: Storyboard
+        - generic [ref=e77] [cursor=pointer] [box=-8,502,16,56]:
+          - button [ref=e78] [box=-20,502,40,40]
+          - generic [ref=e81] [box=-22,544,45,14]: Effects
+        - generic [ref=e82] [cursor=pointer] [box=-8,565,16,56]:
+          - button [ref=e83] [box=-20,565,40,40]
+          - generic [ref=e87] [box=-12,607,24,14]: Edit
+        - generic [ref=e88] [cursor=pointer] [box=-8,629,16,56]:
+          - button [ref=e89] [box=-20,629,40,40]
+          - generic [ref=e95] [box=-24,671,47,14]: Upscale
+        - generic [ref=e96] [cursor=pointer] [box=-8,692,16,56]:
+          - button [ref=e97] [box=-20,692,40,40]
+          - generic [ref=e102] [box=-17,734,33,14]: Audio
+        - generic [ref=e103] [cursor=pointer] [box=-8,756,16,56]:
+          - button [ref=e104] [box=-20,756,40,40]
+          - generic [ref=e109] [box=-20,798,40,14]: Avatar
+        - generic [ref=e110] [cursor=pointer] [box=-8,819,16,56]:
+          - button [ref=e111] [box=-20,819,40,40]
+          - generic [ref=e116] [box=-25,861,50,14]: Training
+        - generic [ref=e117] [cursor=pointer] [box=-8,883,16,83]:
+          - button [ref=e118] [box=-20,883,40,40]
+          - generic [ref=e122] [box=-25,925,51,41]: Smart Video Academy
+        - generic [ref=e123] [cursor=pointer] [box=-8,973,16,69]:
+          - button [ref=e124] [box=-20,973,40,40]
+          - generic [ref=e128] [box=-17,1015,34,27]: Video Tools
+        - generic [ref=e129] [cursor=pointer] [box=-8,1050,16,56]:
+          - button [ref=e130] [box=-20,1050,40,40]
+          - generic [ref=e133] [box=-21,1092,41,14]: Render
+        - generic [ref=e134] [cursor=pointer] [box=-8,1114,16,69]:
+          - button [ref=e135] [box=-20,1114,40,40]
+          - generic [ref=e140] [box=-17,1156,35,27]: Video Agent
+        - generic [ref=e141] [cursor=pointer] [box=-8,1191,16,56]:
+          - button [ref=e142] [box=-20,1191,40,40]
+          - generic [ref=e146] [box=-26,1233,52,14]: Director
+        - generic [ref=e147] [cursor=pointer] [box=-8,1254,16,56]:
+          - button [ref=e148] [box=-20,1254,40,40]
+          - generic [ref=e154] [box=-24,1296,48,14]: Timeline
+        - generic [ref=e155] [cursor=pointer] [box=-8,1318,16,56]:
+          - button [ref=e156] [box=-20,1318,40,40]
+          - generic [ref=e159] [box=-14,1360,28,14]: Chat
+        - generic [ref=e160] [cursor=pointer] [box=-8,1381,16,56]:
+          - button [ref=e161] [box=-20,1381,40,40]
+          - generic [ref=e165] [box=-35,1423,70,14]: Commercial
+        - generic [ref=e166] [cursor=pointer] [box=-8,1445,16,56]:
+          - button [ref=e167] [box=-20,1445,40,40]
+          - generic [ref=e170] [box=-30,1487,60,14]: Templates
+        - generic [ref=e171] [cursor=pointer] [box=-8,1508,16,56]:
+          - button [ref=e172] [box=-20,1508,40,40]
+          - generic [ref=e176] [box=-23,1550,47,14]: Explore
+        - generic [ref=e177] [cursor=pointer] [box=-8,1572,16,56]:
+          - button [ref=e178] [box=-20,1572,40,40]
+          - generic [ref=e182] [box=-22,1614,44,14]: Library
+        - generic [ref=e183] [cursor=pointer] [box=-8,1635,16,56]:
+          - button [ref=e184] [box=-20,1635,40,40]
+          - generic [ref=e187] [box=-25,1677,49,14]: Content
+        - generic [ref=e188] [cursor=pointer] [box=-8,1699,16,56]:
+          - button [ref=e189] [box=-20,1699,40,40]
+          - generic [ref=e195] [box=-32,1741,65,14]: Community
+        - generic [ref=e196] [cursor=pointer] [box=-8,1762,16,56]:
+          - button [ref=e197] [box=-20,1762,40,40]
+          - generic [ref=e202] [box=-19,1804,37,14]: Assist
+        - generic [ref=e203] [cursor=pointer] [box=-8,1826,16,69]:
+          - button [ref=e204] [box=-20,1826,40,40]
+          - generic [ref=e208] [box=-25,1868,49,27]: Commits (0)
+        - generic [ref=e209] [cursor=pointer] [box=-8,1903,16,69]:
+          - button [ref=e210] [box=-20,1903,40,40]
+          - generic [ref=e214] [box=-10,1945,20,27]: AI VFX
+        - generic [ref=e215] [cursor=pointer] [box=-8,1980,16,69]:
+          - button [ref=e216] [box=-20,1980,40,40]
+          - generic [ref=e220] [box=-18,2022,35,27]: Stock Media
+      - generic [ref=e222] [cursor=pointer] [box=-8,2053,16,56]:
+        - button [ref=e223] [box=-20,2053,40,40]
+        - generic [ref=e227] [box=-26,2095,51,14]: Settings
+    - main [ref=e228] [box=1,56,1280,2072]:
+      - generic [ref=e231] [box=1,56,1280,2072]:
+        - generic [ref=e232] [box=506,80,271,61]:
+          - button "All studios" [ref=e233] [box=522,92,36,36]
+          - button "Back" [ref=e239] [box=566,92,36,36]
+          - button "Publish to Social" [ref=e242] [box=618,96,143,28]
+        - generic [ref=e247] [box=25,141,1232,176]:
+          - img "video studio" [ref=e248] [box=25,141,1232,176]
+          - generic [ref=e250] [box=25,197,1232,120]:
+            - heading "Video Studio" [level=1] [ref=e251] [box=49,221,1184,48]
+            - paragraph [ref=e252] [box=49,273,1184,20]: Animate images into stunning AI videos with motion effects
+        - generic [ref=e254] [box=25,345,1232,201]:
+          - generic [ref=e255] [box=46,366,1190,46]:
+            - button "Reference media" [ref=e256] [box=54,372,40,40]
+            - button "Browse stock photos for i2v reference" [ref=e261] [box=114,366,40,40]
+            - button "Use last frame of a video as I2V source" [ref=e265] [box=174,372,40,40]
+            - button "Upload video to remove watermark" [ref=e271] [box=234,372,40,40]
+            - button "Browse stock videos for v2v input" [ref=e276] [box=294,366,40,40]
+            - textbox "Video prompt" [ref=e280] [box=394,366,694,43]:
+              - /placeholder: Describe the video you want to create
+            - button "GTM Boost prompt enhancer" [ref=e281] [cursor=pointer] [box=1108,366,120,40]: 🎯 GTM Boost
+          - generic [ref=e282] [box=46,432,1190,93]:
+            - generic [ref=e283] [box=54,466,1018,42]
+            - button "Generate video" [ref=e335] [box=1088,449,140,76]: Generate ✨ Generate AI video from prompt
+        - generic [ref=e336] [box=25,578,1232,198]:
+          - generic [ref=e337] [box=25,578,1232,170]:
+            - generic [ref=e338] [box=25,578,610,88]
+            - generic [ref=e344] [box=647,578,610,88]
+            - generic [ref=e350] [box=25,678,610,70]
+            - generic [ref=e356] [box=647,678,610,70]
+          - generic [ref=e362] [box=25,760,1232,17]:
+            - button "Quick Tips" [ref=e363] [box=25,760,79,17]
+            - generic [ref=e367] [box=25,784,1232,66]
+        - generic [ref=e377] [box=1280,0,96,720]: History
+        - status [box=33,148,1216,1968]:
+          - generic [box=498,1018,287,170]:
+            - generic [box=498,1173,287,14]
+          - generic [box=387,1210,508,36]:
+            - button "↻ Regenerate" [box=387,1210,126,36]
+            - button "↓ Download" [box=524,1210,115,36]
+            - button "🎬 Open in Render" [box=650,1210,150,36]
+            - button "+ New" [box=812,1210,83,36]
+        - generic [ref=e379] [box=25,808,1232,378]:
+          - generic [ref=e380] [box=25,808,1232,33]:
+            - generic [ref=e381] [box=29,808,311,33]
+            - generic [ref=e384] [box=1180,829,73,12]: 14 examples
+          - generic [ref=e385] [box=25,857,1232,330]:
+            - button "Scroll left" [ref=e386] [cursor=pointer] [box=21,1004,36,36]: ‹
+            - button "Scroll right" [ref=e387] [cursor=pointer] [box=1225,1004,36,36]: ›
+            - generic [ref=e388] [box=25,857,1232,330]

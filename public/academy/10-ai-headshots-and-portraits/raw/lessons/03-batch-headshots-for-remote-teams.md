@@ -58,7 +58,7 @@ Generate employee subfolders containing `[FullName]_linkedin.jpg` (1080x1080px) 
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/corporate-executive-headshot.jpg" alt="Batch Processed Corporate Headshot" width="320">
+<img src="../images/corporate-executive-headshot.jpg" alt="Batch Processed Corporate Headshot" width="320">
 </p>
 <p align="center"><sub>Batch Processed Corporate Team Asset (Unified Brand Background & Studio Lighting)</sub></p>
 

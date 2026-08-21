@@ -59,10 +59,10 @@ Upload the finished files to the client's shared folder. Send a notification: *"
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/avatar-agency-suite.jpg" alt="Agency Suite" width="280">
-<img src="templates/examples/avatar-agency-suite-clip.gif" alt="3D Avatar Agency Motion (I2V)" width="280">
+<img src="../images/avatar-agency-suite.jpg" alt="Agency Suite" width="280">
+<img src="../gifs/avatar-agency-suite-clip.gif" alt="3D Avatar Agency Motion (I2V)" width="280">
 </p>
-<p align="center"><sub>Agency Suite Image (Left) ──► Image-to-Video 3D Avatar Motion (Right) · Video File: <a href="templates/examples/avatar-agency-suite-clip.mp4">templates/examples/avatar-agency-suite-clip.mp4</a></sub></p>
+<p align="center"><sub>Agency Suite Image (Left) ──► Image-to-Video 3D Avatar Motion (Right) · Video File: <a href="../videos/avatar-agency-suite-clip.mp4">../videos/avatar-agency-suite-clip.mp4</a></sub></p>
 
 **Virtual Spokesperson Campaign for "HireFast" (Recruiting SaaS)**
 

@@ -13,7 +13,6 @@ import { clerkErrorMessage, clerkWithTimeout, handleNavClick } from './AuthLayou
 export function SignInPage() {
   const { signIn, errors, fetchStatus } = useSignIn();
   const { isSignedIn, isLoaded: userLoaded, user } = useUser();
-  const clerk = useClerk();
   const isLoaded = signIn !== undefined;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

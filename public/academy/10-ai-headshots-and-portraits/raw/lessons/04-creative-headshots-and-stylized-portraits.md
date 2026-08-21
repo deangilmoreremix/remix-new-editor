@@ -54,7 +54,7 @@ Apply a subtle color balance filter (cinematic teal & orange or warm amber midto
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/creative-studio-headshot.jpg" alt="Creative Studio Tech Founder Portrait" width="480">
+<img src="../images/creative-studio-headshot.jpg" alt="Creative Studio Tech Founder Portrait" width="480">
 </p>
 <p align="center"><sub>Creative Studio Tech Founder Portrait (Warm Bokeh & Soft Studio Butterfly Lighting)</sub></p>
 

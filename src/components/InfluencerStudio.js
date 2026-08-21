@@ -10,6 +10,9 @@ import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { mountModelSelector } from '../lib/modelSelectorUI.js';
 import { i2iModels } from '../lib/models.js';
 import { createSafeImage } from '../lib/security.js';
+import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
+import ExampleGallery from './studios/ExampleGallery.js';
+import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 
 const STYLE_PRESETS = [
   'Realistic', 'DigitalCam', 'Quiet luxury', 'FashionShow', '90s Grain', 'Sunset beach',
@@ -324,9 +327,9 @@ export function InfluencerStudio() {
   );
 
   let activeTab = 'face';
-  let isGenerating = false;
+  const isGenerating = false;
   let currentResult = null;
-  let selectedHistoryIdx = null;
+  const selectedHistoryIdx = null;
   let showAllTags = false;
 
   const TAGS_VISIBLE = 7;
@@ -1052,5 +1055,11 @@ export function InfluencerStudio() {
     }
   };
 
-  return container;
+    const galleryAssets = getAssetsForStudio('influencer');
+    if (galleryAssets.length > 0) {
+      const gallery = ExampleGallery({ studioId: 'influencer', assets: galleryAssets, maxCards: 20 });
+      container.appendChild(gallery);
+    }
+
+    return container;
 }

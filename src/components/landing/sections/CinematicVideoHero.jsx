@@ -12,7 +12,7 @@ import { requireDemo } from '../../../data/minimaxH3Demos.js';
 import { createMediaFrame, cleanupFrames, prefersReducedMotion } from './minimax/mediaFrame.js';
 import { injectMinimaxStyles, goToRoute } from './minimax/ui.js';
 
-const HERO_SLUG = 'kintsugi-sword-seamless-loop';
+const HERO_SLUG = 'nighttime-motorcycle-chase-synced-to-music';
 
 export function CinematicVideoHero() {
   injectMinimaxStyles();

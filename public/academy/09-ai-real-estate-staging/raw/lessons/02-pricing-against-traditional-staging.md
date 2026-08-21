@@ -77,10 +77,10 @@ Create a 1-page visual PDF comparison sheet showing:
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/staged-bedroom-luxury.jpg" alt="Staged Luxury Bedroom AI Image" width="320">
-<img src="templates/examples/bedroom-staging-motion.gif" alt="Staged Master Bedroom Motion Loop (I2V)" width="320">
+<img src="../images/staged-bedroom-luxury.jpg" alt="Staged Luxury Bedroom AI Image" width="320">
+<img src="../gifs/bedroom-staging-motion.gif" alt="Staged Master Bedroom Motion Loop (I2V)" width="320">
 </p>
-<p align="center"><sub>AI Staged Master Bedroom (Left) ──► Image-to-Video Motion Walkthrough (Right) · Video File: <a href="templates/examples/bedroom-staging-motion.mp4">templates/examples/bedroom-staging-motion.mp4</a></sub></p>
+<p align="center"><sub>AI Staged Master Bedroom (Left) ──► Image-to-Video Motion Walkthrough (Right) · Video File: <a href="../videos/bedroom-staging-motion.mp4">../videos/bedroom-staging-motion.mp4</a></sub></p>
 
 **Proposal Breakdown for Century 21 Premier Real Estate**
 

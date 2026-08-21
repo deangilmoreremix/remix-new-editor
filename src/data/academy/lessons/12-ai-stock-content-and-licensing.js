@@ -127,6 +127,6 @@ export const LESSONS_12 = [
       'Hard: set up non-exclusive accounts on 2 portals and syndicate a 20-image commercial batch across both.',
     ],
     relatedTemplateIds: [],
-    relatedAssetIds: [],
+    relatedAssetIds: ['12-ai-stock-content-and-licensing::future-technology-stock-motion'],
   },
 ];

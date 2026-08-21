@@ -270,15 +270,32 @@ export class ThumbnailService {
     if (opts.duration) body.duration = opts.duration;
     if (opts.frames) body.frames = opts.frames;
     if (opts.style) body.style = opts.style;
+
     const userKey = resolveUserOpenAIKey();
     if (userKey) body.apiKey = userKey;
 
-    const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body });
+    const TIMEOUT_MS = 120_000;
+    const { data, error } = await Promise.race([
+      supabase.functions.invoke(EDGE_FUNCTION, { body }),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Video thumbnail generation timed out (120s)')), TIMEOUT_MS)
+      ),
+    ]);
     if (error) throw new Error(error.message || 'Failed to generate video thumbnail');
+
+    const rawFrames = data?.frames || [];
+    const frames = rawFrames.map((f) => {
+      const b64 = f?.b64_json || f?.b64 || '';
+      const revisedPrompt = f?.revised_prompt || f?.prompt || '';
+      const dataUrl = b64 ? ThumbnailService.b64ToDataUrl(b64) : (f?.dataUrl || '');
+      return { b64_json: b64, revised_prompt: revisedPrompt, dataUrl };
+    });
+
     return {
-      frames: data?.frames || [],
+      frames,
       duration: data?.duration || null,
       aspectRatio: data?.aspectRatio || this.aspectRatio,
+      keySource: data?.key_source || null,
     };
   }
 

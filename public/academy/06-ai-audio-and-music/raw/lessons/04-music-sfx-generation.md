@@ -64,10 +64,10 @@ If your editor supports auto-ducking (e.g. Premiere Pro or CapCut):
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/ai-music-workstation.jpg" alt="Music Workstation" width="280">
-<img src="templates/examples/ai-music-workstation-clip.gif" alt="Synthesizer Visualizer Motion (I2V)" width="280">
+<img src="../images/ai-music-workstation.jpg" alt="Music Workstation" width="280">
+<img src="../gifs/ai-music-workstation-clip.gif" alt="Synthesizer Visualizer Motion (I2V)" width="280">
 </p>
-<p align="center"><sub>Synthesizer Workstation Image (Left) ──► Image-to-Video Visualizer Motion (Right) · Video File: <a href="templates/examples/ai-music-workstation-clip.mp4">templates/examples/ai-music-workstation-clip.mp4</a></sub></p>
+<p align="center"><sub>Synthesizer Workstation Image (Left) ──► Image-to-Video Visualizer Motion (Right) · Video File: <a href="../videos/ai-music-workstation-clip.mp4">../videos/ai-music-workstation-clip.mp4</a></sub></p>
 
 **Sound Design for a 15-Second Vertical SaaS Ad**
 

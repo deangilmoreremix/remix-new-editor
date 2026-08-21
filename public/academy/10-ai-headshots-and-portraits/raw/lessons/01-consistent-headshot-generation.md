@@ -71,10 +71,10 @@ Inspect the render at 100% zoom:
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/corporate-executive-headshot.jpg" alt="Corporate Executive AI Headshot" width="320">
-<img src="templates/examples/headshot-lighting-motion.gif" alt="Headshot Lighting & Motion Loop (I2V)" width="320">
+<img src="../images/corporate-executive-headshot.jpg" alt="Corporate Executive AI Headshot" width="320">
+<img src="../gifs/headshot-lighting-motion.gif" alt="Headshot Lighting & Motion Loop (I2V)" width="320">
 </p>
-<p align="center"><sub>AI Corporate Executive Portrait (Left) ──► Image-to-Video Motion Loop (Right) · Video File: <a href="templates/examples/headshot-lighting-motion.mp4">templates/examples/headshot-lighting-motion.mp4</a></sub></p>
+<p align="center"><sub>AI Corporate Executive Portrait (Left) ──► Image-to-Video Motion Loop (Right) · Video File: <a href="../videos/headshot-lighting-motion.mp4">../videos/headshot-lighting-motion.mp4</a></sub></p>
 
 **Corporate Rebrand Breakdown for "Apex Financial Group"**
 

@@ -56,10 +56,10 @@ Check the first frame of your video and the last frame of your video. If the fir
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/focus-anchor.jpg" alt="Focus Anchor Image" width="240">
-<img src="templates/examples/focus-loop-clip.gif" alt="YouTube Shorts Infinite Loop Video (I2V)" width="240">
+<img src="../images/focus-anchor.jpg" alt="Focus Anchor Image" width="240">
+<img src="../gifs/focus-loop-clip.gif" alt="YouTube Shorts Infinite Loop Video (I2V)" width="240">
 </p>
-<p align="center"><sub>Shorts Model Image (Left) ──► Image-to-Video Shorts Infinite Motion Loop (Right) · Video File: <a href="templates/examples/focus-loop-clip.mp4">templates/examples/focus-loop-clip.mp4</a></sub></p>
+<p align="center"><sub>Shorts Model Image (Left) ──► Image-to-Video Shorts Infinite Motion Loop (Right) · Video File: <a href="../videos/focus-loop-clip.mp4">../videos/focus-loop-clip.mp4</a></sub></p>
 
 **Loop Build: "Focus Blueprint" (Productivity Niche)**
 

@@ -14,7 +14,7 @@ import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { CINEMATIC_THEME } from '../lib/cinematicTheme.js';
 import { getVideoIntent, setVideoIntent } from '../lib/videoIntentStore.js';
 import { generateStoryboardFromIntent } from '../lib/storyboardEngine.js';
-import { createAutosave, saveProject } from '../lib/editor/persistence.js';
+import { createAutosave, saveProject, loadProject } from '../lib/editor/persistence.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { createUploadPicker } from './UploadPicker.js';
@@ -535,7 +535,29 @@ export function StoryboardStudio(options = {}) {
         showToast('Storyboard loaded', 'success');
       }
     } catch (e) {
-      showToast('Load failed: ' + e.message, 'error');
+      // Fallback: try loading from localStorage/IndexedDB/Supabase via the
+      // shared persistence layer. This covers the case where the
+      // /api/storyboard/{id} endpoint is not implemented.
+      try {
+        const state = await loadProject();
+        if (state && state.frames && Array.isArray(state.frames)) {
+          frames.length = 0;
+          frames.push(...state.frames);
+          if (state.layout) layout = state.layout;
+          if (state.selectedModel) selectedModel = state.selectedModel;
+          if (state.selectedModelName) selectedModelName = state.selectedModelName;
+          if (state.selectedAr) selectedAr = state.selectedAr;
+          if (state.selectedStyle) selectedStyle = state.selectedStyle || 'None';
+          if (state.selectedLighting) selectedLighting = state.selectedLighting || 'None';
+          if (state.selectedColor) selectedColor = state.selectedColor || 'None';
+          renderFrames();
+          showToast('Storyboard loaded from local storage', 'success');
+        } else {
+          showToast('No saved storyboard found', 'warning');
+        }
+      } catch (fallbackErr) {
+        showToast('Load failed: ' + e.message, 'error');
+      }
     }
   };
   controlBar.appendChild(loadBtn);

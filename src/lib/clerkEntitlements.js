@@ -1,14 +1,17 @@
-import { useAuth } from '@clerk/react';
+import { useAuth, useUser } from '@clerk/react';
 
 export const PAID_FEATURE = 'smartvideo_full_access';
 
 export function useEntitlement() {
   const { has, isLoaded, isSignedIn } = useAuth();
+  const { user } = useUser();
 
   if (!isLoaded) return { loading: true, hasFullAccess: false, isSignedIn: false };
   if (!isSignedIn) return { loading: false, hasFullAccess: false, isSignedIn: false };
 
-  const hasFullAccess = has?.({ feature: PAID_FEATURE }) ?? false;
+  const hasBillingAccess = has?.({ feature: PAID_FEATURE }) ?? false;
+  const hasLegacyAccess = user?.publicMetadata?.legacy_access === true;
+  const hasFullAccess = hasBillingAccess || hasLegacyAccess;
   return { loading: false, hasFullAccess, isSignedIn: true };
 }
 

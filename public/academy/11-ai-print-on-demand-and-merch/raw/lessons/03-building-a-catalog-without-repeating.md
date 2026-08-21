@@ -56,7 +56,7 @@ Apply each graphic to 3 high-margin product types (T-Shirt, Coffee Mug, Canvas T
 ## Worked Example
 
 <p align="center">
-<img src="templates/examples/merch-design-vector-art.jpg" alt="Isolated Vector Merch Art Design" width="480">
+<img src="../images/merch-design-vector-art.jpg" alt="Isolated Vector Merch Art Design" width="480">
 </p>
 <p align="center"><sub>Isolated Vector Art Graphic (Ready for Multi-Product Catalog Placement)</sub></p>
 
