@@ -8,7 +8,6 @@
 // too (ForgotPasswordPage / ResetPasswordPage), built on Clerk's
 // reset_password_email_code strategy so they match the app's design.
 
-import { ensureClerkLoaded } from '../../lib/clerkInit.js';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import {
@@ -23,60 +22,14 @@ import { SignInPage } from '../landing/SignInPage.jsx';
 import { SignUpPage } from '../landing/SignUpPage.jsx';
 import { ForgotPasswordPage } from '../landing/ForgotPasswordPage.jsx';
 import { ResetPasswordPage } from '../landing/ResetPasswordPage.jsx';
-import { ensureClerkLoaded } from '../../lib/clerkInit.js';
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 function ClerkGate({ children }) {
-  const [isLoaded, setIsLoaded] = React.useState(false);
-  const [loadError, setLoadError] = React.useState(null);
-
-  React.useEffect(() => {
-    if (!PUBLISHABLE_KEY) {
-      setLoadError('missing_key');
-      return;
-    }
-
-    let cancelled = false;
-    ensureClerkLoaded()
-      .then((clerk) => {
-        if (cancelled) return;
-        if (clerk && clerk.loaded) {
-          setIsLoaded(true);
-        } else {
-          setLoadError('load_failed');
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setLoadError('load_failed');
-      });
-
-    return () => { cancelled = true; };
-  }, []);
-
   if (!PUBLISHABLE_KEY) {
     return (
       <div style={{ color: '#fff', padding: 24, textAlign: 'center' }}>
         Missing <code>VITE_CLERK_PUBLISHABLE_KEY</code>.
-      </div>
-    );
-  }
-
-  if (loadError) {
-    return (
-      <div style={{ color: '#fff', padding: 24, textAlign: 'center' }}>
-        <h2 style={{ color: '#ff4444', marginBottom: 16 }}>Authentication Unavailable</h2>
-        <p style={{ color: '#aaa' }}>
-          Clerk failed to initialize. Please check your connection and refresh the page.
-        </p>
-      </div>
-    );
-  }
-
-  if (!isLoaded) {
-    return (
-      <div style={{ color: '#fff', padding: 24, textAlign: 'center' }}>
-        <p style={{ color: '#aaa' }}>Loading authentication…</p>
       </div>
     );
   }
@@ -226,7 +179,7 @@ function ProfileShell() {
           <div className="rounded-2xl border border-white/10 bg-white/5 p-6 flex flex-col items-center text-center">
             <img
               src={user?.imageUrl || '/assets/placeholder-avatar.png'}
-              alt={user?.fullName || 'Avatar'}
+              alt={user?.fullName || 'User'}
               className="w-20 h-20 rounded-full border border-white/10 bg-white/5 mb-4"
             />
             <h2 className="text-lg font-bold text-white">{user?.fullName || 'User'}</h2>
