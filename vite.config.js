@@ -1086,6 +1086,10 @@ export default defineConfig({
                 target: 'http://localhost:3001',
                 changeOrigin: true,
             },
+            '/api/templates': {
+                target: 'http://localhost:3001',
+                changeOrigin: true,
+            },
             '/videoagent': {
                 target: 'http://localhost:3001',
                 changeOrigin: true,
@@ -1160,7 +1164,7 @@ export default defineConfig({
         },
         terserOptions: {
             compress: {
-                drop_console: true,
+                drop_console: false,
                 drop_debugger: true
             }
         },
