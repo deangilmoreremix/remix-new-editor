@@ -43,8 +43,10 @@ export function isClerkLoaded() {
     (typeof window !== 'undefined' && !!window.Clerk && window.Clerk.loaded);
 }
 
-async function ensureStudioAccess(page) {
+async function ensureStudioAccess(page, urlParams = {}) {
   if (!STUDIO_PAGES.has(page)) return true;
+
+  if (urlParams.template && (page === 'templates' || page.startsWith('template/'))) return true;
 
   // Local/dev auth bypass (VITE_DEV_BYPASS_AUTH or ?dev): skip the Clerk
   // gate entirely so studios are usable without a real Clerk session.
@@ -123,6 +125,7 @@ const ROUTE_MAP = {
   'Content Library': 'content-library',
   'AI VFX': 'ai-vfx',
   'Stock Media': 'pexels-media',
+  'Smart Video Viral': 'viral',
 };
 
 export function getRouteForItem(item) {
@@ -222,10 +225,12 @@ export async function navigate(page, params = {}) {
   isNavigating = true;
   currentPage = page;
 
+  const mergedParams = { ...getExistingParams(), ...params };
+
   // Gate studio / gated pages behind the pro plan
   let granted = true;
   try {
-    granted = await ensureStudioAccess(page);
+    granted = await ensureStudioAccess(page, mergedParams);
   } catch (err) {
     console.error(`[Router] Access check failed for ${page}:`, err);
     granted = false;
@@ -235,7 +240,6 @@ export async function navigate(page, params = {}) {
     return;
   }
 
-  const mergedParams = { ...getExistingParams(), ...params };
   const searchParams = new URLSearchParams(mergedParams).toString();
   let hashPath = `/${page}`;
   if (page === 'academy') {
@@ -259,7 +263,7 @@ export async function navigate(page, params = {}) {
 
     // Template pages are also gated — check them before loading
     if (page.startsWith('template/')) {
-      const templateOk = await ensureStudioAccess('templates');
+      const templateOk = await ensureStudioAccess('templates', mergedParams);
       if (!templateOk) return;
       const templateId = page.replace('template/', '');
       const mod = await import('../components/TemplateStudio.js');
