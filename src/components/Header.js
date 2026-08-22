@@ -26,7 +26,7 @@ export function Header(navigate) {
 
   const menu = document.createElement('nav');
   menu.className = 'hidden lg:flex items-center gap-5 text-[13px] font-bold text-secondary';
-  const items = ['Explore', 'Image', 'Video', 'Tools', 'Storyboard', 'Edit', 'Character', 'Vibe Motion', 'Cinema Studio', 'Cinema Template Studio', 'AI Influencer', 'Apps', 'Templates', 'Assist', 'Community', 'Content Library'];
+  const items = ['Explore', 'Image', 'Video', 'Tools', 'Storyboard', 'Edit', 'Character', 'Vibe Motion', 'Cinema Studio', 'Cinema Template Studio', 'AI Influencer', 'Smart Video Viral', 'Apps', 'Templates', 'Assist', 'Community', 'Content Library'];
 
   const links = {};
 
@@ -119,6 +119,8 @@ export function Header(navigate) {
       link.onclick = () => navigate('cinema-template');
     } else if (item === 'AI Influencer') {
       link.onclick = () => navigate('influencer-page');
+    } else if (item === 'Smart Video Viral') {
+      link.onclick = () => navigate('viral');
     } else if (item === 'Image' || item === 'Video' || item === 'Tools') {
       // Already handled above
     } else {
