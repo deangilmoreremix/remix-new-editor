@@ -597,12 +597,12 @@ export function CinemaStudio() {
 
     // --- RIGHT GROUP (Summary + Generate) ---
     const rightGroup = document.createElement('div');
-    rightGroup.className = 'flex items-center gap-2 h-full self-end mb-1';
+    rightGroup.className = 'flex items-center gap-2 flex-wrap';
 
     // Summary Card (Triggers Overlay)
     const summaryCard = document.createElement('button');
     // Removed 'hidden' class, added 'flex' and refined width constraints for mobile
-    summaryCard.className = 'flex flex-col items-start justify-center px-4 py-2 bg-[#2a2a2a] rounded-xl border border-white/5 hover:border-white/20 transition-colors text-left flex-1 min-w-[100px] md:min-w-[140px] max-w-[240px] h-[56px] relative group overflow-hidden';
+    summaryCard.className = 'flex flex-col items-start justify-center px-4 py-2 bg-white/[0.04] rounded-xl border border-white/5 hover:border-white/20 transition-colors text-left flex-shrink-0 min-w-[100px] md:min-w-[140px] max-w-[180px] h-[56px] relative group overflow-hidden';
     summaryCard.setAttribute('data-tooltip', 'Open camera settings');
 
     // Dot indicator
