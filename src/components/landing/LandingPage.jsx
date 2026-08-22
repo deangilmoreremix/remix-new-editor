@@ -177,6 +177,7 @@ export default async function LandingPage() {
   container.setAttribute('lang', document.documentElement.lang || 'en');
   container.setAttribute('dir', document.documentElement.dir || 'ltr');
 
+  try {
     try {
       const mod = await import('./common/Header.jsx');
       LandingHeader = mod.LandingHeader;
