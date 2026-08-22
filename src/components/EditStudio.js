@@ -3,12 +3,8 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { createHeroSection, getToolThumbnail, createThumbnailImg } from '../lib/thumbnails.js';
+import { createHeroSection } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
-import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
-import { openModelPicker } from '../lib/modelPickerIntegration.js';
-import { openRecipeModal } from '../lib/recipeIntegration.js';
-import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 
 const EDIT_TOOLS = [
   {
@@ -248,15 +244,6 @@ export function EditStudio() {
   EDIT_TOOLS.forEach(tool => {
     const card = document.createElement('div');
     card.className = 'bg-white/[0.03] border border-white/5 rounded-xl overflow-hidden cursor-pointer hover:bg-white/[0.06] hover:border-white/10 transition-all group';
-    const thumbSrc = getToolThumbnail(tool.id);
-    if (thumbSrc) {
-      const thumbWrapper = document.createElement('div');
-      thumbWrapper.className = 'thumb-hero h-20 relative';
-      thumbWrapper.innerHTML = '<div class="thumb-skeleton absolute inset-0"></div>';
-      const img = createThumbnailImg(thumbSrc, tool.name, 'w-full h-full object-cover');
-      thumbWrapper.appendChild(img);
-      card.appendChild(thumbWrapper);
-    }
     const info = document.createElement('div');
     info.className = 'p-3';
     info.innerHTML = `
@@ -274,61 +261,6 @@ export function EditStudio() {
   inlineInstructions.classList.add('px-4', 'md:px-8', 'mt-2');
   topBar.appendChild(inlineInstructions);
   container.appendChild(topBar);
-
-  const personalizeRow = document.createElement('div');
-  personalizeRow.className = 'flex items-center gap-2 px-4 md:px-8 pt-4';
-
-  const recipeBtn = document.createElement('button');
-  recipeBtn.type = 'button';
-  recipeBtn.textContent = 'Recipes';
-  recipeBtn.title = 'Browse AI recipes';
-  recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-  recipeBtn.className = 'gtm-boost-btn shrink-0';
-  recipeBtn.addEventListener('click', () => {
-    openRecipeModal({ onRunRecipe: () => {} }).catch((err) => console.error('[Recipe] open failed:', err));
-  });
-
-  const monetizationBtn = document.createElement('button');
-  monetizationBtn.type = 'button';
-  monetizationBtn.textContent = '💼 Smart Video AI Monetize';
-  monetizationBtn.title = "Open Smart Video AI Monetization Hub"
-  monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-  monetizationBtn.className = 'gtm-boost-btn shrink-0';
-  monetizationBtn.addEventListener('click', () => {
-    openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
-  });
-
-  const promptGalleryBtn = document.createElement('button');
-  promptGalleryBtn.type = 'button';
-  promptGalleryBtn.textContent = 'Prompts';
-  promptGalleryBtn.title = 'Browse prompt gallery';
-  promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
-  promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
-  promptGalleryBtn.addEventListener('click', () => {
-    openPromptGallery({
-      appTheme: 'editor-page',
-      onSelect: (prompt) => {
-        const ta = document.querySelector('input[data-advanced-field="extraInstructions"], textarea, input');
-        if (ta) { ta.value = prompt; ta.dispatchEvent(new Event('input', { bubbles: true })); ta.focus(); }
-      }
-    }).catch((err) => console.error('[PromptGallery] open failed:', err));
-  });
-
-  const modelPickerBtn = document.createElement('button');
-  modelPickerBtn.type = 'button';
-  modelPickerBtn.textContent = 'AI Pick';
-  modelPickerBtn.title = 'Open intelligent model picker';
-  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-  modelPickerBtn.className = 'text-[11px] font-bold text-cyan-400 border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 rounded-lg hover:bg-cyan-400/20 transition-colors ml-2 whitespace-nowrap';
-  modelPickerBtn.addEventListener('click', () => {
-    openModelPicker({}).catch((err) => console.error('[ModelPicker] open failed:', err));
-  });
-
-  personalizeRow.appendChild(recipeBtn);
-  personalizeRow.appendChild(monetizationBtn);
-  personalizeRow.appendChild(promptGalleryBtn);
-  personalizeRow.appendChild(modelPickerBtn);
-  container.appendChild(personalizeRow);
 
   const workArea = document.createElement('div');
   workArea.className = 'flex-1 px-4 md:px-8 pb-8';
@@ -502,7 +434,7 @@ export function EditStudio() {
   workArea.appendChild(workCard);
   container.appendChild(workArea);
 
-  mountPersonalizeTrigger({ controlsContainer: personalizeRow, getTextarea: () => promptField, appId: 'edit-studio' });
+  mountPersonalizeTrigger({ getTextarea: () => promptField, appId: 'edit-studio' });
 
   function createRangeControl(control) {
     const wrapper = document.createElement('div');
