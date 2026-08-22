@@ -7,8 +7,7 @@
 
 import { getDemoBySlug, getCreateTarget as minimaxGetCreateTarget, loadDemoPrompt } from '../../../data/beatapiMinimaxH3Demos.js';
 import { createMediaFrame, cleanupFrames, prefersReducedMotion, revealOnScroll } from './minimax/mediaFrame.js';
-import { injectMinimaxStyles, sectionHeading, createStyleLink, escapeHtml } from './minimax/ui.js';
-import { handleViewPrompt } from './minimax/DemoPromptModal.js';
+import { injectMinimaxStyles, sectionHeading, createStyleLink, createStudioIcon, escapeHtml } from './minimax/ui.js';
 import { createViewPromptButton } from './minimax/ui.js';
 
 const DEMO_SLUG = 'ice-gunslinger-interactive-web-loop';
@@ -124,7 +123,10 @@ export function MinimaxWorkflowSection() {
             ).join('')}
           </ul>
 
-          <div class="mmx-reveal mt-5 flex flex-wrap items-center gap-2.5" data-mmx-workflow-cta></div>
+          <div class="mmx-reveal mt-5 flex flex-col items-center gap-2.5" data-mmx-workflow-cta>
+            <div class="flex flex-wrap items-center justify-center gap-2.5" data-mmx-primary-actions></div>
+            <div class="flex items-center justify-center gap-1.5" data-mmx-studio-icons></div>
+          </div>
         </div>
       </div>
     </div>
@@ -144,8 +146,33 @@ export function MinimaxWorkflowSection() {
   /* -------------------------------------------------------------------- CTAs */
 
   const ctaHost = section.querySelector('[data-mmx-workflow-cta]');
-  ctaHost.appendChild(createViewPromptButton(demo, handleViewPrompt));
-  ctaHost.appendChild(createStyleLink(demo, { label: 'Create This Style' }));
+  const primaryActions = section.querySelector('[data-mmx-primary-actions]');
+  const studioIconsHost = section.querySelector('[data-mmx-studio-icons]');
+
+  primaryActions.appendChild(createViewPromptButton(demo, handleViewPrompt));
+  primaryActions.appendChild(createStyleLink(demo, { label: 'Create This Style' }));
+
+  const target = minimaxGetCreateTarget(demo);
+  const templateId = target.params.template;
+  if (templateId) {
+    const studioIcons = [
+      { route: 'template/' + templateId,    label: 'T', title: 'Open in Template Studio' },
+      { route: 'cinema-template',           label: 'C', title: 'Open in Cinema Template Studio', params: { template: templateId } },
+      { route: 'cinema',                    label: 'F', title: 'Open in Cinema Studio',          params: { template: templateId } },
+      { route: 'video',                     label: 'V', title: 'Open in Video Studio',           params: { template: templateId } },
+      { route: 'image',                     label: 'I', title: 'Open in Image Studio',           params: { template: templateId } },
+    ];
+    studioIcons.forEach((icon) => {
+      studioIconsHost.appendChild(
+        createStudioIcon(demo, {
+          route: icon.route,
+          params: icon.params || {},
+          label: icon.label,
+          title: icon.title,
+        })
+      );
+    });
+  }
 
   /* -------------------------------------------------------------- step cycle */
 

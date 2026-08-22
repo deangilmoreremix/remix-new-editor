@@ -5,12 +5,13 @@
 // aspect ratio inside a social-styled shell rather than stretching it. When
 // true 9:16 SmartVideo renders replace the files, set FORCE_VERTICAL to true.
 
-import { getDemoBySlug, formatDuration, ratioToNumber, loadDemoPrompt } from '../../../data/minimaxH3Demos.js';
+import { getDemoBySlug, formatDuration, ratioToNumber, loadDemoPrompt, getCreateTarget } from '../../../data/minimaxH3Demos.js';
 import { createMediaFrame, cleanupFrames, revealOnScroll } from './minimax/mediaFrame.js';
 import {
   injectMinimaxStyles,
   sectionHeading,
   createStyleLink,
+  createStudioIcon,
   categoryBadge,
   metaPill,
   escapeHtml,
@@ -78,7 +79,10 @@ function createUGCCard(config) {
     <div class="flex flex-1 flex-col p-5">
       <h3 class="text-base font-bold leading-snug text-white">${escapeHtml(demo.title)}</h3>
       <p class="mt-1.5 flex-1 text-sm leading-relaxed text-gray-400">${escapeHtml(config.description)}</p>
-      <div class="mt-5 flex flex-wrap items-center gap-2.5" data-mmx-card-actions></div>
+      <div class="mt-5 flex flex-col items-center gap-2.5" data-mmx-card-actions>
+        <div class="flex flex-wrap items-center justify-center gap-2.5" data-mmx-primary-actions></div>
+        <div class="flex items-center justify-center gap-1.5" data-mmx-studio-icons></div>
+      </div>
     </div>
   `;
 
@@ -103,8 +107,33 @@ function createUGCCard(config) {
   mediaHost.appendChild(cue);
 
   const actions = card.querySelector('[data-mmx-card-actions]');
-  actions.appendChild(createViewPromptButton(demo, handleViewPrompt, { label: 'View Prompt', loadPrompt }));
-  actions.appendChild(createStyleLink(demo, { label: 'Create This Type of Video' }));
+  const primaryActions = card.querySelector('[data-mmx-primary-actions]');
+  const studioIconsHost = card.querySelector('[data-mmx-studio-icons]');
+
+  primaryActions.appendChild(createViewPromptButton(demo, handleViewPrompt, { label: 'View Prompt', loadPrompt: loadDemoPrompt }));
+  primaryActions.appendChild(createStyleLink(demo, { label: 'Create This Type of Video' }));
+
+  const target = getCreateTarget(demo);
+  const templateId = target.params.template;
+  if (templateId) {
+    const studioIcons = [
+      { route: 'template/' + templateId,    label: 'T', title: 'Open in Template Studio' },
+      { route: 'cinema-template',           label: 'C', title: 'Open in Cinema Template Studio', params: { template: templateId } },
+      { route: 'cinema',                    label: 'F', title: 'Open in Cinema Studio',          params: { template: templateId } },
+      { route: 'video',                     label: 'V', title: 'Open in Video Studio',           params: { template: templateId } },
+      { route: 'image',                     label: 'I', title: 'Open in Image Studio',           params: { template: templateId } },
+    ];
+    studioIcons.forEach((icon) => {
+      studioIconsHost.appendChild(
+        createStudioIcon(demo, {
+          route: icon.route,
+          params: icon.params || {},
+          label: icon.label,
+          title: icon.title,
+        })
+      );
+    });
+  }
 
   return card;
 }

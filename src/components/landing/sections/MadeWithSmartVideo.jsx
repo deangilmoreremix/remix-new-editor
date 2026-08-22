@@ -4,7 +4,7 @@
 // Videos never all autoplay: cards use hover (desktop) / tap (mobile) playback,
 // and the shared governor in mediaFrame.js caps concurrent playback at two.
 
-import { minimaxH3Demos, formatDuration } from '../../../data/minimaxH3Demos.js';
+import { minimaxH3Demos, formatDuration, getCreateTarget as getMinimaxCreateTarget } from '../../../data/minimaxH3Demos.js';
 import { zeroLuDemos, loadDemoPrompt as loadZeroLuPrompt, getCreateTarget as getZeroLuCreateTarget } from '../../../data/zeroLuDemos.js';
 import { createMediaFrame, cleanupFrames, revealOnScroll } from './minimax/mediaFrame.js';
 import {
@@ -12,6 +12,7 @@ import {
   sectionHeading,
   createStyleLink,
   createViewPromptButton,
+  createStudioIcon,
   categoryBadge,
   metaPill,
   escapeHtml,
@@ -43,10 +44,10 @@ const REEL_SLUGS = [
 // Build a combined lookup so we can resolve both MiniMax and ZeroLu slugs.
 const DEMO_MAP = new Map();
 for (const demo of minimaxH3Demos) {
-  DEMO_MAP.set(demo.slug, { ...demo, _source: 'minimax' });
+  DEMO_MAP.set(demo.slug, { ...demo, _source: 'minimax', _getCreateTarget: getMinimaxCreateTarget });
 }
 for (const demo of zeroLuDemos) {
-  DEMO_MAP.set(demo.slug, { ...demo, _source: 'zerolu' });
+  DEMO_MAP.set(demo.slug, { ...demo, _source: 'zerolu', _getCreateTarget: getZeroLuCreateTarget });
 }
 
 function resolveDemo(slug) {
@@ -74,7 +75,10 @@ function createReelCard(demo) {
     <div class="flex flex-1 flex-col p-5">
       <h3 class="text-base font-bold leading-snug text-white">${escapeHtml(demo.title)}</h3>
       <p class="mt-1.5 flex-1 text-sm leading-relaxed text-gray-400">${escapeHtml(demo.useCase)}</p>
-      <div class="mt-5 flex flex-wrap items-center gap-2.5" data-mmx-card-actions></div>
+      <div class="mt-5 flex flex-col items-center gap-2.5" data-mmx-card-actions>
+        <div class="flex flex-wrap items-center justify-center gap-2.5" data-mmx-primary-actions></div>
+        <div class="flex items-center justify-center gap-1.5" data-mmx-studio-icons></div>
+      </div>
     </div>
   `;
 
@@ -99,7 +103,9 @@ function createReelCard(demo) {
   mediaHost.appendChild(cue);
 
   const actions = card.querySelector('[data-mmx-card-actions]');
-  
+  const primaryActions = card.querySelector('[data-mmx-primary-actions]');
+  const studioIconsHost = card.querySelector('[data-mmx-studio-icons]');
+
   // Use the correct prompt loader and target resolver based on the demo source.
   const loadPrompt = demo._source === 'zerolu'
     ? async (slug) => loadZeroLuPrompt(slug)
@@ -109,11 +115,33 @@ function createReelCard(demo) {
     ? (d) => getZeroLuCreateTarget(d)
     : undefined;
 
-  actions.appendChild(createViewPromptButton(demo, handleViewPrompt, { loadPrompt }));
-  actions.appendChild(createStyleLink(demo, { 
+  primaryActions.appendChild(createViewPromptButton(demo, handleViewPrompt, { loadPrompt }));
+  primaryActions.appendChild(createStyleLink(demo, {
     label: 'Create This Style',
-    getTarget 
+    getTarget
   }));
+
+  const target = (getTarget || demo._getCreateTarget)(demo);
+  const templateId = target.params.template;
+  if (templateId) {
+    const studioIcons = [
+      { route: 'template/' + templateId,    label: 'T', title: 'Open in Template Studio' },
+      { route: 'cinema-template',           label: 'C', title: 'Open in Cinema Template Studio', params: { template: templateId } },
+      { route: 'cinema',                    label: 'F', title: 'Open in Cinema Studio',          params: { template: templateId } },
+      { route: 'video',                     label: 'V', title: 'Open in Video Studio',           params: { template: templateId } },
+      { route: 'image',                     label: 'I', title: 'Open in Image Studio',           params: { template: templateId } },
+    ];
+    studioIcons.forEach((icon) => {
+      studioIconsHost.appendChild(
+        createStudioIcon(demo, {
+          route: icon.route,
+          params: icon.params || {},
+          label: icon.label,
+          title: icon.title,
+        })
+      );
+    });
+  }
 
   return card;
 }

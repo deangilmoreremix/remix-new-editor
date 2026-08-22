@@ -19,6 +19,7 @@ import {
   sectionHeading,
   createViewPromptButton,
   createStyleLink,
+  createStudioIcon,
   metaPill,
   escapeHtml,
 } from './minimax/ui.js';
@@ -45,7 +46,10 @@ function createGalleryCard(demo) {
       <span class="text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-400/80">${escapeHtml(demo.category)}</span>
       <h3 class="mt-1.5 text-sm font-bold leading-snug text-white">${escapeHtml(demo.title)}</h3>
       <p class="mt-1 flex-1 text-xs leading-relaxed text-gray-500">${escapeHtml(demo.useCase)}</p>
-      <div class="mt-4 flex flex-wrap items-center gap-2" data-mmx-card-actions></div>
+      <div class="mt-4 flex flex-col items-center gap-2" data-mmx-card-actions>
+        <div class="flex flex-wrap items-center justify-center gap-2" data-mmx-primary-actions></div>
+        <div class="flex items-center justify-center gap-1.5" data-mmx-studio-icons></div>
+      </div>
     </div>
   `;
 
@@ -66,12 +70,37 @@ function createGalleryCard(demo) {
   mediaHost.appendChild(cue);
 
   const actions = card.querySelector('[data-mmx-card-actions]');
-  actions.appendChild(createViewPromptButton(demo, handleViewPrompt, {
+  const primaryActions = card.querySelector('[data-mmx-primary-actions]');
+  const studioIconsHost = card.querySelector('[data-mmx-studio-icons]');
+
+  primaryActions.appendChild(createViewPromptButton(demo, handleViewPrompt, {
     label: 'View Prompt',
     loadPrompt: loadDemoPrompt,
     model: SEEDANCE_MODEL,
   }));
-  actions.appendChild(createStyleLink(demo, { label: 'Create This Style', getTarget }));
+  primaryActions.appendChild(createStyleLink(demo, { label: 'Create This Style', getTarget }));
+
+  const target = getCreateTarget(demo);
+  const templateId = target.params.template;
+  if (templateId) {
+    const studioIcons = [
+      { route: 'template/' + templateId,    label: 'T', title: 'Open in Template Studio' },
+      { route: 'cinema-template',           label: 'C', title: 'Open in Cinema Template Studio', params: { template: templateId } },
+      { route: 'cinema',                    label: 'F', title: 'Open in Cinema Studio',          params: { template: templateId } },
+      { route: 'video',                     label: 'V', title: 'Open in Video Studio',           params: { template: templateId } },
+      { route: 'image',                     label: 'I', title: 'Open in Image Studio',           params: { template: templateId } },
+    ];
+    studioIcons.forEach((icon) => {
+      studioIconsHost.appendChild(
+        createStudioIcon(demo, {
+          route: icon.route,
+          params: icon.params || {},
+          label: icon.label,
+          title: icon.title,
+        })
+      );
+    });
+  }
 
   return card;
 }

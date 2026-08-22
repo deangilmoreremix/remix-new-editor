@@ -216,7 +216,10 @@ function createGalleryCard(demo) {
       <span class="text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-400/80">${escapeHtml(demo.category)}</span>
       <h3 class="mt-1.5 text-sm font-bold leading-snug text-white">${escapeHtml(demo.title)}</h3>
       <p class="mt-1 flex-1 text-xs leading-relaxed text-gray-500">${escapeHtml(demo.useCase || demo.category)}</p>
-      <div class="mt-4 flex flex-wrap items-center gap-2" data-repo-card-actions></div>
+      <div class="mt-4 flex flex-col items-center gap-2" data-repo-card-actions>
+        <div class="flex flex-wrap items-center justify-center gap-2" data-repo-primary-actions></div>
+        <div class="flex items-center justify-center gap-1.5" data-repo-studio-icons></div>
+      </div>
     </div>
   `;
 
@@ -237,7 +240,10 @@ function createGalleryCard(demo) {
   mediaHost.appendChild(cue);
 
   const actions = card.querySelector('[data-repo-card-actions]');
-  actions.appendChild(
+  const primaryActions = card.querySelector('[data-repo-primary-actions]');
+  const studioIconsHost = card.querySelector('[data-repo-studio-icons]');
+
+  primaryActions.appendChild(
     createViewPromptButton(demo, handleViewPrompt, {
       label: 'View Prompt',
       loadPrompt: adapter.loadDemoPrompt,
@@ -245,15 +251,12 @@ function createGalleryCard(demo) {
       getTarget: adapter.getCreateTarget,
     })
   );
-  actions.appendChild(createStyleLink(demo, {
+  primaryActions.appendChild(createStyleLink(demo, {
     label: 'Create This Style',
     variant: 'ghost',
     getTarget: adapter.getCreateTarget,
   }));
 
-  // Studio icons — jump directly into a specific studio with the demo's
-  // template pre-loaded. The templateId comes from the same adapter that
-  // powers "Create This Style", so routing stays in one place.
   const target = adapter.getCreateTarget(demo);
   const templateId = target.params.template;
   if (templateId) {
@@ -265,7 +268,7 @@ function createGalleryCard(demo) {
       { route: 'image',                     label: 'I', title: 'Open in Image Studio',           params: { template: templateId } },
     ];
     studioIcons.forEach((icon) => {
-      actions.appendChild(
+      studioIconsHost.appendChild(
         createStudioIcon(demo, {
           route: icon.route,
           params: icon.params || {},

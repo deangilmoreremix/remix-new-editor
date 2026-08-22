@@ -137,11 +137,7 @@ function createLazySection(importFn, sectionId, props = {}, index = 0) {
         observer.unobserve(placeholder);
         importFn().then((module) => {
           let section;
-  let LandingHeader = null;
-  let CinematicVideoHero = null;
-  let HeroSection = null;
-
-  try {
+          try {
             if (module.default) {
               section = props.apps ? module.default({ apps: props.apps }) : module.default(props);
             } else if (module.AppsGridSection) {
@@ -180,6 +176,10 @@ export default async function LandingPage() {
   container.className = 'landing-page min-h-screen bg-[#020205]';
   container.setAttribute('lang', document.documentElement.lang || 'en');
   container.setAttribute('dir', document.documentElement.dir || 'ltr');
+
+  let LandingHeader = null;
+  let CinematicVideoHero = null;
+  let HeroSection = null;
 
   try {
     try {

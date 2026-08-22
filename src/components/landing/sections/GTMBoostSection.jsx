@@ -10,7 +10,7 @@
 // accent on #020205, white/8 glass surfaces, font-black headline with an
 // italic cyan accent clause, and the shared media frame + scroll reveal.
 
-import { getDemoBySlug, formatDuration, loadDemoPrompt } from '../../../data/minimaxH3Demos.js';
+import { getDemoBySlug, formatDuration, loadDemoPrompt, getCreateTarget } from '../../../data/minimaxH3Demos.js';
 import { createMediaFrame, cleanupFrames, revealOnScroll } from './minimax/mediaFrame.js';
 import {
   injectMinimaxStyles,
@@ -19,6 +19,7 @@ import {
   metaPill,
   createViewPromptButton,
   createStyleLink,
+  createStudioIcon,
   escapeHtml,
 } from './minimax/ui.js';
 import { handleViewPrompt } from './minimax/DemoPromptModal.js';
@@ -182,7 +183,10 @@ function createGtmResultCard(demo) {
     <div class="flex flex-1 flex-col p-5">
       <h3 class="text-base font-bold leading-snug text-white">${escapeHtml(demo.title)}</h3>
       <p class="mt-1.5 flex-1 text-sm leading-relaxed text-gray-400">${escapeHtml(demo.useCase)}</p>
-      <div class="mt-5 flex flex-wrap items-center gap-2.5" data-gtm-card-actions></div>
+      <div class="mt-5 flex flex-col items-center gap-2.5" data-gtm-card-actions>
+        <div class="flex flex-wrap items-center justify-center gap-2.5" data-gtm-primary-actions></div>
+        <div class="flex items-center justify-center gap-1.5" data-gtm-studio-icons></div>
+      </div>
     </div>
   `;
 
@@ -203,8 +207,33 @@ function createGtmResultCard(demo) {
   mediaHost.appendChild(cue);
 
   const actions = card.querySelector('[data-gtm-card-actions]');
-  actions.appendChild(createViewPromptButton(demo, handleViewPrompt, { label: 'View Prompt', loadPrompt }));
-  actions.appendChild(createStyleLink(demo, { label: 'Create This Style' }));
+  const primaryActions = card.querySelector('[data-gtm-primary-actions]');
+  const studioIconsHost = card.querySelector('[data-gtm-studio-icons]');
+
+  primaryActions.appendChild(createViewPromptButton(demo, handleViewPrompt, { label: 'View Prompt', loadPrompt: loadDemoPrompt }));
+  primaryActions.appendChild(createStyleLink(demo, { label: 'Create This Style' }));
+
+  const target = getCreateTarget(demo);
+  const templateId = target.params.template;
+  if (templateId) {
+    const studioIcons = [
+      { route: 'template/' + templateId,    label: 'T', title: 'Open in Template Studio' },
+      { route: 'cinema-template',           label: 'C', title: 'Open in Cinema Template Studio', params: { template: templateId } },
+      { route: 'cinema',                    label: 'F', title: 'Open in Cinema Studio',          params: { template: templateId } },
+      { route: 'video',                     label: 'V', title: 'Open in Video Studio',           params: { template: templateId } },
+      { route: 'image',                     label: 'I', title: 'Open in Image Studio',           params: { template: templateId } },
+    ];
+    studioIcons.forEach((icon) => {
+      studioIconsHost.appendChild(
+        createStudioIcon(demo, {
+          route: icon.route,
+          params: icon.params || {},
+          label: icon.label,
+          title: icon.title,
+        })
+      );
+    });
+  }
 
   return card;
 }
