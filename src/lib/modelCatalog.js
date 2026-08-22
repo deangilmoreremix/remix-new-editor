@@ -65,7 +65,7 @@ export async function getEnrichedModels(modelType) {
   // 2. Fetch the endpoint.  In dev the Express server returns
   //    { models: [...] } (filtered server-side by modelType).
   //    In production the Netlify rewrite returns the full catalog
-  //    { t2i: [...], i2i: [...], i2v: [...] } and we filter client-side.
+  //    { t2i: [...], i2i: [...], i2v: [...], t2v: [...], v2v: [...] } and we filter client-side.
   let models = [];
   try {
     const res = await fetch(CATALOG_ENDPOINT);
