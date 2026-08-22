@@ -686,7 +686,7 @@ export function InfluencerStudio() {
     promptGalleryBtn.textContent = '📚 Prompts';
     promptGalleryBtn.title = 'Browse prompt gallery';
     promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
-    promptGalleryBtn.className = 'btn-ghost-modern shrink-0';
+    promptGalleryBtn.className = 'btn-ghost-modern';
     promptGalleryBtn.addEventListener('click', () => {
         openPromptGallery({
           appTheme: 'influencer-studio',
@@ -704,7 +704,7 @@ export function InfluencerStudio() {
     recipeBtn.textContent = '📋 Recipes';
     recipeBtn.title = 'Browse AI recipes';
     recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-    recipeBtn.className = 'btn-ghost-modern shrink-0';
+    recipeBtn.className = 'btn-ghost-modern';
     recipeBtn.addEventListener('click', () => {
       openRecipeModal({
         onRunRecipe: (url) => {
@@ -716,10 +716,10 @@ export function InfluencerStudio() {
     // Monetization Hub button
     const monetizationBtn = document.createElement('button');
     monetizationBtn.type = 'button';
-    monetizationBtn.textContent = "💼 Smart Video AI Monetize";
+    monetizationBtn.textContent = '💼 Monetize';
     monetizationBtn.title = "Open Smart Video AI Monetization Hub";
     monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-    monetizationBtn.className = 'btn-ghost-modern shrink-0';
+    monetizationBtn.className = 'btn-ghost-modern';
     monetizationBtn.addEventListener('click', () => {
       openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
     });
@@ -753,7 +753,7 @@ export function InfluencerStudio() {
   gtmBtn.textContent = '🎯 GTM Boost';
   gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
   gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
-  gtmBtn.className = 'gtm-boost-btn shrink-0';
+  gtmBtn.className = 'gtm-boost-btn';
   gtmBtn.addEventListener('click', () => {
     import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
       openGTMPromptModal('influencer-studio', (prompt) => {
@@ -1119,7 +1119,7 @@ genBtn.type = 'button';
 
     const galleryAssets = getAssetsForStudio('influencer');
     if (galleryAssets.length > 0) {
-      const gallery = ExampleGallery({ studioId: 'influencer', assets: galleryAssets, maxCards: 20 });
+      const gallery = ExampleGallery({ studioId: 'influencer', assets: galleryAssets, maxCards: 28 });
       container.appendChild(gallery);
     }
 

@@ -86,7 +86,7 @@ const COMMERCIAL_MODELS = [
   updateTrigger();
 
   const dropdown = document.createElement('div');
-  dropdown.className = 'fixed z-[100] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom';
+  dropdown.className = 'fixed z-[200] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom';
   dropdown.style.width = 'calc(100vw - 2rem)';
   dropdown.style.maxWidth = '480px';
   dropdown.style.maxHeight = '70vh';
@@ -312,7 +312,7 @@ genBtn.type = 'button';
     recipeBtn.textContent = '📋 Recipes';
     recipeBtn.title = 'Browse AI recipes';
     recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-    recipeBtn.className = 'btn-ghost-modern shrink-0';
+    recipeBtn.className = 'btn-ghost-modern';
     recipeBtn.addEventListener('click', () => {
       openRecipeModal({
         onRunRecipe: (url) => {
@@ -324,10 +324,10 @@ genBtn.type = 'button';
     // Monetization Hub button
     const monetizationBtn = document.createElement('button');
     monetizationBtn.type = 'button';
-    monetizationBtn.textContent = "💼 Smart Video AI Monetize";
+    monetizationBtn.textContent = '💼 Monetize';
     monetizationBtn.title = "Open Smart Video AI Monetization Hub";
     monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-    monetizationBtn.className = 'btn-ghost-modern shrink-0';
+    monetizationBtn.className = 'btn-ghost-modern';
     monetizationBtn.addEventListener('click', () => {
       openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
     });
@@ -397,7 +397,7 @@ customThumbnailUrl: customThumbnailUrl || undefined,
 
     const galleryAssets = getAssetsForStudio('commercial');
     if (galleryAssets.length > 0) {
-      const gallery = ExampleGallery({ studioId: 'commercial', assets: galleryAssets, maxCards: 20 });
+      const gallery = ExampleGallery({ studioId: 'commercial', assets: galleryAssets, maxCards: 28 });
       container.appendChild(gallery);
     }
 

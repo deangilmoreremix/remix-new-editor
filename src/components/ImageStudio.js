@@ -263,7 +263,7 @@ export function ImageStudio() {
     promptGalleryBtn.textContent = '📚 Prompts';
     promptGalleryBtn.title = 'Browse prompt gallery';
     promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
-    promptGalleryBtn.className = 'btn-ghost-modern shrink-0';
+    promptGalleryBtn.className = 'btn-ghost-modern';
     promptGalleryBtn.addEventListener('click', () => {
       openPromptGallery({
         appTheme: 'image-studio',
@@ -284,7 +284,7 @@ export function ImageStudio() {
     recipeBtn.textContent = '📋 Recipes';
     recipeBtn.title = 'Browse AI recipes';
     recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-    recipeBtn.className = 'btn-ghost-modern shrink-0';
+    recipeBtn.className = 'btn-ghost-modern';
     recipeBtn.addEventListener('click', () => {
       openRecipeModal({
         onRunRecipe: (url) => {
@@ -296,17 +296,13 @@ export function ImageStudio() {
     // Monetization Hub button
     const monetizationBtn = document.createElement('button');
     monetizationBtn.type = 'button';
-    monetizationBtn.textContent = "💼 Smart Video AI Monetize";
-    monetizationBtn.title = "Open Smart Video AI Monetization Hub";
+    monetizationBtn.textContent = '💼 Monetize';
+    monetizationBtn.title = 'Open Smart Video AI Monetization Hub';
     monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-    monetizationBtn.className = 'btn-ghost-modern shrink-0';
+    monetizationBtn.className = 'btn-ghost-modern';
     monetizationBtn.addEventListener('click', () => {
       openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
     });
-    promptWrapper.appendChild(recipeBtn);
-    promptWrapper.appendChild(monetizationBtn);
-    promptWrapper.appendChild(promptGalleryBtn);
-
 
     textarea.placeholder = 'Describe the image you want to create';
     textarea.className = 'flex-1 bg-transparent border-none text-white text-base md:text-xl placeholder:text-muted focus:outline-none resize-none pt-2.5 leading-relaxed min-h-[40px] max-h-[150px] md:max-h-[250px] overflow-y-auto custom-scrollbar';
@@ -338,7 +334,7 @@ export function ImageStudio() {
     gtmBtn.textContent = '🎯 GTM Boost';
     gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
     gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
-    gtmBtn.className = 'gtm-boost-btn shrink-0';
+    gtmBtn.className = 'gtm-boost-btn';
     gtmBtn.addEventListener('click', () => {
       import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
         openGTMPromptModal('image-studio', (prompt) => {
@@ -350,7 +346,14 @@ export function ImageStudio() {
         });
       }).catch((err) => console.error('[ImageStudio] GTM Boost failed:', err));
     });
-    topRow.appendChild(gtmBtn);
+
+    const toolbar = document.createElement('div');
+    toolbar.className = 'flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06]';
+    toolbar.appendChild(gtmBtn);
+    toolbar.appendChild(recipeBtn);
+    toolbar.appendChild(monetizationBtn);
+    toolbar.appendChild(promptGalleryBtn);
+    topRow.appendChild(toolbar);
 
     bar.appendChild(topRow);
 
@@ -756,7 +759,7 @@ generateBtn.type = 'button';
     // 3. DROPDOWNS (Professional implementation)
     // ==========================================
     const dropdown = document.createElement('div');
-    dropdown.className = 'absolute bottom-[102%] left-2 z-50 transition-all opacity-0 pointer-events-none scale-95 origin-bottom-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
+    dropdown.className = 'absolute bottom-[102%] left-2 z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-bottom-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
 
     const showDropdown = (type, anchorBtn) => {
         dropdown.innerHTML = '';

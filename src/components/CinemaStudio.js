@@ -497,7 +497,7 @@ let showAdvanced = false;
     // Shared model dropdown (glass panel) — lists T2V models, or I2V models
     // when a reference image is loaded, with live search + per-model metadata.
     const modelDropdown = document.createElement('div');
-    modelDropdown.className = 'absolute bottom-[102%] left-2 z-50 transition-all opacity-0 pointer-events-none scale-95 origin-bottom-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-md shadow-4xl border border-white/10 flex flex-col';
+    modelDropdown.className = 'absolute bottom-[102%] left-2 z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-bottom-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-md shadow-4xl border border-white/10 flex flex-col';
     settingsToolbar.appendChild(modelDropdown);
 
     const closeModelDropdown = () => {
@@ -1332,7 +1332,7 @@ generateBtn.type = 'button';
 
     const galleryAssets = getAssetsForStudio('cinema');
     if (galleryAssets.length > 0) {
-      const gallery = ExampleGallery({ studioId: 'cinema', assets: galleryAssets, maxCards: 20 });
+      const gallery = ExampleGallery({ studioId: 'cinema', assets: galleryAssets, maxCards: 28 });
       container.appendChild(gallery);
     }
 

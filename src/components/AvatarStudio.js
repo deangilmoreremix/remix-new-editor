@@ -66,7 +66,7 @@ const triggerBtn = document.createElement('button');
   updateTrigger();
 
   const dropdown = document.createElement('div');
-  dropdown.className = 'fixed z-[100] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom';
+  dropdown.className = 'fixed z-[200] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom';
   dropdown.style.width = 'calc(100vw - 2rem)';
   dropdown.style.maxWidth = '480px';
   dropdown.style.maxHeight = '70vh';
@@ -214,7 +214,7 @@ const triggerBtn = document.createElement('button');
     gtmBtn.textContent = '🎯 GTM Boost';
     gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
     gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
-    gtmBtn.className = 'gtm-boost-btn shrink-0';
+    gtmBtn.className = 'gtm-boost-btn';
     gtmBtn.addEventListener('click', () => {
       import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
         openGTMPromptModal('avatar-studio', (prompt) => {
@@ -224,7 +224,6 @@ const triggerBtn = document.createElement('button');
         });
       }).catch((err) => console.error('[AvatarStudio] GTM Boost failed:', err));
     });
-    promptGroup.appendChild(gtmBtn);
   formCard.appendChild(promptGroup);
   mountPersonalizeTrigger({ controlsContainer: formCard, getTextarea: () => promptInput, appId: 'avatar-studio' });
 
@@ -330,7 +329,7 @@ const triggerBtn = document.createElement('button');
     promptGalleryBtn.textContent = '📚 Prompts';
     promptGalleryBtn.title = 'Browse prompt gallery';
     promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
-    promptGalleryBtn.className = 'btn-ghost-modern shrink-0';
+    promptGalleryBtn.className = 'btn-ghost-modern';
     promptGalleryBtn.addEventListener('click', () => {
       openPromptGallery({
         appTheme: 'avatar-studio',
@@ -352,7 +351,7 @@ const triggerBtn = document.createElement('button');
     recipeBtn.textContent = '📋 Recipes';
     recipeBtn.title = 'Browse AI recipes';
     recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-    recipeBtn.className = 'btn-ghost-modern shrink-0';
+    recipeBtn.className = 'btn-ghost-modern';
     recipeBtn.addEventListener('click', () => {
       openRecipeModal({
         onRunRecipe: (url) => {
@@ -364,15 +363,20 @@ const triggerBtn = document.createElement('button');
     // Monetization Hub button
     const monetizationBtn = document.createElement('button');
     monetizationBtn.type = 'button';
-    monetizationBtn.textContent = "💼 Smart Video AI Monetize";
+    monetizationBtn.textContent = '💼 Monetize';
     monetizationBtn.title = "Open Smart Video AI Monetization Hub";
     monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-    monetizationBtn.className = 'btn-ghost-modern shrink-0';
+    monetizationBtn.className = 'btn-ghost-modern';
     monetizationBtn.addEventListener('click', () => {
       openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
     });
-    promptGroup.appendChild(recipeBtn);
-    promptGroup.appendChild(monetizationBtn);
+    const toolbar = document.createElement('div');
+    toolbar.className = 'flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06]';
+    toolbar.appendChild(gtmBtn);
+    toolbar.appendChild(recipeBtn);
+    toolbar.appendChild(monetizationBtn);
+    toolbar.appendChild(promptGalleryBtn);
+    promptGroup.appendChild(toolbar);
 
   function updateFormVisibility() {
     // Show/hide video upload
@@ -451,7 +455,7 @@ const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('rem
   updateFormVisibility();
     const galleryAssets = getAssetsForStudio('avatar');
     if (galleryAssets.length > 0) {
-      const gallery = ExampleGallery({ studioId: 'avatar', assets: galleryAssets, maxCards: 20 });
+      const gallery = ExampleGallery({ studioId: 'avatar', assets: galleryAssets, maxCards: 28 });
       container.appendChild(gallery);
     }
 

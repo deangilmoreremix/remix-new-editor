@@ -419,7 +419,7 @@ export function EffectsStudio() {
   thumbBtn.type = 'button';
   thumbBtn.textContent = '🖼 Thumbnail';
   thumbBtn.title = 'Generate a custom thumbnail';
-  thumbBtn.className = 'btn-ghost-modern shrink-0';
+  thumbBtn.className = 'btn-ghost-modern';
   thumbBtn.addEventListener('click', () => {
     const modal = new TemplateThumbnailModal({
       appTheme: 'effects-studio',
@@ -461,7 +461,7 @@ generateBtn.type = 'button';
   promptGalleryBtn.textContent = '📚 Prompts';
   promptGalleryBtn.title = 'Browse prompt gallery';
   promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
-  promptGalleryBtn.className = 'btn-ghost-modern shrink-0';
+  promptGalleryBtn.className = 'btn-ghost-modern';
   promptGalleryBtn.addEventListener('click', () => {
     openPromptGallery({
       appTheme: 'video-studio',
@@ -478,7 +478,7 @@ generateBtn.type = 'button';
     recipeBtn.textContent = '📋 Recipes';
     recipeBtn.title = 'Browse AI recipes';
     recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-    recipeBtn.className = 'btn-ghost-modern shrink-0';
+    recipeBtn.className = 'btn-ghost-modern';
     recipeBtn.addEventListener('click', () => {
       openRecipeModal({
         onRunRecipe: (url) => {
@@ -490,10 +490,10 @@ generateBtn.type = 'button';
     // Monetization Hub button
     const monetizationBtn = document.createElement('button');
     monetizationBtn.type = 'button';
-    monetizationBtn.textContent = "💼 Smart Video AI Monetize";
+    monetizationBtn.textContent = '💼 Monetize';
     monetizationBtn.title = "Open Smart Video AI Monetization Hub";
     monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-    monetizationBtn.className = 'btn-ghost-modern shrink-0';
+    monetizationBtn.className = 'btn-ghost-modern';
     monetizationBtn.addEventListener('click', () => {
       openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
     });
@@ -1509,7 +1509,7 @@ generateBtn.type = 'button';
   switchTab(EFFECT_TABS[0]);
     const galleryAssets = getAssetsForStudio('effects');
     if (galleryAssets.length > 0) {
-      const gallery = ExampleGallery({ studioId: 'effects', assets: galleryAssets, maxCards: 20 });
+      const gallery = ExampleGallery({ studioId: 'effects', assets: galleryAssets, maxCards: 28 });
       container.appendChild(gallery);
     }
 
