@@ -844,7 +844,7 @@ function modelCatalogDevPlugin() {
           const raw = fs.readFileSync(CATALOG_PATH, 'utf-8');
           const data = JSON.parse(raw);
           // Dev client expects either { models: [...] } (single pool, filtered
-          // server-side) or { t2i: [...], i2i: [...], i2v: [...] } (full
+          // server-side) or { t2i: [...], i2i: [...], i2v: [...], t2v: [...], v2v: [...] } (full
           // multi-pool, filtered client-side). The static file holds the full
           // multi-pool shape, so we honor the client's modelType query param
           // by returning the requested pool wrapped in { models: [...] }.
