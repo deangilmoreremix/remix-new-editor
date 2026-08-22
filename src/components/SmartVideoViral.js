@@ -134,6 +134,15 @@ function getPreviewMedia(item) {
   if (!item.media || item.media.length === 0) return null;
   return item.media.find(m => m.role === 'result') || item.media[0];
 }
+function getVideoSource(item) {
+  if (!item.media || item.media.length === 0) return '';
+  const videoMedia = item.media.find(m => {
+    const url = m.sourceUrl || '';
+    return url.includes('video.twimg.com') || url.includes('releases/download/videos/');
+  });
+  if (videoMedia) return videoMedia.sourceUrl;
+  return item.media[0].sourceUrl || '';
+}
 function truncate(text, maxLen) {
   if (!text) return '';
   if (text.length <= maxLen) return text;
@@ -141,6 +150,36 @@ function truncate(text, maxLen) {
 }
 function fallbackPlaceholder() {
   return `<div class="w-full h-full flex items-center justify-center text-zinc-600"><svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8.5 8.5 15 12l-6.5 3.5z"/></svg></div>`;
+}
+function normalizeSeedanceItem(item) {
+  const source = item.source || {};
+  const author = source.author || {};
+  const engagement = source.engagement || {};
+  return {
+    imglumeId: item.id || `seedance-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    title: item.title || 'Untitled',
+    prompt: item.prompt || '',
+    mediaType: item.mediaType || 'video',
+    media: (item.media || []).map(m => ({
+      type: m.type || 'image',
+      previewUrl: m.previewUrl || '',
+      sourceUrl: m.sourceUrl || '',
+      posterUrl: m.posterUrl || '',
+    })),
+    source: {
+      author: { name: author.name || '', link: author.link || '' },
+      engagement: {
+        likes: engagement.likes || 0,
+        reposts: engagement.reposts || 0,
+        replies: engagement.replies || 0,
+      },
+      publishedAt: source.publishedAt || '',
+    },
+    categories: item.categories || [],
+    recommendedModel: item.recommendedModel || 'seedance-2.0',
+    provenance: item.provenance || {},
+    _source: 'seedance',
+  };
 }
 
 export function SmartVideoViral() {
@@ -203,6 +242,7 @@ export function SmartVideoViral() {
   let scrollSpyEl = null;
   let railSections = [];
   const VPF_DATA_URL = VPF_JSON_URL;
+  const SEEDANCE_DATA_URL = '/data/seedance-prompts.json';
   let lastUpdated = null;
   let autoRefreshTimer = null;
   let heroCarouselTimer = null;
@@ -525,7 +565,7 @@ export function SmartVideoViral() {
     const escapedPrompt = escapeHtml(fullPrompt);
     const escapedPreview = escapeHtml(promptPreview);
     let mediaHtml;
-    const videoSrc = isVideo ? proxyVideoUrl(sourceUrl || media?.previewUrl || '') : '';
+    const videoSrc = isVideo ? proxyVideoUrl(getVideoSource(item) || media?.previewUrl || '') : '';
     const posterSrc = isVideo ? (poster || thumb || '') : '';
     if (isVideo) {
       const safeSrc = escapeHtml(videoSrc);
@@ -745,7 +785,7 @@ export function SmartVideoViral() {
   function openVideoModal(item) {
     activeVideoItem = item;
     const media = getPreviewMedia(item);
-    const videoSrc = proxyVideoUrl(media?.sourceUrl || media?.previewUrl || '');
+    const videoSrc = proxyVideoUrl(getVideoSource(item) || media?.previewUrl || '');
     const poster = media?.posterUrl || media?.previewUrl || '';
     if (modalEl) closeVideoModal(false);
     modalTrigger = document.activeElement;
@@ -1101,11 +1141,20 @@ export function SmartVideoViral() {
     const signal = loadDataController.signal;
     try {
       const bustedUrl = VPF_DATA_URL + '?t=' + Date.now();
-      const res = await fetch(bustedUrl, { cache: 'no-store', signal });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
+      const seedanceUrl = SEEDANCE_DATA_URL + '?t=' + Date.now();
+      const [vpfRes, seedanceRes] = await Promise.all([
+        fetch(bustedUrl, { cache: 'no-store', signal }),
+        fetch(seedanceUrl, { cache: 'no-store', signal }).catch(() => null),
+      ]);
+      if (!vpfRes.ok) throw new Error(`VPF HTTP ${vpfRes.status}`);
+      const vpfJson = await vpfRes.json();
+      let seedanceItems = [];
+      if (seedanceRes && seedanceRes.ok) {
+        const seedanceJson = await seedanceRes.json();
+        seedanceItems = (seedanceJson.items || []).map(normalizeSeedanceItem);
+      }
       if (!mounted) return;
-      prompts = json.items || [];
+      prompts = [...(vpfJson.items || []), ...seedanceItems];
       isLoading = false;
       lastUpdated = new Date();
       updateStatsAndRails();
