@@ -10,7 +10,7 @@ const STUDIO_PAGES = new Set([
   'text-to-image','image-to-image','text-to-video','image-to-video',
   'video-to-video','video-watermark','storyboard-page','character-page',
   'effects-page','cinema-page','influencer-page','commercial-page',
-  'upscale-page','ai-vfx',
+  'upscale-page','ai-vfx','viral',
 ]);
 
 // Ensure the shared Clerk instance is created + loaded before any studio

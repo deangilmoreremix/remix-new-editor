@@ -220,6 +220,13 @@ export function Header(navigate) {
         mobileMenu.classList.remove('opacity-100', 'pointer-events-auto');
       };
       mobileMenu.appendChild(link);
+    } else if (item === 'Smart Video Viral') {
+      link.onclick = () => {
+        navigate('viral');
+        mobileMenu.classList.add('opacity-0', 'pointer-events-none');
+        mobileMenu.classList.remove('opacity-100', 'pointer-events-auto');
+      };
+      mobileMenu.appendChild(link);
     } else {
       link.onclick = () => {
         navigate(getRouteForItem(item));
@@ -298,6 +305,9 @@ export function Header(navigate) {
         el.classList.add('text-white');
         el.classList.remove('text-secondary');
       } else if (page === 'influencer-page' && route === 'AI Influencer') {
+        el.classList.add('text-white');
+        el.classList.remove('text-secondary');
+      } else if (page === 'viral' && route === 'Smart Video Viral') {
         el.classList.add('text-white');
         el.classList.remove('text-secondary');
       } else if (route !== 'Image' && route !== 'Video' && route !== 'Tools') {

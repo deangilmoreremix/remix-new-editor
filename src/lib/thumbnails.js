@@ -298,6 +298,7 @@ const STUDIO_THUMBNAILS = {
   lipsync: '/thumbnails/studios/lipsync.webp',
   render: '/thumbnails/studios/render.webp',
   chat: '/thumbnails/studios/chat.webp',
+  viral: '/thumbnails/studios/video.webp',
 };
 
 const HERO_THUMBNAILS = {
@@ -320,6 +321,7 @@ const HERO_THUMBNAILS = {
   render: '/thumbnails/heroes/render.webp',
   chat: '/thumbnails/heroes/chat.webp',
   templates: '/thumbnails/heroes/templates.webp',
+  viral: '/thumbnails/heroes/video.webp',
 };
 
 const TOOL_THUMBNAILS = {
