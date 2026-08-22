@@ -37,7 +37,7 @@ export function ContentLibraryPage() {
 
   // Upload button
   const uploadBtn = document.createElement('button');
-  uploadBtn.className = 'px-4 py-2 rounded-xl text-xs font-bold transition-all bg-primary text-black hover:shadow-glow flex items-center gap-2';
+  uploadBtn.className = 'px-4 py-2 rounded-xl text-xs font-bold transition-all btn-secondary-modern hover:shadow-glow flex items-center gap-2';
   uploadBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Upload';
   controls.appendChild(uploadBtn);
 
@@ -143,7 +143,7 @@ export function ContentLibraryPage() {
   function updateFilters() {
     Object.entries(filterBtns).forEach(([key, btn]) => {
       btn.className = key === activeFilter
-        ? 'px-4 py-2 rounded-full text-xs font-bold transition-all bg-primary text-black'
+        ? 'px-4 py-2 rounded-full text-xs font-bold transition-all btn-secondary-modern'
         : 'px-4 py-2 rounded-full text-xs font-bold transition-all bg-white/5 text-secondary hover:bg-white/10';
     });
   }
@@ -348,7 +348,7 @@ export function ContentLibraryPage() {
     const dlBtn = document.createElement('a');
     dlBtn.href = item.url;
     dlBtn.download = item.filename || 'download';
-    dlBtn.className = 'mt-4 bg-primary text-black px-8 py-2.5 rounded-xl font-bold text-sm hover:shadow-glow transition-all inline-flex items-center gap-2';
+    dlBtn.className = 'mt-4 btn-secondary-modern px-8 py-2.5 rounded-xl font-bold text-sm hover:shadow-glow transition-all inline-flex items-center gap-2';
     dlBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download';
     wrapper.appendChild(dlBtn);
 

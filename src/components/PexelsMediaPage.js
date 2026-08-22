@@ -103,7 +103,7 @@ export function PexelsMediaPage() {
   controls.appendChild(searchInput);
 
   const retryBtn = document.createElement('button');
-  retryBtn.className = 'hidden px-4 py-2 rounded-full text-xs font-bold transition-all bg-primary text-black hover:shadow-glow';
+  retryBtn.className = 'hidden px-4 py-2 rounded-full text-xs font-bold transition-all btn-secondary-modern hover:shadow-glow';
   safeSetText(retryBtn, 'Retry');
   retryBtn.onclick = () => {
     errorMessage = '';
@@ -183,7 +183,7 @@ export function PexelsMediaPage() {
   function updateTabs() {
     Object.entries(tabBtns).forEach(([key, btn]) => {
       btn.className = key === activeTab
-        ? 'px-3 py-1.5 rounded-full text-[10px] font-bold transition-all bg-primary text-black'
+        ? 'px-3 py-1.5 rounded-full text-[10px] font-bold transition-all btn-secondary-modern'
         : 'px-3 py-1.5 rounded-full text-[10px] font-bold transition-all bg-white/5 text-secondary hover:bg-white/10';
     });
   }
@@ -237,7 +237,7 @@ export function PexelsMediaPage() {
   function updateFilters() {
     Object.entries(filterBtns).forEach(([key, btn]) => {
       btn.className = key === activeFilter
-        ? 'px-4 py-2 rounded-full text-xs font-bold transition-all bg-primary text-black'
+        ? 'px-4 py-2 rounded-full text-xs font-bold transition-all btn-secondary-modern'
         : 'px-4 py-2 rounded-full text-xs font-bold transition-all bg-white/5 text-secondary hover:bg-white/10';
     });
   }
@@ -536,7 +536,7 @@ export function PexelsMediaPage() {
     wrapper.appendChild(timelineBtn);
 
     const importBtn = document.createElement('button');
-    importBtn.className = 'mt-4 bg-primary text-black px-8 py-2.5 rounded-xl font-bold text-sm hover:shadow-glow transition-all inline-flex items-center gap-2';
+    importBtn.className = 'mt-4 btn-secondary-modern px-8 py-2.5 rounded-xl font-bold text-sm hover:shadow-glow transition-all inline-flex items-center gap-2';
     importBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Import to Project';
     importBtn.onclick = async () => {
       importBtn.disabled = true;

@@ -47,7 +47,7 @@ export function CinemaPage() {
   contentWrapper.innerHTML = `
     <!-- Start Creating CTA -->
     <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
-      <button class="start-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all">
+      <button class="start-btn btn-primary-modern">
         Start Creating
       </button>
     </div>
@@ -109,7 +109,7 @@ export function CinemaPage() {
     <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl text-center mb-6">
       <h2 class="text-xl md:text-2xl font-black text-white mb-2">Create Cinema Magic</h2>
       <p class="text-sm text-muted mb-6">Generate professional cinema-quality shots</p>
-      <button class="cta-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all">
+      <button class="cta-btn btn-primary-modern">
         Get Started Free
       </button>
     </div>

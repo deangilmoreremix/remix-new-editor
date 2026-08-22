@@ -104,7 +104,7 @@ export function EditorPage() {
                 <h3 class="text-lg font-bold text-white mb-4">Add New Track</h3>
                 <input type="text" placeholder="Enter track name" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white mb-4" id="track-name-input" />
                 <div class="flex gap-3">
-                    <button class="flex-1 py-2 bg-primary text-black font-bold rounded-lg" id="confirm-btn">Add Track</button>
+                    <button class="flex-1 py-2 btn-secondary-modern font-bold rounded-lg" id="confirm-btn">Add Track</button>
                     <button class="flex-1 py-2 bg-white/10 text-white rounded-lg" id="cancel-btn">Cancel</button>
                 </div>
             </div>
@@ -185,7 +185,7 @@ export function EditorPage() {
                 <button id="save-btn" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-sm rounded-lg transition-colors" title="Save project">
                     Save
                 </button>
-                <button id="export-btn" class="px-4 py-1.5 bg-primary text-black font-bold rounded-lg hover:scale-105 transition-transform text-sm" title="Export video">
+                <button id="export-btn" class="px-4 py-1.5 btn-secondary-modern font-bold rounded-lg hover:scale-105 transition-transform text-sm" title="Export video">
                     Export
                 </button>
             </div>
@@ -214,7 +214,7 @@ export function EditorPage() {
                     </div>
                     <div class="flex gap-2">
                         <input type="text" id="chat-input" placeholder="Type AI command..." class="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-muted focus:outline-none focus:border-primary/50" />
-                        <button id="send-chat-btn" class="px-3 py-2 bg-primary text-black font-bold rounded-lg hover:scale-105 transition-transform">
+                        <button id="send-chat-btn" class="px-3 py-2 btn-secondary-modern font-bold rounded-lg hover:scale-105 transition-transform">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
                             </svg>
@@ -530,7 +530,7 @@ export function EditorPage() {
                 </div>
                         </div>
                         
-                        <button class="mt-4 w-full py-2 bg-primary text-black font-bold rounded-lg hover:scale-[1.02] transition-transform" id="add-text-btn" title="Add text overlay to timeline">
+                        <button class="mt-4 w-full py-2 btn-secondary-modern font-bold rounded-lg hover:scale-[1.02] transition-transform" id="add-text-btn" title="Add text overlay to timeline">
                             Add Text
                         </button>
                     </div>
@@ -657,7 +657,7 @@ export function EditorPage() {
                             </div>
                         </div>
                         
-                        <button id="run-auto-clip" class="w-full py-3 bg-primary text-black text-white font-bold rounded-xl hover:scale-[1.02] transition-transform">
+                        <button id="run-auto-clip" class="w-full py-3 btn-secondary-modern text-white font-bold rounded-xl hover:scale-[1.02] transition-transform">
                             Run Auto-Clip
                         </button>
                         
@@ -714,7 +714,7 @@ export function EditorPage() {
                             </div>
                         </div>
                         
-                        <button id="run-ai-organize" class="w-full py-3 bg-primary text-black text-white font-bold rounded-xl hover:scale-[1.02] transition-transform mb-4">
+                        <button id="run-ai-organize" class="w-full py-3 btn-secondary-modern text-white font-bold rounded-xl hover:scale-[1.02] transition-transform mb-4">
                             Auto-Analyze & Organize
                         </button>
                         
@@ -803,7 +803,7 @@ export function EditorPage() {
                             placeholder="Type a command..."
                             class="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-muted focus:outline-none focus:border-primary/50"
                         >
-                        <button id="agent-send-btn" class="px-3 py-2 bg-primary text-black text-white rounded-lg hover:scale-105 transition-transform">
+                        <button id="agent-send-btn" class="px-3 py-2 btn-secondary-modern text-white rounded-lg hover:scale-105 transition-transform">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
                             </svg>

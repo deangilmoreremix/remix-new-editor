@@ -550,7 +550,7 @@ export function DirectorPage() {
                             placeholder="Type your command (e.g., 'Summarize this video')"
                             class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-muted focus:outline-none focus:border-primary/50"
                         >
-                        <button id="send-command-btn" class="px-6 py-3 bg-primary text-black font-bold rounded-xl hover:scale-105 transition-transform flex items-center gap-2">
+                        <button id="send-command-btn" class="px-6 py-3 btn-secondary-modern font-bold rounded-xl hover:scale-105 transition-transform flex items-center gap-2">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <line x1="22" y1="2" x2="11" y2="13"/>
                                 <polygon points="22 2 15 22 11 13 2 9 22 2"/>
@@ -1239,7 +1239,7 @@ export function DirectorPage() {
                     ${formHtml}
                     <p data-error class="hidden text-xs text-red-300 mt-2"></p>
                     <div class="flex gap-2 mt-3">
-                        <button data-action="run" data-testid="agent-prompt-run" class="px-4 py-1.5 bg-primary text-black font-bold text-sm rounded-lg hover:scale-105 transition-transform">Run</button>
+                        <button data-action="run" data-testid="agent-prompt-run" class="px-4 py-1.5 btn-secondary-modern font-bold text-sm rounded-lg hover:scale-105 transition-transform">Run</button>
                         <button data-action="cancel" data-testid="agent-prompt-cancel" class="px-4 py-1.5 bg-white/5 text-secondary text-sm rounded-lg hover:bg-white/10 transition-colors">Cancel</button>
                     </div>
                 </div>

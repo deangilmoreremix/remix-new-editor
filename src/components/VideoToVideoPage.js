@@ -38,7 +38,7 @@ export function VideoToVideoPage() {
     <h2 class="text-2xl md:text-3xl font-black text-white mb-2">Transform Your Videos</h2>
     <p class="text-sm text-muted mb-6 max-w-md mx-auto">Start editing your videos with powerful AI tools</p>
     <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
-      <button class="cta-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all">Get Started Free</button>
+      <button class="cta-btn btn-primary-modern">Get Started Free</button>
       <button type="button" class="gtm-boost-btn border border-primary/40 text-primary px-6 py-2.5 rounded-xl font-black text-sm hover:bg-primary/10 active:scale-95 transition-all" title="Enhance your prompt with GTM conversion frameworks" aria-label="GTM Boost prompt enhancer">🎯 GTM Boost</button>
     </div>
   `;

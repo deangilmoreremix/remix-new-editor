@@ -10,7 +10,7 @@ export function Page404(page = 'unknown') {
                 The page "<span class="text-white">${escapeHtml(page)}</span>" doesn't exist or may have been moved.
             </p>
             <div class="flex flex-col sm:flex-row gap-3 justify-center">
-                <button id="go-home" class="px-6 py-3 bg-primary text-black font-bold rounded-xl hover:scale-105 transition-transform">
+                <button id="go-home" class="px-6 py-3 btn-secondary-modern font-bold rounded-xl hover:scale-105 transition-transform">
                     Go to Home
                 </button>
                 <button id="go-back" class="px-6 py-3 bg-white/10 text-white font-bold rounded-xl hover:bg-white/20 transition-colors">

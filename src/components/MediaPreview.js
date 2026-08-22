@@ -246,7 +246,7 @@ export function createFullscreenPreview() {
     const dlBtn = document.createElement('a');
     dlBtn.href = url;
     dlBtn.download = `generation-${Date.now()}`;
-    dlBtn.className = 'bg-primary text-black px-6 py-2.5 rounded-xl font-bold text-sm hover:shadow-glow transition-all';
+    dlBtn.className = 'btn-secondary-modern px-6 py-2.5 rounded-xl font-bold text-sm hover:shadow-glow transition-all';
     dlBtn.textContent = 'Download';
     actions.appendChild(dlBtn);
 

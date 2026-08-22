@@ -106,7 +106,7 @@ export function CharacterPage() {
   ctaSection.innerHTML = `
     <h2 class="text-xl font-black text-white mb-2">Create Your Character</h2>
     <p class="text-sm text-muted mb-6">Generate consistent, professional characters</p>
-    <button class="cta-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all">
+    <button class="cta-btn btn-primary-modern">
       Get Started Free
     </button>
   `;

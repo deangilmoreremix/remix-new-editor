@@ -62,7 +62,7 @@ export function TextToImagePage() {
     heroContent.innerHTML = `
       <h1 class="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight mb-1">Text to Image</h1>
       <p class="text-white/60 text-sm font-medium">Transform your ideas into stunning, professional-quality images with 27 AI models</p>
-      <button class="start-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all mt-3">Start Creating Free</button>
+      <button class="start-btn btn-primary-modern">Start Creating Free</button>
     `;
     heroBanner.appendChild(heroContent);
     hero.appendChild(heroBanner);
@@ -129,7 +129,7 @@ export function TextToImagePage() {
       <h2 class="text-xl font-bold text-white mb-2">Ready to Create?</h2>
       <p class="text-sm text-secondary mb-6">Join thousands of creators generating amazing images with our AI platform</p>
       <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
-        <button class="cta-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all">Get Started Free</button>
+        <button class="cta-btn btn-primary-modern">Get Started Free</button>
         <button type="button" class="gtm-boost-btn border border-primary/40 text-primary px-6 py-2.5 rounded-xl font-black text-sm hover:bg-primary/10 active:scale-95 transition-all" title="Enhance your prompt with GTM conversion frameworks" aria-label="GTM Boost prompt enhancer">🎯 GTM Boost</button>
       </div>
     </div>

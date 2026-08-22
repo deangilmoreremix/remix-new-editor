@@ -79,7 +79,7 @@ export function StoryboardPanel({ appendTo } = {}) {
 
           <div class="flex gap-2">
             <button id="sb-add" class="flex-1 px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm text-white">+ Frame</button>
-            <button id="sb-generate" class="flex-1 px-3 py-2 bg-primary text-black font-black rounded-xl text-sm">Generate</button>
+            <button id="sb-generate" class="flex-1 px-3 py-2 btn-secondary-modern font-black rounded-xl text-sm">Generate</button>
           </div>
 
           <div class="space-y-2 max-h-[420px] overflow-y-auto pr-1" id="sb-frame-list">
@@ -94,7 +94,7 @@ export function StoryboardPanel({ appendTo } = {}) {
             <div>
               <label class="text-xs text-muted font-bold block mb-1">Shot type</label>
               <div class="flex flex-wrap gap-2">
-                ${SHOT_TYPES.map((s) => `<button data-shot="${s}" class="sb-shot px-2.5 py-1 rounded-full text-xs ${selected.shot === s ? 'bg-primary text-black font-bold' : 'bg-white/5 text-white border border-white/10'}">${s}</button>`).join('')}
+                ${SHOT_TYPES.map((s) => `<button data-shot="${s}" class="sb-shot px-2.5 py-1 rounded-full text-xs ${selected.shot === s ? 'btn-secondary-modern font-bold' : 'bg-white/5 text-white border border-white/10'}">${s}</button>`).join('')}
               </div>
             </div>
             <div>

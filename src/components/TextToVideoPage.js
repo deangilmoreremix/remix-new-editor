@@ -98,7 +98,7 @@ export function TextToVideoPage() {
           <p class="text-sm text-muted">Start generating amazing videos with 40+ AI models</p>
         </div>
         <div class="flex flex-col sm:flex-row items-center gap-3">
-          <button class="cta-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all whitespace-nowrap">
+          <button class="cta-btn btn-primary-modern">
             Get Started Free
           </button>
           <button type="button" class="gtm-boost-btn border border-primary/40 text-primary px-6 py-2.5 rounded-xl font-black text-sm hover:bg-primary/10 active:scale-95 transition-all whitespace-nowrap" title="Enhance your prompt with GTM conversion frameworks" aria-label="GTM Boost prompt enhancer">🎯 GTM Boost</button>
@@ -147,7 +147,7 @@ export function TextToVideoPage() {
           <h2 class="text-lg font-black text-white mb-1">Start Creating Now</h2>
           <p class="text-sm text-muted">Pick a model or try an example prompt to begin</p>
         </div>
-        <button class="start-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all whitespace-nowrap">
+        <button class="start-btn btn-primary-modern">
           Start Creating Videos
         </button>
       </div>

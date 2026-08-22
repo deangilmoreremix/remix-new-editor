@@ -500,7 +500,7 @@ export function SmartVideoViral() {
         <svg class="w-16 h-16 mx-auto mb-4 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10.25 22h3.5M12 17V7m-5 5l5 5 5-5"/></svg>
         <p class="text-sm mb-2">Failed to load the prompt feed</p>
         <p class="text-xs text-zinc-500">${escapeHtml(error || '')}</p>
-        <button id="viral-retry" class="mt-3 px-4 py-2 bg-primary text-black rounded-xl text-xs font-black hover:shadow-glow transition">Retry</button>
+        <button id="viral-retry" class="mt-3 px-4 py-2 btn-secondary-modern rounded-xl text-xs font-black hover:shadow-glow transition">Retry</button>
       </div>
     `;
     const retryBtn = gridEl.querySelector('#viral-retry');
@@ -577,7 +577,7 @@ export function SmartVideoViral() {
             </div>
           ` : ''}
           <div class="mt-auto flex gap-2">
-            <button class="copy-prompt-btn flex-1 px-3 py-1.5 bg-primary text-black rounded-xl text-[10px] font-black hover:shadow-glow transition-colors" data-id="${item.imglumeId}" title="Copy prompt to clipboard">Copy Prompt</button>
+            <button class="copy-prompt-btn btn-primary-modern" data-id="${item.imglumeId}" title="Copy prompt to clipboard">Copy Prompt</button>
             <a href="${escapeHtml(item.source?.url || item.curation?.recordUrl || '#')}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 bg-[#141414] border border-zinc-700/80 text-zinc-300 rounded-xl text-[10px] font-bold hover:text-white hover:border-primary/50 transition-colors" title="View source post on X">Source</a>
           </div>
         </div>
@@ -776,7 +776,7 @@ export function SmartVideoViral() {
           <div class="flex items-center justify-between pt-2 border-t border-white/5">
             <span class="text-[10px] text-zinc-500">@${escapeHtml(item.source?.author?.handle || 'unknown')}</span>
             <div class="flex gap-2">
-              <button class="viral-modal-copy px-3 py-1.5 bg-primary text-black rounded-xl text-[10px] font-black hover:shadow-glow transition-colors" data-id="${item.imglumeId}">Copy Prompt</button>
+              <button class="viral-modal-copy btn-primary-modern" data-id="${item.imglumeId}">Copy Prompt</button>
               <a href="${escapeHtml(item.source?.url || item.curation?.recordUrl || '#')}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 bg-[#141414] border border-zinc-700/80 text-zinc-300 rounded-xl text-[10px] font-bold hover:text-white hover:border-primary/50 transition-colors">View on X</a>
             </div>
           </div>
@@ -794,7 +794,7 @@ export function SmartVideoViral() {
             <div class="flex flex-col items-center justify-center h-full text-center p-4">
               <svg class="w-10 h-10 text-zinc-500 mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
               <p class="text-zinc-400 text-xs mb-2">Video could not be loaded</p>
-              <a href="${escapeHtml(videoSrc)}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 bg-primary text-black rounded-xl text-[10px] font-black hover:shadow-glow transition-colors">View on X</a>
+              <a href="${escapeHtml(videoSrc)}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 btn-secondary-modern rounded-xl text-[10px] font-black hover:shadow-glow transition-colors">View on X</a>
             </div>
           `;
         }
@@ -972,7 +972,7 @@ export function SmartVideoViral() {
           <span class="text-xs text-zinc-400">Exclude Chinese content</span>
           <button id="sheet-lang-toggle" type="button" class="px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-xl text-[10px] font-bold text-primary">On</button>
         </div>
-        <button id="sheet-apply" class="w-full py-3 bg-primary text-black rounded-xl text-sm font-black">Apply Filters</button>
+        <button id="sheet-apply" class="w-full py-3 btn-secondary-modern rounded-xl text-sm font-black">Apply Filters</button>
       </div>
     `;
     document.body.appendChild(sheetBackdrop);
@@ -1197,7 +1197,7 @@ export function SmartVideoViral() {
           <svg class="w-12 h-12 mx-auto mb-3 opacity-30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M15 9a3 3 0 1 0-3 3 3 3 0 0 0 3-3z"/></svg>
           <p class="text-sm">No prompts match your filters.</p>
           <p class="text-xs text-zinc-500 mt-1">Try adjusting your search or clearing the category filter.</p>
-          <button id="viral-reset-filters" class="mt-3 px-4 py-2 bg-primary text-black rounded-xl text-xs font-black hover:shadow-glow transition">Reset All Filters</button>
+          <button id="viral-reset-filters" class="mt-3 px-4 py-2 btn-secondary-modern rounded-xl text-xs font-black hover:shadow-glow transition">Reset All Filters</button>
         </div>
       `;
       const resetBtn = gridEl.querySelector('#viral-reset-filters');

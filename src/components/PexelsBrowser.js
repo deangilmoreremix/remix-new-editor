@@ -53,7 +53,7 @@ export function openPexelsBrowser({ accept = ['image', 'video'], onSelect, onCan
   controls.innerHTML = `
     <div class="flex items-center gap-2 flex-wrap">
       <div class="flex gap-1 bg-white/5 p-1 rounded-xl">
-        <button class="tab-btn px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all bg-primary text-black" data-tab="search">Search</button>
+        <button class="tab-btn px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all btn-secondary-modern" data-tab="search">Search</button>
         <button class="tab-btn px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all text-secondary hover:text-white" data-tab="curated">Curated</button>
         <button class="tab-btn px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all text-secondary hover:text-white" data-tab="popular">Popular</button>
         <button class="tab-btn px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all text-secondary hover:text-white" data-tab="collections">Collections</button>
@@ -98,7 +98,7 @@ export function openPexelsBrowser({ accept = ['image', 'video'], onSelect, onCan
       activeTab = tab.dataset.tab;
       tabs.forEach(t => {
         t.className = t === tab
-          ? 'tab-btn px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all bg-primary text-black'
+          ? 'tab-btn px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all btn-secondary-modern'
           : 'tab-btn px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all text-secondary hover:text-white';
       });
       currentPage = 1;
@@ -459,7 +459,7 @@ export function openPexelsBrowser({ accept = ['image', 'video'], onSelect, onCan
 
     // Action button
     const actionBtn = document.createElement('button');
-    actionBtn.className = 'mt-4 bg-primary text-black px-8 py-2.5 rounded-xl font-bold text-sm hover:shadow-glow transition-all';
+    actionBtn.className = 'mt-4 btn-secondary-modern px-8 py-2.5 rounded-xl font-bold text-sm hover:shadow-glow transition-all';
     safeSetText(actionBtn, 'Use in ' + studioName);
     actionBtn.onclick = () => {
       if (window._pexelsHlsInstance) { window._pexelsHlsInstance.destroy(); window._pexelsHlsInstance = null; }

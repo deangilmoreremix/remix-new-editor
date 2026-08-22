@@ -165,13 +165,13 @@ export function CinemaTemplateStudio() {
         </div>
       </div>
       <div class="flex items-center gap-3">
-        <button id="favorites-btn" data-filter="favorites" class="px-3 py-1.5 text-sm rounded-lg transition-colors flex items-center gap-2 ${browseFilter === 'favorites' ? 'bg-primary text-black font-bold' : 'bg-white/5 hover:bg-white/10 text-secondary'}">
+        <button id="favorites-btn" data-filter="favorites" class="px-3 py-1.5 text-sm rounded-lg transition-colors flex items-center gap-2 ${browseFilter === 'favorites' ? 'btn-secondary-modern font-bold' : 'bg-white/5 hover:bg-white/10 text-secondary'}">
           <span>❤️</span> <span class="favorites-label">Favorites${favCount > 0 ? ` (${favCount})` : ''}</span>
         </button>
-        <button id="recent-btn" data-filter="recent" class="px-3 py-1.5 text-sm rounded-lg transition-colors flex items-center gap-2 ${browseFilter === 'recent' ? 'bg-primary text-black font-bold' : 'bg-white/5 hover:bg-white/10 text-secondary'}">
+        <button id="recent-btn" data-filter="recent" class="px-3 py-1.5 text-sm rounded-lg transition-colors flex items-center gap-2 ${browseFilter === 'recent' ? 'btn-secondary-modern font-bold' : 'bg-white/5 hover:bg-white/10 text-secondary'}">
           <span>🕐</span> <span class="recent-label">Recent${recentCount > 0 ? ` (${recentCount})` : ''}</span>
         </button>
-        <button id="custom-btn" data-filter="custom" class="px-3 py-1.5 text-sm rounded-lg transition-colors flex items-center gap-2 ${browseFilter === 'custom' ? 'bg-primary text-black font-bold' : 'bg-white/5 hover:bg-white/10 text-secondary'}">
+        <button id="custom-btn" data-filter="custom" class="px-3 py-1.5 text-sm rounded-lg transition-colors flex items-center gap-2 ${browseFilter === 'custom' ? 'btn-secondary-modern font-bold' : 'bg-white/5 hover:bg-white/10 text-secondary'}">
           <span>✨</span> <span class="custom-label">My Templates${customCount > 0 ? ` (${customCount})` : ''}</span>
         </button>
       </div>
@@ -230,7 +230,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         <div class="text-6xl mb-4">${icon}</div>
         <h3 class="text-xl font-bold text-white mb-2">${title}</h3>
         <p class="text-secondary mb-6">${message}</p>
-        ${browseFilter !== 'all' ? '<button class="px-6 py-3 bg-primary text-black font-bold rounded-xl hover:scale-105 transition-transform show-all-empty-btn">Browse All Templates</button>' : ''}
+        ${browseFilter !== 'all' ? '<button class="px-6 py-3 btn-secondary-modern font-bold rounded-xl hover:scale-105 transition-transform show-all-empty-btn">Browse All Templates</button>' : ''}
       `;
       grid.appendChild(emptyEl);
       if (browseFilter !== 'all') {
@@ -452,10 +452,10 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
           <span class="api-key-text text-[10px] uppercase tracking-wider text-zinc-500">No API key</span>
         </div>
         <div class="flex bg-white/5 rounded-lg p-1">
-          <button id="quick-mode-btn" class="px-4 py-1.5 ${currentMode === 'quick' ? 'bg-primary text-black' : 'text-white/70'} text-xs font-bold rounded-md transition-colors">
+          <button id="quick-mode-btn" class="px-4 py-1.5 ${currentMode === 'quick' ? 'btn-secondary-modern' : 'text-white/70'} text-xs font-bold rounded-md transition-colors">
             Quick Mode
           </button>
-          <button id="advanced-mode-btn" class="px-4 py-1.5 ${currentMode === 'advanced' ? 'bg-primary text-black' : 'text-white/70'} text-xs font-bold rounded-md transition-colors">
+          <button id="advanced-mode-btn" class="px-4 py-1.5 ${currentMode === 'advanced' ? 'btn-secondary-modern' : 'text-white/70'} text-xs font-bold rounded-md transition-colors">
             Advanced
           </button>
         </div>
@@ -606,7 +606,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
               <button id="add-scene-btn" class="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-secondary text-xs font-bold rounded-lg transition-colors">
                 + Add Scene
               </button>
-              <button id="open-storyboard-btn" class="px-4 py-2 bg-primary text-black text-xs font-bold rounded-lg hover:scale-105 transition-transform">
+              <button id="open-storyboard-btn" class="px-4 py-2 btn-secondary-modern text-xs font-bold rounded-lg hover:scale-105 transition-transform">
                 🎨 Storyboard
               </button>
             </div>
@@ -691,7 +691,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
 
     const mobileOutputBtn = document.createElement('button');
     mobileOutputBtn.id = 'mobile-output-btn';
-    mobileOutputBtn.className = 'lg:hidden fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-black text-sm font-bold shadow-lg hover:scale-105 transition-transform';
+    mobileOutputBtn.className = 'lg:hidden fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full btn-secondary-modern text-sm font-bold shadow-lg hover:scale-105 transition-transform';
     mobileOutputBtn.textContent = 'Output';
     mobileOutputBtn.onclick = toggleMobileOutput;
     container.appendChild(mobileOutputBtn);
@@ -952,7 +952,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
             <h2 class="text-lg font-bold text-white">Video Intent</h2>
             <p class="text-xs text-secondary">Describe the video you want to create</p>
           </div>
-          <button id="open-storyboard-btn-2" class="px-4 py-2 bg-primary text-black text-xs font-bold rounded-lg hover:scale-105 transition-transform">
+          <button id="open-storyboard-btn-2" class="px-4 py-2 btn-secondary-modern text-xs font-bold rounded-lg hover:scale-105 transition-transform">
             🎨 Storyboard
           </button>
         </div>
@@ -1365,7 +1365,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         </div>
       </div>
       <div class="mt-6 flex gap-3">
-        <button id="save-scene-btn" class="flex-1 py-2.5 bg-primary text-black font-bold text-sm rounded-xl hover:scale-[1.02] transition-transform">
+        <button id="save-scene-btn" class="flex-1 py-2.5 btn-secondary-modern font-bold text-sm rounded-xl hover:scale-[1.02] transition-transform">
           Save Changes
         </button>
         <button id="cancel-scene-btn" class="px-6 py-2.5 bg-white/5 text-white font-bold text-sm rounded-xl hover:bg-white/10 transition-colors">
@@ -2683,7 +2683,7 @@ const firstChild = storyboardRoot.firstElementChild;
     const downloadBtn = document.createElement('a');
     downloadBtn.href = generationResult || '#';
     downloadBtn.download = '';
-    downloadBtn.className = 'px-4 py-2 bg-primary text-black text-sm font-bold rounded-lg hover:scale-105 transition-transform';
+    downloadBtn.className = 'px-4 py-2 btn-secondary-modern text-sm font-bold rounded-lg hover:scale-105 transition-transform';
     downloadBtn.textContent = 'Download';
 
     actions.appendChild(backBtn);

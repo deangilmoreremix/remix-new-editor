@@ -76,7 +76,7 @@ export function ImageToVideoPage() {
           <p class="text-sm text-muted">Transform still images into stunning animated videos</p>
         </div>
         <div class="flex flex-col sm:flex-row items-center gap-3">
-          <button class="start-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all whitespace-nowrap">
+          <button class="start-btn btn-primary-modern">
             Animate Your Images
           </button>
           <button type="button" class="gtm-boost-btn border border-primary/40 text-primary px-6 py-2.5 rounded-xl font-black text-sm hover:bg-primary/10 active:scale-95 transition-all whitespace-nowrap" title="Enhance your prompt with GTM conversion frameworks" aria-label="GTM Boost prompt enhancer">🎯 GTM Boost</button>
@@ -135,7 +135,7 @@ export function ImageToVideoPage() {
     <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-8 md:p-10 shadow-3xl text-center">
       <h2 class="text-2xl font-black text-white mb-2">Bring Images to Life</h2>
       <p class="text-muted mb-6 max-w-md mx-auto">Start animating your images with powerful AI models</p>
-      <button class="cta-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all">
+      <button class="cta-btn btn-primary-modern">
         Get Started Free
       </button>
     </div>

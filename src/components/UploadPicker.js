@@ -439,7 +439,7 @@ export function createUploadPicker({
         if (isMulti && selectedEntries.length > 0) {
             const doneBtn = document.createElement('button');
             doneBtn.type = 'button';
-            doneBtn.className = 'flex items-center gap-1 px-3 py-1.5 bg-primary text-black rounded-xl text-xs font-black transition-all hover:scale-105';
+            doneBtn.className = 'flex items-center gap-1 px-3 py-1.5 btn-secondary-modern rounded-xl text-xs font-black transition-all hover:scale-105';
             doneBtn.innerHTML = `✓ Done (${selectedEntries.length})`;
             doneBtn.onclick = (e) => {
                 e.stopPropagation();
@@ -544,7 +544,7 @@ export function createUploadPicker({
                         // Focus the panel so paste is captured, show toast
                         panel.focus?.();
                         const t = document.createElement('div');
-                        t.className = 'absolute -top-8 left-1/2 -translate-x-1/2 px-2.5 py-1 bg-primary text-black text-[10px] font-black rounded-md whitespace-nowrap z-50';
+                        t.className = 'absolute -top-8 left-1/2 -translate-x-1/2 px-2.5 py-1 btn-secondary-modern text-[10px] font-black rounded-md whitespace-nowrap z-50';
                         t.textContent = 'Press ⌘V / Ctrl+V to paste';
                         panel.style.position || (panel.style.position = 'relative');
                         panel.appendChild(t);
@@ -681,7 +681,7 @@ export function createUploadPicker({
             bottomBar.innerHTML = `<span class="text-xs text-secondary">${selectedEntries.length} of ${maxImages} selected</span>`;
             const doneBtn2 = document.createElement('button');
             doneBtn2.type = 'button';
-            doneBtn2.className = 'px-4 py-1.5 bg-primary text-black rounded-xl text-xs font-black transition-all hover:scale-105';
+            doneBtn2.className = 'px-4 py-1.5 btn-secondary-modern rounded-xl text-xs font-black transition-all hover:scale-105';
             doneBtn2.textContent = 'Use Selected';
             doneBtn2.onclick = (e) => {
                 e.stopPropagation();
@@ -752,7 +752,7 @@ export function createUploadPicker({
             meta.className = 'flex-1 min-w-0';
             meta.innerHTML = `
                 <div class="flex items-center gap-1.5">
-                    <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-primary text-black">${badge}</span>
+                    <span class="text-[9px] font-black px-1.5 py-0.5 rounded btn-secondary-modern">${badge}</span>
                     <span class="text-[11px] font-bold text-white">${label}</span>
                 </div>
                 <div class="text-[9px] text-muted mt-0.5 truncate">${entry ? entry.name : 'Click to add'}</div>
@@ -855,7 +855,7 @@ export function createUploadPicker({
 
         const loadBtn = document.createElement('button');
         loadBtn.type = 'button';
-        loadBtn.className = 'px-3 py-1.5 bg-primary text-black rounded-lg text-[11px] font-black hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed';
+        loadBtn.className = 'px-3 py-1.5 btn-secondary-modern rounded-lg text-[11px] font-black hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed';
         loadBtn.textContent = 'Load';
         row.appendChild(loadBtn);
 
