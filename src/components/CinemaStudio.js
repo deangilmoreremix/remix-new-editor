@@ -303,18 +303,19 @@ let showAdvanced = false;
     // inline-instruction tips so the controls aren't pinned to the bottom.
     // ==========================================
     const promptBarWrapper = document.createElement('div');
-    promptBarWrapper.className = 'relative w-full max-w-3xl mx-auto px-4 mt-6 z-30';
+    promptBarWrapper.className = 'w-full relative z-40 animate-fade-in-up';
+    promptBarWrapper.style.animationDelay = '0.2s';
 
     const promptBar = document.createElement('div');
-    promptBar.className = 'bg-white/[0.04] border border-white/10 rounded-[2rem] p-4 flex justify-between shadow-3xl items-end relative';
+    promptBar.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex justify-between shadow-3xl items-end relative';
 
     // --- LEFT COLUMN (Input + Settings) ---
     const leftColumn = document.createElement('div');
-    leftColumn.className = 'flex-1 flex flex-col gap-3 min-h-[80px] justify-between py-1 px-1';
+    leftColumn.className = 'flex-1 flex flex-col gap-3 min-h-[80px]';
 
     // 1. Input Area
     const inputRow = document.createElement('div');
-    inputRow.className = 'flex items-start gap-3 w-full';
+    inputRow.className = 'flex items-start gap-5 px-2';
 
 
 

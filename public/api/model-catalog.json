@@ -685,19 +685,22 @@
       "id": "flux-3-i2i",
       "name": "FLUX 3 Image-to-Image",
       "provider": null,
-      "provider_name": null
+      "provider_name": null,
+      "description": "Flux 3 image-to-image editing."
     },
     {
       "id": "grok-imagine-image-2",
       "name": "Grok Imagine 2 Image Edit",
       "provider": null,
-      "provider_name": null
+      "provider_name": null,
+      "description": "Grok Imagine Image 2 image generation and editing."
     },
     {
       "id": "wan-3.0-i2i",
       "name": "Wan 3.0 Image-to-Image",
       "provider": null,
-      "provider_name": null
+      "provider_name": null,
+      "description": "Wan 3.0 image-to-image editing."
     }
   ],
   "i2v": [
@@ -1125,25 +1128,29 @@
       "id": "minimax-h3-i2v",
       "name": "MiniMax H3 Image-to-Video",
       "provider": null,
-      "provider_name": null
+      "provider_name": null,
+      "description": "MiniMax H3 image-to-video generation."
     },
     {
       "id": "wan-3.0-i2v",
       "name": "Wan 3.0 Image-to-Video",
       "provider": null,
-      "provider_name": null
+      "provider_name": null,
+      "description": "Wan 3.0 image-to-video generation."
     },
     {
       "id": "flux-3-i2v",
       "name": "FLUX 3 Image-to-Video",
       "provider": null,
-      "provider_name": null
+      "provider_name": null,
+      "description": "Flux 3 image-to-video generation."
     },
     {
       "id": "seedance-2.5-i2v",
       "name": "Seedance 2.5 Image-to-Video",
       "provider": null,
-      "provider_name": null
+      "provider_name": null,
+      "description": "ByteDance Seedance 2.5 image-to-video generation."
     }
   ],
   "t2v": [
@@ -1445,25 +1452,29 @@
       "id": "minimax-h3-t2v",
       "name": "MiniMax H3 Text-to-Video",
       "provider": null,
-      "provider_name": null
+      "provider_name": null,
+      "description": "MiniMax H3 text-to-video generation."
     },
     {
       "id": "wan-3.0-t2v",
       "name": "Wan 3.0 Text-to-Video",
       "provider": null,
-      "provider_name": null
+      "provider_name": null,
+      "description": "Wan 3.0 text-to-video generation."
     },
     {
       "id": "flux-3-t2v",
       "name": "FLUX 3 Text-to-Video",
       "provider": null,
-      "provider_name": null
+      "provider_name": null,
+      "description": "Flux 3 text-to-video generation."
     },
     {
       "id": "seedance-2.5-t2v",
       "name": "Seedance 2.5 Text-to-Video",
       "provider": null,
-      "provider_name": null
+      "provider_name": null,
+      "description": "ByteDance Seedance 2.5 text-to-video generation."
     }
   ],
   "v2v": [

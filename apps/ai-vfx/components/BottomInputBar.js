@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { Image } from 'lucide-react';
+import { Image, Upload } from 'lucide-react';
 
 const BottomInputBar = ({
   showInputBar,
@@ -291,6 +291,36 @@ const BottomInputBar = ({
               >
                 <Image size={18} />
                 <span>Image URL</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (fileInputRef && fileInputRef.current) {
+                    fileInputRef.current.click();
+                  }
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'rgba(35,43,57,0.95)',
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  border: 'none',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  boxShadow: '0 2px 8px 0 rgba(0,0,0,0.10)',
+                  transition: 'background 0.2s'
+                }}
+                onMouseOver={e => e.currentTarget.style.background = '#232b39'}
+                onMouseOut={e => e.currentTarget.style.background = 'rgba(35,43,57,0.95)'}
+                title="Upload Image"
+                aria-label="Upload Image"
+              >
+                <Upload size={16} />
               </button>
               <div style={{ flex: 1 }} />
               <button

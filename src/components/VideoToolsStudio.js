@@ -260,10 +260,20 @@ genBtn.type = 'button';
   genBtn.className = 'btn-primary-modern w-full px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all';
   genBtn.textContent = 'Process Video';
   genBtn.setAttribute('aria-label', 'Process video');
-  formCard.appendChild(genBtn);
-  container.appendChild(formCard);
-    // Native audio toggle
-    const vtNativeAudioBtn = nativeAudioRow.querySelector('#vt-native-audio-btn');
+   formCard.appendChild(genBtn);
+
+   // Native audio toggle
+   const nativeAudioRow = document.createElement('div');
+   nativeAudioRow.className = 'flex items-center justify-between px-2';
+   nativeAudioRow.innerHTML = `
+     <label class="text-xs font-bold text-secondary uppercase tracking-wider">Native Audio</label>
+     <button id="vt-native-audio-btn" class="relative h-7 w-12 rounded-full transition bg-white/10 border border-white/10" data-native-audio="false">
+       <span class="absolute top-1 h-5 w-5 rounded-full bg-white transition left-1" id="vt-native-audio-knob"></span>
+     </button>
+   `;
+    formCard.appendChild(nativeAudioRow);
+    container.appendChild(formCard);
+     const vtNativeAudioBtn = nativeAudioRow.querySelector('#vt-native-audio-btn');
     const vtNativeAudioKnob = nativeAudioRow.querySelector('#vt-native-audio-knob');
     if (vtNativeAudioBtn && vtNativeAudioKnob) {
       vtNativeAudioBtn.onclick = () => {

@@ -638,8 +638,8 @@ const HomePage = () => {
           </div>
         </div>
       )}
-      {/* Main Content */}
-      <div style={{ width: '100%', maxWidth: '1200px', display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#111' }}>
+       {/* Main Content */}
+       <div style={{ width: '100%', maxWidth: '1200px', display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#111', paddingBottom: 220 }}>
         {/* Top Header */}
         <div style={{
           display: 'flex',

@@ -891,7 +891,13 @@ function modelCatalogBuildPlugin() {
             if (seen.has(m.id)) continue;
             seen.add(m.id);
             const desc = (DESCRIPTIONS[type] || {})[m.id] || null;
-            out.push({ id: m.id, name: m.name, ...(desc ? { description: desc } : {}) });
+            out.push({
+              id: m.id,
+              name: m.name,
+              provider: m.provider || null,
+              provider_name: m.provider_name || null,
+              ...(desc ? { description: desc } : {}),
+            });
           }
           return out;
         };

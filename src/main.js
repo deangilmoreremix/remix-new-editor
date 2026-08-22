@@ -207,6 +207,16 @@ try {
     }
   });
 
+  // Sync the router with hash changes so deep links and browser back/forward
+  // work even when the initial hash was not yet populated during page load.
+  window.addEventListener('hashchange', () => {
+    const hash = window.location.hash;
+    if (hash && hash.startsWith('#/')) {
+      const page = hash.slice(2).replace(/^\//, '');
+      if (page) navigate(page);
+    }
+  });
+
   // Track initialization time
   const initDuration = performance.now() - initStart;
   perfMonitor.trackPageLoad('initialization', initDuration);

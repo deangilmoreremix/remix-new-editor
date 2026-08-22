@@ -374,7 +374,18 @@ let lastOutputUrl = null;
   const promptField = document.createElement('input');
   promptField.type = 'text';
   promptField.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors hidden';
-promptField.setAttribute('aria-label', 'Edit prompt');
+  promptField.setAttribute('aria-label', 'Edit prompt');
+
+  const negativePromptField = document.createElement('input');
+  negativePromptField.type = 'text';
+  negativePromptField.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors hidden';
+  negativePromptField.setAttribute('aria-label', 'Negative prompt');
+  negativePromptField.placeholder = 'What to avoid...';
+
+  const negativePromptLabel = document.createElement('label');
+  negativePromptLabel.className = 'text-xs font-bold text-secondary uppercase tracking-wider hidden';
+  negativePromptLabel.textContent = 'Negative Prompt';
+
   workCard.appendChild(promptField);
   workCard.appendChild(negativePromptLabel);
   workCard.appendChild(negativePromptField);

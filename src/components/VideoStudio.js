@@ -810,7 +810,67 @@ generateBtn.type = 'button';
     const vCloseAdvBtn = advancedPanel.querySelector('#v-close-adv-btn');
     if (vCloseAdvBtn) vCloseAdvBtn.onclick = toggleAdvanced;
 
+    // Motion & Style panel
+    const motionStylePanel = document.createElement('div');
+    motionStylePanel.className = 'w-full mt-4 animate-fade-in-up hidden';
+    motionStylePanel.id = 'v-motion-style-panel';
+    motionStylePanel.innerHTML = `
+        <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex flex-col gap-5">
+            <div class="flex items-center justify-between pb-3 border-b border-white/5">
+                <h3 class="text-sm font-bold text-white">Motion & Style</h3>
+                <button id="v-close-motion-btn" class="text-white/40 hover:text-white transition-colors">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <div class="flex flex-col gap-4">
+                <div class="flex flex-col gap-2">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-medium text-white/70">Camera Speed</label>
+                        <span id="v-camera-speed-value" class="text-xs font-bold text-primary">${cameraSpeed}</span>
+                    </div>
+                    <input id="v-camera-speed-slider" type="range" min="1" max="10" value="${cameraSpeed}" class="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-primary">
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-medium text-white/70">Guidance Scale</label>
+                        <span id="v-guidance-value" class="text-xs font-bold text-primary">${guidanceScale}</span>
+                    </div>
+                    <input id="v-guidance-slider" type="range" min="1" max="20" step="0.5" value="${guidanceScale}" class="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-primary">
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs font-medium text-white/70">Style Preset</label>
+                    <div class="flex flex-wrap gap-2">
+                        <button class="v-style-preset-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all bg-primary/20 text-primary border-primary/30" data-style="None">None</button>
+                        <button class="v-style-preset-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all bg-white/5 text-secondary border-white/5" data-style="Cinematic">Cinematic</button>
+                        <button class="v-style-preset-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all bg-white/5 text-secondary border-white/5" data-style="Anime">Anime</button>
+                        <button class="v-style-preset-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all bg-white/5 text-secondary border-white/5" data-style="Realistic">Realistic</button>
+                        <button class="v-style-preset-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all bg-white/5 text-secondary border-white/5" data-style="Watercolor">Watercolor</button>
+                        <button class="v-style-preset-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all bg-white/5 text-secondary border-white/5" data-style="Noir">Noir</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    container.appendChild(motionStylePanel);
+
+    const toggleMotionStyle = () => {
+      showMotionStyle = !showMotionStyle;
+      motionStylePanel.classList.toggle('hidden', !showMotionStyle);
+      document.getElementById('v-motion-style-btn-label').textContent = showMotionStyle ? 'Less' : 'Motion & Style';
+    };
+
+    motionStyleBtn.onclick = toggleMotionStyle;
+    const vCloseMotionBtn = motionStylePanel.querySelector('#v-close-motion-btn');
+    if (vCloseMotionBtn) vCloseMotionBtn.onclick = toggleMotionStyle;
+
+    let showMotionStyle = false;
+
     // Camera speed slider
+    const vCameraSpeed = motionStylePanel.querySelector('#v-camera-speed-slider');
+    const vCameraSpeedVal = motionStylePanel.querySelector('#v-camera-speed-value');
     if (vCameraSpeed && vCameraSpeedVal) {
         vCameraSpeed.oninput = (e) => {
             cameraSpeed = parseInt(e.target.value);

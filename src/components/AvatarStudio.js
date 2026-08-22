@@ -283,9 +283,31 @@ const triggerBtn = document.createElement('button');
     mountThumbnailModal(modal);
     modal.open();
   });
-  formCard.appendChild(thumbBtn);
-  formCard.appendChild(genBtn);
-  container.appendChild(formCard);
+   formCard.appendChild(thumbBtn);
+   formCard.appendChild(genBtn);
+
+   // Native audio toggle
+   const nativeAudioRow = document.createElement('div');
+   nativeAudioRow.className = 'flex items-center justify-between px-2';
+   nativeAudioRow.innerHTML = `
+     <label class="text-xs font-bold text-secondary uppercase tracking-wider">Native Audio</label>
+     <button id="avatar-native-audio-btn" class="relative h-7 w-12 rounded-full transition bg-white/10 border border-white/10" data-native-audio="false">
+       <span class="absolute top-1 h-5 w-5 rounded-full bg-white transition left-1" id="avatar-native-audio-knob"></span>
+     </button>
+   `;
+   const nativeAudioBtn = nativeAudioRow.querySelector('#avatar-native-audio-btn');
+   const nativeAudioKnob = nativeAudioRow.querySelector('#avatar-native-audio-knob');
+   if (nativeAudioBtn && nativeAudioKnob) {
+     nativeAudioBtn.onclick = () => {
+       nativeAudio = !nativeAudio;
+       nativeAudioBtn.setAttribute('data-native-audio', String(nativeAudio));
+       nativeAudioBtn.style.background = nativeAudio ? 'var(--cyan)' : '';
+       nativeAudioBtn.style.borderColor = nativeAudio ? 'var(--cyan)' : '';
+       nativeAudioKnob.style.left = nativeAudio ? 'calc(100% - 22px)' : '4px';
+     };
+   }
+   formCard.appendChild(nativeAudioRow);
+   container.appendChild(formCard);
 
   // Instructions
   const inlineInstructions = createInlineInstructions('avatar');
