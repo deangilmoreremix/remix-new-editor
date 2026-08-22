@@ -214,6 +214,18 @@ export function getQueryParam(name) {
   return params.get(name);
 }
 
+// Remove template-scoped query parameters from params when navigating to a
+// non-template page. This prevents stale `?template=...` values from leaking
+// into unrelated studios and causing unwanted redirects.
+export function cleanTemplateParams(params = {}, page) {
+  if (!page.startsWith('template/') && page !== 'templates') {
+    delete params.template;
+    delete params['academy-template'];
+    delete params.templateId;
+  }
+  return params;
+}
+
 export async function navigate(page, params = {}) {
   if (!contentArea) return;
 
@@ -226,6 +238,8 @@ export async function navigate(page, params = {}) {
   currentPage = page;
 
   const mergedParams = { ...getExistingParams(), ...params };
+
+  mergedParams = cleanTemplateParams(mergedParams, page);
 
   // Gate studio / gated pages behind the pro plan
   let granted = true;
@@ -281,7 +295,15 @@ export async function navigate(page, params = {}) {
     }
 
     contentArea.innerHTML = '';
-    contentArea.appendChild(element);
+    if (element instanceof Node) {
+      contentArea.appendChild(element);
+    } else {
+      console.error('[Router] Expected DOM Node for page', page, 'but got:', element);
+      const errEl = document.createElement('div');
+      errEl.className = 'w-full h-full flex items-center justify-center text-red-400 text-sm';
+      errEl.textContent = `Failed to load ${page}: invalid module export`;
+      contentArea.appendChild(errEl);
+    }
     currentPageEl = element;
   } catch (err) {
     console.error(`[Router] Failed to load page: ${page}`, err);
