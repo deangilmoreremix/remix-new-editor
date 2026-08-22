@@ -901,8 +901,9 @@ function modelCatalogBuildPlugin() {
           i2i: unique(modelsMod.i2iModels || [], 'i2i'),
           i2v: unique(modelsMod.i2vModels || [], 'i2v'),
           t2v: unique(modelsMod.t2vModels || [], 't2v'),
+          v2v: unique(modelsMod.v2vModels || [], 'v2v'),
         };
-        const total = catalog.t2i.length + catalog.i2i.length + catalog.i2v.length + catalog.t2v.length;
+        const total = catalog.t2i.length + catalog.i2i.length + catalog.i2v.length + catalog.t2v.length + catalog.v2v.length;
         this.emitFile({
           type: 'asset',
           fileName: 'api/model-catalog.json',
@@ -1014,6 +1015,119 @@ export default defineConfig({
         // `configureServer` gets pre-resolved by Vite/Node at config
         // evaluation time, which fails when express is not installed.
         ...(process.env.NODE_ENV !== 'production' ? [gtmBoostDevPlugin()] : []),
+        // Serve the AI-VFX Next.js static export from the Vite dev server so
+        // the studio lives on the same origin/port as the rest of the app.
+        {
+          name: 'serve-ai-vfx-static',
+          apply: 'serve',
+          configureServer(server) {
+            const aiVfxOutDir = path.resolve(__dirname, 'apps/ai-vfx/out');
+            const mimeTypes = {
+              '.html': 'text/html',
+              '.js': 'application/javascript',
+              '.css': 'text/css',
+              '.png': 'image/png',
+              '.jpg': 'image/jpeg',
+              '.jpeg': 'image/jpeg',
+              '.svg': 'image/svg+xml',
+              '.json': 'application/json',
+              '.webp': 'image/webp',
+              '.mp4': 'video/mp4',
+              '.wasm': 'application/wasm',
+            };
+
+            server.middlewares.use((req, res, next) => {
+              const url = req.url || '';
+              if (url.startsWith('/ai-vfx/') || url === '/ai-vfx') {
+                const relativePath = url.replace('/ai-vfx', '').replace(/^\//, '') || 'index.html';
+                const filePath = path.join(aiVfxOutDir, relativePath);
+                if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+                  const ext = path.extname(filePath);
+                  res.setHeader('Content-Type', mimeTypes[ext] || 'application/octet-stream');
+                  fs.createReadStream(filePath).pipe(res);
+                  return;
+                }
+                next();
+                return;
+              }
+
+              if (url.startsWith('/_next/static/')) {
+                const relativePath = url.slice('/_next/static/'.length);
+                const filePath = path.join(aiVfxOutDir, '_next', 'static', relativePath);
+                if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+                  const ext = path.extname(filePath);
+                  res.setHeader('Content-Type', mimeTypes[ext] || 'application/octet-stream');
+                  fs.createReadStream(filePath).pipe(res);
+                  return;
+                }
+                next();
+                return;
+              }
+
+              next();
+            });
+
+            server.middlewares.use(async (req, res, next) => {
+              const url = req.url || '';
+              if (!url.startsWith('/api/proxy-muapi')) return next();
+
+              const chunks = [];
+              req.on('data', chunk => chunks.push(chunk));
+              req.on('end', () => {
+                const body = Buffer.concat(chunks);
+                const query = new URLSearchParams(req.url.split('?')[1] || '');
+                const apiKey = req.headers['x-api-key'];
+                let targetPath;
+                if (req.method === 'POST') {
+                  targetPath = '/api/v1/generate_wan_ai_effects';
+                } else if (req.method === 'GET' && query.has('id')) {
+                  targetPath = `/api/v1/predictions/${query.get('id')}/result`;
+                } else {
+                  res.statusCode = 405;
+                  res.end(JSON.stringify({ error: 'Method not allowed' }));
+                  return;
+                }
+
+                const options = {
+                  hostname: 'api.muapi.ai',
+                  port: 443,
+                  path: targetPath,
+                  method: req.method,
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'content-length': body.length,
+                  },
+                  rejectUnauthorized: false,
+                };
+                if (apiKey) {
+                  options.headers['x-api-key'] = apiKey;
+                }
+
+                const proxyReq = https.request(options, (proxyRes) => {
+                  res.statusCode = proxyRes.statusCode;
+                  Object.entries(proxyRes.headers).forEach(([key, value]) => {
+                    res.setHeader(key, value);
+                  });
+                  proxyRes.pipe(res);
+                });
+
+                proxyReq.on('error', (err) => {
+                  console.error('[ai-vfx-api] request error:', err);
+                  if (!res.headersSent) {
+                    res.statusCode = 502;
+                    res.setHeader('Content-Type', 'application/json');
+                    res.end(JSON.stringify({ error: 'Proxy error', details: err.message }));
+                  }
+                });
+
+                if (body.length > 0) {
+                  proxyReq.write(body);
+                }
+                proxyReq.end();
+              });
+            });
+          },
+        },
     ],
     optimizeDeps: {
         // Point the dependency scanner at a clean entry (scripts/clerk-optimize-entry.js)
@@ -1058,6 +1172,7 @@ export default defineConfig({
         tsconfigRaw: { compilerOptions: { experimentalDecorators: true } },
     },
     server: {
+        host: '127.0.0.1',
         port: 3000,
         // Ignore tool/test scratch dirs so their writes don't trigger dev-server
         // reloads/restarts mid module-graph load (which corrupts the browser
@@ -1127,14 +1242,6 @@ export default defineConfig({
                 changeOrigin: true,
                 secure: true,
                 rewrite: (path) => path.replace(/^\/api/, ''),
-            },
-            // Proxy AI-VFX studio dev server (Next.js app from upstream
-            // SamurAIGPT/AI-VFX) so the iframe embed loads same-origin
-            // (localhost:3100/ai-vfx/) instead of cross-origin (localhost:3000/ai-vfx).
-            '/ai-vfx': {
-                target: 'http://localhost:3000',
-                changeOrigin: true,
-                ws: true,
             },
             '/proxy/video': {
                 target: 'https://video.twimg.com',

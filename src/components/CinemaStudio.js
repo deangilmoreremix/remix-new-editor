@@ -339,6 +339,10 @@ let showAdvanced = false;
         });
     }
 
+    if (!textarea.value && currentSettings.prompt) {
+        textarea.value = currentSettings.prompt;
+    }
+
     inputRow.appendChild(textarea);
 
     // GTM Boost entry point — opens the cinematic prompt enhancer themed for

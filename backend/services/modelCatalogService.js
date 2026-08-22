@@ -55,14 +55,23 @@ router.get('/', (req, res) => {
   const { modelType } = req.query;
 
    const VALID = ['t2i', 'i2i', 'i2v', 't2v', 'v2v'];
-   if (!modelType || !VALID.includes(String(modelType))) {
+   const catalog = loadCatalog();
+
+   // If no modelType is provided, return the full multi-pool catalog so
+   // the frontend can filter client-side (mirrors the Netlify rewrite and
+   // the dev-plugin behaviour).
+   if (!modelType) {
+     res.json(catalog);
+     return;
+   }
+
+   if (!VALID.includes(String(modelType))) {
      return res.status(400).json({
        error: 'Bad Request',
        message: 'modelType query parameter is required. Use one of: t2i, i2i, i2v, t2v, v2v.',
        validTypes: VALID,
    });
-  }
-  const catalog = loadCatalog();
+   }
   const models = Array.isArray(catalog[modelType]) ? catalog[modelType] : [];
   // Return enriched v2v models from the catalog, falling back to the
   // static v2vModels list from models.js if catalog doesn't have v2v data.

@@ -539,6 +539,11 @@ export class BaseModal {
   }
 
   render() {
+    if (this.overlay && this.overlay.parentNode) {
+      this.overlay.parentNode.removeChild(this.overlay);
+      this.removeEventListeners();
+    }
+
     const content = this.error ? this.renderError() : this.loading ? this.renderLoading() : this.renderBody();
     
     const footer = this.showFooter ? `
@@ -570,6 +575,11 @@ export class BaseModal {
 
     document.body.appendChild(this.overlay);
     this.content = this.overlay.querySelector('.modal-content');
+
+    if (this.state === 'open') {
+      this.setupAccessibility();
+      this.setupEventListeners();
+    }
   }
 
   renderBody() {
@@ -581,6 +591,17 @@ export class BaseModal {
       <div class="modal-loading">
         <div class="modal-spinner"></div>
         <span class="modal-loading-text">Loading...</span>
+      </div>
+    `;
+  }
+
+  renderSkeleton() {
+    return `
+      <div class="modal-skeleton">
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
       </div>
     `;
   }

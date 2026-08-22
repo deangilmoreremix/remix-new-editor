@@ -14,6 +14,8 @@ import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { getModelById } from '../lib/models.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import ExampleGallery from './studios/ExampleGallery.js';
+import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
+import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 
 const CHARACTER_MODELS = [
   { id: 'flux-pulid', name: 'Flux PuLID', description: 'Face ID preservation with text prompt', provider: 'blackforest', provider_name: 'Black Forest Labs' },
@@ -30,6 +32,48 @@ export function CharacterStudio() {
   let selectedModel = CHARACTER_MODELS[0];
 const dynamicControls = null;
   const dynamicControlsContainer = null;
+
+  // Read gallery / deep-link params and apply them as studio defaults.
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const templateParam = urlParams.get('template');
+    const academyParam = urlParams.get('academy-template');
+    const promptParam = urlParams.get('prompt');
+    const styleParam = urlParams.get('style');
+    const arParam = urlParams.get('aspect_ratio');
+    const durationParam = urlParams.get('duration');
+
+    if (templateParam) {
+      const tpl = resolveTemplate(templateParam);
+      if (tpl) {
+        if (tpl.model) { selectedModel = tpl.model; }
+        if (tpl.aspectRatio) { /* set aspect ratio */ }
+        if (tpl.duration) { /* set duration */ }
+        if (tpl.basePrompt) {
+          const ta = document.getElementById('character-prompt-input');
+          if (ta) ta.value = tpl.basePrompt;
+        } else if (tpl.slug) {
+          loadTemplatePrompt(templateParam).then((prompt) => {
+            if (prompt) {
+              const ta = document.getElementById('character-prompt-input');
+              if (ta) ta.value = prompt;
+            }
+          }).catch(() => {});
+        }
+      }
+    }
+
+    if (academyParam || promptParam) {
+      const target = academyParam ? getAcademyCreateTarget(academyParam) : null;
+      const params = target?.params || {};
+      if (params.prompt) {
+        const ta = document.getElementById('character-prompt-input');
+        if (ta) ta.value = params.prompt;
+      }
+      if (params.aspect_ratio) { /* set aspect ratio */ }
+      if (params.duration) { /* set duration */ }
+    }
+  } catch { /* ignore */ }
 
   const header = document.createElement('div');
   header.className = 'mb-8 animate-fade-in-up text-center w-full max-w-lg';
@@ -174,6 +218,7 @@ const pexelsBtn = document.createElement('button');
   formCard.appendChild(promptLabel);
 
   const promptInput = document.createElement('textarea');
+  promptInput.id = 'character-prompt-input';
   promptInput.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors resize-none';
   promptInput.rows = 3;
   promptInput.placeholder = 'e.g. wearing a leather jacket, standing in a neon-lit alley, cyberpunk style';

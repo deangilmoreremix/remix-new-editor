@@ -1203,21 +1203,23 @@ let fallbackList = [];
       const negativePrompt = composeNegativePrompt(template.filmFamily || '', negNiche, formState.visualStyle || 'commercial') || specs.negativePrompt || '';
       if (negativePrompt) params.negative_prompt = negativePrompt;
 
-       let result;
-       if (template.modelType === 'i2v') {
-         result = await muapi.generateI2V(params);
-       } else if (template.modelType === 'i2i') {
-         result = await muapi.generateI2I(params);
-       } else if (template.modelType === 't2v') {
-         const isV2V = getV2VModelById(selectedModel);
-         if (isV2V) {
-           result = await muapi.processV2V(params);
-         } else {
-           result = await muapi.generateVideo(params);
-         }
-       } else {
-         result = await muapi.generateImage(params);
-       }
+        let result;
+        if (template.modelType === 'i2v') {
+          result = await muapi.generateI2V(params);
+        } else if (template.modelType === 'i2i') {
+          result = await muapi.generateI2I(params);
+        } else if (template.modelType === 't2v') {
+          const isV2V = getV2VModelById(selectedModel);
+          if (isV2V) {
+            result = await muapi.processV2V(params);
+          } else {
+            result = await muapi.generateVideo(params);
+          }
+        } else if (template.modelType === 'v2v') {
+          result = await muapi.processV2V(params);
+        } else {
+          result = await muapi.generateImage(params);
+        }
 
       if (result && result.url) {
         showResult(result.url);

@@ -5,7 +5,7 @@
 // and the shared governor in mediaFrame.js caps concurrent playback at two.
 
 import { minimaxH3Demos, formatDuration } from '../../../data/minimaxH3Demos.js';
-import { zeroLuDemos, loadDemoPrompt as loadZeroLuPrompt } from '../../../data/zeroLuDemos.js';
+import { zeroLuDemos, loadDemoPrompt as loadZeroLuPrompt, getCreateTarget as getZeroLuCreateTarget } from '../../../data/zeroLuDemos.js';
 import { createMediaFrame, cleanupFrames, revealOnScroll } from './minimax/mediaFrame.js';
 import {
   injectMinimaxStyles,
@@ -100,13 +100,20 @@ function createReelCard(demo) {
 
   const actions = card.querySelector('[data-mmx-card-actions]');
   
-  // Use the correct prompt loader based on the demo source.
+  // Use the correct prompt loader and target resolver based on the demo source.
   const loadPrompt = demo._source === 'zerolu'
     ? async (slug) => loadZeroLuPrompt(slug)
     : undefined;
-  
+
+  const getTarget = demo._source === 'zerolu'
+    ? (d) => getZeroLuCreateTarget(d)
+    : undefined;
+
   actions.appendChild(createViewPromptButton(demo, handleViewPrompt, { loadPrompt }));
-  actions.appendChild(createStyleLink(demo, { label: 'Create This Style' }));
+  actions.appendChild(createStyleLink(demo, { 
+    label: 'Create This Style',
+    getTarget 
+  }));
 
   return card;
 }

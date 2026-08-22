@@ -183,7 +183,14 @@ let lastOutputUrl = null;
   modelPickerBtn.setAttribute('aria-label', 'Open model picker');
   modelPickerBtn.className = 'text-[11px] font-bold text-cyan-400 border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 rounded-lg hover:bg-cyan-400/20 transition-colors ml-2 whitespace-nowrap';
   modelPickerBtn.addEventListener('click', () => {
-    openModelPicker({}).catch((err) => console.error('[ModelPicker] open failed:', err));
+    openModelPicker({
+      currentModelId: selectedModelId,
+      onSelectModel: (id) => {
+        selectedModelId = id;
+        updateModelSelectLabel();
+        buildDynamicControls(selectedModelId);
+      }
+    }).catch((err) => console.error('[ModelPicker] open failed:', err));
   });
 
   personalizeRow.appendChild(recipeBtn);

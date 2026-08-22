@@ -2,12 +2,15 @@ import { getCreateTarget, minimaxH3Demos } from '../data/minimaxH3Demos.js';
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 import { navigate } from './router.js';
 
+function scheduleAutoGenerate(route) {}
+
 export async function handleCreateThisStyle(asset) {
   if (asset.source === 'minimax') {
     const demo = minimaxH3Demos.find((d) => d.slug === asset.slug);
     if (!demo) return;
     const target = getCreateTarget(demo);
     navigate(target.route, target.params);
+    scheduleAutoGenerate(target.route);
     return;
   }
 
@@ -18,6 +21,30 @@ export async function handleCreateThisStyle(asset) {
       return;
     }
     navigate(result.route, result.params);
+    scheduleAutoGenerate(result.route);
+    return;
+  }
+
+  if (asset.source === 'seedance') {
+    const { getCreateTarget, loadDemoPrompt } = await import('../data/beatapiSeedance25Demos.js');
+    const demo = seedance25Demos.find((d) => d.slug === asset.slug);
+    if (demo) {
+      const target = getCreateTarget(demo);
+      navigate(target.route, target.params);
+      scheduleAutoGenerate(target.route);
+    }
+    return;
+  }
+
+  if (asset.source === 'zerolu') {
+    const { getCreateTarget, loadDemoPrompt } = await import('../data/zeroLuDemos.js');
+    const demo = zeroLuDemos.find((d) => d.slug === asset.slug);
+    if (demo) {
+      const target = getCreateTarget(demo);
+      navigate(target.route, target.params);
+      scheduleAutoGenerate(target.route);
+    }
+    return;
   }
 }
 
@@ -31,6 +58,20 @@ export async function handleViewPrompt(asset) {
 
   if (asset.source === 'academy') {
     navigate('academy', { template: asset.id });
+  }
+
+  if (asset.source === 'seedance') {
+    const { loadDemoPrompt } = await import('../data/beatapiSeedance25Demos.js');
+    const prompt = await loadDemoPrompt(asset.slug);
+    showPromptModal({ title: asset.title, prompt: prompt || '' });
+    return;
+  }
+
+  if (asset.source === 'zerolu') {
+    const { loadDemoPrompt } = await import('../data/zeroLuDemos.js');
+    const prompt = await loadDemoPrompt(asset.slug);
+    showPromptModal({ title: asset.title, prompt: prompt || '' });
+    return;
   }
 }
 

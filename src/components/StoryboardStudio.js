@@ -21,6 +21,8 @@ import { createUploadPicker } from './UploadPicker.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
+import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
+import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 
 const SHOT_TYPES = ['Wide Shot', 'Medium Shot', 'Close-Up', 'Extreme Close-Up', 'POV', 'Overhead', 'Low Angle'];
 
@@ -160,6 +162,54 @@ export function StoryboardStudio(options = {}) {
   container.className = 'w-full h-full flex flex-col bg-app-bg overflow-y-auto relative storyboard-studio';
   mountStudioChrome(container, { currentRoute: 'storyboard' });
   container.setAttribute('data-app', 'storyboard');
+
+  // Read gallery / deep-link params and apply them as studio defaults.
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const templateParam = urlParams.get('template');
+    const academyParam = urlParams.get('academy-template');
+    const promptParam = urlParams.get('prompt');
+    const styleParam = urlParams.get('style');
+    const arParam = urlParams.get('aspect_ratio');
+    const durationParam = urlParams.get('duration');
+
+    if (templateParam) {
+      const tpl = resolveTemplate(templateParam);
+      if (tpl) {
+        if (tpl.model) { selectedModel = tpl.model; }
+        if (tpl.aspectRatio) { selectedAr = tpl.aspectRatio; }
+        if (tpl.duration) {
+          const durEl = document.getElementById('vi-duration');
+          if (durEl) durEl.value = tpl.duration;
+        }
+        if (tpl.basePrompt) {
+          const ta = document.getElementById('vi-premise');
+          if (ta) ta.value = tpl.basePrompt;
+        } else if (tpl.slug) {
+          loadTemplatePrompt(templateParam).then((prompt) => {
+            if (prompt) {
+              const ta = document.getElementById('vi-premise');
+              if (ta) ta.value = prompt;
+            }
+          }).catch(() => {});
+        }
+      }
+    }
+
+    if (academyParam || promptParam) {
+      const target = academyParam ? getAcademyCreateTarget(academyParam) : null;
+      const params = target?.params || {};
+      if (params.prompt) {
+        const ta = document.getElementById('vi-premise');
+        if (ta) ta.value = params.prompt;
+      }
+      if (params.aspect_ratio) { selectedAr = params.aspect_ratio; }
+      if (params.duration) {
+        const durEl = document.getElementById('vi-duration');
+        if (durEl) durEl.value = params.duration;
+      }
+    }
+  } catch { /* ignore */ }
 
   const topBar = document.createElement('div');
   topBar.className = 'px-4 md:px-8 pt-6 pb-4 shrink-0';

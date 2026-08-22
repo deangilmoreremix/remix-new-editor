@@ -165,13 +165,13 @@ export function createStyleLink(demo, options = {}) {
   link.dataset.mmxRoute = target.route;
 
   const base =
-    'inline-flex items-center justify-center gap-1.5 rounded-lg text-sm font-semibold transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#020205]';
+    'inline-flex items-center justify-center gap-1.5 rounded-lg text-sm font-semibold transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#020205]';
 
   const variants = {
     primary:
-      'px-4 py-2 bg-cyan-400 text-[#020205] hover:bg-cyan-300 shadow-lg shadow-cyan-400/20 hover:shadow-cyan-300/30',
+      'px-4 py-2 bg-transparent border-l-2 border-r border-t border-b border-white/12 text-white/85 hover:border-l-cyan-400/60 hover:border-r-cyan-400/50 hover:border-t-cyan-400/50 hover:border-b-cyan-400/50 hover:text-white hover:shadow-[0_0_16px_rgba(217,255,0,0.08)]',
     ghost:
-      'px-4 py-2 border border-white/12 text-white/85 hover:border-cyan-400/50 hover:text-white hover:bg-cyan-400/10',
+      'px-4 py-2 bg-transparent border border-white/12 text-white/85 hover:border-cyan-400/50 hover:text-white hover:shadow-[0_0_12px_rgba(217,255,0,0.06)]',
     quiet:
       'px-0 py-0 text-cyan-400 hover:text-cyan-300 underline-offset-4 hover:underline',
   };
@@ -236,9 +236,9 @@ export function createViewPromptButton(demo, onOpen, options = {}) {
   button.dataset.mmxSlug = demo.slug;
 
   const base =
-    'inline-flex items-center justify-center gap-1.5 rounded-lg text-sm font-semibold transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#020205]';
+    'inline-flex items-center justify-center gap-1.5 rounded-lg text-sm font-semibold transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#020205]';
   const variants = {
-    ghost: 'px-4 py-2 border border-white/12 text-white/85 hover:border-cyan-400/50 hover:text-white hover:bg-white/5',
+    ghost: 'px-4 py-2 bg-transparent border border-white/10 text-white/75 hover:border-white/25 hover:text-white hover:shadow-[0_0_10px_rgba(255,255,255,0.04)]',
     quiet: 'text-white/60 hover:text-white',
   };
 

@@ -2,13 +2,10 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 
 // AI-VFX Studio Page
 // Embeds the upstream SamurAIGPT/AI-VFX Next.js app as an iframe.
-// The iframe src is the AI-VFX app URL. In dev, Vite proxies /ai-vfx
-// to the Next.js dev server on port 3000. In production, the Next.js app
-// is deployed as a separate Netlify site at ai-vfx.smartvid.app.
+// The app is built as static export and served from the same Vite dev
+// server under /ai-vfx/, so no separate Next.js dev server is needed.
 
-const AI_VFX_URL = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
-  ? '/ai-vfx/'           // dev: Vite proxies to Next.js dev server
-  : 'https://ai-vfx.smartvid.app/';  // prod: separate Netlify site
+const AI_VFX_URL = '/ai-vfx/';
 
 export function AIVFXPage() {
   const container = document.createElement('div');

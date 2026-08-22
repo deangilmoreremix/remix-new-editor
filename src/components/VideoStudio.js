@@ -97,13 +97,13 @@ export function VideoStudio() {
           if (tpl.aspectRatio) selectedAr = tpl.aspectRatio;
           if (tpl.duration) selectedDuration = tpl.duration;
           if (tpl.basePrompt) {
-            const textarea = document.getElementById('prompt-textarea');
+            const textarea = document.getElementById('v-prompt-textarea');
             if (textarea) textarea.value = tpl.basePrompt;
           } else if (tpl.slug) {
             loadTemplatePrompt(templateParam)
               .then((prompt) => {
                 if (prompt) {
-                  const textarea = document.getElementById('prompt-textarea');
+                  const textarea = document.getElementById('v-prompt-textarea');
                   if (textarea) textarea.value = prompt;
                 }
               })
@@ -117,7 +117,7 @@ export function VideoStudio() {
         const target = academyParam ? getAcademyCreateTarget(academyParam) : null;
         const params = target?.params || {};
         if (params.prompt) {
-          const textarea = document.getElementById('prompt-textarea');
+          const textarea = document.getElementById('v-prompt-textarea');
           if (textarea) textarea.value = params.prompt;
         }
         if (params.style) selectedStyle = params.style;
@@ -460,7 +460,7 @@ export function VideoStudio() {
     topRow.appendChild(pexelsVideoVideoAttr);
 
     const textarea = document.createElement('textarea');
-    textarea.id = 'v-prompt-textarea';
+    textarea.id = 'v-v-prompt-textarea';
     textarea.placeholder = 'Describe the video you want to create';
     textarea.className = 'flex-1 bg-transparent border-none text-white text-base md:text-xl placeholder:text-muted focus:outline-none resize-none pt-2.5 leading-relaxed min-h-[40px] max-h-[150px] md:max-h-[250px] overflow-y-auto custom-scrollbar';
     textarea.rows = 1;
@@ -543,7 +543,7 @@ export function VideoStudio() {
       openPromptGallery({
         appTheme: 'video-studio',
         onSelect: (prompt) => {
-          const ta = document.getElementById('v-prompt-textarea');
+          const ta = document.getElementById('v-v-prompt-textarea');
           if (ta) {
             ta.value = prompt;
             ta.dispatchEvent(new Event('input', { bubbles: true }));
@@ -686,7 +686,7 @@ export function VideoStudio() {
       label: 'Personalize',
       tooltip: 'Personalize with a discovered contact',
       appId: 'ai-video-agency',
-      getTextarea: () => document.getElementById('v-prompt-textarea'),
+      getTextarea: () => document.getElementById('v-v-prompt-textarea'),
     });
     // Refresh the personalized chip when the active contact changes
     window.addEventListener('remix:contact-changed', () => {

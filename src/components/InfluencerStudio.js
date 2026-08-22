@@ -734,7 +734,12 @@ export function InfluencerStudio() {
     modelPickerBtn.setAttribute('aria-label', 'Open model picker');
     modelPickerBtn.className = 'text-[11px] font-bold text-cyan-400 border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 rounded-lg hover:bg-cyan-400/20 transition-colors ml-2 whitespace-nowrap';
     modelPickerBtn.addEventListener('click', () => {
-      openModelPicker({}).catch((err) => console.error('[ModelPicker] open failed:', err));
+      openModelPicker({
+        currentModelId: selectedModel.id,
+        onSelectModel: (modelId) => {
+          selectedModel = i2iModels.find(m => m.id === modelId) || selectedModel;
+        }
+      }).catch((err) => console.error('[ModelPicker] open failed:', err));
     });
     formCard.appendChild(modelPickerBtn);
   promptInput.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors resize-none';

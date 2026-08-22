@@ -32,7 +32,7 @@ export const EXAMPLE_ASSETS = [
         thumbnail: demo.posterSrc,
         tags: demo.tags,
         slug: demo.slug,
-        routeParams: target.params,
+        routeParams: { route: target.route, params: target.params },
       };
     }),
   ...ACADEMY_STUDIO_ADAPTERS.map((adapter) => {
