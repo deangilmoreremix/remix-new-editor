@@ -218,25 +218,33 @@
 }
 
 .eg-btn-view {
-  background: rgba(255, 255, 255, 0.05);
-  color: #a1a1aa;
-  border: 1px solid #27272a;
+  background: transparent;
+  color: rgba(255,255,255,0.75);
+  border: 1px solid rgba(255,255,255,0.10);
+  font-weight: 600;
 }
 
 .eg-btn-view:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: transparent;
   color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255,255,255,0.25);
+  box-shadow: 0 0 10px rgba(255,255,255,0.04);
 }
 
 .eg-btn-create {
-  background: #d9ff00;
-  color: #000000;
-  font-weight: 800;
+  background: transparent;
+  color: rgba(255,255,255,0.85);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-left: 2px solid #d9ff00;
+  font-weight: 600;
 }
 
 .eg-btn-create:hover {
-  box-shadow: 0 0 20px rgba(217, 255, 0, 0.35);
+  background: transparent;
+  color: #ffffff;
+  border-color: rgba(217,255,0,0.50);
+  border-left: 2px solid #d9ff00;
+  box-shadow: 0 0 16px rgba(217,255,0,0.08);
   transform: translateY(-1px);
 }
 

@@ -49,7 +49,7 @@ export function clearModelCatalogCache() {
  *     GET /api/model-catalog?modelType=t2i  →  { models: [...] }
  *
  *   Production (Netlify static file rewrite)
- *     GET /api/model-catalog                →  { t2i: [...], i2i: [...], i2v: [...] }
+ *     GET /api/model-catalog                →  { t2i: [...], i2i: [...], i2v: [...], t2v: [...], v2v: [...] }
  *     (the query string is stripped by the Netlify rewrite; the full
  *      multi-type catalog is returned and filtered client-side)
  *

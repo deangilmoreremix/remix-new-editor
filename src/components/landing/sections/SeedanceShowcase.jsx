@@ -18,9 +18,9 @@ import {
   injectMinimaxStyles,
   sectionHeading,
   createViewPromptButton,
+  createStyleLink,
   metaPill,
   escapeHtml,
-  goToRoute,
 } from './minimax/ui.js';
 import { handleViewPrompt } from './minimax/DemoPromptModal.js';
 
@@ -71,28 +71,7 @@ function createGalleryCard(demo) {
     loadPrompt: loadDemoPrompt,
     model: SEEDANCE_MODEL,
   }));
-
-  const target = getCreateTarget(demo);
-  const styleLink = document.createElement('a');
-  styleLink.href = target.href;
-  styleLink.dataset.mmxCta = 'create-style';
-  styleLink.dataset.mmxRoute = target.route;
-  styleLink.className =
-    'inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#020205] border border-white/12 text-white/85 hover:border-cyan-400/50 hover:text-white hover:bg-cyan-400/10';
-  styleLink.innerHTML = `
-    <span>Create This Style</span>
-    <svg class="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
-    </svg>`;
-  styleLink.setAttribute('aria-label', `Create This Style: ${demo.title}`);
-  styleLink.addEventListener('click', (event) => {
-    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
-      return;
-    }
-    event.preventDefault();
-    goToRoute(target.route, target.params);
-  });
-  actions.appendChild(styleLink);
+  actions.appendChild(createStyleLink(demo, { label: 'Create This Style', getTarget }));
 
   return card;
 }
