@@ -155,7 +155,15 @@ try {
       app.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#020205;color:#fff;flex-direction:column;padding:20px;text-align:center;"><h1 style="color:#ff4444;margin-bottom:16px;">Clerk not configured</h1><p style="color:#aaa;">Set VITE_CLERK_PUBLISHABLE_KEY to enable authentication.</p></div>';
       return;
     }
-    const { mountClerkRoute } = await import('./components/auth/ClerkAuth.jsx');
+    let mountClerkRoute = null;
+    try {
+      const mod = await import('./components/auth/ClerkAuth.jsx');
+      mountClerkRoute = mod.mountClerkRoute;
+    } catch (e) {
+      console.error('[App] ClerkAuth.jsx failed to load:', e);
+      app.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#020205;color:#fff;flex-direction:column;padding:20px;text-align:center;"><h1 style="color:#ff4444;margin-bottom:16px;">Authentication Error</h1><p style="color:#aaa;">Failed to load authentication. Please refresh the page.</p></div>';
+      return;
+    }
     const rootEl = document.createElement('div');
     app.appendChild(rootEl);
     mountClerkRoute(initialPage, rootEl);
@@ -180,8 +188,16 @@ try {
 
   app.appendChild(body);
 
-  const { mountHeaderAuth } = await import('./components/auth/HeaderAuth.jsx');
-  mountHeaderAuth(headerAuthSlot);
+  let mountHeaderAuth = null;
+  try {
+    const mod = await import('./components/auth/HeaderAuth.jsx');
+    mountHeaderAuth = mod.mountHeaderAuth;
+  } catch (e) {
+    console.warn('[App] HeaderAuth.jsx failed to load, continuing without header auth:', e);
+  }
+  if (mountHeaderAuth) {
+    mountHeaderAuth(headerAuthSlot);
+  }
 
   initRouter(contentArea, (page) => {
     headerEl.dispatchEvent(new CustomEvent('route-changed', { detail: { page } }));

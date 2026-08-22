@@ -13,6 +13,7 @@ import {
   MINIMAX_CATEGORIES,
   getCategoryCounts,
   formatDuration,
+  loadDemoPrompt,
 } from '../../../data/minimaxH3Demos.js';
 import { createMediaFrame, cleanupFrames, pauseFramesIn, revealOnScroll } from './minimax/mediaFrame.js';
 import {
@@ -68,7 +69,7 @@ function createGalleryCard(demo) {
   mediaHost.appendChild(cue);
 
   const actions = card.querySelector('[data-mmx-card-actions]');
-  actions.appendChild(createViewPromptButton(demo, handleViewPrompt, { label: 'View Prompt' }));
+  actions.appendChild(createViewPromptButton(demo, handleViewPrompt, { label: 'View Prompt', loadPrompt }));
   actions.appendChild(createStyleLink(demo, { label: 'Create This Style', variant: 'ghost' }));
 
   return card;

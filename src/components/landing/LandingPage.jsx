@@ -177,18 +177,18 @@ export default async function LandingPage() {
   container.setAttribute('lang', document.documentElement.lang || 'en');
   container.setAttribute('dir', document.documentElement.dir || 'ltr');
 
-  try {
-    let LandingHeader, CinematicVideoHero, HeroSection;
     try {
       const mod = await import('./common/Header.jsx');
       LandingHeader = mod.LandingHeader;
       console.log('[LandingPage] Header.jsx loaded');
     } catch (e) {
       console.error('[LandingPage] Header.jsx failed:', e);
-      throw e;
+      LandingHeader = null;
     }
-    const headerEl = LandingHeader();
-    container.appendChild(headerEl);
+    if (LandingHeader) {
+      const headerEl = LandingHeader();
+      container.appendChild(headerEl);
+    }
 
     // NEW: cinematic MiniMax H3 video hero, added above the original hero.
     if (ENABLE_CINEMATIC_HERO) {
@@ -198,8 +198,10 @@ export default async function LandingPage() {
         console.log('[LandingPage] CinematicVideoHero.jsx loaded');
       } catch (e) {
         console.error('[LandingPage] CinematicVideoHero.jsx failed:', e);
-        throw e;
+        CinematicVideoHero = null;
       }
+    }
+    if (CinematicVideoHero) {
       const cinematicHeroEl = CinematicVideoHero();
       container.appendChild(cinematicHeroEl);
     }
@@ -210,17 +212,16 @@ export default async function LandingPage() {
       console.log('[LandingPage] HeroSection.jsx loaded');
     } catch (e) {
       console.error('[LandingPage] HeroSection.jsx failed:', e);
-      throw e;
+      HeroSection = null;
     }
-    const heroEl = HeroSection();
-    if (ENABLE_CINEMATIC_HERO) demoteLegacyHero(heroEl);
-    heroEl.classList.add('animate-in');
-    heroEl.classList.add('stagger-0');
-    container.appendChild(heroEl);
-
-    requestAnimationFrame(() => {
-      heroEl.classList.add('visible');
-    });
+    if (HeroSection) {
+      const heroEl = HeroSection();
+      if (ENABLE_CINEMATIC_HERO) demoteLegacyHero(heroEl);
+      heroEl.classList.add('animate-in');
+      heroEl.classList.add('stagger-0');
+      container.appendChild(heroEl);
+      requestAnimationFrame(() => heroEl.classList.add('visible'));
+    }
 
     const monetizeLauncher = document.createElement('div');
     monetizeLauncher.className = 'monetize-launcher animate-in stagger-1';

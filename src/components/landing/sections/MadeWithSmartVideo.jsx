@@ -4,7 +4,8 @@
 // Videos never all autoplay: cards use hover (desktop) / tap (mobile) playback,
 // and the shared governor in mediaFrame.js caps concurrent playback at two.
 
-import { getDemosBySlugs, formatDuration } from '../../../data/minimaxH3Demos.js';
+import { minimaxH3Demos, formatDuration } from '../../../data/minimaxH3Demos.js';
+import { zeroLuDemos, loadDemoPrompt as loadZeroLuPrompt } from '../../../data/zeroLuDemos.js';
 import { createMediaFrame, cleanupFrames, revealOnScroll } from './minimax/mediaFrame.js';
 import {
   injectMinimaxStyles,
@@ -18,13 +19,39 @@ import {
 import { handleViewPrompt } from './minimax/DemoPromptModal.js';
 
 const REEL_SLUGS = [
+  // MiniMax H3 demos
   'luxury-perfume-commercial',
   'luxury-skincare-storyboard-commercial',
   'yellow-sunglasses-in-a-black-studio',
   'strawberry-drink-transformation-commercial',
   'emerald-bio-serum-product-film',
   'black-and-gold-perfume-commercial',
+  // ZeroLu demos
+  'adam',
+  'bootoshi',
+  'guizang',
+  'john10',
+  'john1',
+  'john2',
+  'john3',
+  'john4',
+  'john5',
+  'john6',
+  'john7',
 ];
+
+// Build a combined lookup so we can resolve both MiniMax and ZeroLu slugs.
+const DEMO_MAP = new Map();
+for (const demo of minimaxH3Demos) {
+  DEMO_MAP.set(demo.slug, { ...demo, _source: 'minimax' });
+}
+for (const demo of zeroLuDemos) {
+  DEMO_MAP.set(demo.slug, { ...demo, _source: 'zerolu' });
+}
+
+function resolveDemo(slug) {
+  return DEMO_MAP.get(slug) || null;
+}
 
 /**
  * Premium demo card shared by this section.
@@ -72,7 +99,13 @@ function createReelCard(demo) {
   mediaHost.appendChild(cue);
 
   const actions = card.querySelector('[data-mmx-card-actions]');
-  actions.appendChild(createViewPromptButton(demo, handleViewPrompt));
+  
+  // Use the correct prompt loader based on the demo source.
+  const loadPrompt = demo._source === 'zerolu'
+    ? async (slug) => loadZeroLuPrompt(slug)
+    : undefined;
+  
+  actions.appendChild(createViewPromptButton(demo, handleViewPrompt, { loadPrompt }));
   actions.appendChild(createStyleLink(demo, { label: 'Create This Style' }));
 
   return card;
@@ -81,7 +114,8 @@ function createReelCard(demo) {
 export function MadeWithSmartVideo() {
   injectMinimaxStyles();
 
-  const demos = getDemosBySlugs(REEL_SLUGS);
+  // Resolve demos from the combined map so we can mix MiniMax and ZeroLu slugs.
+  const demos = REEL_SLUGS.map((slug) => resolveDemo(slug)).filter(Boolean);
 
   const section = document.createElement('section');
   section.id = 'made-with-smartvideo';

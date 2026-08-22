@@ -5,7 +5,7 @@
 // The video never actually controls the page — a lightweight step cycle drives
 // the labels, and it only runs while the section is on screen.
 
-import { requireDemo } from '../../../data/minimaxH3Demos.js';
+import { getDemoBySlug, getCreateTarget as minimaxGetCreateTarget, loadDemoPrompt } from '../../../data/beatapiMinimaxH3Demos.js';
 import { createMediaFrame, cleanupFrames, prefersReducedMotion, revealOnScroll } from './minimax/mediaFrame.js';
 import { injectMinimaxStyles, sectionHeading, createStyleLink, escapeHtml } from './minimax/ui.js';
 import { handleViewPrompt } from './minimax/DemoPromptModal.js';
@@ -28,7 +28,10 @@ const INTERACTION_STATES = ['Loading', 'Hover', 'Click', 'Scroll', 'Drag', 'Caro
 export function MinimaxWorkflowSection() {
   injectMinimaxStyles();
 
-  const demo = requireDemo(DEMO_SLUG);
+  const demo = getDemoBySlug(DEMO_SLUG);
+  if (!demo) {
+    return document.createElement('section');
+  }
   const reduced = prefersReducedMotion();
 
   const section = document.createElement('section');

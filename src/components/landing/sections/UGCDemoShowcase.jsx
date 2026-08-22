@@ -5,7 +5,7 @@
 // aspect ratio inside a social-styled shell rather than stretching it. When
 // true 9:16 SmartVideo renders replace the files, set FORCE_VERTICAL to true.
 
-import { getDemoBySlug, formatDuration, ratioToNumber } from '../../../data/minimaxH3Demos.js';
+import { getDemoBySlug, formatDuration, ratioToNumber, loadDemoPrompt } from '../../../data/minimaxH3Demos.js';
 import { createMediaFrame, cleanupFrames, revealOnScroll } from './minimax/mediaFrame.js';
 import {
   injectMinimaxStyles,
@@ -103,7 +103,7 @@ function createUGCCard(config) {
   mediaHost.appendChild(cue);
 
   const actions = card.querySelector('[data-mmx-card-actions]');
-  actions.appendChild(createViewPromptButton(demo, handleViewPrompt, { label: 'View Prompt' }));
+  actions.appendChild(createViewPromptButton(demo, handleViewPrompt, { label: 'View Prompt', loadPrompt }));
   actions.appendChild(createStyleLink(demo, { label: 'Create This Type of Video' }));
 
   return card;

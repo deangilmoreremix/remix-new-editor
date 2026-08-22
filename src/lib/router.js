@@ -223,7 +223,13 @@ export async function navigate(page, params = {}) {
   currentPage = page;
 
   // Gate studio / gated pages behind the pro plan
-  const granted = await ensureStudioAccess(page);
+  let granted = true;
+  try {
+    granted = await ensureStudioAccess(page);
+  } catch (err) {
+    console.error(`[Router] Access check failed for ${page}:`, err);
+    granted = false;
+  }
   if (!granted) {
     isNavigating = false;
     return;
