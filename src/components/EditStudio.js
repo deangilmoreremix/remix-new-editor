@@ -1,67 +1,215 @@
 import { muapi } from '../lib/muapi.js';
-import { openSocialPublish } from '../lib/socialPublishHelpers.js';
-import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
-import { replaceTokensInPrompt } from './personalize/personalizePopover.js';
-import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
-import { requireEntitlement } from '../lib/clerkEntitlements.js';
-import { getI2IModelById } from '../lib/models.js';
-import { mountModelSelector } from '../lib/modelSelectorUI.js';
-import { createAdvancedControls } from '../lib/studioControls.js';
-import { getExtendedModel } from '../lib/modelInputExtensions.js';
-
-const EDIT_AI_MODELS = [
-  { id: 'flux-kontext-dev-i2i', name: 'Flux Kontext Dev I2I', hasPrompt: true },
-  { id: 'flux-kontext-pro-i2i', name: 'Flux Kontext Pro I2I', hasPrompt: true },
-  { id: 'flux-kontext-max-i2i', name: 'Flux Kontext Max I2I', hasPrompt: true },
-  { id: 'gpt4o-image-to-image', name: 'GPT-4o Image To Image', hasPrompt: true },
-  { id: 'gpt4o-edit', name: 'GPT-4o Edit', hasPrompt: true },
-  { id: 'gpt-image-1.5-edit', name: 'Gpt Image 1.5 Edit', hasPrompt: true },
-  { id: 'midjourney-v7-image-to-image', name: 'Midjourney v7 Image To Image', hasPrompt: true },
-  { id: 'midjourney-v7-style-reference', name: 'Midjourney v7 Style Reference', hasPrompt: true },
-  { id: 'midjourney-v7-omni-reference', name: 'Midjourney v7 Omni Reference', hasPrompt: true },
-  { id: 'bytedance-seededit-v3', name: 'Bytedance Seededit v3', hasPrompt: true },
-  { id: 'bytedance-seedream-edit-v4', name: 'Bytedance Seedream Edit v4', hasPrompt: true },
-  { id: 'bytedance-seedream-v4.5-edit', name: 'Bytedance Seedream v4.5 Edit', hasPrompt: true },
-  { id: 'nano-banana-edit', name: 'Nano Banana Edit', hasPrompt: true },
-  { id: 'nano-banana-pro-edit', name: 'Nano Banana Pro Edit', hasPrompt: true },
-  { id: 'nano-banana-2-edit', name: 'Nano Banana 2 Edit', hasPrompt: true },
-  { id: 'qwen-image-edit', name: 'Qwen Image Edit', hasPrompt: true },
-  { id: 'qwen-image-edit-plus', name: 'Qwen Image Edit Plus', hasPrompt: true },
-  { id: 'qwen-image-edit-2511', name: 'Qwen Image Edit 2511', hasPrompt: true },
-  { id: 'ideogram-character', name: 'Ideogram Character', hasPrompt: true },
-  { id: 'wan2.5-image-edit', name: 'Wan2.5 Image Edit', hasPrompt: true },
-  { id: 'wan2.6-image-edit', name: 'Wan2.6 Image Edit', hasPrompt: true },
-  { id: 'reve-image-edit', name: 'Reve Image Edit', hasPrompt: true },
-  { id: 'kling-o1-edit-image', name: 'Kling O1 Edit Image', hasPrompt: true },
-  { id: 'vidu-q2-reference-to-image', name: 'Vidu Q2 Reference To Image', hasPrompt: true },
-  { id: 'grok-imagine-image-to-image', name: 'Grok Imagine Image To Image', hasPrompt: true },
-  { id: 'flux-2-dev-edit', name: 'Flux 2 Dev Edit', hasPrompt: true },
-  { id: 'flux-2-flex-edit', name: 'Flux 2 Flex Edit', hasPrompt: true },
-  { id: 'flux-2-pro-edit', name: 'Flux 2 Pro Edit', hasPrompt: true },
-  { id: 'flux-2-klein-4b-edit', name: 'Flux 2 Klein 4b Edit', hasPrompt: true },
-  { id: 'flux-2-klein-9b-edit', name: 'Flux 2 Klein 9b Edit', hasPrompt: true },
-  { id: 'flux-redux', name: 'Flux Redux', hasPrompt: true },
-];
+import { createHeroSection } from '../lib/thumbnails.js';
+import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 
 const EDIT_TOOLS = [
-  { id: 'ai-object-eraser', name: 'Remove Object', description: 'Erase unwanted objects from images', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 5H9l-7 7 7 7h11a2 2 0 002-2V7a2 2 0 00-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>', hasPrompt: false },
-  { id: 'ai-background-remover', name: 'Remove Background', description: 'Clean background removal', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 3l18 18"/></svg>', hasPrompt: false },
-  { id: 'ai-image-extension', name: 'Extend Image', description: 'AI outpainting to expand images', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>', hasPrompt: false },
-  { id: 'seedream-5.0-edit', name: 'AI Edit', description: 'Instruction-based image editing', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>', hasPrompt: true, promptPlaceholder: 'Describe the edit...' },
-  { id: 'ideogram-v3-reframe', name: 'Reframe', description: 'Change aspect ratio intelligently', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><rect x="6" y="6" width="12" height="12" rx="1"/></svg>', hasPrompt: false },
-  { id: 'ai-dress-change', name: 'Change Dress', description: 'AI outfit and clothing swap', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.38 3.46L16 2 12 5.5 8 2l-4.38 1.46a2 2 0 00-1.34 2.31l2.1 9.89A2 2 0 006.34 17H7l-2 5h14l-2-5h.66a2 2 0 001.96-1.34l2.1-9.89a2 2 0 00-1.34-2.31z"/></svg>', hasPrompt: false },
-  { id: 'ai-skin-enhancer', name: 'Enhance Skin', description: 'Professional skin retouching', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>', hasPrompt: false },
-  { id: 'ai-color-photo', name: 'Colorize', description: 'Add color to B&W photos', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="19" cy="13" r="2.5"/><circle cx="7" cy="13" r="2.5"/><circle cx="13.5" cy="19.5" r="2.5"/></svg>', hasPrompt: false },
-  { id: 'add-image-watermark', name: 'Add Watermark', description: 'Overlay watermark on images', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>', hasPrompt: false },
-  { id: 'ai-image-upscaler', name: 'Upscale', description: 'AI image upscaling to higher resolution', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>', hasPrompt: false },
-  { id: 'ai-image-face-swap', name: 'Face Swap', description: 'Swap faces in images', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M12 6v6l4 2"/></svg>', hasPrompt: false },
-  { id: 'ai-product-shot', name: 'Product Shot', description: 'Create professional product images', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="3"/></svg>', hasPrompt: true, promptPlaceholder: 'Describe the scene...' },
-  { id: 'ai-ghibli-style', name: 'Ghibli Style', description: 'Transform into Studio Ghibli art style', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>', hasPrompt: false },
+  {
+    id: 'ai-object-eraser',
+    name: 'Remove Object',
+    description: 'Erase unwanted objects from images',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 5H9l-7 7 7 7h11a2 2 0 002-2V7a2 2 0 00-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>',
+    hasPrompt: false,
+    controls: [
+      { type: 'range', key: 'feather', label: 'Edge Feather', min: 0, max: 100, step: 1, default: 20, unit: '%' },
+      { type: 'range', key: 'strength', label: 'Removal Strength', min: 0, max: 100, step: 1, default: 85, unit: '%' },
+      { type: 'select', key: 'fill_mode', label: 'Fill Mode', options: ['Generative Fill', 'Content-Aware', 'Inpaint', 'Clone'], default: 'Generative Fill' },
+    ],
+  },
+  {
+    id: 'ai-background-remover',
+    name: 'Remove Background',
+    description: 'Clean background removal',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 3l18 18"/></svg>',
+    hasPrompt: false,
+    controls: [
+      { type: 'select', key: 'background_type', label: 'Output', options: ['Transparent', 'White', 'Black', 'Custom Color', 'Gradient'], default: 'Transparent' },
+      { type: 'range', key: 'edge_refinement', label: 'Edge Refinement', min: 0, max: 100, step: 1, default: 50, unit: '%' },
+      { type: 'toggle', key: 'hair_detail', label: 'Preserve Hair Detail', default: true },
+      { type: 'toggle', key: 'shadow_removal', label: 'Remove Cast Shadow', default: true },
+    ],
+  },
+  {
+    id: 'ai-image-extension',
+    name: 'Extend Image',
+    description: 'AI outpainting to expand images',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>',
+    hasPrompt: false,
+    controls: [
+      { type: 'directions', key: 'extend_direction', label: 'Extend Direction', default: ['all'] },
+      { type: 'range', key: 'expansion_amount', label: 'Expansion Amount', min: 10, max: 100, step: 5, default: 50, unit: '%' },
+      { type: 'range', key: 'seam_blending', label: 'Seam Blending', min: 0, max: 100, step: 1, default: 70, unit: '%' },
+      { type: 'select', key: 'aspect_ratio', label: 'Aspect Ratio', options: ['16:9', '9:16', '1:1', '4:3', '3:4', '21:9'], default: '16:9' },
+    ],
+  },
+  {
+    id: 'seedream-5.0-edit',
+    name: 'AI Edit',
+    description: 'Instruction-based image editing',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
+    hasPrompt: true,
+    promptPlaceholder: 'Describe the edit...',
+    controls: [
+      { type: 'select', key: 'aspect_ratio', label: 'Aspect Ratio', options: ['1:1', '16:9', '9:16', '4:3', '3:4', '2:3', '3:2', '21:9'], default: '1:1' },
+      { type: 'select', key: 'quality', label: 'Quality', options: ['basic', 'high'], default: 'basic' },
+      { type: 'range', key: 'strength', label: 'Edit Strength', min: 0, max: 100, step: 1, default: 70, unit: '%' },
+    ],
+    advancedControls: [
+      { type: 'number', key: 'num_images', label: 'Variations', min: 1, max: 4, step: 1, default: 1 },
+      { type: 'text', key: 'negative_prompt', label: 'Negative Prompt', placeholder: 'What to avoid...' },
+      { type: 'number', key: 'seed', label: 'Seed (optional)', placeholder: 'Random' },
+    ],
+  },
+  {
+    id: 'ideogram-v3-reframe',
+    name: 'Reframe',
+    description: 'Change aspect ratio intelligently',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><rect x="6" y="6" width="12" height="12" rx="1"/></svg>',
+    hasPrompt: false,
+    controls: [
+      { type: 'select', key: 'aspect_ratio', label: 'Aspect Ratio', options: ['16:9', '9:16', '1:1', '4:3', '3:4'], default: '1:1' },
+      { type: 'select', key: 'render_speed', label: 'Render Speed', options: ['Turbo', 'Balanced', 'Quality'], default: 'Balanced' },
+      { type: 'select', key: 'style', label: 'Style', options: ['Auto', 'General', 'Realistic', 'Design'], default: 'Auto' },
+      { type: 'toggle', key: 'smart_crop', label: 'Smart Crop (preserve subject)', default: true },
+      { type: 'range', key: 'padding', label: 'Padding', min: 0, max: 30, step: 1, default: 10, unit: '%' },
+    ],
+    advancedControls: [
+      { type: 'number', key: 'num_images', label: 'Variations', min: 1, max: 4, step: 1, default: 1 },
+    ],
+  },
+  {
+    id: 'ai-dress-change',
+    name: 'Change Dress',
+    description: 'AI outfit and clothing swap',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.38 3.46L16 2 12 5.5 8 2l-4.38 1.46a2 2 0 00-1.34 2.31l2.1 9.89A2 2 0 006.34 17H7l-2 5h14l-2-5h.66a2 2 0 001.96-1.34l2.1-9.89a2 2 0 00-1.34-2.31z"/></svg>',
+    hasPrompt: false,
+    controls: [
+      { type: 'select', key: 'outfit_style', label: 'Style Preset', options: ['Casual', 'Formal', 'Sport', 'Traditional', 'Elegant', 'Statement'], default: 'Formal' },
+      { type: 'color', key: 'outfit_color', label: 'Color', default: '#000000' },
+      { type: 'select', key: 'fabric', label: 'Fabric Type', options: ['Silk', 'Cotton', 'Leather', 'Velvet', 'Denim', 'Lace'], default: 'Silk' },
+      { type: 'range', key: 'fit', label: 'Fit', min: 0, max: 100, step: 1, default: 50, unit: '%', unitLabel: 'Loose to Tight' },
+      { type: 'select', key: 'lighting', label: 'Lighting', options: ['Studio Softbox', 'Natural Window', 'Dramatic', 'Flat Lay'], default: 'Studio Softbox' },
+      { type: 'toggle', key: 'preserve_background', label: 'Preserve Background', default: true },
+      { type: 'toggle', key: 'preserve_hair', label: 'Preserve Hair Details', default: true },
+    ],
+  },
+  {
+    id: 'ai-skin-enhancer',
+    name: 'Enhance Skin',
+    description: 'Professional skin retouching',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>',
+    hasPrompt: false,
+    controls: [
+      { type: 'range', key: 'smoothing', label: 'Smoothing', min: 0, max: 100, step: 1, default: 50, unit: '%' },
+      { type: 'range', key: 'blemish_removal', label: 'Blemish Removal', min: 0, max: 100, step: 1, default: 70, unit: '%' },
+      { type: 'range', key: 'wrinkle_reduction', label: 'Wrinkle Reduction', min: 0, max: 100, step: 1, default: 40, unit: '%' },
+      { type: 'toggle', key: 'eye_brightening', label: 'Brighten Eyes', default: true },
+      { type: 'toggle', key: 'teeth_whitening', label: 'Whiten Teeth', default: true },
+      { type: 'range', key: 'skin_tone_preservation', label: 'Skin Tone Preservation', min: 0, max: 100, step: 1, default: 90, unit: '%' },
+      { type: 'toggle', key: 'face_detection', label: 'Auto Face Detection', default: true },
+    ],
+  },
+  {
+    id: 'ai-color-photo',
+    name: 'Colorize',
+    description: 'Add color to B&W photos',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="19" cy="13" r="2.5"/><circle cx="7" cy="13" r="2.5"/><circle cx="13.5" cy="19.5" r="2.5"/></svg>',
+    hasPrompt: false,
+    controls: [
+      { type: 'select', key: 'color_style', label: 'Style Preset', options: ['Realistic', 'Vintage', 'Vibrant', 'Pastel', 'Duotone'], default: 'Realistic' },
+      { type: 'range', key: 'saturation', label: 'Saturation', min: 0, max: 100, step: 1, default: 60, unit: '%' },
+      { type: 'range', key: 'warmth', label: 'Color Temperature', min: 0, max: 100, step: 1, default: 50, unit: '%', unitLabel: 'Cool to Warm' },
+      { type: 'range', key: 'intensity', label: 'Color Intensity', min: 0, max: 100, step: 1, default: 80, unit: '%' },
+      { type: 'text', key: 'reference_colors', label: 'Reference Colors', placeholder: 'e.g. blue sky, green grass' },
+    ],
+  },
+  {
+    id: 'add-image-watermark',
+    name: 'Add Watermark',
+    description: 'Overlay watermark on images',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+    hasPrompt: true,
+    promptPlaceholder: 'Watermark text...',
+    controls: [
+      { type: 'select', key: 'position', label: 'Position', options: ['top-left', 'top-right', 'bottom-left', 'bottom-right', 'center'], default: 'bottom-right' },
+      { type: 'range', key: 'opacity', label: 'Opacity', min: 0, max: 100, step: 1, default: 70, unit: '%' },
+      { type: 'range', key: 'scale', label: 'Size', min: 5, max: 100, step: 1, default: 20, unit: '%' },
+      { type: 'text', key: 'font_family', label: 'Font Family', placeholder: 'Arial, Helvetica, etc.' },
+      { type: 'color', key: 'text_color', label: 'Text Color', default: '#ffffff' },
+      { type: 'range', key: 'rotation', label: 'Rotation', min: -90, max: 90, step: 1, default: 0, unit: 'deg' },
+      { type: 'toggle', key: 'shadow', label: 'Text Shadow', default: false },
+      { type: 'toggle', key: 'tile', label: 'Tile Pattern', default: false },
+    ],
+  },
+  {
+    id: 'ai-image-upscaler',
+    name: 'Upscale',
+    description: 'AI image upscaling to higher resolution',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>',
+    hasPrompt: false,
+    controls: [
+      { type: 'select', key: 'upscale_factor', label: 'Upscale Factor', options: ['2x', '4x'], default: '2x' },
+      { type: 'range', key: 'denoise', label: 'Denoise Strength', min: 0, max: 100, step: 1, default: 30, unit: '%' },
+      { type: 'range', key: 'sharpness', label: 'Sharpening', min: 0, max: 100, step: 1, default: 50, unit: '%' },
+      { type: 'toggle', key: 'face_enhancement', label: 'Face Enhancement', default: true },
+      { type: 'toggle', key: 'color_correction', label: 'Auto Color Correction', default: true },
+    ],
+    advancedControls: [
+      { type: 'select', key: 'output_format', label: 'Output Format', options: ['PNG', 'JPEG', 'WEBP'], default: 'PNG' },
+    ],
+  },
+  {
+    id: 'ai-image-face-swap',
+    name: 'Face Swap',
+    description: 'Swap faces in images',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M12 6v6l4 2"/></svg>',
+    hasPrompt: false,
+    controls: [
+      { type: 'number', key: 'target_index', label: 'Target Face Index', min: 0, max: 10, step: 1, default: 0, description: '0 = largest face' },
+      { type: 'number', key: 'source_face', label: 'Source Face Index', min: 0, max: 10, step: 1, default: 0, description: '0 = largest face' },
+      { type: 'range', key: 'blend_strength', label: 'Blend Strength', min: 0, max: 100, step: 1, default: 80, unit: '%' },
+      { type: 'range', key: 'feather', label: 'Edge Feather', min: 0, max: 100, step: 1, default: 30, unit: '%' },
+      { type: 'toggle', key: 'preserve_expression', label: 'Preserve Target Expression', default: true },
+      { type: 'toggle', key: 'color_correction', label: 'Color Match to Target', default: true },
+    ],
+  },
+  {
+    id: 'ai-product-shot',
+    name: 'Product Shot',
+    description: 'Create professional product images',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="3"/></svg>',
+    hasPrompt: true,
+    promptPlaceholder: 'Product style...',
+    controls: [
+      { type: 'select', key: 'lighting', label: 'Lighting Preset', options: ['Studio Softbox', 'Natural Window', 'Dramatic', 'Product Flat Lay', 'Ring Light'], default: 'Studio Softbox' },
+      { type: 'select', key: 'background', label: 'Background Type', options: ['White', 'Gradient', 'Lifestyle', 'Transparent', 'Color'], default: 'White' },
+      { type: 'select', key: 'angle', label: 'Camera Angle', options: ['Front (0 deg)', '45 deg Angle', 'Top-Down', 'Macro Close-Up', 'Low Angle'], default: '45 deg Angle' },
+      { type: 'select', key: 'shadow', label: 'Shadow', options: ['Soft Drop Shadow', 'Hard Shadow', 'Floating', 'None'], default: 'Soft Drop Shadow' },
+      { type: 'select', key: 'reflection', label: 'Reflection', options: ['Floor Reflection', 'Surface Reflection', 'None'], default: 'Floor Reflection' },
+    ],
+    advancedControls: [
+      { type: 'select', key: 'output_format', label: 'Output Format', options: ['PNG', 'JPEG', 'WEBP'], default: 'PNG' },
+      { type: 'select', key: 'quality', label: 'Image Quality', options: ['Standard', 'High', '4K'], default: 'High' },
+    ],
+  },
+  {
+    id: 'ai-ghibli-style',
+    name: 'Ghibli Style',
+    description: 'Transform into Studio Ghibli art style',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>',
+    hasPrompt: false,
+    controls: [
+      { type: 'select', key: 'style_variant', label: 'Ghibli Style', options: ['Auto', 'My Neighbor Totoro', 'Spirited Away', 'Princess Mononoke', 'Kiki Delivery', 'Howl Moving Castle', 'Ponyo'], default: 'Auto' },
+      { type: 'range', key: 'strength', label: 'Style Intensity', min: 0, max: 100, step: 1, default: 85, unit: '%' },
+      { type: 'select', key: 'color_palette', label: 'Color Palette', options: ['Muted Pastels', 'Vibrant', 'Natural', 'Dreamy'], default: 'Muted Pastels' },
+      { type: 'select', key: 'render_style', label: 'Render Style', options: ['Hand-Painted', 'Line Art', 'Watercolor Wash'], default: 'Hand-Painted' },
+      { type: 'range', key: 'grain', label: 'Film Grain', min: 0, max: 100, step: 1, default: 20, unit: '%' },
+      { type: 'toggle', key: 'character_consistency', label: 'Character Consistency', default: true },
+    ],
+  },
 ];
 
 export function EditStudio() {
@@ -71,25 +219,11 @@ export function EditStudio() {
 
   let activeTool = null;
   let uploadedUrl = null;
-let lastOutputUrl = null;
-  let customThumbnailUrl = getCustomThumbnailFromCache('edit-studio');
-  let currentBlobUrl = null;
-  let selectedModelId = 'seedream-5.0-edit';
-
-  // Control values for static tools
-  let aspectRatioValue = '1:1';
-  let qualityValue = 'basic';
-  let targetIndexValue = '0';
-  let numImagesValue = '1';
-  let renderSpeedValue = 'Balanced';
-  let styleValue = 'Auto';
-  let watermarkPositionValue = 'bottom-right';
-  let watermarkOpacityValue = '0.7';
-  let watermarkScaleValue = '0.2';
-
-  // Dynamic controls for dropdown models
-  let dynamicControls = null;
-  let dynamicControlsContainer = null;
+  let referenceImageUrl = null;
+  let progressPoll = null;
+  let progress = 0;
+  let controlValues = {};
+  let advancedOpen = false;
 
   const topBar = document.createElement('div');
   topBar.className = 'px-4 md:px-8 pt-6 pb-4 shrink-0';
@@ -132,7 +266,7 @@ let lastOutputUrl = null;
   workArea.className = 'flex-1 px-4 md:px-8 pb-8';
 
   const workCard = document.createElement('div');
-  workCard.className = 'relative max-w-xl mx-auto bg-white/[0.03] border border-white/5 rounded-2xl p-6 hidden flex-col gap-4';
+  workCard.className = 'max-w-xl mx-auto bg-white/[0.03] border border-white/5 rounded-2xl p-6 hidden flex-col gap-4';
 
   const toolTitle = document.createElement('div');
   toolTitle.className = 'text-sm font-bold text-primary';
@@ -165,45 +299,26 @@ let lastOutputUrl = null;
       clearBtn.classList.remove('hidden');
     },
     onClear: () => {
-      if (currentBlobUrl) {
-        URL.revokeObjectURL(currentBlobUrl);
-        currentBlobUrl = null;
-      }
       uploadedUrl = null;
       previewImg.classList.add('hidden');
       previewImg.src = '';
-      previewImg.onerror = null;
       uploadHint.textContent = 'Upload source image or video';
       clearBtn.classList.add('hidden');
     },
     onFilePreview: (file) => {
-      if (currentBlobUrl) {
-        URL.revokeObjectURL(currentBlobUrl);
-        currentBlobUrl = null;
-      }
       const blobUrl = URL.createObjectURL(file);
-      currentBlobUrl = blobUrl;
       previewImg.src = blobUrl;
       previewImg.classList.remove('hidden');
       uploadHint.textContent = file.name;
-      previewImg.onerror = () => {
-        previewImg.classList.add('hidden');
-        uploadHint.textContent = 'Preview failed to load';
-      };
     },
   });
 
   clearBtn.onclick = (e) => {
     e.stopPropagation();
     picker.reset();
-    if (currentBlobUrl) {
-      URL.revokeObjectURL(currentBlobUrl);
-      currentBlobUrl = null;
-    }
     uploadedUrl = null;
     previewImg.classList.add('hidden');
     previewImg.src = '';
-    previewImg.onerror = null;
     uploadHint.textContent = 'Upload source image or video';
     clearBtn.classList.add('hidden');
   };
@@ -211,418 +326,450 @@ let lastOutputUrl = null;
   uploadRow.appendChild(picker.trigger);
   uploadRow.appendChild(uploadHint);
   uploadRow.appendChild(clearBtn);
-
-  // Pexels browse button
-  const pexelsEditBtn = document.createElement('button');
-  pexelsEditBtn.type = 'button';
-  pexelsEditBtn.title = 'Browse photos to edit from Pexels';
-  pexelsEditBtn.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden';
-  pexelsEditBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>';
-  pexelsEditBtn.onclick = async () => {
-    const { browsePexelsImages } = await import('../lib/studioPexels.js');
-    browsePexelsImages({
-      title: 'Select Photo to Edit',
-      studioName: 'Edit Studio',
-      onSelect: (asset) => {
-        uploadedUrl = asset.src?.large || asset.url || asset.original;
-        previewImg.src = uploadedUrl;
-        previewImg.classList.remove('hidden');
-        uploadHint.textContent = 'Loaded from Pexels';
-        clearBtn.classList.remove('hidden');
-        const attrContainer = document.getElementById('pexels-edit-attribution');
-        if (attrContainer) {
-          attrContainer.innerHTML = '';
-          import('../lib/attributionChip.js').then(mod => mod.renderAttributionChip(asset, attrContainer));
-        }
-        showToast('Photo loaded from Pexels', 'success');
-      }
-    });
-  };
-  uploadRow.appendChild(pexelsEditBtn);
-
-  // Pexels attribution container
-  const pexelsEditAttr = document.createElement('div');
-  pexelsEditAttr.id = 'pexels-edit-attribution';
-  pexelsEditAttr.className = 'mt-2';
-  uploadSection.appendChild(pexelsEditAttr);
-
   uploadSection.appendChild(uploadRow);
   uploadSection.appendChild(previewImg);
   workCard.appendChild(uploadSection);
   container.appendChild(picker.panel);
 
-// Watermark image uploader — declared here (before first use) to avoid a
-  // temporal-dead-zone ReferenceError when the row below appends .trigger/.panel.
-  let watermarkImageUrl = null;
-  const watermarkImageHint = document.createElement('span');
-  watermarkImageHint.className = 'text-sm text-muted hidden';
-  watermarkImageHint.textContent = 'Upload watermark image';
-
-  const watermarkClearBtn = document.createElement('button');
-  watermarkClearBtn.type = 'button';
-  watermarkClearBtn.className = 'hidden text-xs font-bold text-red-400 hover:text-red-300 transition-colors';
-  watermarkClearBtn.textContent = 'Remove';
-
-  const watermarkPicker = createUploadPicker({
+  const referencePicker = createUploadPicker({
     anchorContainer: container,
     onSelect: ({ url }) => {
-      watermarkImageUrl = url;
-      watermarkImageHint.textContent = 'Watermark uploaded';
-      watermarkImageHint.classList.remove('hidden');
-      watermarkClearBtn.classList.remove('hidden');
+      referenceImageUrl = url;
+      referencePreview.src = url;
+      referencePreview.classList.remove('hidden');
+      referenceRow.classList.remove('hidden');
     },
     onClear: () => {
-      watermarkImageUrl = null;
-      watermarkImageHint.textContent = 'Upload watermark image';
-      watermarkImageHint.classList.add('hidden');
-      watermarkClearBtn.classList.add('hidden');
+      referenceImageUrl = null;
+      referencePreview.src = '';
+      referencePreview.classList.add('hidden');
+      referenceRow.classList.add('hidden');
     },
   });
+  container.appendChild(referencePicker.panel);
 
-  watermarkClearBtn.onclick = (e) => {
-    e.stopPropagation();
-    watermarkPicker.reset();
-    watermarkImageUrl = null;
-    watermarkImageHint.textContent = 'Upload watermark image';
-    watermarkImageHint.classList.add('hidden');
-    watermarkClearBtn.classList.add('hidden');
+  const referenceRow = document.createElement('div');
+  referenceRow.className = 'flex items-center gap-3 hidden mt-2';
+
+  const referencePreview = document.createElement('img');
+  referencePreview.className = 'w-12 h-12 object-cover rounded border border-white/10';
+
+  const refClearBtn = document.createElement('button');
+  refClearBtn.type = 'button';
+  refClearBtn.className = 'text-xs font-bold text-red-400 hover:text-red-300';
+  refClearBtn.textContent = 'x';
+  refClearBtn.onclick = () => {
+    referenceImageUrl = null;
+    referencePreview.src = '';
+    referencePreview.classList.add('hidden');
+    referenceRow.classList.add('hidden');
   };
-
-  // Watermark image upload row (hidden by default)
-  const watermarkImageRow = document.createElement('div');
-  watermarkImageRow.className = 'watermark-image-row hidden flex flex-col gap-3';
-  const watermarkImageRowInner = document.createElement('div');
-  watermarkImageRowInner.className = 'flex items-center gap-4';
-  watermarkImageRowInner.appendChild(watermarkPicker.trigger);
-  watermarkImageRowInner.appendChild(watermarkImageHint);
-  watermarkImageRowInner.appendChild(watermarkClearBtn);
-  watermarkImageRow.appendChild(watermarkImageRowInner);
-  container.appendChild(watermarkPicker.panel);
-  workCard.appendChild(watermarkImageRow);
+  referenceRow.appendChild(referencePreview);
+  referenceRow.appendChild(refClearBtn);
 
   const promptField = document.createElement('input');
   promptField.type = 'text';
   promptField.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors hidden';
-  promptField.setAttribute('aria-label', 'Edit prompt');
 
   const negativePromptField = document.createElement('input');
   negativePromptField.type = 'text';
   negativePromptField.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors hidden';
-  negativePromptField.setAttribute('aria-label', 'Negative prompt');
-  negativePromptField.placeholder = 'What to avoid...';
 
   const negativePromptLabel = document.createElement('label');
   negativePromptLabel.className = 'text-xs font-bold text-secondary uppercase tracking-wider hidden';
   negativePromptLabel.textContent = 'Negative Prompt';
 
+  const controlsContainer = document.createElement('div');
+  controlsContainer.className = 'w-full flex flex-col gap-3';
+
+  const advancedToggleBtn = document.createElement('button');
+  advancedToggleBtn.type = 'button';
+  advancedToggleBtn.className = 'text-xs font-bold text-secondary hover:text-white transition-colors text-left flex items-center gap-1';
+  advancedToggleBtn.innerHTML = '<span>▼</span> Advanced Controls';
+  advancedToggleBtn.onclick = () => {
+    advancedOpen = !advancedOpen;
+    renderControls(activeTool);
+  };
+
+  const referenceToggleBtn = document.createElement('button');
+  referenceToggleBtn.type = 'button';
+  referenceToggleBtn.className = 'text-xs font-bold text-secondary hover:text-white transition-colors text-left mt-2';
+  referenceToggleBtn.textContent = '+ Add Reference Image';
+  referenceToggleBtn.onclick = () => referencePicker.trigger.click();
+
+  workCard.appendChild(uploadSection);
   workCard.appendChild(promptField);
   workCard.appendChild(negativePromptLabel);
   workCard.appendChild(negativePromptField);
   workCard.appendChild(controlsContainer);
 
-  const controlsRow = document.createElement('div');
-  controlsRow.className = 'flex flex-col gap-3 hidden';
-  workCard.appendChild(controlsRow);
-
-  const aspectRatioSelect = document.createElement('select');
-  aspectRatioSelect.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors';
-  aspectRatioSelect.setAttribute('aria-label', 'Aspect ratio');
-  [
-    { value: '1:1', label: '1:1' },
-    { value: '16:9', label: '16:9' },
-    { value: '9:16', label: '9:16' },
-    { value: '4:3', label: '4:3' },
-    { value: '3:4', label: '3:4' },
-    { value: '2:3', label: '2:3' },
-    { value: '3:2', label: '3:2' },
-    { value: '21:9', label: '21:9' },
-  ].forEach(opt => {
-    const option = document.createElement('option');
-    option.value = opt.value;
-    option.textContent = opt.label;
-    aspectRatioSelect.appendChild(option);
-  });
-  aspectRatioSelect.addEventListener('change', () => {
-    aspectRatioValue = aspectRatioSelect.value;
-  });
-  controlsRow.appendChild(aspectRatioSelect);
-
-  const qualitySelect = document.createElement('select');
-  qualitySelect.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors';
-  qualitySelect.setAttribute('aria-label', 'Quality');
-  [
-    { value: 'basic', label: 'Basic' },
-    { value: 'high', label: 'High' },
-  ].forEach(opt => {
-    const option = document.createElement('option');
-    option.value = opt.value;
-    option.textContent = opt.label;
-    qualitySelect.appendChild(option);
-  });
-  qualitySelect.addEventListener('change', () => {
-    qualityValue = qualitySelect.value;
-  });
-  controlsRow.appendChild(qualitySelect);
-
-  const numImagesSelect = document.createElement('select');
-  numImagesSelect.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors';
-  numImagesSelect.setAttribute('aria-label', 'Number of images');
-  [1, 2, 3, 4].forEach(n => {
-    const option = document.createElement('option');
-    option.value = String(n);
-    option.textContent = String(n);
-    numImagesSelect.appendChild(option);
-  });
-  numImagesSelect.addEventListener('change', () => {
-    numImagesValue = numImagesSelect.value;
-  });
-
-  const renderSpeedSelect = document.createElement('select');
-  renderSpeedSelect.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors';
-  renderSpeedSelect.setAttribute('aria-label', 'Render speed');
-  ['Turbo', 'Balanced', 'Quality'].forEach(speed => {
-    const option = document.createElement('option');
-    option.value = speed;
-    option.textContent = speed;
-    renderSpeedSelect.appendChild(option);
-  });
-  renderSpeedSelect.addEventListener('change', () => {
-    renderSpeedValue = renderSpeedSelect.value;
-  });
-
-  const styleSelect = document.createElement('select');
-  styleSelect.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors';
-  styleSelect.setAttribute('aria-label', 'Style');
-  ['Auto', 'General', 'Realistic', 'Design'].forEach(s => {
-    const option = document.createElement('option');
-    option.value = s;
-    option.textContent = s;
-    styleSelect.appendChild(option);
-  });
-  styleSelect.addEventListener('change', () => {
-    styleValue = styleSelect.value;
-  });
-
-  const targetIndexInput = document.createElement('input');
-  targetIndexInput.type = 'number';
-  targetIndexInput.min = '0';
-  targetIndexInput.max = '10';
-  targetIndexInput.value = '0';
-  targetIndexInput.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors';
-  targetIndexInput.setAttribute('aria-label', 'Target face index');
-  targetIndexInput.addEventListener('input', () => {
-    targetIndexValue = targetIndexInput.value;
-  });
-
-  const watermarkPositionSelect = document.createElement('select');
-  watermarkPositionSelect.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors';
-  watermarkPositionSelect.setAttribute('aria-label', 'Watermark position');
-  ['top-left', 'top-right', 'bottom-left', 'bottom-right', 'center'].forEach(pos => {
-    const option = document.createElement('option');
-    option.value = pos;
-    option.textContent = pos.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase());
-    watermarkPositionSelect.appendChild(option);
-  });
-  watermarkPositionSelect.addEventListener('change', () => {
-    watermarkPositionValue = watermarkPositionSelect.value;
-  });
-
-  const watermarkOpacityInput = document.createElement('input');
-  watermarkOpacityInput.type = 'number';
-  watermarkOpacityInput.min = '0';
-  watermarkOpacityInput.max = '1';
-  watermarkOpacityInput.step = '0.1';
-  watermarkOpacityInput.value = '0.7';
-  watermarkOpacityInput.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors';
-  watermarkOpacityInput.setAttribute('aria-label', 'Watermark opacity');
-  watermarkOpacityInput.addEventListener('input', () => {
-    watermarkOpacityValue = watermarkOpacityInput.value;
-  });
-
-  const watermarkScaleInput = document.createElement('input');
-  watermarkScaleInput.type = 'number';
-  watermarkScaleInput.min = '0.1';
-  watermarkScaleInput.max = '1';
-  watermarkScaleInput.step = '0.1';
-  watermarkScaleInput.value = '0.2';
-  watermarkScaleInput.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors';
-  watermarkScaleInput.setAttribute('aria-label', 'Watermark scale');
-  watermarkScaleInput.addEventListener('input', () => {
-    watermarkScaleValue = watermarkScaleInput.value;
-  });
-
-  // Model selector — split-pane picker, consistent with the other studios.
-  // (Originally a native <select>; replaced to match the unified design.)
-  const modelSelect = document.createElement('button');
-  modelSelect.type = 'button';
-  modelSelect.className = 'flex items-center gap-2 w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm hover:bg-white/10 transition-colors hidden';
-  modelSelect.setAttribute('aria-label', 'AI model');
-  modelSelect.setAttribute('aria-haspopup', 'listbox');
-  const modelSelectLabel = document.createElement('span');
-  modelSelectLabel.className = 'flex-1 text-left truncate';
-  modelSelect.appendChild(modelSelectLabel);
-  modelSelect.insertAdjacentHTML('beforeend', '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-50 shrink-0"><path d="M6 9l6 6 6-6"/></svg>');
-
-  const modelSelectPopover = document.createElement('div');
-  modelSelectPopover.className = 'absolute left-0 top-full z-50 mt-2 hidden';
-  modelSelectPopover.style.minWidth = '320px';
-
-  const updateModelSelectLabel = () => {
-    const m = (EDIT_AI_MODELS.find(x => x.id === selectedModelId) || EDIT_AI_MODELS[0]);
-    modelSelectLabel.textContent = m ? m.name : selectedModelId;
-  };
-  updateModelSelectLabel();
-
-  let modelSelectOpen = false;
-  const closeModelSelect = () => {
-    modelSelectOpen = false;
-    modelSelectPopover.classList.add('hidden');
-  };
-  const openModelSelect = () => {
-    if (modelSelectOpen) { closeModelSelect(); return; }
-    modelSelectOpen = true;
-    modelSelectPopover.classList.remove('hidden');
-    mountModelSelector(modelSelectPopover, {
-      models: EDIT_AI_MODELS,
-      selectedModelId: selectedModelId,
-      showProviderName: true,
-      onSelectModel: (modelId) => {
-        selectedModelId = modelId;
-        updateModelSelectLabel();
-        buildDynamicControls(selectedModelId);
-        closeModelSelect();
-      },
-    });
-  };
-  modelSelect.onclick = (e) => { e.stopPropagation(); openModelSelect(); };
-  document.addEventListener('click', (e) => {
-    if (modelSelectOpen && !modelSelectPopover.contains(e.target) && e.target !== modelSelect) {
-      closeModelSelect();
-    }
-  });
-
-  workCard.appendChild(modelSelect);
-  workCard.appendChild(modelSelectPopover);
-
-  // Thumbnail studio button — next to creation controls, GTM Boost styling
-  const thumbBtn = document.createElement('button');
-  thumbBtn.type = 'button';
-  thumbBtn.textContent = 'Thumbnail';
-  thumbBtn.title = 'Generate a custom thumbnail';
-  thumbBtn.className = 'btn-ghost-modern w-full';
-  thumbBtn.addEventListener('click', () => {
-    const modal = new TemplateThumbnailModal({
-      appTheme: 'edit-studio',
-      layout: 'panel',
-      studioId: 'edit-studio',
-      studioName: 'Edit Studio',
-      aspectRatio: '1:1',
-      outputType: 'image',
-      onApply: ({ imageUrl }) => {
-        customThumbnailUrl = imageUrl;
-        saveCustomThumbnailToCache('edit-studio', imageUrl);
-      },
-      onClear: () => {
-        customThumbnailUrl = null;
-        clearCustomThumbnailCache('edit-studio');
-      },
-    });
-    mountThumbnailModal(modal);
-    modal.open();
-  });
-  workCard.appendChild(thumbBtn);
-
   const editBtn = document.createElement('button');
-  editBtn.type = 'button';
-  editBtn.className = 'btn-primary-modern w-full px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all';
+  editBtn.className = 'w-full bg-primary text-black py-3 rounded-xl font-black text-sm hover:shadow-glow transition-all';
   editBtn.textContent = 'Apply Edit';
-  editBtn.setAttribute('aria-label', 'Apply edit');
   workCard.appendChild(editBtn);
 
-const errorArea = document.createElement('div');
-  errorArea.className = 'hidden mt-4';
-  errorArea.setAttribute('role', 'alert');
-  workCard.appendChild(errorArea);
+  const progressContainer = document.createElement('div');
+  progressContainer.className = 'hidden w-full flex-col gap-2';
+  const progressBar = document.createElement('div');
+  progressBar.className = 'w-full bg-white/10 rounded-full h-2 overflow-hidden';
+  const progressFill = document.createElement('div');
+  progressFill.className = 'h-full bg-primary rounded-full transition-all duration-300 w-0';
+  const progressText = document.createElement('span');
+  progressText.className = 'text-xs text-muted text-center';
+  progressBar.appendChild(progressFill);
+  progressContainer.appendChild(progressBar);
+  progressContainer.appendChild(progressText);
+  workCard.appendChild(progressContainer);
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.type = 'button';
+  cancelBtn.className = 'hidden w-full bg-white/5 border border-white/10 text-red-400 font-bold py-2 rounded-xl hover:bg-white/10 transition-all';
+  cancelBtn.textContent = 'Cancel';
+  workCard.appendChild(cancelBtn);
 
   const resultArea = document.createElement('div');
   resultArea.className = 'hidden mt-4';
-  resultArea.setAttribute('role', 'status');
-  resultArea.setAttribute('aria-live', 'polite');
   workCard.appendChild(resultArea);
 
   workArea.appendChild(workCard);
   container.appendChild(workArea);
 
-function buildDynamicControls(modelId) {
-    const model = getI2IModelById(modelId);
-    if (!model || !model.inputs || Object.keys(model.inputs).length === 0) {
-      if (dynamicControlsContainer) dynamicControlsContainer.classList.add('hidden');
-      return;
+  mountPersonalizeTrigger({ getTextarea: () => promptField, appId: 'edit-studio' });
+
+  function createRangeControl(control) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'flex flex-col gap-1.5';
+
+    const labelRow = document.createElement('div');
+    labelRow.className = 'flex justify-between items-baseline';
+
+    const label = document.createElement('label');
+    label.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
+    label.textContent = control.label;
+    labelRow.appendChild(label);
+
+    const slider = document.createElement('input');
+    slider.type = 'range';
+    slider.min = control.min;
+    slider.max = control.max;
+    slider.step = control.step || 1;
+    slider.value = control.default;
+    slider.className = 'flex-1 h-2 bg-white/5 rounded-full appearance-none';
+
+    const valueSpan = document.createElement('span');
+    valueSpan.className = 'text-xs font-bold text-white w-16 text-right';
+
+    const sliderRow = document.createElement('div');
+    sliderRow.className = 'flex items-center gap-2';
+    sliderRow.appendChild(slider);
+    sliderRow.appendChild(valueSpan);
+
+    const unitLabel = control.unitLabel || '';
+    const updateValueSpan = (val) => {
+      if (control.unit === 'deg') {
+        valueSpan.textContent = `${Math.round(val)} deg`;
+      } else {
+        valueSpan.textContent = `${Math.round(val)}${control.unit || ''} ${unitLabel}`.trim();
+      }
+    };
+    updateValueSpan(control.default);
+
+    slider.oninput = () => {
+      const val = parseFloat(slider.value);
+      controlValues[control.key] = val;
+      updateValueSpan(val);
+    };
+
+    controlValues[control.key] = parseFloat(control.default);
+
+    labelRow.appendChild(label);
+    wrapper.appendChild(labelRow);
+    wrapper.appendChild(sliderRow);
+
+    if (control.description) {
+      const desc = document.createElement('span');
+      desc.className = 'text-[10px] text-muted';
+      desc.textContent = control.description;
+      wrapper.appendChild(desc);
     }
-
-    if (!dynamicControlsContainer) {
-      dynamicControlsContainer = document.createElement('div');
-      dynamicControlsContainer.className = 'flex flex-col gap-3';
-      workCard.insertBefore(dynamicControlsContainer, controlsRow);
-    }
-
-    dynamicControlsContainer.classList.remove('hidden');
-
-    if (dynamicControls) {
-      dynamicControls.destroy();
-    }
-
-    const extendedModel = getExtendedModel(model);
-    dynamicControls = createAdvancedControls({
-      model: extendedModel,
-      container: dynamicControlsContainer,
-      exclude: new Set(['prompt']),
-    });
+    return wrapper;
   }
 
-  function showControlsForTool(toolId) {
-    controlsRow.innerHTML = '';
-    promptField.classList.add('hidden');
-    modelSelect.classList.add('hidden');
-    modelSelectPopover.classList.add('hidden');
-    if (dynamicControlsContainer) dynamicControlsContainer.classList.add('hidden');
-    container.querySelectorAll('.watermark-image-row').forEach(el => el.classList.add('hidden'));
+  function createSelectControl(control) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'flex flex-col gap-1.5';
 
-    if (toolId === 'seedream-5.0-edit') {
-      modelSelect.classList.remove('hidden');
-      updateModelSelectLabel();
-      promptField.classList.remove('hidden');
-      promptField.placeholder = 'Describe the edit...';
-      buildDynamicControls(selectedModelId || 'seedream-5.0-edit');
-    } else if (toolId === 'ideogram-v3-reframe') {
-      controlsRow.classList.remove('hidden');
-      controlsRow.appendChild(aspectRatioSelect);
-      controlsRow.appendChild(renderSpeedSelect);
-      controlsRow.appendChild(styleSelect);
-      controlsRow.appendChild(numImagesSelect);
-      aspectRatioSelect.value = aspectRatioValue;
-      renderSpeedSelect.value = renderSpeedValue;
-      styleSelect.value = styleValue;
-      numImagesSelect.value = numImagesValue;
-    } else if (toolId === 'add-image-watermark') {
-      controlsRow.classList.remove('hidden');
-      controlsRow.appendChild(watermarkPositionSelect);
-      controlsRow.appendChild(watermarkOpacityInput);
-      controlsRow.appendChild(watermarkScaleInput);
-      watermarkPositionSelect.value = watermarkPositionValue;
-      watermarkOpacityInput.value = watermarkOpacityValue;
-      watermarkScaleInput.value = watermarkScaleValue;
-      // Show watermark image upload row
-      const wmImgRow = container.querySelector('.watermark-image-row');
-      if (wmImgRow) wmImgRow.classList.remove('hidden');
-    } else if (toolId === 'ai-image-face-swap') {
-      controlsRow.classList.remove('hidden');
-      controlsRow.appendChild(targetIndexInput);
-      targetIndexInput.value = targetIndexValue;
-    } else if (toolId === 'ai-product-shot') {
-      promptField.classList.remove('hidden');
-      promptField.placeholder = 'Describe the scene...';
+    const label = document.createElement('label');
+    label.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
+    label.textContent = control.label;
+    wrapper.appendChild(label);
+
+    const select = document.createElement('select');
+    select.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-primary/50 transition-colors';
+    control.options.forEach(opt => {
+      const optEl = document.createElement('option');
+      optEl.value = opt;
+      optEl.textContent = opt;
+      if (opt === control.default) optEl.selected = true;
+      select.appendChild(optEl);
+    });
+    select.onchange = () => { controlValues[control.key] = select.value; };
+    controlValues[control.key] = control.default;
+    wrapper.appendChild(select);
+    return wrapper;
+  }
+
+  function createToggleControl(control) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'flex items-center justify-between py-1';
+
+    const isOn = control.default !== false;
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.dataset.on = isOn;
+    toggle.className = 'relative inline-flex h-6 w-10 items-center rounded-full';
+
+    const updateToggle = () => {
+      const on = toggle.dataset.on === 'true';
+      if (on) {
+        toggle.className = 'relative inline-flex h-6 w-10 items-center rounded-full bg-primary';
+        toggle.innerHTML = '<span class="absolute inset-0 flex items-center justify-center text-xs font-bold text-black">ON</span>';
+      } else {
+        toggle.className = 'relative inline-flex h-6 w-10 items-center rounded-full bg-white/10 border border-white/5';
+        toggle.innerHTML = '<span class="absolute inset-0 flex items-center justify-center text-xs font-bold text-secondary">OFF</span>';
+      }
+    };
+
+    toggle.addEventListener('click', () => {
+      toggle.dataset.on = toggle.dataset.on === 'true' ? 'false' : 'true';
+      controlValues[control.key] = toggle.dataset.on === 'true';
+      updateToggle();
+    });
+    controlValues[control.key] = isOn;
+    updateToggle();
+
+    const toggleLabel = document.createElement('span');
+    toggleLabel.className = 'text-xs text-secondary';
+    toggleLabel.textContent = control.label;
+
+    wrapper.appendChild(toggleLabel);
+    wrapper.appendChild(toggle);
+
+    if (control.description) {
+      const desc = document.createElement('span');
+      desc.className = 'text-[10px] text-muted mt-1';
+      desc.textContent = control.description;
+      wrapper.appendChild(desc);
     }
+    return wrapper;
+  }
+
+  function createNumberControl(control) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'flex flex-col gap-1.5';
+
+    const label = document.createElement('label');
+    label.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
+    label.textContent = control.label;
+    wrapper.appendChild(label);
+
+    const numInput = document.createElement('input');
+    numInput.type = 'number';
+    numInput.min = control.min || 0;
+    numInput.max = control.max || 999;
+    numInput.step = control.step || 1;
+    numInput.value = control.default;
+    numInput.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-primary/50 transition-colors';
+    if (control.placeholder) numInput.placeholder = control.placeholder;
+    numInput.onchange = () => { controlValues[control.key] = parseInt(numInput.value) || control.default; };
+    controlValues[control.key] = control.default;
+    wrapper.appendChild(numInput);
+
+    if (control.description) {
+      const desc = document.createElement('span');
+      desc.className = 'text-[10px] text-muted';
+      desc.textContent = control.description;
+      wrapper.appendChild(desc);
+    }
+    return wrapper;
+  }
+
+  function createTextControl(control) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'flex flex-col gap-1.5';
+
+    const label = document.createElement('label');
+    label.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
+    label.textContent = control.label;
+    wrapper.appendChild(label);
+
+    const textInput = document.createElement('input');
+    textInput.type = 'text';
+    textInput.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors';
+    if (control.placeholder) textInput.placeholder = control.placeholder;
+    textInput.oninput = () => { controlValues[control.key] = textInput.value.trim(); };
+    controlValues[control.key] = '';
+    wrapper.appendChild(textInput);
+    return wrapper;
+  }
+
+  function createColorControl(control) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'flex flex-col gap-1.5';
+
+    const label = document.createElement('label');
+    label.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
+    label.textContent = control.label;
+    wrapper.appendChild(label);
+
+    const colorRow = document.createElement('div');
+    colorRow.className = 'flex items-center gap-2';
+
+    const colorInput = document.createElement('input');
+    colorInput.type = 'color';
+    colorInput.value = control.default;
+    colorInput.className = 'w-10 h-8 rounded cursor-pointer bg-transparent border border-white/10';
+
+    const colorText = document.createElement('input');
+    colorText.type = 'text';
+    colorText.className = 'flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 text-sm text-white focus:outline-none focus:border-primary/50 transition-colors';
+    colorText.value = control.default;
+
+    colorText.oninput = () => {
+      colorInput.value = colorText.value;
+      controlValues[control.key] = colorText.value;
+    };
+    colorInput.oninput = () => {
+      colorText.value = colorInput.value;
+      controlValues[control.key] = colorInput.value;
+    };
+    controlValues[control.key] = control.default;
+
+    colorRow.appendChild(colorInput);
+    colorRow.appendChild(colorText);
+    wrapper.appendChild(colorRow);
+    return wrapper;
+  }
+
+  function createDirectionsControl(control) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'flex flex-col gap-2';
+
+    const label = document.createElement('label');
+    label.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
+    label.textContent = control.label;
+    wrapper.appendChild(label);
+
+    const dirOptions = ['Left', 'Right', 'Top', 'Bottom'];
+    const dirButtons = {};
+    let selectedDirs = control.default || ['all'];
+
+    const dirRow = document.createElement('div');
+    dirRow.className = 'flex flex-wrap gap-2';
+
+    const updateDirBtns = () => {
+      dirOptions.forEach(d => {
+        if (dirButtons[d]) {
+          const sel = selectedDirs.includes(d.toLowerCase());
+          dirButtons[d].className = sel
+            ? 'px-3 py-1.5 rounded-lg text-xs font-bold bg-primary text-black'
+            : 'px-3 py-1.5 rounded-lg text-xs font-bold bg-white/5 text-secondary hover:bg-white/10 transition-all';
+        }
+      });
+    };
+
+    const allBtn = document.createElement('button');
+    allBtn.type = 'button';
+    allBtn.textContent = 'All';
+    allBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-white/5 text-secondary hover:bg-white/10 transition-all';
+    allBtn.onclick = () => {
+      selectedDirs = ['all'];
+      controlValues[control.key] = selectedDirs;
+      updateDirBtns();
+    };
+    dirRow.appendChild(allBtn);
+
+    dirOptions.forEach(d => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = d;
+      btn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-white/5 text-secondary hover:bg-white/10 transition-all';
+      btn.onclick = () => {
+        const key = d.toLowerCase();
+        if (selectedDirs.includes('all')) {
+          selectedDirs = [key];
+        } else {
+          if (selectedDirs.includes(key)) {
+            selectedDirs = selectedDirs.filter(x => x !== key);
+            if (selectedDirs.length === 0) selectedDirs = ['all'];
+          } else {
+            selectedDirs = [...selectedDirs, key];
+          }
+        }
+        controlValues[control.key] = selectedDirs;
+        updateDirBtns();
+      };
+      dirButtons[d] = btn;
+      dirRow.appendChild(btn);
+    });
+
+    controlValues[control.key] = selectedDirs;
+    wrapper.appendChild(dirRow);
+    return wrapper;
+  }
+
+  const CONTROL_FACTORIES = {
+    range: createRangeControl,
+    select: createSelectControl,
+    toggle: createToggleControl,
+    number: createNumberControl,
+    text: createTextControl,
+    color: createColorControl,
+    directions: createDirectionsControl,
+  };
+
+  function renderControls(tool) {
+    controlsContainer.innerHTML = '';
+    controlValues = {};
+
+    if (tool.controls) {
+      tool.controls.forEach(ctrl => {
+        const factory = CONTROL_FACTORIES[ctrl.type];
+        if (factory) controlsContainer.appendChild(factory(ctrl));
+      });
+    }
+
+    const hasAdvanced = tool.advancedControls && tool.advancedControls.length > 0;
+
+    negativePromptField.value = '';
+
+    if (tool.hasPrompt) {
+      promptField.classList.remove('hidden');
+      promptField.placeholder = tool.promptPlaceholder || 'Describe...';
+      negativePromptLabel.classList.remove('hidden');
+      negativePromptField.classList.remove('hidden');
+      negativePromptField.placeholder = 'What to avoid...';
+    } else {
+      promptField.classList.add('hidden');
+      negativePromptLabel.classList.add('hidden');
+      negativePromptField.classList.add('hidden');
+    }
+
+    if (hasAdvanced) {
+      controlsContainer.appendChild(advancedToggleBtn);
+      advancedToggleBtn.innerHTML = `<span>${advancedOpen ? '▲' : '▼'}</span> Advanced Controls`;
+
+      if (advancedOpen) {
+        tool.advancedControls.forEach(ctrl => {
+          const factory = CONTROL_FACTORIES[ctrl.type];
+          if (factory) controlsContainer.appendChild(factory(ctrl));
+        });
+        controlsContainer.appendChild(referenceToggleBtn);
+        controlsContainer.appendChild(referenceRow);
+      }
+    }
+
+    controlsContainer.classList.remove('hidden');
   }
 
   function selectTool(tool, cardEl) {
@@ -645,111 +792,96 @@ function buildDynamicControls(modelId) {
     referencePreview.classList.add('hidden');
     referenceRow.classList.add('hidden');
 
-showControlsForTool(tool.id);
     resultArea.classList.add('hidden');
-    errorArea.classList.add('hidden');
+    updateProgress(null);
+  }
+
+  function updateProgress(percent, message) {
+    if (percent === null) {
+      progressContainer.classList.add('hidden');
+      if (progressPoll) { clearInterval(progressPoll); progressPoll = null; }
+      return;
+    }
+    progressFill.style.width = `${percent}%`;
+    progressText.textContent = message || `Processing... ${Math.round(percent)}%`;
+    progressContainer.classList.remove('hidden');
   }
 
   editBtn.onclick = async () => {
-    if (!(await requireEntitlement())) return;
     if (!activeTool) return;
-    if (!uploadedUrl) { showError('Upload a source image first'); return; }
-
-    // Validate static controls
-    const faceIndex = parseInt(targetIndexValue, 10);
-    if (activeTool.id === 'ai-image-face-swap' && (isNaN(faceIndex) || faceIndex < 0 || faceIndex > 10)) {
-      showError('Target face index must be between 0 and 10'); return;
-    }
-    const wmOpacity = parseFloat(watermarkOpacityValue);
-    if (activeTool.id === 'add-image-watermark' && (isNaN(wmOpacity) || wmOpacity < 0 || wmOpacity > 1)) {
-      showError('Watermark opacity must be between 0 and 1'); return;
-    }
-    const wmScale = parseFloat(watermarkScaleValue);
-    if (activeTool.id === 'add-image-watermark' && (isNaN(wmScale) || wmScale < 0.1 || wmScale > 1)) {
-      showError('Watermark scale must be between 0.1 and 1'); return;
-    }
-    const numImages = parseInt(numImagesValue, 10);
-    if (activeTool.id === 'ideogram-v3-reframe' && (isNaN(numImages) || numImages < 1 || numImages > 4)) {
-      showError('Number of images must be between 1 and 4'); return;
-    }
-
-    const apiKey = apiKeyManager.getMuapiKey();
+    if (!uploadedUrl) { alert('Upload an image or video first'); return; }
+    const apiKey = localStorage.getItem('muapi_key');
     if (!apiKey) { AuthModal(() => editBtn.click()); return; }
 
     editBtn.disabled = true;
     editBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Processing...';
-errorArea.classList.add('hidden');
-    resultArea.classList.add('hidden');
+    progress = 0;
+    updateProgress(0, 'Starting...');
+
+    if (progressPoll) clearInterval(progressPoll);
+    progressPoll = setInterval(() => {
+      progress = Math.min(progress + Math.random() * 8 + 2, 90);
+      updateProgress(progress, `Processing... ${Math.round(progress)}%`);
+    }, 500);
+
+    cancelBtn.classList.remove('hidden');
+    cancelBtn.onclick = () => {
+      if (progressPoll) { clearInterval(progressPoll); progressPoll = null; }
+      updateProgress(null);
+      editBtn.disabled = false;
+      editBtn.textContent = 'Apply Edit';
+      cancelBtn.classList.add('hidden');
+    };
 
     try {
-      const modelToUse = selectedModelId || activeTool.id;
-      const params = { model: modelToUse, image_url: uploadedUrl, thumbnail_url: customThumbnailUrl || undefined };
+      const params = { model: activeTool.id, image_url: uploadedUrl };
       const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
-
-      if (modelToUse === 'ai-product-shot') {
-        params.scene_description = replaceTokensInPrompt(promptField.value.trim(), activeProfile);
-      } else if (activeTool.hasPrompt && promptField.value.trim()) {
+      if (activeTool.hasPrompt && promptField.value.trim()) {
         params.prompt = replaceTokensInPrompt(promptField.value.trim(), activeProfile);
       }
 
-if (activeTool.id === 'seedream-5.0-edit' || modelToUse === 'seedream-5.0-edit') {
-        params.aspect_ratio = aspectRatioValue;
-        params.quality = qualityValue;
-      }
-      if (activeTool.id === 'ideogram-v3-reframe') {
-        params.aspect_ratio = aspectRatioValue;
-        params.render_speed = renderSpeedValue;
-        params.style = styleValue;
-        params.num_images = numImages;
-      }
-      if (activeTool.id === 'add-image-watermark') {
-        params.position = watermarkPositionValue;
-        params.opacity = wmOpacity;
-        params.scale = wmScale;
-        if (watermarkImageUrl) {
-          params.watermark_image_url = watermarkImageUrl;
+      for (const [key, value] of Object.entries(controlValues)) {
+        if (value !== undefined && value !== null && value !== '' && value !== 'undefined') {
+          params[key] = value;
         }
       }
-      if (activeTool.id === 'ai-image-face-swap') {
-        params.target_index = faceIndex;
+
+      const negPrompt = negativePromptField.value?.trim();
+      if (negPrompt) {
+        params.negative_prompt = negPrompt;
       }
 
-      // Append dynamic model-specific controls via the control engine
-      if (dynamicControls) {
-        const dynamicPayload = dynamicControls.getPayload({});
-        Object.assign(params, dynamicPayload);
+      if (referenceImageUrl) {
+        params.reference_images = [referenceImageUrl];
       }
 
       const result = await muapi.generateI2I(params);
       updateProgress(null);
 
       if (result?.url) {
-        lastOutputUrl = result.url;
         resultArea.classList.remove('hidden');
         resultArea.innerHTML = `
-<img src="${result.url}" class="w-full rounded-xl border border-white/10 mb-3">
-          <a href="${result.url}" download class="block w-full btn-secondary-modern py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
-          <button type="button" class="publish-social-btn block w-full mt-2 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
+          <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4 animate-fade-in-up">
+            <div class="relative group">
+              <img src="${result.url}" class="w-full rounded-xl mb-3 border border-white/10" alt="Result">
+            </div>
+            <div class="flex gap-3">
+              <a href="${result.url}" download class="flex-1 bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
+              <button class="flex-1 bg-white/10 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-white/20 transition-all regen-btn">Generate Again</button>
+            </div>
+          </div>
         `;
-        const publishBtn = resultArea.querySelector('.publish-social-btn');
-        if (publishBtn) publishBtn.onclick = () => openSocialPublish({ mediaUrl: lastOutputUrl, mediaType: 'image' });
-      } else {
-        resultArea.classList.remove('hidden');
-        resultArea.innerHTML = `<div class="text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-xl p-3">Edit completed, but no result image was returned. Please try again.</div>`;
+        resultArea.querySelector('.regen-btn').onclick = () => editBtn.click();
       }
     } catch (err) {
-      showError(err.message || 'An unexpected error occurred');
+      updateProgress(null);
+      alert(`Error: ${err.message}`);
     } finally {
       editBtn.disabled = false;
       editBtn.textContent = 'Apply Edit';
       cancelBtn.classList.add('hidden');
     }
   };
-
-  function showError(message) {
-    errorArea.classList.remove('hidden');
-    errorArea.innerHTML = `<div class="text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-xl p-3">${message}</div>`;
-  }
 
   return container;
 }
