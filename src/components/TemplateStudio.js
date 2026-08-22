@@ -262,7 +262,6 @@ export function TemplateStudio(templateId) {
       ${showTextButtons ? `
         <div class="flex items-center gap-2">
           <button class="enhancer-btn rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] transition border-white/10 bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-white" data-field="${input.name}">Enhance</button>
-          ${isPrimaryPrompt ? `<button class="gtm-boost-btn shrink-0" data-gtm-boost="primary" title="Enhance your prompt with GTM conversion frameworks" aria-label="GTM Boost prompt enhancer">🎯 GTM Boost</button>` : ''}
         </div>
       ` : ''}
     `;
@@ -376,59 +375,6 @@ export function TemplateStudio(templateId) {
     leftPanel.appendChild(fieldWrapper);
   });
 
-  // GTM Boost: wire the button on the primary prompt field to open the
-  // modal, pre-fill template context, and write the generated prompt back
-  // into the prompt field + formState. Available on EVERY template type
-  // (video and image).
-  const gtmBtn = leftPanel.querySelector('[data-gtm-boost="primary"]');
-  if (gtmBtn && promptEl && promptFieldName) {
-    gtmBtn.addEventListener('click', async () => {
-      gtmBtn.disabled = true;
-      const originalText = gtmBtn.textContent;
-      gtmBtn.textContent = '🎯 Loading…';
-      try {
-        // Fetch template-aware defaults from the backend so the modal
-        // opens with the right industry/tonality/methodology pre-selected.
-        const ctx = await import('../lib/uiIntegration.js').then(async (m) => {
-          const result = m.fetchGTMTemplateContext?.(template);
-          if (result && typeof result.then === 'function') return await result;
-          return result;
-        }).catch(() => null);
-        // Merge: any pre-existing user input wins over the backend defaults.
-        const basePrompt = promptEl.value || (ctx && ctx.basePrompt) || template.description || '';
-        const templateContext = {
-          ...(ctx || {}),
-          basePrompt,
-          templateId: template.id,
-          category: template.category,
-          niche: template.niche,
-          outputType: template.outputType,
-        };
-        const onPromptGenerated = (generatedPrompt) => {
-          // Write into the DOM element so the user sees it, then update
-          // formState and dispatch input events so any other listeners
-          // (e.g. the AI Enhancer / extra instructions) pick it up.
-          promptEl.value = generatedPrompt;
-          promptEl.dispatchEvent(new Event('input', { bubbles: true }));
-          promptEl.dispatchEvent(new Event('change', { bubbles: true }));
-          formState[promptFieldName] = generatedPrompt;
-          promptEl.focus();
-        };
-        import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-          openGTMPromptModal('template-studio', onPromptGenerated, {
-            templateContext,
-          });
-        }).catch((err) => {
-          console.error('[TemplateStudio] GTM Boost failed:', err);
-          showInlineError(leftPanel, 'GTM Boost failed to load. Please try again.');
-        });
-      } finally {
-        gtmBtn.disabled = false;
-        gtmBtn.textContent = originalText;
-      }
-    });
-  }
-
   // Model selector (async - fetches enriched catalog with descriptions)
   const outputType = template.outputType || (template.modelType === 't2i' || template.modelType === 'i2i' ? 'image' : 'video');
   if (outputType === 'video' || ['i2i', 't2i', 'i2v', 't2v'].includes(template.modelType)) {
@@ -469,7 +415,7 @@ let fallbackList = [];
     updateTrigger();
 
     const dropdown = document.createElement('div');
-    dropdown.className = 'fixed z-[100] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom-left';
+    dropdown.className = 'fixed z-[200] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom-left';
     dropdown.setAttribute('role', 'listbox');
     dropdown.setAttribute('aria-label', 'Available models');
     dropdown.style.width = 'calc(100vw - 2rem)';
@@ -716,13 +662,96 @@ let fallbackList = [];
   genBtn.setAttribute('aria-label', 'Generate template');
   leftPanel.appendChild(genBtn);
   mountPersonalizeTrigger({ controlsContainer: leftPanel, appId: 'template-studio', getTextarea: () => document.getElementById('outputTextarea') || null });
+
+  // Prompt-assist toolbar: contextual helper tools for the current template.
+  // Mirrors the inline action button pattern used in Image/Video studios.
+  const toolbar = document.createElement('div');
+  toolbar.className = 'mt-4 flex flex-wrap items-center gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06]';
+
+  // GTM Boost
+  const gtmBoostBtn = document.createElement('button');
+  gtmBoostBtn.type = 'button';
+  gtmBoostBtn.textContent = '🎯 GTM Boost';
+  gtmBoostBtn.title = 'Enhance your prompt with GTM conversion frameworks';
+  gtmBoostBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
+  gtmBoostBtn.className = 'gtm-boost-btn';
+  gtmBoostBtn.addEventListener('click', async () => {
+    gtmBoostBtn.disabled = true;
+    const originalText = gtmBoostBtn.textContent;
+    gtmBoostBtn.textContent = '🎯 Loading…';
+    try {
+      const ctx = await import('../lib/uiIntegration.js').then(async (m) => {
+        const result = m.fetchGTMTemplateContext?.(template);
+        if (result && typeof result.then === 'function') return await result;
+        return result;
+      }).catch(() => null);
+      const basePrompt = promptEl?.value || (ctx && ctx.basePrompt) || template.description || '';
+      const templateContext = {
+        ...(ctx || {}),
+        basePrompt,
+        templateId: template.id,
+        category: template.category,
+        niche: template.niche,
+        outputType: template.outputType,
+      };
+      const onPromptGenerated = (generatedPrompt) => {
+        if (promptEl) {
+          promptEl.value = generatedPrompt;
+          promptEl.dispatchEvent(new Event('input', { bubbles: true }));
+          promptEl.dispatchEvent(new Event('change', { bubbles: true }));
+          if (promptFieldName) formState[promptFieldName] = generatedPrompt;
+          promptEl.focus();
+        }
+      };
+      import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+        openGTMPromptModal('template-studio', onPromptGenerated, {
+          templateContext,
+        });
+      }).catch((err) => {
+        console.error('[TemplateStudio] GTM Boost failed:', err);
+        showInlineError(leftPanel, 'GTM Boost failed to load. Please try again.');
+      });
+    } finally {
+      gtmBoostBtn.disabled = false;
+      gtmBoostBtn.textContent = originalText;
+    }
+  });
+  toolbar.appendChild(gtmBoostBtn);
+
+  // Recipe Engine button
+  const recipeBtn = document.createElement('button');
+  recipeBtn.type = 'button';
+  recipeBtn.textContent = '📋 Recipes';
+  recipeBtn.title = 'Browse AI recipes';
+  recipeBtn.setAttribute('aria-label', 'Open recipe engine');
+  recipeBtn.className = 'btn-ghost-modern';
+  recipeBtn.addEventListener('click', () => {
+    openRecipeModal({
+      onRunRecipe: (url) => {
+      }
+    }).catch((err) => console.error('[Recipe] open failed:', err));
+  });
+  toolbar.appendChild(recipeBtn);
+
+  // Monetization Hub button
+  const monetizationBtn = document.createElement('button');
+  monetizationBtn.type = 'button';
+  monetizationBtn.textContent = '💼 Monetize';
+  monetizationBtn.title = 'Open Smart Video AI Monetization Hub';
+  monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
+  monetizationBtn.className = 'btn-ghost-modern';
+  monetizationBtn.addEventListener('click', () => {
+    openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+  });
+  toolbar.appendChild(monetizationBtn);
+
   // Prompt Gallery button
   const promptGalleryBtn = document.createElement('button');
   promptGalleryBtn.type = 'button';
   promptGalleryBtn.textContent = '📚 Prompts';
   promptGalleryBtn.title = 'Browse prompt gallery';
   promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
-  promptGalleryBtn.className = 'btn-ghost-modern shrink-0';
+  promptGalleryBtn.className = 'btn-ghost-modern';
   promptGalleryBtn.addEventListener('click', () => {
     openPromptGallery({
       appTheme: 'template-studio',
@@ -732,35 +761,9 @@ let fallbackList = [];
       }
     }).catch((err) => console.error('[PromptGallery] open failed:', err));
   });
+  toolbar.appendChild(promptGalleryBtn);
 
-    // Recipe Engine button
-    const recipeBtn = document.createElement('button');
-    recipeBtn.type = 'button';
-    recipeBtn.textContent = '📋 Recipes';
-    recipeBtn.title = 'Browse AI recipes';
-    recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-    recipeBtn.className = 'btn-ghost-modern shrink-0';
-    recipeBtn.addEventListener('click', () => {
-      openRecipeModal({
-        onRunRecipe: (url) => {
-        }
-      }).catch((err) => console.error('[Recipe] open failed:', err));
-    });
-
-
-    // Monetization Hub button
-    const monetizationBtn = document.createElement('button');
-    monetizationBtn.type = 'button';
-    monetizationBtn.textContent = "💼 Smart Video AI Monetize";
-    monetizationBtn.title = "Open Smart Video AI Monetization Hub";
-    monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-    monetizationBtn.className = 'btn-ghost-modern shrink-0';
-    monetizationBtn.addEventListener('click', () => {
-      openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
-    });
-  leftPanel.appendChild(recipeBtn);
-  leftPanel.appendChild(monetizationBtn);
-  leftPanel.appendChild(promptGalleryBtn);
+  leftPanel.appendChild(toolbar);
 
   // Creative Intelligence section
   const intelligenceSection = document.createElement('div');

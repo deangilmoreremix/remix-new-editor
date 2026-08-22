@@ -229,7 +229,7 @@ export function LipSyncStudio() {
     gtmBtn.textContent = '🎯 GTM Boost';
     gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
     gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
-    gtmBtn.className = 'gtm-boost-btn shrink-0';
+    gtmBtn.className = 'gtm-boost-btn';
     gtmBtn.addEventListener('click', () => {
       import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
         openGTMPromptModal('lip-sync-studio', (prompt) => {
@@ -239,7 +239,10 @@ export function LipSyncStudio() {
         });
       }).catch((err) => console.error('[LipSyncStudio] GTM Boost failed:', err));
     });
-    uploadsRow.appendChild(gtmBtn);
+    const actionToolbar = document.createElement('div');
+    actionToolbar.className = 'flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06]';
+    actionToolbar.appendChild(gtmBtn);
+    uploadsRow.appendChild(actionToolbar);
 
     bar.appendChild(uploadsRow);
 
@@ -375,7 +378,7 @@ export function LipSyncStudio() {
     thumbBtn.type = 'button';
     thumbBtn.textContent = '🖼 Thumbnail';
     thumbBtn.title = 'Generate a custom thumbnail';
-    thumbBtn.className = 'btn-ghost-modern shrink-0';
+    thumbBtn.className = 'btn-ghost-modern';
     thumbBtn.addEventListener('click', () => {
     const modal = new TemplateThumbnailModal({
       appTheme: 'lip-sync-studio',
@@ -456,7 +459,7 @@ export function LipSyncStudio() {
     // 3. DROPDOWN SYSTEM
     // ==========================================
     const dropdown = document.createElement('div');
-    dropdown.className = 'hidden fixed z-[100] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 min-w-[200px] max-h-[400px] overflow-y-auto custom-scrollbar';
+    dropdown.className = 'hidden fixed z-[200] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 min-w-[200px] max-h-[400px] overflow-y-auto custom-scrollbar';
     dropdown.id = 'ls-dropdown';
 
     const closeDropdown = (e) => {
@@ -518,7 +521,7 @@ mountModelSelector(dropdown, {
     promptGalleryBtn.textContent = '📚 Prompts';
     promptGalleryBtn.title = 'Browse prompt gallery';
     promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
-    promptGalleryBtn.className = 'btn-ghost-modern shrink-0';
+    promptGalleryBtn.className = 'btn-ghost-modern';
     promptGalleryBtn.addEventListener('click', () => {
       openPromptGallery({
         appTheme: 'lip-sync-studio',
@@ -540,7 +543,7 @@ mountModelSelector(dropdown, {
     recipeBtn.textContent = '📋 Recipes';
     recipeBtn.title = 'Browse AI recipes';
     recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-    recipeBtn.className = 'btn-ghost-modern shrink-0';
+    recipeBtn.className = 'btn-ghost-modern';
     recipeBtn.addEventListener('click', () => {
       openRecipeModal({
         onRunRecipe: (url) => {
@@ -552,15 +555,18 @@ mountModelSelector(dropdown, {
     // Monetization Hub button
     const monetizationBtn = document.createElement('button');
     monetizationBtn.type = 'button';
-    monetizationBtn.textContent = "💼 Smart Video AI Monetize";
+    monetizationBtn.textContent = '💼 Monetize';
     monetizationBtn.title = "Open Smart Video AI Monetization Hub";
     monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-    monetizationBtn.className = 'btn-ghost-modern shrink-0';
+    monetizationBtn.className = 'btn-ghost-modern';
     monetizationBtn.addEventListener('click', () => {
       openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
     });
-    if (!uploadsRow.querySelector('[aria-label="Open recipe engine"]')) uploadsRow.appendChild(recipeBtn);
-    if (!uploadsRow.querySelector('[aria-label="Open Smart Video AI Monetization Hub"]')) uploadsRow.appendChild(monetizationBtn);
+    if (!uploadsRow.querySelector('.action-toolbar')) {
+      actionToolbar.appendChild(promptGalleryBtn);
+      actionToolbar.appendChild(recipeBtn);
+      actionToolbar.appendChild(monetizationBtn);
+    }
 
     };
 

@@ -173,7 +173,7 @@ export class RecipeModal extends BaseModal {
               <textarea class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder:text-muted focus:outline-none focus:border-primary/50" rows="3" data-base-prompt placeholder="Base prompt used across steps...">${this._basePrompt || ''}</textarea>
             </div>
             <div class="detail-actions">
-              <button type="button" class="modal-btn modal-btn-primary" data-action="run-recipe" ${this.running ? 'disabled' : ''}>${this.running ? 'Running...' : 'Run Recipe'}</button>
+              <button type="button" class="btn-primary-modern" data-action="run-recipe" ${this.running ? 'disabled' : ''}>${this.running ? 'Running...' : 'Run Recipe'}</button>
             </div>
             <div class="recipe-log">
               ${this.logs.map(l => `<div class="log-line"><span class="log-time">${new Date(l.time).toLocaleTimeString()}</span>${l.text}</div>`).join('')}

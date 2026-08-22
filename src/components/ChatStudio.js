@@ -60,7 +60,7 @@ const triggerBtn = document.createElement('button');
   updateTrigger();
 
   const dropdown = document.createElement('div');
-  dropdown.className = 'fixed z-[100] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom';
+  dropdown.className = 'fixed z-[200] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom';
   dropdown.style.width = 'calc(100vw - 2rem)';
   dropdown.style.maxWidth = '480px';
   dropdown.style.maxHeight = '70vh';

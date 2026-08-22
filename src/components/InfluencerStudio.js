@@ -723,9 +723,6 @@ export function InfluencerStudio() {
     monetizationBtn.addEventListener('click', () => {
       openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
     });
-    formCard.appendChild(recipeBtn);
-    formCard.appendChild(monetizationBtn);
-    formCard.appendChild(promptGalleryBtn);
     // Model Picker button
     const modelPickerBtn = document.createElement('button');
     modelPickerBtn.type = 'button';
@@ -763,7 +760,13 @@ export function InfluencerStudio() {
       });
     }).catch((err) => console.error('[InfluencerStudio] GTM Boost failed:', err));
   });
-  formCard.appendChild(gtmBtn);
+  const toolbar = document.createElement('div');
+  toolbar.className = 'flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06]';
+  toolbar.appendChild(gtmBtn);
+  toolbar.appendChild(recipeBtn);
+  toolbar.appendChild(monetizationBtn);
+  toolbar.appendChild(promptGalleryBtn);
+  formCard.appendChild(toolbar);
 
   const personalizeControls = document.createElement('div');
   personalizeControls.className = 'flex items-center gap-2';

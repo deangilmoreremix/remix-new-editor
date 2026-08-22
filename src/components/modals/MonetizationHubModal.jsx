@@ -198,8 +198,8 @@ export class MonetizationHubModal extends BaseModal {
                 <div class="detail-meta">${selectedTemplate.type}</div>
                 <pre class="template-preview">${selectedTemplate.body}</pre>
                 <div class="detail-actions">
-                  <button type="button" class="modal-btn modal-btn-primary" data-action="copy-template" data-copy-template="${selectedTemplate.id}"><span class="copy-label">Copy</span></button>
-                  <button type="button" class="modal-btn modal-btn-secondary" data-action="download-template" data-download-template="${selectedTemplate.id}"><span class="download-label">Download</span></button>
+                  <button type="button" class="btn-primary-modern" data-action="copy-template" data-copy-template="${selectedTemplate.id}"><span class="copy-label">Copy</span></button>
+                  <button type="button" class="btn-secondary-modern" data-action="download-template" data-download-template="${selectedTemplate.id}"><span class="download-label">Download</span></button>
                 </div>
               ` : this.loading ? '<div class="skeleton-kpi"></div>' : '<div class="empty-state">Select a template to preview.</div>'}
             </div>

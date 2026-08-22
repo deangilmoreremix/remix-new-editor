@@ -331,9 +331,12 @@ genBtn.type = 'button';
     monetizationBtn.addEventListener('click', () => {
       openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
     });
-  formCard.appendChild(recipeBtn);
-  formCard.appendChild(monetizationBtn);
-  formCard.appendChild(promptGalleryBtn);
+  const toolbar = document.createElement('div');
+  toolbar.className = 'flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06]';
+  toolbar.appendChild(recipeBtn);
+  toolbar.appendChild(monetizationBtn);
+  toolbar.appendChild(promptGalleryBtn);
+  formCard.appendChild(toolbar);
   container.appendChild(formCard);
 
   const inlineInstructions = createInlineInstructions('commercial');

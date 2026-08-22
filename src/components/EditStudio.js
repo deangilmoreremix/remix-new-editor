@@ -145,17 +145,17 @@ let lastOutputUrl = null;
   recipeBtn.textContent = 'Recipes';
   recipeBtn.title = 'Browse AI recipes';
   recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-  recipeBtn.className = 'btn-ghost-modern shrink-0';
+  recipeBtn.className = 'btn-ghost-modern';
   recipeBtn.addEventListener('click', () => {
     openRecipeModal({ onRunRecipe: () => {} }).catch((err) => console.error('[Recipe] open failed:', err));
   });
 
   const monetizationBtn = document.createElement('button');
   monetizationBtn.type = 'button';
-  monetizationBtn.textContent = '💼 Smart Video AI Monetize';
+  monetizationBtn.textContent = '💼 Monetize';
   monetizationBtn.title = "Open Smart Video AI Monetization Hub"
   monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-  monetizationBtn.className = 'btn-ghost-modern shrink-0';
+  monetizationBtn.className = 'btn-ghost-modern';
   monetizationBtn.addEventListener('click', () => {
     openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
   });
@@ -165,7 +165,7 @@ let lastOutputUrl = null;
   promptGalleryBtn.textContent = 'Prompts';
   promptGalleryBtn.title = 'Browse prompt gallery';
   promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
-  promptGalleryBtn.className = 'btn-ghost-modern shrink-0';
+  promptGalleryBtn.className = 'btn-ghost-modern';
   promptGalleryBtn.addEventListener('click', () => {
     openPromptGallery({
       appTheme: 'editor-page',

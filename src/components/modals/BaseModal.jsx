@@ -613,8 +613,8 @@ export class BaseModal {
         <h3 class="modal-error-title">Error</h3>
         <p class="modal-error-message">${this.errorMessage}</p>
         <div class="modal-error-actions">
-          <button class="modal-btn modal-btn-secondary modal-retry">Try Again</button>
-          <button class="modal-btn modal-btn-danger modal-dismiss">Dismiss</button>
+          <button class="btn-secondary-modern modal-retry">Try Again</button>
+          <button class="modal-btn-danger modal-dismiss">Dismiss</button>
         </div>
       </div>
     `;
@@ -622,8 +622,8 @@ export class BaseModal {
 
   renderFooter() {
     return `
-      <button class="modal-btn modal-btn-secondary modal-cancel">Cancel</button>
-      <button class="modal-btn modal-btn-primary modal-confirm">Confirm</button>
+      <button class="btn-secondary-modern modal-cancel">Cancel</button>
+      <button class="btn-primary-modern modal-confirm">Confirm</button>
     `;
   }
 
@@ -825,11 +825,11 @@ export class ConfirmModal extends BaseModal {
 
   renderFooter() {
     if (!this.cancelText) {
-      return `<button class="modal-btn ${this.dangerous ? 'modal-btn-danger' : 'modal-btn-primary'} modal-confirm">${this.confirmText}</button>`;
+      return `<button class="${this.dangerous ? 'modal-btn-danger' : 'btn-primary-modern'} modal-confirm">${this.confirmText}</button>`;
     }
     return `
-      ${this.cancelText ? `<button class="modal-btn modal-btn-secondary modal-cancel">${this.cancelText}</button>` : ''}
-      <button class="modal-btn ${this.dangerous ? 'modal-btn-danger' : 'modal-btn-primary'} modal-confirm">${this.confirmText}</button>
+      ${this.cancelText ? `<button class="btn-secondary-modern modal-cancel">${this.cancelText}</button>` : ''}
+      <button class="${this.dangerous ? 'modal-btn-danger' : 'btn-primary-modern'} modal-confirm">${this.confirmText}</button>
 `;
   }
 }

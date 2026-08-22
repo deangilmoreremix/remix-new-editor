@@ -247,8 +247,8 @@ export class PromptGalleryModal extends BaseModal {
               </div>
             </div>
             <div class="detail-actions">
-              <button type="button" class="modal-btn modal-btn-primary" data-action="use-prompt" data-prompt="${this._escapeHtml(this.selectedPrompt.prompt)}">Use Prompt</button>
-              <button type="button" class="modal-btn modal-btn-secondary" data-action="copy-prompt" data-prompt="${this._escapeHtml(this.selectedPrompt.prompt)}"><span class="copy-label">Copy</span></button>
+              <button type="button" class="btn-primary-modern" data-action="use-prompt" data-prompt="${this._escapeHtml(this.selectedPrompt.prompt)}">Use Prompt</button>
+              <button type="button" class="btn-secondary-modern" data-action="copy-prompt" data-prompt="${this._escapeHtml(this.selectedPrompt.prompt)}"><span class="copy-label">Copy</span></button>
             </div>
             <div class="builder">
               <label>Structured Prompt Builder</label>
@@ -263,7 +263,7 @@ export class PromptGalleryModal extends BaseModal {
               <input type="text" data-style placeholder="Style (e.g. cinematic, photorealistic)" value="${this._escapeHtml(this.style)}" />
               <input type="text" data-negative placeholder="Negative prompt (optional)" value="${this._escapeHtml(this.negativePrompt)}" />
               <div class="preview">${this._escapeHtml(buildStructuredPrompt({ basePrompt: this.selectedPrompt.prompt, camera: this.camera, lighting: this.lighting, style: this.style, negativePrompt: this.negativePrompt }))}</div>
-              <button type="button" class="modal-btn modal-btn-primary" data-builder-use>Use Built Prompt</button>
+              <button type="button" class="btn-primary-modern" data-builder-use>Use Built Prompt</button>
             </div>
           ` : this.loading ? '<div class="skeleton-kpi"></div>' : '<div class="empty-state">Select a prompt to preview.</div>'}
         </div>
@@ -291,8 +291,8 @@ export class PromptGalleryModal extends BaseModal {
               </div>
             </div>
             <div class="detail-actions">
-              <button type="button" class="modal-btn modal-btn-primary" data-action="use-prompt" data-prompt="${this._escapeHtml(this.selectedPrompt.prompt)}">Use Prompt</button>
-              <button type="button" class="modal-btn modal-btn-secondary" data-action="copy-prompt" data-prompt="${this._escapeHtml(this.selectedPrompt.prompt)}"><span class="copy-label">Copy</span></button>
+              <button type="button" class="btn-primary-modern" data-action="use-prompt" data-prompt="${this._escapeHtml(this.selectedPrompt.prompt)}">Use Prompt</button>
+              <button type="button" class="btn-secondary-modern" data-action="copy-prompt" data-prompt="${this._escapeHtml(this.selectedPrompt.prompt)}"><span class="copy-label">Copy</span></button>
             </div>
           ` : '<div class="empty-state">Select a favorite to preview.</div>'}
         </div>
@@ -323,8 +323,8 @@ export class PromptGalleryModal extends BaseModal {
         <input type="text" data-negative placeholder="Negative prompt" value="${this._escapeHtml(this.negativePrompt)}" />
         <div class="preview">${this._escapeHtml(built || 'Start typing to preview...')}</div>
         <div class="detail-actions">
-          <button type="button" class="modal-btn modal-btn-primary" data-builder-use>Use Built Prompt</button>
-          <button type="button" class="modal-btn modal-btn-secondary" data-action="copy-prompt" data-prompt="${this._escapeHtml(built)}"><span class="copy-label">Copy</span></button>
+          <button type="button" class="btn-primary-modern" data-builder-use>Use Built Prompt</button>
+          <button type="button" class="btn-secondary-modern" data-action="copy-prompt" data-prompt="${this._escapeHtml(built)}"><span class="copy-label">Copy</span></button>
         </div>
       </div>
     `;
