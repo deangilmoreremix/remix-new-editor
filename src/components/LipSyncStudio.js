@@ -165,7 +165,7 @@ export function LipSyncStudio() {
     // ── Prompt Textarea ──
     const textarea = document.createElement('textarea');
     textarea.placeholder = 'Optional: describe the talking style or motion...';
-    textarea.className = 'flex-1 bg-transparent text-white placeholder-muted/50 text-sm resize-none outline-none min-h-[56px] leading-relaxed pt-1';
+    textarea.className = 'flex-1 bg-transparent border-none text-white text-base md:text-xl placeholder:text-muted focus:outline-none resize-none pt-2.5 leading-relaxed min-h-[40px] max-h-[150px] md:max-h-[250px] overflow-y-auto custom-scrollbar';
     textarea.rows = 2;
     textarea.setAttribute('aria-label', 'Lip sync prompt');
 

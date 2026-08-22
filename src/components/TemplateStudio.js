@@ -711,7 +711,7 @@ let fallbackList = [];
   // Generate button
   const genBtn = document.createElement('button');
   genBtn.type = 'button';
-  genBtn.className = 'mt-6 flex h-14 w-full items-center justify-center rounded-[20px] bg-white text-lg font-semibold text-black shadow-xl transition hover:opacity-90';
+  genBtn.className = 'btn-primary-modern mt-6 w-full';
   genBtn.textContent = 'Generate';
   genBtn.setAttribute('aria-label', 'Generate template');
   leftPanel.appendChild(genBtn);

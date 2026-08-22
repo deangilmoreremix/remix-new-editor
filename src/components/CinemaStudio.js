@@ -321,7 +321,7 @@ let showAdvanced = false;
     // Textarea
     const textarea = document.createElement('textarea');
     textarea.placeholder = 'Describe your scene - use @ to add characters & props';
-    textarea.className = 'flex-1 bg-transparent border-none text-white text-lg font-medium placeholder:text-white/20 focus:outline-none resize-none h-[28px] leading-relaxed overflow-hidden';
+    textarea.className = 'flex-1 bg-transparent border-none text-white text-base md:text-xl placeholder:text-muted focus:outline-none resize-none pt-2.5 leading-relaxed min-h-[40px] max-h-[150px] md:max-h-[250px] overflow-y-auto custom-scrollbar';
     textarea.style.height = 'auto'; // Auto-grow check
     textarea.rows = 1;
     textarea.setAttribute('aria-label', 'Cinema prompt');
@@ -653,7 +653,7 @@ let showAdvanced = false;
     // Generate Button
     const generateBtn = document.createElement('button');
 generateBtn.type = 'button';
-    generateBtn.className = 'btn-primary-modern px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:bg-white transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed uppercase';
+    generateBtn.className = 'btn-primary-modern px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed';
     generateBtn.setAttribute('data-tooltip', 'Generate cinema shot');
     generateBtn.setAttribute('aria-label', 'Generate cinema shot');
     generateBtn.innerHTML = `GENERATE ✨`;
