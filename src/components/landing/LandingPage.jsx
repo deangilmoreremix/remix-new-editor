@@ -137,7 +137,11 @@ function createLazySection(importFn, sectionId, props = {}, index = 0) {
         observer.unobserve(placeholder);
         importFn().then((module) => {
           let section;
-          try {
+  let LandingHeader = null;
+  let CinematicVideoHero = null;
+  let HeroSection = null;
+
+  try {
             if (module.default) {
               section = props.apps ? module.default({ apps: props.apps }) : module.default(props);
             } else if (module.AppsGridSection) {
