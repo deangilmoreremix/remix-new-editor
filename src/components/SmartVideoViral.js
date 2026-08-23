@@ -22,15 +22,15 @@ function injectMotionStyles() {
   const style = document.createElement('style');
   style.id = styleId;
   style.textContent = `
-    @keyframes viral-fade-in-up {
-      0% { opacity: 0; transform: translateY(16px); }
+    @keyframes smart-fade-in-up {
+      0% { opacity: 0; transform: translateY(24px); }
       100% { opacity: 1; transform: translateY(0); }
     }
     @keyframes viral-spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-    @keyframes viral-shimmer {
+    @keyframes smart-shimmer {
       0% { background-position: -200% 0; }
       100% { background-position: 120% 0; }
     }
@@ -54,10 +54,9 @@ function injectMotionStyles() {
       0% { transform: translateY(100%); }
       100% { transform: translateY(0); }
     }
-    .viral-card { opacity: 0; transform: translateY(24px); will-change: transform, opacity; }
-    .viral-card.animate { opacity: 1; transform: translateY(0); animation: viral-fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .smart-card { opacity: 0; transform: translateY(24px); will-change: transform, opacity; }
+    .smart-card.smart-animate { opacity: 1; transform: translateY(0); animation: smart-fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     .viral-refresh-spinning .viral-refresh-icon { animation: viral-spin 1s linear infinite; }
-    .viral-skeleton { background: linear-gradient(90deg, #1f1f23 0%, #2a2a33 50%, #1f1f23 100%); background-size: 200% 100%; animation: viral-shimmer 1.5s ease-in-out infinite; }
     .viral-hero-wrap { transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1), padding 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease; overflow: hidden; }
     .viral-hero-wrap.collapsed { max-height: 72px !important; padding-top: 8px !important; padding-bottom: 8px !important; opacity: 0.9; }
     .viral-hero-wrap.collapsed .viral-hero-body { opacity: 0; pointer-events: none; height: 0; overflow: hidden; }
@@ -83,10 +82,10 @@ function injectMotionStyles() {
     .viral-rail-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; padding: 0 4px; }
     .viral-stat-pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); font-size: 12px; color: #a1a1aa; animation: viral-count-up 0.5s ease forwards; }
     .viral-kbd { display: inline-flex; align-items: center; justify-content: center; padding: 2px 6px; border-radius: 6px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); font-size: 10px; color: #a1a1aa; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; line-height: 1; }
-    .viral-card-hover-actions { opacity: 0; transform: translateY(4px); transition: all 0.2s ease; }
-    .viral-card:hover .viral-card-hover-actions { opacity: 1; transform: translateY(0); }
-    .viral-card-media video { background: black; }
-    .viral-card-media.playing .viral-play-toggle { opacity: 0; pointer-events: none; }
+    .smart-card-hover-actions { opacity: 0; transform: translateY(4px); transition: all 0.2s ease; }
+    .smart-card:hover .smart-card-hover-actions { opacity: 1; transform: translateY(0); }
+    .smart-card-media video { background: black; }
+    .smart-card-media.is-playing .smart-play-toggle { opacity: 0; pointer-events: none; }
     @media (max-width: 1023px) { .viral-scrollspy { display: none; } }
   `;
   document.head.appendChild(style);
@@ -416,7 +415,7 @@ export function SmartVideoViral() {
     const isVideo = item.mediaType === 'video';
     return `
       <div class="viral-rail-item w-64 flex-shrink-0" role="listitem">
-        <div class="group bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden hover:border-primary/30 hover:shadow-glow transition-all cursor-pointer" data-rail-item-id="${item.imglumeId}">
+         <div class="smart-card group bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden transition-all cursor-pointer" data-rail-item-id="${item.imglumeId}">
           <div class="relative aspect-[3/2] overflow-hidden bg-black/30">
             ${thumb ? `<img src="${escapeHtml(thumb)}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="" loading="lazy"/>` : fallbackPlaceholder()}
             ${isVideo ? `<span class="absolute top-2 right-2 px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-400/20 text-purple-300">Video</span>` : ''}
@@ -459,8 +458,8 @@ export function SmartVideoViral() {
       const mainCard = document.querySelector(`.viral-card[data-imglume-id="${id}"]`);
       if (mainCard) {
         mainCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        mainCard.classList.add('ring-2', 'ring-primary');
-        setTimeout(() => mainCard.classList.remove('ring-2', 'ring-primary'), 2000);
+        mainCard.classList.add('is-selected');
+        setTimeout(() => mainCard.classList.remove('is-selected'), 2000);
       }
     }
     const catBtn = e.target.closest('[data-category-filter]');
@@ -586,7 +585,7 @@ export function SmartVideoViral() {
       mediaHtml = fallbackPlaceholder();
     }
     return `
-      <div class="viral-card group bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden transition-all duration-200 hover:border-primary/30 hover:shadow-glow flex flex-col" data-imglume-id="${item.imglumeId}">
+       <div class="viral-card smart-card group bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden transition-all duration-200 flex flex-col" data-imglume-id="${item.imglumeId}">
         <div class="relative aspect-[3/2] overflow-hidden bg-black/30">
           ${mediaHtml}
           <div class="absolute top-2 left-2 flex gap-1">

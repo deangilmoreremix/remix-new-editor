@@ -141,7 +141,19 @@ export function goToRoute(route, params = {}) {
     return;
   }
   const query = new URLSearchParams(params).toString();
-  window.location.assign(`/?${query}#/${route}`);
+  const target = query ? `/?${query}#/${route}` : `/#/${route}`;
+
+  // On the standalone landing page the in-app router is not mounted, so
+  // we fall back to a full page load so main.js can boot the app shell
+  // and route. Hash-only navigations can be treated as same-document
+  // by the browser and will not reload the page, leaving the landing
+  // page mounted. Detect that case and force a reload.
+  window.location.href = target;
+  setTimeout(() => {
+    if (document.readyState === 'complete' && !document.getElementById('content-area')) {
+      window.location.reload();
+    }
+  }, 0);
 }
 
 
