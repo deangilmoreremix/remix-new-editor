@@ -806,14 +806,13 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     if (cinematicTemplate) {
       selectTemplate(cinematicTemplate);
     } else {
-      // Not a cinematic template — redirect to TemplateStudio which
-      // falls back to the unified showcase resolver.
-      try {
-        const resolved = resolveTemplate(incomingCinemaTemplateId);
-        if (resolved) {
-          navigate('template/' + incomingCinemaTemplateId);
-        }
-      } catch { /* ignore */ }
+      const resolved = resolveTemplate(incomingCinemaTemplateId);
+      if (resolved) {
+        setTimeout(() => navigate('template/' + incomingCinemaTemplateId), 0);
+      } else {
+        console.warn('[CinemaTemplateStudio] Unknown template ID:', incomingCinemaTemplateId);
+        showToast('Template not found. Please try another.', 'error');
+      }
     }
   }
         };
