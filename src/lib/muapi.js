@@ -70,6 +70,26 @@ export class MuapiClient {
         return { 'Content-Type': 'application/json' };
     }
 
+    async getModelSchema(modelId) {
+        const url = `https://api.muapi.ai/api/v1/models/${encodeURIComponent(modelId)}`;
+        const res = await fetch(url, { headers: this._getMuapiHeaders() });
+        if (!res.ok) {
+            const text = await res.text().catch(() => '');
+            throw new Error(`Failed to load model schema for ${modelId}: ${res.status} ${res.statusText}${text ? ' - ' + text.slice(0, 200) : ''}`);
+        }
+        return res.json();
+    }
+
+    async getModelCatalog() {
+        const url = `https://api.muapi.ai/api/v1/models`;
+        const res = await fetch(url, { headers: this._getMuapiHeaders() });
+        if (!res.ok) {
+            const text = await res.text().catch(() => '');
+            throw new Error(`Failed to load model catalog: ${res.status} ${res.statusText}${text ? ' - ' + text.slice(0, 200) : ''}`);
+        }
+        return res.json();
+    }
+
     // Cancel a specific request
     cancelRequest(requestId) {
         const controller = this.activeControllers.get(requestId);

@@ -5,6 +5,7 @@ import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 import { replaceTokensInPrompt } from './personalize/personalizePopover.js';
+import { getEnrichedModels } from '../lib/modelCatalog.js';
 
 const EDIT_TOOLS = [
   {
@@ -113,6 +114,7 @@ const EDIT_TOOLS = [
     description: 'Create professional product images',
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="3"/></svg>',
     hasPrompt: true,
+    promptKey: 'scene_description',
     promptPlaceholder: 'Describe the product scene...',
   },
   {
@@ -123,6 +125,150 @@ const EDIT_TOOLS = [
     hasPrompt: false,
   },
 ];
+
+const DYNAMIC_MODEL_CACHE_KEY = 'edit_studio_dynamic_models_v1';
+const DYNAMIC_SCHEMA_CACHE_KEY = 'edit_studio_dynamic_schema_v1';
+
+async function fetchDynamicModels() {
+    try {
+        const data = await getEnrichedModels('i2i');
+        return Array.isArray(data) ? data : [];
+    } catch (e) {
+        console.warn('[EditStudio] Failed to fetch dynamic model catalog:', e);
+        return [];
+    }
+}
+
+async function fetchModelSchema(modelId) {
+    const schemaCache = getDynamicSchemaCache();
+    if (schemaCache[modelId]) return schemaCache[modelId];
+
+    const schema = await muapi.getModelSchema(modelId);
+    schemaCache[modelId] = schema;
+    try { localStorage.setItem(DYNAMIC_SCHEMA_CACHE_KEY, JSON.stringify(schemaCache)); } catch {}
+    return schema;
+}
+
+function getDynamicModelCache() {
+    try {
+        const raw = localStorage.getItem(DYNAMIC_MODEL_CACHE_KEY);
+        if (!raw) return [];
+        const entry = JSON.parse(raw);
+        if (Date.now() - entry.ts > 5 * 60 * 1000) {
+            localStorage.removeItem(DYNAMIC_MODEL_CACHE_KEY);
+            return [];
+        }
+        return entry.data || [];
+    } catch {
+        return [];
+    }
+}
+
+function setDynamicModelCache(models) {
+    try { localStorage.setItem(DYNAMIC_MODEL_CACHE_KEY, JSON.stringify({ ts: Date.now(), data: models })); } catch {}
+}
+
+function getDynamicSchemaCache() {
+    try {
+        const raw = localStorage.getItem(DYNAMIC_SCHEMA_CACHE_KEY);
+        if (!raw) return {};
+        const entry = JSON.parse(raw);
+        if (Date.now() - entry.ts > 5 * 60 * 1000) {
+            localStorage.removeItem(DYNAMIC_SCHEMA_CACHE_KEY);
+            return {};
+        }
+        return entry.data || {};
+    } catch {
+        return {};
+    }
+}
+
+function isImageField(field) {
+    const name = (field.name || '').toLowerCase();
+    const title = (field.title || '').toLowerCase();
+    const fieldType = (field.field || '').toLowerCase();
+    if (fieldType === 'image') return true;
+    if (name.includes('url') && (name.includes('image') || name.includes('img') || name.includes('swap') || name.includes('mask') || name.includes('watermark') || name.includes('garment'))) return true;
+    if (title.includes('image') || title.includes('url')) return true;
+    if (field.type === 'string' && name.includes('url')) return true;
+    return false;
+}
+
+function buildControlsFromSchema(schema) {
+    const controls = [];
+    const properties = schema?.input_schema?.schemas?.input_data?.properties || {};
+    const required = schema?.input_schema?.schemas?.input_data?.required || [];
+
+    const entries = Object.entries(properties).filter(([key, field]) => {
+        if (key === 'image_url') return false;
+        if (isImageField(field)) return false;
+        return true;
+    });
+
+    entries.forEach(([key, field]) => {
+        const name = field.name || key;
+        const title = field.title || key;
+        const fieldType = (field.field || '').toLowerCase();
+        const type = field.type;
+
+        if (field.enum && Array.isArray(field.enum)) {
+            controls.push({ type: 'select', key, label: title, options: field.enum, default: field.default || field.enum[0] });
+        } else if (type === 'boolean') {
+            controls.push({ type: 'toggle', key, label: title, default: !!field.default });
+        } else if (type === 'number' || type === 'integer' || type === 'int') {
+            const min = typeof field.minValue === 'number' ? field.minValue : (typeof field.minimum === 'number' ? field.minimum : 0);
+            const max = typeof field.maxValue === 'number' ? field.maxValue : (typeof field.maximum === 'number' ? field.maximum : 100);
+            const step = typeof field.step === 'number' ? field.step : 1;
+            const defaultVal = typeof field.default === 'number' ? field.default : (Array.isArray(field.examples) && field.examples[0] ? Number(field.examples[0]) : min);
+            controls.push({ type: 'number', key, label: title, min, max, step, default: defaultVal });
+        } else if (type === 'string') {
+            if (fieldType === 'text' || fieldType === 'textarea' || fieldType === 'prompt') {
+                controls.push({ type: 'text', key, label: title, placeholder: field.description || '' });
+            } else {
+                controls.push({ type: 'text', key, label: title, placeholder: field.description || '' });
+            }
+        }
+    });
+
+    return controls;
+}
+
+function buildDynamicToolFromSchema(modelId, schema) {
+    const name = schema.name || modelId;
+    const description = schema.description || '';
+    const inputSchema = schema.input_schema?.schemas?.input_data || {};
+    const properties = inputSchema.properties || {};
+    const hasPrompt = !!properties.prompt || !!properties.scene_description;
+    const promptKey = properties.prompt ? 'prompt' : (properties.scene_description ? 'scene_description' : null);
+
+    const extraUploads = [];
+    Object.entries(properties).forEach(([key, field]) => {
+        if (key === 'image_url') return;
+        if (isImageField(field)) {
+            const isSwap = key.toLowerCase().includes('swap');
+            const isMask = key.toLowerCase().includes('mask');
+            const isGarment = key.toLowerCase().includes('garment') || key.toLowerCase().includes('dress');
+            const isWatermark = key.toLowerCase().includes('watermark');
+            extraUploads.push({ key, isSwap, isMask, isGarment, isWatermark, label: field.title || key });
+        }
+    });
+
+    return {
+        id: modelId,
+        name,
+        description,
+        hasPrompt,
+        promptKey,
+        promptPlaceholder: 'Describe the edit...',
+        controls: buildControlsFromSchema(schema),
+        requiresSwapImage: extraUploads.some(u => u.isSwap),
+        requiresMask: extraUploads.some(u => u.isMask),
+        requiresGarment: extraUploads.some(u => u.isGarment),
+        requiresWatermarkImage: extraUploads.some(u => u.isWatermark),
+        extraUploads,
+        isDynamic: true,
+    };
+}
 
 export function EditStudio() {
   const container = document.createElement('div');
@@ -135,6 +281,9 @@ export function EditStudio() {
   let garmentUrl = null;
   let swapUrl = null;
   let watermarkImageUrl = null;
+  let dynamicSchema = null;
+  let dynamicModels = [];
+  let dynamicModelsLoading = false;
 
   const topBar = document.createElement('div');
   topBar.className = 'px-4 md:px-8 pt-6 pb-4 shrink-0';
@@ -167,6 +316,31 @@ export function EditStudio() {
   });
 
   topBar.appendChild(toolGrid);
+
+  // Browse All Models section
+  const browseSection = document.createElement('div');
+  browseSection.className = 'mt-6';
+  const browseHeader = document.createElement('div');
+  browseHeader.className = 'flex items-center justify-between mb-3';
+  browseHeader.innerHTML = `
+    <div>
+      <h2 class="text-sm font-black text-white">Browse All Models</h2>
+      <p class="text-[10px] text-muted mt-0.5">Dynamic controls powered by live API schemas</p>
+    </div>
+    <button type="button" id="refresh-dynamic-models" class="text-[10px] font-bold text-primary hover:text-white transition-colors">Refresh</button>
+  `;
+  browseSection.appendChild(browseHeader);
+
+  const dynamicGrid = document.createElement('div');
+  dynamicGrid.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2';
+  browseSection.appendChild(dynamicGrid);
+
+  const dynamicStatus = document.createElement('div');
+  dynamicStatus.className = 'text-[10px] text-muted mt-2 hidden';
+  browseSection.appendChild(dynamicStatus);
+
+  topBar.appendChild(browseSection);
+
   const inlineInstructions = createInlineInstructions('edit');
   inlineInstructions.classList.add('px-4', 'md:px-8', 'mt-2');
   topBar.appendChild(inlineInstructions);
@@ -466,16 +640,27 @@ export function EditStudio() {
         if (factory) controlsContainer.appendChild(factory(ctrl));
       });
     }
+
+    if (tool.dynamicControls) {
+      tool.dynamicControls.forEach(ctrl => {
+        const factory = CONTROL_FACTORIES[ctrl.type];
+        if (factory) controlsContainer.appendChild(factory(ctrl));
+      });
+    }
   }
 
-  function selectTool(tool, cardEl) {
+  async function selectTool(tool, cardEl) {
     activeTool = tool;
-    toolGrid.querySelectorAll('.border-primary').forEach(el => {
-      el.classList.remove('border-primary');
-      el.classList.add('border-white/5');
-    });
-    cardEl.classList.remove('border-white/5');
-    cardEl.classList.add('border-primary');
+    dynamicSchema = null;
+
+    if (cardEl) {
+      toolGrid.querySelectorAll('.border-primary').forEach(el => {
+        el.classList.remove('border-primary');
+        el.classList.add('border-white/5');
+      });
+      cardEl.classList.remove('border-white/5');
+      cardEl.classList.add('border-primary');
+    }
 
     workCard.classList.remove('hidden');
     workCard.classList.add('flex');
@@ -508,16 +693,111 @@ export function EditStudio() {
     watermarkImageHint.classList.add('hidden');
     watermarkImageClearBtn.classList.add('hidden');
 
-    renderControls(tool);
+    if (tool.isDynamic && tool.schema) {
+      dynamicSchema = tool.schema;
+      const enriched = buildDynamicToolFromSchema(tool.id, tool.schema);
+      activeTool = enriched;
+      renderControls(enriched);
 
-    // Show/hide extra upload rows based on tool
-    if (tool.requiresMask) maskRow.classList.remove('hidden');
-    if (tool.requiresGarment) garmentRow.classList.remove('hidden');
-    if (tool.requiresSwapImage) swapRow.classList.remove('hidden');
-    if (tool.requiresWatermarkImage) watermarkImageRow.classList.remove('hidden');
+      const properties = tool.schema.input_schema?.schemas?.input_data?.properties || {};
+      Object.entries(properties).forEach(([key, field]) => {
+        if (key === 'image_url') return;
+        if (!isImageField(field)) return;
+        const lowerKey = key.toLowerCase();
+        if (lowerKey.includes('swap')) { swapRow.classList.remove('hidden'); }
+        if (lowerKey.includes('mask')) { maskRow.classList.remove('hidden'); }
+        if (lowerKey.includes('garment') || lowerKey.includes('dress')) { garmentRow.classList.remove('hidden'); }
+        if (lowerKey.includes('watermark')) { watermarkImageRow.classList.remove('hidden'); }
+      });
+    } else {
+      renderControls(tool);
+    }
+
+    if (!tool.isDynamic) {
+      if (tool.requiresMask) maskRow.classList.remove('hidden');
+      if (tool.requiresGarment) garmentRow.classList.remove('hidden');
+      if (tool.requiresSwapImage) swapRow.classList.remove('hidden');
+      if (tool.requiresWatermarkImage) watermarkImageRow.classList.remove('hidden');
+    }
 
     resultArea.classList.add('hidden');
     updateProgress(null);
+  }
+
+  async function loadDynamicModels() {
+    if (dynamicModelsLoading) return;
+    dynamicModelsLoading = true;
+    dynamicStatus.classList.remove('hidden');
+    dynamicStatus.textContent = 'Loading models...';
+
+    try {
+      const cached = getDynamicModelCache();
+      if (cached.length > 0) {
+        dynamicModels = cached;
+        renderDynamicModels();
+        dynamicStatus.textContent = `${cached.length} models available`;
+        dynamicModelsLoading = false;
+        return;
+      }
+
+      const catalog = await fetchDynamicModels();
+      const i2iModels = catalog.filter(m => !EDIT_TOOLS.some(t => t.id === m.id));
+      dynamicModels = i2iModels;
+      setDynamicModelCache(dynamicModels);
+      renderDynamicModels();
+      dynamicStatus.textContent = `${dynamicModels.length} models available`;
+    } catch (e) {
+      dynamicStatus.textContent = 'Failed to load models';
+      console.error(e);
+    } finally {
+      dynamicModelsLoading = false;
+    }
+  }
+
+  async function renderDynamicModels() {
+    dynamicGrid.innerHTML = '';
+    const loadingEl = document.createElement('div');
+    loadingEl.className = 'col-span-full text-[10px] text-muted';
+    loadingEl.textContent = 'Loading schemas...';
+    dynamicGrid.appendChild(loadingEl);
+
+    const existingIds = new Set(EDIT_TOOLS.map(t => t.id));
+    const toShow = dynamicModels.filter(m => !existingIds.has(m.id));
+
+    const fragment = document.createDocumentFragment();
+    const schemaPromises = toShow.map(async (model) => {
+      try {
+        const schema = await fetchModelSchema(model.id);
+        return { model, schema };
+      } catch {
+        return { model, schema: null };
+      }
+    });
+
+    const results = await Promise.all(schemaPromises);
+    dynamicGrid.innerHTML = '';
+
+    results.forEach(({ model, schema }) => {
+      if (!schema) return;
+      const card = document.createElement('div');
+      card.className = 'bg-white/[0.03] border border-white/5 rounded-xl overflow-hidden cursor-pointer hover:bg-white/[0.06] hover:border-white/10 transition-all group';
+      const info = document.createElement('div');
+      info.className = 'p-3';
+      info.innerHTML = `
+        <div class="text-xs font-bold text-white group-hover:text-primary transition-colors">${model.name || model.id}</div>
+        <div class="text-[10px] text-muted mt-0.5">${model.description || 'Dynamic model'}</div>
+      `;
+      card.appendChild(info);
+      card.onclick = () => {
+        const enriched = buildDynamicToolFromSchema(model.id, schema);
+        selectTool(enriched, card);
+      };
+      dynamicGrid.appendChild(card);
+    });
+
+    if (dynamicGrid.children.length === 0) {
+      dynamicStatus.textContent = 'No additional models available';
+    }
   }
 
   editBtn.onclick = async () => {
@@ -529,6 +809,32 @@ export function EditStudio() {
     if (activeTool.requiresGarment && !garmentUrl) { showError('Upload a garment image for Change Dress'); return; }
     if (activeTool.requiresSwapImage && !swapUrl) { showError('Upload a swap face image for Face Swap'); return; }
     if (activeTool.requiresWatermarkImage && !watermarkImageUrl) { showError('Upload a watermark image'); return; }
+
+    // Validate dynamic schema required fields
+    if (dynamicSchema) {
+      const inputData = dynamicSchema.input_schema?.schemas?.input_data || {};
+      const properties = inputData.properties || {};
+      const required = inputData.required || [];
+      const missing = required.filter(key => {
+        if (key === 'image_url') return !uploadedUrl;
+        const field = properties[key];
+        if (!field) return false;
+        if (isImageField(field)) {
+          if (key.toLowerCase().includes('swap')) return !swapUrl;
+          if (key.toLowerCase().includes('mask')) return !maskUrl;
+          if (key.toLowerCase().includes('garment') || key.toLowerCase().includes('dress')) return !garmentUrl;
+          if (key.toLowerCase().includes('watermark')) return !watermarkImageUrl;
+          return false;
+        }
+        const el = controlsContainer.querySelector(`[data-control-key="${key}"]`);
+        if (!el) return true;
+        return !el.value;
+      });
+      if (missing.length > 0) {
+        showError(`Missing required fields: ${missing.join(', ')}`);
+        return;
+      }
+    }
 
     const apiKey = localStorage.getItem('muapi_key');
     if (!apiKey) { AuthModal(() => editBtn.click()); return; }
@@ -565,7 +871,8 @@ export function EditStudio() {
       if (watermarkImageUrl) params.watermark_image_url = watermarkImageUrl;
 
       if (activeTool.hasPrompt && promptField.value.trim()) {
-        params.prompt = replaceTokensInPrompt(promptField.value.trim());
+        const promptKey = activeTool.promptKey || 'prompt';
+        params[promptKey] = replaceTokensInPrompt(promptField.value.trim());
       }
 
       // Collect control values from DOM
@@ -685,11 +992,73 @@ export function EditStudio() {
     return wrapper;
   }
 
+  function createToggleControl(control) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'flex items-center justify-between';
+    const label = document.createElement('label');
+    label.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
+    label.textContent = control.label;
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = `relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${control.default ? 'bg-primary' : 'bg-white/10'}`;
+    toggle.dataset.controlKey = control.key;
+    const dot = document.createElement('span');
+    dot.className = `inline-block h-4 w-4 rounded-full bg-white transition-transform ${control.default ? 'translate-x-6' : 'translate-x-1'}`;
+    toggle.appendChild(dot);
+    toggle.onclick = () => {
+      const isOn = toggle.classList.contains('bg-primary');
+      if (isOn) {
+        toggle.classList.remove('bg-primary');
+        toggle.classList.add('bg-white/10');
+        dot.classList.remove('translate-x-6');
+        dot.classList.add('translate-x-1');
+      } else {
+        toggle.classList.remove('bg-white/10');
+        toggle.classList.add('bg-primary');
+        dot.classList.remove('translate-x-1');
+        dot.classList.add('translate-x-6');
+      }
+    };
+    wrapper.appendChild(label);
+    wrapper.appendChild(toggle);
+    return wrapper;
+  }
+
+  function createTextControl(control) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'flex flex-col gap-1.5';
+    const label = document.createElement('label');
+    label.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
+    label.textContent = control.label;
+    const textarea = document.createElement('textarea');
+    textarea.placeholder = control.placeholder || '';
+    textarea.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-primary/50 transition-colors resize-y';
+    textarea.rows = 3;
+    textarea.dataset.controlKey = control.key;
+    wrapper.appendChild(label);
+    wrapper.appendChild(textarea);
+    return wrapper;
+  }
+
   const CONTROL_FACTORIES = {
     range: createRangeControl,
     select: createSelectControl,
     number: createNumberControl,
+    toggle: createToggleControl,
+    text: createTextControl,
   };
+
+  // Initialize dynamic models
+  loadDynamicModels();
+
+  if (browseHeader.querySelector('#refresh-dynamic-models')) {
+    browseHeader.querySelector('#refresh-dynamic-models').onclick = async () => {
+      localStorage.removeItem(DYNAMIC_MODEL_CACHE_KEY);
+      localStorage.removeItem(DYNAMIC_SCHEMA_CACHE_KEY);
+      dynamicModels = [];
+      await loadDynamicModels();
+    };
+  }
 
   return container;
 }
