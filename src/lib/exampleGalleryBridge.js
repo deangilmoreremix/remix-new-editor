@@ -36,6 +36,16 @@ export async function handleCreateThisStyle(asset) {
     return;
   }
 
+  if (asset.source === 'youmind') {
+    const ta = document.getElementById('i-prompt-textarea') || document.querySelector('textarea');
+    if (ta) {
+      ta.value = asset.prompt || '';
+      ta.dispatchEvent(new Event('input', { bubbles: true }));
+      ta.focus();
+    }
+    return;
+  }
+
   if (asset.source === 'zerolu') {
     const { getCreateTarget, loadDemoPrompt } = await import('../data/zeroLuDemos.js');
     const demo = zeroLuDemos.find((d) => d.slug === asset.slug);
@@ -64,6 +74,11 @@ export async function handleViewPrompt(asset) {
     const { loadDemoPrompt } = await import('../data/beatapiSeedance25Demos.js');
     const prompt = await loadDemoPrompt(asset.slug);
     showPromptModal({ title: asset.title, prompt: prompt || '' });
+    return;
+  }
+
+  if (asset.source === 'youmind') {
+    showPromptModal({ title: asset.title, prompt: asset.prompt || '' });
     return;
   }
 

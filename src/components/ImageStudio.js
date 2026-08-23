@@ -24,7 +24,6 @@ import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { getAssetsForStudio, EXAMPLE_ASSETS } from '../data/exampleGalleryAssets.js';
 import { youmindImagePrompts } from '../data/youmindImagePrompts.js';
 import ExampleGallery from './studios/ExampleGallery.js';
-import { ImageGalleryModal } from './modals/ImageGalleryModal.jsx';
 import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
@@ -1237,27 +1236,35 @@ generateBtn.type = 'button';
 
     const galleryAssets = getAssetsForStudio('image');
     if (galleryAssets.length > 0) {
-      const gallery = ExampleGallery({ studioId: 'image', assets: galleryAssets, maxCards: 28 });
-      container.appendChild(gallery);
+      const INITIAL_CARDS = 28;
+      const EXTRA_CARDS = 28;
+      let expanded = false;
 
-      const browseAllBtn = document.createElement('button');
-      browseAllBtn.type = 'button';
-      browseAllBtn.textContent = `Browse all ${youmindImagePrompts.length} image prompts →`;
-      browseAllBtn.className = 'mt-4 mb-8 px-6 py-3 rounded-xl text-sm font-bold bg-white/5 text-secondary hover:bg-white/10 hover:text-primary transition-all border border-white/5 hover:border-primary/30';
-      browseAllBtn.addEventListener('click', () => {
-        const modal = new ImageGalleryModal({
-          onPromptSelect: (prompt) => {
-            const ta = document.getElementById('i-prompt-textarea') || document.querySelector('textarea');
-            if (ta) {
-              ta.value = prompt;
-              ta.dispatchEvent(new Event('input', { bubbles: true }));
-              ta.focus();
-            }
-          }
-        });
-        modal.open();
+      const renderGallery = (maxCards) => {
+        const existing = container.querySelector('.eg-section');
+        if (existing) existing.remove();
+
+        const gallery = ExampleGallery({ studioId: 'image', assets: galleryAssets, maxCards });
+        container.appendChild(gallery);
+      };
+
+      renderGallery(INITIAL_CARDS);
+
+      const showMoreBtn = document.createElement('button');
+      showMoreBtn.type = 'button';
+      showMoreBtn.textContent = `Show all ${youmindImagePrompts.length} image prompts`;
+      showMoreBtn.className = 'mt-4 mb-8 px-6 py-3 rounded-xl text-sm font-bold bg-white/5 text-secondary hover:bg-white/10 hover:text-primary transition-all border border-white/5 hover:border-primary/30';
+      showMoreBtn.addEventListener('click', () => {
+        expanded = !expanded;
+        if (expanded) {
+          renderGallery(INITIAL_CARDS + EXTRA_CARDS);
+          showMoreBtn.textContent = 'Show Less';
+        } else {
+          renderGallery(INITIAL_CARDS);
+          showMoreBtn.textContent = `Show all ${youmindImagePrompts.length} image prompts`;
+        }
       });
-      container.appendChild(browseAllBtn);
+      container.appendChild(showMoreBtn);
     }
 
     return container;
