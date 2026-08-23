@@ -282,7 +282,7 @@ export function renderModelList(models, selectedModelId, showProviderName, onSel
 // Keeping this in one place guarantees the Image Studio / Video Studio /
 // Audio Studio / Influencer Studio pickers all render identically.
 export const MODEL_SELECTOR_PANEL_CLASS =
-  'flex gap-4 h-full max-h-[70vh] min-h-[350px] overflow-hidden';
+  'flex gap-4 h-[70vh] max-h-[70vh] min-h-[350px] overflow-hidden';
 
 // Build the split-pane panel and wire its interactions. Returns an object with
 // the `root` element and a `refresh()` method so callers can re-render without
