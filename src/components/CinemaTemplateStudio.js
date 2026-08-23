@@ -1778,8 +1778,8 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
             selectedModelId: selectedModel,
             showProviderName: true,
             loadingMessage: 'Loading models...',
-            onSelectModel: (modelId) => {
-              selectedModel = modelId;
+            onSelectModel: (model) => {
+              selectedModel = model.id;
               updateTrigger();
               closeDropdown();
             },

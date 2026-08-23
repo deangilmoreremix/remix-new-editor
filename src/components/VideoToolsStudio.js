@@ -96,8 +96,8 @@ const triggerBtn = document.createElement('button');
         models: videoToolsModels,
         selectedModelId: selectedModel.id,
         showProviderName: true,
-        onSelectModel: (modelId) => {
-          selectedModel = videoToolsModels.find(x => x.id === modelId) || { id: modelId };
+        onSelectModel: (model) => {
+          selectedModel = model;
           updateTrigger();
           updateFormVisibility();
           buildDynamicControls();

@@ -495,10 +495,8 @@ export function LipSyncStudio() {
                 inputMode = catId;
                 updateUIForMode();
               },
-              onSelectModel: (modelId) => {
-                const model = (inputMode === 'image' ? imageLipSyncModels : videoLipSyncModels).find((m) => m.id === modelId);
-                if (!model) return;
-                selectedModel = modelId;
+              onSelectModel: (model) => {
+                selectedModel = model.id;
                 document.getElementById('ls-model-btn-label').textContent = model.name;
                 updateModelBtnIcon();
                 const resolutions = getResolutionsForLipSyncModel(selectedModel);

@@ -148,8 +148,8 @@ const dynamicControls = null;
         models: CHARACTER_MODELS,
         selectedModelId: selectedModel.id,
         showProviderName: true,
-        onSelectModel: (modelId) => {
-          selectedModel = CHARACTER_MODELS.find(x => x.id === modelId) || { id: modelId };
+        onSelectModel: (model) => {
+          selectedModel = model;
           updateTrigger();
           buildDynamicControls();
           closeDropdown();

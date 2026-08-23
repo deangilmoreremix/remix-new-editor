@@ -576,8 +576,8 @@ let showAdvanced = false;
             updateModelBtn();
             updateControlsForModel();
           },
-          onSelectModel: (modelId) => {
-            currentSettings.model = modelId;
+          onSelectModel: (model) => {
+            currentSettings.model = model.id;
             updateModelBtn();
             updateControlsForModel();
             closeModelDropdown();

@@ -818,10 +818,9 @@ const compareBtn = document.createElement('button');
         models: storyboardModels,
         selectedModelId: selectedModel,
         showProviderName: true,
-        onSelectModel: (modelId) => {
-          selectedModel = modelId;
-          const model = storyboardModels.find((m) => m.id === modelId);
-          selectedModelName = model ? model.name : modelId;
+        onSelectModel: (model) => {
+          selectedModel = model.id;
+          selectedModelName = model.name;
           const availableArs = getAspectRatiosForModel(selectedModel);
           selectedAr = availableArs[0];
           document.getElementById('model-btn-label').textContent = selectedModelName;

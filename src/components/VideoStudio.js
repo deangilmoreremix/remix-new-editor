@@ -1100,10 +1100,9 @@ generateBtn.type = 'button';
                 }
                 updateModelBtnIcon();
               },
-              onSelectModel: (modelId) => {
-                const isV2V = v2vModels.some((m) => m.id === modelId);
-                const model = allCurrentModels.find((m) => m.id === modelId);
-                if (!model) return;
+              onSelectModel: (model, categoryId) => {
+                const isV2V = categoryId === 'v2v';
+                const newI2V = categoryId === 'i2v';
 
                 if (isV2V) {
                   v2vMode = true;
@@ -1124,11 +1123,12 @@ generateBtn.type = 'button';
                     showVideoIcon();
                     textarea.disabled = false;
                   }
+                  imageMode = newI2V;
                   selectedModel = model.id;
                   selectedModelName = model.name;
                   document.getElementById('v-model-btn-label').textContent = selectedModelName;
                   updateControlsForModel(selectedModel);
-                  textarea.placeholder = i2vModels.some((m) => m.id === modelId)
+                  textarea.placeholder = newI2V
                     ? 'Describe the motion or effect (optional)'
                     : 'Describe the video you want to create';
                 }

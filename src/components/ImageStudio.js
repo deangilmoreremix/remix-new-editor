@@ -811,31 +811,31 @@ generateBtn.type = 'button';
                   dynamicControls.update(getExtendedModel(resolved));
                 }
               },
-              onSelectModel: (modelId) => {
-                selectedModel = modelId;
-                selectedModelName =
-                  t2iModels.find(m => m.id === modelId)?.name ||
-                  i2iModels.find(m => m.id === modelId)?.name ||
-                  modelId;
-                const availableArs = getCurrentAspectRatios(selectedModel);
-                selectedAr = availableArs[0];
+              onSelectModel: (model, categoryId) => {
+                const newImageMode = categoryId === 'i2i';
+                imageMode = newImageMode;
+                selectedModel = model.id;
+                selectedModelName = model.name;
+                selectedAr = newImageMode
+                  ? getAspectRatiosForI2IModel(selectedModel)[0]
+                  : getAspectRatiosForModel(selectedModel)[0];
                 document.getElementById('model-btn-label').textContent = selectedModelName;
                 document.getElementById('ar-btn-label').textContent = selectedAr;
-                const validResolutions = getCurrentResolutions(selectedModel);
+                const validResolutions = newImageMode
+                  ? getResolutionsForI2IModel(selectedModel)
+                  : getResolutionsForModel(selectedModel);
                 qualityBtn.style.display = validResolutions.length > 0 ? 'flex' : 'none';
                 if (validResolutions.length > 0) {
                   document.getElementById('quality-btn-label').textContent = validResolutions[0];
                 }
-                if (imageMode) {
+                if (newImageMode) {
                   picker.setMaxImages(getMaxImagesForI2IModel(selectedModel));
                 }
                 updateModelBtnIcon();
                 if (dynamicControls) {
-                  const resolved = getModelById(selectedModel)
-                    || getI2IModelById(selectedModel)
-                    || getI2VModelById(selectedModel)
-                    || getV2VModelById(selectedModel)
-                    || { id: selectedModel, inputs: {} };
+                  const resolved = newImageMode
+                    ? getI2IModelById(selectedModel)
+                    : getModelById(selectedModel);
                   dynamicControls.update(getExtendedModel(resolved));
                 }
                 closeDropdown();

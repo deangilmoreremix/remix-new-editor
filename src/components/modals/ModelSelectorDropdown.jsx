@@ -78,8 +78,7 @@ export class ModelSelectorDropdown {
       models: this.models,
       selectedModelId: this.selectedModel,
       showProviderName: true,
-      onSelectModel: (modelId) => {
-        const model = this.models.find((m) => m.id === modelId);
+      onSelectModel: (model) => {
         if (model) {
           this.onSelect(model);
           this.close();

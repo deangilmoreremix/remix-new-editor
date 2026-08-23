@@ -87,8 +87,8 @@ const triggerBtn = document.createElement('button');
         models: UPSCALE_METHODS,
         selectedModelId: selectedMethod.id,
         showProviderName: true,
-        onSelectModel: (modelId) => {
-          selectedMethod = UPSCALE_METHODS.find(x => x.id === modelId) || { id: modelId };
+        onSelectModel: (model) => {
+          selectedMethod = model;
           selectedFactor = selectedMethod.factors[0] || '';
           updateTrigger();
           updateFactorBtns();

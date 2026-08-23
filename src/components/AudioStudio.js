@@ -641,9 +641,9 @@ export function AudioStudio() {
       selectedProvider,
       search: searchQuery,
       showProviderName: true,
-      onSelectModel: (modelId) => {
-        selectedModel = audioModels.find(m => m.id === modelId) || audioModels[0];
-        selectedModelId = selectedModel.id;
+      onSelectModel: (model) => {
+        selectedModel = model;
+        selectedModelId = model.id;
         schemaParams = {};
         updateFormVisibility();
         schedulePersist();

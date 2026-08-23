@@ -119,8 +119,8 @@ const COMMERCIAL_MODELS = [
         models: COMMERCIAL_MODELS,
         selectedModelId: selectedModel,
         showProviderName: true,
-        onSelectModel: (modelId) => {
-          selectedModel = modelId;
+        onSelectModel: (model) => {
+          selectedModel = model.id;
           updateTrigger();
           closeDropdown();
         },

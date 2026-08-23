@@ -100,8 +100,8 @@ const triggerBtn = document.createElement('button');
         models: avatarModels,
         selectedModelId: selectedModel.id,
         showProviderName: true,
-        onSelectModel: (modelId) => {
-          selectedModel = avatarModels.find(x => x.id === modelId) || { id: modelId };
+        onSelectModel: (model) => {
+          selectedModel = model;
           updateTrigger();
           updateFormVisibility();
           buildDynamicControls();
