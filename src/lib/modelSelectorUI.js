@@ -148,9 +148,8 @@ export function renderProviderLogoImg(provider, alt, sizeClasses = 'w-full h-ful
 
   const cacheKey = cachedBlob ? '1' : '0';
   const fallbackJson = JSON.stringify(fallbackUrls).replace(/"/g, '&quot;');
-  const onerror = `if(this.dataset.fallbackIndex){this.dataset.fallbackIndex='';return;}this.dataset.fallbackIndex='1';const fb=${fallbackJson};const i=parseInt(this.dataset.fallbackIndex||'0',10);if(i<fb.length){this.dataset.fallbackIndex=String(i+1);this.src=fb[i];}else{this.dataset.fallbackIndex='';try{(window.__providerLogoFailed||new Set()).add('${provider}');}catch(e){ }this.outerHTML='${badgeHtml}';}`;
 
-  return `<img src="${primaryUrl}" alt="${alt}" class="${sizeClasses} object-contain ${invertClass} ${extraClasses}" onerror="${onerror}" data-fallback-index="${cacheKey}" />`;
+  return `<img src="${primaryUrl}" alt="${alt}" class="${sizeClasses} object-contain ${invertClass} ${extraClasses}" data-provider-logo="${provider}" data-fallback-urls='${JSON.stringify(fallbackUrls)}' data-fallback-index="0" data-badge-html="${badgeHtml}" data-cached="${cacheKey}" />`;
 }
 
 export const invertLogos = [
@@ -823,5 +822,38 @@ export function positionModelSelectorDropdown(dropdown, anchorBtn, gap = 8, cont
   const estimatedWidth = Math.min(dropdown.offsetWidth || 480, window.innerWidth - 16);
   if (anchorRect.left + estimatedWidth > window.innerWidth - 8) {
     dropdown.style.left = `${Math.max(8, window.innerWidth - estimatedWidth - 8)}px`;
+  }
+}
+
+if (typeof window !== 'undefined') {
+  window.__providerLogoErrorHandlerAttached = window.__providerLogoErrorHandlerAttached || false;
+  if (!window.__providerLogoErrorHandlerAttached) {
+    window.__providerLogoErrorHandlerAttached = true;
+    document.addEventListener('error', (event) => {
+      const img = event.target;
+      if (!(img instanceof HTMLImageElement)) return;
+      const provider = img.getAttribute('data-provider-logo');
+      if (!provider) return;
+      const fallbackUrlsJson = img.getAttribute('data-fallback-urls');
+      const badgeHtml = img.getAttribute('data-badge-html');
+      if (!fallbackUrlsJson || !badgeHtml) return;
+      let fallbackUrls;
+      try {
+        fallbackUrls = JSON.parse(fallbackUrlsJson);
+      } catch {
+        return;
+      }
+      const currentIndex = parseInt(img.getAttribute('data-fallback-index') || '0', 10);
+      const nextIndex = currentIndex + 1;
+      if (nextIndex < fallbackUrls.length) {
+        img.setAttribute('data-fallback-index', String(nextIndex));
+        img.src = fallbackUrls[nextIndex];
+      } else {
+        try {
+          (window.__providerLogoFailed || new Set()).add(provider);
+        } catch (_) {}
+        img.outerHTML = badgeHtml;
+      }
+    }, true);
   }
 }
