@@ -455,7 +455,7 @@ export function SmartVideoViral() {
       const id = parseInt(railItem.getAttribute('data-rail-item-id'), 10);
       const item = prompts.find(p => p.imglumeId === id);
       if (item && item.mediaType === 'video') openVideoModal(item);
-      const mainCard = document.querySelector(`.viral-card[data-imglume-id="${id}"]`);
+      const mainCard = document.querySelector(`.smart-card[data-imglume-id="${id}"]`);
       if (mainCard) {
         mainCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
         mainCard.classList.add('is-selected');
@@ -625,7 +625,7 @@ export function SmartVideoViral() {
   }
 
   function setupCardPostRender() {
-    const previewImgs = gridEl.querySelectorAll('img.viral-preview');
+    const previewImgs = gridEl.querySelectorAll('img.smart-card-preview');
     if (previewImgs.length && 'IntersectionObserver' in window) {
       const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -656,24 +656,24 @@ export function SmartVideoViral() {
       });
     });
 
-    const cardVideos = gridEl.querySelectorAll('.viral-card-video');
+    const cardVideos = gridEl.querySelectorAll('.smart-card-video');
     const videoVisibilityObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         const video = entry.target;
-        const wrapper = video.closest('.viral-card-media');
+        const wrapper = video.closest('.smart-card-media');
         if (entry.isIntersecting) {
           video.play().then(() => {
-            if (wrapper) wrapper.classList.add('playing');
+            if (wrapper) wrapper.classList.add('is-playing');
           }).catch(() => {});
         } else {
           video.pause();
-          if (wrapper) wrapper.classList.remove('playing');
+          if (wrapper) wrapper.classList.remove('is-playing');
         }
       });
     }, { rootMargin: '200px' });
     cardVideos.forEach(video => {
       video.addEventListener('error', () => {
-        const wrapper = video.closest('.viral-card-media');
+        const wrapper = video.closest('.smart-card-media');
         if (wrapper) {
           const poster = video.getAttribute('poster');
           wrapper.innerHTML = poster ? `<img src="${escapeHtml(poster)}" class="w-full h-full object-cover" alt=""/>` : fallbackPlaceholder();
@@ -682,13 +682,13 @@ export function SmartVideoViral() {
       videoVisibilityObserver.observe(video);
     });
 
-    gridEl.querySelectorAll('.viral-play-toggle').forEach(btn => {
+    gridEl.querySelectorAll('.smart-play-toggle').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
         const videoSrc = btn.getAttribute('data-video-src');
         if (!videoSrc) { showToast('No video source available', 'error', 2000); return; }
-        const card = btn.closest('.viral-card');
+        const card = btn.closest('.smart-card');
         const itemId = card?.getAttribute('data-imglume-id');
         const item = prompts.find(p => p.imglumeId === parseInt(itemId, 10));
         if (item) openVideoModal(item);
@@ -718,7 +718,7 @@ export function SmartVideoViral() {
         const id = parseInt(btn.getAttribute('data-id'), 10);
         const item = prompts.find(p => p.imglumeId === id);
         if (!item) return;
-        const card = btn.closest('.viral-card');
+        const card = btn.closest('.smart-card');
         const fullDiv = card?.querySelector('.prompt-full');
         const previewP = card?.querySelector('.prompt-section p');
         if (fullDiv && previewP) {
@@ -748,11 +748,11 @@ export function SmartVideoViral() {
     const html = pageItems.map(item => buildCardHtml(item)).join('');
     gridEl.insertAdjacentHTML('beforeend', html);
     requestAnimationFrame(() => {
-      const newCards = gridEl.querySelectorAll('.viral-card');
+      const newCards = gridEl.querySelectorAll('.smart-card');
       newCards.forEach((card, i) => {
-        if (!card.classList.contains('animate')) {
+        if (!card.classList.contains('smart-animate')) {
           card.style.transitionDelay = `${i * 15}ms`;
-          requestAnimationFrame(() => card.classList.add('animate'));
+          requestAnimationFrame(() => card.classList.add('smart-animate'));
         }
       });
       setupCardPostRender();
@@ -816,7 +816,7 @@ export function SmartVideoViral() {
             <span class="text-[10px] text-zinc-500">@${escapeHtml(item.source?.author?.handle || 'unknown')}</span>
             <div class="flex gap-2">
               <button class="viral-modal-copy btn-primary-modern" data-id="${item.imglumeId}">Copy Prompt</button>
-              <a href="${escapeHtml(item.source?.url || item.curation?.recordUrl || '#')}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 bg-[#141414] border border-zinc-700/80 text-zinc-300 rounded-xl text-[10px] font-bold hover:text-white hover:border-primary/50 transition-colors">View on X</a>
+              <a href="${escapeHtml(item.source?.url || item.curation?.recordUrl || '#')}" target="_blank" rel="noopener noreferrer" class="btn-secondary-modern text-[10px] font-bold">View on X</a>
             </div>
           </div>
         </div>
@@ -1269,10 +1269,10 @@ export function SmartVideoViral() {
     const pageItems = filtered.slice(0, PAGE_SIZE);
     gridEl.innerHTML = pageItems.map(item => buildCardHtml(item)).join('');
     requestAnimationFrame(() => { gridEl.style.opacity = '1'; });
-    const cardEls = gridEl.querySelectorAll('.viral-card');
+    const cardEls = gridEl.querySelectorAll('.smart-card');
     cardEls.forEach((card, i) => {
       card.style.transitionDelay = `${i * 20}ms`;
-      requestAnimationFrame(() => card.classList.add('animate'));
+      requestAnimationFrame(() => card.classList.add('smart-animate'));
     });
     setupCardPostRender();
     setupInfiniteScroll();

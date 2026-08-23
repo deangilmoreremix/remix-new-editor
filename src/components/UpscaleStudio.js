@@ -9,6 +9,9 @@ import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCa
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { mountModelSelector, getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
+import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
+import { openRecipeModal } from '../lib/recipeIntegration.js';
+import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 
 const UPSCALE_METHODS = [
   { id: 'ai-image-upscaler', name: 'AI Upscaler', description: 'General-purpose AI upscaling with 2x/4x factor', factors: ['2', '4'], provider: 'muapi', provider_name: 'MuAPI' },

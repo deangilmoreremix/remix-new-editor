@@ -5,6 +5,7 @@
 
 import { mountStudioDrawer, createStudioMenuButton } from '../lib/studioChrome.js';
 import { showToast } from '../lib/loading.js';
+import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { escapeHtml } from '../lib/security.js';
 import { resolveTemplate } from '../lib/showcaseTemplateResolver.js';
 import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
@@ -2700,6 +2701,27 @@ const firstChild = storyboardRoot.firstElementChild;
       if (target) openSocialPublish({ mediaUrl: target, mediaType });
     };
     actions.appendChild(publishBtn);
+
+    const mediaTarget = generationResult || resultImg.src || '';
+    if (mediaTarget && /\.(mp4|webm|mov|m4v)(\?|$)|video\//i.test(mediaTarget)) {
+      const captionBtn = document.createElement('button');
+      captionBtn.type = 'button';
+      captionBtn.textContent = '💬 Add AI Captions';
+      captionBtn.className = 'px-4 py-2 border border-white/10 bg-white/[0.04] text-white text-sm font-bold rounded-lg hover:bg-white/[0.08] transition-all';
+      captionBtn.onclick = () => {
+        addCaptionButton({
+          videoUrl: mediaTarget,
+          appTheme: 'cinema-template-studio',
+          onComplete: (captionedUrl) => {
+            resultImg.src = captionedUrl;
+            newTabBtn.href = captionedUrl;
+            downloadBtn.href = captionedUrl;
+            showToast('Preview updated with captions');
+          },
+        });
+      };
+      actions.appendChild(captionBtn);
+    }
 
     preview.appendChild(resultImg);
     preview.appendChild(actions);

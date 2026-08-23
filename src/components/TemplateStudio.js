@@ -18,6 +18,11 @@ import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateTh
 import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
+import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
+import { openRecipeModal } from '../lib/recipeIntegration.js';
+import { openMonetizationHub } from '../lib/monetizationIntegration.js';
+import { addCaptionButton } from '../lib/editor/captionActions.js';
+import { showToast } from '../lib/loading.js';
 
 export function TemplateStudio(templateId) {
   let template = getTemplateById(templateId);
@@ -595,17 +600,7 @@ let fallbackList = [];
   `;
   leftPanel.appendChild(enhancerSection);
 
-  // GTM Boost affordance (opt-in enhancement via GTMPromptModal).
-  // Uses the shared .gtm-boost-btn design (matches Image / Video studios);
-  // the .template-studio ancestor class themes it emerald via gtm-prompt-modal.css.
-  const gtmBoostBtn = document.createElement('button');
-  gtmBoostBtn.type = 'button';
-  gtmBoostBtn.textContent = '🎯 GTM Boost';
-  gtmBoostBtn.title = 'Enhance your prompt with GTM conversion frameworks';
-  gtmBoostBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
-  gtmBoostBtn.className = 'gtm-boost-btn w-full mt-4';
-  leftPanel.appendChild(gtmBoostBtn);
-
+  // GTM Boost affordance is defined in the prompt-assist toolbar below.
   // Advanced controls content
   const advancedControls = enhancerSection.querySelector('#advancedControls');
   const advancedFields = [
@@ -1417,6 +1412,26 @@ let fallbackList = [];
       if (publishBtn) {
         const mediaType = template.outputType === 'video' ? 'video' : 'image';
         publishBtn.onclick = () => openSocialPublish({ mediaUrl: url, mediaType });
+      }
+      if (template.outputType === 'video') {
+        const captionBtn = document.createElement('button');
+        captionBtn.type = 'button';
+        captionBtn.textContent = '💬 Add AI Captions';
+        captionBtn.className = 'flex-1 border border-white/10 bg-white/[0.04] text-white py-3 rounded-xl font-bold text-sm hover:bg-white/[0.08] transition';
+        captionBtn.onclick = () => {
+          addCaptionButton({
+            videoUrl: url,
+            appTheme: 'template-studio',
+            onComplete: (captionedUrl) => {
+              const vid = resultArea.querySelector('video');
+              if (vid) vid.src = captionedUrl;
+              const dl = resultArea.querySelector('a[download]');
+              if (dl) dl.href = captionedUrl;
+              showToast('Preview updated with captions');
+            },
+          });
+        };
+        resultArea.querySelector('.flex.gap-3').appendChild(captionBtn);
       }
     }, 0);
   }

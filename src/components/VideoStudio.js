@@ -21,11 +21,15 @@ import { VIDEO_QUICK_PROMPTS } from '../lib/promptUtils.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
 import { categorizeGenerationError, createAbortAwareGenerate, startGenerationProgress, showInlineError, hideInlineError } from '../lib/studioHelpers.js';
 import { showToast, createLoadingOverlay, createProgressBar } from '../lib/loading.js';
+import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import ExampleGallery from './studios/ExampleGallery.js';
 import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
+import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
+import { openRecipeModal } from '../lib/recipeIntegration.js';
+import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 
 export function VideoStudio() {
     const container = document.createElement('div');
@@ -1325,6 +1329,21 @@ generateBtn.type = 'button';
             canvasControls.classList.add('opacity-100');
         };
         publishBtn.onclick = () => { const url = resultVideo.src; if (url) openSocialPublish({ mediaUrl: url, mediaType: 'video' }); };
+        const captionBtn = document.createElement('button');
+        captionBtn.type = 'button';
+        captionBtn.textContent = '💬 Add AI Captions';
+        captionBtn.className = 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl text-xs font-bold transition-all border border-white/5 backdrop-blur-lg text-white';
+        captionBtn.onclick = () => {
+            addCaptionButton({
+                videoUrl,
+                appTheme: 'video-studio',
+                onComplete: (captionedUrl) => {
+                    resultVideo.src = captionedUrl;
+                    showToast('Preview updated with captions');
+                },
+            });
+        };
+        canvasControls.appendChild(captionBtn);
     };
 
     // --- Helper: Add to history ---

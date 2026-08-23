@@ -1,5 +1,6 @@
 
 import { showToast } from '../lib/loading.js';
+import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { muapi } from '../lib/muapi.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { createSafeImage } from '../lib/security.js';
@@ -24,6 +25,9 @@ import ExampleGallery from './studios/ExampleGallery.js';
 import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
+import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
+import { openRecipeModal } from '../lib/recipeIntegration.js';
+import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 
 // Camera movements promised by the Cinema Studio intro copy
 // ("Select camera movement … dolly, crane, orbit, FPV drone").
@@ -1075,6 +1079,25 @@ generateBtn.type = 'button';
         canvasControls.classList.add('opacity-100');
 
         publishBtn.onclick = () => { const mediaUrl = currentResultUrl; if (mediaUrl) { const isVid = /\.(mp4|webm|mov|m4v)(\?|$)|video\//i.test(mediaUrl); openSocialPublish({ mediaUrl, mediaType: isVid ? 'video' : 'image' }); } };
+        if (/\.(mp4|webm|mov|m4v)(\?|$)|video\//i.test(url)) {
+          const captionBtn = document.createElement('button');
+          captionBtn.type = 'button';
+          captionBtn.textContent = '💬 Add AI Captions';
+          captionBtn.className = 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl text-xs font-bold transition-all border border-white/5 backdrop-blur-lg text-white';
+          captionBtn.onclick = () => {
+            addCaptionButton({
+              videoUrl: url,
+              appTheme: 'cinema-studio',
+              onComplete: (captionedUrl) => {
+                currentResultUrl = captionedUrl;
+                const vid = imageContainer.querySelector('video');
+                if (vid) vid.src = captionedUrl;
+                showToast('Preview updated with captions');
+              },
+            });
+          };
+          canvasControls.appendChild(captionBtn);
+        }
     };
 
     const resetToPrompt = () => {

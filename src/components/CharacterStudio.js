@@ -16,6 +16,9 @@ import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import ExampleGallery from './studios/ExampleGallery.js';
 import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
+import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
+import { openRecipeModal } from '../lib/recipeIntegration.js';
+import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 
 const CHARACTER_MODELS = [
   { id: 'flux-pulid', name: 'Flux PuLID', description: 'Face ID preservation with text prompt', provider: 'blackforest', provider_name: 'Black Forest Labs' },
