@@ -49,6 +49,21 @@ export const PROVIDER_LOGOS = {
   openrouter: "https://cdn.muapi.ai/models/openrouter.png",
 };
 
+export const PROVIDER_LOGO_FALLBACKS = {
+  wan: [
+    "https://cdn.muapi.ai/models/wan2.1.png",
+    "https://cdn.muapi.ai/models/wan2.5.png",
+    "https://cdn.muapi.ai/models/wan2.6.png",
+  ],
+  ltx: [
+    "https://cdn.muapi.ai/models/ltx-ai.png",
+    "https://cdn.muapi.ai/models/lightricks.png",
+  ],
+  creatify: [
+    "https://cdn.muapi.ai/models/creatify-ai.png",
+  ],
+};
+
 export const invertLogos = [
   'openai',
   'blackforest',
