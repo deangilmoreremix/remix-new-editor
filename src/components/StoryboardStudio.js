@@ -8,12 +8,12 @@ import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/pe
 import { openaiService } from '../lib/openaiService.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import Store from '../stores/base/Store.js';
-import { t2iModels, getAspectRatiosForModel, getModelById } from '../lib/models.js';
+import { t2iModels, getAspectRatiosForModel, getModelById, getI2IModelById, getI2VModelById, getV2VModelById } from '../lib/models.js';
 import { showToast } from '../lib/loading.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { CINEMATIC_THEME } from '../lib/cinematicTheme.js';
 import { getVideoIntent, setVideoIntent } from '../lib/videoIntentStore.js';
-import { generateStoryboardFromIntent } from '../lib/storyboardEngine.js';
+import { generateStoryboardFromIntent, generateFrameImage as engineGenerateFrameImage, resolveOpenAISize } from '../lib/storyboardEngine.js';
 import { createAutosave, saveProject, loadProject } from '../lib/editor/persistence.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
@@ -52,6 +52,7 @@ let selectedModel = defaultModel.id;
 let selectedModelName = defaultModel.name;
 let selectedAr = defaultModel.inputs?.aspect_ratio?.default || '1:1';
 let selectedProvider = 'all';
+let customThumbnailUrl = null;
 
 // Enhancement state
 let selectedStyle = 'None';
@@ -74,19 +75,6 @@ function escapeHtml(text) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
-}
-
-function resolveOpenAISize(value) {
-  if (!value || value === 'auto') return 'auto';
-  const ratios = {
-    '16:9': '1536x1024',
-    '9:16': '1024x1536',
-    '1:1': '1024x1024',
-    '4:3': '1536x1024',
-    '3:4': '1024x1536',
-    '21:9': '2048x1152',
-  };
-  return ratios[value] || 'auto';
 }
 
 function withRetry(fn, retries = MAX_RETRIES, delay = RETRY_BASE_DELAY) {
@@ -1504,7 +1492,7 @@ const compareBtn = document.createElement('button');
     // Monetization Hub button
     const monetizationBtn = document.createElement('button');
     monetizationBtn.type = 'button';
-    monetizationBtn.textContent = "💼 Smart Video AI Monetize";
+    monetizationBtn.textContent = "💼 Monetize";
     monetizationBtn.title = "Open Smart Video AI Monetization Hub";
     monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
     monetizationBtn.className = 'btn-ghost-modern shrink-0';
@@ -1538,7 +1526,7 @@ const compareBtn = document.createElement('button');
       const resolvedPrompt = profile ? replaceTokensInPrompt(rawPrompt, profile) : rawPrompt;
 
       const prompt = `${frame.shot} cinematic storyboard frame: ${resolvedPrompt}, professional cinematography, 4K quality`;
-      const url = await generateFrameImage(prompt);
+      const url = await engineGenerateFrameImage(prompt, selectedAr, selectedModel, selectedStyle, selectedLighting, selectedColor, customThumbnailUrl);
       if (url) {
         frame.imageUrl = url;
         imageArea.innerHTML = `<img src="${url}" class="w-full h-full object-cover">`;
