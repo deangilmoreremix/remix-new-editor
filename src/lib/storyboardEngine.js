@@ -15,7 +15,7 @@ const TONE_MAP = {
   humorous: 'Humorous',
 };
 
-export function resolveOpenAISize(value) {
+export export function resolveOpenAISize(value) {
   if (!value || value === 'auto') return 'auto';
   const ratios = {
     '16:9': '1536x1024',
@@ -26,7 +26,7 @@ export function resolveOpenAISize(value) {
   return ratios[value] || 'auto';
 }
 
-export async function generateFrameImage(prompt, aspectRatio, model, style, lighting, color, customThumbnailUrl) {
+export export async function generateFrameImage(prompt, aspectRatio, model, style, lighting, color, customThumbnailUrl) {
   const cinematicPrompt = buildNanoBananaPrompt(prompt, 'Full-Frame Cine Digital', 'Classic Anamorphic', 50, 'f/1.4')
     + (style && style !== 'None' ? `, ${style.toLowerCase()} style` : '')
     + (lighting && lighting !== 'None' ? `, ${lighting.toLowerCase()} lighting` : '')
