@@ -79,6 +79,10 @@ const triggerBtn = document.createElement('button');
   const closeDropdown = () => {
     dropdown.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
     dropdown.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
+    if (_modelSelectorOutsideClickHandler) {
+      document.removeEventListener('click', _modelSelectorOutsideClickHandler);
+      _modelSelectorOutsideClickHandler = null;
+    }
   };
 
   const openDropdown = () => {
@@ -99,6 +103,16 @@ const triggerBtn = document.createElement('button');
         },
       });
     }
+    if (_modelSelectorOutsideClickHandler) {
+      document.removeEventListener('click', _modelSelectorOutsideClickHandler);
+      _modelSelectorOutsideClickHandler = null;
+    }
+    _modelSelectorOutsideClickHandler = (e) => {
+      if (!dropdown.contains(e.target) && e.target !== triggerBtn) {
+        closeDropdown();
+      }
+    };
+    document.addEventListener('click', _modelSelectorOutsideClickHandler);
   };
 
   triggerBtn.onclick = (e) => {
@@ -113,14 +127,6 @@ const triggerBtn = document.createElement('button');
   modelWrapper.appendChild(triggerBtn);
   modelWrapper.appendChild(dropdown);
   container.appendChild(modelWrapper);
-
-  setTimeout(() => {
-    document.addEventListener('click', (e) => {
-      if (!dropdown.contains(e.target) && e.target !== triggerBtn) {
-        closeDropdown();
-      }
-    });
-  }, 0);
 
   // Form card
   const formCard = document.createElement('div');

@@ -799,6 +799,10 @@ const compareBtn = document.createElement('button');
     dropdown.classList.add('opacity-0', 'pointer-events-none');
     dropdown.classList.remove('opacity-100', 'pointer-events-auto');
     selectedProvider = 'all';
+    if (_storyboardOutsideClickHandler) {
+      document.removeEventListener('click', _storyboardOutsideClickHandler);
+      _storyboardOutsideClickHandler = null;
+    }
   }
 
   function showDropdown(type, anchorBtn) {
@@ -866,6 +870,17 @@ const compareBtn = document.createElement('button');
       });
       dropdown.appendChild(list);
     }
+
+    if (_storyboardOutsideClickHandler) {
+      document.removeEventListener('click', _storyboardOutsideClickHandler);
+      _storyboardOutsideClickHandler = null;
+    }
+    _storyboardOutsideClickHandler = (e) => {
+      if (!dropdown.contains(e.target) && e.target !== modelBtn && e.target !== arBtn) {
+        closeDropdown();
+      }
+    };
+    document.addEventListener('click', _storyboardOutsideClickHandler);
   }
 
   const createControlBtn = (icon, label, id, tooltip) => {
@@ -926,11 +941,7 @@ const compareBtn = document.createElement('button');
     }
   };
 
-  document.addEventListener('click', (e) => {
-    if (!dropdown.contains(e.target) && e.target !== modelBtn && e.target !== arBtn) {
-      closeDropdown();
-    }
-  });
+  let _storyboardOutsideClickHandler = null;
 
   container.appendChild(controlBar);
 

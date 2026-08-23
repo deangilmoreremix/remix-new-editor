@@ -1207,6 +1207,10 @@ generateBtn.type = 'button';
         dropdown.classList.remove('opacity-100', 'pointer-events-auto');
         dropdownOpen = null;
         selectedProvider = 'all';
+        if (_videoStudioOutsideClickHandler) {
+            window.removeEventListener('click', _videoStudioOutsideClickHandler);
+            _videoStudioOutsideClickHandler = null;
+        }
     };
 
     const toggleDropdown = (type, btn) => (e) => {
@@ -1216,6 +1220,12 @@ generateBtn.type = 'button';
             dropdownOpen = type;
             if (type === 'model') selectedProvider = 'all';
             showDropdown(type, btn);
+            if (_videoStudioOutsideClickHandler) {
+                window.removeEventListener('click', _videoStudioOutsideClickHandler);
+                _videoStudioOutsideClickHandler = null;
+            }
+            _videoStudioOutsideClickHandler = () => closeDropdown();
+            window.addEventListener('click', _videoStudioOutsideClickHandler);
         }
     };
 
@@ -1224,8 +1234,6 @@ generateBtn.type = 'button';
     durationBtn.onclick = toggleDropdown('duration', durationBtn);
     resolutionBtn.onclick = toggleDropdown('resolution', resolutionBtn);
     qualityBtn.onclick = toggleDropdown('quality', qualityBtn);
-
-    window.addEventListener('click', closeDropdown);
     container.appendChild(dropdown);
 
     // ==========================================

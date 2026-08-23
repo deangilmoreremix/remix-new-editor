@@ -98,6 +98,10 @@ const COMMERCIAL_MODELS = [
   const closeDropdown = () => {
     dropdown.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
     dropdown.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
+    if (_modelSelectorOutsideClickHandler) {
+      document.removeEventListener('click', _modelSelectorOutsideClickHandler);
+      _modelSelectorOutsideClickHandler = null;
+    }
   };
 
   const openDropdown = () => {
@@ -116,6 +120,16 @@ const COMMERCIAL_MODELS = [
         },
       });
     }
+    if (_modelSelectorOutsideClickHandler) {
+      document.removeEventListener('click', _modelSelectorOutsideClickHandler);
+      _modelSelectorOutsideClickHandler = null;
+    }
+    _modelSelectorOutsideClickHandler = (e) => {
+      if (!dropdown.contains(e.target) && e.target !== triggerBtn) {
+        closeDropdown();
+      }
+    };
+    document.addEventListener('click', _modelSelectorOutsideClickHandler);
   };
 
   triggerBtn.onclick = (e) => {
@@ -130,14 +144,6 @@ const COMMERCIAL_MODELS = [
   modelWrapper.appendChild(triggerBtn);
   modelWrapper.appendChild(dropdown);
   formCard.appendChild(modelWrapper);
-
-  setTimeout(() => {
-    document.addEventListener('click', (e) => {
-      if (!dropdown.contains(e.target) && e.target !== triggerBtn) {
-        closeDropdown();
-      }
-    });
-  }, 0);
 
   const uploadLabel = document.createElement('label');
   uploadLabel.className = 'text-xs font-bold text-secondary uppercase tracking-wider';

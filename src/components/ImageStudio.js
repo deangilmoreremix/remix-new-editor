@@ -881,6 +881,10 @@ generateBtn.type = 'button';
         dropdown.classList.remove('opacity-100', 'pointer-events-auto');
         dropdownOpen = null;
         selectedProvider = 'all';
+        if (_imageStudioOutsideClickHandler) {
+            window.removeEventListener('click', _imageStudioOutsideClickHandler);
+            _imageStudioOutsideClickHandler = null;
+        }
     };
 
     modelBtn.onclick = (e) => {
@@ -890,6 +894,12 @@ generateBtn.type = 'button';
             dropdownOpen = 'model';
             selectedProvider = 'all';
             showDropdown('model', modelBtn);
+            if (_imageStudioOutsideClickHandler) {
+                window.removeEventListener('click', _imageStudioOutsideClickHandler);
+                _imageStudioOutsideClickHandler = null;
+            }
+            _imageStudioOutsideClickHandler = () => closeDropdown();
+            window.addEventListener('click', _imageStudioOutsideClickHandler);
         }
     };
 
@@ -899,6 +909,12 @@ generateBtn.type = 'button';
         else {
             dropdownOpen = 'ar';
             showDropdown('ar', arBtn);
+            if (_imageStudioOutsideClickHandler) {
+                window.removeEventListener('click', _imageStudioOutsideClickHandler);
+                _imageStudioOutsideClickHandler = null;
+            }
+            _imageStudioOutsideClickHandler = () => closeDropdown();
+            window.addEventListener('click', _imageStudioOutsideClickHandler);
         }
     };
 
@@ -908,10 +924,14 @@ generateBtn.type = 'button';
         else {
             dropdownOpen = 'quality';
             showDropdown('quality', qualityBtn);
+            if (_imageStudioOutsideClickHandler) {
+                window.removeEventListener('click', _imageStudioOutsideClickHandler);
+                _imageStudioOutsideClickHandler = null;
+            }
+            _imageStudioOutsideClickHandler = () => closeDropdown();
+            window.addEventListener('click', _imageStudioOutsideClickHandler);
         }
     };
-
-    window.onclick = () => closeDropdown();
     container.appendChild(dropdown);
 
     // ==========================================

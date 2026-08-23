@@ -69,6 +69,10 @@ const triggerBtn = document.createElement('button');
   const closeDropdown = () => {
     dropdown.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
     dropdown.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
+    if (_modelSelectorOutsideClickHandler) {
+      document.removeEventListener('click', _modelSelectorOutsideClickHandler);
+      _modelSelectorOutsideClickHandler = null;
+    }
   };
 
   const openDropdown = () => {
@@ -129,6 +133,16 @@ const triggerBtn = document.createElement('button');
       searchInput.onclick = (e) => e.stopPropagation();
       searchInput.oninput = () => refresh();
     }
+    if (_modelSelectorOutsideClickHandler) {
+      document.removeEventListener('click', _modelSelectorOutsideClickHandler);
+      _modelSelectorOutsideClickHandler = null;
+    }
+    _modelSelectorOutsideClickHandler = (e) => {
+      if (!dropdown.contains(e.target) && e.target !== triggerBtn) {
+        closeDropdown();
+      }
+    };
+    document.addEventListener('click', _modelSelectorOutsideClickHandler);
   };
 
   triggerBtn.onclick = (e) => {
@@ -143,14 +157,6 @@ const triggerBtn = document.createElement('button');
   modelWrapper.appendChild(triggerBtn);
   modelWrapper.appendChild(dropdown);
   container.appendChild(modelWrapper);
-
-  setTimeout(() => {
-    document.addEventListener('click', (e) => {
-      if (!dropdown.contains(e.target) && e.target !== triggerBtn) {
-        closeDropdown();
-      }
-    });
-  }, 0);
 
   // Chat container
   const chatContainer = document.createElement('div');

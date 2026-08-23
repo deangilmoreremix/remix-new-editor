@@ -471,6 +471,10 @@ export function LipSyncStudio() {
             dropdown.classList.add('hidden');
             dropdownOpen = null;
         }
+        if (_lipsyncOutsideClickHandler) {
+            window.removeEventListener('click', _lipsyncOutsideClickHandler);
+            _lipsyncOutsideClickHandler = null;
+        }
     };
 
     const populateDropdown = (type) => {
@@ -598,11 +602,17 @@ mountModelSelector(dropdown, {
             dropdown.style.maxHeight = `${Math.max(150, spaceAbove - 8)}px`;
         }
         dropdown.style.left = `${Math.min(rect.left, window.innerWidth - 220)}px`;
+
+        if (_lipsyncOutsideClickHandler) {
+            window.removeEventListener('click', _lipsyncOutsideClickHandler);
+            _lipsyncOutsideClickHandler = null;
+        }
+        _lipsyncOutsideClickHandler = (e) => closeDropdown(e);
+        window.addEventListener('click', _lipsyncOutsideClickHandler);
     };
 
     modelBtn.onclick = (e) => { e.stopPropagation(); if (dropdownOpen === 'model') { closeDropdown(); } else { openDropdown('model', modelBtn); } };
     resolutionBtn.onclick = (e) => { e.stopPropagation(); if (dropdownOpen === 'resolution') { closeDropdown(); } else { openDropdown('resolution', resolutionBtn); } };
-    window.addEventListener('click', closeDropdown);
     container.appendChild(dropdown);
 
     // ==========================================
