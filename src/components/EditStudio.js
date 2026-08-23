@@ -3,7 +3,7 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { createHeroSection } from '../lib/thumbnails.js';
+import { createHeroSection, getToolThumbnail, createThumbnailImg, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
 
@@ -304,6 +304,15 @@ export function EditStudio() {
   EDIT_TOOLS.forEach(tool => {
     const card = document.createElement('div');
     card.className = 'bg-white/[0.03] border border-white/5 rounded-xl overflow-hidden cursor-pointer hover:bg-white/[0.06] hover:border-white/10 transition-all group';
+    const thumbSrc = getToolThumbnail(tool.id);
+    if (thumbSrc) {
+      const thumbWrapper = document.createElement('div');
+      thumbWrapper.className = 'thumb-hero h-20 relative';
+      thumbWrapper.innerHTML = '<div class="thumb-skeleton absolute inset-0"></div>';
+      const img = createThumbnailImg(thumbSrc, tool.name, 'w-full h-full object-cover');
+      thumbWrapper.appendChild(img);
+      card.appendChild(thumbWrapper);
+    }
     const info = document.createElement('div');
     info.className = 'p-3';
     info.innerHTML = `
@@ -578,6 +587,10 @@ export function EditStudio() {
   const editBtn = document.createElement('button');
   editBtn.className = 'w-full bg-primary text-black py-3 rounded-xl font-black text-sm hover:shadow-glow transition-all';
   editBtn.textContent = 'Apply Edit';
+
+  // Insert prompt + controls above the action buttons
+  workCard.appendChild(promptField);
+  workCard.appendChild(controlsContainer);
   workCard.appendChild(editBtn);
 
   const progressContainer = document.createElement('div');
