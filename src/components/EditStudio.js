@@ -424,157 +424,91 @@ export function EditStudio() {
   workCard.appendChild(uploadSection);
   container.appendChild(picker.panel);
 
-  // Mask upload for ai-object-eraser
-  const maskPicker = createUploadPicker({
-    anchorContainer: container,
-    onSelect: ({ url }) => {
-      maskUrl = url;
-      maskHint.textContent = 'Mask uploaded';
-      maskHint.classList.remove('hidden');
-      maskClearBtn.classList.remove('hidden');
-    },
-    onClear: () => {
-      maskUrl = null;
-      maskHint.textContent = 'Upload mask image';
-      maskHint.classList.add('hidden');
-      maskClearBtn.classList.add('hidden');
-    },
-  });
-  const maskRow = document.createElement('div');
-  maskRow.className = 'hidden flex flex-col gap-2';
-  const maskHint = document.createElement('span');
-  maskHint.className = 'text-sm text-muted';
-  maskHint.textContent = 'Upload mask image';
-  const maskClearBtn = document.createElement('button');
-  maskClearBtn.type = 'button';
-  maskClearBtn.className = 'hidden text-xs font-bold text-red-400 hover:text-red-300 transition-colors';
-  maskClearBtn.textContent = 'Remove';
-  maskClearBtn.onclick = (e) => {
-    e.stopPropagation();
-    maskPicker.reset();
-    maskUrl = null;
-    maskHint.textContent = 'Upload mask image';
-    maskHint.classList.add('hidden');
-    maskClearBtn.classList.add('hidden');
-  };
-  maskRow.appendChild(maskPicker.trigger);
-  maskRow.appendChild(maskHint);
-  maskRow.appendChild(maskClearBtn);
-  container.appendChild(maskPicker.panel);
+  function createSecondaryUploadRow({ picker, hintText, onSelect, onClear, previewClass = 'h-16' }) {
+    const row = document.createElement('div');
+    row.className = 'hidden flex flex-col gap-2';
+    const hint = document.createElement('span');
+    hint.className = 'text-sm text-muted';
+    hint.textContent = hintText;
+    const preview = document.createElement('img');
+    preview.className = `hidden w-full ${previewClass} object-cover rounded-xl border border-white/10`;
+    const clearBtn = document.createElement('button');
+    clearBtn.type = 'button';
+    clearBtn.className = 'hidden text-xs font-bold text-red-400 hover:text-red-300 transition-colors';
+    clearBtn.textContent = 'Remove';
+    clearBtn.onclick = (e) => {
+      e.stopPropagation();
+      picker.reset();
+      preview.classList.add('hidden');
+      preview.src = '';
+      hint.textContent = hintText;
+      hint.classList.add('hidden');
+      clearBtn.classList.add('hidden');
+      if (onClear) onClear();
+    };
+    const updatedPicker = createUploadPicker({
+      anchorContainer: container,
+      onSelect: ({ url }) => {
+        preview.src = url;
+        preview.classList.remove('hidden');
+        hint.textContent = 'Uploaded';
+        hint.classList.remove('hidden');
+        clearBtn.classList.remove('hidden');
+        if (onSelect) onSelect({ url });
+      },
+      onClear: () => {
+        preview.classList.add('hidden');
+        preview.src = '';
+        hint.textContent = hintText;
+        hint.classList.add('hidden');
+        clearBtn.classList.add('hidden');
+        if (onClear) onClear();
+      },
+    });
+    row.appendChild(updatedPicker.trigger);
+    row.appendChild(preview);
+    row.appendChild(hint);
+    row.appendChild(clearBtn);
+    container.appendChild(updatedPicker.panel);
+    row._reset = () => {
+      preview.classList.add('hidden');
+      preview.src = '';
+      hint.textContent = hintText;
+      hint.classList.add('hidden');
+      clearBtn.classList.add('hidden');
+      picker.reset();
+      if (onClear) onClear();
+    };
+    return row;
+  }
 
-  // Garment upload for ai-dress-change
-  const garmentPicker = createUploadPicker({
-    anchorContainer: container,
-    onSelect: ({ url }) => {
-      garmentUrl = url;
-      garmentHint.textContent = 'Garment uploaded';
-      garmentHint.classList.remove('hidden');
-      garmentClearBtn.classList.remove('hidden');
-    },
-    onClear: () => {
-      garmentUrl = null;
-      garmentHint.textContent = 'Upload garment image';
-      garmentHint.classList.add('hidden');
-      garmentClearBtn.classList.add('hidden');
-    },
+  const maskRow = createSecondaryUploadRow({
+    picker: maskPicker,
+    hintText: 'Upload mask image',
+    onSelect: ({ url }) => { maskUrl = url; },
+    onClear: () => { maskUrl = null; },
   });
-  const garmentRow = document.createElement('div');
-  garmentRow.className = 'hidden flex flex-col gap-2';
-  const garmentHint = document.createElement('span');
-  garmentHint.className = 'text-sm text-muted';
-  garmentHint.textContent = 'Upload garment image';
-  const garmentClearBtn = document.createElement('button');
-  garmentClearBtn.type = 'button';
-  garmentClearBtn.className = 'hidden text-xs font-bold text-red-400 hover:text-red-300 transition-colors';
-  garmentClearBtn.textContent = 'Remove';
-  garmentClearBtn.onclick = (e) => {
-    e.stopPropagation();
-    garmentPicker.reset();
-    garmentUrl = null;
-    garmentHint.textContent = 'Upload garment image';
-    garmentHint.classList.add('hidden');
-    garmentClearBtn.classList.add('hidden');
-  };
-  garmentRow.appendChild(garmentPicker.trigger);
-  garmentRow.appendChild(garmentHint);
-  garmentRow.appendChild(garmentClearBtn);
-  container.appendChild(garmentPicker.panel);
 
-  // Swap image upload for ai-image-face-swap
-  const swapPicker = createUploadPicker({
-    anchorContainer: container,
-    onSelect: ({ url }) => {
-      swapUrl = url;
-      swapHint.textContent = 'Swap image uploaded';
-      swapHint.classList.remove('hidden');
-      swapClearBtn.classList.remove('hidden');
-    },
-    onClear: () => {
-      swapUrl = null;
-      swapHint.textContent = 'Upload swap face image';
-      swapHint.classList.add('hidden');
-      swapClearBtn.classList.add('hidden');
-    },
+  const garmentRow = createSecondaryUploadRow({
+    picker: garmentPicker,
+    hintText: 'Upload garment image',
+    onSelect: ({ url }) => { garmentUrl = url; },
+    onClear: () => { garmentUrl = null; },
   });
-  const swapRow = document.createElement('div');
-  swapRow.className = 'hidden flex flex-col gap-2';
-  const swapHint = document.createElement('span');
-  swapHint.className = 'text-sm text-muted';
-  swapHint.textContent = 'Upload swap face image';
-  const swapClearBtn = document.createElement('button');
-  swapClearBtn.type = 'button';
-  swapClearBtn.className = 'hidden text-xs font-bold text-red-400 hover:text-red-300 transition-colors';
-  swapClearBtn.textContent = 'Remove';
-  swapClearBtn.onclick = (e) => {
-    e.stopPropagation();
-    swapPicker.reset();
-    swapUrl = null;
-    swapHint.textContent = 'Upload swap face image';
-    swapHint.classList.add('hidden');
-    swapClearBtn.classList.add('hidden');
-  };
-  swapRow.appendChild(swapPicker.trigger);
-  swapRow.appendChild(swapHint);
-  swapRow.appendChild(swapClearBtn);
-  container.appendChild(swapPicker.panel);
 
-  // Watermark image upload for add-image-watermark
-  const watermarkImagePicker = createUploadPicker({
-    anchorContainer: container,
-    onSelect: ({ url }) => {
-      watermarkImageUrl = url;
-      watermarkImageHint.textContent = 'Watermark image uploaded';
-      watermarkImageHint.classList.remove('hidden');
-      watermarkImageClearBtn.classList.remove('hidden');
-    },
-    onClear: () => {
-      watermarkImageUrl = null;
-      watermarkImageHint.textContent = 'Upload watermark image';
-      watermarkImageHint.classList.add('hidden');
-      watermarkImageClearBtn.classList.add('hidden');
-    },
+  const swapRow = createSecondaryUploadRow({
+    picker: swapPicker,
+    hintText: 'Upload swap face image',
+    onSelect: ({ url }) => { swapUrl = url; },
+    onClear: () => { swapUrl = null; },
   });
-  const watermarkImageRow = document.createElement('div');
-  watermarkImageRow.className = 'hidden flex flex-col gap-2';
-  const watermarkImageHint = document.createElement('span');
-  watermarkImageHint.className = 'text-sm text-muted';
-  watermarkImageHint.textContent = 'Upload watermark image';
-  const watermarkImageClearBtn = document.createElement('button');
-  watermarkImageClearBtn.type = 'button';
-  watermarkImageClearBtn.className = 'hidden text-xs font-bold text-red-400 hover:text-red-300 transition-colors';
-  watermarkImageClearBtn.textContent = 'Remove';
-  watermarkImageClearBtn.onclick = (e) => {
-    e.stopPropagation();
-    watermarkImagePicker.reset();
-    watermarkImageUrl = null;
-    watermarkImageHint.textContent = 'Upload watermark image';
-    watermarkImageHint.classList.add('hidden');
-    watermarkImageClearBtn.classList.add('hidden');
-  };
-  watermarkImageRow.appendChild(watermarkImagePicker.trigger);
-  watermarkImageRow.appendChild(watermarkImageHint);
-  watermarkImageRow.appendChild(watermarkImageClearBtn);
-  container.appendChild(watermarkImagePicker.panel);
+
+  const watermarkImageRow = createSecondaryUploadRow({
+    picker: watermarkImagePicker,
+    hintText: 'Upload watermark image',
+    onSelect: ({ url }) => { watermarkImageUrl = url; },
+    onClear: () => { watermarkImageUrl = null; },
+  });
 
   const promptField = document.createElement('input');
   promptField.type = 'text';
@@ -583,6 +517,77 @@ export function EditStudio() {
 
   const controlsContainer = document.createElement('div');
   controlsContainer.className = 'w-full flex flex-col gap-3';
+
+  // Result area with before/after comparison
+  const resultArea = document.createElement('div');
+  resultArea.className = 'hidden mt-4';
+  const resultToggle = document.createElement('div');
+  resultToggle.className = 'flex items-center justify-between mb-2';
+  const resultLabel = document.createElement('span');
+  resultLabel.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
+  resultLabel.textContent = 'Result';
+  const resultViewToggle = document.createElement('div');
+  resultViewToggle.className = 'flex gap-1 bg-white/5 rounded-lg p-0.5';
+  const btnAfter = document.createElement('button');
+  btnAfter.type = 'button';
+  btnAfter.className = 'text-[10px] font-bold text-black bg-primary rounded-md px-2 py-1';
+  btnAfter.textContent = 'After';
+  const btnBefore = document.createElement('button');
+  btnBefore.type = 'button';
+  btnBefore.className = 'text-[10px] font-bold text-white hover:text-primary rounded-md px-2 py-1';
+  btnBefore.textContent = 'Before';
+  resultViewToggle.appendChild(btnBefore);
+  resultViewToggle.appendChild(btnAfter);
+  resultToggle.appendChild(resultLabel);
+  resultToggle.appendChild(resultViewToggle);
+
+  const resultContent = document.createElement('div');
+  resultContent.className = 'relative';
+  const resultImg = document.createElement('img');
+  resultImg.className = 'w-full rounded-xl mb-3 border border-white/10';
+  resultImg.alt = 'Result';
+  const originalImg = document.createElement('img');
+  originalImg.className = 'w-full rounded-xl mb-3 border border-white/10 hidden';
+  originalImg.alt = 'Original';
+  resultContent.appendChild(originalImg);
+  resultContent.appendChild(resultImg);
+
+  const resultActions = document.createElement('div');
+  resultActions.className = 'flex gap-3';
+  const downloadBtn = document.createElement('a');
+  downloadBtn.className = 'flex-1 bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all';
+  downloadBtn.textContent = 'Download';
+  const regenBtn = document.createElement('button');
+  regenBtn.type = 'button';
+  regenBtn.className = 'flex-1 bg-white/10 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-white/20 transition-all';
+  regenBtn.textContent = 'Generate Again';
+
+  resultActions.appendChild(downloadBtn);
+  resultActions.appendChild(regenBtn);
+  resultArea.appendChild(resultToggle);
+  resultArea.appendChild(resultContent);
+  resultArea.appendChild(resultActions);
+  workCard.appendChild(resultArea);
+
+  let showBefore = false;
+  btnBefore.onclick = () => {
+    showBefore = true;
+    btnBefore.classList.add('text-black', 'bg-primary');
+    btnBefore.classList.remove('text-white');
+    btnAfter.classList.remove('text-black', 'bg-primary');
+    btnAfter.classList.add('text-white');
+    originalImg.classList.remove('hidden');
+    resultImg.classList.add('hidden');
+  };
+  btnAfter.onclick = () => {
+    showBefore = false;
+    btnAfter.classList.add('text-black', 'bg-primary');
+    btnAfter.classList.remove('text-white');
+    btnBefore.classList.remove('text-black', 'bg-primary');
+    btnBefore.classList.add('text-white');
+    resultImg.classList.remove('hidden');
+    originalImg.classList.add('hidden');
+  };
 
   const editBtn = document.createElement('button');
   editBtn.className = 'w-full bg-primary text-black py-3 rounded-xl font-black text-sm hover:shadow-glow transition-all';
@@ -612,10 +617,6 @@ export function EditStudio() {
   cancelBtn.textContent = 'Cancel';
   workCard.appendChild(cancelBtn);
 
-  const resultArea = document.createElement('div');
-  resultArea.className = 'hidden mt-4';
-  workCard.appendChild(resultArea);
-
   workArea.appendChild(workCard);
   container.appendChild(workArea);
 
@@ -633,8 +634,24 @@ export function EditStudio() {
   }
 
   function showError(message) {
+    resultContent.innerHTML = `<div class="text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-xl p-3">${message}</div>`;
     resultArea.classList.remove('hidden');
-    resultArea.innerHTML = `<div class="text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-xl p-3">${message}</div>`;
+    resultLabel.textContent = 'Error';
+  }
+
+  function renderResult(resultUrl) {
+    resultArea.classList.remove('hidden');
+    resultLabel.textContent = 'Result';
+    resultImg.src = resultUrl;
+    originalImg.src = uploadedUrl || '';
+    showBefore = false;
+    btnAfter.classList.add('text-black', 'bg-primary');
+    btnAfter.classList.remove('text-white');
+    btnBefore.classList.remove('text-black', 'bg-primary');
+    btnBefore.classList.add('text-white');
+    resultImg.classList.remove('hidden');
+    originalImg.classList.add('hidden');
+    downloadBtn.href = resultUrl;
   }
 
   function renderControls(tool) {
@@ -690,21 +707,13 @@ export function EditStudio() {
     uploadHint.textContent = 'Upload source image or video';
     clearBtn.classList.add('hidden');
     maskRow.classList.add('hidden');
-    maskHint.textContent = 'Upload mask image';
-    maskHint.classList.add('hidden');
-    maskClearBtn.classList.add('hidden');
+    if (maskRow._reset) maskRow._reset();
     garmentRow.classList.add('hidden');
-    garmentHint.textContent = 'Upload garment image';
-    garmentHint.classList.add('hidden');
-    garmentClearBtn.classList.add('hidden');
+    if (garmentRow._reset) garmentRow._reset();
     swapRow.classList.add('hidden');
-    swapHint.textContent = 'Upload swap face image';
-    swapHint.classList.add('hidden');
-    swapClearBtn.classList.add('hidden');
+    if (swapRow._reset) swapRow._reset();
     watermarkImageRow.classList.add('hidden');
-    watermarkImageHint.textContent = 'Upload watermark image';
-    watermarkImageHint.classList.add('hidden');
-    watermarkImageClearBtn.classList.add('hidden');
+    if (watermarkImageRow._reset) watermarkImageRow._reset();
 
     if (tool.isDynamic && tool.schema) {
       dynamicSchema = tool.schema;
@@ -903,19 +912,7 @@ export function EditStudio() {
       updateProgress(null);
 
       if (result?.url) {
-        resultArea.classList.remove('hidden');
-        resultArea.innerHTML = `
-          <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4 animate-fade-in-up">
-            <div class="relative group">
-              <img src="${result.url}" class="w-full rounded-xl mb-3 border border-white/10" alt="Result">
-            </div>
-            <div class="flex gap-3">
-              <a href="${result.url}" download class="flex-1 bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
-              <button type="button" class="flex-1 bg-white/10 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-white/20 transition-all regen-btn">Generate Again</button>
-            </div>
-          </div>
-        `;
-        resultArea.querySelector('.regen-btn').onclick = () => editBtn.click();
+        renderResult(result.url);
       } else {
         showError('Edit completed, but no result image was returned. Please try again.');
       }
