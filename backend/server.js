@@ -19,6 +19,8 @@ import storyboardService from './services/storyboardService.js';
 import pexelsProxyService from './services/pexelsProxyService.js';
 import templateService from './services/templateService.js';
 import { auth, optionalAuth } from './middleware/auth.js';
+import chatRouter from './routes/chat.js';
+import setupChatWebSocket from './websocket/chat.js';
 
  const app = express();
  const server = http.createServer(app);
@@ -80,6 +82,8 @@ app.post('/api/analytics', (req, res) => {
   res.json({ ok: true, received: events.length });
 });
 
+app.use('/api/chat', chatRouter);
+
 // MCP WebSocket Server
 const wss = new WebSocketServer({ server, path: '/mcp' });
 
@@ -134,6 +138,8 @@ wss.on('connection', (ws, req) => {
     console.error('MCP WebSocket error:', error);
   });
 });
+
+setupChatWebSocket(server);
 
 async function handleMCPCommand(data) {
   switch (data.action) {
