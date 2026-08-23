@@ -13,6 +13,7 @@ import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizePopover, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { navigate } from '../lib/router.js';
+import { consumeStudioPrefill } from '../lib/studioPrefill.js';
 import { saveGeneratedAsset } from '../lib/assets/assetActions.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
@@ -475,10 +476,23 @@ export function VideoStudio() {
         textarea.style.height = Math.min(textarea.scrollHeight, maxHeight) + 'px';
     };
 
-    const videoPrefill = localStorage.getItem('prefill_prompt');
+    let videoPrefill = '';
+    try {
+        const raw = localStorage.getItem('prefill_prompt');
+        if (raw) {
+            localStorage.removeItem('prefill_prompt');
+            videoPrefill = raw;
+        }
+    } catch { /* ignore */ }
+    if (!videoPrefill) {
+        const staged = consumeStudioPrefill('video');
+        if (staged) {
+            if (staged.model) selectedModel = staged.model;
+            videoPrefill = staged.prompt || '';
+        }
+    }
     if (videoPrefill) {
         textarea.value = videoPrefill;
-        localStorage.removeItem('prefill_prompt');
         requestAnimationFrame(() => {
             textarea.style.height = 'auto';
             const maxHeight = window.innerWidth < 768 ? 150 : 250;
@@ -758,6 +772,32 @@ generateBtn.type = 'button';
     const inlineInstructions = createInlineInstructions('video');
     inlineInstructions.classList.add('mt-8');
     container.appendChild(inlineInstructions);
+
+    // MiniMax H3 example styles — clickable footer rail. Each card opens a
+    // detail modal (full player + extracted style params + tweakable prompt)
+    // and "Create This Style" opens the mapped studio pre-filled.
+    //
+    // Note: the previous mount filtered on `__route === 'video'`, but every
+    // demo category is mapped in CATEGORY_ROUTES, so 'video' (the fallback
+    // route) matched nothing and the rail always rendered empty. It now shows
+    // the first 12 demos with their resolved studio targets.
+    import('./demos/DemoRail.jsx').then(({ createDemoRail }) => {
+        return import('../data/minimax/presets.js').then(({ minimaxPresets }) => {
+            const items = minimaxPresets.filter((p) => p.targetStudio === 'VideoStudio');
+            if (!items.length) return;
+            const rail = createDemoRail({
+                items,
+                source: 'minimax',
+                variant: 'rail',
+                title: 'MiniMax H3 Example Styles',
+                subtitle: 'Click any clip for details, or create in this style',
+                className: 'mt-10 max-w-6xl mx-auto',
+            });
+            container.appendChild(rail);
+        });
+    }).catch((e) => {
+        console.error('[VideoStudio] demo rail failed', e);
+    });
 
     // ==========================================
     // ADVANCED OPTIONS PANEL

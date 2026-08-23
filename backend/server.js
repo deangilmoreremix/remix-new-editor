@@ -17,6 +17,7 @@ import videoDbProxyService from './services/videoDbProxyService.js';
 import gtmBoostService from './services/gtmBoostService.js';
 import storyboardService from './services/storyboardService.js';
 import pexelsProxyService from './services/pexelsProxyService.js';
+import templateService from './services/templateService.js';
 import { auth, optionalAuth } from './middleware/auth.js';
 
  const app = express();
@@ -56,6 +57,7 @@ app.use('/api/agents', agentActionsLimiter, optionalAuth, agentActionsService);
 app.use('/api/model-catalog', optionalAuth, modelCatalogService);
 app.use('/api/videodb', videodbProxyLimiter, optionalAuth, videoDbProxyService);
 app.use('/api/pexels', pexelsSearchLimiter, optionalAuth, pexelsProxyService);
+app.use('/api/templates', optionalAuth, templateService);
 app.use('/api/gtm-boost', optionalAuth, gtmBoostService);
 app.use('/api/storyboard', storyboardService);
 app.use('/videoagent', videoAgentLimiter, optionalAuth, videoAgentService);

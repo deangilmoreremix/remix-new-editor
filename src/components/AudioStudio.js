@@ -6,17 +6,39 @@ import { AuthModal } from './AuthModal.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
+import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { mountModelSelector } from '../lib/modelSelectorUI.js';
 import { showToast } from '../lib/loading.js';
-import { formatErrorMessage } from '../lib/errorMessages.js';
-import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
-import ExampleGallery from './studios/ExampleGallery.js';
-import { openSocialPublish } from '../lib/socialPublishHelpers.js';
-import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
-import { openRecipeModal } from '../lib/recipeIntegration.js';
-import { openMonetizationHub } from '../lib/monetizationIntegration.js';
+
+export function formatErrorMessage(err, fallback = 'Generation failed') {
+  if (!err) return fallback;
+  let message = typeof err === 'string' ? err : (err.message || fallback);
+
+  if (message.includes('{') && message.includes('}')) {
+    try {
+      const jsonStart = message.indexOf('{');
+      const jsonStr = message.slice(jsonStart);
+      const data = JSON.parse(jsonStr);
+      if (data.detail && typeof data.detail === 'string') return data.detail;
+      if (data.error?.message && typeof data.error.message === 'string') return data.error.message;
+      if (data.message && typeof data.message === 'string') return data.message;
+    } catch { /* ignore JSON parse error */ }
+  }
+
+  if (message.includes('402') || message.includes('INSUFFICIENT_CREDITS') || message.toLowerCase().includes('insufficient credits')) {
+    return 'Insufficient credits. Please top up your wallet.';
+  }
+  if (message.includes('401') || message.includes('403')) {
+    return 'Authentication failed. Please check your account session or API key.';
+  }
+  if (message.includes('429')) {
+    return 'Too many requests. Please wait a moment and try again.';
+  }
+
+  message = message.replace(/^API Request Failed: \d+ [^-]+ - /, '');
+  return message.length > 150 ? message.slice(0, 147) + '...' : message;
+}
 
 function scopedPersistKey(baseKey, apiKey) {
   if (!apiKey) return baseKey;
@@ -134,7 +156,7 @@ function createAudioFileUploader(label, value, onChange, apiKey) {
         </div>
         <div class="text-left">
           <div class="text-xs font-bold text-white">Upload audio track</div>
-          <div class="text-[11px] text-zinc-300 font-medium mt-0.5">MP3, WAV, M4A up to 10MB</div>
+          <div class="text-[11px] text-zinc-300 font-medium mt-0.5">MP3, WAV, M4A up to 20MB</div>
         </div>
       `;
       dropZone.onclick = () => fileInput.click();
@@ -174,8 +196,8 @@ function createAudioFileUploader(label, value, onChange, apiKey) {
   fileInput.addEventListener('change', async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 10 * 1024 * 1024) {
-      showToast('Audio file exceeds 10MB limit.', 'error');
+    if (file.size > 20 * 1024 * 1024) {
+      showToast('Audio file exceeds 20MB limit.', 'error');
       fileInput.value = '';
       return;
     }
@@ -544,7 +566,7 @@ export function AudioStudio() {
   mountStudioChrome(container, { currentRoute: 'audio' });
 
   let selectedModel = audioModels[0];
-let selectedModelId = selectedModel.id;
+  let selectedModelId = selectedModel.id;
   let prompt = '';
   let style = '';
   let duration = '30';
@@ -627,11 +649,14 @@ let selectedModelId = selectedModel.id;
   modelWrapper.style.animationDelay = '0.1s';
   container.appendChild(modelWrapper);
 
-let modelSelectorEl = null;
+  let modelSelectorEl = null;
   let selectedProvider = 'all';
   let searchQuery = '';
 
   const refreshModelSelector = () => {
+    if (modelSelectorEl) {
+      modelSelectorEl.remove();
+    }
     modelSelectorEl = mountModelSelector(modelWrapper, {
       models: audioModels,
       selectedModelId: selectedModel.id,
@@ -679,10 +704,10 @@ let modelSelectorEl = null;
   promptGroup.appendChild(promptInput);
   const gtmBtn = document.createElement('button');
   gtmBtn.type = 'button';
-  gtmBtn.textContent = '🎯 GTM Boost';
+  gtmBtn.textContent = 'GTM Boost';
   gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
-  gtmBtn.setAttribute('aria-label', '🎯 GTM Boost prompt enhancer');
-  gtmBtn.className = 'gtm-boost-btn';
+  gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
+  gtmBtn.className = 'gtm-boost-btn shrink-0';
   gtmBtn.addEventListener('click', () => {
     import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
       openGTMPromptModal('audio-studio', (p) => {
@@ -738,7 +763,7 @@ let modelSelectorEl = null;
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = d === duration
-      ? 'px-4 py-2 rounded-lg text-xs font-bold btn-secondary-modern'
+      ? 'px-4 py-2 rounded-lg text-xs font-bold bg-primary text-black'
       : 'px-4 py-2 rounded-lg text-xs font-bold bg-white/5 text-secondary hover:bg-white/10';
     btn.textContent = `${d}s`;
     btn.onclick = () => {
@@ -749,30 +774,7 @@ let modelSelectorEl = null;
     durationRow.appendChild(btn);
   });
   durationGroup.appendChild(durationRow);
-   formCard.appendChild(durationGroup);
-
-   // Native audio toggle
-   const nativeAudioRow = document.createElement('div');
-   nativeAudioRow.className = 'flex items-center justify-between';
-   nativeAudioRow.innerHTML = `
-     <label class="text-xs font-bold text-secondary uppercase tracking-wider">Native Audio</label>
-     <button id="a-native-audio-btn" class="relative h-7 w-12 rounded-full transition bg-white/10 border border-white/10" data-native-audio="false">
-       <span class="absolute top-1 h-5 w-5 rounded-full bg-white transition left-1" id="a-native-audio-knob"></span>
-     </button>
-   `;
-   formCard.appendChild(nativeAudioRow);
-
-   const nativeAudioBtn = nativeAudioRow.querySelector('#a-native-audio-btn');
-   const nativeAudioKnob = nativeAudioRow.querySelector('#a-native-audio-knob');
-   if (nativeAudioBtn && nativeAudioKnob) {
-     nativeAudioBtn.onclick = () => {
-       nativeAudio = !nativeAudio;
-       nativeAudioBtn.setAttribute('data-native-audio', String(nativeAudio));
-       nativeAudioBtn.style.background = nativeAudio ? 'var(--cyan)' : '';
-       nativeAudioBtn.style.borderColor = nativeAudio ? 'var(--cyan)' : '';
-       nativeAudioKnob.style.left = nativeAudio ? 'calc(100% - 22px)' : '4px';
-     };
-   }
+  formCard.appendChild(durationGroup);
 
   // Voice selector (for TTS models)
   const voiceGroup = document.createElement('div');
@@ -893,11 +895,10 @@ let modelSelectorEl = null;
   thumbBtn.type = 'button';
   thumbBtn.textContent = 'Thumbnail';
   thumbBtn.title = 'Generate a custom thumbnail';
-  thumbBtn.className = 'btn-ghost-modern w-full';
+  thumbBtn.className = 'gtm-boost-btn w-full';
   thumbBtn.addEventListener('click', () => {
-    const modal = new TemplateThumbnailModal({
+    const modal = new StudioThumbnailModal({
       appTheme: 'audio-studio',
-      layout: 'panel',
       studioId: 'audio-studio',
       studioName: 'Audio Studio',
       aspectRatio: '16:9',
@@ -911,15 +912,15 @@ let modelSelectorEl = null;
         clearCustomThumbnailCache('audio-studio');
       },
     });
-    mountThumbnailModal(modal);
+    mountStudioThumbnailModal(modal);
     modal.open();
   });
   formCard.appendChild(thumbBtn);
 
   // Generate button
   const genBtn = document.createElement('button');
-genBtn.type = 'button';
-  genBtn.className = 'btn-primary-modern w-full px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all';
+  genBtn.type = 'button';
+  genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all';
   genBtn.textContent = 'Generate Audio';
   genBtn.setAttribute('aria-label', 'Generate audio');
   formCard.appendChild(genBtn);
@@ -963,7 +964,7 @@ genBtn.type = 'button';
         <span id="fade-status" class="text-[10px] text-muted"></span>
       </div>
       <div class="flex items-center gap-2">
-        <button id="apply-edits-btn" class="px-4 py-2 btn-secondary-modern rounded-xl text-xs font-bold hover:shadow-glow transition-all">Apply Edits</button>
+        <button id="apply-edits-btn" class="px-4 py-2 bg-primary text-black rounded-xl text-xs font-bold hover:shadow-glow transition-all">Apply Edits</button>
         <button id="reset-edits-btn" class="px-4 py-2 bg-white/5 border border-white/10 text-white rounded-xl text-xs font-bold hover:bg-white/10 transition-all">Reset</button>
       </div>
     </div>
@@ -996,64 +997,12 @@ genBtn.type = 'button';
     loadingOverlay.classList.remove('flex');
   }
 
-
-    // Prompt Gallery button
-    const promptGalleryBtn = document.createElement('button');
-    promptGalleryBtn.type = 'button';
-    promptGalleryBtn.textContent = '📚 Prompts';
-    promptGalleryBtn.title = 'Browse prompt gallery';
-    promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
-    promptGalleryBtn.className = 'btn-ghost-modern';
-    promptGalleryBtn.addEventListener('click', () => {
-      openPromptGallery({
-        appTheme: 'audio-studio',
-        onSelect: (prompt) => {
-          // Default: try to find a textarea in the studio
-          const ta = document.querySelector('textarea') || document.querySelector('[data-prompt]');
-          if (ta) {
-            ta.value = prompt;
-            ta.dispatchEvent(new Event('input', { bubbles: true }));
-            ta.focus();
-          }
-        }
-      }).catch((err) => console.error('[PromptGallery] open failed:', err));
-    });
-
-    // Recipe Engine button
-    const recipeBtn = document.createElement('button');
-    recipeBtn.type = 'button';
-    recipeBtn.textContent = '📋 Recipes';
-    recipeBtn.title = 'Browse AI recipes';
-    recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-    recipeBtn.className = 'btn-ghost-modern';
-    recipeBtn.addEventListener('click', () => {
-      openRecipeModal({
-        onRunRecipe: (url) => {
-          // Recipe completed; result URL is handled by the modal
-        }
-      }).catch((err) => console.error('[Recipe] open failed:', err));
-    });
-
-
-    // Monetization Hub button
-    const monetizationBtn = document.createElement('button');
-    monetizationBtn.type = 'button';
-    monetizationBtn.textContent = '💼 Monetize';
-    monetizationBtn.title = "Open Smart Video AI Monetization Hub";
-    monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-    monetizationBtn.className = 'btn-ghost-modern';
-    monetizationBtn.addEventListener('click', () => {
-      openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
-    });
-    promptGroup.appendChild(recipeBtn);
-    promptGroup.appendChild(monetizationBtn);
-
   function updateDurationBtns() {
     const durationRow = durationGroup.querySelector('.flex.gap-2');
     Array.from(durationRow.children).forEach((btn, i) => {
       const d = ['15', '30', '60', '120'][i];
       btn.className = d === duration
-        ? 'px-4 py-2 rounded-lg text-xs font-bold btn-secondary-modern'
+        ? 'px-4 py-2 rounded-lg text-xs font-bold bg-primary text-black'
         : 'px-4 py-2 rounded-lg text-xs font-bold bg-white/5 text-secondary hover:bg-white/10';
     });
   }
@@ -1066,7 +1015,7 @@ genBtn.type = 'button';
     const supportsStyles = selectedModel.supportsStyles || modelType === 'music';
     styleGroup.classList.toggle('hidden', !supportsStyles);
 
-const supportsVoice = modelType === 'tts';
+    const supportsVoice = modelType === 'tts';
     voiceGroup.classList.toggle('hidden', !supportsVoice);
 
     const supportsSpeedPitch = modelType === 'tts';
@@ -1082,25 +1031,6 @@ const supportsVoice = modelType === 'tts';
       schemaParams = typeof updater === 'function' ? updater(schemaParams) : updater;
       schedulePersist();
     }, schemaControlsContainer, apiKey);
-
-    // Voice-clone and music-extend/remix models take a reference audio file, but
-    // none declare an `audio` schema field, so renderSchemaControls above never
-    // mounts an uploader for them. Mount one explicitly and store the resulting
-    // URL as `audio_url` — the generate handler spreads `schemaParams` straight
-    // into muapi.generateAudio/generateMusic, both of which forward `audio_url`
-    // to muapi.ai. See muapi.js (generateAudio/generateMusic).
-    if (selectedModel && (selectedModel.requiresAudio || selectedModel.hasAudio)) {
-      const uploader = createAudioFileUploader(
-        selectedModel.requiresAudio ? 'Reference audio' : (selectedModel.hasAudio ? 'Reference audio' : 'Reference track'),
-        schemaParams.audio_url || '',
-        (url) => {
-          schemaParams = { ...schemaParams, audio_url: url };
-          schedulePersist();
-        },
-        apiKey
-      );
-      schemaControlsContainer.appendChild(uploader);
-    }
   }
 
   function cleanupResult() {
@@ -1123,8 +1053,7 @@ const supportsVoice = modelType === 'tts';
           <span id="waveform-time" class="text-xs font-bold text-secondary tabular-nums">0:00 / 0:00</span>
         </div>
         <audio id="waveform-audio" class="hidden" src="${url}" type="audio/mpeg"></audio>
-        <a href="${url}" download class="block w-full btn-secondary-modern py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download Audio</a>
-      <button type="button" class="publish-social-btn block w-full mt-2 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
+        <a href="${url}" download class="block w-full bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download Audio</a>
       </div>
       <div id="audio-editor-controls" class="mt-4 bg-[#111]/80 border border-white/10 rounded-2xl p-4 flex flex-col gap-4">
         <div class="text-xs font-bold text-secondary uppercase tracking-wider">Audio Editor</div>
@@ -1147,14 +1076,11 @@ const supportsVoice = modelType === 'tts';
           <span id="fade-status" class="text-[10px] text-muted"></span>
         </div>
         <div class="flex items-center gap-2">
-        <button id="apply-edits-btn" class="btn-secondary-modern px-4 py-2 rounded-xl text-xs font-bold transition-all">Apply Edits</button>
+          <button id="apply-edits-btn" class="px-4 py-2 bg-primary text-black rounded-xl text-xs font-bold hover:shadow-glow transition-all">Apply Edits</button>
           <button id="reset-edits-btn" class="px-4 py-2 bg-white/5 border border-white/10 text-white rounded-xl text-xs font-bold hover:bg-white/10 transition-all">Reset</button>
         </div>
       </div>
     `;
-
-    const publishBtn = resultArea.querySelector('.publish-social-btn');
-    if (publishBtn) publishBtn.onclick = () => openSocialPublish({ mediaUrl: url, mediaType: 'audio' });
 
     try {
       const WaveSurfer = (await import('wavesurfer.js')).default;
@@ -1355,7 +1281,7 @@ const supportsVoice = modelType === 'tts';
     cleanupResult();
 
     try {
-const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
+      const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
       const processedPrompt = replaceTokensInPrompt(prompt, activeProfile);
       let result;
       const modelType = selectedModel.type;
@@ -1424,11 +1350,27 @@ const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('rem
 
   renderHistoryGrid();
 
-  const galleryAssets = getAssetsForStudio('audio');
-  if (galleryAssets.length > 0) {
-    const gallery = ExampleGallery({ studioId: 'audio', assets: galleryAssets, maxCards: 28 });
-    container.appendChild(gallery);
-  }
+  // MiniMax H3 example styles — demos that align with this studio, shown as
+  // examples at the bottom of the controls. Each card opens a detail modal;
+  // "Create This Style" opens this studio pre-filled with the selected style.
+  Promise.all([
+    import('./demos/DemoRail.jsx'),
+    import('../data/minimax/presets.js'),
+  ]).then(([{ createDemoRail }, { minimaxPresets }]) => {
+    const items = minimaxPresets.filter((p) => p.targetStudio === 'AudioStudio');
+    if (!items.length) return;
+    const rail = createDemoRail({
+      items,
+      source: 'minimax',
+      variant: 'rail',
+      title: 'MiniMax H3 Example Styles',
+      subtitle: 'Examples for this studio — click any clip, or create in this style',
+      className: 'mt-10 max-w-6xl mx-auto',
+    });
+    container.appendChild(rail);
+  }).catch((e) => {
+    console.error('[AudioStudio] demo rail failed', e);
+  });
 
   return container;
 }

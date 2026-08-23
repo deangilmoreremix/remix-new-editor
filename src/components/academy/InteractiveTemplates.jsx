@@ -24,6 +24,8 @@ import {
 } from '../../data/academy/templates.js';
 import { getAssetsForTemplate, getAssetById } from '../../data/academyAssets.js';
 import { getRecipePrompt, executeRecipe } from '../../lib/recipes/executor.js';
+import { openStyleInStudio } from '../../lib/examplesRail.js';
+import { getAcademyStudioRoute } from '../../data/academy/studioRoutes.ts';
 import { Icon } from './icons.jsx';
 
 // ---------------------------------------------------------------------------
@@ -97,7 +99,6 @@ function GhostButton({ onClick, icon, children, className = '' }) {
 // ---------------------------------------------------------------------------
 function AssetCard({ asset, onOpen }) {
   const isVideo = asset.type === 'video';
-  const isAudio = asset.type === 'audio';
   return (
     <button
       onClick={() => onOpen(asset)}
@@ -114,21 +115,12 @@ function AssetCard({ asset, onOpen }) {
             playsInline
             preload="metadata"
           />
-        ) : isAudio ? (
-          <div className="flex flex-col items-center justify-center h-full w-full">
-            <Icon name="Play" size={48} className="text-white/40" />
-            <span className="text-xs text-white/50 mt-2">Audio Sample</span>
-          </div>
         ) : (
           <img src={asset.src} alt={asset.title} className="h-full w-full object-cover" loading="lazy" />
         )}
         {isVideo ? (
           <span className="absolute top-2 left-2 text-[10px] font-semibold uppercase tracking-wide bg-black/70 text-white px-2 py-0.5 rounded-full">
             Video
-          </span>
-        ) : isAudio ? (
-          <span className="absolute top-2 left-2 text-[10px] font-semibold uppercase tracking-wide bg-black/70 text-white px-2 py-0.5 rounded-full">
-            Audio
           </span>
         ) : null}
       </div>
@@ -140,10 +132,33 @@ function AssetCard({ asset, onOpen }) {
   );
 }
 
+// "Try this in Studio" — stages a studio prefill from the asset's title /
+// description and navigates to the mapped studio (per ACADEMY_STUDIO_ROUTES).
+// Uses the same `openStyleInStudio` → `stageStudioPrefill` → `navigate` channel
+// the MiniMax examples rail relies on.
+function TryInStudioButton({ asset }) {
+  const target = getAcademyStudioRoute(asset.category);
+  const route = target?.route || 'image';
+  const studioName = target?.studio || 'Studio';
+  const onClick = () => {
+    openStyleInStudio({
+      prompt: `${asset.title}. ${asset.description || ''}`.trim(),
+      route,
+      model: target?.model,
+      params: { _sourceSlug: asset.id, _sourceTitle: asset.title },
+      ref: 'academy',
+    });
+  };
+  return (
+    <PrimaryButton onClick={onClick} icon="Sparkles">
+      Try this in {studioName}
+    </PrimaryButton>
+  );
+}
+
 function Lightbox({ asset, onClose }) {
   if (!asset) return null;
   const isVideo = asset.type === 'video';
-  const isAudio = asset.type === 'audio';
   return (
     <div
       className="fixed inset-0 z-[10000] bg-black/85 flex items-center justify-center p-4"
@@ -155,22 +170,14 @@ function Lightbox({ asset, onClose }) {
       <div className="max-w-3xl w-full" onClick={(e) => e.stopPropagation()}>
         {isVideo ? (
           <video src={asset.videoSrc} poster={asset.thumbnail} controls autoPlay className="w-full rounded-xl" />
-        ) : isAudio ? (
-          <div className="bg-black rounded-xl p-6 flex flex-col items-center">
-            <Icon name="Play" size={48} className="text-white/40 mb-4" />
-            <audio src={asset.src} controls autoPlay className="w-full" />
-            <p className="text-white text-sm mt-3">{asset.title}</p>
-            <p className="text-white/50 text-xs mt-1">{asset.description}</p>
-          </div>
         ) : (
           <img src={asset.src} alt={asset.title} className="w-full rounded-xl" />
         )}
-        {!isAudio ? (
-          <>
-            <p className="text-white text-sm mt-3">{asset.title}</p>
-            <p className="text-white/50 text-xs mt-1">{asset.description}</p>
-          </>
-        ) : null}
+        <p className="text-white text-sm mt-3">{asset.title}</p>
+        <p className="text-white/50 text-xs mt-1">{asset.description}</p>
+        <div className="mt-3">
+          <TryInStudioButton asset={asset} />
+        </div>
       </div>
     </div>
   );

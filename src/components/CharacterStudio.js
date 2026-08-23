@@ -5,27 +5,19 @@ import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
-import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
+import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
-import { openSocialPublish } from '../lib/socialPublishHelpers.js';
-import { mountModelSelector, getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
+import { getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { getModelById } from '../lib/models.js';
-import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
-import ExampleGallery from './studios/ExampleGallery.js';
-import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
-import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
-import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
-import { openRecipeModal } from '../lib/recipeIntegration.js';
-import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 
 const CHARACTER_MODELS = [
   { id: 'flux-pulid', name: 'Flux PuLID', description: 'Face ID preservation with text prompt', provider: 'blackforest', provider_name: 'Black Forest Labs' },
   { id: 'minimax-image-01-subject-reference', name: 'Subject Reference', description: 'Maintain subject consistency across images', provider: 'minimax', provider_name: 'MiniMax' },
 ];
 
-export function CharacterStudio() {
+export async function CharacterStudio() {
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col items-center bg-app-bg overflow-y-auto p-6 md:p-10 relative';
   mountStudioChrome(container, { currentRoute: 'character' });
@@ -33,50 +25,8 @@ export function CharacterStudio() {
   let uploadedUrl = null;
   let customThumbnailUrl = getCustomThumbnailFromCache('character-studio');
   let selectedModel = CHARACTER_MODELS[0];
-const dynamicControls = null;
-  const dynamicControlsContainer = null;
-
-  // Read gallery / deep-link params and apply them as studio defaults.
-  try {
-    const urlParams = new URLSearchParams(window.location.search);
-    const templateParam = urlParams.get('template');
-    const academyParam = urlParams.get('academy-template');
-    const promptParam = urlParams.get('prompt');
-    const styleParam = urlParams.get('style');
-    const arParam = urlParams.get('aspect_ratio');
-    const durationParam = urlParams.get('duration');
-
-    if (templateParam) {
-      const tpl = resolveTemplate(templateParam);
-      if (tpl) {
-        if (tpl.model) { selectedModel = tpl.model; }
-        if (tpl.aspectRatio) { /* set aspect ratio */ }
-        if (tpl.duration) { /* set duration */ }
-        if (tpl.basePrompt) {
-          const ta = document.getElementById('character-prompt-input');
-          if (ta) ta.value = tpl.basePrompt;
-        } else if (tpl.slug) {
-          loadTemplatePrompt(templateParam).then((prompt) => {
-            if (prompt) {
-              const ta = document.getElementById('character-prompt-input');
-              if (ta) ta.value = prompt;
-            }
-          }).catch(() => {});
-        }
-      }
-    }
-
-    if (academyParam || promptParam) {
-      const target = academyParam ? getAcademyCreateTarget(academyParam) : null;
-      const params = target?.params || {};
-      if (params.prompt) {
-        const ta = document.getElementById('character-prompt-input');
-        if (ta) ta.value = params.prompt;
-      }
-      if (params.aspect_ratio) { /* set aspect ratio */ }
-      if (params.duration) { /* set duration */ }
-    }
-  } catch { /* ignore */ }
+  let dynamicControls = null;
+  let dynamicControlsContainer = null;
 
   const header = document.createElement('div');
   header.className = 'mb-8 animate-fade-in-up text-center w-full max-w-lg';
@@ -118,7 +68,7 @@ const dynamicControls = null;
   updateTrigger();
 
   const dropdown = document.createElement('div');
-  dropdown.className = 'fixed z-[200] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom';
+  dropdown.className = 'fixed z-[100] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom';
   dropdown.style.width = 'calc(100vw - 2rem)';
   dropdown.style.maxWidth = '480px';
   dropdown.style.maxHeight = '70vh';
@@ -134,18 +84,60 @@ const dynamicControls = null;
     dropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
     if (!dropdown.dataset.populated) {
       dropdown.dataset.populated = 'true';
-      mountModelSelector(dropdown, {
-        models: CHARACTER_MODELS,
-        selectedModelId: selectedModel.id,
-        showProviderName: true,
-        onSelectModel: (modelId) => {
-          selectedModel = CHARACTER_MODELS.find(x => x.id === modelId) || { id: modelId };
+      const availableProviders = getAvailableProviders(CHARACTER_MODELS);
+      dropdown.innerHTML = `
+        <div class="flex gap-4 h-full max-h-[70vh] min-h-[350px] overflow-x-hidden">
+          <div data-provider-sidebar></div>
+          <div class="flex-1 flex flex-col gap-2 min-w-0">
+            ${renderSearchBar()}
+            <div class="text-xs font-semibold text-secondary py-1 shrink-0 flex items-center justify-between">
+              <span>Available models</span>
+              <span data-provider-badge class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60 hidden"></span>
+            </div>
+            <div data-model-list></div>
+          </div>
+        </div>
+      `;
+      const sidebarEl = dropdown.querySelector('[data-provider-sidebar]');
+      const modelListEl = dropdown.querySelector('[data-model-list]');
+      const providerBadge = dropdown.querySelector('[data-provider-badge]');
+      const searchInput = dropdown.querySelector('[data-provider-search]');
+      let selectedProvider = 'all';
+      const refresh = () => {
+        sidebarEl.innerHTML = renderProviderSidebar(availableProviders, selectedProvider, (provider) => {
+          selectedProvider = provider;
+          refresh();
+        });
+        const filtered = filterModels(CHARACTER_MODELS, searchInput ? searchInput.value : '', selectedProvider);
+        const showProviderName = selectedProvider === 'all';
+        modelListEl.innerHTML = renderModelList(filtered, selectedModel.id, showProviderName, (m) => {
+          selectedModel = CHARACTER_MODELS.find(x => x.id === m.id) || m;
           updateTrigger();
           buildDynamicControls();
           closeDropdown();
-        },
+        });
+        if (selectedProvider !== 'all') {
+          const pName = availableProviders.find(p => p.id === selectedProvider)?.name || selectedProvider;
+          providerBadge.textContent = pName;
+          providerBadge.classList.remove('hidden');
+        } else {
+          providerBadge.classList.add('hidden');
+        }
+      };
+      refresh();
+      sidebarEl.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-provider]');
+        if (!btn) return;
+        e.stopPropagation();
+        const provider = btn.getAttribute('data-provider');
+        if (provider) {
+          selectedProvider = provider;
+          refresh();
+        }
       });
-}
+      searchInput.onclick = (e) => e.stopPropagation();
+      searchInput.oninput = () => refresh();
+    }
   };
 
   triggerBtn.onclick = (e) => {
@@ -189,7 +181,7 @@ const dynamicControls = null;
   formCard.appendChild(uploadRow);
   container.appendChild(picker.panel);
 
-const pexelsBtn = document.createElement('button');
+  const pexelsBtn = document.createElement('button');
   pexelsBtn.type = 'button';
   pexelsBtn.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden';
   pexelsBtn.title = 'Browse stock photos from Pexels';
@@ -221,80 +213,30 @@ const pexelsBtn = document.createElement('button');
   formCard.appendChild(promptLabel);
 
   const promptInput = document.createElement('textarea');
-  promptInput.id = 'character-prompt-input';
   promptInput.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors resize-none';
   promptInput.rows = 3;
   promptInput.placeholder = 'e.g. wearing a leather jacket, standing in a neon-lit alley, cyberpunk style';
   promptInput.setAttribute('aria-label', 'Character description');
   formCard.appendChild(promptInput);
 
-  // Prompt Gallery button
-  const promptGalleryBtn = document.createElement('button');
-  promptGalleryBtn.type = 'button';
-  promptGalleryBtn.textContent = '📚 Prompts';
-  promptGalleryBtn.title = 'Browse prompt gallery';
-  promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
-  promptGalleryBtn.className = 'btn-ghost-modern';
-  promptGalleryBtn.addEventListener('click', () => {
-    openPromptGallery({
-      appTheme: 'character-studio',
-      onSelect: (prompt) => {
-        const ta = document.querySelector('textarea');
-        if (ta) {
-          ta.value = prompt;
-          ta.dispatchEvent(new Event('input', { bubbles: true }));
-          ta.focus();
-        }
-      }
-    }).catch((err) => console.error('[PromptGallery] open failed:', err));
-  });
-  // Recipe Engine button
-  const recipeBtn = document.createElement('button');
-  recipeBtn.type = 'button';
-  recipeBtn.textContent = '📋 Recipes';
-  recipeBtn.title = 'Browse AI recipes';
-  recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-  recipeBtn.className = 'btn-ghost-modern';
-  recipeBtn.addEventListener('click', () => {
-    openRecipeModal({
-      onRunRecipe: (url) => {
-      }
-    }).catch((err) => console.error('[Recipe] open failed:', err));
-  });
-  // Monetization Hub button
-  const monetizationBtn = document.createElement('button');
-  monetizationBtn.type = 'button';
-  monetizationBtn.textContent = '💼 Monetize';
-  monetizationBtn.title = "Open Smart Video AI Monetization Hub";
-  monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-  monetizationBtn.className = 'btn-ghost-modern';
-  monetizationBtn.addEventListener('click', () => {
-    openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
-  });
-  // GTM Boost entry point — opens the prompt enhancer themed for character
-  // creation and loads the result straight into this prompt.
-  const gtmBtn = document.createElement('button');
-  gtmBtn.type = 'button';
-  gtmBtn.textContent = '🎯 GTM Boost';
-  gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
-  gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
-  gtmBtn.className = 'gtm-boost-btn';
-  gtmBtn.addEventListener('click', () => {
-    import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-      openGTMPromptModal('character-studio', (prompt) => {
-        promptInput.value = prompt;
-        promptInput.dispatchEvent(new Event('input', { bubbles: true }));
-        promptInput.focus();
-      });
-    }).catch((err) => console.error('[CharacterStudio] GTM Boost failed:', err));
-  });
-  const toolbar = document.createElement('div');
-  toolbar.className = 'flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06]';
-  toolbar.appendChild(gtmBtn);
-  toolbar.appendChild(recipeBtn);
-  toolbar.appendChild(monetizationBtn);
-  toolbar.appendChild(promptGalleryBtn);
-  formCard.appendChild(toolbar);
+    // GTM Boost entry point — opens the prompt enhancer themed for character
+    // creation and loads the result straight into this prompt.
+    const gtmBtn = document.createElement('button');
+    gtmBtn.type = 'button';
+    gtmBtn.textContent = '🎯 GTM Boost';
+    gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
+    gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
+    gtmBtn.className = 'gtm-boost-btn shrink-0';
+    gtmBtn.addEventListener('click', () => {
+      import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+        openGTMPromptModal('character-studio', (prompt) => {
+          promptInput.value = prompt;
+          promptInput.dispatchEvent(new Event('input', { bubbles: true }));
+          promptInput.focus();
+        });
+      }).catch((err) => console.error('[CharacterStudio] GTM Boost failed:', err));
+    });
+    formCard.appendChild(gtmBtn);
 
   // Personalize trigger (opens PersonalizeModal as a pop-up)
   const personalizeControls = document.createElement('div');
@@ -311,11 +253,10 @@ const pexelsBtn = document.createElement('button');
   thumbBtn.type = 'button';
   thumbBtn.textContent = '🖼 Thumbnail';
   thumbBtn.title = 'Generate a custom thumbnail';
-  thumbBtn.className = 'btn-ghost-modern w-full';
+  thumbBtn.className = 'gtm-boost-btn w-full mt-2';
   thumbBtn.addEventListener('click', () => {
-    const modal = new TemplateThumbnailModal({
+    const modal = new StudioThumbnailModal({
       appTheme: 'character-studio',
-      layout: 'panel',
       studioId: 'character-studio',
       studioName: 'Character Studio',
       aspectRatio: '1:1',
@@ -329,14 +270,14 @@ const pexelsBtn = document.createElement('button');
         clearCustomThumbnailCache('character-studio');
       },
     });
-    mountThumbnailModal(modal);
+    mountStudioThumbnailModal(modal);
     modal.open();
   });
   formCard.appendChild(thumbBtn);
 
   const genBtn = document.createElement('button');
-genBtn.type = 'button';
-  genBtn.className = 'btn-primary-modern w-full px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all mt-2';
+  genBtn.type = 'button';
+  genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all mt-2';
   genBtn.textContent = 'Generate Character';
   genBtn.setAttribute('aria-label', 'Generate character');
   formCard.appendChild(genBtn);
@@ -445,28 +386,25 @@ genBtn.type = 'button';
         model: selectedModel.id,
         image_url: uploadedUrl,
         prompt: replaceTokensInPrompt(promptInput.value.trim(), activeProfile) || 'professional portrait photo',
-customThumbnailUrl: customThumbnailUrl || undefined,
+        customThumbnailUrl: customThumbnailUrl || undefined,
       };
       if (dynamicControls) {
         Object.assign(params, dynamicControls.getPayload({}));
       }
       const result = await muapi.generateI2I(params);
-       if (result?.url) {
-         resultArea.classList.remove('hidden');
-         resultArea.innerHTML = `
-           <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4 animate-fade-in-up">
-             <img src="${result.url}" class="w-full rounded-xl mb-3">
-             <div class="flex gap-3">
-               <a href="${result.url}" download class="flex-1 btn-secondary-modern py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
-               <button class="flex-1 bg-white/10 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-white/20 transition-all" onclick="this.closest('.bg-\\\\[\\\\#111\\\\]').remove()">Generate Again</button>
-               <button type="button" class="publish-social-btn flex-1 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
-             </div>
-           </div>
-         `;
-         const publishBtn = resultArea.querySelector('.publish-social-btn');
-         if (publishBtn) publishBtn.onclick = () => openSocialPublish({ mediaUrl: result.url, mediaType: 'image' });
-         resultArea.querySelector('button').onclick = () => genBtn.click();
-       }
+      if (result?.url) {
+        resultArea.classList.remove('hidden');
+        resultArea.innerHTML = `
+          <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4 animate-fade-in-up">
+            <img src="${result.url}" class="w-full rounded-xl mb-3">
+            <div class="flex gap-3">
+              <a href="${result.url}" download class="flex-1 bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
+              <button class="flex-1 bg-white/10 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-white/20 transition-all" onclick="this.closest('.bg-\\\\[\\\\#111\\\\]').remove()">Generate Again</button>
+            </div>
+          </div>
+        `;
+        resultArea.querySelector('button').onclick = () => genBtn.click();
+      }
     } catch (err) {
       alert(`Error: ${err.message}`);
     } finally {
@@ -476,11 +414,27 @@ customThumbnailUrl: customThumbnailUrl || undefined,
   };
 
 
-    const galleryAssets = getAssetsForStudio('character');
-    if (galleryAssets.length > 0) {
-      const gallery = ExampleGallery({ studioId: 'character', assets: galleryAssets, maxCards: 28 });
-      container.appendChild(gallery);
-    }
+  // MiniMax H3 example styles — demos that align with this studio, shown as
+  // examples at the bottom of the controls. Each card opens a detail modal;
+  // "Create This Style" opens this studio pre-filled with the selected style.
+  Promise.all([
+    import('./demos/DemoRail.jsx'),
+    import('../data/minimax/presets.js'),
+  ]).then(([{ createDemoRail }, { minimaxPresets }]) => {
+    const items = minimaxPresets.filter((p) => p.targetStudio === 'CharacterStudio');
+    if (!items.length) return;
+    const rail = createDemoRail({
+      items,
+      source: 'minimax',
+      variant: 'rail',
+      title: 'MiniMax H3 Example Styles',
+      subtitle: 'Examples for this studio — click any clip, or create in this style',
+      className: 'mt-10 max-w-6xl mx-auto',
+    });
+    container.appendChild(rail);
+  }).catch((e) => {
+    console.error('[CharacterStudio] demo rail failed', e);
+  });
 
-    return container;
+  return container;
 }

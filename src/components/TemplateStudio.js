@@ -896,6 +896,28 @@ let fallbackList = [];
   resultArea.setAttribute('aria-live', 'polite');
   centeredContainer.appendChild(resultArea);
 
+  // "Create This Style" grid — the curated MiniMax presets that target this
+  // studio. Each card opens a detail modal (full player + extracted style
+  // params + tweakable prompt); the CTA hydrates the style and navigates.
+  Promise.all([
+    import('./demos/DemoRail.jsx'),
+    import('../data/minimax/presets.js'),
+  ]).then(([{ createDemoRail }, { minimaxPresets }]) => {
+    const presets = minimaxPresets.filter((p) => p.targetStudio === 'TemplateStudio');
+    if (!presets.length) return;
+    const grid = createDemoRail({
+      items: presets,
+      source: 'minimax',
+      variant: 'grid',
+      title: 'Create This Style',
+      subtitle: 'Curated MiniMax H3 styles built for Template Studio',
+      className: 'mt-10',
+    });
+    centeredContainer.appendChild(grid);
+  }).catch((e) => {
+    console.error('[TemplateStudio] demo grid failed', e);
+  });
+
   // Update output content based on active tab
   function updateOutputContent() {
     const textarea = document.getElementById('outputTextarea');

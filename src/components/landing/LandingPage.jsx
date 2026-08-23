@@ -1,8 +1,6 @@
 // AI Video Agency Studio Landing Page
 // Optimized with lazy loading for sections
 
-import { openMonetizationHub } from '../../lib/monetizationIntegration.js';
-
 const ALL_APPS = [
   { id: 'image', title: 'Image', description: 'Generate high-quality AI images for ads, thumbnails, product visuals, social media, websites, and client campaigns.', link: '/image' },
   { id: 'video', title: 'Video', description: 'Create text-to-video, image-to-video, video-to-video, and cinematic motion content for social, ads, and branded campaigns.', link: '/video' },
@@ -130,42 +128,39 @@ function createLazySection(importFn, sectionId, props = {}, index = 0) {
   placeholder.innerHTML = '<div class="animate-spin w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full"></div>';
 
   const observer = new IntersectionObserver((entries) => {
-    console.log('[LandingPage] IntersectionObserver fired for', sectionId, entries.map(e => ({ isIntersecting: e.isIntersecting, target: e.target.id })));
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
-        console.log('[LandingPage] Loading section:', sectionId);
         observer.unobserve(placeholder);
         importFn().then((module) => {
+          console.log('[Landing] section loaded:', sectionId, 'keys:', Object.keys(module));
           let section;
-          try {
-            if (module.default) {
-              section = props.apps ? module.default({ apps: props.apps }) : module.default(props);
-            } else if (module.AppsGridSection) {
-              section = module.AppsGridSection({ apps: ALL_APPS });
-            } else {
-              const fnName = Object.keys(module).find((k) => k.includes('Section') || k.includes('Page'));
-              section = fnName ? module[fnName](props) : module[Object.keys(module)[0]](props);
-            }
-            section.classList.add('animate-in');
-            const staggerIndex = Math.min(index, 10);
-            if (staggerIndex > 0) section.classList.add('stagger-' + staggerIndex);
-            section.querySelectorAll('button').forEach((btn) => btn.classList.add('btn-enhanced'));
-            placeholder.replaceWith(section);
-            requestAnimationFrame(() => section.classList.add('visible'));
-            console.log('[LandingPage] Section loaded:', sectionId);
-          } catch (err) {
-            console.error('Failed to render section ' + sectionId, err);
-            placeholder.innerHTML = '<div class="text-red-400">Failed to render section</div>';
+          if (module.default) {
+            section = props.apps ? module.default({ apps: props.apps }) : module.default(props);
+          } else if (module.AppsGridSection) {
+            section = module.AppsGridSection({ apps: ALL_APPS });
+          } else {
+            const fnName = Object.keys(module).find((k) => k.includes('Section') || k.includes('Page'));
+            section = fnName ? module[fnName](props) : module[Object.keys(module)[0]](props);
           }
+          console.log('[Landing] section created:', sectionId, 'type:', section?.constructor?.name || section?.tagName || typeof section);
+          if (!section || typeof section.appendChild !== 'function') {
+            throw new Error('Section ' + sectionId + ' returned invalid value: ' + typeof section);
+          }
+          section.classList.add('animate-in');
+          const staggerIndex = Math.min(index, 10);
+          if (staggerIndex > 0) section.classList.add('stagger-' + staggerIndex);
+          section.querySelectorAll('button').forEach((btn) => btn.classList.add('btn-enhanced'));
+          placeholder.replaceWith(section);
+          requestAnimationFrame(() => section.classList.add('visible'));
         }).catch((err) => {
-          console.error('Failed to load section ' + sectionId, err);
+          console.error('[Landing] Failed to load section:', sectionId, err);
+          console.error('[Landing] Error stack:', err?.stack || 'no stack');
           placeholder.innerHTML = '<div class="text-red-400">Failed to load section</div>';
         });
       }
     });
-  }, { rootMargin: '20000px' });
+  }, { rootMargin: '200px' });
   observer.observe(placeholder);
-  console.log('[LandingPage] Observer created for:', sectionId, 'placeholder id:', placeholder.id);
   return placeholder;
 }
 
@@ -177,71 +172,28 @@ export default async function LandingPage() {
   container.setAttribute('lang', document.documentElement.lang || 'en');
   container.setAttribute('dir', document.documentElement.dir || 'ltr');
 
-  let LandingHeader = null;
-  let CinematicVideoHero = null;
-  let HeroSection = null;
-
   try {
-    try {
-      const mod = await import('./common/Header.jsx');
-      LandingHeader = mod.LandingHeader;
-      console.log('[LandingPage] Header.jsx loaded');
-    } catch (e) {
-      console.error('[LandingPage] Header.jsx failed:', e);
-      LandingHeader = null;
-    }
-    if (LandingHeader) {
-      const headerEl = LandingHeader();
-      container.appendChild(headerEl);
-    }
+    const { LandingHeader } = await import('./common/Header.jsx');
+    const headerEl = LandingHeader();
+    container.appendChild(headerEl);
 
     // NEW: cinematic MiniMax H3 video hero, added above the original hero.
     if (ENABLE_CINEMATIC_HERO) {
-      try {
-        const mod = await import('./sections/CinematicVideoHero.jsx');
-        CinematicVideoHero = mod.CinematicVideoHero;
-        console.log('[LandingPage] CinematicVideoHero.jsx loaded');
-      } catch (e) {
-        console.error('[LandingPage] CinematicVideoHero.jsx failed:', e);
-        CinematicVideoHero = null;
-      }
-    }
-    if (CinematicVideoHero) {
+      const { CinematicVideoHero } = await import('./sections/CinematicVideoHero.jsx');
       const cinematicHeroEl = CinematicVideoHero();
       container.appendChild(cinematicHeroEl);
     }
 
-    try {
-      const mod = await import('./sections/HeroSection.jsx');
-      HeroSection = mod.HeroSection;
-      console.log('[LandingPage] HeroSection.jsx loaded');
-    } catch (e) {
-      console.error('[LandingPage] HeroSection.jsx failed:', e);
-      HeroSection = null;
-    }
-    if (HeroSection) {
-      const heroEl = HeroSection();
-      if (ENABLE_CINEMATIC_HERO) demoteLegacyHero(heroEl);
-      heroEl.classList.add('animate-in');
-      heroEl.classList.add('stagger-0');
-      container.appendChild(heroEl);
-      requestAnimationFrame(() => heroEl.classList.add('visible'));
-    }
+    const { HeroSection } = await import('./sections/HeroSection.jsx');
+    const heroEl = HeroSection();
+    if (ENABLE_CINEMATIC_HERO) demoteLegacyHero(heroEl);
+    heroEl.classList.add('animate-in');
+    heroEl.classList.add('stagger-0');
+    container.appendChild(heroEl);
 
-    const monetizeLauncher = document.createElement('div');
-    monetizeLauncher.className = 'monetize-launcher animate-in stagger-1';
-    monetizeLauncher.innerHTML = `
-      <div class="fixed bottom-6 right-6 z-30">
-        <button id="open-monetization-hub" class="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-xl shadow-lg hover:from-purple-400 hover:to-pink-400 transition-all duration-300">
-          <span>💼</span>
-          <span>Smart Video AI Monetize</span>
-        </button>
-      </div>
-    `;
-    monetizeLauncher.querySelector('#open-monetization-hub').addEventListener('click', () => {
-      openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+    requestAnimationFrame(() => {
+      heroEl.classList.add('visible');
     });
-    container.appendChild(monetizeLauncher);
 
     const scrollingStrip = createLazySection(() => import('./sections/ScrollingAppStrip.jsx'), 'scrolling', {}, 0);
     const hookSection = createLazySection(() => import('./sections/HookSection.jsx'), 'hook', {}, 1);
@@ -263,29 +215,7 @@ export default async function LandingPage() {
     const ugcShowcase = createLazySection(() => import('./sections/UGCDemoShowcase.jsx'), 'ugc', {}, 5);
     const videoGallery = createLazySection(() => import('./sections/AIVideoGallery.jsx'), 'gallery', {}, 6);
     const academyShowcase = createLazySection(() => import('./sections/AcademyVideoShowcase.jsx'), 'academy', {}, 7);
-
-    // 12 repo showcase sections — one per source × category combination.
-    // Each is independently lazy-loaded, following the same pattern as
-    // UGCDemoShowcase, MadeWithSmartVideo, and AIVideoGallery.
-    const repoShowcaseSections = [
-      { key: 'repo-cinema',       section: () => import('./sections/ShowcaseRepoVideo.jsx').then(m => ({ default: m.MmxCinemaSection })),          stagger: 9 },
-      { key: 'repo-commercial',   section: () => import('./sections/ShowcaseRepoVideo.jsx').then(m => ({ default: m.MmxCommercialSection })),    stagger: 10 },
-      { key: 'repo-social-ads',   section: () => import('./sections/ShowcaseRepoVideo.jsx').then(m => ({ default: m.SdSocialSection })),         stagger: 11 },
-      { key: 'repo-narrative',    section: () => import('./sections/ShowcaseRepoVideo.jsx').then(m => ({ default: m.SdCinemaSection })),        stagger: 12 },
-      { key: 'repo-vertical',     section: () => import('./sections/ShowcaseRepoVideo.jsx').then(m => ({ default: m.MmxSocialSection })),         stagger: 9 },
-      { key: 'repo-ecommerce',    section: () => import('./sections/ShowcaseRepoVideo.jsx').then(m => ({ default: m.SdCommercialSection })),      stagger: 10 },
-      { key: 'repo-kinetic',      section: () => import('./sections/ShowcaseRepoVideo.jsx').then(m => ({ default: m.SdActionSection })),         stagger: 11 },
-      { key: 'repo-animated',     section: () => import('./sections/ShowcaseRepoVideo.jsx').then(m => ({ default: m.SdAnimationSection })),       stagger: 12 },
-      { key: 'repo-animation',    section: () => import('./sections/ShowcaseRepoVideo.jsx').then(m => ({ default: m.MmxAnimationSection })),      stagger: 9 },
-      { key: 'repo-reference',    section: () => import('./sections/ShowcaseRepoVideo.jsx').then(m => ({ default: m.ZlCinemaSection })),          stagger: 10 },
-      { key: 'repo-vfx',          section: () => import('./sections/ShowcaseRepoVideo.jsx').then(m => ({ default: m.MmxActionVfxSection })),      stagger: 11 },
-      { key: 'repo-fashion',      section: () => import('./sections/ShowcaseRepoVideo.jsx').then(m => ({ default: m.MmxFashionSection })),       stagger: 12 },
-    ];
-    const lazyRepoSections = repoShowcaseSections.map((cfg) =>
-      createLazySection(cfg.section, cfg.key, {}, cfg.stagger)
-    );
-
-    const repoShowcase = createLazySection(() => import('./sections/RepoShowcase.jsx'), 'repos', {}, 13);
+    const repoShowcase = createLazySection(() => import('./sections/RepoShowcase.jsx'), 'repos', {}, 8);
 
     container.appendChild(scrollingStrip);
     container.appendChild(hookSection);
@@ -297,15 +227,7 @@ export default async function LandingPage() {
     container.appendChild(features);
     container.appendChild(videoGallery);    // NEW
     container.appendChild(academyShowcase); // NEW
-    // Append each of the 12 repo showcase sections
-    lazyRepoSections.forEach((section) => container.appendChild(section));
     container.appendChild(repoShowcase);    // NEW
-
-    // NEW: GTM Boost feature section — shows the feature and how it works
-    // (replaces the old floating FAB, which is now reachable from here).
-    const gtmBoost = createLazySection(() => import('./sections/GTMBoostSection.jsx'), 'gtm-boost', {}, 8);
-    container.appendChild(gtmBoost);
-
     container.appendChild(problem);
     container.appendChild(workflow);
     container.appendChild(comparison);
@@ -313,6 +235,24 @@ export default async function LandingPage() {
     container.appendChild(agency);
     container.appendChild(offer);
     container.appendChild(finalCTA);
+
+    // Persistent floating entry point for the GTM Boost (cinematic prompt) modal,
+    // so it is reachable directly from the landing page without entering a studio.
+    try {
+      const gtmFab = document.createElement('button');
+      gtmFab.type = 'button';
+      gtmFab.textContent = '🎯 GTM Boost';
+      gtmFab.setAttribute('aria-label', 'Open GTM Boost prompt enhancer');
+      gtmFab.style.cssText = 'position:fixed;right:20px;bottom:20px;z-index:9999;padding:12px 18px;border:none;border-radius:9999px;background:linear-gradient(135deg,#3b82f6,#06b6d4);color:#fff;font-weight:600;font-size:14px;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,0.35);';
+      gtmFab.addEventListener('click', () => {
+        import('../../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+          openGTMPromptModal('timeline-editor', () => {});
+        }).catch((err) => console.error('[Landing] GTM Boost failed:', err));
+      });
+      container.appendChild(gtmFab);
+    } catch (fabErr) {
+      console.error('[Landing] failed to mount GTM Boost FAB:', fabErr);
+    }
   } catch (error) {
     console.error('Error rendering landing page:', error);
     container.innerHTML = `

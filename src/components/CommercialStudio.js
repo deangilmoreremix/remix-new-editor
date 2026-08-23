@@ -30,7 +30,7 @@ const FORMAT_PRESETS = [
   { name: 'Billboard', ar: '21:9' },
 ];
 
-export function CommercialStudio() {
+export async function CommercialStudio() {
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col items-center bg-app-bg overflow-y-auto p-6 md:p-10 relative';
   mountStudioChrome(container, { currentRoute: 'commercial' });
@@ -345,6 +345,26 @@ genBtn.type = 'button';
   const inlineInstructions = createInlineInstructions('commercial');
   inlineInstructions.classList.add('max-w-xl', 'mt-6');
   container.appendChild(inlineInstructions);
+
+  // "Create This Style" deep-link: apply the staged MiniMax example (model +
+  // a design-reference note) and show its example rail.
+  try {
+    const { consumeAndApply, renderExamplesRail, getMiniMaxDemosWithTargets } = await import('../lib/examplesRail.js');
+    consumeAndApply('commercial', (staged) => {
+      if (staged.model) selectedModel = staged.model;
+    });
+    const demos = getMiniMaxDemosWithTargets().filter((d) => d.__route === 'commercial');
+    const rail = renderExamplesRail({
+      title: 'MiniMax H3 Product & Commercial Styles',
+      subtitle: 'Click any clip to open it pre-filled in Commercial Studio',
+      ref: 'minimax-h3-commercial',
+      items: demos,
+    });
+    rail.classList.add('max-w-xl', 'mt-8');
+    container.appendChild(rail);
+  } catch (e) {
+    console.error('[CommercialStudio] examples rail failed', e);
+  }
 
   const resultArea = document.createElement('div');
   resultArea.className = 'w-full max-w-xl mt-6 hidden';

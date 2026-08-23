@@ -141,7 +141,7 @@ function createUndoRedo() {
   return { push, undo, redo, canUndo, canRedo };
 }
 
-export function StoryboardStudio(options = {}) {
+export async function StoryboardStudio(options = {}) {
   const { embedded = false, onBack } = options;
   const undoRedo = createUndoRedo();
   const autosave = createAutosave({

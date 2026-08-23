@@ -1,6 +1,4 @@
 
-import { showToast } from '../lib/loading.js';
-import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { muapi } from '../lib/muapi.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { createSafeImage } from '../lib/security.js';
@@ -8,26 +6,18 @@ import { CameraControls } from './CameraControls.js';
 import { buildNanoBananaPrompt, CAMERA_MAP, LENS_MAP, FOCAL_PERSPECTIVE, APERTURE_EFFECT } from '../lib/promptUtils.js';
 import { AuthModal } from './AuthModal.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
-import { getVideoModelById, getI2VModelById, getModelById, t2vModels, i2vModels, getDurationsForModel, getDurationsForI2VModel, getResolutionsForVideoModel, getResolutionsForI2VModel } from '../lib/models.js';
-import { mountModelSelector } from '../lib/modelSelectorUI.js';
+import { getVideoModelById, getI2VModelById, t2vModels, i2vModels, getDurationsForModel, getDurationsForI2VModel, getResolutionsForVideoModel, getResolutionsForI2VModel } from '../lib/models.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { createHeroSection } from '../lib/thumbnails.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
-import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
+import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
+import { consumeStudioPrefill } from '../lib/studioPrefill.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { CINEMATIC_THEME, cx } from '../lib/cinematicTheme.js';
-import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
-import ExampleGallery from './studios/ExampleGallery.js';
-import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
-import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
-import { openSocialPublish } from '../lib/socialPublishHelpers.js';
-import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
-import { openRecipeModal } from '../lib/recipeIntegration.js';
-import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 
 // Camera movements promised by the Cinema Studio intro copy
 // ("Select camera movement … dolly, crane, orbit, FPV drone").
@@ -74,58 +64,16 @@ export function CinemaStudio() {
         movement: 'Static',
         look: 'Natural',
         referenceUrl: null,
-        endFrameUrl: null,
         // Selected generation model. Cinema Studio exposes the same catalog
         // picker as Video Studio; defaults to the first text-to-video model.
         model: (t2vModels[0] && t2vModels[0].id) || 'kling-v2.6-pro-t2v',
     };
-    const selectedProvider = 'all';
+    let selectedProvider = 'all';
     
     // Camera builder panel state
     let showCameraBuilder = false;
-let showAdvanced = false;
+    let showAdvanced = false;
     let customThumbnailUrl = getCustomThumbnailFromCache('cinema-studio');
-
-    // Listen for thumbnails generated via GTM Boost and apply them.
-    subscribeToGtmThumbnails(({ imageUrl }) => {
-      customThumbnailUrl = imageUrl;
-      saveCustomThumbnailToCache('cinema-studio', imageUrl);
-    });
-
-    // Read gallery / deep-link params and apply them as studio defaults.
-    try {
-      const urlParams = new URLSearchParams(window.location.search);
-      const templateParam = urlParams.get('template');
-      const academyParam = urlParams.get('academy-template');
-      const promptParam = urlParams.get('prompt');
-      const styleParam = urlParams.get('style');
-      const arParam = urlParams.get('aspect_ratio');
-      const durationParam = urlParams.get('duration');
-
-      if (templateParam) {
-        const tpl = resolveTemplate(templateParam);
-        if (tpl) {
-          if (tpl.model) currentSettings.model = tpl.model;
-          if (tpl.aspectRatio) currentSettings.aspect_ratio = tpl.aspectRatio;
-          if (tpl.duration) currentSettings.duration = tpl.duration;
-          if (tpl.basePrompt) {
-            currentSettings.prompt = tpl.basePrompt;
-          } else if (tpl.slug) {
-            loadTemplatePrompt(templateParam)
-              .then((prompt) => { if (prompt) currentSettings.prompt = prompt; })
-              .catch(() => {});
-          }
-        }
-      }
-
-      if (academyParam || promptParam) {
-        const target = academyParam ? getAcademyCreateTarget(academyParam) : null;
-        const params = target?.params || {};
-        if (params.prompt) currentSettings.prompt = params.prompt;
-        if (params.aspect_ratio) currentSettings.aspect_ratio = params.aspect_ratio;
-        if (params.duration) currentSettings.duration = params.duration;
-      }
-    } catch { /* ignore */ }
 
     // ==========================================
     // 1. HERO SECTION (Empty State)
@@ -144,13 +92,16 @@ let showAdvanced = false;
         `;
         cinemaBanner.appendChild(bannerContent);
         heroSection.appendChild(cinemaBanner);
-     }
+    }
 
-     container.appendChild(heroSection);
+    container.appendChild(heroSection);
 
-     const inlineInstructions = createInlineInstructions('cinema');
+    const inlineInstructions = createInlineInstructions('cinema');
     inlineInstructions.classList.add('mt-8', 'px-4');
     container.appendChild(inlineInstructions);
+
+    // (Aligned "MiniMax H3 Example Styles" rail is rendered at the bottom of
+    //  the controls, added at the end of this factory.)
 
     // ==========================================
     // 1.5. CINEMA PROMPT BUILDER
@@ -225,7 +176,7 @@ let showAdvanced = false;
     lensSelect.select.onchange = updateCine;
 
     const cineUseBtn = document.createElement('button');
-    cineUseBtn.className = 'btn-secondary-modern px-5 py-2.5 rounded-xl text-xs font-bold transition-all';
+    cineUseBtn.className = 'px-5 py-2.5 bg-primary text-black rounded-xl text-xs font-bold hover:shadow-glow transition-all';
     cineUseBtn.textContent = 'Use in Prompt';
     cineUseBtn.onclick = () => {
         const prompt = cineOutput.textContent;
@@ -307,26 +258,25 @@ let showAdvanced = false;
     // inline-instruction tips so the controls aren't pinned to the bottom.
     // ==========================================
     const promptBarWrapper = document.createElement('div');
-    promptBarWrapper.className = 'w-full relative z-40 animate-fade-in-up';
-    promptBarWrapper.style.animationDelay = '0.2s';
+    promptBarWrapper.className = 'relative w-full max-w-3xl mx-auto px-4 mt-6 z-30';
 
     const promptBar = document.createElement('div');
-    promptBar.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex justify-between shadow-3xl items-end relative';
+    promptBar.className = 'bg-white/[0.04] border border-white/10 rounded-[2rem] p-4 flex justify-between shadow-3xl items-end relative';
 
     // --- LEFT COLUMN (Input + Settings) ---
     const leftColumn = document.createElement('div');
-    leftColumn.className = 'flex-1 flex flex-col gap-3 min-h-[80px]';
+    leftColumn.className = 'flex-1 flex flex-col gap-3 min-h-[80px] justify-between py-1 px-1';
 
     // 1. Input Area
     const inputRow = document.createElement('div');
-    inputRow.className = 'flex items-start gap-5 px-2';
+    inputRow.className = 'flex items-start gap-3 w-full';
 
 
 
     // Textarea
     const textarea = document.createElement('textarea');
     textarea.placeholder = 'Describe your scene - use @ to add characters & props';
-    textarea.className = 'flex-1 bg-transparent border-none text-white text-base md:text-xl placeholder:text-muted focus:outline-none resize-none pt-2.5 leading-relaxed min-h-[40px] max-h-[150px] md:max-h-[250px] overflow-y-auto custom-scrollbar';
+    textarea.className = 'flex-1 bg-transparent border-none text-white text-lg font-medium placeholder:text-white/20 focus:outline-none resize-none h-[28px] leading-relaxed overflow-hidden';
     textarea.style.height = 'auto'; // Auto-grow check
     textarea.rows = 1;
     textarea.setAttribute('aria-label', 'Cinema prompt');
@@ -334,18 +284,27 @@ let showAdvanced = false;
         this.style.height = 'auto';
         this.style.height = (this.scrollHeight) + 'px';
     };
-    const cinemaPrefill = localStorage.getItem('prefill_prompt');
+    let cinemaPrefill = '';
+    try {
+        const raw = localStorage.getItem('prefill_prompt');
+        if (raw) { localStorage.removeItem('prefill_prompt'); cinemaPrefill = raw; }
+    } catch { /* ignore */ }
+    if (!cinemaPrefill) {
+        const staged = consumeStudioPrefill('cinema');
+        if (staged) {
+            if (staged.model) {
+                if (typeof currentSettings !== 'undefined' && currentSettings) currentSettings.model = staged.model;
+                else if (typeof selectedModel !== 'undefined') selectedModel = staged.model;
+            }
+            cinemaPrefill = staged.prompt || '';
+        }
+    }
     if (cinemaPrefill) {
         textarea.value = cinemaPrefill;
-        localStorage.removeItem('prefill_prompt');
         requestAnimationFrame(() => {
             textarea.style.height = 'auto';
             textarea.style.height = textarea.scrollHeight + 'px';
         });
-    }
-
-    if (!textarea.value && currentSettings.prompt) {
-        textarea.value = currentSettings.prompt;
     }
 
     inputRow.appendChild(textarea);
@@ -377,15 +336,13 @@ let showAdvanced = false;
     uploadRow.className = 'w-full';
     const uploadPicker = createUploadPicker({
       anchorContainer: container,
-      // Accept images, videos, and documents (MuAPI file-upload supports all).
-      frameMode: true,
-      onSelect: ({ startUrl, endUrl }) => {
-        currentSettings.referenceUrl = startUrl || null;
-        currentSettings.endFrameUrl = endUrl || null;
-        showReferenceThumb(startUrl);
+      acceptVideo: false,
+      onSelect: ({ url }) => {
+        currentSettings.referenceUrl = url;
+        showReferenceThumb(url);
         // Switch the model picker to image-to-video models and refresh the
         // label/controls so the selection stays valid for the new mode.
-        if (startUrl && !i2vModels.some(m => m.id === currentSettings.model)) {
+        if (!i2vModels.some(m => m.id === currentSettings.model)) {
           currentSettings.model = (i2vModels[0] && i2vModels[0].id) || currentSettings.model;
         }
         updateModelBtn();
@@ -393,7 +350,6 @@ let showAdvanced = false;
       },
       onClear: () => {
         currentSettings.referenceUrl = null;
-        currentSettings.endFrameUrl = null;
         showReferenceThumb(null);
         if (!t2vModels.some(m => m.id === currentSettings.model)) {
           currentSettings.model = (t2vModels[0] && t2vModels[0].id) || currentSettings.model;
@@ -479,29 +435,10 @@ let showAdvanced = false;
     modelBtn.onclick = (e) => { e.stopPropagation(); showModelDropdown(); };
     settingsToolbar.appendChild(modelBtn);
 
-    // Model Picker button
-    const modelPickerBtn = document.createElement('button');
-    modelPickerBtn.type = 'button';
-    modelPickerBtn.textContent = 'AI Pick';
-    modelPickerBtn.title = 'Open intelligent model picker';
-    modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-    modelPickerBtn.className = 'text-[11px] font-bold text-cyan-400 border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 rounded-lg hover:bg-cyan-400/20 transition-colors ml-2 whitespace-nowrap';
-    modelPickerBtn.addEventListener('click', () => {
-      openModelPicker({
-        currentModelId: currentSettings.model,
-        onSelectModel: (id) => {
-          currentSettings.model = id;
-          updateModelBtn();
-          updateControlsForModel();
-        }
-      }).catch((err) => console.error('[ModelPicker] open failed:', err));
-    });
-    settingsToolbar.appendChild(modelPickerBtn);
-
     // Shared model dropdown (glass panel) — lists T2V models, or I2V models
     // when a reference image is loaded, with live search + per-model metadata.
     const modelDropdown = document.createElement('div');
-    modelDropdown.className = 'absolute bottom-[102%] left-2 z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-bottom-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-md shadow-4xl border border-white/10 flex flex-col';
+    modelDropdown.className = 'absolute bottom-[102%] left-2 z-50 transition-all opacity-0 pointer-events-none scale-95 origin-bottom-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
     settingsToolbar.appendChild(modelDropdown);
 
     const closeModelDropdown = () => {
@@ -512,22 +449,63 @@ let showAdvanced = false;
     function showModelDropdown() {
         const isI2V = !!currentSettings.referenceUrl;
         const models = isI2V ? i2vModels : t2vModels;
-        mountModelSelector(modelDropdown, {
-          models,
-          selectedModelId: currentSettings.model,
-          showProviderName: true,
-          headerLabel: isI2V ? 'Image-to-video models' : 'Text-to-video models',
-          autoFocus: true,
-          onSelectModel: (modelId) => {
-            currentSettings.model = modelId;
-            updateModelBtn();
-            updateControlsForModel();
-            closeModelDropdown();
-          },
-        });
+        modelDropdown.innerHTML = `
+            <div class="flex flex-col h-full max-h-[70vh]">
+                <div class="px-2 pb-3 mb-2 border-b border-white/5 shrink-0">
+                    <div class="flex items-center gap-3 bg-white/5 rounded-xl px-4 py-2.5 border border-white/5">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="text-muted"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                        <input type="text" id="cs-model-search" placeholder="Search models..." class="bg-transparent border-none text-xs text-white focus:ring-0 w-full p-0">
+                    </div>
+                </div>
+                <div class="text-[10px] font-bold text-secondary uppercase tracking-widest px-3 py-2 shrink-0">${isI2V ? 'Image-to-video models' : 'Text-to-video models'}</div>
+                <div id="cs-model-list" class="flex flex-col gap-1.5 overflow-y-auto custom-scrollbar pr-1 pb-2"></div>
+            </div>
+        `;
+        const list = modelDropdown.querySelector('#cs-model-list');
+
+        const makeItem = (m) => {
+            const item = document.createElement('div');
+            item.className = `flex items-center justify-between p-3.5 hover:bg-white/5 rounded-2xl cursor-pointer transition-all border border-transparent hover:border-white/5 ${currentSettings.model === m.id ? 'bg-white/5 border-white/5' : ''}`;
+            const iconColor = m.id.includes('kling') ? 'bg-blue-500/10 text-blue-400'
+                : m.id.includes('veo') ? 'bg-purple-500/10 text-purple-400'
+                : m.id.includes('sora') ? 'bg-rose-500/10 text-rose-400'
+                : m.id.includes('runway') ? 'bg-emerald-500/10 text-emerald-400'
+                : 'bg-primary/10 text-primary';
+            item.innerHTML = `
+                <div class="flex items-center gap-3.5">
+                    <div class="w-10 h-10 ${iconColor} border border-white/5 rounded-xl flex items-center justify-center font-black text-sm shadow-inner uppercase">${m.name.charAt(0)}</div>
+                    <div class="flex flex-col gap-0.5">
+                        <span class="text-xs font-bold text-white tracking-tight">${m.name}</span>
+                    </div>
+                </div>
+                ${currentSettings.model === m.id ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d9ff00" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+            `;
+            item.onclick = (e) => {
+                e.stopPropagation();
+                currentSettings.model = m.id;
+                updateModelBtn();
+                updateControlsForModel();
+                closeModelDropdown();
+            };
+            return item;
+        };
+
+        const renderModels = (filter = '') => {
+            list.innerHTML = '';
+            const lf = filter.toLowerCase();
+            models
+                .filter(m => m.name.toLowerCase().includes(lf) || m.id.toLowerCase().includes(lf))
+                .forEach(m => list.appendChild(makeItem(m)));
+        };
+        renderModels();
+
+        const searchInput = modelDropdown.querySelector('#cs-model-search');
+        searchInput.onclick = (e) => e.stopPropagation();
+        searchInput.oninput = (e) => renderModels(e.target.value);
 
         modelDropdown.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
         modelDropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
+        searchInput.focus();
     }
 
     // Close the model dropdown when clicking elsewhere.
@@ -589,28 +567,6 @@ let showAdvanced = false;
     cameraBuilderBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/></svg> Builder`;
     settingsToolbar.appendChild(cameraBuilderBtn);
 
-    // Character Lock toggle
-    const characterLockWrap = document.createElement('div');
-    characterLockWrap.className = 'flex items-center gap-1.5';
-    characterLockWrap.innerHTML = `
-        <span class="text-[9px] font-bold text-secondary uppercase">Character Lock</span>
-        <button id="cs-character-lock-btn" class="relative h-6 w-11 rounded-full transition bg-white/5 border border-white/10" data-character-lock="false">
-            <span class="absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all duration-200 left-0.5" id="cs-character-lock-knob"></span>
-        </button>
-    `;
-    settingsToolbar.appendChild(characterLockWrap);
-    const csCharacterLockBtn = characterLockWrap.querySelector('#cs-character-lock-btn');
-    const csCharacterLockKnob = characterLockWrap.querySelector('#cs-character-lock-knob');
-    if (csCharacterLockBtn && csCharacterLockKnob) {
-        csCharacterLockBtn.onclick = () => {
-            characterLock = !characterLock;
-            csCharacterLockBtn.setAttribute('data-character-lock', String(characterLock));
-            csCharacterLockBtn.style.background = characterLock ? 'var(--cyan)' : '';
-            csCharacterLockBtn.style.borderColor = characterLock ? 'var(--cyan)' : '';
-            csCharacterLockKnob.style.left = characterLock ? 'calc(100% - 4px)' : '4px';
-        };
-    }
-
     // Personalize trigger (opens PersonalizeModal as a pop-up)
     mountPersonalizeTrigger({
         controlsContainer: settingsToolbar,
@@ -661,45 +617,14 @@ let showAdvanced = false;
 
     // Generate Button
     const generateBtn = document.createElement('button');
-generateBtn.type = 'button';
-    generateBtn.className = 'btn-primary-modern px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed';
+    generateBtn.type = 'button';
+    generateBtn.className = 'h-[56px] px-8 bg-primary text-black rounded-xl font-black text-xs uppercase hover:bg-white transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed';
     generateBtn.setAttribute('data-tooltip', 'Generate cinema shot');
     generateBtn.setAttribute('aria-label', 'Generate cinema shot');
     generateBtn.innerHTML = `GENERATE ✨`;
 
-     // Thumbnail Button — integrated into the creation workflow alongside
-     // the Generate button so users can create a custom thumbnail during
-     // the cinema generation process.
-     const thumbBtn = document.createElement('button');
-     thumbBtn.type = 'button';
-     thumbBtn.className = 'h-[56px] px-4 bg-gradient-to-r from-violet-500 to-indigo-500 text-white rounded-xl font-bold text-xs uppercase hover:from-violet-400 hover:to-indigo-400 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5';
-     thumbBtn.setAttribute('data-tooltip', 'Create custom thumbnail for Cinema Studio');
-     thumbBtn.setAttribute('aria-label', 'Create custom thumbnail');
-     thumbBtn.innerHTML = `<span>🖼</span> Thumbnail`;
-     thumbBtn.onclick = () => {
-       const modal = new TemplateThumbnailModal({
-         appTheme: 'cinema-studio',
-         layout: 'panel',
-         studioId: 'cinema-studio',
-         studioName: 'Cinema Studio',
-         outputType: 'video',
-         aspectRatio: '16:9',
-         onApply: ({ imageUrl }) => {
-           saveCustomThumbnailToCache('cinema-studio', imageUrl);
-           customThumbnailUrl = imageUrl;
-         },
-         onClear: () => {
-           clearCustomThumbnailCache('cinema-studio');
-           customThumbnailUrl = null;
-         },
-       });
-       mountThumbnailModal(modal);
-       modal.open();
-     };
-
-     rightGroup.appendChild(summaryCard);
-     rightGroup.appendChild(generateBtn);
-     rightGroup.appendChild(thumbBtn);
+    rightGroup.appendChild(summaryCard);
+    rightGroup.appendChild(generateBtn);
     promptBar.appendChild(rightGroup);
 
     promptBarWrapper.appendChild(promptBar);
@@ -776,7 +701,7 @@ generateBtn.type = 'button';
         <div class="flex flex-col gap-2">
             <label class="text-[10px] font-bold text-muted uppercase">Preview</label>
             <div id="builder-preview" class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white text-xs min-h-[40px]"></div>
-            <button id="apply-builder-btn" class="btn-secondary-modern px-4 py-2 rounded-lg text-xs font-bold transition-all">
+            <button id="apply-builder-btn" class="px-4 py-2 bg-primary text-black rounded-lg text-xs font-bold hover:shadow-glow transition-all">
                 Use This Setup
             </button>
         </div>
@@ -895,9 +820,8 @@ generateBtn.type = 'button';
     advancedControlsContainer.className = 'flex flex-col gap-4';
     advancedCard.appendChild(advancedControlsContainer);
 
-    const isI2V = !!currentSettings.referenceUrl;
     const dynamicControls = createAdvancedControls({
-      model: getExtendedModel(isI2V ? getI2VModelById(currentSettings.model) : getVideoModelById(currentSettings.model)),
+      model: getExtendedModel(getModelById(currentSettings.model)),
       state: {},
       container: advancedControlsContainer,
       exclude: new Set(['style', 'batch_count', 'prompt']),
@@ -943,7 +867,7 @@ generateBtn.type = 'button';
     const createActionBtn = (label, primary = false) => {
         const btn = document.createElement('button');
         btn.className = primary
-            ? 'btn-secondary-modern px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wide hover:bg-white transition-colors shadow-glow-sm hover:scale-105 active:scale-95'
+            ? 'bg-primary text-black px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wide hover:bg-white transition-colors shadow-glow-sm hover:scale-105 active:scale-95'
             : 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wide transition-all border border-white/5 backdrop-blur-lg text-white hover:border-white/20';
         btn.textContent = label;
         return btn;
@@ -956,14 +880,6 @@ generateBtn.type = 'button';
     canvasControls.appendChild(regenerateBtn);
     canvasControls.appendChild(downloadBtn);
     canvasControls.appendChild(newPromptBtn);
-
-    const publishBtn = document.createElement('button');
-    publishBtn.type = 'button';
-    publishBtn.className = 'bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white px-6 py-2.5 rounded-xl text-xs font-bold transition-all hover:shadow-glow';
-    publishBtn.textContent = 'Publish to Social';
-
-    canvasControls.appendChild(publishBtn);
-
     canvas.appendChild(canvasControls);
 
     container.appendChild(canvas);
@@ -1077,27 +993,6 @@ generateBtn.type = 'button';
         canvas.classList.add('opacity-100', 'translate-y-0', 'scale-100');
         canvasControls.classList.remove('opacity-0');
         canvasControls.classList.add('opacity-100');
-
-        publishBtn.onclick = () => { const mediaUrl = currentResultUrl; if (mediaUrl) { const isVid = /\.(mp4|webm|mov|m4v)(\?|$)|video\//i.test(mediaUrl); openSocialPublish({ mediaUrl, mediaType: isVid ? 'video' : 'image' }); } };
-        if (/\.(mp4|webm|mov|m4v)(\?|$)|video\//i.test(url)) {
-          const captionBtn = document.createElement('button');
-          captionBtn.type = 'button';
-          captionBtn.textContent = '💬 Add AI Captions';
-          captionBtn.className = 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl text-xs font-bold transition-all border border-white/5 backdrop-blur-lg text-white';
-          captionBtn.onclick = () => {
-            addCaptionButton({
-              videoUrl: url,
-              appTheme: 'cinema-studio',
-              onComplete: (captionedUrl) => {
-                currentResultUrl = captionedUrl;
-                const vid = imageContainer.querySelector('video');
-                if (vid) vid.src = captionedUrl;
-                showToast('Preview updated with captions');
-              },
-            });
-          };
-          canvasControls.appendChild(captionBtn);
-        }
     };
 
     const resetToPrompt = () => {
@@ -1197,132 +1092,41 @@ generateBtn.type = 'button';
 
         try {
             const resolution = (resBtn.dataset.value || '1k').toLowerCase();
-            const hasStartFrame = !!currentSettings.referenceUrl;
-            const hasEndFrame = !!currentSettings.endFrameUrl;
-            const isRef = hasStartFrame;
-
-            // When both a start and end frame are supplied, generate a
-            // first/last-frame clip that pins both ends of the video.
-            const useFrameToFrame = hasStartFrame && hasEndFrame;
+            const isRef = !!currentSettings.referenceUrl;
 
             // Use the model the user picked in the catalog picker. Resolve it
             // through the catalog so an unknown/renamed id degrades gracefully
             // instead of 404-ing the backend. Falls back to a known-good Kling
             // model when the selected id isn't in the catalog.
-            let resolvedModel;
-            if (useFrameToFrame) {
-                const flf = getI2VModelById('seedance-2.5-first-last-frame');
-                resolvedModel = (flf && flf.id) || 'seedance-2.5-first-last-frame';
-            } else if (isRef) {
-                const catalogModel = getI2VModelById(currentSettings.model);
-                resolvedModel = (catalogModel && catalogModel.id) || currentSettings.model || 'kling-v2.6-pro-i2v';
-            } else {
-                const catalogModel = getVideoModelById(currentSettings.model);
-                resolvedModel = (catalogModel && catalogModel.id) || currentSettings.model || 'kling-v2.6-pro-t2v';
-            }
+            const catalogModel = isRef ? getI2VModelById(currentSettings.model) : getVideoModelById(currentSettings.model);
+            const resolvedModel = (catalogModel && catalogModel.id) || currentSettings.model
+                || (isRef ? 'kling-v2.6-pro-i2v' : 'kling-v2.6-pro-t2v');
 
             // Honor the per-model duration if the catalog advertises one,
             // otherwise keep the default 5s.
-            const durations = (isRef || useFrameToFrame)
-                ? getDurationsForI2VModel(resolvedModel)
-                : getDurationsForModel(resolvedModel);
+            const durations = isRef ? getDurationsForI2VModel(resolvedModel) : getDurationsForModel(resolvedModel);
             const duration = (durations && durations.length > 0) ? durations[0] : (currentSettings.duration || 5);
 
-            let refImages = null;
-            if (characterLock) {
-                const ref = await getCharacterReference('studio-character-lock');
-                if (ref?.imageUrl) refImages = [ref.imageUrl];
-            }
-
             let res;
-            if (useFrameToFrame) {
-                // First/last-frame: pin both the start and end of the clip.
-                res = await muapi.generateI2V({
-                    model: resolvedModel,
-                    firstFrameUrl: currentSettings.referenceUrl,
-                    lastFrameUrl: currentSettings.endFrameUrl,
-                    prompt: finalPrompt,
-                    aspect_ratio: currentSettings.aspect_ratio,
-                    duration,
-                    resolution,
-                    thumbnail_url: customThumbnailUrl || undefined,
-                });
-            } else if (isRef) {
+            if (isRef) {
                 // Image-to-video: use the uploaded still as the seed.
-                const i2vParams = {
+                res = await muapi.generateI2V({
                     model: resolvedModel,
                     image_url: currentSettings.referenceUrl,
                     prompt: finalPrompt,
                     aspect_ratio: currentSettings.aspect_ratio,
                     duration,
                     resolution,
-                    thumbnail_url: customThumbnailUrl || undefined,
-                };
-                if (refImages) i2vParams.reference_images = refImages;
-                res = await muapi.generateI2V(i2vParams);
+                });
             } else {
-                const t2vParams = {
+                res = await muapi.generateVideo({
                     model: resolvedModel,
                     prompt: finalPrompt,
                     aspect_ratio: currentSettings.aspect_ratio,
                     duration,
                     resolution,
-                    thumbnail_url: customThumbnailUrl || undefined,
-                };
-                if (refImages) t2vParams.reference_images = refImages;
-                res = await muapi.generateVideo(t2vParams);
+                });
             }
-
-
-    // Prompt Gallery button
-    const promptGalleryBtn = document.createElement('button');
-    promptGalleryBtn.type = 'button';
-    promptGalleryBtn.textContent = '📚 Prompts';
-    promptGalleryBtn.title = 'Browse prompt gallery';
-    promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
-    promptGalleryBtn.className = 'btn-ghost-modern shrink-0';
-    promptGalleryBtn.addEventListener('click', () => {
-      openPromptGallery({
-        appTheme: 'cinema-studio',
-        onSelect: (prompt) => {
-          // Default: try to find a textarea in the studio
-          const ta = document.querySelector('textarea') || document.querySelector('[data-prompt]');
-          if (ta) {
-            ta.value = prompt;
-            ta.dispatchEvent(new Event('input', { bubbles: true }));
-            ta.focus();
-          }
-        }
-      }).catch((err) => console.error('[PromptGallery] open failed:', err));
-    });
-
-    // Recipe Engine button
-    const recipeBtn = document.createElement('button');
-    recipeBtn.type = 'button';
-    recipeBtn.textContent = '📋 Recipes';
-    recipeBtn.title = 'Browse AI recipes';
-    recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-    recipeBtn.className = 'btn-ghost-modern shrink-0';
-    recipeBtn.addEventListener('click', () => {
-      openRecipeModal({
-        onRunRecipe: (url) => {
-        }
-      }).catch((err) => console.error('[Recipe] open failed:', err));
-    });
-
-
-    // Monetization Hub button
-    const monetizationBtn = document.createElement('button');
-    monetizationBtn.type = 'button';
-    monetizationBtn.textContent = "💼 Smart Video AI Monetize";
-    monetizationBtn.title = "Open Smart Video AI Monetization Hub";
-    monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-    monetizationBtn.className = 'btn-ghost-modern shrink-0';
-    monetizationBtn.addEventListener('click', () => {
-      openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
-    });
-    if (!inputRow.querySelector('[aria-label="Open recipe engine"]')) inputRow.appendChild(recipeBtn);
-    if (!inputRow.querySelector('[aria-label="Open Smart Video AI Monetization Hub"]')) inputRow.appendChild(monetizationBtn);
 
             if (res && res.url) {
                 addToHistory({
@@ -1335,10 +1139,6 @@ generateBtn.type = 'button';
                     }
                 });
 
-                if (characterLock) {
-                    await saveCharacterReference({ id: 'studio-character-lock', imageUrl: res.url, modelId: currentSettings.model });
-                }
-
                 showCanvas(res.url);
             } else {
                 throw new Error('No Data');
@@ -1346,18 +1146,34 @@ generateBtn.type = 'button';
 
         } catch (e) {
             console.error(e);
-            showToast('Generation Failed: ' + e.message, 'error');
+            alert('Generation Failed: ' + e.message);
         } finally {
             generateBtn.disabled = false;
             generateBtn.innerHTML = `GENERATE ✨`;
         }
     };
 
-    const galleryAssets = getAssetsForStudio('cinema');
-    if (galleryAssets.length > 0) {
-      const gallery = ExampleGallery({ studioId: 'cinema', assets: galleryAssets, maxCards: 28 });
-      container.appendChild(gallery);
-    }
+    // MiniMax H3 example styles — demos that align with this studio, shown as
+    // examples at the bottom of the controls. Each card opens a detail modal;
+    // "Create This Style" opens this studio pre-filled with the selected style.
+    Promise.all([
+      import('./demos/DemoRail.jsx'),
+      import('../data/minimax/presets.js'),
+    ]).then(([{ createDemoRail }, { minimaxPresets }]) => {
+      const items = minimaxPresets.filter((p) => p.targetStudio === 'CinemaStudio');
+      if (!items.length) return;
+      const rail = createDemoRail({
+        items,
+        source: 'minimax',
+        variant: 'rail',
+        title: 'MiniMax H3 Example Styles',
+        subtitle: 'Examples for this studio — click any clip, or create in this style',
+        className: 'mt-10 max-w-6xl mx-auto',
+      });
+      container.appendChild(rail);
+    }).catch((e) => {
+      console.error('[CinemaStudio] demo rail failed', e);
+    });
 
     return container;
 }
