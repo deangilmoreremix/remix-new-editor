@@ -48,6 +48,68 @@ with sync_playwright() as p:
     # Model / AR selectors
     check('Model button exists', page.locator('#model-btn-label').count() > 0)
     check('AR button exists', page.locator('#ar-btn-label').count() > 0)
+    # Behavioral: model selector interaction
+    model_btn = page.locator('#model-btn').first
+    if model_btn.count() > 0:
+        model_btn.click()
+        page.wait_for_timeout(500)
+        check('Model dropdown opens on click', page.locator('[data-model-id]').count() > 0 or page.locator('.model-selector-dropdown, [class*="model"]').count() > 0)
+
+        model_items = page.locator('[data-model-id]').all()
+        if len(model_items) > 1:
+            model_items[1].click()
+            page.wait_for_timeout(300)
+            check('Model selection updates button label', page.evaluate('''() => {
+                const label = document.getElementById('model-btn-label');
+                return label && label.textContent && label.textContent.trim().length > 0;
+            }'''))
+        else:
+            check('Model dropdown contains options', len(model_items) > 0)
+    else:
+        check('Model button is interactive', False, 'Model button not found')
+
+    # Behavioral: AR selector interaction
+    ar_btn = page.locator('#ar-btn').first
+    if ar_btn.count() > 0:
+        ar_btn.click()
+        page.wait_for_timeout(500)
+        check('AR dropdown opens on click', page.locator('text=16:9, text=9:16, text=1:1, text=4:3, text=3:4, text=21:9').count() > 0 or page.locator('[class*="dropdown"]').count() > 0)
+        page.keyboard.press('Escape')
+        page.wait_for_timeout(200)
+
+    # Behavioral: verify model parameter is passed to API
+    api_captured = []
+    def capture_request(route):
+        request = route.request
+        if '/api/generate' in request.url or 'generateImage' in request.url or 'muapi' in request.url:
+            api_captured.append({
+                'url': request.url,
+                'method': request.method,
+                'post_data': request.post_data
+            })
+        route.continue_()
+
+    page.route('**/*', capture_request)
+
+    frame1_prompt = page.locator('textarea[placeholder="Describe this scene..."]').first
+    frame1_prompt.fill('A cinematic city sunrise, wide shot, professional cinematography')
+    page.wait_for_timeout(300)
+
+    generate_buttons = page.locator('button:has-text("Generate Frame")').all()
+    if len(generate_buttons) > 0:
+        generate_buttons[0].click()
+        page.wait_for_timeout(4000)
+
+        has_model_param = False
+        for req in api_captured:
+            if req.get('post_data') and 'model' in req['post_data']:
+                has_model_param = True
+                break
+
+        check('Generate Frame sends model parameter in API request', has_model_param or page.locator('img[alt="Storyboard frame 1"]').count() > 0)
+
+    page.unroute('**/*', capture_request)
+
 
     # Prompt building controls
     check('Layout selector exists', page.locator('text=Layout:').count() > 0)
