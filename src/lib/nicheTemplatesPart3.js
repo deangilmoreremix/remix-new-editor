@@ -12,6 +12,8 @@ import { CINEMATIC_CATEGORIES, OUTPUT_STYLES } from './cinematicTemplates.js';
 export const AUTOMOTIVE_TEMPLATES = [
   {
     id: 'chrome_story_film',
+    modelType: 't2v',
+    basePrompt: 'Premium automotive brand film, {prompt}, dramatic chrome reflections, exterior reveal, interior luxury, design philosophy, cinematic luxury, 4K',
     name: 'Chrome Story Film',
     description: 'Premium automotive showcase with dramatic chrome reflections',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -37,6 +39,8 @@ export const AUTOMOTIVE_TEMPLATES = [
   },
   {
     id: 'drive_sequence_showcase',
+    modelType: 't2v',
+    basePrompt: 'Cinematic driving showcase, {prompt}, vehicle approach, engine start, road journey, handling shots, destination, automotive commercial, 4K',
     name: 'Drive Sequence Showcase',
     description: 'Cinematic driving footage with vehicle in motion',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -62,6 +66,8 @@ export const AUTOMOTIVE_TEMPLATES = [
   },
   {
     id: 'showroom_lights_promo',
+    modelType: 't2v',
+    basePrompt: 'Dealer showroom promo, {prompt}, showroom reveal, vehicle spotlight, feature close-ups, deal highlight, visit CTA, 4K',
     name: 'Showroom Lights Promo',
     description: 'Dealer promotion with vehicle showcase under dramatic lighting',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -87,6 +93,8 @@ export const AUTOMOTIVE_TEMPLATES = [
   },
   {
     id: 'under_the_hood_video',
+    modelType: 't2v',
+    basePrompt: 'Vehicle technical documentary, {prompt}, engine reveal, technical detail, performance specs, engineering moment, power close, 4K',
     name: 'Under the Hood Video',
     description: 'Technical showcase of engine and performance features',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -112,6 +120,8 @@ export const AUTOMOTIVE_TEMPLATES = [
   },
   {
     id: 'driven_by_trust_testimonial',
+    modelType: 't2v',
+    basePrompt: 'Customer vehicle testimonial, {prompt}, buyer intro, search journey, dealership experience, driving away happy, recommendation, 4K',
     name: 'Driven by Trust Testimonial',
     description: 'Customer testimonial about vehicle purchase experience',
     category: CINEMATIC_CATEGORIES.PERSONAL,
@@ -137,6 +147,8 @@ export const AUTOMOTIVE_TEMPLATES = [
   },
   {
     id: 'midnight_machine_reel',
+    modelType: 't2v',
+    basePrompt: 'Night vehicle social short, {prompt}, headlights on, detail in dark, engine growl, mysterious night aesthetic, 9:16 format, 4K',
     name: 'Midnight Machine Reel',
     description: 'Dramatic night-time vehicle content with moody aesthetics',
     category: CINEMATIC_CATEGORIES.SOCIAL,
@@ -162,6 +174,8 @@ export const AUTOMOTIVE_TEMPLATES = [
   },
   {
     id: 'fresh_arrival_spotlight',
+    modelType: 't2v',
+    basePrompt: 'New inventory spotlight, {prompt}, arrival hook, vehicle reveal, key features, availability note, inquire CTA, 4K',
     name: 'Fresh Arrival Spotlight',
     description: 'New inventory highlight with arrival announcement',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -187,6 +201,8 @@ export const AUTOMOTIVE_TEMPLATES = [
   },
   {
     id: 'launch_lane_trailer',
+    modelType: 't2v',
+    basePrompt: 'Vehicle launch trailer, {prompt}, teaser glimpses, spec reveals, design details, performance tease, launch date, cinematic hype, 4K',
     name: 'Launch Lane Trailer',
     description: 'Vehicle launch trailer with hype and anticipation',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -212,6 +228,8 @@ export const AUTOMOTIVE_TEMPLATES = [
   },
   {
     id: 'fast_cut_ad',
+    modelType: 't2v',
+    basePrompt: 'High energy vehicle ad, {prompt}, fast hook, quick cuts montage, multiple angles, deal flash, act now CTA, bold automotive, 4K',
     name: 'Fast Cut Ad',
     description: 'High-energy edited ad with quick vehicle cuts',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -237,6 +255,8 @@ export const AUTOMOTIVE_TEMPLATES = [
   },
   {
     id: 'offer_drive_promo',
+    modelType: 't2v',
+    basePrompt: 'Automotive direct response promo, {prompt}, attention hook, offer breakdown, vehicle showcase, urgency, visit CTA, 4K',
     name: 'Offer Drive Promo',
     description: 'Direct response promotion for special automotive offer',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -269,6 +289,8 @@ export const AUTOMOTIVE_TEMPLATES = [
 export const FASHION_TEMPLATES = [
   {
     id: 'vogue_motion_film',
+    modelType: 't2v',
+    basePrompt: 'High fashion editorial film, {prompt}, editorial entrance, garment showcase, movement study, detail close-ups, designer credit, luxury fashion, 4K',
     name: 'Vogue Motion Film',
     description: 'High-fashion editorial content with runway-quality aesthetics',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -294,6 +316,8 @@ export const FASHION_TEMPLATES = [
   },
   {
     id: 'lookbook_showcase',
+    modelType: 't2v',
+    basePrompt: 'Fashion lookbook showcase, {prompt}, opening look, multiple outfits, style transitions, accessory details, collection close, 4K',
     name: 'Lookbook Showcase',
     description: 'Product lookbook with styled fashion imagery',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -319,6 +343,8 @@ export const FASHION_TEMPLATES = [
   },
   {
     id: 'collection_premiere_trailer',
+    modelType: 't2v',
+    basePrompt: 'Fashion collection premiere trailer, {prompt}, teaser glimpses, fabric details, model moments, collection theme, launch date, cinematic, 4K',
     name: 'Collection Premiere Trailer',
     description: 'Dramatic trailer for new fashion collection launch',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -344,6 +370,8 @@ export const FASHION_TEMPLATES = [
   },
   {
     id: 'designer_story_documentary',
+    modelType: 't2v',
+    basePrompt: 'Designer creative documentary, {prompt}, designer introduction, creative origin, process behind collection, inspiration sources, vision close, 4K',
     name: 'Designer Story Documentary',
     description: 'Designer profile with creative process and vision',
     category: CINEMATIC_CATEGORIES.PERSONAL,
@@ -369,6 +397,8 @@ export const FASHION_TEMPLATES = [
   },
   {
     id: 'worn_with_confidence_testimonial',
+    modelType: 't2v',
+    basePrompt: 'Fashion customer testimonial, {prompt}, style journey, wearing the piece, confidence moment, recommendation close, fashion forward, 4K',
     name: 'Worn with Confidence Testimonial',
     description: 'Styling testimonial with fashion-forward customer',
     category: CINEMATIC_CATEGORIES.PERSONAL,
@@ -394,6 +424,8 @@ export const FASHION_TEMPLATES = [
   },
   {
     id: 'style_in_motion_reel',
+    modelType: 't2v',
+    basePrompt: 'Fashion motion social reel, {prompt}, garment flow, detail in motion, spin moment, slow motion, social audio, 9:16, 4K',
     name: 'Style in Motion Reel',
     description: 'Vertical social content with fashion in movement',
     category: CINEMATIC_CATEGORIES.SOCIAL,
@@ -419,6 +451,8 @@ export const FASHION_TEMPLATES = [
   },
   {
     id: 'detail_shot_ad',
+    modelType: 't2v',
+    basePrompt: 'Fashion product detail ad, {prompt}, texture close-up, craftsmanship moment, quality reveal, material focus, shop CTA, 4K',
     name: 'Detail Shot Ad',
     description: 'Product-focused ad with fashion detail close-ups',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -444,6 +478,8 @@ export const FASHION_TEMPLATES = [
   },
   {
     id: 'behind_the_label_story',
+    modelType: 't2v',
+    basePrompt: 'Fashion brand heritage documentary, {prompt}, brand origin, craftsmanship journey, quality standards, heritage close, brand storytelling, 4K',
     name: 'Behind the Label Story',
     description: 'Brand story content with heritage and craftsmanship',
     category: CINEMATIC_CATEGORIES.PERSONAL,
@@ -469,6 +505,8 @@ export const FASHION_TEMPLATES = [
   },
   {
     id: 'season_in_frame_promo',
+    modelType: 't2v',
+    basePrompt: 'Seasonal fashion promo, {prompt}, seasonal styling, key pieces, trend callout, shop now CTA, timely content, 4K',
     name: 'Season in Frame Promo',
     description: 'Seasonal fashion promotion with timely styling',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -494,6 +532,8 @@ export const FASHION_TEMPLATES = [
   },
   {
     id: 'runway_motion_short',
+    modelType: 't2v',
+    basePrompt: 'Runway show highlight reel, {prompt}, venue establishing, opening look, key looks montage, closing finale, designer bow, 4K',
     name: 'Runway Motion Short',
     description: 'Fashion week or runway show highlight reel',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -526,6 +566,8 @@ export const FASHION_TEMPLATES = [
 export const EVENT_TEMPLATES = [
   {
     id: 'highlight_film',
+    modelType: 't2v',
+    basePrompt: 'Event highlight reel, {prompt}, key moment montage, crowd energy, speaker performance, memorable close, cinematic event, 4K',
     name: 'Highlight Film',
     description: 'Event highlight reel with key moments montage',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -551,6 +593,8 @@ export const EVENT_TEMPLATES = [
   },
   {
     id: 'after_the_applause_recap',
+    modelType: 't2v',
+    basePrompt: 'Post event recap, {prompt}, event atmosphere, crowd reaction, standing ovation, networking energy, until next time, 4K',
     name: 'After the Applause Recap',
     description: 'Post-event recap with audience reaction and energy',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -576,6 +620,8 @@ export const EVENT_TEMPLATES = [
   },
   {
     id: 'launch_night_trailer',
+    modelType: 't2v',
+    basePrompt: 'Product launch event trailer, {prompt}, anticipation build, sneak peek reveals, crowd energy, launch climax, availability CTA, 4K',
     name: 'Launch Night Trailer',
     description: 'Product or business launch event trailer',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -601,6 +647,8 @@ export const EVENT_TEMPLATES = [
   },
   {
     id: 'speaker_cut_spotlight',
+    modelType: 't2v',
+    basePrompt: 'Featured speaker highlight, {prompt}, speaker entrance, key insight moment, crowd reaction, power quote, about speaker, 4K',
     name: 'Speaker Cut Spotlight',
     description: 'Featured speaker or presenter highlight reel',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -626,6 +674,8 @@ export const EVENT_TEMPLATES = [
   },
   {
     id: 'voices_from_the_room_testimonial',
+    modelType: 't2v',
+    basePrompt: 'Attendee testimonial montage, {prompt}, attendee reactions, key quote highlights, networking moments, learning takeaways, 4K',
     name: 'Voices from the Room Testimonial',
     description: 'Multiple attendee testimonials and reactions',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -651,6 +701,8 @@ export const EVENT_TEMPLATES = [
   },
   {
     id: 'behind_the_curtain_documentary',
+    modelType: 't2v',
+    basePrompt: 'Event behind the scenes documentary, {prompt}, pre event setup, team preparation, backstage moments, problem solving, event success, 4K',
     name: 'Behind the Curtain Documentary',
     description: 'Event behind-the-scenes documentary',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -676,6 +728,8 @@ export const EVENT_TEMPLATES = [
   },
   {
     id: 'sizzle_sequence_promo',
+    modelType: 't2v',
+    basePrompt: 'Fast paced event promo, {prompt}, energy hook, event highlights, speaker teasers, date time, register CTA, bold social, 4K',
     name: 'Sizzle Sequence Promo',
     description: 'Fast-paced event promotion with energy and excitement',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -701,6 +755,8 @@ export const EVENT_TEMPLATES = [
   },
   {
     id: 'moments_in_motion_reel',
+    modelType: 't2v',
+    basePrompt: 'Social event highlight reel, {prompt}, best moment hook, energy burst, crowd vibe, highlight clip, follow for more, 9:16, 4K',
     name: 'Moments in Motion Reel',
     description: 'Social-optimized event highlight reel',
     category: CINEMATIC_CATEGORIES.SOCIAL,
@@ -726,6 +782,8 @@ export const EVENT_TEMPLATES = [
   },
   {
     id: 'venue_story_video',
+    modelType: 't2v',
+    basePrompt: 'Event venue showcase, {prompt}, venue exterior, entrance arrival, main space reveal, ambiance details, event ready, 4K',
     name: 'Venue Story Video',
     description: 'Event venue showcase with atmosphere and ambiance',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -751,6 +809,8 @@ export const EVENT_TEMPLATES = [
   },
   {
     id: 'next_one_promo',
+    modelType: 't2v',
+    basePrompt: 'Event series promotion, {prompt}, last event hook, what is next, series value, early bird offer, save the date CTA, 4K',
     name: 'Next One Promo',
     description: 'Event series promotion for next upcoming event',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -783,6 +843,8 @@ export const EVENT_TEMPLATES = [
 export const LUXURY_TEMPLATES = [
   {
     id: 'house_of_light_film',
+    modelType: 't2v',
+    basePrompt: 'Luxury brand light film, {prompt}, light introduction, space journey, product in light, atmosphere crescendo, brand essence, luxury cinematic, 4K',
     name: 'House of Light Film',
     description: 'Luxury brand film with emphasis on light and atmosphere',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -808,6 +870,8 @@ export const LUXURY_TEMPLATES = [
   },
   {
     id: 'product_story_showcase',
+    modelType: 't2v',
+    basePrompt: 'Luxury product heritage story, {prompt}, product reveal, craftsmanship detail, heritage moment, making process, timeless close, 4K',
     name: 'Product Story Showcase',
     description: 'Luxury product storytelling with heritage and craftsmanship',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -833,6 +897,8 @@ export const LUXURY_TEMPLATES = [
   },
   {
     id: 'legacy_in_frame_documentary',
+    modelType: 't2v',
+    basePrompt: 'Brand legacy documentary, {prompt}, legacy opening, origin story, generational journey, milestone moments, future vision, 4K',
     name: 'Legacy in Frame Documentary',
     description: 'Brand legacy documentary with deep heritage storytelling',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -858,6 +924,8 @@ export const LUXURY_TEMPLATES = [
   },
   {
     id: 'heritage_feature',
+    modelType: 't2v',
+    basePrompt: 'Heritage brand feature, {prompt}, heritage introduction, tradition moments, quality standards, timeless elements, legacy close, luxury, 4K',
     name: 'Heritage Feature',
     description: 'Premium brand feature with focus on tradition and quality',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -883,6 +951,8 @@ export const LUXURY_TEMPLATES = [
   },
   {
     id: 'experience_video',
+    modelType: 't2v',
+    basePrompt: 'Luxury experience film, {prompt}, world entrance, sensory moments, exclusivity reveal, personal connection, experience invitation, 4K',
     name: 'Experience Video',
     description: 'Luxury experience content with immersive brand world',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -908,6 +978,8 @@ export const LUXURY_TEMPLATES = [
   },
   {
     id: 'private_offer_promo',
+    modelType: 't2v',
+    basePrompt: 'Exclusive luxury promotion, {prompt}, exclusive hook, private offer reveal, collection highlight, VIP treatment, exclusive access CTA, 4K',
     name: 'Private Offer Promo',
     description: 'Exclusive luxury promotion targeting high-end clientele',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -933,6 +1005,8 @@ export const LUXURY_TEMPLATES = [
   },
   {
     id: 'cinema_of_luxury_reel',
+    modelType: 't2v',
+    basePrompt: 'Social luxury cinematic reel, {prompt}, luxury hook, product moment, aspiration close-up, status detail, save share, 9:16, 4K',
     name: 'Cinema of Luxury Reel',
     description: 'Cinematic luxury content optimized for social media',
     category: CINEMATIC_CATEGORIES.SOCIAL,
@@ -958,6 +1032,8 @@ export const LUXURY_TEMPLATES = [
   },
   {
     id: 'detail_sequence_spotlight',
+    modelType: 't2v',
+    basePrompt: 'Luxury detail sequence, {prompt}, macro intro, stitching leather detail, hardware close-up, material quality, signature detail, 4K',
     name: 'Detail Sequence Spotlight',
     description: 'Luxury product detail sequence with macro aesthetics',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -983,6 +1059,8 @@ export const LUXURY_TEMPLATES = [
   },
   {
     id: 'aspirational_motion_ad',
+    modelType: 't2v',
+    basePrompt: 'Aspirational luxury lifestyle ad, {prompt}, lifestyle hook, aspirational moment, product integration, dream state, desire close, 4K',
     name: 'Aspirational Motion Ad',
     description: 'Lifestyle-driven luxury ad with aspirational visuals',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -1008,6 +1086,8 @@ export const LUXURY_TEMPLATES = [
   },
   {
     id: 'prestige_trailer',
+    modelType: 't2v',
+    basePrompt: 'Prestige luxury brand trailer, {prompt}, prestige opening, brand world reveal, iconic moments, legacy crescendo, brand statement, cinematic, 4K',
     name: 'Prestige Trailer',
     description: 'Prestige-level brand trailer with cinematic quality',
     category: CINEMATIC_CATEGORIES.INDUSTRY,

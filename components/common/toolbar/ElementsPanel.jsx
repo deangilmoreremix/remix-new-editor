@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { observer } from 'mobx-react';
 import { Row } from 'reactstrap';
 
@@ -10,6 +10,7 @@ import Element from './Element';
 import AnimatedWindow from '../AnimatedWindow';
 import CloseButton from '../CloseButton';
 import { SECTIONS } from '../../../lib/constants/settings';
+import { useRouter } from 'next/router';
 
 const ElementsPanel = observer(({ items }) => {
   const {
@@ -19,20 +20,75 @@ const ElementsPanel = observer(({ items }) => {
     prevStateProduce,
     setPrevStateProduce,
   } = useUIStore();
+  const {
+    pathname,
+    query: { isRecorder, isTextToSpeech, isListBuilder, isLeadGenerator, isGoogleMap, isAiArtGenerator, isBgDiffusion },
+    push,
+  } = useRouter();
+
+
+
+  useEffect(() => {
+    const recorder = (isRecorder === "true");
+    const textToSpeech = (isTextToSpeech === "true");
+    const listBuilder = (isListBuilder === "true");
+    const leadGenerator = (isLeadGenerator === "true");
+    const googleMap = (isGoogleMap === "true");
+    const aiArtGenerator = (isAiArtGenerator === 'true');
+    const bgDiffusion = (isBgDiffusion === 'true');
+
+    if (recorder) {
+      const recorderData = items.find((ele) => ele.label == "AI Screen Recorder");
+      recorderData.action();
+    }
+    if (textToSpeech) {
+      const textToSpeechData = items.find((ele) => ele.label == "Smart Speech");
+      const { action } = textToSpeechData;
+      toggleRightBlock();
+      action();
+    }
+    if (listBuilder) {
+      const listBuilderData = items.find((ele) => ele.label == "List Builder");
+      const { action } = listBuilderData;
+      action();
+    }
+    if (leadGenerator) {
+      const leadGeneratorData = items.find((ele) => ele.label == "Lead Generator");
+      const { action } = leadGeneratorData;
+      action();
+    }
+    if (googleMap) {
+      const googleMapData = items.find((ele) => ele.label == "Google Map");
+      const { action } = googleMapData;
+      action();
+    }
+    if (aiArtGenerator) {
+      const aiArtGeneratorData = items.find((ele) => ele.label == "AI Art Generator");
+      const { action } = aiArtGeneratorData;
+      toggleRightBlock();
+      action();
+    }
+    if (bgDiffusion) {
+      const bgDiffusionData = items.find((ele) => ele.label == "BG Diffusion");
+      const { action } = bgDiffusionData;
+      toggleRightBlock();
+      action();
+    }
+  }, [])
 
   const personalizationElements = useMemo(
     () => items.filter(({ uiSection, adminElement }) => uiSection === SECTIONS.basic && adminElement),
     [items]);
   const leadGenElements = useMemo(
     () => items.filter(({ uiSection }) => uiSection === SECTIONS.leadGeneration
-      ), [items]);
+    ), [items]);
   const advancedElements = useMemo(
-    () => items.filter(({ uiSection, }) => uiSection === SECTIONS.advanced ),
+    () => items.filter(({ uiSection, }) => uiSection === SECTIONS.advanced),
     [items]);
 
   // creative elements
   const creativeElements = useMemo(
-    () => items.filter(({ uiSection, }) => uiSection === SECTIONS.creative ),
+    () => items.filter(({ uiSection, }) => uiSection === SECTIONS.creative),
     [items]);
 
   // video control
@@ -50,6 +106,7 @@ const ElementsPanel = observer(({ items }) => {
   }
 
   const onClick = (action) => {
+    console.log("action>>>",action)
     toggleRightBlock();
     action();
   };
@@ -96,7 +153,7 @@ ElementsPanel.propTypes = {
     icon: PropTypes.string.isRequired,
     action: PropTypes.func.isRequired,
     disabled: PropTypes.boolean,
-    adminElement:PropTypes.boolean,
+    adminElement: PropTypes.boolean,
   })).isRequired,
 };
 

@@ -4,15 +4,27 @@
    --------------------------------------------
    Uses tokens from src/styles/variables.css and
    src/styles/global.css. Color/radius/font values
-   follow the same scale as the Templates page and
-   other BaseModal consumers.
+   follow the same scale as the studios (Image
+   Studio is the reference surface).
+
+   Theming contract — the studio injects these
+   inline (see openaiConfig.STUDIO_SCHEME):
+     --app-primary     brand neon (#d9ff00)
+     --app-accent      brand neon, darker step
+     --app-on-primary  text ON primary (black)
+     --app-soft        12% primary tint
+     --app-glow        25% primary glow
+   The values below are the fallbacks and MUST
+   match the studio palette.
    ============================================ */
 
 .gtm-prompt-modal {
-  --app-primary: #3b82f6;
-  --app-accent: #06b6d4;
-  --app-soft: rgba(59, 130, 246, 0.12);
-  --app-soft-accent: rgba(6, 182, 212, 0.12);
+  --app-primary: var(--color-primary, #d9ff00);
+  --app-accent: var(--color-primary-hover, #c4e600);
+  --app-on-primary: var(--color-on-primary, #000000);
+  --app-soft: rgba(217, 255, 0, 0.12);
+  --app-soft-accent: rgba(196, 230, 0, 0.12);
+  --app-glow: rgba(217, 255, 0, 0.25);
 
   color: var(--text-primary);
   font-family: var(--font-family);
@@ -35,6 +47,38 @@
   line-height: 1.5;
   color: var(--text-secondary);
   max-width: 56ch;
+}
+
+/* "What is GTM Boost?" — quiet, text-only trigger. Without an explicit rule
+   this renders as a native OS button (light grey) inside the dark modal. */
+.gtm-prompt-modal .gtm-info-trigger-row {
+  display: flex;
+  margin-top: -12px;
+}
+
+.gtm-prompt-modal .gtm-info-trigger {
+  padding: 0;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--app-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--app-glow);
+  cursor: pointer;
+  transition: color var(--transition-fast), text-decoration-color var(--transition-fast);
+}
+
+.gtm-prompt-modal .gtm-info-trigger:hover {
+  text-decoration-color: var(--app-primary);
+}
+
+.gtm-prompt-modal .gtm-info-trigger:focus-visible {
+  outline: none;
+  border-radius: var(--border-radius-sm);
+  box-shadow: 0 0 0 2px var(--bg-app), 0 0 0 4px var(--app-primary);
 }
 
 /* Form */
@@ -227,11 +271,11 @@
   background: var(--app-soft-accent);
 }
 
-/* Generation Progress */
+/* Generation Progress (real, streaming-driven 5-step bar) */
 .gtm-prompt-modal .generation-progress {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
   padding: 16px;
   background: var(--bg-panel);
   border: 1px solid var(--border-color);
@@ -253,11 +297,46 @@
   transition: width 0.4s ease;
 }
 
-.gtm-prompt-modal .progress-text {
+.gtm-prompt-modal .progress-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gtm-prompt-modal .progress-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 12px;
-  color: var(--text-secondary);
-  text-align: center;
   font-weight: 500;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
+}
+
+.gtm-prompt-modal .progress-step .progress-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border-color);
+  flex-shrink: 0;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.gtm-prompt-modal .progress-step.active {
+  color: var(--app-primary);
+}
+
+.gtm-prompt-modal .progress-step.active .progress-dot {
+  background: var(--app-primary);
+  box-shadow: 0 0 0 3px var(--app-soft, rgba(217, 255, 0, 0.12));
+}
+
+.gtm-prompt-modal .progress-step.done {
+  color: var(--text-secondary);
+}
+
+.gtm-prompt-modal .progress-step.done .progress-dot {
+  background: var(--app-primary);
 }
 
 /* Generated Prompt */
@@ -266,13 +345,13 @@
   flex-direction: column;
   gap: 10px;
   padding: 16px;
-  background: rgba(34, 197, 94, 0.06);
-  border: 1px solid rgba(34, 197, 94, 0.25);
+  background: var(--app-soft);
+  border: 1px solid var(--app-glow);
   border-radius: var(--border-radius-lg);
 }
 
 .gtm-prompt-modal .generated-prompt-section > label {
-  color: var(--color-success);
+  color: var(--app-primary);
 }
 
 .gtm-prompt-modal .generated-prompt-container {
@@ -298,8 +377,8 @@
 }
 
 .gtm-prompt-modal .generated-prompt:focus {
-  border-color: var(--color-success);
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.18);
+  border-color: var(--app-primary);
+  box-shadow: 0 0 0 3px var(--app-soft);
 }
 
 /* Action row: Copy + Generate Thumbnail (or just Copy) */
@@ -332,6 +411,11 @@
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-fast);
+  /* Default: brand primary with black text (same as the studios' Generate
+     button). Declared here so the generic `.gtm-action` rule in
+     modal-styles.css can never leak a legacy accent into this modal. */
+  background: var(--app-primary);
+  color: var(--app-on-primary);
 }
 
 .gtm-prompt-modal .gtm-action:focus-visible {
@@ -347,12 +431,12 @@
 
 .gtm-prompt-modal .copy-prompt-btn {
   background: var(--app-primary);
-  color: #ffffff;
+  color: var(--app-on-primary);
 }
 
 .gtm-prompt-modal .copy-prompt-btn:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.25);
+  box-shadow: 0 8px 24px var(--app-glow);
 }
 
 .gtm-prompt-modal .copy-prompt-btn:active:not(:disabled) {
@@ -361,12 +445,12 @@
 
 .gtm-prompt-modal .thumbnail-prompt-btn {
   background: var(--app-accent);
-  color: #03131a;
+  color: var(--app-on-primary);
 }
 
 .gtm-prompt-modal .thumbnail-prompt-btn:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(6, 182, 212, 0.3);
+  box-shadow: 0 8px 24px var(--app-glow);
 }
 
 .gtm-prompt-modal .thumbnail-prompt-btn:active:not(:disabled) {
@@ -410,10 +494,148 @@
 }
 
 /* ============================================
-   GTM Boost Trigger Button (premium entry point)
+   Structured Output (Responses API json_schema)
+   ============================================ */
+
+.gtm-prompt-modal .gtm-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gtm-prompt-modal .gtm-meta-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+}
+
+.gtm-prompt-modal .gtm-structured {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gtm-prompt-modal .gtm-section {
+  padding: 12px 14px;
+  background: var(--bg-app);
+  border: 1px solid var(--border-color);
+  border-left: 3px solid var(--app-primary);
+  border-radius: var(--border-radius-md);
+}
+
+.gtm-prompt-modal .gtm-section-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--app-primary);
+  margin-bottom: 6px;
+}
+
+.gtm-prompt-modal .gtm-section-body {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+}
+
+.gtm-prompt-modal .generated-prompt.streaming {
+  min-height: 220px;
+  white-space: pre-wrap;
+  border-left: 3px solid var(--app-accent);
+}
+
+/* Variants */
+.gtm-prompt-modal .gtm-variants {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gtm-prompt-modal .gtm-variant-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gtm-prompt-modal .gtm-variant-chip {
+  min-width: 44px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.gtm-prompt-modal .gtm-variant-chip:hover {
+  border-color: var(--app-primary);
+}
+
+.gtm-prompt-modal .gtm-variant-chip.active {
+  color: var(--app-on-primary);
+  background: var(--app-primary);
+  border-color: var(--app-primary);
+}
+
+/* Refine (multi-turn) */
+.gtm-prompt-modal .gtm-refine-wrap {
+  margin-top: 4px;
+}
+
+.gtm-prompt-modal .gtm-refine {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  background: var(--app-soft);
+  border: 1px dashed var(--app-glow);
+  border-radius: var(--border-radius-md);
+}
+
+.gtm-prompt-modal .gtm-refine-row {
+  display: flex;
+  gap: 8px;
+}
+
+.gtm-prompt-modal .gtm-refine-input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-family: var(--font-family);
+  color: var(--text-primary);
+  background: var(--bg-app);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.gtm-prompt-modal .gtm-refine-input:focus {
+  border-color: var(--app-primary);
+}
+
+.gtm-prompt-modal .refine-btn {
+  background: var(--app-primary);
+  color: var(--app-on-primary);
+}
+
+/* ============================================
+   GTM Boost Trigger Button (secondary tier)
    --------------------------------------------
-   Used in Image / Video studios next to the prompt input.
-   Colors itself per active studio via data-app or ancestor class.
+   Retained as a distinct accent, but moved to
+   the outlined/translucent secondary tier so
+   it no longer competes with primary CTAs.
    ============================================ */
 
 .gtm-boost-btn {
@@ -423,22 +645,23 @@
   min-height: 40px;
   padding: 8px 14px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   font-family: var(--font-family);
-  color: #04111a;
-  background: linear-gradient(135deg, var(--app-primary), var(--app-accent));
-  border: 1px solid var(--border-light);
+  color: var(--color-primary, #d9ff00);
+  background: rgba(217, 255, 0, 0.08);
+  border: 1px solid rgba(217, 255, 0, 0.35);
   border-radius: var(--border-radius-lg);
   cursor: pointer;
   white-space: nowrap;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast);
-  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+  transition: transform var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+  backdrop-filter: blur(4px);
 }
 
 .gtm-boost-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
-  opacity: 0.95;
+  background: rgba(217, 255, 0, 0.14);
+  border-color: rgba(217, 255, 0, 0.6);
+  box-shadow: 0 2px 10px rgba(217, 255, 0, 0.15);
 }
 
 .gtm-boost-btn:active {
@@ -447,30 +670,34 @@
 
 .gtm-boost-btn:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px var(--bg-app), 0 0 0 4px var(--app-primary);
+  box-shadow: 0 0 0 2px var(--bg-app), 0 0 0 4px rgba(217, 255, 0, 0.5);
 }
 
-/* Per-studio theming for the boost button.
-   The studio sets --app-primary / --app-accent inline,
-   so the button background automatically picks those up.
-   These are fallbacks / explicit overrides for studios
-   that don't set the variables. */
+/* Every studio uses the same trigger styling. These selectors are kept so
+   studio-scoped markup keeps resolving to the shared palette instead of
+   falling back to a per-studio hue. */
+.cinema-template-studio .gtm-boost-btn,
+.template-studio .gtm-boost-btn,
 .image-studio .gtm-boost-btn,
-[data-app="image"] .gtm-boost-btn {
-  --app-primary: #f59e0b;
-  --app-accent: #fbbf24;
-  background: linear-gradient(135deg, #f59e0b, #fbbf24);
-  color: #1a0f00;
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);
+.video-studio .gtm-boost-btn,
+[data-app="image"] .gtm-boost-btn,
+[data-app="video"] .gtm-boost-btn,
+[data-app="template"] .gtm-boost-btn {
+  color: var(--color-primary, #d9ff00);
+  background: rgba(217, 255, 0, 0.08);
+  border-color: rgba(217, 255, 0, 0.35);
 }
 
-.video-studio .gtm-boost-btn,
-[data-app="video"] .gtm-boost-btn {
-  --app-primary: #8b5cf6;
-  --app-accent: #a855f7;
-  background: linear-gradient(135deg, #8b5cf6, #a855f7);
-  color: #ffffff;
-  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.3);
+.cinema-template-studio .gtm-boost-btn:hover,
+.template-studio .gtm-boost-btn:hover,
+.image-studio .gtm-boost-btn:hover,
+.video-studio .gtm-boost-btn:hover,
+[data-app="image"] .gtm-boost-btn:hover,
+[data-app="video"] .gtm-boost-btn:hover,
+[data-app="template"] .gtm-boost-btn:hover {
+  background: rgba(217, 255, 0, 0.14);
+  border-color: rgba(217, 255, 0, 0.6);
+  box-shadow: 0 2px 10px rgba(217, 255, 0, 0.15);
 }
 
 @media (max-width: 640px) {
@@ -478,4 +705,264 @@
     padding: 8px 10px;
     font-size: 12px;
   }
+}
+
+/* ============================================
+   Modern Tiered Button System
+   --------------------------------------------
+   Three tiers to reduce yellow saturation
+   and create visual hierarchy:
+     - primary-modern   : main CTA, soft gradient
+     - secondary-modern : outlined, translucent
+     - ghost-modern      : text-only, yellow on hover
+   ============================================ */
+
+.btn-primary-modern {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-family);
+  color: #000000;
+  background: linear-gradient(135deg, #d9ff00 0%, #b8e600 100%);
+  border: 1px solid transparent;
+  border-radius: var(--border-radius-lg);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast);
+  box-shadow: 0 2px 10px rgba(217, 255, 0, 0.25);
+}
+
+.btn-primary-modern:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(217, 255, 0, 0.35);
+  opacity: 0.95;
+}
+
+.btn-primary-modern:active {
+  transform: translateY(0);
+}
+
+.btn-primary-modern:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--bg-app), 0 0 0 4px var(--color-primary, #d9ff00);
+}
+
+.btn-secondary-modern {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-family);
+  color: var(--color-primary, #d9ff00);
+  background: rgba(217, 255, 0, 0.08);
+  border: 1px solid rgba(217, 255, 0, 0.35);
+  border-radius: var(--border-radius-lg);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+  backdrop-filter: blur(4px);
+}
+
+.btn-secondary-modern:hover {
+  background: rgba(217, 255, 0, 0.14);
+  border-color: rgba(217, 255, 0, 0.6);
+  box-shadow: 0 2px 10px rgba(217, 255, 0, 0.15);
+}
+
+.btn-secondary-modern:active {
+  transform: translateY(0);
+}
+
+.btn-secondary-modern:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--bg-app), 0 0 0 4px rgba(217, 255, 0, 0.5);
+}
+
+.btn-ghost-modern {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-family);
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--border-radius-lg);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.btn-ghost-modern:hover {
+  color: var(--color-primary, #d9ff00);
+  background: rgba(217, 255, 0, 0.08);
+  border-color: rgba(217, 255, 0, 0.2);
+}
+
+.btn-ghost-modern:active {
+  transform: translateY(0);
+}
+
+.btn-ghost-modern:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--bg-app), 0 0 0 4px rgba(217, 255, 0, 0.4);
+}
+
+/* Studio-scoped primary button theming */
+.image-studio .btn-primary-modern,
+.video-studio .btn-primary-modern,
+.cinema-template-studio .btn-primary-modern,
+.template-studio .btn-primary-modern,
+[data-app="image"] .btn-primary-modern,
+[data-app="video"] .btn-primary-modern,
+[data-app="template"] .btn-primary-modern {
+  background: linear-gradient(135deg, #d9ff00 0%, #b8e600 100%);
+  color: #000000;
+}
+
+/* ===== Real GTM skill examples panel (show + click-to-use) ===== */
+.gtm-prompt-modal .gtm-examples {
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--app-soft);
+}
+
+.gtm-prompt-modal .gtm-example-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.gtm-prompt-modal .gtm-example-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--bg-card);
+}
+
+.gtm-prompt-modal .gtm-example-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.gtm-prompt-modal .gtm-example-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.gtm-prompt-modal .gtm-example-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--app-soft);
+  color: var(--app-primary);
+  white-space: nowrap;
+}
+/* Difficulty badges — neutral chips on the dark surface. Only the
+   "advanced" tier gets the brand accent so it still reads as a rank. */
+.gtm-prompt-modal .gtm-example-advanced {
+  background: var(--app-primary);
+  color: var(--app-on-primary);
+}
+.gtm-prompt-modal .gtm-example-intermediate {
+  background: var(--app-soft);
+  color: var(--app-primary);
+}
+.gtm-prompt-modal .gtm-example-beginner {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+}
+
+.gtm-prompt-modal .gtm-example-desc {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.gtm-prompt-modal .gtm-example-use {
+  margin-top: auto;
+  align-self: flex-start;
+  font-size: 12px;
+  padding: 6px 12px;
+}
+
+/* ===== Missing API key CTA ===== */
+.gtm-prompt-modal .gtm-key-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--app-soft);
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.gtm-prompt-modal .gtm-key-cta .gtm-action {
+  font-size: 12px;
+  padding: 6px 12px;
+}
+
+/* ===== Stop button during streaming ===== */
+.gtm-prompt-modal .stop-btn {
+  background: transparent;
+  border: 1px solid var(--app-soft);
+  color: var(--app-primary);
+}
+.gtm-prompt-modal .stop-btn:hover {
+  background: var(--app-soft);
+}
+
+/* ===== Grounding meta pill ===== */
+.gtm-prompt-modal .gtm-grounding-pill {
+  background: var(--app-soft);
+  color: var(--app-primary);
+}
+
+/* ===== Footnote ===== */
+.gtm-prompt-modal .gtm-footnote {
+  margin: 14px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  text-align: center;
+  opacity: 0.85;
+}
+
+/* ===== Copy-only button ===== */
+.gtm-prompt-modal .copy-only-btn {
+  background: transparent;
+  border: 1px solid var(--app-soft);
+  color: var(--app-primary);
+}
+.gtm-prompt-modal .copy-only-btn:hover {
+  background: var(--app-soft);
 }

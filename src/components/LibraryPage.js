@@ -78,7 +78,7 @@ export function LibraryPage() {
   function updateFilters() {
     Object.entries(filterBtns).forEach(([key, btn]) => {
       btn.className = key === activeFilter
-        ? 'px-4 py-2 rounded-full text-xs font-bold transition-all bg-primary text-black'
+        ? 'px-4 py-2 rounded-full text-xs font-bold transition-all btn-secondary-modern'
         : 'px-4 py-2 rounded-full text-xs font-bold transition-all bg-white/5 text-secondary hover:bg-white/10';
     });
   }
@@ -199,7 +199,7 @@ export function LibraryPage() {
     const dlBtn = document.createElement('a');
     dlBtn.href = item.url;
     dlBtn.download = `generation-${item.id || Date.now()}`;
-    dlBtn.className = 'mt-4 bg-primary text-black px-8 py-2.5 rounded-xl font-bold text-sm hover:shadow-glow transition-all';
+    dlBtn.className = 'mt-4 btn-secondary-modern px-8 py-2.5 rounded-xl font-bold text-sm hover:shadow-glow transition-all';
     dlBtn.textContent = 'Download';
     wrapper.appendChild(dlBtn);
 

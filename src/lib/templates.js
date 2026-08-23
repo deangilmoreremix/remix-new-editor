@@ -1,5 +1,6 @@
 import { ALL_NICHE_TEMPLATES, RESTAURANT_TEMPLATES, MED_SPA_TEMPLATES, SALON_TEMPLATES, FITNESS_TEMPLATES, REAL_ESTATE_TEMPLATES, DENTAL_TEMPLATES, CHIROPRACTIC_TEMPLATES, LEGAL_TEMPLATES, AUTOMOTIVE_TEMPLATES, FASHION_TEMPLATES, EVENT_TEMPLATES, LUXURY_TEMPLATES } from './nicheTemplatesIndex.js';
 import { MATRIX_TEMPLATES } from './templateMatrix.js';
+import { getMinimaxTemplateById } from './minimaxTemplates.js';
 
 export const TEMPLATE_CATEGORIES = {
   SOCIAL: 'Social Media',
@@ -420,6 +421,7 @@ export const templates = [
       { name: 'aspect_ratio', type: 'select', label: 'Aspect Ratio', options: ['16:9', '9:16', '1:1', '4:3', '3:4'] },
       { name: 'duration', type: 'select', label: 'Duration', options: ['5', '8', '10'] },
     ],
+    basePrompt: '{prompt}, Lego style, blocky plastic bricks, studded texture, colorful toy aesthetic, playful construction, isometric composition, playful stop-motion, crisp details, high quality, 4K',
     defaultParams: { name: 'Lego', resolution: '720p', duration: 5 },
   },
   {
@@ -438,6 +440,7 @@ export const templates = [
       { name: 'aspect_ratio', type: 'select', label: 'Aspect Ratio', options: ['16:9', '9:16', '1:1', '4:3', '3:4'] },
       { name: 'duration', type: 'select', label: 'Duration', options: ['5', '8', '10'] },
     ],
+    basePrompt: '{prompt}, Squid Game style, Korean drama aesthetic, survival game atmosphere, dystopian, pink and teal color palette, masked guards, tense atmosphere, high production value, cinematic, 4K quality',
     defaultParams: { name: 'Squid Game' },
   },
   {
@@ -453,6 +456,7 @@ export const templates = [
       { name: 'image_url', type: 'image', label: 'Upload product image' },
       { name: 'prompt', type: 'text', label: 'Scene description', placeholder: 'e.g. luxury marble countertop, soft lighting' },
     ],
+    basePrompt: '{prompt}, product hero shot, studio-quality product photography, dramatic lighting, hero composition, premium commercial product, professional studio setup, 8K resolution, cinematic product showcase',
   },
   {
     id: 'product-photography',
@@ -467,6 +471,7 @@ export const templates = [
       { name: 'image_url', type: 'image', label: 'Upload product image' },
       { name: 'prompt', type: 'text', label: 'Photography style', placeholder: 'e.g. minimalist white studio' },
     ],
+    basePrompt: '{prompt}, professional product photography, commercial product shot, studio lighting, clean composition, product catalog style, e-commerce quality, sharp focus, professional photography, 8K',
   },
   {
     id: 'billboard-ad',
@@ -500,6 +505,7 @@ export const templates = [
       { name: 'aspect_ratio', type: 'select', label: 'Aspect Ratio', options: ['9:16', '16:9', '1:1', '4:3', '3:4'] },
       { name: 'duration', type: 'select', label: 'Duration', options: ['5', '8', '10'] },
     ],
+    basePrompt: '{prompt}, ASMR video, satisfying slow-motion close-up, sensory content, calming, immersive, vertical 9:16, soft lighting, relaxing, high detail, 4K quality',
     defaultParams: { resolution: '720p', duration: 5 },
   },
   {
@@ -515,6 +521,7 @@ export const templates = [
       { name: 'image_url', type: 'image', label: 'Upload product image' },
       { name: 'prompt', type: 'text', label: 'Scene context', placeholder: 'e.g. coffee shop table, morning light' },
     ],
+    basePrompt: '{prompt}, natural product placement, lifestyle integration, organic scene, authentic environment, subtle product showcase, realistic composition, professional photography, commercial quality, 8K',
   },
   {
     id: 'unboxing-scene',
@@ -533,6 +540,7 @@ export const templates = [
       { name: 'aspect_ratio', type: 'select', label: 'Aspect Ratio', options: ['9:16', '16:9', '1:1', '4:3', '3:4'] },
       { name: 'duration', type: 'select', label: 'Duration', options: ['5', '8', '10'] },
     ],
+    basePrompt: '{prompt}, dramatic product unboxing reveal, satisfying packaging opening, premium product reveal, cinematic camera motion, vertical 9:16, exciting reveal moment, 4K quality',
     defaultParams: { resolution: '720p', duration: 5 },
   },
   {
@@ -551,6 +559,7 @@ export const templates = [
       { name: 'aspect_ratio', type: 'select', label: 'Aspect Ratio', options: ['16:9', '9:16', '1:1', '4:3', '3:4'] },
       { name: 'duration', type: 'select', label: 'Duration', options: ['5', '8', '10'] },
     ],
+    basePrompt: '{prompt}, Hollywood-grade building explosion, massive destruction VFX, apocalyptic scene, debris, fireballs, shockwave, cinematic destruction, action movie, 4K quality',
     defaultParams: { name: 'Building Explosion' },
   },
   {
@@ -569,6 +578,7 @@ export const templates = [
       { name: 'aspect_ratio', type: 'select', label: 'Aspect Ratio', options: ['16:9', '9:16', '1:1', '4:3', '3:4'] },
       { name: 'duration', type: 'select', label: 'Duration', options: ['5', '8', '10'] },
     ],
+    basePrompt: '{prompt}, action movie car explosion, massive fireball, vehicle destruction, debris flying, cinematic action VFX, high-octane, explosive, Hollywood action, 4K quality',
     defaultParams: { name: 'Car Explosion' },
   },
   {
@@ -587,6 +597,7 @@ export const templates = [
       { name: 'aspect_ratio', type: 'select', label: 'Aspect Ratio', options: ['16:9', '9:16', '1:1', '4:3', '3:4'] },
       { name: 'duration', type: 'select', label: 'Duration', options: ['5', '8', '10'] },
     ],
+    basePrompt: '{prompt}, Thanos snap disintegration effect, body turning to dust and ash, magical particle destruction, dramatic VFX, Marvel cinematic, epic moment, floating particles, high quality, 4K',
     defaultParams: { name: 'Disintegration' },
   },
   {
@@ -605,6 +616,7 @@ export const templates = [
       { name: 'aspect_ratio', type: 'select', label: 'Aspect Ratio', options: ['16:9', '9:16', '1:1', '4:3', '3:4'] },
       { name: 'duration', type: 'select', label: 'Duration', options: ['5', '8', '10'] },
     ],
+    basePrompt: '{prompt}, electric lightning effect, crackling electricity, bright arcs, storm energy, electrifying power, neon voltage, cinematic electric VFX, high contrast, dramatic lighting, 4K quality',
     defaultParams: { name: 'Electricity' },
   },
   {
@@ -623,6 +635,7 @@ export const templates = [
       { name: 'aspect_ratio', type: 'select', label: 'Aspect Ratio', options: ['16:9', '9:16', '1:1', '4:3', '3:4'] },
       { name: 'duration', type: 'select', label: 'Duration', options: ['5', '8', '10'] },
     ],
+    basePrompt: '{prompt}, devastating tornado VFX, massive swirling vortex, dark storm clouds, destructive wind, debris, apocalyptic nature, cinematic disaster, dramatic, 4K quality',
     defaultParams: { name: 'Tornado' },
   },
   {
@@ -641,6 +654,7 @@ export const templates = [
       { name: 'aspect_ratio', type: 'select', label: 'Aspect Ratio', options: ['16:9', '9:16', '1:1', '4:3', '3:4'] },
       { name: 'duration', type: 'select', label: 'Duration', options: ['5', '8', '10'] },
     ],
+    basePrompt: '{prompt}, dragon fire breath effect, intense flames, scorching heat, mythical power, roaring fire, fantasy warrior, cinematic VFX, epic action, 4K quality',
     defaultParams: { name: 'Fire', resolution: '720p', duration: 5 },
   },
   {
@@ -656,6 +670,7 @@ export const templates = [
       { name: 'image_url', type: 'image', label: 'Upload source face' },
       { name: 'prompt', type: 'text', label: 'Target image URL', placeholder: 'URL of target image' },
     ],
+    basePrompt: '{prompt}, realistic AI face swap, seamless face replacement, natural skin tones, matching lighting, photorealistic result, high quality, 4K',
   },
   {
     id: 'gender-swap',
@@ -673,6 +688,7 @@ export const templates = [
       { name: 'aspect_ratio', type: 'select', label: 'Aspect Ratio', options: ['16:9', '9:16', '1:1', '4:3', '3:4'] },
       { name: 'duration', type: 'select', label: 'Duration', options: ['5', '8', '10'] },
     ],
+    basePrompt: '{prompt}, AI gender swap transformation, realistic gender transformation, natural appearance, maintaining identity, smooth transition, photorealistic, high quality, 4K',
     defaultParams: { name: 'Gender Swap' },
   },
   {
@@ -688,6 +704,7 @@ export const templates = [
       { name: 'image_url', type: 'image', label: 'Upload your photo' },
       { name: 'prompt', type: 'text', label: 'Age instruction', placeholder: 'e.g. 20 years older' },
     ],
+    basePrompt: '{prompt}, age progression effect, aging transformation, realistic aging process, matured appearance, natural wrinkles, life experience, photorealistic, high quality, 4K',
     defaultParams: { name: 'Age Progression' },
   },
   {
@@ -706,6 +723,7 @@ export const templates = [
       { name: 'aspect_ratio', type: 'select', label: 'Aspect Ratio', options: ['16:9', '9:16', '1:1', '4:3', '3:4'] },
       { name: 'duration', type: 'select', label: 'Duration', options: ['5', '8', '10'] },
     ],
+    basePrompt: '{prompt}, younger self transformation, youthful appearance, nostalgic memory style, childhood version of yourself, soft dreamy aesthetic, vertical 16:9, heartwarming, 4K quality',
     defaultParams: { name: 'Younger Self Selfie', resolution: '720p', duration: 5 },
   },
   {
@@ -724,6 +742,7 @@ export const templates = [
       { name: 'aspect_ratio', type: 'select', label: 'Aspect Ratio', options: ['9:16', '16:9', '1:1', '4:3', '3:4'] },
       { name: 'duration', type: 'select', label: 'Duration', options: ['5', '8', '10'] },
     ],
+    basePrompt: '{prompt}, fashion runway stride, haute couture model walk, luxury fashion, elegant pose, professional catwalk, designer clothing, Vogue aesthetic, cinematic, 4K quality',
     defaultParams: { name: 'Fashion Stride' },
   },
   {
@@ -742,6 +761,7 @@ export const templates = [
       { name: 'aspect_ratio', type: 'select', label: 'Aspect Ratio', options: ['16:9', '9:16', '1:1', '4:3', '3:4'] },
       { name: 'duration', type: 'select', label: 'Duration', options: ['5', '8', '10'] },
     ],
+    basePrompt: '{prompt}, Hollywood glamour portrait, red carpet elegance, dramatic studio lighting, luxurious beauty, cinematic glamour, high fashion, professional retouching, timeless beauty, 4K quality',
     defaultParams: { name: 'Glamor', resolution: '720p', duration: 5 },
   },
   {
@@ -757,6 +777,7 @@ export const templates = [
       { name: 'image_url', type: 'image', label: 'Upload your photo' },
       { name: 'prompt', type: 'text', label: 'Description', placeholder: 'e.g. art deco style, jazz age aesthetic' },
     ],
+    basePrompt: '{prompt}, 1920s roaring twenties style, art deco aesthetic, Great Gatsby era, flapper fashion, jazz age, geometric patterns, vintage glamour, sepia tones, period authentic, 4K quality',
     defaultParams: { name: '1920s Decade' },
   },
   {
@@ -772,6 +793,7 @@ export const templates = [
       { name: 'image_url', type: 'image', label: 'Upload your photo' },
       { name: 'prompt', type: 'text', label: 'Description', placeholder: 'e.g. vintage diner, rockabilly style' },
     ],
+    basePrompt: '{prompt}, 1950s mid-century Americana, vintage retro aesthetic, classic cars, diner culture, rockabilly style, pastel colors, Eisenhower era, nostalgic Americana, period authentic, 4K quality',
     defaultParams: { name: '1950s Decade' },
   },
   {
@@ -787,6 +809,7 @@ export const templates = [
       { name: 'image_url', type: 'image', label: 'Upload your photo' },
       { name: 'prompt', type: 'text', label: 'Description', placeholder: 'e.g. disco aesthetic, hippie vibe' },
     ],
+    basePrompt: '{prompt}, 1970s groovy retro aesthetic, disco era, bell bottoms, earth tones, vintage photography, funky style, decade authentic, nostalgic, 4K quality',
     defaultParams: { name: '1970s Decade' },
   },
   {
@@ -802,6 +825,7 @@ export const templates = [
       { name: 'image_url', type: 'image', label: 'Upload your photo' },
       { name: 'prompt', type: 'text', label: 'Description', placeholder: 'e.g. synthwave, neon lights, Miami Vice style' },
     ],
+    basePrompt: '{prompt}, 1980s neon-lit synthwave aesthetic, retro eighties style, Miami Vice vibe, vibrant neon colors, arcade culture, decade authentic, nostalgic, 4K quality',
     defaultParams: { name: '1980s Decade' },
   },
   {
@@ -814,13 +838,13 @@ export const templates = [
     model: 'motion-controls',
     modelType: 'i2v',
     aspectRatio: '16:9',
-    cinematic: true,
     inputs: [
       { name: 'image_url', type: 'image', label: 'Upload landscape or scene' },
       { name: 'prompt', type: 'text', label: 'Flight path', placeholder: 'e.g. through a forest canopy' },
       { name: 'aspect_ratio', type: 'select', label: 'Aspect Ratio', options: ['16:9', '9:16', '1:1', '4:3', '3:4'] },
       { name: 'duration', type: 'select', label: 'Duration', options: ['5', '8', '10'] },
     ],
+    basePrompt: '{prompt}, first-person drone FPV flight, immersive aerial perspective, dynamic swooping motion, cinematic landscape, sweeping aerial shot, adrenaline-pumping, high-speed flight, cinematic, 4K quality',
     defaultParams: { name: 'FPV Drone Cam', resolution: '720p', duration: 5 },
   },
   {
@@ -833,13 +857,13 @@ export const templates = [
     model: 'motion-controls',
     modelType: 'i2v',
     aspectRatio: '16:9',
-    cinematic: true,
     inputs: [
       { name: 'image_url', type: 'image', label: 'Upload your photo' },
       { name: 'prompt', type: 'text', label: 'Scene description', placeholder: 'e.g. dramatic hallway reveal' },
       { name: 'aspect_ratio', type: 'select', label: 'Aspect Ratio', options: ['16:9', '9:16', '1:1', '4:3', '3:4'] },
       { name: 'duration', type: 'select', label: 'Duration', options: ['5', '8', '10'] },
     ],
+    basePrompt: '{prompt}, Hitchcock dolly zoom effect, vertigo zoom, dramatic perspective shift, cinematic camera movement, unsettling tension, classic film technique, professional cinematography, 4K quality',
     defaultParams: { name: 'Dolly Zoom In', resolution: '720p', duration: 5 },
   },
   {
@@ -852,13 +876,13 @@ export const templates = [
     model: 'motion-controls',
     modelType: 'i2v',
     aspectRatio: '16:9',
-    cinematic: true,
     inputs: [
       { name: 'image_url', type: 'image', label: 'Upload car or street photo' },
       { name: 'prompt', type: 'text', label: 'Chase description', placeholder: 'e.g. high speed through city streets' },
       { name: 'aspect_ratio', type: 'select', label: 'Aspect Ratio', options: ['16:9', '9:16', '1:1', '4:3', '3:4'] },
       { name: 'duration', type: 'select', label: 'Duration', options: ['5', '8', '10'] },
     ],
+    basePrompt: '{prompt}, action movie car chase scene, high-speed pursuit, dramatic stunts, urban action, cinematic camera work, fast-paced action, Hollywood blockbuster, 4K quality',
     defaultParams: { name: 'Car Chase', resolution: '720p', duration: 5 },
   },
   {
@@ -871,13 +895,13 @@ export const templates = [
     model: 'motion-controls',
     modelType: 'i2v',
     aspectRatio: '16:9',
-    cinematic: true,
     inputs: [
       { name: 'image_url', type: 'image', label: 'Upload your photo' },
       { name: 'prompt', type: 'text', label: 'Action', placeholder: 'e.g. mid-air jump kick' },
       { name: 'aspect_ratio', type: 'select', label: 'Aspect Ratio', options: ['16:9', '9:16', '1:1', '4:3', '3:4'] },
       { name: 'duration', type: 'select', label: 'Duration', options: ['5', '8', '10'] },
     ],
+    basePrompt: '{prompt}, Matrix bullet-time shot, frozen time effect, multi-angle camera rotation, dramatic action freeze, green-tinted sci-fi aesthetic, cinematic VFX, iconic Matrix style, 4K quality',
     defaultParams: { name: 'Matrix Shot', resolution: '720p', duration: 5 },
   },
   {
@@ -893,6 +917,7 @@ export const templates = [
       { name: 'image_url', type: 'image', label: 'Upload your photo' },
       { name: 'prompt', type: 'text', label: 'Description', placeholder: 'e.g. collectible toy style, detailed paint finish' },
     ],
+    basePrompt: '{prompt}, 3D collectible figurine, miniature figure, detailed paint job, PVC plastic material, collector display, isometric angle, detailed sculpt, toy photography style, 4K quality',
     defaultParams: { name: '3D Figurine' },
   },
   {
@@ -908,6 +933,7 @@ export const templates = [
       { name: 'image_url', type: 'image', label: 'Upload your photo' },
       { name: 'prompt', type: 'text', label: 'Description', placeholder: 'e.g. magical crystal ball, winter snow scene' },
     ],
+    basePrompt: '{prompt}, scene inside a crystal glass ball, miniature diorama, refraction effect, magical snow globe, whimsical world, transparent sphere, fantasy miniature, detailed, 4K quality',
     defaultParams: { name: 'Glass Ball' },
   },
 ];
@@ -916,23 +942,20 @@ export const templates = [
 export const allTemplates = [...templates, ...ALL_NICHE_TEMPLATES, ...MATRIX_TEMPLATES];
 
 export function getTemplateById(id) {
-  return allTemplates.find(t => t.id === id);
+  const list = Array.isArray(allTemplates) ? allTemplates : [];
+  const found = list.find(t => t && t.id === id);
+  if (found) return found;
+  return getMinimaxTemplateById(id) || null;
 }
 
 export function getTemplatesByCategory(category) {
-  return allTemplates.filter(t => t.category === category);
+  const list = Array.isArray(allTemplates) ? allTemplates : [];
+  return list.filter(t => t && t.category === category);
 }
 
 export function getAllCategories() {
-  return [...new Set(allTemplates.map(t => t.category))];
-}
-
-/**
- * Templates opted into the CinematicTemplateWizard. Filter by the
- * `cinematic: true` flag. Other templates fall through to the simple form.
- */
-export function getCinematicTemplates() {
-  return allTemplates.filter((t) => t && t.cinematic === true);
+  const list = Array.isArray(allTemplates) ? allTemplates : [];
+  return [...new Set(list.map(t => t && t.category).filter(Boolean))];
 }
 
 export { ALL_NICHE_TEMPLATES, RESTAURANT_TEMPLATES, MED_SPA_TEMPLATES, SALON_TEMPLATES, FITNESS_TEMPLATES, REAL_ESTATE_TEMPLATES, DENTAL_TEMPLATES, CHIROPRACTIC_TEMPLATES, LEGAL_TEMPLATES, AUTOMOTIVE_TEMPLATES, FASHION_TEMPLATES, EVENT_TEMPLATES, LUXURY_TEMPLATES, MATRIX_TEMPLATES };

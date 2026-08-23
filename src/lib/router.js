@@ -1,4 +1,5 @@
-import { Clerk } from '@clerk/clerk-js';
+import { isDevBypass } from './apiKeyManager.js';
+import { ensureClerkLoaded, isClerkReady } from './clerkInit.js';
 
 // Studio / gated pages that require an active pro plan.
 const STUDIO_PAGES = new Set([
@@ -9,40 +10,50 @@ const STUDIO_PAGES = new Set([
   'text-to-image','image-to-image','text-to-video','image-to-video',
   'video-to-video','video-watermark','storyboard-page','character-page',
   'effects-page','cinema-page','influencer-page','commercial-page',
-  'upscale-page','ai-vfx',
+  'upscale-page','ai-vfx','viral',
 ]);
 
-let clerkReady = null; // cached promise
-
-async function waitForClerk() {
-  if (!clerkReady) {
-    clerkReady = new Promise((resolve) => {
-      if (Clerk.loaded) {
-        resolve(Clerk);
-        return;
-      }
-      const check = () => {
-        if (Clerk.loaded) {
-          Clerk.removeListener('ready', check);
-          resolve(Clerk);
-        }
-      };
-      Clerk.addListener('ready', check);
-      // Timeout after 8 seconds so we never block navigation forever
-      setTimeout(() => {
-        Clerk.removeListener('ready', check);
-        resolve(Clerk);
-      }, 8000);
-    });
+// Ensure the shared Clerk instance is created + loaded before any studio
+// page auth check runs. This guarantees `window.Clerk` is an *instance* (not
+// the bare class), so `clerk.user` is available for the entitlement gate.
+export async function waitForClerk(timeoutMs = 10000) {
+  try {
+    const clerk = await ensureClerkLoaded();
+    if (clerk && clerk.loaded) return clerk;
+  } catch {
+    // load failed — fall through to timeout-based fallback
   }
-  return clerkReady;
+
+  // Fallback: poll window.Clerk (set async by ClerkProvider) if the singleton
+  // couldn't load (e.g. SSR, missing key).
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const c = typeof window !== 'undefined' && window.Clerk;
+    if (c && c.loaded && typeof c.user !== 'undefined') return c;
+    await new Promise((r) => setTimeout(r, 200));
+  }
+
+  // Last resort: return whatever window.Clerk is (may be class or instance)
+  return (typeof window !== 'undefined' && window.Clerk) || null;
 }
 
-async function ensureStudioAccess(page) {
+// Synchronous check — used when we can't afford to await (e.g. button handlers).
+export function isClerkLoaded() {
+  return isClerkReady() ||
+    (typeof window !== 'undefined' && !!window.Clerk && window.Clerk.loaded);
+}
+
+async function ensureStudioAccess(page, urlParams = {}) {
   if (!STUDIO_PAGES.has(page)) return true;
 
+  if (urlParams.template && (page === 'templates' || page.startsWith('template/'))) return true;
+
+  // Local/dev auth bypass (VITE_DEV_BYPASS_AUTH or ?dev): skip the Clerk
+  // gate entirely so studios are usable without a real Clerk session.
+  if (isDevBypass) return true;
+
   const clerk = await waitForClerk();
-  const user = clerk.user;
+  const user = clerk?.user;
 
   if (!user) {
     window.location.href = '/signin';
@@ -64,7 +75,15 @@ async function ensureStudioAccess(page) {
   return true;
 }
 
+// Maps human-readable menu labels to router route IDs.
+// The fallback (`label.toLowerCase().replace(/\s+/g, '-')`) handles labels
+// that already match their route ID (e.g. "Apps" → "apps", "Render" → "render",
+// "Director" → "director"). Entries here are only needed when a label is
+// intentionally different from its route ID, or where a non-slugified ID is
+// required (e.g. "Video Tools" → "videotools", not "video-tools").
 const ROUTE_MAP = {
+  // Legacy top-level header labels (kept for compatibility with the older
+  // Header.js and any deep links that may still reference them).
   'Explore': 'explore',
   'Image': 'image',
   'Video': 'video',
@@ -87,6 +106,26 @@ const ROUTE_MAP = {
   'Media Lib': 'timeline',
   'Social': 'timeline',
   'Landing': 'timeline',
+
+  // New sidebar/landing-header labels. Most already match the route ID via
+  // the fallback, but a few need an explicit entry.
+  'Cinema': 'cinema',
+  'Influencer': 'influencer',
+  'Effects': 'effects',
+  'Upscale': 'upscale',
+  'Training': 'training',
+  'Video Tools': 'videotools', // route ID is the unhyphenated "videotools"
+  'Render': 'render',
+  'Video Agent': 'video-agent',
+  'Director': 'director',
+  'Timeline': 'timeline',
+  'Chat': 'chat',
+  'Commercial': 'commercial',
+  'Library': 'library',
+  'Content Library': 'content-library',
+  'AI VFX': 'ai-vfx',
+  'Stock Media': 'pexels-media',
+  'Smart Video Viral': 'viral',
 };
 
 export function getRouteForItem(item) {
@@ -97,12 +136,15 @@ const pageLoaders = {
   image: () => import('../components/ImageStudio.js').then(m => m.ImageStudio()),
   video: () => import('../components/VideoStudio.js').then(m => m.VideoStudio()),
   cinema: () => import('../components/CinemaStudio.js').then(m => m.CinemaStudio()),
+  'cinema-template': () => import('../components/CinemaTemplateStudio.js').then(m => m.CinemaTemplateStudio()),
   apps: () => import('../components/AppsHub.js').then(m => m.AppsHub()),
+  academy: () => import('../components/academy/AcademyPage.jsx').then(m => m.AcademyPage()),
   templates: () => import('../components/TemplatesPage.js').then(m => m.TemplatesPage()),
   effects: () => import('../components/EffectsStudio.js').then(m => m.EffectsStudio()),
   edit: () => import('../components/EditStudio.js').then(m => m.EditStudio()),
   upscale: () => import('../components/UpscaleStudio.js').then(m => m.UpscaleStudio()),
   library: () => import('../components/LibraryPage.js').then(m => m.LibraryPage()),
+  'content-library': () => import('../components/ContentLibraryPage.js').then(m => m.ContentLibraryPage()),
   character: () => import('../components/CharacterStudio.js').then(m => m.CharacterStudio()),
   influencer: () => import('../components/InfluencerStudio.js').then(m => m.InfluencerStudio()),
   commercial: () => import('../components/CommercialStudio.js').then(m => m.CommercialStudio()),
@@ -113,6 +155,7 @@ const pageLoaders = {
   videotools: () => import('../components/VideoToolsStudio.js').then(m => m.VideoToolsStudio()),
   chat: () => import('../components/ChatStudio.js').then(m => m.ChatStudio()),
   lipsync: () => import('../components/LipSyncStudio.js').then(m => m.LipSyncStudio()),
+  'pexels-media': () => import('../components/PexelsMediaPage.js').then(m => m.PexelsMediaPage()),
 
   assist: () => import('../components/AssistPage.js').then(m => m.AssistPage()),
   community: () => import('../components/CommunityPage.js').then(m => m.CommunityPage()),
@@ -122,8 +165,10 @@ const pageLoaders = {
   'text-to-video': () => import('../components/TextToVideoPage.js').then(m => m.TextToVideoPage()),
   'image-to-video': () => import('../components/ImageToVideoPage.js').then(m => m.ImageToVideoPage()),
   'video-to-video': () => import('../components/VideoToVideoPage.js').then(m => m.VideoToVideoPage()),
-  'video-watermark': () => import('../components/VideoWatermarkPage.js').then(m => m.VideoWatermarkPage()),
-  'storyboard-page': () => import('../components/StoryboardPage.js').then(m => m.StoryboardPage()),
+   'video-watermark': () => import('../components/VideoWatermarkPage.js').then(m => m.VideoWatermarkPage()),
+   'studios/product-photo-studio': () => import('../components/studios/ProductPhotoStudio.jsx').then(m => m.ProductPhotoStudio()),
+   'studios/fashion-studio': () => import('../components/studios/FashionStudio.jsx').then(m => m.FashionStudio()),
+   'storyboard-page': () => import('../components/StoryboardPage.js').then(m => m.StoryboardPage()),
   'character-page': () => import('../components/CharacterPage.js').then(m => m.CharacterPage()),
   'effects-page': () => import('../components/EffectsPage.js').then(m => m.EffectsPage()),
   'cinema-page': () => import('../components/CinemaPage.js').then(m => m.CinemaPage()),
@@ -134,6 +179,8 @@ const pageLoaders = {
   'video-agent': () => import('../components/VideoAgentPage.js').then(m => m.VideoAgentPage()),
   director: () => import('../components/DirectorPage.js').then(m => m.DirectorPage()),
   timeline: () => import('../components/TimelineEditorPage.jsx').then(m => m.TimelineEditorPage()),
+  viral: () => import('../components/SmartVideoViral.js').then(m => m.SmartVideoViral()),
+  spaces: () => Promise.resolve(document.createElement('div')),
   'ai-vfx': () => import('../components/AIVFXPage.js').then(m => m.AIVFXPage()),
   'timeline-iframe-warning': () => Promise.resolve(document.createElement('div'))
 };
@@ -149,10 +196,39 @@ export function initRouter(container, callback) {
   onNavigateCallback = callback;
 }
 
+function getExistingParams() {
+  if (typeof window === 'undefined') return {};
+  const search = window.location.search;
+  if (!search || search.length <= 1) return {};
+  const params = new URLSearchParams(search.slice(1));
+  const result = {};
+  for (const [key, value] of params) {
+    result[key] = value;
+  }
+  return result;
+}
+
+export function getQueryParam(name) {
+  if (typeof window === 'undefined') return null;
+  const params = new URLSearchParams(window.location.search);
+  return params.get(name);
+}
+
+// Remove template-scoped query parameters from params when navigating to a
+// non-template page. This prevents stale `?template=...` values from leaking
+// into unrelated studios and causing unwanted redirects.
+export function cleanTemplateParams(params = {}, page) {
+  if (!page.startsWith('template/') && page !== 'templates') {
+    delete params.template;
+    delete params['academy-template'];
+    delete params.templateId;
+  }
+  return params;
+}
+
 export async function navigate(page, params = {}) {
   if (!contentArea) return;
 
-  // Prevent concurrent navigation to avoid infinite loops
   if (isNavigating) {
     console.warn('[Router] Navigation already in progress, skipping...');
     return;
@@ -161,16 +237,30 @@ export async function navigate(page, params = {}) {
   isNavigating = true;
   currentPage = page;
 
+  const mergedParams = { ...getExistingParams(), ...params };
+
+  mergedParams = cleanTemplateParams(mergedParams, page);
+
   // Gate studio / gated pages behind the pro plan
-  const granted = await ensureStudioAccess(page);
+  let granted = true;
+  try {
+    granted = await ensureStudioAccess(page, mergedParams);
+  } catch (err) {
+    console.error(`[Router] Access check failed for ${page}:`, err);
+    granted = false;
+  }
   if (!granted) {
     isNavigating = false;
     return;
   }
 
-  // Update URL with params so components can read them via URLSearchParams
-  const searchParams = new URLSearchParams(params).toString();
-  const newUrl = searchParams ? `/?${searchParams}#/${page}` : `/#/${page}`;
+  const searchParams = new URLSearchParams(mergedParams).toString();
+  let hashPath = `/${page}`;
+  if (page === 'academy') {
+    const m = window.location.hash.match(/^#\/academy(\/.*)?$/);
+    if (m && m[1]) hashPath = `/academy${m[1]}`;
+  }
+  const newUrl = searchParams ? `/?${searchParams}#${hashPath}` : `#${hashPath}`;
   window.history.pushState({}, '', newUrl);
 
   currentPageEl?.cleanup?.();
@@ -187,7 +277,7 @@ export async function navigate(page, params = {}) {
 
     // Template pages are also gated — check them before loading
     if (page.startsWith('template/')) {
-      const templateOk = await ensureStudioAccess('templates');
+      const templateOk = await ensureStudioAccess('templates', mergedParams);
       if (!templateOk) return;
       const templateId = page.replace('template/', '');
       const mod = await import('../components/TemplateStudio.js');
@@ -205,7 +295,15 @@ export async function navigate(page, params = {}) {
     }
 
     contentArea.innerHTML = '';
-    contentArea.appendChild(element);
+    if (element instanceof Node) {
+      contentArea.appendChild(element);
+    } else {
+      console.error('[Router] Expected DOM Node for page', page, 'but got:', element);
+      const errEl = document.createElement('div');
+      errEl.className = 'w-full h-full flex items-center justify-center text-red-400 text-sm';
+      errEl.textContent = `Failed to load ${page}: invalid module export`;
+      contentArea.appendChild(errEl);
+    }
     currentPageEl = element;
   } catch (err) {
     console.error(`[Router] Failed to load page: ${page}`, err);
@@ -223,7 +321,6 @@ export async function navigate(page, params = {}) {
   if (onNavigateCallback) onNavigateCallback(page);
 }
 
-// Expose navigate globally for debugging
 if (typeof window !== 'undefined') {
   window.__debugNavigate = navigate;
   window.__debugGetCurrentPage = getCurrentPage;

@@ -13,6 +13,8 @@ import { CINEMATIC_CATEGORIES, OUTPUT_STYLES, VISUAL_STYLES } from './cinematicT
 export const RESTAURANT_TEMPLATES = [
   {
     id: 'midnight_table_film',
+    modelType: 't2v',
+    basePrompt: 'Cinematic midnight restaurant brand film, {prompt}, moody atmospheric lighting, intimate dining scene, professional cinematography, premium food close-ups, 4K',
     name: 'Midnight Table Film',
     description: 'Upscale restaurant evening atmosphere with dramatic lighting',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -38,6 +40,8 @@ export const RESTAURANT_TEMPLATES = [
   },
   {
     id: 'after_the_pour_documentary',
+    modelType: 't2v',
+    basePrompt: 'Documentary style behind the bar experience, {prompt}, craft cocktail close-ups, warm amber bar lighting, authentic bartender moments, observational documentary, 4K',
     name: 'After the Pour Documentary',
     description: 'Documentary-style look at bar program and cocktail crafting',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -63,6 +67,8 @@ export const RESTAURANT_TEMPLATES = [
   },
   {
     id: 'signature_plate_showcase',
+    modelType: 't2v',
+    basePrompt: 'Cinematic food showcase commercial, {prompt}, slow motion plating reveal, macro texture shots, premium food close-ups, elegant table setting, professional food cinematography, 4K',
     name: 'Signature Plate Showcase',
     description: 'Food-focused product showcase with cinematic plating details',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -88,6 +94,8 @@ export const RESTAURANT_TEMPLATES = [
   },
   {
     id: 'flame_and_craft_story',
+    modelType: 't2v',
+    basePrompt: 'Documentary chef at work, {prompt}, open flame cooking, dramatic firelight, chef technique close-ups, kitchen atmosphere, artisan food craft, 4K',
     name: 'Flame & Craft Story',
     description: 'Behind-the-scenes look at chef at work with open flame cooking',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -113,6 +121,8 @@ export const RESTAURANT_TEMPLATES = [
   },
   {
     id: 'last_call_promo',
+    modelType: 't2v',
+    basePrompt: 'Urgent last call brand promotion, {prompt}, bold typography overlay, energetic edit pace, limited time urgency, call to action, social vertical format, 4K',
     name: 'Last Call Promo',
     description: 'Urgency-driven promotion for limited-time offer or event',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -138,6 +148,8 @@ export const RESTAURANT_TEMPLATES = [
   },
   {
     id: 'opening_night_trailer',
+    modelType: 't2v',
+    basePrompt: 'Dramatic grand opening trailer, {prompt}, cinematic tease, epic orchestral mood, venue reveal, exclusivity atmosphere, event promotion, 4K',
     name: 'Opening Night Trailer',
     description: 'Dramatic trailer for restaurant grand opening or special event',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -163,6 +175,8 @@ export const RESTAURANT_TEMPLATES = [
   },
   {
     id: 'at_your_table_video',
+    modelType: 't2v',
+    basePrompt: 'Intimate guest dining experience, {prompt}, warm candlelight, POV table perspective, emotional food moments, luxury hospitality, cinematic brand storytelling, 4K',
     name: 'At Your Table Video',
     description: 'Intimate dining experience showcase from guest perspective',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -188,6 +202,8 @@ export const RESTAURANT_TEMPLATES = [
   },
   {
     id: 'city_after_dinner_recap',
+    modelType: 't2v',
+    basePrompt: 'Evening cityscape dining montage, {prompt}, urban night lights, restaurant approach, dining highlights, city skyline, cinematic lifestyle, 4K',
     name: 'City After Dinner Recap',
     description: 'Evening cityscape paired with dining experience recap',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -213,6 +229,8 @@ export const RESTAURANT_TEMPLATES = [
   },
   {
     id: 'bite_in_motion_reel',
+    modelType: 't2v',
+    basePrompt: 'Vertical social food motion reel, {prompt}, slow motion food textures, bold colors, satisfying bite moments, trending social audio, 9:16 format, 4K',
     name: 'Bite in Motion Reel',
     description: 'Vertical-optimized food motion content for social media',
     category: CINEMATIC_CATEGORIES.SOCIAL,
@@ -238,6 +256,8 @@ export const RESTAURANT_TEMPLATES = [
   },
   {
     id: 'house_special_feature',
+    modelType: 't2v',
+    basePrompt: 'House specialty cinematic showcase, {prompt}, chef artistry, ingredient reveal, plating ceremony, hero dish shot, restaurant invitation, 4K',
     name: 'House Special Feature',
     description: 'Premium feature spotlight on house specialty dish or creation',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -270,6 +290,8 @@ export const RESTAURANT_TEMPLATES = [
 export const MED_SPA_TEMPLATES = [
   {
     id: 'velvet_glow_film',
+    modelType: 't2v',
+    basePrompt: 'Luxury med spa brand film, {prompt}, soft radiant lighting, serene spa environment, glow transformation, intimate beauty moments, cinematic luxury, 4K',
     name: 'Velvet Glow Film',
     description: 'Luxury med spa experience with soft, radiant aesthetics',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -295,6 +317,8 @@ export const MED_SPA_TEMPLATES = [
   },
   {
     id: 'treatment_room_video',
+    modelType: 't2v',
+    basePrompt: 'Med spa treatment room documentary, {prompt}, clinical elegance, equipment close-ups, professional preparation, trust atmosphere, behind the scenes, 4K',
     name: 'Treatment Room Video',
     description: 'Behind-the-scenes look at treatment room and equipment',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -320,6 +344,8 @@ export const MED_SPA_TEMPLATES = [
   },
   {
     id: 'becoming_radiant_story',
+    modelType: 't2v',
+    basePrompt: 'Beauty transformation story, {prompt}, before and after journey, glow reveal moment, skincare process, radiant confidence, emotional brand narrative, 4K',
     name: 'Becoming Radiant Story',
     description: 'Transformation journey story for beauty treatment results',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -345,6 +371,8 @@ export const MED_SPA_TEMPLATES = [
   },
   {
     id: 'after_light_reveal',
+    modelType: 't2v',
+    basePrompt: 'Before and after beauty reveal, {prompt}, dramatic lighting transition, glow transformation, skin detail close-ups, brand statement, 4K',
     name: 'After Light Reveal',
     description: 'Before-and-after style reveal with dramatic lighting transition',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -370,6 +398,8 @@ export const MED_SPA_TEMPLATES = [
   },
   {
     id: 'beauty_edit_promo',
+    modelType: 't2v',
+    basePrompt: 'Dynamic beauty treatment promo, {prompt}, fast paced edit, treatment montage, transformation moments, bold social audio, call to action, 4K',
     name: 'Beauty Edit Promo',
     description: 'Dynamic promotional edit showcasing multiple treatments',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -395,6 +425,8 @@ export const MED_SPA_TEMPLATES = [
   },
   {
     id: 'face_of_authority_documentary',
+    modelType: 't2v',
+    basePrompt: 'Provider authority documentary, {prompt}, medical expertise showcase, patient interaction, professional presence, credentials, cinematic portrait, 4K',
     name: 'Face of Authority Documentary',
     description: 'Provider or doctor profile documentary with expertise showcase',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -420,6 +452,8 @@ export const MED_SPA_TEMPLATES = [
   },
   {
     id: 'client_glow_testimonial',
+    modelType: 't2v',
+    basePrompt: 'Authentic client beauty testimonial, {prompt}, visible glow results, before and after, client confidence, authentic beauty moment, 4K',
     name: 'Client Glow Testimonial',
     description: 'Authentic client testimonial with visible glow results',
     category: CINEMATIC_CATEGORIES.PERSONAL,
@@ -445,6 +479,8 @@ export const MED_SPA_TEMPLATES = [
   },
   {
     id: 'soft_focus_reel',
+    modelType: 't2v',
+    basePrompt: 'Dreamy beauty social short, {prompt}, soft focus aesthetic, glow highlight, beauty moment, warm filter, vertical format, 4K',
     name: 'Soft Focus Reel',
     description: 'Vertical social content with soft, dreamy beauty aesthetic',
     category: CINEMATIC_CATEGORIES.SOCIAL,
@@ -470,6 +506,8 @@ export const MED_SPA_TEMPLATES = [
   },
   {
     id: 'within_the_walls_cinema_piece',
+    modelType: 't2v',
+    basePrompt: 'Cinematic clinic exploration, {prompt}, exterior establishing, space journey, detail wander, atmospheric lighting, luxury med spa, 4K',
     name: 'Within the Walls Cinema Piece',
     description: 'Cinematic exploration of the clinic space and atmosphere',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -495,6 +533,8 @@ export const MED_SPA_TEMPLATES = [
   },
   {
     id: 'luxe_offer_video',
+    modelType: 't2v',
+    basePrompt: 'Premium med spa package promotion, {prompt}, elegant presentation, luxury CTA, exclusive offer reveal, value showcase, cinematic brand, 4K',
     name: 'Luxe Offer Video',
     description: 'Premium service package promotion with elegant presentation',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -527,6 +567,8 @@ export const MED_SPA_TEMPLATES = [
 export const SALON_TEMPLATES = [
   {
     id: 'final_cut_film',
+    modelType: 't2v',
+    basePrompt: 'Cinematic haircut transformation, {prompt}, before reveal, styling process detail, big reveal moment, confidence close, barber artistry, 4K',
     name: 'Final Cut Film',
     description: 'Dramatic reveal of haircut transformation with cinematic polish',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -552,6 +594,8 @@ export const SALON_TEMPLATES = [
   },
   {
     id: 'the_chair_documentary',
+    modelType: 't2v',
+    basePrompt: 'Barbershop documentary, {prompt}, shop community, chair experience, craft at work, authentic barbershop culture, observational style, 4K',
     name: 'The Chair Documentary',
     description: 'Barbershop documentary capturing the chair experience',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -577,6 +621,8 @@ export const SALON_TEMPLATES = [
   },
   {
     id: 'mirror_change_reveal',
+    modelType: 't2v',
+    basePrompt: 'Mirror reveal transformation, {prompt}, pre mirror anticipation, first look moment, reaction capture, emotional reveal, salon storytelling, 4K',
     name: 'Mirror Change Reveal',
     description: 'Classic mirror reveal moment with transformation impact',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -602,6 +648,8 @@ export const SALON_TEMPLATES = [
   },
   {
     id: 'hands_of_style_portrait',
+    modelType: 't2v',
+    basePrompt: 'Stylist craft portrait series, {prompt}, hands at work, tool precision, technique close-ups, artistic detail, documentary style, 4K',
     name: 'Hands of Style Portrait',
     description: 'Stylist hands at work portrait series with craft focus',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -627,6 +675,8 @@ export const SALON_TEMPLATES = [
   },
   {
     id: 'barber_code_promo',
+    modelType: 't2v',
+    basePrompt: 'Bold barbershop promo, {prompt}, service showcase, style variety, shop environment, energetic edit, booking CTA, 4K',
     name: 'Barber Code Promo',
     description: 'Bold promotional content for barbershop services',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -652,6 +702,8 @@ export const SALON_TEMPLATES = [
   },
   {
     id: 'fresh_look_story',
+    modelType: 't2v',
+    basePrompt: 'Walk in to walk out story, {prompt}, consultation, transformation process, style reveal, confidence departure, emotional narrative, 4K',
     name: 'Fresh Look Story',
     description: 'Narrative journey from walk-in to walk-out with fresh look',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -677,6 +729,8 @@ export const SALON_TEMPLATES = [
   },
   {
     id: 'booked_by_friday_video',
+    modelType: 't2v',
+    basePrompt: 'Weekend booking urgency promo, {prompt}, availability tease, service highlights, urgency element, bold CTA, social vertical, 4K',
     name: 'Booked by Friday Video',
     description: 'Urgency-driven promotion targeting weekend appointments',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -702,6 +756,8 @@ export const SALON_TEMPLATES = [
   },
   {
     id: 'shop_lights_reel',
+    modelType: 't2v',
+    basePrompt: 'Vertical salon atmosphere reel, {prompt}, shop lighting, vibe capture, chair moment, tool glimpse, social audio, 4K',
     name: 'Shop Lights Reel',
     description: 'Vertical social content showcasing shop atmosphere',
     category: CINEMATIC_CATEGORIES.SOCIAL,
@@ -727,6 +783,8 @@ export const SALON_TEMPLATES = [
   },
   {
     id: 'before_the_mirror_showcase',
+    modelType: 't2v',
+    basePrompt: 'Pre service mirror moments, {prompt}, station setup, styling process, mirror check, final preparation, salon commercial, 4K',
     name: 'Before the Mirror Showcase',
     description: 'Pre-service styling moments at the mirror station',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -752,6 +810,8 @@ export const SALON_TEMPLATES = [
   },
   {
     id: 'style_motion_short',
+    modelType: 't2v',
+    basePrompt: 'Dynamic styling motion short, {prompt}, slow motion hair movement, style in action, dynamic transitions, social format, 4K',
     name: 'Style Motion Short',
     description: 'Dynamic motion-focused content showcasing styling movement',
     category: CINEMATIC_CATEGORIES.SOCIAL,
@@ -784,6 +844,8 @@ export const SALON_TEMPLATES = [
 export const FITNESS_TEMPLATES = [
   {
     id: 'iron_frame_film',
+    modelType: 't2v',
+    basePrompt: 'Dramatic strength training film, {prompt}, gym entrance, intense lift, effort detail, strength reveal, powerful cinematography, 4K',
     name: 'Iron Frame Film',
     description: 'Powerful strength training documentary with dramatic visuals',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -809,6 +871,8 @@ export const FITNESS_TEMPLATES = [
   },
   {
     id: 'built_in_motion_promo',
+    modelType: 't2v',
+    basePrompt: 'High energy fitness promo, {prompt}, transformation montage, workout energy, community vibe, membership CTA, bold fitness, 4K',
     name: 'Built in Motion Promo',
     description: 'High-energy promotional content showcasing fitness transformation',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -834,6 +898,8 @@ export const FITNESS_TEMPLATES = [
   },
   {
     id: 'coach_cut_portrait',
+    modelType: 't2v',
+    basePrompt: 'Coach trainer profile, {prompt}, expertise showcase, training style, client success, coaching philosophy, documentary portrait, 4K',
     name: 'Coach Cut Portrait',
     description: 'Trainer/coach profile with expertise and authority showcase',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -859,6 +925,8 @@ export const FITNESS_TEMPLATES = [
   },
   {
     id: 'becoming_strong_story',
+    modelType: 't2v',
+    basePrompt: 'Fitness transformation story, {prompt}, beginning journey, grind montage, breakthrough moment, strong reveal, emotional narrative, 4K',
     name: 'Becoming Strong Story',
     description: 'Transformation narrative from beginner to strong',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -884,6 +952,8 @@ export const FITNESS_TEMPLATES = [
   },
   {
     id: 'challenge_campaign_trailer',
+    modelType: 't2v',
+    basePrompt: 'Fitness challenge trailer, {prompt}, intensity preview, community shots, results tease, dramatic hype, join reveal, 4K',
     name: 'Challenge Campaign Trailer',
     description: 'Dramatic trailer for fitness challenge or program launch',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -909,6 +979,8 @@ export const FITNESS_TEMPLATES = [
   },
   {
     id: 'after_burn_reel',
+    modelType: 't2v',
+    basePrompt: 'Vertical high intensity workout reel, {prompt}, beat synced visuals, sweat details, energetic gym moments, trending audio, 9:16, 4K',
     name: 'After Burn Reel',
     description: 'Vertical high-intensity workout content for social media',
     category: CINEMATIC_CATEGORIES.SOCIAL,
@@ -934,6 +1006,8 @@ export const FITNESS_TEMPLATES = [
   },
   {
     id: 'proof_in_progress_documentary',
+    modelType: 't2v',
+    basePrompt: 'Raw training documentary, {prompt}, in progress workout footage, warm up intensity, main lifts, struggle and persistence, authentic, 4K',
     name: 'Proof in Progress Documentary',
     description: 'In-progress workout documentary with raw training footage',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -959,6 +1033,8 @@ export const FITNESS_TEMPLATES = [
   },
   {
     id: 'inside_the_grind_video',
+    modelType: 't2v',
+    basePrompt: 'Day in the life fitness film, {prompt}, early morning routine, gym arrival, training blocks, nutrition, gritty cinematography, 4K',
     name: 'Inside the Grind Video',
     description: 'Day-in-the-life fitness content with gritty training aesthetic',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -984,6 +1060,8 @@ export const FITNESS_TEMPLATES = [
   },
   {
     id: 'transformation_shot_reveal',
+    modelType: 't2v',
+    basePrompt: 'Before after fitness reveal, {prompt}, before state, journey montage, transition moment, achievement close, transformation CTA, 4K',
     name: 'Transformation Shot Reveal',
     description: 'Before/after visual sequence with dramatic reveal',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -1009,6 +1087,8 @@ export const FITNESS_TEMPLATES = [
   },
   {
     id: 'pulse_motion_short',
+    modelType: 't2v',
+    basePrompt: 'Beat synced fitness short, {prompt}, rhythmic workout visuals, beat drop moment, sweat details, energetic social format, 4K',
     name: 'Pulse Motion Short',
     description: 'Beat-synced fitness content with rhythmic workout visuals',
     category: CINEMATIC_CATEGORIES.SOCIAL,
@@ -1041,6 +1121,8 @@ export const FITNESS_TEMPLATES = [
 export const REAL_ESTATE_TEMPLATES = [
   {
     id: 'open_door_film',
+    modelType: 't2v',
+    basePrompt: 'Luxury property reveal, {prompt}, dramatic door open moment, home journey, cinematic establishing, lifestyle close, luxury real estate, 4K',
     name: 'Open Door Film',
     description: 'Luxury property reveal with dramatic door-open moment',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -1066,6 +1148,8 @@ export const REAL_ESTATE_TEMPLATES = [
   },
   {
     id: 'luxury_address_showcase',
+    modelType: 't2v',
+    basePrompt: 'Premium property showcase, {prompt}, architectural details, interior flow, outdoor living, address reveal, luxury brand, 4K',
     name: 'Luxury Address Showcase',
     description: 'Premium property showcase with elegant presentation',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -1092,6 +1176,8 @@ export const REAL_ESTATE_TEMPLATES = [
   },
   {
     id: 'realtor_story_film',
+    modelType: 't2v',
+    basePrompt: 'Realtor agent profile film, {prompt}, origin story, local expertise, client success, personal brand, professional authority, 4K',
     name: 'Realtor Story Film',
     description: 'Agent profile film with personal brand and expertise',
     category: CINEMATIC_CATEGORIES.PERSONAL,
@@ -1117,6 +1203,8 @@ export const REAL_ESTATE_TEMPLATES = [
   },
   {
     id: 'living_here_video',
+    modelType: 't2v',
+    basePrompt: 'Neighborhood lifestyle film, {prompt}, morning in area, local spots, community moments, evening atmosphere, home feeling, 4K',
     name: 'Living Here Video',
     description: 'Lifestyle-focused content showing what it is like to live in the area',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -1142,6 +1230,8 @@ export const REAL_ESTATE_TEMPLATES = [
   },
   {
     id: 'open_house_promo',
+    modelType: 't2v',
+    basePrompt: 'Open house event promo, {prompt}, property tease, date reveal, feature highlights, urgency, RSVP CTA, social vertical, 4K',
     name: 'Open House Promo',
     description: 'Event-driven promotion for upcoming open house',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -1167,6 +1257,8 @@ export const REAL_ESTATE_TEMPLATES = [
   },
   {
     id: 'sold_story_feature',
+    modelType: 't2v',
+    basePrompt: 'Property sold success story, {prompt}, client situation, agent collaboration, winning moment, testimonial close, real estate brand, 4K',
     name: 'Sold Story Feature',
     description: 'Success story of property sold with client testimonial',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -1192,6 +1284,8 @@ export const REAL_ESTATE_TEMPLATES = [
   },
   {
     id: 'keys_in_hand_film',
+    modelType: 't2v',
+    basePrompt: 'Emotional closing day film, {prompt}, key handover, new home entry, dream fulfilled, emotional anticipation, real estate storytelling, 4K',
     name: 'Keys in Hand Film',
     description: 'Emotional closing day moment with keys handover',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -1217,6 +1311,8 @@ export const REAL_ESTATE_TEMPLATES = [
   },
   {
     id: 'agent_frame_portrait',
+    modelType: 't2v',
+    basePrompt: 'Professional agent portrait, {prompt}, professional entrance, market expertise, trust elements, contact close, documentary style, 4K',
     name: 'Agent Frame Portrait',
     description: 'Professional agent portrait with authority and trust focus',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -1242,6 +1338,8 @@ export const REAL_ESTATE_TEMPLATES = [
   },
   {
     id: 'vertical_estate_reel',
+    modelType: 't2v',
+    basePrompt: 'Vertical property social reel, {prompt}, room flow, detail close-up, lifestyle moment, 9:16 format, social audio, 4K',
     name: 'Vertical Estate Reel',
     description: 'Vertical-optimized property content for social media',
     category: CINEMATIC_CATEGORIES.SOCIAL,
@@ -1267,6 +1365,8 @@ export const REAL_ESTATE_TEMPLATES = [
   },
   {
     id: 'listing_call_ad',
+    modelType: 't2v',
+    basePrompt: 'Direct response seller ad, {prompt}, property value hook, market info, agent credibility, free evaluation, call CTA, 4K',
     name: 'Listing Call Ad',
     description: 'Direct response ad targeting potential sellers',
     category: CINEMATIC_CATEGORIES.INDUSTRY,

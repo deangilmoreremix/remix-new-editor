@@ -1,6 +1,7 @@
 import { BaseModal } from './BaseModal.jsx';
 import { searchRecipes, getRecipeById, runRecipe } from '../../lib/recipeEngine.js';
 import { muapi } from '../../lib/muapi.js';
+import { MODAL_SHORTCUTS, renderShortcutsOverlay } from './modalShortcuts.js';
 
 const STORAGE_KEY = 'recipeHistory';
 
@@ -21,6 +22,8 @@ export class RecipeModal extends BaseModal {
     this.logs = [];
     this._basePrompt = '';
     this.history = this._loadHistory();
+    this.loading = options.loading || false;
+    this.showShortcuts = false;
   }
 
   _loadHistory() {
@@ -75,6 +78,11 @@ export class RecipeModal extends BaseModal {
     if (basePromptInput) {
       basePromptInput.oninput = (e) => { this._basePrompt = e.target.value; };
     }
+
+    const shortcutsCloseBtn = root.querySelector('.shortcuts-close-btn');
+    if (shortcutsCloseBtn) {
+      shortcutsCloseBtn.onclick = () => { this.showShortcuts = false; this._refresh(); };
+    }
   }
 
   async _runRecipe(recipeId) {
@@ -98,6 +106,7 @@ export class RecipeModal extends BaseModal {
 
     this.running = false;
     this._addLog('Recipe finished.');
+    this._saveHistory();
     this._refresh();
     if (previousResult) this.onRunRecipe(previousResult);
   }
@@ -106,6 +115,20 @@ export class RecipeModal extends BaseModal {
     if (this.container) {
       this.render();
       this._bind();
+    }
+  }
+
+  handleKeyDown(e) {
+    super.handleKeyDown(e);
+    if ((e.metaKey || e.ctrlKey) && e.key === '/') {
+      e.preventDefault();
+      this.showShortcuts = !this.showShortcuts;
+      this._refresh();
+    }
+    if ((e.metaKey || e.ctrlKey) && e.key === 'f') {
+      e.preventDefault();
+      const searchInput = this.container?.querySelector('[data-search]');
+      if (searchInput) searchInput.focus();
     }
   }
 
@@ -129,13 +152,13 @@ export class RecipeModal extends BaseModal {
             </select>
           </div>
           <div class="recipe-list">
-            ${recipes.length ? recipes.map(r => `
+            ${this.loading ? this.renderSkeleton() : recipes.length ? recipes.map(r => `
               <div class="recipe-card ${this.selectedRecipeId === r.id ? 'selected' : ''}" data-select-recipe="${r.id}">
                 <div class="recipe-name">${r.name}</div>
                 <div class="recipe-desc">${r.description}</div>
                 <div class="recipe-meta">${r.steps.length} steps · ${r.category}</div>
               </div>
-            `).join('') : '<div class="empty-state">No recipes match.</div>'}
+            `).join('') : '<div class="empty-state"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 8px;display:block;color:var(--muted)"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>No recipes match your search.</div>'}
           </div>
         </div>
         <div class="recipe-detail">
@@ -150,14 +173,15 @@ export class RecipeModal extends BaseModal {
               <textarea class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder:text-muted focus:outline-none focus:border-primary/50" rows="3" data-base-prompt placeholder="Base prompt used across steps...">${this._basePrompt || ''}</textarea>
             </div>
             <div class="detail-actions">
-              <button type="button" class="modal-btn modal-btn-primary" data-action="run-recipe" ${this.running ? 'disabled' : ''}>${this.running ? 'Running...' : 'Run Recipe'}</button>
+              <button type="button" class="btn-primary-modern" data-action="run-recipe" ${this.running ? 'disabled' : ''}>${this.running ? 'Running...' : 'Run Recipe'}</button>
             </div>
             <div class="recipe-log">
               ${this.logs.map(l => `<div class="log-line"><span class="log-time">${new Date(l.time).toLocaleTimeString()}</span>${l.text}</div>`).join('')}
             </div>
-          ` : '<div class="empty-state">Select a recipe to preview steps.</div>'}
+          ` : this.loading ? '<div class="empty-state"><div class="skeleton-card" style="height:120px"></div></div>' : '<div class="empty-state">Select a recipe to preview steps.</div>'}
         </div>
       </div>
+      ${this.showShortcuts ? renderShortcutsOverlay(MODAL_SHORTCUTS({ '↑↓': 'Navigate recipes', 'Enter': 'Run recipe' })) : ''}
     `;
   }
 }

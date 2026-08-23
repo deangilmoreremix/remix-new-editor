@@ -1,4 +1,5 @@
 import { aiService } from '../services/aiService.js';
+import { supabase } from '../supabase.js';
 
 export class AiMuAPI {
   static async generateVideo(prompt, model = 'wan2.1-text-to-video', options = {}) {
@@ -10,12 +11,27 @@ export class AiMuAPI {
   }
 
   static async applySAM3Segmentation(imageData, prompts) {
-    // TODO: Implement SAM3 segmentation with video frame extraction
-    throw new Error('SAM3 segmentation not yet implemented - requires video frame extraction first');
+    const { type = 'text', prompt = '', points, box } = prompts || {};
+
+    const { data, error } = await supabase.functions.invoke('sam3-segment', {
+      body: {
+        imageUrl: imageData,
+        promptType: type,
+        prompt,
+        ...(points ? { points } : {}),
+        ...(box ? { box } : {}),
+      },
+    });
+
+    if (error) {
+      throw new Error(error.message || 'SAM3 segmentation failed');
+    }
+
+    return { mask: data?.maskUrl };
   }
 
   static async generateMusic(context, options = {}) {
-    return aiService.generateVideo({ ...context, ...options }, { type: 'music' });
+    return aiService.muapi.generateMusic({ ...context, ...options });
   }
 
   // WAN AI Effects implementation

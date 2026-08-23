@@ -33,7 +33,7 @@ export function EffectsPage() {
   if (hero) {
     const heroContent = document.createElement('div');
     heroContent.className = 'absolute bottom-0 left-0 right-0 p-6 z-10';
-    heroContent.innerHTML = `<h1 class="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight mb-1">Vibe Motion</h1><p class="text-white/60 text-sm font-medium mb-3">Apply stunning visual effects to your photos and videos</p><button class="start-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all">Browse Effects</button>`;
+    heroContent.innerHTML = `<h1 class="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight mb-1">Vibe Motion</h1><p class="text-white/60 text-sm font-medium mb-3">Apply stunning visual effects to your photos and videos</p><button class="start-btn btn-primary-modern">Browse Effects</button>`;
     hero.appendChild(heroContent);
     container.appendChild(hero);
   }
@@ -100,7 +100,7 @@ export function EffectsPage() {
     <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-8 md:p-12 shadow-3xl text-center">
       <h2 class="text-xl md:text-2xl font-bold text-white mb-2">Explore Effects</h2>
       <p class="text-sm text-secondary mb-6">Apply stunning visual effects to your content</p>
-      <button class="cta-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all">Get Started Free</button>
+      <button class="cta-btn btn-primary-modern">Get Started Free</button>
     </div>
   `;
   container.appendChild(ctaSection);

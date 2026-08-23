@@ -1,0 +1,101 @@
+name: Deploy Production
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  NODE_ENV: production
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      - run: npm run test:run
+        continue-on-error: false
+
+      - run: npm run build
+      - run: npm run build --workspace apps/director/frontend
+
+      - name: Deploy to Render
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_DIRECTOR_BACKEND_SERVICE_ID: ${{ secrets.RENDER_DIRECTOR_BACKEND_SERVICE_ID }}
+          RENDER_DIRECTOR_FRONTEND_SERVICE_ID: ${{ secrets.RENDER_DIRECTOR_FRONTEND_SERVICE_ID }}
+          RENDER_HEALTH_URL: ${{ vars.RENDER_HEALTH_URL || 'https://director-backend.onrender.com/health' }}
+        run: |
+          if [ -n "$RENDER_DIRECTOR_BACKEND_SERVICE_ID" ]; then
+            echo "Deploying director-backend to production..."
+            curl -X POST \
+              -H "Authorization: Bearer $RENDER_API_KEY" \
+              -H "Content-Type: application/json" \
+              "https://api.render.com/v1/services/$RENDER_DIRECTOR_BACKEND_SERVICE_ID/deploys" \
+              -d '{"clearCache": "clear"}'
+          fi
+
+          if [ -n "$RENDER_DIRECTOR_FRONTEND_SERVICE_ID" ]; then
+            echo "Deploying director-frontend to production..."
+            curl -X POST \
+              -H "Authorization: Bearer $RENDER_API_KEY" \
+              -H "Content-Type: application/json" \
+              "https://api.render.com/v1/services/$RENDER_DIRECTOR_FRONTEND_SERVICE_ID/deploys" \
+              -d '{"clearCache": "clear"}'
+          fi
+
+      - name: Wait for deploy
+        run: sleep 180
+
+      - name: Health check
+        env:
+          RENDER_HEALTH_URL: ${{ vars.RENDER_HEALTH_URL || 'https://director-backend.onrender.com/health' }}
+        run: |
+          echo "Checking health at $RENDER_HEALTH_URL"
+          for i in {1..30}; do
+            if curl -f "$RENDER_HEALTH_URL"; then
+              echo "Health check passed"
+              exit 0
+            fi
+            echo "Attempt $i failed, retrying in 10s..."
+            sleep 10
+          done
+          echo "Health check failed"
+          exit 1
+
+      - name: Rollback on failure
+        if: failure()
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_DIRECTOR_BACKEND_SERVICE_ID: ${{ secrets.RENDER_DIRECTOR_BACKEND_SERVICE_ID }}
+          RENDER_DIRECTOR_FRONTEND_SERVICE_ID: ${{ secrets.RENDER_DIRECTOR_FRONTEND_SERVICE_ID }}
+        run: |
+          echo "Triggering rollback..."
+          if [ -n "$RENDER_DIRECTOR_BACKEND_SERVICE_ID" ]; then
+            curl -X POST \
+              -H "Authorization: Bearer $RENDER_API_KEY" \
+              "https://api.render.com/v1/services/$RENDER_DIRECTOR_BACKEND_SERVICE_ID/deploys" \
+              -d '{"clearCache": "clear"}' || true
+          fi
+          if [ -n "$RENDER_DIRECTOR_FRONTEND_SERVICE_ID" ]; then
+            curl -X POST \
+              -H "Authorization: Bearer $RENDER_API_KEY" \
+              "https://api.render.com/v1/services/$RENDER_DIRECTOR_FRONTEND_SERVICE_ID/deploys" \
+              -d '{"clearCache": "clear"}' || true
+          fi
+          exit 1

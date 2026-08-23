@@ -23,7 +23,6 @@ const Element = (props) => {
     action,
     disabled,
   } = item;
-
   const [, dragRef] = useDrag({
     item: { type: label, action },
   });

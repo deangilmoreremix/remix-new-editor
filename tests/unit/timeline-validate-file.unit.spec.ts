@@ -1,5 +1,63 @@
-import { describe, it, expect, beforeAll } from 'vitest';
-import { validateFile, validateFileSync, categorize, formatFileSize, FILE_TYPE_CONFIG } from '../../src/lib/editor/validateFile.js';
+import { describe, it, expect, vi } from 'vitest';
+
+// Mock file-type because jsdom Blob.slice() results don't have arrayBuffer(),
+// which causes file-type v22 to silently return null. The mock reads blob
+// data via FileReader and performs lightweight magic-byte detection.
+function readBlob(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(new Uint8Array(reader.result));
+    reader.onerror = () => reject(new Error('FileReader failed'));
+    reader.readAsArrayBuffer(blob);
+  });
+}
+
+vi.mock('file-type', () => ({
+  fileTypeFromBlob: vi.fn(async (blob) => {
+    let buffer;
+    try {
+      buffer = await readBlob(blob);
+    } catch {
+      return null;
+    }
+    if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47) {
+      return { ext: 'png', mime: 'image/png' };
+    }
+    if (buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF) {
+      return { ext: 'jpg', mime: 'image/jpeg' };
+    }
+    if (buffer.length > 8 && buffer[4] === 0x66 && buffer[5] === 0x74 && buffer[6] === 0x79 && buffer[7] === 0x70) {
+      return { ext: 'mp4', mime: 'video/mp4' };
+    }
+    if (buffer[0] === 0x49 && buffer[1] === 0x44 && buffer[2] === 0x33) {
+      return { ext: 'mp3', mime: 'audio/mpeg' };
+    }
+    return null;
+  }),
+  fileType: vi.fn((uint8) => {
+    if (uint8[0] === 0x89 && uint8[1] === 0x50 && uint8[2] === 0x4E && uint8[3] === 0x47) {
+      return { ext: 'png', mime: 'image/png' };
+    }
+    if (uint8[0] === 0xFF && uint8[1] === 0xD8 && uint8[2] === 0xFF) {
+      return { ext: 'jpg', mime: 'image/jpeg' };
+    }
+    if (uint8.length > 8 && uint8[4] === 0x66 && uint8[5] === 0x74 && uint8[6] === 0x79 && uint8[7] === 0x70) {
+      return { ext: 'mp4', mime: 'video/mp4' };
+    }
+    if (uint8[0] === 0x49 && uint8[1] === 0x44 && uint8[2] === 0x33) {
+      return { ext: 'mp3', mime: 'audio/mpeg' };
+    }
+    return null;
+  })
+}));
+
+import {
+  validateFile,
+  validateFileSync,
+  categorize,
+  formatFileSize,
+  FILE_TYPE_CONFIG
+} from '../../src/lib/editor/validateFile.js';
 
 describe('validateFile — categorize', () => {
   it('categorizes video MIME', () => {
@@ -53,9 +111,11 @@ describe('validateFile — async magic-byte detection', () => {
     // PNG signature: 8 bytes. file-type may need a bit more to fully classify,
     // so we include some plausible IHDR-like bytes too.
     const pngHeader = new Uint8Array([
-      0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // signature
-      0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52, // IHDR chunk header
-      0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01  // 1x1 image
+      0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG signature
+      0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52, // IHDR
+      0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, // 1x1
+      0x08, 0x02, 0x00, 0x00, 0x00, // bit depth, color type, etc
+      0x90, 0x77, 0x53, 0xDE // CRC
     ]);
     const blob = new Blob([pngHeader], { type: '' });
     blob.name = 'noext';
@@ -69,9 +129,13 @@ describe('validateFile — async magic-byte detection', () => {
   it('detects JPEG by magic bytes (FF D8 FF)', async () => {
     // JPEG signature: FF D8 FF, then APP0 marker
     const jpegHeader = new Uint8Array([
-      0xFF, 0xD8, 0xFF, 0xE0,
-      0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00,
-      0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x01
+      0xFF, 0xD8, 0xFF, 0xE0, // SOI + APP0
+      0x00, 0x10, // APP0 length
+      0x4A, 0x46, 0x49, 0x46, 0x00, // "JFIF\0"
+      0x01, 0x01, // version 1.1
+      0x00, 0x00, // no units
+      0x00, 0x01, 0x00, 0x01, // 1x1 density
+      0x00, 0x00 // thumbnail
     ]);
     const blob = new Blob([jpegHeader], { type: '' });
     blob.name = 'noext';
@@ -105,7 +169,15 @@ describe('validateFile — async magic-byte detection', () => {
 
   it('detects MP4 by magic bytes (ftyp box at offset 4)', async () => {
     // MP4: bytes 4-7 = "ftyp"
-    const ftyp = new Uint8Array([0x00, 0x00, 0x00, 0x20, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6F, 0x6D]);
+    const ftyp = new Uint8Array([
+      0x00, 0x00, 0x00, 0x20, // box size (32 bytes)
+      0x66, 0x74, 0x79, 0x70, // "ftyp"
+      0x69, 0x73, 0x6F, 0x6D, // brand "isom"
+      0x00, 0x00, 0x00, 0x00, // version
+      0x69, 0x73, 0x6F, 0x6D, // compatible brand "isom"
+      0x69, 0x73, 0x6F, 0x6D, // compatible brand "isom"
+      0x61, 0x76, 0x63, 0x31  // compatible brand "avc1"
+    ]);
     const blob = new Blob([ftyp], { type: '' });
     blob.name = 'noext';
     const r = await validateFile(blob);
@@ -187,5 +259,67 @@ describe('validateFile — sync fallback (no magic bytes)', () => {
     blob.name = 'noext';
     const r = validateFileSync(blob);
     expect(r.valid).toBe(false);
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Regression: FILE_TYPE_CONFIG size caps must match muapi.ai's documented upload
+// limits (Images 10 MB, Videos 50 MB, Others 10 MB). Previously image was 50MB
+// and video was 500MB, so oversized files passed picker validation only to be
+// rejected server-side with a generic error. With the aligned caps the picker
+// fails fast with a friendly message before any network request.
+//
+// Size is stubbed on a small blob (mirrors the existing oversize test above).
+// ──────────────────────────────────────────────────────────────────────────────
+describe('validateFile — muapi.ai documented size caps (10/50/10 MB)', () => {
+  it('enforces the documented 50MB video cap', async () => {
+    expect(FILE_TYPE_CONFIG.video.maxSize).toBe(50 * 1024 * 1024);
+
+    const within = new Blob([new Uint8Array(8)], { type: 'video/mp4' });
+    within.name = 'ok.mp4';
+    Object.defineProperty(within, 'size', { value: 49 * 1024 * 1024, configurable: true });
+    const pass = await validateFile(within);
+    expect(pass.valid).toBe(true);
+    expect(pass.type).toBe('video');
+
+    const over = new Blob([new Uint8Array(8)], { type: 'video/mp4' });
+    over.name = 'big.mp4';
+    Object.defineProperty(over, 'size', { value: 51 * 1024 * 1024, configurable: true });
+    const fail = await validateFile(over);
+    expect(fail.valid).toBe(false);
+    expect(fail.type).toBe('video');
+    expect(fail.error).toMatch(/too large/i);
+  });
+
+  it('enforces the documented 10MB image cap', async () => {
+    expect(FILE_TYPE_CONFIG.image.maxSize).toBe(10 * 1024 * 1024);
+
+    const over = new Blob([new Uint8Array(8)], { type: 'image/png' });
+    over.name = 'big.png';
+    Object.defineProperty(over, 'size', { value: 11 * 1024 * 1024, configurable: true });
+    const fail = await validateFile(over);
+    expect(fail.valid).toBe(false);
+    expect(fail.type).toBe('image');
+    expect(fail.error).toMatch(/too large/i);
+  });
+
+  it('enforces the 10MB cap for audio and documents (muapi "others")', async () => {
+    expect(FILE_TYPE_CONFIG.audio.maxSize).toBe(10 * 1024 * 1024);
+    expect(FILE_TYPE_CONFIG.document.maxSize).toBe(10 * 1024 * 1024);
+
+    const over = new Blob([new Uint8Array(8)], { type: 'audio/mpeg' });
+    over.name = 'big.mp3';
+    Object.defineProperty(over, 'size', { value: 11 * 1024 * 1024, configurable: true });
+    const fail = await validateFile(over);
+    expect(fail.valid).toBe(false);
+    expect(fail.error).toMatch(/too large/i);
+  });
+
+  it('client caps never exceed muapi.uploadFile server-side caps (10/50/10)', () => {
+    // muapi.uploadFile enforces: isImage ? 10MB : isVideo ? 50MB : 10MB.
+    expect(FILE_TYPE_CONFIG.video.maxSize).toBeLessThanOrEqual(50 * 1024 * 1024);
+    expect(FILE_TYPE_CONFIG.image.maxSize).toBeLessThanOrEqual(10 * 1024 * 1024);
+    expect(FILE_TYPE_CONFIG.audio.maxSize).toBeLessThanOrEqual(10 * 1024 * 1024);
+    expect(FILE_TYPE_CONFIG.document.maxSize).toBeLessThanOrEqual(10 * 1024 * 1024);
   });
 });

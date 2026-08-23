@@ -1,4 +1,5 @@
 import { getRouteForItem } from '../lib/router.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
 
 export function Header(navigate) {
   const header = document.createElement('header');
@@ -25,7 +26,7 @@ export function Header(navigate) {
 
   const menu = document.createElement('nav');
   menu.className = 'hidden lg:flex items-center gap-5 text-[13px] font-bold text-secondary';
-  const items = ['Explore', 'Image', 'Video', 'Tools', 'Storyboard', 'Edit', 'Character', 'Vibe Motion', 'Cinema Studio', 'AI Influencer', 'Apps', 'Templates', 'Assist', 'Community'];
+  const items = ['Explore', 'Image', 'Video', 'Tools', 'Storyboard', 'Edit', 'Character', 'Vibe Motion', 'Cinema Studio', 'Cinema Template Studio', 'AI Influencer', 'Smart Video Viral', 'Apps', 'Templates', 'Assist', 'Community', 'Content Library'];
 
   const links = {};
 
@@ -113,9 +114,13 @@ export function Header(navigate) {
     } else if (item === 'Vibe Motion') {
       link.onclick = () => navigate('effects-page');
     } else if (item === 'Cinema Studio') {
-      link.onclick = () => navigate('cinema-page');
+      link.onclick = () => navigate('cinema');
+    } else if (item === 'Cinema Template Studio') {
+      link.onclick = () => navigate('cinema-template');
     } else if (item === 'AI Influencer') {
       link.onclick = () => navigate('influencer-page');
+    } else if (item === 'Smart Video Viral') {
+      link.onclick = () => navigate('viral');
     } else if (item === 'Image' || item === 'Video' || item === 'Tools') {
       // Already handled above
     } else {
@@ -196,7 +201,14 @@ export function Header(navigate) {
       mobileMenu.appendChild(link);
     } else if (item === 'Cinema Studio') {
       link.onclick = () => {
-        navigate('cinema-page');
+        navigate('cinema');
+        mobileMenu.classList.add('opacity-0', 'pointer-events-none');
+        mobileMenu.classList.remove('opacity-100', 'pointer-events-auto');
+      };
+      mobileMenu.appendChild(link);
+    } else if (item === 'Cinema Template Studio') {
+      link.onclick = () => {
+        navigate('cinema-template');
         mobileMenu.classList.add('opacity-0', 'pointer-events-none');
         mobileMenu.classList.remove('opacity-100', 'pointer-events-auto');
       };
@@ -204,6 +216,13 @@ export function Header(navigate) {
     } else if (item === 'AI Influencer') {
       link.onclick = () => {
         navigate('influencer-page');
+        mobileMenu.classList.add('opacity-0', 'pointer-events-none');
+        mobileMenu.classList.remove('opacity-100', 'pointer-events-auto');
+      };
+      mobileMenu.appendChild(link);
+    } else if (item === 'Smart Video Viral') {
+      link.onclick = () => {
+        navigate('viral');
         mobileMenu.classList.add('opacity-0', 'pointer-events-none');
         mobileMenu.classList.remove('opacity-100', 'pointer-events-auto');
       };
@@ -236,7 +255,7 @@ export function Header(navigate) {
   keyBtn.title = 'Update API Key';
   keyBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3m-3-3l-2.25-2.25"/></svg>';
   keyBtn.onclick = () => {
-    localStorage.removeItem('muapi_key');
+    apiKeyManager.clearMuapiKey();
     window.location.reload();
   };
 
@@ -279,10 +298,16 @@ export function Header(navigate) {
       } else if (page === 'effects-page' && route === 'Vibe Motion') {
         el.classList.add('text-white');
         el.classList.remove('text-secondary');
-      } else if (page === 'cinema-page' && route === 'Cinema Studio') {
+      } else if (page === 'cinema' && route === 'Cinema Studio') {
+        el.classList.add('text-white');
+        el.classList.remove('text-secondary');
+      } else if (page === 'cinema-template' && route === 'Cinema Template Studio') {
         el.classList.add('text-white');
         el.classList.remove('text-secondary');
       } else if (page === 'influencer-page' && route === 'AI Influencer') {
+        el.classList.add('text-white');
+        el.classList.remove('text-secondary');
+      } else if (page === 'viral' && route === 'Smart Video Viral') {
         el.classList.add('text-white');
         el.classList.remove('text-secondary');
       } else if (route !== 'Image' && route !== 'Video' && route !== 'Tools') {

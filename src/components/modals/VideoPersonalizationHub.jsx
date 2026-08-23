@@ -188,14 +188,8 @@ export class VideoPersonalizationHub extends BaseModal {
         <div class="import-section">
           <h4>Import Contacts</h4>
           <div class="import-options">
-            <button class="mini-btn">
-              <span>📁</span> Import CSV
-            </button>
-            <button class="mini-btn">
-              <span>🔗</span> Connect CRM
-            </button>
-            <button class="mini-btn">
-              <span>✏️</span> Manual Entry
+            <button class="mini-btn" onclick="window.addContactImport()">
+              <span>📁</span> Import Contacts
             </button>
           </div>
         </div>

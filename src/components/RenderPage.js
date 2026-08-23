@@ -7,6 +7,7 @@ import { getVideoMetadata, downloadFrame, copyToClipboard, saveDraft, saveTempla
 import { enqueueRender, listRenderQueue, subscribe, removeFromRenderQueue, startProcessor, setRenderExecutor } from '../lib/editor/renderQueueStore.js';
 import { assetStore } from '../lib/assets/assetStore.js';
 import { videoDb } from '../lib/videoDb.js';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
 
 import { generateSubtitles, generateHighlights, generateVoiceover, createShorts, runAiAutoEdit } from '../lib/editor/renderAiActions.js';
 
@@ -1153,36 +1154,23 @@ export function RenderPage() {
       if (progressStatus) progressStatus.textContent = 'Generating subtitles...';
       try {
         const result = await generateSubtitles(resolvedVideoUrl);
-        if (result.error) {
-          showToast('Service unavailable — please check configuration');
+        if (result.error || !result.url) {
+          showToast('Subtitles unavailable — Director/VideoDB not reachable');
           return;
         }
-        const downloadSrt = () => {
-          const blob = new Blob([result.srt], { type: 'text/plain' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `${resolvedVideoId || 'subtitles'}.srt`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          setTimeout(() => URL.revokeObjectURL(url), 1000);
-        };
-        const downloadVtt = () => {
-          const blob = new Blob([result.vtt], { type: 'text/vtt' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `${resolvedVideoId || 'subtitles'}.vtt`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          setTimeout(() => URL.revokeObjectURL(url), 1000);
-        };
-        downloadSrt();
-        showToast(`Subtitles generated — ${(result.segments || []).length} segments. SRT downloaded.`);
-        downloadVtt();
-        showToast(`VTT also available (${resolvedVideoId || 'subtitles'}.vtt)`);
+        // Director returns a real subtitled-video URL (burned-in captions).
+        const link = document.createElement('a');
+        link.href = result.url;
+        link.target = '_blank';
+        link.rel = 'noopener';
+        link.className = 'mt-3 inline-block rounded-2xl border border-emerald-400/25 bg-emerald-500/10 px-4 py-2 text-xs text-emerald-100/90';
+        link.textContent = `Open subtitled video (${result.url})`;
+        const badge = container.querySelector('#previewBadge');
+        if (badge) {
+          badge.after(link);
+        }
+        const segCount = (result.segments || []).length;
+        showToast(`Subtitles generated — ${segCount} segments. Subtitled video ready.`);
       } catch (err) {
         console.error('[RenderPage] Add Subtitles failed:', err);
         showToast('Service unavailable — please check configuration');
@@ -1222,21 +1210,23 @@ export function RenderPage() {
       if (spinner) spinner.hidden = false;
       if (progressStatus) progressStatus.textContent = 'Generating voiceover...';
       try {
-        const audioUrl = await generateVoiceover(script.trim());
-        if (!audioUrl) {
-          showToast('Service unavailable — please check configuration');
+        const narratedUrl = await generateVoiceover(script.trim(), resolvedVideoUrl);
+        if (!narratedUrl) {
+          showToast('Voiceover unavailable — Director/VideoDB not reachable');
           return;
         }
-        const audio = document.createElement('audio');
-        audio.src = audioUrl;
-        audio.controls = true;
-        audio.className = 'mt-3 w-full rounded-2xl border border-white/10 bg-black/30 p-2';
-        const badge = document.querySelector('#previewBadge');
+        // Director returns a narrated VIDEO (voiceover burned onto the footage).
+        const video = document.createElement('video');
+        video.src = narratedUrl;
+        video.controls = true;
+        video.crossOrigin = 'anonymous';
+        video.className = 'mt-3 w-full rounded-2xl border border-white/10 bg-black/30';
+        const badge = container.querySelector('#previewBadge');
         if (badge) {
           const wrapper = document.createElement('div');
           wrapper.className = 'mt-3';
-          wrapper.appendChild(document.createTextNode('🎙️ Voiceover: '));
-          wrapper.appendChild(audio);
+          wrapper.appendChild(document.createTextNode('🎙️ Narrated video: '));
+          wrapper.appendChild(video);
           badge.after(wrapper);
         }
         showToast('Voiceover generated — use the player below to preview');
@@ -1282,14 +1272,30 @@ export function RenderPage() {
       if (spinner) spinner.hidden = false;
       if (progressStatus) progressStatus.textContent = 'Running AI auto-edit...';
       try {
-        const plan = await runAiAutoEdit(resolvedVideoUrl);
+        const plan = await runAiAutoEdit(resolvedVideoUrl, { captionStyle: selectedPreset });
         const sceneCount = (plan.scenes || []).length;
         const highlightCount = (plan.highlights || []).length;
         const subtitleCount = (plan.subtitles?.segments || []).length;
         console.log('[RenderPage] AI Auto-Edit plan:', plan);
-        showToast(
-          `AI Auto-Edit complete: ${sceneCount} scenes, ${highlightCount} highlights, ${subtitleCount} subtitles`
-        );
+        const editPlan = plan.plan && !plan.plan.error ? plan.plan : null;
+        if (editPlan) {
+          const badge = container.querySelector('#previewBadge');
+          if (badge) {
+            const planBadge = document.createElement('div');
+            planBadge.className = 'mt-3 rounded-2xl border border-indigo-400/25 bg-indigo-500/10 px-4 py-3 text-xs text-indigo-100/90';
+            planBadge.innerHTML =
+              `Auto-Edit plan: ${editPlan.summary} · ` +
+              `${editPlan.sceneOrder.length} scenes · ` +
+              `${editPlan.highlightCount} highlights · ` +
+              `export: ${editPlan.recommendedExportProfile}`;
+            badge.after(planBadge);
+          }
+          showToast(`AI Auto-Edit plan ready — ${editPlan.sceneOrder.length} scenes sequenced`);
+        } else {
+          showToast(
+            `AI Auto-Edit complete: ${sceneCount} scenes, ${highlightCount} highlights, ${subtitleCount} subtitles`
+          );
+        }
       } catch (err) {
         console.error('[RenderPage] AI Auto-Edit failed:', err);
         showToast('Service unavailable — please check configuration');
@@ -1301,6 +1307,7 @@ export function RenderPage() {
 
   // Action handler
   async function dispatchAction(action) {
+    if (!(await requireEntitlement())) return;
     activeAction = action;
     const previewBadge = container.querySelector('#previewBadge');
     const handler = ACTION_HANDLERS[action];

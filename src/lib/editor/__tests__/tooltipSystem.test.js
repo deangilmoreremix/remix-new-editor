@@ -16,7 +16,7 @@ describe('Tooltip System', () => {
   it('should return correct tooltip text for known features', () => {
     const tooltipSystem = createTooltipSystem();
 
-    expect(tooltipSystem.getTooltipText('fill-gap')).toContain('AI generates new footage');
+    expect(tooltipSystem.getTooltipText('fillGap')).toContain('AI generates new footage');
     expect(tooltipSystem.getTooltipText('extend-clip')).toContain('Lengthen clips by generating');
     expect(tooltipSystem.getTooltipText('music-gen')).toContain('Generate music from video context');
     expect(tooltipSystem.getTooltipText('node-workflow')).toContain('Create AI generation pipelines');
@@ -41,7 +41,7 @@ describe('Tooltip System', () => {
       body: { appendChild: () => {} }
     };
 
-    tooltipSystem.showTooltip('fill-gap', { x: 100, y: 200 });
+    tooltipSystem.showTooltip('fillGap', { x: 100, y: 200 });
 
     expect(mockElement.textContent).toContain('AI generates new footage');
     expect(mockElement.style.position).toBe('absolute');

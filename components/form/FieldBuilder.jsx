@@ -39,6 +39,7 @@ FieldBuilder.propTypes = {
   onCheckValue: PropTypes.func,
   onChange: PropTypes.func,
   name: PropTypes.string.isRequired,
+  isAiSuggesstionVisible:PropTypes.bool,
   isTooltip: PropTypes.bool,
   tooltipHeight: PropTypes.number,
   tooltipMessage: PropTypes.string,

@@ -33,11 +33,7 @@ function ClerkGate({ children }) {
       </div>
     );
   }
-  // The app's own router mounts these pages at real path routes
-  // (/signin, /signup, …), not hash routes. Clerk must use path-based
-  // routing so its client can resolve the route and finish loading —
-  // with routing="hash" and an empty hash, useSignIn/useSignUp never
-  // report isLoaded and the submit buttons stay permanently disabled.
+
   return (
     <ClerkProvider publishableKey={PUBLISHABLE_KEY} routing="path">
       {children}
@@ -88,7 +84,7 @@ export function ClerkSignUp() {
 function AccountShell() {
   const { isLoaded, isSignedIn, user } = useUser();
   if (!isLoaded) return <div style={{ color: '#94a3b8', padding: 24 }}>Loading…</div>;
-  if (!isSignedIn) return <SignInPage />;
+  if (!isSignedIn || !user) return <SignInPage />;
 
   const createdAt = user?.createdAt
     ? new Date(user.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
@@ -174,7 +170,7 @@ function AccountShell() {
 function ProfileShell() {
   const { isLoaded, isSignedIn, user } = useUser();
   if (!isLoaded) return <div style={{ color: '#94a3b8', padding: 24 }}>Loading…</div>;
-  if (!isSignedIn) return <SignUpPage />;
+  if (!isSignedIn || !user) return <SignUpPage />;
 
   return (
     <div className="min-h-screen bg-[#020205] text-white">
@@ -183,7 +179,7 @@ function ProfileShell() {
           <div className="rounded-2xl border border-white/10 bg-white/5 p-6 flex flex-col items-center text-center">
             <img
               src={user?.imageUrl || '/assets/placeholder-avatar.png'}
-              alt={user?.fullName || 'Avatar'}
+              alt={user?.fullName || 'User'}
               className="w-20 h-20 rounded-full border border-white/10 bg-white/5 mb-4"
             />
             <h2 className="text-lg font-bold text-white">{user?.fullName || 'User'}</h2>

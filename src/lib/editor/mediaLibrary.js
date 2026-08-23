@@ -5,6 +5,7 @@
  */
 
 import { videoDb } from '../videoDb.js';
+import { formatErrorMessage } from '../errorMessages.js';
 
 // CineGen Elements System - Professional asset references for consistent video production
 const CINEGEN_ELEMENTS = {
@@ -962,8 +963,9 @@ export function handleUpload(showToast, state) {
     if (files.length === 0) return;
     // Lazy-load the pipeline to avoid a circular import
     const { processFileUpload } = await import('./uploadPipeline.js');
+    const safeToast = (m, t) => showToast && showToast(formatErrorMessage(m), t);
     for (const file of files) {
-      await processFileUpload(file, { state, showToast });
+      await processFileUpload(file, { state, showToast: safeToast });
     }
   });
   input.click();

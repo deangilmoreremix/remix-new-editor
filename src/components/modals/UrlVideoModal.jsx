@@ -151,10 +151,14 @@ export class UrlVideoModal extends BaseModal {
     this.setupEventListeners();
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
+      // Matches upstream's real UrlVideoModal: the validated URL is used
+      // directly as the playable src (item.src = item.src || item.url in
+      // upstream). No network fetch is made here — a fetch would fail via
+      // CORS for most external video hosts (YouTube, Vimeo, CDNs) anyway,
+      // which is why upstream doesn't do one either.
       const videoData = {
         url: this.currentValue,
+        src: this.currentValue,
         type: 'video',
         source: 'url'
       };

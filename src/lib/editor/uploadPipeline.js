@@ -28,10 +28,22 @@
 
 import { validateFile as validateFileImpl } from './validateFile.js';
 import { uploadFileToStorage } from '../hybrid-supabase.js';
+import { muapi } from '../muapi.js';
 import { mediaWorker } from '../media-worker-manager.js';
 import { saveProject } from './persistence.js';
 import { validateOrPass } from './schemas.js';
 import { extractMetadata as extractMetadataImpl, generateThumbnail as generateThumbnailImpl, extractWaveform as extractWaveformImpl } from './metadataExtractor.js';
+import { formatErrorMessage } from '../errorMessages.js';
+
+// Map an upload error to the message shown to the user. Auth (401/403) and
+// credit (402) failures collapse to the single actionable message; every
+// other failure keeps the conventional "Upload failed:" prefix (so existing
+// callers/tests that look for it still see it) with the raw server text
+// stripped by formatErrorMessage.
+function uploadErrorToast(err, fileName) {
+  const msg = formatErrorMessage(err, `Upload failed for ${fileName}`);
+  return msg === 'Please sign in and add api credits.' ? msg : `Upload failed: ${msg}`;
+}
 
 // ============================================================================
 // CONFIGURATION
@@ -47,6 +59,30 @@ const DEFAULT_OPTIONS = {
   renderTracks: null,     // optional callback to re-render tracks
   skipValidation: false   // for internal callers that already validated
 };
+
+const UPLOAD_RETRIES = 2;
+const UPLOAD_RETRY_BASE_MS = 500;
+
+async function uploadWithRetry(uploadFn, opts) {
+  let lastErr;
+  for (let attempt = 0; attempt <= UPLOAD_RETRIES; attempt++) {
+    try {
+      return await uploadFn();
+    } catch (e) {
+      lastErr = e;
+      // Only retry on network-level / transient errors (no response or 5xx)
+      const status = e.status || e.response?.status;
+      const isTransient = !status || status === 0 || (status >= 500 && status < 600);
+      if (!isTransient || attempt === UPLOAD_RETRIES) break;
+      const delay = UPLOAD_RETRY_BASE_MS * Math.pow(2, attempt);
+      if (typeof console !== 'undefined' && console.warn) {
+        console.warn(`[UploadPipeline] upload attempt ${attempt + 1} failed, retrying in ${delay}ms:`, e.message);
+      }
+      await new Promise(r => setTimeout(r, delay));
+    }
+  }
+  throw lastErr;
+}
 
 // ============================================================================
 // METADATA EXTRACTION
@@ -87,7 +123,7 @@ export async function readMetadata(file, type) {
  * For images: reads the file and returns a data URL.
  * For videos: captures the first frame using a video element + canvas.
  */
-export async function generateThumbnail(file, type) {
+export async function generateThumbnail(file, type, opts = {}) {
   if (!file) return null;
   try {
     if (type === 'image') {
@@ -100,6 +136,7 @@ export async function generateThumbnail(file, type) {
     if (typeof console !== 'undefined' && console.warn) {
       console.warn('[UploadPipeline] generateThumbnail failed:', e);
     }
+    if (opts.showToast) opts.showToast(`Thumbnail generation failed for ${file.name || 'file'}`, 'error');
   }
   return null;
 }
@@ -383,10 +420,19 @@ export async function processFileUpload(file, options = {}) {
   // Step 2: Read metadata (full production extraction via metadataExtractor:
   // mediainfo.js for codec/fps/bitrate, exifr for orientation, mp4box for
   // MP4 boxes, music-metadata-browser for audio tags)
-  const fullMeta = await extractMetadataImpl(file, type, {
-    thumbnail: opts.thumbnail !== false,
-    waveform: opts.waveform !== false
-  });
+  let fullMeta;
+  try {
+    fullMeta = await extractMetadataImpl(file, type, {
+      thumbnail: opts.thumbnail !== false,
+      waveform: opts.waveform !== false
+    });
+  } catch (e) {
+    if (typeof console !== 'undefined' && console.error) {
+      console.error('[UploadPipeline] metadata extraction failed:', e);
+    }
+    if (opts.showToast) opts.showToast(`Could not read metadata for ${fileName}`, 'error');
+    return { success: false, error: 'Metadata extraction failed: ' + e.message };
+  }
   // Legacy shape for backwards compat with buildAsset
   const meta = {
     duration: fullMeta.duration,
@@ -401,19 +447,27 @@ export async function processFileUpload(file, options = {}) {
     rotation: fullMeta.rotation
   };
 
-  // Step 3: Upload
+  // Step 3: Upload (with retry on transient network errors)
   let publicUrl;
   try {
-    publicUrl = await uploadFileToStorage(file);
+    publicUrl = await uploadWithRetry(() => muapi.uploadFile(file), opts);
   } catch (e) {
-    if (opts.showToast) opts.showToast(`Upload failed for ${fileName}`, 'error');
-    return { success: false, error: e.message || 'Upload failed', validation };
+    if (opts.showToast) opts.showToast(uploadErrorToast(e, fileName), 'error');
+    return { success: false, error: e.message || 'Upload failed', errorStatus: e.status, validation };
   }
 
   // Step 4: Generate thumbnail (use the one from fullMeta, or fall back)
   let thumbnail = fullMeta.thumbnail;
   if (!thumbnail && opts.thumbnail && (type === 'image' || type === 'video')) {
-    thumbnail = await generateThumbnail(file, type);
+    try {
+      thumbnail = await generateThumbnail(file, type, opts);
+    } catch (e) {
+      if (typeof console !== 'undefined' && console.warn) {
+        console.warn('[UploadPipeline] thumbnail generation threw:', e);
+      }
+      if (opts.showToast) opts.showToast(`Thumbnail generation failed for ${fileName}`, 'error');
+      thumbnail = null;
+    }
   }
 
   // Step 5: Build asset (merge full production metadata: codec, fps,
@@ -439,9 +493,17 @@ export async function processFileUpload(file, options = {}) {
   validateOrPass(null, asset, 'UploadPipeline.asset');
 
   // Step 6: Insert into timeline
-  const { track, clip } = insertAssetIntoTimeline(opts.state, asset, {
+  const insertResult = insertAssetIntoTimeline(opts.state, asset, {
     dropPercent: opts.dropPercent
-  }) || {};
+  });
+  if (!insertResult) {
+    if (typeof console !== 'undefined' && console.error) {
+      console.error('[UploadPipeline] insertAssetIntoTimeline returned null for', fileName);
+    }
+    if (opts.showToast) opts.showToast(`Failed to insert ${fileName} into timeline`, 'error');
+    return { success: false, error: 'Timeline insertion failed', asset, validation };
+  }
+  const { track, clip } = insertResult;
 
   // Add to state.assets so it persists
   opts.state.assets = Array.isArray(opts.state.assets) ? opts.state.assets : [];
@@ -471,19 +533,26 @@ export async function processFileUpload(file, options = {}) {
   }
 
   // Step 8: Save
+  let saveFailed = false;
   if (opts.save) {
     try {
       await saveProject(opts.state);
     } catch (e) {
-      if (typeof console !== 'undefined' && console.warn) {
-        console.warn('[UploadPipeline] save failed:', e);
+      saveFailed = true;
+      if (typeof console !== 'undefined' && console.error) {
+        console.error('[UploadPipeline] save failed:', e);
       }
+      if (opts.showToast) opts.showToast(`Failed to save project after adding ${fileName}`, 'error');
     }
   }
 
   // Step 9: Refresh UI
   if (typeof opts.renderTracks === 'function') {
     try { opts.renderTracks(); } catch (e) { /* render is best-effort */ }
+  }
+
+  if (saveFailed) {
+    return { success: false, error: 'Save failed', asset, clip, track, validation };
   }
 
   if (opts.showToast) {
@@ -500,11 +569,45 @@ export async function processFileUpload(file, options = {}) {
  */
 export async function processMultipleFileUploads(files, options = {}) {
   const arr = Array.from(files || []);
+  const opts = { ...DEFAULT_OPTIONS, ...options };
   const results = [];
-  for (const file of arr) {
-    const r = await processFileUpload(file, options);
-    results.push(r);
+
+  // Run up to 3 uploads concurrently, collecting all outcomes.
+  const CONCURRENCY = 3;
+  for (let i = 0; i < arr.length; i += CONCURRENCY) {
+    const batch = arr.slice(i, i + CONCURRENCY);
+    const batchResults = await Promise.allSettled(
+      batch.map(file => processFileUpload(file, opts))
+    );
+    for (let j = 0; j < batchResults.length; j++) {
+      const result = batchResults[j];
+      const file = batch[j];
+      const fileName = file?.name || 'file';
+      if (result.status === 'rejected') {
+        if (opts.showToast) opts.showToast(uploadErrorToast(result.reason || `Upload failed for ${fileName}`, fileName), 'error');
+        results.push({ success: false, error: result.reason?.message || 'Upload failed', validation: null });
+      } else {
+        results.push(result.value);
+        if (result.value?.success === false && opts.showToast) {
+          const reason = { message: result.value.error || `Upload failed for ${fileName}`, status: result.value.errorStatus };
+          opts.showToast(uploadErrorToast(reason, fileName), 'error');
+        }
+      }
+    }
   }
+
+  const successCount = results.filter(r => r.success).length;
+  const failCount = results.length - successCount;
+  if (opts.showToast && arr.length > 1) {
+    if (failCount === 0) {
+      opts.showToast(`Uploaded ${successCount} file${successCount !== 1 ? 's' : ''}`, 'success');
+    } else if (successCount > 0) {
+      opts.showToast(`Uploaded ${successCount} of ${arr.length} files (${failCount} failed)`, 'error');
+    } else {
+      opts.showToast(`All ${arr.length} uploads failed`, 'error');
+    }
+  }
+
   return results;
 }
 
@@ -522,14 +625,56 @@ export async function processMultipleFileUploads(files, options = {}) {
  *                             URL if not provided
  * @returns {Promise<File>}
  */
+const MAX_URL_DOWNLOAD_BYTES = 500 * 1024 * 1024; // 500 MB cap
+const URL_FETCH_TIMEOUT_MS = 60_000;
+
 export async function fetchUrlAsFile(url, filename) {
   if (!url || typeof url !== 'string') throw new Error('Invalid URL');
-  const response = await fetch(url, { mode: 'cors' });
-  if (!response.ok) throw new Error(`Fetch failed: ${response.status} ${response.statusText}`);
-  const blob = await response.blob();
-  const name = filename || deriveFilenameFromUrl(url) || `url-import-${Date.now()}`;
-  const mime = blob.type || '';
-  return new File([blob], name, { type: mime });
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), URL_FETCH_TIMEOUT_MS);
+
+  let downloadedBytes = 0;
+
+  try {
+    const response = await fetch(url, {
+      mode: 'cors',
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) throw new Error(`Fetch failed: ${response.status} ${response.statusText}`);
+
+    const contentLength = response.headers.get('content-length');
+    if (contentLength && parseInt(contentLength, 10) > MAX_URL_DOWNLOAD_BYTES) {
+      throw new Error(`URL file exceeds maximum allowed size (${MAX_URL_DOWNLOAD_BYTES} bytes)`);
+    }
+
+    // Stream the body so we can enforce a byte cap
+    const reader = response.body.getReader();
+    const chunks = [];
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      downloadedBytes += value.byteLength;
+      if (downloadedBytes > MAX_URL_DOWNLOAD_BYTES) {
+        throw new Error(`Downloaded data exceeds maximum allowed size (${MAX_URL_DOWNLOAD_BYTES} bytes)`);
+      }
+      chunks.push(value);
+    }
+
+    const blob = new Blob(chunks);
+    const name = filename || deriveFilenameFromUrl(url) || `url-import-${Date.now()}`;
+    const mime = blob.type || '';
+    return new File([blob], name, { type: mime });
+  } catch (e) {
+    clearTimeout(timeoutId);
+    if (e.name === 'AbortError') {
+      throw new Error(`URL import timed out after ${URL_FETCH_TIMEOUT_MS / 1000}s`);
+    }
+    throw e;
+  }
 }
 
 /**
@@ -564,7 +709,7 @@ export async function processUrlUpload(url, options = {}) {
     const file = await fetchUrlAsFile(url);
     return await processFileUpload(file, { ...options, source: 'url' });
   } catch (e) {
-    if (options.showToast) options.showToast(`URL import failed: ${e.message}`, 'error');
+    if (options.showToast) options.showToast(uploadErrorToast(e, 'URL import'), 'error');
     return { success: false, error: e.message || 'URL import failed' };
   }
 }

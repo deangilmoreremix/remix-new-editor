@@ -8,10 +8,11 @@ import { MuapiClient, muapi } from '../lib/muapi.js';
 describe('MuapiClient new methods', () => {
   let client;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     client = new MuapiClient();
     client.proxyUrl = 'https://test.supabase.co/functions/v1/muapi-proxy';
     global.fetch = vi.fn();
+    await client.apiKeyManager.setMuapiKey('test-muapi-key');
   });
 
   test('generateMusic posts to suno-create-music endpoint and polls', async () => {

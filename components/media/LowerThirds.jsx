@@ -20,11 +20,11 @@ const LowerThirds = observer(() => {
 
   return (
     <div style={{ height: libraryHeight }} className="lower-thirds">
-      <div className="flex">
+      {/* <div className="flex">
         <header className="lower-thirds__header">Lower Thirds</header>
         <CloseButton onClick={() => toggleRightBlock(false)} />
-      </div>
-      <div className="lower-thirds__body">
+      </div> */}
+      <div className="library lower-thirds__body">
         <Content className="library-cta-items" onSelect={handleClose} />
       </div>
     </div>

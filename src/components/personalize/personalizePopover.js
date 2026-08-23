@@ -23,6 +23,8 @@
 // using the same key shape as the rest of the personalizer code. The
 // functions below are intentionally tiny so they can be inlined without
 // pulling in src/lib/contactStore.js.
+import { resolveToken, extractTokens, TOKEN_PATTERN } from './tokenSchema.js';
+
 const CONTACTS_KEY = 'remix_contacts';
 const PROFILES_KEY = 'remix_contact_profiles';
 const SELECTED_CONTACT_KEY = 'remix_selected_contact_id';
@@ -30,10 +32,6 @@ const SELECTED_CONTACT_KEY = 'remix_selected_contact_id';
 function _listContacts() {
   try { return JSON.parse(localStorage.getItem(CONTACTS_KEY) || '[]'); }
   catch { return []; }
-}
-
-function _getContact(id) {
-  return _listContacts().find((c) => c.id === id);
 }
 
 function _getProfile(id) {
@@ -44,33 +42,24 @@ function _getProfile(id) {
 }
 
 export function getSelectedContactId() {
-  try { return localStorage.getItem(SELECTED_CONTACT_KEY); } catch { return null; }
+  try { return localStorage.getItem(SELECTED_CONTACT_KEY) || null; } catch { return null; }
 }
 
 export function setSelectedContactId(contactId) {
-  try { localStorage.setItem(SELECTED_CONTACT_KEY, contactId || ''); } catch {}
-}
-
-const POPOVER_HTML = null; // legacy constant retained for backward-compat (unused)
-
-function escapeHtml(str) {
-  if (!str) return '';
-  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-async function getSession() {
   try {
-    const { createClient } = await import('../../lib/supabase.js');
-    const supabase = createClient();
-    const { data } = await supabase.auth.getSession();
-    return data.session;
-  } catch {
-    return null;
-  }
+    // Remove rather than storing '' so getSelectedContactId() returns a
+    // consistent `null` when nothing is selected, instead of an empty string.
+    if (contactId) localStorage.setItem(SELECTED_CONTACT_KEY, contactId);
+    else localStorage.removeItem(SELECTED_CONTACT_KEY);
+  } catch {}
 }
 
 /**
  * Insert a `{{token}}` placeholder at the textarea cursor.
+ *
+ * Pads with a single space on each side only where one isn't already present,
+ * so repeated insertions don't accumulate double spaces in the prompt.
+ *
  * @param {HTMLTextAreaElement} ta
  * @param {string} token - e.g. `{{firstName}}`
  */
@@ -81,18 +70,29 @@ export function insertTokenAtCursor(ta, token) {
   const end = ta.selectionEnd ?? ta.value.length;
   const before = ta.value.slice(0, start);
   const after = ta.value.slice(end);
-  const needsSpaceBefore = before.length && !/\s$/.test(before);
-  const insertion = (needsSpaceBefore ? ' ' : '') + token + ' ';
+  const needsSpaceBefore = before.length > 0 && !/\s$/.test(before);
+  // Only pad after the token when the following text doesn't already start
+  // with whitespace. When inserting at the very end we still add a space so
+  // the user can keep typing without needing to add one.
+  const needsSpaceAfter = after.length === 0 || !/^\s/.test(after);
+  const insertion = (needsSpaceBefore ? ' ' : '') + token + (needsSpaceAfter ? ' ' : '');
   ta.value = before + insertion + after;
   const newPos = start + insertion.length;
-  ta.setSelectionRange(newPos, newPos);
+  if (typeof ta.setSelectionRange === 'function') ta.setSelectionRange(newPos, newPos);
   ta.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
 /**
- * Replace `{{token}}` placeholders in a prompt with values from the
- * profile's `variables` map. Unresolved tokens are left in place so the
- * user can see what was missing.
+ * Replace `{{token}}` placeholders in a prompt with values from the profile.
+ *
+ * Resolution is delegated to `tokenSchema.resolveToken`, which accepts the
+ * canonical camelCase key (`{{firstName}}`), the display label
+ * (`{{First Name}}`), and registered aliases — all case/spacing insensitive —
+ * and falls back to reading the nested profile when `profile.variables`
+ * doesn't carry the value.
+ *
+ * Unresolved tokens are left in place so the user can see what was missing
+ * rather than silently shipping an empty string to the model.
  *
  * @param {string} prompt
  * @param {object} profile
@@ -100,12 +100,30 @@ export function insertTokenAtCursor(ta, token) {
  */
 export function replaceTokensInPrompt(prompt, profile) {
   if (!prompt || !profile) return prompt;
-  const vars = profile.variables || {};
-  if (!Object.keys(vars).length) return prompt;
-  return prompt.replace(/\{\{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\}\}/g, (match, key) => {
-    const v = vars[key];
-    return v ? String(v) : match;
+  return String(prompt).replace(TOKEN_PATTERN, (match, rawName) => {
+    const value = resolveToken(profile, rawName.trim());
+    return value === null ? match : value;
   });
+}
+
+/**
+ * Report which tokens in a prompt resolve against a profile and which don't.
+ * Lets callers surface "3 of 5 tokens will personalize" style feedback and
+ * warn before shipping a prompt that still contains raw placeholders.
+ *
+ * @param {string} prompt
+ * @param {object} profile
+ * @returns {{ resolved: Array<{token:string,value:string}>, unresolved: string[] }}
+ */
+export function inspectPromptTokens(prompt, profile) {
+  const resolved = [];
+  const unresolved = [];
+  for (const token of extractTokens(prompt)) {
+    const value = profile ? resolveToken(profile, token) : null;
+    if (value === null) unresolved.push(token);
+    else resolved.push({ token, value });
+  }
+  return { resolved, unresolved };
 }
 
 /**
@@ -122,10 +140,12 @@ export function replaceTokensInPrompt(prompt, profile) {
  * @param {() => HTMLTextAreaElement|null} opts.getTextarea - returns the prompt textarea (looked up lazily)
  * @param {string} [opts.appId] - app id passed to /api/personalizer/generate
  * @param {string} [opts.appTheme] - BaseModal theme key for the pop-up
- * @returns {{ button: HTMLButtonElement, modal: PersonalizeModal, refresh: () => void, getActiveProfile: () => object|null, open: () => void }}
+ * @param {(detail: {contactId: string, profile: object}) => void} [opts.onApply] - called when the user applies personalization
+ * @param {() => void} [opts.onClear] - called when the user clears the selected contact
+ * @returns {{ button: HTMLButtonElement, open: () => Promise<void>, refresh: () => void, getActiveProfile: () => object|null, getModal: () => object|null, destroy: () => void }}
  */
-export function mountPersonalizeTrigger({ controlsContainer, label = 'Personalize', tooltip = 'Personalize with a discovered contact', getTextarea, appId = 'ai-video-agency', appTheme }) {
-  return _mountTrigger({ controlsContainer, label, tooltip, getTextarea, appId, appTheme });
+export function mountPersonalizeTrigger(opts) {
+  return _mountTrigger(opts);
 }
 
 /**
@@ -138,7 +158,19 @@ export function mountPersonalizePopover(opts) {
   return _mountTrigger(opts);
 }
 
-function _mountTrigger({ controlsContainer, label = 'Personalize', tooltip = 'Personalize with a discovered contact', getTextarea, appId = 'ai-video-agency', appTheme }) {
+function _mountTrigger({
+  controlsContainer,
+  label = 'Personalize',
+  tooltip = 'Personalize with a discovered contact',
+  getTextarea,
+  appId = 'ai-video-agency',
+  appTheme,
+  onApply,
+  onClear,
+} = {}) {
+  if (!controlsContainer || typeof controlsContainer.appendChild !== 'function') {
+    throw new Error('mountPersonalizeTrigger: controlsContainer must be a DOM element');
+  }
   const button = document.createElement('button');
   button.id = 'v-contact-btn';
   button.className = 'flex items-center gap-1.5 md:gap-2.5 px-3 md:px-4 py-2 md:py-2.5 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl transition-all border border-white/5 group whitespace-nowrap';
@@ -158,7 +190,21 @@ function _mountTrigger({ controlsContainer, label = 'Personalize', tooltip = 'Pe
     if (modal) return modal;
     if (!modalPromise) {
       modalPromise = import('../modals/PersonalizeModal.jsx').then((m) => {
-        modal = new m.PersonalizeModal({ appId, appTheme, getTextarea });
+        // Forward the host app's callbacks. These used to be dropped here,
+        // which meant no studio could ever react to "Apply personalization".
+        modal = new m.PersonalizeModal({
+          appId,
+          appTheme,
+          getTextarea,
+          onApply: (detail) => {
+            refresh();
+            if (typeof onApply === 'function') onApply(detail);
+          },
+          onClear: () => {
+            refresh();
+            if (typeof onClear === 'function') onClear();
+          },
+        });
         return modal;
       });
     }
@@ -202,10 +248,19 @@ function _mountTrigger({ controlsContainer, label = 'Personalize', tooltip = 'Pe
   window.addEventListener('remix:contact-changed', refresh);
   refresh();
 
+  // Callers that unmount their host container should call destroy() so the
+  // window listener doesn't leak one entry per mount.
+  const destroy = () => {
+    window.removeEventListener('remix:contact-changed', refresh);
+    button.remove();
+  };
+
   return {
     button,
     open,
     refresh,
+    destroy,
+    getModal: () => modal,
     getActiveProfile: () => {
       const id = getSelectedContactId();
       return id ? _getProfile(id) : null;

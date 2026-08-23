@@ -1,6 +1,7 @@
 import './loadEnv.js'; // load .env.local into process.env BEFORE service modules read it
 import express from 'express';
 import cors from 'cors';
+import rateLimit from 'express-rate-limit';
 import { WebSocketServer } from 'ws';
 import http from 'http';
 
@@ -12,31 +13,69 @@ import speechTranscriptionService from './services/speechTranscriptionService.js
 import videoAgentService from './services/videoAgentService.js';
 import agentActionsService from './services/agentActionsService.js';
 import modelCatalogService from './services/modelCatalogService.js';
-import videodbProxy from './services/videodbProxy.js';
-import directorProxy from './services/directorProxy.js';
+import videoDbProxyService from './services/videoDbProxyService.js';
+import gtmBoostService from './services/gtmBoostService.js';
+import storyboardService from './services/storyboardService.js';
+import pexelsProxyService from './services/pexelsProxyService.js';
+import { auth, optionalAuth } from './middleware/auth.js';
 
-const app = express();
-const server = http.createServer(app);
-
-// Middleware
-app.use(cors());
+ const app = express();
+ const server = http.createServer(app);
++app.set('trust proxy', 1);
+ 
+ // Middleware
+ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Routes
-app.use('/api/ai-agent', aiAgentService);
-app.use('/api/scene-detection', sceneDetectionService);
-app.use('/api/semantic-search', semanticSearchService);
-app.use('/api/speech-transcription', speechTranscriptionService);
-app.use('/api/agents', agentActionsService);
-app.use('/api/model-catalog', modelCatalogService);
-app.use('/api/videodb', videodbProxy);
-app.use('/api/director', directorProxy);
-app.use('/videoagent', videoAgentService);
+const videoAgentLimiter = rateLimit({ windowMs: 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false });
+const agentActionsLimiter = rateLimit({ windowMs: 60 * 1000, max: 20, standardHeaders: true, legacyHeaders: false });
+const videodbProxyLimiter = rateLimit({ windowMs: 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
+const pexelsSearchLimiter = rateLimit({ windowMs: 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
+
+// Authenticated API routes — every route below requires a valid Supabase
+// JWT in the `Authorization: Bearer <token>` header. The middleware attaches
+// `req.user = { id, email }` and `req.requestId` (UUID) for downstream use
+// (e.g. logging, per-user DB operations). See backend/middleware/auth.js.
+//
+// Note: services do not currently read req.user.id, but it is now available
+// to any handler that needs it (e.g. agentActionsService could scope DB
+// writes to the calling user with `const userId = req.user.id;`).
+//
+// Retry behavior:
+//   - videoDbProxyService and videoAgentService wrap outbound calls with
+//     withRetry (maxAttempts=2) and log each retry using req.requestId.
+//   - DirectorPage (frontend) wraps fetch calls with withRetry (maxAttempts=3)
+//     and shows user-facing toast notifications on each retry.
+//   - No additional express retry middleware is needed; services own retry.
+app.use('/api/ai-agent', optionalAuth, aiAgentService);
+app.use('/api/scene-detection', optionalAuth, sceneDetectionService);
+app.use('/api/semantic-search', optionalAuth, semanticSearchService);
+app.use('/api/speech-transcription', optionalAuth, speechTranscriptionService);
+app.use('/api/agents', agentActionsLimiter, optionalAuth, agentActionsService);
+app.use('/api/model-catalog', optionalAuth, modelCatalogService);
+app.use('/api/videodb', videodbProxyLimiter, optionalAuth, videoDbProxyService);
+app.use('/api/pexels', pexelsSearchLimiter, optionalAuth, pexelsProxyService);
+app.use('/api/gtm-boost', optionalAuth, gtmBoostService);
+app.use('/api/storyboard', storyboardService);
+app.use('/videoagent', videoAgentLimiter, optionalAuth, videoAgentService);
 
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Analytics ingestion — receives a batch of events from the in-browser
+// analytics client (src/lib/analytics.js). No auth for now since this is
+// non-sensitive operational telemetry; a real sink (DB, warehouse, etc.)
+// can be wired in later without changing the wire format.
+app.post('/api/analytics', (req, res) => {
+  const events = Array.isArray(req.body?.events) ? req.body.events : [];
+  if (events.length === 0) {
+    return res.status(400).json({ ok: false, error: 'events array is required' });
+  }
+  console.log('[analytics]', JSON.stringify({ count: events.length, events }));
+  res.json({ ok: true, received: events.length });
 });
 
 // MCP WebSocket Server
@@ -62,12 +101,8 @@ wss.on('connection', (ws, req) => {
 
         case 'get_timeline_state':
           ws.send(JSON.stringify({
-            type: 'timeline_state',
-            data: {
-              duration: 60,
-              playhead: 15,
-              tracks: []
-            }
+            type: 'error',
+            message: 'Timeline state is managed client-side. This endpoint is not implemented on the server.',
           }));
           break;
 

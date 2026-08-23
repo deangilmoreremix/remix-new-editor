@@ -75,9 +75,12 @@ export function ImageToVideoPage() {
           <h2 class="text-xl font-black text-white">Animate Any Image</h2>
           <p class="text-sm text-muted">Transform still images into stunning animated videos</p>
         </div>
-        <button class="start-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all whitespace-nowrap">
-          Animate Your Images
-        </button>
+        <div class="flex flex-col sm:flex-row items-center gap-3">
+          <button class="start-btn btn-primary-modern">
+            Animate Your Images
+          </button>
+          <button type="button" class="gtm-boost-btn border border-primary/40 text-primary px-6 py-2.5 rounded-xl font-black text-sm hover:bg-primary/10 active:scale-95 transition-all whitespace-nowrap" title="Enhance your prompt with GTM conversion frameworks" aria-label="GTM Boost prompt enhancer">🎯 GTM Boost</button>
+        </div>
       </div>
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         ${FEATURES.map(f => `
@@ -132,7 +135,7 @@ export function ImageToVideoPage() {
     <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-8 md:p-10 shadow-3xl text-center">
       <h2 class="text-2xl font-black text-white mb-2">Bring Images to Life</h2>
       <p class="text-muted mb-6 max-w-md mx-auto">Start animating your images with powerful AI models</p>
-      <button class="cta-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all">
+      <button class="cta-btn btn-primary-modern">
         Get Started Free
       </button>
     </div>
@@ -143,6 +146,18 @@ export function ImageToVideoPage() {
   // Event Listeners
   container.querySelector('.start-btn').onclick = () => navigate('video');
   container.querySelector('.cta-btn').onclick = () => navigate('video');
+
+  const gtmBoostBtn = contentWrapper.querySelector('.gtm-boost-btn');
+  if (gtmBoostBtn) {
+    gtmBoostBtn.onclick = () => {
+      import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+        openGTMPromptModal('image-to-video', (prompt) => {
+          try { localStorage.setItem('prefill_prompt', prompt); } catch { /* ignore storage failures */ }
+          navigate('video');
+        });
+      }).catch((err) => console.error('[ImageToVideoPage] GTM Boost failed:', err));
+    };
+  }
 
   container.querySelectorAll('.model-card').forEach(card => {
     card.onclick = () => {

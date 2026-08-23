@@ -87,7 +87,7 @@ export async function handleItemMouseDown(e, state, els, showToast) {
   const track = state.tracks.find(t => t.id === trackId);
   const item = track.items.find(i => i.id === itemId);
   if (track.locked) return;
-  if (state.selectedTool === 'Blade') {
+  if (state.selectedTool === 'blade') {
     // Split at click position
     const rect = itemEl.getBoundingClientRect();
     const percent = (e.clientX - rect.left) / rect.width;

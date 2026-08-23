@@ -8,9 +8,11 @@ import { apiKeyManager } from './apiKeyManager.js';
 import { muapi } from './muapi.js';
 
 const MUAPI_PROXY_URL = (typeof window !== 'undefined' && window.__MUAPI_PROXY_URL__)
-  || (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL
-    ? `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/muapi-proxy`
-    : '/functions/v1/muapi-proxy');
+  || (typeof import.meta !== 'undefined' && import.meta.env?.DEV
+    ? '/functions/v1/muapi-proxy'
+    : (import.meta.env?.VITE_SUPABASE_URL
+      ? `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/muapi-proxy`
+      : '/functions/v1/muapi-proxy'));
 
 /**
  * Map a storyboard aspect ratio (or explicit size) to a size supported by the
@@ -43,6 +45,7 @@ function resolveOpenAISize(value) {
   };
   return ratios[value] || 'auto';
 }
+
 
 class OpenAIService {
   constructor() {

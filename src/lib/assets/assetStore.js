@@ -200,6 +200,28 @@ export class AssetStore {
     }
   }
 
+  async getWaveformData(assetId) {
+    try {
+      const asset = await this.getAsset(assetId);
+      if (asset && Array.isArray(asset.waveformData)) {
+        return asset.waveformData;
+      }
+      return null;
+    } catch (error) {
+      console.error('Failed to get waveform data:', error);
+      return null;
+    }
+  }
+
+  async setWaveformData(assetId, data) {
+    try {
+      return this.updateAsset(assetId, { waveformData: data });
+    } catch (error) {
+      console.error('Failed to set waveform data:', error);
+      throw error;
+    }
+  }
+
   subscribe(callback) {
     this.subscribers.add(callback);
     return () => this.subscribers.delete(callback);

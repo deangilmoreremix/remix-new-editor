@@ -531,6 +531,42 @@ export const NICHE_TERMS = {
     'aspirational brand identity',
     'refined luxury atmosphere'
   ],
+  [NICHE_TYPES.LOCAL_BUSINESS]: [
+    'neighborhood commercial atmosphere',
+    'community-focused storytelling',
+    'local shop front details',
+    'small business owner presence',
+    'customer interaction moments',
+    'trust through local connection',
+    'street-level business visuals',
+    'authentic local culture',
+    'walk-in retail appeal',
+    'personal service showcase'
+  ],
+  [NICHE_TYPES.SAAS]: [
+    'clean interface screenshots',
+    'dashboard user interaction',
+    'product feature highlight',
+    'team collaboration scenes',
+    'data visualization polish',
+    'modern workspace atmosphere',
+    'user onboarding journey',
+    'SaaS growth metrics',
+    'subscription value props',
+    'scalable business visuals'
+  ],
+  [NICHE_TYPES.AGENCY]: [
+    'creative agency environment',
+    'brainstorm and pitch moments',
+    'client presentation flow',
+    'creative team collaboration',
+    'concept to execution journey',
+    'brand strategy showcase',
+    'marketing campaign visuals',
+    'portfolio piece highlight',
+    'agency culture atmosphere',
+    'strategic storytelling'
+  ],
   [NICHE_TYPES.GENERAL]: [
     'professional business environment',
     'quality service delivery',

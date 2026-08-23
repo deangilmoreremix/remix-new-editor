@@ -3,7 +3,7 @@ export const DRAFT_KEY = 'render:drafts';
 
 import { navigate } from '../router.js';
 
-function generateId() {
+export function generateId() {
   return crypto.randomUUID();
 }
 

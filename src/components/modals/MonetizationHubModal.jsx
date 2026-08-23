@@ -1,6 +1,7 @@
 import { BaseModal } from './BaseModal.jsx';
 import { searchTracks, getTrackById } from '../../lib/monetizationCurriculum.js';
 import { searchTemplates, getTemplateById } from '../../lib/businessTemplates.js';
+import { MODAL_SHORTCUTS, renderShortcutsOverlay } from './modalShortcuts.js';
 
 export class MonetizationHubModal extends BaseModal {
   constructor(options = {}) {
@@ -18,6 +19,8 @@ export class MonetizationHubModal extends BaseModal {
     this.templateType = '';
     this.selectedTrackId = '';
     this.selectedTemplateId = '';
+    this.loading = options.loading || false;
+    this.showShortcuts = false;
   }
 
   _bind() {
@@ -59,7 +62,15 @@ export class MonetizationHubModal extends BaseModal {
         if (tpl) {
           navigator.clipboard.writeText(tpl.body).then(() => {
             const label = btn.querySelector('.copy-label');
-            if (label) { const prev = label.textContent; label.textContent = 'Copied'; setTimeout(() => label.textContent = prev, 1200); }
+            if (label) {
+              const prev = label.textContent;
+              label.textContent = 'Copied';
+              label.classList.add('copy-flash');
+              setTimeout(() => {
+                label.textContent = prev;
+                label.classList.remove('copy-flash');
+              }, 1200);
+            }
           });
         }
       };
@@ -82,6 +93,11 @@ export class MonetizationHubModal extends BaseModal {
         }
       };
     });
+
+    const shortcutsCloseBtn = root.querySelector('.shortcuts-close-btn');
+    if (shortcutsCloseBtn) {
+      shortcutsCloseBtn.onclick = () => { this.showShortcuts = false; this._refresh(); };
+    }
   }
 
   _refresh() {
@@ -91,11 +107,42 @@ export class MonetizationHubModal extends BaseModal {
     }
   }
 
+  handleKeyDown(e) {
+    super.handleKeyDown(e);
+    if ((e.metaKey || e.ctrlKey) && e.key === '/') {
+      e.preventDefault();
+      this.showShortcuts = !this.showShortcuts;
+      this._refresh();
+    }
+    if ((e.metaKey || e.ctrlKey) && e.key === 'f') {
+      e.preventDefault();
+      const searchInput = this.tab === 'tracks'
+        ? this.container?.querySelector('[data-track-search]')
+        : this.container?.querySelector('[data-template-search]');
+      if (searchInput) searchInput.focus();
+    }
+  }
+
   renderBody() {
     const tracks = searchTracks({ query: this.trackQuery, level: this.trackLevel });
     const templates = searchTemplates({ query: this.templateQuery, type: this.templateType });
     const selectedTrack = getTrackById(this.selectedTrackId);
     const selectedTemplate = getTemplateById(this.selectedTemplateId);
+
+    const trackCatalog = this.loading ? this.renderSkeleton() : tracks.length ? tracks.map(t => `
+      <div class="monetization-card ${this.selectedTrackId === t.id ? 'selected' : ''}" data-select-track="${t.id}">
+        <div class="monetization-title">${t.title}</div>
+        <div class="monetization-desc">${t.description}</div>
+        <div class="monetization-meta">${t.lessons} lessons · ${t.level}</div>
+      </div>
+    `).join('') : '<div class="empty-state"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 8px;display:block;color:var(--muted)"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>No tracks match your filters.</div>';
+
+    const templateCatalog = this.loading ? this.renderSkeleton() : templates.length ? templates.map(t => `
+      <div class="monetization-card ${this.selectedTemplateId === t.id ? 'selected' : ''}" data-select-template="${t.id}">
+        <div class="monetization-title">${t.title}</div>
+        <div class="monetization-meta">${t.type}</div>
+      </div>
+    `).join('') : '<div class="empty-state"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 8px;display:block;color:var(--muted)"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>No templates match your filters.</div>';
 
     return `
       <div class="monetization-root">
@@ -116,13 +163,7 @@ export class MonetizationHubModal extends BaseModal {
                 </select>
               </div>
               <div class="monetization-list">
-                ${tracks.length ? tracks.map(t => `
-                  <div class="monetization-card ${this.selectedTrackId === t.id ? 'selected' : ''}" data-select-track="${t.id}">
-                    <div class="monetization-title">${t.title}</div>
-                    <div class="monetization-desc">${t.description}</div>
-                    <div class="monetization-meta">${t.lessons} lessons · ${t.level}</div>
-                  </div>
-                `).join('') : '<div class="empty-state">No tracks match.</div>'}
+                ${trackCatalog}
               </div>
             </div>
             <div class="monetization-detail">
@@ -130,7 +171,7 @@ export class MonetizationHubModal extends BaseModal {
                 <div class="detail-title">${selectedTrack.title}</div>
                 <div class="detail-meta">${selectedTrack.level} · ${selectedTrack.lessons} lessons</div>
                 <div class="detail-desc">${selectedTrack.description}</div>
-              ` : '<div class="empty-state">Select a track to preview.</div>'}
+              ` : this.loading ? '<div class="skeleton-kpi"></div>' : '<div class="empty-state">Select a track to preview.</div>'}
             </div>
           </div>
         ` : `
@@ -148,12 +189,7 @@ export class MonetizationHubModal extends BaseModal {
                 </select>
               </div>
               <div class="monetization-list">
-                ${templates.length ? templates.map(t => `
-                  <div class="monetization-card ${this.selectedTemplateId === t.id ? 'selected' : ''}" data-select-template="${t.id}">
-                    <div class="monetization-title">${t.title}</div>
-                    <div class="monetization-meta">${t.type}</div>
-                  </div>
-                `).join('') : '<div class="empty-state">No templates match.</div>'}
+                ${templateCatalog}
               </div>
             </div>
             <div class="monetization-detail">
@@ -162,14 +198,15 @@ export class MonetizationHubModal extends BaseModal {
                 <div class="detail-meta">${selectedTemplate.type}</div>
                 <pre class="template-preview">${selectedTemplate.body}</pre>
                 <div class="detail-actions">
-                  <button type="button" class="modal-btn modal-btn-primary" data-action="copy-template" data-copy-template="${selectedTemplate.id}"><span class="copy-label">Copy</span></button>
-                  <button type="button" class="modal-btn modal-btn-secondary" data-action="download-template" data-download-template="${selectedTemplate.id}"><span class="download-label">Download</span></button>
+                  <button type="button" class="btn-primary-modern" data-action="copy-template" data-copy-template="${selectedTemplate.id}"><span class="copy-label">Copy</span></button>
+                  <button type="button" class="btn-secondary-modern" data-action="download-template" data-download-template="${selectedTemplate.id}"><span class="download-label">Download</span></button>
                 </div>
-              ` : '<div class="empty-state">Select a template to preview.</div>'}
+              ` : this.loading ? '<div class="skeleton-kpi"></div>' : '<div class="empty-state">Select a template to preview.</div>'}
             </div>
           </div>
         `}
       </div>
+      ${this.showShortcuts ? renderShortcutsOverlay(MODAL_SHORTCUTS({ '1': 'Tracks tab', '2': 'Templates tab' })) : ''}
     `;
   }
 }

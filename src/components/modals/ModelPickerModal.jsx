@@ -19,7 +19,7 @@ export class ModelPickerModal extends BaseModal {
   }
 
   _bind() {
-    const root = this.container;
+    const root = this.content;
     if (!root) return;
 
     root.querySelectorAll('[data-search]').forEach(el => {
@@ -65,10 +65,15 @@ export class ModelPickerModal extends BaseModal {
   }
 
   _refresh() {
-    if (this.container) {
-      this.render();
+    if (this.content) {
+      this.updateBody(this.renderBody());
       this._bind();
     }
+  }
+
+  open() {
+    super.open();
+    this._bind();
   }
 
   _renderModelCard(model) {

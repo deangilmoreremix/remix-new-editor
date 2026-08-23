@@ -3,11 +3,16 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { createHeroSection } from '../lib/thumbnails.js';
-import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
-import { openModelPicker } from '../lib/modelPickerIntegration.js';
-import { openRecipeModal } from '../lib/recipeIntegration.js';
-import { openMonetizationHub } from '../lib/monetizationIntegration.js';
+import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
+import { openSocialPublish } from '../lib/socialPublishHelpers.js';
+import { mountModelSelector, getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
+import { createAdvancedControls } from '../lib/studioControls.js';
+import { getExtendedModel } from '../lib/modelInputExtensions.js';
+import { getModelById } from '../lib/models.js';
+import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
+import ExampleGallery from './studios/ExampleGallery.js';
 
 const SCENE_PRESETS = [
   'Studio white background', 'Luxury marble surface', 'Outdoor natural light',
@@ -31,7 +36,9 @@ export function CommercialStudio() {
   let selectedScene = SCENE_PRESETS[0];
   let selectedFormat = FORMAT_PRESETS[0];
   let selectedModel = 'ai-product-shot';
-  let commercialPrompt = '';
+let dynamicControls = null;
+  let dynamicControlsContainer = null;
+  let customThumbnailUrl = getCustomThumbnailFromCache('commercial-studio');
 
   const header = document.createElement('div');
   header.className = 'mb-8 animate-fade-in-up text-center w-full';
@@ -54,50 +61,80 @@ export function CommercialStudio() {
   modelLabel.textContent = 'Model';
   formCard.appendChild(modelLabel);
 
-  const modelRow = document.createElement('div');
-  modelRow.className = 'flex gap-2';
-  const COMMERCIAL_MODELS = [
-    { id: 'ai-product-shot', name: 'Product Shot' },
-    { id: 'ai-product-photography', name: 'Product Photography' },
+const COMMERCIAL_MODELS = [
+    { id: 'ai-product-shot', name: 'Product Shot', provider: 'muapi', provider_name: 'MuAPI' },
+    { id: 'ai-product-photography', name: 'Product Photography', provider: 'muapi', provider_name: 'MuAPI' },
   ];
-  COMMERCIAL_MODELS.forEach(m => {
-    const btn = document.createElement('button');
-    btn.className = m.id === selectedModel
-      ? 'flex-1 px-4 py-2.5 rounded-xl text-xs font-bold bg-primary text-black transition-all'
-      : 'flex-1 px-4 py-2.5 rounded-xl text-xs font-bold bg-white/5 text-secondary border border-white/10 hover:bg-white/10 transition-all';
-    btn.textContent = m.name;
-    btn.onclick = () => {
-      selectedModel = m.id;
-      modelRow.querySelectorAll('button').forEach(b => {
-        b.className = b.textContent === m.name
-          ? 'flex-1 px-4 py-2.5 rounded-xl text-xs font-bold bg-primary text-black transition-all'
-          : 'flex-1 px-4 py-2.5 rounded-xl text-xs font-bold bg-white/5 text-secondary border border-white/10 hover:bg-white/10 transition-all';
+
+  const modelWrapper = document.createElement('div');
+  modelWrapper.className = 'flex flex-col items-center gap-2';
+
+  const triggerBtn = document.createElement('button');
+  triggerBtn.type = 'button';
+  triggerBtn.className = 'flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all border bg-white/5 text-secondary border-white/10 hover:bg-white/10';
+  const updateTrigger = () => {
+    const model = COMMERCIAL_MODELS.find(m => m.id === selectedModel) || COMMERCIAL_MODELS[0];
+    const provider = model.provider || 'muapi';
+    const logoUrl = PROVIDER_LOGOS[provider];
+    if (logoUrl) {
+      triggerBtn.innerHTML = `<div class="w-4 h-4 rounded flex items-center justify-center overflow-hidden bg-white/5 shrink-0"><img src="${logoUrl}" alt="" class="w-full h-full object-contain ${invertLogos.includes(provider) ? 'invert' : ''}" /></div><span class="truncate">${model.name}</span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted shrink-0"><polyline points="6 9 12 15 18 9"/></svg>`;
+    } else {
+      const style = getProviderStyle(provider);
+      triggerBtn.innerHTML = `<div class="w-4 h-4 bg-primary rounded flex items-center justify-center shadow-lg shadow-primary/20 shrink-0"><span class="text-[8px] font-black text-black">${style.text}</span></div><span class="truncate">${model.name}</span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted shrink-0"><polyline points="6 9 12 15 18 9"/></svg>`;
+    }
+  };
+  updateTrigger();
+
+  const dropdown = document.createElement('div');
+  dropdown.className = 'fixed z-[200] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom';
+  dropdown.style.width = 'calc(100vw - 2rem)';
+  dropdown.style.maxWidth = '480px';
+  dropdown.style.maxHeight = '70vh';
+  dropdown.style.minHeight = '350px';
+
+  const closeDropdown = () => {
+    dropdown.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+    dropdown.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
+  };
+
+  const openDropdown = () => {
+    dropdown.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
+    dropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
+    if (!dropdown.dataset.populated) {
+      dropdown.dataset.populated = 'true';
+      mountModelSelector(dropdown, {
+        models: COMMERCIAL_MODELS,
+        selectedModelId: selectedModel,
+        showProviderName: true,
+        onSelectModel: (modelId) => {
+          selectedModel = modelId;
+          updateTrigger();
+          closeDropdown();
+        },
       });
-    };
-    modelRow.appendChild(btn);
-  });
-  // Model Picker button
-  const modelPickerBtn = document.createElement('button');
-  modelPickerBtn.type = 'button';
-  modelPickerBtn.textContent = 'AI Pick';
-  modelPickerBtn.title = 'Open intelligent model picker';
-  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-  modelPickerBtn.className = 'text-[11px] font-bold text-cyan-400 border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 rounded-lg hover:bg-cyan-400/20 transition-colors ml-2 whitespace-nowrap';
-  modelPickerBtn.addEventListener('click', () => {
-    openModelPicker({
-      currentModelId: selectedModel,
-      onSelectModel: (id) => {
-        selectedModel = id;
-        modelRow.querySelectorAll('button').forEach(b => {
-          b.className = b.textContent === (COMMERCIAL_MODELS.find(m => m.id === id)?.name || '')
-            ? 'flex-1 px-4 py-2.5 rounded-xl text-xs font-bold bg-primary text-black transition-all'
-            : 'flex-1 px-4 py-2.5 rounded-xl text-xs font-bold bg-white/5 text-secondary border border-white/10 hover:bg-white/10 transition-all';
-        });
+    }
+  };
+
+  triggerBtn.onclick = (e) => {
+    e.stopPropagation();
+    if (dropdown.classList.contains('opacity-100')) {
+      closeDropdown();
+    } else {
+      openDropdown();
+    }
+  };
+
+  modelWrapper.appendChild(triggerBtn);
+  modelWrapper.appendChild(dropdown);
+  formCard.appendChild(modelWrapper);
+
+  setTimeout(() => {
+    document.addEventListener('click', (e) => {
+      if (!dropdown.contains(e.target) && e.target !== triggerBtn) {
+        closeDropdown();
       }
-    }).catch((err) => console.error('[ModelPicker] open failed:', err));
-  });
-  modelRow.appendChild(modelPickerBtn);
-  formCard.appendChild(modelRow);
+    });
+  }, 0);
 
   const uploadLabel = document.createElement('label');
   uploadLabel.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
@@ -119,6 +156,32 @@ export function CommercialStudio() {
   formCard.appendChild(uploadRow);
   container.appendChild(picker.panel);
 
+  const pexelsBtn = document.createElement('button');
+  pexelsBtn.type = 'button';
+  pexelsBtn.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden';
+  pexelsBtn.title = 'Browse stock photos from Pexels';
+  pexelsBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>';
+  pexelsBtn.onclick = async () => {
+    const { browsePexelsImages } = await import('../lib/studioPexels.js');
+    browsePexelsImages({
+      title: 'Select Reference Photo',
+      studioName: 'Commercial Studio',
+      onSelect: (asset) => {
+        uploadedUrl = asset.src?.large || asset.url || asset.original;
+        const attrContainer = document.getElementById('pexels-commercial-attribution');
+        if (attrContainer) {
+          attrContainer.innerHTML = '';
+          import('../lib/attributionChip.js').then(mod => mod.renderAttributionChip(asset, attrContainer));
+        }
+      }
+    });
+  };
+  uploadRow.appendChild(pexelsBtn);
+  const pexelsCommercialAttr = document.createElement('div');
+  pexelsCommercialAttr.id = 'pexels-commercial-attribution';
+  pexelsCommercialAttr.className = 'mt-1';
+  uploadRow.appendChild(pexelsCommercialAttr);
+
   const sceneLabel = document.createElement('label');
   sceneLabel.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
   sceneLabel.textContent = 'Scene Preset';
@@ -129,14 +192,14 @@ export function CommercialStudio() {
   SCENE_PRESETS.forEach(s => {
     const chip = document.createElement('button');
     chip.className = s === selectedScene
-      ? 'px-3 py-1.5 rounded-full text-xs font-bold bg-primary text-black transition-all'
+      ? 'px-3 py-1.5 rounded-full text-xs font-bold btn-secondary-modern transition-all'
       : 'px-3 py-1.5 rounded-full text-xs font-bold bg-white/5 text-secondary hover:bg-white/10 transition-all';
     chip.textContent = s;
     chip.onclick = () => {
       selectedScene = s;
       sceneGrid.querySelectorAll('button').forEach(b => {
         b.className = b.textContent === s
-          ? 'px-3 py-1.5 rounded-full text-xs font-bold bg-primary text-black transition-all'
+          ? 'px-3 py-1.5 rounded-full text-xs font-bold btn-secondary-modern transition-all'
           : 'px-3 py-1.5 rounded-full text-xs font-bold bg-white/5 text-secondary hover:bg-white/10 transition-all';
       });
     };
@@ -154,7 +217,7 @@ export function CommercialStudio() {
   FORMAT_PRESETS.forEach(f => {
     const btn = document.createElement('button');
     btn.className = f.name === selectedFormat.name
-      ? 'px-4 py-2 rounded-xl text-xs font-bold bg-primary text-black transition-all'
+      ? 'px-4 py-2 rounded-xl text-xs font-bold btn-secondary-modern transition-all'
       : 'px-4 py-2 rounded-xl text-xs font-bold bg-white/5 text-secondary hover:bg-white/10 border border-white/10 transition-all';
     btn.textContent = `${f.name} (${f.ar})`;
     btn.onclick = () => {
@@ -162,7 +225,7 @@ export function CommercialStudio() {
       formatRow.querySelectorAll('button').forEach(b => {
         const isActive = b.textContent.includes(f.name);
         b.className = isActive
-          ? 'px-4 py-2 rounded-xl text-xs font-bold bg-primary text-black transition-all'
+          ? 'px-4 py-2 rounded-xl text-xs font-bold btn-secondary-modern transition-all'
           : 'px-4 py-2 rounded-xl text-xs font-bold bg-white/5 text-secondary hover:bg-white/10 border border-white/10 transition-all';
       });
     };
@@ -170,9 +233,61 @@ export function CommercialStudio() {
   });
   formCard.appendChild(formatRow);
 
+  // Dynamic model-specific advanced controls
+  dynamicControlsContainer = document.createElement('div');
+  dynamicControlsContainer.className = 'flex flex-col gap-3';
+  formCard.appendChild(dynamicControlsContainer);
+
+  function buildDynamicControls() {
+    if (!dynamicControlsContainer) return;
+    if (dynamicControls) dynamicControls.destroy();
+    const model = getExtendedModel(COMMERCIAL_MODELS.find(m => m.id === selectedModel) || COMMERCIAL_MODELS[0]);
+    if (!model || !model.inputs || Object.keys(model.inputs).length === 0) {
+      dynamicControlsContainer.classList.add('hidden');
+      return;
+    }
+    dynamicControlsContainer.classList.remove('hidden');
+    dynamicControls = createAdvancedControls({
+      model,
+      container: dynamicControlsContainer,
+      exclude: new Set(['image_url', 'prompt', 'aspect_ratio']),
+    });
+  }
+  buildDynamicControls();
+
+  // Thumbnail studio button — next to creation controls, GTM Boost styling
+  const thumbBtn = document.createElement('button');
+  thumbBtn.type = 'button';
+  thumbBtn.textContent = '🖼 Thumbnail';
+  thumbBtn.title = 'Generate a custom thumbnail';
+  thumbBtn.className = 'btn-ghost-modern w-full';
+  thumbBtn.addEventListener('click', () => {
+    const modal = new TemplateThumbnailModal({
+      appTheme: 'commercial-studio',
+      layout: 'panel',
+      studioId: 'commercial-studio',
+      studioName: 'Commercial Studio',
+      aspectRatio: selectedFormat.ar || '1:1',
+      outputType: 'image',
+      onApply: ({ imageUrl }) => {
+        customThumbnailUrl = imageUrl;
+        saveCustomThumbnailToCache('commercial-studio', imageUrl);
+      },
+      onClear: () => {
+        customThumbnailUrl = null;
+        clearCustomThumbnailCache('commercial-studio');
+      },
+    });
+    mountThumbnailModal(modal);
+    modal.open();
+  });
+  formCard.appendChild(thumbBtn);
+
   const genBtn = document.createElement('button');
-  genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all mt-2';
+genBtn.type = 'button';
+  genBtn.className = 'btn-primary-modern w-full px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all mt-2';
   genBtn.textContent = 'Generate Product Shot';
+  genBtn.setAttribute('aria-label', 'Generate product shot');
   formCard.appendChild(genBtn);
 
   // Prompt Gallery button
@@ -197,7 +312,7 @@ export function CommercialStudio() {
     recipeBtn.textContent = '📋 Recipes';
     recipeBtn.title = 'Browse AI recipes';
     recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-    recipeBtn.className = 'gtm-boost-btn shrink-0';
+    recipeBtn.className = 'btn-ghost-modern';
     recipeBtn.addEventListener('click', () => {
       openRecipeModal({
         onRunRecipe: (url) => {
@@ -209,16 +324,19 @@ export function CommercialStudio() {
     // Monetization Hub button
     const monetizationBtn = document.createElement('button');
     monetizationBtn.type = 'button';
-    monetizationBtn.textContent = "💼 Smart Video AI Monetize";
+    monetizationBtn.textContent = '💼 Monetize';
     monetizationBtn.title = "Open Smart Video AI Monetization Hub";
     monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-    monetizationBtn.className = 'gtm-boost-btn shrink-0';
+    monetizationBtn.className = 'btn-ghost-modern';
     monetizationBtn.addEventListener('click', () => {
       openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
     });
-  formCard.appendChild(recipeBtn);
-  formCard.appendChild(monetizationBtn);
-  formCard.appendChild(promptGalleryBtn);
+  const toolbar = document.createElement('div');
+  toolbar.className = 'flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06]';
+  toolbar.appendChild(recipeBtn);
+  toolbar.appendChild(monetizationBtn);
+  toolbar.appendChild(promptGalleryBtn);
+  formCard.appendChild(toolbar);
   container.appendChild(formCard);
 
   const inlineInstructions = createInlineInstructions('commercial');
@@ -227,11 +345,14 @@ export function CommercialStudio() {
 
   const resultArea = document.createElement('div');
   resultArea.className = 'w-full max-w-xl mt-6 hidden';
+  resultArea.setAttribute('role', 'status');
+  resultArea.setAttribute('aria-live', 'polite');
   container.appendChild(resultArea);
 
   genBtn.onclick = async () => {
+    if (!(await requireEntitlement())) return;
     if (!uploadedUrl) { alert('Upload a product image or video first'); return; }
-    const apiKey = localStorage.getItem('muapi_key');
+    const apiKey = apiKeyManager.getMuapiKey();
     if (!apiKey) { AuthModal(() => genBtn.click()); return; }
 
     genBtn.disabled = true;
@@ -241,23 +362,34 @@ export function CommercialStudio() {
       const params = {
         model: selectedModel,
         image_url: uploadedUrl,
-        prompt: commercialPrompt || `${selectedScene}, professional product photography, commercial quality`,
-        aspect_ratio: selectedFormat.ar,
+customThumbnailUrl: customThumbnailUrl || undefined,
       };
-      const result = await muapi.generateI2I(params);
-      if (result?.url) {
-        resultArea.classList.remove('hidden');
-        resultArea.innerHTML = `
-          <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4 animate-fade-in-up">
-            <img src="${result.url}" class="w-full rounded-xl mb-3">
-            <div class="flex gap-3">
-              <a href="${result.url}" download class="flex-1 bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
-              <button class="flex-1 bg-white/10 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-white/20 transition-all regen-btn">Generate Again</button>
-            </div>
-          </div>
-        `;
-        resultArea.querySelector('.regen-btn').onclick = () => genBtn.click();
+      if (dynamicControls) {
+        Object.assign(params, dynamicControls.getPayload({}));
       }
+      if (selectedModel === 'ai-product-shot') {
+        params.scene_description = `${selectedScene}, professional product photography, commercial quality`;
+      } else {
+        params.prompt = `${selectedScene}, professional product photography, commercial quality`;
+        params.aspect_ratio = selectedFormat.ar;
+      }
+      const result = await muapi.generateI2I(params);
+       if (result?.url) {
+         resultArea.classList.remove('hidden');
+         resultArea.innerHTML = `
+           <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4 animate-fade-in-up">
+             <img src="${result.url}" class="w-full rounded-xl mb-3">
+             <div class="flex gap-3">
+               <a href="${result.url}" download class="flex-1 btn-secondary-modern py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
+               <button class="flex-1 bg-white/10 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-white/20 transition-all regen-btn">Generate Again</button>
+               <button type="button" class="publish-social-btn flex-1 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
+             </div>
+           </div>
+         `;
+         const publishBtn = resultArea.querySelector('.publish-social-btn');
+         if (publishBtn) publishBtn.onclick = () => openSocialPublish({ mediaUrl: result.url, mediaType: 'image' });
+         resultArea.querySelector('.regen-btn').onclick = () => genBtn.click();
+       }
     } catch (err) {
       alert(`Error: ${err.message}`);
     } finally {
@@ -266,5 +398,11 @@ export function CommercialStudio() {
     }
   };
 
-  return container;
+    const galleryAssets = getAssetsForStudio('commercial');
+    if (galleryAssets.length > 0) {
+      const gallery = ExampleGallery({ studioId: 'commercial', assets: galleryAssets, maxCards: 28 });
+      container.appendChild(gallery);
+    }
+
+    return container;
 }

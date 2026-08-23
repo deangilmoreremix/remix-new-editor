@@ -1,15 +1,19 @@
 import { muapi } from '../lib/muapi.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
+import { uploadMediaFile } from '../lib/editor/upload.js';
 import { lipsyncModels, imageLipSyncModels, videoLipSyncModels, getLipSyncModelById, getResolutionsForLipSyncModel } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
+import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { savePendingJob, removePendingJob, getPendingJobs } from '../lib/pendingJobs.js';
-import { createHeroSection } from '../lib/thumbnails.js';
+import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
-import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
-import { openModelPicker } from '../lib/modelPickerIntegration.js';
-import { openRecipeModal } from '../lib/recipeIntegration.js';
-import { openMonetizationHub } from '../lib/monetizationIntegration.js';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
+import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
+import { createAdvancedControls } from '../lib/studioControls.js';
+import { getExtendedModel } from '../lib/modelInputExtensions.js';
+import { getModelById } from '../lib/models.js';
+import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 
 export function LipSyncStudio() {
     const container = document.createElement('div');
@@ -23,10 +27,13 @@ export function LipSyncStudio() {
     let selectedModel = imageLipSyncModels[0].id;
     let nativeAudio = false;
     let selectedResolution = imageLipSyncModels[0].inputs?.resolution?.default || '480p';
+    let selectedProvider = 'all';
     let uploadedImageUrl = null;
+    let customThumbnailUrl = getCustomThumbnailFromCache('lipsync-studio');
     let uploadedVideoUrl = null;
     let uploadedAudioUrl = null;
     let dropdownOpen = null;
+    let showAdvanced = false;
 
     const getCurrentModels = () => inputMode === 'image' ? imageLipSyncModels : videoLipSyncModels;
     const getCurrentModel = () => lipsyncModels.find(m => m.id === selectedModel);
@@ -158,11 +165,60 @@ export function LipSyncStudio() {
     // ── Prompt Textarea ──
     const textarea = document.createElement('textarea');
     textarea.placeholder = 'Optional: describe the talking style or motion...';
-    textarea.className = 'flex-1 bg-transparent text-white placeholder-muted/50 text-sm resize-none outline-none min-h-[56px] leading-relaxed pt-1';
+    textarea.className = 'flex-1 bg-transparent border-none text-white text-base md:text-xl placeholder:text-muted focus:outline-none resize-none pt-2.5 leading-relaxed min-h-[40px] max-h-[150px] md:max-h-[250px] overflow-y-auto custom-scrollbar';
     textarea.rows = 2;
+    textarea.setAttribute('aria-label', 'Lip sync prompt');
 
     uploadsRow.appendChild(imageUploadBtn);
+
+    const pexelsImageBtn = document.createElement('button');
+    pexelsImageBtn.type = 'button';
+    pexelsImageBtn.className = 'flex-shrink-0 w-10 h-10 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden';
+    pexelsImageBtn.title = 'Browse stock photos from Pexels';
+    pexelsImageBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>';
+    pexelsImageBtn.onclick = async () => {
+      const { browsePexelsImages } = await import('../lib/studioPexels.js');
+      browsePexelsImages({
+        title: 'Select Portrait Photo',
+        studioName: 'Lip Sync Studio',
+        onSelect: (asset) => {
+          uploadedImageUrl = asset.src?.large || asset.url || asset.original;
+          updateImageUploadState('ready', 'Pexels image');
+          const attrContainer = document.getElementById('pexels-lipsync-attribution');
+          if (attrContainer) {
+            attrContainer.innerHTML = '';
+            import('../lib/attributionChip.js').then(mod => mod.renderAttributionChip(asset, attrContainer));
+          }
+        }
+      });
+    };
+    uploadsRow.appendChild(pexelsImageBtn);
+
     uploadsRow.appendChild(videoUploadBtn);
+
+    const pexelsVideoBtn = document.createElement('button');
+    pexelsVideoBtn.type = 'button';
+    pexelsVideoBtn.className = 'flex-shrink-0 w-10 h-10 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden';
+    pexelsVideoBtn.title = 'Browse stock videos from Pexels';
+    pexelsVideoBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>';
+    pexelsVideoBtn.onclick = async () => {
+      const { browsePexelsVideos } = await import('../lib/studioPexels.js');
+      browsePexelsVideos({
+        title: 'Select Source Video',
+        studioName: 'Lip Sync Studio',
+        onSelect: (asset) => {
+          uploadedVideoUrl = asset.video_files?.[0]?.link || asset.url || asset.original;
+          updateVideoUploadState('ready', 'Pexels video');
+          const attrContainer = document.getElementById('pexels-lipsync-attribution');
+          if (attrContainer) {
+            attrContainer.innerHTML = '';
+            import('../lib/attributionChip.js').then(mod => mod.renderAttributionChip(asset, attrContainer));
+          }
+        }
+      });
+    };
+    uploadsRow.appendChild(pexelsVideoBtn);
+
     uploadsRow.appendChild(audioUploadBtn);
     uploadsRow.appendChild(textarea);
 
@@ -173,7 +229,7 @@ export function LipSyncStudio() {
     gtmBtn.textContent = '🎯 GTM Boost';
     gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
     gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
-    gtmBtn.className = 'gtm-boost-btn shrink-0';
+    gtmBtn.className = 'gtm-boost-btn';
     gtmBtn.addEventListener('click', () => {
       import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
         openGTMPromptModal('lip-sync-studio', (prompt) => {
@@ -183,7 +239,10 @@ export function LipSyncStudio() {
         });
       }).catch((err) => console.error('[LipSyncStudio] GTM Boost failed:', err));
     });
-    uploadsRow.appendChild(gtmBtn);
+    const actionToolbar = document.createElement('div');
+    actionToolbar.className = 'flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06]';
+    actionToolbar.appendChild(gtmBtn);
+    uploadsRow.appendChild(actionToolbar);
 
     bar.appendChild(uploadsRow);
 
@@ -203,6 +262,11 @@ export function LipSyncStudio() {
     statusRow.appendChild(document.createTextNode(' · '));
     statusRow.appendChild(audioStatusLabel);
     bar.appendChild(statusRow);
+
+    const pexelsLipSyncAttr = document.createElement('div');
+    pexelsLipSyncAttr.id = 'pexels-lipsync-attribution';
+    pexelsLipSyncAttr.className = 'mt-1';
+    bar.appendChild(pexelsLipSyncAttr);
 
     // ── Bottom Controls Row ──
     const bottomRow = document.createElement('div');
@@ -273,7 +337,23 @@ export function LipSyncStudio() {
   bottomRow.appendChild(modelPickerBtn);
 
     modelBtn.className = 'flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-primary/40 transition-all text-xs font-bold text-white group';
-    modelBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-primary"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg><span id="ls-model-btn-label">${getCurrentModels()[0].name}</span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted group-hover:text-white transition-colors"><polyline points="6 9 12 15 18 9"/></svg>`;
+    modelBtn.innerHTML = `<div id="ls-model-btn-icon" class="w-5 h-5 rounded flex items-center justify-center overflow-hidden bg-white/5"></div><span id="ls-model-btn-label">${getCurrentModels()[0].name}</span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted group-hover:text-white transition-colors"><polyline points="6 9 12 15 18 9"/></svg>`;
+
+    const updateModelBtnIcon = () => {
+        const iconEl = document.getElementById('ls-model-btn-icon');
+        if (!iconEl) return;
+        const current = getCurrentModels().find(m => m.id === selectedModel);
+        const provider = current?.provider || 'muapi';
+        const logoUrl = PROVIDER_LOGOS[provider];
+        if (logoUrl) {
+            iconEl.innerHTML = `<img src="${logoUrl}" alt="" class="w-full h-full object-contain ${invertLogos.includes(provider) ? 'invert' : ''}" />`;
+        } else {
+            const style = getProviderStyle(provider);
+            iconEl.innerHTML = `<span class="text-[10px] font-black text-black">${style.text}</span>`;
+            iconEl.className = 'w-5 h-5 bg-primary rounded-md flex items-center justify-center shadow-lg shadow-primary/20';
+        }
+    };
+    updateModelBtnIcon();
 
     // Resolution selector
     const resolutionBtn = document.createElement('button');
@@ -286,11 +366,48 @@ export function LipSyncStudio() {
     const generateBtn = document.createElement('button');
     generateBtn.id = 'ls-generate-btn';
     generateBtn.type = 'button';
-    generateBtn.className = 'ml-auto px-6 py-2.5 bg-primary text-black font-black text-sm rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-glow disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100';
+    generateBtn.className = 'btn-primary-modern ml-auto px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed';
     generateBtn.textContent = 'Generate ✨';
+    generateBtn.setAttribute('aria-label', 'Generate lip sync video');
 
     bottomRow.appendChild(modelBtn);
     bottomRow.appendChild(resolutionBtn);
+
+    // Thumbnail studio button — next to creation controls, GTM Boost styling
+    const thumbBtn = document.createElement('button');
+    thumbBtn.type = 'button';
+    thumbBtn.textContent = '🖼 Thumbnail';
+    thumbBtn.title = 'Generate a custom thumbnail';
+    thumbBtn.className = 'btn-ghost-modern';
+    thumbBtn.addEventListener('click', () => {
+    const modal = new TemplateThumbnailModal({
+      appTheme: 'lip-sync-studio',
+      layout: 'panel',
+        studioId: 'lipsync-studio',
+        studioName: 'Lip Sync Studio',
+        aspectRatio: '16:9',
+        outputType: 'video',
+        onApply: ({ imageUrl }) => {
+          customThumbnailUrl = imageUrl;
+          saveCustomThumbnailToCache('lipsync-studio', imageUrl);
+        },
+        onClear: () => {
+          customThumbnailUrl = null;
+          clearCustomThumbnailCache('lipsync-studio');
+        },
+      });
+      mountThumbnailModal(modal);
+      modal.open();
+    });
+    bottomRow.appendChild(thumbBtn);
+
+    const advancedBtn = document.createElement('button');
+    advancedBtn.type = 'button';
+    advancedBtn.id = 'ls-advanced-btn';
+    advancedBtn.className = 'flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-primary/40 transition-all text-xs font-bold text-white group';
+    advancedBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-60 text-secondary"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l-.06-.06a1.65 1.65 0 001.82-.33 1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-1.82.33A1.65 1.65 0 0019.4 9a1.65 1.65 0 00-1.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span id="ls-advanced-btn-label">Advanced</span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted group-hover:text-white transition-colors"><polyline points="6 9 12 15 18 9"/></svg>`;
+    bottomRow.appendChild(advancedBtn);
+
     bottomRow.appendChild(generateBtn);
     mountPersonalizeTrigger({ controlsContainer: bottomRow, getTextarea: () => textarea, appId: 'lip-sync' });
     bar.appendChild(bottomRow);
@@ -298,11 +415,51 @@ export function LipSyncStudio() {
     promptWrapper.appendChild(bar);
     container.appendChild(promptWrapper);
 
+    const advancedPanel = document.createElement('div');
+    advancedPanel.className = 'w-full mt-6 animate-fade-in-up hidden';
+    advancedPanel.id = 'ls-advanced-panel';
+    const advancedCard = document.createElement('div');
+    advancedCard.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex flex-col gap-4';
+    advancedPanel.appendChild(advancedCard);
+
+    const advHeader = document.createElement('div');
+    advHeader.className = 'flex items-center justify-between pb-3 border-b border-white/5';
+    advHeader.innerHTML = `
+        <h3 class="text-sm font-bold text-white">Advanced Options</h3>
+        <button id="ls-close-adv-btn" class="text-white/40 hover:text-white transition-colors">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+    `;
+    advancedPanel.appendChild(advHeader);
+
+    const advancedControlsContainer = document.createElement('div');
+    advancedControlsContainer.className = 'flex flex-col gap-4';
+    advancedCard.appendChild(advancedControlsContainer);
+
+    const dynamicControls = createAdvancedControls({
+      model: getExtendedModel(getCurrentModel()),
+      state: { inputMode },
+      container: advancedControlsContainer,
+      exclude: new Set(['resolution']),
+      onChange: (key, value) => {
+      }
+    });
+    container.appendChild(advancedPanel);
+
+    const toggleAdvanced = () => {
+        showAdvanced = !showAdvanced;
+        advancedPanel.classList.toggle('hidden', !showAdvanced);
+        document.getElementById('ls-advanced-btn-label').textContent = showAdvanced ? 'Less' : 'Advanced';
+    };
+    advancedBtn.onclick = toggleAdvanced;
+    const closeAdvBtn = advancedPanel.querySelector('#ls-close-adv-btn');
+    if (closeAdvBtn) closeAdvBtn.onclick = toggleAdvanced;
+
     // ==========================================
     // 3. DROPDOWN SYSTEM
     // ==========================================
     const dropdown = document.createElement('div');
-    dropdown.className = 'hidden fixed z-[100] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 min-w-[200px] max-h-[400px] overflow-y-auto custom-scrollbar';
+    dropdown.className = 'hidden fixed z-[200] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 min-w-[200px] max-h-[400px] overflow-y-auto custom-scrollbar';
     dropdown.id = 'ls-dropdown';
 
     const closeDropdown = (e) => {
@@ -316,32 +473,31 @@ export function LipSyncStudio() {
         dropdown.innerHTML = '';
         if (type === 'model') {
             const models = getCurrentModels();
-            models.forEach(m => {
-                const item = document.createElement('button');
-                item.type = 'button';
-                item.className = `w-full text-left px-4 py-2.5 rounded-xl text-sm transition-all hover:bg-white/10 ${m.id === selectedModel ? 'text-primary font-bold bg-primary/5' : 'text-white font-medium'}`;
-                item.innerHTML = `<div>${m.name}</div><div class="text-xs text-muted mt-0.5">${m.description?.slice(0, 60)}...</div>`;
-                item.onclick = () => {
-                    selectedModel = m.id;
-                    document.getElementById('ls-model-btn-label').textContent = m.name;
-                    const resolutions = getResolutionsForLipSyncModel(selectedModel);
-                    if (resolutions.length > 0) {
-                        selectedResolution = m.inputs?.resolution?.default || resolutions[0];
-                        document.getElementById('ls-resolution-btn-label').textContent = selectedResolution;
-                        resolutionBtn.classList.remove('hidden');
-                    } else {
-                        resolutionBtn.classList.add('hidden');
-                    }
-                    textarea.style.display = m.hasPrompt ? '' : 'none';
-                    if (m.inputs?.native_audio) {
-                        nativeAudioRow.classList.remove('hidden');
-                    } else {
-                        nativeAudioRow.classList.add('hidden');
-                        nativeAudio = false;
-                    }
-                    closeDropdown();
-                };
-                dropdown.appendChild(item);
+mountModelSelector(dropdown, {
+              models,
+              selectedModelId: selectedModel,
+              showProviderName: true,
+              onSelectModel: (modelId) => {
+                const model = models.find((m) => m.id === modelId);
+                if (!model) return;
+                selectedModel = modelId;
+                document.getElementById('ls-model-btn-label').textContent = model.name;
+                updateModelBtnIcon();
+                const resolutions = getResolutionsForLipSyncModel(selectedModel);
+                if (resolutions.length > 0) {
+                  selectedResolution = model.inputs?.resolution?.default || resolutions[0];
+                  document.getElementById('ls-resolution-btn-label').textContent = selectedResolution;
+                  resolutionBtn.classList.remove('hidden');
+                } else {
+                  resolutionBtn.classList.add('hidden');
+                }
+                textarea.style.display = model.hasPrompt ? '' : 'none';
+                if (dynamicControls) {
+                  dynamicControls.update(getExtendedModel(getCurrentModel()));
+                }
+                updateModelBtnIcon();
+                closeDropdown();
+              },
             });
         } else if (type === 'resolution') {
             const resolutions = getResolutionsForLipSyncModel(selectedModel);
@@ -365,7 +521,7 @@ export function LipSyncStudio() {
     promptGalleryBtn.textContent = '📚 Prompts';
     promptGalleryBtn.title = 'Browse prompt gallery';
     promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
-    promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
+    promptGalleryBtn.className = 'btn-ghost-modern';
     promptGalleryBtn.addEventListener('click', () => {
       openPromptGallery({
         appTheme: 'lip-sync-studio',
@@ -387,7 +543,7 @@ export function LipSyncStudio() {
     recipeBtn.textContent = '📋 Recipes';
     recipeBtn.title = 'Browse AI recipes';
     recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-    recipeBtn.className = 'gtm-boost-btn shrink-0';
+    recipeBtn.className = 'btn-ghost-modern';
     recipeBtn.addEventListener('click', () => {
       openRecipeModal({
         onRunRecipe: (url) => {
@@ -399,15 +555,18 @@ export function LipSyncStudio() {
     // Monetization Hub button
     const monetizationBtn = document.createElement('button');
     monetizationBtn.type = 'button';
-    monetizationBtn.textContent = "💼 Smart Video AI Monetize";
+    monetizationBtn.textContent = '💼 Monetize';
     monetizationBtn.title = "Open Smart Video AI Monetization Hub";
     monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-    monetizationBtn.className = 'gtm-boost-btn shrink-0';
+    monetizationBtn.className = 'btn-ghost-modern';
     monetizationBtn.addEventListener('click', () => {
       openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
     });
-    if (!uploadsRow.querySelector('[aria-label="Open recipe engine"]')) uploadsRow.appendChild(recipeBtn);
-    if (!uploadsRow.querySelector('[aria-label="Open Smart Video AI Monetization Hub"]')) uploadsRow.appendChild(monetizationBtn);
+    if (!uploadsRow.querySelector('.action-toolbar')) {
+      actionToolbar.appendChild(promptGalleryBtn);
+      actionToolbar.appendChild(recipeBtn);
+      actionToolbar.appendChild(monetizationBtn);
+    }
 
     };
 
@@ -462,6 +621,7 @@ export function LipSyncStudio() {
         const models = getCurrentModels();
         selectedModel = models[0].id;
         document.getElementById('ls-model-btn-label').textContent = models[0].name;
+        updateModelBtnIcon();
 
         // Update resolution
         const resolutions = getResolutionsForLipSyncModel(selectedModel);
@@ -483,6 +643,10 @@ export function LipSyncStudio() {
 
         // Show/hide prompt
         textarea.style.display = models[0].hasPrompt ? '' : 'none';
+
+        if (dynamicControls) {
+            dynamicControls.update(getExtendedModel(getCurrentModel()));
+        }
     };
 
     imageModeBtn.onclick = () => {
@@ -608,7 +772,8 @@ export function LipSyncStudio() {
         if (!apiKey) { AuthModal(() => imageFileInput.click()); return; }
         updateImageUploadState('loading');
         try {
-            uploadedImageUrl = await muapi.uploadFile(file);
+            const url = await uploadMediaFile(file);
+            uploadedImageUrl = url;
             updateImageUploadState('ready', file.name);
         } catch (err) {
             updateImageUploadState('idle');
@@ -634,7 +799,8 @@ export function LipSyncStudio() {
         if (!apiKey) { AuthModal(() => videoFileInput.click()); return; }
         updateVideoUploadState('loading');
         try {
-            uploadedVideoUrl = await muapi.uploadFile(file);
+            const url = await uploadMediaFile(file);
+            uploadedVideoUrl = url;
             updateVideoUploadState('ready', file.name);
         } catch (err) {
             updateVideoUploadState('idle');
@@ -660,7 +826,8 @@ export function LipSyncStudio() {
         if (!apiKey) { AuthModal(() => audioFileInput.click()); return; }
         updateAudioUploadState('loading');
         try {
-            uploadedAudioUrl = await muapi.uploadFile(file);
+            const url = await uploadMediaFile(file);
+            uploadedAudioUrl = url;
             updateAudioUploadState('ready', file.name);
         } catch (err) {
             updateAudioUploadState('idle');
@@ -696,6 +863,8 @@ export function LipSyncStudio() {
     // Main canvas
     const canvas = document.createElement('div');
     canvas.className = 'absolute inset-0 flex flex-col items-center justify-center p-4 min-[800px]:p-16 z-10 opacity-0 pointer-events-none transition-all duration-1000 translate-y-10 scale-95';
+    canvas.setAttribute('role', 'status');
+    canvas.setAttribute('aria-live', 'polite');
 
     const videoContainer = document.createElement('div');
     videoContainer.className = 'relative group';
@@ -717,7 +886,7 @@ export function LipSyncStudio() {
     regenerateBtn.textContent = '↻ Regenerate';
 
     const downloadBtn = document.createElement('button');
-    downloadBtn.className = 'bg-primary text-black px-6 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-glow active:scale-95';
+    downloadBtn.className = 'btn-secondary-modern px-6 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-glow active:scale-95';
     downloadBtn.textContent = '↓ Download';
 
     const newBtn = document.createElement('button');
@@ -727,6 +896,14 @@ export function LipSyncStudio() {
     canvasControls.appendChild(regenerateBtn);
     canvasControls.appendChild(downloadBtn);
     canvasControls.appendChild(newBtn);
+
+    const publishBtn = document.createElement('button');
+    publishBtn.type = 'button';
+    publishBtn.className = 'bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white px-6 py-2.5 rounded-2xl text-xs font-bold transition-all hover:shadow-glow';
+    publishBtn.textContent = 'Publish to Social';
+
+    canvasControls.appendChild(publishBtn);
+
     canvas.appendChild(videoContainer);
     canvas.appendChild(canvasControls);
     container.appendChild(canvas);
@@ -741,6 +918,7 @@ export function LipSyncStudio() {
             canvasControls.classList.remove('opacity-0');
             canvasControls.classList.add('opacity-100');
         };
+        publishBtn.onclick = () => openSocialPublish({ mediaUrl: videoUrl, mediaType: 'video' });
     };
 
     const addToHistory = (entry) => {
@@ -859,6 +1037,7 @@ export function LipSyncStudio() {
     // 8. GENERATION LOGIC
     // ==========================================
     generateBtn.onclick = async () => {
+        if (!(await requireEntitlement())) return;
         const model = getCurrentModel();
         const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
         const prompt = replaceTokensInPrompt(textarea.value.trim(), activeProfile);
@@ -894,10 +1073,17 @@ export function LipSyncStudio() {
         };
 
         try {
+            const dynamicPayload = dynamicControls.getPayload({});
+
+            if (model?.hasSeed && !('seed' in dynamicPayload)) {
+                dynamicPayload.seed = -1;
+            }
+
             const lipsyncParams = {
-                model: selectedModel,
                 audio_url: uploadedAudioUrl,
-                onRequestId
+                customThumbnailUrl: customThumbnailUrl || undefined,
+                onRequestId,
+                ...dynamicPayload
             };
 
             if (inputMode === 'image') {
@@ -911,11 +1097,8 @@ export function LipSyncStudio() {
             const resolutions = getResolutionsForLipSyncModel(selectedModel);
             if (resolutions.length > 0) lipsyncParams.resolution = selectedResolution;
 
-            if (model?.hasSeed) lipsyncParams.seed = -1;
-
-            if (nativeAudio) lipsyncParams.native_audio = nativeAudio;
-
             const res = await muapi.processLipSync(lipsyncParams);
+            console.log('[LipSyncStudio] Response:', res);
             if (res && res.url) {
                 if (capturedRequestId) removePendingJob(capturedRequestId);
                 const genId = res.id || capturedRequestId || Date.now().toString();

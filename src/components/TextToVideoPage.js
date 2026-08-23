@@ -97,9 +97,12 @@ export function TextToVideoPage() {
           <h2 class="text-lg font-black text-white mb-1">Ready to Create Videos?</h2>
           <p class="text-sm text-muted">Start generating amazing videos with 40+ AI models</p>
         </div>
-        <button class="cta-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all whitespace-nowrap">
-          Get Started Free
-        </button>
+        <div class="flex flex-col sm:flex-row items-center gap-3">
+          <button class="cta-btn btn-primary-modern">
+            Get Started Free
+          </button>
+          <button type="button" class="gtm-boost-btn border border-primary/40 text-primary px-6 py-2.5 rounded-xl font-black text-sm hover:bg-primary/10 active:scale-95 transition-all whitespace-nowrap" title="Enhance your prompt with GTM conversion frameworks" aria-label="GTM Boost prompt enhancer">🎯 GTM Boost</button>
+        </div>
       </div>
     </div>
 
@@ -144,7 +147,7 @@ export function TextToVideoPage() {
           <h2 class="text-lg font-black text-white mb-1">Start Creating Now</h2>
           <p class="text-sm text-muted">Pick a model or try an example prompt to begin</p>
         </div>
-        <button class="start-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all whitespace-nowrap">
+        <button class="start-btn btn-primary-modern">
           Start Creating Videos
         </button>
       </div>
@@ -156,6 +159,18 @@ export function TextToVideoPage() {
   // Event Listeners
   container.querySelector('.start-btn').onclick = () => navigate('video');
   container.querySelector('.cta-btn').onclick = () => navigate('video');
+
+  const gtmBoostBtn = contentWrapper.querySelector('.gtm-boost-btn');
+  if (gtmBoostBtn) {
+    gtmBoostBtn.onclick = () => {
+      import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+        openGTMPromptModal('text-to-video', (prompt) => {
+          try { localStorage.setItem('prefill_prompt', prompt); } catch { /* ignore storage failures */ }
+          navigate('video');
+        });
+      }).catch((err) => console.error('[TextToVideoPage] GTM Boost failed:', err));
+    };
+  }
 
   container.querySelectorAll('.model-card').forEach(card => {
     card.onclick = () => {

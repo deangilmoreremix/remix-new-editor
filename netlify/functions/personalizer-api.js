@@ -53,7 +53,8 @@ async function checkGitHub(username) {
 }
 
 async function callMaigretWorker(username, options, maigretUrl, maigretSecret) {
-  const payload = { username, ...options };
+  // If options already contains usernames, don't add username field
+  const payload = options && options.usernames ? { ...options } : { username, ...options };
   const res = await fetchWithTimeout(`${maigretUrl}/scan`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-API-Key': maigretSecret },
@@ -103,6 +104,199 @@ function validateInput(value, type, maxLength = 500) {
   return trimmed;
 }
 
+// ─── Structured enrichment ───────────────────────────────────────────────────
+//
+// Modes that must return a machine-readable intelligence object rather than
+// prose. PersonalizeModal feeds the result straight into the contact's token
+// map, so free text is useless to it — this is why personalization used to
+// come back empty: /generate only ever returned
+// `metadata: { tone, offer, goal, cta, scanData: boolean }`, and the client
+// was reading `metadata.industry`, `metadata.painPoints`, etc.
+const ENRICHMENT_MODES = new Set(['lead-summary', 'contact-enrichment', 'enrich']);
+
+/** JSON schema for the structured intelligence block. */
+const INTELLIGENCE_SCHEMA = {
+  type: 'object',
+  properties: {
+    company: {
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+        domain: { type: 'string' },
+        industry: { type: 'string' },
+        size: { type: 'string' },
+        summary: { type: 'string' },
+      },
+      required: ['name'],
+    },
+    intelligence: {
+      type: 'object',
+      properties: {
+        summary: { type: 'string' },
+        products: { type: 'array', items: { type: 'string' } },
+        services: { type: 'array', items: { type: 'string' } },
+        painPoints: { type: 'array', items: { type: 'string' } },
+        interests: { type: 'array', items: { type: 'string' } },
+        buyingSignals: { type: 'array', items: { type: 'string' } },
+        tone: { type: 'string', enum: ['formal', 'casual', 'technical', 'friendly'] },
+      },
+    },
+    brand: {
+      type: 'object',
+      properties: {
+        colors: {
+          type: 'object',
+          properties: {
+            primary: { type: 'string' },
+            secondary: { type: 'string' },
+            accent: { type: 'string' },
+          },
+        },
+      },
+    },
+  },
+  required: ['company'],
+};
+
+/**
+ * Ask OpenAI for a structured intelligence object using JSON mode.
+ * Returns the parsed object, or null if the call or parse fails.
+ */
+async function callOpenAIStructured(apiKey, systemPrompt, userPrompt) {
+  const res = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      response_format: {
+        type: 'json_schema',
+        json_schema: { name: 'ContactIntelligence', strict: false, schema: INTELLIGENCE_SCHEMA },
+      },
+      temperature: 0.2,
+      max_tokens: 1200,
+    }),
+  }, 20000);
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`OpenAI structured call failed (${res.status}): ${text}`);
+  }
+  const data = await res.json();
+  const content = data?.choices?.[0]?.message?.content;
+  if (!content) throw new Error('OpenAI returned no content');
+  return JSON.parse(content);
+}
+
+/** Clamp a string to a max length, returning '' for non-strings. */
+function clampStr(value, max = 240) {
+  if (typeof value !== 'string') return '';
+  const trimmed = value.trim();
+  return trimmed.length > max ? trimmed.slice(0, max) : trimmed;
+}
+
+/** Clamp an array of strings: drop empties, cap item length and count. */
+function clampList(value, maxItems = 5, maxLen = 240) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((v) => clampStr(v, maxLen))
+    .filter(Boolean)
+    .slice(0, maxItems);
+}
+
+/** Accept only `#rgb` / `#rrggbb` colours so bad values can't reach the UI. */
+function sanitizeHexColor(value) {
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  return /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(trimmed) ? trimmed : undefined;
+}
+
+/**
+ * Normalize whatever the model returned into the exact shape the client's
+ * token schema expects. Everything is optional and bounded — the client must
+ * never be able to receive unbounded or malformed model output.
+ */
+function normalizeIntelligence(raw) {
+  const company = raw?.company || {};
+  const intel = raw?.intelligence || {};
+  const colors = raw?.brand?.colors || {};
+
+  const normalized = {
+    company: {
+      name: clampStr(company.name),
+      domain: clampStr(company.domain, 120),
+      industry: clampStr(company.industry, 120),
+      size: clampStr(company.size, 60),
+      summary: clampStr(company.summary, 400),
+    },
+    intelligence: {
+      summary: clampStr(intel.summary, 600),
+      products: clampList(intel.products),
+      services: clampList(intel.services),
+      painPoints: clampList(intel.painPoints),
+      interests: clampList(intel.interests),
+      buyingSignals: clampList(intel.buyingSignals),
+      tone: ['formal', 'casual', 'technical', 'friendly'].includes(intel.tone) ? intel.tone : 'professional',
+    },
+    brand: { colors: {} },
+  };
+
+  for (const key of ['primary', 'secondary', 'accent']) {
+    const hex = sanitizeHexColor(colors[key]);
+    if (hex) normalized.brand.colors[key] = hex;
+  }
+
+  // Flatten the fields the client reads directly, so both the nested and flat
+  // shapes work regardless of which the caller expects.
+  normalized.industry = normalized.company.industry;
+  normalized.companySummary = normalized.company.summary;
+  normalized.summary = normalized.intelligence.summary;
+  normalized.products = normalized.intelligence.products;
+  normalized.services = normalized.intelligence.services;
+  normalized.painPoints = normalized.intelligence.painPoints;
+  normalized.interests = normalized.intelligence.interests;
+  normalized.buyingSignals = normalized.intelligence.buyingSignals;
+  normalized.tone = normalized.intelligence.tone;
+  normalized.brandColors = normalized.brand.colors;
+
+  return normalized;
+}
+
+/**
+ * Derive intelligence from scan data without an LLM.
+ *
+ * Used when OpenAI isn't configured or fails, so discovery still yields a
+ * usable (if thinner) token map instead of an empty one.
+ */
+function deriveIntelligenceFromScan(scanData, targetName, targetCompany) {
+  const platforms = Array.isArray(scanData?.platforms) ? scanData.platforms : [];
+  const ids = platforms.map((p) => p.ids_data).filter(Boolean);
+  const pick = (field) => {
+    for (const d of ids) if (d?.[field]) return clampStr(String(d[field]), 400);
+    return '';
+  };
+
+  const bio = pick('bio');
+  const company = targetCompany || pick('company');
+  const website = scanData?.website || {};
+
+  return normalizeIntelligence({
+    company: {
+      name: company || clampStr(website.title, 120) || targetName,
+      domain: website.url ? clampStr(String(website.url).replace(/^https?:\/\//, '').split('/')[0], 120) : '',
+      summary: clampStr(website.description || bio, 400),
+    },
+    intelligence: {
+      summary: clampStr(scanData?.summary || bio || website.description, 600),
+      // A platform list is a genuine signal about where they're active.
+      interests: platforms.slice(0, 5).map((p) => p.platform).filter(Boolean),
+    },
+  });
+}
+
 function escapeHtml(str) {
   if (str == null) return '';
   return String(str)
@@ -111,6 +305,41 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+function escapeCypherString(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, '\\n')
+    .replace(/\r/g, '\\r');
+}
+
+/**
+ * Normalize the incoming request path to a route relative to this function.
+ *
+ * Depending on how the function is reached, `event.path` may be either the
+ * original public path (`/api/personalizer/scan`) or the rewritten function
+ * path (`/.netlify/functions/personalizer-api/scan`). Netlify is not
+ * consistent about this across redirect rules, `netlify dev`, and the Vite
+ * dev proxy, and a mismatch silently sends every request to the terminal
+ * 404. Strip whichever prefix is present so routing works in all cases.
+ */
+function normalizeRoute(rawPath) {
+  let route = String(rawPath || '');
+  // Drop any query string defensively.
+  route = route.split('?')[0];
+  for (const prefix of ['/.netlify/functions/personalizer-api', '/api/personalizer']) {
+    if (route.startsWith(prefix)) {
+      route = route.slice(prefix.length);
+      break;
+    }
+  }
+  // Collapse a trailing slash so '/scan/' matches '/scan'.
+  if (route.length > 1 && route.endsWith('/')) route = route.slice(0, -1);
+  return route || '/';
 }
 
 export async function handler(event, context) {
@@ -130,48 +359,110 @@ export async function handler(event, context) {
   const userId = auth.user.id;
   if (!await checkRateLimit(userId)) return { statusCode: 429, headers, body: JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }) };
 
-  const path = event.path.replace('/api/personalizer', '');
+  const path = normalizeRoute(event.path);
   let body = {};
   try { if (event.body) body = JSON.parse(event.body); } catch { return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid JSON' }) }; }
 
   try {
     // POST /api/personalizer/scan
     if (path === '/scan' && event.httpMethod === 'POST') {
-      const targetName = validateInput(body.targetName, 'username');
-      if (!targetName) return { statusCode: 400, headers, body: JSON.stringify({ error: 'Valid targetName required' }) };
+      // Accept single username (string) or multiple usernames (array, or comma/newline separated string)
+      let usernames = [];
+      if (Array.isArray(body.targetNames)) {
+        usernames = body.targetNames.filter(Boolean);
+      } else if (Array.isArray(body.usernames)) {
+        usernames = body.usernames.filter(Boolean);
+      } else if (body.targetName) {
+        const single = validateInput(body.targetName, 'username');
+        if (!single) return { statusCode: 400, headers, body: JSON.stringify({ error: 'Valid targetName required' }) };
+        // Split on comma, semicolon, or whitespace for multi-username support
+        usernames = single.split(/[,;\s]+/).map(u => u.trim()).filter(Boolean);
+      }
+
+      if (usernames.length === 0) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: 'targetName or targetNames required' }) };
+      }
+
+      // Validate each
+      usernames = usernames.map(u => validateInput(u, 'username')).filter(Boolean);
+      if (usernames.length === 0) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: 'Valid targetName required' }) };
+      }
+      if (usernames.length > 10) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: 'Maximum 10 usernames per scan' }) };
+      }
 
       const opts = body.options || body;
+
+      // Clamp numeric options to the same ranges the worker and settings
+      // table enforce, so a hostile or buggy client can't request a 2-hour
+      // scan of 100k sites.
+      const clampInt = (value, min, max, fallback) => {
+        const n = parseInt(value, 10);
+        if (!Number.isFinite(n)) return fallback;
+        return Math.min(max, Math.max(min, n));
+      };
+
+      // NOTE: every option below is also accepted by the worker's ScanRequest
+      // schema. Previously only 8 of them were forwarded, so the UI's
+      // "Full check", Cloudflare bypass, custom timeout, Tor/I2P proxy,
+      // keywords and parse-URL controls all had no effect whatsoever.
       const maigretOptions = {
-        top: opts.top ? parseInt(opts.top) : 500,
+        top: clampInt(opts.top, 1, 2500, 500),
         tags: opts.tags || undefined,
+        keywords: opts.keywords || undefined,
         proxy: opts.proxy || undefined,
-        retries: opts.retries ? parseInt(opts.retries) : 1,
+        torProxy: opts.torProxy || undefined,
+        i2pProxy: opts.i2pProxy || undefined,
+        retries: clampInt(opts.retries, 0, 5, 1),
+        timeoutMs: clampInt(opts.timeoutMs, 5000, 60000, 15000),
         noRecursion: opts.noRecursion === true || opts.disableRecursive === true,
         isParsingEnabled: opts.isParsingEnabled !== false && opts.disableParsing !== true,
-        permute: opts.enablePermutations === true,
-        checkDomains: opts.withDomains === true,
+        permute: opts.permute === true || opts.enablePermutations === true,
+        checkDomains: opts.checkDomains === true || opts.withDomains === true,
+        parseUrl: opts.parseUrl || undefined,
+        enableCloudflareBypass: opts.enableCloudflareBypass === true,
+        useCookies: opts.useCookies === true,
+        useCache: opts.useCache !== false,
       };
+
+      // Drop undefined keys so the worker applies its own defaults.
+      for (const key of Object.keys(maigretOptions)) {
+        if (maigretOptions[key] === undefined) delete maigretOptions[key];
+      }
+
+      // For multi-username, send as array
+      const maigretPayload = { ...maigretOptions };
+      if (usernames.length === 1) {
+        maigretPayload.username = usernames[0];
+      } else {
+        maigretPayload.usernames = usernames;
+      }
 
       let scanData;
       if (process.env.MAIGRET_WORKER_URL && process.env.MAIGRET_WORKER_SECRET) {
         try {
-          scanData = await callMaigretWorker(targetName, maigretOptions, process.env.MAIGRET_WORKER_URL, process.env.MAIGRET_WORKER_SECRET);
+          scanData = await callMaigretWorker(usernames.length === 1 ? usernames[0] : null, maigretPayload, process.env.MAIGRET_WORKER_URL, process.env.MAIGRET_WORKER_SECRET);
         } catch (maigretError) {
           console.error('Maigret worker failed:', maigretError.message);
-          const github = await checkGitHub(targetName);
-          scanData = github ? { summary: `Public presence on GitHub (${github.public_repos} repos)`, platforms: [github], confidence: 0.8 } : null;
+          // Fallback to GitHub lookup for the first username
+          const github = await checkGitHub(usernames[0]);
+          scanData = github ? { summary: `Public presence on GitHub (${github.public_repos} repos)`, platforms: [github], confidence: 0.8, usernames } : null;
         }
       } else {
-        const github = await checkGitHub(targetName);
-        scanData = github ? { summary: `Public presence on GitHub (${github.public_repos} repos)`, platforms: [github], confidence: 0.8 } : null;
+        const github = await checkGitHub(usernames[0]);
+        scanData = github ? { summary: `Public presence on GitHub (${github.public_repos} repos)`, platforms: [github], confidence: 0.8, usernames } : null;
       }
 
-      if (!scanData) scanData = { summary: 'No public scan data found', platforms: [], confidence: 0.0 };
+      if (!scanData) scanData = { summary: 'No public scan data found', platforms: [], confidence: 0.0, usernames };
 
-      const { data: scan, error: scanError } = await supabaseService.from('profile_scan_results').insert({ user_id: userId, target_name: targetName, scan_data: scanData }).select().single();
+      // Store the target name as a combined string or single
+      const targetNameForDb = usernames.length === 1 ? usernames[0] : usernames.join(', ');
+
+      const { data: scan, error: scanError } = await supabaseService.from('profile_scan_results').insert({ user_id: userId, target_name: targetNameForDb, scan_data: scanData }).select().single();
       if (scanError) throw scanError;
 
-      return { statusCode: 200, headers, body: JSON.stringify({ scanId: scan.id, scanData }) };
+      return { statusCode: 200, headers, body: JSON.stringify({ scanId: scan.id, scanData, usernames }) };
     }
 
     // POST /api/personalizer/generate
@@ -184,21 +475,98 @@ export async function handler(event, context) {
       const manualNotes = body.manualNotes ? validateInput(body.manualNotes, 'text', 2000) : null;
       const appId = validateInput(body.appId || 'ai-video-agency', 'text', 100);
 
+      // Resolve the scan to personalize against, in priority order:
+      //   1. an explicit `scanId` from the caller
+      //   2. the scan already linked to an existing project
+      //   3. the caller's inline `scanResults` payload
+      //   4. the user's most recent scan for this target
+      //
+      // Previously none of these were honoured: `scan_id` was read but never
+      // written, and the client's `scanResults` was ignored outright, so
+      // `{{scanData}}` always rendered "No scan data available" and every
+      // "personalized" generation was in fact generic.
+      let scanData = null;
+      let resolvedScanId = null;
+
+      const requestedScanId = body.scanId ? validateInput(String(body.scanId), 'text', 100) : null;
+      if (requestedScanId) {
+        const { data: scanRow } = await supabaseService
+          .from('profile_scan_results')
+          .select('id, scan_data')
+          .eq('id', requestedScanId)
+          .eq('user_id', userId)
+          .single();
+        if (scanRow) {
+          scanData = scanRow.scan_data;
+          resolvedScanId = scanRow.id;
+        }
+      }
+
       let project;
       const { data: existingProject } = await supabaseService.from('personalization_projects').select('*').eq('id', body.projectId || '').eq('user_id', userId).single();
       if (existingProject) {
         project = existingProject;
       } else {
-        const { data, error } = await supabaseService.from('personalization_projects').insert({ user_id: userId, app_id: appId, mode, target_name: targetName, target_company: targetCompany, manual_notes: manualNotes, status: 'generating' }).select().single();
+        const { data, error } = await supabaseService
+          .from('personalization_projects')
+          .insert({
+            user_id: userId,
+            app_id: appId,
+            mode,
+            target_name: targetName,
+            target_company: targetCompany,
+            manual_notes: manualNotes,
+            // Persist the link so later /generate, /generate-visual and
+            // /send-to-app calls on this project can read the scan back.
+            scan_id: resolvedScanId,
+            status: 'generating',
+          })
+          .select()
+          .single();
         if (error) throw error;
         project = data;
       }
 
-      let scanData = null;
-      if (project.scan_id) {
+      // Fall back to the project's existing link.
+      if (!scanData && project.scan_id) {
         const { data: scanResult } = await supabaseService.from('profile_scan_results').select('scan_data').eq('id', project.scan_id).eq('user_id', userId).single();
-        scanData = scanResult?.scan_data;
+        if (scanResult) {
+          scanData = scanResult.scan_data;
+          resolvedScanId = project.scan_id;
+        }
       }
+
+      // Accept the caller's inline scan payload (the modal already has it in
+      // memory and sends it as `scanResults`).
+      if (!scanData && body.scanResults && typeof body.scanResults === 'object') {
+        scanData = body.scanResults;
+      }
+
+      // Last resort: the most recent scan this user ran for this target.
+      if (!scanData) {
+        const { data: recentScan } = await supabaseService
+          .from('profile_scan_results')
+          .select('id, scan_data')
+          .eq('user_id', userId)
+          .eq('target_name', targetName)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (recentScan) {
+          scanData = recentScan.scan_data;
+          resolvedScanId = recentScan.id;
+        }
+      }
+
+      // Backfill the project link if we resolved a scan it didn't know about.
+      if (resolvedScanId && project.scan_id !== resolvedScanId) {
+        await supabaseService.from('personalization_projects').update({ scan_id: resolvedScanId }).eq('id', project.id).eq('user_id', userId);
+        project.scan_id = resolvedScanId;
+      }
+
+      // Cap the serialized scan so a large Maigret result can't blow the
+      // model's context window.
+      const scanDataText = scanData ? JSON.stringify(scanData, null, 2).slice(0, 12000) : 'No scan data available';
 
       const { data: templates } = await supabaseService.from('personalizer_templates').select('*').eq('app_id', appId).eq('mode', mode);
       const systemPrompt = templates?.find(t => t.template_type === 'system')?.content || 'You are a helpful assistant that generates personalized business content.';
@@ -207,7 +575,7 @@ export async function handler(event, context) {
         .replace(/\{\{targetName\}\}/g, targetName)
         .replace(/\{\{targetCompany\}\}/g, targetCompany || 'N/A')
         .replace(/\{\{manualNotes\}\}/g, manualNotes || 'N/A')
-        .replace(/\{\{scanData\}\}/g, scanData ? JSON.stringify(scanData, null, 2) : 'No scan data available')
+        .replace(/\{\{scanData\}\}/g, scanDataText)
         .replace(/\{\{offer\}\}/g, validateInput(body.offer, 'text', 500) || 'N/A')
         .replace(/\{\{goal\}\}/g, validateInput(body.goal, 'text', 500) || 'N/A')
         .replace(/\{\{tone\}\}/g, validateInput(body.tone, 'text', 50) || 'professional')
@@ -218,6 +586,58 @@ export async function handler(event, context) {
         .replace(/\{\{storyType\}\}/g, body.storyType || 'founder-story')
         .replace(/\{\{duration\}\}/g, body.durationSeconds || '30');
 
+      // ─── Enrichment modes return structured intelligence ─────────────────
+      if (ENRICHMENT_MODES.has(mode)) {
+        let intelligence = null;
+        let intelligenceSource = 'derived';
+
+        if (process.env.OPENAI_API_KEY) {
+          try {
+            const raw = await callOpenAIStructured(process.env.OPENAI_API_KEY, systemPrompt, userPrompt);
+            intelligence = normalizeIntelligence(raw);
+            intelligenceSource = 'openai';
+          } catch (err) {
+            console.error('Structured enrichment failed, deriving from scan:', err.message);
+          }
+        }
+
+        // Always produce something usable so the client's token map is never
+        // empty just because the LLM was unavailable.
+        if (!intelligence) {
+          intelligence = deriveIntelligenceFromScan(scanData, targetName, targetCompany);
+        }
+
+        const output = {
+          type: mode,
+          content: intelligence.intelligence.summary || `Enriched profile for ${targetName}`,
+          intelligence,
+          metadata: {
+            ...intelligence,
+            source: intelligenceSource,
+            scanData: !!scanData,
+            scanId: resolvedScanId,
+          },
+        };
+
+        const { error: outputError } = await supabaseService.from('personalization_outputs').insert({ project_id: project.id, output_type: mode, content: output });
+        if (outputError) throw outputError;
+
+        await supabaseService.from('personalization_projects').update({ status: 'complete', updated_at: new Date().toISOString() }).eq('id', project.id);
+
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify({
+            output,
+            // Top-level for convenience — this is what the client reads.
+            intelligence,
+            scanId: resolvedScanId,
+            project,
+          }),
+        };
+      }
+
+      // ─── Prose modes (scripts, emails, copy) ─────────────────────────────
       let generatedContent;
       try {
         if (process.env.OPENAI_API_KEY) {
@@ -231,17 +651,17 @@ export async function handler(event, context) {
           } else { throw new Error('Gemini API key not configured'); }
         } catch (geminiError) {
           console.error('Gemini failed:', geminiError.message);
-          generatedContent = `Generated ${mode} for ${targetName} at ${targetCompany || 'N/A'}.\n\nNotes: ${manualNotes || 'None'}\n\nScan Data: ${scanData ? JSON.stringify(scanData, null, 2) : 'None'}`;
+          generatedContent = `Generated ${mode} for ${targetName} at ${targetCompany || 'N/A'}.\n\nNotes: ${manualNotes || 'None'}\n\nScan Data: ${scanDataText}`;
         }
       }
 
-      const output = { type: mode, content: generatedContent, metadata: { tone: body.tone || 'professional', offer: body.offer || null, goal: body.goal || null, cta: body.cta || null, scanData: !!scanData } };
+      const output = { type: mode, content: generatedContent, metadata: { tone: body.tone || 'professional', offer: body.offer || null, goal: body.goal || null, cta: body.cta || null, scanData: !!scanData, scanId: resolvedScanId } };
       const { error: outputError } = await supabaseService.from('personalization_outputs').insert({ project_id: project.id, output_type: mode, content: output });
       if (outputError) throw outputError;
 
       await supabaseService.from('personalization_projects').update({ status: 'complete', updated_at: new Date().toISOString() }).eq('id', project.id);
 
-      return { statusCode: 200, headers, body: JSON.stringify({ output, project }) };
+      return { statusCode: 200, headers, body: JSON.stringify({ output, scanId: resolvedScanId, project }) };
     }
 
     // GET /api/personalizer/apps
@@ -257,7 +677,7 @@ export async function handler(event, context) {
       const offset = parseInt(event.queryStringParameters?.offset || '0');
       const { data, error, count } = await supabaseService.from('personalization_projects').select('*', { count: 'exact' }).eq('user_id', userId).order('created_at', { ascending: false }).range(offset, offset + limit - 1);
       if (error) throw error;
-      return { statusCode: 200, headers, body: JSON.stringify({ data, pagination: { total: count, limit, offset, hasMore: offset + (count || 0) > offset + limit } }) };
+      return { statusCode: 200, headers, body: JSON.stringify({ data, pagination: { total: count, limit, offset, hasMore: (count || 0) > offset + limit } }) };
     }
 
     // POST /api/personalizer/save
@@ -475,7 +895,7 @@ export async function handler(event, context) {
         return {
           statusCode: 200,
           headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
-          body: JSON.stringify({ targetName, scannedAt: scan.created_at, summary, confidence: scanData.confidence, platforms }, null, 2),
+          body: JSON.stringify({ targetName, scannedAt: scan.created_at, summary, confidence: scanData.confidence, platforms, warnings: scanData.warnings || [] }, null, 2),
         };
       }
 
@@ -532,7 +952,7 @@ export async function handler(event, context) {
 <p>${escapeHtml(summary)}</p>
 ${scanData.confidence ? `<p class="meta">Confidence: ${(scanData.confidence * 100).toFixed(0)}%</p>` : ''}
 <table>
-<thead><tr><th>Platform</th><th>URL</th><th>Status</th></tr></thead>
+<thead><tr><th>Platform</th><th>URL</th><th>Status</</tr></thead>
 <tbody>${platformRows || '<tr><td colspan="3">No platforms found</td></tr>'}</tbody>
 </table>
 </body></html>`;
@@ -543,7 +963,363 @@ ${scanData.confidence ? `<p class="meta">Confidence: ${(scanData.confidence * 10
         };
       }
 
-      return { statusCode: 400, headers, body: JSON.stringify({ error: `Unknown format: ${format}. Supported: json, csv, md, html` }) };
+      if (format === 'txt') {
+        const lines = [];
+        lines.push(`Maigret scan: ${targetName}`);
+        lines.push(`Scanned: ${scan.created_at}`);
+        lines.push(`Summary: ${summary}`);
+        if (scanData.confidence) lines.push(`Confidence: ${(scanData.confidence * 100).toFixed(0)}%`);
+        lines.push('');
+        lines.push('Platforms:');
+        for (const p of platforms) {
+          lines.push(`  - ${p.platform || 'unknown'}: ${p.url} (${p.status || 'found'})`);
+        }
+        return {
+          statusCode: 200,
+          headers: { ...headers, 'Content-Type': 'text/plain; charset=utf-8', 'Content-Disposition': `attachment; filename="${targetName}-maigret.txt"` },
+          body: lines.join('\n'),
+        };
+      }
+
+      if (format === 'graph') {
+        // Standalone interactive graph HTML using vis-network from CDN
+        const graph = scanData.graph || { nodes: [], edges: [] };
+        const graphJson = JSON.stringify(graph).replace(/</g, '\\u003c');
+        const html = `<!doctype html>
+<html><head><meta charset="utf-8"><title>Maigret graph: ${escapeHtml(targetName)}</title>
+<script src="https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+<style>body{margin:0;font-family:-apple-system,system-ui,sans-serif;background:#1a1a1a;color:#fff}#header{padding:16px 24px;background:#222;border-bottom:1px solid #333}#header h1{margin:0;font-size:18px}#header p{margin:4px 0 0;color:#888;font-size:13px}#graph{width:100vw;height:calc(100vh - 70px)}</style>
+</head><body>
+<div id="header"><h1>Maigret graph: ${escapeHtml(targetName)}</h1><p>${escapeHtml(summary)}</p></div>
+<div id="graph"></div>
+<script>
+const data = ${graphJson};
+const nodes = data.nodes.map(n => {
+  let color = '#3b82f6', shape = 'dot', size = 12;
+  if (n.type === 'seed') { color = '#eab308'; shape = 'star'; size = 20; }
+  else if (n.type === 'platform') { color = '#22c55e'; shape = 'dot'; size = 14; }
+  else if (n.type === 'alias') { color = '#a855f7'; shape = 'triangle'; size = 10; }
+  else if (n.type === 'identity') { color = '#06b6d4'; shape = 'box'; size = 10; }
+  return { id: n.id, label: n.label, color, shape, size, title: n.url || n.label };
+});
+const edges = data.edges.map(e => ({ from: e.source, to: e.target, label: e.relation, arrows: 'to', color: '#555' }));
+const container = document.getElementById('graph');
+const network = new vis.Network(container, { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) }, {
+  physics: { enabled: true, solver: 'forceAtlas2Based', forceAtlas2Based: { gravitationalConstant: -50, centralGravity: 0.01, springLength: 100 } },
+  interaction: { hover: true, tooltipDelay: 100 }
+});
+network.on('doubleClick', (params) => { if (params.nodes.length > 0) { const node = nodes.find(n => n.id === params.nodes[0]); if (node && node.title && node.title.startsWith('http')) window.open(node.title, '_blank'); } });
+</script>
+</body></html>`;
+        return {
+          statusCode: 200,
+          headers: { ...headers, 'Content-Type': 'text/html; charset=utf-8', 'Content-Disposition': `attachment; filename="${targetName}-maigret-graph.html"` },
+          body: html,
+        };
+      }
+
+      if (format === 'xmind') {
+        // XMind 8 mindmap format (XML)
+        const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<xmap-content>
+  <sheet id="${scanId}" title="${escapeHtml(targetName)}">
+    <topic id="root" structure-class="org.xmind.ui.map.unbalanced" timestamp="${new Date().toISOString()}">
+      <title>${escapeHtml(targetName)}</title>
+      <children>
+        <topics type="attached">
+          <topic>
+            <title>Summary</title>
+            <notes><plain>${escapeHtml(summary)}</plain></notes>
+          </topic>
+          <topic>
+            <title>Platforms</title>
+            <children>
+              <topics type="attached">
+                ${platforms.map(p => `<topic><title>${escapeHtml(p.platform || 'unknown')}</title><notes><plain>${escapeHtml(p.url || '')}</plain></notes></topic>`).join('\n                ')}
+              </topics>
+            </children>
+          </topic>
+        </topics>
+      </children>
+    </topic>
+  </sheet>
+</xmap-content>`;
+        return {
+          statusCode: 200,
+          headers: { ...headers, 'Content-Type': 'application/xml; charset=utf-8', 'Content-Disposition': `attachment; filename="${targetName}-maigret.xmind"` },
+          body: xml,
+        };
+      }
+
+      if (format === 'pdf') {
+        // Rich HTML report with print-optimized CSS; browser can print to PDF.
+        const platformRows = platforms
+          .map(
+            (p) => `<tr>
+              <td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:left;font-size:14px">${escapeHtml(p.platform || '')}</td>
+              <td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:left;font-size:14px"><a href="${escapeHtml(p.url)}">${escapeHtml(p.url)}</a></td>
+              <td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:left;font-size:14px">${escapeHtml(p.status || 'found')}</td>
+            </tr>`,
+          )
+          .join('');
+        const html = `<!doctype html>
+<html><head><meta charset="utf-8"><title>Maigret scan: ${escapeHtml(targetName)}</title>
+<style>
+  @page { size: A4; margin: 24mm; }
+  body { font-family: -apple-system, system-ui, sans-serif; max-width: 860px; margin: 0 auto; padding: 24px; color: #1a1a1a; background: #fff; }
+  h1 { margin-bottom: 8px; font-size: 24px; }
+  .meta { color: #6b7280; font-size: 14px; margin-bottom: 16px; }
+  .summary-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 24px; }
+  table { border-collapse: collapse; width: 100%; margin-top: 24px; }
+  th, td { border: 1px solid #e5e7eb; padding: 10px 12px; text-align: left; font-size: 14px; }
+  th { background: #f9fafb; font-weight: 600; }
+  a { color: #1d4ed8; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .confidence { display: inline-block; background: #dbeafe; color: #1e40af; padding: 4px 12px; border-radius: 9999px; font-size: 13px; font-weight: 600; margin-top: 8px; }
+  .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 12px; }
+  @media print { body { padding: 0; } .no-print { display: none; } }
+</style>
+</head><body>
+<h1>Maigret scan: ${escapeHtml(targetName)}</h1>
+<p class="meta">Scanned ${escapeHtml(scan.created_at)}${scanData.confidence ? ` · Confidence: ${(scanData.confidence * 100).toFixed(0)}%` : ''}</p>
+<div class="summary-box">
+  <strong>Summary:</strong> ${escapeHtml(summary)}
+</div>
+<table>
+<thead><tr><th>Platform</th><th>URL</th><th>Status</th></tr></thead>
+<tbody>${platformRows || '<tr><td colspan="3" style="text-align:center;color:#6b7280;padding:24px">No platforms found</td></tr>'}</tbody>
+</table>
+<div class="footer">
+  <p>Generated by Maigret · ${new Date().toISOString()}</p>
+  <p class="no-print">To save as PDF: use your browser's Print → Save as PDF</p>
+</div>
+</body></html>`;
+        return {
+          statusCode: 200,
+          headers: { ...headers, 'Content-Type': 'text/html; charset=utf-8', 'Content-Disposition': `attachment; filename="${targetName}-maigret.pdf.html"` },
+          body: html,
+        };
+      }
+
+      if (format === 'neo4j') {
+        // Generate idempotent Neo4j Cypher script from graph data.
+        const graph = scanData.graph || { nodes: [], edges: [] };
+        const statements = [];
+        const nodeIds = new Set();
+        const relKeys = new Set();
+
+        for (const node of graph.nodes || []) {
+          const nid = escapeCypherString(node.id);
+          const label = escapeCypherString(node.label || node.id);
+          const ntype = escapeCypherString(node.type || 'Platform');
+          const url = node.url ? escapeCypherString(node.url) : null;
+          const platform = node.platform ? escapeCypherString(node.platform) : null;
+          const username = node.username ? escapeCypherString(node.username) : null;
+          const status = node.status ? escapeCypherString(node.status) : null;
+
+          if (!nodeIds.has(nid)) {
+            nodeIds.add(nid);
+            const props = [`id: '${nid}'`, `label: '${label}'`, `type: '${ntype}'`];
+            if (url) props.push(`url: '${url}'`);
+            if (platform) props.push(`platform: '${platform}'`);
+            if (username) props.push(`username: '${username}'`);
+            if (status) props.push(`status: '${status}'`);
+            statements.push(`MERGE (n:MaigretNode {id: '${nid}'})\nSET n += {${props.join(', ')}}`);
+          }
+        }
+
+        for (const edge of graph.edges || []) {
+          const src = escapeCypherString(edge.source || '');
+          const tgt = escapeCypherString(edge.target || '');
+          const rel = escapeCypherString(edge.relation || 'RELATED');
+          const key = `${src}|${tgt}|${rel}`;
+          if (src && tgt && !relKeys.has(key)) {
+            relKeys.add(key);
+            statements.push(`MATCH (a:MaigretNode {id: '${src}'}), (b:MaigretNode {id: '${tgt}'})\nMERGE (a)-[r:${rel}]->(b)`);
+          }
+        }
+
+        const cypher = statements.join(';\n\n') + ';';
+        return {
+          statusCode: 200,
+          headers: { ...headers, 'Content-Type': 'application/octet-stream; charset=utf-8', 'Content-Disposition': `attachment; filename="${targetName}-maigret.cypher"` },
+          body: cypher,
+        };
+      }
+
+      return { statusCode: 400, headers, body: JSON.stringify({ error: `Unknown format: ${format}. Supported: json, csv, md, html, txt, graph, xmind, pdf, neo4j` }) };
+    }
+
+    // POST /api/personalizer/analyze
+    // AI analysis mode: builds a Maigret-style Markdown report from scan data
+    // and sends it to OpenAI to produce a short investigation summary.
+    if (path === '/analyze' && event.httpMethod === 'POST') {
+      const scanId = validateInput(body.scanId, 'text', 100);
+      if (!scanId) return { statusCode: 400, headers, body: JSON.stringify({ error: 'scanId is required' }) };
+
+      const { data: scan, error: scanError } = await supabaseService
+        .from('profile_scan_results')
+        .select('*')
+        .eq('id', scanId)
+        .eq('user_id', userId)
+        .single();
+      if (scanError || !scan) {
+        return { statusCode: 404, headers, body: JSON.stringify({ error: 'Scan not found' }) };
+      }
+
+      const scanData = scan.scan_data || {};
+      const targetName = scan.target_name;
+      const platforms = Array.isArray(scanData.platforms) ? scanData.platforms : [];
+      const summary = scanData.summary || '';
+
+      // Build Markdown report in Maigret format
+      const lines = [];
+      lines.push(`# Maigret scan: ${targetName}`);
+      lines.push('');
+      lines.push(`**Scanned:** ${scan.created_at}`);
+      lines.push(`**Summary:** ${summary}`);
+      if (scanData.confidence) lines.push(`**Confidence:** ${(scanData.confidence * 100).toFixed(0)}%`);
+      lines.push('');
+      lines.push('## Platforms');
+      lines.push('');
+      for (const p of platforms) {
+        lines.push(`- **${p.platform || 'unknown'}**: ${p.url} (${p.status || 'found'})`);
+        const ids = p.ids_data || {};
+        if (ids.name) lines.push(`  - Name: ${ids.name}`);
+        if (ids.bio) lines.push(`  - Bio: ${ids.bio}`);
+        if (ids.company) lines.push(`  - Company: ${ids.company}`);
+        if (ids.location) lines.push(`  - Location: ${ids.location}`);
+        if (ids.avatar_url) lines.push(`  - Avatar: ${ids.avatar_url}`);
+      }
+      lines.push('');
+      lines.push('## Statistics');
+      lines.push('');
+      lines.push(`- Sites checked: ${scanData.sitesChecked || 0}`);
+      lines.push(`- Sites found: ${scanData.sitesFound || 0}`);
+      lines.push(`- Platforms: ${platforms.length}`);
+
+      const markdownReport = lines.join('\n');
+
+      // AI analysis system prompt
+      const systemPrompt = `You are an OSINT investigation assistant. Given a Maigret scan report, produce a short, neutral investigation summary in exactly this format:
+
+REAL NAME: [most likely real name or "Unknown"]
+LOCATION: [most likely location or "Unknown"]
+OCCUPATION: [most likely occupation/role or "Unknown"]
+INTERESTS: [comma-separated interests or "Unknown"]
+LANGUAGES: [comma-separated languages or "Unknown"]
+MAIN WEBSITE: [primary website or "None"]
+USERNAME VARIANTS: [comma-separated variants found or "None"]
+PLATFORMS FOUND: [count]
+ACTIVE YEARS: [estimate or "Unknown"]
+CONFIDENCE: [High/Medium/Low]
+FOLLOW-UP LEADS: [bullet list of follow-up investigation suggestions]
+
+Keep it concise. Do not invent information. If unsure, say "Unknown".`;
+
+      let analysisSummary = '';
+      try {
+        if (process.env.OPENAI_API_KEY) {
+          const res = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+            },
+            body: JSON.stringify({
+              model: 'gpt-4-turbo-preview',
+              messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: markdownReport },
+              ],
+              temperature: 0.7,
+              max_tokens: 1000,
+            }),
+          });
+          if (!res.ok) {
+            const text = await res.text();
+            throw new Error(`OpenAI API error (${res.status}): ${text}`);
+          }
+          const data = await res.json();
+          analysisSummary = data.choices?.[0]?.message?.content || 'No analysis generated.';
+        } else {
+          throw new Error('OpenAI API key not configured');
+        }
+      } catch (err) {
+        console.error('AI analysis failed:', err.message);
+        analysisSummary = `AI analysis unavailable: ${err.message}`;
+      }
+
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          scanId,
+          targetName,
+          markdownReport,
+          analysisSummary,
+          generatedAt: new Date().toISOString(),
+        }),
+      };
+    }
+
+    // GET /api/personalizer/scans - list scan history for current user
+    if (path === '/scans' && event.httpMethod === 'GET') {
+      const limit = Math.min(parseInt(event.queryStringParameters?.limit || '20'), 100);
+      const offset = parseInt(event.queryStringParameters?.offset || '0');
+      const { data, error, count } = await supabaseService
+        .from('profile_scan_results')
+        .select('id, target_name, created_at, scan_data', { count: 'exact' })
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
+      if (error) throw error;
+      const summary = (data || []).map(row => ({
+        id: row.id,
+        targetName: row.target_name,
+        scannedAt: row.created_at,
+        sitesFound: row.scan_data?.sitesFound || 0,
+        sitesChecked: row.scan_data?.sitesChecked || 0,
+        confidence: row.scan_data?.confidence || 0,
+        usernames: row.scan_data?.usernames || [row.target_name],
+      }));
+      return { statusCode: 200, headers, body: JSON.stringify({ data: summary, pagination: { total: count, limit, offset, hasMore: (count || 0) > offset + limit } }) };
+    }
+
+    // GET /api/personalizer/settings - get user scan settings
+    if (path === '/settings' && event.httpMethod === 'GET') {
+      const { data, error } = await supabaseService
+        .from('user_scan_settings')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+      if (error && error.code !== 'PGRST116') throw error;
+      return { statusCode: 200, headers, body: JSON.stringify({ settings: data || { default_top: 500, default_timeout_ms: 15000, permute_enabled: false, disable_recursion: false, check_domains: false } }) };
+    }
+
+    // POST /api/personalizer/settings - save user scan settings
+    if (path === '/settings' && event.httpMethod === 'POST') {
+      const settings = body.settings || {};
+      const payload = {
+        user_id: userId,
+        default_top: Math.min(2500, Math.max(1, parseInt(settings.default_top) || 500)),
+        default_timeout_ms: Math.min(60000, Math.max(5000, parseInt(settings.default_timeout_ms) || 15000)),
+        permute_enabled: settings.permute_enabled === true,
+        disable_recursion: settings.disable_recursion === true,
+        check_domains: settings.check_domains === true,
+        proxy: settings.proxy || null,
+        tor_proxy: settings.tor_proxy || null,
+        i2p_proxy: settings.i2p_proxy || null,
+        dark_mode: settings.dark_mode === true,
+        updated_at: new Date().toISOString(),
+      };
+      const { data, error } = await supabaseService
+        .from('user_scan_settings')
+        .upsert(payload, { onConflict: 'user_id' })
+        .select()
+        .single();
+      if (error) throw error;
+      return { statusCode: 200, headers, body: JSON.stringify({ settings: data }) };
     }
 
     return { statusCode: 404, headers, body: JSON.stringify({ error: 'Endpoint not found' }) };

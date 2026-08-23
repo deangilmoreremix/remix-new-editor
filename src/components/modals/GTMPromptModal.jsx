@@ -1,9 +1,11 @@
 import { BaseModal } from './BaseModal.jsx';
 import { openaiService } from '../../lib/openaiService.js';
+import { openaiConfig } from '../../lib/config/openaiConfig.js';
 import { gtmContentLibrary } from '../../lib/gtmContentLibrary.js';
 import { gtmResponses, gtmStructuredToText, GTM_MODEL_OPTIONS, resolveGtmModel } from '../../lib/gtmResponses.js';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase.js';
 import { AuthModal } from '../AuthModal.js';
+import { GTMInfoModal } from './GTMInfoModal.jsx';
 
 /**
  * GTMPromptModal - GTM-Powered Prompt Enhancement Modal
@@ -39,8 +41,20 @@ export class GTMPromptModal extends BaseModal {
     this.selectedMethodology = '';
     this.selectedTonality = '';
     this.selectedModel = this._readStoredModel();
-    this.basePrompt = '';
+    this.basePrompt = options.templateContext?.basePrompt || '';
     this.generatedPrompt = '';
+    this.templateContext = options.templateContext || null;
+
+    // Responses API output state — always a plain text string (the Responses
+    // API returns a flat `output_text` payload, not a structured object).
+    this.generatedResult = null;
+    this.streamingText = '';           // live streamed text during generation
+    this.responseId = '';              // previous_response_id for refine
+    this.usage = null;                 // { inputTokens, outputTokens }
+    this.variants = [];                // array of structured prompts
+    this.selectedVariantIndex = 0;
+    this.refineInstruction = '';
+    this.isRefining = false;
 
     // Responses API structured output state
     this.generatedStructured = null;   // { hook, storybeat_1, ... }
@@ -81,34 +95,36 @@ export class GTMPromptModal extends BaseModal {
   }
 
   getAppColorScheme(theme) {
-    const schemes = {
-      'timeline-editor': { primary: '#3b82f6', accent: '#06b6d4', secondary: '#64748b' },
-      'video-studio': { primary: '#8b5cf6', accent: '#a855f7', secondary: '#6b7280' },
-      'text-to-video': { primary: '#059669', accent: '#10b981', secondary: '#4b5563' },
-      'image-to-video': { primary: '#dc2626', accent: '#ef4444', secondary: '#6b7280' },
-      'image-studio': { primary: '#f59e0b', accent: '#fbbf24', secondary: '#6b7280' },
-      'template-studio': { primary: '#10b981', accent: '#34d399', secondary: '#6b7280' },
-      'cinema-studio': { primary: '#ec4899', accent: '#f472b6', secondary: '#6b7280' },
-      'cinema-template-studio': { primary: '#be123c', accent: '#dc2626', secondary: '#64748b' },
-      'editor-page': { primary: '#06b6d4', accent: '#22d3ee', secondary: '#64748b' },
-      'lip-sync-studio': { primary: '#8b5cf6', accent: '#a78bfa', secondary: '#6b7280' },
-      'director': { primary: '#d97706', accent: '#f59e0b', secondary: '#64748b' },
-      'video-agent': { primary: '#7c3aed', accent: '#8b5cf6', secondary: '#6b7280' },
-      'character-studio': { primary: '#f97316', accent: '#fb923c', secondary: '#6b7280' },
-      'avatar-studio': { primary: '#06b6d4', accent: '#22d3ee', secondary: '#6b7280' },
-      'storyboard-studio': { primary: '#84cc16', accent: '#a3e635', secondary: '#6b7280' },
-      'chat-studio': { primary: '#ec4899', accent: '#f472b6', secondary: '#6b7280' },
-      'audio-studio': { primary: '#a855f7', accent: '#c084fc', secondary: '#6b7280' },
-      'cinematic-template-wizard': { primary: '#7c3aed', accent: '#a78bfa', secondary: '#6b7280' },
-      'influencer-studio': { primary: '#ec4899', accent: '#f472b6', secondary: '#6b7280' }
-    };
-    return schemes[theme] || schemes['timeline-editor'];
+    // Single source of truth — see STUDIO_SCHEME in openaiConfig.js. Every
+    // theme key resolves to the shared studio palette so this modal always
+    // matches the studio it was opened from.
+    return openaiConfig.getStudioColorScheme(theme);
+  }
+
+  /**
+   * Inline `style` attribute that publishes the studio palette as the
+   * `--app-*` custom properties the modal stylesheet is written against.
+   * Shared by every render path so the theming can never drift.
+   */
+  themeVars() {
+    const { primary, accent, onPrimary } = this.appColors;
+    return [
+      `--app-primary: ${primary}`,
+      `--app-accent: ${accent}`,
+      `--app-on-primary: ${onPrimary || '#000000'}`,
+      `--app-soft: ${this.hexToRgba(primary, 0.12)}`,
+      `--app-soft-accent: ${this.hexToRgba(accent, 0.12)}`,
+      `--app-glow: ${this.hexToRgba(primary, 0.25)}`,
+    ].join('; ');
   }
 
   renderBody() {
     return `
-      <div class="gtm-prompt-modal" style="--app-primary: ${this.appColors.primary}; --app-accent: ${this.appColors.accent}; --app-soft: ${this.hexToRgba(this.appColors.primary, 0.12)}; --app-soft-accent: ${this.hexToRgba(this.appColors.accent, 0.12)}">
+      <div class="gtm-prompt-modal" style="${this.themeVars()}">
         <p class="gtm-subtitle">Transform basic prompts into professional cinematic videos with GTM methodologies and storytelling mastery</p>
+        <div class="gtm-info-trigger-row">
+          <button type="button" class="gtm-info-trigger" data-action="open-gtm-info" aria-label="What is GTM Boost?">What is GTM Boost?</button>
+        </div>
         <div class="gtm-form">
           ${this.errorMessage ? `<div class="error-message" role="alert">⚠ ${this.errorMessage}</div>` : ''}
           ${this.missingOpenAIKey ? `
@@ -207,9 +223,9 @@ export class GTMPromptModal extends BaseModal {
    * Used to derive soft tints from the per-app primary/accent at render time.
    */
   hexToRgba(hex, alpha) {
-    if (typeof hex !== 'string') return `rgba(59, 130, 246, ${alpha})`;
+    if (typeof hex !== 'string') return `rgba(217, 255, 0, ${alpha})`;
     const m = hex.trim().match(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i);
-    if (!m) return `rgba(59, 130, 246, ${alpha})`;
+    if (!m) return `rgba(217, 255, 0, ${alpha})`;
     let h = m[1];
     if (h.length === 3) h = h.split('').map((c) => c + c).join('');
     const r = parseInt(h.slice(0, 2), 16);
@@ -377,9 +393,12 @@ export class GTMPromptModal extends BaseModal {
 
   /**
    * Render the retrieved real GTM skill examples as clickable cards.
-   * Returns "" when there are no examples (keeps the UI clean).
+   * Returns "" when no role/industry/methodology is selected (keeps the
+   * UI clean — the panel is meaningless against universal fallbacks) or
+   * when the example list is empty.
    */
   renderSkillExamples() {
+    if (!this.selectedRole && !this.selectedIndustry && !this.selectedMethodology) return '';
     const examples = this.skillExamples || [];
     if (examples.length === 0) return '';
 
@@ -502,6 +521,13 @@ export class GTMPromptModal extends BaseModal {
       toggleBtn.addEventListener('click', () => {
         this.showAdvanced = !this.showAdvanced;
         this.refreshBody();
+      });
+    }
+
+    const infoBtn = scope.querySelector('[data-action="open-gtm-info"]');
+    if (infoBtn) {
+      infoBtn.addEventListener('click', () => {
+        new GTMInfoModal({ appTheme: this.appTheme }).open();
       });
     }
 
@@ -674,28 +700,6 @@ export class GTMPromptModal extends BaseModal {
         this.missingOpenAIKey = true;
       }
       console.warn('[GTM] OpenAI Responses API (user key) unavailable, trying edge function:', error.message);
-    }
-
-    // Secondary path: server edge function (server-held key).
-    try {
-      if (!isSupabaseConfigured()) throw new Error('Supabase not configured');
-
-      const timeout = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Request timed out')), 12000)
-      );
-      const request = supabase.functions.invoke('ai-cinematic-prompt-generator', {
-        body: { ...this._gtmParams(), action: 'generate', studioType: this.appTheme }
-      });
-
-      const { data, error: fnError } = await Promise.race([request, timeout]);
-      if (fnError) throw new Error(fnError.message || 'Generation failed');
-      if (!data || !data.prompt) throw new Error('Empty response');
-      this._setResult({ prompt: data.prompt, responseId: data.response_id, usage: data.usage });
-      this.isGenerating = false;
-      this.refreshBody();
-      return;
-    } catch (fnError) {
-      console.warn('[GTM] Edge function unavailable, using local library:', fnError.message);
     }
 
     // Tertiary path: local template library (always works offline).

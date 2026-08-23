@@ -3,6 +3,13 @@
  * Central export point for all utility libraries
  */
 
+// Batch processing
+export {
+    createBatchProcessor,
+    processBatch,
+    createBatchQueue,
+} from './batchProcessor.js';
+
 // Security utilities
 export {
     safeSetText,
@@ -76,6 +83,10 @@ export {
     isNotErrorResponse
 } from './schemas.js';
 
+// Character and Environment registries
+export { CharacterRegistry, characterRegistry } from './characterRegistry.js';
+export { EnvironmentRegistry, environmentRegistry } from './environmentRegistry.js';
+
 // Constants
 export {
     FILE_LIMITS as FILE_SIZE_LIMITS,
@@ -91,3 +102,6 @@ export {
     VIDEO_DURATIONS,
     QUALITY_PRESETS
 } from './constants.js';
+
+// Undo/Redo
+export { createUndoRedo, MAX_HISTORY_DEFAULT } from './undoRedo.js';

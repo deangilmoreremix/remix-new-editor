@@ -98,7 +98,8 @@ export const MATRIX_TEMPLATES = [
     aspectRatios: ['16:9', '9:16', '1:1'],
     duration: { min: 15, max: 60, default: 30 },
     model: 'motion-controls',
-    modelType: 'i2v'
+    modelType: 'i2v',
+    basePrompt: 'Cinematic midnight restaurant brand film, {prompt}, moody atmospheric lighting, intimate dining scene, professional cinematography, premium food close-ups, 4K',
   },
   {
     id: 'restaurant-process-doc',
@@ -114,7 +115,8 @@ export const MATRIX_TEMPLATES = [
     aspectRatios: ['16:9', '9:16'],
     duration: { min: 30, max: 90, default: 45 },
     model: 'motion-controls',
-    modelType: 'i2v'
+    modelType: 'i2v',
+    basePrompt: 'Restaurant documentary style film, {prompt}, documentary realism, natural light feel, observational framing, subtle handheld or measured movement, bar textures',
   },
   {
     id: 'restaurant-menu-showcase',
@@ -130,7 +132,8 @@ export const MATRIX_TEMPLATES = [
     aspectRatios: ['16:9', '1:1', '9:16'],
     duration: { min: 10, max: 30, default: 15 },
     model: 'motion-controls',
-    modelType: 'i2v'
+    modelType: 'i2v',
+    basePrompt: 'Restaurant promo film, {prompt}, conversion-aware visuals, persuasive product/service framing, elegant momentum, clean CTA ending, glossy food detail',
   },
   {
     id: 'restaurant-craft-story',
@@ -146,7 +149,8 @@ export const MATRIX_TEMPLATES = [
     aspectRatios: ['16:9', '9:16'],
     duration: { min: 20, max: 45, default: 30 },
     model: 'motion-controls',
-    modelType: 'i2v'
+    modelType: 'i2v',
+    basePrompt: 'Restaurant cinematic short film, {prompt}, more filmic narrative, emotional progression, premium textures, cinematic reveal moments, chef hands, fire and sizzle',
   },
   {
     id: 'restaurant-offer-promo',
@@ -162,7 +166,8 @@ export const MATRIX_TEMPLATES = [
     aspectRatios: ['9:16', '1:1', '16:9'],
     duration: { min: 10, max: 30, default: 15 },
     model: 'motion-controls',
-    modelType: 'i2v'
+    modelType: 'i2v',
+    basePrompt: 'Restaurant promo film, {prompt}, conversion-aware visuals, persuasive product/service framing, elegant momentum, clean CTA ending, night ambience',
   },
   {
     id: 'restaurant-launch-trailer',
@@ -178,7 +183,8 @@ export const MATRIX_TEMPLATES = [
     aspectRatios: ['16:9', '9:16'],
     duration: { min: 15, max: 30, default: 20 },
     model: 'motion-controls',
-    modelType: 'i2v'
+    modelType: 'i2v',
+    basePrompt: 'Restaurant dramatic trailer, {prompt}, high-impact pacing, moody contrast, reveal shots, bigger transitions, dramatic camera motion, neon or candlelit mood',
   },
   {
     id: 'restaurant-experience-video',
@@ -194,7 +200,8 @@ export const MATRIX_TEMPLATES = [
     aspectRatios: ['16:9', '9:16'],
     duration: { min: 15, max: 45, default: 30 },
     model: 'motion-controls',
-    modelType: 'i2v'
+    modelType: 'i2v',
+    basePrompt: 'Restaurant cinematic commercial film, {prompt}, premium commercial look, polished composition, slow dolly or tracking movement, controlled lighting, clear subject focus, polished dining experience',
   },
   {
     id: 'restaurant-evening-recap',
@@ -210,7 +217,8 @@ export const MATRIX_TEMPLATES = [
     aspectRatios: ['16:9', '9:16'],
     duration: { min: 30, max: 60, default: 45 },
     model: 'motion-controls',
-    modelType: 'i2v'
+    modelType: 'i2v',
+    basePrompt: 'Restaurant documentary style film, {prompt}, documentary realism, natural light feel, observational framing, subtle handheld or measured movement, nightlife visuals',
   },
   {
     id: 'restaurant-social-reel',
@@ -226,7 +234,8 @@ export const MATRIX_TEMPLATES = [
     aspectRatios: ['9:16'],
     duration: { min: 10, max: 30, default: 15 },
     model: 'motion-controls',
-    modelType: 'i2v'
+    modelType: 'i2v',
+    basePrompt: 'Restaurant promo film, {prompt}, conversion-aware visuals, persuasive product/service framing, elegant momentum, clean CTA ending, fast food detail shots',
   },
   {
     id: 'restaurant-feature-piece',
@@ -242,7 +251,8 @@ export const MATRIX_TEMPLATES = [
     aspectRatios: ['16:9', '1:1'],
     duration: { min: 20, max: 45, default: 30 },
     model: 'motion-controls',
-    modelType: 'i2v'
+    modelType: 'i2v',
+    basePrompt: 'Restaurant cinematic short film, {prompt}, more filmic narrative, emotional progression, premium textures, cinematic reveal moments, elevated hero lighting',
   },
 
   // MED-SPA NICHE (10 templates)
@@ -260,7 +270,8 @@ export const MATRIX_TEMPLATES = [
     aspectRatios: ['16:9', '9:16'],
     duration: { min: 20, max: 60, default: 30 },
     model: 'motion-controls',
-    modelType: 'i2v'
+    modelType: 'i2v',
+    basePrompt: 'Med spa cinematic brand film, {prompt}, premium commercial look, polished composition, slow dolly or tracking movement, controlled lighting, clear subject focus, luxury treatment rooms',
   },
   {
     id: 'medspa-service-video',
@@ -276,7 +287,8 @@ export const MATRIX_TEMPLATES = [
     aspectRatios: ['16:9', '9:16'],
     duration: { min: 15, max: 45, default: 30 },
     model: 'motion-controls',
-    modelType: 'i2v'
+    modelType: 'i2v',
+    basePrompt: 'Med spa cinematic commercial film, {prompt}, premium commercial look, polished composition, slow dolly or tracking movement, controlled lighting, clear subject focus, elegant interiors',
   },
   {
     id: 'medspa-transformation-story',
@@ -292,7 +304,8 @@ export const MATRIX_TEMPLATES = [
     aspectRatios: ['16:9', '9:16'],
     duration: { min: 30, max: 60, default: 45 },
     model: 'motion-controls',
-    modelType: 'i2v'
+    modelType: 'i2v',
+    basePrompt: 'Med spa cinematic short film, {prompt}, more filmic narrative, emotional progression, premium textures, cinematic reveal moments, aspirational beauty storytelling',
   },
   {
     id: 'medspa-result-reveal',
@@ -308,7 +321,8 @@ export const MATRIX_TEMPLATES = [
     aspectRatios: ['9:16', '1:1'],
     duration: { min: 10, max: 30, default: 15 },
     model: 'motion-controls',
-    modelType: 'i2v'
+    modelType: 'i2v',
+    basePrompt: 'Med spa promo film, {prompt}, conversion-aware visuals, persuasive product/service framing, elegant momentum, clean CTA ending, reveal-driven edits',
   },
   {
     id: 'medspa-offer-promo',
@@ -324,7 +338,8 @@ export const MATRIX_TEMPLATES = [
     aspectRatios: ['9:16', '16:9', '1:1'],
     duration: { min: 10, max: 30, default: 15 },
     model: 'motion-controls',
-    modelType: 'i2v'
+    modelType: 'i2v',
+    basePrompt: 'Med spa promo film, {prompt}, conversion-aware visuals, persuasive product/service framing, elegant momentum, clean CTA ending, luxury service framing',
   },
   {
     id: 'medspa-founder-doc',
@@ -340,7 +355,8 @@ export const MATRIX_TEMPLATES = [
     aspectRatios: ['16:9', '9:16'],
     duration: { min: 30, max: 90, default: 45 },
     model: 'motion-controls',
-    modelType: 'i2v'
+    modelType: 'i2v',
+    basePrompt: 'Med spa founder story film, {prompt}, portrait-led storytelling, premium close-ups, emotional pacing, authority framing, warm practical light, soft portrait lighting',
   },
   {
     id: 'medspa-testimonial',
@@ -356,7 +372,8 @@ export const MATRIX_TEMPLATES = [
     aspectRatios: ['16:9', '9:16'],
     duration: { min: 30, max: 60, default: 45 },
     model: 'motion-controls',
-    modelType: 'i2v'
+    modelType: 'i2v',
+    basePrompt: 'Med spa testimonial film, {prompt}, real customer energy, grounded realism, supportive b-roll, emotional proof moments, authentic beauty proof',
   },
   {
     id: 'medspa-social-reel',
@@ -372,7 +389,8 @@ export const MATRIX_TEMPLATES = [
     aspectRatios: ['9:16'],
     duration: { min: 10, max: 30, default: 15 },
     model: 'motion-controls',
-    modelType: 'i2v'
+    modelType: 'i2v',
+    basePrompt: 'Med spa promo film, {prompt}, conversion-aware visuals, persuasive product/service framing, elegant momentum, clean CTA ending, soft-focus portraits',
   },
   {
     id: 'medspa-clinic-piece',
@@ -388,7 +406,8 @@ export const MATRIX_TEMPLATES = [
     aspectRatios: ['16:9'],
     duration: { min: 30, max: 90, default: 60 },
     model: 'motion-controls',
-    modelType: 'i2v'
+    modelType: 'i2v',
+    basePrompt: 'Med spa documentary style film, {prompt}, documentary realism, natural light feel, observational framing, subtle handheld or measured movement, refined space storytelling',
   },
   {
     id: 'medspa-luxury-offer',

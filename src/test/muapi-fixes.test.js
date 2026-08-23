@@ -4,36 +4,28 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { MuapiClient, muapi } from '../lib/muapi.js';
 
+vi.mock('../lib/supabase.js', () => ({
+  uploadFileToStorage: vi.fn(async (file) => {
+    return `https://cdn.muapi.ai/${file.name}`;
+  })
+}));
+
 describe('MuapiClient Fixes', () => {
   let client;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     client = new MuapiClient();
-    // Mock proxyUrl to simulate Supabase proxy
-    client.proxyUrl = 'https://test.supabase.co/functions/v1/muapi-proxy';
+    await client.apiKeyManager.setMuapiKey('test-muapi-key');
   });
 
-  describe('uploadFile routes to muapi upload endpoint', () => {
-    test('sends multipart to upload_file with x-api-key', async () => {
+  describe('uploadFile routes to Supabase Storage directly', () => {
+    test('calls uploadFileToStorage directly without proxy', async () => {
       const mockFile = new File(['test'], 'test.png', { type: 'image/png' });
-      const mockResponse = {
-        ok: true,
-        json: () => Promise.resolve({ url: 'https://cdn.muapi.ai/test.png' })
-      };
-      
-      global.fetch = vi.fn(() => Promise.resolve(mockResponse));
+      const { uploadFileToStorage } = await import('../lib/supabase.js');
 
       const result = await client.uploadFile(mockFile);
 
-      expect(fetch).toHaveBeenCalledWith(
-        'https://api.muapi.ai/api/v1/upload_file',
-        expect.objectContaining({
-          method: 'POST',
-          headers: expect.objectContaining({
-            'x-api-key': null // null because no key is set in test env
-          })
-        })
-      );
+      expect(uploadFileToStorage).toHaveBeenCalledWith(mockFile);
       expect(result).toBe('https://cdn.muapi.ai/test.png');
     });
   });
@@ -74,24 +66,24 @@ describe('MuapiClient Fixes', () => {
   });
 
   describe('response parsing handles data wrapper', () => {
-    test('unwrapResponse extracts nested data', async () => {
-      // Test the proxy's unwrapResponse logic indirectly
-      // by verifying client handles wrapped responses
-      const mockResponse = {
-        ok: true,
-        json: () => Promise.resolve({
-          data: {
-            request_id: 'test-123',
-            status: 'completed',
-            outputs: ['https://cdn.muapi.ai/result.png']
-          }
+    test('uploadFile extracts url from wrapped data response', async () => {
+      const mockFile = new File(['test'], 'test.png', { type: 'image/png' });
+
+      global.fetch = vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          status: 200,
+          statusText: 'OK',
+          json: () => Promise.resolve({
+            data: {
+              url: 'https://cdn.muapi.ai/wrapped-result.png'
+            }
+          }),
         })
-      };
+      );
 
-      global.fetch = vi.fn(() => Promise.resolve(mockResponse));
-
-      // This would normally poll - just verify it doesn't crash on wrapped response
-      expect(mockResponse).toBeDefined();
+      const result = await client.uploadFile(mockFile);
+      expect(result).toBe('https://cdn.muapi.ai/wrapped-result.png');
     });
   });
 });

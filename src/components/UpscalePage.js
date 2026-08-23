@@ -44,7 +44,7 @@ export function UpscalePage() {
   contentWrapper.innerHTML = `
     <!-- CTA Button -->
     <div class="flex justify-center mb-8 md:mb-12">
-      <button class="start-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all">
+      <button class="start-btn btn-primary-modern">
         Upscale Images
         <svg class="w-4 h-4 inline-block ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
       </button>
@@ -108,7 +108,7 @@ export function UpscalePage() {
     <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl text-center">
       <h2 class="text-2xl font-black text-white mb-2">Upscale Your Images</h2>
       <p class="text-white/60 text-sm mb-6 max-w-md mx-auto">Enhance resolution with AI-powered upscaling</p>
-      <button class="cta-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all">
+      <button class="cta-btn btn-primary-modern">
         Get Started Free
       </button>
     </div>

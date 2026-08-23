@@ -68,7 +68,7 @@ const UrlVideoModal = ({ setError }) => {
 
   const returnLink = () => (
     <a
-      href="http://download.vidcloud.io/"
+      href="https://smartdownloader.vidcloud.io/"
       className="library__block--title"
       target="_blank"
       rel="noopener noreferrer"

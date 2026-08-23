@@ -5,6 +5,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { offlineStorage } from './offline-storage.js';
+import { getUserKey as getSharedUserKey } from './userKey.js';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -840,22 +841,30 @@ export function getSupabaseAnonKey() {
   return SUPABASE_ANON_KEY || '';
 }
 
-export function getUserKey() {
-  const { data: { user } } = hybridSupabase.auth.getUser();
-  return user?.id || offlineStorage.getCurrentUserId();
+export async function getUserKey() {
+  const { data: { user } } = await hybridSupabase.auth.getUser();
+  if (user?.id) return user.id;
+  return getSharedUserKey();
 }
 
 export async function uploadFileToStorage(file) {
-  const userKey = getUserKey();
+  const userKey = await getUserKey();
   const ext = file.name.split('.').pop() || 'bin';
   const uniqueName = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}.${ext}`;
   const path = `${userKey}/${uniqueName}`;
 
-  const { data, error } = await hybridSupabase.storage
+  const timeoutMs = 60000;
+  const uploadPromise = hybridSupabase.storage
     .from('uploads')
     .upload(path, file, { contentType: file.type, upsert: false });
 
-  if (error) throw new Error(`Upload failed: ${error.message}`);
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => reject(new Error('Upload to storage timed out')), timeoutMs);
+  });
+
+  const { error } = await Promise.race([uploadPromise, timeoutPromise]).catch(err => ({ error: err }));
+
+  if (error) throw new Error(`Upload failed: ${error.message || error}`);
 
   const { data: urlData } = hybridSupabase.storage
     .from('uploads')

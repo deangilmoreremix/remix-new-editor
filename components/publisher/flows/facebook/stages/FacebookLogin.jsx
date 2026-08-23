@@ -3,10 +3,26 @@ import * as React from 'react';
 import PropTypes from '../../../../../lib/PropTypes';
 import { DEFAULT_PERMISSIONS, FACEBOOK_LOGIN } from '../../../../../lib/constants/campaigns/constants';
 import { showError } from '../../../../../lib/services/alertService';
+import FacebookPostPreview from '../../../../common/post-previews/FacebookPostPreview';
 
-const FacebookLogin = ({ provider, nextStage, setStage }) => (
+
+const FacebookLogin = ({ settings }) => (
   <div className="facebook-login">
-    <div className="login-note">
+    {console.log(settings,"settings==>>")}
+     <FacebookPostPreview
+            className="cell"
+            user={settings.userData}
+            post={settings.postData}
+          />
+    {/* <h1>dfgfgfdjhgfjghfkgfjkfkdhg</h1>
+    <FacebookShareButton
+    url={item?.url}
+    quote={title}
+    onShareWindowClose={handleClose}
+  >
+    <FbShareLogo />
+  </FacebookShareButton> */}
+    {/* <div className="login-note">
       <span>
         You must login to Facebook and authorize our app to post Videos into Facebook Pages
       </span>
@@ -15,9 +31,11 @@ const FacebookLogin = ({ provider, nextStage, setStage }) => (
       className="go-button fb-login"
       onClick={async () => {
         try {
+          console.log("call 18 --------------",DEFAULT_PERMISSIONS)
           await provider.logIn(DEFAULT_PERMISSIONS);
           nextStage();
         } catch (e) {
+          console.log("call 22 --------------",e)
           showError(e.message);
           setStage(FACEBOOK_LOGIN);
         }
@@ -26,7 +44,7 @@ const FacebookLogin = ({ provider, nextStage, setStage }) => (
     >
       <i className="fa fa-facebook-official" />
       Log in
-    </button>
+    </button> */}
   </div>
 );
 

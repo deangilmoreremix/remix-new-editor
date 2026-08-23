@@ -1,6 +1,7 @@
 import { BaseModal } from './BaseModal.jsx';
 import { searchPrompts, getPromptById, CATEGORIES, SOURCES } from '../../lib/promptCatalogs.js';
 import { buildStructuredPrompt, CAMERA_VOCABULARY, LIGHTING_VOCABULARY } from '../../lib/promptVocabulary.js';
+import { MODAL_SHORTCUTS, renderShortcutsOverlay } from './modalShortcuts.js';
 
 const FAVORITES_KEY = 'promptGalleryFavorites';
 
@@ -20,12 +21,14 @@ export class PromptGalleryModal extends BaseModal {
     this.category = 'all';
     this.source = 'all';
     this.selectedPrompt = null;
-    this.activeTab = 'browse'; // browse | favorites | builder
+    this.activeTab = 'browse';
     this.camera = '';
     this.lighting = '';
     this.style = '';
     this.negativePrompt = '';
     this.favorites = this._loadFavorites();
+    this.loading = options.loading || false;
+    this.showShortcuts = false;
   }
 
   _loadFavorites() {
@@ -87,7 +90,15 @@ export class PromptGalleryModal extends BaseModal {
         if (!text) return;
         navigator.clipboard.writeText(text).then(() => {
           const label = btn.querySelector('.copy-label');
-          if (label) { const prev = label.textContent; label.textContent = 'Copied'; setTimeout(() => label.textContent = prev, 1200); }
+          if (label) {
+            const prev = label.textContent;
+            label.textContent = 'Copied';
+            label.classList.add('copy-flash');
+            setTimeout(() => {
+              label.textContent = prev;
+              label.classList.remove('copy-flash');
+            }, 1200);
+          }
         });
       };
     });
@@ -167,6 +178,25 @@ export class PromptGalleryModal extends BaseModal {
         this.close();
       };
     }
+
+    const shortcutsCloseBtn = root.querySelector('.shortcuts-close-btn');
+    if (shortcutsCloseBtn) {
+      shortcutsCloseBtn.onclick = () => { this.showShortcuts = false; this._refresh(); };
+    }
+  }
+
+  handleKeyDown(e) {
+    super.handleKeyDown(e);
+    if ((e.metaKey || e.ctrlKey) && e.key === '/') {
+      e.preventDefault();
+      this.showShortcuts = !this.showShortcuts;
+      this._refresh();
+    }
+    if ((e.metaKey || e.ctrlKey) && e.key === 'f') {
+      e.preventDefault();
+      const searchInput = this.container?.querySelector('[data-search]');
+      if (searchInput) searchInput.focus();
+    }
   }
 
   _renderPromptCard(prompt) {
@@ -201,7 +231,7 @@ export class PromptGalleryModal extends BaseModal {
             </select>
           </div>
           <div class="prompt-list">
-            ${results.length ? results.map(p => this._renderPromptCard(p)).join('') : '<div class="empty-state">No prompts match.</div>'}
+            ${this.loading ? this.renderSkeleton() : results.length ? results.map(p => this._renderPromptCard(p)).join('') : '<div class="empty-state"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 8px;display:block;color:var(--muted)"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>No prompts match your search.</div>'}
           </div>
         </div>
         <div class="prompt-detail">
@@ -217,8 +247,8 @@ export class PromptGalleryModal extends BaseModal {
               </div>
             </div>
             <div class="detail-actions">
-              <button type="button" class="modal-btn modal-btn-primary" data-action="use-prompt" data-prompt="${this._escapeHtml(this.selectedPrompt.prompt)}">Use Prompt</button>
-              <button type="button" class="modal-btn modal-btn-secondary" data-action="copy-prompt" data-prompt="${this._escapeHtml(this.selectedPrompt.prompt)}"><span class="copy-label">Copy</span></button>
+              <button type="button" class="btn-primary-modern" data-action="use-prompt" data-prompt="${this._escapeHtml(this.selectedPrompt.prompt)}">Use Prompt</button>
+              <button type="button" class="btn-secondary-modern" data-action="copy-prompt" data-prompt="${this._escapeHtml(this.selectedPrompt.prompt)}"><span class="copy-label">Copy</span></button>
             </div>
             <div class="builder">
               <label>Structured Prompt Builder</label>
@@ -233,9 +263,9 @@ export class PromptGalleryModal extends BaseModal {
               <input type="text" data-style placeholder="Style (e.g. cinematic, photorealistic)" value="${this._escapeHtml(this.style)}" />
               <input type="text" data-negative placeholder="Negative prompt (optional)" value="${this._escapeHtml(this.negativePrompt)}" />
               <div class="preview">${this._escapeHtml(buildStructuredPrompt({ basePrompt: this.selectedPrompt.prompt, camera: this.camera, lighting: this.lighting, style: this.style, negativePrompt: this.negativePrompt }))}</div>
-              <button type="button" class="modal-btn modal-btn-primary" data-builder-use>Use Built Prompt</button>
+              <button type="button" class="btn-primary-modern" data-builder-use>Use Built Prompt</button>
             </div>
-          ` : '<div class="empty-state">Select a prompt to preview.</div>'}
+          ` : this.loading ? '<div class="skeleton-kpi"></div>' : '<div class="empty-state">Select a prompt to preview.</div>'}
         </div>
       </div>
     `;
@@ -247,7 +277,7 @@ export class PromptGalleryModal extends BaseModal {
         <div class="prompt-catalog">
           <div class="panel-header"><h3>Favorites</h3></div>
           <div class="prompt-list">
-            ${this.favorites.length ? this.favorites.map(p => this._renderPromptCard(p)).join('') : '<div class="empty-state">No favorites saved.</div>'}
+            ${this.favorites.length ? this.favorites.map(p => this._renderPromptCard(p)).join('') : '<div class="empty-state"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 8px;display:block;color:var(--muted)"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3.33 1-4.25 2.5C11.33 4 9.76 3 8 3A5.5 5.5 0 0 0 2.5 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>No favorites saved.</div>'}
           </div>
         </div>
         <div class="prompt-detail">
@@ -261,8 +291,8 @@ export class PromptGalleryModal extends BaseModal {
               </div>
             </div>
             <div class="detail-actions">
-              <button type="button" class="modal-btn modal-btn-primary" data-action="use-prompt" data-prompt="${this._escapeHtml(this.selectedPrompt.prompt)}">Use Prompt</button>
-              <button type="button" class="modal-btn modal-btn-secondary" data-action="copy-prompt" data-prompt="${this._escapeHtml(this.selectedPrompt.prompt)}"><span class="copy-label">Copy</span></button>
+              <button type="button" class="btn-primary-modern" data-action="use-prompt" data-prompt="${this._escapeHtml(this.selectedPrompt.prompt)}">Use Prompt</button>
+              <button type="button" class="btn-secondary-modern" data-action="copy-prompt" data-prompt="${this._escapeHtml(this.selectedPrompt.prompt)}"><span class="copy-label">Copy</span></button>
             </div>
           ` : '<div class="empty-state">Select a favorite to preview.</div>'}
         </div>
@@ -293,8 +323,8 @@ export class PromptGalleryModal extends BaseModal {
         <input type="text" data-negative placeholder="Negative prompt" value="${this._escapeHtml(this.negativePrompt)}" />
         <div class="preview">${this._escapeHtml(built || 'Start typing to preview...')}</div>
         <div class="detail-actions">
-          <button type="button" class="modal-btn modal-btn-primary" data-builder-use>Use Built Prompt</button>
-          <button type="button" class="modal-btn modal-btn-secondary" data-action="copy-prompt" data-prompt="${this._escapeHtml(built)}"><span class="copy-label">Copy</span></button>
+          <button type="button" class="btn-primary-modern" data-builder-use>Use Built Prompt</button>
+          <button type="button" class="btn-secondary-modern" data-action="copy-prompt" data-prompt="${this._escapeHtml(built)}"><span class="copy-label">Copy</span></button>
         </div>
       </div>
     `;
@@ -316,6 +346,7 @@ export class PromptGalleryModal extends BaseModal {
         </div>
         ${content}
       </div>
+      ${this.showShortcuts ? renderShortcutsOverlay(MODAL_SHORTCUTS({ 'B': 'Browse tab', 'F': 'Favorites tab', 'R': 'Builder tab' })) : ''}
     `;
   }
 }

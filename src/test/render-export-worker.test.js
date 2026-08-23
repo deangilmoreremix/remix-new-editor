@@ -32,6 +32,9 @@ describe('renderExportWorker', () => {
           fillStyle: '',
           fillRect: vi.fn(),
           filter: 'none',
+          drawImage: vi.fn(),
+          globalCompositeOperation: 'source-over',
+          globalAlpha: 1,
         };
       }
       captureStream(fps) {
@@ -160,5 +163,15 @@ describe('renderExportWorker', () => {
     const errorMsg = msgs.find((m) => m.type === 'error');
     expect(errorMsg).toBeDefined();
     expect(errorMsg.message).toContain('404');
+  });
+  
+  it('rejects unsupported action', async () => {
+    const msgs = await runWorker({
+      action: 'invalid-action',
+    });
+    
+    const errorMsg = msgs.find((m) => m.type === 'error');
+    expect(errorMsg).toBeDefined();
+    expect(errorMsg.message).toContain('Unsupported action');
   });
 });

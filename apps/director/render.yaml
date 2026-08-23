@@ -10,12 +10,14 @@ services:
     region: singapore
     runtime: docker
     plan: starter
-    rootDir: apps/director/backend
-    dockerfilePath: ./Dockerfile
+    branch: backend-real-outputs
+    dockerfilePath: apps/director/backend/Dockerfile
     dockerContext: .
     envVars:
       - key: SERVER_ENV
         value: production
+      - key: SERVER_SECRET_KEY
+        sync: false
       - key: VIDEO_DB_API_KEY
         sync: false
       - key: OPENAI_API_KEY

@@ -84,7 +84,7 @@ function buildProviderForm({ title, description, grabUrl, getKey, setKey, clearK
     const saveBtn = document.createElement('button');
     saveBtn.type = 'submit';
     saveBtn.textContent = 'Save ' + title;
-    saveBtn.className = 'px-4 py-2 rounded-xl bg-primary text-black font-black text-xs hover:shadow-glow hover:scale-[1.02] active:scale-[0.98] transition-all';
+    saveBtn.className = 'px-4 py-2 rounded-xl btn-secondary-modern font-black text-xs hover:shadow-glow hover:scale-[1.02] active:scale-[0.98] transition-all';
 
     const clearBtn = document.createElement('button');
     clearBtn.type = 'button';
@@ -298,7 +298,7 @@ export function SettingsModal(onClose) {
 
     const closeBtn = document.createElement('button');
     closeBtn.textContent = 'Done';
-    closeBtn.className = 'px-6 py-2.5 rounded-xl text-sm font-bold bg-primary text-black hover:shadow-glow hover:scale-[1.02] active:scale-[0.98] transition-all';
+    closeBtn.className = 'px-6 py-2.5 rounded-xl text-sm font-bold btn-secondary-modern hover:shadow-glow hover:scale-[1.02] active:scale-[0.98] transition-all';
     closeBtn.onclick = removeModal;
 
     closeRow.appendChild(skipBtn);

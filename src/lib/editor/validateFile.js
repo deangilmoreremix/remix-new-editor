@@ -13,7 +13,38 @@
  */
 
 import { fileTypeFromBlob } from 'file-type';
-import mime from 'mime-types';
+
+const COMMON_MIME_TYPES = {
+  // images
+  jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif',
+  webp: 'image/webp', svg: 'image/svg+xml', bmp: 'image/bmp', tiff: 'image/tiff',
+  tif: 'image/tiff', heic: 'image/heic', heif: 'image/heif', avif: 'image/avif',
+  ico: 'image/x-icon',
+  // videos
+  mp4: 'video/mp4', mov: 'video/quicktime', avi: 'video/x-msvideo',
+  mkv: 'video/x-matroska', webm: 'video/webm', flv: 'video/x-flv',
+  wmv: 'video/x-ms-wmv', '3gp': 'video/3gpp', ogv: 'video/ogg', m4v: 'video/x-m4v',
+  // audio
+  mp3: 'audio/mpeg', wav: 'audio/wav', aac: 'audio/aac', ogg: 'audio/ogg',
+  flac: 'audio/flac', m4a: 'audio/mp4', opus: 'audio/opus', wma: 'audio/x-ms-wma',
+  aiff: 'audio/aiff', aif: 'audio/x-aiff',
+  // text
+  txt: 'text/plain', md: 'text/markdown', json: 'application/json', csv: 'text/csv',
+  xml: 'application/xml', html: 'text/html', htm: 'text/html', srt: 'application/x-subrip',
+  vtt: 'text/vtt', ass: 'text/plain',
+  // documents
+  pdf: 'application/pdf', doc: 'application/msword',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  xls: 'application/vnd.ms-excel',
+  xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  ppt: 'application/vnd.ms-powerpoint',
+  pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+};
+
+function lookupMimeType(ext) {
+  if (!ext) return '';
+  return COMMON_MIME_TYPES[ext.toLowerCase()] || '';
+}
 
 // ============================================================================
 // FILE TYPE CONFIGURATIONS (max sizes, icons, colors)
@@ -28,7 +59,7 @@ export const FILE_TYPE_CONFIG = {
       'video/webm', 'video/x-flv', 'video/x-ms-wmv', 'video/3gpp', 'video/ogg',
       'video/x-m4v'
     ],
-    maxSize: 500 * 1024 * 1024, // 500MB
+    maxSize: 50 * 1024 * 1024, // MuAPI 50MB video limit
     icon: '🎥',
     color: '#ff6b6b'
   },
@@ -40,7 +71,7 @@ export const FILE_TYPE_CONFIG = {
       'audio/ogg', 'audio/flac', 'audio/mp4', 'audio/x-m4a', 'audio/opus',
       'audio/x-ms-wma', 'audio/aiff', 'audio/x-aiff'
     ],
-    maxSize: 100 * 1024 * 1024, // 100MB
+    maxSize: 10 * 1024 * 1024, // MuAPI "Others" 10MB limit
     icon: '🎵',
     color: '#4ecdc4'
   },
@@ -52,7 +83,7 @@ export const FILE_TYPE_CONFIG = {
       'image/bmp', 'image/tiff', 'image/heic', 'image/heif', 'image/avif',
       'image/x-icon'
     ],
-    maxSize: 50 * 1024 * 1024, // 50MB
+    maxSize: 10 * 1024 * 1024, // MuAPI 10MB image limit
     icon: '🖼️',
     color: '#45b7d1'
   },
@@ -79,9 +110,21 @@ export const FILE_TYPE_CONFIG = {
       'application/vnd.ms-powerpoint',
       'application/vnd.openxmlformats-officedocument.presentationml.presentation'
     ],
-    maxSize: 50 * 1024 * 1024,
+    maxSize: 10 * 1024 * 1024, // MuAPI "Others" 10MB limit
     icon: '📑',
     color: '#f7b731'
+  },
+  archive: {
+    label: 'Archive',
+    extensions: ['zip', 'rar', '7z', 'tar', 'gz', 'bz2'],
+    mimeTypes: [
+      'application/zip', 'application/x-zip-compressed', 'application/x-rar-compressed',
+      'application/x-7z-compressed', 'application/gzip', 'application/x-tar',
+      'application/x-bzip2'
+    ],
+    maxSize: 10 * 1024 * 1024, // MuAPI "Others" limit
+    icon: '🗜️',
+    color: '#a78bfa'
   }
 };
 
@@ -167,10 +210,10 @@ export async function validateFile(file, opts = {}) {
   // 2. Browser-reported MIME
   const browserMime = file.type || '';
 
-  // 3. Extension via mime-types
+  // 3. Extension via lookup
   const fileName = file.name || '';
   const ext = (fileName.split('.').pop() || '').toLowerCase();
-  const mimeFromExt = ext ? mime.lookup(ext) || '' : '';
+  const mimeFromExt = ext ? lookupMimeType(ext) || '' : '';
 
   // Pick the best category: prefer magic-byte result, then browser MIME, then extension
   let result;
@@ -236,7 +279,7 @@ export function validateFileSync(file) {
   const browserMime = file.type || '';
   const fileName = file.name || '';
   const ext = (fileName.split('.').pop() || '').toLowerCase();
-  const mimeFromExt = ext ? mime.lookup(ext) || '' : '';
+  const mimeFromExt = ext ? lookupMimeType(ext) || '' : '';
 
   const result = browserMime
     ? categorize(browserMime, ext)

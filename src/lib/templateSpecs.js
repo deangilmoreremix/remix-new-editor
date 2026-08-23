@@ -1,6 +1,9 @@
 // Template Specifications for enhanced template data
 // This file contains enhanced specifications for all templates
 
+import { NICHE_TEMPLATE_SPECS } from './nicheTemplateSpecs.js';
+import { MATRIX_TEMPLATE_SPECS } from './matrixTemplateSpecs.js';
+
 export const TEMPLATE_SPECS = {
   'tiktok-video': {
     coreUseCase: 'Viral 9:16 short videos',

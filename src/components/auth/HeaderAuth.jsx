@@ -1,16 +1,39 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
-import { ClerkProvider, useUser, useClerk, UserButton } from '@clerk/react';
+import { ClerkProvider, useUser, useClerk, UserButton, useAuth } from '@clerk/react';
+import { setEntitlement } from '../../lib/clerkEntitlements.js';
+import { setExternalUserId } from '../../lib/socialPublishing';
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+
+function EntitlementBridge() {
+  const { has, isLoaded, isSignedIn } = useAuth();
+
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn) {
+      setEntitlement({ hasFullAccess: false });
+      return;
+    }
+    const value = { hasFullAccess: has?.({ feature: 'smartvideo_full_access' }) ?? false };
+    setEntitlement(value);
+  }, [isLoaded, isSignedIn, has]);
+
+  return null;
+}
 
 function HeaderAuthButton() {
   const { isLoaded, isSignedIn, user } = useUser();
   const clerk = useClerk();
 
+  useEffect(() => {
+    if (isSignedIn && user?.id) {
+      setExternalUserId(user.id);
+    }
+  }, [isSignedIn, user?.id]);
+
   if (!isLoaded) return null;
 
-  if (!isSignedIn) {
+  if (!isSignedIn || !user) {
     return (
       <a
         href="/signin"
@@ -42,6 +65,7 @@ export function mountHeaderAuth(container) {
   const root = createRoot(container);
   root.render(
     <ClerkProvider publishableKey={PUBLISHABLE_KEY} routing="path">
+      <EntitlementBridge />
       <HeaderAuthButton />
     </ClerkProvider>
   );

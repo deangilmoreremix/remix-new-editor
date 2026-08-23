@@ -1,14 +1,14 @@
 // Custom Forgot Password Page — app-styled, powered by Clerk's
 // useSignIn reset_password_email_code flow (current v6 API):
-//   const { signIn, errors } = useSignIn()
+//   const { signIn, errors, fetchStatus } = useSignIn()
 //   await signIn.resetPasswordEmailCode.sendCode()
 //   await signIn.resetPasswordEmailCode.verifyCode({ code })
 //   await signIn.resetPasswordEmailCode.submitPassword({ password })
 // Requires a <ClerkProvider> ancestor (provided by ClerkGate in
 // ClerkAuth.jsx when this page is mounted at /forgot-password).
 
-import React, { useState } from 'react';
-import { useSignIn } from '@clerk/react';
+import React, { useState, useEffect } from 'react';
+import { useSignIn, useUser } from '@clerk/react';
 import {
   AuthPage,
   AuthError,
@@ -16,25 +16,52 @@ import {
   AuthFooter,
   authInputClass,
   clerkErrorMessage,
+  clerkWithTimeout,
+  clearClerkSession,
 } from './AuthLayout.jsx';
 
 export function ForgotPasswordPage() {
-  const { signIn, errors } = useSignIn();
+  const { signIn, errors, fetchStatus } = useSignIn();
+  const { isSignedIn, isLoaded: userLoaded } = useUser();
   const isLoaded = signIn !== undefined;
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // Redirect already-signed-in users
+  useEffect(() => {
+    if (!userLoaded) return;
+    if (isSignedIn && !user) {
+      clearClerkSession({ reload: true });
+      return;
+    }
+    if (isSignedIn) {
+      window.location.href = '/#/image';
+    }
+  }, [userLoaded, isSignedIn, user]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!signIn) return;
+    if (!isLoaded || fetchStatus === 'fetching') return;
     setLoading(true);
     setError('');
     setSuccess(false);
-    const { error: resultError } = await signIn.resetPasswordEmailCode.sendCode({ emailAddress: email });
-    if (resultError) {
-      setError(clerkErrorMessage(resultError, errors) || 'Could not send a reset code. Please check the email and try again.');
+
+    const { error: createError } = await clerkWithTimeout(
+      signIn.create({ identifier: email })
+    );
+    if (createError) {
+      setError(clerkErrorMessage(createError, errors) || 'Could not start password reset. Please try again.');
+      setLoading(false);
+      return;
+    }
+
+    const { error: sendError } = await clerkWithTimeout(
+      signIn.resetPasswordEmailCode.sendCode()
+    );
+    if (sendError) {
+      setError(clerkErrorMessage(sendError, errors) || 'Could not send a reset code. Please check the email and try again.');
       setLoading(false);
       return;
     }

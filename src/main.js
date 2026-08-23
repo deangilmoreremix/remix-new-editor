@@ -14,11 +14,16 @@ initPopcorn().then(() => {
 import { Header } from './components/Header.js';
 import { Sidebar } from './components/Sidebar.js';
 import { initRouter, navigate } from './lib/router.js';
+import { ensureClerkLoaded } from './lib/clerkInit.js';
 import { perfMonitor } from './lib/performance.js';
 import { analytics } from './lib/analytics.js';
 import { showToast } from './lib/loading.js';
 import { escapeHtml } from './lib/security.js';
-import { isDevBypass } from './lib/apiKeyManager.js';
+import { isDevBypass, apiKeyManager } from './lib/apiKeyManager.js';
+import { setupGlobalErrorHandlers } from './lib/errorBoundary.js';
+import { ErrorBoundary } from './components/ErrorBoundary.jsx';
+
+setupGlobalErrorHandlers();
 
 console.log('[App] Starting initialization...');
 
@@ -121,7 +126,7 @@ try {
 
   // Hash-based routing (e.g. /#/signin)
   if (hash && hash.startsWith('#/')) {
-    const hashPage = hash.slice(2);
+    const hashPage = hash.slice(2).replace(/^\//, '');
     if (hashPage) initialPage = hashPage;
   }
 
@@ -150,7 +155,15 @@ try {
       app.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#020205;color:#fff;flex-direction:column;padding:20px;text-align:center;"><h1 style="color:#ff4444;margin-bottom:16px;">Clerk not configured</h1><p style="color:#aaa;">Set VITE_CLERK_PUBLISHABLE_KEY to enable authentication.</p></div>';
       return;
     }
-    const { mountClerkRoute } = await import('./components/auth/ClerkAuth.jsx');
+    let mountClerkRoute = null;
+    try {
+      const mod = await import('./components/auth/ClerkAuth.jsx');
+      mountClerkRoute = mod.mountClerkRoute;
+    } catch (e) {
+      console.error('[App] ClerkAuth.jsx failed to load:', e);
+      app.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#020205;color:#fff;flex-direction:column;padding:20px;text-align:center;"><h1 style="color:#ff4444;margin-bottom:16px;">Authentication Error</h1><p style="color:#aaa;">Failed to load authentication. Please refresh the page.</p></div>';
+      return;
+    }
     const rootEl = document.createElement('div');
     app.appendChild(rootEl);
     mountClerkRoute(initialPage, rootEl);
@@ -164,8 +177,9 @@ try {
   const body = document.createElement('div');
   body.className = 'flex flex-1';
 
-  const sidebar = Sidebar((page) => navigate(page));
+  const { sidebar, toggleBtn } = Sidebar((page) => navigate(page));
   body.appendChild(sidebar);
+  document.body.appendChild(toggleBtn);
 
   const contentArea = document.createElement('main');
   contentArea.id = 'content-area';
@@ -174,14 +188,32 @@ try {
 
   app.appendChild(body);
 
-  const { mountHeaderAuth } = await import('./components/auth/HeaderAuth.jsx');
-  mountHeaderAuth(headerAuthSlot);
+  let mountHeaderAuth = null;
+  try {
+    const mod = await import('./components/auth/HeaderAuth.jsx');
+    mountHeaderAuth = mod.mountHeaderAuth;
+  } catch (e) {
+    console.warn('[App] HeaderAuth.jsx failed to load, continuing without header auth:', e);
+  }
+  if (mountHeaderAuth) {
+    mountHeaderAuth(headerAuthSlot);
+  }
 
   initRouter(contentArea, (page) => {
     headerEl.dispatchEvent(new CustomEvent('route-changed', { detail: { page } }));
     sidebar.dispatchEvent(new CustomEvent('route-changed', { detail: { page } }));
     if (typeof activeTimelineModal?.unmount === 'function') {
       activeTimelineModal.unmount();
+    }
+  });
+
+  // Sync the router with hash changes so deep links and browser back/forward
+  // work even when the initial hash was not yet populated during page load.
+  window.addEventListener('hashchange', () => {
+    const hash = window.location.hash;
+    if (hash && hash.startsWith('#/')) {
+      const page = hash.slice(2).replace(/^\//, '');
+      if (page) navigate(page);
     }
   });
 
@@ -195,6 +227,18 @@ try {
   // Preserve any deep-link query params (e.g. ?asset=<id> for Render) so the
   // target page can read them. navigate() serializes params into the URL.
   const initialParams = Object.fromEntries(new URLSearchParams(window.location.search).entries());
+  // Ensure the shared Clerk instance is loaded before the router checks
+  // authentication on gated studio pages. Without this, ensureStudioAccess
+  // in router.js calls waitForClerk() before ClerkProvider has set
+  // window.Clerk, causing a false "not signed in" redirect.
+  // This is a no-op for landing/auth pages (no Clerk gate) and dev bypass.
+  if (!isDevBypass && initialPage !== 'landing' && !['signin','signup','forgot-password','reset-password','account','profile'].includes(initialPage)) {
+    try {
+      await ensureClerkLoaded();
+    } catch (err) {
+      console.warn('[App] Clerk preload failed, continuing anyway:', err.message);
+    }
+  }
   navigate(initialPage, initialParams);
 
   // Show the provider API key setup popup once when the user lands in the app.
@@ -228,10 +272,17 @@ try {
  * Show the provider API key setup popup exactly once per browser session.
  * Uses sessionStorage so reloading the tab won't re-trigger it, but a fresh
  * session will. Users can also reopen it anytime from the Settings action.
+ *
+ * Skips the popup entirely if the user already has API keys stored.
  */
 function showSetupModalOnce() {
   const SESSION_FLAG = 'setup_popup_shown';
   try {
+    // If keys are already configured, never show the setup popup again.
+    if (apiKeyManager.hasAnyKey()) {
+      console.info('[App] API keys already configured — skipping setup popup.');
+      return;
+    }
     if (sessionStorage.getItem(SESSION_FLAG)) return;
     sessionStorage.setItem(SESSION_FLAG, '1');
   } catch {
@@ -304,21 +355,7 @@ async function renderParentTimelineModal(modal, props = {}) {
     activeTimelineModal.container = container;
 
     if (modal === 'personalization') {
-      const { PersonalizationModal } = await import('../components/modals/PersonalizationModal.jsx');
-      content.innerHTML = '';
-      const { createRoot } = await import('react-dom/client');
-      const root = createRoot(content);
-      activeTimelineModal.instance = { root };
-      try {
-        const mod = await import('react');
-        root.render(mod.createElement(PersonalizationModal, {
-          handleClose: () => { root.unmount?.(); activeTimelineModal.unmount?.(); },
-          options: { elementType: props.elementType, onAdd: props.onAdd, tokenModes: props.tokenModes }
-        }));
-      } catch (err) {
-        content.innerHTML = '<div style="padding:32px 24px;color:#fff;"><h2 style="margin:0 0 8px;">Personalizer</h2><p style="color:rgba(255,255,255,0.55);margin:0;">Open the timeline Personalizer inside the editor.</p></div>';
-        console.warn('[TimelineModalBridge] React unavailable for Personalization modal', err);
-      }
+      content.innerHTML = '<div style="padding:32px 24px;color:#fff;"><h2 style="margin:0 0 8px;">Personalizer</h2><p style="color:rgba(255,255,255,0.55);margin:0;">The Personalization modal is not available in this build.</p></div>';
       return;
     }
 
@@ -352,20 +389,6 @@ async function renderParentTimelineModal(modal, props = {}) {
 
     if (modal === 'social-publisher') {
       content.innerHTML = '<div style="padding:32px 24px;color:#fff;"><h2 style="margin:0 0 8px;">Social Publisher</h2><p style="color:rgba(255,255,255,0.55);margin:0;">Connect a platform account to publish from the timeline.</p></div>';
-      return;
-    }
-
-    if (modal === 'settings') {
-      const { default: SettingsModal } = await import('./components/modals/SettingsModal.js');
-      new SettingsModal().open();
-      activeTimelineModal.unmount();
-      return;
-    }
-
-    if (modal === 'project') {
-      const { default: CreateProjectModal } = await import('./components/modals/CreateProjectModal.js');
-      new CreateProjectModal().open();
-      activeTimelineModal.unmount();
       return;
     }
 

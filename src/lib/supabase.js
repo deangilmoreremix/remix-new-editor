@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { getUserKey } from './userKey.js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -53,28 +54,23 @@ export function getSupabaseAnonKey() {
   return import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 }
 
-export function getUserKey() {
-  let key = localStorage.getItem('muapi_key');
-  if (!key) return 'anonymous';
-  let hash = 0;
-  for (let i = 0; i < key.length; i++) {
-    const char = key.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash |= 0;
-  }
-  return 'user_' + Math.abs(hash).toString(36);
-}
-
 export async function uploadFileToStorage(file) {
   const ext = file.name.split('.').pop() || 'bin';
   const uniqueName = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}.${ext}`;
-  const path = `${getUserKey()}/${uniqueName}`;
+  const path = `${await getUserKey()}/${uniqueName}`;
 
-  const { error } = await supabase.storage
+  const timeoutMs = 60000;
+  const uploadPromise = supabase.storage
     .from('uploads')
     .upload(path, file, { contentType: file.type, upsert: false });
 
-  if (error) throw new Error(`Upload failed: ${error.message}`);
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => reject(new Error('Upload to storage timed out')), timeoutMs);
+  });
+
+  const { error } = await Promise.race([uploadPromise, timeoutPromise]).catch(err => ({ error: err }));
+
+  if (error) throw new Error(`Upload failed: ${error.message || error}`);
 
   const { data: urlData } = supabase.storage
     .from('uploads')

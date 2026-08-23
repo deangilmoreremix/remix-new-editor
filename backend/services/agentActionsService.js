@@ -53,7 +53,71 @@ async function fetchWithTimeout(url, opts = {}, ms = 8000) {
   }
 }
 
+async function withRetry(fn, { maxAttempts = 2, baseDelay = 500, maxDelay = 8000 } = {}, label) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      const status = err?.response?.status || err?.status;
+      const isNetwork = !err?.response && !err?.status;
+      const retryable = isNetwork || status === 429 || (typeof status === 'number' && status >= 500);
+      if (!retryable || attempt === maxAttempts) {
+        if (attempt > 1) {
+          console.error(`[agent-actions:${label}] attempt ${attempt}/${maxAttempts} failed (status=${status || 'network'}) — exhausted`, { status, message: err?.message });
+        }
+        throw err;
+      }
+      const jitter = Math.random() * baseDelay;
+      const delay = Math.min(baseDelay * 2 ** (attempt - 1) + jitter, maxDelay);
+      console.warn(`[agent-actions:${label}] attempt ${attempt}/${maxAttempts} failed (status=${status || 'network'}), retrying in ${Math.round(delay)}ms`);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+}
+
+async function withRetryOrNull(fn, { maxAttempts = 2, baseDelay = 500, maxDelay = 8000 } = {}, label) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const result = await fn();
+    if (result !== null) return result;
+    if (attempt === maxAttempts) return null;
+    const jitter = Math.random() * baseDelay;
+    const delay = Math.min(baseDelay * 2 ** (attempt - 1) + jitter, maxDelay);
+    console.warn(`[agent-actions:${label}] attempt ${attempt}/${maxAttempts} returned null, retrying in ${Math.round(delay)}ms`);
+    await new Promise((resolve) => setTimeout(resolve, delay));
+  }
+  return null;
+}
+
+function sanitizeError(err) {
+  const msg = err instanceof Error ? err.message : String(err);
+  return msg.replace(/:\/\/[^\s]*/g, '[redacted]').replace(/\\[^\s:]+/g, '[redacted]');
+}
+
+function validateFetchUrl(raw) {
+  let parsed;
+  try {
+    parsed = new URL(raw);
+  } catch {
+    throw new Error('Invalid URL');
+  }
+  if (parsed.protocol !== 'https:') {
+    throw new Error('Only HTTPS URLs are allowed');
+  }
+  const host = parsed.hostname.toLowerCase();
+  const BLOCKED_HOSTS = ['localhost', '127.0.0.1', '169.254.169.254', '0.0.0.0', '::1'];
+  if (BLOCKED_HOSTS.includes(host)) {
+    throw new Error('URL points to a blocked host');
+  }
+  const parts = host.split('.');
+  if (parts[0] === '10') throw new Error('URL points to a private IP range');
+  if (parts[0] === '192' && parts[1] === '168') throw new Error('URL points to a private IP range');
+  if (parts[0] === '169' && parts[1] === '254') throw new Error('URL points to a private IP range');
+  if (parts[0] === '172' && Number(parts[1]) >= 16 && Number(parts[1]) <= 31) throw new Error('URL points to a private IP range');
+  if (host === '::1') throw new Error('URL points to a private IP range');
+}
+
 async function downloadToTmp(url, ext = 'mp4') {
+  validateFetchUrl(url);
   const r = await fetchWithTimeout(url, {}, 30000);
   if (!r.ok) throw new Error(`Download failed: ${r.status}`);
   const buf = Buffer.from(await r.arrayBuffer());
@@ -78,40 +142,45 @@ async function runFfmpeg(args, timeoutMs = 60000) {
 }
 
 async function tryDirector(message, agents) {
-  try {
-    const r = await fetchWithTimeout(`${DIRECTOR_API_URL}/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message, agents }),
-    });
-    if (!r.ok) return null;
-    return await r.json();
-  } catch (_) {
-    return null;
-  }
-}
-
-async function callMuapi(endpoint, body, timeoutMs = 60000) {
-  if (!MUAPI_API_KEY) return null;
-  try {
-    const r = await fetchWithTimeout(`${MUAPI_BASE}${endpoint}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-Key': MUAPI_API_KEY,
-        Authorization: `Bearer ${MUAPI_API_KEY}`,
-      },
-      body: JSON.stringify(body),
-    }, timeoutMs);
-    if (!r.ok) {
-      console.error(`[agent-actions] muapi ${endpoint} -> ${r.status}`);
+  return withRetryOrNull(async () => {
+    try {
+      const r = await fetchWithTimeout(`${DIRECTOR_API_URL}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, agents }),
+      });
+      if (!r.ok) return null;
+      return await r.json();
+    } catch (_) {
       return null;
     }
-    return await r.json();
-  } catch (e) {
-    console.error(`[agent-actions] muapi error: ${e.message}`);
-    return null;
-  }
+  }, {}, 'director-api');
+}
+
+async function callMuapi(endpoint, body, timeoutMs = 60000, apiKey) {
+  const key = apiKey || MUAPI_API_KEY;
+  if (!key) return null;
+  return withRetryOrNull(async () => {
+    try {
+      const r = await fetchWithTimeout(`${MUAPI_BASE}${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': key,
+          Authorization: `Bearer ${key}`,
+        },
+        body: JSON.stringify(body),
+      }, timeoutMs);
+      if (!r.ok) {
+        console.error(`[agent-actions] muapi ${endpoint} -> ${r.status}`);
+        return null;
+      }
+      return await r.json();
+    } catch (e) {
+      console.error(`[agent-actions] muapi error: ${e.message}`);
+      return null;
+    }
+  }, {}, 'muapi');
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -134,7 +203,6 @@ async function detectScenes({ videoUrl }) {
       await fs.unlink(inFile).catch(() => {});
       const scenes = timestamps.map((time, i) => ({
         time,
-        confidence: 1,
         label: `Scene ${i + 1}`,
       }));
       return { scenes, source: 'ffmpeg', totalScenes: scenes.length };
@@ -188,13 +256,13 @@ async function extractHighlights({ videoUrl }) {
   return { highlights: [], source: 'no-input' };
 }
 
-async function addBroll({ videoUrl, prompt }) {
+async function addBroll({ videoUrl, prompt, muapiKey }) {
   // 1) Try Director's broll insertion agent
   const d = await tryDirector(`Add b-roll for: ${prompt || videoUrl || ''}`, ['ad_insertion', 'search']);
   if (d && d.broll) return { broll: d.broll, source: 'director' };
 
   // 2) MuAPI stock footage search fallback
-  const muapiResp = await callMuapi('/stock/search', { query: prompt || 'b-roll', limit: 5 });
+  const muapiResp = await callMuapi('/stock/search', { query: prompt || 'b-roll', limit: 5 }, 60000, muapiKey);
   if (muapiResp && muapiResp.results) {
     return {
       broll: muapiResp.results.map((r) => ({ url: r.url, thumbnail: r.thumbnail, duration: r.duration })),
@@ -355,14 +423,14 @@ async function dubVideo({ videoUrl, targetLanguage = 'en', voice = 'alloy' }) {
   };
 }
 
-async function addVoiceover({ text, voice = 'alloy' }) {
+async function addVoiceover({ text, voice = 'alloy', apiKey }) {
   // TTS already exists in videoAgentService.js, but this path returns
   // the audio inline as base64 in the same response.
   if (!text) return { error: 'text required' };
   // Lazy import to avoid circular dep at module load time
   const { synthesizeSpeech } = await import('./videoAgentService.js').catch(() => ({}));
   if (typeof synthesizeSpeech === 'function') {
-    const out = await synthesizeSpeech({ text, voice, model: 'tts-1' });
+    const out = await synthesizeSpeech({ text, voice, model: 'tts-1', apiKey });
     return {
       voiceover: true,
       audioBase64: out.audioBuffer.toString('base64'),
@@ -371,6 +439,103 @@ async function addVoiceover({ text, voice = 'alloy' }) {
     };
   }
   return { voiceover: false, source: 'tts-unavailable' };
+}
+
+/**
+ * Speed change. Accepts `speedFactor` in the body (e.g. 2.0 = 2x faster,
+ * 0.5 = half speed / slow motion). Uses ffmpeg's `setpts` + `atempo` filters.
+ * Falls back to chained atempo filters for >2x or <0.5x speed.
+ */
+async function speedChange({ videoUrl, speedFactor = 1.5 }) {
+  if (!videoUrl) return { error: 'videoUrl required', source: 'no-input' };
+  let factor = Number(speedFactor);
+  if (!Number.isFinite(factor) || factor <= 0) factor = 1.5;
+  // Clamp to a sane range — beyond 4x the audio is unrecognizable.
+  factor = Math.max(0.25, Math.min(4, factor));
+  try {
+    const inFile = await downloadToTmp(videoUrl);
+    const outFile = path.join(os.tmpdir(), `${newId('sp')}.mp4`);
+    // setpts=PTS/<factor> for video, atempo=<factor> for audio. atempo only
+    // accepts 0.5-2.0, so chain for factors outside that range.
+    const setpts = `setpts=PTS/${factor}`;
+    const atempoChain = buildAtempoChain(factor);
+    const vf = `${setpts},fps=30`;
+    const af = atempoChain;
+    await runFfmpeg([
+      '-y', '-i', inFile,
+      '-vf', vf,
+      '-af', af,
+      '-c:v', 'libx264', '-preset', 'fast', '-crf', '23',
+      '-c:a', 'aac', '-b:a', '128k',
+      outFile,
+    ], 180000);
+    const data = await fs.readFile(outFile);
+    await fs.unlink(inFile).catch(() => {});
+    await fs.unlink(outFile).catch(() => {});
+    return {
+      sped: true,
+      speedFactor: factor,
+      format: 'mp4',
+      base64: data.toString('base64'),
+      size: data.length,
+      source: 'ffmpeg-setpts-atempo',
+    };
+  } catch (e) {
+    return { error: e.message, source: 'failed' };
+  }
+}
+
+function buildAtempoChain(factor) {
+  // atempo only accepts 0.5-2.0; chain for larger/smaller factors.
+  const segments = [];
+  let remaining = factor;
+  while (remaining > 2.0) {
+    segments.push(2.0);
+    remaining /= 2.0;
+  }
+  while (remaining < 0.5) {
+    segments.push(0.5);
+    remaining /= 0.5;
+  }
+  segments.push(remaining);
+  return segments.map((f) => `atempo=${f.toFixed(3)}`).join(',');
+}
+
+/**
+ * Reverse a video. Uses ffmpeg's `reverse` filter on both video and audio.
+ * Note: for long videos this can be memory-intensive. Caps the input at the
+ * download step and returns base64 inline.
+ */
+async function reverseVideo({ videoUrl }) {
+  if (!videoUrl) return { error: 'videoUrl required', source: 'no-input' };
+  try {
+    const inFile = await downloadToTmp(videoUrl);
+    const outFile = path.join(os.tmpdir(), `${newId('rev')}.mp4`);
+    // Run in two passes: first reverse the audio (which requires an explicit
+    // wav intermediate), then mux with reversed video. For simplicity we use
+    // the single-pass `reverse` filter on both — requires the audio to be
+    // re-encoded so we drop `-c:a copy`.
+    await runFfmpeg([
+      '-y', '-i', inFile,
+      '-vf', 'reverse',
+      '-af', 'areverse',
+      '-c:v', 'libx264', '-preset', 'fast', '-crf', '23',
+      '-c:a', 'aac', '-b:a', '128k',
+      outFile,
+    ], 180000);
+    const data = await fs.readFile(outFile);
+    await fs.unlink(inFile).catch(() => {});
+    await fs.unlink(outFile).catch(() => {});
+    return {
+      reversed: true,
+      format: 'mp4',
+      base64: data.toString('base64'),
+      size: data.length,
+      source: 'ffmpeg-reverse-areverse',
+    };
+  } catch (e) {
+    return { error: e.message, source: 'failed' };
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -392,6 +557,8 @@ const ACTIONS = {
   'scene-detection': { fn: detectScenes, steps: ['Analyzing video frames...', 'Detecting scene changes...', 'Labeling scenes...', 'Generating scene map...'] },
   'highlight-detection': { fn: extractHighlights, steps: ['Analyzing content...', 'Scoring moments...', 'Ranking highlights...', 'Extracting clips...'] },
   'clip-segmentation': { fn: null, steps: ['Identifying segment boundaries...', 'Creating clip markers...', 'Optimizing cut points...', 'Finalizing segments...'] },
+  'speed': { fn: speedChange, steps: ['Analyzing playback...', 'Adjusting speed...', 'Re-encoding...', 'Finalizing...'] },
+  'reverse': { fn: reverseVideo, steps: ['Reading video...', 'Reversing frames...', 'Re-encoding...', 'Finalizing...'] },
 };
 
 router.post('/agent/:action', async (req, res) => {
@@ -412,7 +579,7 @@ router.post('/agent/:action', async (req, res) => {
     res.json({ success: true, action, steps: impl.steps, ...result });
   } catch (e) {
     console.error(`[agent-actions] ${action} failed:`, e);
-    res.status(500).json({ error: e.message, action, steps: impl.steps });
+    res.status(500).json({ error: 'An internal error occurred', action, steps: impl.steps });
   }
 });
 

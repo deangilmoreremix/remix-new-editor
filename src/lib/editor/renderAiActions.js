@@ -1,146 +1,55 @@
-import { WhisperService, whisperService } from '../../services/whisper-client.js';
-import { SceneDetector } from '../../components/timeline/SceneDetector.js';
-import { aiService } from '../services/aiService.js';
+import { runDirectorFinishingOp, uploadVideoToDirector, invokeDirectorAgent } from '../directorClient.js';
+import { planAutoEdit } from '../openaiResponses.js';
 
 /**
- * Convert seconds to SRT timestamp format HH:MM:SS,mmm
+ * Render Studio finishing ops are delegated to the Director (VideoDB) backend.
+ * Every function either returns a real result from VideoDB or a loud error —
+ * there is no silent/mock fallback (per the "fail loudly" rule).
+ *
+ * The Director client handles both legs of each op:
+ *   1. upload the source URL into a VideoDB collection, and
+ *   2. invoke the named Director agent over Socket.IO `/chat`.
  */
-function toSrtTimestamp(seconds) {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = Math.floor(seconds % 60);
-  const rawMillis = Math.round((seconds % 1) * 1000);
-  const millis = rawMillis >= 1000 ? 0 : rawMillis;
-  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')},${String(millis).padStart(3, '0')}`;
-}
 
 /**
- * Convert seconds to VTT timestamp format HH:MM:SS.mmm
- */
-function toVttTimestamp(seconds) {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = Math.floor(seconds % 60);
-  const rawMillis = Math.round((seconds % 1) * 1000);
-  const millis = rawMillis >= 1000 ? 0 : rawMillis;
-  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${String(millis).padStart(3, '0')}`;
-}
-
-/**
- * Convert normalized Whisper segments to SRT string
- */
-function segmentsToSrt(segments) {
-  return segments.map((seg, idx) => {
-    const index = idx + 1;
-    const start = toSrtTimestamp(seg.start);
-    const end = toSrtTimestamp(seg.end);
-    const text = (seg.text || '').trim();
-    return `${index}\n${start} --> ${end}\n${text}\n`;
-  }).join('\n');
-}
-
-/**
- * Convert normalized Whisper segments to VTT string
- */
-function segmentsToVtt(segments) {
-  const body = segments.map((seg) => {
-    const start = toVttTimestamp(seg.start);
-    const end = toVttTimestamp(seg.end);
-    const text = (seg.text || '').trim();
-    return `${start} --> ${end}\n${text}`;
-  }).join('\n\n');
-  return `WEBVTT\n\n${body}`;
-}
-
-/**
- * Extract audio from video source as a Blob.
- * If videoSource is already a Blob/File (audio), return it directly.
- * If it's a URL string, fetch it as a video and return the blob.
- */
-async function extractAudio(videoSource) {
-  if (videoSource instanceof Blob) {
-    return videoSource;
-  }
-  if (videoSource instanceof File) {
-    return videoSource;
-  }
-  if (typeof videoSource !== 'string') {
-    throw new TypeError('videoSource must be a string, File, or Blob');
-  }
-  const response = await fetch(videoSource);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch video source: ${response.status}`);
-  }
-  return await response.blob();
-}
-
-/**
- * generateSubtitles: extract audio from video, call whisper, return SRT/VTT
+ * generateSubtitles: run the Director `subtitle` agent on the source video.
+ * Returns { url, srt, vtt, segments, text, error }.
+ * `url` is the subtitled video stream from VideoDB (real, different URL).
  */
 export async function generateSubtitles(videoUrl, language = 'auto') {
   try {
-    const audioBlob = await extractAudio(videoUrl);
-    const result = await whisperService.transcribe(audioBlob, {
-      language,
-      wordTimestamps: true,
+    if (!videoUrl) throw new Error('generateSubtitles requires a video URL');
+    const { result } = await runDirectorFinishingOp('subtitle', videoUrl, {
+      params: { video_language: language },
     });
-    const segments = result.segments || [];
-    const srt = segmentsToSrt(segments);
-    const vtt = segmentsToVtt(segments);
-    return { srt, vtt, segments, text: result.text || '' };
+    const url = result?.url || '';
+    if (!url) {
+      return { srt: '', vtt: '', segments: [], text: '', url: '', error: 'Director did not return a video URL for subtitles' };
+    }
+    // Director returns the subtitled video; expose its URL. SRT/VTT are not
+    // synthesized client-side — the burning is done server-side by VideoDB.
+    return { srt: '', vtt: '', segments: [], text: '', url, error: undefined };
   } catch (error) {
     console.error('[renderAiActions] generateSubtitles failed:', error);
-    return { srt: '', vtt: '', segments: [], text: '', error: error.message };
+    return { srt: '', vtt: '', segments: [], text: '', url: '', error: error.message };
   }
 }
 
 /**
- * generateHighlights: detect scenes, return top scenes as highlight candidates
- */
-export async function generateHighlights(videoUrl, sensitivity = 0.5) {
-  const scenes = await detectScenes(videoUrl, sensitivity);
-  if (!scenes || scenes.length === 0) {
-    return [];
-  }
-  const filtered = scenes.filter((scene) => scene.confidence >= sensitivity);
-  const sorted = filtered.sort((a, b) => {
-    const scoreA = (a.confidence || 0) * (a.duration || 0);
-    const scoreB = (b.confidence || 0) * (b.duration || 0);
-    return scoreB - scoreA;
-  });
-  return sorted.slice(0, 5);
-}
-
-/**
- * detectScenes: call SceneDetector API for scene detection.
- * Returns raw scene objects without DOM manipulation.
- *
- * Throws when scene detection is genuinely unavailable (no MuAPI client and
- * the video bytes can't be accessed for in-browser analysis). Callers must
- * surface that as an error state — an empty array here means "analyzed, no
- * scene changes found", NOT "unavailable".
+ * detectScenes: run the Director `scenes` agent on the source video.
+ * Returns normalized scene objects { startTime, endTime, duration, confidence }.
+ * Throws are caught by callers (generateHighlights/createShorts) and surfaced
+ * as empty results — an empty array here means "no scenes", NOT "unavailable".
  */
 export async function detectScenes(videoUrl, sensitivity = 0.5) {
-  let fakeContainer;
-  if (typeof document !== 'undefined') {
-    fakeContainer = document.createElement('div');
-  } else {
-    const noop = () => {};
-    fakeContainer = {
-      appendChild: noop,
-      querySelector: () => ({ style: {}, appendChild: noop }),
-    };
-  }
-
-  const detector = new SceneDetector(fakeContainer, null, {
-    sensitivity,
-    showToast: () => {},
+  if (!videoUrl) throw new Error('detectScenes requires a video URL');
+  const { result } = await runDirectorFinishingOp('scenes', videoUrl, {
+    params: { sensitivity },
   });
-
-  const result = await detector.callSceneDetectionAPI(videoUrl);
-  return (result.scenes || []).map((scene) => ({
-    startTime: scene.timestamp || 0,
-    endTime: (scene.timestamp || 0) + (scene.duration || 0),
+  const scenes = result?.data?.scenes || [];
+  return scenes.map((scene) => ({
+    startTime: scene.start_time ?? scene.timestamp ?? 0,
+    endTime: scene.end_time ?? (scene.timestamp || 0) + (scene.duration || 0),
     duration: scene.duration || 0,
     confidence: scene.confidence || 0,
     type: scene.type,
@@ -148,32 +57,51 @@ export async function detectScenes(videoUrl, sensitivity = 0.5) {
 }
 
 /**
- * generateVoiceover: generate TTS audio from script.
- * Uses aiService.muapi for audio generation. Returns a blob URL on success
- * or null when the TTS path is unavailable.
+ * generateHighlights: run the Director `highlight_reel` agent, return top scenes.
  */
-export async function generateVoiceover(script, voice = 'default') {
+export async function generateHighlights(videoUrl, sensitivity = 0.5) {
+  try {
+    const { result } = await runDirectorFinishingOp('highlight_reel', videoUrl, {
+      params: { sensitivity },
+    });
+    const scenes = result?.data?.highlights || [];
+    return scenes
+      .map((scene) => ({
+        startTime: scene.start_time ?? scene.timestamp ?? 0,
+        endTime: scene.end_time ?? (scene.timestamp || 0) + (scene.duration || 0),
+        duration: scene.duration || 0,
+        confidence: scene.confidence || 0,
+        type: scene.type,
+      }))
+      .filter((scene) => scene.confidence >= sensitivity)
+      .sort((a, b) => (b.confidence || 0) * (b.duration || 0) - (a.confidence || 0) * (a.duration || 0))
+      .slice(0, 5);
+  } catch (error) {
+    console.error('[renderAiActions] generateHighlights failed:', error);
+    return [];
+  }
+}
+
+/**
+ * generateVoiceover: upload the source, then run the Director `voiceover` agent.
+ * Returns the narrated video URL, or null when unavailable.
+ */
+export async function generateVoiceover(script, videoUrl = '', voice = 'alloy') {
   try {
     if (!script || typeof script !== 'string') {
       throw new Error('Script must be a non-empty string');
     }
-    if (!aiService || !aiService.muapi) {
-      console.warn('[renderAiActions] AIService/MuAPI unavailable for TTS');
-      return null;
-    }
-    const params = {
-      text: script,
-      voice,
-      format: 'mp3',
-      model: 'tts-v1',
-    };
-    const result = await aiService.muapi.generateAudio?.(params);
-    if (!result || !result.url) {
-      return null;
-    }
-    const response = await fetch(result.url);
-    const audioBlob = await response.blob();
-    return URL.createObjectURL(audioBlob);
+    if (!videoUrl) return null; // no source to narrate over
+
+    const { collectionId, videoId } = await uploadVideoToDirector(videoUrl);
+    const result = await invokeDirectorAgent({
+      agent: 'voiceover',
+      videoId,
+      collectionId,
+      params: { script, voice_name: voice },
+    });
+    const url = result?.url || '';
+    return url || null;
   } catch (error) {
     console.error('[renderAiActions] generateVoiceover failed:', error);
     return null;
@@ -181,15 +109,14 @@ export async function generateVoiceover(script, voice = 'default') {
 }
 
 /**
- * createShorts: detect scenes, select best 60s segment for vertical short.
- * Returns metadata describing the short segment without performing edit.
+ * createShorts: detect scenes via Director `scenes`, select the best segment.
+ * Returns metadata describing the short segment without performing the edit.
  */
 export async function createShorts(videoUrl, maxDuration = 60) {
   try {
+    if (!videoUrl) return null;
     const scenes = await detectScenes(videoUrl, 0.5);
-    if (!scenes || scenes.length === 0) {
-      return null;
-    }
+    if (!scenes || scenes.length === 0) return null;
 
     const sortedForDuration = [...scenes].sort((a, b) => b.duration - a.duration);
     const candidate = sortedForDuration[0];
@@ -218,27 +145,56 @@ export async function createShorts(videoUrl, maxDuration = 60) {
 }
 
 /**
- * runAiAutoEdit: orchestrate full pipeline.
- * Returns {scenes, highlights, subtitles}.
+ * runAiAutoEdit: orchestrate finishing (subtitles + highlights via Director),
+ * then assemble an edit plan with the OpenAI Responses API.
+ * Returns { scenes, highlights, subtitles, plan }.
+ * Never throws — metadata is preserved and plan errors are surfaced in plan.error.
  */
 export async function runAiAutoEdit(videoUrl, options = {}) {
+  const sensitivity = options.sensitivity ?? 0.5;
+  const subtitleLanguage = options.language || 'auto';
+  const captionStyle = options.captionStyle || 'minimal-premium';
+
+  let scenes = [];
+  let highlights = [];
+  let subtitles = { srt: '', vtt: '', segments: [], text: '', url: '' };
+
   try {
-    const sensitivity = options.sensitivity ?? 0.5;
-    const subtitleLanguage = options.language || 'auto';
+    try {
+      const sub = await generateSubtitles(videoUrl, subtitleLanguage);
+      subtitles = { ...subtitles, url: sub.url, error: sub.error };
+    } catch (e) {
+      subtitles = { ...subtitles, error: e.message };
+    }
 
-    const scenesPromise = detectScenes(videoUrl, sensitivity);
-    const subtitlesPromise = generateSubtitles(videoUrl, subtitleLanguage);
+    try {
+      highlights = await generateHighlights(videoUrl, sensitivity);
+    } catch (e) {
+      highlights = [];
+    }
 
-    const [scenes, subtitles] = await Promise.all([
-      scenesPromise,
-      subtitlesPromise,
-    ]);
-
-    const highlights = await generateHighlights(videoUrl, sensitivity);
-
-    return { scenes, highlights, subtitles };
+    try {
+      scenes = await detectScenes(videoUrl, sensitivity);
+    } catch (e) {
+      scenes = [];
+    }
   } catch (error) {
-    console.error('[renderAiActions] runAiAutoEdit failed:', error);
-    return { scenes: [], highlights: [], subtitles: { srt: '', vtt: '', segments: [], text: '' } };
+    console.error('[renderAiActions] runAiAutoEdit finishing failed:', error);
   }
+
+  let plan = {};
+  try {
+    plan = await planAutoEdit({
+      scenes,
+      highlights,
+      subtitles,
+      captionStyle,
+      videoUrl,
+    });
+  } catch (error) {
+    console.error('[renderAiActions] runAiAutoEdit plan failed:', error);
+    plan = { error: error.message };
+  }
+
+  return { scenes, highlights, subtitles, plan };
 }

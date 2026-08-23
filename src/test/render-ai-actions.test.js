@@ -1,18 +1,30 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-vi.mock('../services/whisper-client.js', () => {
-  const mockTranscribe = vi.fn();
-  return {
-    WhisperService: vi.fn(),
-    whisperService: { transcribe: mockTranscribe },
-  };
+const h = vi.hoisted(() => {
+  const mockRun = vi.fn();
+  const mockUpload = vi.fn();
+  const mockInvoke = vi.fn();
+  const mockPlanAutoEdit = vi.fn();
+  return { mockRun, mockUpload, mockInvoke, mockPlanAutoEdit };
 });
 
-vi.mock('../lib/services/aiService.js', () => ({
-  aiService: { muapi: { generateAudio: vi.fn() } },
+// Mock the Director (VideoDB) client — that is now the real finishing backend.
+vi.mock('../lib/directorClient.js', () => ({
+  directorClient: {
+    runDirectorFinishingOp: h.mockRun,
+    uploadVideoToDirector: h.mockUpload,
+    invokeDirectorAgent: h.mockInvoke,
+  },
+  uploadVideoToDirector: h.mockUpload,
+  runDirectorFinishingOp: h.mockRun,
+  invokeDirectorAgent: h.mockInvoke,
 }));
 
-import { whisperService } from '../services/whisper-client.js';
+// Mock the OpenAI Responses API planner used by AI Auto-Edit.
+vi.mock('../lib/openaiResponses.js', () => ({
+  planAutoEdit: h.mockPlanAutoEdit,
+  openaiResponses: { planAutoEdit: h.mockPlanAutoEdit },
+}));
 
 import {
   generateSubtitles,
@@ -22,55 +34,10 @@ import {
   runAiAutoEdit,
 } from '../lib/editor/renderAiActions.js';
 
-function toSrtTimestamp(seconds) {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = Math.floor(seconds % 60);
-  const rawMillis = Math.round((seconds % 1) * 1000);
-  const millis = rawMillis >= 1000 ? 0 : rawMillis;
-  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')},${String(millis).padStart(3, '0')}`;
-}
-
-function toVttTimestamp(seconds) {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = Math.floor(seconds % 60);
-  const rawMillis = Math.round((seconds % 1) * 1000);
-  const millis = rawMillis >= 1000 ? 0 : rawMillis;
-  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${String(millis).padStart(3, '0')}`;
-}
-
-function segmentsToSrt(segments) {
-  return segments.map((seg, idx) => {
-    const index = idx + 1;
-    const start = toSrtTimestamp(seg.start);
-    const end = toSrtTimestamp(seg.end);
-    const text = (seg.text || '').trim();
-    return `${index}\n${start} --> ${end}\n${text}\n`;
-  }).join('\n');
-}
-
-function segmentsToVtt(segments) {
-  const body = segments.map((seg) => {
-    const start = toVttTimestamp(seg.start);
-    const end = toVttTimestamp(seg.end);
-    const text = (seg.text || '').trim();
-    return `${start} --> ${end}\n${text}`;
-  }).join('\n\n');
-  return `WEBVTT\n\n${body}`;
-}
-
-describe('renderAiActions', () => {
+describe('renderAiActions (Director/VideoDB backed)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    whisperService.transcribe.mockResolvedValue({
-      text: 'Hello world. This is a test.',
-      segments: [
-        { start: 0, end: 2.5, text: 'Hello world.', words: [] },
-        { start: 2.5, end: 5, text: 'This is a test.', words: [] },
-      ],
-      duration: 5,
-    });
+    delete global.fetch;
   });
 
   afterEach(() => {
@@ -78,93 +45,116 @@ describe('renderAiActions', () => {
     delete global.fetch;
   });
 
-  describe('generateSubtitles (imported module)', () => {
-    beforeEach(() => {
-      global.fetch = vi.fn(() =>
-        Promise.resolve({
-          ok: true,
-          blob: () => Promise.resolve(new Blob(['audio'], { type: 'audio/wav' })),
-        })
-      );
-    });
+  describe('generateSubtitles', () => {
+    it('returns a real subtitled-video URL from Director', async () => {
+      h.mockRun.mockResolvedValue({
+        videoId: 'vid_1',
+        result: { status: 'success', url: 'https://videodb.io/stream/sub_1', data: { segments: [] } },
+      });
 
-    it('calls whisperService.transcribe and returns SRT/VTT/segments', async () => {
       const result = await generateSubtitles('http://example.com/video.mp4', 'en');
 
-      expect(result.segments).toHaveLength(2);
-      expect(result.srt).toContain('1\n00:00:00,000 --> 00:00:02,500\nHello world.');
-      expect(result.vtt).toContain('WEBVTT\n\n');
-      expect(result.text).toBe('Hello world. This is a test.');
+      expect(h.mockRun).toHaveBeenCalledWith('subtitle', 'http://example.com/video.mp4', expect.objectContaining({
+        params: { video_language: 'en' },
+      }));
+      expect(result.url).toBe('https://videodb.io/stream/sub_1');
+      expect(result.error).toBeUndefined();
     });
 
-    it('returns empty result on transcribe failure', async () => {
-      whisperService.transcribe.mockRejectedValue(new Error('service down'));
+    it('fails loudly (returns error) when Director returns no URL', async () => {
+      h.mockRun.mockResolvedValue({ videoId: 'vid_1', result: { status: 'success', url: '', data: {} } });
+
       const result = await generateSubtitles('http://example.com/video.mp4');
+      expect(result.url).toBe('');
+      expect(result.error).toMatch(/did not return a video URL/);
+    });
 
-      expect(result.srt).toBe('');
-      expect(result.vtt).toBe('');
-      expect(result.segments).toEqual([]);
-      expect(result.error).toBe('service down');
+    it('fails loudly (returns error) when Director throws', async () => {
+      h.mockRun.mockRejectedValue(new Error('Director unreachable'));
+      const result = await generateSubtitles('http://example.com/video.mp4');
+      expect(result.error).toBe('Director unreachable');
+      expect(result.url).toBe('');
     });
   });
 
-  describe('toSrtTimestamp (inline, identical to source)', () => {
-    it('formats zero seconds', () => {
-      expect(toSrtTimestamp(0)).toBe('00:00:00,000');
+  describe('generateHighlights', () => {
+    it('returns normalized highlight scenes from Director highlight_reel', async () => {
+      h.mockRun.mockResolvedValue({
+        result: {
+          data: {
+            highlights: [
+              { start_time: 1, end_time: 4, confidence: 0.9 },
+              { start_time: 5, end_time: 8, confidence: 0.6 },
+            ],
+          },
+        },
+      });
+
+      const highlights = await generateHighlights('http://example.com/video.mp4', 0.5);
+      expect(highlights).toHaveLength(2);
+      expect(highlights[0].startTime).toBe(1);
+      expect(highlights[0].confidence).toBe(0.9);
     });
-    it('formats fractional seconds with milliseconds', () => {
-      expect(toSrtTimestamp(2.5)).toBe('00:00:02,500');
-    });
-    it('pads all fields to fixed widths', () => {
-      expect(toSrtTimestamp(61.0)).toBe('00:01:01,000');
+
+    it('returns [] when Director throws (no silent mock)', async () => {
+      h.mockRun.mockRejectedValue(new Error('boom'));
+      const highlights = await generateHighlights('http://example.com/video.mp4');
+      expect(highlights).toEqual([]);
     });
   });
 
-  describe('toVttTimestamp', () => {
-    it('formats zero seconds', () => {
-      expect(toVttTimestamp(0)).toBe('00:00:00.000');
+  describe('generateVoiceover', () => {
+    it('uploads source then returns narrated video URL from Director', async () => {
+      h.mockUpload.mockResolvedValue({ collectionId: 'default', videoId: 'vid_9' });
+      const { invokeDirectorAgent: _inv } = await import('../lib/directorClient.js');
+      h.mockInvoke.mockResolvedValue({ status: 'success', url: 'https://videodb.io/stream/vo_9', data: {} });
+
+      const url = await generateVoiceover('Hello there', 'http://example.com/video.mp4', 'alloy');
+      expect(h.mockUpload).toHaveBeenCalledWith('http://example.com/video.mp4');
+      expect(h.mockInvoke).toHaveBeenCalledWith(expect.objectContaining({
+        agent: 'voiceover',
+        videoId: 'vid_9',
+        params: { script: 'Hello there', voice_name: 'alloy' },
+      }));
+      expect(url).toBe('https://videodb.io/stream/vo_9');
     });
-    it('formats fractional seconds with milliseconds', () => {
-      expect(toVttTimestamp(5)).toBe('00:00:05.000');
-    });
-    it('pads all fields to fixed widths', () => {
-      expect(toVttTimestamp(5.001)).toBe('00:00:05.001');
+
+    it('returns null when no source video URL provided', async () => {
+      const url = await generateVoiceover('Hello there', '');
+      expect(url).toBeNull();
     });
   });
 
-  describe('segmentsToSrt', () => {
-    it('numbering starts at 1 with correct SRT timestamps', () => {
-      const srt = segmentsToSrt([
-        { start: 0, end: 2.5, text: 'Hello world.' },
-        { start: 2.5, end: 5, text: 'This is a test.' },
-      ]);
-      expect(srt).toContain('1\n00:00:00,000 --> 00:00:02,500\nHello world.');
-      expect(srt).toContain('2\n00:00:02,500 --> 00:00:05,000\nThis is a test.');
-    });
-    it('trims whitespace from segment text', () => {
-      expect(segmentsToSrt([{ start: 0, end: 2.5, text: '  spaces  ' }])).toBe('1\n00:00:00,000 --> 00:00:02,500\nspaces\n');
-    });
-    it('handles empty text fields', () => {
-      expect(segmentsToSrt([{ start: 0, end: 1, text: '' }])).toContain('\n\n');
-    });
-  });
+  describe('runAiAutoEdit', () => {
+    it('assembles a plan via OpenAI Responses API from Director metadata', async () => {
+      h.mockRun.mockImplementation(async (agent) => {
+        if (agent === 'subtitle') return { videoId: 'v', result: { status: 'success', url: 'https://videodb.io/s', data: { segments: [] } } };
+        if (agent === 'highlight_reel') return { videoId: 'v', result: { status: 'success', url: '', data: { highlights: [{ start_time: 0, end_time: 3, confidence: 0.8 }] } } };
+        if (agent === 'scenes') return { videoId: 'v', result: { status: 'success', url: '', data: { scenes: [] } } };
+        return { videoId: 'v', result: { status: 'success', url: '', data: {} } };
+      });
+      h.mockPlanAutoEdit.mockResolvedValue({
+        summary: 'A test video',
+        sceneOrder: [{ index: 0, startTime: 0, endTime: 3, reason: 'best' }],
+        highlightCount: 1,
+        captionStyle: 'minimal-premium',
+        subtitleSegmentCount: 0,
+        recommendedExportProfile: 'hq-delivery',
+      });
 
-  describe('segmentsToVtt', () => {
-    it('produces valid WebVTT with header and cues', () => {
-      const vtt = segmentsToVtt([
-        { start: 0, end: 2.5, text: 'Hello world.' },
-        { start: 2.5, end: 5, text: 'This is a test.' },
-      ]);
-      expect(vtt).toContain('WEBVTT\n\n');
-      expect(vtt).toContain('00:00:00.000 --> 00:00:02.500');
+      const plan = await runAiAutoEdit('http://example.com/video.mp4', { captionStyle: 'minimal-premium' });
+      expect(plan.highlights).toHaveLength(1);
+      expect(plan.plan.summary).toBe('A test video');
+      expect(h.mockPlanAutoEdit).toHaveBeenCalled();
     });
-    it('joins multiple cues with blank lines', () => {
-      const vtt = segmentsToVtt([
-        { start: 0, end: 1, text: 'A' },
-        { start: 2, end: 3, text: 'B' },
-      ]);
-      expect(vtt).toContain('00:00:00.000 --> 00:00:01.000\nA');
-      expect(vtt).toContain('00:00:02.000 --> 00:00:03.000\nB');
+
+    it('keeps metadata and surfaces plan error instead of throwing', async () => {
+      h.mockRun.mockRejectedValue(new Error('Director down'));
+      h.mockPlanAutoEdit.mockRejectedValue(new Error('no OpenAI key'));
+
+      const plan = await runAiAutoEdit('http://example.com/video.mp4');
+      expect(plan.scenes).toEqual([]);
+      expect(plan.plan.error).toBe('no OpenAI key');
     });
   });
 });

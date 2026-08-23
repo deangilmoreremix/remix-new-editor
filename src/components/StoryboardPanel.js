@@ -79,7 +79,7 @@ export function StoryboardPanel({ appendTo } = {}) {
 
           <div class="flex gap-2">
             <button id="sb-add" class="flex-1 px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm text-white">+ Frame</button>
-            <button id="sb-generate" class="flex-1 px-3 py-2 bg-primary text-black font-black rounded-xl text-sm">Generate</button>
+            <button id="sb-generate" class="flex-1 px-3 py-2 btn-secondary-modern font-black rounded-xl text-sm">Generate</button>
           </div>
 
           <div class="space-y-2 max-h-[420px] overflow-y-auto pr-1" id="sb-frame-list">
@@ -94,16 +94,16 @@ export function StoryboardPanel({ appendTo } = {}) {
             <div>
               <label class="text-xs text-muted font-bold block mb-1">Shot type</label>
               <div class="flex flex-wrap gap-2">
-                ${SHOT_TYPES.map((s) => `<button data-shot="${s}" class="sb-shot px-2.5 py-1 rounded-full text-xs ${f.shot === s ? 'bg-primary text-black font-bold' : 'bg-white/5 text-white border border-white/10'}">${s}</button>`).join('')}
+                ${SHOT_TYPES.map((s) => `<button data-shot="${s}" class="sb-shot px-2.5 py-1 rounded-full text-xs ${selected.shot === s ? 'btn-secondary-modern font-bold' : 'bg-white/5 text-white border border-white/10'}">${s}</button>`).join('')}
               </div>
             </div>
             <div>
               <label class="text-xs text-muted font-bold block mb-1">Prompt</label>
-              <textarea id="sb-prompt" rows="3" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-white/30 focus:border-primary focus:outline-none resize-none">${escapeHtml(f.prompt || '')}</textarea>
+              <textarea id="sb-prompt" rows="3" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-white/30 focus:border-primary focus:outline-none resize-none">${escapeHtml(selected.prompt || '')}</textarea>
             </div>
             <div>
               <label class="text-xs text-muted font-bold block mb-1">Narration</label>
-              <input id="sb-narration" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-white/30" value="${escapeAttr(f.narration || '')}" />
+              <input id="sb-narration" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-white/30" value="${escapeAttr(selected.narration || '')}" />
             </div>
           ` : `
             <div class="text-secondary text-sm italic p-6 bg-white/5 rounded-xl text-center">No frames yet. Click + Frame to add one.</div>

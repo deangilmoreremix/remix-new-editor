@@ -1,26 +1,33 @@
 import { getTemplateById } from '../lib/templates.js';
-import { getTemplateThumbnailCandidates, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { resolveTemplate } from '../lib/showcaseTemplateResolver.js';
+import { getTemplateThumbnailCandidates, saveCustomThumbnailToCache, clearCustomThumbnailCache, getCustomThumbnailFromCache } from '../lib/thumbnails.js';
 import { getTemplateSpecs, hasEnhancedSpecs } from '../lib/templateSpecs.js';
 import { muapi } from '../lib/muapi.js';
 import { getNicheTerms, enrichPromptString, deriveEngineInputFromTemplate, composeNegativePrompt } from '../lib/templateEngine.js';
 import { NICHE_ENRICHMENT, FILM_FAMILIES } from '../lib/templateMatrix.js';
-import { t2iModels, i2iModels, i2vModels } from '../lib/models.js';
+import { t2iModels, i2iModels, i2vModels, t2vModels, v2vModels, getV2VModelById } from '../lib/models.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
+import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
 import { AuthModal } from './AuthModal.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { navigate } from '../lib/router.js';
 import { mountStudioDrawer, createStudioMenuButton } from '../lib/studioChrome.js';
 import { sanitizeUrl } from '../lib/security.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
-import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
-import { openModelPicker } from '../lib/modelPickerIntegration.js';
-import { openRecipeModal } from '../lib/recipeIntegration.js';
-import { openMonetizationHub } from '../lib/monetizationIntegration.js';
+import { getGtmContext } from '../lib/gtmContextStore.js';
+import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 
 export function TemplateStudio(templateId) {
-  const template = getTemplateById(templateId);
-  
+  let template = getTemplateById(templateId);
+
+  // Fallback: if the template isn't in the built-in templates.js registry,
+  // try the unified showcase resolver (covers all 512 MiniMax H3 / Seedance 2.5 / ZeroLu demos).
+  if (!template) {
+    template = resolveTemplate(templateId);
+  }
+
   if (!template) {
     const errorContainer = document.createElement('div');
     errorContainer.className = 'min-h-screen bg-[#0a0a0b] text-white flex items-center justify-center';
@@ -42,12 +49,32 @@ export function TemplateStudio(templateId) {
   // State management
   const formState = {};
   let activeTab = 'Enhanced Prompt';
+  const outputTabValues = {};
   let aiEnhancer = true;
   let lastBuiltPrompt = '';
   let showAdvanced = false;
   let uploadedUrl = null;
   let isGenerating = false;
-  let selectedModel = template.model;
+  let selectedModel = template.model || (template.modelType === 't2v' ? 'kling-v2.6-pro-t2v' : undefined);
+  let loadedModels = [];
+  let primaryPromptField = null;
+  let customThumbnailUrl = getCustomThumbnailFromCache(template.id);
+
+  // Restore the last GTM context the user picked in the prompt modal,
+  // if any. The modal persists selections to localStorage on apply; we
+  // log them here so downstream features (defaults, preselects) can
+  // pick them up later. The `void` keeps the variable from being
+  // flagged as unused until something consumes it.
+  try {
+    const restoredGtmContext = getGtmContext('template-studio');
+    if (restoredGtmContext && typeof console !== 'undefined' && console.info) {
+      console.info('[TemplateStudio] Restored GTM context', restoredGtmContext);
+    }
+    void restoredGtmContext;
+  } catch { /* ignore */ }
+  let lastGenerationParams = null; // Store params for retry
+  let retryCount = 0;
+  const MAX_RETRIES = 2;
 
   // Create full-page wrapper
   const container = document.createElement('div');
@@ -112,52 +139,6 @@ export function TemplateStudio(templateId) {
   backBtn.onclick = () => navigate('templates');
   contentArea.appendChild(backBtn);
 
-  // Cinematic wizard CTA: opt-in alternative flow for templates flagged
-  // `cinematic: true`. Hidden by default; clicking mounts the wizard inline
-  // in place of the standard form.
-  let wizardMounted = false;
-  let wizardContainer = null;
-  if (template.cinematic) {
-    const wizardRow = document.createElement('div');
-    wizardRow.className = 'mb-6 flex items-center gap-3 p-3 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl';
-    wizardRow.innerHTML = `
-      <div class="flex-1 min-w-0">
-        <div class="text-sm font-bold text-white">Cinematic wizard available</div>
-        <div class="text-xs text-secondary">Step-by-step storyboard builder with scene structure, visual style, and brand context.</div>
-      </div>
-      <button id="open-wizard-btn" class="px-4 py-2 bg-emerald-500 text-black font-black rounded-xl text-sm hover:scale-[1.02] transition-transform">Open wizard</button>
-    `;
-    contentArea.appendChild(wizardRow);
-
-    wizardRow.querySelector('#open-wizard-btn').onclick = () => {
-      if (wizardMounted) return;
-      wizardMounted = true;
-      // Import the wizard lazily so non-cinematic templates don't pull it in
-      import('./CinematicTemplateWizard.js').then(({ CinematicTemplateWizard }) => {
-        wizardContainer = CinematicTemplateWizard({
-          template,
-          onCancel: () => {
-            if (wizardContainer && wizardContainer.parentNode) wizardContainer.parentNode.removeChild(wizardContainer);
-            wizardMounted = false;
-            wizardContainer = null;
-            wizardRow.style.display = '';
-          },
-          onGenerate: (result) => {
-            // Hand the result back to TemplateStudio's render flow by stashing
-            // it on the container. Future enhancement: render the player in
-            // the existing result area.
-            container.__wizardResult = result;
-          },
-        });
-        wizardContainer.className = 'mb-8';
-        contentArea.insertBefore(wizardContainer, centeredContainer);
-        wizardRow.style.display = 'none';
-      }).catch((e) => {
-        console.error('[TemplateStudio] wizard load failed:', e);
-      });
-    };
-  }
-
   // Centered template container
   const centeredContainer = document.createElement('div');
   centeredContainer.className = 'mx-auto max-w-[980px]';
@@ -191,19 +172,34 @@ export function TemplateStudio(templateId) {
   thumbnailEl.appendChild(img);
   heroSection.appendChild(thumbnailEl);
 
-  // Thumbnail action button
+  // Thumbnail action button — matches .gtm-boost-btn styling so it is
+  // discoverable alongside the GTM Boost control in the hero section.
   const thumbAction = document.createElement('button');
-  thumbAction.className = 'mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs font-medium text-zinc-400 hover:text-white hover:border-emerald-400/30 transition';
+  thumbAction.className = 'mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition';
+  thumbAction.style.background = 'linear-gradient(135deg, #10b981, #34d399)';
+  thumbAction.style.boxShadow = '0 4px 14px rgba(16,185,129,0.3)';
+  thumbAction.style.color = '#022c22';
   thumbAction.textContent = '🖼 Thumbnail';
   thumbAction.onclick = () => {
     const modal = new TemplateThumbnailModal({
       appTheme: 'template-studio',
       template,
-      onApply: ({ imageUrl }) => {
+      layout: 'panel',
+      onApply: ({ imageUrl, revisedPrompt }) => {
         img.src = imageUrl + '?v=' + Date.now();
+        customThumbnailUrl = imageUrl;
         saveCustomThumbnailToCache(template.id, imageUrl);
+        if (revisedPrompt && primaryPromptField) {
+          primaryPromptField.value = revisedPrompt;
+          primaryPromptField.dispatchEvent(new Event('input', { bubbles: true }));
+          primaryPromptField.dispatchEvent(new Event('change', { bubbles: true }));
+          if (promptFieldName) {
+            formState[promptFieldName] = revisedPrompt;
+          }
+        }
       },
       onClear: () => {
+        customThumbnailUrl = null;
         clearCustomThumbnailCache(template.id);
       },
     });
@@ -243,43 +239,109 @@ export function TemplateStudio(templateId) {
   const leftPanel = document.createElement('div');
   leftPanel.className = 'rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.02))] p-6 shadow-[0_20px_80px_rgba(0,0,0,0.45)]';
 
+  // Identify the primary prompt field. Templates usually have one input
+  // with name === 'prompt'; if not, fall back to the first text/textarea
+  // input. We track its DOM element and formState key so the GTM Boost
+  // callback can write the generated prompt back into it.
+  const promptInput = allInputs.find(i => i && i.name === 'prompt' && (i.type === 'text' || i.type === 'textarea'))
+    || allInputs.find(i => i && (i.type === 'text' || i.type === 'textarea'));
+  const promptFieldName = promptInput ? promptInput.name : null;
+  let promptEl = null; // assigned during the input loop below
+
   // Build form fields
   allInputs.forEach(input => {
     const fieldWrapper = document.createElement('div');
     fieldWrapper.className = 'mt-6 first:mt-0';
 
+    const isPrimaryPrompt = input.name === promptFieldName;
+    const showTextButtons = input.type === 'text' || input.type === 'textarea';
     const label = document.createElement('div');
     label.className = 'mb-3 flex items-center justify-between gap-3';
     label.innerHTML = `
       <div class="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500">${input.label}</div>
-      ${input.type === 'text' || input.type === 'textarea' ? `<button class="enhancer-btn rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] transition border-white/10 bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-white" data-field="${input.name}">Enhance</button>` : ''}
+      ${showTextButtons ? `
+        <div class="flex items-center gap-2">
+          <button class="enhancer-btn rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] transition border-white/10 bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-white" data-field="${input.name}">Enhance</button>
+        </div>
+      ` : ''}
     `;
     fieldWrapper.appendChild(label);
 
-    if (input.type === 'image') {
-      const uploadArea = document.createElement('div');
-      uploadArea.className = 'flex h-16 items-center gap-4 rounded-[20px] border border-white/10 bg-white/[0.03] px-4 text-zinc-400 cursor-pointer hover:border-emerald-400/30 transition';
-      uploadArea.innerHTML = `
-        <div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg">↑</div>
-        <span class="text-sm">Click to upload an image</span>
-      `;
-      uploadArea.onclick = () => {
-        const picker = createUploadPicker({
-          anchorContainer: container,
-          onSelect: ({ url }) => {
-            uploadedUrl = url;
-            formState[input.name] = url;
-            uploadArea.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-500/10 text-lg">✓</div><span class="text-sm text-emerald-200">Image uploaded</span>`;
-          },
-          onClear: () => {
-            uploadedUrl = null;
-            formState[input.name] = null;
-          }
-        });
-        container.appendChild(picker.panel);
-      };
-      fieldWrapper.appendChild(uploadArea);
-    } else if (input.type === 'text' || input.type === 'textarea') {
+            if (input.type === 'image' || input.type === 'frame') {
+                const isFrame = input.type === 'frame';
+                const uploadArea = document.createElement('div');
+                uploadArea.className = 'flex h-16 items-center gap-4 rounded-[20px] border border-white/10 bg-white/[0.03] px-4 text-zinc-400 cursor-pointer hover:border-emerald-400/30 transition';
+                uploadArea.innerHTML = `
+                    <div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg">↑</div>
+                    <span class="text-sm">${isFrame ? 'Click to add start & end frames' : 'Click to upload an image'}</span>
+                `;
+                const setDone = (label) => {
+                    uploadArea.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-500/10 text-lg">✓</div><span class="text-sm text-emerald-200">${label}</span>`;
+                };
+                uploadArea.onclick = () => {
+                    const picker = createUploadPicker({
+                        anchorContainer: container,
+                        frameMode: isFrame,
+                        acceptVideo: false,
+                        onSelect: (sel) => {
+                            if (isFrame) {
+                                // Start/end image pair for first/last-frame models
+                                formState[input.name] = { startUrl: sel.startUrl, endUrl: sel.endUrl, urls: sel.urls };
+                                setDone(sel.endUrl ? 'Start & end frames set' : 'Start frame set');
+                            } else {
+                                uploadedUrl = sel.url;
+                                formState[input.name] = sel.url;
+                                setDone('Image uploaded');
+                            }
+                        },
+                        onClear: () => {
+                            if (isFrame) {
+                                formState[input.name] = null;
+                            } else {
+                                uploadedUrl = null;
+                                formState[input.name] = null;
+                            }
+                            uploadArea.innerHTML = `
+                                <div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg">↑</div>
+                                <span class="text-sm">${isFrame ? 'Click to add start & end frames' : 'Click to upload an image'}</span>
+                            `;
+                        }
+                    });
+                    container.appendChild(picker.panel);
+                };
+                fieldWrapper.appendChild(uploadArea);
+            } else if (input.type === 'video') {
+                const uploadArea = document.createElement('div');
+                uploadArea.className = 'flex h-16 items-center gap-4 rounded-[20px] border border-white/10 bg-white/[0.03] px-4 text-zinc-400 cursor-pointer hover:border-emerald-400/30 transition';
+                uploadArea.innerHTML = `
+                    <div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg">↑</div>
+                    <span class="text-sm">Click to upload a video</span>
+                `;
+                const setDone = (label) => {
+                    uploadArea.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-500/10 text-lg">✓</div><span class="text-sm text-emerald-200">${label}</span>`;
+                };
+                uploadArea.onclick = () => {
+                    const picker = createUploadPicker({
+                        anchorContainer: container,
+                        acceptVideo: true,
+                        onSelect: (sel) => {
+                            uploadedUrl = sel.url;
+                            formState[input.name] = sel.url;
+                            setDone('Video uploaded');
+                        },
+                        onClear: () => {
+                            uploadedUrl = null;
+                            formState[input.name] = null;
+                            uploadArea.innerHTML = `
+                                <div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg">↑</div>
+                                <span class="text-sm">Click to upload a video</span>
+                            `;
+                        }
+                    });
+                    container.appendChild(picker.panel);
+                };
+                fieldWrapper.appendChild(uploadArea);
+            } else if (input.type === 'text' || input.type === 'textarea') {
       const el = document.createElement(input.type === 'textarea' ? 'textarea' : 'input');
       el.className = 'h-11 w-full rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] px-4 text-sm text-white outline-none transition focus:border-emerald-400/50';
       if (input.type === 'textarea') {
@@ -288,6 +350,10 @@ export function TemplateStudio(templateId) {
       }
       el.placeholder = input.placeholder || '';
       el.oninput = () => { formState[input.name] = el.value; };
+      if (isPrimaryPrompt) {
+        promptEl = el;
+        primaryPromptField = el;
+      }
       fieldWrapper.appendChild(el);
     } else if (input.type === 'select') {
       const select = document.createElement('select');
@@ -310,66 +376,201 @@ export function TemplateStudio(templateId) {
   });
 
   // Model selector (async - fetches enriched catalog with descriptions)
-  const outputType = template.outputType || (template.modelType === 't2i' ? 'image' : 'video');
-  if (outputType === 'video' || template.modelType === 'i2i' || template.modelType === 't2i') {
+  const outputType = template.outputType || (template.modelType === 't2i' || template.modelType === 'i2i' ? 'image' : 'video');
+  if (outputType === 'video' || ['i2i', 't2i', 'i2v', 't2v'].includes(template.modelType)) {
     const modelWrapper = document.createElement('div');
     modelWrapper.className = 'mt-6';
-    modelWrapper.innerHTML = `
-      <div class="mb-3 flex items-center justify-between gap-3">
-        <div class="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500">Model</div>
-      </div>
-      <select id="templateModelSelect" class="h-11 w-full rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] px-4 text-sm text-white outline-none transition focus:border-emerald-400/50 appearance-none cursor-pointer">
-        <option value="" class="bg-zinc-950 text-white" disabled selected>Loading models...</option>
-      </select>
-    `;
-    const modelSelect = modelWrapper.querySelector('#templateModelSelect');
-    modelSelect.onchange = () => { selectedModel = modelSelect.value; };
-    // Model Picker button
-    const modelPickerBtn = document.createElement('button');
-    modelPickerBtn.type = 'button';
-    modelPickerBtn.textContent = 'AI Pick';
-    modelPickerBtn.title = 'Open intelligent model picker';
-    modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-    modelPickerBtn.className = 'text-[11px] font-bold text-cyan-400 border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 rounded-lg hover:bg-cyan-400/20 transition-colors ml-2 whitespace-nowrap';
-    modelPickerBtn.addEventListener('click', () => {
-      openModelPicker({
-        currentModelId: selectedModel,
-        onSelectModel: (id) => {
-          selectedModel = id;
-          if (modelSelect.querySelector(`option[value="${id}"]`)) {
-            modelSelect.value = id;
-          }
+let fallbackList = [];
+     if (template.modelType === 'i2v') fallbackList = i2vModels;
+     else if (template.modelType === 'i2i') fallbackList = i2iModels;
+     else if (template.modelType === 't2i') fallbackList = t2iModels;
+     else if (template.modelType === 't2v') fallbackList = t2vModels;
+     else if (template.modelType === 'v2v') fallbackList = v2vModels;
+
+     loadedModels = fallbackList;
+    const getModelName = (id) => {
+      const m = loadedModels.find(x => x.id === id) || fallbackList.find(x => x.id === id);
+      return m ? m.name : id;
+    };
+    const getModel = (id) => loadedModels.find(x => x.id === id) || fallbackList.find(x => x.id === id);
+
+    const triggerBtn = document.createElement('button');
+    triggerBtn.type = 'button';
+    triggerBtn.id = 'template-model-trigger';
+    triggerBtn.setAttribute('aria-haspopup', 'listbox');
+    triggerBtn.setAttribute('aria-expanded', 'false');
+    triggerBtn.setAttribute('aria-label', 'Select model');
+    const updateTrigger = () => {
+      const model = getModel(selectedModel);
+      const provider = model?.provider || 'muapi';
+      const logoUrl = PROVIDER_LOGOS[provider];
+      const name = model ? model.name : getModelName(selectedModel);
+      if (logoUrl) {
+        triggerBtn.innerHTML = `<div class="w-5 h-5 rounded-md flex items-center justify-center overflow-hidden bg-white/5 shrink-0"><img src="${logoUrl}" alt="" class="w-full h-full object-contain ${invertLogos.includes(provider) ? 'invert' : ''}" /></div><span class="text-sm font-bold text-white truncate">${name}</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted shrink-0"><polyline points="6 9 12 15 18 9"/></svg>`;
+      } else {
+        const style = getProviderStyle(provider);
+        triggerBtn.innerHTML = `<div class="w-5 h-5 bg-primary rounded-md flex items-center justify-center shadow-lg shadow-primary/20 shrink-0"><span class="text-[10px] font-black text-black">${style.text}</span></div><span class="text-sm font-bold text-white truncate">${name}</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted shrink-0"><polyline points="6 9 12 15 18 9"/></svg>`;
+      }
+    };
+    updateTrigger();
+
+    const dropdown = document.createElement('div');
+    dropdown.className = 'fixed z-[200] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom-left';
+    dropdown.setAttribute('role', 'listbox');
+    dropdown.setAttribute('aria-label', 'Available models');
+    dropdown.style.width = 'calc(100vw - 2rem)';
+    dropdown.style.maxWidth = '480px';
+    dropdown.style.maxHeight = '70vh';
+    dropdown.style.minHeight = '350px';
+
+    let _modelSelectorOutsideClickHandler = null;
+
+    const closeDropdown = () => {
+      dropdown.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+      dropdown.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
+      triggerBtn.setAttribute('aria-expanded', 'false');
+      if (_modelSelectorOutsideClickHandler) {
+        document.removeEventListener('click', _modelSelectorOutsideClickHandler);
+        _modelSelectorOutsideClickHandler = null;
+      }
+    };
+
+    const openDropdown = () => {
+      dropdown.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
+      dropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
+      triggerBtn.setAttribute('aria-expanded', 'true');
+
+      if (_modelSelectorOutsideClickHandler) {
+        document.removeEventListener('click', _modelSelectorOutsideClickHandler);
+        _modelSelectorOutsideClickHandler = null;
+      }
+
+      _modelSelectorOutsideClickHandler = (e) => {
+        if (!dropdown.contains(e.target) && e.target !== triggerBtn) {
+          closeDropdown();
         }
-      }).catch((err) => console.error('[ModelPicker] open failed:', err));
-    });
-    modelWrapper.appendChild(modelPickerBtn);
+      };
+      document.addEventListener('click', _modelSelectorOutsideClickHandler);
+
+      if (!dropdown.dataset.populated) {
+        dropdown.dataset.populated = 'true';
+
+        const renderModelPanel = (models) => {
+          mountModelSelector(dropdown, {
+            models,
+            selectedModelId: selectedModel,
+            showProviderName: true,
+            loadingMessage: 'Loading models...',
+            onSelectModel: (modelId) => {
+              selectedModel = modelId;
+              updateTrigger();
+              closeDropdown();
+            },
+          });
+        };
+
+         // Show a loading state immediately, then populate once the catalog resolves.
+        renderModelPanel([]);
+        modelLoadingStatus.textContent = 'Loading...';
+        modelLoadingStatus.className = 'text-[10px] text-zinc-400';
+
+        // Timeout wrapper for model catalog fetch
+        const withTimeout = (promise, ms = 5000) => {
+          return Promise.race([
+            promise,
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Model catalog load timed out')), ms))
+          ]);
+        };
+
+        withTimeout(getEnrichedModels(template.modelType))
+          .then(enriched => {
+            const models = enriched && enriched.length > 0 ? enriched : fallbackList;
+            loadedModels = models;
+            renderModelPanel(models);
+            modelLoadingStatus.textContent = models.length + ' models';
+            modelLoadingStatus.className = 'text-[10px] text-emerald-400/70';
+          })
+          .catch(err => {
+            console.warn('[TemplateStudio] Failed to load enriched model catalog, using fallback:', err);
+            loadedModels = fallbackList;
+            renderModelPanel(fallbackList);
+            modelLoadingStatus.textContent = fallbackList.length + ' models (fallback)';
+            modelLoadingStatus.className = 'text-[10px] text-amber-400/70';
+          });
+      }
+    };
+
+    triggerBtn.onclick = (e) => {
+      e.stopPropagation();
+      if (dropdown.classList.contains('opacity-100')) {
+        closeDropdown();
+      } else {
+        openDropdown();
+      }
+    };
+
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape' && dropdown.classList.contains('opacity-100')) {
+        closeDropdown();
+        triggerBtn.focus();
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+
+    const modelLoadingStatus = document.createElement('span');
+    modelLoadingStatus.id = 'model-loading-status';
+    modelLoadingStatus.className = 'text-[10px] text-zinc-500';
+
+    const headerRow = document.createElement('div');
+    headerRow.className = 'mb-3 flex items-center justify-between gap-3';
+    const label = document.createElement('div');
+    label.className = 'text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500';
+    label.textContent = 'Model';
+    headerRow.appendChild(label);
+    headerRow.appendChild(triggerBtn);
+    headerRow.appendChild(modelLoadingStatus);
+    modelWrapper.appendChild(headerRow);
+    modelWrapper.appendChild(dropdown);
     leftPanel.appendChild(modelWrapper);
 
-    let fallbackList = [];
-    if (template.modelType === 'i2v') fallbackList = i2vModels;
-    else if (template.modelType === 'i2i') fallbackList = i2iModels;
-    else if (template.modelType === 't2i') fallbackList = t2iModels;
+    // Video upload button — appears for video templates so v2v models
+    // (video-to-video) can accept a video source alongside image uploads.
+    if (outputType === 'video') {
+      const videoUploadWrapper = document.createElement('div');
+      videoUploadWrapper.className = 'mt-4';
+      videoUploadWrapper.innerHTML = `
+        <div class="flex items-center justify-between gap-3">
+          <label class="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500">Video Source (V2V)</label>
+          <button id="videoUploadBtn" type="button" class="text-[10px] font-semibold uppercase tracking-[0.18em] rounded-full border border-white/10 bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-white transition px-3 py-1">Upload video</button>
+        </div>
+      `;
+      leftPanel.appendChild(videoUploadWrapper);
 
-    getEnrichedModels(template.modelType)
-      .then(enriched => {
-        const models = enriched && enriched.length > 0 ? enriched : fallbackList;
-        modelSelect.innerHTML = models.map(m => {
-          const desc = m.description ? ` — ${m.description.slice(0, 80)}${m.description.length > 80 ? '...' : ''}` : '';
-          return `<option value="${m.id}" class="bg-zinc-950 text-white">${m.name}${desc} (${m.id})</option>`;
-        }).join('');
-        if (models.find(m => m.id === template.model)) {
-          modelSelect.value = template.model;
-        }
-      })
-      .catch(err => {
-        console.warn('[TemplateStudio] Failed to load enriched model catalog, using fallback:', err);
-        modelSelect.innerHTML = fallbackList.map(m => {
-          return `<option value="${m.id}" class="bg-zinc-950 text-white">${m.name} (${m.id})</option>`;
-        }).join('');
-        if (fallbackList.find(m => m.id === template.model)) {
-          modelSelect.value = template.model;
-        }
-      });
+      const videoBtn = videoUploadWrapper.querySelector('#videoUploadBtn');
+      const setVideoDone = (label) => {
+        videoBtn.innerHTML = `<span class="text-emerald-200">✓ ${label}</span>`;
+      };
+      videoBtn.onclick = () => {
+        const picker = createUploadPicker({
+          anchorContainer: container,
+          acceptVideo: true,
+          onSelect: (sel) => {
+            uploadedUrl = sel.url;
+            formState['video_url'] = sel.url;
+            setVideoDone('Video uploaded');
+          },
+          onClear: () => {
+            uploadedUrl = null;
+            formState['video_url'] = null;
+            videoBtn.textContent = 'Upload video';
+          }
+        });
+        container.appendChild(picker.panel);
+      };
+    }
+
+    // Close on outside click is handled by openDropdown via
+    // _modelSelectorOutsideClickHandler to avoid listener leaks.
   }
 
   // AI Enhancer section
@@ -397,13 +598,13 @@ export function TemplateStudio(templateId) {
   // GTM Boost affordance (opt-in enhancement via GTMPromptModal).
   // Uses the shared .gtm-boost-btn design (matches Image / Video studios);
   // the .template-studio ancestor class themes it emerald via gtm-prompt-modal.css.
-  const gtmBtn = document.createElement('button');
-  gtmBtn.type = 'button';
-  gtmBtn.textContent = '🎯 GTM Boost';
-  gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
-  gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
-  gtmBtn.className = 'gtm-boost-btn w-full mt-4';
-  leftPanel.appendChild(gtmBtn);
+  const gtmBoostBtn = document.createElement('button');
+  gtmBoostBtn.type = 'button';
+  gtmBoostBtn.textContent = '🎯 GTM Boost';
+  gtmBoostBtn.title = 'Enhance your prompt with GTM conversion frameworks';
+  gtmBoostBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
+  gtmBoostBtn.className = 'gtm-boost-btn w-full mt-4';
+  leftPanel.appendChild(gtmBoostBtn);
 
   // Advanced controls content
   const advancedControls = enhancerSection.querySelector('#advancedControls');
@@ -455,17 +656,102 @@ export function TemplateStudio(templateId) {
 
   // Generate button
   const genBtn = document.createElement('button');
-  genBtn.className = 'mt-6 flex h-14 w-full items-center justify-center rounded-[20px] bg-white text-lg font-semibold text-black shadow-xl transition hover:opacity-90';
+  genBtn.type = 'button';
+  genBtn.className = 'btn-primary-modern mt-6 w-full';
   genBtn.textContent = 'Generate';
+  genBtn.setAttribute('aria-label', 'Generate template');
   leftPanel.appendChild(genBtn);
   mountPersonalizeTrigger({ controlsContainer: leftPanel, appId: 'template-studio', getTextarea: () => document.getElementById('outputTextarea') || null });
+
+  // Prompt-assist toolbar: contextual helper tools for the current template.
+  // Mirrors the inline action button pattern used in Image/Video studios.
+  const toolbar = document.createElement('div');
+  toolbar.className = 'mt-4 flex flex-wrap items-center gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06]';
+
+  // GTM Boost
+  const gtmBoostBtn = document.createElement('button');
+  gtmBoostBtn.type = 'button';
+  gtmBoostBtn.textContent = '🎯 GTM Boost';
+  gtmBoostBtn.title = 'Enhance your prompt with GTM conversion frameworks';
+  gtmBoostBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
+  gtmBoostBtn.className = 'gtm-boost-btn';
+  gtmBoostBtn.addEventListener('click', async () => {
+    gtmBoostBtn.disabled = true;
+    const originalText = gtmBoostBtn.textContent;
+    gtmBoostBtn.textContent = '🎯 Loading…';
+    try {
+      const ctx = await import('../lib/uiIntegration.js').then(async (m) => {
+        const result = m.fetchGTMTemplateContext?.(template);
+        if (result && typeof result.then === 'function') return await result;
+        return result;
+      }).catch(() => null);
+      const basePrompt = promptEl?.value || (ctx && ctx.basePrompt) || template.description || '';
+      const templateContext = {
+        ...(ctx || {}),
+        basePrompt,
+        templateId: template.id,
+        category: template.category,
+        niche: template.niche,
+        outputType: template.outputType,
+      };
+      const onPromptGenerated = (generatedPrompt) => {
+        if (promptEl) {
+          promptEl.value = generatedPrompt;
+          promptEl.dispatchEvent(new Event('input', { bubbles: true }));
+          promptEl.dispatchEvent(new Event('change', { bubbles: true }));
+          if (promptFieldName) formState[promptFieldName] = generatedPrompt;
+          promptEl.focus();
+        }
+      };
+      import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+        openGTMPromptModal('template-studio', onPromptGenerated, {
+          templateContext,
+        });
+      }).catch((err) => {
+        console.error('[TemplateStudio] GTM Boost failed:', err);
+        showInlineError(leftPanel, 'GTM Boost failed to load. Please try again.');
+      });
+    } finally {
+      gtmBoostBtn.disabled = false;
+      gtmBoostBtn.textContent = originalText;
+    }
+  });
+  toolbar.appendChild(gtmBoostBtn);
+
+  // Recipe Engine button
+  const recipeBtn = document.createElement('button');
+  recipeBtn.type = 'button';
+  recipeBtn.textContent = '📋 Recipes';
+  recipeBtn.title = 'Browse AI recipes';
+  recipeBtn.setAttribute('aria-label', 'Open recipe engine');
+  recipeBtn.className = 'btn-ghost-modern';
+  recipeBtn.addEventListener('click', () => {
+    openRecipeModal({
+      onRunRecipe: (url) => {
+      }
+    }).catch((err) => console.error('[Recipe] open failed:', err));
+  });
+  toolbar.appendChild(recipeBtn);
+
+  // Monetization Hub button
+  const monetizationBtn = document.createElement('button');
+  monetizationBtn.type = 'button';
+  monetizationBtn.textContent = '💼 Monetize';
+  monetizationBtn.title = 'Open Smart Video AI Monetization Hub';
+  monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
+  monetizationBtn.className = 'btn-ghost-modern';
+  monetizationBtn.addEventListener('click', () => {
+    openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+  });
+  toolbar.appendChild(monetizationBtn);
+
   // Prompt Gallery button
   const promptGalleryBtn = document.createElement('button');
   promptGalleryBtn.type = 'button';
   promptGalleryBtn.textContent = '📚 Prompts';
   promptGalleryBtn.title = 'Browse prompt gallery';
   promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
-  promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
+  promptGalleryBtn.className = 'btn-ghost-modern';
   promptGalleryBtn.addEventListener('click', () => {
     openPromptGallery({
       appTheme: 'template-studio',
@@ -475,35 +761,9 @@ export function TemplateStudio(templateId) {
       }
     }).catch((err) => console.error('[PromptGallery] open failed:', err));
   });
+  toolbar.appendChild(promptGalleryBtn);
 
-    // Recipe Engine button
-    const recipeBtn = document.createElement('button');
-    recipeBtn.type = 'button';
-    recipeBtn.textContent = '📋 Recipes';
-    recipeBtn.title = 'Browse AI recipes';
-    recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-    recipeBtn.className = 'gtm-boost-btn shrink-0';
-    recipeBtn.addEventListener('click', () => {
-      openRecipeModal({
-        onRunRecipe: (url) => {
-        }
-      }).catch((err) => console.error('[Recipe] open failed:', err));
-    });
-
-
-    // Monetization Hub button
-    const monetizationBtn = document.createElement('button');
-    monetizationBtn.type = 'button';
-    monetizationBtn.textContent = "💼 Smart Video AI Monetize";
-    monetizationBtn.title = "Open Smart Video AI Monetization Hub";
-    monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-    monetizationBtn.className = 'gtm-boost-btn shrink-0';
-    monetizationBtn.addEventListener('click', () => {
-      openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
-    });
-  leftPanel.appendChild(recipeBtn);
-  leftPanel.appendChild(monetizationBtn);
-  leftPanel.appendChild(promptGalleryBtn);
+  leftPanel.appendChild(toolbar);
 
   // Creative Intelligence section
   const intelligenceSection = document.createElement('div');
@@ -606,6 +866,24 @@ export function TemplateStudio(templateId) {
     </div>
     <textarea id="outputTextarea" class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-7 text-zinc-200 outline-none transition focus:border-emerald-400/50 resize-none" rows="12">${specs.enhancerKeywords || 'Click Generate to create an enhanced prompt...'}</textarea>
   `;
+
+  const outputTextarea = outputContent.querySelector('#outputTextarea');
+  if (outputTextarea) {
+    outputTextarea.addEventListener('input', () => {
+      outputTabValues[activeTab] = outputTextarea.value;
+      if (activeTab === 'Enhanced Prompt') {
+        lastBuiltPrompt = outputTextarea.value;
+        if (primaryPromptField) {
+          primaryPromptField.value = outputTextarea.value;
+        }
+        formState[promptFieldName] = outputTextarea.value;
+      } else if (activeTab === 'Negative Prompt') {
+        formState['_customNegativePrompt'] = outputTextarea.value;
+      } else if (activeTab === 'Scene Beats') {
+        formState['_customSceneBlueprint'] = outputTextarea.value;
+      }
+    });
+  }
   outputSection.appendChild(outputContent);
   rightPanel.appendChild(outputSection);
 
@@ -620,6 +898,8 @@ export function TemplateStudio(templateId) {
   const resultArea = document.createElement('div');
   resultArea.id = 'resultArea';
   resultArea.className = 'hidden mt-8';
+  resultArea.setAttribute('role', 'status');
+  resultArea.setAttribute('aria-live', 'polite');
   centeredContainer.appendChild(resultArea);
 
   // Update output content based on active tab
@@ -627,6 +907,7 @@ export function TemplateStudio(templateId) {
     const textarea = document.getElementById('outputTextarea');
     if (!textarea) return;
 
+    const saved = outputTabValues[activeTab];
     switch (activeTab) {
       case 'Enhanced Prompt':
         textarea.value = lastBuiltPrompt || specs.enhancerKeywords || 'Click Generate to create an enhanced prompt...';
@@ -637,7 +918,7 @@ export function TemplateStudio(templateId) {
         break;
       }
       case 'Voiceover':
-        textarea.value = `Create a premium voiceover for a ${template.name}. Open with a fast hook, build emotional or commercial momentum, end with a clear call to action.`;
+        textarea.value = saved || `Create a premium voiceover for a ${template.name}. Open with a fast hook, build emotional or commercial momentum, end with a clear call to action.`;
         break;
       case 'Negative Prompt':
         textarea.value = specs.negativePrompt || 'Low quality, blurry, amateur, poorly lit, generic stock look';
@@ -674,37 +955,70 @@ export function TemplateStudio(templateId) {
     if (wandBtn) {
       wandBtn.onclick = () => {
         const textarea = document.getElementById('outputTextarea');
-        if (textarea && textarea.value) {
-          const enhancedText = `${textarea.value}, cinematic quality, professional lighting, high detail, 4K resolution`;
-          textarea.value = enhancedText;
-          textarea.classList.add('border-emerald-400/50');
-          setTimeout(() => textarea.classList.remove('border-emerald-400/50'), 1000);
+        if (!textarea) return;
+        const current = lastBuiltPrompt || textarea.value || '';
+        const enhanced = `${current}, cinematic quality, professional lighting, high detail, 4K resolution`.trim();
+        lastBuiltPrompt = enhanced;
+        outputTabValues['Enhanced Prompt'] = enhanced;
+        textarea.value = enhanced;
+        if (primaryPromptField) {
+          primaryPromptField.value = enhanced;
         }
+        if (promptFieldName) {
+          formState[promptFieldName] = enhanced;
+        }
+        textarea.classList.add('border-emerald-400/50');
+        setTimeout(() => textarea.classList.remove('border-emerald-400/50'), 1000);
       };
     }
 
-    // GTM Boost button
-    if (gtmBtn) {
-      gtmBtn.onclick = () => {
+    // GTM Boost button (bottom) — unified to use openGTMPromptModal
+    if (gtmBoostBtn) {
+      gtmBoostBtn.onclick = async () => {
         try {
-          import('./modals/GTMPromptModal.jsx').then(({ GTMPromptModal }) => {
-            const modal = new GTMPromptModal({
-              appTheme: 'template-studio',
-              onPromptGenerated: (text) => {
-                const ta = document.getElementById('outputTextarea');
-                if (ta) {
-                  ta.value = text;
-                  lastBuiltPrompt = text;
-                }
-              }
+          const ctx = await import('../lib/uiIntegration.js').then(async (m) => {
+            const result = m.fetchGTMTemplateContext?.(template);
+            if (result && typeof result.then === 'function') return await result;
+            return result;
+          }).catch(() => null) || {};
+          const basePrompt = (document.getElementById('outputTextarea')?.value) || template.description || '';
+          const templateContext = {
+            ...ctx,
+            basePrompt,
+            templateId: template.id,
+            category: template.category,
+            niche: template.niche,
+            outputType: template.outputType,
+          };
+          const onPromptGenerated = (text) => {
+            lastBuiltPrompt = text;
+            outputTabValues['Enhanced Prompt'] = text;
+            const ta = document.getElementById('outputTextarea');
+            if (ta) {
+              ta.value = text;
+              ta.dispatchEvent(new Event('input', { bubbles: true }));
+              ta.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            if (primaryPromptField) {
+              primaryPromptField.value = text;
+              primaryPromptField.dispatchEvent(new Event('input', { bubbles: true }));
+              primaryPromptField.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            if (promptFieldName) {
+              formState[promptFieldName] = text;
+            }
+          };
+          import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+            openGTMPromptModal('template-studio', onPromptGenerated, {
+              templateContext,
             });
-            modal.basePrompt = (document.getElementById('outputTextarea')?.value) || '';
-            modal.open();
           }).catch((e) => {
             console.warn('[TemplateStudio] GTM Boost modal load failed:', e);
+            showInlineError(container, 'Failed to load GTM Boost. Please try again.');
           });
         } catch (e) {
           console.warn('[TemplateStudio] GTM Boost failed:', e);
+          showInlineError(container, 'GTM Boost failed. Please try again.');
         }
       };
     }
@@ -713,10 +1027,13 @@ export function TemplateStudio(templateId) {
     document.querySelectorAll('.enhancer-btn').forEach(btn => {
       btn.onclick = () => {
         const fieldName = btn.dataset.field;
-        const input = document.querySelector(`[data-advanced-field="${fieldName}"]`);
+        if (!fieldName) return;
+        // Primary prompt field uses name="prompt", not data-advanced-field
+        const input = document.querySelector(`[data-advanced-field="${fieldName}"], [name="${fieldName}"]`);
         if (input && input.value) {
           const enhancedValue = `${input.value}, cinematic style, professional quality, premium aesthetic`;
           input.value = enhancedValue;
+          formState[fieldName] = enhancedValue;
           btn.classList.add('border-emerald-400/40', 'bg-emerald-500/15', 'text-emerald-200');
           btn.textContent = 'Enhanced ✓';
           setTimeout(() => {
@@ -726,7 +1043,37 @@ export function TemplateStudio(templateId) {
         }
       };
     });
+
+    // Update API key indicator on load
+    updateApiKeyIndicator();
   }, 100);
+
+  function showInlineError(container, message) {
+    let errEl = container.querySelector('.ts-inline-error');
+    if (!errEl) {
+      errEl = document.createElement('div');
+      errEl.className = 'ts-inline-error mt-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200';
+      genBtn.insertAdjacentElement('afterend', errEl);
+    }
+    errEl.textContent = message;
+    clearTimeout(errEl.__dismissTimer);
+    errEl.__dismissTimer = setTimeout(() => { if (errEl && errEl.parentNode) errEl.remove(); }, 5000);
+  }
+
+  function updateApiKeyIndicator() {
+    const indicator = document.querySelector('#api-key-indicator');
+    if (!indicator) return;
+    const dot = indicator.querySelector('.api-key-dot');
+    const text = indicator.querySelector('.api-key-text');
+    const hasKey = !!apiKeyManager.getMuapiKey();
+    if (dot) {
+      dot.className = `api-key-dot w-2 h-2 rounded-full ${hasKey ? 'bg-emerald-400' : 'bg-zinc-600'}`;
+    }
+    if (text) {
+      text.textContent = hasKey ? 'API key set' : 'No API key';
+      text.className = `api-key-text text-[10px] uppercase tracking-wider ${hasKey ? 'text-emerald-200' : 'text-zinc-500'}`;
+    }
+  }
 
   // Generate button handler
   genBtn.onclick = async () => {
@@ -734,18 +1081,106 @@ export function TemplateStudio(templateId) {
 
     // SECURITY ISSUE: API keys stored in localStorage are accessible to XSS attacks
     // TODO: Replace with server-side session storage or httpOnly cookies
-    const apiKey = localStorage.getItem('muapi_key');
+    const apiKey = apiKeyManager.getMuapiKey();
     if (!apiKey) {
-      AuthModal(() => genBtn.click());
+      AuthModal(() => {
+        genBtn.click();
+        updateApiKeyIndicator();
+      });
       return;
     }
+
+    // Validate that there's some prompt content to work with
+    const userPrompt = lastBuiltPrompt || (primaryPromptField?.value || '').trim();
+    if (!userPrompt && !template.basePrompt) {
+      showInlineError(container, 'Please enter a prompt or description before generating.');
+      return;
+    }
+
+    // Validate that the selected model matches the template's model type.
+    const modelTypeMap = {
+      i2i: i2iModels,
+      t2i: t2iModels,
+      i2v: i2vModels,
+      t2v: t2vModels,
+      v2v: v2vModels,
+    };
+    const allowedModels = modelTypeMap[template.modelType];
+    if (allowedModels && !allowedModels.find(m => m.id === (selectedModel || template.model))) {
+      const fallback = allowedModels[0]?.id || template.model;
+      showInlineError(container, `Model "${selectedModel || template.model}" is not compatible with this template type. Falling back to ${fallback}.`);
+      selectedModel = fallback;
+    }
+
+    // Build params for potential retry
+    const params = { model: selectedModel || template.model, ...(template.defaultParams || {}) };
+    
+    // Normalize aspect ratio for standard and matrix templates
+    const aspectRatio = template.aspectRatio || (template.aspectRatios ? template.aspectRatios[0] : null);
+    if (aspectRatio) params.aspect_ratio = aspectRatio;
+
+    // Normalize duration from template or defaultParams
+    const duration = template.duration
+      ? (typeof template.duration === 'object' ? template.duration.default : template.duration)
+      : template.defaultParams?.duration;
+    if (duration) params.duration = duration;
+
+    allInputs.forEach(input => {
+      if (formState[input.name]) {
+        params[input.name] = formState[input.name];
+      }
+    });
+
+    // Build prompt from all available template metadata and advanced options
+    const promptForBuild = lastBuiltPrompt || params.prompt || '';
+    params.prompt = buildEnrichedPrompt(template, specs, formState, promptForBuild);
+    lastBuiltPrompt = params.prompt;
+
+    const negNiche = (formState.niche && formState.niche !== 'auto-detect') ? formState.niche : (template.niche || '');
+    const negativePrompt = formState['_customNegativePrompt'] || composeNegativePrompt(template.filmFamily || '', negNiche, formState.visualStyle || 'commercial') || specs.negativePrompt || '';
+    if (negativePrompt) params.negative_prompt = negativePrompt;
+
+    // Attach the user-generated custom thumbnail if one exists
+    if (customThumbnailUrl) {
+      params.thumbnail_url = customThumbnailUrl;
+    }
+
+    // Client-side validation before muapi call
+    const EFFECT_MODELS = ['ai-video-effects', 'motion-controls', 'video-effects', 'vfx'];
+    const needsImageUrl = template.modelType === 'i2v' || template.modelType === 'i2i';
+    if (needsImageUrl && !params.image_url) {
+      showInlineError(container, 'Please upload an image before generating.');
+      return;
+    }
+     // V2V models need a video_url instead of image_url
+     const selectedModelObj = loadedModels.find(m => m.id === selectedModel);
+     const isV2V = v2vModels.includes(selectedModelObj) || (selectedModelObj && selectedModelObj.videoField === 'video_url');
+     if (isV2V && !params.video_url) {
+      showInlineError(container, 'Please upload a video before generating.');
+      return;
+    }
+    if (EFFECT_MODELS.includes(params.model) && !params.name) {
+      showInlineError(container, 'Please enter a name before generating.');
+      return;
+    }
+
+    // Store params for retry and run generation
+    lastGenerationParams = params;
+    retryCount = 0;
+    await runGeneration(params);
+  };
+
+  async function runGeneration(params) {
+    if (isGenerating) return;
 
     isGenerating = true;
     genBtn.disabled = true;
     genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Generating...';
 
     try {
-      const params = { model: selectedModel || template.model, ...(template.defaultParams || {}) };
+      // Merge template defaults with the params built by genBtn.onclick
+      const mergedParams = { model: selectedModel || template.model, ...(template.defaultParams || {}), ...params };
+      params = mergedParams;
 
       // Normalize aspect ratio for standard and matrix templates
       const aspectRatio = template.aspectRatio || (template.aspectRatios ? template.aspectRatios[0] : null);
@@ -771,24 +1206,47 @@ export function TemplateStudio(templateId) {
       const negativePrompt = composeNegativePrompt(template.filmFamily || '', negNiche, formState.visualStyle || 'commercial') || specs.negativePrompt || '';
       if (negativePrompt) params.negative_prompt = negativePrompt;
 
-      let result;
-      if (template.modelType === 'i2v') {
-        result = await muapi.generateI2V(params);
-      } else if (template.modelType === 'i2i') {
-        result = await muapi.generateI2I(params);
-      } else {
-        result = await muapi.generateImage(params);
-      }
+        let result;
+        if (template.modelType === 'i2v') {
+          result = await muapi.generateI2V(params);
+        } else if (template.modelType === 'i2i') {
+          result = await muapi.generateI2I(params);
+        } else if (template.modelType === 't2v') {
+          const isV2V = getV2VModelById(selectedModel);
+          if (isV2V) {
+            result = await muapi.processV2V(params);
+          } else {
+            result = await muapi.generateVideo(params);
+          }
+        } else if (template.modelType === 'v2v') {
+          result = await muapi.processV2V(params);
+        } else {
+          result = await muapi.generateImage(params);
+        }
 
       if (result && result.url) {
         showResult(result.url);
         saveToHistory(result.url, params.prompt || template.name);
+        retryCount = 0; // Reset on success
+        updateApiKeyIndicator();
       } else {
         throw new Error('No output URL returned');
       }
     } catch (err) {
       console.error('[TemplateStudio]', err);
-      genBtn.textContent = `Error: ${err.message.slice(0, 40)}`;
+      const message = err.message || 'Generation failed';
+      const userMessage = message.length > 80 ? 'Generation failed. Please try again.' : message;
+      const retryHtml = retryCount < MAX_RETRIES ? ' <button id="retry-btn" class="ml-2 underline text-emerald-200 hover:text-white">Retry</button>' : '';
+      showInlineError(container, `${userMessage}${retryHtml}`);
+      const retryBtn = container.querySelector('#retry-btn');
+      if (retryBtn && lastGenerationParams) {
+        retryBtn.onclick = () => {
+          retryCount++;
+          const errEl = container.querySelector('.ts-inline-error');
+          if (errEl) errEl.remove();
+          runGeneration(lastGenerationParams);
+        };
+      }
       setTimeout(() => {
         genBtn.textContent = 'Generate';
         genBtn.disabled = false;
@@ -944,6 +1402,7 @@ export function TemplateStudio(templateId) {
         </div>
         <div class="flex gap-3 mt-4">
           <a href="${url}" download="${template.id}-${Date.now()}" class="flex-1 bg-white text-black py-3 rounded-xl font-bold text-sm text-center hover:opacity-90 transition">Download</a>
+          <button type="button" class="publish-social-btn flex-1 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-3 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
           <button id="generateAgainBtn" class="flex-1 border border-white/10 bg-white/[0.04] text-white py-3 rounded-xl font-bold text-sm hover:bg-white/[0.08] transition">Generate Again</button>
         </div>
       </div>
@@ -953,6 +1412,11 @@ export function TemplateStudio(templateId) {
       const againBtn = document.getElementById('generateAgainBtn');
       if (againBtn) {
         againBtn.onclick = () => genBtn.click();
+      }
+      const publishBtn = resultArea.querySelector('.publish-social-btn');
+      if (publishBtn) {
+        const mediaType = template.outputType === 'video' ? 'video' : 'image';
+        publishBtn.onclick = () => openSocialPublish({ mediaUrl: url, mediaType });
       }
     }, 0);
   }

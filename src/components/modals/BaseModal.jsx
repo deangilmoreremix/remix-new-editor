@@ -13,11 +13,20 @@ const DESIGN_SYSTEM = {
     text: 'var(--text)',
     muted: 'var(--muted)',
     dim: 'var(--dim)',
+    // Brand primary (neon #d9ff00) + the black that must sit on top of it.
+    // Every studio surface uses this pair for its main CTA, so the modal
+    // chrome uses it too instead of the old cyan/emerald accent.
+    primary: 'var(--primary)',
+    primarySoft: 'var(--primary-soft)',
+    onPrimary: 'var(--on-primary)',
+    primaryGlow: 'var(--primary-glow)',
+    danger: 'var(--danger)',
+    dangerSoft: 'rgba(239,68,68,0.2)',
+    // Legacy aliases — kept so existing rules keep resolving. Both now point
+    // at the brand primary via modal-styles.css.
     cyan: 'var(--cyan)',
     cyanSoft: 'var(--cyan-soft)',
-    emerald: 'var(--emerald)',
-    danger: 'var(--danger)',
-    dangerSoft: 'rgba(239,68,68,0.2)'
+    emerald: 'var(--emerald)'
   },
   radii: {
     xl: 'var(--radius-xl)',
@@ -125,9 +134,9 @@ const BASE_MODAL_STYLES = `
   }
   
   .modal-close:hover {
-    border-color: ${DESIGN_SYSTEM.colors.cyan};
-    background: ${DESIGN_SYSTEM.colors.cyanSoft};
-    color: ${DESIGN_SYSTEM.colors.cyan};
+    border-color: ${DESIGN_SYSTEM.colors.primary};
+    background: ${DESIGN_SYSTEM.colors.primarySoft};
+    color: ${DESIGN_SYSTEM.colors.primary};
     transform: translateY(-1px);
   }
   
@@ -183,18 +192,18 @@ const BASE_MODAL_STYLES = `
   
   .modal-btn:focus {
     outline: none;
-    box-shadow: 0 0 0 2px ${DESIGN_SYSTEM.colors.bg}, 0 0 0 4px ${DESIGN_SYSTEM.colors.cyan};
+    box-shadow: 0 0 0 2px ${DESIGN_SYSTEM.colors.bg}, 0 0 0 4px ${DESIGN_SYSTEM.colors.primary};
   }
   
   .modal-btn-primary {
-    background: linear-gradient(135deg, ${DESIGN_SYSTEM.colors.cyan}, ${DESIGN_SYSTEM.colors.emerald});
-    color: #03131a;
+    background: ${DESIGN_SYSTEM.colors.primary};
+    color: ${DESIGN_SYSTEM.colors.onPrimary};
     border-color: transparent;
   }
   
   .modal-btn-primary:hover {
     transform: translateY(-1px);
-    box-shadow: 0 8px 24px rgba(34,211,238,0.25);
+    box-shadow: 0 8px 24px ${DESIGN_SYSTEM.colors.primaryGlow};
   }
   
   .modal-btn-primary:active {
@@ -208,9 +217,9 @@ const BASE_MODAL_STYLES = `
   }
   
   .modal-btn-secondary:hover {
-    border-color: ${DESIGN_SYSTEM.colors.cyan};
-    background: ${DESIGN_SYSTEM.colors.cyanSoft};
-    color: ${DESIGN_SYSTEM.colors.cyan};
+    border-color: ${DESIGN_SYSTEM.colors.primary};
+    background: ${DESIGN_SYSTEM.colors.primarySoft};
+    color: ${DESIGN_SYSTEM.colors.primary};
     transform: translateY(-1px);
   }
   
@@ -246,7 +255,7 @@ const BASE_MODAL_STYLES = `
     width: 40px;
     height: 40px;
     border: 3px solid ${DESIGN_SYSTEM.colors.border};
-    border-top-color: ${DESIGN_SYSTEM.colors.cyan};
+    border-top-color: ${DESIGN_SYSTEM.colors.primary};
     border-radius: 50%;
     animation: modal-spin 0.8s linear infinite;
   }
@@ -467,7 +476,7 @@ export class BaseModal {
               outline:none;
               transition:border-color ${DESIGN_SYSTEM.durations.fast} ease;
             "
-            onfocus="this.style.borderColor='${DESIGN_SYSTEM.colors.cyan}'"
+            onfocus="this.style.borderColor='${DESIGN_SYSTEM.colors.primary}'"
             onblur="this.style.borderColor='${DESIGN_SYSTEM.colors.border}'"
           />
         `,
@@ -530,6 +539,11 @@ export class BaseModal {
   }
 
   render() {
+    if (this.overlay && this.overlay.parentNode) {
+      this.overlay.parentNode.removeChild(this.overlay);
+      this.removeEventListeners();
+    }
+
     const content = this.error ? this.renderError() : this.loading ? this.renderLoading() : this.renderBody();
     
     const footer = this.showFooter ? `
@@ -561,6 +575,11 @@ export class BaseModal {
 
     document.body.appendChild(this.overlay);
     this.content = this.overlay.querySelector('.modal-content');
+
+    if (this.state === 'open') {
+      this.setupAccessibility();
+      this.setupEventListeners();
+    }
   }
 
   renderBody() {
@@ -576,6 +595,17 @@ export class BaseModal {
     `;
   }
 
+  renderSkeleton() {
+    return `
+      <div class="modal-skeleton">
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+      </div>
+    `;
+  }
+
   renderError() {
     return `
       <div class="modal-error">
@@ -583,8 +613,8 @@ export class BaseModal {
         <h3 class="modal-error-title">Error</h3>
         <p class="modal-error-message">${this.errorMessage}</p>
         <div class="modal-error-actions">
-          <button class="modal-btn modal-btn-secondary modal-retry">Try Again</button>
-          <button class="modal-btn modal-btn-danger modal-dismiss">Dismiss</button>
+          <button class="btn-secondary-modern modal-retry">Try Again</button>
+          <button class="modal-btn-danger modal-dismiss">Dismiss</button>
         </div>
       </div>
     `;
@@ -592,8 +622,8 @@ export class BaseModal {
 
   renderFooter() {
     return `
-      <button class="modal-btn modal-btn-secondary modal-cancel">Cancel</button>
-      <button class="modal-btn modal-btn-primary modal-confirm">Confirm</button>
+      <button class="btn-secondary-modern modal-cancel">Cancel</button>
+      <button class="btn-primary-modern modal-confirm">Confirm</button>
     `;
   }
 
@@ -795,11 +825,11 @@ export class ConfirmModal extends BaseModal {
 
   renderFooter() {
     if (!this.cancelText) {
-      return `<button class="modal-btn ${this.dangerous ? 'modal-btn-danger' : 'modal-btn-primary'} modal-confirm">${this.confirmText}</button>`;
+      return `<button class="${this.dangerous ? 'modal-btn-danger' : 'btn-primary-modern'} modal-confirm">${this.confirmText}</button>`;
     }
     return `
-      ${this.cancelText ? `<button class="modal-btn modal-btn-secondary modal-cancel">${this.cancelText}</button>` : ''}
-      <button class="modal-btn ${this.dangerous ? 'modal-btn-danger' : 'modal-btn-primary'} modal-confirm">${this.confirmText}</button>
+      ${this.cancelText ? `<button class="btn-secondary-modern modal-cancel">${this.cancelText}</button>` : ''}
+      <button class="${this.dangerous ? 'modal-btn-danger' : 'btn-primary-modern'} modal-confirm">${this.confirmText}</button>
 `;
   }
 }

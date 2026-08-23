@@ -43,8 +43,8 @@ class BaseAppConfig:
     """Debug mode for the app."""
     TESTING: bool = 1
     """Testing mode for the app."""
-    SECRET_KEY: str = "secret"
-    """Secret key for the app."""
+    SECRET_KEY: str = os.getenv("SERVER_SECRET_KEY", "")
+    """Secret key for the app. Must be set via SERVER_SECRET_KEY in production."""
     LOGGING_CONFIG: dict = LOGGING_CONFIG
     """Logging configuration for the app."""
     DB_TYPE: str = os.getenv("DB_TYPE", "sqlite")
@@ -70,8 +70,6 @@ class ProductionAppConfig(BaseAppConfig):
     """Debug mode for the app."""
     TESTING: bool = 0
     """Testing mode for the app."""
-    SECRET_KEY: str = "production"
-    """Secret key for the app."""
 
 
 configs = dict(local=LocalAppConfig, production=ProductionAppConfig)

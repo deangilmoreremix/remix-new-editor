@@ -30,7 +30,6 @@ class Script2VideoPipeline:
     shot_desc_events = {}
     frame_events = {}
 
-
     def __init__(
         self,
         chat_model: str,
@@ -51,6 +50,9 @@ class Script2VideoPipeline:
 
         self.working_dir = working_dir
         os.makedirs(self.working_dir, exist_ok=True)
+
+        self.camera_trajectories: Dict[int, List[State]] = {}
+        self._state_idx_counter = 0
 
 
 
@@ -231,7 +233,61 @@ class Script2VideoPipeline:
             final_video.write_videofile(final_video_path, codec="libx264", preset="medium")
             print(f"☑️ Concatenated videos, saved to {final_video_path}.")
 
+        self._save_camera_trajectories()
+
         return final_video_path
+
+    def _record_camera_state(
+        self,
+        camera: Camera,
+        shot_idx: int,
+        shot_descriptions: List[ShotDescription],
+    ) -> State:
+        if camera.idx not in self.camera_trajectories:
+            self.camera_trajectories[camera.idx] = []
+
+        state = State(
+            idx=self._state_idx_counter,
+            cam_idx=camera.idx,
+            shot_idx=shot_idx,
+            active_shot_idxs=camera.active_shot_idxs,
+            depends_on=[camera.parent_shot_idx] if camera.parent_shot_idx is not None else [],
+        )
+        self._state_idx_counter += 1
+        self.camera_trajectories[camera.idx].append(state)
+        return state
+
+    def _record_camera_trajectory(
+        self,
+        camera: Camera,
+        shot_descriptions: List[ShotDescription],
+    ):
+        for shot_idx in camera.active_shot_idxs:
+            self._record_camera_state(camera=camera, shot_idx=shot_idx, shot_descriptions=shot_descriptions)
+
+    def _save_camera_trajectories(self):
+        trajectory_path = os.path.join(self.working_dir, "camera_trajectories.json")
+        serialized = {
+            cam_idx: [state.model_dump() for state in states]
+            for cam_idx, states in self.camera_trajectories.items()
+        }
+        with open(trajectory_path, "w", encoding="utf-8") as f:
+            json.dump(serialized, f, ensure_ascii=False, indent=4)
+        print(f"✅ Saved camera trajectories to {trajectory_path}.")
+
+    def get_initial_states(self) -> Dict[int, State]:
+        initial_states = {}
+        for cam_idx, states in self.camera_trajectories.items():
+            if len(states) > 0:
+                initial_states[cam_idx] = states[0]
+        return initial_states
+
+    def get_state_dependency_graph(self) -> Dict[int, List[int]]:
+        dependency_graph = {}
+        for cam_idx, states in self.camera_trajectories.items():
+            for state in states:
+                dependency_graph[state.idx] = state.depends_on
+        return dependency_graph
 
 
     async def generate_frames_for_single_camera(
@@ -245,6 +301,8 @@ class Script2VideoPipeline:
         # 1. generate the first_frame of the first shot of the camera
         first_shot_idx = camera.active_shot_idxs[0]
         first_shot_ff_path = os.path.join(self.working_dir, "shots", f"{first_shot_idx}", "first_frame.png")
+
+        self._record_camera_trajectory(camera=camera, shot_descriptions=shot_descriptions)
 
         if os.path.exists(first_shot_ff_path):
             print(f"🚀 Skipped generating first_frame for shot {first_shot_idx}, already exists.")

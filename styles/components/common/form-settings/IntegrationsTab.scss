@@ -10,6 +10,15 @@
     margin-top: 1em;
   }
 
+  .zap-btn {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    border-radius: 20px;
+  }
+
   .webhook-container {
     margin-bottom: 1rem;
     display: flex;
@@ -19,6 +28,7 @@
       flex-direction: row;
       display: grid;
     }
+
     .item-delete {
       flex-grow: 1;
       display: flex;

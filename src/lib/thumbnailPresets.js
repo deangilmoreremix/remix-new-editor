@@ -18,6 +18,8 @@ export const THUMBNAIL_PRESETS = {
   cinematic: {
     key: 'cinematic',
     name: '🎬 Cinematic',
+    description: 'Widescreen film-like composition with shallow DOF and anamorphic lens.',
+    gradient: 'linear-gradient(135deg, #1e3a8a 0%, #7c3aed 50%, #1e293b 100%)',
     matchNiches: ['cinema', 'film', 'cinematic'],
     matchCategories: ['cinema', 'cinema-template-studio'],
     briefModifier: 'widescreen cinematic composition, shallow depth of field, anamorphic lens, color graded, 24fps, editorial framing',
@@ -26,6 +28,8 @@ export const THUMBNAIL_PRESETS = {
   productCutout: {
     key: 'productCutout',
     name: '📦 Product Cutout',
+    description: 'Isolated product on plain background, centered, crisp silhouette.',
+    gradient: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%)',
     matchNiches: ['product', 'ecom', 'retail'],
     matchCategories: [],
     briefModifier: 'isolated product on plain background, centered, crisp silhouette, no halos, label legible, soft contact shadow',
@@ -34,6 +38,8 @@ export const THUMBNAIL_PRESETS = {
   lifestyle: {
     key: 'lifestyle',
     name: '🌿 Lifestyle',
+    description: 'Warm natural light, candid moment, real-people feel.',
+    gradient: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)',
     matchNiches: ['fitness', 'wellness', 'lifestyle', 'salon', 'medspa', 'restaurant'],
     matchCategories: [],
     briefModifier: 'lifestyle photography, warm natural light, candid moment, real-people feel, gentle color palette, inviting atmosphere',
@@ -42,6 +48,8 @@ export const THUMBNAIL_PRESETS = {
   boldText: {
     key: 'boldText',
     name: '💥 Bold Text',
+    description: 'High-contrast, single dominant subject, large negative space for headline.',
+    gradient: 'linear-gradient(135deg, #ef4444 0%, #f97316 50%, #fbbf24 100%)',
     matchNiches: [],
     matchCategories: [],
     briefModifier: 'high-contrast composition, single dominant subject, large negative space for headline overlay, punchy colors, thumbnail-readable from arm\'s length',
@@ -50,6 +58,8 @@ export const THUMBNAIL_PRESETS = {
   minimal: {
     key: 'minimal',
     name: '⚪ Minimal',
+    description: 'Generous negative space, restrained palette, professional restraint.',
+    gradient: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 50%, #cbd5e1 100%)',
     matchNiches: ['legal', 'finance', 'consulting'],
     matchCategories: [],
     briefModifier: 'minimal composition, generous negative space, restrained palette, single subtle subject, professional restraint',
@@ -58,6 +68,8 @@ export const THUMBNAIL_PRESETS = {
   vertical: {
     key: 'vertical',
     name: '📱 Vertical',
+    description: '9:16 mobile-first framing, top-of-frame subject, caption space.',
+    gradient: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 50%, #f43f5e 100%)',
     matchNiches: ['tiktok', 'reels', 'shorts', 'stories'],
     matchCategories: ['video-studio', 'text-to-video'],
     briefModifier: 'vertical 9:16 framing, top-of-frame subject, lower-third space for caption, mobile-readable',

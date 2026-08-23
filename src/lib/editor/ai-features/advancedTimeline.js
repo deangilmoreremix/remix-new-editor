@@ -6,7 +6,7 @@ export const NLE_TOOLS = {
   SLIP: 'slip',
   SLIDE: 'slide',
   MUSIC: 'music',
-  FILL_GAP: 'fill-gap',
+  FILL_GAP: 'fillGap',
   EXTEND: 'extend',
   MASK: 'mask'
 };

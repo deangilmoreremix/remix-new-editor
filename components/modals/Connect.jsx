@@ -6,7 +6,7 @@ import useMakeStore from '../hooks/useMakeStore';
 
 import ViewProjectWindow from './ViewProjectWindow/indexImageLT';
 
-const Connect = ({ handleClose }) => {
+const Presets = ({ handleClose ,className, query}) => {
   const { getConnect } = useMakeStore();
 
   return (
@@ -14,7 +14,9 @@ const Connect = ({ handleClose }) => {
       handleClose={handleClose}
       fetchItems={getConnect}
       title="connect form"
-      instantStart
+      className={className}
+      instantStart={false}
+      query={query}
     />
   );
 };

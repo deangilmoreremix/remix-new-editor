@@ -46,10 +46,10 @@ describe('GTM Boost rollout across all studios', () => {
     });
   }
 
-  it('gtm-prompt-modal.css themes the template-studio button emerald', () => {
+  it('gtm-prompt-modal.css themes the template-studio button with the brand neon', () => {
     const css = fs.readFileSync(path.join(root, 'src/styles/gtm-prompt-modal.css'), 'utf8');
     expect(css).toContain('.template-studio .gtm-boost-btn');
-    expect(css).toContain('#10b981');
+    expect(css).toContain('#d9ff00');
   });
 });
 

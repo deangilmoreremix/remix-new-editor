@@ -3,6 +3,8 @@
  * Lightweight analytics implementation (replace with your preferred analytics service)
  */
 
+import { apiKeyManager } from './apiKeyManager.js';
+
 // Event types for tracking
 const EVENT_TYPES = {
     PAGE_VIEW: 'page_view',
@@ -29,7 +31,7 @@ class Analytics {
 
     getUserId() {
         // Use a hash of the API key or generate an anonymous ID
-        const key = localStorage.getItem('muapi_key');
+        const key = apiKeyManager.getMuapiKey();
         if (key) {
             let hash = 0;
             for (let i = 0; i < key.length; i++) {
@@ -84,13 +86,17 @@ class Analytics {
         this.queue = [];
 
         try {
-            // Replace with your analytics endpoint
-            // await fetch('/api/analytics', {
-            //     method: 'POST',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     body: JSON.stringify({ events })
-            // });
-            
+            const response = await fetch('/api/analytics', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ events }),
+                keepalive: true,
+            });
+
+            if (!response.ok) {
+                throw new Error(`Analytics endpoint returned ${response.status}`);
+            }
+
             // For now, just log in development
             if (import.meta.env.DEV) {
                 console.log('[Analytics] Flushed events:', events);

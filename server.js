@@ -7,7 +7,7 @@ const compression = require('compression');
 const next = require('next');
 const mobxReact = require('mobx-react');
 const { port, forceSsl, nakedRun } = require('./config/config');
-
+console.log(port,"port--->")
 const app = next({ dev });
 const handle = app.getRequestHandler();
 

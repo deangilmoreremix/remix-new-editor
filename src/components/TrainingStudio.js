@@ -3,12 +3,11 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { trainingModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
-import { createHeroSection } from '../lib/thumbnails.js';
+import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { openRecipeModal } from '../lib/recipeIntegration.js';
-import { openModelPicker } from '../lib/modelPickerIntegration.js';
-import { openMonetizationHub } from '../lib/monetizationIntegration.js';
-import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
+import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
+import { getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
 
 export function TrainingStudio() {
   const container = document.createElement('div');
@@ -20,6 +19,7 @@ export function TrainingStudio() {
   let triggerWord = '';
   let epochs = '10';
   let uploadedImages = [];
+  let customThumbnailUrl = getCustomThumbnailFromCache('training-studio');
 
   // Header with hero banner
   const header = document.createElement('div');
@@ -35,43 +35,117 @@ export function TrainingStudio() {
   container.appendChild(header);
 
   // Model selector
-  const modelRow = document.createElement('div');
-  modelRow.className = 'flex gap-3 mb-6 flex-wrap justify-center animate-fade-in-up';
-  modelRow.style.animationDelay = '0.1s';
+  const modelWrapper = document.createElement('div');
+  modelWrapper.className = 'mb-6 flex flex-col items-center gap-2 animate-fade-in-up';
+  modelWrapper.style.animationDelay = '0.1s';
 
-  const modelBtns = {};
-  trainingModels.forEach(m => {
-    const btn = document.createElement('button');
-    btn.className = 'px-5 py-3 rounded-xl text-sm font-bold transition-all border bg-white/5 text-secondary border-white/10 hover:bg-white/10';
-    btn.textContent = m.name;
-    btn.onclick = () => {
-      selectedModel = m;
-      updateModelBtns();
-    };
-    modelBtns[m.id] = btn;
-    modelRow.appendChild(btn);
-  });
-  // Model Picker button
-  const modelPickerBtn = document.createElement('button');
-  modelPickerBtn.type = 'button';
-  modelPickerBtn.textContent = 'AI Pick';
-  modelPickerBtn.title = 'Open intelligent model picker';
-  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-  modelPickerBtn.className = 'text-[11px] font-bold text-cyan-400 border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 rounded-lg hover:bg-cyan-400/20 transition-colors ml-2 whitespace-nowrap';
-  modelPickerBtn.addEventListener('click', () => {
-    openModelPicker({
-      currentModelId: selectedModel.id,
-      onSelectModel: (id) => {
-      const m = trainingModels.find(x => x.id === id);
-      if (m) {
-        selectedModel = m;
-        updateModelBtns();
+const triggerBtn = document.createElement('button');
+  triggerBtn.type = 'button';
+  triggerBtn.className = 'flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all border bg-white/5 text-secondary border-white/10 hover:bg-white/10';
+  const updateTrigger = () => {
+    const provider = selectedModel.provider || 'muapi';
+    const logoUrl = PROVIDER_LOGOS[provider];
+    if (logoUrl) {
+      triggerBtn.innerHTML = `<div class="w-4 h-4 rounded flex items-center justify-center overflow-hidden bg-white/5 shrink-0"><img src="${logoUrl}" alt="" class="w-full h-full object-contain ${invertLogos.includes(provider) ? 'invert' : ''}" /></div><span class="truncate">${selectedModel.name}</span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted shrink-0"><polyline points="6 9 12 15 18 9"/></svg>`;
+    } else {
+      const style = getProviderStyle(provider);
+      triggerBtn.innerHTML = `<div class="w-4 h-4 bg-primary rounded flex items-center justify-center shadow-lg shadow-primary/20 shrink-0"><span class="text-[8px] font-black text-black">${style.text}</span></div><span class="truncate">${selectedModel.name}</span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted shrink-0"><polyline points="6 9 12 15 18 9"/></svg>`;
+    }
+  };
+  updateTrigger();
+
+  const dropdown = document.createElement('div');
+  dropdown.className = 'fixed z-[200] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom';
+  dropdown.style.width = 'calc(100vw - 2rem)';
+  dropdown.style.maxWidth = '480px';
+  dropdown.style.maxHeight = '70vh';
+  dropdown.style.minHeight = '350px';
+
+  const closeDropdown = () => {
+    dropdown.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+    dropdown.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
+  };
+
+  const openDropdown = () => {
+    dropdown.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
+    dropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
+    if (!dropdown.dataset.populated) {
+      dropdown.dataset.populated = 'true';
+      const availableProviders = getAvailableProviders(trainingModels);
+      dropdown.innerHTML = `
+        <div class="flex gap-4 h-full max-h-[70vh] min-h-[350px] overflow-x-hidden">
+          <div data-provider-sidebar></div>
+          <div class="flex-1 flex flex-col gap-2 min-w-0">
+            ${renderSearchBar()}
+            <div class="text-xs font-semibold text-secondary py-1 shrink-0 flex items-center justify-between">
+              <span>Available models</span>
+              <span data-provider-badge class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60 hidden"></span>
+            </div>
+            <div data-model-list></div>
+          </div>
+        </div>
+      `;
+      const sidebarEl = dropdown.querySelector('[data-provider-sidebar]');
+      const modelListEl = dropdown.querySelector('[data-model-list]');
+      const providerBadge = dropdown.querySelector('[data-provider-badge]');
+      const searchInput = dropdown.querySelector('[data-provider-search]');
+      let selectedProvider = 'all';
+      const refresh = () => {
+        sidebarEl.innerHTML = renderProviderSidebar(availableProviders, selectedProvider, (provider) => {
+          selectedProvider = provider;
+          refresh();
+        });
+        const filtered = filterModels(trainingModels, searchInput ? searchInput.value : '', selectedProvider);
+        const showProviderName = selectedProvider === 'all';
+        modelListEl.innerHTML = renderModelList(filtered, selectedModel.id, showProviderName, (m) => {
+          selectedModel = trainingModels.find(x => x.id === m.id) || m;
+          updateTrigger();
+          closeDropdown();
+        });
+        if (selectedProvider !== 'all') {
+          const pName = availableProviders.find(p => p.id === selectedProvider)?.name || selectedProvider;
+          providerBadge.textContent = pName;
+          providerBadge.classList.remove('hidden');
+        } else {
+          providerBadge.classList.add('hidden');
+        }
+      };
+      refresh();
+      sidebarEl.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-provider]');
+        if (!btn) return;
+        e.stopPropagation();
+        const provider = btn.getAttribute('data-provider');
+        if (provider) {
+          selectedProvider = provider;
+          refresh();
+        }
+      });
+      searchInput.onclick = (e) => e.stopPropagation();
+      searchInput.oninput = () => refresh();
+    }
+  };
+
+  triggerBtn.onclick = (e) => {
+    e.stopPropagation();
+    if (dropdown.classList.contains('opacity-100')) {
+      closeDropdown();
+    } else {
+      openDropdown();
+    }
+  };
+
+  modelWrapper.appendChild(triggerBtn);
+  modelWrapper.appendChild(dropdown);
+  container.appendChild(modelWrapper);
+
+  setTimeout(() => {
+    document.addEventListener('click', (e) => {
+      if (!dropdown.contains(e.target) && e.target !== triggerBtn) {
+        closeDropdown();
       }
-      }
-    }).catch((err) => console.error('[ModelPicker] open failed:', err));
-  });
-  modelRow.appendChild(modelPickerBtn);
-  container.appendChild(modelRow);
+    });
+  }, 0);
 
   // Form card
   const formCard = document.createElement('div');
@@ -120,7 +194,7 @@ export function TrainingStudio() {
   ['5', '10', '20', '30'].forEach(e => {
     const btn = document.createElement('button');
     btn.className = e === epochs 
-      ? 'px-4 py-2 rounded-lg text-xs font-bold bg-primary text-black' 
+      ? 'px-4 py-2 rounded-lg text-xs font-bold btn-secondary-modern' 
       : 'px-4 py-2 rounded-lg text-xs font-bold bg-white/5 text-secondary hover:bg-white/10';
     btn.textContent = e;
     btn.onclick = () => {
@@ -142,8 +216,8 @@ export function TrainingStudio() {
 
   const imagePicker = createUploadPicker({
     anchorContainer: container,
-    accept: 'image/*',
-    multiple: true,
+    acceptVideo: false,
+    maxImages: 20,
     onSelect: ({ urls }) => { 
       uploadedImages = urls; 
       updateImageCount();
@@ -160,10 +234,40 @@ export function TrainingStudio() {
   formCard.appendChild(imageUploadGroup);
   container.appendChild(imagePicker.panel);
 
+  // Thumbnail studio button — next to creation controls, GTM Boost styling
+  const thumbBtn = document.createElement('button');
+  thumbBtn.type = 'button';
+  thumbBtn.textContent = '🖼 Thumbnail';
+  thumbBtn.title = 'Generate a custom thumbnail';
+  thumbBtn.className = 'btn-ghost-modern w-full';
+  thumbBtn.addEventListener('click', () => {
+    const modal = new TemplateThumbnailModal({
+      appTheme: 'training-studio',
+      layout: 'panel',
+      studioId: 'training-studio',
+      studioName: 'Training Studio',
+      aspectRatio: '1:1',
+      outputType: 'image',
+      onApply: ({ imageUrl }) => {
+        customThumbnailUrl = imageUrl;
+        saveCustomThumbnailToCache('training-studio', imageUrl);
+      },
+      onClear: () => {
+        customThumbnailUrl = null;
+        clearCustomThumbnailCache('training-studio');
+      },
+    });
+    mountThumbnailModal(modal);
+    modal.open();
+  });
+  formCard.appendChild(thumbBtn);
+
   // Train button
   const trainBtn = document.createElement('button');
-  trainBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all';
+trainBtn.type = 'button';
+  trainBtn.className = 'btn-primary-modern w-full px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all';
   trainBtn.textContent = 'Train LoRA';
+  trainBtn.setAttribute('aria-label', 'Train LoRA');
   formCard.appendChild(trainBtn);
 
   // Recipe Engine button
@@ -172,7 +276,7 @@ export function TrainingStudio() {
   recipeBtn.textContent = '📋 Recipes';
   recipeBtn.title = 'Browse AI recipes';
   recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-  recipeBtn.className = 'gtm-boost-btn shrink-0';
+  recipeBtn.className = 'btn-ghost-modern';
   recipeBtn.addEventListener('click', () => {
     openRecipeModal({
       onRunRecipe: (url) => {
@@ -184,10 +288,10 @@ export function TrainingStudio() {
   // Monetization Hub button
   const monetizationBtn = document.createElement('button');
   monetizationBtn.type = 'button';
-  monetizationBtn.textContent = "💼 Smart Video AI Monetize";
+  monetizationBtn.textContent = '💼 Monetize';
   monetizationBtn.title = "Open Smart Video AI Monetization Hub";
   monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-  monetizationBtn.className = 'gtm-boost-btn shrink-0';
+  monetizationBtn.className = 'btn-ghost-modern';
   monetizationBtn.addEventListener('click', () => {
     openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
   });
@@ -199,7 +303,7 @@ export function TrainingStudio() {
   promptGalleryBtn.textContent = '📚 Prompts';
   promptGalleryBtn.title = 'Browse prompt gallery';
   promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
-  promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
+  promptGalleryBtn.className = 'btn-ghost-modern';
   promptGalleryBtn.addEventListener('click', () => {
     openPromptGallery({
       appTheme: 'training-studio',
@@ -225,25 +329,18 @@ export function TrainingStudio() {
   // Result area
   const resultArea = document.createElement('div');
   resultArea.className = 'w-full max-w-md mt-6 hidden';
+  resultArea.setAttribute('role', 'status');
+  resultArea.setAttribute('aria-live', 'polite');
   container.appendChild(resultArea);
 
   // Helper functions
-  function updateModelBtns() {
-    Object.entries(modelBtns).forEach(([id, btn]) => {
-      if (id === selectedModel.id) {
-        btn.className = 'px-5 py-3 rounded-xl text-sm font-bold transition-all border bg-primary text-black border-primary';
-      } else {
-        btn.className = 'px-5 py-3 rounded-xl text-sm font-bold transition-all border bg-white/5 text-secondary border-white/10 hover:bg-white/10';
-      }
-    });
-  }
 
   function updateEpochsBtns() {
     const epochsRow = epochsGroup.querySelector('.flex.gap-2');
     Array.from(epochsRow.children).forEach((btn, i) => {
       const e = ['5', '10', '20', '30'][i];
       btn.className = e === epochs 
-        ? 'px-4 py-2 rounded-lg text-xs font-bold bg-primary text-black' 
+        ? 'px-4 py-2 rounded-lg text-xs font-bold btn-secondary-modern' 
         : 'px-4 py-2 rounded-lg text-xs font-bold bg-white/5 text-secondary hover:bg-white/10';
     });
   }
@@ -254,6 +351,7 @@ export function TrainingStudio() {
 
   // Train button handler
   trainBtn.onclick = async () => {
+    if (!(await requireEntitlement())) return;
     if (!loraName) {
       alert('Enter a LoRA name');
       return;
@@ -262,7 +360,7 @@ export function TrainingStudio() {
       alert('Upload at least 5 training images (10-20 recommended)');
       return;
     }
-    const apiKey = localStorage.getItem('muapi_key');
+    const apiKey = apiKeyManager.getMuapiKey();
     if (!apiKey) { 
       AuthModal(() => trainBtn.click()); 
       return; 
@@ -275,7 +373,7 @@ export function TrainingStudio() {
       const params = { 
         model: selectedModel.id,
         name: loraName,
-        images_list: uploadedImages,
+        images: uploadedImages,
         epochs: parseInt(epochs),
       };
       
@@ -288,7 +386,7 @@ export function TrainingStudio() {
           <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4">
             <div class="text-green-400 font-bold mb-3">Training Complete!</div>
             <p class="text-white/60 text-sm mb-3">Your LoRA model has been trained successfully.</p>
-            <a href="${result.lora_url}" download class="block w-full bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download LoRA</a>
+            <a href="${result.lora_url}" download class="block w-full btn-secondary-modern py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download LoRA</a>
           </div>
         `;
       }
@@ -300,6 +398,5 @@ export function TrainingStudio() {
     }
   };
 
-  updateModelBtns();
   return container;
 }

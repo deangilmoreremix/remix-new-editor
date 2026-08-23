@@ -11,11 +11,13 @@ const KEY_STORAGE = {
   muapi: 'muapi_key',
   openai: 'openai_key',
   videodb: 'videodb_key',
+  pexels: 'pexels_key',
 };
 const KEY_HASH_STORAGE = {
   muapi: 'muapi_key_hash',
   openai: 'openai_key_hash',
   videodb: 'videodb_key_hash',
+  pexels: 'pexels_key_hash',
 };
 
 // Simple obfuscation - NOT encryption, but adds a layer against casual reading
@@ -54,6 +56,7 @@ export class ApiKeyManager {
             muapi: { key: null, hash: null },
             openai: { key: null, hash: null },
             videodb: { key: null, hash: null },
+            pexels: { key: null, hash: null },
         };
         this._listeners = new Set();
     }
@@ -74,13 +77,21 @@ export class ApiKeyManager {
         this._cache[kind].hash = hash;
 
         // Store in sessionStorage (primary - cleared on tab close)
-        sessionStorage.setItem(KEY_STORAGE[kind], obfuscate(trimmedKey));
-        sessionStorage.setItem(KEY_HASH_STORAGE[kind], hash);
+        try {
+            sessionStorage.setItem(KEY_STORAGE[kind], obfuscate(trimmedKey));
+            sessionStorage.setItem(KEY_HASH_STORAGE[kind], hash);
+        } catch {
+            // Storage may be disabled; the in-memory cache still holds the key.
+        }
 
         // Optionally persist to localStorage with obfuscation
         if (persist) {
-            localStorage.setItem(KEY_STORAGE[kind], obfuscate(trimmedKey));
-            localStorage.setItem(KEY_HASH_STORAGE[kind], hash);
+            try {
+                localStorage.setItem(KEY_STORAGE[kind], obfuscate(trimmedKey));
+                localStorage.setItem(KEY_HASH_STORAGE[kind], hash);
+            } catch {
+                // Quota exceeded or storage disabled; cache still works for this session.
+            }
         }
 
         this._notifyListeners();
@@ -90,20 +101,34 @@ export class ApiKeyManager {
         if (this._cache[kind].key) return this._cache[kind].key;
 
         // Try sessionStorage first
-        const sessionKey = sessionStorage.getItem(KEY_STORAGE[kind]);
+        let sessionKey = null;
+        try {
+            sessionKey = sessionStorage.getItem(KEY_STORAGE[kind]);
+        } catch {
+            // Storage may be disabled (e.g. SecurityError in some browsers).
+        }
         if (sessionKey) {
             this._cache[kind].key = deobfuscate(sessionKey);
             return this._cache[kind].key;
         }
 
         // Fall back to localStorage
-        const localKey = localStorage.getItem(KEY_STORAGE[kind]);
+        let localKey = null;
+        try {
+            localKey = localStorage.getItem(KEY_STORAGE[kind]);
+        } catch {
+            // Storage may be disabled.
+        }
         if (localKey) {
             const decoded = deobfuscate(localKey);
             if (decoded) {
                 this._cache[kind].key = decoded;
                 // Restore to sessionStorage
-                sessionStorage.setItem(KEY_STORAGE[kind], localKey);
+                try {
+                    sessionStorage.setItem(KEY_STORAGE[kind], localKey);
+                } catch {
+                    // Best-effort restore; ignore failures.
+                }
                 return decoded;
             }
         }
@@ -113,24 +138,50 @@ export class ApiKeyManager {
 
     _hasKeyFor(kind) {
         if (this._cache[kind].key) return true;
-        return !!(
-            sessionStorage.getItem(KEY_STORAGE[kind]) ||
-            localStorage.getItem(KEY_STORAGE[kind])
-        );
+        let sessionValue = null;
+        let localValue = null;
+        try {
+            sessionValue = sessionStorage.getItem(KEY_STORAGE[kind]);
+        } catch {
+            // Storage may be disabled.
+        }
+        try {
+            localValue = localStorage.getItem(KEY_STORAGE[kind]);
+        } catch {
+            // Storage may be disabled.
+        }
+        return !!(sessionValue || localValue);
     }
 
     _getStoredHashFor(kind) {
-        return sessionStorage.getItem(KEY_HASH_STORAGE[kind]) ||
-               localStorage.getItem(KEY_HASH_STORAGE[kind]);
+        try {
+            const sessionHash = sessionStorage.getItem(KEY_HASH_STORAGE[kind]);
+            if (sessionHash) return sessionHash;
+        } catch {
+            // Storage may be disabled.
+        }
+        try {
+            return localStorage.getItem(KEY_HASH_STORAGE[kind]);
+        } catch {
+            return null;
+        }
     }
 
     _clearKeyFor(kind) {
         this._cache[kind].key = null;
         this._cache[kind].hash = null;
-        sessionStorage.removeItem(KEY_STORAGE[kind]);
-        sessionStorage.removeItem(KEY_HASH_STORAGE[kind]);
-        localStorage.removeItem(KEY_STORAGE[kind]);
-        localStorage.removeItem(KEY_HASH_STORAGE[kind]);
+        try {
+            sessionStorage.removeItem(KEY_STORAGE[kind]);
+            sessionStorage.removeItem(KEY_HASH_STORAGE[kind]);
+        } catch {
+            // Storage may be disabled.
+        }
+        try {
+            localStorage.removeItem(KEY_STORAGE[kind]);
+            localStorage.removeItem(KEY_HASH_STORAGE[kind]);
+        } catch {
+            // Storage may be disabled.
+        }
         this._notifyListeners();
     }
 
@@ -160,11 +211,18 @@ export class ApiKeyManager {
     getVideoDBHash() { return this._getStoredHashFor('videodb'); }
     clearVideoDBKey() { return this._clearKeyFor('videodb'); }
 
+    // ---- Pexels key ----
+    async setPexelsKey(key, persist = true) { return this._setKeyFor('pexels', key, persist); }
+    getPexelsKey() { return this._getKeyFor('pexels'); }
+    hasPexelsKey() { return this._hasKeyFor('pexels'); }
+    getPexelsHash() { return this._getStoredHashFor('pexels'); }
+    clearPexelsKey() { return this._clearKeyFor('pexels'); }
+
     /**
      * Whether any provider key is configured.
      */
     hasAnyKey() {
-        return this.hasMuapiKey() || this.hasOpenAIKey() || this.hasVideoDBKey();
+        return this.hasMuapiKey() || this.hasOpenAIKey() || this.hasVideoDBKey() || this.hasPexelsKey();
     }
 
     /**
@@ -175,7 +233,8 @@ export class ApiKeyManager {
         const muapiHash = this._getStoredHashFor('muapi');
         const openaiHash = this._getStoredHashFor('openai');
         const videodbHash = this._getStoredHashFor('videodb');
-        return hash === muapiHash || hash === openaiHash || hash === videodbHash;
+        const pexelsHash = this._getStoredHashFor('pexels');
+        return hash === muapiHash || hash === openaiHash || hash === videodbHash || hash === pexelsHash;
     }
 
     /**
@@ -218,7 +277,7 @@ apiKeyManager.migrateFromLegacy();
  * key (so every `localStorage.getItem('muapi_key')` / `apiKeyManager.getKey()`
  * guard passes). Activated by either:
  *   - VITE_DEV_BYPASS_AUTH=true in the .env file, or
- *   - a `?dev` query param in the URL (e.g. http://localhost:3000/?dev)
+ *   - a `?dev` query param in the URL (e.g. http://localhost:3100/?dev)
  *
  * This only runs in the browser and never affects production builds where the
  * flag is unset. The placeholder key is NOT a real Muapi key, so live API calls

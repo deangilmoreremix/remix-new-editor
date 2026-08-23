@@ -86,10 +86,67 @@ export default class PresetStore extends BaseStore {
     this.getList({ page, query, perPage, params: { segment: makeTypes.EVN_IMAGE_LT_PRESETS }, path: '/api/makes/revolution' })
   );
 
+  getNeonLT = ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_NEON_LT }, path: '/api/makes/revolution' })
+  );
+
+  getRetroLT = ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_RETRO_LT }, path: '/api/makes/revolution' })
+  );
+  getSocialMediaLT = ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_SOCIAL_MEDIA_LT }, path: '/api/makes/revolution' })
+  );
+  getNeonSocialMediaLT = ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_NEON_SOCIAL_MEDIA_LT }, path: '/api/makes/revolution' })
+  );
+  getLocationTitles =  ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_LOCATION_TITLES }, path: '/api/makes/revolution' })
+  );
+  getSocialMediaIcon3D =  ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_SOCIAL_MEDIA_ICON_3D }, path: '/api/makes/revolution' })
+  );
+  getCallOutTitlePackage =  ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_CALL_OUT_TITLE_PACKAGE }, path: '/api/makes/revolution' })
+  );
+  getNeonArrowPack =  ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_NEON_ARROW_PACK }, path: '/api/makes/revolution' })
+  );
+  getSocialMediaPack =  ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_SOCIAL_MEDIA_PACK }, path: '/api/makes/revolution' })
+  );
+  getSocialMediaButtonPack =  ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_SOCIAL_MEIDA_BUTTON_PACK }, path: '/api/makes/revolution' })
+  );
   getEndScreens = ({ page = 1, query = '', perPage = 12 }) => (
     this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_END_SCREENS }, path: '/api/makes/revolution' })
   );
-
+  getMusic = ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_MUSIC }, path: '/api/makes/revolution' })
+  );
+  getQuotes = ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_QUOTES }, path: '/api/makes/revolution' })
+  );
+  getCountDownTimers = ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_COUNT_DOWN_TIMERS }, path: '/api/makes/revolution' })
+  );
+  getEcommerce = ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_ECOMMERCE }, path: '/api/makes/revolution' })
+  );
+  getPriceTags = ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_PRICE_TAGS }, path: '/api/makes/revolution' })
+  );
+  getSMPvpBundle = ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_SM_PVP_BUNDLE }, path: '/api/makes/revolution' })
+  );
+  getGreatTechLayoff = ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_GREAT_TECH_LAYOFF }, path: '/api/makes/revolution' })
+  )
+  getYouTubeInterActive = ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_YOUTUBE_INTERACTIVE }, path: '/api/makes/revolution' })
+  );
+  getMillionDollarHack= ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_MILLION_DOLLAR_HACK }, path: '/api/makes/revolution' })
+  );
 
   getEvolutionTemplatesCTA = ({ page = 1, query = '', perPage = 20 }) => (
     this.getList({ page, query, perPage, params: { segment: makeTypes.EVN_CTA }, path: '/api/makes/revolution' })

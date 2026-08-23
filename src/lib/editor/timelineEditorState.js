@@ -171,5 +171,64 @@ export const createTimelineState = () => {
     }
   };
 
+  state.updateTrack = function(trackId, updates) {
+    const tracks = state.tracks.map((track) =>
+      track.id === trackId ? { ...track, ...updates } : track,
+    );
+    state.tracks = tracks;
+    if (state.project) {
+      state.project = {
+        ...state.project,
+        tracks: state.project.tracks.map((track) =>
+          track.id === trackId ? { ...track, ...updates } : track,
+        ),
+      };
+    }
+    return state;
+  };
+
+  // Multi-timeline helpers
+  state.getActiveTimeline = function() {
+    return timelineState.getActiveTimeline();
+  };
+
+  state.setActiveTimeline = function(id) {
+    timelineState.setActiveTimeline(id);
+    return state;
+  };
+
+  state.addTimeline = function(name) {
+    timelineState.addTimeline(name);
+    return state;
+  };
+
+  state.removeTimeline = function(id) {
+    timelineState.removeTimeline(id);
+    return state;
+  };
+
+  state.renameTimeline = function(id, name) {
+    timelineState.renameTimeline(id, name);
+    return state;
+  };
+
+  state.saveActiveTimeline = function() {
+    if (!state.timelines || !state.activeTimelineId) return;
+    const { syncTimelineFromState } = require('./timeline-bridge.js');
+    syncTimelineFromState(state);
+  };
+
+  state.loadActiveTimeline = function() {
+    const timeline = state.timelines && state.activeTimelineId
+      ? state.timelines[state.activeTimelineId]
+      : null;
+    if (!timeline) return;
+    const { timelineToLegacy } = require('./timeline-bridge.js');
+    const legacy = timelineToLegacy(timeline, { timelineSeconds: state.timelineSeconds || 60 });
+    state.tracks = legacy.tracks;
+    state.project.tracks = legacy.tracks;
+    state.timeline = timeline;
+  };
+
   return state;
 };

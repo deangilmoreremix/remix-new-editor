@@ -37,6 +37,10 @@ export default class Media extends BaseStore {
 
   @observable mediaTypeDetector;
 
+  @observable isBgDiffusion = false;
+
+  @observable imageUrl = null;
+
   getProvider = (providerName, assetType) => {
     try {
       return this.providers[providerName][assetType];
@@ -68,8 +72,8 @@ export default class Media extends BaseStore {
     const { assetType, query, count } = options;
     let response = await this.assetsRequest(
       `/${assetType}/index.json`, {
-        method: 'GET',
-      },
+      method: 'GET',
+    },
     );
     response.reverse();
     if (query.length > 0) {
@@ -121,12 +125,12 @@ export default class Media extends BaseStore {
     try {
       await this.request(
         url, {
-          method: 'POST',
-          body,
-          headers: {
-            'on-behalf': this.currentUser.id,
-          },
-        });
+        method: 'POST',
+        body,
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
     } catch (e) {
       console.error(e);
       throw e;
@@ -169,12 +173,12 @@ export default class Media extends BaseStore {
     try {
       const result = await this.request(
         path, {
-          method: 'POST',
-          body,
-          headers: {
-            'on-behalf': this.currentUser.id,
-          },
-        });
+        method: 'POST',
+        body,
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
       return result;
     } catch (e) {
       console.error(e);
@@ -193,12 +197,12 @@ export default class Media extends BaseStore {
     try {
       const response = await this.selfRequest(
         '/api/get-temporary-voice', {
-          method: 'POST',
-          body,
-          headers: {
-            'on-behalf': this.currentUser.id,
-          },
-        });
+        method: 'POST',
+        body,
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
 
       const audioStream = response.AudioStream.data;
       const uInt8Array = new Uint8Array(audioStream);
@@ -217,7 +221,7 @@ export default class Media extends BaseStore {
       }
       return { blob, audio };
     } catch (err) {
-      console.log(err);
+      console.log(err, "jdhfdjhfdjhdjdhs");
     }
   };
 
@@ -236,12 +240,12 @@ export default class Media extends BaseStore {
     try {
       const response = await this.selfRequest(
         '/api/get-temporary-best-voice', {
-          method: 'POST',
-          body,
-          headers: {
-            'on-behalf': this.currentUser.id,
-          },
-        });
+        method: 'POST',
+        body,
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
       const audioStream = response.audioContent.data;
       const uInt8Array = new Uint8Array(audioStream);
       const arrayBuffer = uInt8Array.buffer;
@@ -259,7 +263,7 @@ export default class Media extends BaseStore {
       }
       return { blob, audio };
     } catch (err) {
-      console.log(err);
+      console.log(err, "erp======================");
     }
   };
 
@@ -278,10 +282,10 @@ export default class Media extends BaseStore {
     try {
       const response = await this.selfRequest(
         '/api/save-temporary-voice', {
-          method: 'PUT',
-          body,
-          headers,
-        });
+        method: 'PUT',
+        body,
+        headers,
+      });
       return response;
     } catch (err) {
       console.log(err);
@@ -293,9 +297,9 @@ export default class Media extends BaseStore {
     try {
       await this.selfRequest(
         '/api/media/join', {
-          method: 'POST',
-          body: { videoSrc, audioSrc },
-        });
+        method: 'POST',
+        body: { videoSrc, audioSrc },
+      });
     } catch (e) {
       console.error(e);
     }
@@ -306,12 +310,12 @@ export default class Media extends BaseStore {
     try {
       await this.request(
         `/api/users/me/media-assets/${_id}`, {
-          method: 'PATCH',
-          body: { title },
-          headers: {
-            'on-behalf': this.currentUser.id,
-          },
-        });
+        method: 'PATCH',
+        body: { title },
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
       item.title = title;
     } catch (e) {
       console.error(e);
@@ -342,16 +346,16 @@ export default class Media extends BaseStore {
     try {
       file = await this.request(
         '/api/users/me/media-assets', {
-          method: 'POST',
-          headers: {
-            'on-behalf': this.currentUser.id,
-          },
-          body: {
-            ...item,
-            extra,
-            kind,
-          },
-        });
+        method: 'POST',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+        body: {
+          ...item,
+          extra,
+          kind,
+        },
+      });
     } catch (e) {
       console.error(e);
       throw e;
@@ -389,11 +393,11 @@ export default class Media extends BaseStore {
       const promiseArr = this.libraryItemsForDelete.map(id => (
         this.request(
           isTextToSpeech ? `/api/media-assets/${id}/hide` : `/api/users/me/media-assets/${id}`, {
-            method: isTextToSpeech ? 'PATCH' : 'DELETE',
-            headers: {
-              'on-behalf': this.currentUser.id,
-            },
-          })
+          method: isTextToSpeech ? 'PATCH' : 'DELETE',
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+        })
       ));
       return Promise.all(promiseArr).then(() => { this.libraryItemsForDelete = []; });
     } else {
@@ -450,11 +454,11 @@ export default class Media extends BaseStore {
       const promiseArr = this.presetsItemsForDelete.map(id => (
         this.request(
           `/api/presets/${id}`, {
-            method: 'DELETE',
-            headers: {
-              'on-behalf': this.currentUser.id,
-            },
-          })
+          method: 'DELETE',
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+        })
       ));
       return Promise.all(promiseArr).then(() => { this.presetsItemsForDelete = []; });
     } else {
@@ -468,17 +472,28 @@ export default class Media extends BaseStore {
       const promiseArr = this.presetsTLItemsForDelete.map(id => (
         this.request(
           `/api/presets/${id}`, {
-            method: 'DELETE',
-            headers: {
-              'on-behalf': this.currentUser.id,
-            },
-          })
+          method: 'DELETE',
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+        })
       ));
       return Promise.all(promiseArr).then(() => { this.presetsTLItemsForDelete = []; });
     } else {
       return Promise.resolve();
     }
   };
+
+  @action
+  setIsBgDiffusion = async (value) => {
+    this.isBgDiffusion = value;
+  }
+
+  @action
+  setBgImage = async (value) => {
+    this.imageUrl = value
+  }
+
 
   @action
   checkToken = async (activeBtn) => {

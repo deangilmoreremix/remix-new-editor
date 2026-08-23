@@ -5,6 +5,33 @@ export function FeaturesSection({ categories }) {
   section.className = 'py-20 px-4 bg-[#020205]';
   section.setAttribute('aria-labelledby', 'features-heading');
 
+  const defaultCategories = categories || {
+    creation: {
+      title: 'Creation',
+      features: ['Text to Image', 'Image to Image', 'Text to Video', 'Image to Video', 'Style Transfer', 'Inpainting', 'Outpainting', 'Upscaling']
+    },
+    cinema: {
+      title: 'Cinema',
+      features: ['Cinematic Video', 'Video Extension', 'First/Last Frame', 'Camera Control', 'Motion Brush', 'Video Inpainting']
+    },
+    character: {
+      title: 'Character',
+      features: ['Character Consistency', 'Face Swap', 'Voice Clone', 'Lip Sync', 'Pose Transfer']
+    },
+    vfx: {
+      title: 'VFX & Effects',
+      features: ['Particle Effects', 'Motion Graphics', 'Green Screen', 'Style Transfer', 'Color Grading']
+    },
+    editing: {
+      title: 'Editing',
+      features: ['Timeline Editor', 'Multi-track Audio', 'Subtitle Generation', 'Transition Effects', 'Speed Ramping']
+    },
+    commercial: {
+      title: 'Commercial',
+      features: ['Aspect Ratio Conversion', 'Watermark Removal', 'Batch Processing', 'API Access', 'White Label']
+    }
+  };
+
   const categoryColors = {
     creation: { bg: 'from-cyan-500/10 to-cyan-400/5 border-cyan-400/30', icon: 'from-cyan-500 to-cyan-400' },
     cinema: { bg: 'from-emerald-500/10 to-emerald-400/5 border-emerald-400/30', icon: 'from-emerald-500 to-emerald-400' },

@@ -3,17 +3,23 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { createHeroSection } from '../lib/thumbnails.js';
+import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
-import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
-import { openModelPicker } from '../lib/modelPickerIntegration.js';
-import { openRecipeModal } from '../lib/recipeIntegration.js';
-import { openMonetizationHub } from '../lib/monetizationIntegration.js';
-import { saveCharacterReference, getCharacterReference, listCharacterReferences } from '../lib/characterConsistency.js';
+import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
+import { openSocialPublish } from '../lib/socialPublishHelpers.js';
+import { mountModelSelector, getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
+import { createAdvancedControls } from '../lib/studioControls.js';
+import { getExtendedModel } from '../lib/modelInputExtensions.js';
+import { getModelById } from '../lib/models.js';
+import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
+import ExampleGallery from './studios/ExampleGallery.js';
+import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
+import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 
 const CHARACTER_MODELS = [
-  { id: 'flux-pulid', name: 'Flux PuLID', description: 'Face ID preservation with text prompt' },
-  { id: 'minimax-image-01-subject-reference', name: 'Subject Reference', description: 'Maintain subject consistency across images' },
+  { id: 'flux-pulid', name: 'Flux PuLID', description: 'Face ID preservation with text prompt', provider: 'blackforest', provider_name: 'Black Forest Labs' },
+  { id: 'minimax-image-01-subject-reference', name: 'Subject Reference', description: 'Maintain subject consistency across images', provider: 'minimax', provider_name: 'MiniMax' },
 ];
 
 export function CharacterStudio() {
@@ -22,11 +28,52 @@ export function CharacterStudio() {
   mountStudioChrome(container, { currentRoute: 'character' });
 
   let uploadedUrl = null;
+  let customThumbnailUrl = getCustomThumbnailFromCache('character-studio');
   let selectedModel = CHARACTER_MODELS[0];
-  let omniUrl = null;
-  let firstFrameUrl = '';
-  let lastFrameUrl = '';
-  let characterConsistency = false;
+const dynamicControls = null;
+  const dynamicControlsContainer = null;
+
+  // Read gallery / deep-link params and apply them as studio defaults.
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const templateParam = urlParams.get('template');
+    const academyParam = urlParams.get('academy-template');
+    const promptParam = urlParams.get('prompt');
+    const styleParam = urlParams.get('style');
+    const arParam = urlParams.get('aspect_ratio');
+    const durationParam = urlParams.get('duration');
+
+    if (templateParam) {
+      const tpl = resolveTemplate(templateParam);
+      if (tpl) {
+        if (tpl.model) { selectedModel = tpl.model; }
+        if (tpl.aspectRatio) { /* set aspect ratio */ }
+        if (tpl.duration) { /* set duration */ }
+        if (tpl.basePrompt) {
+          const ta = document.getElementById('character-prompt-input');
+          if (ta) ta.value = tpl.basePrompt;
+        } else if (tpl.slug) {
+          loadTemplatePrompt(templateParam).then((prompt) => {
+            if (prompt) {
+              const ta = document.getElementById('character-prompt-input');
+              if (ta) ta.value = prompt;
+            }
+          }).catch(() => {});
+        }
+      }
+    }
+
+    if (academyParam || promptParam) {
+      const target = academyParam ? getAcademyCreateTarget(academyParam) : null;
+      const params = target?.params || {};
+      if (params.prompt) {
+        const ta = document.getElementById('character-prompt-input');
+        if (ta) ta.value = params.prompt;
+      }
+      if (params.aspect_ratio) { /* set aspect ratio */ }
+      if (params.duration) { /* set duration */ }
+    }
+  } catch { /* ignore */ }
 
   const header = document.createElement('div');
   header.className = 'mb-8 animate-fade-in-up text-center w-full max-w-lg';
@@ -49,49 +96,75 @@ export function CharacterStudio() {
   modelLabel.textContent = 'Model';
   formCard.appendChild(modelLabel);
 
-  const modelRow = document.createElement('div');
-  modelRow.className = 'flex gap-2';
-  const modelBtns = {};
-  CHARACTER_MODELS.forEach(m => {
-    const btn = document.createElement('button');
-    btn.className = 'flex-1 px-4 py-3 rounded-xl text-xs font-bold transition-all border text-left';
-    btn.innerHTML = `<div class="text-white">${m.name}</div><div class="text-muted text-[10px] mt-0.5">${m.description}</div>`;
-    btn.onclick = () => {
-      selectedModel = m;
-      Object.entries(modelBtns).forEach(([id, b]) => {
-        b.className = id === m.id
-          ? 'flex-1 px-4 py-3 rounded-xl text-xs font-bold transition-all border bg-primary/10 border-primary/30'
-          : 'flex-1 px-4 py-3 rounded-xl text-xs font-bold transition-all border bg-white/[0.03] border-white/10 hover:border-white/20';
+  const modelWrapper = document.createElement('div');
+  modelWrapper.className = 'flex flex-col items-center gap-2';
+
+  const triggerBtn = document.createElement('button');
+  triggerBtn.type = 'button';
+  triggerBtn.className = 'flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all border bg-white/5 text-secondary border-white/10 hover:bg-white/10';
+  const updateTrigger = () => {
+    const provider = selectedModel.provider || 'muapi';
+    const logoUrl = PROVIDER_LOGOS[provider];
+    if (logoUrl) {
+      triggerBtn.innerHTML = `<div class="w-4 h-4 rounded flex items-center justify-center overflow-hidden bg-white/5 shrink-0"><img src="${logoUrl}" alt="" class="w-full h-full object-contain ${invertLogos.includes(provider) ? 'invert' : ''}" /></div><span class="truncate">${selectedModel.name}</span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted shrink-0"><polyline points="6 9 12 15 18 9"/></svg>`;
+    } else {
+      const style = getProviderStyle(provider);
+      triggerBtn.innerHTML = `<div class="w-4 h-4 bg-primary rounded flex items-center justify-center shadow-lg shadow-primary/20 shrink-0"><span class="text-[8px] font-black text-black">${style.text}</span></div><span class="truncate">${selectedModel.name}</span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted shrink-0"><polyline points="6 9 12 15 18 9"/></svg>`;
+    }
+  };
+  updateTrigger();
+
+  const dropdown = document.createElement('div');
+  dropdown.className = 'fixed z-[200] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom';
+  dropdown.style.width = 'calc(100vw - 2rem)';
+  dropdown.style.maxWidth = '480px';
+  dropdown.style.maxHeight = '70vh';
+  dropdown.style.minHeight = '350px';
+
+  const closeDropdown = () => {
+    dropdown.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+    dropdown.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
+  };
+
+  const openDropdown = () => {
+    dropdown.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
+    dropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
+    if (!dropdown.dataset.populated) {
+      dropdown.dataset.populated = 'true';
+      mountModelSelector(dropdown, {
+        models: CHARACTER_MODELS,
+        selectedModelId: selectedModel.id,
+        showProviderName: true,
+        onSelectModel: (modelId) => {
+          selectedModel = CHARACTER_MODELS.find(x => x.id === modelId) || { id: modelId };
+          updateTrigger();
+          buildDynamicControls();
+          closeDropdown();
+        },
       });
-    };
-    modelBtns[m.id] = btn;
-    modelRow.appendChild(btn);
-  });
-  // Model Picker button
-  const modelPickerBtn = document.createElement('button');
-  modelPickerBtn.type = 'button';
-  modelPickerBtn.textContent = 'AI Pick';
-  modelPickerBtn.title = 'Open intelligent model picker';
-  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-  modelPickerBtn.className = 'text-[11px] font-bold text-cyan-400 border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 rounded-lg hover:bg-cyan-400/20 transition-colors ml-2 whitespace-nowrap';
-  modelPickerBtn.addEventListener('click', () => {
-    openModelPicker({
-      currentModelId: selectedModel.id,
-      onSelectModel: (id) => {
-        const m = CHARACTER_MODELS.find(x => x.id === id);
-        if (m) {
-          selectedModel = m;
-          Object.entries(modelBtns).forEach(([mid, b]) => {
-            b.className = mid === m.id
-              ? 'flex-1 px-4 py-3 rounded-xl text-xs font-bold transition-all border bg-primary/10 border-primary/30'
-              : 'flex-1 px-4 py-3 rounded-xl text-xs font-bold transition-all border bg-white/[0.03] border-white/10 hover:border-white/20';
-          });
-        }
+}
+  };
+
+  triggerBtn.onclick = (e) => {
+    e.stopPropagation();
+    if (dropdown.classList.contains('opacity-100')) {
+      closeDropdown();
+    } else {
+      openDropdown();
+    }
+  };
+
+  modelWrapper.appendChild(triggerBtn);
+  modelWrapper.appendChild(dropdown);
+  formCard.appendChild(modelWrapper);
+
+  setTimeout(() => {
+    document.addEventListener('click', (e) => {
+      if (!dropdown.contains(e.target) && e.target !== triggerBtn) {
+        closeDropdown();
       }
-    }).catch((err) => console.error('[ModelPicker] open failed:', err));
-  });
-  modelRow.appendChild(modelPickerBtn);
-  formCard.appendChild(modelRow);
+    });
+  }, 0);
 
   const uploadLabel = document.createElement('label');
   uploadLabel.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
@@ -113,74 +186,31 @@ export function CharacterStudio() {
   formCard.appendChild(uploadRow);
   container.appendChild(picker.panel);
 
-  // Character consistency: omni-reference + first/last frame
-  const consistencySection = document.createElement('div');
-  consistencySection.className = 'flex flex-col gap-3';
-  const consistencyLabel = document.createElement('label');
-  consistencyLabel.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
-  consistencyLabel.textContent = 'Character Consistency';
-  consistencySection.appendChild(consistencyLabel);
-
-  const omniRow = document.createElement('div');
-  omniRow.className = 'flex items-center gap-3';
-  const omniPicker = createUploadPicker({
-    anchorContainer: container,
-    acceptImage: true,
-    onSelect: ({ url }) => {
-      omniUrl = url;
-      saveCharacterReference({ id: 'character-omni', imageUrl: url, modelId: selectedModel.id });
-    },
-    onClear: () => { omniUrl = null; }
-  });
-  omniRow.appendChild(omniPicker.trigger);
-  const omniHint = document.createElement('span');
-  omniHint.className = 'text-sm text-muted';
-  omniHint.textContent = 'Omni-reference image (optional)';
-  omniRow.appendChild(omniHint);
-  consistencySection.appendChild(omniRow);
-  container.appendChild(omniPicker.panel);
-
-  const frameRow = document.createElement('div');
-  frameRow.className = 'flex gap-3';
-  const firstFrameInput = document.createElement('input');
-  firstFrameInput.type = 'text';
-  firstFrameInput.placeholder = 'First frame URL (optional)';
-  firstFrameInput.className = 'flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-xs placeholder:text-muted focus:outline-none focus:border-primary/50';
-  const lastFrameInput = document.createElement('input');
-  lastFrameInput.type = 'text';
-  lastFrameInput.placeholder = 'Last frame URL (optional)';
-  lastFrameInput.className = 'flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-xs placeholder:text-muted focus:outline-none focus:border-primary/50';
-  frameRow.appendChild(firstFrameInput);
-  frameRow.appendChild(lastFrameInput);
-  firstFrameInput.addEventListener('input', () => { firstFrameUrl = firstFrameInput.value.trim(); });
-  firstFrameInput.addEventListener('change', () => { firstFrameUrl = firstFrameInput.value.trim(); });
-  lastFrameInput.addEventListener('input', () => { lastFrameUrl = lastFrameInput.value.trim(); });
-  lastFrameInput.addEventListener('change', () => { lastFrameUrl = lastFrameInput.value.trim(); });
-  consistencySection.appendChild(frameRow);
-  formCard.appendChild(consistencySection);
-
-  const consistencyToggleRow = document.createElement('div');
-  consistencyToggleRow.className = 'flex items-center justify-between';
-  const consistencyToggleLabel = document.createElement('span');
-  consistencyToggleLabel.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
-  consistencyToggleLabel.textContent = 'Seedance 2.5 Consistency';
-  const consistencyToggle = document.createElement('button');
-  consistencyToggle.type = 'button';
-  consistencyToggle.className = 'relative h-7 w-12 rounded-full transition bg-white/10 border border-white/10';
-  consistencyToggle.setAttribute('data-consistency', 'false');
-  const consistencyKnob = document.createElement('span');
-  consistencyKnob.className = 'absolute top-1 h-5 w-5 rounded-full bg-white transition left-1';
-  consistencyToggle.appendChild(consistencyKnob);
-  consistencyToggle.onclick = () => {
-    characterConsistency = !characterConsistency;
-    consistencyToggle.setAttribute('data-consistency', String(characterConsistency));
-    consistencyToggle.style.background = characterConsistency ? 'var(--cyan)' : '';
-    consistencyToggle.style.borderColor = characterConsistency ? 'var(--cyan)' : '';
-    consistencyKnob.style.left = characterConsistency ? 'calc(100% - 22px)' : '4px';
+const pexelsBtn = document.createElement('button');
+  pexelsBtn.type = 'button';
+  pexelsBtn.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden';
+  pexelsBtn.title = 'Browse stock photos from Pexels';
+  pexelsBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>';
+  pexelsBtn.onclick = async () => {
+    const { browsePexelsImages } = await import('../lib/studioPexels.js');
+    browsePexelsImages({
+      title: 'Select Reference Photo',
+      studioName: 'Character Studio',
+      onSelect: (asset) => {
+        uploadedUrl = asset.src?.large || asset.url || asset.original;
+        const attrContainer = document.getElementById('pexels-character-attribution');
+        if (attrContainer) {
+          attrContainer.innerHTML = '';
+          import('../lib/attributionChip.js').then(mod => mod.renderAttributionChip(asset, attrContainer));
+        }
+      }
+    });
   };
-  consistencyToggleRow.appendChild(consistencyToggleLabel);
-  consistencyToggleRow.appendChild(consistencyToggle);
-  formCard.appendChild(consistencyToggleRow);
+  uploadRow.appendChild(pexelsBtn);
+  const pexelsCharacterAttr = document.createElement('div');
+  pexelsCharacterAttr.id = 'pexels-character-attribution';
+  pexelsCharacterAttr.className = 'mt-1';
+  uploadRow.appendChild(pexelsCharacterAttr);
 
   const promptLabel = document.createElement('label');
   promptLabel.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
@@ -188,9 +218,11 @@ export function CharacterStudio() {
   formCard.appendChild(promptLabel);
 
   const promptInput = document.createElement('textarea');
+  promptInput.id = 'character-prompt-input';
   promptInput.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors resize-none';
   promptInput.rows = 3;
   promptInput.placeholder = 'e.g. wearing a leather jacket, standing in a neon-lit alley, cyberpunk style';
+  promptInput.setAttribute('aria-label', 'Character description');
   formCard.appendChild(promptInput);
 
   // Prompt Gallery button
@@ -199,7 +231,7 @@ export function CharacterStudio() {
   promptGalleryBtn.textContent = '📚 Prompts';
   promptGalleryBtn.title = 'Browse prompt gallery';
   promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
-  promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
+  promptGalleryBtn.className = 'btn-ghost-modern';
   promptGalleryBtn.addEventListener('click', () => {
     openPromptGallery({
       appTheme: 'character-studio',
@@ -213,35 +245,29 @@ export function CharacterStudio() {
       }
     }).catch((err) => console.error('[PromptGallery] open failed:', err));
   });
-  formCard.appendChild(promptGalleryBtn);
-
   // Recipe Engine button
   const recipeBtn = document.createElement('button');
   recipeBtn.type = 'button';
   recipeBtn.textContent = '📋 Recipes';
   recipeBtn.title = 'Browse AI recipes';
   recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-  recipeBtn.className = 'gtm-boost-btn shrink-0';
+  recipeBtn.className = 'btn-ghost-modern';
   recipeBtn.addEventListener('click', () => {
     openRecipeModal({
       onRunRecipe: (url) => {
       }
     }).catch((err) => console.error('[Recipe] open failed:', err));
   });
-  formCard.appendChild(recipeBtn);
-
   // Monetization Hub button
   const monetizationBtn = document.createElement('button');
   monetizationBtn.type = 'button';
-  monetizationBtn.textContent = "💼 Smart Video AI Monetize";
+  monetizationBtn.textContent = '💼 Monetize';
   monetizationBtn.title = "Open Smart Video AI Monetization Hub";
   monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-  monetizationBtn.className = 'gtm-boost-btn shrink-0';
+  monetizationBtn.className = 'btn-ghost-modern';
   monetizationBtn.addEventListener('click', () => {
     openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
   });
-  formCard.appendChild(monetizationBtn);
-
   // GTM Boost entry point — opens the prompt enhancer themed for character
   // creation and loads the result straight into this prompt.
   const gtmBtn = document.createElement('button');
@@ -249,7 +275,7 @@ export function CharacterStudio() {
   gtmBtn.textContent = '🎯 GTM Boost';
   gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
   gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
-  gtmBtn.className = 'gtm-boost-btn shrink-0';
+  gtmBtn.className = 'gtm-boost-btn';
   gtmBtn.addEventListener('click', () => {
     import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
       openGTMPromptModal('character-studio', (prompt) => {
@@ -259,7 +285,13 @@ export function CharacterStudio() {
       });
     }).catch((err) => console.error('[CharacterStudio] GTM Boost failed:', err));
   });
-  formCard.appendChild(gtmBtn);
+  const toolbar = document.createElement('div');
+  toolbar.className = 'flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06]';
+  toolbar.appendChild(gtmBtn);
+  toolbar.appendChild(recipeBtn);
+  toolbar.appendChild(monetizationBtn);
+  toolbar.appendChild(promptGalleryBtn);
+  formCard.appendChild(toolbar);
 
   // Personalize trigger (opens PersonalizeModal as a pop-up)
   const personalizeControls = document.createElement('div');
@@ -271,9 +303,39 @@ export function CharacterStudio() {
   });
   formCard.appendChild(personalizeControls);
 
+  // Thumbnail studio button — next to creation controls, GTM Boost styling
+  const thumbBtn = document.createElement('button');
+  thumbBtn.type = 'button';
+  thumbBtn.textContent = '🖼 Thumbnail';
+  thumbBtn.title = 'Generate a custom thumbnail';
+  thumbBtn.className = 'btn-ghost-modern w-full';
+  thumbBtn.addEventListener('click', () => {
+    const modal = new TemplateThumbnailModal({
+      appTheme: 'character-studio',
+      layout: 'panel',
+      studioId: 'character-studio',
+      studioName: 'Character Studio',
+      aspectRatio: '1:1',
+      outputType: 'image',
+      onApply: ({ imageUrl }) => {
+        customThumbnailUrl = imageUrl;
+        saveCustomThumbnailToCache('character-studio', imageUrl);
+      },
+      onClear: () => {
+        customThumbnailUrl = null;
+        clearCustomThumbnailCache('character-studio');
+      },
+    });
+    mountThumbnailModal(modal);
+    modal.open();
+  });
+  formCard.appendChild(thumbBtn);
+
   const genBtn = document.createElement('button');
-  genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all mt-2';
+genBtn.type = 'button';
+  genBtn.className = 'btn-primary-modern w-full px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all mt-2';
   genBtn.textContent = 'Generate Character';
+  genBtn.setAttribute('aria-label', 'Generate character');
   formCard.appendChild(genBtn);
   container.appendChild(formCard);
 
@@ -361,11 +423,14 @@ export function CharacterStudio() {
 
   const resultArea = document.createElement('div');
   resultArea.className = 'w-full max-w-lg mt-6 hidden';
+  resultArea.setAttribute('role', 'status');
+  resultArea.setAttribute('aria-live', 'polite');
   container.appendChild(resultArea);
 
   genBtn.onclick = async () => {
+    if (!(await requireEntitlement())) return;
     if (!uploadedUrl) { alert('Upload a reference face first'); return; }
-    const apiKey = localStorage.getItem('muapi_key');
+    const apiKey = apiKeyManager.getMuapiKey();
     if (!apiKey) { AuthModal(() => genBtn.click()); return; }
 
     genBtn.disabled = true;
@@ -377,25 +442,28 @@ export function CharacterStudio() {
         model: selectedModel.id,
         image_url: uploadedUrl,
         prompt: replaceTokensInPrompt(promptInput.value.trim(), activeProfile) || 'professional portrait photo',
-        reference_images: omniUrl ? [omniUrl] : undefined,
-        first_frame_url: firstFrameUrl || undefined,
-        last_frame_url: lastFrameUrl || undefined,
-        character_consistency: characterConsistency,
+customThumbnailUrl: customThumbnailUrl || undefined,
       };
-      const result = await muapi.generateI2I(params);
-      if (result?.url) {
-        resultArea.classList.remove('hidden');
-        resultArea.innerHTML = `
-          <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4 animate-fade-in-up">
-            <img src="${result.url}" class="w-full rounded-xl mb-3">
-            <div class="flex gap-3">
-              <a href="${result.url}" download class="flex-1 bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
-              <button class="flex-1 bg-white/10 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-white/20 transition-all" onclick="this.closest('.bg-\\\\[\\\\#111\\\\]').remove()">Generate Again</button>
-            </div>
-          </div>
-        `;
-        resultArea.querySelector('button').onclick = () => genBtn.click();
+      if (dynamicControls) {
+        Object.assign(params, dynamicControls.getPayload({}));
       }
+      const result = await muapi.generateI2I(params);
+       if (result?.url) {
+         resultArea.classList.remove('hidden');
+         resultArea.innerHTML = `
+           <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4 animate-fade-in-up">
+             <img src="${result.url}" class="w-full rounded-xl mb-3">
+             <div class="flex gap-3">
+               <a href="${result.url}" download class="flex-1 btn-secondary-modern py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
+               <button class="flex-1 bg-white/10 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-white/20 transition-all" onclick="this.closest('.bg-\\\\[\\\\#111\\\\]').remove()">Generate Again</button>
+               <button type="button" class="publish-social-btn flex-1 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
+             </div>
+           </div>
+         `;
+         const publishBtn = resultArea.querySelector('.publish-social-btn');
+         if (publishBtn) publishBtn.onclick = () => openSocialPublish({ mediaUrl: result.url, mediaType: 'image' });
+         resultArea.querySelector('button').onclick = () => genBtn.click();
+       }
     } catch (err) {
       alert(`Error: ${err.message}`);
     } finally {
@@ -404,11 +472,12 @@ export function CharacterStudio() {
     }
   };
 
-  Object.entries(modelBtns).forEach(([id, btn]) => {
-    btn.className = id === selectedModel.id
-      ? 'flex-1 px-4 py-3 rounded-xl text-xs font-bold transition-all border bg-primary/10 border-primary/30'
-      : 'flex-1 px-4 py-3 rounded-xl text-xs font-bold transition-all border bg-white/[0.03] border-white/10 hover:border-white/20';
-  });
 
-  return container;
+    const galleryAssets = getAssetsForStudio('character');
+    if (galleryAssets.length > 0) {
+      const gallery = ExampleGallery({ studioId: 'character', assets: galleryAssets, maxCards: 28 });
+      container.appendChild(gallery);
+    }
+
+    return container;
 }

@@ -65,6 +65,9 @@ export default class UIStore {
 
   @observable isOpenFullWindow = false;
 
+  @observable handlewidthofai = true;
+
+
   @computed
   get templatesMenuItems() {
     return [
@@ -103,6 +106,11 @@ export default class UIStore {
       },
     ];
   }
+
+@action
+setradiobuttonfalse = (n) => {
+  this.handlewidthofai = n;
+}
 
   @action
   closeAllWindows = () => {
@@ -218,6 +226,18 @@ export default class UIStore {
     this.toggleVisibleCanvas(false);
   };
 
+
+  @action
+  openAiArtGenerator = (type) => {
+    console.log("type>>>>",type)
+    this.isOpenFullWindow = true;
+    this.projectStore.releaseElement();
+    this.secondaryWindowType = type;
+    this.toggleLeftBlock(false);
+    this.toggleTimeLine(false);
+    this.toggleVisibleCanvas(false);
+  };
+
   @action
   openSettings = () => {
     this.secondaryWindowType = WINDOW_TYPES.SETTING;
@@ -243,6 +263,7 @@ export default class UIStore {
 
   @action
   toggleRightBlock = (isOpen = true) => {
+    console.log("isOpen",isOpen)
     if (!this.checkboxLeft && !isOpen && !this.isTimelineOpen) {
       this.toggleIsExpand();
     }

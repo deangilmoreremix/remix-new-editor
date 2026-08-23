@@ -63,7 +63,7 @@ export function AssistPage() {
           chip.className = 'px-3 py-1.5 rounded-full text-[11px] font-bold bg-white/5 text-secondary hover:bg-white/10 transition-all';
         } else {
           selectedTags.add(tag);
-          chip.className = 'px-3 py-1.5 rounded-full text-[11px] font-bold bg-primary text-black transition-all';
+          chip.className = 'px-3 py-1.5 rounded-full text-[11px] font-bold btn-secondary-modern transition-all';
         }
         updateOutput();
       };
@@ -95,7 +95,7 @@ export function AssistPage() {
   };
 
   const useBtn = document.createElement('button');
-  useBtn.className = 'px-5 py-2.5 bg-primary text-black rounded-xl text-xs font-bold hover:shadow-glow transition-all';
+  useBtn.className = 'px-5 py-2.5 btn-secondary-modern rounded-xl text-xs font-bold hover:shadow-glow transition-all';
   useBtn.textContent = 'Use in Image Studio';
   useBtn.onclick = () => {
     localStorage.setItem('prefill_prompt', outputArea.textContent);
@@ -183,7 +183,7 @@ export function AssistPage() {
   lensSelect.select.onchange = updateCine;
 
   const cineUseBtn = document.createElement('button');
-  cineUseBtn.className = 'px-5 py-2.5 bg-primary text-black rounded-xl text-xs font-bold hover:shadow-glow transition-all';
+  cineUseBtn.className = 'px-5 py-2.5 btn-secondary-modern rounded-xl text-xs font-bold hover:shadow-glow transition-all';
   cineUseBtn.textContent = 'Use in Cinema Studio';
   cineUseBtn.onclick = () => {
     localStorage.setItem('prefill_prompt', cineOutput.textContent);

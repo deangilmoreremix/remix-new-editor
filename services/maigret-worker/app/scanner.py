@@ -81,6 +81,7 @@ class ScanResult:
     sites_checked: int = 0
     sites_found: int = 0
     graph: Dict[str, Any] = field(default_factory=dict)
+    warnings: List[str] = field(default_factory=list)
 
 
 def build_graph(username: str, platforms: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -234,12 +235,13 @@ def _normalize_maigret_result(raw: Any, username: str) -> ScanResult:
     """Convert Maigret's ``Dict[site, SiteResult]`` into a ScanResult.
 
     A site counts as a found profile when its ``status.status`` is
-    ``MaigretCheckStatus.CLAIMED``.
+    ``MaigretCheckStatus.CLAIMED``. Sites with errors are collected as warnings.
     """
     platforms: List[Dict[str, Any]] = []
+    warnings: List[str] = []
 
     if not raw:
-        return ScanResult(username=username)
+        return ScanResult(username=username, warnings=warnings)
 
     for site_name, entry in raw.items():
         try:
@@ -253,8 +255,16 @@ def _normalize_maigret_result(raw: Any, username: str) -> ScanResult:
             # still works for tests / offline shapes.
             if MaigretCheckStatus is not None:
                 found = raw_status == MaigretCheckStatus.CLAIMED
+                is_error = raw_status == MaigretCheckStatus.ERROR
             else:
                 found = str(raw_status) == "Claimed"
+                is_error = str(raw_status) == "Error"
+
+            if is_error:
+                error_msg = getattr(status_obj, "error", None) or getattr(status_obj, "message", None) or "Unknown error"
+                warnings.append(f"{site_name}: {error_msg}")
+                continue
+
             if not found:
                 continue
 
@@ -284,6 +294,7 @@ def _normalize_maigret_result(raw: Any, username: str) -> ScanResult:
         platforms=platforms,
         sites_checked=len(raw) if hasattr(raw, "__len__") else 0,
         sites_found=len(platforms),
+        warnings=warnings[:20],  # cap warnings
     )
 
 
