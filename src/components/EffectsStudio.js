@@ -1,5 +1,6 @@
 import { muapi } from '../lib/muapi.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
+import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
@@ -400,6 +401,26 @@ export async function EffectsStudio() {
     }
   };
   outputActions.appendChild(insertTimelineBtn);
+
+  const captionActionBtn = document.createElement('button');
+  captionActionBtn.type = 'button';
+  captionActionBtn.className = 'flex-1 min-w-[100px] bg-white/10 hover:bg-white/20 border border-white/10 text-white px-3 py-2 rounded-xl text-[10px] font-bold transition-all active:scale-95 hidden';
+  captionActionBtn.textContent = '💬 Add AI Captions';
+  captionActionBtn.title = 'Add AI captions to this video';
+  captionActionBtn.onclick = () => {
+    if (lastResultType !== 'video' || !lastResultUrl) return;
+    addCaptionButton({
+      videoUrl: lastResultUrl,
+      appTheme: 'effects-studio',
+      onComplete: (captionedUrl) => {
+        lastResultUrl = captionedUrl;
+        outputPreview.load(captionedUrl, { type: 'video', model: activeTab.label, filename: `${selectedEffect || 'fx'}-${Date.now()}` });
+        mobileOutputPreview.load(captionedUrl, { type: 'video' });
+        updateComparisonView();
+      },
+    });
+  };
+  outputActions.appendChild(captionActionBtn);
 
   outputCol.appendChild(outputActions);
 
@@ -1428,6 +1449,10 @@ generateBtn.type = 'button';
       lastInputUrl = uploadedUrl;
       updateComparisonView();
       saveToHistory(result.url, mediaType);
+      const captionBtn = outputCol.querySelector('.caption-action-btn, button[title="Add AI captions to this video"]');
+      if (captionBtn) {
+        captionBtn.classList.toggle('hidden', !isVideo);
+      }
     } else {
       outputPreview.showError('No output URL returned');
       mobileOutputPreview.showError('Failed');

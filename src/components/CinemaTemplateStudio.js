@@ -2658,6 +2658,29 @@ const firstChild = storyboardRoot.firstElementChild;
     };
     actions.appendChild(publishBtn);
 
+    if (currentTemplate?.outputType === 'video') {
+      const captionBtn = document.createElement('button');
+      captionBtn.type = 'button';
+      captionBtn.textContent = '💬 Add AI Captions';
+      captionBtn.className = 'px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-bold rounded-lg border border-white/10 transition-all';
+      captionBtn.onclick = () => {
+        const target = generationResult || resultImg.src || '';
+        if (target) {
+          addCaptionButton({
+            videoUrl: target,
+            appTheme: 'cinema-template-studio',
+            onComplete: (captionedUrl) => {
+              resultImg.src = captionedUrl;
+              if (currentTemplate?.outputType === 'video') {
+                resultImg.outerHTML = `<video src="${captionedUrl}" controls autoplay loop class="max-w-full max-h-[60vh] rounded-xl border border-white/10" style="display:block"></video>`;
+              }
+            },
+          });
+        }
+      };
+      actions.appendChild(captionBtn);
+    }
+
     preview.appendChild(resultImg);
     preview.appendChild(actions);
     container.appendChild(preview);

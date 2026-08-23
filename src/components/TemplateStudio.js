@@ -18,6 +18,7 @@ import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateTh
 import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
+import { addCaptionButton } from '../lib/editor/captionActions.js';
 
 export function TemplateStudio(templateId) {
   let template = getTemplateById(templateId);
@@ -1399,6 +1400,7 @@ let fallbackList = [];
           <a href="${url}" download="${template.id}-${Date.now()}" class="flex-1 bg-white text-black py-3 rounded-xl font-bold text-sm text-center hover:opacity-90 transition">Download</a>
           <button type="button" class="publish-social-btn flex-1 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-3 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
           <button id="generateAgainBtn" class="flex-1 border border-white/10 bg-white/[0.04] text-white py-3 rounded-xl font-bold text-sm hover:bg-white/[0.08] transition">Generate Again</button>
+          ${template.outputType === 'video' ? `<button type="button" class="caption-btn flex-1 bg-white/10 hover:bg-white/20 text-white py-3 rounded-xl font-bold text-sm border border-white/10 transition-all">💬 Add AI Captions</button>` : ''}
         </div>
       </div>
     `;
@@ -1412,6 +1414,21 @@ let fallbackList = [];
       if (publishBtn) {
         const mediaType = template.outputType === 'video' ? 'video' : 'image';
         publishBtn.onclick = () => openSocialPublish({ mediaUrl: url, mediaType });
+      }
+      const captionBtn = resultArea.querySelector('.caption-btn');
+      if (captionBtn && template.outputType === 'video') {
+        captionBtn.onclick = () => {
+          addCaptionButton({
+            videoUrl: url,
+            appTheme: 'template-studio',
+            onComplete: (captionedUrl) => {
+              const vid = resultArea.querySelector('video');
+              if (vid) vid.src = captionedUrl;
+              const previewVid = document.getElementById('previewArea')?.querySelector('video');
+              if (previewVid) previewVid.src = captionedUrl;
+            },
+          });
+        };
       }
     }, 0);
   }
