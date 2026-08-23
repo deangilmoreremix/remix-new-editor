@@ -6,7 +6,6 @@
 
 import { minimaxH3Demos, formatDuration, getCreateTarget as getMinimaxCreateTarget } from '../../../data/minimaxH3Demos.js';
 import { seedance25Demos, getCreateTarget as getCreateTargetSeedance } from '../../../data/beatapiSeedance25Demos.js';
-import { zeroLuDemos, loadDemoPrompt as loadZeroLuPrompt, getCreateTarget as getZeroLuCreateTarget } from '../../../data/zeroLuDemos.js';
 import { createMediaFrame, cleanupFrames, revealOnScroll } from './minimax/mediaFrame.js';
 import {
   injectMinimaxStyles,
@@ -21,44 +20,16 @@ import {
 import { handleViewPrompt } from './minimax/DemoPromptModal.js';
 
 const REEL_SLUGS = [
-  // MiniMax H3 demos
   'luxury-perfume-commercial',
   'luxury-skincare-storyboard-commercial',
   'yellow-sunglasses-in-a-black-studio',
   'strawberry-drink-transformation-commercial',
   'emerald-bio-serum-product-film',
   'black-and-gold-perfume-commercial',
-  // ZeroLu demos
-  'adam',
-  'bootoshi',
-  'guizang',
-  'john10',
-  'john1',
-  'john2',
-  'john3',
-  'john4',
-  'john5',
-  'john6',
-  'john7',
 ];
 
-// Build a combined lookup so we can resolve both MiniMax and ZeroLu slugs.
-const DEMO_MAP = new Map();
-for (const demo of minimaxH3Demos) {
-  DEMO_MAP.set(demo.slug, { ...demo, _source: 'minimax', _getCreateTarget: getMinimaxCreateTarget });
-}
-for (const demo of zeroLuDemos) {
-  DEMO_MAP.set(demo.slug, { ...demo, _source: 'zerolu', _getCreateTarget: getZeroLuCreateTarget });
-}
+const INITIAL_VISIBLE = 12;
 
-function resolveDemo(slug) {
-  return DEMO_MAP.get(slug) || null;
-}
-
-/**
- * Premium demo card shared by this section.
- * Media sits in a clean black 16:9 frame; metadata and CTAs sit below it.
- */
 function createReelCard(demo) {
   const card = document.createElement('article');
   card.className =
@@ -92,7 +63,6 @@ function createReelCard(demo) {
   });
   mediaHost.insertBefore(frame, mediaHost.firstChild);
 
-  // Play affordance, hidden once the video is running.
   const cue = document.createElement('span');
   cue.className =
     'pointer-events-none absolute left-1/2 top-1/2 z-10 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/45 backdrop-blur-sm transition-opacity duration-500 group-hover:opacity-0';
@@ -103,22 +73,14 @@ function createReelCard(demo) {
     </svg>`;
   mediaHost.appendChild(cue);
 
-  const actions = card.querySelector('[data-mmx-card-actions]');
   const primaryActions = card.querySelector('[data-mmx-primary-actions]');
   const studioIconsHost = card.querySelector('[data-mmx-studio-icons]');
 
-  // Use the correct prompt loader and target resolver based on the demo source.
-  const loadPrompt = demo._source === 'zerolu'
-    ? async (slug) => loadZeroLuPrompt(slug)
+  const getTarget = demo._source === 'seedance25'
+    ? (d) => getCreateTargetSeedance(d)
     : undefined;
 
-  const getTarget = demo._source === 'zerolu'
-    ? (d) => getZeroLuCreateTarget(d)
-    : demo._source === 'seedance25'
-      ? (d) => getCreateTargetSeedance(d)
-      : undefined;
-
-  primaryActions.appendChild(createViewPromptButton(demo, handleViewPrompt, { loadPrompt }));
+  primaryActions.appendChild(createViewPromptButton(demo, handleViewPrompt));
   primaryActions.appendChild(createStyleLink(demo, {
     label: 'Create This Style',
     getTarget
@@ -152,7 +114,11 @@ function createReelCard(demo) {
 export function MadeWithSmartVideo() {
   injectMinimaxStyles();
 
-  const curatedDemos = REEL_SLUGS.map((slug) => resolveDemo(slug)).filter(Boolean);
+  const curatedDemos = REEL_SLUGS
+    .map((slug) => minimaxH3Demos.find((d) => d.slug === slug))
+    .filter(Boolean)
+    .map((d) => ({ ...d, _source: 'minimax', _getCreateTarget: getMinimaxCreateTarget }));
+
   const cinemaDemos = seedance25Demos
     .filter((d) => d.category === 'Cinema')
     .map((d) => ({ ...d, _source: 'seedance25', _getCreateTarget: getCreateTargetSeedance }));
@@ -176,7 +142,6 @@ export function MadeWithSmartVideo() {
       })}
     </div>
 
-    <!-- mobile: horizontal snap reel / md+: responsive grid -->
     <div
       class="mmx-scroller flex snap-x gap-4 overflow-x-auto px-5 pb-4 sm:px-6 md:mx-auto md:grid md:max-w-7xl md:grid-cols-2 md:gap-6 md:overflow-visible md:pb-0 lg:grid-cols-3"
       data-mmx-reel
@@ -190,12 +155,65 @@ export function MadeWithSmartVideo() {
   `;
 
   const reel = section.querySelector('[data-mmx-reel]');
-  demos.forEach((demo) => reel.appendChild(createReelCard(demo)));
+  const footerText = section.querySelector('.container.mt-10');
 
-  const disposeReveal = revealOnScroll(section.querySelectorAll('.mmx-reveal'));
+  let expanded = false;
+
+  const showMoreButton = document.createElement('button');
+  showMoreButton.type = 'button';
+  showMoreButton.className = 'btn-enhanced inline-flex items-center gap-2 rounded-lg border border-white/12 bg-white/[0.03] px-6 py-3 text-sm font-bold text-white transition-all duration-300 hover:border-cyan-400/50 hover:bg-cyan-400/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#05070b]';
+  showMoreButton.innerHTML = `
+    <span data-mmx-show-more-label>Show All ${demos.length} Demos</span>
+    <svg class="h-4 w-4 transition-transform duration-300" data-mmx-show-more-icon fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+    </svg>
+  `;
+
+  const showMoreLabel = showMoreButton.querySelector('[data-mmx-show-more-label]');
+  const showMoreIcon = showMoreButton.querySelector('[data-mmx-show-more-icon]');
+
+  function render() {
+    const visible = expanded ? demos : demos.slice(0, INITIAL_VISIBLE);
+
+    cleanupFrames(reel);
+    while (reel.firstChild) reel.removeChild(reel.firstChild);
+
+    const fragment = document.createDocumentFragment();
+    visible.forEach((demo) => fragment.appendChild(createReelCard(demo)));
+    reel.appendChild(fragment);
+
+    const hasMore = demos.length > INITIAL_VISIBLE;
+    showMoreButton.parentElement.classList.toggle('hidden', !hasMore);
+
+    if (hasMore) {
+      showMoreLabel.textContent = expanded
+        ? 'Show Less'
+        : `Show All ${demos.length} Demos`;
+      showMoreIcon.classList.toggle('rotate-180', expanded);
+      showMoreButton.setAttribute('aria-expanded', String(expanded));
+    }
+
+    const disposeReveal = revealOnScroll(section.querySelectorAll('.mmx-reveal'), { stagger: 45 });
+    section._disposeReveal = () => {
+      disposeReveal();
+      cleanupFrames(section);
+    };
+  }
+
+  showMoreButton.addEventListener('click', () => {
+    expanded = !expanded;
+    render();
+    if (!expanded) {
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+
+  footerText.parentNode.insertBefore(showMoreButton, footerText);
+
+  render();
 
   section.cleanup = () => {
-    disposeReveal();
+    if (section._disposeReveal) section._disposeReveal();
     cleanupFrames(section);
   };
 
