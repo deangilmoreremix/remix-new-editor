@@ -105,15 +105,6 @@ const SHOWCASE_SECTIONS = [
     initial: 12,
   },
   {
-    id: 'sd-cinema',
-    source: 'seedance25',
-    category: 'Cinema',
-    eyebrow: 'Narrative Shorts',
-    title: 'Cinema Shorts',
-    subtitle: 'Story-driven concept films, narrative scenes, and cinematic sequences generated from long-form Seedance prompts.',
-    initial: 12,
-  },
-  {
     id: 'mmx-social',
     source: 'minimaxh3',
     category: 'Social',

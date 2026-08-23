@@ -5,6 +5,7 @@
 // and the shared governor in mediaFrame.js caps concurrent playback at two.
 
 import { minimaxH3Demos, formatDuration, getCreateTarget as getMinimaxCreateTarget } from '../../../data/minimaxH3Demos.js';
+import { seedance25Demos, getCreateTarget as getCreateTargetSeedance } from '../../../data/beatapiSeedance25Demos.js';
 import { zeroLuDemos, loadDemoPrompt as loadZeroLuPrompt, getCreateTarget as getZeroLuCreateTarget } from '../../../data/zeroLuDemos.js';
 import { createMediaFrame, cleanupFrames, revealOnScroll } from './minimax/mediaFrame.js';
 import {
@@ -113,7 +114,9 @@ function createReelCard(demo) {
 
   const getTarget = demo._source === 'zerolu'
     ? (d) => getZeroLuCreateTarget(d)
-    : undefined;
+    : demo._source === 'seedance25'
+      ? (d) => getCreateTargetSeedance(d)
+      : undefined;
 
   primaryActions.appendChild(createViewPromptButton(demo, handleViewPrompt, { loadPrompt }));
   primaryActions.appendChild(createStyleLink(demo, {
@@ -149,8 +152,12 @@ function createReelCard(demo) {
 export function MadeWithSmartVideo() {
   injectMinimaxStyles();
 
-  // Resolve demos from the combined map so we can mix MiniMax and ZeroLu slugs.
-  const demos = REEL_SLUGS.map((slug) => resolveDemo(slug)).filter(Boolean);
+  const curatedDemos = REEL_SLUGS.map((slug) => resolveDemo(slug)).filter(Boolean);
+  const cinemaDemos = seedance25Demos
+    .filter((d) => d.category === 'Cinema')
+    .map((d) => ({ ...d, _source: 'seedance25', _getCreateTarget: getCreateTargetSeedance }));
+
+  const demos = [...curatedDemos, ...cinemaDemos];
 
   const section = document.createElement('section');
   section.id = 'made-with-smartvideo';
