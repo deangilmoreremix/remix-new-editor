@@ -1,0 +1,273 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+  background: rgba(7, 5, 10, 0.75);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  overflow: hidden;
+}
+
+.card {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  padding: 28px 28px 24px;
+  background: var(--color-surface-overlay);
+  border: 1px solid var(--color-border-visible);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(139, 92, 246, 0.04);
+}
+
+/* Close button — outside the card, in overlay top-right */
+.closeBtn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 210;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: var(--color-text-muted);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-border-visible);
+  cursor: pointer;
+  transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+  font-family: inherit;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.closeBtn:hover {
+  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--color-border-glow);
+}
+
+/* Brand logo */
+.brandIcon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.brandLogo {
+  height: 24px;
+  width: auto;
+  opacity: 0.9;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: var(--radius-full);
+  margin-bottom: 16px;
+}
+
+.tab {
+  flex: 1;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.tab:hover {
+  color: var(--color-text);
+}
+
+.tabActive {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.tabActive:hover {
+  color: #fff;
+}
+
+/* Social buttons */
+.socials {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+/* Divider */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.dividerLine {
+  flex: 1;
+  height: 1px;
+  background: var(--color-border-visible);
+}
+
+.dividerText {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.socialTermsError {
+  font-size: 12px;
+  color: #FCA5A5;
+  margin-top: -8px;
+  margin-bottom: 10px;
+}
+
+/* Terms */
+.terms {
+  text-align: center;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin-top: 12px;
+}
+
+.termsLink {
+  color: var(--color-accent);
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+
+.termsLink:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+/* Forgot password heading */
+.forgotHeading {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text);
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+/* Forgot password link (signin only) */
+.forgotLink {
+  text-align: center;
+  margin-top: 12px;
+}
+
+.forgotLinkBtn {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: color 0.15s ease;
+}
+
+.forgotLinkBtn:hover {
+  color: var(--color-accent);
+}
+
+/* Switch link (forgot password back button) */
+.switchLink {
+  text-align: center;
+  margin-top: 4px;
+}
+
+.switchLinkBtn {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: color 0.15s ease;
+}
+
+.switchLinkBtn:hover {
+  color: var(--color-text);
+}
+
+/* Success state */
+.successState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 16px 0 8px;
+}
+
+.successIcon {
+  margin-bottom: 16px;
+}
+
+.successLogo {
+  height: 36px;
+  width: auto;
+  opacity: 0.9;
+}
+
+.successTitle {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 10px;
+}
+
+.successText {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin-bottom: 22px;
+}
+
+.successText strong {
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.backBtn {
+  padding: 10px 24px;
+  border-radius: var(--radius-full);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-border-visible);
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.backBtn:hover {
+  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--color-border-glow);
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 20px 16px 18px;
+  }
+}
