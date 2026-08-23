@@ -2,7 +2,16 @@ const files = [
   'apps','image','video','cinema','cinema-template','storyboard','effects',
   'edit','upscale','audio','avatar','training','academy','viral','videotools',
   'render','video-agent','director','timeline','chat','commercial','templates',
-  'explore','library','content-library','community','assist','commits','ai-vfx','pexels-media','settings'
+  'explore','library','content-library','community','assist','commits','ai-vfx','pexels-media','settings',
+  'template-tiktok-video','template-instagram-reel','template-youtube-thumbnail','template-short-form-ad',
+  'template-story-highlight-cover','template-profile-picture','template-banner-creator',
+  'template-anime-converter','template-comic-book','template-pixel-art','template-ghibli-style',
+  'template-cyberpunk-style','template-vhs-retro','template-film-noir','template-movie-poster',
+  'cinema-template-tiktok-video','cinema-template-instagram-reel','cinema-template-youtube-thumbnail',
+  'cinema-template-short-form-ad','cinema-template-story-highlight-cover','cinema-template-profile-picture',
+  'cinema-template-banner-creator','cinema-template-anime-converter','cinema-template-comic-book',
+  'cinema-template-pixel-art','cinema-template-ghibli-style','cinema-template-cyberpunk-style',
+  'cinema-template-vhs-retro','cinema-template-film-noir','cinema-template-movie-poster'
 ];
 const grid = document.getElementById('grid');
 files.forEach(name => {
