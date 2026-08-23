@@ -18,7 +18,7 @@ import { createAutosave, saveProject, loadProject } from '../lib/editor/persiste
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { createUploadPicker } from './UploadPicker.js';
-import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
+import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
@@ -793,7 +793,7 @@ const compareBtn = document.createElement('button');
 
   // Model / aspect-ratio dropdowns
   const dropdown = document.createElement('div');
-  dropdown.className = 'absolute bottom-[102%] left-2 z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-bottom-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
+  dropdown.className = 'absolute z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-bottom-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
 
   function closeDropdown() {
     dropdown.classList.add('opacity-0', 'pointer-events-none');
@@ -880,6 +880,7 @@ const compareBtn = document.createElement('button');
       }
     };
     document.addEventListener('click', _storyboardOutsideClickHandler);
+    positionModelSelectorDropdown(dropdown, anchorBtn, 8);
   }
 
   const createControlBtn = (icon, label, id, tooltip) => {

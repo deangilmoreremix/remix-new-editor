@@ -37,7 +37,7 @@ import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { selectScenes } from '../lib/sceneSelector.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
-import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
+import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
 import { enrichPromptString, composeNegativePrompt } from '../lib/templateEngine.js';
 
 export function CinemaTemplateStudio() {
@@ -1753,9 +1753,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       dropdown.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
       dropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
 
-      const triggerRect = triggerBtn.getBoundingClientRect();
-      dropdown.style.top = `${triggerRect.bottom + 6}px`;
-      dropdown.style.left = `${triggerRect.left}px`;
+      positionModelSelectorDropdown(dropdown, triggerBtn, 6);
 
       if (_modelSelectorOutsideClickHandler) {
         document.removeEventListener('click', _modelSelectorOutsideClickHandler);

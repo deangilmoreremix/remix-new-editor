@@ -7,7 +7,7 @@ import { getNicheTerms, enrichPromptString, deriveEngineInputFromTemplate, compo
 import { NICHE_ENRICHMENT, FILM_FAMILIES } from '../lib/templateMatrix.js';
 import { t2iModels, i2iModels, i2vModels, t2vModels, v2vModels, getV2VModelById } from '../lib/models.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
-import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
+import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
 import { AuthModal } from './AuthModal.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { createUploadPicker } from './UploadPicker.js';
@@ -556,9 +556,7 @@ let fallbackList = [];
       dropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
       triggerBtn.setAttribute('aria-expanded', 'true');
 
-      const triggerRect = triggerBtn.getBoundingClientRect();
-      dropdown.style.top = `${triggerRect.bottom + 6}px`;
-      dropdown.style.left = `${triggerRect.left}px`;
+      positionModelSelectorDropdown(dropdown, triggerBtn, 6);
 
       if (_modelSelectorOutsideClickHandler) {
         document.removeEventListener('click', _modelSelectorOutsideClickHandler);

@@ -9,7 +9,7 @@ import { buildNanoBananaPrompt, CAMERA_MAP, LENS_MAP, FOCAL_PERSPECTIVE, APERTUR
 import { AuthModal } from './AuthModal.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { getVideoModelById, getI2VModelById, getModelById, t2vModels, i2vModels, getDurationsForModel, getDurationsForI2VModel, getResolutionsForVideoModel, getResolutionsForI2VModel } from '../lib/models.js';
-import { mountModelSelector } from '../lib/modelSelectorUI.js';
+import { mountModelSelector, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { createUploadPicker } from './UploadPicker.js';
@@ -540,7 +540,7 @@ let showAdvanced = false;
     // Shared model dropdown (glass panel) — lists T2V models, or I2V models
     // when a reference image is loaded, with live search + per-model metadata.
     const modelDropdown = document.createElement('div');
-    modelDropdown.className = 'absolute bottom-[102%] left-2 z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-bottom-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-md shadow-4xl border border-white/10 flex flex-col';
+    modelDropdown.className = 'absolute z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-bottom-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-md shadow-4xl border border-white/10 flex flex-col';
     settingsToolbar.appendChild(modelDropdown);
 
     const closeModelDropdown = () => {
@@ -595,6 +595,7 @@ let showAdvanced = false;
             if (!modelDropdown.contains(e.target) && e.target !== modelBtn) closeModelDropdown();
         };
         document.addEventListener('click', _modelSelectorOutsideClickHandler);
+        positionModelSelectorDropdown(modelDropdown, modelBtn, 8);
     }
 
     // Sync controls (duration/resolution availability) to the selected model.

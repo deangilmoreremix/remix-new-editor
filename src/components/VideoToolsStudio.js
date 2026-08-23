@@ -10,7 +10,7 @@ import { createInlineInstructions } from './InlineInstructions.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
-import { mountModelSelector, getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
+import { mountModelSelector, getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { getModelById } from '../lib/models.js';
@@ -86,9 +86,7 @@ const triggerBtn = document.createElement('button');
     dropdown.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
     dropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
 
-    const triggerRect = triggerBtn.getBoundingClientRect();
-    dropdown.style.top = `${triggerRect.bottom + 6}px`;
-    dropdown.style.left = `${triggerRect.left}px`;
+    positionModelSelectorDropdown(dropdown, triggerBtn, 6);
 
     if (!dropdown.dataset.populated) {
       dropdown.dataset.populated = 'true';

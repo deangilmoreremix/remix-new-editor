@@ -646,3 +646,51 @@ export function mountModelSelector(container, options = {}) {
   container._msMount = st;
   return st.root;
 }
+
+/**
+ * Position a model-selector dropdown viewport-aware.
+ *
+ * Behavior:
+ * - Prefers placing the dropdown below the anchor when there is enough room.
+ * - Flips above the anchor when the viewport has more space there.
+ * - Constrains the dropdown height to the viewport so it never overflows.
+ *
+ * @param {HTMLElement} dropdown
+ * @param {HTMLElement} anchorBtn
+ * @param {number} [gap=8]
+ */
+export function positionModelSelectorDropdown(dropdown, anchorBtn, gap = 8) {
+  if (!dropdown || !anchorBtn) return;
+
+  const anchorRect = anchorBtn.getBoundingClientRect();
+  const viewportHeight = window.innerHeight;
+  const spaceBelow = viewportHeight - anchorRect.bottom;
+  const spaceAbove = anchorRect.top;
+
+  // Reset previous inline positioning so measurements are accurate.
+  dropdown.style.top = '';
+  dropdown.style.left = '';
+  dropdown.style.bottom = '';
+  dropdown.style.right = '';
+  dropdown.style.maxHeight = '';
+  dropdown.style.transform = '';
+
+  const placeBelow = spaceBelow >= spaceAbove || spaceBelow >= 320;
+
+  if (placeBelow) {
+    dropdown.style.top = `${anchorRect.bottom + gap}px`;
+  } else {
+    dropdown.style.top = 'auto';
+    dropdown.style.bottom = `${viewportHeight - anchorRect.top + gap}px`;
+  }
+
+  dropdown.style.left = `${anchorRect.left}px`;
+  dropdown.style.maxHeight = `${Math.max(viewportHeight - 32, 320)}px`;
+  dropdown.style.overflowY = 'auto';
+
+  // Keep horizontal bounds inside the viewport.
+  const estimatedWidth = Math.min(dropdown.offsetWidth || 480, window.innerWidth - 16);
+  if (anchorRect.left + estimatedWidth > window.innerWidth - 8) {
+    dropdown.style.left = `${Math.max(8, window.innerWidth - estimatedWidth - 8)}px`;
+  }
+}
