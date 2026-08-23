@@ -28,6 +28,7 @@ import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
+import { openModelPicker } from '../lib/modelPickerIntegration.js';
 
 // Camera movements promised by the Cinema Studio intro copy
 // ("Select camera movement … dolly, crane, orbit, FPV drone").
@@ -311,11 +312,11 @@ let showAdvanced = false;
     promptBarWrapper.style.animationDelay = '0.2s';
 
     const promptBar = document.createElement('div');
-    promptBar.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex justify-between shadow-3xl items-end relative';
+    promptBar.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 shadow-3xl relative';
 
-    // --- LEFT COLUMN (Input + Settings) ---
-    const leftColumn = document.createElement('div');
-    leftColumn.className = 'flex-1 flex flex-col gap-3 min-h-[80px]';
+    // --- INPUT AREA (Prompt + Upload) ---
+    const inputArea = document.createElement('div');
+    inputArea.className = 'flex flex-col gap-3';
 
     // 1. Input Area
     const inputRow = document.createElement('div');
@@ -367,7 +368,10 @@ let showAdvanced = false;
         });
       }).catch((err) => console.error('[CinemaStudio] GTM Boost failed:', err));
     });
-    inputRow.appendChild(gtmBtn);
+    const toolbar = document.createElement('div');
+    toolbar.className = 'flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06]';
+    toolbar.appendChild(gtmBtn);
+    inputRow.appendChild(toolbar);
 
     // --- Reference image upload (the "Upload your scene" step) ---
     // Real upload control that posts the still to the backend and stores the
@@ -452,8 +456,8 @@ let showAdvanced = false;
       }
     }
 
-    leftColumn.appendChild(inputRow);
-    leftColumn.appendChild(uploadRow);
+    inputArea.appendChild(inputRow);
+    inputArea.appendChild(uploadRow);
 
     // Small reference preview pill (hidden until an image is uploaded)
     const referencePill = document.createElement('div');
@@ -462,7 +466,7 @@ let showAdvanced = false;
       <img id="reference-thumb" class="hidden w-10 h-10 rounded-lg border border-white/10 object-cover" alt="reference" />
       <span class="text-[10px] text-secondary">Reference scene loaded — used as the seed for your cinematic shot.</span>
     `;
-    leftColumn.appendChild(referencePill);
+    inputArea.appendChild(referencePill);
 
     // 2. Settings Toolbar (Bottom Left)
     const settingsToolbar = document.createElement('div');
@@ -661,8 +665,7 @@ let showAdvanced = false;
         appId: 'cinema-studio',
     });
 
-    leftColumn.appendChild(settingsToolbar);
-    promptBar.appendChild(leftColumn);
+    promptBar.appendChild(inputArea);
 
 
     // --- RIGHT GROUP (Summary + Generate) ---
@@ -740,10 +743,15 @@ generateBtn.type = 'button';
        modal.open();
      };
 
-     rightGroup.appendChild(summaryCard);
-     rightGroup.appendChild(generateBtn);
-     rightGroup.appendChild(thumbBtn);
-    promptBar.appendChild(rightGroup);
+      rightGroup.appendChild(summaryCard);
+      rightGroup.appendChild(generateBtn);
+      rightGroup.appendChild(thumbBtn);
+
+    const buttonsRow = document.createElement('div');
+    buttonsRow.className = 'flex items-center gap-2 flex-wrap';
+    buttonsRow.appendChild(settingsToolbar);
+    buttonsRow.appendChild(rightGroup);
+    promptBar.appendChild(buttonsRow);
 
     promptBarWrapper.appendChild(promptBar);
     // Place the controls ABOVE the inline-instruction tips (which are appended
@@ -1364,8 +1372,8 @@ generateBtn.type = 'button';
     monetizationBtn.addEventListener('click', () => {
       openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
     });
-    if (!inputRow.querySelector('[aria-label="Open recipe engine"]')) inputRow.appendChild(recipeBtn);
-    if (!inputRow.querySelector('[aria-label="Open Smart Video AI Monetization Hub"]')) inputRow.appendChild(monetizationBtn);
+    if (!toolbar.querySelector('[aria-label="Open recipe engine"]')) toolbar.appendChild(recipeBtn);
+    if (!toolbar.querySelector('[aria-label="Open Smart Video AI Monetization Hub"]')) toolbar.appendChild(monetizationBtn);
 
             if (res && res.url) {
                 addToHistory({
