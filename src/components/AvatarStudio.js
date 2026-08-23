@@ -20,6 +20,7 @@ import ExampleGallery from './studios/ExampleGallery.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
+import { addCaptionButton } from '../lib/editor/captionActions.js';
 
 export function AvatarStudio() {
   const container = document.createElement('div');
@@ -445,8 +446,28 @@ const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('rem
            </div>
          `;
          const publishBtn = resultArea.querySelector('.publish-social-btn');
-         if (publishBtn) publishBtn.onclick = () => openSocialPublish({ mediaUrl: result.url, mediaType: 'video' });
-       }
+          if (publishBtn) publishBtn.onclick = () => openSocialPublish({ mediaUrl: result.url, mediaType: 'video' });
+          if (result.url && /\.(mp4|webm|mov|m3u8)/i.test(result.url)) {
+            const captionBtn = document.createElement('button');
+            captionBtn.type = 'button';
+            captionBtn.textContent = '💬 Add AI Captions';
+            captionBtn.className = 'w-full bg-white/10 hover:bg-white/20 text-white py-2.5 rounded-xl font-bold text-sm border border-white/10 transition-all mt-3';
+            captionBtn.onclick = () => {
+              addCaptionButton({
+                videoUrl: result.url,
+                appTheme: 'avatar-studio',
+                onComplete: (captionedUrl) => {
+                  const vid = resultArea.querySelector('video');
+                  if (vid) vid.src = captionedUrl;
+                  const dl = resultArea.querySelector('a[download]');
+                  if (dl) dl.href = captionedUrl;
+                  showToast('Preview updated with captions');
+                },
+              });
+            };
+            resultArea.appendChild(captionBtn);
+          }
+        }
     } catch (err) {
       alert(`Error: ${err.message}`);
     } finally {

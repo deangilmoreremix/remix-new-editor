@@ -237,7 +237,7 @@ export async function navigate(page, params = {}) {
   isNavigating = true;
   currentPage = page;
 
-  const mergedParams = { ...getExistingParams(), ...params };
+  let mergedParams = { ...getExistingParams(), ...params };
 
   mergedParams = cleanTemplateParams(mergedParams, page);
 

@@ -4,6 +4,7 @@
 @import './styles/example-gallery.css';
 
 @import './styles/gtm-prompt-modal.css';
+@import './styles/ai-captions-modal.css';
 #app {
   display: flex;
   flex-direction: column;

@@ -9199,6 +9199,18 @@ export const videoToolsModels = [
       "default": false
     }
   }
+},
+{
+  "id": "ai-captions",
+  "name": "AI Captions (Vadoo)",
+  "provider": "vadoo",
+  "provider_name": "Vadoo",
+  "endpoint": "ai-captions",
+  "family": "videotools",
+  "subtype": "caption",
+  "videoField": "video_url",
+  "hasPrompt": false,
+  "description": "AI-generated animated captions with viral themes like Hormozi style"
 }];
 
 export const getVideoToolById = (id) => videoToolsModels.find(m => m.id === id);

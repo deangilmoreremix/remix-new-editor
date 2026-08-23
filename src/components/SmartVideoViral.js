@@ -22,15 +22,15 @@ function injectMotionStyles() {
   const style = document.createElement('style');
   style.id = styleId;
   style.textContent = `
-    @keyframes viral-fade-in-up {
-      0% { opacity: 0; transform: translateY(16px); }
+    @keyframes smart-fade-in-up {
+      0% { opacity: 0; transform: translateY(24px); }
       100% { opacity: 1; transform: translateY(0); }
     }
     @keyframes viral-spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-    @keyframes viral-shimmer {
+    @keyframes smart-shimmer {
       0% { background-position: -200% 0; }
       100% { background-position: 120% 0; }
     }
@@ -54,10 +54,9 @@ function injectMotionStyles() {
       0% { transform: translateY(100%); }
       100% { transform: translateY(0); }
     }
-    .viral-card { opacity: 0; transform: translateY(24px); will-change: transform, opacity; }
-    .viral-card.animate { opacity: 1; transform: translateY(0); animation: viral-fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .smart-card { opacity: 0; transform: translateY(24px); will-change: transform, opacity; }
+    .smart-card.smart-animate { opacity: 1; transform: translateY(0); animation: smart-fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     .viral-refresh-spinning .viral-refresh-icon { animation: viral-spin 1s linear infinite; }
-    .viral-skeleton { background: linear-gradient(90deg, #1f1f23 0%, #2a2a33 50%, #1f1f23 100%); background-size: 200% 100%; animation: viral-shimmer 1.5s ease-in-out infinite; }
     .viral-hero-wrap { transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1), padding 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease; overflow: hidden; }
     .viral-hero-wrap.collapsed { max-height: 72px !important; padding-top: 8px !important; padding-bottom: 8px !important; opacity: 0.9; }
     .viral-hero-wrap.collapsed .viral-hero-body { opacity: 0; pointer-events: none; height: 0; overflow: hidden; }
@@ -83,10 +82,10 @@ function injectMotionStyles() {
     .viral-rail-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; padding: 0 4px; }
     .viral-stat-pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); font-size: 12px; color: #a1a1aa; animation: viral-count-up 0.5s ease forwards; }
     .viral-kbd { display: inline-flex; align-items: center; justify-content: center; padding: 2px 6px; border-radius: 6px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); font-size: 10px; color: #a1a1aa; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; line-height: 1; }
-    .viral-card-hover-actions { opacity: 0; transform: translateY(4px); transition: all 0.2s ease; }
-    .viral-card:hover .viral-card-hover-actions { opacity: 1; transform: translateY(0); }
-    .viral-card-media video { background: black; }
-    .viral-card-media.playing .viral-play-toggle { opacity: 0; pointer-events: none; }
+    .smart-card-hover-actions { opacity: 0; transform: translateY(4px); transition: all 0.2s ease; }
+    .smart-card:hover .smart-card-hover-actions { opacity: 1; transform: translateY(0); }
+    .smart-card-media video { background: black; }
+    .smart-card-media.is-playing .smart-play-toggle { opacity: 0; pointer-events: none; }
     @media (max-width: 1023px) { .viral-scrollspy { display: none; } }
   `;
   document.head.appendChild(style);
@@ -456,11 +455,11 @@ export function SmartVideoViral() {
       const id = parseInt(railItem.getAttribute('data-rail-item-id'), 10);
       const item = prompts.find(p => p.imglumeId === id);
       if (item && item.mediaType === 'video') openVideoModal(item);
-      const mainCard = document.querySelector(`.viral-card[data-imglume-id="${id}"]`);
+      const mainCard = document.querySelector(`.smart-card[data-imglume-id="${id}"]`);
       if (mainCard) {
         mainCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        mainCard.classList.add('ring-2', 'ring-primary');
-        setTimeout(() => mainCard.classList.remove('ring-2', 'ring-primary'), 2000);
+        mainCard.classList.add('is-selected');
+        setTimeout(() => mainCard.classList.remove('is-selected'), 2000);
       }
     }
     const catBtn = e.target.closest('[data-category-filter]');
@@ -571,23 +570,23 @@ export function SmartVideoViral() {
       const safeSrc = escapeHtml(videoSrc);
       const safePoster = escapeHtml(posterSrc);
       mediaHtml = `
-        <div class="viral-card-media relative aspect-[3/2] overflow-hidden bg-black/30">
-          <video class="viral-card-video w-full h-full object-cover" src="${safeSrc}" poster="${safePoster}" preload="metadata" muted loop playsinline disablepictureinpicture></video>
-          <button type="button" class="viral-play-toggle absolute inset-0 flex items-center justify-center bg-black/20 transition-opacity" data-video-src="${safeSrc}" data-poster="${safePoster}" title="Play video" aria-label="Play video">
-            <span class="viral-play-icon w-10 h-10 rounded-full bg-white/90 text-black flex items-center justify-center shadow-lg">
+        <div class="smart-card-media relative aspect-[3/2] overflow-hidden bg-black/30">
+          <video class="smart-card-video w-full h-full object-cover" src="${safeSrc}" poster="${safePoster}" preload="metadata" muted loop playsinline disablepictureinpicture></video>
+          <button type="button" class="smart-play-toggle absolute inset-0 flex items-center justify-center bg-black/20 transition-opacity" data-video-src="${safeSrc}" data-poster="${safePoster}" title="Play video" aria-label="Play video">
+            <span class="smart-play-icon w-10 h-10 rounded-full bg-white/90 text-black flex items-center justify-center shadow-lg">
               <svg class="w-4 h-4 ml-0.5" viewBox="0 0 24 24" fill="currentColor"><polygon points="10 7 10 17 17 12 10 7"/></svg>
             </span>
           </button>
         </div>
       `;
     } else if (thumb) {
-      mediaHtml = `<img data-primary="${escapeHtml(thumb)}" data-fallback="${escapeHtml(sourceUrl)}" class="viral-preview w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="${escapeHtml(item.title)}" loading="lazy"/>`;
+      mediaHtml = `<img data-primary="${escapeHtml(thumb)}" data-fallback="${escapeHtml(sourceUrl)}" class="smart-card-preview w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="${escapeHtml(item.title)}" loading="lazy"/>`;
     } else {
       mediaHtml = fallbackPlaceholder();
     }
     return `
-      <div class="viral-card group bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden transition-all duration-200 hover:border-primary/30 hover:shadow-glow flex flex-col" data-imglume-id="${item.imglumeId}">
-        <div class="relative aspect-[3/2] overflow-hidden bg-black/30">
+      <div class="smart-card group" data-imglume-id="${item.imglumeId}">
+        <div class="smart-card-media relative aspect-[3/2] overflow-hidden bg-black/30">
           ${mediaHtml}
           <div class="absolute top-2 left-2 flex gap-1">
             ${modelBadgeHtml}
@@ -597,7 +596,7 @@ export function SmartVideoViral() {
             </span>
           </div>
         </div>
-        <div class="p-4 flex-1 flex flex-col">
+        <div class="smart-card-content flex-1 flex flex-col">
           <h3 class="text-sm font-bold text-zinc-100 mb-1 line-clamp-1">${escapeHtml(item.title || 'Untitled')}</h3>
           <div class="prompt-section">
             <p class="text-[11px] text-zinc-400 mb-1 line-clamp-2 leading-relaxed">${escapedPreview}</p>
@@ -618,7 +617,7 @@ export function SmartVideoViral() {
           ` : ''}
           <div class="mt-auto flex gap-2">
             <button class="copy-prompt-btn btn-primary-modern" data-id="${item.imglumeId}" title="Copy prompt to clipboard">Copy Prompt</button>
-            <a href="${escapeHtml(item.source?.url || item.curation?.recordUrl || '#')}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 bg-[#141414] border border-zinc-700/80 text-zinc-300 rounded-xl text-[10px] font-bold hover:text-white hover:border-primary/50 transition-colors" title="View source post on X">Source</a>
+            <a href="${escapeHtml(item.source?.url || item.curation?.recordUrl || '#')}" target="_blank" rel="noopener noreferrer" class="btn-secondary-modern text-[10px] font-bold" title="View source post on X">Source</a>
           </div>
         </div>
       </div>
@@ -626,7 +625,7 @@ export function SmartVideoViral() {
   }
 
   function setupCardPostRender() {
-    const previewImgs = gridEl.querySelectorAll('img.viral-preview');
+    const previewImgs = gridEl.querySelectorAll('img.smart-card-preview');
     if (previewImgs.length && 'IntersectionObserver' in window) {
       const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -657,24 +656,24 @@ export function SmartVideoViral() {
       });
     });
 
-    const cardVideos = gridEl.querySelectorAll('.viral-card-video');
+    const cardVideos = gridEl.querySelectorAll('.smart-card-video');
     const videoVisibilityObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         const video = entry.target;
-        const wrapper = video.closest('.viral-card-media');
+        const wrapper = video.closest('.smart-card-media');
         if (entry.isIntersecting) {
           video.play().then(() => {
-            if (wrapper) wrapper.classList.add('playing');
+            if (wrapper) wrapper.classList.add('is-playing');
           }).catch(() => {});
         } else {
           video.pause();
-          if (wrapper) wrapper.classList.remove('playing');
+          if (wrapper) wrapper.classList.remove('is-playing');
         }
       });
     }, { rootMargin: '200px' });
     cardVideos.forEach(video => {
       video.addEventListener('error', () => {
-        const wrapper = video.closest('.viral-card-media');
+        const wrapper = video.closest('.smart-card-media');
         if (wrapper) {
           const poster = video.getAttribute('poster');
           wrapper.innerHTML = poster ? `<img src="${escapeHtml(poster)}" class="w-full h-full object-cover" alt=""/>` : fallbackPlaceholder();
@@ -683,13 +682,13 @@ export function SmartVideoViral() {
       videoVisibilityObserver.observe(video);
     });
 
-    gridEl.querySelectorAll('.viral-play-toggle').forEach(btn => {
+    gridEl.querySelectorAll('.smart-play-toggle').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
         const videoSrc = btn.getAttribute('data-video-src');
         if (!videoSrc) { showToast('No video source available', 'error', 2000); return; }
-        const card = btn.closest('.viral-card');
+        const card = btn.closest('.smart-card');
         const itemId = card?.getAttribute('data-imglume-id');
         const item = prompts.find(p => p.imglumeId === parseInt(itemId, 10));
         if (item) openVideoModal(item);
@@ -719,7 +718,7 @@ export function SmartVideoViral() {
         const id = parseInt(btn.getAttribute('data-id'), 10);
         const item = prompts.find(p => p.imglumeId === id);
         if (!item) return;
-        const card = btn.closest('.viral-card');
+        const card = btn.closest('.smart-card');
         const fullDiv = card?.querySelector('.prompt-full');
         const previewP = card?.querySelector('.prompt-section p');
         if (fullDiv && previewP) {
@@ -749,11 +748,11 @@ export function SmartVideoViral() {
     const html = pageItems.map(item => buildCardHtml(item)).join('');
     gridEl.insertAdjacentHTML('beforeend', html);
     requestAnimationFrame(() => {
-      const newCards = gridEl.querySelectorAll('.viral-card');
+      const newCards = gridEl.querySelectorAll('.smart-card');
       newCards.forEach((card, i) => {
-        if (!card.classList.contains('animate')) {
+        if (!card.classList.contains('smart-animate')) {
           card.style.transitionDelay = `${i * 15}ms`;
-          requestAnimationFrame(() => card.classList.add('animate'));
+          requestAnimationFrame(() => card.classList.add('smart-animate'));
         }
       });
       setupCardPostRender();
@@ -817,7 +816,7 @@ export function SmartVideoViral() {
             <span class="text-[10px] text-zinc-500">@${escapeHtml(item.source?.author?.handle || 'unknown')}</span>
             <div class="flex gap-2">
               <button class="viral-modal-copy btn-primary-modern" data-id="${item.imglumeId}">Copy Prompt</button>
-              <a href="${escapeHtml(item.source?.url || item.curation?.recordUrl || '#')}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 bg-[#141414] border border-zinc-700/80 text-zinc-300 rounded-xl text-[10px] font-bold hover:text-white hover:border-primary/50 transition-colors">View on X</a>
+              <a href="${escapeHtml(item.source?.url || item.curation?.recordUrl || '#')}" target="_blank" rel="noopener noreferrer" class="btn-secondary-modern text-[10px] font-bold">View on X</a>
             </div>
           </div>
         </div>
@@ -1270,10 +1269,10 @@ export function SmartVideoViral() {
     const pageItems = filtered.slice(0, PAGE_SIZE);
     gridEl.innerHTML = pageItems.map(item => buildCardHtml(item)).join('');
     requestAnimationFrame(() => { gridEl.style.opacity = '1'; });
-    const cardEls = gridEl.querySelectorAll('.viral-card');
+    const cardEls = gridEl.querySelectorAll('.smart-card');
     cardEls.forEach((card, i) => {
       card.style.transitionDelay = `${i * 20}ms`;
-      requestAnimationFrame(() => card.classList.add('animate'));
+      requestAnimationFrame(() => card.classList.add('smart-animate'));
     });
     setupCardPostRender();
     setupInfiniteScroll();

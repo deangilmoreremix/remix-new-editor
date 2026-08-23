@@ -2,6 +2,7 @@ import { muapi } from '../lib/muapi.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { uploadMediaFile } from '../lib/editor/upload.js';
+import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { lipsyncModels, imageLipSyncModels, videoLipSyncModels, getLipSyncModelById, getResolutionsForLipSyncModel } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
@@ -922,6 +923,22 @@ mountModelSelector(dropdown, {
             canvasControls.classList.add('opacity-100');
         };
         publishBtn.onclick = () => openSocialPublish({ mediaUrl: videoUrl, mediaType: 'video' });
+
+        const captionBtn = document.createElement('button');
+        captionBtn.type = 'button';
+        captionBtn.textContent = '💬 Add AI Captions';
+        captionBtn.className = 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl text-xs font-bold transition-all border border-white/5 backdrop-blur-lg text-white';
+        captionBtn.onclick = () => {
+          addCaptionButton({
+            videoUrl,
+            appTheme: 'lipsync-studio',
+            onComplete: (captionedUrl) => {
+              resultVideo.src = captionedUrl;
+              showToast('Preview updated with captions');
+            },
+          });
+        };
+        canvasControls.appendChild(captionBtn);
     };
 
     const addToHistory = (entry) => {

@@ -21,6 +21,8 @@ import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
+import { addCaptionButton } from '../lib/editor/captionActions.js';
+import { showToast } from '../lib/loading.js';
 
 export function TemplateStudio(templateId) {
   let template = getTemplateById(templateId);
@@ -1409,6 +1411,26 @@ let fallbackList = [];
       if (publishBtn) {
         const mediaType = template.outputType === 'video' ? 'video' : 'image';
         publishBtn.onclick = () => openSocialPublish({ mediaUrl: url, mediaType });
+      }
+      if (template.outputType === 'video') {
+        const captionBtn = document.createElement('button');
+        captionBtn.type = 'button';
+        captionBtn.textContent = '💬 Add AI Captions';
+        captionBtn.className = 'flex-1 border border-white/10 bg-white/[0.04] text-white py-3 rounded-xl font-bold text-sm hover:bg-white/[0.08] transition';
+        captionBtn.onclick = () => {
+          addCaptionButton({
+            videoUrl: url,
+            appTheme: 'template-studio',
+            onComplete: (captionedUrl) => {
+              const vid = resultArea.querySelector('video');
+              if (vid) vid.src = captionedUrl;
+              const dl = resultArea.querySelector('a[download]');
+              if (dl) dl.href = captionedUrl;
+              showToast('Preview updated with captions');
+            },
+          });
+        };
+        resultArea.querySelector('.flex.gap-3').appendChild(captionBtn);
       }
     }, 0);
   }
