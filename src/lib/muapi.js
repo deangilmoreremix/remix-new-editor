@@ -1250,6 +1250,87 @@ export class MuapiClient {
         }
     }
 
+    async generateTextStream(params, signal, onDelta, onDone, onError) {
+      this._requireMuapiKey();
+      await acquireRateLimitToken();
+      const modelInfo = getTextModelById(params.model);
+      const endpoint = modelInfo?.endpoint || params.model || 'text';
+      analytics.trackGeneration(params.model, 'text', { endpoint });
+
+      const finalPayload = {};
+      if (params.model) finalPayload.model = params.model;
+      if (params.prompt) finalPayload.prompt = params.prompt;
+      if (params.system_prompt) finalPayload.system_prompt = params.system_prompt;
+      if (params.temperature) finalPayload.temperature = params.temperature;
+      if (params.max_tokens) finalPayload.max_tokens = params.max_tokens;
+
+      try {
+        const response = await fetch(this.proxyUrl, {
+          method: 'POST',
+          headers: this._getMuapiHeaders(),
+          body: JSON.stringify({
+            endpoint,
+            params: finalPayload,
+            generationType: 'text',
+            studioType: 'chat',
+            stream: true,
+          }),
+          signal,
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(`API Request Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
+        }
+
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('text/event-stream') || contentType.includes('application/octet-stream')) {
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = '';
+          let fullText = '';
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                const data = line.slice(6).trim();
+                if (data === '[DONE]') {
+                  onDone && onDone(fullText);
+                  return;
+                }
+                try {
+                  const parsed = JSON.parse(data);
+                  const delta = parsed.choices?.[0]?.delta?.content || parsed.text || parsed.delta || '';
+                  if (delta) {
+                    fullText += delta;
+                    onDelta && onDelta(delta);
+                  }
+                } catch { /* skip unparseable */ }
+              }
+            }
+          }
+          onDone && onDone(fullText);
+          return;
+        }
+
+        const data = await response.json();
+        this.validateResponse(data, 'text');
+        analytics.trackGenerationComplete(params.model, 'text', true);
+        const text = data.text || data.output?.text || data.response || '';
+        onDone && onDone(text);
+        return data;
+      } catch (error) {
+        if (error.name === 'AbortError') throw new Error('Request cancelled by user');
+        analytics.trackGenerationError(params.model, 'text', error);
+        throw error;
+      }
+    }
+
     async trainLora(params, signal) {
         this._requireMuapiKey();
         await acquireRateLimitToken();
