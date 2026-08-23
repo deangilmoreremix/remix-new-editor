@@ -153,7 +153,7 @@ const pageLoaders = {
   audio: () => import('../components/AudioStudio.js').then(m => m.AudioStudio()),
   training: () => import('../components/TrainingStudio.js').then(m => m.TrainingStudio()),
   videotools: () => import('../components/VideoToolsStudio.js').then(m => m.VideoToolsStudio()),
-  chat: () => import('../components/ChatStudio.js').then(m => m.ChatStudio()),
+  chat: () => import('../components/chat/ChatStudio.jsx').then(m => m.ChatStudio()),
   lipsync: () => import('../components/LipSyncStudio.js').then(m => m.LipSyncStudio()),
   'pexels-media': () => import('../components/PexelsMediaPage.js').then(m => m.PexelsMediaPage()),
 
