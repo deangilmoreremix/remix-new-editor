@@ -4,7 +4,7 @@ import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection } from '../lib/thumbnails.js';
-import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
+import { replaceTokensInPrompt } from './personalize/personalizePopover.js';
 
 const EDIT_TOOLS = [
   {
@@ -13,11 +13,7 @@ const EDIT_TOOLS = [
     description: 'Erase unwanted objects from images',
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 5H9l-7 7 7 7h11a2 2 0 002-2V7a2 2 0 00-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>',
     hasPrompt: false,
-    controls: [
-      { type: 'range', key: 'feather', label: 'Edge Feather', min: 0, max: 100, step: 1, default: 20, unit: '%' },
-      { type: 'range', key: 'strength', label: 'Removal Strength', min: 0, max: 100, step: 1, default: 85, unit: '%' },
-      { type: 'select', key: 'fill_mode', label: 'Fill Mode', options: ['Generative Fill', 'Content-Aware', 'Inpaint', 'Clone'], default: 'Generative Fill' },
-    ],
+    requiresMask: true,
   },
   {
     id: 'ai-background-remover',
@@ -25,12 +21,6 @@ const EDIT_TOOLS = [
     description: 'Clean background removal',
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 3l18 18"/></svg>',
     hasPrompt: false,
-    controls: [
-      { type: 'select', key: 'background_type', label: 'Output', options: ['Transparent', 'White', 'Black', 'Custom Color', 'Gradient'], default: 'Transparent' },
-      { type: 'range', key: 'edge_refinement', label: 'Edge Refinement', min: 0, max: 100, step: 1, default: 50, unit: '%' },
-      { type: 'toggle', key: 'hair_detail', label: 'Preserve Hair Detail', default: true },
-      { type: 'toggle', key: 'shadow_removal', label: 'Remove Cast Shadow', default: true },
-    ],
   },
   {
     id: 'ai-image-extension',
@@ -38,12 +28,6 @@ const EDIT_TOOLS = [
     description: 'AI outpainting to expand images',
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>',
     hasPrompt: false,
-    controls: [
-      { type: 'directions', key: 'extend_direction', label: 'Extend Direction', default: ['all'] },
-      { type: 'range', key: 'expansion_amount', label: 'Expansion Amount', min: 10, max: 100, step: 5, default: 50, unit: '%' },
-      { type: 'range', key: 'seam_blending', label: 'Seam Blending', min: 0, max: 100, step: 1, default: 70, unit: '%' },
-      { type: 'select', key: 'aspect_ratio', label: 'Aspect Ratio', options: ['16:9', '9:16', '1:1', '4:3', '3:4', '21:9'], default: '16:9' },
-    ],
   },
   {
     id: 'seedream-5.0-edit',
@@ -55,12 +39,6 @@ const EDIT_TOOLS = [
     controls: [
       { type: 'select', key: 'aspect_ratio', label: 'Aspect Ratio', options: ['1:1', '16:9', '9:16', '4:3', '3:4', '2:3', '3:2', '21:9'], default: '1:1' },
       { type: 'select', key: 'quality', label: 'Quality', options: ['basic', 'high'], default: 'basic' },
-      { type: 'range', key: 'strength', label: 'Edit Strength', min: 0, max: 100, step: 1, default: 70, unit: '%' },
-    ],
-    advancedControls: [
-      { type: 'number', key: 'num_images', label: 'Variations', min: 1, max: 4, step: 1, default: 1 },
-      { type: 'text', key: 'negative_prompt', label: 'Negative Prompt', placeholder: 'What to avoid...' },
-      { type: 'number', key: 'seed', label: 'Seed (optional)', placeholder: 'Random' },
     ],
   },
   {
@@ -73,10 +51,6 @@ const EDIT_TOOLS = [
       { type: 'select', key: 'aspect_ratio', label: 'Aspect Ratio', options: ['16:9', '9:16', '1:1', '4:3', '3:4'], default: '1:1' },
       { type: 'select', key: 'render_speed', label: 'Render Speed', options: ['Turbo', 'Balanced', 'Quality'], default: 'Balanced' },
       { type: 'select', key: 'style', label: 'Style', options: ['Auto', 'General', 'Realistic', 'Design'], default: 'Auto' },
-      { type: 'toggle', key: 'smart_crop', label: 'Smart Crop (preserve subject)', default: true },
-      { type: 'range', key: 'padding', label: 'Padding', min: 0, max: 30, step: 1, default: 10, unit: '%' },
-    ],
-    advancedControls: [
       { type: 'number', key: 'num_images', label: 'Variations', min: 1, max: 4, step: 1, default: 1 },
     ],
   },
@@ -86,15 +60,7 @@ const EDIT_TOOLS = [
     description: 'AI outfit and clothing swap',
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.38 3.46L16 2 12 5.5 8 2l-4.38 1.46a2 2 0 00-1.34 2.31l2.1 9.89A2 2 0 006.34 17H7l-2 5h14l-2-5h.66a2 2 0 001.96-1.34l2.1-9.89a2 2 0 00-1.34-2.31z"/></svg>',
     hasPrompt: false,
-    controls: [
-      { type: 'select', key: 'outfit_style', label: 'Style Preset', options: ['Casual', 'Formal', 'Sport', 'Traditional', 'Elegant', 'Statement'], default: 'Formal' },
-      { type: 'color', key: 'outfit_color', label: 'Color', default: '#000000' },
-      { type: 'select', key: 'fabric', label: 'Fabric Type', options: ['Silk', 'Cotton', 'Leather', 'Velvet', 'Denim', 'Lace'], default: 'Silk' },
-      { type: 'range', key: 'fit', label: 'Fit', min: 0, max: 100, step: 1, default: 50, unit: '%', unitLabel: 'Loose to Tight' },
-      { type: 'select', key: 'lighting', label: 'Lighting', options: ['Studio Softbox', 'Natural Window', 'Dramatic', 'Flat Lay'], default: 'Studio Softbox' },
-      { type: 'toggle', key: 'preserve_background', label: 'Preserve Background', default: true },
-      { type: 'toggle', key: 'preserve_hair', label: 'Preserve Hair Details', default: true },
-    ],
+    requiresGarment: true,
   },
   {
     id: 'ai-skin-enhancer',
@@ -102,15 +68,6 @@ const EDIT_TOOLS = [
     description: 'Professional skin retouching',
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>',
     hasPrompt: false,
-    controls: [
-      { type: 'range', key: 'smoothing', label: 'Smoothing', min: 0, max: 100, step: 1, default: 50, unit: '%' },
-      { type: 'range', key: 'blemish_removal', label: 'Blemish Removal', min: 0, max: 100, step: 1, default: 70, unit: '%' },
-      { type: 'range', key: 'wrinkle_reduction', label: 'Wrinkle Reduction', min: 0, max: 100, step: 1, default: 40, unit: '%' },
-      { type: 'toggle', key: 'eye_brightening', label: 'Brighten Eyes', default: true },
-      { type: 'toggle', key: 'teeth_whitening', label: 'Whiten Teeth', default: true },
-      { type: 'range', key: 'skin_tone_preservation', label: 'Skin Tone Preservation', min: 0, max: 100, step: 1, default: 90, unit: '%' },
-      { type: 'toggle', key: 'face_detection', label: 'Auto Face Detection', default: true },
-    ],
   },
   {
     id: 'ai-color-photo',
@@ -118,31 +75,19 @@ const EDIT_TOOLS = [
     description: 'Add color to B&W photos',
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="19" cy="13" r="2.5"/><circle cx="7" cy="13" r="2.5"/><circle cx="13.5" cy="19.5" r="2.5"/></svg>',
     hasPrompt: false,
-    controls: [
-      { type: 'select', key: 'color_style', label: 'Style Preset', options: ['Realistic', 'Vintage', 'Vibrant', 'Pastel', 'Duotone'], default: 'Realistic' },
-      { type: 'range', key: 'saturation', label: 'Saturation', min: 0, max: 100, step: 1, default: 60, unit: '%' },
-      { type: 'range', key: 'warmth', label: 'Color Temperature', min: 0, max: 100, step: 1, default: 50, unit: '%', unitLabel: 'Cool to Warm' },
-      { type: 'range', key: 'intensity', label: 'Color Intensity', min: 0, max: 100, step: 1, default: 80, unit: '%' },
-      { type: 'text', key: 'reference_colors', label: 'Reference Colors', placeholder: 'e.g. blue sky, green grass' },
-    ],
   },
   {
     id: 'add-image-watermark',
     name: 'Add Watermark',
     description: 'Overlay watermark on images',
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
-    hasPrompt: true,
-    promptPlaceholder: 'Watermark text...',
+    hasPrompt: false,
     controls: [
       { type: 'select', key: 'position', label: 'Position', options: ['top-left', 'top-right', 'bottom-left', 'bottom-right', 'center'], default: 'bottom-right' },
       { type: 'range', key: 'opacity', label: 'Opacity', min: 0, max: 100, step: 1, default: 70, unit: '%' },
       { type: 'range', key: 'scale', label: 'Size', min: 5, max: 100, step: 1, default: 20, unit: '%' },
-      { type: 'text', key: 'font_family', label: 'Font Family', placeholder: 'Arial, Helvetica, etc.' },
-      { type: 'color', key: 'text_color', label: 'Text Color', default: '#ffffff' },
-      { type: 'range', key: 'rotation', label: 'Rotation', min: -90, max: 90, step: 1, default: 0, unit: 'deg' },
-      { type: 'toggle', key: 'shadow', label: 'Text Shadow', default: false },
-      { type: 'toggle', key: 'tile', label: 'Tile Pattern', default: false },
     ],
+    requiresWatermarkImage: true,
   },
   {
     id: 'ai-image-upscaler',
@@ -150,31 +95,17 @@ const EDIT_TOOLS = [
     description: 'AI image upscaling to higher resolution',
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>',
     hasPrompt: false,
-    controls: [
-      { type: 'select', key: 'upscale_factor', label: 'Upscale Factor', options: ['2x', '4x'], default: '2x' },
-      { type: 'range', key: 'denoise', label: 'Denoise Strength', min: 0, max: 100, step: 1, default: 30, unit: '%' },
-      { type: 'range', key: 'sharpness', label: 'Sharpening', min: 0, max: 100, step: 1, default: 50, unit: '%' },
-      { type: 'toggle', key: 'face_enhancement', label: 'Face Enhancement', default: true },
-      { type: 'toggle', key: 'color_correction', label: 'Auto Color Correction', default: true },
-    ],
-    advancedControls: [
-      { type: 'select', key: 'output_format', label: 'Output Format', options: ['PNG', 'JPEG', 'WEBP'], default: 'PNG' },
-    ],
   },
   {
     id: 'ai-image-face-swap',
     name: 'Face Swap',
     description: 'Swap faces in images',
-    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M12 6v6l4 2"/></svg>',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10S17.52 2 12 2z"/><path d="M12 6v6l4 2"/></svg>',
     hasPrompt: false,
     controls: [
-      { type: 'number', key: 'target_index', label: 'Target Face Index', min: 0, max: 10, step: 1, default: 0, description: '0 = largest face' },
-      { type: 'number', key: 'source_face', label: 'Source Face Index', min: 0, max: 10, step: 1, default: 0, description: '0 = largest face' },
-      { type: 'range', key: 'blend_strength', label: 'Blend Strength', min: 0, max: 100, step: 1, default: 80, unit: '%' },
-      { type: 'range', key: 'feather', label: 'Edge Feather', min: 0, max: 100, step: 1, default: 30, unit: '%' },
-      { type: 'toggle', key: 'preserve_expression', label: 'Preserve Target Expression', default: true },
-      { type: 'toggle', key: 'color_correction', label: 'Color Match to Target', default: true },
+      { type: 'number', key: 'target_index', label: 'Target Face Index', min: 0, max: 10, step: 1, default: 0 },
     ],
+    requiresSwapImage: true,
   },
   {
     id: 'ai-product-shot',
@@ -182,18 +113,8 @@ const EDIT_TOOLS = [
     description: 'Create professional product images',
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="3"/></svg>',
     hasPrompt: true,
-    promptPlaceholder: 'Product style...',
-    controls: [
-      { type: 'select', key: 'lighting', label: 'Lighting Preset', options: ['Studio Softbox', 'Natural Window', 'Dramatic', 'Product Flat Lay', 'Ring Light'], default: 'Studio Softbox' },
-      { type: 'select', key: 'background', label: 'Background Type', options: ['White', 'Gradient', 'Lifestyle', 'Transparent', 'Color'], default: 'White' },
-      { type: 'select', key: 'angle', label: 'Camera Angle', options: ['Front (0 deg)', '45 deg Angle', 'Top-Down', 'Macro Close-Up', 'Low Angle'], default: '45 deg Angle' },
-      { type: 'select', key: 'shadow', label: 'Shadow', options: ['Soft Drop Shadow', 'Hard Shadow', 'Floating', 'None'], default: 'Soft Drop Shadow' },
-      { type: 'select', key: 'reflection', label: 'Reflection', options: ['Floor Reflection', 'Surface Reflection', 'None'], default: 'Floor Reflection' },
-    ],
-    advancedControls: [
-      { type: 'select', key: 'output_format', label: 'Output Format', options: ['PNG', 'JPEG', 'WEBP'], default: 'PNG' },
-      { type: 'select', key: 'quality', label: 'Image Quality', options: ['Standard', 'High', '4K'], default: 'High' },
-    ],
+    promptKey: 'scene_description',
+    promptPlaceholder: 'Describe the product scene...',
   },
   {
     id: 'ai-ghibli-style',
@@ -201,14 +122,6 @@ const EDIT_TOOLS = [
     description: 'Transform into Studio Ghibli art style',
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>',
     hasPrompt: false,
-    controls: [
-      { type: 'select', key: 'style_variant', label: 'Ghibli Style', options: ['Auto', 'My Neighbor Totoro', 'Spirited Away', 'Princess Mononoke', 'Kiki Delivery', 'Howl Moving Castle', 'Ponyo'], default: 'Auto' },
-      { type: 'range', key: 'strength', label: 'Style Intensity', min: 0, max: 100, step: 1, default: 85, unit: '%' },
-      { type: 'select', key: 'color_palette', label: 'Color Palette', options: ['Muted Pastels', 'Vibrant', 'Natural', 'Dreamy'], default: 'Muted Pastels' },
-      { type: 'select', key: 'render_style', label: 'Render Style', options: ['Hand-Painted', 'Line Art', 'Watercolor Wash'], default: 'Hand-Painted' },
-      { type: 'range', key: 'grain', label: 'Film Grain', min: 0, max: 100, step: 1, default: 20, unit: '%' },
-      { type: 'toggle', key: 'character_consistency', label: 'Character Consistency', default: true },
-    ],
   },
 ];
 
@@ -219,11 +132,10 @@ export function EditStudio() {
 
   let activeTool = null;
   let uploadedUrl = null;
-  let referenceImageUrl = null;
-  let progressPoll = null;
-  let progress = 0;
-  let controlValues = {};
-  let advancedOpen = false;
+  let maskUrl = null;
+  let garmentUrl = null;
+  let swapUrl = null;
+  let watermarkImageUrl = null;
 
   const topBar = document.createElement('div');
   topBar.className = 'px-4 md:px-8 pt-6 pb-4 shrink-0';
@@ -256,7 +168,6 @@ export function EditStudio() {
   });
 
   topBar.appendChild(toolGrid);
-
   const inlineInstructions = createInlineInstructions('edit');
   inlineInstructions.classList.add('px-4', 'md:px-8', 'mt-2');
   topBar.appendChild(inlineInstructions);
@@ -331,77 +242,165 @@ export function EditStudio() {
   workCard.appendChild(uploadSection);
   container.appendChild(picker.panel);
 
-  const referencePicker = createUploadPicker({
+  // Mask upload for ai-object-eraser
+  const maskPicker = createUploadPicker({
     anchorContainer: container,
     onSelect: ({ url }) => {
-      referenceImageUrl = url;
-      referencePreview.src = url;
-      referencePreview.classList.remove('hidden');
-      referenceRow.classList.remove('hidden');
+      maskUrl = url;
+      maskHint.textContent = 'Mask uploaded';
+      maskHint.classList.remove('hidden');
+      maskClearBtn.classList.remove('hidden');
     },
     onClear: () => {
-      referenceImageUrl = null;
-      referencePreview.src = '';
-      referencePreview.classList.add('hidden');
-      referenceRow.classList.add('hidden');
+      maskUrl = null;
+      maskHint.textContent = 'Upload mask image';
+      maskHint.classList.add('hidden');
+      maskClearBtn.classList.add('hidden');
     },
   });
-  container.appendChild(referencePicker.panel);
-
-  const referenceRow = document.createElement('div');
-  referenceRow.className = 'flex items-center gap-3 hidden mt-2';
-
-  const referencePreview = document.createElement('img');
-  referencePreview.className = 'w-12 h-12 object-cover rounded border border-white/10';
-
-  const refClearBtn = document.createElement('button');
-  refClearBtn.type = 'button';
-  refClearBtn.className = 'text-xs font-bold text-red-400 hover:text-red-300';
-  refClearBtn.textContent = 'x';
-  refClearBtn.onclick = () => {
-    referenceImageUrl = null;
-    referencePreview.src = '';
-    referencePreview.classList.add('hidden');
-    referenceRow.classList.add('hidden');
+  const maskRow = document.createElement('div');
+  maskRow.className = 'hidden flex flex-col gap-2';
+  const maskHint = document.createElement('span');
+  maskHint.className = 'text-sm text-muted';
+  maskHint.textContent = 'Upload mask image';
+  const maskClearBtn = document.createElement('button');
+  maskClearBtn.type = 'button';
+  maskClearBtn.className = 'hidden text-xs font-bold text-red-400 hover:text-red-300 transition-colors';
+  maskClearBtn.textContent = 'Remove';
+  maskClearBtn.onclick = (e) => {
+    e.stopPropagation();
+    maskPicker.reset();
+    maskUrl = null;
+    maskHint.textContent = 'Upload mask image';
+    maskHint.classList.add('hidden');
+    maskClearBtn.classList.add('hidden');
   };
-  referenceRow.appendChild(referencePreview);
-  referenceRow.appendChild(refClearBtn);
+  maskRow.appendChild(maskPicker.trigger);
+  maskRow.appendChild(maskHint);
+  maskRow.appendChild(maskClearBtn);
+  container.appendChild(maskPicker.panel);
+
+  // Garment upload for ai-dress-change
+  const garmentPicker = createUploadPicker({
+    anchorContainer: container,
+    onSelect: ({ url }) => {
+      garmentUrl = url;
+      garmentHint.textContent = 'Garment uploaded';
+      garmentHint.classList.remove('hidden');
+      garmentClearBtn.classList.remove('hidden');
+    },
+    onClear: () => {
+      garmentUrl = null;
+      garmentHint.textContent = 'Upload garment image';
+      garmentHint.classList.add('hidden');
+      garmentClearBtn.classList.add('hidden');
+    },
+  });
+  const garmentRow = document.createElement('div');
+  garmentRow.className = 'hidden flex flex-col gap-2';
+  const garmentHint = document.createElement('span');
+  garmentHint.className = 'text-sm text-muted';
+  garmentHint.textContent = 'Upload garment image';
+  const garmentClearBtn = document.createElement('button');
+  garmentClearBtn.type = 'button';
+  garmentClearBtn.className = 'hidden text-xs font-bold text-red-400 hover:text-red-300 transition-colors';
+  garmentClearBtn.textContent = 'Remove';
+  garmentClearBtn.onclick = (e) => {
+    e.stopPropagation();
+    garmentPicker.reset();
+    garmentUrl = null;
+    garmentHint.textContent = 'Upload garment image';
+    garmentHint.classList.add('hidden');
+    garmentClearBtn.classList.add('hidden');
+  };
+  garmentRow.appendChild(garmentPicker.trigger);
+  garmentRow.appendChild(garmentHint);
+  garmentRow.appendChild(garmentClearBtn);
+  container.appendChild(garmentPicker.panel);
+
+  // Swap image upload for ai-image-face-swap
+  const swapPicker = createUploadPicker({
+    anchorContainer: container,
+    onSelect: ({ url }) => {
+      swapUrl = url;
+      swapHint.textContent = 'Swap image uploaded';
+      swapHint.classList.remove('hidden');
+      swapClearBtn.classList.remove('hidden');
+    },
+    onClear: () => {
+      swapUrl = null;
+      swapHint.textContent = 'Upload swap face image';
+      swapHint.classList.add('hidden');
+      swapClearBtn.classList.add('hidden');
+    },
+  });
+  const swapRow = document.createElement('div');
+  swapRow.className = 'hidden flex flex-col gap-2';
+  const swapHint = document.createElement('span');
+  swapHint.className = 'text-sm text-muted';
+  swapHint.textContent = 'Upload swap face image';
+  const swapClearBtn = document.createElement('button');
+  swapClearBtn.type = 'button';
+  swapClearBtn.className = 'hidden text-xs font-bold text-red-400 hover:text-red-300 transition-colors';
+  swapClearBtn.textContent = 'Remove';
+  swapClearBtn.onclick = (e) => {
+    e.stopPropagation();
+    swapPicker.reset();
+    swapUrl = null;
+    swapHint.textContent = 'Upload swap face image';
+    swapHint.classList.add('hidden');
+    swapClearBtn.classList.add('hidden');
+  };
+  swapRow.appendChild(swapPicker.trigger);
+  swapRow.appendChild(swapHint);
+  swapRow.appendChild(swapClearBtn);
+  container.appendChild(swapPicker.panel);
+
+  // Watermark image upload for add-image-watermark
+  const watermarkImagePicker = createUploadPicker({
+    anchorContainer: container,
+    onSelect: ({ url }) => {
+      watermarkImageUrl = url;
+      watermarkImageHint.textContent = 'Watermark image uploaded';
+      watermarkImageHint.classList.remove('hidden');
+      watermarkImageClearBtn.classList.remove('hidden');
+    },
+    onClear: () => {
+      watermarkImageUrl = null;
+      watermarkImageHint.textContent = 'Upload watermark image';
+      watermarkImageHint.classList.add('hidden');
+      watermarkImageClearBtn.classList.add('hidden');
+    },
+  });
+  const watermarkImageRow = document.createElement('div');
+  watermarkImageRow.className = 'hidden flex flex-col gap-2';
+  const watermarkImageHint = document.createElement('span');
+  watermarkImageHint.className = 'text-sm text-muted';
+  watermarkImageHint.textContent = 'Upload watermark image';
+  const watermarkImageClearBtn = document.createElement('button');
+  watermarkImageClearBtn.type = 'button';
+  watermarkImageClearBtn.className = 'hidden text-xs font-bold text-red-400 hover:text-red-300 transition-colors';
+  watermarkImageClearBtn.textContent = 'Remove';
+  watermarkImageClearBtn.onclick = (e) => {
+    e.stopPropagation();
+    watermarkImagePicker.reset();
+    watermarkImageUrl = null;
+    watermarkImageHint.textContent = 'Upload watermark image';
+    watermarkImageHint.classList.add('hidden');
+    watermarkImageClearBtn.classList.add('hidden');
+  };
+  watermarkImageRow.appendChild(watermarkImagePicker.trigger);
+  watermarkImageRow.appendChild(watermarkImageHint);
+  watermarkImageRow.appendChild(watermarkImageClearBtn);
+  container.appendChild(watermarkImagePicker.panel);
 
   const promptField = document.createElement('input');
   promptField.type = 'text';
   promptField.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors hidden';
-
-  const negativePromptField = document.createElement('input');
-  negativePromptField.type = 'text';
-  negativePromptField.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors hidden';
-
-  const negativePromptLabel = document.createElement('label');
-  negativePromptLabel.className = 'text-xs font-bold text-secondary uppercase tracking-wider hidden';
-  negativePromptLabel.textContent = 'Negative Prompt';
+  promptField.setAttribute('aria-label', 'Edit prompt');
 
   const controlsContainer = document.createElement('div');
   controlsContainer.className = 'w-full flex flex-col gap-3';
-
-  const advancedToggleBtn = document.createElement('button');
-  advancedToggleBtn.type = 'button';
-  advancedToggleBtn.className = 'text-xs font-bold text-secondary hover:text-white transition-colors text-left flex items-center gap-1';
-  advancedToggleBtn.innerHTML = '<span>▼</span> Advanced Controls';
-  advancedToggleBtn.onclick = () => {
-    advancedOpen = !advancedOpen;
-    renderControls(activeTool);
-  };
-
-  const referenceToggleBtn = document.createElement('button');
-  referenceToggleBtn.type = 'button';
-  referenceToggleBtn.className = 'text-xs font-bold text-secondary hover:text-white transition-colors text-left mt-2';
-  referenceToggleBtn.textContent = '+ Add Reference Image';
-  referenceToggleBtn.onclick = () => referencePicker.trigger.click();
-
-  workCard.appendChild(uploadSection);
-  workCard.appendChild(promptField);
-  workCard.appendChild(negativePromptLabel);
-  workCard.appendChild(negativePromptField);
-  workCard.appendChild(controlsContainer);
 
   const editBtn = document.createElement('button');
   editBtn.className = 'w-full bg-primary text-black py-3 rounded-xl font-black text-sm hover:shadow-glow transition-all';
@@ -434,303 +433,33 @@ export function EditStudio() {
   workArea.appendChild(workCard);
   container.appendChild(workArea);
 
-  mountPersonalizeTrigger({ getTextarea: () => promptField, appId: 'edit-studio' });
+  let progressPoll = null;
 
-  function createRangeControl(control) {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'flex flex-col gap-1.5';
-
-    const labelRow = document.createElement('div');
-    labelRow.className = 'flex justify-between items-baseline';
-
-    const label = document.createElement('label');
-    label.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
-    label.textContent = control.label;
-    labelRow.appendChild(label);
-
-    const slider = document.createElement('input');
-    slider.type = 'range';
-    slider.min = control.min;
-    slider.max = control.max;
-    slider.step = control.step || 1;
-    slider.value = control.default;
-    slider.className = 'flex-1 h-2 bg-white/5 rounded-full appearance-none';
-
-    const valueSpan = document.createElement('span');
-    valueSpan.className = 'text-xs font-bold text-white w-16 text-right';
-
-    const sliderRow = document.createElement('div');
-    sliderRow.className = 'flex items-center gap-2';
-    sliderRow.appendChild(slider);
-    sliderRow.appendChild(valueSpan);
-
-    const unitLabel = control.unitLabel || '';
-    const updateValueSpan = (val) => {
-      if (control.unit === 'deg') {
-        valueSpan.textContent = `${Math.round(val)} deg`;
-      } else {
-        valueSpan.textContent = `${Math.round(val)}${control.unit || ''} ${unitLabel}`.trim();
-      }
-    };
-    updateValueSpan(control.default);
-
-    slider.oninput = () => {
-      const val = parseFloat(slider.value);
-      controlValues[control.key] = val;
-      updateValueSpan(val);
-    };
-
-    controlValues[control.key] = parseFloat(control.default);
-
-    labelRow.appendChild(label);
-    wrapper.appendChild(labelRow);
-    wrapper.appendChild(sliderRow);
-
-    if (control.description) {
-      const desc = document.createElement('span');
-      desc.className = 'text-[10px] text-muted';
-      desc.textContent = control.description;
-      wrapper.appendChild(desc);
+  function updateProgress(percent, message) {
+    if (percent === null) {
+      progressContainer.classList.add('hidden');
+      if (progressPoll) { clearInterval(progressPoll); progressPoll = null; }
+      return;
     }
-    return wrapper;
+    progressFill.style.width = `${percent}%`;
+    progressText.textContent = message || `Processing... ${Math.round(percent)}%`;
+    progressContainer.classList.remove('hidden');
   }
 
-  function createSelectControl(control) {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'flex flex-col gap-1.5';
-
-    const label = document.createElement('label');
-    label.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
-    label.textContent = control.label;
-    wrapper.appendChild(label);
-
-    const select = document.createElement('select');
-    select.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-primary/50 transition-colors';
-    control.options.forEach(opt => {
-      const optEl = document.createElement('option');
-      optEl.value = opt;
-      optEl.textContent = opt;
-      if (opt === control.default) optEl.selected = true;
-      select.appendChild(optEl);
-    });
-    select.onchange = () => { controlValues[control.key] = select.value; };
-    controlValues[control.key] = control.default;
-    wrapper.appendChild(select);
-    return wrapper;
+  function showError(message) {
+    resultArea.classList.remove('hidden');
+    resultArea.innerHTML = `<div class="text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-xl p-3">${message}</div>`;
   }
-
-  function createToggleControl(control) {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'flex items-center justify-between py-1';
-
-    const isOn = control.default !== false;
-    const toggle = document.createElement('button');
-    toggle.type = 'button';
-    toggle.dataset.on = isOn;
-    toggle.className = 'relative inline-flex h-6 w-10 items-center rounded-full';
-
-    const updateToggle = () => {
-      const on = toggle.dataset.on === 'true';
-      if (on) {
-        toggle.className = 'relative inline-flex h-6 w-10 items-center rounded-full bg-primary';
-        toggle.innerHTML = '<span class="absolute inset-0 flex items-center justify-center text-xs font-bold text-black">ON</span>';
-      } else {
-        toggle.className = 'relative inline-flex h-6 w-10 items-center rounded-full bg-white/10 border border-white/5';
-        toggle.innerHTML = '<span class="absolute inset-0 flex items-center justify-center text-xs font-bold text-secondary">OFF</span>';
-      }
-    };
-
-    toggle.addEventListener('click', () => {
-      toggle.dataset.on = toggle.dataset.on === 'true' ? 'false' : 'true';
-      controlValues[control.key] = toggle.dataset.on === 'true';
-      updateToggle();
-    });
-    controlValues[control.key] = isOn;
-    updateToggle();
-
-    const toggleLabel = document.createElement('span');
-    toggleLabel.className = 'text-xs text-secondary';
-    toggleLabel.textContent = control.label;
-
-    wrapper.appendChild(toggleLabel);
-    wrapper.appendChild(toggle);
-
-    if (control.description) {
-      const desc = document.createElement('span');
-      desc.className = 'text-[10px] text-muted mt-1';
-      desc.textContent = control.description;
-      wrapper.appendChild(desc);
-    }
-    return wrapper;
-  }
-
-  function createNumberControl(control) {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'flex flex-col gap-1.5';
-
-    const label = document.createElement('label');
-    label.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
-    label.textContent = control.label;
-    wrapper.appendChild(label);
-
-    const numInput = document.createElement('input');
-    numInput.type = 'number';
-    numInput.min = control.min || 0;
-    numInput.max = control.max || 999;
-    numInput.step = control.step || 1;
-    numInput.value = control.default;
-    numInput.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-primary/50 transition-colors';
-    if (control.placeholder) numInput.placeholder = control.placeholder;
-    numInput.onchange = () => { controlValues[control.key] = parseInt(numInput.value) || control.default; };
-    controlValues[control.key] = control.default;
-    wrapper.appendChild(numInput);
-
-    if (control.description) {
-      const desc = document.createElement('span');
-      desc.className = 'text-[10px] text-muted';
-      desc.textContent = control.description;
-      wrapper.appendChild(desc);
-    }
-    return wrapper;
-  }
-
-  function createTextControl(control) {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'flex flex-col gap-1.5';
-
-    const label = document.createElement('label');
-    label.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
-    label.textContent = control.label;
-    wrapper.appendChild(label);
-
-    const textInput = document.createElement('input');
-    textInput.type = 'text';
-    textInput.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors';
-    if (control.placeholder) textInput.placeholder = control.placeholder;
-    textInput.oninput = () => { controlValues[control.key] = textInput.value.trim(); };
-    controlValues[control.key] = '';
-    wrapper.appendChild(textInput);
-    return wrapper;
-  }
-
-  function createColorControl(control) {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'flex flex-col gap-1.5';
-
-    const label = document.createElement('label');
-    label.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
-    label.textContent = control.label;
-    wrapper.appendChild(label);
-
-    const colorRow = document.createElement('div');
-    colorRow.className = 'flex items-center gap-2';
-
-    const colorInput = document.createElement('input');
-    colorInput.type = 'color';
-    colorInput.value = control.default;
-    colorInput.className = 'w-10 h-8 rounded cursor-pointer bg-transparent border border-white/10';
-
-    const colorText = document.createElement('input');
-    colorText.type = 'text';
-    colorText.className = 'flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 text-sm text-white focus:outline-none focus:border-primary/50 transition-colors';
-    colorText.value = control.default;
-
-    colorText.oninput = () => {
-      colorInput.value = colorText.value;
-      controlValues[control.key] = colorText.value;
-    };
-    colorInput.oninput = () => {
-      colorText.value = colorInput.value;
-      controlValues[control.key] = colorInput.value;
-    };
-    controlValues[control.key] = control.default;
-
-    colorRow.appendChild(colorInput);
-    colorRow.appendChild(colorText);
-    wrapper.appendChild(colorRow);
-    return wrapper;
-  }
-
-  function createDirectionsControl(control) {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'flex flex-col gap-2';
-
-    const label = document.createElement('label');
-    label.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
-    label.textContent = control.label;
-    wrapper.appendChild(label);
-
-    const dirOptions = ['Left', 'Right', 'Top', 'Bottom'];
-    const dirButtons = {};
-    let selectedDirs = control.default || ['all'];
-
-    const dirRow = document.createElement('div');
-    dirRow.className = 'flex flex-wrap gap-2';
-
-    const updateDirBtns = () => {
-      dirOptions.forEach(d => {
-        if (dirButtons[d]) {
-          const sel = selectedDirs.includes(d.toLowerCase());
-          dirButtons[d].className = sel
-            ? 'px-3 py-1.5 rounded-lg text-xs font-bold bg-primary text-black'
-            : 'px-3 py-1.5 rounded-lg text-xs font-bold bg-white/5 text-secondary hover:bg-white/10 transition-all';
-        }
-      });
-    };
-
-    const allBtn = document.createElement('button');
-    allBtn.type = 'button';
-    allBtn.textContent = 'All';
-    allBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-white/5 text-secondary hover:bg-white/10 transition-all';
-    allBtn.onclick = () => {
-      selectedDirs = ['all'];
-      controlValues[control.key] = selectedDirs;
-      updateDirBtns();
-    };
-    dirRow.appendChild(allBtn);
-
-    dirOptions.forEach(d => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.textContent = d;
-      btn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-white/5 text-secondary hover:bg-white/10 transition-all';
-      btn.onclick = () => {
-        const key = d.toLowerCase();
-        if (selectedDirs.includes('all')) {
-          selectedDirs = [key];
-        } else {
-          if (selectedDirs.includes(key)) {
-            selectedDirs = selectedDirs.filter(x => x !== key);
-            if (selectedDirs.length === 0) selectedDirs = ['all'];
-          } else {
-            selectedDirs = [...selectedDirs, key];
-          }
-        }
-        controlValues[control.key] = selectedDirs;
-        updateDirBtns();
-      };
-      dirButtons[d] = btn;
-      dirRow.appendChild(btn);
-    });
-
-    controlValues[control.key] = selectedDirs;
-    wrapper.appendChild(dirRow);
-    return wrapper;
-  }
-
-  const CONTROL_FACTORIES = {
-    range: createRangeControl,
-    select: createSelectControl,
-    toggle: createToggleControl,
-    number: createNumberControl,
-    text: createTextControl,
-    color: createColorControl,
-    directions: createDirectionsControl,
-  };
 
   function renderControls(tool) {
     controlsContainer.innerHTML = '';
-    controlValues = {};
+
+    if (tool.hasPrompt) {
+      promptField.classList.remove('hidden');
+      promptField.placeholder = tool.promptPlaceholder || 'Describe...';
+    } else {
+      promptField.classList.add('hidden');
+    }
 
     if (tool.controls) {
       tool.controls.forEach(ctrl => {
@@ -738,38 +467,6 @@ export function EditStudio() {
         if (factory) controlsContainer.appendChild(factory(ctrl));
       });
     }
-
-    const hasAdvanced = tool.advancedControls && tool.advancedControls.length > 0;
-
-    negativePromptField.value = '';
-
-    if (tool.hasPrompt) {
-      promptField.classList.remove('hidden');
-      promptField.placeholder = tool.promptPlaceholder || 'Describe...';
-      negativePromptLabel.classList.remove('hidden');
-      negativePromptField.classList.remove('hidden');
-      negativePromptField.placeholder = 'What to avoid...';
-    } else {
-      promptField.classList.add('hidden');
-      negativePromptLabel.classList.add('hidden');
-      negativePromptField.classList.add('hidden');
-    }
-
-    if (hasAdvanced) {
-      controlsContainer.appendChild(advancedToggleBtn);
-      advancedToggleBtn.innerHTML = `<span>${advancedOpen ? '▲' : '▼'}</span> Advanced Controls`;
-
-      if (advancedOpen) {
-        tool.advancedControls.forEach(ctrl => {
-          const factory = CONTROL_FACTORIES[ctrl.type];
-          if (factory) controlsContainer.appendChild(factory(ctrl));
-        });
-        controlsContainer.appendChild(referenceToggleBtn);
-        controlsContainer.appendChild(referenceRow);
-      }
-    }
-
-    controlsContainer.classList.remove('hidden');
   }
 
   function selectTool(tool, cardEl) {
@@ -784,44 +481,68 @@ export function EditStudio() {
     workCard.classList.remove('hidden');
     workCard.classList.add('flex');
     toolTitle.textContent = tool.name;
-    advancedOpen = false;
+
+    // Reset uploads
+    uploadedUrl = null;
+    maskUrl = null;
+    garmentUrl = null;
+    swapUrl = null;
+    watermarkImageUrl = null;
+    previewImg.classList.add('hidden');
+    previewImg.src = '';
+    uploadHint.textContent = 'Upload source image or video';
+    clearBtn.classList.add('hidden');
+    maskRow.classList.add('hidden');
+    maskHint.textContent = 'Upload mask image';
+    maskHint.classList.add('hidden');
+    maskClearBtn.classList.add('hidden');
+    garmentRow.classList.add('hidden');
+    garmentHint.textContent = 'Upload garment image';
+    garmentHint.classList.add('hidden');
+    garmentClearBtn.classList.add('hidden');
+    swapRow.classList.add('hidden');
+    swapHint.textContent = 'Upload swap face image';
+    swapHint.classList.add('hidden');
+    swapClearBtn.classList.add('hidden');
+    watermarkImageRow.classList.add('hidden');
+    watermarkImageHint.textContent = 'Upload watermark image';
+    watermarkImageHint.classList.add('hidden');
+    watermarkImageClearBtn.classList.add('hidden');
+
     renderControls(tool);
 
-    referenceImageUrl = null;
-    referencePreview.src = '';
-    referencePreview.classList.add('hidden');
-    referenceRow.classList.add('hidden');
+    // Show/hide extra upload rows based on tool
+    if (tool.requiresMask) maskRow.classList.remove('hidden');
+    if (tool.requiresGarment) garmentRow.classList.remove('hidden');
+    if (tool.requiresSwapImage) swapRow.classList.remove('hidden');
+    if (tool.requiresWatermarkImage) watermarkImageRow.classList.remove('hidden');
 
     resultArea.classList.add('hidden');
     updateProgress(null);
   }
 
-  function updateProgress(percent, message) {
-    if (percent === null) {
-      progressContainer.classList.add('hidden');
-      if (progressPoll) { clearInterval(progressPoll); progressPoll = null; }
-      return;
-    }
-    progressFill.style.width = `${percent}%`;
-    progressText.textContent = message || `Processing... ${Math.round(percent)}%`;
-    progressContainer.classList.remove('hidden');
-  }
-
   editBtn.onclick = async () => {
     if (!activeTool) return;
-    if (!uploadedUrl) { alert('Upload an image or video first'); return; }
+    if (!uploadedUrl) { showError('Upload a source image first'); return; }
+
+    // Validate required secondary uploads
+    if (activeTool.requiresMask && !maskUrl) { showError('Upload a mask image for Remove Object'); return; }
+    if (activeTool.requiresGarment && !garmentUrl) { showError('Upload a garment image for Change Dress'); return; }
+    if (activeTool.requiresSwapImage && !swapUrl) { showError('Upload a swap face image for Face Swap'); return; }
+    if (activeTool.requiresWatermarkImage && !watermarkImageUrl) { showError('Upload a watermark image'); return; }
+
     const apiKey = localStorage.getItem('muapi_key');
     if (!apiKey) { AuthModal(() => editBtn.click()); return; }
 
     editBtn.disabled = true;
     editBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Processing...';
-    progress = 0;
     updateProgress(0, 'Starting...');
 
     if (progressPoll) clearInterval(progressPoll);
     progressPoll = setInterval(() => {
-      progress = Math.min(progress + Math.random() * 8 + 2, 90);
-      updateProgress(progress, `Processing... ${Math.round(progress)}%`);
+      const current = parseFloat(progressFill.style.width) || 0;
+      const next = Math.min(current + Math.random() * 8 + 2, 90);
+      updateProgress(next, `Processing... ${Math.round(next)}%`);
     }, 500);
 
     cancelBtn.classList.remove('hidden');
@@ -834,26 +555,31 @@ export function EditStudio() {
     };
 
     try {
-      const params = { model: activeTool.id, image_url: uploadedUrl };
-      const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
+      const params = {
+        model: activeTool.id,
+        image_url: uploadedUrl,
+      };
+
+      if (maskUrl) params.mask_image_url = maskUrl;
+      if (garmentUrl) params.garment_image_url = garmentUrl;
+      if (swapUrl) params.swap_url = swapUrl;
+      if (watermarkImageUrl) params.watermark_image_url = watermarkImageUrl;
+
       if (activeTool.hasPrompt && promptField.value.trim()) {
-        params.prompt = replaceTokensInPrompt(promptField.value.trim(), activeProfile);
+        const promptKey = activeTool.promptKey || 'prompt';
+        params[promptKey] = replaceTokensInPrompt(promptField.value.trim());
       }
 
-      for (const [key, value] of Object.entries(controlValues)) {
-        if (value !== undefined && value !== null && value !== '' && value !== 'undefined') {
-          params[key] = value;
+      // Collect control values from DOM
+      controlsContainer.querySelectorAll('select, input').forEach(el => {
+        const key = el.dataset.controlKey;
+        if (!key) return;
+        if (el.type === 'number') {
+          params[key] = parseFloat(el.value);
+        } else {
+          params[key] = el.value;
         }
-      }
-
-      const negPrompt = negativePromptField.value?.trim();
-      if (negPrompt) {
-        params.negative_prompt = negPrompt;
-      }
-
-      if (referenceImageUrl) {
-        params.reference_images = [referenceImageUrl];
-      }
+      });
 
       const result = await muapi.generateI2I(params);
       updateProgress(null);
@@ -867,20 +593,104 @@ export function EditStudio() {
             </div>
             <div class="flex gap-3">
               <a href="${result.url}" download class="flex-1 bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
-              <button class="flex-1 bg-white/10 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-white/20 transition-all regen-btn">Generate Again</button>
+              <button type="button" class="flex-1 bg-white/10 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-white/20 transition-all regen-btn">Generate Again</button>
             </div>
           </div>
         `;
         resultArea.querySelector('.regen-btn').onclick = () => editBtn.click();
+      } else {
+        showError('Edit completed, but no result image was returned. Please try again.');
       }
     } catch (err) {
       updateProgress(null);
-      alert(`Error: ${err.message}`);
+      showError(err.message || 'An unexpected error occurred');
     } finally {
       editBtn.disabled = false;
       editBtn.textContent = 'Apply Edit';
       cancelBtn.classList.add('hidden');
     }
+  };
+
+  // Control factories
+  function createRangeControl(control) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'flex flex-col gap-1.5';
+    const label = document.createElement('label');
+    label.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
+    label.textContent = control.label;
+    const slider = document.createElement('input');
+    slider.type = 'range';
+    slider.min = control.min;
+    slider.max = control.max;
+    slider.step = control.step || 1;
+    slider.value = control.default;
+    slider.dataset.controlKey = control.key;
+    slider.className = 'flex-1 h-2 bg-white/5 rounded-full appearance-none';
+    const valueSpan = document.createElement('span');
+    valueSpan.className = 'text-xs font-bold text-white w-16 text-right';
+    const unitLabel = control.unitLabel || '';
+    const updateValueSpan = (val) => {
+      if (control.unit === 'deg') {
+        valueSpan.textContent = `${Math.round(val)} deg`;
+      } else {
+        valueSpan.textContent = `${Math.round(val)}${control.unit || ''} ${unitLabel}`.trim();
+      }
+    };
+    updateValueSpan(control.default);
+    slider.oninput = () => {
+      const val = parseFloat(slider.value);
+      updateValueSpan(val);
+    };
+    wrapper.appendChild(label);
+    wrapper.appendChild(valueSpan);
+    wrapper.appendChild(slider);
+    return wrapper;
+  }
+
+  function createSelectControl(control) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'flex flex-col gap-1.5';
+    const label = document.createElement('label');
+    label.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
+    label.textContent = control.label;
+    const select = document.createElement('select');
+    select.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-primary/50 transition-colors';
+    select.dataset.controlKey = control.key;
+    control.options.forEach(opt => {
+      const option = document.createElement('option');
+      option.value = opt;
+      option.textContent = opt;
+      if (opt === control.default) option.selected = true;
+      select.appendChild(option);
+    });
+    wrapper.appendChild(label);
+    wrapper.appendChild(select);
+    return wrapper;
+  }
+
+  function createNumberControl(control) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'flex flex-col gap-1.5';
+    const label = document.createElement('label');
+    label.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
+    label.textContent = control.label;
+    const numInput = document.createElement('input');
+    numInput.type = 'number';
+    numInput.min = control.min || 0;
+    numInput.max = control.max || 999;
+    numInput.step = control.step || 1;
+    numInput.value = control.default;
+    numInput.dataset.controlKey = control.key;
+    numInput.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-primary/50 transition-colors';
+    wrapper.appendChild(label);
+    wrapper.appendChild(numInput);
+    return wrapper;
+  }
+
+  const CONTROL_FACTORIES = {
+    range: createRangeControl,
+    select: createSelectControl,
+    number: createNumberControl,
   };
 
   return container;
