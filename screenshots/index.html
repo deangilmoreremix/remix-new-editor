@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Studio Screenshots</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0a0a; color: #eee; font-family: system-ui, sans-serif; padding: 24px; }
+  h1 { font-size: 18px; margin-bottom: 16px; font-weight: 600; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+  .card { background: #111; border: 1px solid #222; border-radius: 12px; overflow: hidden; }
+  .card img { width: 100%; height: auto; display: block; border-bottom: 1px solid #222; }
+  .card .meta { padding: 10px 12px; font-size: 12px; color: #aaa; display: flex; justify-content: space-between; }
+  .card .meta .name { color: #fff; font-weight: 600; }
+  .empty { color: #666; font-style: italic; }
+</style>
+</head>
+<body>
+<h1>Studio Screenshots</h1>
+  <div class="grid" id="grid"></div>
+  <script src="./gallery.js"></script>
+</body>
+</html>

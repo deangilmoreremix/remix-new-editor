@@ -150,7 +150,16 @@ export class PostProductionPipeline {
     const ffmpegArgs = this.buildFFmpegCommand(finalOutput);
     
     // Execute FFmpeg
-    await this.executeFFmpeg(ffmpegArgs);
+    try {
+      await this.executeFFmpeg(ffmpegArgs);
+    } catch (error) {
+      console.warn('[Pipeline] FFmpeg render failed, retrying without text overlays:', error);
+      
+      // Retry without text overlays if drawtext fails
+      this.textOverlays = [];
+      const retryArgs = this.buildFFmpegCommand(finalOutput);
+      await this.executeFFmpeg(retryArgs);
+    }
     
     console.log(`[Pipeline] Render complete: ${finalOutput}`);
     return finalOutput;

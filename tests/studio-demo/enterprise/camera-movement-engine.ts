@@ -1083,21 +1083,20 @@ export class CameraChoreography {
     duration = 1500
   ): Promise<void> {
     await this.page.evaluate(
-      (from, to) => {
-        const fromEl = document.querySelector(from);
-        const toEl = document.querySelector(to);
+      (opts: { from: string; to: string; duration: number }) => {
+        const fromEl = document.querySelector(opts.from);
+        const toEl = document.querySelector(opts.to);
 
         if (fromEl) {
           (fromEl as HTMLElement).style.filter = 'blur(0px)';
-          (fromEl as HTMLElement).style.transition = `filter ${duration}ms ease`;
+          (fromEl as HTMLElement).style.transition = `filter ${opts.duration}ms ease`;
         }
         if (toEl) {
           (toEl as HTMLElement).style.filter = `blur(8px)`;
-          (toEl as HTMLElement).style.transition = `filter ${duration}ms ease`;
+          (toEl as HTMLElement).style.transition = `filter ${opts.duration}ms ease`;
         }
       },
-      fromSelector,
-      toSelector
+      { from: fromSelector, to: toSelector, duration }
     );
 
     await this.page.waitForTimeout(duration);
@@ -1107,14 +1106,14 @@ export class CameraChoreography {
    * Creates a whip pan - fast pan with motion blur.
    */
   async whipPan(direction: 'left' | 'right', distance = 500, duration = 300): Promise<void> {
-    await this.page.evaluate((dir, dist) => {
+    await this.page.evaluate((opts: { dir: string; dist: number; duration: number }) => {
       const app = document.querySelector('#app') || document.body;
       if (app) {
-        (app as HTMLElement).style.transition = `transform ${duration}ms cubic-bezier(0.25, 0.1, 0.25, 1)`;
+        (app as HTMLElement).style.transition = `transform ${opts.duration}ms cubic-bezier(0.25, 0.1, 0.25, 1)`;
         (app as HTMLElement).style.filter = 'blur(4px)';
-        (app as HTMLElement).style.transform = `translateX(${dir === 'right' ? -dist : dist}px)`;
+        (app as HTMLElement).style.transform = `translateX(${opts.dir === 'right' ? -opts.dist : opts.dist}px)`;
       }
-    }, direction, distance);
+    }, { dir: direction, dist: distance, duration });
 
     await this.page.waitForTimeout(duration);
 

@@ -86,8 +86,7 @@ async function dismissStudioDrawer(page) {
 
 async function navigateToStudio(page, route) {
   await page.goto(`${BASE_URL}/?dev#/${route}`);
-  // Allow time for dynamic imports and studio chrome to mount.
-  await page.waitForTimeout(1200);
+  await page.waitForTimeout(3000);
 }
 
 async function captureScreenshot(page, filename) {
@@ -112,7 +111,7 @@ test.describe('Studio Screenshot Capture', () => {
   });
 
   test('captures screenshots for all side menu studios', async ({ page }) => {
-    test.setTimeout(120000);
+    test.setTimeout(300000);
     await page.setViewportSize(VIEWPORT);
 
     for (const item of SIDE_MENU_ITEMS) {

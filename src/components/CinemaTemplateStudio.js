@@ -6,11 +6,12 @@
 import { mountStudioDrawer, createStudioMenuButton } from '../lib/studioChrome.js';
 import { showToast } from '../lib/loading.js';
 import { escapeHtml } from '../lib/security.js';
+import { resolveTemplate } from '../lib/showcaseTemplateResolver.js';
 import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 import { muapi } from '../lib/muapi.js';
+import { navigate } from '../lib/router.js';
 import { StoryboardStudio } from './StoryboardStudio.js';
 import { createUploadPicker } from './UploadPicker.js';
-import { addCaptionButton } from '../lib/editor/captionActions.js';
 import {
   getTemplateRegistry,
   SHOT_TYPES,
@@ -32,6 +33,7 @@ import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateTh
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { AuthModal } from './AuthModal.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
+import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { selectScenes } from '../lib/sceneSelector.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
@@ -60,6 +62,7 @@ export function CinemaTemplateStudio() {
 
   let incomingStoryboard = null;
   let storyboardProjectId = null;
+  let incomingCinemaTemplateId = null;
 
   let _modelSelectorOutsideClickHandler = null;
 
@@ -128,9 +131,6 @@ export function CinemaTemplateStudio() {
     });
   }
 
-  // ================================
-  // BROWSE VIEW
-  // ================================
   function renderBrowseView() {
     const favCount = registry.getAll().filter(t => TemplateStorage.isFavorite(t.id)).length;
     const recentEntries = TemplateStorage.getRecent();
@@ -177,8 +177,7 @@ export function CinemaTemplateStudio() {
       </div>
     `;
     container.appendChild(header);
-
-    container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favorites'; render(); };
+container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favorites'; render(); };
     container.querySelector('#recent-btn').onclick = () => { browseFilter = 'recent'; render(); };
     container.querySelector('#custom-btn').onclick = () => { browseFilter = 'custom'; render(); };
 
@@ -361,12 +360,16 @@ export function CinemaTemplateStudio() {
     try {
       const params = new URLSearchParams(window.location.hash.split('?')[1] || '');
       const storyboardParam = params.get('storyboard');
+      const cinemaTemplateParam = params.get('template');
       if (storyboardParam) {
         incomingStoryboard = JSON.parse(storyboardParam);
         storyboardProjectId = incomingStoryboard.id || incomingStoryboard.projectId || null;
       }
+      if (cinemaTemplateParam) {
+        incomingCinemaTemplateId = cinemaTemplateParam;
+      }
     } catch (e) {
-      console.warn('[CinemaTemplateStudio] Failed to parse incoming storyboard:', e);
+      console.warn('[CinemaTemplateStudio] Failed to parse incoming params:', e);
     }
     view = 'create';
     render();
@@ -746,31 +749,42 @@ export function CinemaTemplateStudio() {
       if (container.querySelector('#open-storyboard-btn')) {
         container.querySelector('#open-storyboard-btn').onclick = () => {
           view = 'storyboard';
-          render();
+  render();
+
+  // If a template ID was passed via the `template` query param, try to
+  // select it in this studio. If it's not in the cinematic template
+  // registry, fall back to TemplateStudio which can resolve all 512
+  // showcase demos via the unified resolver.
+  if (incomingCinemaTemplateId) {
+    const cinematicTemplate = registry.get(incomingCinemaTemplateId);
+    if (cinematicTemplate) {
+      selectTemplate(cinematicTemplate);
+    } else {
+      // Not a cinematic template — redirect to TemplateStudio which
+      // falls back to the unified showcase resolver.
+      try {
+        const resolved = resolveTemplate(incomingCinemaTemplateId);
+        if (resolved) {
+          navigate('template/' + incomingCinemaTemplateId);
+        }
+      } catch { /* ignore */ }
+    }
+  }
         };
       }
       if (container.querySelector('#add-scene-btn')) {
         container.querySelector('#add-scene-btn').onclick = () => {
-          try {
-            if (!sceneBuilder) {
-              console.warn('[CinemaTemplateStudio] add-scene-btn clicked but sceneBuilder is missing');
-              return;
-            }
-            const scenes = sceneBuilder.getScenes();
-            const nextNumber = scenes.length ? Math.max(...scenes.map(s => s.sceneNumber || 0)) + 1 : 1;
-            sceneBuilder.addScene({
-              sceneNumber: nextNumber,
-              beat: `Scene ${nextNumber}`,
-              duration: 5,
-              shots: [{ type: 'MEDIUM', movement: 'STATIC', duration: 3, order: 1 }]
-            });
-            renderSceneBuilder();
-            renderSceneTimeline();
-            console.log('[CinemaTemplateStudio] Added scene', nextNumber, 'total scenes', sceneBuilder.getScenes().length);
-          } catch (err) {
-            console.error('[CinemaTemplateStudio] Add scene failed:', err);
-            showToast('Failed to add scene', 'error');
-          }
+          if (!sceneBuilder) return;
+          const scenes = sceneBuilder.getScenes();
+          const nextNumber = scenes.length ? Math.max(...scenes.map(s => s.sceneNumber || 0)) + 1 : 1;
+          sceneBuilder.addScene({
+            sceneNumber: nextNumber,
+            beat: `Scene ${nextNumber}`,
+            duration: 5,
+            shots: [{ type: 'MEDIUM', movement: 'STATIC', duration: 3, order: 1 }]
+          });
+          renderSceneBuilder();
+          renderSceneTimeline();
         };
       }
     }
@@ -1219,34 +1233,22 @@ export function CinemaTemplateStudio() {
 
     list.querySelectorAll('.delete-scene-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        try {
-          sceneBuilder.removeScene(btn.dataset.id);
-          renderSceneBuilder();
-          renderSceneTimeline();
-          console.log('[CinemaTemplateStudio] Removed scene', btn.dataset.id);
-        } catch (err) {
-          console.error('[CinemaTemplateStudio] Remove scene failed:', err);
-          showToast('Failed to remove scene', 'error');
-        }
+        sceneBuilder.removeScene(btn.dataset.id);
+        renderSceneBuilder();
+        renderSceneTimeline();
       });
     });
 
     list.querySelectorAll('.move-scene-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        try {
-          const idx = parseInt(btn.dataset.idx, 10);
-          const dir = btn.dataset.dir;
-          const scenes = sceneBuilder.getScenes();
-          const newIdx = dir === 'up' ? idx - 1 : idx + 1;
-          if (newIdx < 0 || newIdx >= scenes.length) return;
-          sceneBuilder.moveScene(scenes[idx].id, newIdx);
-          renderSceneBuilder();
-          renderSceneTimeline();
-          console.log('[CinemaTemplateStudio] Moved scene', scenes[idx].id, dir, 'to', newIdx);
-        } catch (err) {
-          console.error('[CinemaTemplateStudio] Move scene failed:', err);
-          showToast('Failed to move scene', 'error');
-        }
+        const idx = parseInt(btn.dataset.idx, 10);
+        const dir = btn.dataset.dir;
+        const scenes = sceneBuilder.getScenes();
+        const newIdx = dir === 'up' ? idx - 1 : idx + 1;
+        if (newIdx < 0 || newIdx >= scenes.length) return;
+        sceneBuilder.moveScene(scenes[idx].id, newIdx);
+        renderSceneBuilder();
+        renderSceneTimeline();
       });
     });
   }
@@ -1684,10 +1686,6 @@ export function CinemaTemplateStudio() {
     dropdown.style.maxHeight = '70vh';
     dropdown.style.minHeight = '350px';
 
-    const modelLoadingStatus = document.createElement('span');
-    modelLoadingStatus.id = 'model-loading-status';
-    modelLoadingStatus.className = 'text-[10px] text-zinc-500';
-
     const closeDropdown = () => {
       dropdown.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
       dropdown.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
@@ -1700,10 +1698,6 @@ export function CinemaTemplateStudio() {
     const openDropdown = () => {
       dropdown.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
       dropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
-
-      const triggerRect = triggerBtn.getBoundingClientRect();
-      dropdown.style.top = `${triggerRect.bottom + 6}px`;
-      dropdown.style.left = `${triggerRect.left}px`;
 
       if (_modelSelectorOutsideClickHandler) {
         document.removeEventListener('click', _modelSelectorOutsideClickHandler);
@@ -1776,6 +1770,10 @@ export function CinemaTemplateStudio() {
       }
     };
 
+    const modelLoadingStatus = document.createElement('span');
+    modelLoadingStatus.id = 'model-loading-status';
+    modelLoadingStatus.className = 'text-[10px] text-zinc-500';
+
     const headerRow = document.createElement('div');
     headerRow.className = 'mb-3';
     const label = document.createElement('div');
@@ -1785,8 +1783,8 @@ export function CinemaTemplateStudio() {
     headerRow.appendChild(triggerBtn);
     headerRow.appendChild(modelLoadingStatus);
     modelWrapper.appendChild(headerRow);
-    modelWrapper.appendChild(dropdown);
-    formPanel.appendChild(modelWrapper);
+     modelWrapper.appendChild(dropdown);
+     formPanel.appendChild(modelWrapper);
    }
 
   // ================================
@@ -2598,7 +2596,7 @@ export function CinemaTemplateStudio() {
       render();
     };
 
-    const firstChild = storyboardRoot.firstElementChild;
+const firstChild = storyboardRoot.firstElementChild;
     if (firstChild) {
       storyboardRoot.insertBefore(backBtn, firstChild);
     } else {
@@ -2649,19 +2647,16 @@ export function CinemaTemplateStudio() {
     actions.appendChild(newTabBtn);
     actions.appendChild(downloadBtn);
 
-    if (generationResult && /\.(mp4|webm|mov|m4v)(\?|$)|video\//i.test(generationResult)) {
-      const captionBtn = document.createElement('button');
-      captionBtn.type = 'button';
-      captionBtn.textContent = '💬 Add AI Captions';
-      captionBtn.className = 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl text-xs font-bold transition-all border border-white/5 backdrop-blur-lg text-white';
-      captionBtn.onclick = () => {
-        addCaptionButton({
-          videoUrl: generationResult,
-          appTheme: 'cinema-template-studio',
-        });
-      };
-      actions.appendChild(captionBtn);
-    }
+    const mediaType = currentTemplate?.outputType === 'video' ? 'video' : 'image';
+    const publishBtn = document.createElement('button');
+    publishBtn.type = 'button';
+    publishBtn.className = 'publish-social-btn px-4 py-2 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white text-sm font-bold rounded-lg hover:scale-105 transition-transform';
+    publishBtn.textContent = 'Publish to Social';
+    publishBtn.onclick = () => {
+      const target = generationResult || resultImg.src || '';
+      if (target) openSocialPublish({ mediaUrl: target, mediaType });
+    };
+    actions.appendChild(publishBtn);
 
     preview.appendChild(resultImg);
     preview.appendChild(actions);

@@ -316,13 +316,18 @@ export class CinematicRecorder {
     this.isRecording = false;
 
     // Remove cursor effects
-    await this.page.evaluate(() => {
-      const cursor = document.querySelector('.cinematic-cursor');
-      if (cursor) cursor.remove();
-      
-      const style = document.getElementById('cinematic-cursor');
-      if (style) style.remove();
-    });
+    try {
+      await this.page.evaluate(() => {
+        const cursor = document.querySelector('.cinematic-cursor');
+        if (cursor) cursor.remove();
+        
+        const style = document.getElementById('cinematic-cursor');
+        if (style) style.remove();
+      });
+    } catch (error) {
+      // Page may already be closed
+      console.log('[Recorder] Cursor cleanup skipped - page not available');
+    }
 
     // The video is automatically saved by Playwright
     console.log(`[Recorder] Stopped session: ${session.id}`);

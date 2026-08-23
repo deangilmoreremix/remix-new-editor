@@ -2,6 +2,7 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { escapeHtml } from '../lib/security.js';
 import { showToast } from '../lib/loading.js';
 import { createHeroSection } from '../lib/thumbnails.js';
+import { navigate } from '../lib/router.js';
 
 const VPF_JSON_URL = 'https://raw.githubusercontent.com/Hanyuyu/visual-prompt-feed/main/data/prompts.json';
 
@@ -131,16 +132,64 @@ function formatDate(ts) {
 }
 function getPreviewMedia(item) {
   if (!item.media || item.media.length === 0) return null;
+  const imageMedia = item.media.filter(m => m.type === 'image');
+  if (imageMedia.length > 0) {
+    return imageMedia.find(m => m.role === 'result') || imageMedia[0];
+  }
   return item.media.find(m => m.role === 'result') || item.media[0];
 }
 function getVideoSource(item) {
   if (!item.media || item.media.length === 0) return '';
   const videoMedia = item.media.find(m => {
     const url = m.sourceUrl || '';
-    return url.includes('video.twimg.com') || url.includes('releases/download/videos/');
+    return m.type === 'video' && (url.includes('video.twimg.com') || url.includes('releases/download/videos/') || url);
   });
   if (videoMedia) return videoMedia.sourceUrl;
-  return item.media[0].sourceUrl || '';
+  const anyMedia = item.media.find(m => m.sourceUrl);
+  return anyMedia ? anyMedia.sourceUrl : '';
+}
+function getPosterForItem(item) {
+  if (!item.media || item.media.length === 0) return '';
+  const imageMedia = item.media.find(m => m.type === 'image' && m.posterUrl);
+  if (imageMedia) return imageMedia.posterUrl;
+  const videoMedia = item.media.find(m => m.type === 'video' && m.posterUrl);
+  if (videoMedia) return videoMedia.posterUrl;
+  const anyPoster = item.media.find(m => m.posterUrl);
+  return anyPoster ? anyPoster.posterUrl : '';
+}
+function getStudioRoute(item) {
+  if (item.mediaType === 'video') return 'video';
+  if (item.mediaType === 'image') return 'image';
+  const cats = item.categories || [];
+  if (cats.includes('cinematic')) return 'cinema';
+  if (cats.includes('character')) return 'character';
+  if (cats.includes('ugc')) return 'video';
+  if (cats.includes('product-ads') || cats.includes('product-brand')) return 'commercial';
+  if (cats.includes('animation')) return 'video';
+  return item.mediaType === 'image' ? 'image' : 'video';
+}
+function mapModelToStudioModel(recommendedModel) {
+  const m = (recommendedModel || '').toLowerCase();
+  if (m.includes('seedance')) return 'seedance-v2.0-t2v';
+  if (m.includes('nanobanana') || m.includes('nano-banana')) return 'nano-banana-2';
+  if (m.includes('gptimage') || m.includes('gpt-image')) return 'nano-banana-2';
+  if (m.includes('kling')) return 'kling';
+  if (m.includes('minimax')) return 'minimax';
+  return recommendedModel || '';
+}
+function openItemInStudio(item) {
+  const route = getStudioRoute(item);
+  const params = {
+    prompt: item.prompt || '',
+    model: mapModelToStudioModel(item.recommendedModel),
+    _sourceSlug: item.imglumeId,
+    _sourceTitle: item.title,
+  };
+  const rec = item.recommended || {};
+  if (rec.aspectRatio) params.aspect_ratio = rec.aspectRatio;
+  if (rec.durationSeconds) params.duration = rec.durationSeconds;
+  if (rec.generateAudio) params.generate_audio = rec.generateAudio;
+  navigate(route, params);
 }
 function truncate(text, maxLen) {
   if (!text) return '';
@@ -161,16 +210,19 @@ function normalizeSeedanceItem(item) {
     mediaType: item.mediaType || 'video',
     media: (item.media || []).map(m => ({
       type: m.type || 'image',
+      role: m.role || 'preview',
       previewUrl: m.previewUrl || '',
       sourceUrl: m.sourceUrl || '',
       posterUrl: m.posterUrl || '',
+      width: m.width || null,
+      height: m.height || null,
     })),
     source: {
-      author: { name: author.name || '', link: author.link || '' },
+      author: { handle: author.handle || '', name: author.name || '', link: author.link || '' },
       engagement: {
-        likes: engagement.likes || 0,
-        reposts: engagement.reposts || 0,
-        replies: engagement.replies || 0,
+        likes: engagement.likes ?? 0,
+        reposts: engagement.reposts ?? 0,
+        replies: engagement.replies ?? 0,
       },
       publishedAt: source.publishedAt || '',
     },
@@ -178,6 +230,62 @@ function normalizeSeedanceItem(item) {
     recommendedModel: item.recommendedModel || 'seedance-2.0',
     provenance: item.provenance || {},
     _source: 'seedance',
+  };
+}
+function normalizeVpfItem(item) {
+  const source = item.source || {};
+  const author = source.author || {};
+  const engagement = source.engagement || {};
+  const curation = item.curation || {};
+  const provenance = item.provenance || {};
+  const recommended = item.recommended || {};
+  return {
+    imglumeId: item.imglumeId || item.id || `vpf-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    title: item.title || 'Untitled',
+    prompt: item.prompt || '',
+    mediaType: item.mediaType || 'image',
+    media: (item.media || []).map(m => ({
+      type: m.type || 'image',
+      role: m.role || 'preview',
+      previewUrl: m.previewUrl || '',
+      sourceUrl: m.sourceUrl || '',
+      posterUrl: m.posterUrl || '',
+      width: m.width || null,
+      height: m.height || null,
+    })),
+    source: {
+      author: { handle: author.handle || '', name: author.name || '', link: author.link || '' },
+      engagement: {
+        likes: engagement.likes ?? 0,
+        reposts: engagement.reposts ?? 0,
+        replies: engagement.replies ?? 0,
+      },
+      publishedAt: source.publishedAt || '',
+    },
+    categories: item.categories || [],
+    tags: item.tags || [],
+    language: item.language || null,
+    recommendedModel: item.recommendedModel || 'seedance',
+    sourceModels: item.sourceModels || [],
+    recommended: {
+      quality: recommended.quality || null,
+      aspectRatio: recommended.aspectRatio || null,
+      durationSeconds: recommended.durationSeconds ?? null,
+      generateAudio: recommended.generateAudio ?? null,
+    },
+    curation: {
+      creator: curation.creator || 'ImgLume',
+      url: curation.url || '',
+      recordUrl: curation.recordUrl || '',
+      license: curation.license || 'CC-BY-4.0',
+    },
+    provenance: {
+      discoveredBy: provenance.discoveredBy || 'ByRadar',
+      collection: provenance.collection || 'byradar_discovered',
+      importedAt: provenance.importedAt || new Date().toISOString(),
+      updatedAt: provenance.updatedAt || new Date().toISOString(),
+    },
+    _source: 'vpf',
   };
 }
 
@@ -225,6 +333,7 @@ export function SmartVideoViral() {
   let error = null;
   let mediaTypeFilter = 'all';
   let categoryFilter = 'all';
+  let modelFilter = 'all';
   let searchQuery = '';
   let sortKey = 'fresh';
   let excludeChinese = true;
@@ -308,6 +417,9 @@ export function SmartVideoViral() {
       <select id="viral-category" class="bg-[#111]/90 border border-zinc-700/80 rounded-xl px-3 py-2 text-sm text-zinc-200 focus:border-primary focus:outline-none appearance-none min-w-[140px]">
         <option value="all">All Categories</option>
       </select>
+      <select id="viral-model" class="bg-[#111]/90 border border-zinc-700/80 rounded-xl px-3 py-2 text-sm text-zinc-200 focus:border-primary focus:outline-none appearance-none min-w-[120px]">
+        <option value="all">All Models</option>
+      </select>
       <select id="viral-sort" class="bg-[#111]/90 border border-zinc-700/80 rounded-xl px-3 py-2 text-sm text-zinc-200 focus:border-primary focus:outline-none min-w-[120px]">
         <option value="fresh">Newest First</option>
         <option value="engagement">Most Popular</option>
@@ -326,6 +438,7 @@ export function SmartVideoViral() {
   const searchInput = controlsBar.querySelector('#viral-search');
   const mediaFilter = controlsBar.querySelector('#viral-media-filter');
   const categorySelect = controlsBar.querySelector('#viral-category');
+  const modelSelect = controlsBar.querySelector('#viral-model');
   const sortSelect = controlsBar.querySelector('#viral-sort');
   const langToggle = controlsBar.querySelector('#viral-lang-toggle');
   let catOptions = '';
@@ -333,6 +446,14 @@ export function SmartVideoViral() {
     catOptions += `<option value="${c}">${escapeHtml(CATEGORY_LABELS[c] || c.charAt(0).toUpperCase() + c.slice(1))}</option>`;
   });
   categorySelect.innerHTML = '<option value="all">All Categories</option>' + catOptions;
+
+  function updateModelOptions() {
+    const models = [...new Set(prompts.map(p => p.recommendedModel).filter(Boolean))].sort();
+    const current = modelSelect.value;
+    modelSelect.innerHTML = '<option value="all">All Models</option>' + models.map(m => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
+    if (models.includes(current)) modelSelect.value = current;
+    else modelSelect.value = 'all';
+  }
 
   const debouncedApply = debounce(() => applyFilters(), 280);
   searchInput.addEventListener('input', (e) => { searchQuery = e.target.value; debouncedApply(); });
@@ -349,6 +470,7 @@ export function SmartVideoViral() {
   mediaFilter.querySelector('[data-mt="all"]').classList.add('bg-primary', 'text-black');
   mediaFilter.querySelector('[data-mt="all"]').classList.remove('text-zinc-200');
   categorySelect.addEventListener('change', () => { categoryFilter = categorySelect.value; applyFilters(); });
+  modelSelect.addEventListener('change', () => { modelFilter = modelSelect.value; applyFilters(); });
   sortSelect.addEventListener('change', () => { sortKey = sortSelect.value; applyFilters(); });
 
   langToggle.addEventListener('click', () => {
@@ -563,6 +685,14 @@ export function SmartVideoViral() {
     const hasLongPrompt = fullPrompt.length > 180;
     const escapedPrompt = escapeHtml(fullPrompt);
     const escapedPreview = escapeHtml(promptPreview);
+    const recommended = item.recommended || {};
+    const recChips = [
+      recommended.aspectRatio ? `aspect:${escapeHtml(recommended.aspectRatio)}` : '',
+      recommended.durationSeconds ? `${escapeHtml(String(recommended.durationSeconds))}s` : '',
+      recommended.quality ? `quality:${escapeHtml(recommended.quality)}` : '',
+    ].filter(Boolean);
+    const authorLabel = author.name ? escapeHtml(author.name) : (author.handle ? `@${escapeHtml(author.handle)}` : 'unknown');
+    const authorSub = author.name && author.handle ? `@${escapeHtml(author.handle)}` : '';
     let mediaHtml;
     const videoSrc = isVideo ? proxyVideoUrl(getVideoSource(item) || media?.previewUrl || '') : '';
     const posterSrc = isVideo ? (poster || thumb || '') : '';
@@ -586,42 +716,49 @@ export function SmartVideoViral() {
     }
     return `
        <div class="smart-card group" data-imglume-id="${item.imglumeId}">
-        <div class="smart-card-media relative aspect-[3/2] overflow-hidden bg-black/30">
-          ${mediaHtml}
-          <div class="absolute top-2 left-2 flex gap-1">
-            ${modelBadgeHtml}
-            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold ${isVideo ? 'bg-purple-400/20 text-purple-300' : 'bg-emerald-400/20 text-emerald-300'}">
-              <svg class="w-3 h-3 mr-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${isVideo ? '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>' : '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>'}</svg>
-              ${isVideo ? 'Video' : 'Image'}
-            </span>
-          </div>
-        </div>
-        <div class="smart-card-content flex-1 flex flex-col">
-          <h3 class="text-sm font-bold text-zinc-100 mb-1 line-clamp-1">${escapeHtml(item.title || 'Untitled')}</h3>
-          <div class="prompt-section">
-            <p class="text-[11px] text-zinc-400 mb-1 line-clamp-2 leading-relaxed">${escapedPreview}</p>
-            ${hasLongPrompt ? `<button class="view-full-btn text-[10px] text-cyan-400 hover:text-cyan-300 font-bold transition-colors mb-2" data-id="${item.imglumeId}">View Full Prompt ›</button>` : ''}
-            ${hasLongPrompt ? `<div class="prompt-full hidden text-[10px] text-zinc-300 mb-2 leading-relaxed bg-zinc-900 border border-zinc-700/80 rounded-lg p-3 max-h-48 overflow-y-auto whitespace-pre-wrap break-words">${escapedPrompt}</div>` : `<p class="text-[11px] text-zinc-400 mb-2 line-clamp-2 leading-relaxed">${escapedPrompt}</p>`}
-          </div>
-          <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center gap-1 text-[10px] text-zinc-500">
-              <span class="text-primary">@${escapeHtml(author.handle || 'unknown')}</span>
-              ${dateStr ? `<span>·</span><span>${escapeHtml(dateStr)}</span>` : ''}
+         <div class="smart-card-media relative aspect-[3/2] overflow-hidden bg-black/30">
+           ${mediaHtml}
+           <div class="absolute top-2 left-2 flex gap-1">
+             ${modelBadgeHtml}
+             <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold ${isVideo ? 'bg-purple-400/20 text-purple-300' : 'bg-emerald-400/20 text-emerald-300'}">
+               <svg class="w-3 h-3 mr-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${isVideo ? '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>' : '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>'}</svg>
+               ${isVideo ? 'Video' : 'Image'}
+             </span>
+           </div>
+         </div>
+         <div class="smart-card-content flex-1 flex flex-col">
+           <h3 class="text-sm font-bold text-zinc-100 mb-1 line-clamp-1">${escapeHtml(item.title || 'Untitled')}</h3>
+           <div class="prompt-section">
+             <p class="text-[11px] text-zinc-400 mb-1 line-clamp-2 leading-relaxed">${escapedPreview}</p>
+             ${hasLongPrompt ? `<button class="view-full-btn text-[10px] text-cyan-400 hover:text-cyan-300 font-bold transition-colors mb-2" data-id="${item.imglumeId}">View Full Prompt ›</button>` : ''}
+             ${hasLongPrompt ? `<div class="prompt-full hidden text-[10px] text-zinc-300 mb-2 leading-relaxed bg-zinc-900 border border-zinc-700/80 rounded-lg p-3 max-h-48 overflow-y-auto whitespace-pre-wrap break-words">${escapedPrompt}</div>` : `<p class="text-[11px] text-zinc-400 mb-2 line-clamp-2 leading-relaxed">${escapedPrompt}</p>`}
+           </div>
+           ${recChips.length > 0 ? `
+             <div class="flex flex-wrap gap-1 mb-2">
+               ${recChips.map(chip => `<span class="text-[9px] px-1.5 py-0.5 bg-blue-400/10 border border-blue-400/20 rounded text-blue-300">${chip}</span>`).join('')}
+             </div>
+           ` : ''}
+           <div class="flex items-center justify-between mb-2">
+             <div class="flex items-center gap-1 text-[10px] text-zinc-500">
+               <span class="text-primary">${authorLabel}</span>
+               ${authorSub && authorSub !== authorLabel ? `<span class="text-zinc-600">(${authorSub})</span>` : ''}
+               ${dateStr ? `<span>·</span><span>${escapeHtml(dateStr)}</span>` : ''}
+             </div>
+             ${totalEng > 0 ? `<span class="text-[10px] text-zinc-500">🔥 ${totalEng}</span>` : ''}
+           </div>
+           ${catTags.length > 0 ? `
+             <div class="flex flex-wrap gap-1 mb-3">
+               ${catTags.map(c => `<span class="text-[9px] px-1.5 py-0.5 bg-white/5 border border-zinc-700/80 rounded text-zinc-400">${escapeHtml(CATEGORY_LABELS[c] || c)}</span>`).join('')}
+             </div>
+           ` : ''}
+            <div class="mt-auto flex gap-2">
+              <button class="copy-prompt-btn btn-primary-modern" data-id="${item.imglumeId}" title="Copy prompt to clipboard">Copy Prompt</button>
+              <button class="create-style-btn btn-secondary-modern text-[10px] font-bold" data-id="${item.imglumeId}" title="Create this style in studio">Create This Style</button>
+              <a href="${escapeHtml(item.source?.url || item.curation?.recordUrl || '#')}" target="_blank" rel="noopener noreferrer" class="btn-secondary-modern text-[10px] font-bold" title="View source post on X">Source</a>
             </div>
-            ${totalEng > 0 ? `<span class="text-[10px] text-zinc-500">🔥 ${totalEng}</span>` : ''}
-          </div>
-          ${catTags.length > 0 ? `
-            <div class="flex flex-wrap gap-1 mb-3">
-              ${catTags.map(c => `<span class="text-[9px] px-1.5 py-0.5 bg-white/5 border border-zinc-700/80 rounded text-zinc-400">${escapeHtml(CATEGORY_LABELS[c] || c)}</span>`).join('')}
-            </div>
-          ` : ''}
-          <div class="mt-auto flex gap-2">
-            <button class="copy-prompt-btn btn-primary-modern" data-id="${item.imglumeId}" title="Copy prompt to clipboard">Copy Prompt</button>
-            <a href="${escapeHtml(item.source?.url || item.curation?.recordUrl || '#')}" target="_blank" rel="noopener noreferrer" class="btn-secondary-modern text-[10px] font-bold" title="View source post on X">Source</a>
-          </div>
-        </div>
-      </div>
-    `;
+         </div>
+       </div>
+     `;
   }
 
   function setupCardPostRender() {
@@ -711,6 +848,16 @@ export function SmartVideoViral() {
           document.body.removeChild(textarea);
           showToast('Prompt copied to clipboard!', 'success', 2000);
         });
+      });
+    });
+    gridEl.querySelectorAll('.create-style-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const id = parseInt(btn.getAttribute('data-id'), 10);
+        const item = prompts.find(p => p.imglumeId === id);
+        if (!item) return;
+        openItemInStudio(item);
       });
     });
     gridEl.querySelectorAll('.view-full-btn').forEach(btn => {
@@ -811,11 +958,14 @@ export function SmartVideoViral() {
           <div class="flex flex-wrap items-center gap-2">
             ${modelBadge(item.recommendedModel)}
             ${(item.categories || []).slice(0, 3).map(c => `<span class="text-[9px] px-1.5 py-0.5 bg-white/5 border border-zinc-700/80 rounded text-zinc-400">${escapeHtml(CATEGORY_LABELS[c] || c)}</span>`).join('')}
+            ${item.recommended?.aspectRatio ? `<span class="text-[9px] px-1.5 py-0.5 bg-blue-400/10 border border-blue-400/20 rounded text-blue-300">${escapeHtml(item.recommended.aspectRatio)}</span>` : ''}
+            ${item.recommended?.durationSeconds ? `<span class="text-[9px] px-1.5 py-0.5 bg-blue-400/10 border border-blue-400/20 rounded text-blue-300">${escapeHtml(String(item.recommended.durationSeconds))}s</span>` : ''}
           </div>
           <div class="flex items-center justify-between pt-2 border-t border-white/5">
-            <span class="text-[10px] text-zinc-500">@${escapeHtml(item.source?.author?.handle || 'unknown')}</span>
+            <span class="text-[10px] text-zinc-500">${escapeHtml(item.source?.author?.name || '')}${item.source?.author?.name && item.source?.author?.handle ? ` (@${escapeHtml(item.source.author.handle)})` : `@${escapeHtml(item.source?.author?.handle || 'unknown')}`}</span>
             <div class="flex gap-2">
               <button class="viral-modal-copy btn-primary-modern" data-id="${item.imglumeId}">Copy Prompt</button>
+              <button class="viral-modal-create btn-secondary-modern text-[10px] font-bold" data-id="${item.imglumeId}">Create This Style</button>
               <a href="${escapeHtml(item.source?.url || item.curation?.recordUrl || '#')}" target="_blank" rel="noopener noreferrer" class="btn-secondary-modern text-[10px] font-bold">View on X</a>
             </div>
           </div>
@@ -847,6 +997,9 @@ export function SmartVideoViral() {
     modalEl.querySelector('#viral-modal-close').addEventListener('click', () => closeVideoModal());
     modalEl.querySelector('.viral-modal-copy')?.addEventListener('click', () => {
       navigator.clipboard.writeText(item.prompt || '').then(() => showToast('Prompt copied!', 'success', 1500));
+    });
+    modalEl.querySelector('.viral-modal-create')?.addEventListener('click', () => {
+      openItemInStudio(item);
     });
     modalEl.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') { closeVideoModal(); return; }
@@ -1000,6 +1153,12 @@ export function SmartVideoViral() {
           </select>
         </div>
         <div>
+          <label class="text-[10px] text-zinc-500 uppercase tracking-wider font-bold mb-1 block">Model</label>
+          <select id="sheet-model" class="w-full bg-[#111]/90 border border-zinc-700/80 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:border-primary focus:outline-none">
+            <option value="all">All Models</option>
+          </select>
+        </div>
+        <div>
           <label class="text-[10px] text-zinc-500 uppercase tracking-wider font-bold mb-1 block">Sort</label>
           <select id="sheet-sort" class="w-full bg-[#111]/90 border border-zinc-700/80 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:border-primary focus:outline-none">
             <option value="fresh">Newest First</option>
@@ -1028,6 +1187,7 @@ export function SmartVideoViral() {
     sheetMedia.querySelector('[data-mt="all"]').classList.add('bg-primary', 'text-black');
     sheetMedia.querySelector('[data-mt="all"]').classList.remove('text-zinc-200');
     const sheetSort = sheet.querySelector('#sheet-sort');
+    const sheetModel = sheet.querySelector('#sheet-model');
     const sheetLang = sheet.querySelector('#sheet-lang-toggle');
 
     function openSheet() {
@@ -1042,6 +1202,7 @@ export function SmartVideoViral() {
         }
       });
       sheetCat.value = categoryFilter;
+      sheetModel.value = modelFilter;
       sheetSort.value = sortKey;
       sheetLang.textContent = excludeChinese ? 'On' : 'Off';
       sheetLang.className = excludeChinese
@@ -1059,6 +1220,7 @@ export function SmartVideoViral() {
     sheet.querySelector('#sheet-apply').addEventListener('click', () => {
       mediaTypeFilter = sheetMedia.querySelector('.sheet-media-btn.bg-primary')?.getAttribute('data-mt') || 'all';
       categoryFilter = sheetCat.value;
+      modelFilter = sheetModel.value;
       sortKey = sheetSort.value;
       excludeChinese = sheetLang.textContent === 'On';
       mediaFilter.querySelectorAll('.media-btn').forEach(b => {
@@ -1069,6 +1231,7 @@ export function SmartVideoViral() {
         }
       });
       categorySelect.value = categoryFilter;
+      modelSelect.value = modelFilter;
       sortSelect.value = sortKey;
       if (excludeChinese) {
         langToggle.classList.add('bg-primary/10', 'border-primary/20', 'text-primary');
@@ -1122,6 +1285,7 @@ export function SmartVideoViral() {
     if (videosEl) videosEl.textContent = videos.toLocaleString();
     if (imagesEl) imagesEl.textContent = images.toLocaleString();
     if (providersEl) providersEl.textContent = providers.toLocaleString();
+    updateModelOptions();
     railSections.forEach(s => s.section.remove());
     railSections = [];
     buildRailSection('Trending', getTrendingItems(), renderTrendingCard);
@@ -1153,7 +1317,8 @@ export function SmartVideoViral() {
         seedanceItems = (seedanceJson.items || []).map(normalizeSeedanceItem);
       }
       if (!mounted) return;
-      prompts = [...(vpfJson.items || []), ...seedanceItems];
+      const vpfItems = (vpfJson.items || []).map(normalizeVpfItem);
+      prompts = [...vpfItems, ...seedanceItems];
       isLoading = false;
       lastUpdated = new Date();
       updateStatsAndRails();
@@ -1199,6 +1364,7 @@ export function SmartVideoViral() {
     if (excludeChinese) result = result.filter(item => item.language !== 'zh');
     if (mediaTypeFilter !== 'all') result = result.filter(item => item.mediaType === mediaTypeFilter);
     if (categoryFilter !== 'all') result = result.filter(item => (item.categories || []).includes(categoryFilter));
+    if (modelFilter !== 'all') result = result.filter(item => item.recommendedModel === modelFilter || (item.sourceModels || []).includes(modelFilter));
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       result = result.filter(item =>
@@ -1248,20 +1414,20 @@ export function SmartVideoViral() {
           <button id="viral-reset-filters" class="mt-3 px-4 py-2 btn-secondary-modern rounded-xl text-xs font-black hover:shadow-glow transition">Reset All Filters</button>
         </div>
       `;
-      const resetBtn = gridEl.querySelector('#viral-reset-filters');
-      if (resetBtn) {
-        resetBtn.addEventListener('click', () => {
-          searchQuery = ''; mediaTypeFilter = 'all'; categoryFilter = 'all'; sortKey = 'fresh'; excludeChinese = true;
-          searchInput.value = ''; categorySelect.value = 'all'; sortSelect.value = 'fresh';
-          mediaFilter.querySelectorAll('.media-btn').forEach(b => { b.classList.remove('bg-primary', 'text-black'); b.classList.add('text-zinc-200', 'hover:text-white'); });
-          mediaFilter.querySelector('[data-mt="all"]').classList.add('bg-primary', 'text-black');
-          mediaFilter.querySelector('[data-mt="all"]').classList.remove('text-zinc-200');
-          langToggle.classList.add('bg-primary/10', 'border-primary/20', 'text-primary');
-          langToggle.classList.remove('bg-zinc-800', 'border-zinc-700/80', 'text-zinc-300');
-          langToggle.innerHTML = `<svg class="w-3 h-3 inline mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M12 4a8 8 0 0 0-8 8c0 2.8 1.4 5.2 3.6 6.6"/><path d="M12 12c2 1 3 3 3 5"/><path d="M12 12V7m0 10v1"/></svg>Exclude Chinese`;
-          applyFilters();
-        });
-      }
+        const resetBtn = gridEl.querySelector('#viral-reset-filters');
+        if (resetBtn) {
+          resetBtn.addEventListener('click', () => {
+            searchQuery = ''; mediaTypeFilter = 'all'; categoryFilter = 'all'; modelFilter = 'all'; sortKey = 'fresh'; excludeChinese = true;
+            searchInput.value = ''; categorySelect.value = 'all'; modelSelect.value = 'all'; sortSelect.value = 'fresh';
+            mediaFilter.querySelectorAll('.media-btn').forEach(b => { b.classList.remove('bg-primary', 'text-black'); b.classList.add('text-zinc-200', 'hover:text-white'); });
+            mediaFilter.querySelector('[data-mt="all"]').classList.add('bg-primary', 'text-black');
+            mediaFilter.querySelector('[data-mt="all"]').classList.remove('text-zinc-200');
+            langToggle.classList.add('bg-primary/10', 'border-primary/20', 'text-primary');
+            langToggle.classList.remove('bg-zinc-800', 'border-zinc-700/80', 'text-zinc-300');
+            langToggle.innerHTML = `<svg class="w-3 h-3 inline mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M12 4a8 8 0 0 0-8 8c0 2.8 1.4 5.2 3.6 6.6"/><path d="M12 12c2 1 3 3 3 5"/><path d="M12 12V7m0 10v1"/></svg>Exclude Chinese`;
+            applyFilters();
+          });
+        }
       return;
     }
     currentPage = 0;

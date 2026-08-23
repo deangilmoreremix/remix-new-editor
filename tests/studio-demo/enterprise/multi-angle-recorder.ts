@@ -55,8 +55,8 @@ export class MultiAngleRecorder {
 
   constructor(page: Page, outputDir = './test-results/multi-angle') {
     this.page = page;
-    this.browser = page.context().browser() || (await page.context().browser());
-    this.outputDir = outputDir;
+    this.browser = page.context().browser() || (page.context() as any).browser();
+    this.outputDir = outputDir || './test-results/multi-angle';
     this.ensureOutputDir();
   }
 
@@ -70,6 +70,10 @@ export class MultiAngleRecorder {
    * Adds a new camera angle.
    */
   async addAngle(config: AngleConfig): Promise<AngleRecording> {
+    if (!this.browser) {
+      throw new Error('Browser instance not available. Multi-angle recording requires a connected browser.');
+    }
+
     const context = await this.browser.newContext({
       viewport: config.viewport,
       recordVideo: {
