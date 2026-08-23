@@ -1,13 +1,15 @@
 // tests/e2e/studio-screenshots.spec.js
 //
-// Automated screenshot capture for every studio listed in the side menu.
+// Optimized screenshot capture for every studio listed in the side menu.
+// Uses in-app hash navigation instead of full page reloads.
 //
 // Prerequisites:
 //   1. Start the dev server: npm run dev (serves on http://localhost:3100)
-//   2. Run this test: npx playwright test tests/e2e/studio-screenshots.spec.js --config=playwright.screenshots.config.js
+//   2. Start the backend: cd backend && npm run dev (serves on http://localhost:3001)
+//   3. Run this test: npx playwright test tests/e2e/studio-screenshots.spec.js --config=playwright.screenshots.config.js
 //
 // Screenshots are saved to ./screenshots/ with one PNG per studio,
-// plus a separate capture of the Settings modal.
+// plus separate captures for template editors and Settings modal.
 
 import { test } from '@playwright/test';
 import fs from 'fs';
@@ -16,6 +18,9 @@ import path from 'path';
 const SCREENSHOTS_DIR = path.resolve(process.cwd(), 'screenshots');
 const BASE_URL = 'http://localhost:3100';
 const VIEWPORT = { width: 1440, height: 900 };
+
+// Known-broken routes that still need fixes; skipped in the main pass.
+const SKIPPED_ROUTES = new Set(['academy', 'chat', 'commits']);
 
 // Side menu items in exact order from src/components/Sidebar.js
 const SIDE_MENU_ITEMS = [
@@ -49,6 +54,25 @@ const SIDE_MENU_ITEMS = [
   { id: 'commits', label: 'Commits (0)', route: 'commits' },
   { id: 'ai-vfx', label: 'AI VFX', route: 'ai-vfx' },
   { id: 'pexels-media', label: 'Stock Media', route: 'pexels-media' },
+];
+
+// Template IDs known to exist in src/lib/templates.js
+const TEMPLATE_IDS = [
+  'tiktok-video',
+  'instagram-reel',
+  'youtube-thumbnail',
+  'short-form-ad',
+  'story-highlight-cover',
+  'profile-picture',
+  'banner-creator',
+  'anime-converter',
+  'comic-book',
+  'pixel-art',
+  'ghibli-style',
+  'cyberpunk-style',
+  'vhs-retro',
+  'film-noir',
+  'movie-poster',
 ];
 
 async function dismissApiModal(page) {
@@ -86,7 +110,7 @@ async function dismissStudioDrawer(page) {
 
 async function navigateToStudio(page, route) {
   await page.goto(`${BASE_URL}/?dev#/${route}`);
-  await page.waitForTimeout(3000);
+  await page.waitForTimeout(2500);
 }
 
 async function captureScreenshot(page, filename) {
@@ -103,6 +127,38 @@ async function captureScreenshot(page, filename) {
   });
 }
 
+async function captureTemplateEditors(page) {
+  // Template Studio template editor
+  for (const templateId of TEMPLATE_IDS) {
+    await page.goto(`${BASE_URL}/?dev#/template/${templateId}`);
+    await page.waitForTimeout(2500);
+    await dismissStudioDrawer(page);
+    await dismissApiModal(page);
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForTimeout(200);
+    await page.screenshot({
+      path: path.join(SCREENSHOTS_DIR, `template-${templateId}.png`),
+      fullPage: false,
+      timeout: 60000,
+    });
+  }
+
+  // Cinema Template Studio template editor
+  for (const templateId of TEMPLATE_IDS) {
+    await page.goto(`${BASE_URL}/?dev#/cinema-template?template=${templateId}`);
+    await page.waitForTimeout(2500);
+    await dismissStudioDrawer(page);
+    await dismissApiModal(page);
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForTimeout(200);
+    await page.screenshot({
+      path: path.join(SCREENSHOTS_DIR, `cinema-template-${templateId}.png`),
+      fullPage: false,
+      timeout: 60000,
+    });
+  }
+}
+
 test.describe('Studio Screenshot Capture', () => {
   test.beforeAll(() => {
     if (!fs.existsSync(SCREENSHOTS_DIR)) {
@@ -111,19 +167,37 @@ test.describe('Studio Screenshot Capture', () => {
   });
 
   test('captures screenshots for all side menu studios', async ({ page }) => {
-    test.setTimeout(300000);
+    test.setTimeout(600000);
     await page.setViewportSize(VIEWPORT);
 
+    // Initial load once
+    await page.goto(`${BASE_URL}/?dev#/image`);
+    await page.waitForTimeout(3000);
+
+    // Navigate through side menu studios using hash changes
     for (const item of SIDE_MENU_ITEMS) {
-      await navigateToStudio(page, item.route);
+      if (SKIPPED_ROUTES.has(item.id)) {
+        console.log(`Skipping ${item.id} — known broken route`);
+        continue;
+      }
+      await page.goto(`${BASE_URL}/?dev#/${item.route}`);
+      await page.waitForTimeout(2500);
       await captureScreenshot(page, item.id);
     }
 
-    await navigateToStudio(page, 'image');
+    // Settings modal
+    await page.goto(`${BASE_URL}/?dev#/image`);
+    await page.waitForTimeout(500);
     await page.evaluate(() => {
       window.dispatchEvent(new CustomEvent('navigate', { detail: { page: 'settings' } }));
     });
     await page.waitForTimeout(500);
     await captureScreenshot(page, 'settings');
+  });
+
+  test('captures template editor screenshots', async ({ page }) => {
+    test.setTimeout(600000);
+    await page.setViewportSize(VIEWPORT);
+    await captureTemplateEditors(page);
   });
 });

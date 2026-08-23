@@ -72,6 +72,7 @@ test.describe('Studio Demo Automation', () => {
 
   test('record all studios', async ({ page }) => {
     test.info().annotations.push({ type: 'demo', description: 'Records all studio environments' });
+    test.setTimeout(60 * 60 * 1000);
 
     const results = await orchestrator.runAllStudios(studios);
 

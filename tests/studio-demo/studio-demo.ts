@@ -86,41 +86,48 @@ interface FeatureResult {
  * Define all studio environments to test.
  * Extend this array with your actual studio URLs and feature workflows.
  */
-export const STUDIO_CONFIGS: StudioConfig[] = [
-  {
-    id: 'studio-alpha',
-    name: 'Studio Alpha - Example Page',
-    url: 'https://example.com',
-    expectedTitle: 'Example Domain',
-    features: [
-      {
-        name: 'Load Page',
-        description: 'Navigate to example.com and verify it loads',
-        action: { type: 'waitForSelector', selector: 'h1', state: 'visible' },
-        validate: [
-          { type: 'visible', selector: 'h1', description: 'Heading is visible' },
-          { type: 'text', selector: 'h1', expected: 'Example Domain', description: 'Correct heading text' }
-        ]
-      },
-      {
-        name: 'Check Paragraph',
-        description: 'Verify paragraph content is present',
-        action: { type: 'waitForSelector', selector: 'p', state: 'visible' },
-        validate: [
-          { type: 'visible', selector: 'p', description: 'Paragraph is visible' }
-        ]
-      },
-      {
-        name: 'Check Link',
-        description: 'Verify the More information link exists',
-        action: { type: 'waitForSelector', selector: 'a', state: 'visible' },
-        validate: [
-          { type: 'count', selector: 'a', expected: 1, description: 'Exactly one link present' }
-        ]
-      }
-    ]
-  }
+const STUDIO_ROUTES = [
+  'image', 'video', 'cinema', 'cinema-template', 'storyboard', 'effects', 'edit',
+  'upscale', 'character', 'commercial', 'audio', 'avatar', 'training', 'videotools',
+  'chat', 'lipsync', 'influencer', 'viral', 'video-agent', 'director', 'ai-vfx',
+  'render', 'timeline', 'apps', 'explore', 'templates', 'library', 'content-library',
+  'community', 'assist', 'pexels-media', 'academy', 'text-to-image', 'image-to-image',
+  'text-to-video', 'image-to-video', 'video-to-video', 'video-watermark',
+  'character-page', 'effects-page', 'storyboard-page', 'influencer-page',
+  'commercial-page', 'upscale-page', 'studios/product-photo-studio', 'studios/fashion-studio'
 ];
+
+function buildStudioConfigs(baseUrl = 'http://localhost:3100'): StudioConfig[] {
+  return STUDIO_ROUTES.map((route) => {
+    const slug = route.replace(/[^a-z0-9-]/gi, '-').replace(/-+/g, '-').toLowerCase();
+    return {
+      id: `studio-${slug}`,
+      name: `Studio - ${route}`,
+      url: `${baseUrl}/?dev#/${route}`,
+      expectedTitle: 'SmartVid',
+      features: [
+        {
+          name: 'Load Studio',
+          description: `Navigate to ${route} studio and verify it loads`,
+          action: { type: 'waitForSelector', selector: 'body', state: 'visible' },
+          validate: [
+            { type: 'visible', selector: 'body', description: 'Page body is visible' }
+          ]
+        },
+        {
+          name: 'Wait for Main Content',
+          description: 'Verify main content area is present',
+          action: { type: 'waitForSelector', selector: 'main, [role="main"], #app, .studio-container', state: 'visible' },
+          validate: [
+            { type: 'visible', selector: 'main, [role="main"], #app, .studio-container', description: 'Main content loaded' }
+          ]
+        }
+      ]
+    };
+  });
+}
+
+export const STUDIO_CONFIGS: StudioConfig[] = buildStudioConfigs();
 
 // =============================================================================
 // RESILIENT ELEMENT INTERACTION ENGINE
@@ -495,8 +502,8 @@ export class StudioDemoOrchestrator {
     // Navigate to studio
     try {
       await this.page.goto(studio.url, {
-        waitUntil: 'networkidle',
-        timeout: 30000
+        waitUntil: 'domcontentloaded',
+        timeout: 15000
       });
       console.log(`[StudioDemo] Navigated to ${studio.url}`);
     } catch (err) {
@@ -690,7 +697,13 @@ export class StudioDemoOrchestrator {
       fs.mkdirSync(screenshotDir, { recursive: true });
     }
     const path = `${screenshotDir}/${name}-${Date.now()}.png`;
-    await page.screenshot({ path, fullPage: true });
+    try {
+      if (page && !page.isClosed()) {
+        await page.screenshot({ path, fullPage: true });
+      }
+    } catch (err) {
+      console.warn(`[StudioDemo] Screenshot skipped for ${name}: ${(err as Error).message}`);
+    }
     return path;
   }
 
@@ -701,11 +714,30 @@ export class StudioDemoOrchestrator {
     console.log(`\n[Orchestrator] Running ${studios.length} studio demos...`);
 
     for (const studio of studios) {
-      const result = await this.runStudioDemo(studio);
+      try {
+        const result = await this.runStudioDemo(studio);
 
-      // Brief pause between studios
-      if (studios.indexOf(studio) < studios.length - 1) {
-        await this.page.waitForTimeout(2000);
+        // Brief pause between studios
+        if (studios.indexOf(studio) < studios.length - 1) {
+          try {
+            await this.page.waitForTimeout(2000);
+          } catch {
+            // page may have been closed; continue to next studio
+          }
+        }
+      } catch (err) {
+        console.error(`[Orchestrator] Studio "${studio.id}" failed: ${(err as Error).message}`);
+        this.results.push({
+          studioId: studio.id,
+          studioName: studio.name,
+          url: studio.url,
+          passed: false,
+          videoPath: undefined,
+          screenshots: [],
+          errors: [(err as Error).message],
+          duration: 0,
+          featureResults: []
+        });
       }
     }
 

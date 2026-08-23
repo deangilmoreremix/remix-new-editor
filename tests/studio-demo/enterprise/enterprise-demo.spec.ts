@@ -29,27 +29,30 @@ import {
 // =============================================================================
 
 const DEMO_CONFIG = {
-  // Studio URLs to test
   studios: [
     {
-      id: 'ai-studio',
-      name: 'Example Studio',
-      url: 'https://example.com',
-      features: ['text-to-image', 'image-editing', 'style-transfer']
+      id: 'smartvid-local',
+      name: 'SmartVid Local',
+      url: 'http://localhost:3100/?dev#/video',
+      features: ['video', 'cinema', 'timeline']
+    },
+    {
+      id: 'smartvid-ai-vfx',
+      name: 'AI VFX Studio',
+      url: 'http://localhost:3100/?dev#/ai-vfx',
+      features: ['ai-vfx', 'effects']
     }
   ],
   
-  // Recording settings
   recording: {
-    resolution: { width: 1920, height: 1080 }, // 1080p for testing
+    resolution: { width: 1920, height: 1080 },
     frameRate: 30,
     codec: 'h264' as const,
     preset: 'fast' as const,
     crf: 23,
   },
   
-  // Demo timing
-  sceneDuration: 3000, // ms per scene
+  sceneDuration: 3000,
 };
 
 // =============================================================================
@@ -240,13 +243,14 @@ test.describe('Enterprise AI Studio Demo', () => {
 
     // Add secondary angle (e.g., result preview)
     try {
-      await multiAngle.addAngle('preview', DEMO_CONFIG.studios[0].url, {
-        width: 480,
-        height: 270
+      await multiAngle.addAngle({
+        name: 'preview',
+        url: DEMO_CONFIG.studios[0].url,
+        viewport: { width: 480, height: 270 }
       });
 
       // Record all angles
-      const recordings = await multiAngle.recordAllAngles(10000);
+      const recordings = await multiAngle.recordAll(10000);
       
       console.log('[Demo] Recorded angles:', recordings);
       
@@ -363,8 +367,12 @@ test.describe('Enterprise AI Studio Demo', () => {
     const results = [];
 
     for (const studio of DEMO_CONFIG.studios) {
-      await page.goto(studio.url);
-      await page.waitForLoadState('networkidle');
+      try {
+        await page.goto(studio.url, { waitUntil: 'domcontentloaded', timeout: 15000 });
+      } catch (err) {
+        console.log(`[Demo] Skipping ${studio.name}: ${(err as Error).message}`);
+        continue;
+      }
 
       const session = await recorder.startSession(studio.id);
       

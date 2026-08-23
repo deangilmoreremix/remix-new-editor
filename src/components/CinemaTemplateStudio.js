@@ -249,7 +249,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
 
   function renderTemplateCard(template) {
     const card = document.createElement('div');
-    card.className = 'bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl p-4 cursor-pointer transition-colors';
+    card.className = 'group bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl p-4 cursor-pointer transition-colors';
 
     const thumbnailEl = document.createElement('div');
     thumbnailEl.className = 'w-full aspect-video rounded-lg bg-black/40 overflow-hidden flex items-center justify-center mb-3 relative';
@@ -749,27 +749,27 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       if (container.querySelector('#open-storyboard-btn')) {
         container.querySelector('#open-storyboard-btn').onclick = () => {
           view = 'storyboard';
-  render();
+          render();
 
-  // If a template ID was passed via the `template` query param, try to
-  // select it in this studio. If it's not in the cinematic template
-  // registry, fall back to TemplateStudio which can resolve all 512
-  // showcase demos via the unified resolver.
-  if (incomingCinemaTemplateId) {
-    const cinematicTemplate = registry.get(incomingCinemaTemplateId);
-    if (cinematicTemplate) {
-      selectTemplate(cinematicTemplate);
-    } else {
-      // Not a cinematic template — redirect to TemplateStudio which
-      // falls back to the unified showcase resolver.
-      try {
-        const resolved = resolveTemplate(incomingCinemaTemplateId);
-        if (resolved) {
-          navigate('template/' + incomingCinemaTemplateId);
-        }
-      } catch { /* ignore */ }
-    }
-  }
+          // If a template ID was passed via the `template` query param, try to
+          // select it in this studio. If it's not in the cinematic template
+          // registry, fall back to TemplateStudio which can resolve all 512
+          // showcase demos via the unified resolver.
+          if (incomingCinemaTemplateId) {
+            const cinematicTemplate = registry.get(incomingCinemaTemplateId);
+            if (cinematicTemplate) {
+              selectTemplate(cinematicTemplate);
+            } else {
+              // Not a cinematic template — redirect to TemplateStudio which
+              // falls back to the unified showcase resolver.
+              try {
+                const resolved = resolveTemplate(incomingCinemaTemplateId);
+                if (resolved) {
+                  navigate('template/' + incomingCinemaTemplateId);
+                }
+              } catch { /* ignore */ }
+            }
+          }
         };
       }
       if (container.querySelector('#add-scene-btn')) {
@@ -1783,8 +1783,8 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     headerRow.appendChild(triggerBtn);
     headerRow.appendChild(modelLoadingStatus);
     modelWrapper.appendChild(headerRow);
-     modelWrapper.appendChild(dropdown);
-     formPanel.appendChild(modelWrapper);
+    modelWrapper.appendChild(dropdown);
+    formPanel.appendChild(modelWrapper);
    }
 
   // ================================
