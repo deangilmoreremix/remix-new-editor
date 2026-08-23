@@ -390,14 +390,14 @@ export function buildModelSelectorPanel(options = {}) {
         : 'bg-white/[0.02] text-white/50 border-white/[0.04] hover:bg-white/5 hover:text-white'
     }`;
     tab.textContent = cat.label;
-    tab.onclick = (e) => {
+    tab.addEventListener('click', (e) => {
       e.stopPropagation();
       st.selectedCategory = cat.id;
       if (st.onSelectCategory) st.onSelectCategory(cat.id);
       if (st.onSelectProvider) st.onSelectProvider('all');
       st.selectedProvider = 'all';
       st.refresh();
-    };
+    });
     tabsEl.appendChild(tab);
   });
 
@@ -659,13 +659,11 @@ export function mountModelSelector(container, options = {}) {
  * @param {HTMLElement} anchorBtn
  * @param {number} [gap=8]
  */
-export function positionModelSelectorDropdown(dropdown, anchorBtn, gap = 8) {
+export function positionModelSelectorDropdown(dropdown, anchorBtn, gap = 8, container) {
   if (!dropdown || !anchorBtn) return;
 
   const anchorRect = anchorBtn.getBoundingClientRect();
   const viewportHeight = window.innerHeight;
-  const spaceBelow = viewportHeight - anchorRect.bottom;
-  const spaceAbove = anchorRect.top;
 
   // Reset previous inline positioning so measurements are accurate.
   dropdown.style.top = '';
@@ -675,6 +673,35 @@ export function positionModelSelectorDropdown(dropdown, anchorBtn, gap = 8) {
   dropdown.style.maxHeight = '';
   dropdown.style.transform = '';
 
+  if (container) {
+    const containerRect = container.getBoundingClientRect();
+    const scrollTop = container.scrollTop;
+    const anchorTopInContent = anchorRect.top - containerRect.top + scrollTop;
+    const anchorBottomInContent = anchorRect.bottom - containerRect.top + scrollTop;
+    const spaceBelow = container.scrollHeight - anchorBottomInContent;
+    const spaceAbove = anchorTopInContent;
+    const placeBelow = spaceBelow >= spaceAbove || spaceBelow >= 320;
+
+    if (placeBelow) {
+      dropdown.style.top = `${anchorBottomInContent + gap}px`;
+    } else {
+      const renderedHeight = dropdown.offsetHeight || 320;
+      dropdown.style.top = `${Math.max(0, anchorTopInContent - renderedHeight - gap)}px`;
+    }
+
+    dropdown.style.left = `${anchorRect.left - containerRect.left}px`;
+    dropdown.style.maxHeight = `${Math.max(viewportHeight - 32, 320)}px`;
+    dropdown.style.overflowY = 'auto';
+
+    const estimatedWidth = Math.min(dropdown.offsetWidth || 480, containerRect.width - 16);
+    if (anchorRect.left - containerRect.left + estimatedWidth > containerRect.width - 8) {
+      dropdown.style.left = `${Math.max(8, containerRect.width - estimatedWidth - 8)}px`;
+    }
+    return;
+  }
+
+  const spaceBelow = viewportHeight - anchorRect.bottom;
+  const spaceAbove = anchorRect.top;
   const placeBelow = spaceBelow >= spaceAbove || spaceBelow >= 320;
 
   if (placeBelow) {
@@ -688,7 +715,6 @@ export function positionModelSelectorDropdown(dropdown, anchorBtn, gap = 8) {
   dropdown.style.maxHeight = `${Math.max(viewportHeight - 32, 320)}px`;
   dropdown.style.overflowY = 'auto';
 
-  // Keep horizontal bounds inside the viewport.
   const estimatedWidth = Math.min(dropdown.offsetWidth || 480, window.innerWidth - 16);
   if (anchorRect.left + estimatedWidth > window.innerWidth - 8) {
     dropdown.style.left = `${Math.max(8, window.innerWidth - estimatedWidth - 8)}px`;

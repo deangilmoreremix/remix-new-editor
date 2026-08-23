@@ -44,7 +44,6 @@ export function ImageStudio() {
     let selectedProvider = 'all';
     let uploadedImageUrls = []; // array of uploaded image URLs (multi-image support)
     let imageMode = false; // false = t2i models, true = i2i models
-    let _imageStudioOutsideClickHandler = null;
     let customThumbnailUrl = getCustomThumbnailFromCache('image-studio');
 
     // Restore the last GTM context the user picked in the prompt modal,
@@ -896,7 +895,7 @@ generateBtn.type = 'button';
         }
 
         // Position dropdown viewport-aware
-        positionModelSelectorDropdown(dropdown, anchorBtn, 8);
+        positionModelSelectorDropdown(dropdown, anchorBtn, 8, container);
         if (window.innerWidth < 768) {
             dropdown.style.left = '50%';
             dropdown.style.transform = 'translateX(-50%)';
@@ -908,57 +907,64 @@ generateBtn.type = 'button';
         dropdown.classList.remove('opacity-100', 'pointer-events-auto');
         dropdownOpen = null;
         selectedProvider = 'all';
-        if (_imageStudioOutsideClickHandler) {
-            window.removeEventListener('click', _imageStudioOutsideClickHandler);
-            _imageStudioOutsideClickHandler = null;
+        const handler = dropdown._outsideClickHandler;
+        if (handler) {
+            window.removeEventListener('click', handler);
+            dropdown._outsideClickHandler = null;
         }
     };
 
-    modelBtn.onclick = (e) => {
+    modelBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         if (dropdownOpen === 'model') closeDropdown();
         else {
             dropdownOpen = 'model';
             selectedProvider = 'all';
             showDropdown('model', modelBtn);
-            if (_imageStudioOutsideClickHandler) {
-                window.removeEventListener('click', _imageStudioOutsideClickHandler);
-                _imageStudioOutsideClickHandler = null;
+            const handler = dropdown._outsideClickHandler;
+            if (handler) {
+                window.removeEventListener('click', handler);
+                dropdown._outsideClickHandler = null;
             }
-            _imageStudioOutsideClickHandler = () => closeDropdown();
-            window.addEventListener('click', _imageStudioOutsideClickHandler);
+            const newHandler = () => closeDropdown();
+            dropdown._outsideClickHandler = newHandler;
+            window.addEventListener('click', newHandler);
         }
-    };
+    });
 
-    arBtn.onclick = (e) => {
+    arBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         if (dropdownOpen === 'ar') closeDropdown();
         else {
             dropdownOpen = 'ar';
             showDropdown('ar', arBtn);
-            if (_imageStudioOutsideClickHandler) {
-                window.removeEventListener('click', _imageStudioOutsideClickHandler);
-                _imageStudioOutsideClickHandler = null;
+            const handler = dropdown._outsideClickHandler;
+            if (handler) {
+                window.removeEventListener('click', handler);
+                dropdown._outsideClickHandler = null;
             }
-            _imageStudioOutsideClickHandler = () => closeDropdown();
-            window.addEventListener('click', _imageStudioOutsideClickHandler);
+            const newHandler = () => closeDropdown();
+            dropdown._outsideClickHandler = newHandler;
+            window.addEventListener('click', newHandler);
         }
-    };
+    });
 
-    qualityBtn.onclick = (e) => {
+    qualityBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         if (dropdownOpen === 'quality') closeDropdown();
         else {
             dropdownOpen = 'quality';
             showDropdown('quality', qualityBtn);
-            if (_imageStudioOutsideClickHandler) {
-                window.removeEventListener('click', _imageStudioOutsideClickHandler);
-                _imageStudioOutsideClickHandler = null;
+            const handler = dropdown._outsideClickHandler;
+            if (handler) {
+                window.removeEventListener('click', handler);
+                dropdown._outsideClickHandler = null;
             }
-            _imageStudioOutsideClickHandler = () => closeDropdown();
-            window.addEventListener('click', _imageStudioOutsideClickHandler);
+            const newHandler = () => closeDropdown();
+            dropdown._outsideClickHandler = newHandler;
+            window.addEventListener('click', newHandler);
         }
-    };
+    });
     container.appendChild(dropdown);
 
     // ==========================================

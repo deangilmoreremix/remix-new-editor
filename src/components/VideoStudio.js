@@ -1235,7 +1235,7 @@ generateBtn.type = 'button';
         }
 
         // Position dropdown viewport-aware
-        positionModelSelectorDropdown(dropdown, anchorBtn, 8);
+        positionModelSelectorDropdown(dropdown, anchorBtn, 8, container);
         if (window.innerWidth < 768) {
             dropdown.style.left = '50%';
             dropdown.style.transform = 'translateX(-50%)';

@@ -1753,7 +1753,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       dropdown.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
       dropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
 
-      positionModelSelectorDropdown(dropdown, triggerBtn, 6);
+      positionModelSelectorDropdown(dropdown, triggerBtn, 6, container);
 
       if (_modelSelectorOutsideClickHandler) {
         document.removeEventListener('click', _modelSelectorOutsideClickHandler);

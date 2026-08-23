@@ -880,7 +880,7 @@ const compareBtn = document.createElement('button');
       }
     };
     document.addEventListener('click', _storyboardOutsideClickHandler);
-    positionModelSelectorDropdown(dropdown, anchorBtn, 8);
+    positionModelSelectorDropdown(dropdown, anchorBtn, 8, container);
   }
 
   const createControlBtn = (icon, label, id, tooltip) => {

@@ -595,7 +595,7 @@ let showAdvanced = false;
             if (!modelDropdown.contains(e.target) && e.target !== modelBtn) closeModelDropdown();
         };
         document.addEventListener('click', _modelSelectorOutsideClickHandler);
-        positionModelSelectorDropdown(modelDropdown, modelBtn, 8);
+        positionModelSelectorDropdown(modelDropdown, modelBtn, 8, container);
     }
 
     // Sync controls (duration/resolution availability) to the selected model.

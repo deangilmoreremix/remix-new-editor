@@ -556,7 +556,7 @@ let fallbackList = [];
       dropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
       triggerBtn.setAttribute('aria-expanded', 'true');
 
-      positionModelSelectorDropdown(dropdown, triggerBtn, 6);
+      positionModelSelectorDropdown(dropdown, triggerBtn, 6, container);
 
       if (_modelSelectorOutsideClickHandler) {
         document.removeEventListener('click', _modelSelectorOutsideClickHandler);
