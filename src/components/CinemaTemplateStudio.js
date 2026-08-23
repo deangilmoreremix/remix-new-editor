@@ -10,6 +10,7 @@ import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 import { muapi } from '../lib/muapi.js';
 import { StoryboardStudio } from './StoryboardStudio.js';
 import { createUploadPicker } from './UploadPicker.js';
+import { addCaptionButton } from '../lib/editor/captionActions.js';
 import {
   getTemplateRegistry,
   SHOT_TYPES,
@@ -1683,6 +1684,10 @@ export function CinemaTemplateStudio() {
     dropdown.style.maxHeight = '70vh';
     dropdown.style.minHeight = '350px';
 
+    const modelLoadingStatus = document.createElement('span');
+    modelLoadingStatus.id = 'model-loading-status';
+    modelLoadingStatus.className = 'text-[10px] text-zinc-500';
+
     const closeDropdown = () => {
       dropdown.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
       dropdown.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
@@ -1695,6 +1700,10 @@ export function CinemaTemplateStudio() {
     const openDropdown = () => {
       dropdown.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
       dropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
+
+      const triggerRect = triggerBtn.getBoundingClientRect();
+      dropdown.style.top = `${triggerRect.bottom + 6}px`;
+      dropdown.style.left = `${triggerRect.left}px`;
 
       if (_modelSelectorOutsideClickHandler) {
         document.removeEventListener('click', _modelSelectorOutsideClickHandler);
@@ -1767,10 +1776,6 @@ export function CinemaTemplateStudio() {
       }
     };
 
-    const modelLoadingStatus = document.createElement('span');
-    modelLoadingStatus.id = 'model-loading-status';
-    modelLoadingStatus.className = 'text-[10px] text-zinc-500';
-
     const headerRow = document.createElement('div');
     headerRow.className = 'mb-3';
     const label = document.createElement('div');
@@ -1780,8 +1785,8 @@ export function CinemaTemplateStudio() {
     headerRow.appendChild(triggerBtn);
     headerRow.appendChild(modelLoadingStatus);
     modelWrapper.appendChild(headerRow);
-     modelWrapper.appendChild(dropdown);
-     formPanel.appendChild(modelWrapper);
+    modelWrapper.appendChild(dropdown);
+    formPanel.appendChild(modelWrapper);
    }
 
   // ================================
@@ -2643,6 +2648,20 @@ export function CinemaTemplateStudio() {
     actions.appendChild(backBtn);
     actions.appendChild(newTabBtn);
     actions.appendChild(downloadBtn);
+
+    if (generationResult && /\.(mp4|webm|mov|m4v)(\?|$)|video\//i.test(generationResult)) {
+      const captionBtn = document.createElement('button');
+      captionBtn.type = 'button';
+      captionBtn.textContent = '💬 Add AI Captions';
+      captionBtn.className = 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl text-xs font-bold transition-all border border-white/5 backdrop-blur-lg text-white';
+      captionBtn.onclick = () => {
+        addCaptionButton({
+          videoUrl: generationResult,
+          appTheme: 'cinema-template-studio',
+        });
+      };
+      actions.appendChild(captionBtn);
+    }
 
     preview.appendChild(resultImg);
     preview.appendChild(actions);
