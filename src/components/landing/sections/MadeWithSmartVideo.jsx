@@ -28,7 +28,7 @@ const REEL_SLUGS = [
   'black-and-gold-perfume-commercial',
 ];
 
-const INITIAL_VISIBLE = 12;
+const CHUNK_SIZE = 20;
 
 function createReelCard(demo) {
   const card = document.createElement('article');
@@ -157,7 +157,7 @@ export function MadeWithSmartVideo() {
   const reel = section.querySelector('[data-mmx-reel]');
   const footerText = section.querySelector('.container.mt-10');
 
-  let expanded = false;
+  let visibleCount = CHUNK_SIZE;
 
   const showMoreButton = document.createElement('button');
   showMoreButton.type = 'button';
@@ -173,7 +173,7 @@ export function MadeWithSmartVideo() {
   const showMoreIcon = showMoreButton.querySelector('[data-mmx-show-more-icon]');
 
   function render() {
-    const visible = expanded ? demos : demos.slice(0, INITIAL_VISIBLE);
+    const visible = demos.slice(0, visibleCount);
 
     cleanupFrames(reel);
     while (reel.firstChild) reel.removeChild(reel.firstChild);
@@ -182,15 +182,19 @@ export function MadeWithSmartVideo() {
     visible.forEach((demo) => fragment.appendChild(createReelCard(demo)));
     reel.appendChild(fragment);
 
-    const hasMore = demos.length > INITIAL_VISIBLE;
+    const hasMore = demos.length > visibleCount;
     showMoreButton.parentElement.classList.toggle('hidden', !hasMore);
 
     if (hasMore) {
-      showMoreLabel.textContent = expanded
-        ? 'Show Less'
-        : `Show All ${demos.length} Demos`;
-      showMoreIcon.classList.toggle('rotate-180', expanded);
-      showMoreButton.setAttribute('aria-expanded', String(expanded));
+      const remaining = demos.length - visibleCount;
+      const nextBatch = Math.min(CHUNK_SIZE, remaining);
+      showMoreLabel.textContent = `Show ${nextBatch} More`;
+      showMoreIcon.classList.remove('rotate-180');
+      showMoreButton.setAttribute('aria-expanded', 'false');
+    } else {
+      showMoreLabel.textContent = 'Show Less';
+      showMoreIcon.classList.add('rotate-180');
+      showMoreButton.setAttribute('aria-expanded', 'true');
     }
 
     const disposeReveal = revealOnScroll(section.querySelectorAll('.mmx-reveal'), { stagger: 45 });
@@ -201,9 +205,13 @@ export function MadeWithSmartVideo() {
   }
 
   showMoreButton.addEventListener('click', () => {
-    expanded = !expanded;
-    render();
-    if (!expanded) {
+    const hasMore = demos.length > visibleCount;
+    if (hasMore) {
+      visibleCount = Math.min(demos.length, visibleCount + CHUNK_SIZE);
+      render();
+    } else {
+      visibleCount = CHUNK_SIZE;
+      render();
       section.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   });
