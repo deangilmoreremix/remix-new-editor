@@ -13,6 +13,7 @@ import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { getModelById } from '../lib/models.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import ExampleGallery from './studios/ExampleGallery.js';
+import { openModelPicker } from '../lib/modelPickerIntegration.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
@@ -107,6 +108,11 @@ const COMMERCIAL_MODELS = [
   const openDropdown = () => {
     dropdown.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
     dropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
+
+    const triggerRect = triggerBtn.getBoundingClientRect();
+    dropdown.style.top = `${triggerRect.bottom + 6}px`;
+    dropdown.style.left = `${triggerRect.left}px`;
+
     if (!dropdown.dataset.populated) {
       dropdown.dataset.populated = 'true';
       mountModelSelector(dropdown, {
@@ -144,6 +150,23 @@ const COMMERCIAL_MODELS = [
   modelWrapper.appendChild(triggerBtn);
   modelWrapper.appendChild(dropdown);
   formCard.appendChild(modelWrapper);
+
+  // Model Picker button
+  const modelPickerBtn = document.createElement('button');
+  modelPickerBtn.type = 'button';
+  modelPickerBtn.textContent = 'AI Pick';
+  modelPickerBtn.title = 'Open intelligent model picker';
+  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
+  modelPickerBtn.className = 'text-[11px] font-bold text-cyan-400 border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 rounded-lg hover:bg-cyan-400/20 transition-colors ml-2 whitespace-nowrap';
+  modelPickerBtn.addEventListener('click', () => {
+    openModelPicker({
+      currentModelId: selectedModel,
+      onSelectModel: (id) => {
+        selectedModel = id;
+      }
+    }).catch((err) => console.error('[ModelPicker] open failed:', err));
+  });
+  formCard.appendChild(modelPickerBtn);
 
   const uploadLabel = document.createElement('label');
   uploadLabel.className = 'text-xs font-bold text-secondary uppercase tracking-wider';

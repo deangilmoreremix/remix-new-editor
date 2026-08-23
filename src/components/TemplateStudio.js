@@ -56,6 +56,7 @@ export function TemplateStudio(templateId) {
   let showAdvanced = false;
   let uploadedUrl = null;
   let isGenerating = false;
+  let lastGeneratedUrl = '';
   let selectedModel = template.model || (template.modelType === 't2v' ? 'kling-v2.6-pro-t2v' : undefined);
   let loadedModels = [];
   let primaryPromptField = null;
@@ -280,6 +281,9 @@ export function TemplateStudio(templateId) {
                 const setDone = (label) => {
                     uploadArea.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-500/10 text-lg">✓</div><span class="text-sm text-emerald-200">${label}</span>`;
                 };
+                const setPexelsDone = (label) => {
+                    uploadArea.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-[#d9ff00]/40 bg-[#d9ff00]/10 text-lg">📷</div><span class="text-sm text-[#d9ff00]">${label}</span>`;
+                };
                 uploadArea.onclick = () => {
                     const picker = createUploadPicker({
                         anchorContainer: container,
@@ -287,7 +291,6 @@ export function TemplateStudio(templateId) {
                         acceptVideo: false,
                         onSelect: (sel) => {
                             if (isFrame) {
-                                // Start/end image pair for first/last-frame models
                                 formState[input.name] = { startUrl: sel.startUrl, endUrl: sel.endUrl, urls: sel.urls };
                                 setDone(sel.endUrl ? 'Start & end frames set' : 'Start frame set');
                             } else {
@@ -311,7 +314,37 @@ export function TemplateStudio(templateId) {
                     });
                     container.appendChild(picker.panel);
                 };
-                fieldWrapper.appendChild(uploadArea);
+
+                const pexelsBtn = document.createElement('button');
+                pexelsBtn.type = 'button';
+                pexelsBtn.title = 'Browse stock photos from Pexels';
+                pexelsBtn.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden ml-2';
+                pexelsBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 7.76"/></svg>';
+                pexelsBtn.onclick = async (e) => {
+                    e.stopPropagation();
+                    const { browsePexelsImages } = await import('../lib/studioPexels.js');
+                    browsePexelsImages({
+                        title: isFrame ? 'Select Reference Frames' : 'Select Image',
+                        studioName: 'Template Studio',
+                        onSelect: (asset) => {
+                            const url = asset.src?.large || asset.src?.original || asset.url;
+                            if (isFrame) {
+                                formState[input.name] = { startUrl: url, endUrl: null, urls: [url] };
+                                setPexelsDone('Start frame from Pexels');
+                            } else {
+                                uploadedUrl = url;
+                                formState[input.name] = url;
+                                setPexelsDone('Image from Pexels');
+                            }
+                        },
+                    });
+                };
+
+                const row = document.createElement('div');
+                row.className = 'flex items-center gap-2';
+                row.appendChild(uploadArea);
+                row.appendChild(pexelsBtn);
+                fieldWrapper.appendChild(row);
             } else if (input.type === 'video') {
                 const uploadArea = document.createElement('div');
                 uploadArea.className = 'flex h-16 items-center gap-4 rounded-[20px] border border-white/10 bg-white/[0.03] px-4 text-zinc-400 cursor-pointer hover:border-emerald-400/30 transition';
@@ -321,6 +354,9 @@ export function TemplateStudio(templateId) {
                 `;
                 const setDone = (label) => {
                     uploadArea.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-500/10 text-lg">✓</div><span class="text-sm text-emerald-200">${label}</span>`;
+                };
+                const setPexelsDone = (label) => {
+                    uploadArea.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-[#d9ff00]/40 bg-[#d9ff00]/10 text-lg">🎬</div><span class="text-sm text-[#d9ff00]">${label}</span>`;
                 };
                 uploadArea.onclick = () => {
                     const picker = createUploadPicker({
@@ -342,7 +378,32 @@ export function TemplateStudio(templateId) {
                     });
                     container.appendChild(picker.panel);
                 };
-                fieldWrapper.appendChild(uploadArea);
+
+                const pexelsBtn = document.createElement('button');
+                pexelsBtn.type = 'button';
+                pexelsBtn.title = 'Browse stock videos from Pexels';
+                pexelsBtn.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden ml-2';
+                pexelsBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 7.76"/></svg>';
+                pexelsBtn.onclick = async (e) => {
+                    e.stopPropagation();
+                    const { browsePexelsVideos } = await import('../lib/studioPexels.js');
+                    browsePexelsVideos({
+                        title: 'Select Video',
+                        studioName: 'Template Studio',
+                        onSelect: (asset) => {
+                            const url = (asset.video_files?.find(f => f.quality === 'hd') || asset.video_files?.[0])?.link || asset.url;
+                            uploadedUrl = url;
+                            formState[input.name] = url;
+                            setPexelsDone('Video from Pexels');
+                        },
+                    });
+                };
+
+                const row = document.createElement('div');
+                row.className = 'flex items-center gap-2';
+                row.appendChild(uploadArea);
+                row.appendChild(pexelsBtn);
+                fieldWrapper.appendChild(row);
             } else if (input.type === 'text' || input.type === 'textarea') {
       const el = document.createElement(input.type === 'textarea' ? 'textarea' : 'input');
       el.className = 'h-11 w-full rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] px-4 text-sm text-white outline-none transition focus:border-emerald-400/50';
@@ -494,6 +555,10 @@ let fallbackList = [];
       dropdown.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
       dropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
       triggerBtn.setAttribute('aria-expanded', 'true');
+
+      const triggerRect = triggerBtn.getBoundingClientRect();
+      dropdown.style.top = `${triggerRect.bottom + 6}px`;
+      dropdown.style.left = `${triggerRect.left}px`;
 
       if (_modelSelectorOutsideClickHandler) {
         document.removeEventListener('click', _modelSelectorOutsideClickHandler);
@@ -717,51 +782,28 @@ let fallbackList = [];
   genBtn.setAttribute('aria-label', 'Generate template');
   leftPanel.appendChild(genBtn);
   mountPersonalizeTrigger({ controlsContainer: leftPanel, appId: 'template-studio', getTextarea: () => document.getElementById('outputTextarea') || null });
-  // Prompt Gallery button
-  const promptGalleryBtn = document.createElement('button');
-  promptGalleryBtn.type = 'button';
-  promptGalleryBtn.textContent = '📚 Prompts';
-  promptGalleryBtn.title = 'Browse prompt gallery';
-  promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
-  promptGalleryBtn.className = 'gtm-boost-btn shrink-0';
-  promptGalleryBtn.addEventListener('click', () => {
-    openPromptGallery({
-      appTheme: 'template-studio',
-      onSelect: (prompt) => {
-        const ta = document.getElementById('outputTextarea');
-        if (ta) { ta.value = prompt; ta.dispatchEvent(new Event('input', { bubbles: true })); ta.focus(); }
-      }
-    }).catch((err) => console.error('[PromptGallery] open failed:', err));
-  });
 
-    // Recipe Engine button
-    const recipeBtn = document.createElement('button');
-    recipeBtn.type = 'button';
-    recipeBtn.textContent = '📋 Recipes';
-    recipeBtn.title = 'Browse AI recipes';
-    recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-    recipeBtn.className = 'gtm-boost-btn shrink-0';
-    recipeBtn.addEventListener('click', () => {
-      openRecipeModal({
-        onRunRecipe: (url) => {
-        }
-      }).catch((err) => console.error('[Recipe] open failed:', err));
-    });
-
-
-    // Monetization Hub button
-    const monetizationBtn = document.createElement('button');
-    monetizationBtn.type = 'button';
-    monetizationBtn.textContent = "💼 Smart Video AI Monetize";
-    monetizationBtn.title = "Open Smart Video AI Monetization Hub";
-    monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-    monetizationBtn.className = 'gtm-boost-btn shrink-0';
-    monetizationBtn.addEventListener('click', () => {
-      openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
-    });
-  leftPanel.appendChild(recipeBtn);
-  leftPanel.appendChild(monetizationBtn);
-  leftPanel.appendChild(promptGalleryBtn);
+  // AI Captions button — always visible in the studio controls for video templates
+  if (template.outputType === 'video') {
+    const captionBtn = document.createElement('button');
+    captionBtn.type = 'button';
+    captionBtn.textContent = '💬 Add AI Captions';
+    captionBtn.className = 'mt-3 flex w-full items-center justify-center rounded-[18px] bg-white/10 px-4 py-3 text-sm font-bold text-white border border-white/10 transition-all hover:bg-white/20';
+    captionBtn.onclick = () => {
+      const lastUrl = lastGeneratedUrl || '';
+      addCaptionButton({
+        videoUrl: lastUrl || undefined,
+        appTheme: 'template-studio',
+        onComplete: (captionedUrl) => {
+          const vid = document.getElementById('previewArea')?.querySelector('video');
+          if (vid) vid.src = captionedUrl;
+          const resultVid = resultArea?.querySelector('video');
+          if (resultVid) resultVid.src = captionedUrl;
+        },
+      });
+    };
+    leftPanel.appendChild(captionBtn);
+  }
 
   // Creative Intelligence section
   const intelligenceSection = document.createElement('div');
@@ -1375,6 +1417,7 @@ let fallbackList = [];
   }
 
   function showResult(url) {
+    lastGeneratedUrl = url;
     const previewArea = document.getElementById('previewArea');
     if (previewArea) {
       const safeUrl = sanitizeUrl(url);
@@ -1400,7 +1443,6 @@ let fallbackList = [];
           <a href="${url}" download="${template.id}-${Date.now()}" class="flex-1 bg-white text-black py-3 rounded-xl font-bold text-sm text-center hover:opacity-90 transition">Download</a>
           <button type="button" class="publish-social-btn flex-1 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-3 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
           <button id="generateAgainBtn" class="flex-1 border border-white/10 bg-white/[0.04] text-white py-3 rounded-xl font-bold text-sm hover:bg-white/[0.08] transition">Generate Again</button>
-          ${template.outputType === 'video' ? `<button type="button" class="caption-btn flex-1 bg-white/10 hover:bg-white/20 text-white py-3 rounded-xl font-bold text-sm border border-white/10 transition-all">💬 Add AI Captions</button>` : ''}
         </div>
       </div>
     `;
@@ -1414,21 +1456,6 @@ let fallbackList = [];
       if (publishBtn) {
         const mediaType = template.outputType === 'video' ? 'video' : 'image';
         publishBtn.onclick = () => openSocialPublish({ mediaUrl: url, mediaType });
-      }
-      const captionBtn = resultArea.querySelector('.caption-btn');
-      if (captionBtn && template.outputType === 'video') {
-        captionBtn.onclick = () => {
-          addCaptionButton({
-            videoUrl: url,
-            appTheme: 'template-studio',
-            onComplete: (captionedUrl) => {
-              const vid = resultArea.querySelector('video');
-              if (vid) vid.src = captionedUrl;
-              const previewVid = document.getElementById('previewArea')?.querySelector('video');
-              if (previewVid) previewVid.src = captionedUrl;
-            },
-          });
-        };
       }
     }, 0);
   }

@@ -34,6 +34,7 @@ import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { AuthModal } from './AuthModal.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
+import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { selectScenes } from '../lib/sceneSelector.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
@@ -1489,7 +1490,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         const uploadTrigger = document.createElement('button');
         uploadTrigger.type = 'button';
          uploadTrigger.className = 'flex h-16 items-center gap-4 rounded-[20px] border border-white/10 bg-white/[0.03] px-4 text-zinc-400 cursor-pointer hover:border-emerald-400/30 transition';
-          uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg">↑</div><span class="text-sm">${isFrame ? 'Click to add start & end frames' : 'Click to upload an image'}</span>`;
+           uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg">↑</div><span class="text-sm">${isFrame ? 'Click to add start & end frames' : 'Click to upload an image'}</span>`;
 
         const setDone = (label) => {
           uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-500/10 text-lg">✓</div><span class="text-sm text-emerald-200">${label}</span>`;
@@ -1520,7 +1521,36 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
           });
           container.appendChild(picker.panel);
         };
-        field.appendChild(uploadTrigger);
+
+        const pexelsBtn = document.createElement('button');
+        pexelsBtn.type = 'button';
+        pexelsBtn.title = 'Browse stock photos from Pexels';
+        pexelsBtn.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden ml-2';
+        pexelsBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 7.76"/></svg>';
+        pexelsBtn.onclick = async (e) => {
+          e.stopPropagation();
+          const { browsePexelsImages } = await import('../lib/studioPexels.js');
+          browsePexelsImages({
+            title: isFrame ? 'Select Reference Frames' : 'Select Image',
+            studioName: 'Cinema Template Studio',
+            onSelect: (asset) => {
+              const url = asset.src?.large || asset.src?.original || asset.url;
+              if (isFrame) {
+                currentInputs[input.name] = { startUrl: url, endUrl: null, urls: [url] };
+                uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-[#d9ff00]/40 bg-[#d9ff00]/10 text-lg">📷</div><span class="text-sm text-[#d9ff00]">Start frame from Pexels</span>`;
+              } else {
+                currentInputs[input.name] = url;
+                uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-[#d9ff00]/40 bg-[#d9ff00]/10 text-lg">📷</div><span class="text-sm text-[#d9ff00]">Image from Pexels</span>`;
+              }
+            },
+          });
+        };
+
+        const row = document.createElement('div');
+        row.className = 'flex items-center gap-2';
+        row.appendChild(uploadTrigger);
+        row.appendChild(pexelsBtn);
+        field.appendChild(row);
         break;
       }
 
@@ -1553,7 +1583,31 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
           });
           container.appendChild(picker.panel);
         };
-        field.appendChild(uploadTrigger);
+
+        const pexelsBtn = document.createElement('button');
+        pexelsBtn.type = 'button';
+        pexelsBtn.title = 'Browse stock videos from Pexels';
+        pexelsBtn.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden ml-2';
+        pexelsBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 7.76"/></svg>';
+        pexelsBtn.onclick = async (e) => {
+          e.stopPropagation();
+          const { browsePexelsVideos } = await import('../lib/studioPexels.js');
+          browsePexelsVideos({
+            title: 'Select Video',
+            studioName: 'Cinema Template Studio',
+            onSelect: (asset) => {
+              const url = (asset.video_files?.find(f => f.quality === 'hd') || asset.video_files?.[0])?.link || asset.url;
+              currentInputs[input.name] = url;
+              uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-[#d9ff00]/40 bg-[#d9ff00]/10 text-lg">🎬</div><span class="text-sm text-[#d9ff00]">Video from Pexels</span>`;
+            },
+          });
+        };
+
+        const row = document.createElement('div');
+        row.className = 'flex items-center gap-2';
+        row.appendChild(uploadTrigger);
+        row.appendChild(pexelsBtn);
+        field.appendChild(row);
         break;
       }
 
@@ -1698,6 +1752,10 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     const openDropdown = () => {
       dropdown.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
       dropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
+
+      const triggerRect = triggerBtn.getBoundingClientRect();
+      dropdown.style.top = `${triggerRect.bottom + 6}px`;
+      dropdown.style.left = `${triggerRect.left}px`;
 
       if (_modelSelectorOutsideClickHandler) {
         document.removeEventListener('click', _modelSelectorOutsideClickHandler);
@@ -2222,6 +2280,32 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     genBtn.setAttribute('aria-label', 'Generate template');
     formPanel.appendChild(genBtn);
 
+    // AI Captions button — always visible in the create-view controls for video templates
+    if (currentTemplate?.outputType === 'video') {
+      const captionBtn = document.createElement('button');
+      captionBtn.type = 'button';
+      captionBtn.textContent = '💬 Add AI Captions';
+      captionBtn.setAttribute('data-caption-test', 'cinema-template-studio-v1');
+      captionBtn.className = 'mt-3 flex w-full items-center justify-center rounded-[18px] bg-white/10 px-4 py-3 text-sm font-bold text-white border border-white/10 transition-all hover:bg-white/20';
+      captionBtn.onclick = () => {
+        const target = generationResult || '';
+        addCaptionButton({
+          videoUrl: target || undefined,
+          appTheme: 'cinema-template-studio',
+          onComplete: (captionedUrl) => {
+            const preview = document.querySelector('.cinema-template-studio .preview img, .cinema-template-studio .preview video');
+            if (preview) {
+              preview.src = captionedUrl;
+              if (currentTemplate?.outputType === 'video') {
+                preview.outerHTML = `<video src="${captionedUrl}" controls autoplay loop class="max-w-full max-h-[60vh] rounded-xl border border-white/10" style="display:block"></video>`;
+              }
+            }
+          },
+        });
+      };
+      formPanel.appendChild(captionBtn);
+    }
+
     genBtn.onclick = () => {
       generateVideo();
     };
@@ -2657,29 +2741,6 @@ const firstChild = storyboardRoot.firstElementChild;
       if (target) openSocialPublish({ mediaUrl: target, mediaType });
     };
     actions.appendChild(publishBtn);
-
-    if (currentTemplate?.outputType === 'video') {
-      const captionBtn = document.createElement('button');
-      captionBtn.type = 'button';
-      captionBtn.textContent = '💬 Add AI Captions';
-      captionBtn.className = 'px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-bold rounded-lg border border-white/10 transition-all';
-      captionBtn.onclick = () => {
-        const target = generationResult || resultImg.src || '';
-        if (target) {
-          addCaptionButton({
-            videoUrl: target,
-            appTheme: 'cinema-template-studio',
-            onComplete: (captionedUrl) => {
-              resultImg.src = captionedUrl;
-              if (currentTemplate?.outputType === 'video') {
-                resultImg.outerHTML = `<video src="${captionedUrl}" controls autoplay loop class="max-w-full max-h-[60vh] rounded-xl border border-white/10" style="display:block"></video>`;
-              }
-            },
-          });
-        }
-      };
-      actions.appendChild(captionBtn);
-    }
 
     preview.appendChild(resultImg);
     preview.appendChild(actions);

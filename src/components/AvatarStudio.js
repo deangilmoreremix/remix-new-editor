@@ -18,6 +18,7 @@ import { getModelById } from '../lib/models.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import ExampleGallery from './studios/ExampleGallery.js';
+import { openModelPicker } from '../lib/modelPickerIntegration.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
@@ -88,6 +89,11 @@ const triggerBtn = document.createElement('button');
   const openDropdown = () => {
     dropdown.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
     dropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
+
+    const triggerRect = triggerBtn.getBoundingClientRect();
+    dropdown.style.top = `${triggerRect.bottom + 6}px`;
+    dropdown.style.left = `${triggerRect.left}px`;
+
     if (!dropdown.dataset.populated) {
       dropdown.dataset.populated = 'true';
       mountModelSelector(dropdown, {
@@ -150,6 +156,29 @@ const triggerBtn = document.createElement('button');
     onClear: () => { uploadedVideoUrl = null; },
   });
   videoUploadGroup.appendChild(videoPicker.trigger);
+
+  const pexelsVideoBtn = document.createElement('button');
+  pexelsVideoBtn.type = 'button';
+  pexelsVideoBtn.title = 'Browse stock videos/images from Pexels';
+  pexelsVideoBtn.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden';
+  pexelsVideoBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 7.76"/></svg>';
+  pexelsVideoBtn.onclick = async () => {
+    const { browsePexels } = await import('../lib/studioPexels.js');
+    browsePexels({
+      accept: ['image', 'video'],
+      title: 'Select Source Media',
+      studioName: 'Avatar Studio',
+      onSelect: (asset) => {
+        const isVideo = asset.type === 'video' || !!asset.video_files;
+        const url = isVideo
+          ? (asset.video_files?.find(f => f.quality === 'hd') || asset.video_files?.[0])?.link || asset.url
+          : (asset.src?.large || asset.src?.original || asset.url);
+        uploadedVideoUrl = url;
+      },
+    });
+  };
+  videoUploadGroup.appendChild(pexelsVideoBtn);
+
   formCard.appendChild(videoUploadGroup);
   container.appendChild(videoPicker.panel);
 
@@ -236,6 +265,23 @@ const triggerBtn = document.createElement('button');
     });
   formCard.appendChild(promptGroup);
   mountPersonalizeTrigger({ controlsContainer: formCard, getTextarea: () => promptInput, appId: 'avatar-studio' });
+
+  // Model Picker button
+  const modelPickerBtn = document.createElement('button');
+  modelPickerBtn.type = 'button';
+  modelPickerBtn.textContent = 'AI Pick';
+  modelPickerBtn.title = 'Open intelligent model picker';
+  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
+  modelPickerBtn.className = 'text-[11px] font-bold text-cyan-400 border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 rounded-lg hover:bg-cyan-400/20 transition-colors ml-2 whitespace-nowrap';
+  modelPickerBtn.addEventListener('click', () => {
+    openModelPicker({
+      currentModelId: selectedModel.id,
+      onSelectModel: (modelId) => {
+        selectedModel = avatarModels.find(m => m.id === modelId) || selectedModel;
+      }
+    }).catch((err) => console.error('[ModelPicker] open failed:', err));
+  });
+  formCard.appendChild(modelPickerBtn);
 
 // Dynamic model-specific advanced controls
   dynamicControlsContainer = document.createElement('div');

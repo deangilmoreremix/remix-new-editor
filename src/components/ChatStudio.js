@@ -78,6 +78,11 @@ const triggerBtn = document.createElement('button');
   const openDropdown = () => {
     dropdown.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
     dropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
+
+    const triggerRect = triggerBtn.getBoundingClientRect();
+    dropdown.style.top = `${triggerRect.bottom + 6}px`;
+    dropdown.style.left = `${triggerRect.left}px`;
+
     if (!dropdown.dataset.populated) {
       dropdown.dataset.populated = 'true';
       const availableProviders = getAvailableProviders(textModels);

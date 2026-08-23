@@ -18,6 +18,7 @@ import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
+import { openModelPicker } from '../lib/modelPickerIntegration.js';
 
 export function LipSyncStudio() {
     const container = document.createElement('div');
