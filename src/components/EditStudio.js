@@ -6,6 +6,7 @@ import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getToolThumbnail, createThumbnailImg, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
+import { createMediaRemoveButton } from '../lib/studioHelpers.js';
 
 const EDIT_TOOLS = [
   {
@@ -380,6 +381,23 @@ export function EditStudio() {
   const previewImg = document.createElement('img');
   previewImg.className = 'hidden w-full h-48 object-cover rounded-xl border border-white/10 cursor-zoom-in';
 
+  const previewWrapper = document.createElement('div');
+  previewWrapper.className = 'relative hidden';
+  previewWrapper.appendChild(previewImg);
+
+  const previewRemoveBtn = createMediaRemoveButton(() => {
+    picker.reset();
+    uploadedUrl = null;
+    previewImg.classList.add('hidden');
+    previewImg.src = '';
+    previewWrapper.classList.add('hidden');
+    previewRemoveBtn.classList.add('hidden');
+    uploadHint.textContent = 'Upload source image or video';
+    clearBtn.classList.add('hidden');
+  });
+  previewRemoveBtn.classList.add('hidden');
+  previewWrapper.appendChild(previewRemoveBtn);
+
   const uploadHint = document.createElement('span');
   uploadHint.className = 'text-sm text-muted';
   uploadHint.textContent = 'Upload source image or video';
@@ -400,6 +418,8 @@ export function EditStudio() {
       uploadedUrl = url;
       previewImg.src = url;
       previewImg.classList.remove('hidden');
+      previewWrapper.classList.remove('hidden');
+      previewRemoveBtn.classList.remove('hidden');
       uploadHint.textContent = 'Media uploaded';
       clearBtn.classList.remove('hidden');
     },
@@ -407,6 +427,8 @@ export function EditStudio() {
       uploadedUrl = null;
       previewImg.classList.add('hidden');
       previewImg.src = '';
+      previewWrapper.classList.add('hidden');
+      previewRemoveBtn.classList.add('hidden');
       uploadHint.textContent = 'Upload source image or video';
       clearBtn.classList.add('hidden');
     },
@@ -414,6 +436,8 @@ export function EditStudio() {
       const blobUrl = URL.createObjectURL(file);
       previewImg.src = blobUrl;
       previewImg.classList.remove('hidden');
+      previewWrapper.classList.remove('hidden');
+      previewRemoveBtn.classList.remove('hidden');
       uploadHint.textContent = file.name;
     },
   });
@@ -424,6 +448,8 @@ export function EditStudio() {
     uploadedUrl = null;
     previewImg.classList.add('hidden');
     previewImg.src = '';
+    previewWrapper.classList.add('hidden');
+    previewRemoveBtn.classList.add('hidden');
     uploadHint.textContent = 'Upload source image or video';
     clearBtn.classList.add('hidden');
   };
@@ -432,7 +458,7 @@ export function EditStudio() {
   uploadRow.appendChild(uploadHint);
   uploadRow.appendChild(clearBtn);
   uploadSection.appendChild(uploadRow);
-  uploadSection.appendChild(previewImg);
+  uploadSection.appendChild(previewWrapper);
   workCard.appendChild(uploadSection);
   container.appendChild(picker.panel);
 
@@ -458,11 +484,30 @@ export function EditStudio() {
     onSelect: ({ urls }) => {
       multiImageUrls = urls;
       multiImagePreviewGrid.innerHTML = '';
-      urls.forEach(url => {
+      urls.forEach((url, index) => {
+        const thumbWrapper = document.createElement('div');
+        thumbWrapper.className = 'relative';
+
         const img = document.createElement('img');
         img.src = url;
         img.className = 'w-full h-16 object-cover rounded-lg border border-white/10';
-        multiImagePreviewGrid.appendChild(img);
+        thumbWrapper.appendChild(img);
+
+        const removeBtn = createMediaRemoveButton(() => {
+          multiImageUrls = multiImageUrls.filter((_, i) => i !== index);
+          if (multiImageUrls.length === 0) {
+            multiImagePreviewGrid.classList.add('hidden');
+            multiImageHint.classList.add('hidden');
+            multiImageClearBtn.classList.add('hidden');
+            multiImageHint.textContent = 'Upload reference images';
+          } else {
+            multiImageHint.textContent = `${multiImageUrls.length} image(s) uploaded`;
+          }
+          thumbWrapper.remove();
+        });
+        thumbWrapper.appendChild(removeBtn);
+
+        multiImagePreviewGrid.appendChild(thumbWrapper);
       });
       multiImageHint.textContent = `${urls.length} image(s) uploaded`;
       multiImageHint.classList.remove('hidden');
