@@ -1254,10 +1254,9 @@ generateBtn.type = 'button';
         generateBtn.innerHTML = `Generate ✨`;
     };
 
-    const galleryAssets = getAssetsForStudio('image');
+    const galleryAssets = EXAMPLE_ASSETS.filter(asset => asset.studio === 'image' && !asset.videoSrc);
     if (galleryAssets.length > 0) {
       const INITIAL_CARDS = 28;
-      const EXTRA_CARDS = 28;
       let expanded = false;
 
       const renderGallery = (maxCards) => {
@@ -1272,16 +1271,16 @@ generateBtn.type = 'button';
 
       const showMoreBtn = document.createElement('button');
       showMoreBtn.type = 'button';
-      showMoreBtn.textContent = `Show all ${youmindImagePrompts.length} image prompts`;
+      showMoreBtn.textContent = `Show all ${galleryAssets.length} image prompts`;
       showMoreBtn.className = 'mt-4 mb-8 px-6 py-3 rounded-xl text-sm font-bold bg-white/5 text-secondary hover:bg-white/10 hover:text-primary transition-all border border-white/5 hover:border-primary/30';
       showMoreBtn.addEventListener('click', () => {
         expanded = !expanded;
         if (expanded) {
-          renderGallery(INITIAL_CARDS + EXTRA_CARDS);
+          renderGallery(galleryAssets.length);
           showMoreBtn.textContent = 'Show Less';
         } else {
           renderGallery(INITIAL_CARDS);
-          showMoreBtn.textContent = `Show all ${youmindImagePrompts.length} image prompts`;
+          showMoreBtn.textContent = `Show all ${galleryAssets.length} image prompts`;
         }
       });
       container.appendChild(showMoreBtn);

@@ -1,6 +1,10 @@
 import { handleViewPrompt, handleCreateThisStyle } from '../../lib/exampleGalleryBridge.js';
+import { createFullscreenPreview } from '../MediaPreview.js';
 
 const PLACEHOLDER_SVG = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="225" viewBox="0 0 400 225"><rect width="400" height="225" fill="#0a0a0a"/><text x="200" y="118" text-anchor="middle" fill="#27272a" font-size="14" font-family="sans-serif">No Preview</text></svg>')}`;
+
+const fullscreenPreview = createFullscreenPreview();
+document.body.appendChild(fullscreenPreview.element);
 
 export default function ExampleGallery({ studioId, assets, maxCards = 20 }) {
   const filtered = assets
@@ -117,10 +121,29 @@ export default function ExampleGallery({ studioId, assets, maxCards = 20 }) {
     }
 
     const img = document.createElement('img');
-    img.src = thumbnailSrc;
     img.alt = asset.title || 'Example';
     img.loading = 'lazy';
+
+    const applyAspectRatio = () => {
+      if (img.naturalWidth && img.naturalHeight) {
+        media.style.aspectRatio = `${img.naturalWidth} / ${img.naturalHeight}`;
+      }
+    };
+    img.onload = applyAspectRatio;
+    if (img.complete && img.naturalWidth) applyAspectRatio();
+
+    img.src = thumbnailSrc;
     media.appendChild(img);
+
+    card.addEventListener('click', () => {
+      const url = asset.videoSrc || thumbnailSrc;
+      const type = asset.videoSrc ? 'video' : 'image';
+      fullscreenPreview.show(url, {
+        type,
+        prompt: asset.prompt || '',
+        model: asset.source || '',
+      });
+    });
     card.appendChild(media);
 
     const body = document.createElement('div');
