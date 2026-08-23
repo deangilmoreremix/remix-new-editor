@@ -556,11 +556,26 @@ let showAdvanced = false;
         const isI2V = !!currentSettings.referenceUrl;
         const models = isI2V ? i2vModels : t2vModels;
         mountModelSelector(modelDropdown, {
-          models,
+          models: [...t2vModels, ...i2vModels],
+          categories: [
+            { id: 't2v', label: 'Text to Video', models: t2vModels },
+            { id: 'i2v', label: 'Image to Video', models: i2vModels },
+          ],
+          selectedCategory: isI2V ? 'i2v' : 't2v',
           selectedModelId: currentSettings.model,
           showProviderName: true,
           headerLabel: isI2V ? 'Image-to-video models' : 'Text-to-video models',
           autoFocus: true,
+          onSelectCategory: (catId) => {
+            const newI2V = catId === 'i2v';
+            if (newI2V && !currentSettings.referenceUrl) {
+              currentSettings.referenceUrl = '';  // trigger i2v mode UI
+            }
+            const nextModels = newI2V ? i2vModels : t2vModels;
+            currentSettings.model = nextModels[0].id;
+            updateModelBtn();
+            updateControlsForModel();
+          },
           onSelectModel: (modelId) => {
             currentSettings.model = modelId;
             updateModelBtn();

@@ -417,6 +417,28 @@ export function EditStudio() {
   };
 
   uploadRow.appendChild(picker.trigger);
+
+  const pexelsBtn = document.createElement('button');
+  pexelsBtn.type = 'button';
+  pexelsBtn.title = 'Browse stock photos from Pexels';
+  pexelsBtn.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden';
+  pexelsBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 7.76"/></svg>';
+  pexelsBtn.onclick = async () => {
+    const { browsePexelsImages } = await import('../lib/studioPexels.js');
+    browsePexelsImages({
+      title: 'Select Photo to Edit',
+      studioName: 'Edit Studio',
+      onSelect: (asset) => {
+        uploadedUrl = asset.src?.large || asset.src?.original || asset.url;
+        previewImg.src = uploadedUrl;
+        previewImg.classList.remove('hidden');
+        uploadHint.textContent = 'Media from Pexels';
+        clearBtn.classList.remove('hidden');
+      },
+    });
+  };
+  uploadRow.appendChild(pexelsBtn);
+
   uploadRow.appendChild(uploadHint);
   uploadRow.appendChild(clearBtn);
   uploadSection.appendChild(uploadRow);
@@ -424,7 +446,7 @@ export function EditStudio() {
   workCard.appendChild(uploadSection);
   container.appendChild(picker.panel);
 
-  function createSecondaryUploadRow({ picker, hintText, onSelect, onClear, previewClass = 'h-16' }) {
+  function createSecondaryUploadRow({ hintText, onSelect, onClear, previewClass = 'h-16' }) {
     const row = document.createElement('div');
     row.className = 'hidden flex flex-col gap-2';
     const hint = document.createElement('span');
@@ -438,7 +460,7 @@ export function EditStudio() {
     clearBtn.textContent = 'Remove';
     clearBtn.onclick = (e) => {
       e.stopPropagation();
-      picker.reset();
+      updatedPicker.reset();
       preview.classList.add('hidden');
       preview.src = '';
       hint.textContent = hintText;
@@ -476,35 +498,31 @@ export function EditStudio() {
       hint.textContent = hintText;
       hint.classList.add('hidden');
       clearBtn.classList.add('hidden');
-      picker.reset();
+      updatedPicker.reset();
       if (onClear) onClear();
     };
     return row;
   }
 
   const maskRow = createSecondaryUploadRow({
-    picker: maskPicker,
     hintText: 'Upload mask image',
     onSelect: ({ url }) => { maskUrl = url; },
     onClear: () => { maskUrl = null; },
   });
 
   const garmentRow = createSecondaryUploadRow({
-    picker: garmentPicker,
     hintText: 'Upload garment image',
     onSelect: ({ url }) => { garmentUrl = url; },
     onClear: () => { garmentUrl = null; },
   });
 
   const swapRow = createSecondaryUploadRow({
-    picker: swapPicker,
     hintText: 'Upload swap face image',
     onSelect: ({ url }) => { swapUrl = url; },
     onClear: () => { swapUrl = null; },
   });
 
   const watermarkImageRow = createSecondaryUploadRow({
-    picker: watermarkImagePicker,
     hintText: 'Upload watermark image',
     onSelect: ({ url }) => { watermarkImageUrl = url; },
     onClear: () => { watermarkImageUrl = null; },
