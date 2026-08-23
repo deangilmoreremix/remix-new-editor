@@ -213,7 +213,6 @@ function getAppIcon(appId) {
     'training': '🏋️',
     'videotools': '🔧',
     'render': '🚀',
-    'video-agent': '🤖',
     'director': '🎬',
     'timeline': '⏱️',
     'motion': '🎪',

@@ -61,7 +61,6 @@ const NAV_ITEMS = [
   { label: 'Training',      route: 'training' },
   { label: 'Video Tools',   route: 'videotools' },
   { label: 'Render',        route: 'render' },
-  { label: 'Video Agent',   route: 'video-agent' },
   { label: 'Director',      route: 'director' },
   { label: 'Timeline',      route: 'timeline' },
   { label: 'Chat',          route: 'chat' },
