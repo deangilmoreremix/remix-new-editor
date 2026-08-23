@@ -669,47 +669,6 @@ let fallbackList = [];
   gtmBoostBtn.title = 'Enhance your prompt with GTM conversion frameworks';
   gtmBoostBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
   gtmBoostBtn.className = 'gtm-boost-btn';
-  gtmBoostBtn.addEventListener('click', async () => {
-    gtmBoostBtn.disabled = true;
-    const originalText = gtmBoostBtn.textContent;
-    gtmBoostBtn.textContent = '🎯 Loading…';
-    try {
-      const ctx = await import('../lib/uiIntegration.js').then(async (m) => {
-        const result = m.fetchGTMTemplateContext?.(template);
-        if (result && typeof result.then === 'function') return await result;
-        return result;
-      }).catch(() => null);
-      const basePrompt = promptEl?.value || (ctx && ctx.basePrompt) || template.description || '';
-      const templateContext = {
-        ...(ctx || {}),
-        basePrompt,
-        templateId: template.id,
-        category: template.category,
-        niche: template.niche,
-        outputType: template.outputType,
-      };
-      const onPromptGenerated = (generatedPrompt) => {
-        if (promptEl) {
-          promptEl.value = generatedPrompt;
-          promptEl.dispatchEvent(new Event('input', { bubbles: true }));
-          promptEl.dispatchEvent(new Event('change', { bubbles: true }));
-          if (promptFieldName) formState[promptFieldName] = generatedPrompt;
-          promptEl.focus();
-        }
-      };
-      import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-        openGTMPromptModal('template-studio', onPromptGenerated, {
-          templateContext,
-        });
-      }).catch((err) => {
-        console.error('[TemplateStudio] GTM Boost failed:', err);
-        showInlineError(leftPanel, 'GTM Boost failed to load. Please try again.');
-      });
-    } finally {
-      gtmBoostBtn.disabled = false;
-      gtmBoostBtn.textContent = originalText;
-    }
-  });
   toolbar.appendChild(gtmBoostBtn);
 
   // Recipe Engine button

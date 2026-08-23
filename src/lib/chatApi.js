@@ -55,3 +55,8 @@ export async function createConversation() {
     updatedAt: Date.now(),
   };
 }
+
+export const chatApi = {
+  sendChatMessage,
+  createConversation,
+};

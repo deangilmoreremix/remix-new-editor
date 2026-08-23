@@ -219,9 +219,11 @@ export function getQueryParam(name) {
 // into unrelated studios and causing unwanted redirects.
 export function cleanTemplateParams(params = {}, page) {
   if (!page.startsWith('template/') && page !== 'templates') {
-    delete params.template;
-    delete params['academy-template'];
-    delete params.templateId;
+    const next = { ...params };
+    delete next.template;
+    delete next['academy-template'];
+    delete next.templateId;
+    return next;
   }
   return params;
 }
@@ -237,9 +239,7 @@ export async function navigate(page, params = {}) {
   isNavigating = true;
   currentPage = page;
 
-  let mergedParams = { ...getExistingParams(), ...params };
-
-  mergedParams = cleanTemplateParams(mergedParams, page);
+  const mergedParams = cleanTemplateParams({ ...getExistingParams(), ...params }, page);
 
   // Gate studio / gated pages behind the pro plan
   let granted = true;
