@@ -1,5 +1,5 @@
 import { navigate } from '../lib/router.js';
-import { mountStudioChrome, mountStudioDrawer } from '../lib/studioChrome.js';
+import { mountStudioChrome } from '../lib/studioChrome.js';
 import { showToast } from '../lib/loading.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 import { getSupabaseUrl, isSupabaseConfigured } from '../lib/supabase.js';
@@ -121,12 +121,8 @@ export function VideoAgentPage() {
     contentWrapper.style.animationDelay = '0.1s';
     
     contentWrapper.innerHTML = `
-        <!-- Back Button + All-Studios Menu -->
+        <!-- Back Button -->
         <div class="mb-6 flex items-center gap-2">
-            <button id="all-studios-btn" type="button" class="studio-nav-btn flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all text-white/70 hover:text-white" aria-label="All studios" title="All studios">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-                <span class="hidden sm:inline">Studios</span>
-            </button>
             <button id="back-btn" class="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all text-white/70 hover:text-white">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M19 12H5M12 19l-7-7 7-7"/>
@@ -436,19 +432,6 @@ export function VideoAgentPage() {
         navigate('render', { videoId, videoUrl });
     };
 
-    // All-studios side-menu (drawer listing every SPA route). Mounted on
-    // document.body so it is never clipped by the studio's overflow container.
-    // Idempotent: drop any prior VA drawer first so re-renders don't stack.
-    const prevDrawer = document.getElementById('va-studio-drawer');
-    if (prevDrawer) prevDrawer.remove();
-    const studioDrawer = mountStudioDrawer(document.body, { currentRoute: 'video-agent' });
-    studioDrawer.element.id = 'va-studio-drawer';
-    const allStudiosBtn = container.querySelector('#all-studios-btn');
-    if (allStudiosBtn) {
-        allStudiosBtn.setAttribute('data-studio-menu', '');
-        allStudiosBtn.onclick = () => studioDrawer.toggle();
-    }
-    
     // Category tabs (creation groups)
     container.querySelectorAll('.category-tab').forEach(tab => {
         tab.onclick = () => {
@@ -1237,9 +1220,6 @@ export function VideoAgentPage() {
     // Cleanup function to abort ongoing operations
     container.cleanup = () => {
         abortController.abort();
-        // Remove the all-studios drawer mounted on document.body for this page.
-        const d = document.getElementById('va-studio-drawer');
-        if (d) d.remove();
     };
 
     return container;
