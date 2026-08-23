@@ -358,7 +358,7 @@ let showAdvanced = false;
     gtmBtn.textContent = '🎯 GTM Boost';
     gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
     gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
-    gtmBtn.className = 'gtm-boost-btn shrink-0';
+    gtmBtn.className = 'gtm-boost-btn';
     gtmBtn.addEventListener('click', () => {
       import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
         openGTMPromptModal('cinema-studio', (prompt) => {
@@ -368,10 +368,7 @@ let showAdvanced = false;
         });
       }).catch((err) => console.error('[CinemaStudio] GTM Boost failed:', err));
     });
-    const toolbar = document.createElement('div');
-    toolbar.className = 'flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06]';
-    toolbar.appendChild(gtmBtn);
-    inputRow.appendChild(toolbar);
+
 
     // --- Reference image upload (the "Upload your scene" step) ---
     // Real upload control that posts the still to the backend and stores the
@@ -470,7 +467,7 @@ let showAdvanced = false;
 
     // 2. Settings Toolbar (Bottom Left)
     const settingsToolbar = document.createElement('div');
-    settingsToolbar.className = 'flex items-center gap-3'; // Removed pl-11 to align left
+    settingsToolbar.className = 'flex items-center gap-1.5 md:gap-2.5'; // Align with video/image studio control buttons
 
     // Helper: Create Dropdown
     const createDropdown = (items, selected, onSelect, trigger) => {
@@ -507,7 +504,7 @@ let showAdvanced = false;
 
     // Model picker — same catalog-driven dropdown used by Video Studio.
     const modelBtn = document.createElement('button');
-    modelBtn.className = 'flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-white/50 hover:text-white transition-colors bg-white/5 hover:bg-white/10 rounded-lg border border-white/5';
+    modelBtn.className = 'flex items-center gap-1.5 md:gap-2.5 px-3 md:px-4 py-2 md:py-2.5 text-xs font-bold text-white/50 hover:text-white transition-colors bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl border border-white/5 whitespace-nowrap';
     const updateModelBtn = () => {
         const m = (currentSettings.referenceUrl ? i2vModels : t2vModels).find(x => x.id === currentSettings.model)
             || t2vModels.find(x => x.id === currentSettings.model)
@@ -516,6 +513,7 @@ let showAdvanced = false;
     };
     updateModelBtn();
     modelBtn.onclick = (e) => { e.stopPropagation(); showModelDropdown(); };
+    settingsToolbar.appendChild(gtmBtn);
     settingsToolbar.appendChild(modelBtn);
 
     // Model Picker button
@@ -524,7 +522,7 @@ let showAdvanced = false;
     modelPickerBtn.textContent = 'AI Pick';
     modelPickerBtn.title = 'Open intelligent model picker';
     modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-    modelPickerBtn.className = 'text-[11px] font-bold text-cyan-400 border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 rounded-lg hover:bg-cyan-400/20 transition-colors ml-2 whitespace-nowrap';
+    modelPickerBtn.className = 'text-xs font-bold text-cyan-400 border border-cyan-400/30 bg-cyan-400/10 px-3 py-2 rounded-xl hover:bg-cyan-400/20 transition-colors whitespace-nowrap';
     modelPickerBtn.addEventListener('click', () => {
       openModelPicker({
         currentModelId: currentSettings.model,
@@ -618,7 +616,7 @@ let showAdvanced = false;
 
     // Aspect Ratio
     const arBtn = document.createElement('button');
-    arBtn.className = 'flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-white/50 hover:text-white transition-colors bg-white/5 hover:bg-white/10 rounded-lg border border-white/5';
+    arBtn.className = 'flex items-center gap-1.5 md:gap-2.5 px-3 md:px-4 py-2 md:py-2.5 text-xs font-bold text-white/50 hover:text-white transition-colors bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl border border-white/5 whitespace-nowrap';
     const updateArBtn = () => {
         arBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="10" rx="2" ry="2"/></svg> ${currentSettings.aspect_ratio}`;
     };
@@ -634,7 +632,7 @@ let showAdvanced = false;
 
     // Resolution
     const resBtn = document.createElement('button');
-    resBtn.className = 'flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-white/50 hover:text-white transition-colors bg-white/5 hover:bg-white/10 rounded-lg border border-white/5';
+    resBtn.className = 'flex items-center gap-1.5 md:gap-2.5 px-3 md:px-4 py-2 md:py-2.5 text-xs font-bold text-white/50 hover:text-white transition-colors bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl border border-white/5 whitespace-nowrap';
     const updateResBtn = (val) => {
         resBtn.dataset.value = val || '2K';
         resBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg> ${resBtn.dataset.value}`;
@@ -647,7 +645,7 @@ let showAdvanced = false;
     
     // Camera Builder Toggle Button
     const cameraBuilderBtn = document.createElement('button');
-    cameraBuilderBtn.className = 'flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-white/50 hover:text-white transition-colors bg-white/5 hover:bg-white/10 rounded-lg border border-white/5';
+    cameraBuilderBtn.className = 'flex items-center gap-1.5 md:gap-2.5 px-3 md:px-4 py-2 md:py-2.5 text-xs font-bold text-white/50 hover:text-white transition-colors bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl border border-white/5 whitespace-nowrap';
     cameraBuilderBtn.setAttribute('data-tooltip', 'Quick camera builder');
     cameraBuilderBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/></svg> Builder`;
     settingsToolbar.appendChild(cameraBuilderBtn);

@@ -64,6 +64,95 @@ export const PROVIDER_LOGO_FALLBACKS = {
   ],
 };
 
+export function getProviderLogoUrls(provider) {
+  const primary = PROVIDER_LOGOS[provider];
+  const fallbacks = PROVIDER_LOGO_FALLBACKS[provider] || [];
+  return [primary, ...fallbacks].filter(Boolean);
+}
+
+const LOGO_CACHE = new Map();
+const LOGO_FAILED = new Set();
+
+if (typeof window !== 'undefined') {
+  window.__providerLogoCache = window.__providerLogoCache || new Map();
+  window.__providerLogoFailed = window.__providerLogoFailed || new Set();
+}
+
+function cacheProviderLogoBlob(provider, blobUrl) {
+  if (provider && blobUrl) {
+    LOGO_CACHE.set(provider, blobUrl);
+    if (typeof window !== 'undefined') window.__providerLogoCache.set(provider, blobUrl);
+  }
+}
+
+function getCachedProviderLogoBlob(provider) {
+  if (provider && LOGO_CACHE.has(provider)) return LOGO_CACHE.get(provider);
+  if (typeof window !== 'undefined' && window.__providerLogoCache.has(provider)) return window.__providerLogoCache.get(provider);
+  return null;
+}
+
+function markProviderLogoFailed(provider) {
+  if (provider) {
+    LOGO_FAILED.add(provider);
+    if (typeof window !== 'undefined') window.__providerLogoFailed.add(provider);
+  }
+}
+
+function isProviderLogoFailed(provider) {
+  if (provider && LOGO_FAILED.has(provider)) return true;
+  if (typeof window !== 'undefined' && window.__providerLogoFailed.has(provider)) return true;
+  return false;
+}
+
+export function preloadProviderLogos(providers) {
+  if (!providers || !providers.length) return;
+  providers.forEach((p) => {
+    const id = typeof p === 'string' ? p : p.id;
+    if (!id || getCachedProviderLogoBlob(id) || isProviderLogoFailed(id)) return;
+    const urls = getProviderLogoUrls(id);
+    if (!urls.length) return;
+    let resolved = false;
+    urls.forEach((url) => {
+      if (resolved) return;
+      const img = new Image();
+      img.onload = () => {
+        try {
+          fetch(url)
+            .then((r) => r.blob())
+            .then((blob) => {
+              const blobUrl = URL.createObjectURL(blob);
+              cacheProviderLogoBlob(id, blobUrl);
+              resolved = true;
+            })
+            .catch(() => {});
+        } catch (_) {}
+      };
+      img.onerror = () => {};
+      img.src = url;
+    });
+  });
+}
+
+export function renderProviderLogoImg(provider, alt, sizeClasses = 'w-full h-full', extraClasses = '') {
+  if (isProviderLogoFailed(provider)) {
+    const style = getProviderStyle(provider);
+    return LOGO_FALLBACK_HTML(provider, style.text);
+  }
+  const cachedBlob = getCachedProviderLogoBlob(provider);
+  const urls = getProviderLogoUrls(provider);
+  const primaryUrl = cachedBlob || (urls[0] || '');
+  const fallbackUrls = urls.slice(1);
+  const style = getProviderStyle(provider);
+  const invertClass = invertLogos.includes(provider) ? 'invert' : '';
+  const badgeHtml = LOGO_FALLBACK_HTML(provider, style.text).replace(/'/g, "&#39;");
+
+  const cacheKey = cachedBlob ? '1' : '0';
+  const fallbackJson = JSON.stringify(fallbackUrls).replace(/"/g, '&quot;');
+  const onerror = `if(this.dataset.fallbackIndex){this.dataset.fallbackIndex='';return;}this.dataset.fallbackIndex='1';const fb=${fallbackJson};const i=parseInt(this.dataset.fallbackIndex||'0',10);if(i<fb.length){this.dataset.fallbackIndex=String(i+1);this.src=fb[i];}else{this.dataset.fallbackIndex='';try{(window.__providerLogoFailed||new Set()).add('${provider}');}catch(e){ }this.outerHTML='${badgeHtml}';}`;
+
+  return `<img src="${primaryUrl}" alt="${alt}" class="${sizeClasses} object-contain ${invertClass} ${extraClasses}" onerror="${onerror}" data-fallback-index="${cacheKey}" />`;
+}
+
 export const invertLogos = [
   'openai',
   'blackforest',
@@ -212,7 +301,7 @@ export function renderProviderSidebar(availableProviders, selectedProvider, onSe
     if (hasLogo) {
       const invertClass = invertLogos.includes(p.id) ? 'invert' : '';
       const sidebarBadge = LOGO_FALLBACK_HTML(p.id, getProviderStyle(p.id).text).replace(/'/g, "&#39;");
-      html += `<img src="${logoUrl}" alt="${p.name}" class="w-full h-full rounded-full object-contain ${invertClass}" onerror="this.outerHTML='${sidebarBadge}'" />`;
+      html += renderProviderLogoImg(p.id, p.name, 'w-full h-full rounded-full object-contain', invertClass);
     } else {
       html += `<span>${style.text}</span>`;
     }
@@ -231,8 +320,8 @@ export function getModelLogoHtml(model, sizeClasses = 'w-4 h-4') {
   const provider = model?.provider || 'muapi';
   const logoUrl = PROVIDER_LOGOS[provider];
   if (logoUrl) {
-    const logoBadge = LOGO_FALLBACK_HTML(provider, getProviderStyle(provider).text).replace(/'/g, "&#39;");
-    return `<div class="${sizeClasses} rounded-md flex items-center justify-center overflow-hidden bg-white/5 shrink-0"><img src="${logoUrl}" alt="" class="w-full h-full object-contain ${invertLogos.includes(provider) ? 'invert' : ''}" onerror="this.outerHTML='${logoBadge}'" /></div>`;
+    const invertClass = invertLogos.includes(provider) ? 'invert' : '';
+    return `<div class="${sizeClasses} rounded-md flex items-center justify-center overflow-hidden bg-white/5 shrink-0">${renderProviderLogoImg(provider, '', 'w-full h-full object-contain', invertClass)}</div>`;
   }
   const style = getProviderStyle(provider);
   return `<div class="${sizeClasses} bg-primary rounded-md flex items-center justify-center shadow-lg shadow-primary/20 shrink-0"><span class="text-[9px] font-black text-black">${style.text}</span></div>`;
@@ -255,9 +344,8 @@ export function renderModelRow(model, opts = {}) {
 
   const logoUrl = PROVIDER_LOGOS[model.provider];
   const hasLogo = Boolean(logoUrl);
-  const modelBadge = LOGO_FALLBACK_HTML(model.provider, getProviderStyle(model.provider).text).replace(/'/g, "&#39;");
   const iconHtml = hasLogo
-    ? `<div class="w-8 h-8 rounded-full border border-white/5 overflow-hidden shrink-0 flex items-center justify-center bg-white/[0.02]"><img src="${logoUrl}" alt="${model.provider_name || ''}" class="w-full h-full object-contain p-1 ${invertLogos.includes(model.provider) ? 'invert' : ''}" onerror="this.outerHTML='${modelBadge}'" /></div>`
+    ? `<div class="w-8 h-8 rounded-full border border-white/5 overflow-hidden shrink-0 flex items-center justify-center bg-white/[0.02]">${renderProviderLogoImg(model.provider, model.provider_name || '', 'w-full h-full object-contain p-1', invertLogos.includes(model.provider) ? 'invert' : '')}</div>`
     : `<div class="w-8 h-8 rounded-full border border-white/5 flex items-center justify-center font-bold text-xs shadow-inner uppercase ${(model.family === 'kontext' ? 'bg-blue-500/10 text-blue-400 border-blue-500/10' : model.family === 'effects' ? 'bg-purple-500/10 text-purple-400 border-purple-500/10' : 'bg-primary/10 text-primary border-primary/10')}">${(model.name || model.id).charAt(0)}</div>`;
 
   const providerLabel = showProviderName && model.provider_name
@@ -492,7 +580,7 @@ export function buildModelSelectorPanel(options = {}) {
       html += `<button type="button" data-provider="${p.id}" class="w-8 h-8 flex-shrink-0 rounded-full flex items-center justify-center font-black text-[10px] border transition-all flex-shrink-0 cursor-pointer overflow-hidden ${itemClasses}" title="${p.name}">`;
       if (hasLogo) {
         const invertClass = invertLogos.includes(p.id) ? 'invert' : '';
-        html += `<img src="${logoUrl}" alt="${p.name}" class="w-full h-full rounded-full object-contain ${invertClass}" onerror="this.outerHTML='${LOGO_FALLBACK_HTML(p.id, style.text).replace(/'/g, "&#39;")}" />`;
+        html += renderProviderLogoImg(p.id, p.name, 'w-full h-full rounded-full object-contain', invertClass);
       } else {
         html += `<span>${style.text}</span>`;
       }
@@ -530,7 +618,7 @@ export function buildModelSelectorPanel(options = {}) {
       const hasLogo = Boolean(logoUrl);
       const modelBadge = LOGO_FALLBACK_HTML(m.provider, style.text).replace(/'/g, "&#39;");
       const iconHtml = hasLogo
-        ? `<div class="w-8 h-8 rounded-full border border-white/5 overflow-hidden shrink-0 flex items-center justify-center bg-white/[0.02]"><img src="${logoUrl}" alt="${m.provider_name || ''}" class="w-full h-full object-contain p-1 ${invertLogos.includes(m.provider) ? 'invert' : ''}" onerror="this.outerHTML='${modelBadge}'" /></div>`
+        ? `<div class="w-8 h-8 rounded-full border border-white/5 overflow-hidden shrink-0 flex items-center justify-center bg-white/[0.02]">${renderProviderLogoImg(m.provider, m.provider_name || '', 'w-full h-full object-contain p-1', invertLogos.includes(m.provider) ? 'invert' : '')}</div>`
         : `<div class="w-8 h-8 rounded-full border border-white/5 flex items-center justify-center font-bold text-xs shadow-inner uppercase ${(m.family === 'kontext' ? 'bg-blue-500/10 text-blue-400 border-blue-500/10' : m.family === 'effects' ? 'bg-purple-500/10 text-purple-400 border-purple-500/10' : 'bg-primary/10 text-primary border-primary/10')}">${(m.name || m.id).charAt(0)}</div>`;
 
       const providerLabel = st.showProviderName || st.selectedProvider === 'all'
@@ -604,6 +692,7 @@ export function buildModelSelectorPanel(options = {}) {
 
   st.root = root;
   st.refresh();
+  preloadProviderLogos(st.availableProviders);
   if (autoFocus) searchInput.focus();
   return st;
 }
@@ -652,6 +741,7 @@ export function mountModelSelector(container, options = {}) {
       if (input && document.activeElement !== input) input.value = search;
     }
     existing.refresh();
+    preloadProviderLogos(existing.availableProviders);
     return existing.root;
   }
 

@@ -907,7 +907,7 @@ const compareBtn = document.createElement('button');
     const provider = current?.provider || 'muapi';
     const logoUrl = PROVIDER_LOGOS[provider];
     if (logoUrl) {
-      iconEl.innerHTML = `<img src="${logoUrl}" alt="" class="w-full h-full object-contain ${invertLogos.includes(provider) ? 'invert' : ''}" />`;
+      iconEl.innerHTML = renderProviderLogoImg(provider, '', 'w-full h-full object-contain', invertLogos.includes(provider) ? 'invert' : '');
     } else {
       const style = getProviderStyle(provider);
       iconEl.innerHTML = `<span class="text-[10px] font-black text-black">${style.text}</span>`;
