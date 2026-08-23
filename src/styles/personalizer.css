@@ -1,0 +1,90 @@
+/* Personalizer Studio */
+
+.personalizer-studio {
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+.dom-sidebar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.15) transparent;
+}
+
+.dom-sidebar-title {
+  user-select: none;
+}
+
+.dom-palette-grid {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.15) transparent;
+}
+
+.dom-palette-item:active {
+  transform: scale(0.96);
+}
+
+.dom-preset-btn:active {
+  transform: scale(0.96);
+}
+
+.dom-canvas-frame {
+  transition: outline 0.15s ease;
+}
+
+.dom-element-wrapper {
+  position: absolute;
+  box-sizing: content-box;
+}
+
+.dom-element-wrapper:hover .dom-delete-btn,
+.dom-element-wrapper:hover .dom-resize-handle {
+  display: block;
+}
+
+.dom-resize-handle {
+  display: none;
+}
+
+.dom-delete-btn {
+  display: none;
+}
+
+.dom-delete-btn:active {
+  transform: scale(0.9);
+}
+
+.dom-properties-panel {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.15) transparent;
+}
+
+.dom-token-chip:active {
+  transform: scale(0.92);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .dom-sidebar {
+    width: 220px;
+  }
+  .dom-properties-panel {
+    width: 240px;
+  }
+}
+
+@media (max-width: 768px) {
+  .personalizer-studio > div:last-child {
+    flex-direction: column;
+  }
+  .dom-sidebar {
+    width: 100%;
+    max-height: 180px;
+    border-right: none;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .dom-properties-panel {
+    width: 100%;
+    max-height: 220px;
+    border-left: none;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+}

@@ -263,7 +263,7 @@ export class TemplateThumbnailModal extends BaseModal {
           <p class="thumb-section-hint">Pick a style to start, then customize it — or write your own brief below.</p>
         </div>
         ${designGrid}
-        <button type="button" class="gtm-action thumb-explore-all" data-action="explore-ideas" style="width:100%; margin-top:4px; background:transparent; color:var(--text-primary); border:1px solid var(--border-color); font-weight:600;">
+        <button type="button" class="gtm-action thumb-explore-all" data-action="explore-ideas" style="width:100%; margin-top:4px;">
           ✨ Explore all ideas &amp; search
         </button>
       </div>
@@ -283,7 +283,7 @@ export class TemplateThumbnailModal extends BaseModal {
           }
         </div>
         ${this.variants.length === 0 ? `
-          <button type="button" class="gtm-action" data-action="draft" style="width:100%; margin-top:8px; min-height:32px; font-size:12px;">
+          <button type="button" class="gtm-action" data-action="draft" style="width:100%; margin-top:8px;">
             ✨ Draft Prompts
           </button>
         ` : ''}
@@ -317,7 +317,7 @@ export class TemplateThumbnailModal extends BaseModal {
         </div>
       </div>
       <div style="display:flex; gap:8px; margin:8px 0;">
-        <button type="button" class="gtm-action" data-action="enhance-brief" style="flex:1; min-height:32px; font-size:12px;">
+        <button type="button" class="gtm-action" data-action="enhance-brief" style="flex:1;">
           💡 Enhance Brief${this.tonality ? ` (${this.escapeHtml(getTonality(this.tonality)?.label || '')})` : ''}
         </button>
       </div>
@@ -413,7 +413,7 @@ export class TemplateThumbnailModal extends BaseModal {
         <div class="form-grid">
           <div class="form-section">
             <label>Image Model</label>
-            <button type="button" id="thumb-image-model-btn" title="gpt-image-2 supports any resolution; 1.5/1/1-mini only support 1024x1024, 1536x1024, 1024x1536" style="width:100%;min-height:40px;padding:10px 12px;background:var(--bg-panel);border:1px solid var(--border-color);border-radius:var(--border-radius-md);color:var(--text-primary);font-size:14px;font-family:inherit;line-height:1.5;outline:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:space-between;gap:8px;transition:border-color var(--transition-fast),background var(--transition-fast),box-shadow var(--transition-fast);box-sizing:border-box;">
+            <button type="button" id="thumb-image-model-btn" class="btn-secondary-modern" title="gpt-image-2 supports any resolution; 1.5/1/1-mini only support 1024x1024, 1536x1024, 1024x1536" style="width:100%; justify-content:space-between;">
               <span>${this.model || 'gpt-image-2'}</span>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;"><polyline points="6 9 12 15 18 9" /></svg>
             </button>
@@ -511,7 +511,7 @@ export class TemplateThumbnailModal extends BaseModal {
               ${c.placeholderDataUrl ? `<img src="${c.placeholderDataUrl}" alt="" aria-hidden="true" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:blur(8px); display:block;" />` : ''}
               <img src="${src}" alt="Candidate ${i + 1}" loading="lazy" onload="this.previousElementSibling&&(this.previousElementSibling.style.display='none')" style="width:100%;height:100%;object-fit:cover;display:block;position:relative;z-index:1;" />
               <div style="position:absolute;bottom:0;left:0;right:0;padding:8px;display:flex;gap:6px;background:linear-gradient(transparent,rgba(0,0,0,0.8));opacity:0;transition:opacity 150ms ease;" class="candidate-actions">
-                <button type="button" class="gtm-action" style="min-height:28px;padding:4px 10px;font-size:11px;" data-action="refine-candidate" data-index="${i}">Refine</button>
+                <button type="button" class="gtm-action" data-action="refine-candidate" data-index="${i}">Refine</button>
               </div>
               ${revised}
             </div>
@@ -553,7 +553,7 @@ export class TemplateThumbnailModal extends BaseModal {
             🔄 Regenerate
           </button>
         `)}
-        <button type="button" class="gtm-action" data-action="back" style="width:100%; background:var(--bg-panel);color:var(--text-secondary);border:1px solid var(--border-light);">
+        <button type="button" class="gtm-action" data-action="back" style="width:100%;">
           ← Back to Brief
         </button>
       </div>
@@ -592,11 +592,11 @@ export class TemplateThumbnailModal extends BaseModal {
             <div style="position:absolute; top:6px; right:6px; padding:2px 8px; border-radius:999px; background:rgba(16,185,129,0.9); color:#fff; font-size:10px; font-weight:600;">AFTER</div>
           </div>
         </div>
-        <button type="button" class="gtm-action" data-action="hide-diff" style="width:100%; margin-top:6px; background:var(--bg-panel); color:var(--text-secondary); border:1px solid var(--border-light); font-size:12px; min-height:32px;">Hide comparison</button>
+        <button type="button" class="gtm-action" data-action="hide-diff" style="width:100%; margin-top:6px;">Hide comparison</button>
       </div>
       ` : (previousImage ? `
       <div class="form-section">
-        <button type="button" class="gtm-action" data-action="show-diff" style="width:100%; background:var(--bg-panel); color:var(--text-secondary); border:1px solid var(--border-light); font-size:12px; min-height:32px;">🔍 Show Before/After</button>
+        <button type="button" class="gtm-action" data-action="show-diff" style="width:100%;">🔍 Show Before/After</button>
       </div>
       ` : '')}
       <div class="thumb-chat" style="display:flex; flex-direction:column; gap:10px; max-height:240px; overflow-y:auto; padding-right:4px; margin-right:-4px;">
@@ -623,7 +623,7 @@ export class TemplateThumbnailModal extends BaseModal {
         <label>Quick Edits</label>
         <div class="thumb-quick-edits" style="display:flex; flex-wrap:wrap; gap:8px;">
           ${quickEdits.map((edit) => `
-            <button type="button" class="thumb-quick-edit-chip" data-quick-edit="${edit.key}" style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:var(--border-radius-full); border:1px solid var(--border-light); background:var(--bg-panel); color:var(--text-secondary); font-size:12px; font-weight:500; cursor:pointer; transition:all var(--transition-fast); font-family:inherit;">${edit.label}</button>
+            <button type="button" class="thumb-quick-edit-chip" data-quick-edit="${edit.key}">${edit.label}</button>
           `).join('')}
         </div>
       </div>
@@ -634,7 +634,7 @@ export class TemplateThumbnailModal extends BaseModal {
           <div class="thumb-refine-row">
             <input type="text" id="thumb-refine-input" value="${this.escapeHtml(this.refineInput)}"
                    placeholder="e.g. more cinematic, warmer tones, chef as hero..." />
-            <button type="button" class="gtm-action copy-prompt-btn" data-action="apply-refine" style="width:auto;padding:0 16px;">Send →</button>
+            <button type="button" class="gtm-action copy-prompt-btn" data-action="apply-refine">Send →</button>
           </div>
           ${this._error ? `<div class="error-message">⚠ ${this.escapeHtml(this._error)}</div>` : ''}
         </div>
@@ -663,9 +663,9 @@ export class TemplateThumbnailModal extends BaseModal {
           </select>
         </div>
         <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
-          <button type="button" class="gtm-action" data-action="undo-mask" style="flex:1; min-height:32px; font-size:12px; background:var(--bg-panel);color:var(--text-secondary);border:1px solid var(--border-light);">↶ Undo</button>
-          <button type="button" class="gtm-action" data-action="invert-mask" style="flex:1; min-height:32px; font-size:12px; background:var(--bg-panel);color:var(--text-secondary);border:1px solid var(--border-light);">⇄ Invert</button>
-          <button type="button" class="gtm-action" data-action="clear-mask" style="flex:1; min-height:32px; font-size:12px; background:var(--bg-panel);color:var(--text-secondary);border:1px solid var(--border-light);">Clear</button>
+          <button type="button" class="gtm-action" data-action="undo-mask" style="flex:1;">↶ Undo</button>
+          <button type="button" class="gtm-action" data-action="invert-mask" style="flex:1;">⇄ Invert</button>
+          <button type="button" class="gtm-action" data-action="clear-mask" style="flex:1;">Clear</button>
         </div>
         <div style="margin-top:8px; display:flex; gap:8px;">
           <button type="button" class="gtm-action thumbnail-prompt-btn" data-action="apply-inpaint" style="width:100%;">
@@ -677,7 +677,7 @@ export class TemplateThumbnailModal extends BaseModal {
         <button type="button" class="gtm-action copy-prompt-btn" data-action="save" style="width:100%;">
           💾 Save & Apply
         </button>
-        <button type="button" class="gtm-action" data-action="back" style="width:100%; background:var(--bg-panel);color:var(--text-secondary);border:1px solid var(--border-light);">
+        <button type="button" class="gtm-action" data-action="back" style="width:100%;">
           ← Back to Candidates
         </button>
       </div>
@@ -740,10 +740,10 @@ export class TemplateThumbnailModal extends BaseModal {
         <button type="button" class="gtm-action thumbnail-prompt-btn" data-action="apply-text-overlay" style="width:100%;">
           ✍️ Apply Text & Continue
         </button>
-        <button type="button" class="gtm-action" data-action="skip-text-overlay" style="width:100%; background:var(--bg-panel);color:var(--text-secondary);border:1px solid var(--border-light);">
+        <button type="button" class="gtm-action" data-action="skip-text-overlay" style="width:100%;">
           Skip Text Overlay →
         </button>
-        <button type="button" class="gtm-action" data-action="back" style="width:100%; background:var(--bg-panel);color:var(--text-secondary);border:1px solid var(--border-light);">
+        <button type="button" class="gtm-action" data-action="back" style="width:100%;">
           ← Back to Refine
         </button>
       </div>
@@ -774,7 +774,7 @@ export class TemplateThumbnailModal extends BaseModal {
             <div style="font-size:12px; opacity:0.8;">${message}</div>
           </div>
         </div>
-        <button type="button" class="gtm-action" data-action="dismiss-error" style="width:100%; background:var(--bg-panel);color:var(--text-secondary);border:1px solid var(--border-light);">
+        <button type="button" class="gtm-action" data-action="dismiss-error" style="width:100%;">
           Dismiss
         </button>
       </div>
@@ -2411,18 +2411,18 @@ export class TemplateThumbnailModal extends BaseModal {
         </div>
       </div>
       <div style="display:flex; gap:8px; margin:8px 0;">
-        <button type="button" class="thumb-action-btn thumb-action-primary" id="thumb-enhance-brief" style="flex:1; min-height:36px; font-size:13px;">
+        <button type="button" class="thumb-action-btn thumb-action-primary" id="thumb-enhance-brief" style="flex:1;">
           💡 Enhance Brief${this.tonality ? ` (${this.escapeHtml(getTonality(this.tonality)?.label || '')})` : ''}
         </button>
       </div>
-      <button type="button" class="thumb-action-btn thumb-action-secondary" id="thumb-panel-advanced-toggle" style="align-self:flex-start;padding:6px 12px;min-height:32px;font-size:12px;">
+      <button type="button" class="thumb-action-btn thumb-action-secondary" id="thumb-panel-advanced-toggle">
         ${this.showAdvanced ? '▾' : '▸'} Advanced (model, size, format, streaming…)
       </button>
       ${this.showAdvanced ? `
         <div class="form-grid">
           <div class="form-section">
             <label>Image Model</label>
-            <button type="button" id="thumb-model-btn" title="gpt-image-2 supports any resolution; 1.5/1/1-mini only support 1024x1024, 1536x1024, 1024x1536" style="width:100%;min-height:40px;padding:10px 12px;background:var(--bg-panel);border:1px solid var(--border-color);border-radius:var(--border-radius-md);color:var(--text-primary);font-size:14px;font-family:inherit;line-height:1.5;outline:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:space-between;gap:8px;transition:border-color var(--transition-fast),background var(--transition-fast),box-shadow var(--transition-fast);box-sizing:border-box;">
+            <button type="button" id="thumb-model-btn" class="btn-secondary-modern" title="gpt-image-2 supports any resolution; 1.5/1/1-mini only support 1024x1024, 1536x1024, 1024x1536" style="width:100%; justify-content:space-between;">
               <span>${this.model || 'gpt-image-2'}</span>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;"><polyline points="6 9 12 15 18 9" /></svg>
             </button>
@@ -2513,7 +2513,7 @@ export class TemplateThumbnailModal extends BaseModal {
               <label for="thumb-reference-url" style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-secondary);">Or paste URL</label>
               <input type="text" id="thumb-reference-url" placeholder="https://..." style="width:100%; min-height:36px; padding:8px 12px; background:var(--bg-panel); border:1px solid var(--border-color); border-radius:var(--border-radius-md); color:var(--text-primary); font-size:13px; font-family:inherit; outline:none; box-sizing:border-box;" />
             </div>
-            <button type="button" class="thumb-action-btn thumb-action-secondary" id="thumb-reference-url-add" style="min-height:36px; padding:8px 14px; font-size:12px; white-space:nowrap;">Add URL</button>
+            <button type="button" class="thumb-action-btn thumb-action-secondary" id="thumb-reference-url-add">Add URL</button>
           </div>
           ${this._renderReferenceImageList()}
         </div>
@@ -2953,7 +2953,7 @@ export class TemplateThumbnailModal extends BaseModal {
           <option value="style" ${purpose === 'style' ? 'selected' : ''}>Style</option>
           <option value="palette" ${purpose === 'palette' ? 'selected' : ''}>Palette</option>
         </select>
-        <button type="button" class="thumb-remove-ref" data-index="${i}" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:11px;">remove</button>
+        <button type="button" class="thumb-remove-ref" data-index="${i}">remove</button>
       </div>
     `;}).join('');
     return `<div style="margin-top:6px;display:flex;flex-direction:column;gap:2px;">${items}</div>`;
@@ -3173,7 +3173,7 @@ export class TemplateThumbnailModal extends BaseModal {
         <label>Quick Edits</label>
         <div class="thumb-quick-edits" style="display:flex; flex-wrap:wrap; gap:8px;">
           ${quickEdits.map((edit) => `
-            <button type="button" class="thumb-quick-edit-chip" data-quick-edit="${edit.key}" style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:var(--border-radius-full); border:1px solid var(--border-light); background:var(--bg-panel); color:var(--text-secondary); font-size:12px; font-weight:500; cursor:pointer; transition:all var(--transition-fast); font-family:inherit;">${edit.label}</button>
+            <button type="button" class="thumb-quick-edit-chip" data-quick-edit="${edit.key}">${edit.label}</button>
           `).join('')}
         </div>
       `;

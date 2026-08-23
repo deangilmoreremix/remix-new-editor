@@ -180,64 +180,83 @@ const BASE_MODAL_STYLES = `
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 10px 20px;
-    border-radius: ${DESIGN_SYSTEM.radii.sm};
-    font-family: ${DESIGN_SYSTEM.font};
-    font-size: 14px;
-    font-weight: 600;
+    padding: 7px 10px;
+    border-radius: 8px;
+    font-family: var(--font);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.2;
     cursor: pointer;
-    transition: all ${DESIGN_SYSTEM.durations.fast} ease;
-    border: 1px solid transparent;
+    transition: all 200ms ease;
+    border: none;
+    white-space: nowrap;
   }
-  
-  .modal-btn:focus {
+
+  .modal-btn:focus-visible {
     outline: none;
     box-shadow: 0 0 0 2px ${DESIGN_SYSTEM.colors.bg}, 0 0 0 4px ${DESIGN_SYSTEM.colors.primary};
   }
-  
+
   .modal-btn-primary {
-    background: ${DESIGN_SYSTEM.colors.primary};
-    color: ${DESIGN_SYSTEM.colors.onPrimary};
-    border-color: transparent;
+    background: transparent;
+    color: rgba(255,255,255,0.85);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-left: 2px solid ${DESIGN_SYSTEM.colors.primary};
   }
-  
+
   .modal-btn-primary:hover {
+    color: #ffffff;
+    border-color: rgba(217,255,0,0.50);
+    border-left: 2px solid ${DESIGN_SYSTEM.colors.primary};
+    box-shadow: 0 0 16px rgba(217,255,0,0.08);
     transform: translateY(-1px);
-    box-shadow: 0 8px 24px ${DESIGN_SYSTEM.colors.primaryGlow};
   }
-  
+
   .modal-btn-primary:active {
+    transform: translateY(0) scale(0.98);
+  }
+
+  .modal-btn-secondary {
+    background: transparent;
+    color: rgba(255,255,255,0.75);
+    border: 1px solid rgba(255,255,255,0.10);
+  }
+
+  .modal-btn-secondary:hover {
+    background: transparent;
+    color: #ffffff;
+    border-color: rgba(255,255,255,0.25);
+    box-shadow: 0 0 10px rgba(255,255,255,0.04);
+  }
+
+  .modal-btn-secondary:active {
     transform: translateY(0);
   }
-  
-  .modal-btn-secondary {
-    background: ${DESIGN_SYSTEM.colors.panel};
-    color: ${DESIGN_SYSTEM.colors.text};
-    border-color: ${DESIGN_SYSTEM.colors.border};
-  }
-  
-  .modal-btn-secondary:hover {
-    border-color: ${DESIGN_SYSTEM.colors.primary};
-    background: ${DESIGN_SYSTEM.colors.primarySoft};
-    color: ${DESIGN_SYSTEM.colors.primary};
-    transform: translateY(-1px);
-  }
-  
+
   .modal-btn-danger {
-    background: ${DESIGN_SYSTEM.colors.dangerSoft};
-    color: ${DESIGN_SYSTEM.colors.danger};
-    border-color: rgba(239,68,68,0.3);
+    background: transparent;
+    color: #ef4444;
+    border: 1px solid rgba(239,68,68,0.25);
+    border-left: 2px solid #ef4444;
   }
-  
+
   .modal-btn-danger:hover {
-    background: ${DESIGN_SYSTEM.colors.danger};
-    color: white;
+    background: rgba(239,68,68,0.15);
+    color: #ef4444;
+    border-color: rgba(239,68,68,0.5);
+    border-left: 2px solid #ef4444;
+    box-shadow: 0 0 12px rgba(239,68,68,0.10);
     transform: translateY(-1px);
   }
-  
+
+  .modal-btn-danger:active {
+    transform: translateY(0) scale(0.98);
+  }
+
   .modal-btn:disabled {
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: not-allowed;
+    pointer-events: none;
     transform: none !important;
   }
   

@@ -5,7 +5,8 @@ import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
-import { createMediaPreview, createFullscreenPreview } from './MediaPreview.js';
+import { createMediaPreview } from './MediaPreview.js';
+import { MediaDetailView } from './MediaDetailView.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { i2iModels, i2vModels } from '../lib/models.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
@@ -130,9 +131,6 @@ export async function EffectsStudio() {
       localStorage.setItem(ADVANCED_STORAGE_KEY, JSON.stringify(advancedSettings));
     } catch { /* ignore quota errors */ }
   }
-
-  const fullscreen = createFullscreenPreview();
-  container.appendChild(fullscreen.element);
 
   const topBar = document.createElement('div');
   topBar.className = 'px-4 md:px-8 pt-6 pb-4 shrink-0';
@@ -1535,7 +1533,15 @@ generateBtn.type = 'button';
   outputPreview.element.style.cursor = 'pointer';
   outputPreview.element.onclick = () => {
     const url = outputPreview.getUrl();
-    if (url) fullscreen.show(url, { type: outputPreview.getType(), model: activeTab.label });
+    if (!url) return;
+    const detailView = new MediaDetailView({
+      mediaUrl: url,
+      mediaType: outputPreview.getType() || 'image',
+      title: 'Effects Studio Output',
+      model: activeTab.label || '',
+      autoCollapsePrompt: true,
+    });
+    detailView.show();
   };
 
   switchTab(EFFECT_TABS[0]);

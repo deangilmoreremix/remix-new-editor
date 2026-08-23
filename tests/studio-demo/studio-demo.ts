@@ -42,7 +42,7 @@ export interface FeatureStep {
 }
 
 type FeatureAction =
-  | { type: 'click'; selector: string; options?: { force?: boolean; delay?: number } }
+  | { type: 'click'; selector: string; options?: { force?: boolean; delay?: number; timeout?: number } }
   | { type: 'fill'; selector: string; value: string }
   | { type: 'select'; selector: string; value: string }
   | { type: 'hover'; selector: string }
@@ -98,31 +98,794 @@ const STUDIO_ROUTES = [
 ];
 
 function buildStudioConfigs(baseUrl = 'http://localhost:3100'): StudioConfig[] {
+  const studioFeatures: Record<string, StudioConfig['features']> = {
+    image: [
+      {
+        name: 'Load Image Studio',
+        description: 'Navigate to image studio and verify prompt input is visible',
+        action: { type: 'waitForSelector', selector: '#i-prompt-textarea', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '#i-prompt-textarea', description: 'Prompt input is visible' }
+        ]
+      },
+      {
+        name: 'Enter Prompt',
+        description: 'Type a demo prompt into the image generator',
+        action: {
+          type: 'fill',
+          selector: '#i-prompt-textarea',
+          value: 'A beautiful sunset over the ocean'
+        },
+        validate: [
+          { type: 'visible', selector: '#i-prompt-textarea', description: 'Prompt input filled' }
+        ]
+      },
+      {
+        name: 'Generate Image',
+        description: 'Click generate and wait for result area',
+        action: {
+          type: 'click',
+          selector: 'button[aria-label="Generate image"]',
+          options: { timeout: 30000 }
+        },
+        validate: [
+          { type: 'visible', selector: 'body', description: 'Page still responsive after generate' }
+        ]
+      }
+    ],
+    video: [
+      {
+        name: 'Load Video Studio',
+        description: 'Navigate to video studio and verify prompt input is visible',
+        action: { type: 'waitForSelector', selector: '#v-v-prompt-textarea', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '#v-v-prompt-textarea', description: 'Video prompt input is visible' }
+        ]
+      },
+      {
+        name: 'Enter Prompt',
+        description: 'Type a demo prompt into the video generator',
+        action: {
+          type: 'fill',
+          selector: '#v-v-prompt-textarea',
+          value: 'A cinematic drone shot over mountains'
+        },
+        validate: [
+          { type: 'visible', selector: '#v-v-prompt-textarea', description: 'Video prompt input filled' }
+        ]
+      },
+      {
+        name: 'Generate Video',
+        description: 'Click generate and wait for result area',
+        action: {
+          type: 'click',
+          selector: 'button[aria-label="Generate video"]',
+          options: { timeout: 30000 }
+        },
+        validate: [
+          { type: 'visible', selector: 'body', description: 'Page still responsive after generate' }
+        ]
+      }
+    ],
+    cinema: [
+      {
+        name: 'Load Cinema Studio',
+        description: 'Navigate to cinema studio and verify prompt input is visible',
+        action: { type: 'waitForSelector', selector: 'textarea[aria-label="Cinema prompt"]', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: 'textarea[aria-label="Cinema prompt"]', description: 'Cinema prompt input is visible' }
+        ]
+      },
+      {
+        name: 'Enter Prompt',
+        description: 'Type a demo prompt into the cinema generator',
+        action: {
+          type: 'fill',
+          selector: 'textarea[aria-label="Cinema prompt"]',
+          value: 'A cyberpunk cityscape at night with neon lights'
+        },
+        validate: [
+          { type: 'visible', selector: 'textarea[aria-label="Cinema prompt"]', description: 'Cinema prompt input filled' }
+        ]
+      },
+      {
+        name: 'Generate Cinema',
+        description: 'Click generate and wait for result area',
+        action: {
+          type: 'click',
+          selector: 'button[aria-label="Generate cinema shot"]',
+          options: { timeout: 30000 }
+        },
+        validate: [
+          { type: 'visible', selector: 'body', description: 'Page still responsive after generate' }
+        ]
+      }
+    ],
+    'cinema-template': [
+      {
+        name: 'Load Cinema Template Studio',
+        description: 'Navigate to cinema template studio and verify UI loads',
+        action: { type: 'waitForSelector', selector: '#previewArea, textarea', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '#previewArea, textarea', description: 'Cinema template UI loaded' }
+        ]
+      }
+    ],
+    storyboard: [
+      {
+        name: 'Load Storyboard Studio',
+        description: 'Navigate to storyboard studio and verify prompt input is visible',
+        action: { type: 'waitForSelector', selector: 'textarea[aria-label="Frame description"]', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: 'textarea[aria-label="Frame description"]', description: 'Frame description input is visible' }
+        ]
+      },
+      {
+        name: 'Enter Frame Description',
+        description: 'Type a demo frame description',
+        action: {
+          type: 'fill',
+          selector: 'textarea[aria-label="Frame description"]',
+          value: 'A hero stands on a cliff overlooking a stormy sea'
+        },
+        validate: [
+          { type: 'visible', selector: 'textarea[aria-label="Frame description"]', description: 'Frame description filled' }
+        ]
+      },
+      {
+        name: 'Generate Frame',
+        description: 'Click generate frame and wait for result',
+        action: {
+          type: 'click',
+          selector: 'button[aria-label="Generate frame"]',
+          options: { timeout: 30000 }
+        },
+        validate: [
+          { type: 'visible', selector: 'body', description: 'Page still responsive after generate' }
+        ]
+      }
+    ],
+    effects: [
+      {
+        name: 'Load Effects Studio',
+        description: 'Navigate to effects studio and verify prompt input is visible',
+        action: { type: 'waitForSelector', selector: '#fx-prompt-input', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '#fx-prompt-input', description: 'Effect prompt input is visible' }
+        ]
+      },
+      {
+        name: 'Enter Effect Prompt',
+        description: 'Type a demo effect prompt',
+        action: {
+          type: 'fill',
+          selector: '#fx-prompt-input',
+          value: 'Glitch effect with neon color shift'
+        },
+        validate: [
+          { type: 'visible', selector: '#fx-prompt-input', description: 'Effect prompt filled' }
+        ]
+      },
+      {
+        name: 'Apply Effect',
+        description: 'Click apply effect and wait for preview',
+        action: {
+          type: 'click',
+          selector: 'button[aria-label="Apply effect"]',
+          options: { timeout: 30000 }
+        },
+        validate: [
+          { type: 'visible', selector: 'body', description: 'Page still responsive after apply' }
+        ]
+      }
+    ],
+    edit: [
+      {
+        name: 'Load Edit Studio',
+        description: 'Navigate to edit studio and verify prompt input is visible',
+        action: { type: 'waitForSelector', selector: 'textarea[aria-label="Edit prompt"]', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: 'textarea[aria-label="Edit prompt"]', description: 'Edit prompt input is visible' }
+        ]
+      },
+      {
+        name: 'Enter Edit Prompt',
+        description: 'Type a demo edit prompt',
+        action: {
+          type: 'fill',
+          selector: 'textarea[aria-label="Edit prompt"]',
+          value: 'Remove background and add a gradient'
+        },
+        validate: [
+          { type: 'visible', selector: 'textarea[aria-label="Edit prompt"]', description: 'Edit prompt filled' }
+        ]
+      },
+      {
+        name: 'Generate Edit',
+        description: 'Click generate and wait for result',
+        action: {
+          type: 'click',
+          selector: 'button.btn-primary-modern',
+          options: { timeout: 30000 }
+        },
+        validate: [
+          { type: 'visible', selector: 'body', description: 'Page still responsive after generate' }
+        ]
+      }
+    ],
+    upscale: [
+      {
+        name: 'Load Upscale Studio',
+        description: 'Navigate to upscale studio and verify upload button is visible',
+        action: { type: 'waitForSelector', selector: 'button.btn-primary-modern, input[type="file"]', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: 'button.btn-primary-modern, input[type="file"]', description: 'Upscale controls visible' }
+        ]
+      }
+    ],
+    character: [
+      {
+        name: 'Load Character Studio',
+        description: 'Navigate to character studio and verify prompt input is visible',
+        action: { type: 'waitForSelector', selector: '#character-prompt-input', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '#character-prompt-input', description: 'Character prompt input is visible' }
+        ]
+      },
+      {
+        name: 'Enter Character Prompt',
+        description: 'Type a demo character prompt',
+        action: {
+          type: 'fill',
+          selector: '#character-prompt-input',
+          value: 'A wise old wizard with a long white beard'
+        },
+        validate: [
+          { type: 'visible', selector: '#character-prompt-input', description: 'Character prompt filled' }
+        ]
+      },
+      {
+        name: 'Generate Character',
+        description: 'Click generate and wait for result',
+        action: {
+          type: 'click',
+          selector: 'button.btn-primary-modern',
+          options: { timeout: 30000 }
+        },
+        validate: [
+          { type: 'visible', selector: 'body', description: 'Page still responsive after generate' }
+        ]
+      }
+    ],
+    commercial: [
+      {
+        name: 'Load Commercial Studio',
+        description: 'Navigate to commercial studio and verify prompt input is visible',
+        action: { type: 'waitForSelector', selector: 'textarea', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: 'textarea', description: 'Commercial prompt input is visible' }
+        ]
+      },
+      {
+        name: 'Enter Product Prompt',
+        description: 'Type a demo commercial prompt',
+        action: {
+          type: 'fill',
+          selector: 'textarea',
+          value: 'A refreshing soda commercial set on a tropical beach'
+        },
+        validate: [
+          { type: 'visible', selector: 'textarea', description: 'Commercial prompt filled' }
+        ]
+      },
+      {
+        name: 'Generate Commercial',
+        description: 'Click generate and wait for result',
+        action: {
+          type: 'click',
+          selector: 'button.btn-primary-modern',
+          options: { timeout: 30000 }
+        },
+        validate: [
+          { type: 'visible', selector: 'body', description: 'Page still responsive after generate' }
+        ]
+      }
+    ],
+    audio: [
+      {
+        name: 'Load Audio Studio',
+        description: 'Navigate to audio studio and verify controls are visible',
+        action: { type: 'waitForSelector', selector: 'textarea, button.btn-primary-modern', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: 'textarea, button.btn-primary-modern', description: 'Audio studio controls visible' }
+        ]
+      }
+    ],
+    avatar: [
+      {
+        name: 'Load Avatar Studio',
+        description: 'Navigate to avatar studio and verify controls are visible',
+        action: { type: 'waitForSelector', selector: 'button.btn-primary-modern, input[type="file"]', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: 'button.btn-primary-modern, input[type="file"]', description: 'Avatar studio controls visible' }
+        ]
+      }
+    ],
+    training: [
+      {
+        name: 'Load Training Studio',
+        description: 'Navigate to training studio and verify form controls are visible',
+        action: { type: 'waitForSelector', selector: 'input, button[aria-label="Train LoRA"]', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: 'input, button[aria-label="Train LoRA"]', description: 'Training form controls visible' }
+        ]
+      }
+    ],
+    videotools: [
+      {
+        name: 'Load Video Tools Studio',
+        description: 'Navigate to video tools studio and verify controls are visible',
+        action: { type: 'waitForSelector', selector: 'button.btn-primary-modern, input[type="file"]', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: 'button.btn-primary-modern, input[type="file"]', description: 'Video tools controls visible' }
+        ]
+      }
+    ],
+    chat: [
+      {
+        name: 'Load Chat Studio',
+        description: 'Navigate to chat studio and verify empty state is visible',
+        action: { type: 'waitForSelector', selector: '.chat-empty-state, .chat-studio', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '.chat-empty-state, .chat-studio', description: 'Chat studio loaded' }
+        ]
+      },
+      {
+        name: 'Open New Conversation',
+        description: 'Click new chat button',
+        action: {
+          type: 'click',
+          selector: '.chat-new-chat-btn',
+          options: { timeout: 10000 }
+        },
+        validate: [
+          { type: 'visible', selector: '.chat-main, .chat-studio', description: 'Chat interface visible' }
+        ]
+      }
+    ],
+    lipsync: [
+      {
+        name: 'Load Lip Sync Studio',
+        description: 'Navigate to lip sync studio and verify mode toggles are visible',
+        action: { type: 'waitForSelector', selector: '#imageModeBtn, #videoModeBtn', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '#imageModeBtn, #videoModeBtn', description: 'Lip sync mode toggles visible' }
+        ]
+      }
+    ],
+    influencer: [
+      {
+        name: 'Load Influencer Studio',
+        description: 'Navigate to influencer studio and verify prompt input is visible',
+        action: { type: 'waitForSelector', selector: 'textarea[aria-label="Influencer prompt"]', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: 'textarea[aria-label="Influencer prompt"]', description: 'Influencer prompt input is visible' }
+        ]
+      },
+      {
+        name: 'Enter Influencer Prompt',
+        description: 'Type a demo influencer prompt',
+        action: {
+          type: 'fill',
+          selector: 'textarea[aria-label="Influencer prompt"]',
+          value: 'A fitness influencer promoting a new protein shake'
+        },
+        validate: [
+          { type: 'visible', selector: 'textarea[aria-label="Influencer prompt"]', description: 'Influencer prompt filled' }
+        ]
+      },
+      {
+        name: 'Generate Influencer Content',
+        description: 'Click generate and wait for result',
+        action: {
+          type: 'click',
+          selector: 'button[aria-label="Generate content"]',
+          options: { timeout: 30000 }
+        },
+        validate: [
+          { type: 'visible', selector: 'body', description: 'Page still responsive after generate' }
+        ]
+      }
+    ],
+    viral: [
+      {
+        name: 'Load Smart Video Viral',
+        description: 'Navigate to viral studio and verify prompt cards are visible',
+        action: { type: 'waitForSelector', selector: '.smart-card, .viral-rail-item', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '.smart-card, .viral-rail-item', description: 'Viral prompt cards visible' }
+        ]
+      }
+    ],
+    'video-agent': [
+      {
+        name: 'Load Video Agent',
+        description: 'Navigate to video agent and verify agent cards are visible',
+        action: { type: 'waitForSelector', selector: '.agent-btn[data-agent]', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '.agent-btn[data-agent]', description: 'Agent cards visible' }
+        ]
+      }
+    ],
+    director: [
+      {
+        name: 'Load Director',
+        description: 'Navigate to director and verify command input is visible',
+        action: { type: 'waitForSelector', selector: '#command-input', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '#command-input', description: 'Director command input is visible' }
+        ]
+      },
+      {
+        name: 'Enter Director Command',
+        description: 'Type a demo director command',
+        action: {
+          type: 'fill',
+          selector: '#command-input',
+          value: 'Create a 30-second product showcase video'
+        },
+        validate: [
+          { type: 'visible', selector: '#command-input', description: 'Director command filled' }
+        ]
+      },
+      {
+        name: 'Send Command',
+        description: 'Click send and wait for processing status',
+        action: {
+          type: 'click',
+          selector: '#send-command-btn',
+          options: { timeout: 30000 }
+        },
+        validate: [
+          { type: 'visible', selector: '#chat-messages, #processing-status', description: 'Director response area visible' }
+        ]
+      }
+    ],
+    'ai-vfx': [
+      {
+        name: 'Load AI VFX',
+        description: 'Navigate to AI VFX and verify iframe is visible',
+        action: { type: 'waitForSelector', selector: 'iframe[src*="/ai-vfx/"]', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: 'iframe[src*="/ai-vfx/"]', description: 'AI VFX iframe visible' }
+        ]
+      }
+    ],
+    render: [
+      {
+        name: 'Load Render',
+        description: 'Navigate to render page and verify action tiles are visible',
+        action: { type: 'waitForSelector', selector: '.action-btn, button.w-full.p-3', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '.action-btn, button.w-full.p-3', description: 'Render action tiles visible' }
+        ]
+      }
+    ],
+    timeline: [
+      {
+        name: 'Load Timeline Editor',
+        description: 'Navigate to timeline editor and verify timeline loads',
+        action: { type: 'waitForSelector', selector: '#timeline-container, [data-testid="timeline-container"]', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '#timeline-container, [data-testid="timeline-container"]', description: 'Timeline container visible' }
+        ]
+      },
+      {
+        name: 'Verify Timeline Controls',
+        description: 'Verify timeline playback controls are present',
+        action: { type: 'waitForSelector', selector: '#tbPlay', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '#tbPlay', description: 'Timeline controls visible' }
+        ]
+      }
+    ],
+    apps: [
+      {
+        name: 'Load Apps Hub',
+        description: 'Navigate to apps hub and verify studio cards are visible',
+        action: { type: 'waitForSelector', selector: '.bg-\\[\\#111\\]\\/90.backdrop-blur-xl', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '.bg-\\[\\#111\\]\\/90.backdrop-blur-xl', description: 'Studio cards visible' }
+        ]
+      }
+    ],
+    explore: [
+      {
+        name: 'Load Explore',
+        description: 'Navigate to explore page and verify content cards are visible',
+        action: { type: 'waitForSelector', selector: '.bg-\\[\\#111\\]\\/90.backdrop-blur-xl', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '.bg-\\[\\#111\\]\\/90.backdrop-blur-xl', description: 'Explore content visible' }
+        ]
+      }
+    ],
+    templates: [
+      {
+        name: 'Load Templates',
+        description: 'Navigate to templates page and verify template cards are visible',
+        action: { type: 'waitForSelector', selector: '.bg-\\[\\#111\\]\\/90.backdrop-blur-xl', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '.bg-\\[\\#111\\]\\/90.backdrop-blur-xl', description: 'Template cards visible' }
+        ]
+      }
+    ],
+    library: [
+      {
+        name: 'Load Library',
+        description: 'Navigate to library page and verify media items are visible',
+        action: { type: 'waitForSelector', selector: '.bg-\\[\\#111\\]\\/90.backdrop-blur-xl', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '.bg-\\[\\#111\\]\\/90.backdrop-blur-xl', description: 'Library items visible' }
+        ]
+      }
+    ],
+    'content-library': [
+      {
+        name: 'Load Content Library',
+        description: 'Navigate to content library and verify assets are visible',
+        action: { type: 'waitForSelector', selector: '.bg-\\[\\#111\\]\\/90.backdrop-blur-xl', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '.bg-\\[\\#111\\]\\/90.backdrop-blur-xl', description: 'Content library assets visible' }
+        ]
+      }
+    ],
+    community: [
+      {
+        name: 'Load Community',
+        description: 'Navigate to community page and verify posts are visible',
+        action: { type: 'waitForSelector', selector: '.bg-\\[\\#111\\]\\/90.backdrop-blur-xl', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '.bg-\\[\\#111\\]\\/90.backdrop-blur-xl', description: 'Community posts visible' }
+        ]
+      }
+    ],
+    assist: [
+      {
+        name: 'Load Assist',
+        description: 'Navigate to assist page and verify prompt input is visible',
+        action: { type: 'waitForSelector', selector: 'textarea.w-full.bg-white\\/5', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: 'textarea.w-full.bg-white\\/5', description: 'Assist prompt input visible' }
+        ]
+      }
+    ],
+    academy: [
+      {
+        name: 'Load Academy',
+        description: 'Navigate to academy and verify track cards are visible',
+        action: { type: 'waitForSelector', selector: '.rounded-2xl.border', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '.rounded-2xl.border', description: 'Academy track cards visible' }
+        ]
+      }
+    ],
+    'text-to-image': [
+      {
+        name: 'Load Text to Image',
+        description: 'Navigate to text-to-image landing and verify model cards are visible',
+        action: { type: 'waitForSelector', selector: '.model-card', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '.model-card', description: 'Model cards visible' }
+        ]
+      },
+      {
+        name: 'Navigate to Image Studio',
+        description: 'Click Start to navigate to image studio',
+        action: {
+          type: 'click',
+          selector: '.start-btn, .cta-btn',
+          options: { timeout: 10000 }
+        },
+        validate: [
+          { type: 'visible', selector: '#prompt-textarea', description: 'Navigated to Image Studio' }
+        ]
+      }
+    ],
+    'image-to-image': [
+      {
+        name: 'Load Image to Image',
+        description: 'Navigate to image-to-image landing and verify model cards are visible',
+        action: { type: 'waitForSelector', selector: '.model-card', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '.model-card', description: 'Model cards visible' }
+        ]
+      },
+      {
+        name: 'Navigate to Edit Studio',
+        description: 'Click Start to navigate to edit studio',
+        action: {
+          type: 'click',
+          selector: '.start-btn, .cta-btn',
+          options: { timeout: 10000 }
+        },
+        validate: [
+          { type: 'visible', selector: 'textarea[aria-label="Edit prompt"], #prompt-textarea', description: 'Navigated to Edit/Image Studio' }
+        ]
+      }
+    ],
+    'text-to-video': [
+      {
+        name: 'Load Text to Video',
+        description: 'Navigate to text-to-video landing and verify model cards are visible',
+        action: { type: 'waitForSelector', selector: '.model-card', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '.model-card', description: 'Model cards visible' }
+        ]
+      },
+      {
+        name: 'Navigate to Video Studio',
+        description: 'Click Start to navigate to video studio',
+        action: {
+          type: 'click',
+          selector: '.start-btn, .cta-btn',
+          options: { timeout: 10000 }
+        },
+        validate: [
+          { type: 'visible', selector: '#v-prompt-textarea, textarea', description: 'Navigated to Video Studio' }
+        ]
+      }
+    ],
+    'image-to-video': [
+      {
+        name: 'Load Image to Video',
+        description: 'Navigate to image-to-video landing and verify model cards are visible',
+        action: { type: 'waitForSelector', selector: '.model-card', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '.model-card', description: 'Model cards visible' }
+        ]
+      },
+      {
+        name: 'Navigate to Video Studio',
+        description: 'Click Start to navigate to video studio',
+        action: {
+          type: 'click',
+          selector: '.start-btn, .cta-btn',
+          options: { timeout: 10000 }
+        },
+        validate: [
+          { type: 'visible', selector: '#v-prompt-textarea, textarea', description: 'Navigated to Video Studio' }
+        ]
+      }
+    ],
+    'video-to-video': [
+      {
+        name: 'Load Video to Video',
+        description: 'Navigate to video-to-video landing and verify model cards are visible',
+        action: { type: 'waitForSelector', selector: '.model-card', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '.model-card', description: 'Model cards visible' }
+        ]
+      }
+    ],
+    'video-watermark': [
+      {
+        name: 'Load Video Watermark',
+        description: 'Navigate to video watermark landing and verify tool cards are visible',
+        action: { type: 'waitForSelector', selector: '.model-card', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '.model-card', description: 'Tool cards visible' }
+        ]
+      }
+    ],
+    'character-page': [
+      {
+        name: 'Load Character Page',
+        description: 'Navigate to character page and verify model cards are visible',
+        action: { type: 'waitForSelector', selector: '.model-card', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '.model-card', description: 'Model cards visible' }
+        ]
+      }
+    ],
+    'effects-page': [
+      {
+        name: 'Load Effects Page',
+        description: 'Navigate to effects page and verify effect cards are visible',
+        action: { type: 'waitForSelector', selector: '.effect-card', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '.effect-card', description: 'Effect cards visible' }
+        ]
+      }
+    ],
+    'storyboard-page': [
+      {
+        name: 'Load Storyboard Page',
+        description: 'Navigate to storyboard page and verify prompt cards are visible',
+        action: { type: 'waitForSelector', selector: '.prompt-card', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '.prompt-card', description: 'Prompt cards visible' }
+        ]
+      }
+    ],
+    'influencer-page': [
+      {
+        name: 'Load Influencer Page',
+        description: 'Navigate to influencer page and verify format cards are visible',
+        action: { type: 'waitForSelector', selector: '.format-card', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '.format-card', description: 'Format cards visible' }
+        ]
+      }
+    ],
+    'commercial-page': [
+      {
+        name: 'Load Commercial Page',
+        description: 'Navigate to commercial page and verify format cards are visible',
+        action: { type: 'waitForSelector', selector: '.format-card', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '.format-card', description: 'Format cards visible' }
+        ]
+      }
+    ],
+    'upscale-page': [
+      {
+        name: 'Load Upscale Page',
+        description: 'Navigate to upscale page and verify method cards are visible',
+        action: { type: 'waitForSelector', selector: '.method-card', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '.method-card', description: 'Method cards visible' }
+        ]
+      }
+    ],
+    'studios/product-photo-studio': [
+      {
+        name: 'Load Product Photo Studio',
+        description: 'Navigate to product photo studio and verify placeholder is visible',
+        action: { type: 'waitForSelector', selector: '.rounded-2xl.border.border-white\\/10.bg-white\\/\\[0\\.03\\]', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '.rounded-2xl.border.border-white\\/10.bg-white\\/\\[0\\.03\\]', description: 'Placeholder card visible' }
+        ]
+      }
+    ],
+    'studios/fashion-studio': [
+      {
+        name: 'Load Fashion Studio',
+        description: 'Navigate to fashion studio and verify placeholder is visible',
+        action: { type: 'waitForSelector', selector: '.rounded-2xl.border.border-white\\/10.bg-white\\/\\[0\\.03\\]', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: '.rounded-2xl.border.border-white\\/10.bg-white\\/\\[0\\.03\\]', description: 'Placeholder card visible' }
+        ]
+      }
+    ]
+  };
+
   return STUDIO_ROUTES.map((route) => {
     const slug = route.replace(/[^a-z0-9-]/gi, '-').replace(/-+/g, '-').toLowerCase();
+    const features = studioFeatures[route] || [
+      {
+        name: 'Load Studio',
+        description: `Navigate to ${route} studio and verify it loads`,
+        action: { type: 'waitForSelector', selector: 'body', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: 'body', description: 'Page body is visible' }
+        ]
+      },
+      {
+        name: 'Wait for Main Content',
+        description: 'Verify main content area is present',
+        action: { type: 'waitForSelector', selector: 'main, [role="main"], #app, .studio-container', state: 'visible' },
+        validate: [
+          { type: 'visible', selector: 'main, [role="main"], #app, .studio-container', description: 'Main content loaded' }
+        ]
+      }
+    ];
+
     return {
       id: `studio-${slug}`,
       name: `Studio - ${route}`,
       url: `${baseUrl}/?dev#/${route}`,
       expectedTitle: 'SmartVid',
-      features: [
-        {
-          name: 'Load Studio',
-          description: `Navigate to ${route} studio and verify it loads`,
-          action: { type: 'waitForSelector', selector: 'body', state: 'visible' },
-          validate: [
-            { type: 'visible', selector: 'body', description: 'Page body is visible' }
-          ]
-        },
-        {
-          name: 'Wait for Main Content',
-          description: 'Verify main content area is present',
-          action: { type: 'waitForSelector', selector: 'main, [role="main"], #app, .studio-container', state: 'visible' },
-          validate: [
-            { type: 'visible', selector: 'main, [role="main"], #app, .studio-container', description: 'Main content loaded' }
-          ]
-        }
-      ]
+      features
     };
   });
 }
@@ -152,6 +915,12 @@ export class ElementInteractionEngine {
    */
   generateSelectors(elementName: string, strategies: string[] = []): string[] {
     const baseSelectors: string[] = [];
+
+    // If it already looks like a CSS selector, use it directly
+    if (/^[#.:>+~@]/.test(elementName) || /[\[\]()=]/.test(elementName)) {
+      baseSelectors.push(elementName);
+      return baseSelectors;
+    }
 
     // Strategy 1: data-testid (most reliable)
     baseSelectors.push(`[data-testid="${this.toKebabCase(elementName)}"]`);
@@ -184,16 +953,17 @@ export class ElementInteractionEngine {
    */
   async clickWithFallback(
     elementName: string,
-    options?: { force?: boolean; delay?: number; customSelectors?: string[] }
+    options?: { force?: boolean; delay?: number; timeout?: number; customSelectors?: string[] }
   ): Promise<void> {
     const selectors = this.generateSelectors(elementName, options?.customSelectors);
+    const timeout = options?.timeout ?? this.defaultTimeout;
     let lastError: Error | null = null;
 
     for (const selector of selectors) {
       try {
         await this.page.waitForSelector(selector, {
           state: 'visible',
-          timeout: this.defaultTimeout
+          timeout
         });
         await this.page.click(selector, {
           force: options?.force,
@@ -405,20 +1175,110 @@ export class VideoRecorder {
     }
   }
 
-  /**
-   * Generates a unique video path for a studio recording.
-   */
   getVideoPath(studioId: string, timestamp = Date.now()): string {
     const sanitizedId = studioId.replace(/[^a-z0-9-_]/gi, '-').toLowerCase();
-    const filename = `studio-demo-${sanitizedId}-${timestamp}.webm`;
+    const filename = `studio-demo-${sanitizedId}-${timestamp}.mp4`;
     const fullPath = path.join(this.videoDir, filename);
     this.recordings.set(studioId, fullPath);
     return fullPath;
   }
 
-  /**
-   * Configures Playwright context for video recording.
-   */
+  createSession(studioId: string, page: Page): { videoPath: string; addFrame: () => Promise<void>; startSteadyCapture: (intervalMs?: number) => void; stop: () => Promise<void>; finish: () => Promise<string> } {
+    const videoPath = this.getVideoPath(studioId);
+    const framesDir = path.join(this.videoDir, `frames-${Date.now()}`);
+    if (!fs.existsSync(framesDir)) {
+      fs.mkdirSync(framesDir, { recursive: true });
+    }
+
+    const frames: string[] = [];
+    let index = 0;
+    const maxFrames = 120;
+    let stopped = false;
+    let capturePromise: Promise<void> | null = null;
+    let capturing = false;
+
+    const addFrame = async () => {
+      if (stopped || index >= maxFrames) return;
+      while (capturing) {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      }
+      capturing = true;
+      try {
+        const framePath = path.join(framesDir, `frame-${String(index).padStart(5, '0')}.png`);
+        const screenshot = await page.screenshot({ fullPage: false });
+        fs.writeFileSync(framePath, screenshot);
+        frames.push(framePath);
+        index++;
+      } catch (err) {
+        console.warn(`[Video] Failed to capture frame ${index}: ${(err as Error).message}`);
+      } finally {
+        capturing = false;
+      }
+    };
+
+    const startSteadyCapture = (intervalMs = 500) => {
+      capturePromise = (async () => {
+        while (!stopped && index < maxFrames) {
+          await addFrame();
+          if (!stopped && index < maxFrames) {
+            await new Promise(resolve => setTimeout(resolve, intervalMs));
+          }
+        }
+      })();
+    };
+
+    const stop = async () => {
+      stopped = true;
+      if (capturePromise) {
+        await capturePromise;
+      }
+    };
+
+    const finish = async (): Promise<string> => {
+      await stop();
+      console.log(`[Video] Finishing: ${frames.length} frames captured`);
+      if (frames.length === 0) {
+        this.cleanupFrames(framesDir);
+        return videoPath;
+      }
+
+      const fps = 5;
+      await this.combineFramesToVideo(framesDir, videoPath, fps);
+      this.cleanupFrames(framesDir);
+      console.log(`[Video] Saved: ${videoPath}`);
+      return videoPath;
+    };
+
+    return { videoPath, addFrame, startSteadyCapture, stop, finish };
+  }
+
+  private async combineFramesToVideo(framesDir: string, outputPath: string, fps: number): Promise<void> {
+    const { exec } = require('child_process');
+    const { promisify } = require('util');
+    const execAsync = promisify(exec);
+    const ffmpegPath = require('ffmpeg-static');
+
+    const pattern = path.join(framesDir, 'frame-%05d.png');
+    const safeOutput = outputPath.replace(/\.webm$/, '.mp4');
+
+    const command = `"${ffmpegPath}" -y -framerate ${fps} -i "${pattern}" -c:v libx264 -preset fast -crf 23 -pix_fmt yuv420p -movflags +faststart "${safeOutput}"`;
+
+    try {
+      await execAsync(command, { maxBuffer: 50 * 1024 * 1024 });
+      console.log(`[Video] Combined frames into ${safeOutput}`);
+    } catch (err) {
+      console.warn(`[Video] FFmpeg combine failed: ${(err as Error).message}`);
+    }
+  }
+
+  private cleanupFrames(framesDir: string): void {
+    try {
+      fs.rmSync(framesDir, { recursive: true, force: true });
+    } catch {
+      // ignore cleanup errors
+    }
+  }
+
   getContextOptions(videoPath: string) {
     return {
       recordVideo: {
@@ -428,9 +1288,6 @@ export class VideoRecorder {
     };
   }
 
-  /**
-   * Returns metadata about all recordings.
-   */
   getRecordings(): { studioId: string; videoPath: string }[] {
     return Array.from(this.recordings.entries()).map(([studioId, videoPath]) => ({
       studioId,
@@ -438,24 +1295,23 @@ export class VideoRecorder {
     }));
   }
 
-  /**
-   * Post-processes videos: converts to MP4, compresses, etc.
-   * Requires ffmpeg to be installed.
-   */
   async postProcessVideos(): Promise<void> {
     const { exec } = require('child_process');
     const { promisify } = require('util');
     const execAsync = promisify(exec);
+    const ffmpegPath = require('ffmpeg-static');
 
     for (const [studioId, videoPath] of this.recordings.entries()) {
       const mp4Path = videoPath.replace('.webm', '.mp4');
-      try {
-        await execAsync(
-          `ffmpeg -i "${videoPath}" -c:v libx264 -preset fast -crf 23 -y "${mp4Path}"`
-        );
-        console.log(`[Video] Converted ${studioId} to MP4: ${mp4Path}`);
-      } catch (err) {
-        console.warn(`[Video] FFmpeg conversion failed for ${studioId}: ${(err as Error).message}`);
+      if (fs.existsSync(videoPath)) {
+        try {
+          await execAsync(
+            `"${ffmpegPath}" -i "${videoPath}" -c:v libx264 -preset fast -crf 23 -y "${mp4Path}"`
+          );
+          console.log(`[Video] Converted ${studioId} to MP4: ${mp4Path}`);
+        } catch (err) {
+          console.warn(`[Video] FFmpeg conversion failed for ${studioId}: ${(err as Error).message}`);
+        }
       }
     }
   }
@@ -495,10 +1351,6 @@ export class StudioDemoOrchestrator {
     console.log(`[StudioDemo] Video: ${videoPath}`);
     console.log(`${'='.repeat(60)}`);
 
-    // Create context with video recording
-    const context = await this.page.context();
-    const videoOptions = this.videoRecorder.getContextOptions(videoPath);
-
     // Navigate to studio
     try {
       await this.page.goto(studio.url, {
@@ -531,24 +1383,27 @@ export class StudioDemoOrchestrator {
       }
     }
 
+    // Start manual video recording after page is loaded
+    const recorder = this.videoRecorder.createSession(studio.id, this.page);
+    recorder.startSteadyCapture(500);
+
     // Execute feature workflow
     for (const feature of studio.features) {
       console.log(`\n[StudioDemo] Feature: ${feature.name} - ${feature.description}`);
       const featureStart = Date.now();
 
       try {
-        // Wait for pre-condition if specified
         if (feature.waitForSelector) {
           await this.interactionEngine.waitForStableElement(feature.waitForSelector);
         }
 
-        // Execute action
+        await recorder.addFrame();
         await this.executeAction(feature.action);
+        await recorder.addFrame();
 
-        // Short pause to let UI settle (for video clarity)
         await this.page.waitForTimeout(800);
+        await recorder.addFrame();
 
-        // Run validations
         if (feature.validate && feature.validate.length > 0) {
           const validationResult = await this.validationEngine.runChecks(feature.validate);
           featureResults.push({
@@ -564,7 +1419,6 @@ export class StudioDemoOrchestrator {
           featureResults.push({ name: feature.name, passed: true });
         }
 
-        // Optional screenshot for this feature
         if (feature.screenshot !== false) {
           const screenshot = await this.captureScreenshot(
             `${studio.id}-${feature.name.toLowerCase().replace(/\s+/g, '-')}`
@@ -590,12 +1444,18 @@ export class StudioDemoOrchestrator {
     console.log(`\n[StudioDemo] ${passed ? 'PASSED' : 'FAILED'} in ${duration}ms`);
     console.log(`[StudioDemo] Errors: ${errors.length}, Screenshots: ${screenshots.length}`);
 
+    recorder.stop();
+    const recordedVideoPath = await recorder.finish();
+    if (recordedVideoPath) {
+      console.log(`[StudioDemo] Video saved: ${recordedVideoPath}`);
+    }
+
     const result: DemoResult = {
       studioId: studio.id,
       studioName: studio.name,
       url: studio.url,
       passed,
-      videoPath: videoPath,
+      videoPath: recordedVideoPath || videoPath,
       screenshots,
       errors,
       duration,

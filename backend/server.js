@@ -18,6 +18,7 @@ import gtmBoostService from './services/gtmBoostService.js';
 import storyboardService from './services/storyboardService.js';
 import pexelsProxyService from './services/pexelsProxyService.js';
 import templateService from './services/templateService.js';
+import openmontageProxy from './services/openmontageProxy.js';
 import { auth, optionalAuth } from './middleware/auth.js';
 import chatRouter from './routes/chat.js';
 import setupChatWebSocket from './websocket/chat.js';
@@ -63,6 +64,7 @@ app.use('/api/templates', optionalAuth, templateService);
 app.use('/api/gtm-boost', optionalAuth, gtmBoostService);
 app.use('/api/storyboard', storyboardService);
 app.use('/videoagent', videoAgentLimiter, optionalAuth, videoAgentService);
+app.use('/openmontage', optionalAuth, openmontageProxy);
 
 // Health check
 app.get('/health', (req, res) => {

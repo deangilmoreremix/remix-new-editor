@@ -1,8 +1,46 @@
 import { getCreateTarget, minimaxH3Demos } from '../data/minimaxH3Demos.js';
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 import { navigate } from './router.js';
+import { MediaDetailView } from '../components/MediaDetailView.js';
+import { getRelatedAssets } from '../data/exampleGalleryAssets.js';
 
 function scheduleAutoGenerate(route) {}
+
+function openAssetDetail(asset) {
+  if (!asset) return;
+  const related = getRelatedAssets(asset, 8);
+  const detailView = new MediaDetailView({
+    mediaUrl: asset.thumbnail || asset.videoSrc || '',
+    mediaType: asset.videoSrc ? 'video' : 'image',
+    title: asset.title || '',
+    prompt: asset.prompt || '',
+    model: asset.source || '',
+    source: asset.sourceAuthor || asset.source || '',
+    author: asset.sourceAuthor || '',
+    category: asset.category || '',
+    date: asset.date || '',
+    tags: asset.tags || [],
+    relatedItems: related,
+    onRelatedClick: (index) => {
+      const relatedItem = related[index];
+      if (relatedItem) openAssetDetail(relatedItem);
+    },
+    actions: asset.prompt ? [
+      {
+        id: 'copy-prompt',
+        label: 'Copy Prompt',
+        onClick: () => {
+          navigator.clipboard.writeText(asset.prompt || '').then(() => {
+            detailView._showToast('Prompt copied to clipboard');
+          }).catch(() => {
+            detailView._showToast('Failed to copy prompt', true);
+          });
+        },
+      },
+    ] : [],
+  });
+  detailView.show();
+}
 
 export async function handleCreateThisStyle(asset) {
   if (asset.source === 'minimax') {
@@ -36,7 +74,7 @@ export async function handleCreateThisStyle(asset) {
     return;
   }
 
-  if (asset.source === 'youmind') {
+  if (asset.provider === 'youmind') {
     const ta = document.getElementById('i-prompt-textarea') || document.querySelector('textarea');
     if (ta) {
       ta.value = asset.prompt || '';
@@ -62,7 +100,7 @@ export async function handleViewPrompt(asset) {
   if (asset.source === 'minimax') {
     const m = await import('../data/minimaxH3Demos.js');
     const prompt = await m.loadDemoPrompt(asset.slug);
-    showPromptModal({ title: asset.title, prompt });
+    showPromptView({ title: asset.title, prompt, source: asset.source, asset });
     return;
   }
 
@@ -73,57 +111,87 @@ export async function handleViewPrompt(asset) {
   if (asset.source === 'seedance') {
     const { loadDemoPrompt } = await import('../data/beatapiSeedance25Demos.js');
     const prompt = await loadDemoPrompt(asset.slug);
-    showPromptModal({ title: asset.title, prompt: prompt || '' });
+    showPromptView({ title: asset.title, prompt: prompt || '', source: asset.source, asset });
     return;
   }
 
-  if (asset.source === 'youmind') {
-    showPromptModal({ title: asset.title, prompt: asset.prompt || '' });
+  if (asset.provider === 'youmind') {
+    const related = getRelatedAssets(asset, 8);
+    const detailView = new MediaDetailView({
+      mediaUrl: asset.thumbnail || '',
+      mediaType: 'image',
+      title: asset.title || '',
+      prompt: asset.prompt || '',
+      model: asset.source || '',
+      source: asset.source || '',
+      author: asset.sourceAuthor || '',
+      category: asset.category || '',
+      date: asset.date || '',
+      tags: asset.tags || [],
+      relatedItems: related,
+      onRelatedClick: (index) => {
+        const relatedItem = related[index];
+        if (relatedItem) openAssetDetail(relatedItem);
+      },
+      actions: [
+        {
+          id: 'copy-prompt',
+          label: 'Copy Prompt',
+          onClick: () => {
+            if (asset.prompt) {
+              navigator.clipboard.writeText(asset.prompt).then(() => {
+                detailView._showToast('Prompt copied to clipboard');
+              }).catch(() => {
+                detailView._showToast('Failed to copy prompt', true);
+              });
+            }
+          },
+        },
+      ],
+    });
+    detailView.show();
     return;
   }
 
   if (asset.source === 'zerolu') {
     const { loadDemoPrompt } = await import('../data/zeroLuDemos.js');
     const prompt = await loadDemoPrompt(asset.slug);
-    showPromptModal({ title: asset.title, prompt: prompt || '' });
+    showPromptView({ title: asset.title, prompt: prompt || '', source: asset.source, asset });
     return;
   }
 }
 
-function showPromptModal({ title, prompt }) {
-  const overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:9999;padding:16px;';
-
-  const modal = document.createElement('div');
-  modal.style.cssText = 'background:#141414;border:1px solid #27272a;border-radius:14px;max-width:640px;width:100%;max-height:80vh;overflow:hidden;display:flex;flex-direction:column;';
-
-  const header = document.createElement('div');
-  header.style.cssText = 'padding:16px 20px;border-bottom:1px solid #27272a;display:flex;align-items:center;justify-content:space-between;';
-  const titleEl = document.createElement('h3');
-  titleEl.textContent = title || 'Prompt';
-  titleEl.style.cssText = 'color:#d9ff00;font-size:14px;font-weight:700;margin:0;';
-  const closeBtn = document.createElement('button');
-  closeBtn.textContent = 'Close';
-  closeBtn.style.cssText = 'background:#141414;color:#a1a1aa;border:1px solid #27272a;border-radius:8px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;';
-  header.appendChild(titleEl);
-  header.appendChild(closeBtn);
-
-  const body = document.createElement('div');
-  body.style.cssText = 'padding:20px;overflow-y:auto;';
-  const promptEl = document.createElement('p');
-  promptEl.textContent = prompt || '';
-  promptEl.style.cssText = 'color:#fff;font-size:13px;line-height:1.6;white-space:pre-wrap;';
-  body.appendChild(promptEl);
-
-  modal.appendChild(header);
-  modal.appendChild(body);
-  overlay.appendChild(modal);
-
-  const close = () => overlay.remove();
-  closeBtn.addEventListener('click', close);
-  overlay.addEventListener('click', (e) => {
-    if (e.target === overlay) close();
+function showPromptView({ title, prompt, source, asset }) {
+  const related = asset ? getRelatedAssets(asset, 8) : [];
+  const detailView = new MediaDetailView({
+    title: title || 'Prompt',
+    prompt: prompt || '',
+    source: source || '',
+    model: source || '',
+    author: asset?.sourceAuthor || '',
+    category: asset?.category || '',
+    date: asset?.date || '',
+    relatedItems: related,
+    onRelatedClick: (index) => {
+      const relatedItem = related[index];
+      if (relatedItem) openAssetDetail(relatedItem);
+    },
+    autoCollapsePrompt: true,
+    actions: [
+      {
+        id: 'copy-prompt',
+        label: 'Copy Prompt',
+        onClick: () => {
+          if (prompt) {
+            navigator.clipboard.writeText(prompt).then(() => {
+              detailView._showToast('Prompt copied to clipboard');
+            }).catch(() => {
+              detailView._showToast('Failed to copy prompt', true);
+            });
+          }
+        },
+      },
+    ],
   });
-
-  document.body.appendChild(overlay);
+  detailView.show();
 }

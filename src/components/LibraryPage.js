@@ -1,5 +1,6 @@
 import { getPageThumbnail, createThumbnailImg } from '../lib/thumbnails.js';
 import { createSafeImage, createSafeVideo, safeSetText } from '../lib/security.js';
+import { MediaDetailView } from './MediaDetailView.js';
 
 export function LibraryPage() {
   const container = document.createElement('div');
@@ -57,13 +58,6 @@ export function LibraryPage() {
   gridArea.className = 'flex-1 overflow-y-auto px-4 md:px-8 pb-8';
   container.appendChild(gridArea);
 
-  const previewOverlay = document.createElement('div');
-  previewOverlay.className = 'fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-8 hidden';
-  previewOverlay.onclick = (e) => {
-    if (e.target === previewOverlay) previewOverlay.classList.add('hidden');
-  };
-  container.appendChild(previewOverlay);
-
   function getHistory() {
     let imageHistory = [];
     let videoHistory = [];
@@ -114,12 +108,10 @@ export function LibraryPage() {
       const card = document.createElement('div');
       card.className = 'relative group cursor-pointer rounded-xl overflow-hidden border border-white/5 hover:border-white/20 transition-all aspect-square bg-white/[0.02]';
 
-      // Safe media creation - prevents XSS from user-provided URLs
       if (item.type === 'video') {
         const video = createSafeVideo(item.url, 'w-full h-full object-cover');
         card.appendChild(video);
         
-        // Badge for video
         const badge = document.createElement('div');
         badge.className = 'absolute top-2 right-2 bg-blue-500/80 px-1.5 py-0.5 rounded text-[9px] font-bold text-white';
         badge.textContent = 'VIDEO';
@@ -130,7 +122,6 @@ export function LibraryPage() {
         card.appendChild(img);
       }
 
-      // Safe overlay content
       const overlay = document.createElement('div');
       overlay.className = 'absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3';
       
@@ -154,56 +145,32 @@ export function LibraryPage() {
   }
 
   function showPreview(item) {
-    previewOverlay.classList.remove('hidden');
-    previewOverlay.innerHTML = '';
-
-    const wrapper = document.createElement('div');
-    wrapper.className = 'max-w-3xl w-full flex flex-col items-center';
-
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'self-end mb-4 text-secondary hover:text-white transition-colors';
-    closeBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
-    closeBtn.onclick = () => previewOverlay.classList.add('hidden');
-    wrapper.appendChild(closeBtn);
-
-    if (item.type === 'video') {
-      const video = document.createElement('video');
-      video.src = item.url;
-      video.controls = true;
-      video.autoplay = true;
-      video.loop = true;
-      video.className = 'max-h-[70vh] rounded-xl';
-      wrapper.appendChild(video);
-    } else {
-      const img = document.createElement('img');
-      img.src = item.url;
-      img.className = 'max-h-[70vh] rounded-xl';
-      wrapper.appendChild(img);
-    }
-
-    const info = document.createElement('div');
-    info.className = 'mt-4 text-center';
-    
-    const promptEl = document.createElement('div');
-    promptEl.className = 'text-sm text-white mb-1';
-    promptEl.textContent = item.prompt || 'Generated';
-    info.appendChild(promptEl);
-    
-    const modelEl = document.createElement('div');
-    modelEl.className = 'text-xs text-muted';
-    modelEl.textContent = item.model ? (item.template ? `${item.model} / ${item.template}` : item.model) : '';
-    info.appendChild(modelEl);
-    
-    wrapper.appendChild(info);
-
-    const dlBtn = document.createElement('a');
-    dlBtn.href = item.url;
-    dlBtn.download = `generation-${item.id || Date.now()}`;
-    dlBtn.className = 'mt-4 btn-secondary-modern px-8 py-2.5 rounded-xl font-bold text-sm hover:shadow-glow transition-all';
-    dlBtn.textContent = 'Download';
-    wrapper.appendChild(dlBtn);
-
-    previewOverlay.appendChild(wrapper);
+    const detailView = new MediaDetailView({
+      mediaUrl: item.url,
+      mediaType: item.type === 'video' ? 'video' : 'image',
+      title: item.prompt || item.template || 'Generated',
+      prompt: item.prompt || '',
+      model: item.model || '',
+      source: item.template || '',
+      author: item.author || '',
+      category: item.category || '',
+      date: item.timestamp || '',
+      tags: item.tags || [],
+      relatedItems: [],
+      actions: [
+        {
+          id: 'download',
+          label: 'Download',
+          onClick: () => {
+            const a = document.createElement('a');
+            a.href = item.url;
+            a.download = `generation-${item.id || Date.now()}`;
+            a.click();
+          },
+        },
+      ],
+    });
+    detailView.show();
   }
 
   updateFilters();

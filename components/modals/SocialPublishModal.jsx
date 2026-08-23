@@ -70,24 +70,32 @@ const sectionStyle = {
 };
 
 const primaryBtn = (disabled) => ({
-  background: disabled ? 'rgba(120,120,255,0.25)' : `linear-gradient(90deg,${APP_ACCENT},${APP_ACCENT2})`,
-  color: '#fff',
-  border: 'none',
-  borderRadius: 10,
-  padding: '11px 18px',
-  fontSize: 14,
+  background: 'transparent',
+  color: disabled ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.85)',
+  border: '1px solid rgba(255,255,255,0.12)',
+  borderLeft: '2px solid #d9ff00',
+  borderRadius: 8,
+  padding: '7px 10px',
+  fontSize: 11,
   fontWeight: 700,
+  lineHeight: '1.2',
   cursor: disabled ? 'not-allowed' : 'pointer',
+  transition: 'all 200ms ease',
+  opacity: disabled ? 0.4 : 1,
+  pointerEvents: disabled ? 'none' : 'auto',
 });
 
 const ghostBtn = {
   background: 'transparent',
-  color: 'rgba(255,255,255,0.7)',
-  border: '1px solid rgba(255,255,255,0.15)',
-  borderRadius: 10,
-  padding: '10px 16px',
-  fontSize: 14,
+  color: 'rgba(255,255,255,0.75)',
+  border: '1px solid rgba(255,255,255,0.10)',
+  borderRadius: 8,
+  padding: '7px 10px',
+  fontSize: 11,
+  fontWeight: 700,
+  lineHeight: '1.2',
   cursor: 'pointer',
+  transition: 'all 200ms ease',
 };
 
 function inferMediaType(url) {
@@ -369,10 +377,10 @@ function ThumbnailZone({
             <img src={thumb.imageUrl + '?v=' + Date.now()} alt="Selected thumbnail" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.style.display = 'none'; }} />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <button type="button" style={{ ...ghostBtn, padding: '6px 10px', fontSize: 12, marginBottom: 6 }} onClick={onOpenThumbnail}>
+            <button type="button" style={{ ...ghostBtn, marginBottom: 6 }} onClick={onOpenThumbnail}>
               Change thumbnail
             </button>
-            <button type="button" style={{ ...ghostBtn, padding: '6px 10px', fontSize: 12, color: '#ff9a9a', borderColor: 'rgba(255,120,120,0.3)', marginLeft: 8 }} onClick={() => updateForm('thumbnail', null)}>
+            <button type="button" style={{ ...ghostBtn, color: '#ff9a9a', borderColor: 'rgba(255,120,120,0.3)', marginLeft: 8 }} onClick={() => updateForm('thumbnail', null)}>
               Remove
             </button>
             <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 8 }}>Aspect ratio: {ar}</div>
@@ -388,7 +396,7 @@ function ThumbnailZone({
           <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', marginBottom: 10 }}>
             Add a thumbnail image to make your post pop. Recommended aspect ratio for the selected destination: <strong>{ar}</strong>.
           </div>
-          <button type="button" style={{ ...primaryBtn(false), padding: '10px 16px' }} onClick={onOpenThumbnail}>
+          <button type="button" style={primaryBtn(false)} onClick={onOpenThumbnail}>
             🎨 Create thumbnail
           </button>
         </div>
@@ -1152,7 +1160,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
         <div style={sectionStyle}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ ...labelStyle, margin: 0 }}>Connected accounts</div>
-            <button type="button" style={{ ...ghostBtn, padding: '6px 12px', fontSize: 12 }} onClick={refreshAccounts}>
+            <button type="button" style={{ ...ghostBtn }} onClick={refreshAccounts}>
               ↻ Refresh
             </button>
           </div>
@@ -1213,8 +1221,8 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
                   <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
                     {isRenaming ? (
                       <>
-                        <button type="button" style={{ ...ghostBtn, padding: '5px 10px', fontSize: 12 }} onClick={() => saveRename(acc.id)}>Save</button>
-                        <button type="button" style={{ ...ghostBtn, padding: '5px 10px', fontSize: 12 }} onClick={cancelRename}>Cancel</button>
+                        <button type="button" style={{ ...ghostBtn }} onClick={() => saveRename(acc.id)}>Save</button>
+                        <button type="button" style={{ ...ghostBtn }} onClick={cancelRename}>Cancel</button>
                       </>
                     ) : (
                       <>
@@ -1222,20 +1230,20 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
                           type="button"
                           aria-label="Rename account"
                           title="Rename"
-                          style={{ ...ghostBtn, padding: '5px 9px', fontSize: 13 }}
+                          style={{ ...ghostBtn }}
                           onClick={() => startRename(acc)}
                         >✎</button>
                         <button
                           type="button"
-                          style={{ ...ghostBtn, padding: '5px 10px', fontSize: 12, color: '#ff9a9a', borderColor: 'rgba(255,120,120,0.3)' }}
-                          onClick={() => handleDisconnect(acc.id)}
+                          style={{ ...ghostBtn, color: '#ff9a9a', borderColor: 'rgba(255,120,120,0.3)' }}
+                            onClick={() => handleDisconnect(acc.id)}
                         >Disconnect</button>
                         <button
                           type="button"
                           aria-label="Remove account permanently"
                           title="Remove permanently"
-                          style={{ ...ghostBtn, padding: '5px 9px', fontSize: 13, color: '#ff9a9a', borderColor: 'rgba(255,120,120,0.3)' }}
-                          onClick={() => handlePermanentRemove(acc.id)}
+                          style={{ ...ghostBtn, color: '#ff9a9a', borderColor: 'rgba(255,120,120,0.3)' }}
+                            onClick={() => handlePermanentRemove(acc.id)}
                         >🗑</button>
                       </>
                     )}

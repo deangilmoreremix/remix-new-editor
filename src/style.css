@@ -5,6 +5,7 @@
 
 @import './styles/gtm-prompt-modal.css';
 @import './styles/ai-captions-modal.css';
+@import './styles/personalizer.css';
 #app {
   display: flex;
   flex-direction: column;

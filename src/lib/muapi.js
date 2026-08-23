@@ -38,6 +38,51 @@ function normalizeEffectName(name) {
   return name.trim().replace(/\s+/g, ' ');
 }
 
+// --- Output Integrity ---
+
+const STATIC_OUTPUT_PATTERNS = [
+  '/muapi/homepage/',
+  '/muapi/demo/',
+  '/muapi/sandbox/',
+  '/webassets/videomodels/',
+  '/webassets/',
+  '/placeholder/',
+  '/sample/',
+  '/static/demo/',
+];
+
+class OutputIntegrityError extends Error {
+  constructor(reason, url) {
+    super(`Output integrity check failed: ${reason}`);
+    this.name = 'OutputIntegrityError';
+    this.url = url;
+    this.reason = reason;
+  }
+}
+
+function extractOutputUrls(result) {
+  const urls = [];
+  if (Array.isArray(result.outputs)) urls.push(...result.outputs);
+  if (Array.isArray(result.images)) urls.push(...result.images);
+  if (result.url) urls.push(result.url);
+  if (result.output?.url) urls.push(result.output.url);
+  if (result.video?.url) urls.push(result.video.url);
+  if (result.audio?.url) urls.push(result.audio.url);
+  return urls.filter(Boolean);
+}
+
+function checkOutputIntegrity(result) {
+  const urls = extractOutputUrls(result);
+  for (const url of urls) {
+    if (!url) continue;
+    const lower = url.toLowerCase();
+    const matched = STATIC_OUTPUT_PATTERNS.find(pattern => lower.includes(pattern));
+    if (matched) {
+      throw new OutputIntegrityError(`Static/demo URL detected: ${matched}`, url);
+    }
+  }
+}
+
 export class MuapiClient {
     constructor() {
         // Validate that Supabase URL is configured before building proxy URL
@@ -286,9 +331,24 @@ export class MuapiClient {
                 }
 
                 const data = await response.json();
-                this.validateResponse(data, 'poll');
 
+                // NEW: Validate output integrity before accepting completed results
                 const status = data.status?.toLowerCase();
+                if (status === 'completed' || status === 'succeeded' || status === 'success') {
+                  try {
+                    checkOutputIntegrity(data);
+                  } catch (integrityError) {
+                    console.error('[MuapiClient] Output integrity failure:', integrityError);
+                    throw new Error(
+                      `Received a placeholder or demo result instead of a unique generation. ` +
+                      `This usually means your MuAPI key is in sandbox mode or has no credits. ` +
+                      `Please check your key at https://muapi.ai/access-keys. ` +
+                      `(detected URL: ${integrityError.url})`
+                    );
+                  }
+                }
+
+                this.validateResponse(data, 'poll');
 
                 if (status === 'completed' || status === 'succeeded' || status === 'success') {
                     return data;
@@ -1214,6 +1274,20 @@ export class MuapiClient {
 
             const data = await response.json();
             this.validateResponse(data, 'custom');
+
+            // NEW: Validate output integrity for direct-return custom endpoints
+            try {
+              checkOutputIntegrity(data);
+            } catch (integrityError) {
+              console.error('[MuapiClient] Output integrity failure in makeRequest:', integrityError);
+              throw new Error(
+                `Received a placeholder or demo result instead of a unique generation. ` +
+                `This usually means your MuAPI key is in sandbox mode or has no credits. ` +
+                `Please check your key at https://muapi.ai/access-keys. ` +
+                `(detected URL: ${integrityError.url})`
+              );
+            }
+
             return data;
         } catch (error) {
             if (error.name === 'AbortError') throw new Error('Request cancelled by user');
@@ -1258,6 +1332,20 @@ export class MuapiClient {
             if (data && data.error) {
                 throw new Error(`Social API error: ${data.error}${data.details ? ` — ${data.details}` : ''}`);
             }
+
+            // NEW: Validate output integrity for passthrough responses
+            try {
+              checkOutputIntegrity(data);
+            } catch (integrityError) {
+              console.error('[MuapiClient] Output integrity failure in proxyJson:', integrityError);
+              throw new Error(
+                `Received a placeholder or demo result instead of a unique generation. ` +
+                `This usually means your MuAPI key is in sandbox mode or has no credits. ` +
+                `Please check your key at https://muapi.ai/access-keys. ` +
+                `(detected URL: ${integrityError.url})`
+              );
+            }
+
             return data;
         } catch (error) {
             if (error.name === 'AbortError') throw new Error('Request cancelled by user');
@@ -1299,6 +1387,20 @@ export class MuapiClient {
 
             const data = await response.json();
             this.validateResponse(data, 'text');
+
+            // NEW: Validate output integrity for direct-return text/specialized endpoints
+            try {
+              checkOutputIntegrity(data);
+            } catch (integrityError) {
+              console.error('[MuapiClient] Output integrity failure in generateText:', integrityError);
+              throw new Error(
+                `Received a placeholder or demo result instead of a unique generation. ` +
+                `This usually means your MuAPI key is in sandbox mode or has no credits. ` +
+                `Please check your key at https://muapi.ai/access-keys. ` +
+                `(detected URL: ${integrityError.url})`
+              );
+            }
+
             analytics.trackGenerationComplete(params.model, 'text', true);
             return data;
         } catch (error) {

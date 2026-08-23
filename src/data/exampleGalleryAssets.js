@@ -5,6 +5,7 @@ import { zeroLuDemos, CATEGORY_ROUTES as zeroLuRoutes, getCreateTarget as zeroLu
 import { ACADEMY_STUDIO_ADAPTERS } from './academyStudioAdapters.js';
 import { getAssetById as getAcademyAssetById } from './academy/catalog.js';
 import { youmindImagePrompts } from './youmindImagePrompts.js';
+import { YOUMIND_STUDIO_ASSETS } from './youmindStudioAssets.js';
 
 export const MAX_EXAMPLES_PER_STUDIO = 28;
 
@@ -45,12 +46,17 @@ const IMAGE_TAGS = new Set([
 ]);
 const IMAGE_ASPECT_RATIOS = new Set(['1:1', '9:16', '4:5', '3:4', '2:3']);
 const AVATAR_KEYWORDS = ['avatar', 'consistent'];
-const CHAR_TAGS = new Set(['character-reference', 'rider-character', 'warrior-character-image']);
-const CHAR_KEYWORDS = ['face', 'portrait', 'person', 'people', 'human'];
+const CHAR_TAGS = new Set(['character-reference', 'rider-character', 'warrior-character-image', 'character-consistency', 'character-sheet', 'character-bible', 'character']);
+const CHAR_KEYWORDS = [
+  'character consistency', 'character reference', 'consistent character',
+  'character sheet', 'character bible', 'face id preservation', 'subject consistency',
+  'character concept', 'character design', 'character illustration',
+  '3d character', 'anime character', 'character introduction'
+];
 const INFLUENCER_TAGS = new Set(['beauty', 'lifestyle', 'fashion', 'makeup', 'model', 'vlog', 'ugc']);
 const INFLUENCER_KEYWORDS = ['beauty', 'makeup', 'lifestyle', 'influencer', 'model'];
-const EFFECTS_TAGS = new Set(['vfx', 'visual-effects', 'motion-graphics', 'explosion', 'fight', 'action']);
-const EFFECTS_KEYWORDS = ['vfx', 'explosion', 'motion graphics', 'visual effects', 'action sequence', 'tokusatsu', 'parkour', 'chase', 'fight scene', 'battle'];
+const EFFECTS_TAGS = new Set(['vfx', 'visual-effects', 'motion-graphics', 'video-fx', 'video-effects', 'ai-video-effects', 'motion-controls']);
+const EFFECTS_KEYWORDS = ['vfx', 'visual effects', 'motion graphics', 'video effects', 'video fx', 'ai video effects', 'motion controls', 'motion-controls'];
 
 function isAudio(demo) {
   return (demo.tags || []).some((t) => AUDIO_TAGS.has(t));
@@ -67,18 +73,20 @@ function isAvatar(demo) {
 function isCharacter(demo) {
   const text = ((demo.title || '') + ' ' + (demo.useCase || '')).toLowerCase();
   return (demo.tags || []).some((t) => CHAR_TAGS.has(t)) ||
-    text.includes('character') ||
     CHAR_KEYWORDS.some((k) => text.includes(k));
 }
 function isInfluencer(demo) {
   const text = ((demo.title || '') + ' ' + (demo.useCase || '')).toLowerCase();
   return (demo.tags || []).some((t) => INFLUENCER_TAGS.has(t)) ||
-    INFLUENCER_KEYWORDS.some((k) => text.includes(k));
+    (INFLUENCER_KEYWORDS.some((k) => text.includes(k)) && !['model', 'models'].some((k) => text.includes(k)));
 }
 function isEffects(demo) {
   const text = ((demo.title || '') + ' ' + (demo.useCase || '')).toLowerCase();
+  const category = (demo.category || '').toLowerCase();
   return (demo.tags || []).some((t) => EFFECTS_TAGS.has(t)) ||
-    EFFECTS_KEYWORDS.some((k) => text.includes(k));
+    EFFECTS_KEYWORDS.some((k) => text.includes(k)) ||
+    category === 'vfx' ||
+    category === 'ai-vfx';
 }
 
 function mapToStudio(demo, routes) {
@@ -128,6 +136,7 @@ function createAsset(demo, source, routes, getCreateTargetFn) {
 }
 
 export const EXAMPLE_ASSETS = [
+  ...YOUMIND_STUDIO_ASSETS,
   ...minimaxH3Demos
     .map((demo) => createAsset(demo, 'minimax', CATEGORY_ROUTES, getCreateTarget))
     .filter(Boolean),
@@ -157,61 +166,22 @@ export const EXAMPLE_ASSETS = [
       prompt: adapter.prompt ?? null,
     };
   }).filter(Boolean),
-  ...youmindImagePrompts.map((p) => ({
-    id: p.id,
-    source: 'youmind',
-    studio: 'image',
-    title: p.title,
-    category: p.category,
-    thumbnail: p.thumbnail,
-    videoSrc: '',
-    tags: p.tags,
-    slug: p.id,
-    routeParams: {},
-    prompt: p.prompt,
-  })),
-  ...Array.from({ length: MAX_EXAMPLES_PER_STUDIO }, (_, i) => {
-    const titles = [
-      'Virtual Influencer Morning Routine Vlog',
-      'AI Avatar Customer Service Demo',
-      'Consistent Character Interview Clip',
-      'Digital Human Product Showcase',
-      'Virtual Presenter News Segment',
-      'AI Avatar Fitness Trainer Demo',
-      'Synthetic Host Brand Announcement',
-      'Virtual Influencer Fashion Try-On',
-      'Digital Twin Customer Testimonial',
-      'AI Avatar Cooking Tutorial Clip',
-      'Virtual Presenter Award Acceptance',
-      'Consistent Avatar Social Media Post',
-      'Digital Human Real Estate Tour',
-      'AI Avatar Music Performance Clip',
-      'Virtual Influencer Unboxing Video',
-      'Synthetic Spokesperson Product Launch',
-      'Digital Twin Behind-the-Scenes Featurette',
-      'AI Avatar Daily Standup Update',
-      'Virtual Presenter Documentary Narration',
-      'Consistent Character Podcast Intro',
-      'Virtual Influencer Q&A Session Clip',
-      'Digital Human Tech Review Demo',
-      'AI Avatar Wellness Meditation Guide',
-      'Synthetic Host Live Event Coverage',
-      'Virtual Presenter Educational Explainer',
-      'Digital Twin Brand Story Commercial',
-      'AI Avatar Travel Vlog Montage',
-      'Consistent Avatar Gaming Stream Clip',
-    ];
+  ...youmindImagePrompts.map((p) => {
     return {
-      id: `avatar:manual-${i + 1}`,
-      source: 'manual',
-      studio: 'avatar',
-      title: titles[i] || `Avatar Example ${i + 1}`,
-      category: 'Avatar',
-      thumbnail: '',
+      id: p.id,
+      source: p.source || 'youmind',
+      sourceAuthor: p.author || '',
+      date: p.published || '',
+      provider: 'youmind',
+      studio: 'image',
+      title: p.title,
+      category: p.category,
+      thumbnail: p.thumbnail,
       videoSrc: '',
-      tags: ['avatar', 'example'],
-      slug: `avatar-example-${i + 1}`,
+      tags: p.tags,
+      slug: p.id,
       routeParams: {},
+      prompt: p.prompt,
     };
   }),
 ];
@@ -228,6 +198,19 @@ export function getAssetsForStudio(studioId) {
 
 export function getAssetById(id) {
   return EXAMPLE_ASSETS.find((asset) => asset.id === id);
+}
+
+export function getRelatedAssets(asset, limit = 8) {
+  if (!asset) return [];
+  const sameSource = EXAMPLE_ASSETS.filter((a) => a.id !== asset.id && a.source === asset.source);
+  const sameCategory = EXAMPLE_ASSETS.filter((a) => a.id !== asset.id && a.category === asset.category && a.source !== asset.source);
+  const merged = [...sameSource, ...sameCategory];
+  const seen = new Set();
+  return merged.filter((a) => {
+    if (seen.has(a.id)) return false;
+    seen.add(a.id);
+    return true;
+  }).slice(0, limit);
 }
 
 export function getAllExampleAssets() {

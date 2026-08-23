@@ -3,6 +3,8 @@ import { escapeHtml } from '../lib/security.js';
 import { showToast } from '../lib/loading.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 import { navigate } from '../lib/router.js';
+import { MediaDetailView } from './MediaDetailView.js';
+import { YOUMIND_VIRAL_OVERFLOW } from '../data/youmindViralOverflow.js';
 
 const VPF_JSON_URL = 'https://raw.githubusercontent.com/Hanyuyu/visual-prompt-feed/main/data/prompts.json';
 
@@ -289,6 +291,54 @@ function normalizeVpfItem(item) {
   };
 }
 
+function normalizeYoumindItem(item) {
+  const source = item.source || {};
+  const author = source.author || {};
+  const engagement = source.engagement || {};
+  return {
+    imglumeId: item.imglumeId || item.id || `youmind-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    title: item.title || 'Untitled',
+    prompt: item.prompt || '',
+    mediaType: item.mediaType || 'image',
+    media: (item.media || []).map(m => ({
+      type: m.type || 'image',
+      role: m.role || 'preview',
+      previewUrl: m.previewUrl || '',
+      sourceUrl: m.sourceUrl || '',
+      posterUrl: m.posterUrl || '',
+      width: m.width || null,
+      height: m.height || null,
+    })),
+    source: {
+      author: { handle: author.handle || '', name: author.name || '', link: author.link || '' },
+      engagement: {
+        likes: engagement.likes ?? 0,
+        reposts: engagement.reposts ?? 0,
+        replies: engagement.replies ?? 0,
+      },
+      publishedAt: source.publishedAt || '',
+    },
+    categories: item.categories || [],
+    tags: item.tags || [],
+    language: item.language || null,
+    recommendedModel: item.recommendedModel || 'nanobanana',
+    sourceModels: item.sourceModels || [],
+    curation: {
+      creator: 'YouMind',
+      url: '',
+      recordUrl: '',
+      license: 'MIT',
+    },
+    provenance: {
+      discoveredBy: 'YouMind',
+      collection: 'youmind_overflow',
+      importedAt: new Date().toISOString(),
+      updatedAt: item.provenance?.updatedAt || new Date().toISOString(),
+    },
+    _source: 'youmind',
+  };
+}
+
 export function SmartVideoViral() {
   injectMotionStyles();
   const container = document.createElement('div');
@@ -304,7 +354,6 @@ export function SmartVideoViral() {
     if (keyHandler) { window.removeEventListener('keydown', keyHandler); keyHandler = null; }
     if (lazyObserver) { lazyObserver.disconnect(); lazyObserver = null; }
     if (infiniteObserver) { infiniteObserver.disconnect(); infiniteObserver = null; }
-    if (modalEl) closeVideoModal(false);
     railSections.forEach(s => s.section.remove());
     railSections = [];
   }
@@ -344,9 +393,6 @@ export function SmartVideoViral() {
   let heroCollapsed = false;
   let lastScrollY = 0;
   const HERO_COLLAPSE_OFFSET = 120;
-  let activeVideoItem = null;
-  let modalEl = null;
-  let modalPanel = null;
   let scrollSpyEl = null;
   let railSections = [];
   const VPF_DATA_URL = VPF_JSON_URL;
@@ -358,7 +404,6 @@ export function SmartVideoViral() {
   let keyHandler = null;
   let lazyObserver = null;
   let infiniteObserver = null;
-  let modalTrigger = null;
   const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 
   // =====================
@@ -425,10 +470,10 @@ export function SmartVideoViral() {
         <option value="engagement">Most Popular</option>
         <option value="likes">Most Likes</option>
       </select>
-      <button id="viral-lang-toggle" type="button" class="px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-xl text-[10px] font-bold text-primary hover:bg-primary/20 transition-colors whitespace-nowrap">
+      <button id="viral-lang-toggle" type="button" class="btn-secondary-modern whitespace-nowrap">
         <svg class="w-3 h-3 inline mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M12 4a8 8 0 0 0-8 8c0 2.8 1.4 5.2 3.6 6.6"/><path d="M12 12c2 1 3 3 3 5"/><path d="M12 12V7m0 10v1"/></svg>Exclude Chinese
       </button>
-      <button id="viral-mobile-filters" type="button" class="lg:hidden px-3 py-1.5 bg-zinc-800 border border-zinc-700/80 text-zinc-300 rounded-xl text-xs font-bold">
+      <button id="viral-mobile-filters" type="button" class="lg:hidden btn-secondary-modern">
         <svg class="w-3 h-3 inline mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>Filters
       </button>
     </div>
@@ -603,10 +648,10 @@ export function SmartVideoViral() {
     <span id="viral-count" aria-live="polite">0 prompts loaded</span>
     <div class="flex items-center gap-3 text-xs text-zinc-500">
       <span id="viral-last-updated">—</span>
-      <button id="viral-refresh" class="px-2 py-1 bg-zinc-800 border border-zinc-700/80 text-zinc-300 rounded hover:bg-zinc-700 hover:text-white transition-colors" title="Refresh feed from upstream">
+      <button id="viral-refresh" class="btn-secondary-modern" title="Refresh feed from upstream">
         <svg class="viral-refresh-icon w-3 h-3 inline mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9 9 0 0 1 9 9 9 9 0 0 1-9 9 9 9 0 0 1-9-9"/><path d="M3 12h9m-9 0V5l5 3.5"/></svg>Refresh
       </button>
-      <button id="viral-export" class="px-2 py-1 bg-zinc-800 border border-zinc-700/80 text-zinc-300 rounded hover:bg-zinc-700 hover:text-white transition-colors" title="Export filtered prompts as JSON">
+      <button id="viral-export" class="btn-secondary-modern" title="Export filtered prompts as JSON">
         <svg class="w-3 h-3 inline mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export
       </button>
     </div>
@@ -661,7 +706,7 @@ export function SmartVideoViral() {
         <svg class="w-16 h-16 mx-auto mb-4 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10.25 22h3.5M12 17V7m-5 5l5 5 5-5"/></svg>
         <p class="text-sm mb-2">Failed to load the prompt feed</p>
         <p class="text-xs text-zinc-500">${escapeHtml(error || '')}</p>
-        <button id="viral-retry" class="mt-3 px-4 py-2 btn-secondary-modern rounded-xl text-xs font-black hover:shadow-glow transition">Retry</button>
+        <button id="viral-retry" class="btn-secondary-modern">Retry</button>
       </div>
     `;
     const retryBtn = gridEl.querySelector('#viral-retry');
@@ -728,11 +773,10 @@ export function SmartVideoViral() {
          </div>
          <div class="smart-card-content flex-1 flex flex-col">
            <h3 class="text-sm font-bold text-zinc-100 mb-1 line-clamp-1">${escapeHtml(item.title || 'Untitled')}</h3>
-           <div class="prompt-section">
-             <p class="text-[11px] text-zinc-400 mb-1 line-clamp-2 leading-relaxed">${escapedPreview}</p>
-             ${hasLongPrompt ? `<button class="view-full-btn text-[10px] text-cyan-400 hover:text-cyan-300 font-bold transition-colors mb-2" data-id="${item.imglumeId}">View Full Prompt ›</button>` : ''}
-             ${hasLongPrompt ? `<div class="prompt-full hidden text-[10px] text-zinc-300 mb-2 leading-relaxed bg-zinc-900 border border-zinc-700/80 rounded-lg p-3 max-h-48 overflow-y-auto whitespace-pre-wrap break-words">${escapedPrompt}</div>` : `<p class="text-[11px] text-zinc-400 mb-2 line-clamp-2 leading-relaxed">${escapedPrompt}</p>`}
-           </div>
+            <div class="prompt-section">
+              <p class="text-[11px] text-zinc-400 mb-1 line-clamp-2 leading-relaxed">${escapedPreview}</p>
+              ${hasLongPrompt ? `<button class="view-full-btn text-[10px] text-cyan-400 hover:text-cyan-300 font-bold transition-colors mb-2" data-id="${item.imglumeId}">View Full Prompt ›</button>` : ''}
+            </div>
            ${recChips.length > 0 ? `
              <div class="flex flex-wrap gap-1 mb-2">
                ${recChips.map(chip => `<span class="text-[9px] px-1.5 py-0.5 bg-blue-400/10 border border-blue-400/20 rounded text-blue-300">${chip}</span>`).join('')}
@@ -753,8 +797,8 @@ export function SmartVideoViral() {
            ` : ''}
             <div class="mt-auto flex gap-2">
               <button class="copy-prompt-btn btn-primary-modern" data-id="${item.imglumeId}" title="Copy prompt to clipboard">Copy Prompt</button>
-              <button class="create-style-btn btn-secondary-modern text-[10px] font-bold" data-id="${item.imglumeId}" title="Create this style in studio">Create This Style</button>
-              <a href="${escapeHtml(item.source?.url || item.curation?.recordUrl || '#')}" target="_blank" rel="noopener noreferrer" class="btn-secondary-modern text-[10px] font-bold" title="View source post on X">Source</a>
+              <button class="create-style-btn btn-secondary-modern" data-id="${item.imglumeId}" title="Create this style in studio">Create This Style</button>
+              <a href="${escapeHtml(item.source?.url || item.curation?.recordUrl || '#')}" target="_blank" rel="noopener noreferrer" class="btn-secondary-modern" title="View source post on X">Source</a>
             </div>
          </div>
        </div>
@@ -865,21 +909,39 @@ export function SmartVideoViral() {
         const id = parseInt(btn.getAttribute('data-id'), 10);
         const item = prompts.find(p => p.imglumeId === id);
         if (!item) return;
-        const card = btn.closest('.smart-card');
-        const fullDiv = card?.querySelector('.prompt-full');
-        const previewP = card?.querySelector('.prompt-section p');
-        if (fullDiv && previewP) {
-          const isHidden = fullDiv.classList.contains('hidden');
-          if (isHidden) {
-            fullDiv.classList.remove('hidden');
-            previewP.classList.add('hidden');
-            btn.textContent = 'Show Less ▾';
-          } else {
-            fullDiv.classList.add('hidden');
-            previewP.classList.remove('hidden');
-            btn.textContent = 'View Full Prompt ▸';
-          }
-        }
+        const detailView = new MediaDetailView({
+          mediaUrl: '',
+          mediaType: 'image',
+          title: item.title || 'Untitled',
+          prompt: item.prompt || '',
+          model: item.recommendedModel || '',
+          source: item.recommendedModel || '',
+          author: item.source?.author?.name || item.source?.author?.handle || '',
+          category: item.categories?.[0] || '',
+          date: formatDate(item.provenance?.updatedAt || item.source?.publishedAt),
+          tags: item.categories || [],
+          actions: [
+            {
+              id: 'copy-prompt',
+              label: 'Copy Prompt',
+              onClick: () => {
+                if (item.prompt) {
+                  navigator.clipboard.writeText(item.prompt).then(() => {
+                    showToast('Prompt copied!', 'success', 1500);
+                  }).catch(() => {
+                    showToast('Failed to copy', 'error', 1500);
+                  });
+                }
+              },
+            },
+            {
+              id: 'create-style',
+              label: 'Create This Style',
+              onClick: () => openItemInStudio(item),
+            },
+          ],
+        });
+        detailView.show();
       });
     });
   }
@@ -929,111 +991,42 @@ export function SmartVideoViral() {
   // VIDEO MODAL
   // =====================
   function openVideoModal(item) {
-    activeVideoItem = item;
     const media = getPreviewMedia(item);
     const videoSrc = proxyVideoUrl(getVideoSource(item) || media?.previewUrl || '');
     const poster = media?.posterUrl || media?.previewUrl || '';
-    if (modalEl) closeVideoModal(false);
-    modalTrigger = document.activeElement;
-    modalEl = document.createElement('div');
-    modalEl.className = 'viral-modal-backdrop';
-    modalEl.setAttribute('role', 'dialog');
-    modalEl.setAttribute('aria-modal', 'true');
-    modalEl.setAttribute('aria-label', 'Video player');
-    modalEl.innerHTML = `
-      <div class="viral-modal-panel">
-        <div class="flex items-center justify-between p-4 border-b border-white/5">
-          <h3 class="text-sm font-bold text-zinc-200 truncate pr-4">${escapeHtml(item.title || 'Video')}</h3>
-          <button id="viral-modal-close" class="w-8 h-8 rounded-full bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:border-white/20 transition-colors flex items-center justify-center flex-shrink-0" aria-label="Close">
-            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-        </div>
-        <div class="relative aspect-video bg-black">
-          <video src="${escapeHtml(videoSrc)}" controls autoplay muted playsinline preload="auto" disablepictureinpicture class="w-full h-full" poster="${escapeHtml(poster)}">
-            <p class="text-zinc-400 text-xs p-4">Video could not be loaded.</p>
-          </video>
-        </div>
-        <div class="p-4 space-y-3">
-          <p class="text-xs text-zinc-400 line-clamp-3">${escapeHtml(item.prompt || '')}</p>
-          <div class="flex flex-wrap items-center gap-2">
-            ${modelBadge(item.recommendedModel)}
-            ${(item.categories || []).slice(0, 3).map(c => `<span class="text-[9px] px-1.5 py-0.5 bg-white/5 border border-zinc-700/80 rounded text-zinc-400">${escapeHtml(CATEGORY_LABELS[c] || c)}</span>`).join('')}
-            ${item.recommended?.aspectRatio ? `<span class="text-[9px] px-1.5 py-0.5 bg-blue-400/10 border border-blue-400/20 rounded text-blue-300">${escapeHtml(item.recommended.aspectRatio)}</span>` : ''}
-            ${item.recommended?.durationSeconds ? `<span class="text-[9px] px-1.5 py-0.5 bg-blue-400/10 border border-blue-400/20 rounded text-blue-300">${escapeHtml(String(item.recommended.durationSeconds))}s</span>` : ''}
-          </div>
-          <div class="flex items-center justify-between pt-2 border-t border-white/5">
-            <span class="text-[10px] text-zinc-500">${escapeHtml(item.source?.author?.name || '')}${item.source?.author?.name && item.source?.author?.handle ? ` (@${escapeHtml(item.source.author.handle)})` : `@${escapeHtml(item.source?.author?.handle || 'unknown')}`}</span>
-            <div class="flex gap-2">
-              <button class="viral-modal-copy btn-primary-modern" data-id="${item.imglumeId}">Copy Prompt</button>
-              <button class="viral-modal-create btn-secondary-modern text-[10px] font-bold" data-id="${item.imglumeId}">Create This Style</button>
-              <a href="${escapeHtml(item.source?.url || item.curation?.recordUrl || '#')}" target="_blank" rel="noopener noreferrer" class="btn-secondary-modern text-[10px] font-bold">View on X</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(modalEl);
-    modalPanel = modalEl.querySelector('.viral-modal-panel');
-    const videoEl = modalEl.querySelector('video');
-    if (videoEl) {
-      videoEl.addEventListener('error', () => {
-        const wrapper = modalEl.querySelector('.relative');
-        if (wrapper) {
-          wrapper.innerHTML = `
-            <div class="flex flex-col items-center justify-center h-full text-center p-4">
-              <svg class="w-10 h-10 text-zinc-500 mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-              <p class="text-zinc-400 text-xs mb-2">Video could not be loaded</p>
-              <a href="${escapeHtml(videoSrc)}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 btn-secondary-modern rounded-xl text-[10px] font-black hover:shadow-glow transition-colors">View on X</a>
-            </div>
-          `;
-        }
-      });
-      videoEl.addEventListener('loadedmetadata', () => {
-        videoEl.play().catch(err => console.warn('[SmartVideoViral] Autoplay blocked:', err));
-      });
-      videoEl.play().catch(err => console.warn('[SmartVideoViral] Autoplay blocked:', err));
-    }
-    modalEl.addEventListener('click', (e) => { if (e.target === modalEl) closeVideoModal(); });
-    modalEl.querySelector('#viral-modal-close').addEventListener('click', () => closeVideoModal());
-    modalEl.querySelector('.viral-modal-copy')?.addEventListener('click', () => {
-      navigator.clipboard.writeText(item.prompt || '').then(() => showToast('Prompt copied!', 'success', 1500));
+    const detailView = new MediaDetailView({
+      mediaUrl: videoSrc,
+      mediaType: 'video',
+      title: item.title || 'Video',
+      prompt: item.prompt || '',
+      model: item.recommendedModel || '',
+      source: item.recommendedModel || '',
+      author: item.source?.author?.name || item.source?.author?.handle || '',
+      category: item.categories?.[0] || '',
+      date: formatDate(item.provenance?.updatedAt || item.source?.publishedAt),
+      tags: item.categories || [],
+      actions: [
+        {
+          id: 'copy-prompt',
+          label: 'Copy Prompt',
+          onClick: () => {
+            if (item.prompt) {
+              navigator.clipboard.writeText(item.prompt).then(() => {
+                showToast('Prompt copied!', 'success', 1500);
+              }).catch(() => {
+                showToast('Failed to copy', 'error', 1500);
+              });
+            }
+          },
+        },
+        {
+          id: 'create-style',
+          label: 'Create This Style',
+          onClick: () => openItemInStudio(item),
+        },
+      ],
     });
-    modalEl.querySelector('.viral-modal-create')?.addEventListener('click', () => {
-      openItemInStudio(item);
-    });
-    modalEl.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') { closeVideoModal(); return; }
-      if (e.key === 'Tab') {
-        const focusable = modalEl.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-        if (focusable.length === 0) return;
-        const first = focusable[0];
-        const last = focusable[focusable.length - 1];
-        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-      }
-    });
-    requestAnimationFrame(() => { modalPanel.style.transform = 'scale(1) translateY(0)'; });
-    modalEl.querySelector('button')?.focus();
-  }
-
-  function closeVideoModal(animate = true) {
-    if (!modalEl) return;
-    const restore = modalTrigger;
-    if (animate) {
-      modalPanel.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
-      modalPanel.style.transform = 'scale(0.96) translateY(8px)';
-      modalPanel.style.opacity = '0';
-      modalEl.style.transition = 'opacity 0.2s ease';
-      modalEl.style.opacity = '0';
-    }
-    const el = modalEl;
-    setTimeout(() => { el.remove(); }, animate ? 220 : 0);
-    modalEl = null;
-    modalPanel = null;
-    activeVideoItem = null;
-    if (restore && typeof restore.focus === 'function') {
-      requestAnimationFrame(() => restore.focus());
-    }
+    detailView.show();
   }
 
   // =====================
@@ -1046,7 +1039,7 @@ export function SmartVideoViral() {
       if (e.key === '/') { e.preventDefault(); searchInput.focus(); }
       else if (e.key === 'r' && !e.metaKey && !e.ctrlKey) { e.preventDefault(); refreshBtn.click(); }
       else if (e.key === 'c' && !e.metaKey && !e.ctrlKey) { e.preventDefault(); langToggle.click(); }
-      else if (e.key === 'Escape') { if (modalEl) closeVideoModal(); }
+      else if (e.key === 'Escape') { /* MediaDetailView handles its own Escape */ }
       else if (e.key === '?') { showToast('Shortcuts: / search · r refresh · c toggle CN · Esc close modal', 'info', 4000); }
     });
   }
@@ -1168,9 +1161,9 @@ export function SmartVideoViral() {
         </div>
         <div class="flex items-center justify-between">
           <span class="text-xs text-zinc-400">Exclude Chinese content</span>
-          <button id="sheet-lang-toggle" type="button" class="px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-xl text-[10px] font-bold text-primary">On</button>
+          <button id="sheet-lang-toggle" type="button" class="btn-secondary-modern">On</button>
         </div>
-        <button id="sheet-apply" class="w-full py-3 btn-secondary-modern rounded-xl text-sm font-black">Apply Filters</button>
+        <button id="sheet-apply" class="btn-secondary-modern">Apply Filters</button>
       </div>
     `;
     document.body.appendChild(sheetBackdrop);
@@ -1318,7 +1311,8 @@ export function SmartVideoViral() {
       }
       if (!mounted) return;
       const vpfItems = (vpfJson.items || []).map(normalizeVpfItem);
-      prompts = [...vpfItems, ...seedanceItems];
+      const youmindItems = YOUMIND_VIRAL_OVERFLOW.map(normalizeYoumindItem);
+      prompts = [...vpfItems, ...seedanceItems, ...youmindItems];
       isLoading = false;
       lastUpdated = new Date();
       updateStatsAndRails();
@@ -1327,9 +1321,20 @@ export function SmartVideoViral() {
     } catch (err) {
       if (!mounted) return;
       if (err.name === 'AbortError') return;
-      error = err.message;
-      isLoading = false;
-      renderError();
+      // Fallback: still show local YouMind overflow if remote feeds fail
+      const youmindItems = YOUMIND_VIRAL_OVERFLOW.map(normalizeYoumindItem);
+      if (youmindItems.length > 0) {
+        prompts = youmindItems;
+        isLoading = false;
+        lastUpdated = new Date();
+        updateStatsAndRails();
+        applyFilters();
+        updateLastUpdatedDisplay();
+      } else {
+        error = err.message;
+        isLoading = false;
+        renderError();
+      }
     } finally {
       if (loadDataController && loadDataController.signal.aborted) {
         loadDataController = null;
@@ -1411,7 +1416,7 @@ export function SmartVideoViral() {
           <svg class="w-12 h-12 mx-auto mb-3 opacity-30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M15 9a3 3 0 1 0-3 3 3 3 0 0 0 3-3z"/></svg>
           <p class="text-sm">No prompts match your filters.</p>
           <p class="text-xs text-zinc-500 mt-1">Try adjusting your search or clearing the category filter.</p>
-          <button id="viral-reset-filters" class="mt-3 px-4 py-2 btn-secondary-modern rounded-xl text-xs font-black hover:shadow-glow transition">Reset All Filters</button>
+          <button id="viral-reset-filters" class="btn-secondary-modern">Reset All Filters</button>
         </div>
       `;
         const resetBtn = gridEl.querySelector('#viral-reset-filters');

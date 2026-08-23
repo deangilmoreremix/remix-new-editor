@@ -231,6 +231,21 @@
   box-shadow: 0 0 10px rgba(255,255,255,0.04);
 }
 
+.eg-btn-view:active {
+  transform: translateY(0);
+}
+
+.eg-btn-view:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #0a0a0a, 0 0 0 4px rgba(217,255,0,0.4);
+}
+
+.eg-btn-view:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .eg-btn-create {
   background: transparent;
   color: rgba(255,255,255,0.85);
@@ -250,6 +265,29 @@
 
 .eg-btn-create:active {
   transform: translateY(0) scale(0.98);
+}
+
+.eg-btn-create:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #0a0a0a, 0 0 0 4px rgba(217,255,0,0.4);
+}
+
+.eg-btn-create:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+  transform: none !important;
+}
+
+.eg-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #0a0a0a, 0 0 0 4px rgba(217,255,0,0.4);
+}
+
+.eg-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 /* Empty state */

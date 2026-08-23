@@ -402,20 +402,19 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  min-height: 40px;
-  padding: 10px 16px;
-  border: 1px solid transparent;
-  border-radius: var(--border-radius-md);
+  padding: 7px 10px;
   font-family: var(--font-family);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
   cursor: pointer;
-  transition: all var(--transition-fast);
-  /* Default: brand primary with black text (same as the studios' Generate
-     button). Declared here so the generic `.gtm-action` rule in
-     modal-styles.css can never leak a legacy accent into this modal. */
-  background: var(--app-primary);
-  color: var(--app-on-primary);
+  transition: all 200ms ease;
+  border: none;
+  white-space: nowrap;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(255,255,255,0.75);
+  border: 1px solid rgba(255,255,255,0.10);
 }
 
 .gtm-prompt-modal .gtm-action:focus-visible {
@@ -424,37 +423,59 @@
 }
 
 .gtm-prompt-modal .gtm-action:disabled {
-  opacity: 0.6;
+  opacity: 0.4;
   cursor: not-allowed;
+  pointer-events: none;
   transform: none !important;
 }
 
+.gtm-prompt-modal .gtm-action:hover {
+  background: transparent;
+  color: #ffffff;
+  border-color: rgba(255,255,255,0.25);
+  box-shadow: 0 0 10px rgba(255,255,255,0.04);
+}
+
+.gtm-prompt-modal .gtm-action:active {
+  transform: translateY(0);
+}
+
 .gtm-prompt-modal .copy-prompt-btn {
-  background: var(--app-primary);
-  color: var(--app-on-primary);
+  background: transparent;
+  color: rgba(255,255,255,0.85);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-left: 2px solid var(--app-primary);
 }
 
 .gtm-prompt-modal .copy-prompt-btn:hover:not(:disabled) {
+  color: #ffffff;
+  border-color: rgba(217,255,0,0.50);
+  border-left: 2px solid var(--app-primary);
+  box-shadow: 0 0 16px rgba(217,255,0,0.08);
   transform: translateY(-1px);
-  box-shadow: 0 8px 24px var(--app-glow);
 }
 
 .gtm-prompt-modal .copy-prompt-btn:active:not(:disabled) {
-  transform: translateY(0);
+  transform: translateY(0) scale(0.98);
 }
 
 .gtm-prompt-modal .thumbnail-prompt-btn {
-  background: var(--app-accent);
-  color: var(--app-on-primary);
+  background: transparent;
+  color: rgba(255,255,255,0.85);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-left: 2px solid var(--app-primary);
 }
 
 .gtm-prompt-modal .thumbnail-prompt-btn:hover:not(:disabled) {
+  color: #ffffff;
+  border-color: rgba(217,255,0,0.50);
+  border-left: 2px solid var(--app-primary);
+  box-shadow: 0 0 16px rgba(217,255,0,0.08);
   transform: translateY(-1px);
-  box-shadow: 0 8px 24px var(--app-glow);
 }
 
 .gtm-prompt-modal .thumbnail-prompt-btn:active:not(:disabled) {
-  transform: translateY(0);
+  transform: translateY(0) scale(0.98);
 }
 
 /* ============================================
@@ -710,11 +731,11 @@
 /* ============================================
    Modern Tiered Button System
    --------------------------------------------
-   Three tiers to reduce yellow saturation
-   and create visual hierarchy:
-     - primary-modern   : main CTA, soft gradient
-     - secondary-modern : outlined, translucent
-     - ghost-modern      : text-only, yellow on hover
+   Aligned with the Example Gallery ghost-accent
+   design language:
+     - primary-modern   : main CTA, transparent + left accent
+     - secondary-modern : outlined neutral ghost
+     - ghost-modern      : minimal outlined ghost
    ============================================ */
 
 .btn-primary-modern {
@@ -722,34 +743,42 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 40px;
-  padding: 8px 18px;
-  font-size: 13px;
+  padding: 7px 10px;
+  font-size: 11px;
   font-weight: 700;
-  font-family: var(--font-family);
-  color: #000000;
-  background: linear-gradient(135deg, #d9ff00 0%, #b8e600 100%);
-  border: 1px solid transparent;
-  border-radius: var(--border-radius-lg);
+  color: rgba(255,255,255,0.85);
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-left: 2px solid #d9ff00;
+  border-radius: 8px;
   cursor: pointer;
   white-space: nowrap;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast);
-  box-shadow: 0 2px 10px rgba(217, 255, 0, 0.25);
+  line-height: 1.2;
+  transition: all 200ms ease;
 }
 
 .btn-primary-modern:hover {
+  color: #ffffff;
+  border-color: rgba(217,255,0,0.50);
+  border-left: 2px solid #d9ff00;
+  box-shadow: 0 0 16px rgba(217,255,0,0.08);
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(217, 255, 0, 0.35);
-  opacity: 0.95;
 }
 
 .btn-primary-modern:active {
-  transform: translateY(0);
+  transform: translateY(0) scale(0.98);
 }
 
 .btn-primary-modern:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px var(--bg-app), 0 0 0 4px var(--color-primary, #d9ff00);
+  box-shadow: 0 0 0 2px var(--bg-app), 0 0 0 4px rgba(217,255,0,0.4);
+}
+
+.btn-primary-modern:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+  transform: none !important;
 }
 
 .btn-secondary-modern {
@@ -757,25 +786,24 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 40px;
-  padding: 8px 18px;
-  font-size: 13px;
+  padding: 7px 10px;
+  font-size: 11px;
   font-weight: 700;
-  font-family: var(--font-family);
-  color: var(--color-primary, #d9ff00);
-  background: rgba(217, 255, 0, 0.08);
-  border: 1px solid rgba(217, 255, 0, 0.35);
-  border-radius: var(--border-radius-lg);
+  color: rgba(255,255,255,0.75);
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 8px;
   cursor: pointer;
   white-space: nowrap;
-  transition: transform var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
-  backdrop-filter: blur(4px);
+  line-height: 1.2;
+  transition: all 200ms ease;
 }
 
 .btn-secondary-modern:hover {
-  background: rgba(217, 255, 0, 0.14);
-  border-color: rgba(217, 255, 0, 0.6);
-  box-shadow: 0 2px 10px rgba(217, 255, 0, 0.15);
+  background: transparent;
+  color: #ffffff;
+  border-color: rgba(255,255,255,0.25);
+  box-shadow: 0 0 10px rgba(255,255,255,0.04);
 }
 
 .btn-secondary-modern:active {
@@ -784,7 +812,14 @@
 
 .btn-secondary-modern:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px var(--bg-app), 0 0 0 4px rgba(217, 255, 0, 0.5);
+  box-shadow: 0 0 0 2px var(--bg-app), 0 0 0 4px rgba(217,255,0,0.4);
+}
+
+.btn-secondary-modern:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+  transform: none !important;
 }
 
 .btn-ghost-modern {
@@ -792,24 +827,24 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 40px;
-  padding: 8px 14px;
-  font-size: 13px;
+  padding: 7px 10px;
+  font-size: 11px;
   font-weight: 700;
-  font-family: var(--font-family);
-  color: var(--text-secondary);
+  color: rgba(255,255,255,0.75);
   background: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--border-radius-lg);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 8px;
   cursor: pointer;
   white-space: nowrap;
-  transition: color var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast);
+  line-height: 1.2;
+  transition: all 200ms ease;
 }
 
 .btn-ghost-modern:hover {
-  color: var(--color-primary, #d9ff00);
-  background: rgba(217, 255, 0, 0.08);
-  border-color: rgba(217, 255, 0, 0.2);
+  background: transparent;
+  color: #ffffff;
+  border-color: rgba(255,255,255,0.25);
+  box-shadow: 0 0 10px rgba(255,255,255,0.04);
 }
 
 .btn-ghost-modern:active {
@@ -818,20 +853,19 @@
 
 .btn-ghost-modern:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px var(--bg-app), 0 0 0 4px rgba(217, 255, 0, 0.4);
+  box-shadow: 0 0 0 2px var(--bg-app), 0 0 0 4px rgba(217,255,0,0.4);
 }
 
-/* Studio-scoped primary button theming */
-.image-studio .btn-primary-modern,
-.video-studio .btn-primary-modern,
-.cinema-template-studio .btn-primary-modern,
-.template-studio .btn-primary-modern,
-[data-app="image"] .btn-primary-modern,
-[data-app="video"] .btn-primary-modern,
-[data-app="template"] .btn-primary-modern {
-  background: linear-gradient(135deg, #d9ff00 0%, #b8e600 100%);
-  color: #000000;
+.btn-ghost-modern:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+  transform: none !important;
 }
+
+/* Note: Studio-scoped solid-gradient overrides removed.
+   The unified button system now uses the transparent
+   ghost-accent language across all studios and modals. */
 
 /* ===== Real GTM skill examples panel (show + click-to-use) ===== */
 .gtm-prompt-modal .gtm-examples {

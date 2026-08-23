@@ -92,7 +92,7 @@ export const ACADEMY_STUDIO_ADAPTERS = [
   },
   {
     id: '05-ai-avatars-and-influencers::emma-cafe-consistent',
-    studio: 'character',
+    studio: 'avatar',
     prompt: 'Consistent AI character portrait of Emma in a cafe setting, locked facial features, warm ambient cafe lighting, photorealistic skin texture, upper body shot',
     stylePreset: 'Photorealistic',
     aspectRatio: '1:1',
@@ -101,7 +101,7 @@ export const ACADEMY_STUDIO_ADAPTERS = [
   },
   {
     id: '05-ai-avatars-and-influencers::emma-cafe-motion',
-    studio: 'character',
+    studio: 'avatar',
     prompt: 'AI influencer Emma in a cafe environment, subtle head turn and natural smile, locked face identity, cinematic shallow depth of field, 5 second loop',
     stylePreset: 'Photorealistic',
     aspectRatio: '9:16',
@@ -110,7 +110,7 @@ export const ACADEMY_STUDIO_ADAPTERS = [
   },
   {
     id: '05-ai-avatars-and-influencers::emma-master',
-    studio: 'character',
+    studio: 'avatar',
     prompt: 'Master character reference sheet for AI avatar Emma, multiple angles, consistent facial features, neutral lighting, front-facing reference',
     stylePreset: 'Photorealistic',
     aspectRatio: '1:1',
@@ -119,7 +119,7 @@ export const ACADEMY_STUDIO_ADAPTERS = [
   },
   {
     id: '05-ai-avatars-and-influencers::avatar-agency-suite',
-    studio: 'character',
+    studio: 'avatar',
     prompt: 'AI avatar influencer agency brand identity, virtual influencer in branded content setting, professional lighting, lifestyle brand aesthetic',
     stylePreset: 'Photorealistic',
     aspectRatio: '1:1',

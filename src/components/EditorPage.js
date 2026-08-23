@@ -4,7 +4,6 @@ import { showToast } from '../lib/loading.js';
 import { getSupabaseUrl } from '../lib/supabase.js';
 import { escapeHtml } from '../lib/security.js';
 import { createUploadPicker } from './UploadPicker.js';
-import { createMediaPreview, createFullscreenPreview } from './MediaPreview.js';
 
 const TRANSITIONS = [
     { id: 'fade', name: 'Fade', icon: '◐', duration: 0.5, tooltip: 'Gradual fade between clips' },
@@ -139,9 +138,6 @@ export function EditorPage() {
     }
     let redoStack = [];
     
-    const fullscreen = createFullscreenPreview();
-    container.appendChild(fullscreen.element);
-
     container.innerHTML = `
         <!-- Header -->
         <div class="flex items-center justify-between p-3 border-b border-white/5 bg-black/30">

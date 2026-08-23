@@ -30,7 +30,55 @@ const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
 const MAX_RETRIES = 2;
 const RETRYABLE_STATUSES = new Set([502, 503, 429]);
 
-// Simple MIME sniff: reads up to 12 bytes to identify image/video formats.
+// --- Output Integrity ---
+
+const KNOWN_STATIC_PATTERNS = [
+  '/muapi/homepage/',
+  '/muapi/demo/',
+  '/muapi/sandbox/',
+  '/webassets/videomodels/',
+  '/webassets/',
+  '/placeholder/',
+  '/sample/',
+  '/static/demo/',
+];
+
+function isStaticPlaceholderUrl(url: string): boolean {
+  if (!url || typeof url !== 'string') return false;
+  const lower = url.toLowerCase();
+  return KNOWN_STATIC_PATTERNS.some(pattern => lower.includes(pattern));
+}
+
+function extractOutputUrls(result: any): string[] {
+  const urls: string[] = [];
+  if (Array.isArray(result.outputs)) urls.push(...result.outputs);
+  if (Array.isArray(result.images)) urls.push(...result.images);
+  if (result.url) urls.push(result.url);
+  if (result.output?.url) urls.push(result.output.url);
+  if (result.video?.url) urls.push(result.video.url);
+  if (result.audio?.url) urls.push(result.audio.url);
+  return urls.filter(Boolean);
+}
+
+function validateOutputIntegrity(result: any, requestId: string): { ok: boolean; reason?: string } {
+  const urls = extractOutputUrls(result);
+
+  if (urls.length === 0) {
+    return { ok: false, reason: 'no_output_urls' };
+  }
+
+  const staticUrls = urls.filter(isStaticPlaceholderUrl);
+  if (staticUrls.length > 0) {
+    return {
+      ok: false,
+      reason: `static_placeholder_detected: ${staticUrls[0]}`,
+    };
+  }
+
+  return { ok: true };
+}
+
+// --- CORS helpers ---
 function sniffMimeType(chunk: Uint8Array): string | null {
   if (chunk.length < 4) return null;
   const bytes = chunk;
@@ -463,6 +511,27 @@ Deno.serve(async (req: Request) => {
       }
       result = unwrapResponse(result);
 
+      // NEW: Validate output integrity for completed results
+      const completionStatuses = new Set(['completed', 'succeeded', 'success']);
+      if (result.status && completionStatuses.has(result.status.toLowerCase())) {
+        const validation = validateOutputIntegrity(result, result.id || result.request_id);
+        if (!validation.ok) {
+          console.error(`[muapi-proxy] Blocked static/demo output: ${validation.reason}`);
+          return new Response(
+            JSON.stringify({
+              error: 'static_placeholder_detected',
+              reason: validation.reason,
+              message: 'The upstream service returned a placeholder or demo asset instead of a unique generation. Please verify your API key has active credits.',
+              request_id: result.id || result.request_id,
+            }),
+            {
+              status: 422,
+              headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
+            }
+          );
+        }
+      }
+
       return new Response(
         JSON.stringify(result),
         {
@@ -600,6 +669,27 @@ Deno.serve(async (req: Request) => {
 
     let result = await muapiResponse.json();
     result = unwrapResponse(result);
+
+    // NEW: Validate output integrity for completed results
+    const completionStatuses = new Set(['completed', 'succeeded', 'success']);
+    if (result.status && completionStatuses.has(result.status.toLowerCase())) {
+      const validation = validateOutputIntegrity(result, result.id || result.request_id);
+      if (!validation.ok) {
+        console.error(`[muapi-proxy] Blocked static/demo output: ${validation.reason}`);
+        return new Response(
+          JSON.stringify({
+            error: 'static_placeholder_detected',
+            reason: validation.reason,
+            message: 'The upstream service returned a placeholder or demo asset instead of a unique generation. Please verify your API key has active credits.',
+            request_id: result.id || result.request_id,
+          }),
+          {
+            status: 422,
+            headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
+          }
+        );
+      }
+    }
 
     console.log(`[muapi-proxy] Success: ${JSON.stringify(result).slice(0, 100)}`);
 

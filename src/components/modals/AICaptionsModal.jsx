@@ -72,10 +72,7 @@ const CAPTION_THEMES = [
 
 const GENERATION_STEPS = [
   'Uploading video...',
-  'Transcribing audio...',
   'Generating captions...',
-  'Rendering video...',
-  'Finalizing...',
 ];
 
 export class AICaptionsModal extends BaseModal {
@@ -439,13 +436,11 @@ export class AICaptionsModal extends BaseModal {
     };
 
     try {
-      advanceStep();
       const effectiveUrl = await this.uploadFileIfNeeded();
       if (!effectiveUrl) throw new Error('No video URL available.');
 
       advanceStep();
       const { muapi } = await import('../../lib/muapi.js');
-      advanceStep();
 
       const result = await muapi.processVideoTool({
         model: 'ai-captions',
@@ -454,12 +449,13 @@ export class AICaptionsModal extends BaseModal {
         theme: this.theme,
       });
 
-      advanceStep();
+      this.currentStep = GENERATION_STEPS.length - 1;
+      this.refreshBody();
+
       const captionedUrl = result?.url || result?.output?.url || result?.outputs?.[0];
       if (captionedUrl) {
         this.captionedUrl = captionedUrl;
         this.isGenerating = false;
-        this.currentStep = GENERATION_STEPS.length - 1;
         this.refreshBody();
         this.onComplete(captionedUrl);
       } else {

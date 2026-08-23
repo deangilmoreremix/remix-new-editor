@@ -1,17 +1,25 @@
 const files = [
   'apps','image','video','cinema','cinema-template','storyboard','effects',
-  'edit','upscale','audio','avatar','training','academy','viral','videotools',
-  'render','video-agent','director','timeline','chat','commercial','templates',
-  'explore','library','content-library','community','assist','commits','ai-vfx','pexels-media','settings',
-  'template-tiktok-video','template-instagram-reel','template-youtube-thumbnail','template-short-form-ad',
-  'template-story-highlight-cover','template-profile-picture','template-banner-creator',
-  'template-anime-converter','template-comic-book','template-pixel-art','template-ghibli-style',
-  'template-cyberpunk-style','template-vhs-retro','template-film-noir','template-movie-poster',
-  'cinema-template-tiktok-video','cinema-template-instagram-reel','cinema-template-youtube-thumbnail',
-  'cinema-template-short-form-ad','cinema-template-story-highlight-cover','cinema-template-profile-picture',
-  'cinema-template-banner-creator','cinema-template-anime-converter','cinema-template-comic-book',
-  'cinema-template-pixel-art','cinema-template-ghibli-style','cinema-template-cyberpunk-style',
-  'cinema-template-vhs-retro','cinema-template-film-noir','cinema-template-movie-poster'
+  'edit','upscale','audio','avatar','training','viral','videotools',
+  'render','video-agent','director','timeline','commercial','templates',
+  'explore','library','content-library','community','assist','ai-vfx','pexels-media','settings',
+  'image-advanced','image-tools','image-thumbnail-modal','image-gtm-modal',
+  'video-advanced','video-motion-style','video-thumbnail-modal',
+  'cinema-builder','cinema-thumbnail-modal',
+  'effects-advanced','effects-tab-image','effects-tab-motion','effects-tab-video',
+  'edit-remove-object','edit-remove-background','edit-ai-edit',
+  'commercial-thumbnail-modal',
+  'template-editor','cinema-template-editor',
+  'timeline-media-preview','timeline-templates',
+  'video-agent-perceive','video-agent-generate',
+  'template-tiktok-video','template-instagram-reel','template-youtube-thumbnail',
+  'template-anime-converter','template-banner-creator','template-comic-book',
+  'template-cyberpunk-style','template-film-noir','template-ghibli-style',
+  'template-movie-poster','template-pixel-art','template-profile-picture',
+  'template-short-form-ad','template-story-highlight-cover','template-vhs-retro',
+  'cinema-template-cinematic-short-film','cinema-template-mini-movie','cinema-template-trailer-video',
+  'cinema-template-brand-film','cinema-template-product-hero-shot',
+  'cinema-template-social-reel-cinematic','cinema-template-story-highlight-cinematic'
 ];
 const grid = document.getElementById('grid');
 files.forEach(name => {

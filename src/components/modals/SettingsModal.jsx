@@ -192,7 +192,7 @@ export class SettingsModal extends BaseModal {
                     <span id="settings-muapi-status" style="font-size:12px; color: ${apiKeyManager.hasMuapiKey() ? 'var(--color-success)' : 'var(--text-muted)'};">${apiKeyManager.hasMuapiKey() ? '✓ Key saved' : 'No key set'}</span>
                     <div style="display:flex; gap:8px;">
                       <button type="button" class="text-btn" id="settings-muapi-clear" data-tooltip="Remove your saved Muapi key" ${!apiKeyManager.hasMuapiKey() ? 'disabled' : ''}>Clear</button>
-                      <button type="button" class="modal-btn modal-btn-primary" id="settings-muapi-save" style="min-height:32px; padding:6px 14px; font-size:12px;">Save Key</button>
+                      <button type="button" class="modal-btn modal-btn-primary" id="settings-muapi-save">Save Key</button>
                     </div>
                   </div>
                 </div>
@@ -207,7 +207,7 @@ export class SettingsModal extends BaseModal {
                     <span id="settings-openai-status" style="font-size:12px; color: ${apiKeyManager.hasOpenAIKey() ? 'var(--color-success)' : 'var(--text-muted)'};">${apiKeyManager.hasOpenAIKey() ? '✓ Key saved' : 'No key set'}</span>
                     <div style="display:flex; gap:8px;">
                       <button type="button" class="text-btn" id="settings-openai-clear" data-tooltip="Remove your saved OpenAI key" ${!apiKeyManager.hasOpenAIKey() ? 'disabled' : ''}>Clear</button>
-                      <button type="button" class="modal-btn modal-btn-primary" id="settings-openai-save" style="min-height:32px; padding:6px 14px; font-size:12px;">Save Key</button>
+                      <button type="button" class="modal-btn modal-btn-primary" id="settings-openai-save">Save Key</button>
                     </div>
                   </div>
                 </div>
@@ -222,7 +222,7 @@ export class SettingsModal extends BaseModal {
                     <span id="settings-videodb-status" style="font-size:12px; color: ${apiKeyManager.hasVideoDBKey() ? 'var(--color-success)' : 'var(--text-muted)'};">${apiKeyManager.hasVideoDBKey() ? '✓ Key saved' : 'No key set'}</span>
                     <div style="display:flex; gap:8px;">
                       <button type="button" class="text-btn" id="settings-videodb-clear" data-tooltip="Remove your saved VideoDB key" ${!apiKeyManager.hasVideoDBKey() ? 'disabled' : ''}>Clear</button>
-                      <button type="button" class="modal-btn modal-btn-primary" id="settings-videodb-save" style="min-height:32px; padding:6px 14px; font-size:12px;">Save Key</button>
+                      <button type="button" class="modal-btn modal-btn-primary" id="settings-videodb-save">Save Key</button>
                     </div>
                   </div>
                 </div>
