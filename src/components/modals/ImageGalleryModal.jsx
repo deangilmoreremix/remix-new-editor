@@ -1,5 +1,5 @@
 import { BaseModal } from './BaseModal.jsx';
-import { youmindImagePrompts } from '../data/youmindImagePrompts.js';
+import { youmindImagePrompts } from '/src/data/youmindImagePrompts.js';
 
 export class ImageGalleryModal extends BaseModal {
   constructor(options = {}) {

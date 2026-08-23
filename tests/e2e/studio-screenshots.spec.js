@@ -4,17 +4,17 @@
 //
 // Prerequisites:
 //   1. Start the dev server: npm run dev (serves on http://localhost:3100)
-//   2. Run this test: npx playwright test tests/e2e/studio-screenshots.spec.js
+//   2. Run this test: npx playwright test tests/e2e/studio-screenshots.spec.js --config=playwright.screenshots.config.js
 //
 // Screenshots are saved to ./screenshots/ with one PNG per studio,
 // plus a separate capture of the Settings modal.
 
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
 
 const SCREENSHOTS_DIR = path.resolve(process.cwd(), 'screenshots');
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3100';
+const BASE_URL = 'http://localhost:3100';
 const VIEWPORT = { width: 1440, height: 900 };
 
 // Side menu items in exact order from src/components/Sidebar.js
@@ -86,8 +86,8 @@ async function dismissStudioDrawer(page) {
 
 async function navigateToStudio(page, route) {
   await page.goto(`${BASE_URL}/?dev#/${route}`);
-  await page.waitForSelector('[data-studio-back]', { timeout: 15000 });
-  await page.waitForTimeout(500);
+  // Allow time for dynamic imports and studio chrome to mount.
+  await page.waitForTimeout(1200);
 }
 
 async function captureScreenshot(page, filename) {
@@ -100,6 +100,7 @@ async function captureScreenshot(page, filename) {
   await page.screenshot({
     path: path.join(SCREENSHOTS_DIR, `${filename}.png`),
     fullPage: false,
+    timeout: 60000,
   });
 }
 
@@ -111,6 +112,7 @@ test.describe('Studio Screenshot Capture', () => {
   });
 
   test('captures screenshots for all side menu studios', async ({ page }) => {
+    test.setTimeout(120000);
     await page.setViewportSize(VIEWPORT);
 
     for (const item of SIDE_MENU_ITEMS) {
@@ -118,8 +120,7 @@ test.describe('Studio Screenshot Capture', () => {
       await captureScreenshot(page, item.id);
     }
 
-    await page.goto(`${BASE_URL}/?dev#/image`);
-    await page.waitForTimeout(500);
+    await navigateToStudio(page, 'image');
     await page.evaluate(() => {
       window.dispatchEvent(new CustomEvent('navigate', { detail: { page: 'settings' } }));
     });

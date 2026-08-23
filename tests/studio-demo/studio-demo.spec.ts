@@ -22,8 +22,6 @@ test.describe('Studio Demo Automation', () => {
 
   // Load studio configurations before tests
   test.beforeAll(() => {
-    orchestrator = new StudioDemoOrchestrator();
-
     // Allow overriding studio URLs via environment variable
     const envUrls = process.env.STUDIO_URLS;
     if (envUrls) {
@@ -35,13 +33,13 @@ test.describe('Studio Demo Automation', () => {
           {
             name: 'Load Page',
             description: 'Navigate to and load the studio page',
-            action: { type: 'wait', ms: 2000 },
+            action: { type: 'wait', ms: 2000 } as const,
             validate: [
               { type: 'url', expected: url.trim(), description: 'URL loaded successfully' }
             ]
           }
         ]
-      }));
+      })) as StudioConfig[];
       studios = urls.length > 0 ? urls : STUDIO_CONFIGS;
     } else {
       studios = STUDIO_CONFIGS;
@@ -49,6 +47,9 @@ test.describe('Studio Demo Automation', () => {
   });
 
   test.beforeEach(async ({ page }) => {
+    // Initialize orchestrator with page
+    orchestrator = new StudioDemoOrchestrator(page);
+
     // Set viewport for consistent video recording
     await page.setViewportSize({ width: 1920, height: 1080 });
 
@@ -57,7 +58,7 @@ test.describe('Studio Demo Automation', () => {
     page.setDefaultNavigationTimeout(30000);
   });
 
-  test.afterAll(async () => {
+  test.afterEach(async () => {
     // Generate and save report
     const reportPath = orchestrator.saveReport();
     console.log(`\n[Test] Demo report saved: ${reportPath}`);
@@ -85,13 +86,13 @@ test.describe('Studio Demo Automation', () => {
   test('record single studio by ID', async ({ page }) => {
     const studioId = process.env.TEST_STUDIO_ID;
     if (!studioId) {
-      test.skip('Set TEST_STUDIO_ID to run this test');
+      test.skip(true, 'Set TEST_STUDIO_ID to run this test');
       return;
     }
 
     const studio = STUDIO_CONFIGS.find((s) => s.id === studioId);
     if (!studio) {
-      test.skip(`Studio with ID "${studioId}" not found in config`);
+      test.skip(true, `Studio with ID "${studioId}" not found in config`);
       return;
     }
 

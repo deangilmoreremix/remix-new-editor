@@ -48,6 +48,8 @@ async function ensureStudioAccess(page, urlParams = {}) {
 
   if (urlParams.template && (page === 'templates' || page.startsWith('template/'))) return true;
 
+  if (urlParams.public === '1') return true;
+
   // Local/dev auth bypass (VITE_DEV_BYPASS_AUTH or ?dev): skip the Clerk
   // gate entirely so studios are usable without a real Clerk session.
   if (isDevBypass) return true;

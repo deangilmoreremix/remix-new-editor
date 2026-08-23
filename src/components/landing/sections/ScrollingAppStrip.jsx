@@ -132,6 +132,15 @@ const APPS = [
   { name: 'Agents', icon: '🤖', color: 'yellow' },
 ];
 
+const DOT_COLORS = {
+  cyan: '#22d3ee',
+  purple: '#a855f7',
+  emerald: '#34d399',
+  pink: '#ec4899',
+  yellow: '#facc15',
+  indigo: '#6366f1',
+};
+
 const ALL_FEATURES = Object.entries(FEATURE_CATEGORIES).flatMap(([category, features]) =>
   features.map((feature) => ({ name: feature, color: 'cyan' }))
 );
@@ -150,7 +159,7 @@ export function ScrollingAppStrip() {
       class="app-chip flex items-center gap-3 px-4 py-2 bg-white/[0.07] border border-white/15 rounded-full whitespace-nowrap cursor-pointer transition-all duration-300 group shadow-lg shadow-black/20"
       data-app="${app.name}"
     >
-      <span class="w-2 h-2 rounded-full bg-${app.color}-400 shadow-lg"></span>
+      <span class="w-2 h-2 rounded-full shadow-lg" style="background-color: ${DOT_COLORS[app.color] || app.color}"></span>
       <span class="text-sm font-semibold text-white">${app.name}</span>
       <span class="text-sm opacity-70 group-hover:opacity-100 transition-opacity duration-200">${app.icon}</span>
     </div>
@@ -162,7 +171,7 @@ export function ScrollingAppStrip() {
     const color = colors[colorIndex];
     return `
       <div class="feature-chip flex items-center gap-3 px-4 py-2 bg-white/[0.07] border border-white/15 rounded-full whitespace-nowrap cursor-pointer transition-all duration-300 group shadow-lg shadow-black/20">
-        <span class="w-2 h-2 rounded-full bg-${color}-400 shadow-lg"></span>
+        <span class="w-2 h-2 rounded-full shadow-lg" style="background-color: ${DOT_COLORS[color] || color}"></span>
         <span class="text-sm font-semibold text-white">${feature.name}</span>
         <span class="text-sm opacity-70 group-hover:opacity-100 transition-opacity duration-200">⚡</span>
       </div>

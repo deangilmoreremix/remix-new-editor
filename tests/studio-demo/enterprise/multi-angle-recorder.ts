@@ -55,7 +55,7 @@ export class MultiAngleRecorder {
 
   constructor(page: Page, outputDir = './test-results/multi-angle') {
     this.page = page;
-    this.browser = page.context().browser();
+    this.browser = page.context().browser() || (await page.context().browser());
     this.outputDir = outputDir;
     this.ensureOutputDir();
   }

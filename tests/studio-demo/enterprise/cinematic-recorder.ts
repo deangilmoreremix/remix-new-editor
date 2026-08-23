@@ -156,14 +156,8 @@ export class CinematicRecorder {
       await this.injectCursorEffects();
     }
 
-    // Start Playwright video recording
-    await this.context.setOptions({
-      recordVideo: {
-        dir: path.join(this.outputDir, 'raw'),
-        size: this.config.resolution,
-      },
-    });
-
+    // Note: Video recording is configured in playwright.config.ts
+    // Per-context video options cannot be changed after context creation
     this.isRecording = true;
     console.log(`[Recorder] Started session: ${sessionId}`);
     console.log(`[Recorder] Resolution: ${this.config.resolution.width}x${this.config.resolution.height}@${this.config.frameRate}fps`);
@@ -196,17 +190,17 @@ export class CinematicRecorder {
    * Injects cursor effects into the page.
    */
   private async injectCursorEffects(): Promise<void> {
-    await this.page.evaluate((cursor) => {
+    await this.page.evaluate((cursorConfig) => {
       const style = document.createElement('style');
       style.id = 'cinematic-cursor';
       style.textContent = `
         /* Custom cursor with glow effect */
         body.cinematic-recording {
-          cursor: ${cursor.style === 'none' ? 'none' : 'none'} !important;
+          cursor: ${cursorConfig.style === 'none' ? 'none' : 'none'} !important;
         }
         
         body.cinematic-recording * {
-          cursor: ${cursor.style === 'none' ? 'none' : 'none'} !important;
+          cursor: ${cursorConfig.style === 'none' ? 'none' : 'none'} !important;
         }
         
         /* Custom cursor element */

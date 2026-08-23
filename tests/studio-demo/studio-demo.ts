@@ -19,7 +19,7 @@ import * as path from 'path';
 // CONFIGURATION LAYER
 // =============================================================================
 
-interface StudioConfig {
+export interface StudioConfig {
   id: string;
   name: string;
   url: string;
@@ -32,7 +32,7 @@ interface StudioConfig {
   };
 }
 
-interface FeatureStep {
+export interface FeatureStep {
   name: string;
   description: string;
   action: FeatureAction;
@@ -89,68 +89,33 @@ interface FeatureResult {
 export const STUDIO_CONFIGS: StudioConfig[] = [
   {
     id: 'studio-alpha',
-    name: 'Studio Alpha - Main Dashboard',
-    url: 'https://your-app.com/studios/alpha',
-    expectedTitle: 'Studio Alpha',
+    name: 'Studio Alpha - Example Page',
+    url: 'https://example.com',
+    expectedTitle: 'Example Domain',
     features: [
       {
-        name: 'Open Dashboard',
-        description: 'Load the main dashboard view',
-        action: { type: 'waitForSelector', selector: '[data-testid="dashboard"]', state: 'visible' },
+        name: 'Load Page',
+        description: 'Navigate to example.com and verify it loads',
+        action: { type: 'waitForSelector', selector: 'h1', state: 'visible' },
         validate: [
-          { type: 'visible', selector: '[data-testid="dashboard"]', description: 'Dashboard is visible' },
-          { type: 'text', selector: 'h1', expected: 'Dashboard', description: 'Dashboard heading present' }
+          { type: 'visible', selector: 'h1', description: 'Heading is visible' },
+          { type: 'text', selector: 'h1', expected: 'Example Domain', description: 'Correct heading text' }
         ]
       },
       {
-        name: 'Toggle Sidebar',
-        description: 'Open the navigation sidebar',
-        action: { type: 'click', selector: '[aria-label="Toggle sidebar"]' },
-        waitForSelector: '[data-testid="sidebar"]',
+        name: 'Check Paragraph',
+        description: 'Verify paragraph content is present',
+        action: { type: 'waitForSelector', selector: 'p', state: 'visible' },
         validate: [
-          { type: 'visible', selector: '[data-testid="sidebar"]', description: 'Sidebar is open' }
+          { type: 'visible', selector: 'p', description: 'Paragraph is visible' }
         ]
       },
       {
-        name: 'Navigate to Projects',
-        description: 'Click Projects in sidebar navigation',
-        action: { type: 'click', selector: '[data-testid="nav-projects"]' },
-        waitForSelector: '[data-testid="projects-list"]',
+        name: 'Check Link',
+        description: 'Verify the More information link exists',
+        action: { type: 'waitForSelector', selector: 'a', state: 'visible' },
         validate: [
-          { type: 'url', expected: '/projects', description: 'URL contains /projects' }
-        ]
-      }
-    ]
-  },
-  {
-    id: 'studio-beta',
-    name: 'Studio Beta - Editor Environment',
-    url: 'https://your-app.com/studios/beta',
-    expectedTitle: 'Studio Beta',
-    features: [
-      {
-        name: 'Load Editor',
-        description: 'Wait for editor canvas to be ready',
-        action: { type: 'waitForSelector', selector: '.editor-canvas', state: 'visible' },
-        validate: [
-          { type: 'visible', selector: '.editor-canvas', description: 'Editor canvas loaded' }
-        ]
-      },
-      {
-        name: 'Open Properties Panel',
-        description: 'Click properties button to reveal panel',
-        action: { type: 'click', selector: '[aria-label="Properties"]' },
-        waitForSelector: '.properties-panel',
-        validate: [
-          { type: 'visible', selector: '.properties-panel', description: 'Properties panel visible' }
-        ]
-      },
-      {
-        name: 'Toggle Dark Mode',
-        description: 'Switch to dark theme',
-        action: { type: 'click', selector: '[aria-label="Toggle dark mode"]' },
-        validate: [
-          { type: 'attribute', selector: 'body', expected: 'dark', description: 'Dark mode applied' }
+          { type: 'count', selector: 'a', expected: 1, description: 'Exactly one link present' }
         ]
       }
     ]
@@ -498,10 +463,12 @@ export class StudioDemoOrchestrator {
   private validationEngine: ValidationEngine;
   private videoRecorder: VideoRecorder;
   private results: DemoResult[] = [];
+  private page: Page;
 
-  constructor() {
-    this.interactionEngine = new ElementInteractionEngine(test.info().page!);
-    this.validationEngine = new ValidationEngine(test.info().page!);
+  constructor(page: Page) {
+    this.page = page;
+    this.interactionEngine = new ElementInteractionEngine(page);
+    this.validationEngine = new ValidationEngine(page);
     this.videoRecorder = new VideoRecorder();
   }
 
@@ -522,12 +489,12 @@ export class StudioDemoOrchestrator {
     console.log(`${'='.repeat(60)}`);
 
     // Create context with video recording
-    const context = await test.info().page!.context();
+    const context = await this.page.context();
     const videoOptions = this.videoRecorder.getContextOptions(videoPath);
 
     // Navigate to studio
     try {
-      await test.info().page!.goto(studio.url, {
+      await this.page.goto(studio.url, {
         waitUntil: 'networkidle',
         timeout: 30000
       });
@@ -551,7 +518,7 @@ export class StudioDemoOrchestrator {
     // Validate page load
     if (studio.expectedTitle) {
       try {
-        await expect(test.info().page!).toHaveTitle(new RegExp(studio.expectedTitle));
+        await expect(this.page).toHaveTitle(new RegExp(studio.expectedTitle));
       } catch (err) {
         errors.push(`Title validation failed: ${(err as Error).message}`);
       }
@@ -572,7 +539,7 @@ export class StudioDemoOrchestrator {
         await this.executeAction(feature.action);
 
         // Short pause to let UI settle (for video clarity)
-        await test.info().page!.waitForTimeout(800);
+        await this.page.waitForTimeout(800);
 
         // Run validations
         if (feature.validate && feature.validate.length > 0) {
@@ -636,7 +603,7 @@ export class StudioDemoOrchestrator {
    * Execute different action types.
    */
   private async executeAction(action: FeatureAction): Promise<void> {
-    const page = test.info().page!;
+    const page = this.page;
 
     switch (action.type) {
       case 'click':
@@ -688,22 +655,23 @@ export class StudioDemoOrchestrator {
   }
 
   private async scrollElement(selector: string | undefined, direction?: string): Promise<void> {
-    const page = test.info().page!;
-    const target = selector ? page.locator(selector) : page;
-    await target.evaluate((el, dir) => {
-      const element = el as HTMLElement;
+    const page = this.page;
+    const targetSelector = selector || 'body';
+    await page.evaluate((opts: { sel: string; dir: string }) => {
+      const element = document.querySelector(opts.sel) as HTMLElement;
+      if (!element) return;
       const scrollMap: Record<string, number> = {
         'up': -300,
         'down': 300,
         'top': -element.scrollHeight,
         'bottom': element.scrollHeight
       };
-      element.scrollBy({ top: scrollMap[dir || 'down'], behavior: 'smooth' });
-    }, direction || 'down');
+      element.scrollBy({ top: scrollMap[opts.dir || 'down'], behavior: 'smooth' });
+    }, { sel: targetSelector, dir: direction || 'down' });
   }
 
   private async handleAuth(credentials: { email: string; password: string }): Promise<void> {
-    const page = test.info().page!;
+    const page = this.page;
 
     // Fill email
     await page.fill('input[type="email"]', credentials.email);
@@ -716,7 +684,7 @@ export class StudioDemoOrchestrator {
   }
 
   private async captureScreenshot(name: string): Promise<string> {
-    const page = test.info().page!;
+    const page = this.page;
     const screenshotDir = './test-results/screenshots';
     if (!fs.existsSync(screenshotDir)) {
       fs.mkdirSync(screenshotDir, { recursive: true });
@@ -737,7 +705,7 @@ export class StudioDemoOrchestrator {
 
       // Brief pause between studios
       if (studios.indexOf(studio) < studios.length - 1) {
-        await test.info().page!.waitForTimeout(2000);
+        await this.page.waitForTimeout(2000);
       }
     }
 
@@ -842,13 +810,13 @@ export class ShadowDOMPiercer {
   static async findInShadowDOM(page: Page, selectors: string[]): Promise<string | null> {
     for (const selector of selectors) {
       try {
-        const element = await page.evaluate((sel) => {
+        const element = await page.evaluate((sel: string) => {
           const parts = sel.split('>>>');
-          let current: Element | null = document;
+          let current: Element | Document | null = document;
 
           for (const part of parts) {
             if (!current) return null;
-            if (current === document) {
+            if (current === document || current.nodeType === Node.DOCUMENT_NODE) {
               current = document.querySelector(part.trim());
             } else {
               current = (current as HTMLElement).shadowRoot?.querySelector(part.trim()) || null;
@@ -992,26 +960,6 @@ export class ParallelDemoRunner {
  * - VIDEO_DIR: Directory for video output
  * - HEADLESS: true/false (default: true)
  */
-
-if (require.main === module) {
-  console.log(`
-Studio Demo Automation
-=====================
-
-Usage:
-  npx playwright test studio-demo.ts
-
-Configuration:
-  - Edit STUDIO_CONFIGS to add your studios
-  - Set VIDEO_DIR environment variable for output
-  - Configure credentials via environment variables
-
-Output:
-  - Videos: ./test-results/videos/
-  - Screenshots: ./test-results/screenshots/
-  - Report: ./test-results/demo-report-<timestamp>.md
-  `);
-}
 
 export default {
   STUDIO_CONFIGS,

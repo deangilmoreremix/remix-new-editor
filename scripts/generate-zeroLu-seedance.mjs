@@ -94,6 +94,7 @@ function parseReadmeSections(readme) {
   let currentPrompt = '';
   let currentAuthor = '';
   let currentUrl = '';
+  let currentRawSource = '';
   let inCodeBlock = false;
   let inPromptBlock = false;
 
@@ -110,6 +111,7 @@ function parseReadmeSections(readme) {
           prompt: currentPrompt.trim(),
           sourceAuthor: currentAuthor,
           sourceUrl: currentUrl,
+          sourceRaw: currentRawSource,
           category: README_CATEGORY_MAP[currentCategory] || 'Cinema',
         });
       }
@@ -118,6 +120,7 @@ function parseReadmeSections(readme) {
       currentPrompt = '';
       currentAuthor = '';
       currentUrl = '';
+      currentRawSource = '';
       inCodeBlock = false;
       inPromptBlock = false;
       continue;
@@ -133,6 +136,7 @@ function parseReadmeSections(readme) {
           prompt: currentPrompt.trim(),
           sourceAuthor: currentAuthor,
           sourceUrl: currentUrl,
+          sourceRaw: currentRawSource,
           category: README_CATEGORY_MAP[currentCategory] || 'Cinema',
         });
       }
@@ -140,6 +144,7 @@ function parseReadmeSections(readme) {
       currentPrompt = '';
       currentAuthor = '';
       currentUrl = '';
+      currentRawSource = '';
       inCodeBlock = false;
       inPromptBlock = false;
       continue;
@@ -166,35 +171,33 @@ function parseReadmeSections(readme) {
     }
 
     // Source attribution: lines like
-    //   *Source: John ([@johnAGI168](https://x.com/...))*
+    //   *Source: John ([@johnAGI168](https://x.com/...)) - [Post](...)*
     //   Source: Creator ([@handle](https://...))
     //   Source: Creator (@handle)(https://...)
     // Extract the handle and URL
 
-    // Pattern: *Source: Name ([@handle](https://...))
-    {
-      const m = line.match(/\*Source:\s*([^(]+?)\s*\(?(@?[\w@.-]+)\)?\(?\s*(https?:\/\/[^)]+)\)?\s*\*/);
-      if (m) {
-        currentAuthor = m[2]?.startsWith('@') ? m[2] : (m[1]?.trim() || m[2]);
-        currentUrl = m[3] || '';
+    // Pattern: *Source: Name ([@handle](url)) ...*
+    if (!currentAuthor) {
+      const handleM = line.match(/\(\[?@?([\w@.-]+)\]?\]\([^)]+\)/);
+      const urlM = line.match(/\(?(https?:\/\/[^)]+)\)?/);
+      const nameM = line.match(/\*Source:\s*([^(]+?)\s*\(/);
+      if (handleM) {
+        currentAuthor = '@' + handleM[1];
+        currentUrl = urlM ? urlM[0].replace(/[()]/g, '') : '';
+        currentRawSource = line;
+      } else if (nameM) {
+        currentAuthor = nameM[1].trim();
+        currentRawSource = line;
       }
     }
 
-    // Pattern: Source: Name ([@handle](https://...))
+    // Pattern: Source: Name (@handle)(url)
     if (!currentAuthor) {
-      const m = line.match(/Source:\s*([^(]+?)\s*\(?(@?[\w@.-]+)\)?\(?\s*(https?:\/\/[^)]+)\)?/);
+      const m = line.match(/Source:\s*([^@(]+?)\s*\(@?([\w@.-]+)\)?\)?\s*(https?:\/\/[^\s)]+)/);
       if (m) {
-        currentAuthor = m[2]?.startsWith('@') ? m[2] : (m[1]?.trim() || m[2]);
+        currentAuthor = '@' + m[2];
         currentUrl = m[3] || '';
-      }
-    }
-
-    // Pattern: Source: Name (@handle)(https://...)
-    if (!currentAuthor) {
-      const m = line.match(/Source:\s*([^@(]+?)\s*\(@?(@?[\w@.-]+)\)?\)?\s*(https?:\/\/[^\s)]+)/);
-      if (m) {
-        currentAuthor = m[2];
-        currentUrl = m[3] || '';
+        currentRawSource = line;
       }
     }
   }
@@ -206,6 +209,7 @@ function parseReadmeSections(readme) {
       prompt: currentPrompt.trim(),
       sourceAuthor: currentAuthor,
       sourceUrl: currentUrl,
+      sourceRaw: currentRawSource,
       category: README_CATEGORY_MAP[currentCategory] || 'Cinema',
     });
   }
@@ -235,16 +239,38 @@ async function fetchMp4List() {
 
 // --- Manifest generation ------------------------------------------------
 
-function deriveTitle(name, readmeSections) {
-  // If the name appears in a README section, use that section's title
-  if (name) {
-    for (const s of readmeSections) {
-      if (s.sourceAuthor && name.toLowerCase().includes(s.sourceAuthor.replace('@', '').toLowerCase())) {
-        return s.title;
-      }
+function findMatchedSection(name, readmeSections) {
+  if (!name) return null;
+
+  const slugLower = name.toLowerCase();
+  const johnMatch = name.match(/^john(\d+)$/);
+
+  let johnIdx = 0;
+  for (const s of readmeSections) {
+    const titleLower = s.title.toLowerCase();
+    const authorLower = (s.sourceAuthor || '').toLowerCase().replace('@', '');
+
+    if (titleLower.includes(slugLower)) return s;
+    if (authorLower && slugLower.includes(authorLower)) return s;
+    if (authorLower && authorLower.includes(slugLower)) return s;
+    if (s.sourceRaw && s.sourceRaw.toLowerCase().includes(slugLower)) return s;
+    if (johnMatch && authorLower === 'johnagi168') {
+      if (johnIdx === parseInt(johnMatch[1]) - 1) return s;
+      johnIdx++;
     }
   }
-  // Fallback: derive from filename
+  return null;
+}
+
+function deriveTitle(name, readmeSections) {
+  const matched = findMatchedSection(name, readmeSections);
+  if (matched) return matched.title;
+
+  const titleFromAuto = autoTitle(name, '', '', 'Cinema');
+  if (titleFromAuto && titleFromAuto !== 'Video Concept') {
+    return titleFromAuto;
+  }
+
   const cleanName = name
     .replace(/_/g, ' ')
     .replace(/video/gi, '')
@@ -314,11 +340,7 @@ async function main() {
 
     // Match to README section if possible
     const title = deriveTitle(mp4.slug, readmeSections);
-    const matchedSection = readmeSections.find(
-      (s) =>
-        mp4.slug.toLowerCase().includes(s.sourceAuthor?.replace('@', '').toLowerCase()) ||
-        s.title.toLowerCase().includes(mp4.slug.toLowerCase())
-    );
+    const matchedSection = findMatchedSection(mp4.slug, readmeSections);
 
     const category = matchedSection ? matchedSection.category : 'Cinema';
     const prompt = matchedSection ? matchedSection.prompt : '';
@@ -353,10 +375,11 @@ async function main() {
   // These appear as poster-only (prompt-only) cards
   const matchedSlugs = new Set(videoEntries.map((v) => v._originalName));
   for (const section of readmeSections) {
-    // Skip sections that already have a matching video
-    const hasMatch = videoEntries.some((v) =>
-      v.title === section.title || v.useCase === section.title
-    );
+    const sectionId = [section.title, section.sourceRaw, section.sourceAuthor].filter(Boolean).join('|').toLowerCase();
+    const hasMatch = videoEntries.some((v) => {
+      const vId = [v.title, v.useCase, v.slug, v.sourceAuthor].filter(Boolean).join('|').toLowerCase();
+      return v.title === section.title || v.useCase === section.title || sectionId === vId;
+    });
     if (hasMatch) continue;
 
     const slug = slugify(section.title);

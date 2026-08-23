@@ -242,11 +242,12 @@ export class CameraMovementEngine {
   }
 
   /**
-   * Animates camera movement using requestAnimationFrame.
+   * Animates camera movement using setTimeout (Node.js compatible).
    */
   private async animate(startState: CameraState, move: CameraMove): Promise<void> {
     const duration = move.duration;
     const startTime = Date.now();
+    const frameInterval = 1000 / this.config.frameRate; // ms per frame
 
     return new Promise((resolve) => {
       const tick = async () => {
@@ -259,14 +260,14 @@ export class CameraMovementEngine {
         await this.applyState(currentState);
 
         if (progress < 1.0) {
-          this.animationId = requestAnimationFrame(tick);
+          this.animationId = setTimeout(tick, frameInterval) as any;
         } else {
           this.animationId = null;
           resolve();
         }
       };
 
-      this.animationId = requestAnimationFrame(tick);
+      this.animationId = setTimeout(tick, frameInterval) as any;
     });
   }
 
@@ -354,7 +355,7 @@ export class CameraMovementEngine {
    */
   async stopAnimation(): Promise<void> {
     if (this.animationId !== null) {
-      cancelAnimationFrame(this.animationId);
+      clearTimeout(this.animationId);
       this.animationId = null;
     }
     this.isAnimating = false;

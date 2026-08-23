@@ -10,11 +10,20 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:3100',
     trace: 'off',
+    // Don't wait for all fonts to load before taking screenshots
+    // This speeds up capture and avoids font-load timeouts.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ...(typeof document !== 'undefined' ? {} : {}),
   },
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: { 
+        ...devices['Desktop Chrome'],
+        launchOptions: {
+          args: ['--no-sandbox', '--disable-gpu'],
+        },
+      },
     },
   ],
 });

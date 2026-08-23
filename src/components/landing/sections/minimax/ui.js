@@ -151,10 +151,10 @@ function routerIsMounted() {
  */
 export function goToRoute(route, params = {}) {
   if (routerIsMounted()) {
-    navigate(route, params);
+    navigate(route, { ...params, public: '1' });
     return;
   }
-  const query = new URLSearchParams(params).toString();
+  const query = new URLSearchParams({ ...params, public: '1' }).toString();
   const target = query ? `/?${query}#/${route}` : `/#/${route}`;
 
   // On the standalone landing page the in-app router is not mounted, so

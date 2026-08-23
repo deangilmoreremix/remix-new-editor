@@ -5,12 +5,9 @@
 
 import { mountStudioDrawer, createStudioMenuButton } from '../lib/studioChrome.js';
 import { showToast } from '../lib/loading.js';
-import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { escapeHtml } from '../lib/security.js';
-import { resolveTemplate } from '../lib/showcaseTemplateResolver.js';
 import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 import { muapi } from '../lib/muapi.js';
-import { navigate } from '../lib/router.js';
 import { StoryboardStudio } from './StoryboardStudio.js';
 import { createUploadPicker } from './UploadPicker.js';
 import {
@@ -34,7 +31,6 @@ import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateTh
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { AuthModal } from './AuthModal.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
-import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { selectScenes } from '../lib/sceneSelector.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
@@ -63,7 +59,6 @@ export function CinemaTemplateStudio() {
 
   let incomingStoryboard = null;
   let storyboardProjectId = null;
-  let incomingCinemaTemplateId = null;
 
   let _modelSelectorOutsideClickHandler = null;
 
@@ -132,6 +127,9 @@ export function CinemaTemplateStudio() {
     });
   }
 
+  // ================================
+  // BROWSE VIEW
+  // ================================
   function renderBrowseView() {
     const favCount = registry.getAll().filter(t => TemplateStorage.isFavorite(t.id)).length;
     const recentEntries = TemplateStorage.getRecent();
@@ -166,19 +164,20 @@ export function CinemaTemplateStudio() {
         </div>
       </div>
       <div class="flex items-center gap-3">
-        <button id="favorites-btn" data-filter="favorites" class="px-3 py-1.5 text-sm rounded-lg transition-colors flex items-center gap-2 ${browseFilter === 'favorites' ? 'btn-secondary-modern font-bold' : 'bg-white/5 hover:bg-white/10 text-secondary'}">
+        <button id="favorites-btn" data-filter="favorites" class="px-3 py-1.5 text-sm rounded-lg transition-colors flex items-center gap-2 ${browseFilter === 'favorites' ? 'bg-primary text-black font-bold' : 'bg-white/5 hover:bg-white/10 text-secondary'}">
           <span>❤️</span> <span class="favorites-label">Favorites${favCount > 0 ? ` (${favCount})` : ''}</span>
         </button>
-        <button id="recent-btn" data-filter="recent" class="px-3 py-1.5 text-sm rounded-lg transition-colors flex items-center gap-2 ${browseFilter === 'recent' ? 'btn-secondary-modern font-bold' : 'bg-white/5 hover:bg-white/10 text-secondary'}">
+        <button id="recent-btn" data-filter="recent" class="px-3 py-1.5 text-sm rounded-lg transition-colors flex items-center gap-2 ${browseFilter === 'recent' ? 'bg-primary text-black font-bold' : 'bg-white/5 hover:bg-white/10 text-secondary'}">
           <span>🕐</span> <span class="recent-label">Recent${recentCount > 0 ? ` (${recentCount})` : ''}</span>
         </button>
-        <button id="custom-btn" data-filter="custom" class="px-3 py-1.5 text-sm rounded-lg transition-colors flex items-center gap-2 ${browseFilter === 'custom' ? 'btn-secondary-modern font-bold' : 'bg-white/5 hover:bg-white/10 text-secondary'}">
+        <button id="custom-btn" data-filter="custom" class="px-3 py-1.5 text-sm rounded-lg transition-colors flex items-center gap-2 ${browseFilter === 'custom' ? 'bg-primary text-black font-bold' : 'bg-white/5 hover:bg-white/10 text-secondary'}">
           <span>✨</span> <span class="custom-label">My Templates${customCount > 0 ? ` (${customCount})` : ''}</span>
         </button>
       </div>
     `;
     container.appendChild(header);
-container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favorites'; render(); };
+
+    container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favorites'; render(); };
     container.querySelector('#recent-btn').onclick = () => { browseFilter = 'recent'; render(); };
     container.querySelector('#custom-btn').onclick = () => { browseFilter = 'custom'; render(); };
 
@@ -231,7 +230,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         <div class="text-6xl mb-4">${icon}</div>
         <h3 class="text-xl font-bold text-white mb-2">${title}</h3>
         <p class="text-secondary mb-6">${message}</p>
-        ${browseFilter !== 'all' ? '<button class="px-6 py-3 btn-secondary-modern font-bold rounded-xl hover:scale-105 transition-transform show-all-empty-btn">Browse All Templates</button>' : ''}
+        ${browseFilter !== 'all' ? '<button class="px-6 py-3 bg-primary text-black font-bold rounded-xl hover:scale-105 transition-transform show-all-empty-btn">Browse All Templates</button>' : ''}
       `;
       grid.appendChild(emptyEl);
       if (browseFilter !== 'all') {
@@ -336,51 +335,6 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       selectTemplate(template);
     };
 
-    const templatesGrid = document.createElement('div');
-    templatesGrid.className = 'flex-1 overflow-auto p-6';
-    templatesGrid.innerHTML = `
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        ${registry.getAll().map(template => `
-          <div class="template-card bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-primary/50 hover:bg-white/[0.07] transition-all cursor-pointer group" data-template-id="${template.id}">
-            <div class="flex items-start justify-between mb-3">
-              <div class="text-4xl">${template.icon}</div>
-              <button class="favorite-btn text-white/20 hover:text-red-400 transition-colors p-1" data-template-id="${template.id}">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                </svg>
-              </button>
-            </div>
-            <h3 class="text-white font-bold mb-1 group-hover:text-primary transition-colors">${escapeHtml(template.name)}</h3>
-            <p class="text-secondary text-sm mb-3 line-clamp-2">${escapeHtml(template.description || '')}</p>
-            <div class="flex items-center gap-2">
-              <span class="px-2 py-1 bg-white/5 rounded-md text-xs text-white/60">${template.category}</span>
-              <span class="px-2 py-1 bg-white/5 rounded-md text-xs text-white/60">${template.duration?.default || 30}s</span>
-            </div>
-          </div>
-        `).join('')}
-      </div>
-    `;
-    container.appendChild(templatesGrid);
-
-    templatesGrid.querySelectorAll('.template-card').forEach(card => {
-      card.addEventListener('click', (e) => {
-        if (e.target.closest('.favorite-btn')) return;
-        const templateId = card.dataset.templateId;
-        const template = registry.getById(templateId);
-        if (template) {
-          selectTemplate(template);
-        }
-      });
-    });
-
-    templatesGrid.querySelectorAll('.favorite-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const templateId = btn.dataset.templateId;
-        TemplateStorage.addFavorite(templateId);
-        showToast('Added to favorites!', 'success');
-      });
-    });
-
     return card;
   }
 
@@ -406,16 +360,12 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     try {
       const params = new URLSearchParams(window.location.hash.split('?')[1] || '');
       const storyboardParam = params.get('storyboard');
-      const cinemaTemplateParam = params.get('template');
       if (storyboardParam) {
         incomingStoryboard = JSON.parse(storyboardParam);
         storyboardProjectId = incomingStoryboard.id || incomingStoryboard.projectId || null;
       }
-      if (cinemaTemplateParam) {
-        incomingCinemaTemplateId = cinemaTemplateParam;
-      }
     } catch (e) {
-      console.warn('[CinemaTemplateStudio] Failed to parse incoming params:', e);
+      console.warn('[CinemaTemplateStudio] Failed to parse incoming storyboard:', e);
     }
     view = 'create';
     render();
@@ -455,10 +405,10 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
           <span class="api-key-text text-[10px] uppercase tracking-wider text-zinc-500">No API key</span>
         </div>
         <div class="flex bg-white/5 rounded-lg p-1">
-          <button id="quick-mode-btn" class="px-4 py-1.5 ${currentMode === 'quick' ? 'btn-secondary-modern' : 'text-white/70'} text-xs font-bold rounded-md transition-colors">
+          <button id="quick-mode-btn" class="px-4 py-1.5 ${currentMode === 'quick' ? 'bg-primary text-black' : 'text-white/70'} text-xs font-bold rounded-md transition-colors">
             Quick Mode
           </button>
-          <button id="advanced-mode-btn" class="px-4 py-1.5 ${currentMode === 'advanced' ? 'btn-secondary-modern' : 'text-white/70'} text-xs font-bold rounded-md transition-colors">
+          <button id="advanced-mode-btn" class="px-4 py-1.5 ${currentMode === 'advanced' ? 'bg-primary text-black' : 'text-white/70'} text-xs font-bold rounded-md transition-colors">
             Advanced
           </button>
         </div>
@@ -609,7 +559,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
               <button id="add-scene-btn" class="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-secondary text-xs font-bold rounded-lg transition-colors">
                 + Add Scene
               </button>
-              <button id="open-storyboard-btn" class="px-4 py-2 btn-secondary-modern text-xs font-bold rounded-lg hover:scale-105 transition-transform">
+              <button id="open-storyboard-btn" class="px-4 py-2 bg-primary text-black text-xs font-bold rounded-lg hover:scale-105 transition-transform">
                 🎨 Storyboard
               </button>
             </div>
@@ -694,7 +644,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
 
     const mobileOutputBtn = document.createElement('button');
     mobileOutputBtn.id = 'mobile-output-btn';
-    mobileOutputBtn.className = 'lg:hidden fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full btn-secondary-modern text-sm font-bold shadow-lg hover:scale-105 transition-transform';
+    mobileOutputBtn.className = 'lg:hidden fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-black text-sm font-bold shadow-lg hover:scale-105 transition-transform';
     mobileOutputBtn.textContent = 'Output';
     mobileOutputBtn.onclick = toggleMobileOutput;
     container.appendChild(mobileOutputBtn);
@@ -795,41 +745,31 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       if (container.querySelector('#open-storyboard-btn')) {
         container.querySelector('#open-storyboard-btn').onclick = () => {
           view = 'storyboard';
-  render();
-
-  // If a template ID was passed via the `template` query param, try to
-  // select it in this studio. If it's not in the cinematic template
-  // registry, fall back to TemplateStudio which can resolve all 512
-  // showcase demos via the unified resolver.
-  if (incomingCinemaTemplateId) {
-    const cinematicTemplate = registry.get(incomingCinemaTemplateId);
-    if (cinematicTemplate) {
-      selectTemplate(cinematicTemplate);
-    } else {
-      const resolved = resolveTemplate(incomingCinemaTemplateId);
-      if (resolved) {
-        setTimeout(() => navigate('template/' + incomingCinemaTemplateId), 0);
-      } else {
-        console.warn('[CinemaTemplateStudio] Unknown template ID:', incomingCinemaTemplateId);
-        showToast('Template not found. Please try another.', 'error');
-      }
-    }
-  }
+          render();
         };
       }
       if (container.querySelector('#add-scene-btn')) {
         container.querySelector('#add-scene-btn').onclick = () => {
-          if (!sceneBuilder) return;
-          const scenes = sceneBuilder.getScenes();
-          const nextNumber = scenes.length ? Math.max(...scenes.map(s => s.sceneNumber || 0)) + 1 : 1;
-          sceneBuilder.addScene({
-            sceneNumber: nextNumber,
-            beat: `Scene ${nextNumber}`,
-            duration: 5,
-            shots: [{ type: 'MEDIUM', movement: 'STATIC', duration: 3, order: 1 }]
-          });
-          renderSceneBuilder();
-          renderSceneTimeline();
+          try {
+            if (!sceneBuilder) {
+              console.warn('[CinemaTemplateStudio] add-scene-btn clicked but sceneBuilder is missing');
+              return;
+            }
+            const scenes = sceneBuilder.getScenes();
+            const nextNumber = scenes.length ? Math.max(...scenes.map(s => s.sceneNumber || 0)) + 1 : 1;
+            sceneBuilder.addScene({
+              sceneNumber: nextNumber,
+              beat: `Scene ${nextNumber}`,
+              duration: 5,
+              shots: [{ type: 'MEDIUM', movement: 'STATIC', duration: 3, order: 1 }]
+            });
+            renderSceneBuilder();
+            renderSceneTimeline();
+            console.log('[CinemaTemplateStudio] Added scene', nextNumber, 'total scenes', sceneBuilder.getScenes().length);
+          } catch (err) {
+            console.error('[CinemaTemplateStudio] Add scene failed:', err);
+            showToast('Failed to add scene', 'error');
+          }
         };
       }
     }
@@ -954,7 +894,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
             <h2 class="text-lg font-bold text-white">Video Intent</h2>
             <p class="text-xs text-secondary">Describe the video you want to create</p>
           </div>
-          <button id="open-storyboard-btn-2" class="px-4 py-2 btn-secondary-modern text-xs font-bold rounded-lg hover:scale-105 transition-transform">
+          <button id="open-storyboard-btn-2" class="px-4 py-2 bg-primary text-black text-xs font-bold rounded-lg hover:scale-105 transition-transform">
             🎨 Storyboard
           </button>
         </div>
@@ -1278,22 +1218,34 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
 
     list.querySelectorAll('.delete-scene-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        sceneBuilder.removeScene(btn.dataset.id);
-        renderSceneBuilder();
-        renderSceneTimeline();
+        try {
+          sceneBuilder.removeScene(btn.dataset.id);
+          renderSceneBuilder();
+          renderSceneTimeline();
+          console.log('[CinemaTemplateStudio] Removed scene', btn.dataset.id);
+        } catch (err) {
+          console.error('[CinemaTemplateStudio] Remove scene failed:', err);
+          showToast('Failed to remove scene', 'error');
+        }
       });
     });
 
     list.querySelectorAll('.move-scene-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        const idx = parseInt(btn.dataset.idx, 10);
-        const dir = btn.dataset.dir;
-        const scenes = sceneBuilder.getScenes();
-        const newIdx = dir === 'up' ? idx - 1 : idx + 1;
-        if (newIdx < 0 || newIdx >= scenes.length) return;
-        sceneBuilder.moveScene(scenes[idx].id, newIdx);
-        renderSceneBuilder();
-        renderSceneTimeline();
+        try {
+          const idx = parseInt(btn.dataset.idx, 10);
+          const dir = btn.dataset.dir;
+          const scenes = sceneBuilder.getScenes();
+          const newIdx = dir === 'up' ? idx - 1 : idx + 1;
+          if (newIdx < 0 || newIdx >= scenes.length) return;
+          sceneBuilder.moveScene(scenes[idx].id, newIdx);
+          renderSceneBuilder();
+          renderSceneTimeline();
+          console.log('[CinemaTemplateStudio] Moved scene', scenes[idx].id, dir, 'to', newIdx);
+        } catch (err) {
+          console.error('[CinemaTemplateStudio] Move scene failed:', err);
+          showToast('Failed to move scene', 'error');
+        }
       });
     });
   }
@@ -1367,7 +1319,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         </div>
       </div>
       <div class="mt-6 flex gap-3">
-        <button id="save-scene-btn" class="flex-1 py-2.5 btn-secondary-modern font-bold text-sm rounded-xl hover:scale-[1.02] transition-transform">
+        <button id="save-scene-btn" class="flex-1 py-2.5 bg-primary text-black font-bold text-sm rounded-xl hover:scale-[1.02] transition-transform">
           Save Changes
         </button>
         <button id="cancel-scene-btn" class="px-6 py-2.5 bg-white/5 text-white font-bold text-sm rounded-xl hover:bg-white/10 transition-colors">
@@ -1725,7 +1677,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     updateTrigger();
 
     const dropdown = document.createElement('div');
-    dropdown.className = 'fixed z-[200] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom-left';
+    dropdown.className = 'fixed z-[100] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom-left';
     dropdown.style.width = 'calc(100vw - 2rem)';
     dropdown.style.maxWidth = '480px';
     dropdown.style.maxHeight = '70vh';
@@ -2262,7 +2214,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     const genBtn = document.createElement('button');
     genBtn.type = 'button';
     genBtn.id = 'generate-btn';
-    genBtn.className = 'btn-primary-modern mt-6 w-full';
+    genBtn.className = 'mt-6 flex h-14 w-full items-center justify-center rounded-[20px] bg-white text-lg font-semibold text-black shadow-xl transition hover:opacity-90';
     genBtn.textContent = 'Generate';
     genBtn.setAttribute('aria-label', 'Generate template');
     formPanel.appendChild(genBtn);
@@ -2641,7 +2593,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       render();
     };
 
-const firstChild = storyboardRoot.firstElementChild;
+    const firstChild = storyboardRoot.firstElementChild;
     if (firstChild) {
       storyboardRoot.insertBefore(backBtn, firstChild);
     } else {
@@ -2685,44 +2637,12 @@ const firstChild = storyboardRoot.firstElementChild;
     const downloadBtn = document.createElement('a');
     downloadBtn.href = generationResult || '#';
     downloadBtn.download = '';
-    downloadBtn.className = 'px-4 py-2 btn-secondary-modern text-sm font-bold rounded-lg hover:scale-105 transition-transform';
+    downloadBtn.className = 'px-4 py-2 bg-primary text-black text-sm font-bold rounded-lg hover:scale-105 transition-transform';
     downloadBtn.textContent = 'Download';
 
     actions.appendChild(backBtn);
     actions.appendChild(newTabBtn);
     actions.appendChild(downloadBtn);
-
-    const mediaType = currentTemplate?.outputType === 'video' ? 'video' : 'image';
-    const publishBtn = document.createElement('button');
-    publishBtn.type = 'button';
-    publishBtn.className = 'publish-social-btn px-4 py-2 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white text-sm font-bold rounded-lg hover:scale-105 transition-transform';
-    publishBtn.textContent = 'Publish to Social';
-    publishBtn.onclick = () => {
-      const target = generationResult || resultImg.src || '';
-      if (target) openSocialPublish({ mediaUrl: target, mediaType });
-    };
-    actions.appendChild(publishBtn);
-
-    const mediaTarget = generationResult || resultImg.src || '';
-    if (mediaTarget && /\.(mp4|webm|mov|m4v)(\?|$)|video\//i.test(mediaTarget)) {
-      const captionBtn = document.createElement('button');
-      captionBtn.type = 'button';
-      captionBtn.textContent = '💬 Add AI Captions';
-      captionBtn.className = 'px-4 py-2 border border-white/10 bg-white/[0.04] text-white text-sm font-bold rounded-lg hover:bg-white/[0.08] transition-all';
-      captionBtn.onclick = () => {
-        addCaptionButton({
-          videoUrl: mediaTarget,
-          appTheme: 'cinema-template-studio',
-          onComplete: (captionedUrl) => {
-            resultImg.src = captionedUrl;
-            newTabBtn.href = captionedUrl;
-            downloadBtn.href = captionedUrl;
-            showToast('Preview updated with captions');
-          },
-        });
-      };
-      actions.appendChild(captionBtn);
-    }
 
     preview.appendChild(resultImg);
     preview.appendChild(actions);

@@ -218,7 +218,11 @@ export const EXAMPLE_ASSETS = [
 
 export function getAssetsForStudio(studioId) {
   return EXAMPLE_ASSETS
-    .filter((asset) => asset.studio === studioId)
+    .filter((asset) => {
+      if (asset.studio !== studioId) return false;
+      if (studioId === 'image' && asset.videoSrc) return false;
+      return true;
+    })
     .slice(0, MAX_EXAMPLES_PER_STUDIO);
 }
 

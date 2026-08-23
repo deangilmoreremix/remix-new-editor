@@ -1,5 +1,32 @@
 // Six Creative Engines Section - Animated with parallax and hover effects
 
+const GRADIENT_HEX = {
+  cyan: ['#06b6d4', '#22d3ee'],
+  emerald: ['#10b981', '#34d399'],
+  purple: ['#a855f7', '#c084fc'],
+  pink: ['#ec4899', '#f472b6'],
+  yellow: ['#eab308', '#facc15'],
+  indigo: ['#6366f1', '#818cf8'],
+};
+
+const COLOR_RGB = {
+  cyan: '34, 211, 238',
+  emerald: '52, 211, 153',
+  purple: '168, 85, 247',
+  pink: '236, 72, 153',
+  yellow: '250, 204, 21',
+  indigo: '99, 102, 241',
+};
+
+function engineGradient(color) {
+  const [c1, c2] = GRADIENT_HEX[color] || ['#06b6d4', '#22d3ee'];
+  return `linear-gradient(135deg, ${c1}1a, ${c2}1a)`;
+}
+
+function engineBorderRGB(color) {
+  return COLOR_RGB[color] || '34, 211, 238';
+}
+
 export function SixEnginesSection() {
   const engines = [
     {
@@ -106,9 +133,9 @@ export function SixEnginesSection() {
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
         ${engines.map((engine, index) => `
           <div 
-            class="engine-card relative bg-gradient-to-br ${engine.gradient.replace('from-', 'from-[').replace(' to-', ']/to-[')}/10 border border-white/10 rounded-2xl p-6 cursor-pointer group hover:scale-105 transition-all duration-500 overflow-hidden"
+            class="engine-card relative border border-white/10 rounded-2xl p-6 cursor-pointer group hover:scale-105 transition-all duration-500 overflow-hidden"
             data-engine="${engine.id}"
-            style="transition-delay: ${index * 100}ms;"
+            style="background: ${engineGradient(engine.color)}; transition-delay: ${index * 100}ms;"
           >
             <!-- Animated Gradient Overlay on Hover -->
             <div class="engine-card-glow absolute inset-0 bg-gradient-to-br ${engine.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500"></div>
@@ -135,9 +162,7 @@ export function SixEnginesSection() {
             </div>
 
             <!-- Corner Accent -->
-            <div class="engine-corner absolute top-0 right-0 w-20 h-20 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-              <div class="absolute top-0 right-0 border-t-[40px] border-r-[40px] border-transparent border-t-${engine.color}-400/30"></div>
-            </div>
+            <div class="absolute top-0 right-0 w-20 h-20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style="border-top: 40px solid rgba(${engineBorderRGB(engine.color)}, 0.3); border-right: 40px solid transparent;" aria-hidden="true"></div>
           </div>
         `).join('')}
       </div>

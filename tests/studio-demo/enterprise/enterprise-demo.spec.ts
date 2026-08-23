@@ -22,7 +22,7 @@ import {
   PresetPipelines,
   type RecordingConfig,
   type Scene,
-} from './enterprise';
+} from './index';
 
 // =============================================================================
 // CONFIGURATION
@@ -33,19 +33,19 @@ const DEMO_CONFIG = {
   studios: [
     {
       id: 'ai-studio',
-      name: 'AI Image Studio',
-      url: 'https://your-ai-app.com/studio',
+      name: 'Example Studio',
+      url: 'https://example.com',
       features: ['text-to-image', 'image-editing', 'style-transfer']
     }
   ],
   
   // Recording settings
   recording: {
-    resolution: { width: 3840, height: 2160 }, // 4K
-    frameRate: 60,
-    codec: 'h265' as const,
-    preset: 'slow' as const,
-    crf: 18,
+    resolution: { width: 1920, height: 1080 }, // 1080p for testing
+    frameRate: 30,
+    codec: 'h264' as const,
+    preset: 'fast' as const,
+    crf: 23,
   },
   
   // Demo timing
@@ -100,9 +100,9 @@ test.describe('Enterprise AI Studio Demo', () => {
     console.log('[Demo] Panning right...');
     await camera.pan(400, 1500);
     
-    // Close-up on a specific element
-    console.log('[Demo] Close-up on generation panel...');
-    await camera.closeUp('[data-testid="generation-panel"]', 3.0, 100, 1200);
+    // Close-up on a specific element that exists on example.com
+    console.log('[Demo] Close-up on heading...');
+    await camera.closeUp('h1', 3.0, 100, 1200);
     
     // Pull back to show context
     console.log('[Demo] Pulling back...');
@@ -226,7 +226,7 @@ test.describe('Enterprise AI Studio Demo', () => {
     await page.goto(DEMO_CONFIG.studios[0].url);
     await page.waitForLoadState('networkidle');
 
-    const multiAngle = new (await import('./enterprise/multi-angle-recorder')).MultiAngleRecorder(page);
+    const multiAngle = new (await import('./multi-angle-recorder')).MultiAngleRecorder(page);
 
     // Add secondary angle (e.g., result preview)
     await multiAngle.addAngle('preview', DEMO_CONFIG.studios[0].url, {
@@ -364,7 +364,7 @@ export async function runQuickDemo(page: Page, config: {
   title: string;
   features: Array<{ name: string; selector?: string }>;
   outputDir?: string;
-}) => {
+}): Promise<string> {
   // Navigate to app
   await page.goto(config.url);
   await page.waitForLoadState('networkidle');

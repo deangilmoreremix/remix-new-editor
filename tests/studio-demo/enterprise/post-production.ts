@@ -13,6 +13,7 @@
 import { spawn, exec } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
+import ffmpegStatic from 'ffmpeg-static';
 
 // =============================================================================
 // PIPELINE CONFIGURATION
@@ -240,13 +241,14 @@ export class PostProductionPipeline {
       filters.push(`${audioInputs}amix=inputs=${audioTracks.length}:duration=longest[aout]`);
     }
 
-    // Add text overlays
+    // Add text overlays (optional, skip if drawtext not available)
+    const textFilters: string[] = [];
     for (const overlay of this.textOverlays) {
       const textFilter = this.buildTextFilter(overlay);
-      filters.push(textFilter);
+      textFilters.push(textFilter);
     }
 
-    return filters.join(';');
+    return filters.join(';') + (textFilters.length > 0 ? ';' + textFilters.join(';') : '');
   }
 
   /**
@@ -298,7 +300,9 @@ export class PostProductionPipeline {
    */
   private async executeFFmpeg(args: string[]): Promise<void> {
     return new Promise((resolve, reject) => {
-      const ffmpeg = spawn(args[0], args.slice(1));
+      const ffmpegPath = ffmpegStatic || args[0];
+      const ffmpegArgs = ffmpegStatic ? args.slice(1) : args.slice(1);
+      const ffmpeg = spawn(ffmpegPath, ffmpegArgs);
       
       ffmpeg.stdout.on('data', (data) => {
         console.log(`[FFmpeg] ${data}`);
