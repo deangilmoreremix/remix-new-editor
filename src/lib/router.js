@@ -5,7 +5,7 @@ import { ensureClerkLoaded, isClerkReady } from './clerkInit.js';
 const STUDIO_PAGES = new Set([
   'image','video','cinema','storyboard','edit','upscale','character',
   'commercial','templates','training','videotools','chat','audio','avatar',
-  'lipsync','render','influencer','video-agent','director','timeline',
+  'lipsync','render','influencer','director','timeline',
   'effects','apps','explore','library','assist','community',
   'text-to-image','image-to-image','text-to-video','image-to-video',
   'video-to-video','video-watermark','storyboard-page','character-page',
@@ -118,7 +118,6 @@ const ROUTE_MAP = {
   'Training': 'training',
   'Video Tools': 'videotools', // route ID is the unhyphenated "videotools"
   'Render': 'render',
-  'Video Agent': 'video-agent',
   'Director': 'director',
   'Timeline': 'timeline',
   'Chat': 'chat',
@@ -126,8 +125,8 @@ const ROUTE_MAP = {
   'Library': 'library',
   'Content Library': 'content-library',
   'AI VFX': 'ai-vfx',
-  'Stock Media': 'pexels-media',
   'Smart Video Viral': 'viral',
+  'DOM Personalization': 'dom-personalization',
 };
 
 export function getRouteForItem(item) {
@@ -157,7 +156,6 @@ const pageLoaders = {
   videotools: () => import('../components/VideoToolsStudio.js').then(m => m.VideoToolsStudio()),
   chat: () => import('../components/chat/ChatStudio.jsx').then(m => m.ChatStudio()),
   lipsync: () => import('../components/LipSyncStudio.js').then(m => m.LipSyncStudio()),
-  'pexels-media': () => import('../components/PexelsMediaPage.js').then(m => m.PexelsMediaPage()),
 
   assist: () => import('../components/AssistPage.js').then(m => m.AssistPage()),
   community: () => import('../components/CommunityPage.js').then(m => m.CommunityPage()),
@@ -173,17 +171,17 @@ const pageLoaders = {
    'storyboard-page': () => import('../components/StoryboardPage.js').then(m => m.StoryboardPage()),
   'character-page': () => import('../components/CharacterPage.js').then(m => m.CharacterPage()),
   'effects-page': () => import('../components/EffectsPage.js').then(m => m.EffectsPage()),
-  'cinema-page': () => import('../components/CinemaPage.js').then(m => m.CinemaPage()),
-  'influencer-page': () => import('../components/InfluencerPage.js').then(m => m.InfluencerPage()),
-  'commercial-page': () => import('../components/CommercialPage.js').then(m => m.CommercialPage()),
-  'upscale-page': () => import('../components/UpscalePage.js').then(m => m.UpscalePage()),
-  render: () => import('../components/RenderPage.js').then(m => m.RenderPage()),
-  'video-agent': () => import('../components/VideoAgentPage.js').then(m => m.VideoAgentPage()),
-  director: () => import('../components/DirectorPage.js').then(m => m.DirectorPage()),
+   'cinema-page': () => import('../components/CinemaPage.js').then(m => m.CinemaPage()),
+   'influencer-page': () => import('../components/InfluencerPage.js').then(m => m.InfluencerPage()),
+   'commercial-page': () => import('../components/CommercialPage.js').then(m => m.CommercialPage()),
+   'upscale-page': () => import('../components/UpscalePage.js').then(m => m.UpscalePage()),
+    render: () => import('../components/RenderPage.js').then(m => m.RenderPage()),
+   director: () => import('../components/DirectorPage.js').then(m => m.DirectorPage()),
   timeline: () => import('../components/TimelineEditorPage.jsx').then(m => m.TimelineEditorPage()),
   viral: () => import('../components/SmartVideoViral.js').then(m => m.SmartVideoViral()),
   spaces: () => Promise.resolve(document.createElement('div')),
   'ai-vfx': () => import('../components/AIVFXPage.js').then(m => m.AIVFXPage()),
+  'dom-personalization': () => import('../components/DomPersonalizationStudio.js').then(m => m.DomPersonalizationStudio()),
   'timeline-iframe-warning': () => Promise.resolve(document.createElement('div'))
 };
 
