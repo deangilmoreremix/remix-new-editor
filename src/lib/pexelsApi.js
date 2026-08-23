@@ -4,11 +4,17 @@
  * Frontend helper for interacting with the backend Pexels proxy.
  * All calls go to /api/pexels/... — never directly to api.pexels.com.
  *
+ * If the user has configured a personal Pexels API key in Settings,
+ * it is forwarded via the `x-pexels-api-key` header so the backend
+ * proxy can use their quota instead of the shared server key.
+ *
  * Caching
  * -------
  * Search results are cached in sessionStorage for 5 minutes to reduce
  * redundant proxy calls and improve perceived performance.
  */
+
+import { apiKeyManager } from './apiKeyManager.js';
 
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes for search results
 const CACHE_PREFIX = 'pexels_cache_';
@@ -43,9 +49,17 @@ function setCache(key, data) {
 async function pexelsFetch(path, options = {}) {
   const base = (import.meta?.env?.VITE_BACKEND_URL || '').replace(/\/$/, '');
   const url = `${base}/api/pexels${path}${options.query ? '?' + new URLSearchParams(options.query).toString() : ''}`;
+  const headers = {
+    ...(options.headers || {}),
+  };
+  // Forward the user's personal Pexels key if they have one configured.
+  const userPexelsKey = apiKeyManager.getPexelsKey?.();
+  if (userPexelsKey) {
+    headers['x-pexels-api-key'] = userPexelsKey;
+  }
   const res = await fetch(url, {
     method: options.method || 'GET',
-    headers: options.headers || {},
+    headers,
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
   if (!res.ok) {

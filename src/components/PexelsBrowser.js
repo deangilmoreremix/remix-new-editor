@@ -11,7 +11,7 @@ import {
   clearPexelsCache,
 } from '../lib/pexelsApi.js';
 
-export function openPexelsBrowser({ accept = ['image', 'video'], onSelect, onCancel, title = 'Stock Media', studioName = 'Studio' }) {
+export function openPexelsBrowser({ accept = ['image', 'video'], onSelect, onCancel, onDownload, title = 'Stock Media', studioName = 'Studio' }) {
   if (!document.getElementById('pexels-browser-shimmer-style')) {
     const style = document.createElement('style');
     style.id = 'pexels-browser-shimmer-style';
@@ -55,14 +55,42 @@ export function openPexelsBrowser({ accept = ['image', 'video'], onSelect, onCan
       <div class="flex gap-1 bg-white/5 p-1 rounded-xl">
         <button class="tab-btn px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all btn-secondary-modern" data-tab="search">Search</button>
         <button class="tab-btn px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all text-secondary hover:text-white" data-tab="curated">Curated</button>
-        <button class="tab-btn px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all text-secondary hover:text-white" data-tab="popular">Popular</button>
+        ${accept.includes('video') ? '<button class="tab-btn px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all text-secondary hover:text-white" data-tab="popular">Popular</button>' : ''}
         <button class="tab-btn px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all text-secondary hover:text-white" data-tab="collections">Collections</button>
+        <button class="tab-btn px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all text-secondary hover:text-white" data-tab="my-collections">My Collections</button>
       </div>
       <input type="text" placeholder="Search Pexels..." class="ml-auto bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white text-xs placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors w-48 md:w-64 search-input" />
       <select class="filter-select bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-[10px] focus:outline-none cursor-pointer">
         <option value="">All Types</option>
         ${accept.includes('image') ? '<option value="image">Photos</option>' : ''}
         ${accept.includes('video') ? '<option value="video">Videos</option>' : ''}
+      </select>
+      <select class="orientation-select bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-[10px] focus:outline-none cursor-pointer">
+        <option value="">All Orientations</option>
+        <option value="landscape">Landscape</option>
+        <option value="portrait">Portrait</option>
+        <option value="square">Square</option>
+      </select>
+      <select class="size-select bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-[10px] focus:outline-none cursor-pointer">
+        <option value="">All Sizes</option>
+        <option value="large">Large</option>
+        <option value="medium">Medium</option>
+        <option value="small">Small</option>
+      </select>
+      <select class="color-select bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-[10px] focus:outline-none cursor-pointer">
+        <option value="">All Colors</option>
+        <option value="red">Red</option>
+        <option value="orange">Orange</option>
+        <option value="yellow">Yellow</option>
+        <option value="green">Green</option>
+        <option value="turquoise">Turquoise</option>
+        <option value="blue">Blue</option>
+        <option value="violet">Violet</option>
+        <option value="pink">Pink</option>
+        <option value="brown">Brown</option>
+        <option value="black">Black</option>
+        <option value="gray">Gray</option>
+        <option value="white">White</option>
       </select>
     </div>
   `;
@@ -83,6 +111,9 @@ export function openPexelsBrowser({ accept = ['image', 'video'], onSelect, onCan
   let activeTab = 'search';
   let searchQuery = '';
   let filterType = '';
+  let orientation = '';
+  let size = '';
+  let color = '';
   let currentItems = [];
   let currentPage = 1;
   let hasMore = true;
@@ -123,6 +154,30 @@ export function openPexelsBrowser({ accept = ['image', 'video'], onSelect, onCan
   const filterSelect = controls.querySelector('.filter-select');
   filterSelect.onchange = () => {
     filterType = filterSelect.value;
+    currentPage = 1;
+    hasMore = true;
+    loadContent(true);
+  };
+
+  const orientationSelect = controls.querySelector('.orientation-select');
+  orientationSelect.onchange = () => {
+    orientation = orientationSelect.value;
+    currentPage = 1;
+    hasMore = true;
+    loadContent(true);
+  };
+
+  const sizeSelect = controls.querySelector('.size-select');
+  sizeSelect.onchange = () => {
+    size = sizeSelect.value;
+    currentPage = 1;
+    hasMore = true;
+    loadContent(true);
+  };
+
+  const colorSelect = controls.querySelector('.color-select');
+  colorSelect.onchange = () => {
+    color = colorSelect.value;
     currentPage = 1;
     hasMore = true;
     loadContent(true);
@@ -457,16 +512,53 @@ export function openPexelsBrowser({ accept = ['image', 'video'], onSelect, onCan
 
     wrapper.appendChild(attribution);
 
-    // Action button
-    const actionBtn = document.createElement('button');
-    actionBtn.className = 'mt-4 btn-secondary-modern px-8 py-2.5 rounded-xl font-bold text-sm hover:shadow-glow transition-all';
-    safeSetText(actionBtn, 'Use in ' + studioName);
-    actionBtn.onclick = () => {
+    // Action buttons
+    const actionsRow = document.createElement('div');
+    actionsRow.className = 'mt-4 flex items-center gap-2 flex-wrap justify-center';
+
+    const downloadUrl = (mediaType === 'video' && item.video_files && item.video_files.length)
+      ? (item.video_files.find(f => f.quality === 'hd') || item.video_files[0]).link
+      : (item.src?.original || item.src?.large || item.url);
+
+    if (downloadUrl) {
+      const downloadBtn = document.createElement('button');
+      downloadBtn.className = 'btn-secondary-modern px-4 py-2.5 rounded-xl font-bold text-xs hover:shadow-glow transition-all flex items-center gap-2';
+      downloadBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg> Download';
+      downloadBtn.onclick = async (e) => {
+        e.stopPropagation();
+        try {
+          if (onDownload) {
+            await onDownload(item, downloadUrl);
+          } else {
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = (item.alt || 'pexels-media').replace(/[^a-z0-9]+/gi, '-').slice(0, 64);
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+          }
+          showToast('Downloading...', 'success');
+        } catch (err) {
+          console.error('Download failed:', err);
+          showToast('Download failed. Try opening the file in a new tab.', 'error');
+        }
+      };
+      actionsRow.appendChild(downloadBtn);
+    }
+
+    const useInStudioBtn = document.createElement('button');
+    useInStudioBtn.className = 'btn-secondary-modern px-8 py-2.5 rounded-xl font-bold text-sm hover:shadow-glow transition-all';
+    safeSetText(useInStudioBtn, 'Use in ' + studioName);
+    useInStudioBtn.onclick = () => {
       if (window._pexelsHlsInstance) { window._pexelsHlsInstance.destroy(); window._pexelsHlsInstance = null; }
       if (onSelect) onSelect(item);
       previewOverlay.remove();
     };
-    wrapper.appendChild(actionBtn);
+    actionsRow.appendChild(useInStudioBtn);
+
+    wrapper.appendChild(actionsRow);
 
     previewOverlay.appendChild(wrapper);
     document.body.appendChild(previewOverlay);
@@ -489,12 +581,27 @@ export function openPexelsBrowser({ accept = ['image', 'video'], onSelect, onCan
 
       if (activeTab === 'search' && searchQuery) {
         if (filterType === 'video' || (!filterType && accept.includes('video'))) {
-          const data = await searchVideos({ query: searchQuery, page: currentPage, per_page: 20 });
+          const videoParams = {
+            query: searchQuery,
+            page: currentPage,
+            per_page: 20,
+          };
+          if (orientation) videoParams.orientation = orientation;
+          if (size) videoParams.size = size;
+          const data = await searchVideos(videoParams);
           newItems = (data.videos || []).map(v => Object.assign({}, v, { type: 'video' }));
           nextPage = data.next_page || null;
         }
         if (filterType === 'image' || (!filterType && accept.includes('image'))) {
-          const data = await searchPhotos({ query: searchQuery, page: currentPage, per_page: 20 });
+          const photoParams = {
+            query: searchQuery,
+            page: currentPage,
+            per_page: 20,
+          };
+          if (orientation) photoParams.orientation = orientation;
+          if (size) photoParams.size = size;
+          if (color) photoParams.color = color;
+          const data = await searchPhotos(photoParams);
           const photos = (data.photos || []).map(p => Object.assign({}, p, { type: 'photo' }));
           if (!filterType) newItems = newItems.concat(photos);
           else newItems = photos;
@@ -508,8 +615,10 @@ export function openPexelsBrowser({ accept = ['image', 'video'], onSelect, onCan
         const data = await getPopularVideos({ page: currentPage, per_page: 20 });
         newItems = (data.videos || []).map(v => Object.assign({}, v, { type: 'video' }));
         nextPage = data.next_page || null;
-      } else if (activeTab === 'collections') {
-        const collections = await getFeaturedCollections({ page: currentPage, per_page: 20 });
+      } else if (activeTab === 'collections' || activeTab === 'my-collections') {
+        const collections = activeTab === 'my-collections'
+          ? await getMyCollections({ page: currentPage, per_page: 20 })
+          : await getFeaturedCollections({ page: currentPage, per_page: 20 });
         // Show collections as cards
         content.innerHTML = '<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">' +
           (collections.collections || []).map(c => `
@@ -522,7 +631,7 @@ export function openPexelsBrowser({ accept = ['image', 'video'], onSelect, onCan
         content.querySelectorAll('.collection-card').forEach(card => {
           card.onclick = async () => {
             const collectionId = card.dataset.id;
-            const media = await getCollectionMedia(collectionId, { type: filterType || undefined, page: 1, per_page: 40 });
+            const media = await getCollectionMedia(collectionId, { type: filterType || undefined, sort: 'asc', page: 1, per_page: 40 });
             const items = (media.media || []).map(m => Object.assign({}, m, { type: m.type === 'Video' ? 'video' : 'photo' }));
             renderGrid(items);
           };
@@ -561,6 +670,7 @@ export function openPexelsBrowser({ accept = ['image', 'video'], onSelect, onCan
   }
   loadContent(true);
 
+  document.body.appendChild(overlay);
   return overlay;
 }
 

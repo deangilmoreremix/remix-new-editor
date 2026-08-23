@@ -1247,6 +1247,10 @@ export default defineConfig({
                 target: 'http://localhost:3001',
                 changeOrigin: true,
             },
+            '/api/pexels': {
+                target: 'http://localhost:3001',
+                changeOrigin: true,
+            },
             '/api': {
                 target: process.env.VITE_MUAPI_URL || 'https://api.muapi.ai',
                 changeOrigin: true,

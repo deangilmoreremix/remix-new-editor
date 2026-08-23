@@ -512,6 +512,7 @@ export function TimelineEditorPage() {
           <button class="media-item" draggable="true" data-type="audio" data-label="Track"><span class="media-icon">🎵</span><span class="media-copy"><span class="media-label">Track</span><span class="media-desc">2:10 · MP3</span></span></button>
         </div>
         <button class="upload-btn" id="uploadBtn" style="margin-top:10px;">Upload media…</button>
+        <button class="upload-btn" id="pexelsMediaBtn" style="margin-top:10px; background: rgba(217,255,0,0.1); border-color: rgba(217,255,0,0.3); color: #d9ff00;">🎬 Browse Stock Media</button>
       </aside>
 
       <aside class="side-card">
@@ -994,6 +995,7 @@ export function TimelineEditorPage() {
       chatInput: root.querySelector('#chatInput'),
       toast: root.querySelector('#toast'),
       uploadBtn: root.querySelector('#uploadBtn'),
+      pexelsMediaBtn: root.querySelector('#pexelsMediaBtn'),
       videoDbBtn: root.querySelector('#videoDbBtn'),
       backBtn: root.querySelector('#backBtn'),
       uploadInput: root.querySelector('#uploadInput'),
@@ -5910,6 +5912,39 @@ export function TimelineEditorPage() {
 
       els.uploadBtn?.addEventListener('click', () => els.uploadInput?.click());
       els.uploadInput?.addEventListener('change', (event) => handleUpload(event.target.files?.[0]));
+
+      els.pexelsMediaBtn?.addEventListener('click', async () => {
+        try {
+          const { browsePexels } = await import('../lib/studioPexels.js');
+          browsePexels({
+            accept: ['image', 'video'],
+            title: 'Add Stock Media to Timeline',
+            studioName: 'Timeline Editor',
+            onSelect: async (asset) => {
+              const isVideo = asset.type === 'video' || !!asset.video_files;
+              const mediaUrl = isVideo
+                ? (asset.video_files?.find(f => f.quality === 'hd') || asset.video_files?.[0])?.link || asset.url
+                : (asset.src?.large || asset.src?.original || asset.url);
+              const media = {
+                type: isVideo ? 'video' : 'image',
+                url: mediaUrl,
+                thumbnail: isVideo ? asset.image : (asset.src?.medium || asset.src?.small || asset.url),
+                label: asset.alt || (isVideo ? 'Pexels Video' : 'Pexels Photo'),
+                source: 'pexels',
+                id: asset.id || `pexels-${Date.now()}`,
+                duration: asset.duration || 5,
+                photographer: asset.photographer || asset.user?.name || '',
+                pexelsUrl: asset.url || ('https://www.pexels.com/photo/' + asset.id + '/'),
+              };
+              addMediaToTimeline(media, state.mediaLibrary?.length || 0, state, showToast);
+              showToast('Added to timeline', 'success');
+            },
+          });
+        } catch (err) {
+          console.error('Failed to open Pexels browser:', err);
+          showToast('Failed to open Pexels browser', 'error');
+        }
+      });
 
       // VideoDB: add an indexed video to the timeline using the user's VideoDB
       // API key (configured in Settings).
