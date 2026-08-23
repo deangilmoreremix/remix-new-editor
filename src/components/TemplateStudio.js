@@ -18,6 +18,9 @@ import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateTh
 import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
+import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
+import { openRecipeModal } from '../lib/recipeIntegration.js';
+import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 
 export function TemplateStudio(templateId) {
   let template = getTemplateById(templateId);
@@ -594,17 +597,6 @@ let fallbackList = [];
     <div id="advancedControls" class="mt-5 grid gap-4 md:grid-cols-2 hidden"></div>
   `;
   leftPanel.appendChild(enhancerSection);
-
-  // GTM Boost affordance (opt-in enhancement via GTMPromptModal).
-  // Uses the shared .gtm-boost-btn design (matches Image / Video studios);
-  // the .template-studio ancestor class themes it emerald via gtm-prompt-modal.css.
-  const gtmBoostBtn = document.createElement('button');
-  gtmBoostBtn.type = 'button';
-  gtmBoostBtn.textContent = '🎯 GTM Boost';
-  gtmBoostBtn.title = 'Enhance your prompt with GTM conversion frameworks';
-  gtmBoostBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
-  gtmBoostBtn.className = 'gtm-boost-btn w-full mt-4';
-  leftPanel.appendChild(gtmBoostBtn);
 
   // Advanced controls content
   const advancedControls = enhancerSection.querySelector('#advancedControls');
