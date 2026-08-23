@@ -44,6 +44,7 @@ export function ImageStudio() {
     let selectedProvider = 'all';
     let uploadedImageUrls = []; // array of uploaded image URLs (multi-image support)
     let imageMode = false; // false = t2i models, true = i2i models
+    let _imageStudioOutsideClickHandler = null;
     let customThumbnailUrl = getCustomThumbnailFromCache('image-studio');
 
     // Restore the last GTM context the user picked in the prompt modal,
