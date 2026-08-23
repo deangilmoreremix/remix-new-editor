@@ -6,6 +6,9 @@ import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 import { replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
+import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
+import { openRecipeModal } from '../lib/recipeIntegration.js';
+import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 
 const EDIT_TOOLS = [
   {

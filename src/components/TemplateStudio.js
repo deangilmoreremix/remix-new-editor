@@ -600,6 +600,7 @@ let fallbackList = [];
   `;
   leftPanel.appendChild(enhancerSection);
 
+  // GTM Boost affordance is defined in the prompt-assist toolbar below.
   // Advanced controls content
   const advancedControls = enhancerSection.querySelector('#advancedControls');
   const advancedFields = [
@@ -669,6 +670,47 @@ let fallbackList = [];
   gtmBoostBtn.title = 'Enhance your prompt with GTM conversion frameworks';
   gtmBoostBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
   gtmBoostBtn.className = 'gtm-boost-btn';
+  gtmBoostBtn.addEventListener('click', async () => {
+    gtmBoostBtn.disabled = true;
+    const originalText = gtmBoostBtn.textContent;
+    gtmBoostBtn.textContent = '🎯 Loading…';
+    try {
+      const ctx = await import('../lib/uiIntegration.js').then(async (m) => {
+        const result = m.fetchGTMTemplateContext?.(template);
+        if (result && typeof result.then === 'function') return await result;
+        return result;
+      }).catch(() => null);
+      const basePrompt = promptEl?.value || (ctx && ctx.basePrompt) || template.description || '';
+      const templateContext = {
+        ...(ctx || {}),
+        basePrompt,
+        templateId: template.id,
+        category: template.category,
+        niche: template.niche,
+        outputType: template.outputType,
+      };
+      const onPromptGenerated = (generatedPrompt) => {
+        if (promptEl) {
+          promptEl.value = generatedPrompt;
+          promptEl.dispatchEvent(new Event('input', { bubbles: true }));
+          promptEl.dispatchEvent(new Event('change', { bubbles: true }));
+          if (promptFieldName) formState[promptFieldName] = generatedPrompt;
+          promptEl.focus();
+        }
+      };
+      import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+        openGTMPromptModal('template-studio', onPromptGenerated, {
+          templateContext,
+        });
+      }).catch((err) => {
+        console.error('[TemplateStudio] GTM Boost failed:', err);
+        showInlineError(leftPanel, 'GTM Boost failed to load. Please try again.');
+      });
+    } finally {
+      gtmBoostBtn.disabled = false;
+      gtmBoostBtn.textContent = originalText;
+    }
+  });
   toolbar.appendChild(gtmBoostBtn);
 
   // Recipe Engine button
@@ -854,28 +896,6 @@ let fallbackList = [];
   resultArea.setAttribute('role', 'status');
   resultArea.setAttribute('aria-live', 'polite');
   centeredContainer.appendChild(resultArea);
-
-  // "Create This Style" grid — the curated MiniMax presets that target this
-  // studio. Each card opens a detail modal (full player + extracted style
-  // params + tweakable prompt); the CTA hydrates the style and navigates.
-  Promise.all([
-    import('./demos/DemoRail.jsx'),
-    import('../data/minimax/presets.js'),
-  ]).then(([{ createDemoRail }, { minimaxPresets }]) => {
-    const presets = minimaxPresets.filter((p) => p.targetStudio === 'TemplateStudio');
-    if (!presets.length) return;
-    const grid = createDemoRail({
-      items: presets,
-      source: 'minimax',
-      variant: 'grid',
-      title: 'Create This Style',
-      subtitle: 'Curated MiniMax H3 styles built for Template Studio',
-      className: 'mt-10',
-    });
-    centeredContainer.appendChild(grid);
-  }).catch((e) => {
-    console.error('[TemplateStudio] demo grid failed', e);
-  });
 
   // Update output content based on active tab
   function updateOutputContent() {

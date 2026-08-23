@@ -1,19 +1,26 @@
 import { muapi } from '../lib/muapi.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { avatarModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
-import { processFileUpload } from '../lib/editor/uploadPipeline.js';
-import { showToast } from '../lib/loading.js';
+import { uploadMediaFile } from '../lib/editor/upload.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
-import { getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
+import { openSocialPublish } from '../lib/socialPublishHelpers.js';
+import { mountModelSelector, getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { getModelById } from '../lib/models.js';
+import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
+import { addCaptionButton } from '../lib/editor/captionActions.js';
+import ExampleGallery from './studios/ExampleGallery.js';
+import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
+import { openRecipeModal } from '../lib/recipeIntegration.js';
+import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 
 export function AvatarStudio() {
   const container = document.createElement('div');
@@ -21,6 +28,7 @@ export function AvatarStudio() {
   mountStudioChrome(container, { currentRoute: 'avatar' });
 
   let selectedModel = avatarModels[0];
+  let nativeAudio = false;
   let uploadedVideoUrl = null;
   let uploadedAudioUrl = null;
   let prompt = '';
@@ -46,7 +54,7 @@ export function AvatarStudio() {
   modelWrapper.className = 'mb-6 flex flex-col items-center gap-2 animate-fade-in-up';
   modelWrapper.style.animationDelay = '0.1s';
 
-  const triggerBtn = document.createElement('button');
+const triggerBtn = document.createElement('button');
   triggerBtn.type = 'button';
   triggerBtn.className = 'flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all border bg-white/5 text-secondary border-white/10 hover:bg-white/10';
   const updateTrigger = () => {
@@ -62,7 +70,7 @@ export function AvatarStudio() {
   updateTrigger();
 
   const dropdown = document.createElement('div');
-  dropdown.className = 'fixed z-[100] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom';
+  dropdown.className = 'fixed z-[200] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom';
   dropdown.style.width = 'calc(100vw - 2rem)';
   dropdown.style.maxWidth = '480px';
   dropdown.style.maxHeight = '70vh';
@@ -78,60 +86,18 @@ export function AvatarStudio() {
     dropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
     if (!dropdown.dataset.populated) {
       dropdown.dataset.populated = 'true';
-      const availableProviders = getAvailableProviders(avatarModels);
-      dropdown.innerHTML = `
-        <div class="flex gap-4 h-full max-h-[70vh] min-h-[350px] overflow-x-hidden">
-          <div data-provider-sidebar></div>
-          <div class="flex-1 flex flex-col gap-2 min-w-0">
-            ${renderSearchBar()}
-            <div class="text-xs font-semibold text-secondary py-1 shrink-0 flex items-center justify-between">
-              <span>Available models</span>
-              <span data-provider-badge class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60 hidden"></span>
-            </div>
-            <div data-model-list></div>
-          </div>
-        </div>
-      `;
-      const sidebarEl = dropdown.querySelector('[data-provider-sidebar]');
-      const modelListEl = dropdown.querySelector('[data-model-list]');
-      const providerBadge = dropdown.querySelector('[data-provider-badge]');
-      const searchInput = dropdown.querySelector('[data-provider-search]');
-      let selectedProvider = 'all';
-      const refresh = () => {
-        sidebarEl.innerHTML = renderProviderSidebar(availableProviders, selectedProvider, (provider) => {
-          selectedProvider = provider;
-          refresh();
-        });
-        const filtered = filterModels(avatarModels, searchInput ? searchInput.value : '', selectedProvider);
-        const showProviderName = selectedProvider === 'all';
-        modelListEl.innerHTML = renderModelList(filtered, selectedModel.id, showProviderName, (m) => {
-          selectedModel = avatarModels.find(x => x.id === m.id) || m;
+      mountModelSelector(dropdown, {
+        models: avatarModels,
+        selectedModelId: selectedModel.id,
+        showProviderName: true,
+        onSelectModel: (modelId) => {
+          selectedModel = avatarModels.find(x => x.id === modelId) || { id: modelId };
           updateTrigger();
           updateFormVisibility();
           buildDynamicControls();
           closeDropdown();
-        });
-        if (selectedProvider !== 'all') {
-          const pName = availableProviders.find(p => p.id === selectedProvider)?.name || selectedProvider;
-          providerBadge.textContent = pName;
-          providerBadge.classList.remove('hidden');
-        } else {
-          providerBadge.classList.add('hidden');
-        }
-      };
-      refresh();
-      sidebarEl.addEventListener('click', (e) => {
-        const btn = e.target.closest('button[data-provider]');
-        if (!btn) return;
-        e.stopPropagation();
-        const provider = btn.getAttribute('data-provider');
-        if (provider) {
-          selectedProvider = provider;
-          refresh();
-        }
+        },
       });
-      searchInput.onclick = (e) => e.stopPropagation();
-      searchInput.oninput = () => refresh();
     }
   };
 
@@ -220,19 +186,7 @@ export function AvatarStudio() {
     }
 
     try {
-      const minState = {
-        tracks: [],
-        assets: [],
-        mediaLibrary: [],
-        undoStack: [],
-        redoStack: [],
-        selectedClipId: null
-      };
-      const result = await processFileUpload(file, { state: minState, showToast });
-      if (!result.success) {
-        throw new Error(result.error || 'Upload failed');
-      }
-      uploadedAudioUrl = result.asset.url;
+      uploadedAudioUrl = await uploadMediaFile(file);
     } catch (err) {
       alert(`Error: ${err.message}`);
     } finally {
@@ -264,7 +218,7 @@ export function AvatarStudio() {
     gtmBtn.textContent = '🎯 GTM Boost';
     gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
     gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
-    gtmBtn.className = 'gtm-boost-btn shrink-0';
+    gtmBtn.className = 'gtm-boost-btn';
     gtmBtn.addEventListener('click', () => {
       import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
         openGTMPromptModal('avatar-studio', (prompt) => {
@@ -274,11 +228,10 @@ export function AvatarStudio() {
         });
       }).catch((err) => console.error('[AvatarStudio] GTM Boost failed:', err));
     });
-    promptGroup.appendChild(gtmBtn);
   formCard.appendChild(promptGroup);
   mountPersonalizeTrigger({ controlsContainer: formCard, getTextarea: () => promptInput, appId: 'avatar-studio' });
 
-  // Dynamic model-specific advanced controls
+// Dynamic model-specific advanced controls
   dynamicControlsContainer = document.createElement('div');
   dynamicControlsContainer.className = 'flex flex-col gap-3';
   formCard.appendChild(dynamicControlsContainer);
@@ -286,7 +239,7 @@ export function AvatarStudio() {
   function buildDynamicControls() {
     if (!dynamicControlsContainer) return;
     if (dynamicControls) dynamicControls.destroy();
-    const model = getExtendedModel(getModelById(selectedModel.id));
+    const model = getExtendedModel(selectedModel);
     if (!model || !model.inputs || Object.keys(model.inputs).length === 0) {
       dynamicControlsContainer.classList.add('hidden');
       return;
@@ -303,7 +256,7 @@ export function AvatarStudio() {
   // Generate button
   const genBtn = document.createElement('button');
   genBtn.type = 'button';
-  genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all';
+  genBtn.className = 'btn-primary-modern w-full px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all';
   genBtn.textContent = 'Generate Avatar Video';
   genBtn.setAttribute('aria-label', 'Generate avatar video');
 
@@ -312,10 +265,11 @@ export function AvatarStudio() {
   thumbBtn.type = 'button';
   thumbBtn.textContent = '🖼 Thumbnail';
   thumbBtn.title = 'Generate a custom thumbnail';
-  thumbBtn.className = 'gtm-boost-btn w-full';
+  thumbBtn.className = 'btn-ghost-modern w-full';
   thumbBtn.addEventListener('click', () => {
-    const modal = new StudioThumbnailModal({
+    const modal = new TemplateThumbnailModal({
       appTheme: 'avatar-studio',
+      layout: 'panel',
       studioId: 'avatar-studio',
       studioName: 'Avatar Studio',
       aspectRatio: '16:9',
@@ -329,12 +283,34 @@ export function AvatarStudio() {
         clearCustomThumbnailCache('avatar-studio');
       },
     });
-    mountStudioThumbnailModal(modal);
+    mountThumbnailModal(modal);
     modal.open();
   });
-  formCard.appendChild(thumbBtn);
-  formCard.appendChild(genBtn);
-  container.appendChild(formCard);
+   formCard.appendChild(thumbBtn);
+   formCard.appendChild(genBtn);
+
+   // Native audio toggle
+   const nativeAudioRow = document.createElement('div');
+   nativeAudioRow.className = 'flex items-center justify-between px-2';
+   nativeAudioRow.innerHTML = `
+     <label class="text-xs font-bold text-secondary uppercase tracking-wider">Native Audio</label>
+     <button id="avatar-native-audio-btn" class="relative h-7 w-12 rounded-full transition bg-white/10 border border-white/10" data-native-audio="false">
+       <span class="absolute top-1 h-5 w-5 rounded-full bg-white transition left-1" id="avatar-native-audio-knob"></span>
+     </button>
+   `;
+   const nativeAudioBtn = nativeAudioRow.querySelector('#avatar-native-audio-btn');
+   const nativeAudioKnob = nativeAudioRow.querySelector('#avatar-native-audio-knob');
+   if (nativeAudioBtn && nativeAudioKnob) {
+     nativeAudioBtn.onclick = () => {
+       nativeAudio = !nativeAudio;
+       nativeAudioBtn.setAttribute('data-native-audio', String(nativeAudio));
+       nativeAudioBtn.style.background = nativeAudio ? 'var(--cyan)' : '';
+       nativeAudioBtn.style.borderColor = nativeAudio ? 'var(--cyan)' : '';
+       nativeAudioKnob.style.left = nativeAudio ? 'calc(100% - 22px)' : '4px';
+     };
+   }
+   formCard.appendChild(nativeAudioRow);
+   container.appendChild(formCard);
 
   // Instructions
   const inlineInstructions = createInlineInstructions('avatar');
@@ -350,6 +326,62 @@ export function AvatarStudio() {
 
   // Helper functions
 
+
+    // Prompt Gallery button
+    const promptGalleryBtn = document.createElement('button');
+    promptGalleryBtn.type = 'button';
+    promptGalleryBtn.textContent = '📚 Prompts';
+    promptGalleryBtn.title = 'Browse prompt gallery';
+    promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
+    promptGalleryBtn.className = 'btn-ghost-modern';
+    promptGalleryBtn.addEventListener('click', () => {
+      openPromptGallery({
+        appTheme: 'avatar-studio',
+        onSelect: (prompt) => {
+          // Default: try to find a textarea in the studio
+          const ta = document.querySelector('textarea') || document.querySelector('[data-prompt]');
+          if (ta) {
+            ta.value = prompt;
+            ta.dispatchEvent(new Event('input', { bubbles: true }));
+            ta.focus();
+          }
+        }
+      }).catch((err) => console.error('[PromptGallery] open failed:', err));
+    });
+
+    // Recipe Engine button
+    const recipeBtn = document.createElement('button');
+    recipeBtn.type = 'button';
+    recipeBtn.textContent = '📋 Recipes';
+    recipeBtn.title = 'Browse AI recipes';
+    recipeBtn.setAttribute('aria-label', 'Open recipe engine');
+    recipeBtn.className = 'btn-ghost-modern';
+    recipeBtn.addEventListener('click', () => {
+      openRecipeModal({
+        onRunRecipe: (url) => {
+        }
+      }).catch((err) => console.error('[Recipe] open failed:', err));
+    });
+
+
+    // Monetization Hub button
+    const monetizationBtn = document.createElement('button');
+    monetizationBtn.type = 'button';
+    monetizationBtn.textContent = '💼 Monetize';
+    monetizationBtn.title = "Open Smart Video AI Monetization Hub";
+    monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
+    monetizationBtn.className = 'btn-ghost-modern';
+    monetizationBtn.addEventListener('click', () => {
+      openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+    });
+    const toolbar = document.createElement('div');
+    toolbar.className = 'flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06]';
+    toolbar.appendChild(gtmBtn);
+    toolbar.appendChild(recipeBtn);
+    toolbar.appendChild(monetizationBtn);
+    toolbar.appendChild(promptGalleryBtn);
+    promptGroup.appendChild(toolbar);
+
   function updateFormVisibility() {
     // Show/hide video upload
     const needsVideo = selectedModel.hasVideo;
@@ -362,6 +394,11 @@ export function AvatarStudio() {
     // Show/hide prompt
     const needsPrompt = selectedModel.hasPrompt;
     promptGroup.classList.toggle('hidden', !needsPrompt);
+
+    // Show/hide native audio toggle based on model
+    const supportsNativeAudio = selectedModel.inputs?.native_audio;
+    nativeAudioRow.classList.toggle('hidden', !supportsNativeAudio);
+    if (!supportsNativeAudio) nativeAudio = false;
   }
 
   // Generate button handler
@@ -385,7 +422,7 @@ export function AvatarStudio() {
     genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Generating...';
 
     try {
-       const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
+const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
         const params = {
           model: selectedModel.id,
           video_url: uploadedVideoUrl,
@@ -399,15 +436,38 @@ export function AvatarStudio() {
        }
        
        const result = await muapi.generateAvatar(params);
-      if (result?.url) {
-        resultArea.classList.remove('hidden');
-        resultArea.innerHTML = `
-          <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4">
-            <video controls class="w-full rounded-xl mb-3" src="${result.url}"></video>
-            <a href="${result.url}" download class="block w-full bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download Video</a>
-          </div>
-        `;
-      }
+       if (result?.url) {
+         resultArea.classList.remove('hidden');
+         resultArea.innerHTML = `
+           <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4">
+             <video controls class="w-full rounded-xl mb-3" src="${result.url}"></video>
+             <a href="${result.url}" download class="block w-full btn-secondary-modern py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download Video</a>
+             <button type="button" class="publish-social-btn block w-full mt-2 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
+           </div>
+         `;
+          const publishBtn = resultArea.querySelector('.publish-social-btn');
+          if (publishBtn) publishBtn.onclick = () => openSocialPublish({ mediaUrl: result.url, mediaType: 'video' });
+          if (result.url && /\.(mp4|webm|mov|m3u8)/i.test(result.url)) {
+            const captionBtn = document.createElement('button');
+            captionBtn.type = 'button';
+            captionBtn.textContent = '💬 Add AI Captions';
+            captionBtn.className = 'w-full bg-white/10 hover:bg-white/20 text-white py-2.5 rounded-xl font-bold text-sm border border-white/10 transition-all mt-3';
+            captionBtn.onclick = () => {
+              addCaptionButton({
+                videoUrl: result.url,
+                appTheme: 'avatar-studio',
+                onComplete: (captionedUrl) => {
+                  const vid = resultArea.querySelector('video');
+                  if (vid) vid.src = captionedUrl;
+                  const dl = resultArea.querySelector('a[download]');
+                  if (dl) dl.href = captionedUrl;
+                  showToast('Preview updated with captions');
+                },
+              });
+            };
+            resultArea.appendChild(captionBtn);
+          }
+        }
     } catch (err) {
       alert(`Error: ${err.message}`);
     } finally {
@@ -417,28 +477,11 @@ export function AvatarStudio() {
   };
 
   updateFormVisibility();
+    const galleryAssets = getAssetsForStudio('avatar');
+    if (galleryAssets.length > 0) {
+      const gallery = ExampleGallery({ studioId: 'avatar', assets: galleryAssets, maxCards: 28 });
+      container.appendChild(gallery);
+    }
 
-  // MiniMax H3 example styles — demos that align with this studio, shown as
-  // examples at the bottom of the controls. Each card opens a detail modal;
-  // "Create This Style" opens this studio pre-filled with the selected style.
-  Promise.all([
-    import('./demos/DemoRail.jsx'),
-    import('../data/minimax/presets.js'),
-  ]).then(([{ createDemoRail }, { minimaxPresets }]) => {
-    const items = minimaxPresets.filter((p) => p.targetStudio === 'AvatarStudio');
-    if (!items.length) return;
-    const rail = createDemoRail({
-      items,
-      source: 'minimax',
-      variant: 'rail',
-      title: 'MiniMax H3 Example Styles',
-      subtitle: 'Examples for this studio — click any clip, or create in this style',
-      className: 'mt-10 max-w-6xl mx-auto',
-    });
-    container.appendChild(rail);
-  }).catch((e) => {
-    console.error('[AvatarStudio] demo rail failed', e);
-  });
-
-  return container;
+    return container;
 }

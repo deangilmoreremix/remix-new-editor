@@ -14,12 +14,22 @@ import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizePopover, replaceTokensInPrompt } from './personalize/personalizePopover.js';
-import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
-import { PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
+import { openSocialPublish } from '../lib/socialPublishHelpers.js';
+import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
+import { getAssetsForStudio, EXAMPLE_ASSETS } from '../data/exampleGalleryAssets.js';
+import { youmindImagePrompts } from '../data/youmindImagePrompts.js';
+import ExampleGallery from './studios/ExampleGallery.js';
+import { ImageGalleryModal } from './modals/ImageGalleryModal.jsx';
+import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
+import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
+import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
+import { openRecipeModal } from '../lib/recipeIntegration.js';
+import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 
 export function ImageStudio() {
     const container = document.createElement('div');
@@ -68,6 +78,57 @@ export function ImageStudio() {
     
     // Quick tools panel state
     let showToolsPanel = false;
+
+    // Read gallery / deep-link params and apply them as studio defaults.
+    (async () => {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const templateParam = urlParams.get('template');
+        const academyParam = urlParams.get('academy-template');
+        const promptParam = urlParams.get('prompt');
+        const styleParam = urlParams.get('style');
+        const arParam = urlParams.get('aspect_ratio');
+
+        if (templateParam) {
+          const tpl = resolveTemplate(templateParam);
+          if (tpl) {
+            // If the template's model is not an image model, redirect to
+            // TemplateStudio instead of rendering a blank ImageStudio.
+            const imageModelIds = new Set([...t2iModels, ...i2iModels].map(m => m.id));
+            if (tpl.model && !imageModelIds.has(tpl.model)) {
+              window.location.assign(`/?template=${encodeURIComponent(templateParam)}#/template/${encodeURIComponent(templateParam)}`);
+              return;
+            }
+            if (tpl.model) selectedModel = tpl.model;
+            if (tpl.aspectRatio) selectedAr = tpl.aspectRatio;
+            if (tpl.basePrompt) {
+              const textarea = document.getElementById('prompt-textarea');
+              if (textarea) textarea.value = tpl.basePrompt;
+            } else if (tpl.slug) {
+              loadTemplatePrompt(templateParam)
+                .then((prompt) => {
+                  if (prompt) {
+                    const textarea = document.getElementById('prompt-textarea');
+                    if (textarea) textarea.value = prompt;
+                  }
+                })
+                .catch(() => {});
+            }
+          }
+        }
+
+        if (academyParam || promptParam) {
+          const target = academyParam ? getAcademyCreateTarget(academyParam) : null;
+          const params = target?.params || {};
+          if (params.prompt) {
+            const textarea = document.getElementById('prompt-textarea');
+            if (textarea) textarea.value = params.prompt;
+          }
+          if (params.style) selectedStyle = params.style;
+          if (params.aspect_ratio) selectedAr = params.aspect_ratio;
+        }
+      } catch { /* ignore */ }
+    })();
 
     const getCurrentModels = () => imageMode ? i2iModels : t2iModels;
     const getCurrentAspectRatios = (id) => imageMode ? getAspectRatiosForI2IModel(id) : getAspectRatiosForModel(id);
@@ -199,6 +260,53 @@ export function ImageStudio() {
 
     const textarea = document.createElement('textarea');
     textarea.id = 'i-prompt-textarea';
+    // Prompt Gallery button
+    const promptGalleryBtn = document.createElement('button');
+    promptGalleryBtn.type = 'button';
+    promptGalleryBtn.textContent = '📚 Prompts';
+    promptGalleryBtn.title = 'Browse prompt gallery';
+    promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
+    promptGalleryBtn.className = 'btn-ghost-modern';
+    promptGalleryBtn.addEventListener('click', () => {
+      openPromptGallery({
+        appTheme: 'image-studio',
+        onSelect: (prompt) => {
+          const ta = document.getElementById('i-prompt-textarea') || document.querySelector('textarea');
+          if (ta) {
+            ta.value = prompt;
+            ta.dispatchEvent(new Event('input', { bubbles: true }));
+            ta.focus();
+          }
+        }
+      }).catch((err) => console.error('[PromptGallery] open failed:', err));
+    });
+
+    // Recipe Engine button
+    const recipeBtn = document.createElement('button');
+    recipeBtn.type = 'button';
+    recipeBtn.textContent = '📋 Recipes';
+    recipeBtn.title = 'Browse AI recipes';
+    recipeBtn.setAttribute('aria-label', 'Open recipe engine');
+    recipeBtn.className = 'btn-ghost-modern';
+    recipeBtn.addEventListener('click', () => {
+      openRecipeModal({
+        onRunRecipe: (url) => {
+        }
+      }).catch((err) => console.error('[Recipe] open failed:', err));
+    });
+
+
+    // Monetization Hub button
+    const monetizationBtn = document.createElement('button');
+    monetizationBtn.type = 'button';
+    monetizationBtn.textContent = '💼 Monetize';
+    monetizationBtn.title = 'Open Smart Video AI Monetization Hub';
+    monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
+    monetizationBtn.className = 'btn-ghost-modern';
+    monetizationBtn.addEventListener('click', () => {
+      openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+    });
+
     textarea.placeholder = 'Describe the image you want to create';
     textarea.className = 'flex-1 bg-transparent border-none text-white text-base md:text-xl placeholder:text-muted focus:outline-none resize-none pt-2.5 leading-relaxed min-h-[40px] max-h-[150px] md:max-h-[250px] overflow-y-auto custom-scrollbar';
     textarea.rows = 1;
@@ -229,7 +337,7 @@ export function ImageStudio() {
     gtmBtn.textContent = '🎯 GTM Boost';
     gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
     gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
-    gtmBtn.className = 'gtm-boost-btn shrink-0';
+    gtmBtn.className = 'gtm-boost-btn';
     gtmBtn.addEventListener('click', () => {
       import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
         openGTMPromptModal('image-studio', (prompt) => {
@@ -241,7 +349,14 @@ export function ImageStudio() {
         });
       }).catch((err) => console.error('[ImageStudio] GTM Boost failed:', err));
     });
-    topRow.appendChild(gtmBtn);
+
+    const toolbar = document.createElement('div');
+    toolbar.className = 'flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06]';
+    toolbar.appendChild(gtmBtn);
+    toolbar.appendChild(recipeBtn);
+    toolbar.appendChild(monetizationBtn);
+    toolbar.appendChild(promptGalleryBtn);
+    topRow.appendChild(toolbar);
 
     bar.appendChild(topRow);
 
@@ -303,10 +418,11 @@ export function ImageStudio() {
     thumbBtn.type = 'button';
     thumbBtn.textContent = '🖼 Thumbnail';
     thumbBtn.title = 'Generate a custom thumbnail';
-    thumbBtn.className = 'gtm-boost-btn shrink-0';
+    thumbBtn.className = 'btn-ghost-modern shrink-0';
     thumbBtn.addEventListener('click', () => {
-      const modal = new StudioThumbnailModal({
-        appTheme: 'image-studio',
+    const modal = new TemplateThumbnailModal({
+      appTheme: 'image-studio',
+      layout: 'panel',
         studioId: 'image-studio',
         studioName: 'Image Studio',
         aspectRatio: selectedAr || '1:1',
@@ -320,7 +436,7 @@ export function ImageStudio() {
           clearCustomThumbnailCache('image-studio');
         },
       });
-      mountStudioThumbnailModal(modal);
+      mountThumbnailModal(modal);
       modal.open();
     });
     controlsLeft.appendChild(thumbBtn);
@@ -335,6 +451,32 @@ export function ImageStudio() {
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-60 text-secondary"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 001.82-.33 1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-1.82.33A1.65 1.65 0 0019.4 9a1.65 1.65 0 00-1.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
     `, 'Advanced', 'advanced-btn', 'Show advanced options');
     controlsLeft.appendChild(advancedBtn);
+  // Model Picker button
+  const modelPickerBtn = document.createElement('button');
+  modelPickerBtn.type = 'button';
+  modelPickerBtn.textContent = 'AI Pick';
+  modelPickerBtn.title = 'Open intelligent model picker';
+  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
+  modelPickerBtn.className = 'text-[11px] font-bold text-cyan-400 border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 rounded-lg hover:bg-cyan-400/20 transition-colors ml-2 whitespace-nowrap';
+  modelPickerBtn.addEventListener('click', () => {
+    openModelPicker({
+      currentModelId: selectedModel,
+      onSelectModel: (id) => {
+        selectedModel = id;
+        const m = getCurrentModels().find(x => x.id === id);
+        selectedModelName = m ? m.name : id;
+        document.getElementById('model-btn-label').textContent = selectedModelName;
+        const availableArs = getCurrentAspectRatios(selectedModel);
+        selectedAr = availableArs[0];
+        document.getElementById('ar-btn-label').textContent = selectedAr;
+        const validResolutions = getCurrentResolutions(selectedModel);
+        qualityBtn.style.display = validResolutions.length > 0 ? 'flex' : 'none';
+        if (validResolutions.length > 0) document.getElementById('quality-btn-label').textContent = validResolutions[0];
+      }
+    }).catch((err) => console.error('[ModelPicker] open failed:', err));
+  });
+  controlsLeft.appendChild(modelPickerBtn);
+
     
     // Quick Tools toggle button
     const toolsBtn = createControlBtn(`
@@ -359,8 +501,8 @@ export function ImageStudio() {
     }
 
     const generateBtn = document.createElement('button');
-    generateBtn.type = 'button';
-    generateBtn.className = 'bg-primary text-black px-6 md:px-8 py-3 md:py-3.5 rounded-xl md:rounded-[1.5rem] font-black text-sm md:text-base hover:shadow-glow hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2.5 w-full sm:w-auto shadow-lg';
+generateBtn.type = 'button';
+    generateBtn.className = 'btn-primary-modern px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:scale-105 active:scale-95 transition-all w-full sm:w-auto shadow-lg';
     generateBtn.setAttribute('data-tooltip', 'Generate AI image from prompt');
     generateBtn.setAttribute('aria-label', 'Generate image');
     generateBtn.innerHTML = `Generate ✨`;
@@ -429,7 +571,7 @@ export function ImageStudio() {
                                 <button id="copy-enhanced-btn" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-white/5 text-secondary hover:bg-white/10 transition-all">
                                     Copy
                                 </button>
-                                <button id="use-enhanced-btn" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-primary text-black hover:shadow-glow transition-all">
+                                <button id="use-enhanced-btn" class="btn-ghost-modern px-3 py-1.5 rounded-lg text-xs font-bold transition-all">
                                     Use in Generator
                                 </button>
                             </div>
@@ -620,7 +762,7 @@ export function ImageStudio() {
     // 3. DROPDOWNS (Professional implementation)
     // ==========================================
     const dropdown = document.createElement('div');
-    dropdown.className = 'absolute bottom-[102%] left-2 z-50 transition-all opacity-0 pointer-events-none scale-95 origin-bottom-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
+    dropdown.className = 'absolute bottom-[102%] left-2 z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-bottom-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
 
     const showDropdown = (type, anchorBtn) => {
         dropdown.innerHTML = '';
@@ -630,83 +772,38 @@ export function ImageStudio() {
         if (type === 'model') {
             dropdown.classList.add('w-[calc(100vw-2rem)]', 'md:w-[480px]', 'max-w-md');
             dropdown.classList.remove('max-w-xs', 'max-w-[240px]', 'max-w-[200px]');
-            selectedProvider = 'all';
-
             const currentModels = imageMode ? i2iModels : t2iModels;
-            const availableProviders = getAvailableProviders(currentModels);
-
-            dropdown.innerHTML = `
-                <div class="flex gap-4 h-full max-h-[70vh] min-h-[350px] overflow-x-hidden">
-                    <div data-provider-sidebar></div>
-                    <div class="flex-1 flex flex-col gap-2 min-w-0">
-                        ${renderSearchBar()}
-                        <div class="text-xs font-semibold text-secondary py-1 shrink-0 flex items-center justify-between">
-                            <span>Available models</span>
-                            <span data-provider-badge class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60 hidden"></span>
-                        </div>
-                        <div data-model-list></div>
-                    </div>
-                </div>
-            `;
-
-            const sidebarEl = dropdown.querySelector('[data-provider-sidebar]');
-            const modelListEl = dropdown.querySelector('[data-model-list]');
-            const providerBadge = dropdown.querySelector('[data-provider-badge]');
-            const searchInput = dropdown.querySelector('[data-provider-search]');
-
-            const refresh = () => {
-                sidebarEl.innerHTML = renderProviderSidebar(availableProviders, selectedProvider, (provider) => {
-                    selectedProvider = provider;
-                    refresh();
-                });
-                const filtered = filterModels(currentModels, searchInput ? searchInput.value : '', selectedProvider);
-                const showProviderName = selectedProvider === 'all';
-                modelListEl.innerHTML = renderModelList(filtered, selectedModel, showProviderName, (m) => {
-                    selectedModel = m.id;
-                    selectedModelName = m.name;
-                    const availableArs = getCurrentAspectRatios(selectedModel);
-                    selectedAr = availableArs[0];
-                    document.getElementById('model-btn-label').textContent = selectedModelName;
-                    document.getElementById('ar-btn-label').textContent = selectedAr;
-                    const validResolutions = getCurrentResolutions(selectedModel);
-                    qualityBtn.style.display = validResolutions.length > 0 ? 'flex' : 'none';
-                    if (validResolutions.length > 0) {
-                        document.getElementById('quality-btn-label').textContent = validResolutions[0];
-                    }
-                    if (imageMode) {
-                        picker.setMaxImages(getMaxImagesForI2IModel(selectedModel));
-                    }
-                    updateModelBtnIcon();
-                    if (dynamicControls) {
-                        dynamicControls.update(getExtendedModel(getModelById(selectedModel)));
-                    }
-                    closeDropdown();
-                });
-
-                if (selectedProvider !== 'all') {
-                    const pName = availableProviders.find(p => p.id === selectedProvider)?.name || selectedProvider;
-                    providerBadge.textContent = pName;
-                    providerBadge.classList.remove('hidden');
-                } else {
-                    providerBadge.classList.add('hidden');
+            mountModelSelector(dropdown, {
+              models: currentModels,
+              selectedModelId: selectedModel,
+              showProviderName: true,
+              onSelectModel: (modelId) => {
+                selectedModel = modelId;
+                selectedModelName = currentModels.find(m => m.id === modelId)?.name || modelId;
+                const availableArs = getCurrentAspectRatios(selectedModel);
+                selectedAr = availableArs[0];
+                document.getElementById('model-btn-label').textContent = selectedModelName;
+                document.getElementById('ar-btn-label').textContent = selectedAr;
+                const validResolutions = getCurrentResolutions(selectedModel);
+                qualityBtn.style.display = validResolutions.length > 0 ? 'flex' : 'none';
+                if (validResolutions.length > 0) {
+                  document.getElementById('quality-btn-label').textContent = validResolutions[0];
                 }
-            };
-
-            refresh();
-
-            sidebarEl.addEventListener('click', (e) => {
-                const btn = e.target.closest('button[data-provider]');
-                if (!btn) return;
-                e.stopPropagation();
-                const provider = btn.getAttribute('data-provider');
-                if (provider) {
-                    selectedProvider = provider;
-                    refresh();
+                if (imageMode) {
+                  picker.setMaxImages(getMaxImagesForI2IModel(selectedModel));
                 }
+                updateModelBtnIcon();
+                if (dynamicControls) {
+                  const resolved = getModelById(selectedModel)
+                    || getI2IModelById(selectedModel)
+                    || getI2VModelById(selectedModel)
+                    || getV2VModelById(selectedModel)
+                    || { id: selectedModel, inputs: {} };
+                  dynamicControls.update(getExtendedModel(resolved));
+                }
+                closeDropdown();
+              },
             });
-
-            searchInput.onclick = (e) => e.stopPropagation();
-            searchInput.oninput = () => refresh();
 
         } else if (type === 'ar') {
             dropdown.classList.add('max-w-[240px]');
@@ -861,7 +958,7 @@ export function ImageStudio() {
     regenerateBtn.textContent = '↻ Regenerate';
 
     const downloadBtn = document.createElement('button');
-    downloadBtn.className = 'bg-primary text-black px-6 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-glow active:scale-95';
+    downloadBtn.className = 'btn-secondary-modern px-6 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-glow active:scale-95';
     downloadBtn.textContent = '↓ Download';
 
     const newPromptBtn = document.createElement('button');
@@ -871,6 +968,13 @@ export function ImageStudio() {
     canvasControls.appendChild(regenerateBtn);
     canvasControls.appendChild(downloadBtn);
     canvasControls.appendChild(newPromptBtn);
+
+    const publishBtn = document.createElement('button');
+    publishBtn.type = 'button';
+    publishBtn.className = 'bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white px-6 py-2.5 rounded-2xl text-xs font-bold transition-all hover:shadow-glow';
+    publishBtn.textContent = 'Publish to Social';
+
+    canvasControls.appendChild(publishBtn);
 
     canvas.appendChild(imageContainer);
     canvas.appendChild(canvasControls);
@@ -889,6 +993,7 @@ export function ImageStudio() {
             canvasControls.classList.remove('opacity-0');
             canvasControls.classList.add('opacity-100');
         };
+        publishBtn.onclick = () => openSocialPublish({ mediaUrl: imageUrl, mediaType: 'image' });
     };
 
     // --- Helper: Add to history ---
@@ -1101,8 +1206,6 @@ export function ImageStudio() {
                 res = await muapi.generateImage(genParams);
             }
 
-            console.log('[ImageStudio] Full response:', res);
-
             if (res && res.url) {
                 // Add to history
                 addToHistory({
@@ -1132,27 +1235,30 @@ export function ImageStudio() {
         generateBtn.innerHTML = `Generate ✨`;
     };
 
-    // MiniMax H3 example styles — demos that align with this studio, shown as
-    // examples at the bottom of the controls. Each card opens a detail modal;
-    // "Create This Style" opens this studio pre-filled with the selected style.
-    Promise.all([
-      import('./demos/DemoRail.jsx'),
-      import('../data/minimax/presets.js'),
-    ]).then(([{ createDemoRail }, { minimaxPresets }]) => {
-      const items = minimaxPresets.filter((p) => p.targetStudio === 'ImageStudio');
-      if (!items.length) return;
-      const rail = createDemoRail({
-        items,
-        source: 'minimax',
-        variant: 'rail',
-        title: 'MiniMax H3 Example Styles',
-        subtitle: 'Examples for this studio — click any clip, or create in this style',
-        className: 'mt-10 max-w-6xl mx-auto',
+    const galleryAssets = getAssetsForStudio('image');
+    if (galleryAssets.length > 0) {
+      const gallery = ExampleGallery({ studioId: 'image', assets: galleryAssets, maxCards: 28 });
+      container.appendChild(gallery);
+
+      const browseAllBtn = document.createElement('button');
+      browseAllBtn.type = 'button';
+      browseAllBtn.textContent = `Browse all ${youmindImagePrompts.length} image prompts →`;
+      browseAllBtn.className = 'mt-4 mb-8 px-6 py-3 rounded-xl text-sm font-bold bg-white/5 text-secondary hover:bg-white/10 hover:text-primary transition-all border border-white/5 hover:border-primary/30';
+      browseAllBtn.addEventListener('click', () => {
+        const modal = new ImageGalleryModal({
+          onPromptSelect: (prompt) => {
+            const ta = document.getElementById('i-prompt-textarea') || document.querySelector('textarea');
+            if (ta) {
+              ta.value = prompt;
+              ta.dispatchEvent(new Event('input', { bubbles: true }));
+              ta.focus();
+            }
+          }
+        });
+        modal.open();
       });
-      container.appendChild(rail);
-    }).catch((e) => {
-      console.error('[ImageStudio] demo rail failed', e);
-    });
+      container.appendChild(browseAllBtn);
+    }
 
     return container;
 }

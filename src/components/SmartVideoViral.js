@@ -415,7 +415,7 @@ export function SmartVideoViral() {
     const isVideo = item.mediaType === 'video';
     return `
       <div class="viral-rail-item w-64 flex-shrink-0" role="listitem">
-        <div class="group bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden hover:border-primary/30 hover:shadow-glow transition-all cursor-pointer" data-rail-item-id="${item.imglumeId}">
+         <div class="smart-card group bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden transition-all cursor-pointer" data-rail-item-id="${item.imglumeId}">
           <div class="relative aspect-[3/2] overflow-hidden bg-black/30">
             ${thumb ? `<img src="${escapeHtml(thumb)}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="" loading="lazy"/>` : fallbackPlaceholder()}
             ${isVideo ? `<span class="absolute top-2 right-2 px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-400/20 text-purple-300">Video</span>` : ''}
@@ -585,7 +585,7 @@ export function SmartVideoViral() {
       mediaHtml = fallbackPlaceholder();
     }
     return `
-      <div class="smart-card group" data-imglume-id="${item.imglumeId}">
+       <div class="smart-card group" data-imglume-id="${item.imglumeId}">
         <div class="smart-card-media relative aspect-[3/2] overflow-hidden bg-black/30">
           ${mediaHtml}
           <div class="absolute top-2 left-2 flex gap-1">

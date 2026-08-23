@@ -50,24 +50,24 @@ const CAPTION_LANGUAGES = [
 ];
 
 const CAPTION_THEMES = [
-  { value: 'Hormozi_1', label: 'Hormozi 1' },
-  { value: 'Hormozi_2', label: 'Hormozi 2' },
-  { value: 'Hormozi_3', label: 'Hormozi 3' },
-  { value: 'Beast', label: 'Beast' },
-  { value: 'Ali', label: 'Ali' },
-  { value: 'Noah', label: 'Noah' },
-  { value: 'Karl', label: 'Karl' },
-  { value: 'Luke', label: 'Luke' },
-  { value: 'Devin', label: 'Devin' },
-  { value: 'Celine', label: 'Celine' },
-  { value: 'Maya', label: 'Maya' },
-  { value: 'Ella', label: 'Ella' },
-  { value: 'Dan', label: 'Dan' },
-  { value: 'David', label: 'David' },
-  { value: 'Tracy', label: 'Tracy' },
-  { value: 'Umi', label: 'Umi' },
-  { value: 'Iman', label: 'Iman' },
-  { value: 'William', label: 'William' },
+  { value: 'Hormozi_1', label: 'Hormozi 1', desc: 'Bold word-by-word highlight' },
+  { value: 'Hormozi_2', label: 'Hormozi 2', desc: 'Energetic pop-on captions' },
+  { value: 'Hormozi_3', label: 'Hormozi 3', desc: 'Clean kinetic typography' },
+  { value: 'Beast', label: 'Beast', desc: 'MrBeast-style dynamic motion' },
+  { value: 'Ali', label: 'Ali', desc: 'Sleek and minimal' },
+  { value: 'Noah', label: 'Noah', desc: 'Italics with heavy drop shadow' },
+  { value: 'Karl', label: 'Karl', desc: 'Sharp contrast with border outlines' },
+  { value: 'Luke', label: 'Luke', desc: 'Shaking/vibrating energy' },
+  { value: 'Devin', label: 'Devin', desc: 'Rotating and scaling animations' },
+  { value: 'Celine', label: 'Celine', desc: 'Soft shadow, clean typography' },
+  { value: 'Maya', label: 'Maya', desc: 'Serif font with glowing effects' },
+  { value: 'Ella', label: 'Ella', desc: 'Scale and translate with blur' },
+  { value: 'Dan', label: 'Dan', desc: 'Large, impactful uppercase text' },
+  { value: 'David', label: 'David', desc: 'Bold uppercase with scaling highlights' },
+  { value: 'Tracy', label: 'Tracy', desc: 'Minimalist with white glow shadow' },
+  { value: 'Umi', label: 'Umi', desc: 'Italic thin, letter-by-letter reveal' },
+  { value: 'Iman', label: 'Iman', desc: 'Minimalist white with black border' },
+  { value: 'William', label: 'William', desc: 'Left-right-center alternating' },
 ];
 
 const GENERATION_STEPS = [
@@ -98,7 +98,7 @@ export class AICaptionsModal extends BaseModal {
     this.videoUrl = options.videoUrl || '';
     this.uploadedFile = null;
     this.uploadedFileName = '';
-    this.inputMode = this.videoUrl ? 'url' : 'upload'; // 'url' | 'upload'
+    this.inputMode = this.videoUrl ? 'url' : 'upload';
     this.language = options.language || 'English';
     this.theme = options.theme || 'Hormozi_1';
     this.isGenerating = false;
@@ -108,6 +108,7 @@ export class AICaptionsModal extends BaseModal {
     this.captionedUrl = '';
     this.uploadProgress = 0;
     this.uploading = false;
+    this.showAdvanced = false;
 
     this.onComplete = options.onComplete || (() => {});
     this.onError = options.onError || (() => {});
@@ -156,9 +157,16 @@ export class AICaptionsModal extends BaseModal {
         <p class="ai-captions-subtitle">
           Add AI-generated animated captions to your video. Choose a language and viral caption theme.
         </p>
+        <div class="ai-captions-info-row">
+          <button type="button" class="ai-captions-info-trigger" data-action="open-info">What is AI Captions?</button>
+        </div>
         <div class="ai-captions-mode-switch">
-          <button type="button" class="mode-btn ${this.inputMode === 'url' ? 'active' : ''}" data-mode="url">🔗 Video URL</button>
-          <button type="button" class="mode-btn ${this.inputMode === 'upload' ? 'active' : ''}" data-mode="upload">📁 Upload Video</button>
+          <button type="button" class="mode-btn ${this.inputMode === 'url' ? 'active' : ''}" data-mode="url">
+            <span class="mode-icon">🔗</span> Video URL
+          </button>
+          <button type="button" class="mode-btn ${this.inputMode === 'upload' ? 'active' : ''}" data-mode="upload">
+            <span class="mode-icon">📁</span> Upload Video
+          </button>
         </div>
         <div class="ai-captions-form">
           ${this.errorMessage ? `<div class="error-message" role="alert">⚠ ${this.escapeHtml(this.errorMessage)}</div>` : ''}
@@ -177,11 +185,27 @@ export class AICaptionsModal extends BaseModal {
               </select>
             </div>
           </div>
+          <button type="button" class="toggle-advanced" data-action="toggle-advanced" aria-expanded="${this.showAdvanced}">
+            ${this.showAdvanced ? '▼' : '▶'} Advanced Options
+          </button>
+          ${this.showAdvanced ? `
+            <div class="advanced-options">
+              <div class="option-group">
+                <label>Caption Style</label>
+                <div class="checkbox-group" role="group" aria-label="Caption style">
+                  <label><input type="checkbox" name="style" value="bold" ${this.theme && ['Hormozi_1','Hormozi_2','Hormozi_3','Beast','Dan','David'].includes(this.theme) ? 'checked' : ''}><span>Bold Impact</span></label>
+                  <label><input type="checkbox" name="style" value="minimal" ${this.theme && ['Ali','Celine','Tracy','Iman'].includes(this.theme) ? 'checked' : ''}><span>Minimal Clean</span></label>
+                  <label><input type="checkbox" name="style" value="animated" ${this.theme && ['Luke','Devin','Ella','William'].includes(this.theme) ? 'checked' : ''}><span>Animated Motion</span></label>
+                  <label><input type="checkbox" name="style" value="elegant" ${this.theme && ['Maya','Celine','Noah','Umi'].includes(this.theme) ? 'checked' : ''}><span>Elegant Typography</span></label>
+                </div>
+              </div>
+            </div>
+          ` : ''}
           <div class="ai-captions-preview">
-            <div class="ai-captions-preview-label">Preview</div>
+            <div class="ai-captions-preview-label">Theme Preview</div>
             <div class="ai-captions-theme-chips">
               ${CAPTION_THEMES.slice(0, 9).map((t) => `
-                <button type="button" class="theme-chip ${this.theme === t.value ? 'active' : ''}" data-theme="${t.value}">
+                <button type="button" class="theme-chip ${this.theme === t.value ? 'active' : ''}" data-theme="${t.value}" title="${this.escapeHtml(t.desc || '')}">
                   <span class="theme-chip-dot"></span>
                   ${this.escapeHtml(t.label)}
                 </button>
@@ -189,15 +213,22 @@ export class AICaptionsModal extends BaseModal {
             </div>
           </div>
         </div>
+        <p class="ai-captions-footnote">
+          Powered by Vadoo caption engine • Supports 40+ languages • 18 viral themes
+        </p>
       </div>
     `;
   }
 
   renderUrlForm() {
+    const isVideoUrl = this.videoUrl && /\.(mp4|webm|mov|m4v)(\?|$)|video\//i.test(this.videoUrl);
     return `
       <div class="form-section">
         <label for="ai-cap-url">Video URL</label>
-        <input type="text" id="ai-cap-url" placeholder="https://example.com/your-video.mp4" value="${this.escapeHtml(this.videoUrl)}">
+        <div class="url-input-wrap">
+          <input type="text" id="ai-cap-url" placeholder="https://example.com/your-video.mp4" value="${this.escapeHtml(this.videoUrl)}" class="${isVideoUrl ? 'has-preview' : ''}">
+          ${isVideoUrl ? `<video src="${this.escapeHtml(this.videoUrl)}" preload="metadata" muted class="url-preview-video"></video>` : ''}
+        </div>
         <span class="form-hint">Must be publicly accessible. Max 600MB or 10 minutes.</span>
       </div>
     `;
@@ -258,6 +289,11 @@ export class AICaptionsModal extends BaseModal {
         <div class="generated-prompt-section">
           <label>Captioned Video</label>
           <video controls autoplay loop class="ai-captions-result-video" src="${this.escapeHtml(this.captionedUrl)}"></video>
+          <div class="ai-captions-meta-row">
+            <span class="ai-captions-meta-pill">✨ AI Captions applied</span>
+            <span class="ai-captions-meta-pill">🎨 Theme: ${this.escapeHtml(this.theme)}</span>
+            <span class="ai-captions-meta-pill">🌐 ${this.escapeHtml(this.language)}</span>
+          </div>
           <div class="generated-prompt-actions">
             <a href="${this.escapeHtml(this.captionedUrl)}" download class="gtm-action copy-prompt-btn" target="_blank" rel="noopener">Download Video</a>
             <button type="button" class="gtm-action" data-action="open-new-tab">Open in New Tab</button>
@@ -300,6 +336,14 @@ export class AICaptionsModal extends BaseModal {
   bindBodyListeners() {
     const scope = this.overlay?.querySelector('.modal-body');
     if (!scope) return;
+
+    // Info trigger
+    const infoBtn = scope.querySelector('[data-action="open-info"]');
+    if (infoBtn) {
+      infoBtn.addEventListener('click', () => {
+        alert('AI Captions uses Vadoo\'s caption engine to add animated, viral-style captions to your video. It transcribes the audio, generates styled captions in your chosen theme, and burns them into the video — optimized for social media platforms like TikTok, Reels, and YouTube Shorts.');
+      });
+    }
 
     // Mode switch
     const modeBtns = scope.querySelectorAll('.mode-btn');
@@ -384,6 +428,15 @@ export class AICaptionsModal extends BaseModal {
       });
     });
 
+    // Advanced toggle
+    const toggleBtn = scope.querySelector('[data-action="toggle-advanced"]');
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', () => {
+        this.showAdvanced = !this.showAdvanced;
+        this.refreshBody();
+      });
+    }
+
     // Result actions
     const retryBtn = scope.querySelector('[data-action="retry"]');
     if (retryBtn) {
@@ -413,7 +466,6 @@ export class AICaptionsModal extends BaseModal {
     this.uploadProgress = 0;
     this.refreshBody();
 
-    // Simulate progress since uploadFile doesn't provide progress events
     const progressInterval = setInterval(() => {
       this.uploadProgress = Math.min(90, this.uploadProgress + 10);
       this.refreshBody();
