@@ -50,24 +50,24 @@ const CAPTION_LANGUAGES = [
 ];
 
 const CAPTION_THEMES = [
-  { value: 'Hormozi_1', label: 'Hormozi 1', desc: 'Bold word-by-word highlight' },
-  { value: 'Hormozi_2', label: 'Hormozi 2', desc: 'Energetic pop-on captions' },
-  { value: 'Hormozi_3', label: 'Hormozi 3', desc: 'Clean kinetic typography' },
-  { value: 'Beast', label: 'Beast', desc: 'MrBeast-style dynamic motion' },
-  { value: 'Ali', label: 'Ali', desc: 'Sleek and minimal' },
-  { value: 'Noah', label: 'Noah', desc: 'Italics with heavy drop shadow' },
-  { value: 'Karl', label: 'Karl', desc: 'Sharp contrast with border outlines' },
-  { value: 'Luke', label: 'Luke', desc: 'Shaking/vibrating energy' },
-  { value: 'Devin', label: 'Devin', desc: 'Rotating and scaling animations' },
-  { value: 'Celine', label: 'Celine', desc: 'Soft shadow, clean typography' },
-  { value: 'Maya', label: 'Maya', desc: 'Serif font with glowing effects' },
-  { value: 'Ella', label: 'Ella', desc: 'Scale and translate with blur' },
-  { value: 'Dan', label: 'Dan', desc: 'Large, impactful uppercase text' },
-  { value: 'David', label: 'David', desc: 'Bold uppercase with scaling highlights' },
-  { value: 'Tracy', label: 'Tracy', desc: 'Minimalist with white glow shadow' },
-  { value: 'Umi', label: 'Umi', desc: 'Italic thin, letter-by-letter reveal' },
-  { value: 'Iman', label: 'Iman', desc: 'Minimalist white with black border' },
-  { value: 'William', label: 'William', desc: 'Left-right-center alternating' },
+  { value: 'Hormozi_1', label: 'Hormozi 1' },
+  { value: 'Hormozi_2', label: 'Hormozi 2' },
+  { value: 'Hormozi_3', label: 'Hormozi 3' },
+  { value: 'Beast', label: 'Beast' },
+  { value: 'Ali', label: 'Ali' },
+  { value: 'Noah', label: 'Noah' },
+  { value: 'Karl', label: 'Karl' },
+  { value: 'Luke', label: 'Luke' },
+  { value: 'Devin', label: 'Devin' },
+  { value: 'Celine', label: 'Celine' },
+  { value: 'Maya', label: 'Maya' },
+  { value: 'Ella', label: 'Ella' },
+  { value: 'Dan', label: 'Dan' },
+  { value: 'David', label: 'David' },
+  { value: 'Tracy', label: 'Tracy' },
+  { value: 'Umi', label: 'Umi' },
+  { value: 'Iman', label: 'Iman' },
+  { value: 'William', label: 'William' },
 ];
 
 const GENERATION_STEPS = [
@@ -102,13 +102,11 @@ export class AICaptionsModal extends BaseModal {
     this.language = options.language || 'English';
     this.theme = options.theme || 'Hormozi_1';
     this.isGenerating = false;
-    this.generationProgress = 0;
     this.currentStep = 0;
     this.errorMessage = '';
     this.captionedUrl = '';
     this.uploadProgress = 0;
     this.uploading = false;
-    this.showAdvanced = false;
 
     this.onComplete = options.onComplete || (() => {});
     this.onError = options.onError || (() => {});
@@ -138,16 +136,19 @@ export class AICaptionsModal extends BaseModal {
     ].join('; ');
   }
 
+  escapeHtml(str) {
+    if (typeof str !== 'string') return '';
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
   renderBody() {
-    if (this.isGenerating) {
-      return this.renderProgress();
-    }
-    if (this.errorMessage) {
-      return this.renderError();
-    }
-    if (this.captionedUrl) {
-      return this.renderResult();
-    }
+    if (this.isGenerating) return this.renderProgress();
+    if (this.errorMessage) return this.renderError();
+    if (this.captionedUrl) return this.renderResult();
     return this.renderForm();
   }
 
@@ -157,9 +158,6 @@ export class AICaptionsModal extends BaseModal {
         <p class="ai-captions-subtitle">
           Add AI-generated animated captions to your video. Choose a language and viral caption theme.
         </p>
-        <div class="ai-captions-info-row">
-          <button type="button" class="ai-captions-info-trigger" data-action="open-info">What is AI Captions?</button>
-        </div>
         <div class="ai-captions-mode-switch">
           <button type="button" class="mode-btn ${this.inputMode === 'url' ? 'active' : ''}" data-mode="url">
             <span class="mode-icon">🔗</span> Video URL
@@ -185,27 +183,11 @@ export class AICaptionsModal extends BaseModal {
               </select>
             </div>
           </div>
-          <button type="button" class="toggle-advanced" data-action="toggle-advanced" aria-expanded="${this.showAdvanced}">
-            ${this.showAdvanced ? '▼' : '▶'} Advanced Options
-          </button>
-          ${this.showAdvanced ? `
-            <div class="advanced-options">
-              <div class="option-group">
-                <label>Caption Style</label>
-                <div class="checkbox-group" role="group" aria-label="Caption style">
-                  <label><input type="checkbox" name="style" value="bold" ${this.theme && ['Hormozi_1','Hormozi_2','Hormozi_3','Beast','Dan','David'].includes(this.theme) ? 'checked' : ''}><span>Bold Impact</span></label>
-                  <label><input type="checkbox" name="style" value="minimal" ${this.theme && ['Ali','Celine','Tracy','Iman'].includes(this.theme) ? 'checked' : ''}><span>Minimal Clean</span></label>
-                  <label><input type="checkbox" name="style" value="animated" ${this.theme && ['Luke','Devin','Ella','William'].includes(this.theme) ? 'checked' : ''}><span>Animated Motion</span></label>
-                  <label><input type="checkbox" name="style" value="elegant" ${this.theme && ['Maya','Celine','Noah','Umi'].includes(this.theme) ? 'checked' : ''}><span>Elegant Typography</span></label>
-                </div>
-              </div>
-            </div>
-          ` : ''}
           <div class="ai-captions-preview">
             <div class="ai-captions-preview-label">Theme Preview</div>
             <div class="ai-captions-theme-chips">
               ${CAPTION_THEMES.slice(0, 9).map((t) => `
-                <button type="button" class="theme-chip ${this.theme === t.value ? 'active' : ''}" data-theme="${t.value}" title="${this.escapeHtml(t.desc || '')}">
+                <button type="button" class="theme-chip ${this.theme === t.value ? 'active' : ''}" data-theme="${t.value}">
                   <span class="theme-chip-dot"></span>
                   ${this.escapeHtml(t.label)}
                 </button>
@@ -213,9 +195,6 @@ export class AICaptionsModal extends BaseModal {
             </div>
           </div>
         </div>
-        <p class="ai-captions-footnote">
-          Powered by Vadoo caption engine • Supports 40+ languages • 18 viral themes
-        </p>
       </div>
     `;
   }
@@ -226,7 +205,7 @@ export class AICaptionsModal extends BaseModal {
       <div class="form-section">
         <label for="ai-cap-url">Video URL</label>
         <div class="url-input-wrap">
-          <input type="text" id="ai-cap-url" placeholder="https://example.com/your-video.mp4" value="${this.escapeHtml(this.videoUrl)}" class="${isVideoUrl ? 'has-preview' : ''}">
+          <input type="text" id="ai-cap-url" placeholder="https://example.com/your-video.mp4" value="${this.escapeHtml(this.videoUrl)}">
           ${isVideoUrl ? `<video src="${this.escapeHtml(this.videoUrl)}" preload="metadata" muted class="url-preview-video"></video>` : ''}
         </div>
         <span class="form-hint">Must be publicly accessible. Max 600MB or 10 minutes.</span>
@@ -250,9 +229,7 @@ export class AICaptionsModal extends BaseModal {
         </div>
         ${this.uploading ? `
           <div class="ai-cap-upload-progress">
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: ${this.uploadProgress}%"></div>
-            </div>
+            <div class="progress-bar"><div class="progress-fill" style="width: ${this.uploadProgress}%"></div></div>
             <span class="progress-text">Uploading... ${this.uploadProgress}%</span>
           </div>
         ` : ''}
@@ -266,14 +243,11 @@ export class AICaptionsModal extends BaseModal {
     return `
       <div class="ai-captions-modal" style="${this.themeVars()}">
         <div class="generation-progress">
-          <div class="progress-bar">
-            <div class="progress-fill" style="width: ${pct}%"></div>
-          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width: ${pct}%"></div></div>
           <div class="progress-steps">
             ${GENERATION_STEPS.map((label, idx) => `
               <div class="progress-step ${idx < this.currentStep ? 'done' : ''} ${idx === this.currentStep ? 'active' : ''}">
-                <span class="progress-dot"></span>
-                <span>${label}</span>
+                <span class="progress-dot"></span><span>${label}</span>
               </div>
             `).join('')}
           </div>
@@ -289,11 +263,6 @@ export class AICaptionsModal extends BaseModal {
         <div class="generated-prompt-section">
           <label>Captioned Video</label>
           <video controls autoplay loop class="ai-captions-result-video" src="${this.escapeHtml(this.captionedUrl)}"></video>
-          <div class="ai-captions-meta-row">
-            <span class="ai-captions-meta-pill">✨ AI Captions applied</span>
-            <span class="ai-captions-meta-pill">🎨 Theme: ${this.escapeHtml(this.theme)}</span>
-            <span class="ai-captions-meta-pill">🌐 ${this.escapeHtml(this.language)}</span>
-          </div>
           <div class="generated-prompt-actions">
             <a href="${this.escapeHtml(this.captionedUrl)}" download class="gtm-action copy-prompt-btn" target="_blank" rel="noopener">Download Video</a>
             <button type="button" class="gtm-action" data-action="open-new-tab">Open in New Tab</button>
@@ -337,15 +306,6 @@ export class AICaptionsModal extends BaseModal {
     const scope = this.overlay?.querySelector('.modal-body');
     if (!scope) return;
 
-    // Info trigger
-    const infoBtn = scope.querySelector('[data-action="open-info"]');
-    if (infoBtn) {
-      infoBtn.addEventListener('click', () => {
-        alert('AI Captions uses Vadoo\'s caption engine to add animated, viral-style captions to your video. It transcribes the audio, generates styled captions in your chosen theme, and burns them into the video — optimized for social media platforms like TikTok, Reels, and YouTube Shorts.');
-      });
-    }
-
-    // Mode switch
     const modeBtns = scope.querySelectorAll('.mode-btn');
     modeBtns.forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -354,7 +314,6 @@ export class AICaptionsModal extends BaseModal {
       });
     });
 
-    // URL input
     const urlInput = scope.querySelector('#ai-cap-url');
     if (urlInput) {
       urlInput.addEventListener('input', (e) => {
@@ -362,7 +321,6 @@ export class AICaptionsModal extends BaseModal {
       });
     }
 
-    // File input
     const fileInput = scope.querySelector('#ai-cap-file-input');
     if (fileInput) {
       fileInput.addEventListener('change', (e) => {
@@ -375,23 +333,14 @@ export class AICaptionsModal extends BaseModal {
       });
     }
 
-    // Dropzone
     const dropzone = scope.querySelector('#ai-cap-dropzone');
     if (dropzone) {
       dropzone.addEventListener('click', () => {
         const input = dropzone.querySelector('input[type="file"]');
         if (input) input.click();
       });
-
-      dropzone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropzone.classList.add('drag-over');
-      });
-
-      dropzone.addEventListener('dragleave', () => {
-        dropzone.classList.remove('drag-over');
-      });
-
+      dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+      dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
       dropzone.addEventListener('drop', (e) => {
         e.preventDefault();
         dropzone.classList.remove('drag-over');
@@ -404,13 +353,8 @@ export class AICaptionsModal extends BaseModal {
       });
     }
 
-    // Language/theme selects
     const languageEl = scope.querySelector('#ai-cap-language');
-    if (languageEl) {
-      languageEl.addEventListener('change', (e) => {
-        this.language = e.target.value;
-      });
-    }
+    if (languageEl) languageEl.addEventListener('change', (e) => { this.language = e.target.value; });
 
     const themeEl = scope.querySelector('#ai-cap-theme');
     if (themeEl) {
@@ -428,16 +372,6 @@ export class AICaptionsModal extends BaseModal {
       });
     });
 
-    // Advanced toggle
-    const toggleBtn = scope.querySelector('[data-action="toggle-advanced"]');
-    if (toggleBtn) {
-      toggleBtn.addEventListener('click', () => {
-        this.showAdvanced = !this.showAdvanced;
-        this.refreshBody();
-      });
-    }
-
-    // Result actions
     const retryBtn = scope.querySelector('[data-action="retry"]');
     if (retryBtn) {
       retryBtn.addEventListener('click', () => {
@@ -450,17 +384,13 @@ export class AICaptionsModal extends BaseModal {
     const openTabBtn = scope.querySelector('[data-action="open-new-tab"]');
     if (openTabBtn) {
       openTabBtn.addEventListener('click', () => {
-        if (this.captionedUrl) {
-          window.open(this.captionedUrl, '_blank', 'noopener');
-        }
+        if (this.captionedUrl) window.open(this.captionedUrl, '_blank', 'noopener');
       });
     }
   }
 
   async uploadFileIfNeeded() {
-    if (this.inputMode !== 'upload' || !this.uploadedFile) {
-      return this.videoUrl;
-    }
+    if (this.inputMode !== 'upload' || !this.uploadedFile) return this.videoUrl;
 
     this.uploading = true;
     this.uploadProgress = 0;
@@ -500,7 +430,6 @@ export class AICaptionsModal extends BaseModal {
 
     this.isGenerating = true;
     this.currentStep = 0;
-    this.generationProgress = 0;
     this.errorMessage = '';
     this.refreshBody();
 
@@ -510,17 +439,13 @@ export class AICaptionsModal extends BaseModal {
     };
 
     try {
-      advanceStep(); // Uploading video...
-
+      advanceStep();
       const effectiveUrl = await this.uploadFileIfNeeded();
-      if (!effectiveUrl) {
-        throw new Error('No video URL available. Please provide a URL or upload a file.');
-      }
+      if (!effectiveUrl) throw new Error('No video URL available.');
 
-      advanceStep(); // Transcribing audio...
-
+      advanceStep();
       const { muapi } = await import('../../lib/muapi.js');
-      advanceStep(); // Generating captions...
+      advanceStep();
 
       const result = await muapi.processVideoTool({
         model: 'ai-captions',
@@ -529,8 +454,7 @@ export class AICaptionsModal extends BaseModal {
         theme: this.theme,
       });
 
-      advanceStep(); // Rendering video...
-
+      advanceStep();
       const captionedUrl = result?.url || result?.output?.url || result?.outputs?.[0];
       if (captionedUrl) {
         this.captionedUrl = captionedUrl;
@@ -552,7 +476,6 @@ export class AICaptionsModal extends BaseModal {
 
   setupEventListeners() {
     super.setupEventListeners();
-
     const scope = this.overlay?.querySelector('.modal-body');
     if (!scope) return;
 
