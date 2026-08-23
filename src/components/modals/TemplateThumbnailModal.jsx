@@ -244,7 +244,7 @@ export class TemplateThumbnailModal extends BaseModal {
 
   renderBrief() {
     const opts = openaiConfig.getThumbnailOutputSettings();
-    const featured = getFeaturedTemplates(12);
+    const featured = getFeaturedTemplates(30);
     // Resolve real thumbnail images via the same candidate chain TemplateStudio
     // uses, so the design-grid cards match the studio page thumbnails.
     const featuredWithThumbs = featured.map((t) => ({
@@ -2371,7 +2371,7 @@ export class TemplateThumbnailModal extends BaseModal {
    _renderBriefForm() {
     const container = document.createElement('div');
     const opts = openaiConfig.getThumbnailOutputSettings();
-    const featured = getFeaturedTemplates(12);
+    const featured = getFeaturedTemplates(30);
     const featuredWithThumbs = featured.map((t) => ({
       ...t,
       previewUrl: this._resolveTemplateThumbnail(t),

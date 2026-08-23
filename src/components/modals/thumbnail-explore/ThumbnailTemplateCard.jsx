@@ -72,8 +72,8 @@ export class ThumbnailTemplateCard {
             role="button"
             aria-pressed="${isSelected}"
             aria-label="${this.escapeHtml(t.name)} template">
-         <div class="template-card-preview" ${previewStyle}>
-           ${thumbUrl ? `<img src="${this.escapeHtml(thumbUrl)}" data-fallbacks="${this.escapeHtml(JSON.stringify(fallbackUrls))}" class="template-card-img" alt="${this.escapeHtml(t.name)} preview" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="window.__thumbCardErr(this)" />` : ''}
+         <div class="template-card-preview" style="${previewStyle}">
+            ${thumbUrl ? `<img src="${this.escapeHtml(thumbUrl)}" data-fallbacks="${this.escapeHtml(JSON.stringify(fallbackUrls))}" class="template-card-img" alt="${this.escapeHtml(t.name)} preview" onerror="window.__thumbCardErr(this)" />` : ''}
            ${t.requiresReference ? `
             <span class="template-card-badge reference-badge" title="Requires reference image">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
