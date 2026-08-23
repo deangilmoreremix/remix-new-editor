@@ -29,13 +29,7 @@ export class ModelSelectorDropdown {
     });
   }
 
-  _getFilteredModels() {
-    return [];
-  }
 
-  _getAvailableProviders() {
-    return [];
-  }
 
   open() {
     if (this._isOpen) return;
@@ -96,14 +90,8 @@ export class ModelSelectorDropdown {
     return popover;
   }
 
-  _bindSidebarEvents() {
-  }
 
-  _renderModelList() {
-  }
 
-  _bindEvents() {
-  }
 
   _positionPopover() {
     if (!this._popover || !this.anchorBtn) return;
