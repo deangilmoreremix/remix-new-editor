@@ -2729,7 +2729,7 @@ export const i2iModels = [
     "name": "AI Image Upscaler",
     "provider": "muapi",
     "provider_name": "MuAPI",
-    "endpoint": "ai-image-upscale",
+    "endpoint": "ai-image-upscaler",
     "family": "tools",
     "imageField": "image_url",
     "hasPrompt": false,
