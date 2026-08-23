@@ -570,23 +570,23 @@ export function SmartVideoViral() {
       const safeSrc = escapeHtml(videoSrc);
       const safePoster = escapeHtml(posterSrc);
       mediaHtml = `
-        <div class="viral-card-media relative aspect-[3/2] overflow-hidden bg-black/30">
-          <video class="viral-card-video w-full h-full object-cover" src="${safeSrc}" poster="${safePoster}" preload="metadata" muted loop playsinline disablepictureinpicture></video>
-          <button type="button" class="viral-play-toggle absolute inset-0 flex items-center justify-center bg-black/20 transition-opacity" data-video-src="${safeSrc}" data-poster="${safePoster}" title="Play video" aria-label="Play video">
-            <span class="viral-play-icon w-10 h-10 rounded-full bg-white/90 text-black flex items-center justify-center shadow-lg">
+        <div class="smart-card-media relative aspect-[3/2] overflow-hidden bg-black/30">
+          <video class="smart-card-video w-full h-full object-cover" src="${safeSrc}" poster="${safePoster}" preload="metadata" muted loop playsinline disablepictureinpicture></video>
+          <button type="button" class="smart-play-toggle absolute inset-0 flex items-center justify-center bg-black/20 transition-opacity" data-video-src="${safeSrc}" data-poster="${safePoster}" title="Play video" aria-label="Play video">
+            <span class="smart-play-icon w-10 h-10 rounded-full bg-white/90 text-black flex items-center justify-center shadow-lg">
               <svg class="w-4 h-4 ml-0.5" viewBox="0 0 24 24" fill="currentColor"><polygon points="10 7 10 17 17 12 10 7"/></svg>
             </span>
           </button>
         </div>
       `;
     } else if (thumb) {
-      mediaHtml = `<img data-primary="${escapeHtml(thumb)}" data-fallback="${escapeHtml(sourceUrl)}" class="viral-preview w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="${escapeHtml(item.title)}" loading="lazy"/>`;
+      mediaHtml = `<img data-primary="${escapeHtml(thumb)}" data-fallback="${escapeHtml(sourceUrl)}" class="smart-card-preview w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="${escapeHtml(item.title)}" loading="lazy"/>`;
     } else {
       mediaHtml = fallbackPlaceholder();
     }
     return `
-       <div class="viral-card smart-card group bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden transition-all duration-200 flex flex-col" data-imglume-id="${item.imglumeId}">
-        <div class="relative aspect-[3/2] overflow-hidden bg-black/30">
+       <div class="smart-card group" data-imglume-id="${item.imglumeId}">
+        <div class="smart-card-media relative aspect-[3/2] overflow-hidden bg-black/30">
           ${mediaHtml}
           <div class="absolute top-2 left-2 flex gap-1">
             ${modelBadgeHtml}
@@ -596,7 +596,7 @@ export function SmartVideoViral() {
             </span>
           </div>
         </div>
-        <div class="p-4 flex-1 flex flex-col">
+        <div class="smart-card-content flex-1 flex flex-col">
           <h3 class="text-sm font-bold text-zinc-100 mb-1 line-clamp-1">${escapeHtml(item.title || 'Untitled')}</h3>
           <div class="prompt-section">
             <p class="text-[11px] text-zinc-400 mb-1 line-clamp-2 leading-relaxed">${escapedPreview}</p>
@@ -617,7 +617,7 @@ export function SmartVideoViral() {
           ` : ''}
           <div class="mt-auto flex gap-2">
             <button class="copy-prompt-btn btn-primary-modern" data-id="${item.imglumeId}" title="Copy prompt to clipboard">Copy Prompt</button>
-            <a href="${escapeHtml(item.source?.url || item.curation?.recordUrl || '#')}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 bg-[#141414] border border-zinc-700/80 text-zinc-300 rounded-xl text-[10px] font-bold hover:text-white hover:border-primary/50 transition-colors" title="View source post on X">Source</a>
+            <a href="${escapeHtml(item.source?.url || item.curation?.recordUrl || '#')}" target="_blank" rel="noopener noreferrer" class="btn-secondary-modern text-[10px] font-bold" title="View source post on X">Source</a>
           </div>
         </div>
       </div>
