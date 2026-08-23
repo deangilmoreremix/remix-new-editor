@@ -262,7 +262,10 @@ export async function EffectsStudio() {
   inputLabel.textContent = 'Input';
   inputCol.appendChild(inputLabel);
 
-  const inputPreview = createMediaPreview({ maxHeight: '40vh', showDownload: false, showMeta: true });
+  const inputPreview = createMediaPreview({ maxHeight: '40vh', showDownload: false, showMeta: true, onClear: () => {
+    uploadedUrl = null;
+    inputPreview.clear();
+  }});
   inputCol.appendChild(inputPreview.element);
 
   const uploadRow = document.createElement('div');
@@ -330,7 +333,7 @@ export async function EffectsStudio() {
   outputLabel.textContent = 'Output';
   outputCol.appendChild(outputLabel);
 
-  const outputPreview = createMediaPreview({ maxHeight: '40vh', showDownload: true, showMeta: true });
+  const outputPreview = createMediaPreview({ maxHeight: '40vh', showDownload: true, showMeta: true, onClear: () => outputPreview.clear() });
   outputCol.appendChild(outputPreview.element);
 
   const outputActions = document.createElement('div');
@@ -899,9 +902,9 @@ generateBtn.type = 'button';
   const mobilePreviewRow = document.createElement('div');
   mobilePreviewRow.className = 'flex gap-3';
 
-  const mobileInputPreview = createMediaPreview({ maxHeight: '30vh', showDownload: false, showMeta: false });
+  const mobileInputPreview = createMediaPreview({ maxHeight: '30vh', showDownload: false, showMeta: false, onClear: () => mobileInputPreview.clear() });
   mobileInputPreview.element.className += ' flex-1 fx-hidden';
-  const mobileOutputPreview = createMediaPreview({ maxHeight: '30vh', showDownload: true, showMeta: false });
+  const mobileOutputPreview = createMediaPreview({ maxHeight: '30vh', showDownload: true, showMeta: false, onClear: () => mobileOutputPreview.clear() });
   mobileOutputPreview.element.className += ' flex-1';
   mobileOutputPreview.element.setAttribute('role', 'status');
   mobileOutputPreview.element.setAttribute('aria-live', 'polite');

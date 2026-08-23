@@ -158,6 +158,46 @@ export class MuapiClient {
 
         if (params.thumbnail_url) finalPayload.thumbnail_url = params.thumbnail_url;
 
+        // Forward any tool-specific params defined in the model's input schema
+        // that weren't already handled above. This lets Edit Studio controls like
+        // output_format, google_search, and other model-specific params reach the API.
+        const modelInputKeys = new Set(
+            Object.keys(modelInfo?.inputs || {}).map(k => k.trim())
+        );
+        const alreadyForwarded = new Set([
+            'prompt',
+            'image_url',
+            'images_list',
+            'aspect_ratio',
+            'resolution',
+            'quality',
+            'name',
+            'negative_prompt',
+            'seed',
+            'guidance_scale',
+            'steps',
+            'denoise_strength',
+            'effect_strength',
+            'cfg_scale',
+            'prompt_extend',
+            'thumbnail_url',
+            'reference_images',
+            'reference_videos',
+            'reference_audios',
+            'last_image_url',
+            'sheet_url',
+            'first_frame_url',
+            'last_frame_url',
+            'character_consistency',
+            'native_audio',
+        ]);
+        for (const [key, value] of Object.entries(params)) {
+            if (alreadyForwarded.has(key)) continue;
+            if (!modelInputKeys.has(key)) continue;
+            if (value === undefined || value === null || value === '') continue;
+            finalPayload[key] = value;
+        }
+
         try {
             const response = await fetch(this.proxyUrl, {
                 method: 'POST',

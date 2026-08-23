@@ -342,3 +342,26 @@ export function debounce(fn, wait = 300) {
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+/**
+ * Create a small × remove button overlay for media previews.
+ *
+ * @param {() => void} onRemove - Called when the user clicks the × button.
+ * @param {Object} [options]
+ * @param {string} [options.position='top-right'] - 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'
+ * @param {string} [options.label='Remove'] - Accessible label for the button.
+ * @returns {HTMLButtonElement}
+ */
+export function createMediaRemoveButton(onRemove, options = {}) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.setAttribute('aria-label', options.label || 'Remove');
+  btn.title = options.label || 'Remove';
+  btn.className = 'absolute top-2 right-2 w-6 h-6 bg-black/70 hover:bg-black/90 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-colors z-10';
+  btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+  btn.onclick = (e) => {
+    e.stopPropagation();
+    onRemove();
+  };
+  return btn;
+}

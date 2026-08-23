@@ -6,6 +6,7 @@ export function createMediaPreview(options = {}) {
     showMeta = true,
     rounded = '2xl',
     onLoad = null,
+    onClear = null,
   } = options;
 
   const wrapper = document.createElement('div');
@@ -114,6 +115,21 @@ export function createMediaPreview(options = {}) {
         showError('Failed to load image');
       };
       mediaContainer.appendChild(img);
+    }
+
+    if (onClear) {
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.setAttribute('aria-label', 'Remove');
+      removeBtn.title = 'Remove';
+      removeBtn.className = 'absolute top-3 right-3 w-7 h-7 bg-black/70 hover:bg-black/90 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-colors z-10';
+      removeBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+      removeBtn.onclick = (e) => {
+        e.stopPropagation();
+        if (onClear) onClear();
+        clear();
+      };
+      mediaContainer.appendChild(removeBtn);
     }
   }
 

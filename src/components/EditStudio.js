@@ -6,6 +6,7 @@ import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getToolThumbnail, createThumbnailImg, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
+import { createMediaRemoveButton } from '../lib/studioHelpers.js';
 
 const EDIT_TOOLS = [
   {
@@ -126,13 +127,19 @@ const EDIT_TOOLS = [
   },
 ];
 
-const DYNAMIC_MODEL_CACHE_KEY = 'edit_studio_dynamic_models_v1';
+const DYNAMIC_MODEL_CACHE_KEY = 'edit_studio_dynamic_models_v2';
 const DYNAMIC_SCHEMA_CACHE_KEY = 'edit_studio_dynamic_schema_v1';
 
 async function fetchDynamicModels() {
     try {
-        const data = await getEnrichedModels('i2i');
-        return Array.isArray(data) ? data : [];
+        const [i2iData, t2iData] = await Promise.all([
+            getEnrichedModels('i2i').catch(() => []),
+            getEnrichedModels('t2i').catch(() => []),
+        ]);
+        const merged = new Map();
+        (i2iData || []).forEach(m => merged.set(m.id, m));
+        (t2iData || []).forEach(m => merged.set(m.id, m));
+        return Array.from(merged.values());
     } catch (e) {
         console.warn('[EditStudio] Failed to fetch dynamic model catalog:', e);
         return [];
@@ -201,6 +208,7 @@ function buildControlsFromSchema(schema) {
 
     const entries = Object.entries(properties).filter(([key, field]) => {
         if (key === 'image_url') return false;
+        if (key === 'images_list') return false;
         if (isImageField(field)) return false;
         return true;
     });
@@ -240,10 +248,12 @@ function buildDynamicToolFromSchema(modelId, schema) {
     const properties = inputSchema.properties || {};
     const hasPrompt = !!properties.prompt || !!properties.scene_description;
     const promptKey = properties.prompt ? 'prompt' : (properties.scene_description ? 'scene_description' : null);
+    const hasImagesList = !!properties.images_list;
 
     const extraUploads = [];
     Object.entries(properties).forEach(([key, field]) => {
         if (key === 'image_url') return;
+        if (key === 'images_list') return;
         if (isImageField(field)) {
             const isSwap = key.toLowerCase().includes('swap');
             const isMask = key.toLowerCase().includes('mask');
@@ -265,6 +275,8 @@ function buildDynamicToolFromSchema(modelId, schema) {
         requiresMask: extraUploads.some(u => u.isMask),
         requiresGarment: extraUploads.some(u => u.isGarment),
         requiresWatermarkImage: extraUploads.some(u => u.isWatermark),
+        requiresMultiImage: hasImagesList,
+        maxImages: properties.images_list?.maxItems || 10,
         extraUploads,
         isDynamic: true,
     };
@@ -281,6 +293,7 @@ export function EditStudio() {
   let garmentUrl = null;
   let swapUrl = null;
   let watermarkImageUrl = null;
+  let multiImageUrls = [];
   let dynamicSchema = null;
   let dynamicModels = [];
   let dynamicModelsLoading = false;
@@ -368,6 +381,23 @@ export function EditStudio() {
   const previewImg = document.createElement('img');
   previewImg.className = 'hidden w-full h-48 object-cover rounded-xl border border-white/10 cursor-zoom-in';
 
+  const previewWrapper = document.createElement('div');
+  previewWrapper.className = 'relative hidden';
+  previewWrapper.appendChild(previewImg);
+
+  const previewRemoveBtn = createMediaRemoveButton(() => {
+    picker.reset();
+    uploadedUrl = null;
+    previewImg.classList.add('hidden');
+    previewImg.src = '';
+    previewWrapper.classList.add('hidden');
+    previewRemoveBtn.classList.add('hidden');
+    uploadHint.textContent = 'Upload source image or video';
+    clearBtn.classList.add('hidden');
+  });
+  previewRemoveBtn.classList.add('hidden');
+  previewWrapper.appendChild(previewRemoveBtn);
+
   const uploadHint = document.createElement('span');
   uploadHint.className = 'text-sm text-muted';
   uploadHint.textContent = 'Upload source image or video';
@@ -388,6 +418,8 @@ export function EditStudio() {
       uploadedUrl = url;
       previewImg.src = url;
       previewImg.classList.remove('hidden');
+      previewWrapper.classList.remove('hidden');
+      previewRemoveBtn.classList.remove('hidden');
       uploadHint.textContent = 'Media uploaded';
       clearBtn.classList.remove('hidden');
     },
@@ -395,6 +427,8 @@ export function EditStudio() {
       uploadedUrl = null;
       previewImg.classList.add('hidden');
       previewImg.src = '';
+      previewWrapper.classList.add('hidden');
+      previewRemoveBtn.classList.add('hidden');
       uploadHint.textContent = 'Upload source image or video';
       clearBtn.classList.add('hidden');
     },
@@ -402,6 +436,8 @@ export function EditStudio() {
       const blobUrl = URL.createObjectURL(file);
       previewImg.src = blobUrl;
       previewImg.classList.remove('hidden');
+      previewWrapper.classList.remove('hidden');
+      previewRemoveBtn.classList.remove('hidden');
       uploadHint.textContent = file.name;
     },
   });
@@ -412,6 +448,8 @@ export function EditStudio() {
     uploadedUrl = null;
     previewImg.classList.add('hidden');
     previewImg.src = '';
+    previewWrapper.classList.add('hidden');
+    previewRemoveBtn.classList.add('hidden');
     uploadHint.textContent = 'Upload source image or video';
     clearBtn.classList.add('hidden');
   };
@@ -442,91 +480,235 @@ export function EditStudio() {
   uploadRow.appendChild(uploadHint);
   uploadRow.appendChild(clearBtn);
   uploadSection.appendChild(uploadRow);
-  uploadSection.appendChild(previewImg);
+  uploadSection.appendChild(previewWrapper);
   workCard.appendChild(uploadSection);
   container.appendChild(picker.panel);
 
-  function createSecondaryUploadRow({ hintText, onSelect, onClear, previewClass = 'h-16' }) {
-    const row = document.createElement('div');
-    row.className = 'hidden flex flex-col gap-2';
-    const hint = document.createElement('span');
-    hint.className = 'text-sm text-muted';
-    hint.textContent = hintText;
-    const preview = document.createElement('img');
-    preview.className = `hidden w-full ${previewClass} object-cover rounded-xl border border-white/10`;
-    const clearBtn = document.createElement('button');
-    clearBtn.type = 'button';
-    clearBtn.className = 'hidden text-xs font-bold text-red-400 hover:text-red-300 transition-colors';
-    clearBtn.textContent = 'Remove';
-    clearBtn.onclick = (e) => {
-      e.stopPropagation();
-      updatedPicker.reset();
-      preview.classList.add('hidden');
-      preview.src = '';
-      hint.textContent = hintText;
-      hint.classList.add('hidden');
-      clearBtn.classList.add('hidden');
-      if (onClear) onClear();
-    };
-    const updatedPicker = createUploadPicker({
-      anchorContainer: container,
-      onSelect: ({ url }) => {
-        preview.src = url;
-        preview.classList.remove('hidden');
-        hint.textContent = 'Uploaded';
-        hint.classList.remove('hidden');
-        clearBtn.classList.remove('hidden');
-        if (onSelect) onSelect({ url });
-      },
-      onClear: () => {
-        preview.classList.add('hidden');
-        preview.src = '';
-        hint.textContent = hintText;
-        hint.classList.add('hidden');
-        clearBtn.classList.add('hidden');
-        if (onClear) onClear();
-      },
-    });
-    row.appendChild(updatedPicker.trigger);
-    row.appendChild(preview);
-    row.appendChild(hint);
-    row.appendChild(clearBtn);
-    container.appendChild(updatedPicker.panel);
-    row._reset = () => {
-      preview.classList.add('hidden');
-      preview.src = '';
-      hint.textContent = hintText;
-      hint.classList.add('hidden');
-      clearBtn.classList.add('hidden');
-      updatedPicker.reset();
-      if (onClear) onClear();
-    };
-    return row;
-  }
+  // Multi-image upload row for models with images_list
+  const multiImagePreviewGrid = document.createElement('div');
+  multiImagePreviewGrid.className = 'hidden grid grid-cols-4 gap-2 mt-2';
+  const multiImageHint = document.createElement('span');
+  multiImageHint.className = 'text-sm text-muted';
+  multiImageHint.textContent = 'Upload reference images';
+  const multiImageClearBtn = document.createElement('button');
+  multiImageClearBtn.type = 'button';
+  multiImageClearBtn.className = 'hidden text-xs font-bold text-red-400 hover:text-red-300 transition-colors';
+  multiImageClearBtn.textContent = 'Remove All';
+  const multiImageRow = document.createElement('div');
+  multiImageRow.className = 'hidden flex flex-col gap-2';
+  multiImageRow.appendChild(multiImageHint);
+  multiImageRow.appendChild(multiImagePreviewGrid);
+  multiImageRow.appendChild(multiImageClearBtn);
 
-  const maskRow = createSecondaryUploadRow({
-    hintText: 'Upload mask image',
-    onSelect: ({ url }) => { maskUrl = url; },
-    onClear: () => { maskUrl = null; },
-  });
+  const multiImagePicker = createUploadPicker({
+    anchorContainer: container,
+    multiple: true,
+    onSelect: ({ urls }) => {
+      multiImageUrls = urls;
+      multiImagePreviewGrid.innerHTML = '';
+      urls.forEach((url, index) => {
+        const thumbWrapper = document.createElement('div');
+        thumbWrapper.className = 'relative';
 
-  const garmentRow = createSecondaryUploadRow({
-    hintText: 'Upload garment image',
-    onSelect: ({ url }) => { garmentUrl = url; },
-    onClear: () => { garmentUrl = null; },
-  });
+        const img = document.createElement('img');
+        img.src = url;
+        img.className = 'w-full h-16 object-cover rounded-lg border border-white/10';
+        thumbWrapper.appendChild(img);
 
-  const swapRow = createSecondaryUploadRow({
-    hintText: 'Upload swap face image',
-    onSelect: ({ url }) => { swapUrl = url; },
-    onClear: () => { swapUrl = null; },
-  });
+        const removeBtn = createMediaRemoveButton(() => {
+          multiImageUrls = multiImageUrls.filter((_, i) => i !== index);
+          if (multiImageUrls.length === 0) {
+            multiImagePreviewGrid.classList.add('hidden');
+            multiImageHint.classList.add('hidden');
+            multiImageClearBtn.classList.add('hidden');
+            multiImageHint.textContent = 'Upload reference images';
+          } else {
+            multiImageHint.textContent = `${multiImageUrls.length} image(s) uploaded`;
+          }
+          thumbWrapper.remove();
+        });
+        thumbWrapper.appendChild(removeBtn);
 
-  const watermarkImageRow = createSecondaryUploadRow({
-    hintText: 'Upload watermark image',
-    onSelect: ({ url }) => { watermarkImageUrl = url; },
-    onClear: () => { watermarkImageUrl = null; },
+        multiImagePreviewGrid.appendChild(thumbWrapper);
+      });
+      multiImageHint.textContent = `${urls.length} image(s) uploaded`;
+      multiImageHint.classList.remove('hidden');
+      multiImagePreviewGrid.classList.remove('hidden');
+      multiImageClearBtn.classList.remove('hidden');
+    },
+    onClear: () => {
+      multiImageUrls = [];
+      multiImagePreviewGrid.innerHTML = '';
+      multiImageHint.textContent = 'Upload reference images';
+      multiImageHint.classList.add('hidden');
+      multiImagePreviewGrid.classList.add('hidden');
+      multiImageClearBtn.classList.add('hidden');
+    },
   });
+  multiImageRow.appendChild(multiImagePicker.trigger);
+  multiImageClearBtn.onclick = (e) => {
+    e.stopPropagation();
+    multiImagePicker.reset();
+    multiImageUrls = [];
+    multiImagePreviewGrid.innerHTML = '';
+    multiImageHint.textContent = 'Upload reference images';
+    multiImageHint.classList.add('hidden');
+    multiImagePreviewGrid.classList.add('hidden');
+    multiImageClearBtn.classList.add('hidden');
+  };
+  container.appendChild(multiImagePicker.panel);
+
+  // Mask upload for ai-object-eraser
+  const maskPicker = createUploadPicker({
+    anchorContainer: container,
+    onSelect: ({ url }) => {
+      maskUrl = url;
+      maskHint.textContent = 'Mask uploaded';
+      maskHint.classList.remove('hidden');
+      maskClearBtn.classList.remove('hidden');
+    },
+    onClear: () => {
+      maskUrl = null;
+      maskHint.textContent = 'Upload mask image';
+      maskHint.classList.add('hidden');
+      maskClearBtn.classList.add('hidden');
+    },
+  });
+  const maskRow = document.createElement('div');
+  maskRow.className = 'hidden flex flex-col gap-2';
+  const maskHint = document.createElement('span');
+  maskHint.className = 'text-sm text-muted';
+  maskHint.textContent = 'Upload mask image';
+  const maskClearBtn = document.createElement('button');
+  maskClearBtn.type = 'button';
+  maskClearBtn.className = 'hidden text-xs font-bold text-red-400 hover:text-red-300 transition-colors';
+  maskClearBtn.textContent = 'Remove';
+  maskClearBtn.onclick = (e) => {
+    e.stopPropagation();
+    maskPicker.reset();
+    maskUrl = null;
+    maskHint.textContent = 'Upload mask image';
+    maskHint.classList.add('hidden');
+    maskClearBtn.classList.add('hidden');
+  };
+  maskRow.appendChild(maskPicker.trigger);
+  maskRow.appendChild(maskHint);
+  maskRow.appendChild(maskClearBtn);
+  container.appendChild(maskPicker.panel);
+
+  // Garment upload for ai-dress-change
+  const garmentPicker = createUploadPicker({
+    anchorContainer: container,
+    onSelect: ({ url }) => {
+      garmentUrl = url;
+      garmentHint.textContent = 'Garment uploaded';
+      garmentHint.classList.remove('hidden');
+      garmentClearBtn.classList.remove('hidden');
+    },
+    onClear: () => {
+      garmentUrl = null;
+      garmentHint.textContent = 'Upload garment image';
+      garmentHint.classList.add('hidden');
+      garmentClearBtn.classList.add('hidden');
+    },
+  });
+  const garmentRow = document.createElement('div');
+  garmentRow.className = 'hidden flex flex-col gap-2';
+  const garmentHint = document.createElement('span');
+  garmentHint.className = 'text-sm text-muted';
+  garmentHint.textContent = 'Upload garment image';
+  const garmentClearBtn = document.createElement('button');
+  garmentClearBtn.type = 'button';
+  garmentClearBtn.className = 'hidden text-xs font-bold text-red-400 hover:text-red-300 transition-colors';
+  garmentClearBtn.textContent = 'Remove';
+  garmentClearBtn.onclick = (e) => {
+    e.stopPropagation();
+    garmentPicker.reset();
+    garmentUrl = null;
+    garmentHint.textContent = 'Upload garment image';
+    garmentHint.classList.add('hidden');
+    garmentClearBtn.classList.add('hidden');
+  };
+  garmentRow.appendChild(garmentPicker.trigger);
+  garmentRow.appendChild(garmentHint);
+  garmentRow.appendChild(garmentClearBtn);
+  container.appendChild(garmentPicker.panel);
+
+  // Swap image upload for ai-image-face-swap
+  const swapPicker = createUploadPicker({
+    anchorContainer: container,
+    onSelect: ({ url }) => {
+      swapUrl = url;
+      swapHint.textContent = 'Swap image uploaded';
+      swapHint.classList.remove('hidden');
+      swapClearBtn.classList.remove('hidden');
+    },
+    onClear: () => {
+      swapUrl = null;
+      swapHint.textContent = 'Upload swap face image';
+      swapHint.classList.add('hidden');
+      swapClearBtn.classList.add('hidden');
+    },
+  });
+  const swapRow = document.createElement('div');
+  swapRow.className = 'hidden flex flex-col gap-2';
+  const swapHint = document.createElement('span');
+  swapHint.className = 'text-sm text-muted';
+  swapHint.textContent = 'Upload swap face image';
+  const swapClearBtn = document.createElement('button');
+  swapClearBtn.type = 'button';
+  swapClearBtn.className = 'hidden text-xs font-bold text-red-400 hover:text-red-300 transition-colors';
+  swapClearBtn.textContent = 'Remove';
+  swapClearBtn.onclick = (e) => {
+    e.stopPropagation();
+    swapPicker.reset();
+    swapUrl = null;
+    swapHint.textContent = 'Upload swap face image';
+    swapHint.classList.add('hidden');
+    swapClearBtn.classList.add('hidden');
+  };
+  swapRow.appendChild(swapPicker.trigger);
+  swapRow.appendChild(swapHint);
+  swapRow.appendChild(swapClearBtn);
+  container.appendChild(swapPicker.panel);
+
+  // Watermark image upload for add-image-watermark
+  const watermarkImagePicker = createUploadPicker({
+    anchorContainer: container,
+    onSelect: ({ url }) => {
+      watermarkImageUrl = url;
+      watermarkImageHint.textContent = 'Watermark image uploaded';
+      watermarkImageHint.classList.remove('hidden');
+      watermarkImageClearBtn.classList.remove('hidden');
+    },
+    onClear: () => {
+      watermarkImageUrl = null;
+      watermarkImageHint.textContent = 'Upload watermark image';
+      watermarkImageHint.classList.add('hidden');
+      watermarkImageClearBtn.classList.add('hidden');
+    },
+  });
+  const watermarkImageRow = document.createElement('div');
+  watermarkImageRow.className = 'hidden flex flex-col gap-2';
+  const watermarkImageHint = document.createElement('span');
+  watermarkImageHint.className = 'text-sm text-muted';
+  watermarkImageHint.textContent = 'Upload watermark image';
+  const watermarkImageClearBtn = document.createElement('button');
+  watermarkImageClearBtn.type = 'button';
+  watermarkImageClearBtn.className = 'hidden text-xs font-bold text-red-400 hover:text-red-300 transition-colors';
+  watermarkImageClearBtn.textContent = 'Remove';
+  watermarkImageClearBtn.onclick = (e) => {
+    e.stopPropagation();
+    watermarkImagePicker.reset();
+    watermarkImageUrl = null;
+    watermarkImageHint.textContent = 'Upload watermark image';
+    watermarkImageHint.classList.add('hidden');
+    watermarkImageClearBtn.classList.add('hidden');
+  };
+  watermarkImageRow.appendChild(watermarkImagePicker.trigger);
+  watermarkImageRow.appendChild(watermarkImageHint);
+  watermarkImageRow.appendChild(watermarkImageClearBtn);
+  container.appendChild(watermarkImagePicker.panel);
 
   const promptField = document.createElement('input');
   promptField.type = 'text';
@@ -697,6 +879,47 @@ export function EditStudio() {
     }
   }
 
+  function updateUploadVisibility(tool) {
+    const isT2I = tool.mode === 't2i';
+    const isI2I = tool.mode === 'i2i';
+
+    uploadRow.classList.add('hidden');
+    previewImg.classList.add('hidden');
+    clearBtn.classList.add('hidden');
+    uploadHint.textContent = 'Upload source image or video';
+    picker.reset();
+    uploadedUrl = null;
+
+    multiImageRow.classList.add('hidden');
+    multiImagePreviewGrid.innerHTML = '';
+    multiImageHint.classList.add('hidden');
+    multiImagePreviewGrid.classList.add('hidden');
+    multiImageClearBtn.classList.add('hidden');
+    multiImageHint.textContent = 'Upload reference images';
+    multiImageUrls = [];
+
+    if (isT2I) {
+      uploadRow.classList.add('hidden');
+      multiImageRow.classList.add('hidden');
+    } else if (isI2I) {
+      if (tool.requiresMultiImage) {
+        multiImageRow.classList.remove('hidden');
+      } else if (tool.requiresMask) {
+        maskRow.classList.remove('hidden');
+      } else if (tool.requiresGarment) {
+        garmentRow.classList.remove('hidden');
+      } else if (tool.requiresSwapImage) {
+        swapRow.classList.remove('hidden');
+      } else if (tool.requiresWatermarkImage) {
+        watermarkImageRow.classList.remove('hidden');
+      } else {
+        uploadRow.classList.remove('hidden');
+      }
+    } else {
+      uploadRow.classList.remove('hidden');
+    }
+  }
+
   async function selectTool(tool, cardEl) {
     activeTool = tool;
     dynamicSchema = null;
@@ -714,24 +937,7 @@ export function EditStudio() {
     workCard.classList.add('flex');
     toolTitle.textContent = tool.name;
 
-    // Reset uploads
-    uploadedUrl = null;
-    maskUrl = null;
-    garmentUrl = null;
-    swapUrl = null;
-    watermarkImageUrl = null;
-    previewImg.classList.add('hidden');
-    previewImg.src = '';
-    uploadHint.textContent = 'Upload source image or video';
-    clearBtn.classList.add('hidden');
-    maskRow.classList.add('hidden');
-    if (maskRow._reset) maskRow._reset();
-    garmentRow.classList.add('hidden');
-    if (garmentRow._reset) garmentRow._reset();
-    swapRow.classList.add('hidden');
-    if (swapRow._reset) swapRow._reset();
-    watermarkImageRow.classList.add('hidden');
-    if (watermarkImageRow._reset) watermarkImageRow._reset();
+    updateUploadVisibility(tool);
 
     if (tool.isDynamic && tool.schema) {
       dynamicSchema = tool.schema;
@@ -742,6 +948,7 @@ export function EditStudio() {
       const properties = tool.schema.input_schema?.schemas?.input_data?.properties || {};
       Object.entries(properties).forEach(([key, field]) => {
         if (key === 'image_url') return;
+        if (key === 'images_list') return;
         if (!isImageField(field)) return;
         const lowerKey = key.toLowerCase();
         if (lowerKey.includes('swap')) { swapRow.classList.remove('hidden'); }
@@ -758,6 +965,7 @@ export function EditStudio() {
       if (tool.requiresGarment) garmentRow.classList.remove('hidden');
       if (tool.requiresSwapImage) swapRow.classList.remove('hidden');
       if (tool.requiresWatermarkImage) watermarkImageRow.classList.remove('hidden');
+      if (tool.requiresMultiImage) multiImageRow.classList.remove('hidden');
     }
 
     resultArea.classList.add('hidden');
@@ -842,13 +1050,15 @@ export function EditStudio() {
 
   editBtn.onclick = async () => {
     if (!activeTool) return;
-    if (!uploadedUrl) { showError('Upload a source image first'); return; }
+    if (activeTool.mode === 't2i' && !promptField.value.trim()) { showError('Enter a prompt first'); return; }
+    if (activeTool.mode === 'i2i' && !uploadedUrl && multiImageUrls.length === 0) { showError('Upload a source image first'); return; }
 
     // Validate required secondary uploads
     if (activeTool.requiresMask && !maskUrl) { showError('Upload a mask image for Remove Object'); return; }
     if (activeTool.requiresGarment && !garmentUrl) { showError('Upload a garment image for Change Dress'); return; }
     if (activeTool.requiresSwapImage && !swapUrl) { showError('Upload a swap face image for Face Swap'); return; }
     if (activeTool.requiresWatermarkImage && !watermarkImageUrl) { showError('Upload a watermark image'); return; }
+    if (activeTool.requiresMultiImage && multiImageUrls.length === 0) { showError('Upload reference images'); return; }
 
     // Validate dynamic schema required fields
     if (dynamicSchema) {
@@ -857,6 +1067,8 @@ export function EditStudio() {
       const required = inputData.required || [];
       const missing = required.filter(key => {
         if (key === 'image_url') return !uploadedUrl;
+        if (key === 'images_list') return multiImageUrls.length === 0;
+        if (key === 'prompt') return !promptField.value.trim();
         const field = properties[key];
         if (!field) return false;
         if (isImageField(field)) {
@@ -902,18 +1114,32 @@ export function EditStudio() {
     try {
       const params = {
         model: activeTool.id,
-        image_url: uploadedUrl,
       };
+
+      if (activeTool.mode === 't2i') {
+        params.prompt = replaceTokensInPrompt(promptField.value.trim());
+      } else if (activeTool.mode === 'i2i') {
+        if (multiImageUrls.length > 0) {
+          params.images_list = multiImageUrls;
+        } else if (uploadedUrl) {
+          params.image_url = uploadedUrl;
+        }
+        if (promptField.value.trim()) {
+          const promptKey = activeTool.promptKey || 'prompt';
+          params[promptKey] = replaceTokensInPrompt(promptField.value.trim());
+        }
+      } else {
+        if (uploadedUrl) params.image_url = uploadedUrl;
+        if (activeTool.hasPrompt && promptField.value.trim()) {
+          const promptKey = activeTool.promptKey || 'prompt';
+          params[promptKey] = replaceTokensInPrompt(promptField.value.trim());
+        }
+      }
 
       if (maskUrl) params.mask_image_url = maskUrl;
       if (garmentUrl) params.garment_image_url = garmentUrl;
       if (swapUrl) params.swap_url = swapUrl;
       if (watermarkImageUrl) params.watermark_image_url = watermarkImageUrl;
-
-      if (activeTool.hasPrompt && promptField.value.trim()) {
-        const promptKey = activeTool.promptKey || 'prompt';
-        params[promptKey] = replaceTokensInPrompt(promptField.value.trim());
-      }
 
       // Collect control values from DOM
       controlsContainer.querySelectorAll('select, input').forEach(el => {
@@ -926,7 +1152,10 @@ export function EditStudio() {
         }
       });
 
-      const result = await muapi.generateI2I(params);
+      const isT2I = activeTool.mode === 't2i';
+      const result = isT2I
+        ? await muapi.generateImage(params)
+        : await muapi.generateI2I(params);
       updateProgress(null);
 
       if (result?.url) {

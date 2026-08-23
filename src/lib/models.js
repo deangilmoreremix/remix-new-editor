@@ -1968,8 +1968,76 @@ export const t2iModels = [
         "default": "basic"
       }
     }
+  },
+  {
+    "id": "gpt-image-2-text-to-image",
+    "name": "GPT Image 2 (Text to Image)",
+    "provider": "muapi",
+    "provider_name": "MuAPI",
+    "endpoint": "gpt-image-2-text-to-image",
+    "family": "gpt",
+    "inputs": {
+      "prompt": {
+        "type": "string",
+        "title": "Prompt",
+        "name": "prompt",
+        "description": "Text prompt describing the image to generate."
+      },
+      "aspect_ratio": {
+        "type": "string",
+        "title": "Aspect Ratio",
+        "name": "aspect_ratio",
+        "enum": ["auto", "1:1", "16:9", "9:16", "4:3", "3:4", "3:2", "2:3", "5:4", "4:5"],
+        "default": "auto"
+      },
+      "resolution": {
+        "type": "string",
+        "title": "Resolution",
+        "name": "resolution",
+        "enum": ["1K", "2K", "4K"],
+        "default": "2K"
+      },
+      "quality": {
+        "type": "string",
+        "title": "Quality",
+        "name": "quality",
+        "enum": ["low", "medium", "high"],
+        "default": "high"
+      }
+    }
+  },
+  {
+    "id": "bytedance-seedream-5.0-pro",
+    "name": "Seedream 5.0 Pro (Text to Image)",
+    "provider": "muapi",
+    "provider_name": "MuAPI",
+    "endpoint": "bytedance-seedream-5.0-pro",
+    "family": "seedream-5",
+    "inputs": {
+      "prompt": {
+        "type": "string",
+        "title": "Prompt",
+        "name": "prompt",
+        "description": "Text prompt describing the image to generate."
+      },
+      "aspect_ratio": {
+        "type": "string",
+        "title": "Aspect Ratio",
+        "name": "aspect_ratio",
+        "enum": ["1:1", "16:9", "9:16", "4:3", "3:4", "2:3", "3:2"],
+        "default": "1:1"
+      },
+      "resolution": {
+        "type": "string",
+        "title": "Resolution",
+        "name": "resolution",
+        "enum": ["1K", "2K"],
+        "default": "1K"
+      }
+    }
   }
-];;
+];
+;
 
 export const getModelById = (id) => {
   return (
@@ -8466,8 +8534,182 @@ export const v2vModels = [
     "videoField": "video_url",
     "hasPrompt": false,
     "description": "Remove watermarks, logos, captions, and unwanted text from videos."
+  },
+  {
+    "id": "gpt-image-2-image-to-image",
+    "name": "GPT Image 2 (Edit)",
+    "provider": "muapi",
+    "provider_name": "MuAPI",
+    "endpoint": "gpt-image-2-image-to-image",
+    "family": "gpt",
+    "imageField": "images_list",
+    "hasPrompt": true,
+    "maxImages": 16,
+    "inputs": {
+      "prompt": {
+        "type": "string",
+        "title": "Prompt",
+        "name": "prompt",
+        "description": "Text instructions describing the desired transformation."
+      },
+      "images_list": {
+        "type": "array",
+        "title": "Image URLs",
+        "name": "images_list",
+        "items": { "type": "string" },
+        "maxItems": 16
+      },
+      "aspect_ratio": {
+        "type": "string",
+        "title": "Aspect Ratio",
+        "name": "aspect_ratio",
+        "enum": ["auto", "1:1", "16:9", "9:16", "4:3", "3:4"],
+        "default": "auto"
+      },
+      "resolution": {
+        "type": "string",
+        "title": "Resolution",
+        "name": "resolution",
+        "enum": ["1K", "2K", "4K"],
+        "default": "2K"
+      },
+      "quality": {
+        "type": "string",
+        "title": "Quality",
+        "name": "quality",
+        "enum": ["low", "medium", "high"],
+        "default": "high"
+      }
+    }
+  },
+  {
+    "id": "nano-banana-2-edit",
+    "name": "Nano Banana 2 (Edit)",
+    "provider": "muapi",
+    "provider_name": "MuAPI",
+    "endpoint": "nano-banana-2-edit",
+    "family": "nano",
+    "imageField": "images_list",
+    "hasPrompt": true,
+    "maxImages": 14,
+    "inputs": {
+      "prompt": {
+        "type": "string",
+        "title": "Prompt",
+        "name": "prompt",
+        "description": "Text prompt describing the desired image content."
+      },
+      "images_list": {
+        "type": "array",
+        "title": "Image URLs",
+        "name": "images_list",
+        "items": { "type": "string" },
+        "maxItems": 14
+      },
+      "aspect_ratio": {
+        "type": "string",
+        "title": "Aspect Ratio",
+        "name": "aspect_ratio",
+        "enum": ["1:1", "1:4", "1:8", "2:3", "3:2", "3:4", "4:1", "4:3", "4:5", "5:4", "8:1", "9:16", "16:9", "21:9", "Auto"],
+        "default": "Auto"
+      },
+      "resolution": {
+        "type": "string",
+        "title": "Resolution",
+        "name": "resolution",
+        "enum": ["1k", "2k", "4k"],
+        "default": "1k"
+      },
+      "output_format": {
+        "type": "string",
+        "title": "Output Format",
+        "name": "output_format",
+        "enum": ["jpg", "png"],
+        "default": "jpg"
+      }
+    }
+  },
+  {
+    "id": "nano-banana-pro-edit",
+    "name": "Nano Banana Pro (Edit)",
+    "provider": "muapi",
+    "provider_name": "MuAPI",
+    "endpoint": "nano-banana-pro-edit",
+    "family": "nano",
+    "imageField": "images_list",
+    "hasPrompt": true,
+    "maxImages": 8,
+    "inputs": {
+      "prompt": {
+        "type": "string",
+        "title": "Prompt",
+        "name": "prompt",
+        "description": "Text prompt describing the desired edit."
+      },
+      "images_list": {
+        "type": "array",
+        "title": "Image URLs",
+        "name": "images_list",
+        "items": { "type": "string" },
+        "maxItems": 8
+      },
+      "aspect_ratio": {
+        "type": "string",
+        "title": "Aspect Ratio",
+        "name": "aspect_ratio",
+        "enum": ["1:1", "3:4", "4:3", "9:16", "16:9", "3:2", "2:3", "5:4", "4:5", "21:9"],
+        "default": "1:1"
+      },
+      "resolution": {
+        "type": "string",
+        "title": "Resolution",
+        "name": "resolution",
+        "enum": ["1k", "2k", "4k"],
+        "default": "1k"
+      }
+    }
+  },
+  {
+    "id": "bytedance-seedream-5.0-pro-edit",
+    "name": "Seedream 5.0 Pro (Edit)",
+    "provider": "muapi",
+    "provider_name": "MuAPI",
+    "endpoint": "bytedance-seedream-5.0-pro-edit",
+    "family": "seedream-5",
+    "imageField": "images_list",
+    "hasPrompt": true,
+    "maxImages": 10,
+    "inputs": {
+      "prompt": {
+        "type": "string",
+        "title": "Prompt",
+        "name": "prompt",
+        "description": "Text prompt describing the desired modification."
+      },
+      "images_list": {
+        "type": "array",
+        "title": "Image URLs",
+        "name": "images_list",
+        "items": { "type": "string" },
+        "maxItems": 10
+      },
+      "aspect_ratio": {
+        "type": "string",
+        "title": "Aspect Ratio",
+        "name": "aspect_ratio",
+        "enum": ["1:1", "16:9", "9:16", "4:3", "3:4", "2:3", "3:2"],
+        "default": "1:1"
+      },
+      "resolution": {
+        "type": "string",
+        "title": "Resolution",
+        "name": "resolution",
+        "enum": ["1K", "2K"],
+        "default": "1K"
+      }
+    }
   }
-];
+ ];
 
 export const getV2VModelById = (id) => v2vModels.find(m => m.id === id);
 
