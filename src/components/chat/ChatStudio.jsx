@@ -4,6 +4,7 @@ import ChatSidebar from './ChatSidebar.jsx';
 import ChatMessage from './ChatMessage.jsx';
 import ChatInput from './ChatInput.jsx';
 import { useChat } from '../../hooks/useChat.js';
+import './ChatStudio.css';
 
 function ChatStudioApp() {
   const chat = useChat();

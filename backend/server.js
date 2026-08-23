@@ -24,7 +24,7 @@ import setupChatWebSocket from './websocket/chat.js';
 
  const app = express();
  const server = http.createServer(app);
-+app.set('trust proxy', 1);
+  app.set('trust proxy', 1);
  
  // Middleware
  app.use(cors());

@@ -1,0 +1,44 @@
+# Studio Demo Automation - Configuration
+
+Load studio-specific configurations from JSON or environment variables.
+
+Example studios.config.json:
+
+```json
+{
+  "studios": [
+    {
+      "id": "studio-1",
+      "name": "Production Studio",
+      "url": "https://app.example.com/studios/1",
+      "expectedTitle": "Studio 1",
+      "authRequired": true,
+      "authCredentials": {
+        "email": "${STUDIO_EMAIL}",
+        "password": "${STUDIO_PASSWORD}"
+      },
+      "features": [
+        {
+          "name": "Open Dashboard",
+          "description": "Load the dashboard",
+          "action": { "type": "waitForSelector", "selector": ".dashboard" },
+          "validate": [
+            { "type": "visible", "selector": ".dashboard", "description": "Dashboard loaded" }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+## Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `STUDIO_URLS` | Comma-separated URLs to override config | None |
+| `TEST_STUDIO_ID` | Run only a specific studio by ID | All studios |
+| `VIDEO_CONVERT` | Convert WebM to MP4 post-run | false |
+| `STUDIO_EMAIL` | Email for studio authentication | - |
+| `STUDIO_PASSWORD` | Password for studio authentication | - |
+| `BASE_URL` | Base URL for the application | http://localhost:3000 |

@@ -37,7 +37,16 @@ export function useChat() {
       chatStore.setActiveConversationId(null);
       await setActiveConversationId(null);
     }
-    // TODO: call DELETE /api/chat/conversations/:id
+    try {
+      const base = (import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
+      if (!base) throw new Error('VITE_BACKEND_URL not configured');
+      await fetch(`${base}/api/chat/conversations/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } catch (e) {
+      console.warn('Failed to delete conversation on backend:', e.message);
+    }
   }, []);
 
   const sendMessage = useCallback(async (content, model, systemPrompt, temperature, maxTokens) => {
