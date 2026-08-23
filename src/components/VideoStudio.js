@@ -1069,16 +1069,37 @@ generateBtn.type = 'button';
             const allCurrentModels = [...generationModels, ...v2vModels];
 
             mountModelSelector(dropdown, {
-              sections: [
-                { models: generationModels },
-                {
-                  models: v2vModels,
-                  label: 'Video Tools',
-                  rowOptions: (m) => ({ sublabel: m.imageField ? 'Upload a video and image' : 'Upload a video to use' }),
-                },
+              models: allCurrentModels,
+              categories: [
+                { id: 't2v', label: 'Text to Video', models: t2vModels },
+                { id: 'i2v', label: 'Image to Video', models: i2vModels },
+                { id: 'v2v', label: 'Video to Video', models: v2vModels },
               ],
+              selectedCategory: v2vMode ? 'v2v' : (imageMode ? 'i2v' : 't2v'),
               selectedModelId: selectedModel,
               showProviderName: true,
+              onSelectCategory: (catId) => {
+                const newV2V = catId === 'v2v';
+                const newI2V = catId === 'i2v';
+                v2vMode = newV2V;
+                imageMode = newI2V;
+                const nextModels = newV2V ? v2vModels : (newI2V ? i2vModels : t2vModels);
+                selectedModel = nextModels[0].id;
+                selectedModelName = nextModels[0].name;
+                document.getElementById('v-model-btn-label').textContent = selectedModelName;
+                updateControlsForModel(selectedModel);
+                if (newV2V) {
+                  picker.reset();
+                  uploadedImageUrl = null;
+                  uploadedVideoUrl = null;
+                  textarea.placeholder = 'Upload a video using the 🎥 button, then click Generate';
+                  textarea.disabled = true;
+                } else {
+                  textarea.disabled = false;
+                  textarea.placeholder = newI2V ? 'Describe the motion or effect (optional)' : 'Describe the video you want to create';
+                }
+                updateModelBtnIcon();
+              },
               onSelectModel: (modelId) => {
                 const isV2V = v2vModels.some((m) => m.id === modelId);
                 const model = allCurrentModels.find((m) => m.id === modelId);
@@ -1089,6 +1110,7 @@ generateBtn.type = 'button';
                   imageMode = false;
                   picker.reset();
                   uploadedImageUrl = null;
+                  uploadedVideoUrl = null;
                   selectedModel = model.id;
                   selectedModelName = model.name;
                   document.getElementById('v-model-btn-label').textContent = selectedModelName;
@@ -1106,7 +1128,9 @@ generateBtn.type = 'button';
                   selectedModelName = model.name;
                   document.getElementById('v-model-btn-label').textContent = selectedModelName;
                   updateControlsForModel(selectedModel);
-                  textarea.placeholder = imageMode ? 'Describe the motion or effect (optional)' : 'Describe the video you want to create';
+                  textarea.placeholder = i2vModels.some((m) => m.id === modelId)
+                    ? 'Describe the motion or effect (optional)'
+                    : 'Describe the video you want to create';
                 }
                 updateModelBtnIcon();
                 closeDropdown();

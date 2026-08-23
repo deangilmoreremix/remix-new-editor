@@ -257,7 +257,7 @@ export function renderModelRow(model, opts = {}) {
     ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${checkColor}" stroke-width="4"><polyline points="20 6 9 17 4 12" /></svg>`
     : '';
 
-  let html = `<div data-model-id="${model.id}" class="flex items-center justify-between p-3 hover:bg-white/5 rounded-2xl cursor-pointer transition-all ${itemClasses}">`;
+  let html = `<div data-model-id="${model.id}" class="flex items-center justify-between p-3 hover:bg-white/5 rounded-lg cursor-pointer transition-all border border-transparent hover:border-white/5 ${isSelected ? 'bg-white/5 border-white/5' : ''}">`;
   html += `<div class="flex items-center gap-3">${iconHtml}<div class="flex flex-col gap-0.5 min-w-0"><span class="text-xs font-bold text-white tracking-tight truncate">${model.name}</span>${providerLabel}${sublabelHtml}</div></div>`;
   html += checkSvg;
   html += `</div>`;
@@ -301,6 +301,8 @@ export const MODEL_SELECTOR_PANEL_CLASS =
 //   autoFocus        - focus the search input on open
 //   emptyText        - message shown when no models match
 //   loadingMessage   - message shown while `models` is empty and still loading
+//   categories       - optional [{ id, label, models }] for category tabs
+//                      shown above the search bar (e.g. T2I vs I2I modes)
 //   onSelectModel    - (id) => void
 //   onSelectProvider - (provider) => void
 //   onSearch         - (query) => void
@@ -320,6 +322,8 @@ export function buildModelSelectorPanel(options = {}) {
     onSelectModel,
     onSelectProvider,
     onSearch,
+    onSelectCategory,
+    categories = null,
   } = options;
 
   const allModels = sections ? sections.flatMap((s) => s.models) : models;
@@ -339,6 +343,9 @@ export function buildModelSelectorPanel(options = {}) {
     onSelectModel,
     onSelectProvider,
     onSearch,
+    onSelectCategory,
+    categories,
+    selectedCategory: categories && categories.length > 0 ? categories[0].id : null,
   };
 
   const root = document.createElement('div');
@@ -355,6 +362,34 @@ export function buildModelSelectorPanel(options = {}) {
   listEl.setAttribute('data-model-list', '');
 
   mainEl.innerHTML = renderSearchBar();
+
+  let tabsContainer = null;
+  if (st.categories && st.categories.length > 0) {
+    tabsContainer = document.createElement('div');
+    tabsContainer.className = 'flex gap-1.5 overflow-x-auto custom-scrollbar pb-0.5 shrink-0';
+    st.categories.forEach((cat) => {
+      const tab = document.createElement('button');
+      tab.type = 'button';
+      const isActive = st.selectedCategory === cat.id;
+      tab.className = `shrink-0 rounded-lg px-2.5 py-1.5 text-[10px] font-bold transition-colors border ${
+        isActive
+          ? 'bg-primary/15 text-primary border-primary/30'
+          : 'bg-white/[0.02] text-white/50 border-white/[0.04] hover:bg-white/5 hover:text-white'
+      }`;
+      tab.textContent = cat.label;
+      tab.onclick = (e) => {
+        e.stopPropagation();
+        st.selectedCategory = cat.id;
+        if (st.onSelectCategory) st.onSelectCategory(cat.id);
+        if (st.onSelectProvider) st.onSelectProvider('all');
+        st.selectedProvider = 'all';
+        st.refresh();
+      };
+      tabsContainer.appendChild(tab);
+    });
+    mainEl.insertBefore(tabsContainer, mainEl.firstChild);
+  }
+
   const header = document.createElement('div');
   header.className =
     'text-xs font-semibold text-secondary py-1 shrink-0 flex items-center justify-between';
@@ -370,8 +405,14 @@ export function buildModelSelectorPanel(options = {}) {
   const searchInput = mainEl.querySelector('[data-provider-search]');
 
   const renderListHtml = () => {
+    let baseModels = st.models;
+    if (st.categories && st.selectedCategory) {
+      const cat = st.categories.find((c) => c.id === st.selectedCategory);
+      if (cat && cat.models) baseModels = cat.models;
+    }
+
     const showName = st.showProviderName || st.selectedProvider === 'all';
-    const groups = st.sections || [{ models: st.models }];
+    const groups = st.sections || [{ models: baseModels }];
     let html = '<div class="flex flex-col gap-1.5 pb-2">';
     let any = false;
     for (const g of groups) {
@@ -393,7 +434,7 @@ export function buildModelSelectorPanel(options = {}) {
     }
     html += '</div>';
     if (!any) {
-      const msg = st.models.length === 0 && st.loadingMessage ? st.loadingMessage : st.emptyText;
+      const msg = baseModels.length === 0 && st.loadingMessage ? st.loadingMessage : st.emptyText;
       return `<div class="text-xs text-white/30 text-center py-6">${msg}</div>`;
     }
     return html;
@@ -409,6 +450,18 @@ export function buildModelSelectorPanel(options = {}) {
       badgeEl.classList.remove('hidden');
     } else {
       badgeEl.classList.add('hidden');
+    }
+
+    if (tabsContainer && st.categories) {
+      const tabs = tabsContainer.querySelectorAll('button');
+      tabs.forEach((tab, idx) => {
+        const cat = st.categories[idx];
+        if (cat.id === st.selectedCategory) {
+          tab.className = 'shrink-0 rounded-lg px-2.5 py-1.5 text-[10px] font-bold transition-colors border bg-primary/15 text-primary border-primary/30';
+        } else {
+          tab.className = 'shrink-0 rounded-lg px-2.5 py-1.5 text-[10px] font-bold transition-colors border bg-white/[0.02] text-white/50 border-white/[0.04] hover:bg-white/5 hover:text-white';
+        }
+      });
     }
   };
 

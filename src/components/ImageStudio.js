@@ -776,9 +776,46 @@ generateBtn.type = 'button';
               models: currentModels,
               selectedModelId: selectedModel,
               showProviderName: true,
+              categories: [
+                { id: 't2i', label: 'Text to Image', models: t2iModels },
+                { id: 'i2i', label: 'Image to Image', models: i2iModels },
+              ],
+              selectedCategory: imageMode ? 'i2i' : 't2i',
+              onSelectCategory: (catId) => {
+                const newImageMode = catId === 'i2i';
+                imageMode = newImageMode;
+                const nextModels = newImageMode ? i2iModels : t2iModels;
+                selectedModel = nextModels[0].id;
+                selectedModelName = nextModels[0].name;
+                selectedAr = newImageMode
+                  ? getAspectRatiosForI2IModel(selectedModel)[0]
+                  : getAspectRatiosForModel(selectedModel)[0];
+                document.getElementById('model-btn-label').textContent = selectedModelName;
+                document.getElementById('ar-btn-label').textContent = selectedAr;
+                const validResolutions = newImageMode
+                  ? getResolutionsForI2IModel(selectedModel)
+                  : getResolutionsForModel(selectedModel);
+                qualityBtn.style.display = validResolutions.length > 0 ? 'flex' : 'none';
+                if (validResolutions.length > 0) {
+                  document.getElementById('quality-btn-label').textContent = validResolutions[0];
+                }
+                if (newImageMode) {
+                  picker.setMaxImages(getMaxImagesForI2IModel(selectedModel));
+                }
+                updateModelBtnIcon();
+                if (dynamicControls) {
+                  const resolved = newImageMode
+                    ? getI2IModelById(selectedModel)
+                    : getModelById(selectedModel);
+                  dynamicControls.update(getExtendedModel(resolved));
+                }
+              },
               onSelectModel: (modelId) => {
                 selectedModel = modelId;
-                selectedModelName = currentModels.find(m => m.id === modelId)?.name || modelId;
+                selectedModelName =
+                  t2iModels.find(m => m.id === modelId)?.name ||
+                  i2iModels.find(m => m.id === modelId)?.name ||
+                  modelId;
                 const availableArs = getCurrentAspectRatios(selectedModel);
                 selectedAr = availableArs[0];
                 document.getElementById('model-btn-label').textContent = selectedModelName;

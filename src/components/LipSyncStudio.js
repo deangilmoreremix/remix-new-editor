@@ -482,12 +482,21 @@ export function LipSyncStudio() {
         dropdown.innerHTML = '';
         if (type === 'model') {
             const models = getCurrentModels();
-mountModelSelector(dropdown, {
+            mountModelSelector(dropdown, {
               models,
+              categories: [
+                { id: 'image', label: 'Portrait Image', models: imageLipSyncModels },
+                { id: 'video', label: 'Video', models: videoLipSyncModels },
+              ],
+              selectedCategory: inputMode,
               selectedModelId: selectedModel,
               showProviderName: true,
+              onSelectCategory: (catId) => {
+                inputMode = catId;
+                updateUIForMode();
+              },
               onSelectModel: (modelId) => {
-                const model = models.find((m) => m.id === modelId);
+                const model = (inputMode === 'image' ? imageLipSyncModels : videoLipSyncModels).find((m) => m.id === modelId);
                 if (!model) return;
                 selectedModel = modelId;
                 document.getElementById('ls-model-btn-label').textContent = model.name;
