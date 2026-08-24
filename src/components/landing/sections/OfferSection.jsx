@@ -445,11 +445,12 @@ export function OfferSection() {
         variant: 'inline',
         offer: {
           id: 'whitelabel',
-          cta: 'Get Whitelabel Pro — $997',
+          cta: 'Get Whitelabel Pro — {price}',
+          price: '$997',
         },
         providers: [],
         onCheckout: () => {
-          window.location.href = 'https://buy.stripe.com/dRmbJ02OoeaAeKx8Mo5Rm07';
+          window.location.href = 'https://buy.stripe.com/9B614m3Ss9Uk31Pe6I5Rm08';
         },
       });
       whitelabelHost.appendChild(whitelabelBtn);

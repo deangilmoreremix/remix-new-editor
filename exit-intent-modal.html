@@ -647,6 +647,19 @@
             transform: translateY(-2px);
         }
 
+        .cta-button--secondary {
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid rgba(34, 211, 238, 0.3);
+            box-shadow: none;
+        }
+
+        .cta-button--secondary:hover {
+            background: rgba(34, 211, 238, 0.08);
+            border-color: rgba(34, 211, 238, 0.5);
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.15);
+        }
+
         .cta-button:active {
             transform: translateY(0) scale(0.98);
         }
@@ -1001,11 +1014,14 @@
 
             <!-- CTA -->
             <div class="cta-section animate-in delay-4">
-                <a href="https://attendee.gotowebinar.com/register/1359437732792203616" class="cta-button" target="_blank" rel="noopener">
-                    CLAIM MY $2,893 IN BONUSES <span class="cta-arrow">→</span>
+                <a href="https://buy.stripe.com/9B614m3Ss9Uk31Pe6I5Rm08" class="cta-button" target="_blank" rel="noopener">
+                    Whitelabel — $997 <span class="cta-arrow">→</span>
                 </a>
-                <div class="cta-sub">Free · Saturday, August 22nd · 3PM EST · No credit card required</div>
-                <button class="cta-deny" onclick="closeExitIntent()">I'll risk missing out on $2,893 in bonuses</button>
+                <a href="https://buy.stripe.com/dRmbJ02OoeaAeKx8Mo5Rm07" class="cta-button" target="_blank" rel="noopener" style="margin-top: 12px; background: transparent; color: var(--primary); border: 1px solid rgba(34,211,238,0.3); box-shadow: none;">
+                    Standard — $197 <span class="cta-arrow">→</span>
+                </a>
+                <div class="cta-sub">Secure checkout · Instant access · 30-day money-back guarantee</div>
+                <button class="cta-deny" onclick="closeExitIntent()">No thanks, I'll pass on both offers</button>
             </div>
 
             <!-- Footer -->
