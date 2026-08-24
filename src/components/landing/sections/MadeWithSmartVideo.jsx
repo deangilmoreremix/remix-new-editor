@@ -4,8 +4,8 @@
 // Videos never all autoplay: cards use hover (desktop) / tap (mobile) playback,
 // and the shared governor in mediaFrame.js caps concurrent playback at two.
 
-import { minimaxH3Demos, formatDuration, getCreateTarget as getMinimaxCreateTarget } from '../../../data/minimaxH3Demos.js';
-import { seedance25Demos, getCreateTarget as getCreateTargetSeedance } from '../../../data/beatapiSeedance25Demos.js';
+import { minimaxH3Demos, formatDuration, getCreateTarget as getMinimaxCreateTarget, ratioToNumber as minimaxRatioToNumber } from '../../../data/minimaxH3Demos.js';
+import { seedance25Demos, getCreateTarget as getCreateTargetSeedance, ratioToNumber as seedanceRatioToNumber } from '../../../data/beatapiSeedance25Demos.js';
 import { createMediaFrame, cleanupFrames, revealOnScroll } from './minimax/mediaFrame.js';
 import {
   injectMinimaxStyles,
@@ -55,9 +55,12 @@ function createReelCard(demo) {
   `;
 
   const mediaHost = card.querySelector('[data-mmx-card-media]');
+  const ratio = demo._source === 'seedance25'
+    ? seedanceRatioToNumber(demo.aspectRatio)
+    : minimaxRatioToNumber(demo.aspectRatio);
   const frame = createMediaFrame(demo, {
     mode: 'hover',
-    ratio: 16 / 9,
+    ratio,
     className: 'w-full',
     ariaLabel: `${demo.title} — ${demo.useCase}`,
   });
@@ -216,7 +219,7 @@ export function MadeWithSmartVideo() {
     }
   });
 
-  footerText.parentNode.insertBefore(showMoreButton, footerText);
+  footerText.insertBefore(showMoreButton, footerText.firstChild);
 
   render();
 
