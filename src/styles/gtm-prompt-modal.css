@@ -697,6 +697,21 @@
 /* Every studio uses the same trigger styling. These selectors are kept so
    studio-scoped markup keeps resolving to the shared palette instead of
    falling back to a per-studio hue. */
+/* Cinema Studio overrides — align GTM Boost with the studio's control buttons */
+.cinema-studio .gtm-boost-btn {
+  min-height: auto;
+  padding: 8px 12px;
+  font-size: 12px;
+  border-radius: 12px;
+}
+
+@media (min-width: 768px) {
+  .cinema-studio .gtm-boost-btn {
+    padding: 10px 16px;
+    border-radius: 24px;
+  }
+}
+
 .cinema-template-studio .gtm-boost-btn,
 .template-studio .gtm-boost-btn,
 .image-studio .gtm-boost-btn,
