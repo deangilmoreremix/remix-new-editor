@@ -12,6 +12,13 @@ import { navigate } from '../../lib/router.js';
 // SPA fallback for those paths.
 export function handleNavClick(e, route) {
   e.preventDefault();
+  // Auth pages are rendered outside the main app shell, so the router's
+  // contentArea is never initialized and navigate() would be a no-op.
+  // Fall back to a full page load so the SPA boots and routes correctly.
+  if (!document.getElementById('content-area')) {
+    window.location.href = `/#/${route}`;
+    return;
+  }
   navigate(route);
 }
 
@@ -21,7 +28,7 @@ export function AuthHeader() {
   return (
     <header className="sticky top-0 z-50 w-full h-16 backdrop-blur-md bg-[#0a0b0f] border-b border-white/10">
       <nav className="grid grid-cols-[1fr_auto_1fr] md:grid-cols-[auto_1fr_auto] pr-4 h-full items-center relative container">
-        <a href="#/apps" onClick={(e) => handleNavClick(e, 'apps')} className="shrink-0 flex items-center gap-2 transition hover:text-[#22d3ee] active:opacity-60">
+        <a href="/" onClick={(e) => { e.preventDefault(); window.location.href = '/'; }} className="shrink-0 flex items-center gap-2 transition hover:text-[#22d3ee] active:opacity-60">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center border border-cyan-400/30 bg-cyan-400/10" style={{ boxShadow: '0 0 16px rgba(56,189,248,0.12)' }}>
             <svg width="24" height="24" viewBox="0 0 80 80" fill="none">
               <rect width="80" height="80" rx="16" fill="#22d3ee" />
@@ -40,7 +47,7 @@ export function AuthHeader() {
 
         <div className="shrink-0 flex items-center gap-3">
           <a href="/signin" className="px-4 py-2 text-sm text-[#e4e4e7] hover:text-[#22d3ee] transition font-medium">Sign In</a>
-          <a href="#/apps" onClick={(e) => handleNavClick(e, 'apps')} className="px-4 py-2 text-sm bg-cyan-400 text-[#020205] hover:bg-cyan-300 transition font-medium" style={{ letterSpacing: '0.05em', textTransform: 'uppercase' }}>Home</a>
+          <a href="/" onClick={(e) => { e.preventDefault(); window.location.href = '/'; }} className="px-4 py-2 text-sm bg-cyan-400 text-[#020205] hover:bg-cyan-300 transition font-medium" style={{ letterSpacing: '0.05em', textTransform: 'uppercase' }}>Home</a>
         </div>
       </nav>
     </header>
