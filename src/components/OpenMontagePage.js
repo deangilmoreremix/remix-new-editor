@@ -50,8 +50,6 @@ const OUTPUT_PROFILES = [
   { id: 'cinematic', name: 'Cinematic', resolution: '2560x1080', aspect: '21:9' },
 ];
 
-const SCENE_STATES = ['DONE', 'UNLOCKED', 'QUEUED', 'RENDERING'];
-
 export function OpenMontagePage() {
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col items-center justify-center bg-app-bg relative overflow-x-hidden';
@@ -61,6 +59,7 @@ export function OpenMontagePage() {
     stageIndex: 0,
     isProcessing: false,
     currentJobId: null,
+    currentProjectId: null,
     prompt: '',
     audience: 'developers & platform teams',
     duration: '60s',
@@ -78,9 +77,9 @@ export function OpenMontagePage() {
       { from: 'agent', text: 'Swapped SC 03 to dashboard-walkthrough.mp4 — trimmed 0:12 from the 2:14 capture. Cost unchanged.' },
     ],
     decisionLog: [
-      { label: 'Voice', choice: 'Warm male tenor — “Calder”', alternatives: 'also considered: female alto · neutral narrator' },
-      { label: 'Music — “Minimal Pulse”, licensed', choice: '', alternatives: '' },
-      { label: 'Grade', choice: 'warm high-contrast', alternatives: '' },
+      { label: 'Voice', choice: 'Warm male tenor — "Calder"', alternatives: 'also considered: female alto · neutral narrator', confidence: 3 },
+      { label: 'Music — "Minimal Pulse", licensed', choice: '', alternatives: '', confidence: 0 },
+      { label: 'Grade', choice: 'warm high-contrast', alternatives: '', confidence: 0 },
     ],
     credits: {
       images: 64,
@@ -92,10 +91,12 @@ export function OpenMontagePage() {
       total: 209,
     },
     renders: [
-      { label: '16:9 · LAUNCH', status: 'ready' },
-      { label: '1:1 · FEED', status: 'ready' },
-      { label: '9:16 · SHORTS', status: 'ready' },
+      { label: '16:9 · LAUNCH', status: 'ready', url: '' },
+      { label: '1:1 · FEED', status: 'ready', url: '' },
+      { label: '9:16 · SHORTS', status: 'ready', url: '' },
     ],
+    showBacklot: false,
+    backlotUrl: '',
   };
 
   const hero = document.createElement('div');
@@ -127,12 +128,13 @@ export function OpenMontagePage() {
       Back
     </button>
     <span id="service-status" class="text-xs text-muted ml-2"></span>
+    <span id="project-id" class="text-xs text-muted ml-2 hidden"></span>
   `;
   contentWrapper.appendChild(topBar);
 
   // Stage tracker
   const stageTrack = document.createElement('div');
-  stageTrack.className = 'mb-8 overflow-x-auto';
+  stageTrack.className = 'mb-6 overflow-x-auto';
   stageTrack.innerHTML = `
     <div class="flex items-center gap-1 min-w-max">
       ${STAGES.map((s, i) => `
@@ -202,7 +204,7 @@ export function OpenMontagePage() {
     </div>
     <div class="space-y-2 mb-4">
       ${Object.entries(state.credits).filter(([k]) => k !== 'total').map(([key, value]) => {
-        const labels = { images: '8 standard images', narration: 'narration · 60s', music: 'music · “Focused Build”', generatedClip: '1 generated clip · 5s', captions: 'captions', render: 'stock · render' };
+        const labels = { images: '8 standard images', narration: 'narration · 60s', music: 'music · "Focused Build"', generatedClip: '1 generated clip · 5s', captions: 'captions', render: 'stock · render' };
         const label = labels[key] || key;
         return `
           <div class="flex items-center justify-between py-2 border-b border-white/5">
@@ -292,7 +294,7 @@ export function OpenMontagePage() {
         <div class="border-b border-white/5 pb-3 last:border-0 last:pb-0">
           <div class="flex items-center justify-between mb-1">
             <span class="text-xs font-bold text-white">${d.label}</span>
-            <span class="text-[10px] text-muted">3▴</span>
+            <span class="text-[10px] text-muted">${d.confidence || 0}▴</span>
           </div>
           <p class="text-[11px] text-white/70">${d.choice || '—'}</p>
           ${d.alternatives ? `<p class="text-[10px] text-muted mt-1">${d.alternatives}</p>` : ''}
@@ -305,6 +307,23 @@ export function OpenMontagePage() {
   main.appendChild(left);
   main.appendChild(right);
   contentWrapper.appendChild(main);
+
+  // Backlot iframe (hidden by default)
+  const backlotSection = document.createElement('div');
+  backlotSection.id = 'om-backlot-section';
+  backlotSection.className = 'hidden mt-6';
+  backlotSection.innerHTML = `
+    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] overflow-hidden shadow-3xl">
+      <div class="flex items-center justify-between px-5 py-3 border-b border-white/10">
+        <h3 class="text-xs font-black text-white/80 tracking-wide">BACKLOT — LIVE STORYBOARD</h3>
+        <button id="om-close-backlot" class="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[11px] font-bold text-white/70 hover:text-white hover:bg-white/10 transition-all">Close</button>
+      </div>
+      <div class="w-full" style="height: 70vh;">
+        <iframe id="om-backlot-iframe" class="w-full h-full border-0" src="about:blank" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+      </div>
+    </div>
+  `;
+  contentWrapper.appendChild(backlotSection);
 
   container.appendChild(contentWrapper);
 
@@ -340,7 +359,7 @@ export function OpenMontagePage() {
           </div>
           <div class="flex items-center gap-2">
             <span class="text-[11px] font-black text-white">${s.cost}</span>
-            <button class="px-2 py-1 bg-white/5 border border-white/10 rounded-lg text-[10px] font-bold text-white/70 hover:text-white hover:bg-white/10 transition-all">↻ Regenerate</button>
+            <button data-scene-index="${i}" class="om-regenerate-scene px-2 py-1 bg-white/5 border border-white/10 rounded-lg text-[10px] font-bold text-white/70 hover:text-white hover:bg-white/10 transition-all">↻ Regenerate</button>
           </div>
         </div>
       </div>
@@ -358,6 +377,9 @@ export function OpenMontagePage() {
   const chatBox = container.querySelector('#om-chat');
   const serviceStatus = container.querySelector('#service-status');
   const keyStatus = container.querySelector('#om-key-status');
+  const projectIdEl = container.querySelector('#project-id');
+  const backlotIframe = container.querySelector('#om-backlot-iframe');
+  const closeBacklotBtn = container.querySelector('#om-close-backlot');
 
   function updateServiceStatus() {
     if (!serviceStatus) return;
@@ -388,6 +410,47 @@ export function OpenMontagePage() {
     chatBox.scrollTop = chatBox.scrollHeight;
   }
 
+  function setStage(index) {
+    state.stageIndex = Math.max(0, Math.min(STAGES.length - 1, index));
+    const buttons = container.querySelectorAll('.om-stage-btn');
+    buttons.forEach((btn, i) => {
+      if (i === state.stageIndex) {
+        btn.classList.add('bg-white/10', 'border-white/20', 'text-white');
+        btn.classList.remove('bg-white/5', 'border-white/5', 'text-white/60');
+      } else {
+        btn.classList.remove('bg-white/10', 'border-white/20', 'text-white');
+        btn.classList.add('bg-white/5', 'border-white/5', 'text-white/60');
+      }
+    });
+  }
+
+  function openBacklot(projectId) {
+    if (!OPENMONTAGE_BACKEND) {
+      showToast('OpenMontage service not configured', 'error');
+      return;
+    }
+    const url = `${OPENMONTAGE_BACKEND}/backlot`;
+    if (backlotIframe) {
+      backlotIframe.src = url;
+    }
+    if (backlotSection) {
+      backlotSection.classList.remove('hidden');
+    }
+    state.showBacklot = true;
+    state.backlotUrl = url;
+  }
+
+  function closeBacklot() {
+    if (backlotIframe) {
+      backlotIframe.src = 'about:blank';
+    }
+    if (backlotSection) {
+      backlotSection.classList.add('hidden');
+    }
+    state.showBacklot = false;
+    state.backlotUrl = '';
+  }
+
   async function submitProduction() {
     const prompt = (promptEl && promptEl.value || '').trim();
     if (!prompt) {
@@ -413,7 +476,18 @@ export function OpenMontagePage() {
       if (!res.ok) throw new Error(`OpenMontage backend returned ${res.status}`);
       const data = await res.json();
       state.currentJobId = data.jobId || data.id || null;
+      state.currentProjectId = data.projectId || data.project_id || null;
+      if (projectIdEl) {
+        projectIdEl.textContent = state.currentProjectId ? `Project: ${state.currentProjectId}` : '';
+        projectIdEl.classList.remove('hidden');
+      }
       showToast('Production started', 'success');
+      setStage(1);
+
+      // Auto-open Backlot when a project starts
+      if (state.currentProjectId) {
+        openBacklot(state.currentProjectId);
+      }
     } catch (err) {
       console.error('[OpenMontagePage] production failed:', err);
       showToast('Production failed: ' + err.message, 'error');
@@ -422,36 +496,125 @@ export function OpenMontagePage() {
     }
   }
 
+  async function regenerateScene(index) {
+    if (!state.currentJobId) {
+      showToast('Start a production first', 'error');
+      return;
+    }
+    if (!(await requireEntitlement())) return;
+    try {
+      const res = await fetch(`${OPENMONTAGE_BACKEND}/api/productions/${encodeURIComponent(state.currentJobId)}/scenes/${index}/regenerate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sceneIndex: index }),
+      });
+      if (!res.ok) throw new Error(`Regenerate failed: ${res.status}`);
+      const data = await res.json();
+      showToast(`Scene ${index + 1} regenerating...`, 'info');
+      appendChat('agent', `Regenerating SC ${String(index).padStart(2, '0')} — estimated cost $${data.estimatedCost || '0.00'}.`);
+    } catch (err) {
+      showToast('Regenerate failed: ' + err.message, 'error');
+    }
+  }
+
+  async function sendChatMessage(text) {
+    if (!text.trim()) return;
+    if (!state.currentJobId) {
+      showToast('Start a production first', 'error');
+      return;
+    }
+    appendChat('user', text);
+    chatInput.value = '';
+
+    try {
+      const res = await fetch(`${OPENMONTAGE_BACKEND}/api/productions/${encodeURIComponent(state.currentJobId)}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text }),
+      });
+      if (!res.ok) throw new Error(`Chat failed: ${res.status}`);
+      const data = await res.json();
+      if (data.reply) {
+        appendChat('agent', data.reply);
+      } else {
+        appendChat('agent', 'Acknowledged — updating the production plan.');
+      }
+    } catch (err) {
+      appendChat('agent', "Sorry, I couldn't reach the agent right now.");
+      console.error('[OpenMontagePage] chat failed:', err);
+    }
+  }
+
+  async function approveGate() {
+    if (!state.currentJobId) {
+      showToast('Start a production first', 'error');
+      return;
+    }
+    try {
+      const res = await fetch(`${OPENMONTAGE_BACKEND}/api/productions/${encodeURIComponent(state.currentJobId)}/approve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stage: 'gate' }),
+      });
+      if (!res.ok) throw new Error(`Approve failed: ${res.status}`);
+      showToast('Approved — production continuing', 'success');
+      appendChat('agent', 'Gate approved. Continuing to narration and music.');
+      setStage(5); // narration
+    } catch (err) {
+      showToast('Approval failed: ' + err.message, 'error');
+    }
+  }
+
+  // Event bindings
   if (backBtn) backBtn.onclick = () => navigate('render');
   if (generateBtn) generateBtn.onclick = () => submitProduction();
   if (approveBtn) {
-    approveBtn.onclick = () => {
-      showToast('Approved — production continuing', 'success');
-    };
+    approveBtn.onclick = () => approveGate();
   }
   if (reviseBtn) {
     reviseBtn.onclick = () => {
       showToast('Revise requested — prompt the agent in chat', 'info');
+      if (chatInput) chatInput.focus();
     };
   }
-  if (chatSend && chatInput) {
-    chatSend.onclick = () => {
-      const text = chatInput.value.trim();
-      if (!text) return;
-      appendChat('user', text);
-      chatInput.value = '';
-      setTimeout(() => appendChat('agent', 'Acknowledged — updating the production plan.'), 600);
+  if (closeBacklotBtn) {
+    closeBacklotBtn.onclick = () => closeBacklot();
+  }
+
+  // Stage tracker clicks
+  stageTrack.querySelectorAll('.om-stage-btn').forEach(btn => {
+    btn.onclick = () => {
+      const stageId = btn.dataset.stage;
+      const index = STAGES.findIndex(s => s.id === stageId);
+      if (index >= 0) setStage(index);
     };
+  });
+
+  // Scene regenerate buttons
+  const scenesContainer = container.querySelector('#om-scenes');
+  if (scenesContainer) {
+    scenesContainer.addEventListener('click', (e) => {
+      const btn = e.target.closest('.om-regenerate-scene');
+      if (!btn) return;
+      const index = parseInt(btn.dataset.sceneIndex || '0', 10);
+      regenerateScene(index);
+    });
+  }
+
+  // Chat
+  if (chatSend && chatInput) {
+    chatSend.onclick = () => sendChatMessage(chatInput.value);
     chatInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        chatSend.click();
+        sendChatMessage(chatInput.value);
       }
     });
   }
 
   updateServiceStatus();
   updateKeyStatus();
+  setStage(0);
 
   return container;
 }

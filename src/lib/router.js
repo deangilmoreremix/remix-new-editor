@@ -12,6 +12,7 @@ const STUDIO_PAGES = new Set([
   'effects-page','cinema-page','influencer-page','commercial-page',
   'upscale-page','ai-vfx','viral',
   'video-agent',
+  'openthorn',
 ]);
 
 // Ensure the shared Clerk instance is created + loaded before any studio
@@ -104,7 +105,6 @@ const ROUTE_MAP = {
   'Avatar': 'avatar',
   'Audio': 'audio',
   'Settings': 'timeline',
-  'Personalizer': 'timeline',
   'Contacts': 'contacts',
   'Media Lib': 'timeline',
   'Social': 'timeline',
@@ -128,6 +128,7 @@ const ROUTE_MAP = {
   'AI VFX': 'ai-vfx',
   'Smart Video Viral': 'viral',
   'Personalizer': 'personalizer',
+  'OpenThorn': 'openthorn',
 };
 
 export function getRouteForItem(item) {
@@ -181,10 +182,11 @@ const pageLoaders = {
   timeline: () => import('../components/TimelineEditorPage.jsx').then(m => m.TimelineEditorPage()),
   viral: () => import('../components/SmartVideoViral.js').then(m => m.SmartVideoViral()),
   spaces: () => Promise.resolve(document.createElement('div')),
-   'ai-vfx': () => import('../components/AIVFXPage.js').then(m => m.AIVFXPage()),
-  'dom-personalization': () => import('../components/DomPersonalizationStudio.js').then(m => m.DomPersonalizationStudio()),
-  'timeline-iframe-warning': () => Promise.resolve(document.createElement('div')),
-  'video-agent': () => import('../components/OpenMontagePage.js').then(m => m.OpenMontagePage()),
+   personalizer: () => import('../components/Personalizer.js').then(m => m.Personalizer()),
+    'ai-vfx': () => import('../components/AIVFXPage.js').then(m => m.AIVFXPage()),
+   'timeline-iframe-warning': () => Promise.resolve(document.createElement('div')),
+   'video-agent': () => import('../components/OpenMontagePage.js').then(m => m.OpenMontagePage()),
+   openthorn: () => import('../components/OpenThornStudio.js').then(m => m.OpenThornStudio()),
 };
 
 let currentPage = null;

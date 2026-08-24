@@ -1,5 +1,7 @@
-// Offer Section - Get The AI Video Agency Studio Today
+// Offer Section - Get The Smart Video AI Studio Today
 // Two-tier pricing: $297 Lifetime | $997 Whitelabel Lifetime
+
+import CheckoutCTA from '../common/CheckoutCTA.jsx';
 
 export function OfferSection() {
   const section = document.createElement('section');
@@ -9,7 +11,7 @@ export function OfferSection() {
   // All features for the interactive comparison
   const featureCategories = {
     'Core Platform': [
-      '33 AI Creative Apps Access',
+      '34 AI Creative Apps Access',
       '60+ AI Features & Tools',
       '200+ AI Models Library',
       'Professional Timeline Editor',
@@ -143,7 +145,7 @@ export function OfferSection() {
                   <div class="w-5 h-5 bg-cyan-400/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                     <span class="text-cyan-400 text-xs">✓</span>
                   </div>
-                  <span class="text-gray-300 text-sm">Full access to all 33 AI Creative Apps</span>
+                   <span class="text-gray-300 text-sm">Full access to all 34 AI Creative Apps</span>
                 </li>
                 <li class="flex items-start gap-3">
                   <div class="w-5 h-5 bg-cyan-400/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -176,20 +178,18 @@ export function OfferSection() {
                   <span class="text-gray-300 text-sm">Lifetime Updates</span>
                 </li>
               </ul>
-            </div>
+             </div>
 
-            <button class="w-full py-4 bg-gradient-to-r from-cyan-500 to-cyan-400 text-[#020205] font-bold text-lg rounded-xl hover:from-cyan-400 hover:to-cyan-300 transition-all duration-300 shadow-lg shadow-cyan-400/30 hover:shadow-cyan-400/50 transform hover:scale-105">
-              Get Lifetime Access — $297
-            </button>
+             <div id="checkout-cta-lifetime-host"></div>
 
-            <div class="text-center mt-4">
-              <p class="text-xs text-gray-500">30-day money-back guarantee</p>
-            </div>
-          </div>
-        </div>
+             <div class="text-center mt-4">
+               <p class="text-xs text-gray-500">30-day money-back guarantee</p>
+             </div>
+           </div>
+         </div>
 
-        <!-- Whitelabel Plan -->
-        <div class="whitelabel-card pricing-card opacity-0 translate-y-4 relative" style="transition-delay: 150ms;">
+         <!-- Whitelabel Plan -->
+         <div class="whitelabel-card pricing-card opacity-0 translate-y-4 relative" style="transition-delay: 150ms;">
           <!-- Popular Badge -->
           <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 z-20">
             <div class="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-bold px-4 py-1 rounded-full shadow-lg">
@@ -260,19 +260,17 @@ export function OfferSection() {
                     <span class="text-gray-300 text-sm"><strong class="text-white">Dedicated Support</strong> — 24/7 priority assistance</span>
                   </li>
                 </ul>
-              </div>
+               </div>
 
-              <button class="w-full py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-lg rounded-xl hover:from-purple-400 hover:to-pink-400 transition-all duration-300 shadow-lg shadow-purple-400/30 hover:shadow-purple-400/50 transform hover:scale-105">
-                Get Whitelabel Pro — $997
-              </button>
+               <div id="checkout-cta-whitelabel-host"></div>
 
-              <div class="text-center mt-4">
-                <p class="text-xs text-gray-500">30-day money-back guarantee • Instant delivery</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+               <div class="text-center mt-4">
+                 <p class="text-xs text-gray-500">30-day money-back guarantee • Instant delivery</p>
+               </div>
+             </div>
+           </div>
+         </div>
+       </div>
 
       <!-- Interactive Feature Comparison -->
       <div class="feature-comparison max-w-5xl mx-auto">
@@ -422,6 +420,39 @@ export function OfferSection() {
 
     // Initial render
     renderFeatures(activeCategory);
+
+    // Checkout CTAs
+    const lifetimeHost = section.querySelector('#checkout-cta-lifetime-host');
+    if (lifetimeHost) {
+      const lifetimeBtn = CheckoutCTA({
+        variant: 'inline',
+        offer: {
+          id: 'lifetime',
+          cta: 'Get Lifetime Access — $297',
+        },
+        providers: [],
+        onCheckout: () => {
+          window.location.href = 'https://buy.stripe.com/dRmbJ02OoeaAeKx8Mo5Rm07';
+        },
+      });
+      lifetimeHost.appendChild(lifetimeBtn);
+    }
+
+    const whitelabelHost = section.querySelector('#checkout-cta-whitelabel-host');
+    if (whitelabelHost) {
+      const whitelabelBtn = CheckoutCTA({
+        variant: 'inline',
+        offer: {
+          id: 'whitelabel',
+          cta: 'Get Whitelabel Pro — $997',
+        },
+        providers: [],
+        onCheckout: () => {
+          window.location.href = 'https://buy.stripe.com/dRmbJ02OoeaAeKx8Mo5Rm07';
+        },
+      });
+      whitelabelHost.appendChild(whitelabelBtn);
+    }
   }, 100);
 
   return section;

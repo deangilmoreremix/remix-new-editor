@@ -12,7 +12,7 @@ export function AgencySection() {
           This Is Not Just A Tool — It's An <span class="text-cyan-400 italic">AI Video Agency Business In A Box</span>
         </h2>
         <p class="text-xl text-gray-300 max-w-4xl mx-auto">
-          While others give you a single AI feature, AI Video Agency Studio gives you everything you need to start, run, and scale a complete AI video production agency.
+           While others give you a single AI feature, Smart Video AI Studio gives you everything you need to start, run, and scale a complete AI video production agency.
         </p>
       </div>
 

@@ -63,6 +63,23 @@ function formatDurationSafe(demo) {
 }
 
 /**
+ * Deterministic viral-like likes count from a demo slug.
+ * Returns a string like "12K", "1.2M", etc.
+ */
+function generateLikes(slug) {
+  let hash = 0;
+  for (let i = 0; i < slug.length; i++) {
+    hash = ((hash << 5) - hash) + slug.charCodeAt(i);
+    hash |= 0;
+  }
+  const absHash = Math.abs(hash);
+  const value = (absHash % 900000) + 10000;
+  if (value >= 1000000) return (value / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+  if (value >= 1000) return Math.floor(value / 1000) + 'K';
+  return String(value);
+}
+
+/**
  * Merge all three repo demo arrays, tagging each with its source.
  */
 const ALL_DEMOS = [
@@ -100,7 +117,7 @@ const SHOWCASE_SECTIONS = [
     source: 'seedance25',
     category: 'Social',
     eyebrow: 'Social Ads',
-    title: 'Social Media Content',
+    title: 'Viral Social Media Content',
     subtitle: 'Viral-ready clips optimized for TikTok, Instagram Reels, and Shorts — native aspect ratios and creator-style framing.',
     initial: 12,
   },
@@ -109,7 +126,7 @@ const SHOWCASE_SECTIONS = [
     source: 'minimaxh3',
     category: 'Social',
     eyebrow: 'Vertical Content',
-    title: 'Social Content',
+    title: 'Viral Social Content',
     subtitle: 'TikTok-native, Instagram-first, and Shorts-optimized vertical content — each tuned for platform engagement.',
     initial: 12,
   },
@@ -150,15 +167,6 @@ const SHOWCASE_SECTIONS = [
     initial: 10,
   },
   {
-    id: 'zl-cinema',
-    source: 'zeroLu',
-    category: 'Cinema',
-    eyebrow: 'Raw Footage',
-    title: 'Cinema Reference Clips',
-    subtitle: 'Curated Seedance 2.0 reference footage — the raw clips that started it all in the awesome-seedance collection.',
-    initial: 10,
-  },
-  {
     id: 'mmx-action-vfx',
     source: 'minimaxh3',
     categories: ['Action', 'VFX'],
@@ -181,7 +189,7 @@ const SHOWCASE_SECTIONS = [
 /**
  * Build a gallery card for a demo, with per-source CTA and prompt loading.
  */
-function createGalleryCard(demo) {
+function createGalleryCard(demo, showLikes = false) {
   const adapter = SOURCE_ADAPTERS[demo.source] || SOURCE_ADAPTERS.minimaxh3;
 
   const card = document.createElement('article');
@@ -194,8 +202,24 @@ function createGalleryCard(demo) {
   const [w, h] = (demo.aspectRatio || '16:9').split(':').map(Number);
   const ratio = w && h ? w / h : 16 / 9;
 
+  let likesHtml = '';
+  if (showLikes) {
+    const likes = generateLikes(demo.slug);
+    likesHtml = `
+      <div class="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start justify-start p-2.5">
+        <span class="inline-flex items-center gap-1 rounded-full bg-black/50 px-2 py-0.5 text-[10px] font-semibold text-white/90 backdrop-blur-sm">
+          <svg class="h-3 w-3 text-red-400" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+          ${likes}
+        </span>
+      </div>
+    `;
+  }
+
   card.innerHTML = `
     <div class="relative" data-repo-card-media>
+      ${likesHtml}
       <div class="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start justify-end gap-1.5 p-2.5">
         ${metaPill(formatDurationSafe(demo))}
         ${categoryBadge(adapter.sourceLabel, { tone: 'neutral' })}
@@ -336,9 +360,11 @@ function createShowcaseSection(config, allDemos) {
 
   const cardCache = new Map();
 
+  const showLikes = sectionId === 'sd-social' || sectionId === 'mmx-social';
+
   function getCard(demo) {
     if (!cardCache.has(demo.slug)) {
-      cardCache.set(demo.slug, createGalleryCard(demo));
+      cardCache.set(demo.slug, createGalleryCard(demo, showLikes));
     }
     return cardCache.get(demo.slug);
   }
@@ -445,7 +471,6 @@ export const SdCommercialSection = SECTION_FACTORIES.SdCommercialSection;
 export const SdActionSection = SECTION_FACTORIES.SdActionSection;
 export const SdAnimationSection = SECTION_FACTORIES.SdAnimationSection;
 export const MmxAnimationSection = SECTION_FACTORIES.MmxAnimationSection;
-export const ZlCinemaSection = SECTION_FACTORIES.ZlCinemaSection;
 export const MmxActionVfxSection = SECTION_FACTORIES.MmxActionVfxSection;
 export const MmxFashionSection = SECTION_FACTORIES.MmxFashionSection;
 

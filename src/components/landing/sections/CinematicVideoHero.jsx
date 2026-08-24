@@ -11,6 +11,7 @@
 import { requireDemo } from '../../../data/minimaxH3Demos.js';
 import { createMediaFrame, cleanupFrames, prefersReducedMotion } from './minimax/mediaFrame.js';
 import { injectMinimaxStyles, goToRoute } from './minimax/ui.js';
+import CheckoutCTA from '../common/CheckoutCTA.jsx';
 
 const HERO_SLUG = 'nighttime-motorcycle-chase-synced-to-music';
 
@@ -46,30 +47,20 @@ export function CinematicVideoHero() {
 
         <div class="mmx-reveal mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-400/25 bg-cyan-400/[0.07] px-4 py-1.5 backdrop-blur-sm">
           <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-400"></span>
-          <span class="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-300">AI Creative Platform</span>
+          <span class="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-300">AI Creative Personalization Platform</span>
         </div>
 
         <h1 id="mmx-hero-headline" class="mmx-reveal font-black leading-[0.95] tracking-tight text-white" style="font-size: clamp(2.75rem, 7.5vw, 5rem);">
           Create Anything.<br/>
-          <span class="italic text-cyan-400">Sell Everything.</span>
+          <span class="italic text-cyan-400">Personalize Everything.</span>
         </h1>
 
         <p class="mmx-reveal mt-6 max-w-lg text-base leading-relaxed text-gray-300 sm:text-lg">
-          Create professional images, videos, ads, characters, commercials and
-          social content with AI.
+          Create personalized cinematic images, videos, ads, characters, commercials and viral social media content with AI.
         </p>
 
-        <div class="mmx-reveal mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <button
-            type="button"
-            data-mmx-hero-primary
-            class="btn-enhanced group inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-cyan-400 to-cyan-300 px-7 py-3.5 text-base font-bold text-[#020205] shadow-2xl shadow-cyan-400/25 transition-all duration-300 hover:from-cyan-300 hover:to-cyan-200 hover:shadow-cyan-300/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#020205]"
-          >
-            Start Creating
-            <svg class="h-4 w-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
-            </svg>
-          </button>
+        <div class="mmx-reveal mt-9 flex flex-col gap-4 sm:items-center">
+          <div id="checkout-cta-primary-host"></div>
 
           <button
             type="button"
@@ -96,8 +87,8 @@ export function CinematicVideoHero() {
           <div>
             <dt class="sr-only">Professional studios included</dt>
             <dd>
-              <span class="block text-2xl font-black text-white sm:text-3xl">33</span>
-              <span class="mt-0.5 block text-xs uppercase tracking-[0.14em] text-gray-500">Professional Studios</span>
+               <span class="block text-2xl font-black text-white sm:text-3xl">34</span>
+               <span class="mt-0.5 block text-xs uppercase tracking-[0.14em] text-gray-500">Professional Studios</span>
             </dd>
           </div>
         </dl>
@@ -143,15 +134,27 @@ export function CinematicVideoHero() {
   });
   positionObserver.observe(frame, { childList: true });
 
-  /* -------------------------------------------------------------------- CTAs */
+  /* ---------------------------------------------------------------- checkout cta */
 
-  const primary = section.querySelector('[data-mmx-hero-primary]');
+  const checkoutHost = section.querySelector('#checkout-cta-primary-host');
+  if (checkoutHost) {
+    const checkoutBtn = CheckoutCTA({
+      variant: 'primary',
+      offer: {
+        id: 'cinematic-trailers',
+        headline: 'AI Cinematic Story Study',
+        description: 'Create movie-quality trailers, story studies, and cinematic content with AI.',
+        cta: 'Get AI Cinematic Story Study',
+      },
+      providers: ['visa', 'mastercard', 'amex', 'discover', 'jcb', 'affirm', 'klarna', 'afterpay'],
+      onCheckout: () => {
+        window.location.href = 'https://buy.stripe.com/dRmbJ02OoeaAeKx8Mo5Rm07';
+      },
+    });
+    checkoutHost.appendChild(checkoutBtn);
+  }
+
   const secondary = section.querySelector('[data-mmx-hero-secondary]');
-
-  primary.addEventListener('click', () => {
-    // Existing default entry point into the app.
-    goToRoute('image');
-  });
 
   secondary.addEventListener('click', () => {
     // Stay on the page — jump to the showcase reel.

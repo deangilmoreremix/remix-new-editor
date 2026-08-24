@@ -54,9 +54,9 @@ export function ComparisonSection() {
             </div>
           </div>
 
-          <!-- AI Video Agency Studio Column -->
+           <!-- Smart Video AI Studio Column -->
           <div class="text-center">
-            <h3 class="text-xl font-bold text-cyan-400 mb-6">AI Video Agency Studio</h3>
+             <h3 class="text-xl font-bold text-cyan-400 mb-6">Smart Video AI Studio</h3>
             <div class="space-y-4">
               <div class="comparison-item p-4 bg-cyan-400/10 border border-cyan-400/20 rounded-lg hover:bg-cyan-400/15 transition-colors duration-200">
                 <div class="text-2xl mb-2">🆓</div>

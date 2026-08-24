@@ -23,7 +23,7 @@ export function HookSection() {
         </h2>
 
         <p class="text-xl text-gray-300 max-w-3xl mx-auto mb-8">
-          AI Video Agency Studio is the all-in-one creative command center that replaces 10+ subscriptions and puts everything you need to create, edit, and deliver professional AI content in one place.
+          Smart Video AI Studio is the all-in-one creative command center that replaces 10+ subscriptions and puts everything you need to create, edit, and deliver professional AI content in one place.
         </p>
 
         <div class="flex flex-col sm:flex-row gap-4 justify-center">

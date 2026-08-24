@@ -569,4 +569,56 @@ export const STUDIO_LANDING_PAGES = {
       },
     },
   },
+  openthorn: {
+    slug: 'openthorn',
+    label: 'OpenThorn',
+    heroTitle: 'OpenThorn — Free BYOK AI Website Builder',
+    heroDescription: 'OpenThorn is a free, browser-based AI website builder. Describe what you want in plain language; the AI agent writes the code, previews it live in-browser, and deploys a working site. Bring your own API key from 18 providers — no subscription, no credit markup.',
+    thumbnail: '/thumbnails/studios/video.webp',
+    miniMaxDemoIds: [],
+    academyTracks: [],
+    seo: {
+      primaryKeyword: 'BYOK AI website builder',
+      secondaryKeywords: ['free AI website builder', 'bring your own key AI builder', 'open source AI code generator'],
+      longTailKeywords: [
+        'free browser-based AI website builder with no subscription',
+        'bring your own API key AI development platform',
+        'open source alternative to Lovable Bolt v0',
+      ],
+    },
+    valueProp: 'OpenThorn flips the AI builder pricing model: you connect your own key from any of 18 providers and pay them directly. The platform is free.',
+    howItWorks: [
+      { title: 'Describe Your Site', description: 'Enter a plain-language description of the website you want to build.', gif: '', video: '' },
+      { title: 'AI Generates Code', description: 'The OpenThorn agent writes full code, previews it live in-browser, and iterates with you.', gif: '', video: '' },
+      { title: 'Deploy Instantly', description: 'One-click deploy to Cloudflare Pages with a public URL — no local setup required.', gif: '', video: '' },
+    ],
+    features: [
+      '18 AI providers including OpenAI, Anthropic, Google Gemini, DeepSeek, Mistral, Groq, Together AI, xAI, Cohere, Perplexity, OpenRouter, Ollama, Fireworks AI, Cerebras, Azure OpenAI, Amazon Bedrock, NVIDIA NIM',
+      'In-browser preview with live esbuild-wasm bundling — no server round-trip',
+      'One-click Cloudflare Pages deploy from preview to public URL',
+      'Full code export — download generated source at any point with no paywall',
+      'Multi-provider fallback — if one provider hits a rate limit, the agent switches automatically',
+      'Encrypted key storage — provider API keys encrypted at rest with AES-256-GCM',
+    ],
+    monetization: {
+      revenueModels: [
+        'Platform is free — users pay providers directly at raw per-token rates',
+        'No subscription, no credit markup, no platform fees',
+      ],
+      pricingAnchors: [
+        'Lovable / Bolt.new / v0: $25–50+/month for platform credits',
+        'OpenThorn: $0 platform cost, pay provider rates only',
+      ],
+      gtmSteps: [
+        'Lead with provider free tiers — pair with Gemini, Groq, Cerebras, or local Ollama for $0 builds',
+        'Position as the anti-subscription alternative for developers and founders',
+        'Community-driven template and plugin ecosystem',
+      ],
+      profitMath: {
+        apiCost: '$0 platform fee',
+        clientFee: 'Free',
+        netMargin: 'N/A — open source platform',
+      },
+    },
+  },
 };

@@ -18,6 +18,7 @@ import { escapeHtml } from '../lib/security.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt, inspectPromptTokens, getSelectedContactId, setSelectedContactId } from './personalize/personalizePopover.js';
 import { TOKEN_KEYS, TOKEN_LABELS, buildVariables } from './personalize/tokenSchema.js';
 import { getActiveProfile, listProfiles } from '../lib/contactStore.js';
+import interact from 'interactjs';
 
 // ─── Canvas / element types ────────────────────────────────────────────────
 
@@ -127,44 +128,6 @@ function generateId() {
 function clamp(value, min, max) {
   if (typeof value !== 'number' || Number.isNaN(value)) return min;
   return Math.max(min, Math.min(max, value));
-}
-
-function createResizeHandle(elementId, onResizeStart) {
-  const handle = document.createElement('div');
-  handle.className = 'dom-resize-handle';
-  handle.style.cssText = `
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    width: 14px;
-    height: 14px;
-    cursor: nwse-resize;
-    background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.25) 40%, rgba(255,255,255,0.25) 50%, transparent 50%);
-    z-index: 5;
-  `;
-  handle.addEventListener('mousedown', (e) => {
-    e.stopPropagation();
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const wrapper = handle.parentElement;
-    const startW = wrapper.offsetWidth;
-    const startH = wrapper.offsetHeight;
-
-    const onMouseMove = (moveEvent) => {
-      const newW = Math.max(40, startW + (moveEvent.clientX - startX));
-      const newH = Math.max(40, startH + (moveEvent.clientY - startY));
-      wrapper.style.width = `${newW}px`;
-      wrapper.style.height = `${newH}px`;
-    };
-    const onMouseUp = () => {
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
-      if (typeof onResizeStart === 'function') onResizeStart(elementId, wrapper);
-    };
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
-  });
-  return handle;
 }
 
 function createDeleteButton(onDelete) {
@@ -875,7 +838,7 @@ export function Personalizer() {
       }
     }
   } catch (err) {
-    console.warn('[DomPersonalizationStudio] personalization bootstrap failed:', err);
+    console.warn('[Personalizer] personalization bootstrap failed:', err);
   }
 
   if (!personalizeReady && contactSelect) {
@@ -937,16 +900,6 @@ export function Personalizer() {
     const contentEl = renderElementContent(el);
     wrapper.appendChild(contentEl);
 
-    const resizeHandle = createResizeHandle(el.id, (elementId, wrapper) => {
-      const item = elements.find((e) => e.id === elementId);
-      if (item) {
-        item.width = wrapper.offsetWidth;
-        item.height = wrapper.offsetHeight;
-      }
-      renderPropertiesPanel();
-    });
-    wrapper.appendChild(resizeHandle);
-
     const deleteBtn = createDeleteButton(() => removeElement(el.id));
     wrapper.appendChild(deleteBtn);
 
@@ -958,9 +911,8 @@ export function Personalizer() {
     });
 
     wrapper.addEventListener('mousedown', (e) => {
-      if (e.target === resizeHandle || e.target === deleteBtn) return;
+      if (e.target === deleteBtn) return;
       selectElement(el.id, wrapper);
-      startDrag(e, wrapper, el);
     });
 
     if (el.type === ELEMENT_TYPES.TEXT || el.type === ELEMENT_TYPES.HEADING) {
@@ -1072,32 +1024,6 @@ export function Personalizer() {
       wrapper.style.zIndex = '100';
     }
     renderPropertiesPanel();
-  }
-
-  function startDrag(e, wrapper, el) {
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const startLeft = el.x;
-    const startTop = el.y;
-    const canvasRect = canvasEl.getBoundingClientRect();
-
-    const onMouseMove = (moveEvent) => {
-      const dx = ((moveEvent.clientX - startX) / canvasRect.width) * 100;
-      const dy = ((moveEvent.clientY - startY) / canvasRect.height) * 100;
-      const newX = clamp(startLeft + dx, 0, 95);
-      const newY = clamp(startTop + dy, 0, 95);
-      el.x = newX;
-      el.y = newY;
-      wrapper.style.left = `${newX}%`;
-      wrapper.style.top = `${newY}%`;
-    };
-    const onMouseUp = () => {
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
-      renderPropertiesPanel();
-    };
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
   }
 
   function setCanvasSize(width, height) {
@@ -1242,7 +1168,7 @@ export function Personalizer() {
     } else if (el.href !== undefined) {
       updateElement(el.id, { href: `${el.href || ''}${token}` });
     } else if (el.src !== undefined) {
-      updateElement(el.id, { src: `${el.src || ''} ${token}` });
+      updateElement(el.id, { src: `${el.src || ''}${token}` });
     } else {
       showToast('This element type does not support tokens');
     }
@@ -1392,14 +1318,48 @@ export function Personalizer() {
       },
     });
   } catch (err) {
-    console.warn('[DomPersonalizationStudio] personalize trigger failed:', err);
+    console.warn('[Personalizer] personalize trigger failed:', err);
   }
 
   // Initialize canvas
   renderCanvas();
+
+  interact('.dom-element-wrapper')
+    .draggable({
+      inertia: true,
+      modifiers: [
+        interact.modifiers.restrictRect({ restriction: canvasEl })
+      ]
+    })
+    .resizable({
+      edges: { right: true, bottom: true },
+      restrictEdges: { outer: canvasEl },
+      modifiers: []
+    })
+    .on('dragmove', (e) => {
+      const wrapper = e.target;
+      const id = wrapper.dataset.id;
+      const el = getElementById(id);
+      if (!el) return;
+      const rect = canvasEl.getBoundingClientRect();
+      const x = clamp(((e.clientX - rect.left) / rect.width) * 100, 0, 95);
+      const y = clamp(((e.clientY - rect.top) / rect.height) * 100, 0, 95);
+      updateElement(id, { x, y });
+    })
+    .on('resizemove', (e) => {
+      const wrapper = e.target;
+      const id = wrapper.dataset.id;
+      const el = getElementById(id);
+      if (!el) return;
+      updateElement(id, {
+        width: Math.max(40, e.rect.width),
+        height: Math.max(40, e.rect.height)
+      });
+    });
+
   renderPropertiesPanel();
 
   return container;
 }
 
-export default DomPersonalizationStudio;
+export default Personalizer;

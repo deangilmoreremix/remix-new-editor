@@ -56,9 +56,7 @@ const TEMPLATE_IDS = [
   'tiktok-video', 'instagram-reel', 'youtube-thumbnail',
 ];
 
-const CINEMA_TEMPLATE_IDS = [
-  'cinematic-short-film', 'mini-movie', 'trailer-video',
-];
+const CINEMA_TEMPLATE_IDS = [];
 
 async function dismissApiModal(page) {
   const modalTitle = page.getByText('Welcome — set up your API keys');
@@ -100,7 +98,7 @@ async function navigateToStudio(page, route) {
   while (attempts < 3) {
     try {
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
-      await page.waitForTimeout(4000);
+      await page.waitForTimeout(6000);
       await waitForStudioContent(page);
       return;
     } catch (e) {
@@ -123,7 +121,7 @@ async function captureFullPage(page, filename) {
   await dismissOverlays(page);
   await waitForMedia(page);
   await page.evaluate(() => window.scrollTo(0, 0));
-  await page.waitForTimeout(300);
+  await page.waitForTimeout(5000);
   await page.screenshot({
     path: path.join(SCREENSHOTS_DIR, `${filename}.png`),
     fullPage: true,
@@ -135,7 +133,7 @@ async function captureViewport(page, filename) {
   await dismissOverlays(page);
   await waitForMedia(page);
   await page.evaluate(() => window.scrollTo(0, 0));
-  await page.waitForTimeout(200);
+  await page.waitForTimeout(5000);
   await page.screenshot({
     path: path.join(SCREENSHOTS_DIR, `${filename}.png`),
     fullPage: false,
@@ -182,6 +180,8 @@ async function waitForMedia(page) {
       // ignore
     }
   }
+
+  await page.waitForTimeout(1000);
 }
 
 async function clickAndCapture(page, selector, filename, waitMs = 1500) {
@@ -208,7 +208,7 @@ async function captureTemplateEditors(page) {
     await page.waitForTimeout(4000);
     await dismissOverlays(page);
 
-    const card = page.locator('[class*="cursor-pointer"]').first();
+    const card = page.locator('.group.bg-white\\/5').first();
     if (await card.count() > 0 && await card.isVisible()) {
       await card.click();
       await page.waitForTimeout(3000);
