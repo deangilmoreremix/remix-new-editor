@@ -1,5 +1,5 @@
 // Offer Section - Get The Smart Video AI Studio Today
-// Two-tier pricing: $297 Lifetime | $997 Whitelabel Lifetime
+// Two-tier pricing: $199 Lifetime | $997 Whitelabel Lifetime
 
 import CheckoutCTA from '../common/CheckoutCTA.jsx';
 
@@ -134,7 +134,7 @@ export function OfferSection() {
           <div class="bg-gradient-to-br from-[#171b24] to-[#0a0b0f] border border-white/10 rounded-3xl p-8 hover:border-cyan-400/50 transition-all duration-500 h-full flex flex-col">
             <div class="text-center mb-6">
               <h3 class="text-2xl font-bold text-white mb-2">Lifetime Access</h3>
-              <div class="text-5xl font-black text-cyan-400 mb-2">$297</div>
+              <div class="text-5xl font-black text-cyan-400 mb-2">$199</div>
               <div class="text-gray-400">One-time payment • Forever yours</div>
             </div>
 
@@ -428,7 +428,8 @@ export function OfferSection() {
         variant: 'inline',
         offer: {
           id: 'lifetime',
-          cta: 'Get Lifetime Access — $297',
+          cta: 'Get Lifetime Access — {price}',
+          price: '$199',
         },
         providers: [],
         onCheckout: () => {

@@ -1,19 +1,25 @@
 // CheckoutCTA — contextual video-section checkout button.
 //
-// Renders a brand-aligned gradient CTA that accepts a dynamic `offer`
-// object so each video section can name exactly what the user just watched.
-// Includes payment provider icons (monochrome) and Stripe redirect.
+// Redesigned to match the exit-intent modal's aesthetic:
+//   - Solid cyan-400 background (no gradient)
+//   - 12px border radius
+//   - Inter font (loaded in index.html)
+//   - Modal-style shadows and hover transform (translateY)
+//   - Provider icons in a separate card below the button
+//   - Subtext below the button
 //
 // Usage:
 //   const el = CheckoutCTA({
 //     variant: 'primary',   // or 'inline'
 //     offer: {
 //       id: 'cinematic-trailers',
-//       headline: 'AI Cinematic Trailers',
-//       description: 'Turn any script into a movie-quality trailer.',
-//       cta: 'Get AI cinematic trailers',
+//       cta: 'Get AI Cinematic Story Study',
+//       headline: 'AI Cinematic Story Study',
+//       description: 'Create movie-quality trailers with AI.',
+//       price: '$199',
 //     },
 //     providers: ['visa','mastercard','amex','discover','jcb','affirm','klarna','afterpay'],
+//     subtext: 'Secure checkout • 30-day money-back guarantee',
 //     onCheckout: () => { /* redirect to Stripe */ },
 //   });
 
@@ -29,11 +35,28 @@ const PROVIDER_SYMBOLS = {
 };
 
 let symbolsInjected = false;
-let rippleStylesInjected = false;
+let stylesInjected = false;
 
-function injectGlobalStyles() {
-  if (rippleStylesInjected) return;
-  rippleStylesInjected = true;
+const MODAL_DESIGN_TOKENS = {
+  bgDeep: '#020205',
+  bgSurface: '#05070b',
+  bgCard: 'rgba(255, 255, 255, 0.025)',
+  borderCard: 'rgba(255, 255, 255, 0.08)',
+  borderLight: 'rgba(255, 255, 255, 0.12)',
+  primary: '#22d3ee',
+  primaryHover: '#34d399',
+  primarySoft: 'rgba(34, 211, 238, 0.10)',
+  primaryGlow: 'rgba(34, 211, 238, 0.25)',
+  textPrimary: '#ffffff',
+  textSecondary: '#a1a1aa',
+  textMuted: '#52525b',
+  radiusLg: '1.5rem',
+  radiusXl: '2rem',
+};
+
+function injectModalStyles() {
+  if (stylesInjected) return;
+  stylesInjected = true;
 
   const style = document.createElement('style');
   style.textContent = `
@@ -41,25 +64,182 @@ function injectGlobalStyles() {
       0% { transform: scale(0); opacity: 0.6; }
       100% { transform: scale(4); opacity: 0; }
     }
+
     .checkout-cta {
+      font-family: Inter, system-ui, -apple-system, sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
-    .checkout-cta:active:not(:disabled) {
-      transform: scale(0.98);
+
+    /* Primary button — matches modal .cta-button */
+    .checkout-cta--primary {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      max-width: 480px;
+      background: ${MODAL_DESIGN_TOKENS.primary};
+      color: ${MODAL_DESIGN_TOKENS.bgDeep};
+      font-size: 16px;
+      font-weight: 800;
+      text-align: center;
+      padding: 18px 24px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 20px ${MODAL_DESIGN_TOKENS.primaryGlow}, 0 8px 30px rgba(34, 211, 238, 0.2);
+      letter-spacing: 0.3px;
     }
-    .checkout-cta--primary:active:not(:disabled) {
-      transform: scale(0.98);
+
+    .checkout-cta--primary:hover {
+      background: ${MODAL_DESIGN_TOKENS.primaryHover};
+      box-shadow: 0 0 30px ${MODAL_DESIGN_TOKENS.primaryGlow}, 0 12px 40px rgba(34, 211, 238, 0.3);
+      transform: translateY(-2px);
     }
-    .checkout-cta--inline:active:not(:disabled) {
-      transform: scale(0.98);
+
+    .checkout-cta--primary:active {
+      transform: translateY(0) scale(0.98);
     }
-    .provider-icon {
-      flex-shrink: 0;
-      transition: transform 0.3s ease, opacity 0.3s ease;
+
+    .checkout-cta--primary .cta-arrow {
+      display: inline-block;
+      transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .checkout-cta--primary:hover .cta-arrow {
+      transform: translateX(4px);
+    }
+
+    /* Inline button — same modal style but compact for pricing cards */
+    .checkout-cta--inline {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      background: ${MODAL_DESIGN_TOKENS.primary};
+      color: ${MODAL_DESIGN_TOKENS.bgDeep};
+      font-size: 14px;
+      font-weight: 800;
+      text-align: center;
+      padding: 14px 20px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 20px ${MODAL_DESIGN_TOKENS.primaryGlow}, 0 8px 30px rgba(34, 211, 238, 0.2);
+      letter-spacing: 0.3px;
+    }
+
+    .checkout-cta--inline:hover {
+      background: ${MODAL_DESIGN_TOKENS.primaryHover};
+      box-shadow: 0 0 30px ${MODAL_DESIGN_TOKENS.primaryGlow}, 0 12px 40px rgba(34, 211, 238, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .checkout-cta--inline:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    .checkout-cta--inline .cta-arrow {
+      display: inline-block;
+      transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .checkout-cta--inline:hover .cta-arrow {
+      transform: translateX(4px);
+    }
+
+    /* Focus ring */
+    .checkout-cta:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 2px ${MODAL_DESIGN_TOKENS.bgDeep}, 0 0 0 4px ${MODAL_DESIGN_TOKENS.primary};
+    }
+
+    /* Subtext — matches modal .cta-sub */
+    .checkout-subtext {
+      text-align: center;
+      font-size: 12px;
+      color: ${MODAL_DESIGN_TOKENS.textMuted};
+      margin-top: 12px;
+      line-height: 1.5;
+    }
+
+    /* Provider card — matches modal .value-column / .bonus-card styling */
+    .checkout-providers {
+      margin-top: 12px;
+      padding: 12px 16px;
+      background: ${MODAL_DESIGN_TOKENS.bgCard};
+      border: 1px solid ${MODAL_DESIGN_TOKENS.borderCard};
+      border-radius: 12px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .checkout-providers .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .checkout-providers-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .checkout-provider-icon {
+      width: 24px;
+      height: 24px;
       opacity: 0.75;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      flex-shrink: 0;
     }
-    .checkout-cta:hover .provider-icon {
+
+    .checkout-cta--primary:hover .checkout-provider-icon {
       opacity: 1;
+    }
+
+    /* Enter animation — matches modal .animate-in */
+    .checkout-cta-enter {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s cubic-bezier(0.23, 1, 0.32, 1), transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    .checkout-cta-enter.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      .checkout-cta--primary,
+      .checkout-cta--inline {
+        transition: none;
+        transform: none;
+      }
+      .checkout-cta-enter {
+        opacity: 1;
+        transform: none;
+      }
+      .checkout-cta--primary:hover .cta-arrow,
+      .checkout-cta--inline:hover .cta-arrow {
+        transform: none;
+      }
     }
   `;
   document.head.appendChild(style);
@@ -79,7 +259,7 @@ function injectProviderSymbols() {
   for (const [name, path] of Object.entries(PROVIDER_SYMBOLS)) {
     const symbol = document.createElementNS('http://www.w3.org/2000/svg', 'symbol');
     symbol.setAttribute('id', `provider-${name}`);
-    symbol.setAttribute('viewBox', name === 'mastercard' || name === 'jcb' ? '0 0 24 24' : '0 0 24 24');
+    symbol.setAttribute('viewBox', '0 0 24 24');
     symbol.innerHTML = path;
     svg.appendChild(symbol);
   }
@@ -87,14 +267,14 @@ function injectProviderSymbols() {
   document.body.appendChild(svg);
 }
 
-function createProviderIcon(name, size = 22) {
+function createProviderIcon(name, size = 24) {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('width', `${size}px`);
   svg.setAttribute('height', `${size}px`);
   svg.setAttribute('viewBox', '0 0 24 24');
   svg.setAttribute('aria-hidden', 'true');
   svg.setAttribute('focusable', 'false');
-  svg.classList.add('provider-icon');
+  svg.classList.add('checkout-provider-icon');
 
   const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
   use.setAttribute('href', `#provider-${name}`);
@@ -130,270 +310,117 @@ function createRippleEffect(button, event) {
   ripple.addEventListener('animationend', () => ripple.remove());
 }
 
-function CheckoutCTA({ variant = 'primary', offer = {}, providers = [], onCheckout = () => {} }) {
+/**
+ * CheckoutCTA — modal-inspired checkout button.
+ *
+ * @param {Object} params
+ * @param {'primary'|'inline'} params.variant
+ * @param {Object} params.offer  - { id, cta, headline, description, price }
+ * @param {string[]} params.providers
+ * @param {string} params.subtext
+ * @param {Function} params.onCheckout
+ * @returns {HTMLElement} - button element (primary) or wrapper div (primary with providers)
+ */
+function CheckoutCTA({ variant = 'primary', offer = {}, providers = [], subtext = '', onCheckout = () => {} }) {
   const isPrimary = variant === 'primary';
   const {
     id = 'checkout',
+    cta = 'Get Started',
     headline = '',
     description = '',
-    cta = 'Get started',
-    icon = '',
+    price = '',
   } = offer;
 
-  injectGlobalStyles();
+  injectModalStyles();
   injectProviderSymbols();
+
+  // Build the button text (cta is the visible button text)
+  const buttonText = price ? cta.replace('{price}', price) : cta;
 
   const button = document.createElement('button');
   button.type = 'button';
   button.setAttribute('data-checkout-cta', id);
-  button.setAttribute('aria-label', cta);
+  button.setAttribute('aria-label', buttonText);
   button.classList.add('checkout-cta', isPrimary ? 'checkout-cta--primary' : 'checkout-cta--inline');
 
-  if (isPrimary) {
-    button.classList.add(
-      'group',
-      'inline-flex',
-      'flex-col',
-      'items-start',
-      'justify-between',
-      'gap-3',
-      'w-full',
-      'max-w-xl',
-      'mx-auto',
-      'px-8',
-      'md:px-12',
-      'py-5',
-      'rounded-2xl',
-      'bg-gradient-to-r',
-      'from-cyan-400',
-      'to-emerald-400',
-      'text-[#020205]',
-      'font-bold',
-      'leading-tight',
-      'shadow-2xl',
-      'shadow-cyan-400/40',
-      'transition-all',
-      'duration-300',
-      'ease-out',
-      'hover:from-cyan-300',
-      'hover:to-emerald-300',
-      'hover:shadow-cyan-300/60',
-      'hover:scale-[1.03]',
-      'focus:outline-none',
-      'focus-visible:ring-2',
-      'focus-visible:ring-cyan-400',
-      'focus-visible:ring-offset-2',
-      'focus-visible:ring-offset-[#020205]',
-      'relative',
-      'overflow-hidden',
-      'cursor-pointer'
-    );
-  } else {
-    button.classList.add(
-      'group',
-      'inline-flex',
-      'items-center',
-      'justify-center',
-      'gap-2',
-      'w-full',
-      'px-6',
-      'py-4',
-      'rounded-xl',
-      'bg-gradient-to-r',
-      'from-cyan-400',
-      'to-emerald-400',
-      'text-[#020205]',
-      'font-bold',
-      'text-base',
-      'shadow-lg',
-      'shadow-cyan-400/25',
-      'transition-all',
-      'duration-300',
-      'hover:from-cyan-300',
-      'hover:to-emerald-300',
-      'hover:shadow-cyan-400/40',
-      'hover:scale-[1.02]',
-      'focus:outline-none',
-      'focus-visible:ring-2',
-      'focus-visible:ring-cyan-400',
-      'focus-visible:ring-offset-2',
-      'focus-visible:ring-offset-[#020205]',
-      'relative',
-      'overflow-hidden',
-      'cursor-pointer'
-    );
-  }
+  // Button text + arrow
+  const textSpan = document.createElement('span');
+  textSpan.textContent = buttonText;
+  button.appendChild(textSpan);
 
-  // Text block (primary only shows headline + description)
-  if (isPrimary) {
-    const textBlock = document.createElement('div');
-    textBlock.classList.add('flex', 'flex-col', 'gap-1', 'w-full');
+  const arrow = document.createElement('span');
+  arrow.setAttribute('aria-hidden', 'true');
+  arrow.classList.add('cta-arrow');
+  arrow.innerHTML = `<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>`;
+  button.appendChild(arrow);
 
-    const headlineEl = document.createElement('span');
-    headlineEl.classList.add(
-      'flex',
-      'items-center',
-      'gap-2',
-      'font-bold',
-      'tracking-tight',
-      'truncate',
-      'text-lg'
-    );
-
-    if (icon) {
-      const iconSpan = document.createElement('span');
-      iconSpan.classList.add('flex-shrink-0');
-      iconSpan.innerHTML = icon;
-      iconSpan.setAttribute('aria-hidden', 'true');
-      headlineEl.appendChild(iconSpan);
-    }
-
-    const headlineText = document.createElement('span');
-    headlineText.textContent = cta;
-    headlineEl.appendChild(headlineText);
-    textBlock.appendChild(headlineEl);
-
-    if (description) {
-      const descEl = document.createElement('span');
-      descEl.classList.add(
-        'text-sm',
-        'text-[#020205]/70',
-        'font-medium',
-        'truncate'
-      );
-      descEl.textContent = description;
-      textBlock.appendChild(descEl);
-    }
-
-    button.appendChild(textBlock);
-  } else {
-    // Inline: simple centered text + arrow
-    const textWrap = document.createElement('span');
-    textWrap.classList.add('flex', 'items-center', 'justify-center', 'gap-2');
-
-    const textNode = document.createTextNode(cta);
-    textWrap.appendChild(textNode);
-
-    const arrow = document.createElement('span');
-    arrow.setAttribute('aria-hidden', 'true');
-    arrow.classList.add(
-      'transition-transform',
-      'duration-300',
-      'group-hover:translate-x-1',
-      'flex-shrink-0'
-    );
-    arrow.innerHTML = `<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>`;
-
-    textWrap.appendChild(arrow);
-    button.appendChild(textWrap);
-  }
-
-  // Arrow for primary (right side)
-  if (isPrimary) {
-    const arrowWrap = document.createElement('span');
-    arrowWrap.classList.add(
-      'flex-shrink-0',
-      'self-end',
-      'transition-transform',
-      'duration-300',
-      'group-hover:translate-x-1'
-    );
-    arrowWrap.setAttribute('aria-hidden', 'true');
-    arrowWrap.innerHTML = `
-      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
-      </svg>
-    `;
-    button.appendChild(arrowWrap);
-  }
-
-  // Provider section (primary only)
-  if (isPrimary && providers.length > 0) {
-    const providerWrap = document.createElement('div');
-    providerWrap.classList.add(
-      'mt-3',
-      'pt-3',
-      'border-t',
-      'border-[#020205]/15',
-      'flex',
-      'flex-col',
-      'gap-2',
-      'w-full'
-    );
-
-    const srOnly = document.createElement('span');
-    srOnly.classList.add('sr-only');
-    srOnly.textContent = 'We accept Visa, Mastercard, American Express, Discover, JCB, Affirm, Klarna, and Afterpay.';
-    providerWrap.appendChild(srOnly);
-
-    const cardsRow = document.createElement('div');
-    cardsRow.classList.add('flex', 'flex-wrap', 'items-center', 'gap-x-3', 'gap-y-1');
-    ['visa', 'mastercard', 'amex', 'discover', 'jcb'].forEach((name, i) => {
-      if (providers.includes(name)) {
-        const iconWrap = document.createElement('span');
-        iconWrap.classList.add('provider-icon-wrap', 'inline-flex', 'items-center');
-        iconWrap.appendChild(createProviderIcon(name, 22));
-        cardsRow.appendChild(iconWrap);
-      }
-    });
-
-    const bnplRow = document.createElement('div');
-    bnplRow.classList.add('flex', 'flex-wrap', 'items-center', 'gap-x-3', 'gap-y-1');
-    ['affirm', 'klarna', 'afterpay'].forEach((name, i) => {
-      if (providers.includes(name)) {
-        const iconWrap = document.createElement('span');
-        iconWrap.classList.add('provider-icon-wrap', 'inline-flex', 'items-center');
-        iconWrap.appendChild(createProviderIcon(name, 22));
-        bnplRow.appendChild(iconWrap);
-      }
-    });
-
-    providerWrap.appendChild(cardsRow);
-    providerWrap.appendChild(bnplRow);
-    button.appendChild(providerWrap);
-
-    // Hover stagger on provider icons
-    button.addEventListener('mouseenter', () => {
-      providerWrap.querySelectorAll('.provider-icon').forEach((icon, i) => {
-        icon.style.transitionDelay = `${i * 40}ms`;
-        icon.style.transform = 'translateY(-2px)';
-      });
-    });
-    button.addEventListener('mouseleave', () => {
-      providerWrap.querySelectorAll('.provider-icon').forEach((icon) => {
-        icon.style.transitionDelay = '0ms';
-        icon.style.transform = 'translateY(0)';
-      });
-    });
-  }
-
-  // Shimmer sweep on hover (primary only)
-  if (isPrimary) {
-    const shimmer = document.createElement('span');
-    shimmer.setAttribute('aria-hidden', 'true');
-    shimmer.style.cssText = `
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.18) 45%, rgba(255,255,255,0.05) 50%, transparent 54%);
-      opacity: 0;
-      transition: opacity 0.4s ease;
-      pointer-events: none;
-      z-index: 1;
-    `;
-    button.appendChild(shimmer);
-
-    button.addEventListener('mouseenter', () => { shimmer.style.opacity = '1'; });
-    button.addEventListener('mouseleave', () => { shimmer.style.opacity = '0'; });
-  }
-
-  // Click handler with ripple + redirect
+  // Click handler
   button.addEventListener('click', (event) => {
     createRippleEffect(button, event);
     setTimeout(() => onCheckout(), 250);
   });
 
-  return button;
+  // For primary variant: wrap in a div with button + provider row + subtext
+  if (!isPrimary) {
+    return button;
+  }
+
+  const wrapper = document.createElement('div');
+  wrapper.classList.add('checkout-cta-wrapper');
+  wrapper.style.cssText = `
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    width: 100%;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+  `;
+
+  wrapper.appendChild(button);
+
+  // Subtext
+  if (subtext) {
+    const sub = document.createElement('span');
+    sub.classList.add('checkout-subtext');
+    sub.textContent = subtext;
+    wrapper.appendChild(sub);
+  }
+
+  // Provider card
+  if (providers.length > 0) {
+    const providerCard = document.createElement('div');
+    providerCard.classList.add('checkout-providers');
+
+    const srOnly = document.createElement('span');
+    srOnly.classList.add('sr-only');
+    srOnly.textContent = 'We accept Visa, Mastercard, American Express, Discover, JCB, Affirm, Klarna, and Afterpay.';
+    providerCard.appendChild(srOnly);
+
+    const row = document.createElement('div');
+    row.classList.add('checkout-providers-row');
+
+    providers.forEach((name, i) => {
+      const iconWrap = document.createElement('span');
+      iconWrap.style.cssText = `
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.3s ease ${i * 30}ms;
+      `;
+      iconWrap.appendChild(createProviderIcon(name, 24));
+      row.appendChild(iconWrap);
+    });
+
+    providerCard.appendChild(row);
+    wrapper.appendChild(providerCard);
+  }
+
+  // Enter animation
+  wrapper.classList.add('checkout-cta-enter');
+
+  return wrapper;
 }
 
 export default CheckoutCTA;

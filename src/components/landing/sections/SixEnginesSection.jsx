@@ -193,7 +193,7 @@ export function SixEnginesSection() {
           </div>
           <div class="stat-item group">
             <div class="text-3xl md:text-4xl font-black text-emerald-400 mb-2 relative">
-              <span class="text-purple-400">$297</span>
+              <span class="text-purple-400">$199</span>
               <div class="absolute -inset-2 bg-emerald-400/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </div>
             <div class="text-gray-400 text-sm">Lifetime Access</div>

@@ -144,9 +144,11 @@ export function CinematicVideoHero() {
         id: 'cinematic-trailers',
         headline: 'AI Cinematic Story Study',
         description: 'Create movie-quality trailers, story studies, and cinematic content with AI.',
-        cta: 'Get AI Cinematic Story Study',
+        cta: 'Get AI Cinematic Story Study — {price}',
+        price: '$199',
       },
       providers: ['visa', 'mastercard', 'amex', 'discover', 'jcb', 'affirm', 'klarna', 'afterpay'],
+      subtext: 'Secure checkout • 30-day money-back guarantee',
       onCheckout: () => {
         window.location.href = 'https://buy.stripe.com/dRmbJ02OoeaAeKx8Mo5Rm07';
       },

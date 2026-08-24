@@ -107,9 +107,11 @@ Workspace root folder: /Users/deanellgilmore/Downloads/remixneweditor/remix-new-
         id: 'all-access',
         headline: 'AI Video Agency',
         description: 'Full access to all 34 AI apps, 200+ models, and commercial rights.',
-        cta: 'Start My AI Video Agency',
+        cta: 'Start My AI Video Agency — {price}',
+        price: '$199',
       },
       providers: ['visa', 'mastercard', 'amex', 'discover', 'jcb', 'affirm', 'klarna', 'afterpay'],
+      subtext: 'Secure checkout • 30-day money-back guarantee',
       onCheckout: () => {
         window.location.href = 'https://buy.stripe.com/dRmbJ02OoeaAeKx8Mo5Rm07';
       },
