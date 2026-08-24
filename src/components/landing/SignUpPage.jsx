@@ -14,7 +14,7 @@ import { clerkErrorMessage, clerkWithTimeout, handleNavClick, clearClerkSession 
 
 export function SignUpPage() {
   const { signUp, errors, fetchStatus } = useSignUp();
-  const { isSignedIn, isLoaded: userLoaded } = useUser();
+  const { isSignedIn, isLoaded: userLoaded, user } = useUser();
   const isLoaded = signUp !== undefined;
   const [firstName, setFirstName] = useState('');
   const [email, setEmail] = useState('');
