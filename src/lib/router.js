@@ -69,7 +69,8 @@ const pageLoaders = {
   director: () => import('../components/DirectorPage.js').then(m => m.DirectorPage()),
   timeline: () => import('../components/TimelineEditorPage.jsx').then(m => m.TimelineEditorPage()),
   'ai-vfx': () => import('../components/AIVFXPage.js').then(m => m.AIVFXPage()),
-  'timeline-iframe-warning': () => Promise.resolve(document.createElement('div'))
+  'timeline-iframe-warning': () => Promise.resolve(document.createElement('div')),
+  smartvideo: () => import('../components/SmartVideoStudio.js').then(m => m.SmartVideoStudio()),
 };
 
 let currentPage = null;
