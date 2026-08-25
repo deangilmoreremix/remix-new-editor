@@ -1,0 +1,273 @@
+//@import "globals";
+
+/* ===== Primary Styles ========================================================
+   Author: $k88hudson
+   ========================================================================== */
+
+.wrapper {
+  overflow: hidden;
+  box-shadow: 0 0 0 1px #CCC,
+    0 25px 5px -20px rgba( 0, 0, 0, 0.5 );
+}
+
+.overflow-none {
+  overflow: hidden !important;
+}
+
+/* body-wrapper required to circumvent this bug in webkit: https://bugs.webkit.org/show_bug.cgi?id=77811 */
+.body-wrapper {
+  height: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
+  position: absolute;
+  bottom: 0;
+  -webkit-transition: right 0.25s;
+  -moz-transition: right 0.25s;
+  -ms-transition: right 0.25s;
+  -o-transition: right 0.25s;
+  transition: right 0.25s;
+}
+
+.stage-wrapper {
+  position: absolute;
+  right: 0;
+  top: 62px;
+  left: 0;
+}
+
+body.editor-minimized .stage-wrapper {
+  right: 0;
+}
+
+.show-loading .loading-message {
+  opacity: 1;
+  // this zindex puts it above all track events
+  z-index: 1000;
+  visibility: visible;
+}
+
+.loading-message {
+  position: absolute;
+
+  opacity: 0;
+  visibility: hidden;
+
+  width: 100%;
+  height: 100%;
+  bottom: 42px;
+  top: 0;
+  line-height: 1;
+
+  &.show-waiting {
+    opacity: 1;
+    background: rgba( 0,0,0,1 );
+    // this zindex puts it above all track events
+    z-index: 1000;
+    visibility: visible;
+  }
+}
+
+#embed-wrapper {
+  position: relative;
+
+  background: #FFF;
+
+  .video-container {
+    opacity: 1;
+    // Makestrap overrides
+    max-width: none;
+    width: auto;
+  }
+
+  &.faded .video-container {
+    opacity: 0;
+  }
+}
+
+/* VIDEO
+-------------------------------------------------- */
+.video-container {
+  $baseFontSize: 14px;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+#video {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  background: $canvas-bg;
+  .butter-header-spacing & {
+    box-shadow: inset 0 0 0 1px #DDD;
+  }
+}
+
+.video > video,
+.video > iframe,
+.video > object {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.video > video {
+  background: #FFF;
+}
+
+/* Use this class for a full overlay */
+.video-overlay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+.off {
+  visibility: hidden;
+}
+.on {
+  visibility: visible;
+}
+
+.ui-draggable-handle {
+  position: absolute;
+  cursor: move;
+  height: 100%;
+  width: 100%;
+  border: none;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  overflow: hidden;
+  outline: none;
+
+  &:hover .butter-tooltip {
+    opacity: 1;
+  }
+}
+
+.butter-tooltip {
+  max-height: 100%;
+  height: 36px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 0 10px;
+  background: #fff;
+  color: #555;
+  font-size: 11px;
+  font-weight: bold;
+  border-radius: 2px;
+  text-align: center;
+  transition: 0.3s opacity;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  overflow: hidden;
+  box-shadow: 0 5px 6px -5px rgba(0, 0, 0, 0.3);
+}
+
+.active {
+  .delete-handle {
+    @include reset-button;
+    position: absolute;
+    display: inherit;
+    top: -25px;
+    right: -8px;
+    height: 14px;
+    border-radius: 2.5px;
+    background-color: transparent;
+    border: $secondary-color solid 1px;
+    font-size: 8px;
+    width: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+
+    svg {
+      width: 10px;
+    }
+  }
+}
+
+.overlay-arrow {
+  background-color: rgba(34, 34, 40, 0.8);
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  cursor: pointer;
+  z-index: 100;
+
+  .arrow-image {
+    width: 14.8%;
+    height: 25%;
+    position: absolute;
+    right: 45.8%;
+    bottom: 20%;
+  }
+
+  .container-hint {
+    font-family: $font-primary;
+    background: rgba(23, 23, 28, 0.86);
+    border: 1px solid #575773;
+    box-sizing: border-box;
+    border-radius: 12px;
+    width: 44%;
+    position: absolute;
+    right: 1.60%;
+    bottom: 2.7%;
+    padding: 3% 3%;
+
+    h3 {
+      font-weight: bold;
+      font-size: 75%;
+      margin-bottom: 7%;
+    }
+
+    p {
+      font-weight: 300;
+      font-size: 60%;
+      line-height: 1;
+      margin-bottom: 3%;
+
+      &:last-of-type {
+        margin-bottom: 0;
+      }
+    }
+
+    .container-fill-out {
+      display: flex;
+      flex-wrap: wrap;
+      line-height: 1.3;
+    }
+
+    span {
+      font-weight: 700;
+    }
+    .fill-out {
+      font-weight: 300;
+      margin-right: 0.2rem;
+    }
+    .element-field {
+      display: inline-block;
+      max-width: 80px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+  }
+}

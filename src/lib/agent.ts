@@ -235,22 +235,15 @@ const ALLOWED_PROVIDER_HOSTS = new Set([
   'api.deepseek.com',
   'api.mistral.ai',
   'api.groq.com',
-  'api.together.xyz',
   'openrouter.ai',
   'api.openrouter.ai',
   'api.x.ai',
-  'api.together.ai',
   'api.perplexity.ai',
-  'api.fireworks.ai',
   'api.cerebras.ai',
-  'api.cohere.com',
-  'api.cohere.ai',
-  'api.rodiumai.io',
   'api.github.com',
   'models.github.com',
   'localhost',
   '127.0.0.1',
-  'bedrock-runtime.us-east-1.amazonaws.com',
 ])
 
 const MAX_OUTPUT_TOKENS = 8192
@@ -315,8 +308,10 @@ const MAX_PROVIDER_FAILOVERS = 2
 const ANTHROPIC_THINKING_BUDGET = 4000
 
 function supportsManualAnthropicThinking(modelId: string): boolean {
+  // Adaptive-thinking models (Fable/Mythos 5, Opus/Sonnet 5, Opus 4.7+)
+  // reject or ignore manual `thinking` budgets.
   const id = modelId.toLowerCase()
-  return !/(claude-fable|claude-mythos|claude-opus-4-[78])/.test(id)
+  return !/(claude-fable|claude-mythos|claude-opus-4-[78]|claude-opus-5|claude-sonnet-5)/.test(id)
 }
 
 function sanitizeGeminiToolSchema(value: unknown): unknown {
@@ -1211,6 +1206,7 @@ export async function runOpenThornAgent(input: AgentRunInput): Promise<AgentRunR
   const failedProviderIds = new Set<string>()
   let failovers = 0
   let consecutiveEmptyTurns = 0
+  let truncationNudges = 0
 
   const loopDetector = new LoopDetector()
   // Per-run state for tool execution: tracks reads (to short-circuit redundant
@@ -1397,6 +1393,18 @@ export async function runOpenThornAgent(input: AgentRunInput): Promise<AgentRunR
     // Only a genuinely stalled build — one that already mutated files, set the
     // title, or populated the plan — gets nudged onward to a verified done.
     if (toolCalls.length === 0 && (invalidCalls?.length ?? 0) === 0 && text) {
+      // A length-truncated response never reached its tool calls — ending the
+      // run here would present a half-sentence plan as a finished build. Nudge
+      // the model to continue (bounded so a pathological provider can't loop).
+      if (modelResult.truncated && truncationNudges < 2) {
+        truncationNudges++
+        messages.push({
+          role: 'user',
+          content:
+            'Your previous response was cut off by the output token limit before you issued any tool call. Continue now: skip preamble and issue your next concrete tool call directly (write_file / edit_file / compile / done), keeping prose minimal until the project is complete.',
+        })
+        continue
+      }
       if (!buildActivityThisRun) {
         circuitBreaker.recordSuccess(provider.key.provider_id)
         input.onProgress?.({ type: 'done', files: currentFiles, filesMutated: false })
@@ -1412,6 +1420,7 @@ export async function runOpenThornAgent(input: AgentRunInput): Promise<AgentRunR
     }
 
     // ── Execute tools with parallelism ──────────────────────────
+    truncationNudges = 0 // real progress — a future truncation gets fresh nudges
     runCtx.turn = turnCount
     const toolResults = await executeToolsParallel(
       toolCalls,
@@ -2757,6 +2766,11 @@ interface ModelCallResult {
   usage?: RunUsage
   /** Tool calls whose arguments were not valid JSON — surfaced as errors. */
   invalidCalls?: InvalidToolCall[]
+  /**
+   * The provider hit its output token limit (finish_reason 'length'). Such a
+   * response may end mid-sentence without the intended tool calls.
+   */
+  truncated?: boolean
 }
 
 interface InvalidToolCall {
@@ -2807,9 +2821,6 @@ async function callModelWithTools({
   thinkingBudget?: number
 }): Promise<ModelCallResult> {
   const providerDef = PROVIDER_DEFS[providerId]
-  if (providerDef?.apiFormat === 'bedrock') {
-    throw new Error('Amazon Bedrock requires a server-side Bedrock Converse adapter and is not available through the browser agent yet.')
-  }
   if (providerDef?.apiFormat === 'anthropic' || providerId === 'anthropic') {
     return callAnthropicWithTools({ baseUrl, apiKey, modelId, system, tools, messages, signal, onText, onToolStream, thinkingBudget })
   }
@@ -2821,8 +2832,31 @@ async function callModelWithTools({
 
 // ─── OpenAI-compatible ──────────────────────────────────────────────────────
 
+/**
+ * OpenAI validates tool parameter schemas strictly — a property node without
+ * a `type` (or another recognized shape) makes the whole request 400. Walk the
+ * schema and give any typeless node an inferred type so one bad leaf can't
+ * brick every tools-bearing call.
+ */
+function sanitizeOpenAIToolSchema(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(sanitizeOpenAIToolSchema)
+  if (!value || typeof value !== 'object') return value
+
+  const out: Record<string, unknown> = {}
+  for (const [key, nested] of Object.entries(value as Record<string, unknown>)) {
+    out[key] = sanitizeOpenAIToolSchema(nested)
+  }
+  if (out.type == null && !out.anyOf && !out.oneOf) {
+    if ('properties' in out) out.type = 'object'
+    else if ('items' in out) out.type = 'array'
+    else if (!('description' in out)) return out // non-schema container, leave as-is
+    else out.type = 'string'
+  }
+  return out
+}
+
 function toolsToOpenAIFormat(tools: ToolDefinition[]) {
-  return tools.map((t) => ({ type: 'function' as const, function: { name: t.name, description: t.description, parameters: t.input_schema } }))
+  return tools.map((t) => ({ type: 'function' as const, function: { name: t.name, description: t.description, parameters: sanitizeOpenAIToolSchema(t.input_schema) as ToolDefinition['input_schema'] } }))
 }
 
 function toolsToAnthropicFormat(tools: ToolDefinition[]) {
@@ -2839,12 +2873,7 @@ async function callOpenAIWithTools({
   thinkingBudget?: number
 }): Promise<ModelCallResult> {
   const url = baseUrl.endsWith('/chat/completions') ? baseUrl : `${baseUrl}/chat/completions`
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-  if (providerId === 'azure') {
-    headers['api-key'] = apiKey
-  } else {
-    headers.Authorization = `Bearer ${apiKey}`
-  }
+  const headers: Record<string, string> = { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` }
   if (providerId === 'openrouter') {
     headers['HTTP-Referer'] = window.location.origin
     headers['X-OpenRouter-Title'] = 'OpenThorn'
@@ -2865,16 +2894,43 @@ async function callOpenAIWithTools({
   // true }` fallback below omits it for the few strict ones that 400 on it.
   const streamUsage = { include_usage: true }
 
+  // The official OpenAI API rejects legacy `max_tokens` on GPT-5.x / o-series
+  // ("use max_completion_tokens"), and its reasoning models only accept the
+  // default temperature. Reasoning tokens draw from the same completion
+  // budget, so the default 8k would truncate mid-preamble before any tool
+  // call — give OpenAI's larger output ceiling real headroom.
+  const isOpenaiDirect = providerId === 'openai'
+  const sampling: Record<string, unknown> = isOpenaiDirect
+    ? {
+        ...(Object.keys(reasoning).length > 0 ? {} : { temperature: 0.22 }),
+        max_completion_tokens: 32768,
+      }
+    : { temperature: 0.22, max_tokens: MAX_OUTPUT_TOKENS }
+
+  // GPT-5.6 family: function tools on /v1/chat/completions require
+  // reasoning_effort EXPLICITLY 'none' — even omitting the param is rejected
+  // ("use /v1/responses or set reasoning_effort to 'none'", verified against
+  // a live 400). Non-reasoning OpenAI models must not receive the param at
+  // all; other openai-compatible providers keep their computed params.
+  const isOpenaiReasoner = Object.keys(reasoning).length > 0
+  const toolReasoning = !isOpenaiDirect ? reasoning : isOpenaiReasoner ? { reasoning_effort: 'none' } : {}
+
   // When no tools are provided (e.g. visual/self review), make a plain
   // text completion — don't send an empty tools array some APIs reject.
   const attempts: Array<Record<string, unknown>> =
     tools.length === 0
       ? [{ stream: true, stream_options: streamUsage, ...reasoning }, { stream: false, ...reasoning }]
       : [
-          { tools: openaiTools, stream: true, stream_options: streamUsage, ...reasoning },
-          { tools: openaiTools, stream: true, stream_options: streamUsage, tool_choice: 'auto', ...reasoning },
-          { tools: openaiTools, stream: false, ...reasoning },
-          { stream: true },
+          { tools: openaiTools, stream: true, stream_options: streamUsage, ...toolReasoning },
+          // 'auto' is already the default tool_choice when tools are present,
+          // and some strict OpenAI-compatible servers 400 on `stream_options`
+          // instead of ignoring it — retry streaming WITH tools but WITHOUT it.
+          { tools: openaiTools, stream: true, ...toolReasoning },
+          { tools: openaiTools, stream: false, ...toolReasoning },
+          // NOTE: deliberately NO bare no-tools fallback here. If the provider
+          // rejects our tool definitions, a tool-less request would "succeed"
+          // with prose-only output and the run would end as a fake completion —
+          // better to fail so mid-run failover can pick another provider.
         ]
 
   let lastError = ''
@@ -2896,7 +2952,14 @@ async function callOpenAIWithTools({
           headers,
           body: JSON.stringify({
             model: modelId, messages: openaiMessages,
-            temperature: 0.22, max_tokens: MAX_OUTPUT_TOKENS, ...attempt,
+            // Ollama's OpenAI-compat endpoint silently truncates the prompt to
+            // the server-default context (~4k tokens) unless num_ctx is set —
+            // long agent runs degrade invisibly. Newer Ollama forwards it to
+            // options.num_ctx (ollama#16825); older builds ignore the unknown
+            // field harmlessly. Match the 32k window the compaction math
+            // assumes for ollama.
+            ...(providerId === 'ollama' ? { num_ctx: 32768 } : {}),
+            ...sampling, ...attempt,
           }),
           signal: combinedSignal,
         })
@@ -2993,7 +3056,7 @@ async function parseOpenAINonStream(response: Response, onText: (chunk: string) 
       }
     }
   }
-  return { text, toolCalls, invalidCalls, usage: parseOpenAIUsage(payload?.usage), reasoningContent }
+  return { text, toolCalls, invalidCalls, usage: parseOpenAIUsage(payload?.usage), reasoningContent, truncated: choice?.finish_reason === 'length' }
 }
 
 /** Best-effort usage extraction from an OpenAI-compatible usage object. */
@@ -3004,7 +3067,9 @@ function parseOpenAIUsage(u: unknown): RunUsage | undefined {
   return {
     inputTokens: Number(usage.prompt_tokens) || 0,
     outputTokens: Number(usage.completion_tokens) || 0,
-    cacheReadTokens: Number(details.cached_tokens) || 0,
+    // DeepSeek reports cache hits as prompt_cache_hit_tokens instead of
+    // prompt_tokens_details.cached_tokens.
+    cacheReadTokens: Number(details.cached_tokens) || Number(usage.prompt_cache_hit_tokens) || 0,
     cacheWriteTokens: 0,
   }
 }
@@ -3019,6 +3084,7 @@ async function parseOpenAIToolStream(
   const decoder = new TextDecoder()
   let buffer = '', fullText = '', fullReasoning = ''
   let usage: RunUsage | undefined
+  let finishReason: string | undefined
   const toolCalls: Map<number, { id: string; name: string; arguments: string }> = new Map()
 
   try {
@@ -3034,9 +3100,11 @@ async function parseOpenAIToolStream(
         if (!trimmed || !trimmed.startsWith('data:')) continue
         const data = trimmed.slice(5).trim()
         if (data === '[DONE]') continue
+
         try {
           const parsed = JSON.parse(data)
           if (parsed?.usage) usage = parseOpenAIUsage(parsed.usage) ?? usage
+          if (parsed?.choices?.[0]?.finish_reason) finishReason = parsed.choices[0].finish_reason
           const delta = parsed?.choices?.[0]?.delta
           if (delta?.reasoning_content) fullReasoning += delta.reasoning_content
           if (delta?.content) { fullText += delta.content; onText(delta.content) }
@@ -3065,7 +3133,7 @@ async function parseOpenAIToolStream(
       }
     }
   }
-  return { text: fullText, toolCalls: parsedToolCalls, invalidCalls, usage, reasoningContent: fullReasoning || undefined }
+  return { text: fullText, toolCalls: parsedToolCalls, invalidCalls, usage, reasoningContent: fullReasoning || undefined, truncated: finishReason === 'length' }
 }
 
 // ─── Anthropic (with caching + thinking) ────────────────────────────────────
@@ -3115,10 +3183,32 @@ async function callAnthropicWithTools({
   }
 
   const budget = thinkingBudget ?? ANTHROPIC_THINKING_BUDGET
+  const wantsThinking = budget > 0 && tools.length > 0 && supportsManualAnthropicThinking(modelId)
+  // Extended thinking requires that the final assistant turn of the request
+  // begins with a thinking block. Phase-gated budgets toggle thinking off on
+  // build turns, so a later plan/debug turn can otherwise re-enable thinking
+  // while the final assistant message starts with text/tool_use — a guaranteed
+  // 400. Only enable thinking when the transcript satisfies that invariant;
+  // otherwise run this turn without it (and drop stale thinking blocks, which
+  // are only replayed while thinking is enabled).
+  let enableThinking = wantsThinking
+  if (wantsThinking) {
+    for (let i = anthropicMessages.length - 1; i >= 0; i--) {
+      const msg = anthropicMessages[i]
+      if (msg.role !== 'assistant') continue // tool results may trail the final assistant turn
+      const blocks = Array.isArray(msg.content) ? (msg.content as Array<Record<string, unknown>>) : []
+      enableThinking = blocks.length > 0 && blocks[0]?.type === 'thinking'
+      break
+    }
+    // No assistant message at all — first call of the conversation, fine to think.
+  }
+  // Stale thinking blocks stay in the transcript when thinking is off: the API
+  // tolerates them (disabling thinking removes the leading-block requirement)
+  // and dropping them would change the cached conversation prefix.
   // Extended thinking requires temperature:1, and max_tokens must exceed the
   // thinking budget (the visible output is the remainder) — size it so the
   // model still has room for tool calls after reasoning.
-  if (budget > 0 && tools.length > 0 && supportsManualAnthropicThinking(modelId)) {
+  if (enableThinking) {
     body.thinking = { type: 'enabled', budget_tokens: budget }
     body.temperature = 1
     body.max_tokens = budget + MAX_OUTPUT_TOKENS
@@ -3310,14 +3400,28 @@ async function callGeminiWithTools({
 
   const contents = convertToGeminiContents(messages)
 
+  const reasoningParams = getReasoningParams('google', modelId, thinkingBudget ?? 0)
+  const thinkingConfig = reasoningParams.thinkingConfig as Record<string, unknown> | undefined
+  // Thinking tokens count toward maxOutputTokens — without headroom a high
+  // thinking level can consume the entire budget and starve the visible
+  // output (finishReason MAX_TOKENS with empty text). Mirror the Anthropic
+  // sizing: cap = visible output + reasoning budget.
+  const thinkingHeadroom =
+    typeof thinkingConfig?.thinkingBudget === 'number'
+      ? thinkingConfig.thinkingBudget
+      : thinkingConfig
+        ? 8192
+        : 0
   const requestBody = JSON.stringify({
     systemInstruction: systemParts.length > 0 ? { parts: systemParts } : undefined,
     contents,
     tools: functionDeclarations.length > 0 ? [{ functionDeclarations }] : undefined,
     generationConfig: {
-      temperature: 0.22,
-      maxOutputTokens: MAX_OUTPUT_TOKENS,
-      ...getReasoningParams('google', modelId, thinkingBudget ?? 0),
+      // Google recommends default sampling for Gemini 3.x: sub-default
+      // temperature can cause looping and degraded reasoning.
+      ...( /^gemini-[3-9]/.test(modelId.toLowerCase()) ? {} : { temperature: 0.22 }),
+      maxOutputTokens: MAX_OUTPUT_TOKENS + thinkingHeadroom,
+      ...reasoningParams,
     },
   })
 
@@ -3567,11 +3671,7 @@ function validateProviderUrl(raw: string): string {
   try { hostname = new URL(clean).hostname.toLowerCase() } catch {
     throw new Error(`Invalid base URL: ${clean.slice(0, 100)}`)
   }
-  const isAllowedHost =
-    ALLOWED_PROVIDER_HOSTS.has(hostname) ||
-    hostname.endsWith('.openai.azure.com') ||
-    hostname.endsWith('.services.ai.azure.com') ||
-    /^bedrock-runtime\.[a-z0-9-]+\.amazonaws\.com$/.test(hostname)
+  const isAllowedHost = ALLOWED_PROVIDER_HOSTS.has(hostname)
   if (!isAllowedHost) {
     throw new Error(
       `Provider URL host "${hostname}" is not in the allowed list. ` +

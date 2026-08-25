@@ -1,0 +1,47 @@
+.integrations-container {
+
+  .input-fb-pixel {
+    margin-bottom: 1rem;
+  }
+
+  .download-optin-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1em;
+  }
+
+  .zap-btn {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    border-radius: 20px;
+  }
+
+  .webhook-container {
+    margin-bottom: 1rem;
+    display: flex;
+
+    .item-form {
+      flex-grow: 15;
+      flex-direction: row;
+      display: grid;
+    }
+
+    .item-delete {
+      flex-grow: 1;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+
+      span {
+        margin-bottom: 0.6rem;
+
+        path {
+          fill: $third-color;
+        }
+      }
+    }
+  }
+}

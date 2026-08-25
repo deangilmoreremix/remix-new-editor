@@ -1,0 +1,35 @@
+import React from 'react';
+import classnames from 'classnames';
+
+import PropTypes from '../../../lib/PropTypes';
+
+import blendModeConstants from '../../../lib/constants/blendMode';
+
+const ProjectImageElement = ({ handleSelect, item, className }) => {
+  const element = JSON.parse(item.project.data);
+  const { blendMode } = element.media[0].tracks[0];
+  let url = "";
+  if (element.media[0].tracks[0].trackEvents[0]) {
+    url = element.media[0].tracks[0].trackEvents[0].popcornOptions.url;
+  }
+
+  return (
+    <div className={classnames('list-item', className)}>
+      <div style={{ mixBlendMode: blendMode || blendModeConstants.normal.value }}>
+        {url && <img src={url} alt="img" />}
+      </div>
+      <button
+        className="animation-preview__add"
+        onClick={() => handleSelect(item)}
+      />
+    </div>
+  );
+};
+
+ProjectImageElement.propTypes = {
+  item: PropTypes.shape(),
+  handleSelect: PropTypes.func.isRequired,
+  className: PropTypes.string,
+};
+
+export default ProjectImageElement;

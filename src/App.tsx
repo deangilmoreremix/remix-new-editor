@@ -8,13 +8,13 @@ import { getErrorMessage, logError } from './lib/errors'
 import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary'
 import Header from './components/Header/Header'
 import HeroSection from './components/HeroSection/HeroSection'
-import MeetOpenThornSection from './components/MeetOpenThornSection/MeetOpenThornSection'
 import BYOKSection from './components/BYOKSection/BYOKSection'
 import BottomCTA from './components/BottomCTA/BottomCTA'
 import Footer from './components/Footer/Footer'
 import AuthModal from './components/AuthModal/AuthModal'
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute'
 import AdminGuard from './components/AdminGuard/AdminGuard'
+import StudioWrapper from './components/StudioWrapper'
 import AnnouncementBanner from './components/AnnouncementBanner/AnnouncementBanner'
 import styles from './App.module.css'
 
@@ -56,12 +56,12 @@ function HomePage() {
   useJsonLd({
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
-    name: 'OpenThorn',
+    name: 'SmartVideo',
     applicationCategory: 'DeveloperApplication',
     operatingSystem: 'Web',
     description:
-      'OpenThorn is the BYOK AI website builder — describe what you want, get a complete, deployable website. No subscription, no lock-in.',
-    url: 'https://www.openthorn.app',
+      'SmartVideo is the BYOK AI website builder — describe what you want, get a complete, deployable website. No subscription, no lock-in.',
+    url: 'https://www.smartvid.app',
     offers: {
       '@type': 'Offer',
       price: '0',
@@ -73,7 +73,6 @@ function HomePage() {
   return (
     <>
       <HeroSection />
-      <MeetOpenThornSection />
       <BYOKSection />
       <BottomCTA />
     </>
@@ -103,8 +102,8 @@ function Layout({ children }: { children: React.ReactNode }) {
       if (mode === 'signup') openSignUp()
       else openSignIn()
     }
-    window.addEventListener('openthorn:require-auth', handleRequireAuth)
-    return () => window.removeEventListener('openthorn:require-auth', handleRequireAuth)
+    window.addEventListener('smartvid:require-auth', handleRequireAuth)
+    return () => window.removeEventListener('smartvid:require-auth', handleRequireAuth)
   }, [])
 
   return (
@@ -181,6 +180,44 @@ export default function App() {
               <Route path="blog" element={<AdminBlogPage />} />
               <Route path="templates" element={<AdminTemplatesPage />} />
             </Route>
+            <Route path="/image" element={<Layout><StudioWrapper studioPath="image" /></Layout>} />
+            <Route path="/video" element={<Layout><StudioWrapper studioPath="video" /></Layout>} />
+            <Route path="/cinema" element={<Layout><StudioWrapper studioPath="cinema" /></Layout>} />
+            <Route path="/character" element={<Layout><StudioWrapper studioPath="character" /></Layout>} />
+            <Route path="/effects" element={<Layout><StudioWrapper studioPath="effects" /></Layout>} />
+            <Route path="/edit" element={<Layout><StudioWrapper studioPath="edit" /></Layout>} />
+            <Route path="/upscale" element={<Layout><StudioWrapper studioPath="upscale" /></Layout>} />
+            <Route path="/audio" element={<Layout><StudioWrapper studioPath="audio" /></Layout>} />
+            <Route path="/avatar" element={<Layout><StudioWrapper studioPath="avatar" /></Layout>} />
+            <Route path="/influencer" element={<Layout><StudioWrapper studioPath="influencer" /></Layout>} />
+            <Route path="/commercial" element={<Layout><StudioWrapper studioPath="commercial" /></Layout>} />
+            <Route path="/storyboard" element={<Layout><StudioWrapper studioPath="storyboard" /></Layout>} />
+            <Route path="/training" element={<Layout><StudioWrapper studioPath="training" /></Layout>} />
+            <Route path="/videotools" element={<Layout><StudioWrapper studioPath="videotools" /></Layout>} />
+            <Route path="/chat" element={<Layout><StudioWrapper studioPath="chat" /></Layout>} />
+            <Route path="/lipsync" element={<Layout><StudioWrapper studioPath="lipsync" /></Layout>} />
+            <Route path="/apps" element={<Layout><StudioWrapper studioPath="apps" /></Layout>} />
+            <Route path="/explore" element={<Layout><StudioWrapper studioPath="explore" /></Layout>} />
+            <Route path="/render" element={<Layout><StudioWrapper studioPath="render" /></Layout>} />
+            <Route path="/video-agent" element={<Layout><StudioWrapper studioPath="video-agent" /></Layout>} />
+            <Route path="/director" element={<Layout><StudioWrapper studioPath="director" /></Layout>} />
+            <Route path="/timeline" element={<Layout><StudioWrapper studioPath="timeline" /></Layout>} />
+            <Route path="/ai-vfx" element={<Layout><StudioWrapper studioPath="ai-vfx" /></Layout>} />
+            <Route path="/assist" element={<Layout><StudioWrapper studioPath="assist" /></Layout>} />
+            <Route path="/text-to-image" element={<Layout><StudioWrapper studioPath="text-to-image" /></Layout>} />
+            <Route path="/image-to-image" element={<Layout><StudioWrapper studioPath="image-to-image" /></Layout>} />
+            <Route path="/text-to-video" element={<Layout><StudioWrapper studioPath="text-to-video" /></Layout>} />
+            <Route path="/image-to-video" element={<Layout><StudioWrapper studioPath="image-to-video" /></Layout>} />
+            <Route path="/video-to-video" element={<Layout><StudioWrapper studioPath="video-to-video" /></Layout>} />
+            <Route path="/video-watermark" element={<Layout><StudioWrapper studioPath="video-watermark" /></Layout>} />
+            <Route path="/storyboard-page" element={<Layout><StudioWrapper studioPath="storyboard-page" /></Layout>} />
+            <Route path="/character-page" element={<Layout><StudioWrapper studioPath="character-page" /></Layout>} />
+            <Route path="/effects-page" element={<Layout><StudioWrapper studioPath="effects-page" /></Layout>} />
+            <Route path="/cinema-page" element={<Layout><StudioWrapper studioPath="cinema-page" /></Layout>} />
+            <Route path="/influencer-page" element={<Layout><StudioWrapper studioPath="influencer-page" /></Layout>} />
+            <Route path="/commercial-page" element={<Layout><StudioWrapper studioPath="commercial-page" /></Layout>} />
+            <Route path="/upscale-page" element={<Layout><StudioWrapper studioPath="upscale-page" /></Layout>} />
+            <Route path="/openthorn" element={<Layout><StudioWrapper studioPath="openthorn" /></Layout>} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Suspense>

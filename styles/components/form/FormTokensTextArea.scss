@@ -1,0 +1,92 @@
+.container-tokens-textarea .text-area {
+  width: 100%;
+  min-height: 2.17rem;
+  margin: auto;
+  color: $white;
+  font-size: $defaultFontSize;
+  font-family: $font-primary;
+  text-align: initial;
+  overflow-x: hidden;
+
+  @include input-placeholder;
+  border: 0.055rem solid $btn-gray;
+  background-color: $sidebr-bg;
+  padding: 0.2822rem 0.546rem;
+  border-radius: 0.218rem;
+
+  &:focus {
+    border: 0.055rem solid $secondary-color;
+    outline: none;
+    legend {
+      display: none;
+    }
+  }
+  &+fieldset {
+    legend {
+      display: none;
+    }
+  }
+  .default-token, .token-uppercase-icon {
+    margin: auto 4px auto auto;
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+.tokens-textarea-head {
+  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: $defaultFontSize;
+  line-height: $defaultLineHeight;
+
+  p {
+    margin: 0;
+  }
+}
+
+.personalized-token,
+.popcorn-element-text .personalized-token-svg,
+.container-tokens-textarea .personalized-token-svg {
+  border-radius: 4px;
+  border: 1px solid $red;
+  color: $white;
+  display: inline-block;
+  font-size: $defaultFontSize;
+  line-height: 1;
+  padding: 2px 7px;
+  position: relative;
+  white-space: nowrap;
+  margin: 0 3px;
+
+  .parameter {
+    display: none;
+  }
+}
+
+.text-area-label {
+  text-align: left;
+  font-size: $defaultFontSize;
+  line-height: $defaultLineHeight;
+}
+
+.label-input-hint {
+  font-size: 12px;
+  font-style: italic;
+  color: $grey;
+}
+
+.label-input-hint-invalid {
+  font-size: 12px;
+  color: $red;
+}
+
+.multiline {
+  @include tiny-scrollbar;
+  height: 5rem;
+  overflow-y: auto;
+  display: inline-block;
+  white-space: pre-wrap;
+}

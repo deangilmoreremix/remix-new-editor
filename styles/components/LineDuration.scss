@@ -1,0 +1,77 @@
+$toggleWidth: 6px;
+$halfToggle: 3px;
+
+.line-duration-block {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.line-duration-time {
+  line-height: 1;
+  color: $white;
+  font-size: $xsmallFontSize;
+  margin-bottom: 0.7em;
+}
+
+.line-duration {
+  width: 100%;
+  height: 35px;
+  margin-bottom: 0.75rem;
+  border-radius: 4px;
+  position: relative;
+  padding: 0 $halfToggle;
+  overflow: hidden;
+
+  &__inner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background: $scrollbarColor;
+  }
+
+  &-slider {
+    width: 50px;
+    height: 100%;
+    position: absolute;
+    border-radius: 4px;
+    border: 1px solid $secondary-color;
+    background: $backgroundSlider;
+  }
+}
+
+.line-duration__toggle {
+  width: $toggleWidth;
+  height: 9px;
+  position: absolute;
+  top: 50%;
+  left: -$halfToggle;
+  transform: translateY(-50%);
+  background: $secondary-color;
+
+  &:after {
+    content: "";
+    width: 2px;
+    height: 5px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #BF3C46;
+  }
+
+  &--right {
+    left: auto;
+    right: -$halfToggle;
+  }
+}
+
+.slider-arrow {
+  position: absolute;
+  top: 16px;
+  left: 0;
+  width: 1px;
+  height: 100%;
+  background-color: $secondary-color;
+  z-index: 1;
+}

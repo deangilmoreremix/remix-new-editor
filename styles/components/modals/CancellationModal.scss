@@ -1,0 +1,105 @@
+.cancellation-modal {
+  height: calc(35vh + 19rem);
+  width: calc(20vw + 15.5rem);
+  background: $light-twinlight !important;
+
+  &-content {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+
+    &__buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 1rem;
+
+      &-loading {
+        width: 45%;
+        height: 2rem;
+      }
+
+      button {
+        @include reset-button;
+        color: $produce-title;
+
+        &:last-child {
+          background: $secondary-color;
+          color: $white;
+          border-radius: 5px;
+          padding: 5px 10px;
+          border: 1px solid inherit;
+        }
+
+        &:disabled {
+          cursor: not-allowed;
+          opacity: 0.3;
+          background: inherit;
+          border: 1px solid $secondary-color;
+        }
+      }
+    }
+
+    &__description {
+      span {
+        color: $produce-title;
+      }
+
+      ul {
+        list-style: unset;
+        margin: 1rem;
+
+        li {
+          margin-left: 1rem;
+          color: $produce-title;
+
+          &::marker {
+            color: $secondary-color;
+          }
+        }
+      }
+    }
+
+    &__reasons {
+      &-select {
+        .select-element {
+          width: 50%;
+
+          .select__control {
+            background: inherit;
+            border: 0.055rem solid rgba(76, 81, 93, 0.5);
+          }
+
+          .select__value-container .select__single-value {
+            color: $produce-title;
+          }
+        }
+      }
+      &-label {
+        font-size: 14px !important;
+        color: $produce-title !important;
+      }
+
+      &-text {
+        margin-top: 1rem;
+
+        span {
+          color: $produce-title;
+        }
+
+        textarea {
+          width: 100%;
+          background: inherit;
+          border: 1px solid rgba(76, 81, 93, 0.5);
+          box-sizing: border-box;
+          border-radius: 5px;
+          color: $white;
+          height: 15vh;
+          margin-top: 0.25rem;
+        }
+      }
+    }
+  }
+}

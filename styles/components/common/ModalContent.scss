@@ -1,0 +1,90 @@
+.header_search_wrapper{
+  display: flex;
+}
+.template__block {
+  justify-content: unset;
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  margin: 1.7em 0 0 4em;
+  align-items: baseline;
+
+  .library__block-sidebar {
+    width: 100%;
+    margin-top: 1em;
+  }
+  .library__btn-item {
+    margin-right: 1em;
+    margin-bottom: 0;
+
+    .library__icon-btn {
+      margin-right: 0.3em;
+    }
+    
+  }
+  .library__btn-title {
+      font-size: 0.9em;
+  }
+  .library__btn-user {
+    font-size: inherit;
+  }
+
+  .steps {
+    display: flex;
+
+    &__container {
+      display: flex;
+    }
+  }
+
+  .stepper-container {
+    .MuiStepLabel-root {
+      flex-direction: column;
+
+      .MuiStepLabel-iconContainer {
+        padding-right: 0;
+      }
+
+      .MuiStepLabel-labelContainer {
+        .MuiStepLabel-label {
+          color: $media-library-color;
+        }
+        .MuiStepLabel-active {
+          color: $white;
+        }
+      }
+      .MuiSvgIcon-root {
+        color: transparent;
+        border: 1px solid $media-library-color;
+        border-radius: 50%;
+        .MuiStepIcon-text {
+          fill: $media-library-color;
+        }
+      }
+      .MuiStepIcon-active {
+        .MuiStepIcon-text {
+          fill: $white;
+        }
+      }
+    }
+    .MuiStepConnector-root {
+      width: 2rem;
+      .MuiStepConnector-line {
+        border-color: $media-library-color
+      }
+    }
+    .MuiStep-root {
+      button:focus {
+        outline: none;
+      }
+    }
+    .MuiStepIcon-root.MuiStepIcon-active {
+      border-color: $secondary-color;
+    }
+  }
+}
+.creative .template__block {
+  position: unset;
+  width: 33.33%;
+
+} 

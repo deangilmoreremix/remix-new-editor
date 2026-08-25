@@ -1,0 +1,46 @@
+.close-button {
+  @include reset-button;
+  width: 10%;
+  height: 2.1rem;
+  background-color: $secondary-color;
+
+  &-produce {
+    @extend .close-button;
+    height: 2rem;
+  }
+
+  svg {
+    width: 50%;
+    height: 50%;
+
+    path {
+      fill: $white;
+    }
+  }
+}
+
+.close-button-extend {
+  @include reset-button;
+  width: 14.83px;
+  height: 22.13px;
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  z-index: 2;
+
+  svg {
+    width: 100%;
+    height: 100%;
+
+    path {
+      fill: $secondary-color;
+    }
+  }
+}
+
+@media screen and (max-width: 860px) {
+  .multi-close-button {
+    width: 100%;
+  }
+}

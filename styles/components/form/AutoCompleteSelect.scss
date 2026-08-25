@@ -1,0 +1,96 @@
+.autocomplete-container {
+  flex-direction: row !important;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.4rem;
+
+  label {
+    min-width: 5.6rem;
+    margin-bottom: 0;
+  }
+
+  .autocomplete {
+    width: unset !important;
+    flex: 1;
+
+    .autocomplete-input {
+      padding: 0 4px;
+
+      .autocomplete-input-tag {
+        background: transparent;
+        border: 1px solid $secondary-color;
+        border-radius: 4px;
+
+        &-placeholder {
+          color: $white;
+          font: $defaultFontSize $font-primary;
+        }
+
+        span {
+          color: $white;
+        }
+        svg {
+          width: 1rem;
+          height: 1rem;
+
+          path {
+            fill: transparent;
+            stroke: $secondary-color;
+          }
+        }
+      }
+    }
+    .autocomplete-focus {
+      border-color: $secondary-color;
+    }
+  }
+  .input-container {
+
+    fieldset {
+      border: 0.055rem solid $border-grey;
+    }
+    .MuiOutlinedInput-root.Mui-focused fieldset {
+        border: 0.055rem solid $secondary-color;
+    }
+    .MuiOutlinedInput-root:hover fieldset {
+      border: 0.055rem solid $border-grey;
+
+    }
+  }
+  .action-icons {
+    .clear-icon, .popup-icon {
+      color: $secondary-color;
+    }
+  }
+}
+
+.listbox-content {
+  @include tiny-scrollbar;
+  background: $sidebr-bg;
+  height: 25vh;
+
+  li {
+    color: $white;
+
+    &:hover {
+      background: $secondary-color;
+    }
+  }
+
+  li[aria-selected="true"] {
+    background-color: $secondary-color;
+  }
+}
+
+@media screen and (max-width: 960px) {
+  .autocomplete-container {
+    flex-direction: column !important;
+    width: 100%;
+    justify-content: flex-start;
+    align-items: initial;
+
+    label {
+      margin-bottom: .5rem;
+    }
+  }
+}

@@ -1,0 +1,11 @@
+<svg id="save_as" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 13.11 12.93">
+  <defs>
+    <style>.save-as{fill:none;stroke:#999;stroke-linecap:round;stroke-linejoin:round;}
+    </style>
+  </defs>
+  <polyline class="save-as" points="12.43 8.38 12.43 12.43 0.5 12.43 0.5 0.5 10.32 0.5 12.43 2.81 12.43 3.9"/>
+  <path class="save-as" d="M2.8.5h7a0,0,0,0,1,0,0V4.12a1,1,0,0,1-1,1H3.8a1,1,0,0,1-1-1V.5A0,0,0,0,1,2.8.5Z"/>
+  <line class="save-as" x1="8.1" y1="1.95" x2="8.1" y2="3.79"/>
+  <polyline class="save-as" points="10.96 9.51 10.96 12.43 1.91 12.43 1.91 6.46 7.9 6.46"/>
+  <path class="save-as" d="M940.84,518.8l-1.86.5.5-1.86,4.63-4.63h0a1.45,1.45,0,0,1,1.36,1.36h0Z" transform="translate(-932.86 -508.01)"/>
+</svg>

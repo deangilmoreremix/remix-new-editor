@@ -1,0 +1,31 @@
+.video-player-modal {
+  width: 60vW;
+  height: 60vH;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+
+  .video-player-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .video-player {
+    width: inherit;
+    height: inherit;
+  }
+
+  .close-icon {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 1001;
+  }
+}

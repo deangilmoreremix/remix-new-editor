@@ -1,0 +1,90 @@
+.url-video-modal {
+  width: 50rem;
+  max-width: 100%;
+  background: #0F0F13 !important;
+  border: 1px solid #575773;
+  border-radius: 10px;
+  padding: 6.5rem 2.5rem 3.2rem !important;
+
+  &__title {
+    font-weight: bold;
+    color: $white;
+    font-size: 1.125rem;
+    margin-bottom: 1.4rem;
+    line-height: 1;
+  }
+
+  &__block {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &__input-block {
+    height: 2.625rem;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    border: 1px solid $media-library-color;
+    border-radius: 5px;
+    padding: 0 0.9375rem;
+  }
+
+  &__icon {
+    width: 23px;
+    min-width: 23px;
+    height: 23px;
+    margin-right: 1.6875rem;
+  }
+
+  &__image {
+    width: 10rem;
+    height: 5.5rem;
+    display: block;
+    margin: 0 auto 3.5rem;
+  }
+
+  &__input {
+    flex: 1;
+    background: none;
+    outline: none;
+    border: none;
+    height: 100%;
+    font-size: 0.875rem;
+    color: #9292B5;
+
+    &::-webkit-input-placeholder {
+      color: #9292B5;
+    }
+    &::-moz-placeholder {
+      color: #9292B5;
+    }
+    &:-ms-input-placeholder {
+      color: #9292B5;
+    }
+    &:-moz-placeholder {
+      color: #9292B5;
+    }
+  }
+
+  &__btn {
+    @include reset-button;
+    width: 10.625rem;
+    height: 2.625rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid $secondary-color;
+    border-radius: 3px;
+    text-transform: uppercase;
+    color: $white;
+    font-weight: bold;
+    margin-left: 1.375rem;
+    transition: 0.3s all;
+    cursor: auto;
+
+    &-disabled {
+      opacity: 0.5;
+    }
+  }
+}

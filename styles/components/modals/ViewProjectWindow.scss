@@ -1,0 +1,73 @@
+.modal-container__content.view-project-modal {
+  padding: 0;
+}
+
+.view-project-window {
+  width: 32rem;
+  max-width: 100%;
+  z-index: 1;
+  overflow: hidden;
+
+  &__header {
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    padding: 0.63rem;
+    line-height: 1;
+    text-align: center;
+    text-transform: uppercase;
+    font-size: $defaultFontSize;
+    color: $secondary-color;
+    background: $scrollbarColor;
+    margin-bottom: 0;
+  }
+
+  &__body {
+    display: flex;
+    width: 100%;
+    height: 21.25rem;
+    padding: 2.06rem 1.57rem 1.57rem;
+  }
+
+  &__container {
+    width: 11.1rem;
+    margin-right: 3.15%;
+    border: 1px solid $secondary-color;
+    border-radius: 4px;
+    overflow: hidden;
+    max-height: 100%;
+    padding: 0 6px 0 0;
+    position: relative;
+
+    &:after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      // TODO: to normalize scroll
+      width: calc(100% - 18px);
+      height: 100%;
+      background: $light-twinlight;
+      z-index: 1;
+    }
+  }
+
+  &__control {
+    flex: 1;
+  }
+
+  &__use {
+    @include reset-button();
+    width: 100%;
+    max-width: 7.8rem;
+    height: 2.18rem;
+    background: $secondary-color;
+    text-transform: uppercase;
+    border-radius: 4px;
+    margin-top: 1.25rem;
+    color: $white;
+    margin-left: auto;
+    font-size: $defaultFontSize;
+  }
+}

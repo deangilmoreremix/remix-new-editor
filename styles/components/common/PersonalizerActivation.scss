@@ -1,0 +1,36 @@
+.personalizer-activation {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  position: absolute;
+  padding: 1rem 0;
+  left: 8rem;
+}
+
+.personalizer-icon {
+  width: 1.8rem;
+  height: 1.8rem;
+  margin-right: 0.625rem;
+  max-width: 1.8rem;
+  max-height: 1.8rem;
+
+  svg {
+    max-width: 100%;
+    max-height: 100%;
+  }
+}
+
+.personalizer-field {
+  display: flex;
+  align-items: center;
+
+  * {
+    margin-bottom: 0;
+    color: $btn-gray;
+  }
+
+  label.form-control-label {
+    color: $btn-gray;
+    font-size: $smallFontSize;
+  }
+}

@@ -1,0 +1,124 @@
+.input-time-start,
+.input-loop-start,
+.input-loop-end,
+.input-skip-start,
+.input-skip-end,
+.input-background-time {
+  width: 4.55rem;
+  display: flex;
+  flex-direction: column;
+  & label {
+    font-size: $defaultFontSize;
+    text-align: left;
+    line-height: $defaultLineHeight;
+  }
+
+  &:hover input {
+    border: 0.055rem solid $secondary-color;
+  }
+}
+
+.inputs-json-animation-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.lt-input-time {
+  width: 40%;
+  margin-bottom: 1rem;
+  margin-right: 20% !important;
+
+  &-end {
+    @extend .lt-input-time;
+    margin-right: 0 !important;
+  }
+}
+
+.input-loop-start,
+.input-loop-end,
+.input-skip-start,
+.input-skip-end,
+.input-background-time {
+  display: inline-flex;
+}
+
+.slider-container {
+  & label {
+    font-size: $defaultFontSize;
+    text-align: left;
+  }
+}
+
+.select-loop,
+.styles-field {
+  margin-top: 2rem;
+}
+
+.styles-field .text-area label {
+  &.Mui-focused,
+  &.MuiFormLabel-filled {
+    transform: translate(0, -20px) scale(0.75);
+  }
+}
+
+.set-as-default {
+  margin-top: 1rem;
+
+  .checkbox-element {
+    > button {
+      margin-right: 1rem;
+    }
+
+    .checkmark {
+      margin-right: -9px;
+    }
+  }
+}
+
+@media screen and (max-width: $xxl) {
+  .set-as-default {
+    margin-top: 1rem;
+
+    .checkbox-element {
+      display: flex;
+      justify-content: space-between;
+    }
+  }
+}
+
+@media screen and (max-width: $lg) {
+  .input-time-start,
+  .input-loop-start,
+  .input-loop-end,
+  .input-skip-start,
+  .input-skip-end,
+  .input-background-time {
+    width: 100%;
+  }
+
+  .input-time-start-lt {
+    width: 100%;
+    margin-right: 0 !important;
+  }
+
+  .input-loop-end {
+    margin-top: 1rem;
+    margin-left: 0;
+  }
+}
+#togetherjs-dock {
+  top: 80px;
+}
+
+@media screen and (min-width: $lg) {
+  .input-time-start,
+  .input-loop-start,
+  .input-loop-end,
+  .input-skip-start,
+  .input-skip-end,
+  .input-background-time {
+    &:first-child {
+      margin-right: 2.1875rem;
+    }
+  }
+}

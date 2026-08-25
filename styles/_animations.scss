@@ -1,0 +1,9 @@
+@keyframes transition-icon-from {
+  0% { transform: translate(0, -50%) }
+  100% { transform: translate(-50%, -50%) }
+}
+
+@keyframes transition-icon-to {
+  0% { transform: translate(0, -50%) }
+  100% { transform: translate(50%, -50%) }
+}

@@ -1,0 +1,29 @@
+.save-as__button {
+  @include reset-button;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-width: 8rem;
+  height: 2.2rem;
+  padding: 0 1rem;
+  background: $red;
+  border-radius: 5px;
+  color: $white;
+  font-size: $defaultFontSize;
+  transition: 0.3s all;
+
+  &:disabled {
+    opacity: 0.7;
+  }
+}
+
+.save-as__field {
+  min-width: 300px;
+  margin-bottom: 1rem;
+}
+
+@media screen and (max-width: 400px) {
+  .save-as__field {
+    max-width: none;
+  }
+}

@@ -1,0 +1,61 @@
+.toolbar {
+  &-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
+
+  &-container {
+    //max-width: 23.3em;
+    height: $toolbarHeight;
+    display: flex;
+    padding-top: 58px;
+    transition: 0.3s all;
+  }
+
+  &-tabs {
+    margin-right: 0;
+  }
+
+  &-tab {
+    @include reset-button;
+    @include make-fluid("width", 90px, 90px, $xl + 1, $mock, 90px, px);
+    @include make-fluid("height", 85px, 85px, $xl + 1, $mock, 67px, px);
+    position: relative;
+    display: flex;
+    flex-flow: row;
+    align-items: center;
+    justify-content: center;
+    background: $light-twinlight;
+    color: $white;
+    font-size: $smallFontSize;
+    border-radius: 7px;
+    cursor: pointer;
+
+    &:not(:last-of-type) {
+      margin-bottom: 23px;
+    }
+
+    &-icon {
+      width: 100%;
+      max-width: 3.58em;
+      max-height: 3.08em;
+      margin-bottom: 0.42em;
+
+      svg {
+        width: 100%;
+      }
+    }
+  }
+
+  &-arrow-icon {
+    width: 15px;
+    position: absolute;
+    top: 50%;
+    right: -25px;
+    transform: translateY(-50%) rotate(180deg);
+  }
+}
+
+@import "ElementsPanel";

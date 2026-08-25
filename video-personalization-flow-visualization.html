@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Personalization Logic Flow</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+        }
+
+        .header h1 {
+            margin: 0 0 10px 0;
+            font-size: 2.5rem;
+        }
+
+        .header p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .flow-diagram {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .flow-title {
+            text-align: center;
+            font-size: 1.8rem;
+            color: #007bff;
+            margin-bottom: 30px;
+        }
+
+        .steps-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+            transition: transform 0.2s ease;
+        }
+
+        .step:hover {
+            transform: translateX(5px);
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            background: #007bff;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 8px;
+        }
+
+        .step-description {
+            color: #6c757d;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .step-code {
+            background: #f1f3f4;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            color: #202124;
+            margin-top: 10px;
+        }
+
+        .step.completed {
+            border-left-color: #28a745;
+        }
+
+        .step.completed .step-number {
+            background: #28a745;
+        }
+
+        .data-flow {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 40px 0;
+            padding: 20px;
+            background: linear-gradient(90deg, #e3f2fd 0%, #f3e5f5 100%);
+            border-radius: 8px;
+        }
+
+        .data-item {
+            text-align: center;
+            flex: 1;
+        }
+
+        .data-item h4 {
+            margin: 0 0 10px 0;
+            color: #007bff;
+            font-size: 1.1rem;
+        }
+
+        .data-item p {
+            margin: 0;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .arrow {
+            font-size: 24px;
+            color: #007bff;
+            margin: 0 20px;
+        }
+
+        .results-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .results-title {
+            text-align: center;
+            font-size: 1.8rem;
+            color: #28a745;
+            margin-bottom: 30px;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .result-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .result-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 5px;
+        }
+
+        .result-label {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .timeline {
+            margin-top: 40px;
+            position: relative;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #007bff;
+        }
+
+        .timeline-item {
+            margin-left: 40px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -27px;
+            top: 5px;
+            width: 10px;
+            height: 10px;
+            background: #007bff;
+            border-radius: 50%;
+        }
+
+        .timeline-time {
+            color: #6c757d;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .timeline-content {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .data-flow {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .arrow {
+                transform: rotate(90deg);
+            }
+
+            .steps-container {
+                gap: 15px;
+            }
+
+            .step {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 Video Personalization Logic Flow</h1>
+            <p>Complete 7-step process for creating personalized videos</p>
+        </div>
+
+        <div class="flow-diagram">
+            <h2 class="flow-title">🔄 Processing Pipeline</h2>
+
+            <div class="steps-container">
+                <div class="step completed">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div class="step-title">Input Validation</div>
+                        <div class="step-description">
+                            Validate base video URL, contact email, and token configuration before processing begins.
+                        </div>
+                        <div class="step-code">
+validateInputs(baseVideo, contact, tokens)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step completed">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <div class="step-title">Token Preparation</div>
+                        <div class="step-description">
+                            Map token patterns to contact data and prepare fallback values for missing information.
+                        </div>
+                        <div class="step-code">
+replacements = prepareTokenReplacements(contact, tokens)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step completed">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <div class="step-title">Video Analysis</div>
+                        <div class="step-description">
+                            Extract video metadata and detect text elements that need personalization.
+                        </div>
+                        <div class="step-code">
+metadata = await analyzeBaseVideo(baseVideoUrl)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step completed">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <div class="step-title">Token Application</div>
+                        <div class="step-description">
+                            Apply token replacements to detected text elements with proper formatting.
+                        </div>
+                        <div class="step-code">
+elements = applyTokenReplacements(textElements, replacements)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step completed">
+                    <div class="step-number">5</div>
+                    <div class="step-content">
+                        <div class="step-title">Video Rendering</div>
+                        <div class="step-description">
+                            Render the personalized video with text overlays, maintaining quality and timing.
+                        </div>
+                        <div class="step-code">
+outputUrl = await renderPersonalizedVideo(baseVideo, elements)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step completed">
+                    <div class="step-number">6</div>
+                    <div class="step-content">
+                        <div class="step-title">Thumbnail Generation</div>
+                        <div class="step-description">
+                            Create a preview thumbnail from the processed video for display in the interface.
+                        </div>
+                        <div class="step-code">
+thumbnailUrl = await generateThumbnail(outputUrl)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step completed">
+                    <div class="step-number">7</div>
+                    <div class="step-content">
+                        <div class="step-title">Final Validation</div>
+                        <div class="step-description">
+                            Verify the output video integrity, file size, and successful personalization application.
+                        </div>
+                        <div class="step-code">
+validation = await validateOutput(outputUrl, contact)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="data-flow">
+            <div class="data-item">
+                <h4>📹 Base Video</h4>
+                <p>Template video with text overlays</p>
+                <p>MP4, 30.5s, 1920x1080</p>
+            </div>
+
+            <div class="arrow">▶</div>
+
+            <div class="data-item">
+                <h4>👤 Contact Data</h4>
+                <p>John Doe from Acme Corp</p>
+                <p>Email, name, company, etc.</p>
+            </div>
+
+            <div class="arrow">▶</div>
+
+            <div class="data-item">
+                <h4>🏷️ Token Config</h4>
+                <p>8 personalization tokens</p>
+                <p>{{firstName}}, {{company}}, etc.</p>
+            </div>
+
+            <div class="arrow">▶</div>
+
+            <div class="data-item">
+                <h4>🎬 Personalized Video</h4>
+                <p>Custom video for John</p>
+                <p>16MB, 30.5s, ready to share</p>
+            </div>
+        </div>
+
+        <div class="results-section">
+            <h2 class="results-title">📊 Processing Results</h2>
+
+            <div class="results-grid">
+                <div class="result-card">
+                    <div class="result-value">5.8s</div>
+                    <div class="result-label">Processing Time</div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-value">8</div>
+                    <div class="result-label">Tokens Applied</div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-value">3</div>
+                    <div class="result-label">Text Elements</div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-value">16MB</div>
+                    <div class="result-label">Output Size</div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-value">100%</div>
+                    <div class="result-label">Success Rate</div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-value">0</div>
+                    <div class="result-label">Errors</div>
+                </div>
+            </div>
+
+            <div class="timeline">
+                <h3 style="text-align: center; margin-bottom: 20px; color: #007bff;">⏱️ Detailed Timeline</h3>
+
+                <div class="timeline-item">
+                    <div class="timeline-time">0ms</div>
+                    <div class="timeline-content">
+                        <strong>Validation:</strong> Input validation completed successfully
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-time">0ms</div>
+                    <div class="timeline-content">
+                        <strong>Token Preparation:</strong> Mapped 8 tokens to contact data
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-time">1ms</div>
+                    <div class="timeline-content">
+                        <strong>Video Analysis:</strong> Extracted metadata and detected 3 text elements
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-time">1003ms</div>
+                    <div class="timeline-content">
+                        <strong>Token Application:</strong> Applied replacements to all text elements
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-time">1004ms</div>
+                    <div class="timeline-content">
+                        <strong>Video Rendering:</strong> Completed 5-step rendering process
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-time">5010ms</div>
+                    <div class="timeline-content">
+                        <strong>Thumbnail Generation:</strong> Created preview thumbnail
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-time">5511ms</div>
+                    <div class="timeline-content">
+                        <strong>Validation:</strong> Final output validation passed
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-time">5812ms</div>
+                    <div class="timeline-content">
+                        <strong>✅ Complete:</strong> Personalized video ready for delivery
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

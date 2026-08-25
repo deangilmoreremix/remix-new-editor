@@ -1,0 +1,55 @@
+$size: 72.8px;
+
+.editor-sidebar {
+  display: flex;
+  height: 100%;
+}
+
+.editor-panel {
+  @include tiny-scrollbar;
+  width: $size;
+  height: 100%;
+  background: $dark-twinlight;
+  font-family: $font-primary;
+}
+
+.editor-panel__item {
+  @include reset-button;
+  width: 100%;
+  height: $size;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  color: $dark-white;
+  cursor: pointer;
+
+  &-active {
+    background: $panel-dark;
+
+    path {
+      stroke: $red;
+    }
+  }
+}
+
+.editor-panel__icon {
+  display: block;
+  position: relative;
+  width: 17px;
+  height: 18px;
+
+  svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+}
+
+.editor-panel__name {
+  position: absolute;
+  bottom: 8.8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: $xsmallFontSize;
+}

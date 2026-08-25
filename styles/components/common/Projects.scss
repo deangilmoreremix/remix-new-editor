@@ -1,0 +1,129 @@
+$leftSideWidth: 162px;
+
+.projects-baseheader {
+  .templates-header__left {
+    width: $leftSideWidth;
+    min-width: $leftSideWidth;
+  }
+
+  .templates-header__right {
+    margin-left: 0;
+  }
+}
+
+.projects-library__item.library__item {
+  border: 1px solid #cdcddf;
+
+  &:hover .projects-item-buttons {
+    opacity: 1;
+  }
+
+  .projects-item-buttons {
+    display: flex;
+    justify-content: flex-end;
+    flex-direction: column;
+    align-items: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 2rem);
+    background: rgba(21, 21, 26, 0.7);
+    opacity: 0;
+    transition: 0.3s opacity;
+
+    &__second {
+      display: flex;
+      justify-content: space-evenly;
+      width: 80%;
+    }
+
+    &__action-icon {
+      display: flex;
+      align-items: center;
+      width: calc(0.5vw + 0.35rem);
+      height: calc(0.5vw + 0.35rem);
+      cursor: pointer;
+    }
+
+    &__edit-icon {
+      position: absolute;
+      width: 12px;
+      top: 5px;
+      right: 5%;
+      cursor: pointer;
+
+      &:hover {
+        svg path {
+          fill: $secondary-color;
+        }
+      }
+    }
+
+    button {
+      @include reset-button;
+      height: 1.5rem;
+      width: 42%;
+      max-width: 6rem;
+      border-radius: 15px;
+      margin: 0 4%;
+      font-size: $defaultFontSize;
+      color: $white;
+    }
+  }
+
+  .projects-item-edit {
+    @include reset-button;
+    width: calc(2.5vh + 0.5rem) !important;
+    height: calc(2.5vh + 0.5rem) !important;
+    max-width: 6rem;
+    border-radius: 10px;
+    margin: 0 0 0.5rem 0 !important;
+    font-size: $defaultFontSize;
+    background: $secondary-color !important;
+
+    a {
+      text-decoration: none;
+      color: $white;
+    }
+  }
+
+  .library__item-information {
+    justify-content: space-between;
+    border-top: 1px solid #cdcddf;
+
+    span {
+      width: 50%;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+
+      &:first-child {
+        text-align: left;
+        margin-right: 5px;
+      }
+
+      &:last-child {
+        text-align: right;
+        margin-left: 5px;
+      }
+    }
+  }
+
+  .library__item-image {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+}
+
+.dark-theme {
+  .projects-library__item .projects-item-info {
+    border-color: #9292b5;
+  }
+}
+
+@media screen and (max-width: $xxl) {
+  .projects-item-edit {
+    border-radius: 5px !important;
+  }
+}

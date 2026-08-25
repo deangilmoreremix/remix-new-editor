@@ -1,0 +1,66 @@
+.social-settings {
+  label,
+  label.form-control-label,
+  label.select-label-top,
+  label.form-control-label {
+    width: 100%;
+    text-align: left;
+    font-size: 0.875rem;
+    line-height: 1;
+    margin-bottom: 0.93em;
+  }
+}
+
+.select__single-value {
+  padding: 4px 0;
+}
+
+.social-settings__block {
+  display: flex;
+  margin-bottom: 1.3rem;
+}
+
+.social-settings__time {
+  width: 4.56rem;
+
+  &:first-child {
+    margin-right: 2.19rem;
+  }
+
+  .time-input {
+    width: 100%;
+  }
+}
+
+.social-settings__input,
+.social-settings__color {
+  margin-bottom: 1.3rem;
+}
+
+.social-settings__warning {
+  text-align: left;
+  font-size: 0.875rem;
+  color: $secondary-color;
+  line-height: 1.2;
+  margin-bottom: 1.3rem;
+}
+
+.social-settings-slider-block {
+  margin-bottom: 1.3rem;
+}
+
+@media screen and (max-width: $xl) {
+  .social-settings__block {
+    flex-direction: column;
+    margin-bottom: 0;
+  }
+
+  .social-settings__time {
+    width: 100%;
+    margin-bottom: 1.3rem;
+
+    &:first-child {
+      margin-right: 0;
+    }
+  }
+}

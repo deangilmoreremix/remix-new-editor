@@ -1,0 +1,60 @@
+.form-control {
+  border: 1px solid #000;
+  border-radius: 0;
+  box-shadow: none;
+  font-size: 1.2rem;
+  width: 100%;
+
+  &:active,
+  &.focus,
+  &:focus {
+    border-color: #ccc;
+    box-shadow: none;
+  }
+}
+
+label.form-control-label {
+  font-size: $defaultFontSize;
+  color: $white;
+  line-height: $defaultLineHeight;
+}
+
+.form-group {
+  .col {
+    margin-bottom: 0.2em;
+  }
+}
+
+.MuiInput-underline:before {
+  border-bottom: none!important;
+}
+
+.MuiInputBase-root {
+  font-size: $defaultFontSize!important;
+}
+
+.MuiFormControlLabel-root {
+  margin: 0!important;
+}
+
+// for Chrome
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+// for Firefox
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+input[type="number"]:hover,
+input[type="number"]:focus {
+  -moz-appearance: textfield;
+}
+
+@media screen and (max-width: $xxl) {
+  .MuiFormGroup-root {
+    width: 100%;
+  }
+}

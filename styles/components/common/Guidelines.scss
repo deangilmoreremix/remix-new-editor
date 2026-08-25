@@ -1,0 +1,57 @@
+.guidelines__line {
+  position: absolute;
+  background: #FAFF04;
+  z-index: 1300;
+
+  &--h {
+    width: 100%;
+    height: 1px;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+  }
+
+  &--v {
+    width: 1px;
+    height: 100%;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+.guidelines__side {
+  position: absolute;
+  background: $grey;
+  z-index: 1300;
+
+  &--l {
+    width: 1px;
+    height: 66%;
+    left: 16.5%;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  &--r {
+    width: 1px;
+    height: 66%;
+    right: 16.5%;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  &--t {
+    width: 67%;
+    height: 1px;
+    top: 16.9%;
+    left: 16.5%;
+  }
+
+  &--b {
+    width: 67%;
+    height: 1px;
+    bottom: 16.9%;
+    left: 16.5%;
+  }
+}

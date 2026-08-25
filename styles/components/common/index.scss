@@ -1,0 +1,71 @@
+.without-side-padding {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.container-logo-humburger {
+  min-width: 14rem;
+  display: flex;
+  justify-content: space-between;
+
+  .navbar-logo-wl {
+    background-size: contain;
+    width: 10rem;
+    height: 50px;
+    overflow: hidden;
+  }
+}
+
+.flex-vertical-center {
+  display: flex;
+  align-items: center;
+}
+
+.full-height {
+  height: 100%;
+}
+
+.flex {
+  display: flex;
+}
+
+.auto-margin {
+  margin: auto;
+
+  & + & {
+    margin-left: 0.7rem;
+  }
+}
+
+.margin-left-5 {
+  margin-left: 5px;
+}
+
+.icon {
+  width: 1em;
+  height: 1em;
+  display: flex;
+}
+
+.icon-button {
+  @include reset-button;
+}
+
+.svg-fix {
+  position: absolute;
+  z-index: 2;
+}
+
+.self-align-center {
+  align-self: center;
+}
+
+html {
+  overflow: hidden;
+}

@@ -1,0 +1,36 @@
+
+.form-settings__timer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.form-settings__time {
+  width: 45%;
+
+  .time-input {
+    width: 100%;
+  }
+  label {
+    margin-bottom: 0.5rem;
+    font-size: $defaultFontSize;
+    line-height: $defaultLineHeight;
+  }
+  input {
+    margin-top: 0;
+  }
+}
+
+@media screen and (max-width: $lg) {
+  .form-settings__time {
+    width: 100%;
+
+    &:first-child {
+      margin-right: 0;
+    }
+
+    & + & {
+      margin-top: 0.5rem;
+    }
+  }
+}

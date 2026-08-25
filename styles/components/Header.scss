@@ -1,0 +1,314 @@
+.menu-app-bar {
+  height: $menu-height;
+  position: fixed;
+  z-index: 1301;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: $light-twinlight;
+
+  .container-header {
+    height: $menu-height;
+    flex-grow: 1;
+
+    .app-bar {
+      height: inherit;
+    }
+  }
+  .MuiPaper-root {
+    background: $light-twinlight;
+  }
+
+  .container-menu {
+    height: inherit;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: unset;
+    position: relative;
+
+    .user-menu {
+      background-color: #3E3E51;
+      position: relative;
+      border-radius: 3px;
+      width: 16rem;
+
+      .menu__open {
+        padding: 0.31rem  0.94rem 0.31rem 0.63rem;
+      }
+
+      .MuiButton-label {
+        color: $white;
+        font-family: $font-primary;
+        font-size: $defaultFontSize;
+
+        .MuiButton-endIcon {
+          margin-left: 12px;
+          margin-right: 0;
+        }
+      }
+
+      .MuiPaper-root {
+        border-radius: 0;
+
+        .MuiList-root {
+          border-radius: 0;
+          border: none;
+          width: 100%;
+          background: inherit;
+        }
+
+        .MuiListItem-root {
+          margin: auto;
+          text-transform: uppercase;
+          font-family: $font-primary;
+        }
+      }
+
+      .toggler-icon {
+        width: 0.5rem;
+      }
+
+      .menu-popper,
+      button {
+        padding: 0;
+        width: 100%;
+      }
+      .menu__list {
+        background-color: #4B4B61;
+        border-bottom-left-radius: 3px;
+        border-bottom-right-radius: 3px;
+
+        a:hover {
+          text-decoration: none;
+        }
+
+        a:last-child {
+          .menu__item:hover {
+            border-bottom-left-radius: 3px;
+            border-bottom-right-radius: 3px;
+          }
+        }
+
+        .menu__item {
+          font-size: $defaultFontSize;
+          text-transform: uppercase;
+          text-align: left;
+          height: unset;
+          padding: .9rem .9rem .9rem 0;
+        }
+      }
+
+      span.menu__item-icon {
+        height: $defaultLineHeight;
+      }
+
+      .menu__item-icon {
+        margin: inherit;
+        width: auto;
+
+        svg {
+          margin: auto 1rem;
+        }
+      }
+
+      .popover {
+        border: none;
+        border-radius: 3px;
+        width: 100%;
+        margin-left: 0;
+        background-color: #4B4B61;
+        top: -3px !important;
+        z-index: -1;
+      }
+
+      .user-name {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+
+    .project-menu {
+      .MuiPaper-root {
+        border-radius: 0;
+        border: none;
+        background-color: $menu-panel;
+        .menu__list {
+          .menu__item {
+            font-family: $font-primary;
+          }
+        }
+
+        .MuiList-root {
+          border-radius: 0;
+          border: none;
+          width: 100%;
+          background: inherit;
+        }
+
+        .MuiListItem-root {
+          margin: auto;
+          font-size: $defaultFontSize;
+          font-family: $font-primary;
+        }
+      }
+
+      .popover {
+        border: 0;
+        width: 20rem;
+        transform: none !important;
+        margin-top: $menu-height;
+        height: 100vh - $menu-height;
+        background-color: $menu-panel;
+      }
+
+      .container-left-bar {
+        display: flex;
+        align-items: center;
+        width: 50%;
+        justify-content: space-between;
+
+        .container-nav {
+          width: 30%;
+          display: flex;
+          justify-content: space-between;
+        }
+      }
+
+      .menu__open {
+        min-width: unset;
+        margin-left: 0.375rem;
+      }
+    }
+
+    .logo {
+      width: 8rem;
+    }
+    .icon-button {
+      @include reset-button;
+      margin: auto;
+      color: $third-color;
+
+      &.active,
+      &.active-save {
+        color: $secondary-color;
+        pointer-events: all;
+         // svg styles
+        .redo-0,
+        .undo-0,
+        .save-0,
+        .download-0 {
+          fill: $secondary-color;
+        }
+        .published-icon-0 {
+          fill: $secondary-color;
+        }
+      }
+    }
+
+    &__project-name {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      max-width: 8.75rem;
+      width: 8.75rem;
+      white-space: nowrap;
+
+      span {
+        font-size: 14px;
+        margin-right: 5px;
+        width: 100%;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        padding: 1px;
+        margin-left: 1px;
+      }
+
+      input {
+        @include reset-button;
+        cursor: inherit;
+        color: $white;
+        border-bottom: 1px solid $media-library-color;
+        font-size: 14px;
+        margin-right: 5px;
+        width: 100%;
+        padding: 1px;
+      }
+    }
+
+    &__saveactions {
+      width: 150px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      &__item {
+        position: relative;
+      }
+    }
+
+    &__publishedactions {
+      width: 220px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      &__item {
+        position: relative;
+      }
+    }
+
+    &__button-text {
+      text-transform: uppercase;
+      font-weight: bold;
+      font-size: $smallFontSize;
+      line-height: 1;
+      padding-top: 7px !important;
+      pointer-events: none;
+
+      &.active {
+        pointer-events: all;
+      }
+    }
+  }
+}
+
+.header-menu {
+  ul {
+    border: 1px solid $white;
+    color: $white;
+  }
+  ul li:hover {
+    border-top: 1px solid $secondary-color;
+    border-bottom: 1px solid $secondary-color;
+  }
+}
+
+.text-to-speech-logo {
+  width: 100px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+
+  &__icon {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+@media screen and (max-width: $xxl) {
+  .menu-app-bar {
+    .container-menu {
+      .user-menu {
+        width: 12.5rem;
+
+        .popover {
+          margin-left: 1px;
+        }
+      }
+    }
+  }
+}

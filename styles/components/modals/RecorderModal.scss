@@ -1,0 +1,55 @@
+.recorder-modal {
+  &-options {
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    margin-top: 10px;
+    &_hidden {
+      display: none;
+    }
+    &__button {
+      background: none;
+      outline: none;
+      display: flex;
+      cursor: pointer;
+      padding-left: 5px;
+      padding-right: 5px;
+      font-size: 12px;
+      min-width: 100px;
+      max-width: 100px;
+      min-height: 35px;
+      max-height: 35px;
+      color: #ffffff;
+      border: none;
+      border-radius: 4px;
+      transition: all 0.25s ease;
+      flex: 1 1 30%;
+      margin-left: 0.8em;
+      justify-content: center;
+      align-items: center;
+      &_save {
+        background: #EB5054;
+      }
+      &_upload {
+        background: #EB5054;
+      }
+      &_discard {
+        background: none;
+      }
+    }
+  }
+}
+.pic-to-pic {
+  position: absolute !important;
+  height: 30px !important;
+  bottom: 0;
+  left: 93%;
+
+  &-disable {
+    .vjs-control-bar {
+      .vjs-pip-button {
+        display: none;
+      }
+    }
+  }
+}

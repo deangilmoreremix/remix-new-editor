@@ -1,0 +1,103 @@
+.video-transition {
+  &-form {
+    margin-bottom: 1.5rem;
+  }
+
+  &-preview {
+    margin-bottom: 1.5rem;
+  }
+
+  &-selected {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-flow: column;
+
+    .canvas-player {
+      position: relative;
+
+      .canvas {
+        width: 100%;
+        margin: 0 auto;
+        max-width: 500px;
+        height: auto;
+      }
+    }
+  }
+
+  &-warning {
+    color: $secondary-color;
+    text-align: left;
+    line-height: 1.2;
+    font-size: 0.765rem;
+    margin-bottom: 0.7em;
+  }
+
+  &-var {
+    text-decoration: underline;
+  }
+
+  &-controls {
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: flex-end;
+
+    > :not(:first-child) {
+      margin-left: 1rem;
+    }
+  }
+
+  &-selected,
+  &-preview {
+    .title {
+      margin-bottom: 0.5em;
+      font-size: 0.765rem;
+      font-family: $font-primary;
+    }
+  }
+
+  &-btn {
+    &.merge {
+      @include red-button;
+    }
+
+    &.apply {
+      @include red-button;
+
+      &:disabled {
+        opacity: 0.5;
+      }
+    }
+
+    &.play {
+      @include reset-button;
+
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: $canvas-bg;
+
+      &:hover {
+        .play-icon {
+          opacity: 1;
+        }
+      }
+
+      .play-icon {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        max-width: 60px;
+        opacity: 0.5;
+        transition: all 0.25s ease;
+
+        &--inline {
+          width: 100%;
+        }
+      }
+    }
+  }
+}

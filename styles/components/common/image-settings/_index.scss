@@ -1,0 +1,86 @@
+@import "Basic";
+
+.image-settings-form {
+  width: 100%;
+}
+
+@media screen and (max-width: 1500px) {
+  .image-settings__btn--block {
+    .image-settings__btn--wrapper {
+      flex-direction: column;
+      align-items: flex-start;
+
+      & > p {
+        margin: 0 0 0.5rem 0;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: $xxl) {
+  .image-settings__block {
+    flex-direction: column;
+
+    .image-settings__field:last-child {
+      margin-bottom: 1.25rem;
+    }
+  }
+
+  .checkbox-element.image-settings__checkbox {
+    width: 8rem;
+    justify-content: space-between;
+  }
+
+  .image-settings__cell--first,
+  .image-settings__cell--second,
+  .image-settings__btn--block {
+    width: 100%;
+  }
+
+  .image-settings__cell--second {
+    .image-settings__btn--block {
+      justify-content: space-between;
+      flex-direction: row-reverse;
+      display: flex;
+
+      .image-settings__information {
+        margin: 0;
+      }
+
+      .image-settings__btn {
+        width: 100%;
+      }
+    }
+  }
+
+  .image-settings__btn {
+    width: 100%;
+  }
+
+  .image-settings__time {
+    width: 100%;
+    margin-bottom: 1.25rem;
+    line-height: 1;
+  }
+
+  .image-settings__rotation {
+    margin-bottom: 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+
+    .form-angle-label {
+      margin-bottom: 0.5rem;
+    }
+
+    .form-angle {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+
+  .image-settings__btn--block {
+    .image-settings__btn--wrapper {
+      width: 100%;
+    }
+  }
+}

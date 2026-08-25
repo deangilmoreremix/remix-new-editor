@@ -1,0 +1,28 @@
+.image-editor-modal {
+    width: 65vw;
+    height: 70vh;
+  }
+  .pintura-loader {
+    position: absolute;
+    right: 50%;
+    bottom: 50%;
+    z-index: 9999;
+  }
+  .pixo-image-loading,
+  .pixo-image-editor {
+    width: 100%;
+    height: 100%;
+  }
+  
+  .pixo-image-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  @media screen and (max-width: $xxl) {
+    .image-editor-modal {
+      width: 83vw;
+      height: 83vh;
+    }
+  }

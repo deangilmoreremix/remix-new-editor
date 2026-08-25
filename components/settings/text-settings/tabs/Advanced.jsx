@@ -1,0 +1,256 @@
+import React, { Fragment } from 'react';
+import classnames from 'classnames';
+
+import GoogleFontsLoader from '../../../wizard/editor/GoogleFontsLoader';
+
+import PropTypes from '../../../../lib/PropTypes';
+
+import { settingsTooltips } from '../../../../lib/constants/tooltips';
+import { showInfo } from '../../../../lib/services/alertService';
+import FieldBuilder from '../../../form/FieldBuilder';
+import fonts from '../../../../lib/constants/fonts';
+import {
+  iconAlignmentAdvanced,
+  WARNING,
+  CONTENT_RESPONSIVE,
+} from '../../../../lib/constants/settings/vrtext-element';
+
+const Advanced = ({ values, fields, onChange }) => {
+  const {
+    fontFamily,
+    fontSize,
+    alignment,
+    fontColor,
+    shadow,
+    stroke,
+    background,
+    shadowColor,
+    strokeColor,
+    backgroundColor,
+    fontDecorations,
+  } = values;
+
+  const handleChange = (option, fieldName) => {
+    if (fieldName && !option.responsive) {
+      showInfo(CONTENT_RESPONSIVE, WARNING);
+    }
+    onChange({ [fields.fontDecorations.name]: { ...fontDecorations, ...option } });
+  };
+
+  const checkboxBoxShadow = (value) => {
+    onChange({ ...value, shadowColor: shadowColor || fields.shadowColor.default });
+  };
+
+  const checkboxStroke = (value) => {
+    onChange({ ...value, strokeColor: strokeColor || fields.strokeColor.default });
+  };
+
+  const checkboxBackground = (value) => {
+    onChange({ ...value, backgroundColor: backgroundColor || fields.backgroundColor.default });
+  };
+
+  const handleChangeColor = (rgbColor) => {
+    onChange({ [Object.keys(rgbColor).join()]: Object.values(rgbColor).join() });
+  };
+
+  return (
+    <Fragment>
+      <div className="advanced-settings-container">
+        <div className="font-section">
+          <GoogleFontsLoader fonts={fonts} />
+          <FieldBuilder
+            value={fontFamily || fields.fontFamily.default}
+            name={fields.fontFamily.name}
+            {...fields.fontFamily}
+            onChange={onChange}
+            className="font-section__input"
+          />
+          <div className="font-size-container">
+            <FieldBuilder
+              isTooltip
+              value={fontSize || fields.fontSize.default}
+              name={fields.fontSize.name}
+              {...fields.fontSize}
+              onChange={onChange}
+              disabled={fontDecorations.responsive}
+              minValue={1}
+              containerClassName={classnames('slider-container', { 'slider-element': !fontDecorations.responsive })}
+              tooltipMessage={settingsTooltips.fontSize}
+              tooltipHeight={35}
+            />
+            <FieldBuilder
+              value={fontDecorations.responsive}
+              name={fields.fontDecorations.responsive.name}
+              {...fields.fontDecorations.responsive}
+              onChange={(v) => handleChange(v, fields.fontDecorations.responsive.name)}
+            />
+          </div>
+        </div>
+        <div className="font-decoration-section">
+          <div className="font-decoration-container">
+            <FieldBuilder
+              value={fontDecorations.bold}
+              name={fields.fontDecorations.bold.name}
+              {...fields.fontDecorations.bold}
+              onChange={(v) => handleChange(v)}
+            />
+            <FieldBuilder
+              value={fontDecorations.italics}
+              name={fields.fontDecorations.italics.name}
+              {...fields.fontDecorations.italics}
+              onChange={(v) => handleChange(v)}
+            />
+          </div>
+          <div className="icon-edit-text">
+            <FieldBuilder
+              value={alignment || fields.alignment.default}
+              name={fields.alignment.name}
+              {...fields.alignment}
+              onChange={onChange}
+              containerClass="text-radio-container"
+              items={iconAlignmentAdvanced}
+              row
+            />
+          </div>
+        </div>
+        <div className="font-style-section">
+          <FieldBuilder
+            value={fontColor || fields.fontColor.default}
+            name={fields.fontColor.name}
+            {...fields.fontColor}
+            onChange={handleChangeColor}
+            className="font-color-container-input"
+          />
+        </div>
+      </div>
+      <div className="font-color-container">
+        <div className="checkbox-box">
+          <FieldBuilder
+            value={shadow || fields.shadow.default}
+            name={fields.shadow.name}
+            {...fields.shadow}
+            onChange={checkboxBoxShadow}
+          />
+          <FieldBuilder
+            value={shadowColor || fields.shadowColor.default}
+            disabled={!values.shadow}
+            name={fields.shadowColor.name}
+            {...fields.shadowColor}
+            onChange={handleChangeColor}
+            className="font-color-container-input"
+          />
+        </div>
+        <div className="checkbox-box">
+          <FieldBuilder
+            value={stroke || fields.stroke.default}
+            name={fields.stroke.name}
+            {...fields.stroke}
+            onChange={checkboxStroke}
+          />
+          <FieldBuilder
+            value={strokeColor || fields.strokeColor.default}
+            disabled={!values.stroke}
+            name={fields.strokeColor.name}
+            {...fields.strokeColor}
+            onChange={handleChangeColor}
+            className="font-color-container-input"
+          />
+        </div>
+        <div className="checkbox-box">
+          <FieldBuilder
+            value={background || fields.background.default}
+            name={fields.background.name}
+            {...fields.background}
+            onChange={checkboxBackground}
+          />
+          <FieldBuilder
+            value={backgroundColor || fields.backgroundColor.default}
+            disabled={!values.background}
+            name={fields.backgroundColor.name}
+            {...fields.backgroundColor}
+            onChange={handleChangeColor}
+            className="font-color-container-input"
+          />
+        </div>
+      </div>
+    </Fragment>
+  );
+};
+
+Advanced.propTypes = {
+  values: PropTypes.shape({
+    fontFamily: PropTypes.string,
+    fontSize: PropTypes.number,
+    fontDecorations: PropTypes.shape({
+      bold: PropTypes.boolean,
+      italics: PropTypes.boolean,
+      responsive: PropTypes.boolean,
+    }),
+    alignment: PropTypes.string,
+    fontColor: PropTypes.string,
+    shadow: PropTypes.boolean,
+    stroke: PropTypes.boolean,
+    background: PropTypes.boolean,
+    shadowColor: PropTypes.string,
+    strokeColor: PropTypes.string,
+    backgroundColor: PropTypes.string,
+  }),
+  onChange: PropTypes.func.isRequired,
+  fields: PropTypes.shape({
+    fontFamily: PropTypes.shape({
+      name: PropTypes.string,
+      default: PropTypes.string,
+    }),
+    fontSize: PropTypes.shape({
+      name: PropTypes.string,
+      default: PropTypes.number,
+    }),
+    fontDecorations: PropTypes.shape({
+      bold: PropTypes.shape({
+        name: PropTypes.string,
+      }),
+      italics: PropTypes.shape({
+        name: PropTypes.string,
+      }),
+      responsive: PropTypes.shape({
+        name: PropTypes.string,
+      }),
+      name: PropTypes.string,
+      default: PropTypes.shape(),
+    }),
+    alignment: PropTypes.shape({
+      name: PropTypes.string,
+      default: PropTypes.string,
+    }),
+    fontColor: PropTypes.shape({
+      name: PropTypes.string,
+      default: PropTypes.string,
+    }),
+    shadow: PropTypes.shape({
+      name: PropTypes.string,
+      default: PropTypes.bool,
+    }),
+    stroke: PropTypes.shape({
+      name: PropTypes.string,
+      default: PropTypes.bool,
+    }),
+    background: PropTypes.shape({
+      name: PropTypes.string,
+      default: PropTypes.bool,
+    }),
+    shadowColor: PropTypes.shape({
+      name: PropTypes.string,
+      default: PropTypes.string,
+    }),
+    strokeColor: PropTypes.shape({
+      name: PropTypes.string,
+      default: PropTypes.string,
+    }),
+    backgroundColor: PropTypes.shape({
+      name: PropTypes.string,
+      default: PropTypes.string,
+    }),
+  }),
+};
+
+export default Advanced;
