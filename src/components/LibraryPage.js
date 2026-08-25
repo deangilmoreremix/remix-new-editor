@@ -1,5 +1,6 @@
 import { getPageThumbnail, createThumbnailImg } from '../lib/thumbnails.js';
 import { createSafeImage, createSafeVideo, safeSetText } from '../lib/security.js';
+import { loadGenerationHistory } from '../lib/generationHistory.js';
 
 export function LibraryPage() {
   const container = document.createElement('div');
@@ -64,15 +65,25 @@ export function LibraryPage() {
   };
   container.appendChild(previewOverlay);
 
-  function getHistory() {
-    let imageHistory = [];
-    let videoHistory = [];
-    try { imageHistory = JSON.parse(localStorage.getItem('muapi_history') || '[]'); } catch (e) { /* ignore */ }
-    try { videoHistory = JSON.parse(localStorage.getItem('video_history') || '[]'); } catch (e) { /* ignore */ }
-    return [
-      ...imageHistory.map(h => ({ ...h, type: h.type || 'image' })),
-      ...videoHistory.map(h => ({ ...h, type: 'video' })),
-    ].sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
+  async function loadHistory() {
+    // Loads from Supabase (cloud) + localStorage (local), merged and deduplicated.
+    let items;
+
+    try {
+      items = await loadGenerationHistory();
+    } catch (e) {
+      // Fallback: read localStorage only
+      let imageHistory = [];
+      let videoHistory = [];
+      try { imageHistory = JSON.parse(localStorage.getItem('muapi_history') || '[]'); } catch (e) { /* ignore */ }
+      try { videoHistory = JSON.parse(localStorage.getItem('video_history') || '[]'); } catch (e) { /* ignore */ }
+      items = [
+        ...imageHistory.map(h => ({ ...h, type: h.type || 'image' })),
+        ...videoHistory.map(h => ({ ...h, type: 'video' })),
+      ].sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
+    }
+
+    return items;
   }
 
   function updateFilters() {
@@ -83,12 +94,12 @@ export function LibraryPage() {
     });
   }
 
-  function renderGrid() {
-    let items = getHistory();
+  async function renderGrid() {
+    let items = await loadHistory();
 
     if (activeFilter === 'images') items = items.filter(i => i.type === 'image' || !i.type);
     else if (activeFilter === 'videos') items = items.filter(i => i.type === 'video');
-    else if (activeFilter === 'templates') items = items.filter(i => i.template);
+    else if (activeFilter === 'templates') items = items.filter(i => i.template || i.parameters?.template_id);
 
     if (searchQuery) {
       items = items.filter(i => (i.prompt || '').toLowerCase().includes(searchQuery));
@@ -208,5 +219,13 @@ export function LibraryPage() {
 
   updateFilters();
   renderGrid();
+
+  // Loading indicator while cloud data is being fetched
+  const loadingEl = document.createElement('div');
+  loadingEl.className = 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-muted text-xs';
+  loadingEl.innerHTML = 'Loading your library…';
+  gridArea.appendChild(loadingEl);
+  setTimeout(() => { if (loadingEl.parentNode) loadingEl.remove(); }, 3000);
+
   return container;
 }

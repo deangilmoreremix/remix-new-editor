@@ -2,6 +2,7 @@ import { getTemplateById } from '../lib/templates.js';
 import { getTemplateThumbnailCandidates, saveCustomThumbnailToCache, clearCustomThumbnailCache, getCustomThumbnailFromCache } from '../lib/thumbnails.js';
 import { getTemplateSpecs, hasEnhancedSpecs } from '../lib/templateSpecs.js';
 import { muapi } from '../lib/muapi.js';
+import { saveGeneration } from '../lib/generationHistory.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { getNicheTerms, enrichPromptString, deriveEngineInputFromTemplate, composeNegativePrompt } from '../lib/templateEngine.js';
 import { NICHE_ENRICHMENT, FILM_FAMILIES } from '../lib/templateMatrix.js';
@@ -1020,18 +1021,15 @@ export function TemplateStudio(templateId) {
   }
 
   function saveToHistory(url, prompt) {
-    try {
-      const history = JSON.parse(localStorage.getItem('muapi_history') || '[]');
-      history.unshift({
-        id: Date.now().toString(),
-        url,
-        prompt,
-        model: template.model,
-        template: template.id,
-        timestamp: new Date().toISOString(),
-      });
-      localStorage.setItem('muapi_history', JSON.stringify(history.slice(0, 100)));
-    } catch (e) { /* ignore */ }
+    saveGeneration({
+      studio: 'template',
+      type: 'image',
+      url,
+      prompt,
+      model: template.model,
+      parameters: { template_id: template.id },
+      timestamp: new Date().toISOString(),
+    });
   }
 
   return container;

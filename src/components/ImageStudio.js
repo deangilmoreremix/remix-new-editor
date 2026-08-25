@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { saveGeneration } from '../lib/generationHistory.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { createSafeImage } from '../lib/security.js';
@@ -950,12 +951,20 @@ export function ImageStudio() {
     const addToHistory = (entry) => {
         generationHistory.unshift(entry);
 
-        try {
-            // Save to localStorage
-            localStorage.setItem('muapi_history', JSON.stringify(generationHistory.slice(0, 50)));
-        } catch (e) {
-            // Ignore storage errors (private mode, quota exceeded, etc.)
-        }
+        // Persist to localStorage + Supabase (for Library Studio)
+        // saveGeneration handles localStorage; addToHistory only manages
+        // the in-memory sidebar array.
+        saveGeneration({
+            studio: 'image',
+            type: 'image',
+            url: entry.url,
+            prompt: entry.prompt,
+            model: entry.model,
+            parameters: { aspect_ratio: entry.aspect_ratio },
+            timestamp: entry.timestamp,
+            id: entry.id,
+            request_id: entry.id,
+        });
 
         // Show sidebar
         historySidebar.classList.remove('translate-x-full', 'opacity-0');
