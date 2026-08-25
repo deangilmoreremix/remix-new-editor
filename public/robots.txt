@@ -3,7 +3,7 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://your-domain.com/sitemap.xml
+Sitemap: https://smartvid.app/sitemap.xml
 
 # Disallow sensitive paths
 Disallow: /api/

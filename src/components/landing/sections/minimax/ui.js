@@ -43,6 +43,23 @@ export function injectMinimaxStyles() {
     .mmx-frame img {
       -webkit-user-select: none;
       user-select: none;
+      -webkit-user-drag: none;
+    }
+    /* Ensure text content within mmx-frame remains selectable */
+    .mmx-frame h1,
+    .mmx-frame h2,
+    .mmx-frame h3,
+    .mmx-frame h4,
+    .mmx-frame h5,
+    .mmx-frame h6,
+    .mmx-frame p,
+    .mmx-frame span,
+    .mmx-frame a,
+    .mmx-frame li,
+    .mmx-frame dt,
+    .mmx-frame dd {
+      -webkit-user-select: text;
+      user-select: text;
     }
 
     .mmx-card {

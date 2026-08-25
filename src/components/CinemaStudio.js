@@ -24,6 +24,8 @@ import ExampleGallery from './studios/ExampleGallery.js';
 import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
+import { BRIGHTBEAN_SCHEDULE_MODAL } from '../lib/constants/modals.js';
+import { isConfigured as isBrightbeanConfigured } from '../lib/brightbean.js';
 
 // Camera movements promised by the Cinema Studio intro copy
 // ("Select camera movement … dolly, crane, orbit, FPV drone").
@@ -960,6 +962,14 @@ generateBtn.type = 'button';
 
     canvasControls.appendChild(publishBtn);
 
+    // Brightbean "Schedule Post" button (only shown if Brightbean is configured)
+    const brightbeanScheduleBtn = document.createElement('button');
+    brightbeanScheduleBtn.type = 'button';
+    brightbeanScheduleBtn.className = 'bg-transparent border border-white/10 text-white/80 px-6 py-2.5 rounded-xl text-xs font-bold transition-all hover:border-[#6d5efc]/50 hover:text-white';
+    brightbeanScheduleBtn.textContent = '📅 Schedule';
+    brightbeanScheduleBtn.style.display = isBrightbeanConfigured() ? '' : 'none';
+    canvasControls.appendChild(brightbeanScheduleBtn);
+
     canvas.appendChild(canvasControls);
 
     container.appendChild(canvas);
@@ -1075,6 +1085,7 @@ generateBtn.type = 'button';
         canvasControls.classList.add('opacity-100');
 
         publishBtn.onclick = () => { const mediaUrl = currentResultUrl; if (mediaUrl) { const isVid = /\.(mp4|webm|mov|m4v)(\?|$)|video\//i.test(mediaUrl); openSocialPublish({ mediaUrl, mediaType: isVid ? 'video' : 'image' }); } };
+        brightbeanScheduleBtn.onclick = () => { const mediaUrl = currentResultUrl; if (mediaUrl && window.openModal) { const isVid = /\.(mp4|webm|mov|m4v)(\?|$)|video\//i.test(mediaUrl); window.openModal(BRIGHTBEAN_SCHEDULE_MODAL, { mediaUrl, mediaType: isVid ? 'video' : 'image' }); } };
     };
 
     const resetToPrompt = () => {

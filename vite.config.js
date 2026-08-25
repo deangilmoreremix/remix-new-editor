@@ -5,6 +5,7 @@ import path from 'path';
 import fs from 'fs';
 import http from 'http';
 import https from 'https';
+import { prerenderLandingPage } from './vite-plugin-prerender.js';
 // Cache-bust: 2026-07-28
 
 // Helper: forward a request to the Supabase muapi-proxy without Origin/Referer
@@ -1134,6 +1135,10 @@ export default defineConfig({
             });
           },
         },
+        // Prerender landing page content for SEO
+        // Injects static HTML content that search engine crawlers can read
+        // without executing JavaScript
+        prerenderLandingPage(),
     ],
     optimizeDeps: {
         // Point the dependency scanner at a clean entry (scripts/clerk-optimize-entry.js)
