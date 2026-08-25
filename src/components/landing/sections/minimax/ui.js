@@ -315,9 +315,16 @@ export function sectionHeading({ eyebrow, title, accent, subtitle, id, align = '
     <div class="mmx-reveal ${alignment} max-w-3xl ${align === 'center' ? 'mb-14' : 'mb-10'}">
       ${
         eyebrow
-          ? `<div class="mb-5 inline-flex items-center gap-2 rounded-full border border-cyan-400/25 bg-cyan-400/[0.07] px-4 py-1.5">
-               <span class="h-1.5 w-1.5 rounded-full bg-cyan-400"></span>
-               <span class="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-300">${escapeHtml(eyebrow)}</span>
+          ? `<div class="-mx-0.5 mb-5 flex flex-wrap items-center justify-center gap-2.5">
+                <div class="inline-flex items-center gap-2 rounded-full border border-cyan-400/25 bg-cyan-400/[0.07] px-4 py-1.5">
+                 <span class="h-1.5 w-1.5 rounded-full bg-cyan-400"></span>
+                 <span class="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-300">${escapeHtml(eyebrow)}</span>
+               </div>
+               <div class="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/[0.08] px-3 py-1">
+                 <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                 <span class="text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-300">Lifetime Offer</span>
+                 <span class="text-[9px] font-bold text-emerald-400">$199</span>
+               </div>
              </div>`
           : ''
       }

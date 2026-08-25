@@ -39,6 +39,7 @@ import { selectScenes } from '../lib/sceneSelector.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
 import { enrichPromptString, composeNegativePrompt } from '../lib/templateEngine.js';
+import { saveGeneration } from '../lib/generationHistory.js';
 
 export function CinemaTemplateStudio() {
   const container = document.createElement('div');
@@ -2642,18 +2643,15 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
   }
 
   function saveToHistory(url, prompt, model, templateId) {
-    try {
-      const history = JSON.parse(localStorage.getItem('muapi_history') || '[]');
-      history.unshift({
-        id: Date.now().toString(),
-        url,
-        prompt,
-        model: model || selectedModel,
-        template: templateId || (currentTemplate ? currentTemplate.id : ''),
-        timestamp: new Date().toISOString(),
-      });
-      localStorage.setItem('muapi_history', JSON.stringify(history.slice(0, 100)));
-    } catch { /* ignore */ }
+    saveGeneration({
+      studio: 'cinema',
+      type: 'image',
+      url,
+      prompt,
+      model: model || selectedModel,
+      parameters: { template_id: templateId || (currentTemplate ? currentTemplate.id : '') },
+      timestamp: new Date().toISOString(),
+    });
   }
 
   // ================================

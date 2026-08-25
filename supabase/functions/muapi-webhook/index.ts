@@ -1,4 +1,16 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "npm:@supabase/supabase-js@2";
+
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  console.warn('[muapi-webhook] SUPABASE_SERVICE_ROLE_KEY not set — generation history persistence disabled');
+}
+
+const supabase = (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY)
+  ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+  : null;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -124,6 +136,46 @@ Deno.serve(async (req: Request) => {
 
     if (error) {
       console.error(`[muapi-webhook] Error reported: ${error}`);
+    }
+
+    // --- Persist / update generation_history record ---
+    // The client (via generation-history Edge Function) may have already
+    // created a row with parameters.muapi_request_id set. We upsert here
+    // to record the final status and output URL from the muapi.ai webhook.
+    if (supabase && resolvedRequestId) {
+      try {
+        // Look up existing record by muapi request_id stored in parameters
+        const { data: existing, error: lookupErr } = await supabase
+          .from('generation_history')
+          .select('id')
+          .contains('parameters', { muapi_request_id: resolvedRequestId })
+          .maybeSingle();
+
+        if (lookupErr) {
+          console.warn('[muapi-webhook] Lookup failed:', lookupErr.message);
+        }
+
+        const isCompleted = ['completed', 'succeeded', 'success'].includes(status.toLowerCase());
+
+        if (existing) {
+          // Update existing record with webhook status + output URL
+          const update: Record<string, unknown> = {
+            status: isCompleted ? 'completed' : (status === 'failed' ? 'failed' : 'processing'),
+            ...(isCompleted && outputUrl ? { output_url: outputUrl, completed_at: new Date().toISOString() } : {}),
+            ...(error && status === 'failed' ? { error_message: error } : {}),
+          };
+
+          await supabase
+            .from('generation_history')
+            .update(update)
+            .eq('id', existing.id);
+
+          console.log(`[muapi-webhook] Updated generation_history record ${existing.id}`);
+        }
+      } catch (persistErr) {
+        // Don't block the webhook response — log and continue
+        console.error('[muapi-webhook] Failed to persist generation_history:', (persistErr as Error).message);
+      }
     }
 
     return new Response(

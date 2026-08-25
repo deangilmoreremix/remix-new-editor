@@ -116,8 +116,16 @@ export function OfferSection() {
 
     <div class="container mx-auto max-w-7xl relative z-10">
       <div class="text-center mb-16 offer-headline opacity-0">
-        <div class="inline-block bg-gradient-to-r from-cyan-400/20 to-emerald-400/20 border border-cyan-400/30 rounded-2xl px-6 py-3 mb-8">
-          <span class="text-cyan-400 font-bold text-lg">💎 Lifetime Access Pricing</span>
+        <div class="inline-flex items-center gap-2.5 mb-8">
+          <div class="inline-flex items-center gap-2 rounded-full border border-cyan-400/25 bg-cyan-400/[0.07] px-4 py-1.5 backdrop-blur-sm">
+            <span class="h-1.5 w-1.5 rounded-full bg-cyan-400"></span>
+            <span class="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-300">💎 Lifetime Access Pricing</span>
+          </div>
+          <div class="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/[0.08] px-3 py-1 backdrop-blur-sm">
+            <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+            <span class="text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-300">Lifetime Offer</span>
+            <span class="text-[9px] font-bold text-emerald-400">$199</span>
+          </div>
         </div>
         <h2 id="offer-heading" class="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-6">
           Get <span class="text-cyan-400 italic">Lifetime Access</span> Today

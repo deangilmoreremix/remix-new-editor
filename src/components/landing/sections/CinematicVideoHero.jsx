@@ -11,7 +11,6 @@
 import { requireDemo } from '../../../data/minimaxH3Demos.js';
 import { createMediaFrame, cleanupFrames, prefersReducedMotion } from './minimax/mediaFrame.js';
 import { injectMinimaxStyles, goToRoute } from './minimax/ui.js';
-import CheckoutCTA from '../common/CheckoutCTA.jsx';
 
 const HERO_SLUG = 'nighttime-motorcycle-chase-synced-to-music';
 
@@ -44,8 +43,8 @@ export function CinematicVideoHero() {
 
     <div class="container relative z-10 mx-auto max-w-7xl px-5 py-24 sm:px-6 md:py-28">
       <div class="max-w-xl md:w-[45%] md:max-w-none lg:w-[42%]">
+         <div class="mmx-reveal mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-400/25 bg-cyan-400/[0.07] px-4 py-1.5 backdrop-blur-sm">
 
-        <div class="mmx-reveal mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-400/25 bg-cyan-400/[0.07] px-4 py-1.5 backdrop-blur-sm">
           <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-400"></span>
           <span class="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-300">AI Creative Personalization Platform</span>
         </div>
@@ -59,8 +58,17 @@ export function CinematicVideoHero() {
           Create personalized cinematic images, videos, ads, characters, commercials and viral social media content with AI.
         </p>
 
-        <div class="mmx-reveal mt-9 flex flex-col gap-4 sm:items-center">
-          <div id="checkout-cta-primary-host"></div>
+        <div class="mmx-reveal mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <button
+            type="button"
+            data-mmx-hero-primary
+            class="btn-enhanced group inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-cyan-400 to-cyan-300 px-7 py-3.5 text-base font-bold text-[#020205] shadow-2xl shadow-cyan-400/25 transition-all duration-300 hover:from-cyan-300 hover:to-cyan-200 hover:shadow-cyan-300/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#020205]"
+          >
+            Start Creating
+            <svg class="h-4 w-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+            </svg>
+          </button>
 
           <button
             type="button"
@@ -134,26 +142,14 @@ export function CinematicVideoHero() {
   });
   positionObserver.observe(frame, { childList: true });
 
-  /* ---------------------------------------------------------------- checkout cta */
+  /* ------------------------------------------------------------------ primary + secondary CTAs */
 
-  const checkoutHost = section.querySelector('#checkout-cta-primary-host');
-  if (checkoutHost) {
-    const checkoutBtn = CheckoutCTA({
-      variant: 'primary',
-      offer: {
-        id: 'cinematic-trailers',
-        headline: 'AI Cinematic Story Study',
-        description: 'Create movie-quality trailers, story studies, and cinematic content with AI.',
-        cta: 'Get AI Cinematic Story Study — {price}',
-        price: '$199',
-      },
-      providers: ['visa', 'mastercard', 'amex', 'discover', 'jcb', 'affirm', 'klarna', 'afterpay'],
-      subtext: 'Secure checkout • 30-day money-back guarantee',
-      onCheckout: () => {
-        window.location.href = 'https://buy.stripe.com/dRmbJ02OoeaAeKx8Mo5Rm07';
-      },
+   const primary = section.querySelector('[data-mmx-hero-primary]');
+
+  if (primary) {
+    primary.addEventListener('click', () => {
+      window.location.href = 'https://buy.stripe.com/dRmbJ02OoeaAeKx8Mo5Rm07';
     });
-    checkoutHost.appendChild(checkoutBtn);
   }
 
   const secondary = section.querySelector('[data-mmx-hero-secondary]');

@@ -409,15 +409,19 @@ function securityHeaders() {
                 // (e.g. touched-stud-74.clerk.accounts.dev for the dev instance),
                 // while still allowing the production proxy domain clerk.smartvid.app.
 
+                const isProduction = process.env.NODE_ENV === 'production';
+                const devConnectSrc = !isProduction ? ' http://localhost:5173 ws://localhost:5173 http://localhost:3000' : '';
+                const devFrameSrc = !isProduction ? ' http://localhost:5173 http://localhost:3000 https://ai-vfx.smartvid.app' : '';
+
                 const csp = [
                   "default-src 'self'",
                   `script-src 'self' ${reactPreambleHash}${clerkHostSrc} https://clerk.smartvid.app https://challenges.cloudflare.com blob:`,
                   `worker-src 'self' blob:${clerkHostSrc} https://clerk.smartvid.app`,
-                  `style-src 'self' 'unsafe-inline'${clerkHostSrc}`,
+                  `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com${clerkHostSrc}`,
                   `img-src 'self' data: https: blob:${clerkHostSrc}`,
-                  `font-src 'self' data:${clerkHostSrc}`,
-                  `connect-src 'self' ws://localhost:3001 http://localhost:3001 ws://localhost:8000 http://localhost:8000 ws://localhost:8888 http://localhost:8888 https://*.supabase.co ${process.env.VITE_MUAPI_URL ? `https://${process.env.VITE_MUAPI_URL}` : 'https://api.muapi.ai'} https://api.openai.com https://api.muapi.ai https://clerk.smartvid.app https://clerk-telemetry.com https://challenges.cloudflare.com https://raw.githubusercontent.com http://localhost:5173 ws://localhost:5173 https://cdn.muapi.ai${clerkHostSrc}`,
-                  `frame-src 'self'${clerkHostSrc} https://clerk.smartvid.app https://challenges.cloudflare.com http://localhost:5173 http://localhost:3000 https://ai-vfx.smartvid.app`,
+                  `font-src 'self' data: https://fonts.gstatic.com${clerkHostSrc}`,
+                  `connect-src 'self' ws://localhost:3001 http://localhost:3001 ws://localhost:8000 http://localhost:8000 ws://localhost:8888 http://localhost:8888 https://*.supabase.co ${process.env.VITE_MUAPI_URL ? `https://${process.env.VITE_MUAPI_URL}` : 'https://api.muapi.ai'} https://api.openai.com https://api.muapi.ai https://clerk.smartvid.app https://clerk-telemetry.com https://challenges.cloudflare.com https://raw.githubusercontent.com https://cdn.muapi.ai${devConnectSrc}${clerkHostSrc}`,
+                  `frame-src 'self'${clerkHostSrc} https://clerk.smartvid.app https://challenges.cloudflare.com${devFrameSrc}`,
                   "media-src 'self' https: blob:",
                 ].join('; ');
                 res.setHeader('Content-Security-Policy', csp);

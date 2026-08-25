@@ -10,7 +10,17 @@ export function FinalCTASection() {
   section.innerHTML = `
     <div class="container mx-auto max-w-4xl text-center final-cta-container opacity-0">
       <div class="bg-gradient-to-br from-cyan-400/10 via-emerald-400/10 to-purple-400/10 border border-cyan-400/30 rounded-3xl p-12 md:p-16 shadow-2xl hover:shadow-cyan-400/20 transition-shadow duration-500">
-        <h2 id="final-cta-heading" class="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-6">
+        <div class="inline-flex items-center justify-center gap-2.5 mb-6">
+        <div class="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-400/[0.08] px-4 py-1.5 backdrop-blur-sm">
+          <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+          <span class="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-300">Lifetime Offer</span>
+        </div>
+        <div class="inline-flex items-center gap-1 rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3 py-1 backdrop-blur-sm">
+          <span class="text-[9px] font-bold text-cyan-400">$199</span>
+        </div>
+      </div>
+
+      <h2 id="final-cta-heading" class="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-6">
           Start Building Your <span class="text-cyan-400 italic">AI Video Agency</span> Today
         </h2>
 

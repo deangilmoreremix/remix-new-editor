@@ -26,13 +26,13 @@ export function HeroSection() {
     <div class="absolute top-1/2 right-1/3 w-48 h-48 bg-purple-400/5 rounded-full blur-3xl animate-pulse -z-5" style="animation-delay: 1s;"></div>
 
     <div class="container mx-auto max-w-6xl text-center relative z-10">
-      <!-- Trust Badge with entrance animation -->
-      <div class="trust-badge opacity-0 translate-y-4 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 mb-8 shadow-lg shadow-cyan-400/20">
-        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-        <span class="text-sm text-cyan-100 font-medium">Trusted by Thousands of Creators & Agencies</span>
-      </div>
+       <!-- Trust Badge with entrance animation -->
+       <div class="trust-badge opacity-0 translate-y-4 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 mb-8 shadow-lg shadow-cyan-400/20">
+         <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+         <span class="text-sm text-cyan-100 font-medium">Trusted by Thousands of Creators & Agencies</span>
+       </div>
 
-      <!-- Main Headline with typewriter effect -->
+       <!-- Main Headline with typewriter effect -->
       <h1 id="hero-headline" class="hero-headline mb-6 leading-tight text-4xl md:text-5xl lg:text-6xl xl:text-7xl" style="max-width: 100%; font-size: clamp(2.5rem, 8vw, 4.5rem);">
         <span class="text-cyan-400 italic font-black" id="headline-part-1">Create Cinematic Personalized AI Videos,</span><br/>
         <span class="text-white font-black" id="headline-part-2">Images, VFX, Commercials,</span><br/>
@@ -48,7 +48,7 @@ export function HeroSection() {
 
       <!-- Primary CTA with hover effects -->
       <div class="hero-cta flex flex-col sm:flex-row gap-4 justify-center mb-12">
-        <button class="cta-primary px-8 md:px-12 py-4 bg-gradient-to-r from-cyan-400 to-cyan-300 text-[#020205] font-bold text-lg rounded-lg hover:from-cyan-300 hover:to-cyan-200 transition-all duration-300 shadow-2xl shadow-cyan-400/30 hover:shadow-cyan-300/50 hover:scale-105 group relative overflow-hidden">
+         <button id="hero-cta-start" class="cta-primary px-8 md:px-12 py-4 bg-gradient-to-r from-cyan-400 to-cyan-300 text-[#020205] font-bold text-lg rounded-lg hover:from-cyan-300 hover:to-cyan-200 transition-all duration-300 shadow-2xl shadow-cyan-400/30 hover:shadow-cyan-300/50 hover:scale-105 group relative overflow-hidden">
           <span class="flex items-center justify-center gap-2">
             Start Building My AI Video Agency
             <svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -175,19 +175,26 @@ export function HeroSection() {
    }, 300);
 
    const secondaryButton = section.querySelector('.cta-secondary');
-   if (secondaryButton) {
-     secondaryButton.addEventListener('click', () => {
-       const scrollToShowcase = () => {
-         const target = document.getElementById('made-with-smartvideo');
-         if (target) {
-           target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-         }
-       };
-       scrollToShowcase();
-       setTimeout(scrollToShowcase, 400);
-       setTimeout(scrollToShowcase, 1200);
-     });
-   }
+    if (secondaryButton) {
+      secondaryButton.addEventListener('click', () => {
+        const scrollToShowcase = () => {
+          const target = document.getElementById('made-with-smartvideo');
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        };
+        scrollToShowcase();
+        setTimeout(scrollToShowcase, 400);
+        setTimeout(scrollToShowcase, 1200);
+      });
+    }
+
+    const startBtn = section.querySelector('#hero-cta-start');
+    if (startBtn) {
+      startBtn.addEventListener('click', () => {
+        window.location.href = 'https://buy.stripe.com/dRmbJ02OoeaAeKx8Mo5Rm07';
+      });
+    }
 
    // Parallax effect on scroll
   let ticking = false;

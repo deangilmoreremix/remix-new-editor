@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { saveGeneration, deleteGeneration } from '../lib/generationHistory.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { uploadMediaFile } from '../lib/editor/upload.js';
@@ -1438,11 +1439,22 @@ generateBtn.type = 'button';
     // --- Helper: Add to history ---
     const addToHistory = (entry) => {
         generationHistory.unshift(entry);
-        try {
-            localStorage.setItem('video_history', JSON.stringify(generationHistory.slice(0, 30)));
-        } catch (e) {
-            // Ignore storage errors (private mode, quota exceeded, etc.)
-        }
+
+        // Persist to localStorage + Supabase (for Library Studio)
+        // saveGeneration handles localStorage; addToHistory only manages
+        // the in-memory sidebar array.
+        saveGeneration({
+            studio: 'video',
+            type: 'video',
+            url: entry.url,
+            prompt: entry.prompt,
+            model: entry.model,
+            parameters: { aspect_ratio: entry.aspect_ratio, duration: entry.duration },
+            timestamp: entry.timestamp,
+            id: entry.id,
+            request_id: entry.id,
+        });
+
         historySidebar.classList.remove('translate-x-full', 'opacity-0');
         historySidebar.classList.add('translate-x-0', 'opacity-100');
         renderHistory();
@@ -1477,6 +1489,7 @@ generateBtn.type = 'button';
               e.stopPropagation();
               generationHistory.splice(idx, 1);
               try { localStorage.setItem('video_history', JSON.stringify(generationHistory.slice(0, 100))); } catch {}
+              deleteGeneration(entry.url, 'video');
               renderHistory();
             };
             overlay.appendChild(deleteBtn);

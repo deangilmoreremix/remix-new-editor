@@ -10,7 +10,8 @@
   "scripts": {
     "dev": "vite --port 3100 --strictPort",
     "dev:all": "concurrently -n root,aivfx -c magenta,green \"npm run dev\" \"bash -c 'cd apps/ai-vfx && npm run dev & sleep 1; until curl -sf http://localhost:3000/ > /dev/null 2>&1; do sleep 0.5; done; echo \\\"✓ ai-vfx ready at http://localhost:3000\\\"; wait'\"",
-    "build": "rm -rf dist && vite build",
+    "build": "npm run build:openthorn && rm -rf dist && vite build",
+    "build:openthorn": "cd apps/openthorn && npm ci --production=false && npm run build && rm -rf ../public/openthorn && mkdir -p ../public/openthorn && cp -r dist/* ../public/openthorn/",
     "build:ai-vfx": "npm run build --workspace apps/ai-vfx",
     "build:analyze": "vite build --mode analyze",
     "preview": "vite preview",

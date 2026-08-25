@@ -1,5 +1,5 @@
 // OpenThorn Studio — embedded iframe wrapper for the OpenThorn app.
-// In dev, this points at a separate Vite dev server on :5174.
+// In dev, this points at a separate Vite dev server on :5173.
 // In production, it loads the static build from /openthorn/.
 
 const isDev = import.meta.env.DEV;
@@ -22,7 +22,7 @@ export function OpenThornStudio() {
       <span style="color:#fff;font-weight:600;font-size:14px;font-family:system-ui,sans-serif;">OpenThorn</span>
       <span style="color:#6b7280;font-size:12px;font-family:system-ui,sans-serif;">BYOK AI Website Builder</span>
     </div>
-    <a href="https://github.com/deangilmoreremix/OpenThorn" target="_blank" rel="noopener noreferrer"
+    <a href="https://github.com/deangilmoraremix/OpenThorn" target="_blank" rel="noopener noreferrer"
        style="color:#9ca3af;font-size:12px;text-decoration:none;font-family:system-ui,sans-serif;">
       View on GitHub ↗
     </a>
@@ -37,7 +37,9 @@ export function OpenThornStudio() {
   `;
   iframe.setAttribute('loading', 'lazy');
   iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-modals');
+  iframe.setAttribute('title', 'OpenThorn Studio');
   container.appendChild(iframe);
 
   return container;
 }
+

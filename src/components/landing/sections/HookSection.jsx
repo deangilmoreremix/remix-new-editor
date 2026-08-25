@@ -26,10 +26,10 @@ export function HookSection() {
           Smart Video AI Studio is the all-in-one creative command center that replaces 10+ subscriptions and puts everything you need to create, edit, and deliver professional AI content in one place.
         </p>
 
-        <div class="flex flex-col sm:flex-row gap-4 justify-center">
-          <button class="px-8 py-4 bg-gradient-to-r from-cyan-400 to-cyan-300 text-[#020205] font-bold text-lg rounded-lg hover:from-cyan-300 hover:to-cyan-200 transition-all duration-300 shadow-2xl shadow-cyan-400/30 hover:shadow-cyan-300/50 transform hover:scale-105">
-            Start Building My AI Video Agency →
-          </button>
+         <div class="flex flex-col sm:flex-row gap-4 justify-center">
+           <button id="hook-cta-start" class="px-8 py-4 bg-gradient-to-r from-cyan-400 to-cyan-300 text-[#020205] font-bold text-lg rounded-lg hover:from-cyan-300 hover:to-cyan-200 transition-all duration-300 shadow-2xl shadow-cyan-400/30 hover:shadow-cyan-300/50 transform hover:scale-105">
+             Start Building My AI Video Agency →
+           </button>
           <button class="px-8 py-4 border-2 border-white/30 text-white font-bold text-lg rounded-lg hover:border-cyan-400 hover:text-cyan-400 transition-all duration-300">
             See It In Action
           </button>
@@ -42,7 +42,15 @@ export function HookSection() {
         .hook-animate { animation: none; }
       }
     </style>
-  `;
+   `;
+
+  // Wire up the CTA button to the Stripe checkout link
+  const startBtn = section.querySelector('#hook-cta-start');
+  if (startBtn) {
+    startBtn.addEventListener('click', () => {
+      window.location.href = 'https://buy.stripe.com/dRmbJ02OoeaAeKx8Mo5Rm07';
+    });
+  }
 
   return section;
 }

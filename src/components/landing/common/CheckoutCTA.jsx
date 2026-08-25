@@ -3,24 +3,22 @@
 // Redesigned to match the exit-intent modal's aesthetic:
 //   - Solid cyan-400 background (no gradient)
 //   - 12px border radius
-//   - Inter font (loaded in index.html)
+//   - Inter font (loaded in index.html via Google Fonts)
 //   - Modal-style shadows and hover transform (translateY)
 //   - Provider icons in a separate card below the button
 //   - Subtext below the button
 //
 // Usage:
 //   const el = CheckoutCTA({
-//     variant: 'primary',   // or 'inline'
+//     variant: 'primary',
 //     offer: {
 //       id: 'cinematic-trailers',
-//       cta: 'Get AI Cinematic Story Study',
-//       headline: 'AI Cinematic Story Study',
-//       description: 'Create movie-quality trailers with AI.',
+//       cta: 'GET AI CINEMATIC STORY STUDY — {price}',
 //       price: '$199',
 //     },
 //     providers: ['visa','mastercard','amex','discover','jcb','affirm','klarna','afterpay'],
 //     subtext: 'Secure checkout • 30-day money-back guarantee',
-//     onCheckout: () => { /* redirect to Stripe */ },
+//     onCheckout: () => { window.location.href = 'https://buy.stripe.com/...'; },
 //   });
 
 const PROVIDER_SYMBOLS = {
@@ -37,7 +35,8 @@ const PROVIDER_SYMBOLS = {
 let symbolsInjected = false;
 let stylesInjected = false;
 
-const MODAL_DESIGN_TOKENS = {
+// Exact modal design tokens from exit-intent-modal.html
+const TOKENS = {
   bgDeep: '#020205',
   bgSurface: '#05070b',
   bgCard: 'rgba(255, 255, 255, 0.025)',
@@ -50,27 +49,27 @@ const MODAL_DESIGN_TOKENS = {
   textPrimary: '#ffffff',
   textSecondary: '#a1a1aa',
   textMuted: '#52525b',
+  danger: '#ef4444',
+  success: '#22c55e',
   radiusLg: '1.5rem',
-  radiusXl: '2rem',
+  transitionFast: '150ms cubic-bezier(0.4, 0, 0.2, 1)',
+  transitionNormal: '300ms cubic-bezier(0.4, 0, 0.2, 1)',
 };
 
-function injectModalStyles() {
+function injectStyles() {
   if (stylesInjected) return;
   stylesInjected = true;
 
   const style = document.createElement('style');
   style.textContent = `
-    @keyframes checkout-ripple-anim {
-      0% { transform: scale(0); opacity: 0.6; }
-      100% { transform: scale(4); opacity: 0; }
-    }
+    /* ===== Checkout CTA Button — matches .cta-button from exit-intent-modal.html ===== */
 
     .checkout-cta {
       font-family: Inter, system-ui, -apple-system, sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
 
-    /* Primary button — matches modal .cta-button */
+    /* Primary button — exact clone of modal .cta-button */
     .checkout-cta--primary {
       display: flex;
       align-items: center;
@@ -78,25 +77,28 @@ function injectModalStyles() {
       gap: 10px;
       width: 100%;
       max-width: 480px;
-      background: ${MODAL_DESIGN_TOKENS.primary};
-      color: ${MODAL_DESIGN_TOKENS.bgDeep};
+      background: ${TOKENS.primary};
+      color: ${TOKENS.bgDeep};
       font-size: 16px;
       font-weight: 800;
       text-align: center;
       padding: 18px 24px;
       border-radius: 12px;
+      text-decoration: none;
       border: none;
       cursor: pointer;
       position: relative;
       overflow: hidden;
-      transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 0 20px ${MODAL_DESIGN_TOKENS.primaryGlow}, 0 8px 30px rgba(34, 211, 238, 0.2);
+      transition: all ${TOKENS.transitionNormal};
+      box-shadow: 0 0 20px ${TOKENS.primaryGlow}, 0 8px 30px rgba(34, 211, 238, 0.2);
       letter-spacing: 0.3px;
+      text-transform: uppercase;
+      font-size: 16px;
     }
 
     .checkout-cta--primary:hover {
-      background: ${MODAL_DESIGN_TOKENS.primaryHover};
-      box-shadow: 0 0 30px ${MODAL_DESIGN_TOKENS.primaryGlow}, 0 12px 40px rgba(34, 211, 238, 0.3);
+      background: ${TOKENS.primaryHover};
+      box-shadow: 0 0 30px ${TOKENS.primaryGlow}, 0 12px 40px rgba(34, 211, 238, 0.3);
       transform: translateY(-2px);
     }
 
@@ -106,39 +108,47 @@ function injectModalStyles() {
 
     .checkout-cta--primary .cta-arrow {
       display: inline-block;
-      transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
+      transition: transform ${TOKENS.transitionFast};
     }
 
     .checkout-cta--primary:hover .cta-arrow {
       transform: translateX(4px);
     }
 
-    /* Inline button — same modal style but compact for pricing cards */
+    /* Focus ring */
+    .checkout-cta--primary:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 2px ${TOKENS.bgDeep}, 0 0 0 4px ${TOKENS.primary};
+    }
+
+    /* Inline button — same style, compact */
     .checkout-cta--inline {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 10px;
       width: 100%;
-      background: ${MODAL_DESIGN_TOKENS.primary};
-      color: ${MODAL_DESIGN_TOKENS.bgDeep};
+      background: ${TOKENS.primary};
+      color: ${TOKENS.bgDeep};
       font-size: 14px;
       font-weight: 800;
       text-align: center;
       padding: 14px 20px;
       border-radius: 12px;
+      text-decoration: none;
       border: none;
       cursor: pointer;
       position: relative;
       overflow: hidden;
-      transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 0 20px ${MODAL_DESIGN_TOKENS.primaryGlow}, 0 8px 30px rgba(34, 211, 238, 0.2);
+      transition: all ${TOKENS.transitionNormal};
+      box-shadow: 0 0 20px ${TOKENS.primaryGlow}, 0 8px 30px rgba(34, 211, 238, 0.2);
       letter-spacing: 0.3px;
+      text-transform: uppercase;
     }
 
     .checkout-cta--inline:hover {
-      background: ${MODAL_DESIGN_TOKENS.primaryHover};
-      box-shadow: 0 0 30px ${MODAL_DESIGN_TOKENS.primaryGlow}, 0 12px 40px rgba(34, 211, 238, 0.3);
+      background: ${TOKENS.primaryHover};
+      box-shadow: 0 0 30px ${TOKENS.primaryGlow}, 0 12px 40px rgba(34, 211, 238, 0.3);
       transform: translateY(-2px);
     }
 
@@ -148,34 +158,34 @@ function injectModalStyles() {
 
     .checkout-cta--inline .cta-arrow {
       display: inline-block;
-      transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
+      transition: transform ${TOKENS.transitionFast};
     }
 
     .checkout-cta--inline:hover .cta-arrow {
       transform: translateX(4px);
     }
 
-    /* Focus ring */
-    .checkout-cta:focus-visible {
+    .checkout-cta--inline:focus-visible {
       outline: none;
-      box-shadow: 0 0 0 2px ${MODAL_DESIGN_TOKENS.bgDeep}, 0 0 0 4px ${MODAL_DESIGN_TOKENS.primary};
+      box-shadow: 0 0 0 2px ${TOKENS.bgDeep}, 0 0 0 4px ${TOKENS.primary};
     }
 
     /* Subtext — matches modal .cta-sub */
     .checkout-subtext {
       text-align: center;
       font-size: 12px;
-      color: ${MODAL_DESIGN_TOKENS.textMuted};
+      color: ${TOKENS.textMuted};
       margin-top: 12px;
       line-height: 1.5;
+      font-family: Inter, system-ui, -apple-system, sans-serif;
     }
 
     /* Provider card — matches modal .value-column / .bonus-card styling */
     .checkout-providers {
       margin-top: 12px;
       padding: 12px 16px;
-      background: ${MODAL_DESIGN_TOKENS.bgCard};
-      border: 1px solid ${MODAL_DESIGN_TOKENS.borderCard};
+      background: ${TOKENS.bgCard};
+      border: 1px solid ${TOKENS.borderCard};
       border-radius: 12px;
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
@@ -202,27 +212,22 @@ function injectModalStyles() {
     }
 
     .checkout-provider-icon {
-      width: 24px;
-      height: 24px;
+      width: 22px;
+      height: 22px;
       opacity: 0.75;
       transition: opacity 0.3s ease, transform 0.3s ease;
       flex-shrink: 0;
+      fill: ${TOKENS.primary};
     }
 
     .checkout-cta--primary:hover .checkout-provider-icon {
       opacity: 1;
     }
 
-    /* Enter animation — matches modal .animate-in */
-    .checkout-cta-enter {
-      opacity: 0;
-      transform: translateY(20px);
-      transition: opacity 0.6s cubic-bezier(0.23, 1, 0.32, 1), transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-    }
-
-    .checkout-cta-enter.visible {
-      opacity: 1;
-      transform: translateY(0);
+    /* Ripple effect */
+    @keyframes checkout-ripple-anim {
+      0% { transform: scale(0); opacity: 0.6; }
+      100% { transform: scale(4); opacity: 0; }
     }
 
     /* Reduced motion */
@@ -232,12 +237,17 @@ function injectModalStyles() {
         transition: none;
         transform: none;
       }
-      .checkout-cta-enter {
-        opacity: 1;
+      .checkout-cta--primary:hover,
+      .checkout-cta--inline:hover {
+        background: ${TOKENS.primaryHover};
+        box-shadow: 0 0 30px ${TOKENS.primaryGlow}, 0 12px 40px rgba(34, 211, 238, 0.3);
+      }
+      .checkout-cta--primary .cta-arrow,
+      .checkout-cta--inline .cta-arrow {
         transform: none;
       }
-      .checkout-cta--primary:hover .cta-arrow,
-      .checkout-cta--inline:hover .cta-arrow {
+      .checkout-cta-enter {
+        opacity: 1;
         transform: none;
       }
     }
@@ -260,14 +270,14 @@ function injectProviderSymbols() {
     const symbol = document.createElementNS('http://www.w3.org/2000/svg', 'symbol');
     symbol.setAttribute('id', `provider-${name}`);
     symbol.setAttribute('viewBox', '0 0 24 24');
-    symbol.innerHTML = path;
+    symbol.innerHTML = `<g fill="${TOKENS.primary}">${path}</g>`;
     svg.appendChild(symbol);
   }
 
   document.body.appendChild(svg);
 }
 
-function createProviderIcon(name, size = 24) {
+function createProviderIcon(name, size = 22) {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('width', `${size}px`);
   svg.setAttribute('height', `${size}px`);
@@ -315,58 +325,55 @@ function createRippleEffect(button, event) {
  *
  * @param {Object} params
  * @param {'primary'|'inline'} params.variant
- * @param {Object} params.offer  - { id, cta, headline, description, price }
+ * @param {Object} params.offer  - { id, cta, price }
+ *   cta should contain '{price}' placeholder for dynamic price injection
  * @param {string[]} params.providers
  * @param {string} params.subtext
  * @param {Function} params.onCheckout
- * @returns {HTMLElement} - button element (primary) or wrapper div (primary with providers)
+ * @returns {HTMLElement} - button (inline) or wrapper div (primary)
  */
 function CheckoutCTA({ variant = 'primary', offer = {}, providers = [], subtext = '', onCheckout = () => {} }) {
   const isPrimary = variant === 'primary';
   const {
     id = 'checkout',
-    cta = 'Get Started',
-    headline = '',
-    description = '',
+    cta = 'GET STARTED',
     price = '',
   } = offer;
 
-  injectModalStyles();
+  injectStyles();
   injectProviderSymbols();
 
-  // Build the button text (cta is the visible button text)
+  // Replace {price} placeholder in cta text
   const buttonText = price ? cta.replace('{price}', price) : cta;
 
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.setAttribute('data-checkout-cta', id);
-  button.setAttribute('aria-label', buttonText);
-  button.classList.add('checkout-cta', isPrimary ? 'checkout-cta--primary' : 'checkout-cta--inline');
-
-  // Button text + arrow
-  const textSpan = document.createElement('span');
-  textSpan.textContent = buttonText;
-  button.appendChild(textSpan);
-
-  const arrow = document.createElement('span');
-  arrow.setAttribute('aria-hidden', 'true');
-  arrow.classList.add('cta-arrow');
-  arrow.innerHTML = `<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>`;
-  button.appendChild(arrow);
-
-  // Click handler
-  button.addEventListener('click', (event) => {
-    createRippleEffect(button, event);
-    setTimeout(() => onCheckout(), 250);
-  });
-
-  // For primary variant: wrap in a div with button + provider row + subtext
   if (!isPrimary) {
+    // Inline: just the button
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.setAttribute('data-checkout-cta', id);
+    button.setAttribute('aria-label', buttonText);
+    button.classList.add('checkout-cta', 'checkout-cta--inline');
+
+    button.textContent = buttonText;
+
+    const arrow = document.createElement('span');
+    arrow.setAttribute('aria-hidden', 'true');
+    arrow.classList.add('cta-arrow');
+    arrow.innerHTML = '→';
+    button.appendChild(arrow);
+
+    button.addEventListener('click', (event) => {
+      createRippleEffect(button, event);
+      setTimeout(() => onCheckout(), 250);
+    });
+
     return button;
   }
 
+  // Primary: wrapper with button + subtext + provider card
   const wrapper = document.createElement('div');
   wrapper.classList.add('checkout-cta-wrapper');
+  wrapper.setAttribute('data-checkout-wrapper', id);
   wrapper.style.cssText = `
     display: flex;
     flex-direction: column;
@@ -377,6 +384,25 @@ function CheckoutCTA({ variant = 'primary', offer = {}, providers = [], subtext 
     margin-left: auto;
     margin-right: auto;
   `;
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.setAttribute('data-checkout-cta', id);
+  button.setAttribute('aria-label', buttonText);
+  button.classList.add('checkout-cta', 'checkout-cta--primary');
+
+  button.textContent = buttonText;
+
+  const arrow = document.createElement('span');
+  arrow.setAttribute('aria-hidden', 'true');
+  arrow.classList.add('cta-arrow');
+  arrow.innerHTML = '→';
+  button.appendChild(arrow);
+
+  button.addEventListener('click', (event) => {
+    createRippleEffect(button, event);
+    setTimeout(() => onCheckout(), 250);
+  });
 
   wrapper.appendChild(button);
 
@@ -409,16 +435,13 @@ function CheckoutCTA({ variant = 'primary', offer = {}, providers = [], subtext 
         justify-content: center;
         transition: transform 0.3s ease ${i * 30}ms;
       `;
-      iconWrap.appendChild(createProviderIcon(name, 24));
+      iconWrap.appendChild(createProviderIcon(name, 22));
       row.appendChild(iconWrap);
     });
 
     providerCard.appendChild(row);
     wrapper.appendChild(providerCard);
   }
-
-  // Enter animation
-  wrapper.classList.add('checkout-cta-enter');
 
   return wrapper;
 }
