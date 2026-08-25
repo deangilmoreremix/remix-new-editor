@@ -5268,7 +5268,9 @@
 /* Grid containers — fixed 5-column layout for consistent rows */
 .thumbnail-template-grid,
 .explore-section-grid {
+  display: grid;
   grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
 }
 
 /* Individual template card */
