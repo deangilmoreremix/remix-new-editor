@@ -92,10 +92,10 @@ describe('mid-run files progress events', () => {
       .mockResolvedValueOnce(writeFileTurn())
       .mockResolvedValueOnce(textOnlyTurn())
 
-    const { runOpenThornAgent } = await import('../agent')
+    const { runSmart VideoAgent } = await import('../agent')
 
     const events: AgentProgressEvent[] = []
-    const result = await runOpenThornAgent({
+    const result = await runSmart VideoAgent({
       userId: 'user-1',
       prompt: 'Build a landing page',
       title: 'Test project',
@@ -129,10 +129,10 @@ describe('mid-run files progress events', () => {
   it('does not emit files events on a purely conversational run', async () => {
     fetchMock.mockResolvedValueOnce(textOnlyTurn())
 
-    const { runOpenThornAgent } = await import('../agent')
+    const { runSmart VideoAgent } = await import('../agent')
 
     const events: AgentProgressEvent[] = []
-    const result = await runOpenThornAgent({
+    const result = await runSmart VideoAgent({
       userId: 'user-1',
       prompt: 'hey, what is this app?',
       title: 'Test project',

@@ -32,7 +32,7 @@ export function startDashboardTour(onComplete: () => void): void {
     showProgress: true,
     allowClose: true,
     overlayColor: 'rgba(7, 7, 15, 0.7)',
-    popoverClass: 'openthorn-tour',
+    popoverClass: 'smartvideo-tour',
     nextBtnText: 'Next',
     prevBtnText: 'Back',
     doneBtnText: 'Got it',

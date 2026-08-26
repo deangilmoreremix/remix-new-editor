@@ -4,9 +4,9 @@
     "name": "OpenAI",
     "logo": "/assets/openai.png",
     "title": "Build a website with your OpenAI API key",
-    "description": "Connect your OpenAI API key to OpenThorn and build complete websites with GPT-5.5 or GPT-5.4 — paying OpenAI's raw per-token rates, with no subscription or markup.",
+    "description": "Connect your OpenAI API key to Smart Video and build complete websites with GPT-5.5 or GPT-5.4 — paying OpenAI's raw per-token rates, with no subscription or markup.",
     "lastVerified": "2026-06-12",
-    "answer": "Yes — you can build a complete website with your own OpenAI API key. Create a key at platform.openai.com, paste it into OpenThorn (free, encrypted server-side), describe your site, and the agent generates, previews, and deploys it. You pay OpenAI's published per-token rates directly — typically cents to a few dollars per site.",
+    "answer": "Yes — you can build a complete website with your own OpenAI API key. Create a key at platform.openai.com, paste it into Smart Video (free, encrypted server-side), describe your site, and the agent generates, previews, and deploys it. You pay OpenAI's published per-token rates directly — typically cents to a few dollars per site.",
     "freeTier": "No free API tier — OpenAI requires prepaid credit (minimum $5), which doubles as a hard spend cap.",
     "consoleUrl": "https://platform.openai.com/api-keys",
     "consoleLabel": "platform.openai.com/api-keys",
@@ -36,8 +36,8 @@
         "text": "In the OpenAI billing settings, set a monthly budget so usage can never exceed what you choose to prepay."
       },
       {
-        "name": "Connect the key to OpenThorn",
-        "text": "Sign up free at openthorn.app, open the Providers page, choose OpenAI, and paste your key. It is encrypted server-side with AES-256-GCM and never exposed raw."
+        "name": "Connect the key to Smart Video",
+        "text": "Sign up free at smartvideo.app, open the Providers page, choose OpenAI, and paste your key. It is encrypted server-side with AES-256-GCM and never exposed raw."
       },
       {
         "name": "Describe your website and ship it",
@@ -47,10 +47,10 @@
     "faqs": [
       {
         "question": "How much does it cost to build a website with the OpenAI API?",
-        "answer": "You pay OpenAI's per-token rates only — OpenThorn adds no markup and no subscription. A typical site costs cents with GPT-5.4 mini and roughly $0.50–$3 with GPT-5.5, versus $20–50/month for credit-based AI builders."
+        "answer": "You pay OpenAI's per-token rates only — Smart Video adds no markup and no subscription. A typical site costs cents with GPT-5.4 mini and roughly $0.50–$3 with GPT-5.5, versus $20–50/month for credit-based AI builders."
       },
       {
-        "question": "Is my OpenAI API key safe in OpenThorn?",
+        "question": "Is my OpenAI API key safe in Smart Video?",
         "answer": "Keys are encrypted server-side with AES-256-GCM using per-user derived keys and are never exposed raw to the browser. You can also set a spend limit in your OpenAI dashboard and rotate or revoke the key at any time."
       },
       {
@@ -64,9 +64,9 @@
     "name": "Anthropic",
     "logo": "/assets/anthropic.png",
     "title": "Build a website with your Anthropic (Claude) API key",
-    "description": "Connect your Anthropic API key to OpenThorn and build complete websites with Claude — paying Anthropic's raw per-token rates, with no subscription or markup.",
+    "description": "Connect your Anthropic API key to Smart Video and build complete websites with Claude — paying Anthropic's raw per-token rates, with no subscription or markup.",
     "lastVerified": "2026-06-12",
-    "answer": "Yes — you can build a complete website with your own Anthropic API key. Create a key at console.anthropic.com, paste it into OpenThorn (free, encrypted server-side), and describe your site. Claude models are consistently among the strongest for code generation, and you pay Anthropic's published rates directly — typically under $2 per site with Claude Sonnet.",
+    "answer": "Yes — you can build a complete website with your own Anthropic API key. Create a key at console.anthropic.com, paste it into Smart Video (free, encrypted server-side), and describe your site. Claude models are consistently among the strongest for code generation, and you pay Anthropic's published rates directly — typically under $2 per site with Claude Sonnet.",
     "freeTier": "No standing free API tier — Anthropic uses prepaid credit (minimum $5), which acts as a natural spend cap.",
     "consoleUrl": "https://console.anthropic.com/settings/keys",
     "consoleLabel": "console.anthropic.com",
@@ -96,8 +96,8 @@
         "text": "Prepaid credit is itself a hard cap; you can also configure monthly spend limits in the console so costs stay predictable."
       },
       {
-        "name": "Connect the key to OpenThorn",
-        "text": "Sign up free at openthorn.app, open the Providers page, choose Anthropic, and paste your key. It is encrypted server-side with AES-256-GCM and never exposed raw."
+        "name": "Connect the key to Smart Video",
+        "text": "Sign up free at smartvideo.app, open the Providers page, choose Anthropic, and paste your key. It is encrypted server-side with AES-256-GCM and never exposed raw."
       },
       {
         "name": "Describe your website and ship it",
@@ -107,14 +107,14 @@
     "faqs": [
       {
         "question": "How much does it cost to build a website with the Claude API?",
-        "answer": "You pay Anthropic's per-token rates only. With Claude Sonnet 4.6 a typical site costs $0.50–$2; with Claude Haiku 4.5, cents. There is no OpenThorn subscription or markup — compare that with $25+/month for credit-based builders."
+        "answer": "You pay Anthropic's per-token rates only. With Claude Sonnet 4.6 a typical site costs $0.50–$2; with Claude Haiku 4.5, cents. There is no Smart Video subscription or markup — compare that with $25+/month for credit-based builders."
       },
       {
         "question": "Which Claude model is best for building websites?",
         "answer": "Claude Sonnet 4.6 is the best default — it is one of the strongest coding models available at mid-tier pricing. Choose Claude Fable 5 for the most complex builds, or Claude Haiku 4.5 when cost and speed matter most."
       },
       {
-        "question": "Is my Anthropic API key safe in OpenThorn?",
+        "question": "Is my Anthropic API key safe in Smart Video?",
         "answer": "Keys are encrypted server-side with AES-256-GCM using per-user derived keys and are never exposed raw to the browser. Prepaid credit caps your maximum exposure, and you can rotate or revoke the key in the Anthropic console at any time."
       }
     ]
@@ -124,9 +124,9 @@
     "name": "Google Gemini",
     "logo": "/assets/google.png",
     "title": "Build a website with your Google Gemini API key",
-    "description": "Connect your Google Gemini API key to OpenThorn and build complete websites — Gemini has a genuinely free API tier, so you can build your first site for $0.",
+    "description": "Connect your Google Gemini API key to Smart Video and build complete websites — Gemini has a genuinely free API tier, so you can build your first site for $0.",
     "lastVerified": "2026-06-12",
-    "answer": "Yes — and Gemini is the cheapest way to start: Google AI Studio issues free API keys with a no-cost tier, so you can build your first website for $0. Create a key at aistudio.google.com, paste it into OpenThorn (free, encrypted server-side), describe your site, and deploy it.",
+    "answer": "Yes — and Gemini is the cheapest way to start: Google AI Studio issues free API keys with a no-cost tier, so you can build your first website for $0. Create a key at aistudio.google.com, paste it into Smart Video (free, encrypted server-side), describe your site, and deploy it.",
     "freeTier": "Yes — Google AI Studio offers a free tier with daily request limits, no credit card required. Paid tiers unlock higher limits and the strongest models.",
     "consoleUrl": "https://aistudio.google.com/apikey",
     "consoleLabel": "aistudio.google.com",
@@ -156,8 +156,8 @@
         "text": "For higher rate limits and access to the strongest models, enable billing in Google AI Studio and set a budget alert in Google Cloud."
       },
       {
-        "name": "Connect the key to OpenThorn",
-        "text": "Sign up free at openthorn.app, open the Providers page, choose Google Gemini, and paste your key. It is encrypted server-side with AES-256-GCM and never exposed raw."
+        "name": "Connect the key to Smart Video",
+        "text": "Sign up free at smartvideo.app, open the Providers page, choose Google Gemini, and paste your key. It is encrypted server-side with AES-256-GCM and never exposed raw."
       },
       {
         "name": "Describe your website and ship it",
@@ -167,14 +167,14 @@
     "faqs": [
       {
         "question": "Can I build a website with AI completely free using Gemini?",
-        "answer": "Yes. Google AI Studio's free tier issues API keys with daily request limits and no credit card. Combined with OpenThorn's free platform, you can build and deploy your first website for $0 — the only constraint is the free tier's daily quota."
+        "answer": "Yes. Google AI Studio's free tier issues API keys with daily request limits and no credit card. Combined with Smart Video's free platform, you can build and deploy your first website for $0 — the only constraint is the free tier's daily quota."
       },
       {
         "question": "Which Gemini model should I use for website generation?",
         "answer": "Gemini 3.5 Flash is the best default — fast, capable, and very cheap. Use Gemini 2.5 Pro when a site needs more complex logic, or Flash-Lite for quick experiments at minimal cost."
       },
       {
-        "question": "Is my Gemini API key safe in OpenThorn?",
+        "question": "Is my Gemini API key safe in Smart Video?",
         "answer": "Keys are encrypted server-side with AES-256-GCM using per-user derived keys and are never exposed raw to the browser. You can revoke or regenerate the key in Google AI Studio at any time."
       }
     ]
@@ -184,9 +184,9 @@
     "name": "DeepSeek",
     "logo": "/assets/deepseek.webp",
     "title": "Build a website with your DeepSeek API key",
-    "description": "Connect your DeepSeek API key to OpenThorn and build complete websites at some of the lowest token prices of any frontier-quality model.",
+    "description": "Connect your DeepSeek API key to Smart Video and build complete websites at some of the lowest token prices of any frontier-quality model.",
     "lastVerified": "2026-06-12",
-    "answer": "Yes — DeepSeek is one of the cheapest ways to build websites with AI. Its models cost a fraction of Western flagship rates while delivering strong code quality. Create a key at platform.deepseek.com, paste it into OpenThorn (free, encrypted server-side), and a typical site costs low single-digit cents.",
+    "answer": "Yes — DeepSeek is one of the cheapest ways to build websites with AI. Its models cost a fraction of Western flagship rates while delivering strong code quality. Create a key at platform.deepseek.com, paste it into Smart Video (free, encrypted server-side), and a typical site costs low single-digit cents.",
     "freeTier": "No free tier, but prepaid credit starts very low and per-token prices are among the lowest in the industry.",
     "consoleUrl": "https://platform.deepseek.com/api_keys",
     "consoleLabel": "platform.deepseek.com",
@@ -212,8 +212,8 @@
         "text": "Your prepaid balance is a hard spend cap — usage simply stops when it runs out, so costs can never surprise you."
       },
       {
-        "name": "Connect the key to OpenThorn",
-        "text": "Sign up free at openthorn.app, open the Providers page, choose DeepSeek, and paste your key. It is encrypted server-side with AES-256-GCM and never exposed raw."
+        "name": "Connect the key to Smart Video",
+        "text": "Sign up free at smartvideo.app, open the Providers page, choose DeepSeek, and paste your key. It is encrypted server-side with AES-256-GCM and never exposed raw."
       },
       {
         "name": "Describe your website and ship it",
@@ -223,14 +223,14 @@
     "faqs": [
       {
         "question": "Is DeepSeek good enough to build a real website?",
-        "answer": "Yes. DeepSeek's recent models score competitively with Western flagships on coding benchmarks while costing a fraction per token. For most landing pages and multi-page sites the output quality is strong, and OpenThorn's verification gate catches compile errors before you ship."
+        "answer": "Yes. DeepSeek's recent models score competitively with Western flagships on coding benchmarks while costing a fraction per token. For most landing pages and multi-page sites the output quality is strong, and Smart Video's verification gate catches compile errors before you ship."
       },
       {
         "question": "How much does a website cost with the DeepSeek API?",
-        "answer": "Usually low single-digit cents per complete site — DeepSeek's per-token rates are typically 10–20× lower than flagship Western models. There is no OpenThorn fee on top."
+        "answer": "Usually low single-digit cents per complete site — DeepSeek's per-token rates are typically 10–20× lower than flagship Western models. There is no Smart Video fee on top."
       },
       {
-        "question": "Is my DeepSeek API key safe in OpenThorn?",
+        "question": "Is my DeepSeek API key safe in Smart Video?",
         "answer": "Keys are encrypted server-side with AES-256-GCM using per-user derived keys and are never exposed raw to the browser. Your prepaid balance also caps maximum spend by design."
       }
     ]
@@ -240,9 +240,9 @@
     "name": "Mistral AI",
     "logo": "/assets/mistralai.png",
     "title": "Build a website with your Mistral AI API key",
-    "description": "Connect your Mistral AI API key to OpenThorn and build complete websites with European-hosted models — including a free API tier on La Plateforme.",
+    "description": "Connect your Mistral AI API key to Smart Video and build complete websites with European-hosted models — including a free API tier on La Plateforme.",
     "lastVerified": "2026-06-12",
-    "answer": "Yes — Mistral's La Plateforme offers a free API tier, so you can start building websites with a European AI provider for $0. Create a key at console.mistral.ai, paste it into OpenThorn (free, encrypted server-side), describe your site, and deploy. Paid rates are competitive with mid-tier Western models.",
+    "answer": "Yes — Mistral's La Plateforme offers a free API tier, so you can start building websites with a European AI provider for $0. Create a key at console.mistral.ai, paste it into Smart Video (free, encrypted server-side), describe your site, and deploy. Paid rates are competitive with mid-tier Western models.",
     "freeTier": "Yes — La Plateforme has a free experiment tier with rate limits; paid usage unlocks higher limits and the largest models.",
     "consoleUrl": "https://console.mistral.ai/api-keys",
     "consoleLabel": "console.mistral.ai",
@@ -272,8 +272,8 @@
         "text": "For higher rate limits and the largest models, add a payment method and set usage alerts in the console."
       },
       {
-        "name": "Connect the key to OpenThorn",
-        "text": "Sign up free at openthorn.app, open the Providers page, choose Mistral AI, and paste your key. It is encrypted server-side with AES-256-GCM and never exposed raw."
+        "name": "Connect the key to Smart Video",
+        "text": "Sign up free at smartvideo.app, open the Providers page, choose Mistral AI, and paste your key. It is encrypted server-side with AES-256-GCM and never exposed raw."
       },
       {
         "name": "Describe your website and ship it",
@@ -282,15 +282,15 @@
     ],
     "faqs": [
       {
-        "question": "Does Mistral have a free API tier I can use with OpenThorn?",
-        "answer": "Yes. La Plateforme's free experiment tier issues API keys with rate limits and no payment details, and OpenThorn itself is free — so your first websites can cost $0."
+        "question": "Does Mistral have a free API tier I can use with Smart Video?",
+        "answer": "Yes. La Plateforme's free experiment tier issues API keys with rate limits and no payment details, and Smart Video itself is free — so your first websites can cost $0."
       },
       {
         "question": "Why choose Mistral over OpenAI or Anthropic?",
         "answer": "Mistral is a European provider with EU-hosted options, which matters for data-residency requirements. Its models are competitive for web generation, and the free tier makes starting cheaper than any prepaid-only provider."
       },
       {
-        "question": "Is my Mistral API key safe in OpenThorn?",
+        "question": "Is my Mistral API key safe in Smart Video?",
         "answer": "Keys are encrypted server-side with AES-256-GCM using per-user derived keys and are never exposed raw to the browser. You can rotate or revoke the key in the Mistral console at any time."
       }
     ]
@@ -300,9 +300,9 @@
     "name": "Groq",
     "logo": "/assets/groq.png",
     "title": "Build a website with your Groq API key",
-    "description": "Connect your Groq API key to OpenThorn and build complete websites at extreme speed — Groq's LPU hardware serves open models hundreds of tokens per second, with a free tier.",
+    "description": "Connect your Groq API key to Smart Video and build complete websites at extreme speed — Groq's LPU hardware serves open models hundreds of tokens per second, with a free tier.",
     "lastVerified": "2026-06-12",
-    "answer": "Yes — and Groq is the fastest option: its LPU hardware serves open models at hundreds of tokens per second, so the OpenThorn agent iterates dramatically faster than on standard APIs. Groq offers a free API tier; create a key at console.groq.com, paste it into OpenThorn, and build your first site for $0.",
+    "answer": "Yes — and Groq is the fastest option: its LPU hardware serves open models at hundreds of tokens per second, so the Smart Video agent iterates dramatically faster than on standard APIs. Groq offers a free API tier; create a key at console.groq.com, paste it into Smart Video, and build your first site for $0.",
     "freeTier": "Yes — Groq has a free tier with daily rate limits, no credit card required.",
     "consoleUrl": "https://console.groq.com/keys",
     "consoleLabel": "console.groq.com",
@@ -332,8 +332,8 @@
         "text": "The developer tier unlocks higher rate limits with pay-as-you-go billing; set a spend cap in the console."
       },
       {
-        "name": "Connect the key to OpenThorn",
-        "text": "Sign up free at openthorn.app, open the Providers page, choose Groq, and paste your key. It is encrypted server-side with AES-256-GCM and never exposed raw."
+        "name": "Connect the key to Smart Video",
+        "text": "Sign up free at smartvideo.app, open the Providers page, choose Groq, and paste your key. It is encrypted server-side with AES-256-GCM and never exposed raw."
       },
       {
         "name": "Describe your website and ship it",
@@ -343,11 +343,11 @@
     "faqs": [
       {
         "question": "Why use Groq for AI website building?",
-        "answer": "Speed. Groq's custom LPU hardware serves models at hundreds of tokens per second — often 5–10× faster than standard GPU APIs — so each agent iteration completes in seconds. Combined with the free tier, it is one of the best ways to try OpenThorn."
+        "answer": "Speed. Groq's custom LPU hardware serves models at hundreds of tokens per second — often 5–10× faster than standard GPU APIs — so each agent iteration completes in seconds. Combined with the free tier, it is one of the best ways to try Smart Video."
       },
       {
         "question": "Is Groq the same as Grok?",
-        "answer": "No. Groq is an AI inference company with custom LPU hardware that serves open models extremely fast. Grok is xAI's model family — OpenThorn supports both, as separate providers."
+        "answer": "No. Groq is an AI inference company with custom LPU hardware that serves open models extremely fast. Grok is xAI's model family — Smart Video supports both, as separate providers."
       },
       {
         "question": "How much does a website cost with the Groq API?",
@@ -360,9 +360,9 @@
     "name": "xAI",
     "logo": "/assets/xai.png",
     "title": "Build a website with your xAI (Grok) API key",
-    "description": "Connect your xAI API key to OpenThorn and build complete websites with Grok models — paying xAI's per-token rates directly, with no subscription or markup.",
+    "description": "Connect your xAI API key to Smart Video and build complete websites with Grok models — paying xAI's per-token rates directly, with no subscription or markup.",
     "lastVerified": "2026-06-12",
-    "answer": "Yes — you can build complete websites with your own xAI API key. Grok 4.3 is a capable coding model with competitive per-token pricing. Create a key at console.x.ai, paste it into OpenThorn (free, encrypted server-side), describe your site, and deploy — you pay xAI directly with no platform markup.",
+    "answer": "Yes — you can build complete websites with your own xAI API key. Grok 4.3 is a capable coding model with competitive per-token pricing. Create a key at console.x.ai, paste it into Smart Video (free, encrypted server-side), describe your site, and deploy — you pay xAI directly with no platform markup.",
     "freeTier": "No standing free tier; xAI uses prepaid credit, which doubles as a spend cap.",
     "consoleUrl": "https://console.x.ai",
     "consoleLabel": "console.x.ai",
@@ -388,8 +388,8 @@
         "text": "Prepaid credit is a hard spend limit — usage stops when the balance runs out."
       },
       {
-        "name": "Connect the key to OpenThorn",
-        "text": "Sign up free at openthorn.app, open the Providers page, choose xAI, and paste your key. It is encrypted server-side with AES-256-GCM and never exposed raw."
+        "name": "Connect the key to Smart Video",
+        "text": "Sign up free at smartvideo.app, open the Providers page, choose xAI, and paste your key. It is encrypted server-side with AES-256-GCM and never exposed raw."
       },
       {
         "name": "Describe your website and ship it",
@@ -399,14 +399,14 @@
     "faqs": [
       {
         "question": "Is Grok good at building websites?",
-        "answer": "Yes — Grok 4.3 performs competitively on coding tasks and handles complete website generation well in OpenThorn, including multi-page sites. The reasoning variant helps with more intricate component logic."
+        "answer": "Yes — Grok 4.3 performs competitively on coding tasks and handles complete website generation well in Smart Video, including multi-page sites. The reasoning variant helps with more intricate component logic."
       },
       {
         "question": "How much does a website cost with the xAI API?",
-        "answer": "Roughly $0.50–$2 per complete site at Grok's published per-token rates, depending on size and revisions. OpenThorn adds no markup or subscription."
+        "answer": "Roughly $0.50–$2 per complete site at Grok's published per-token rates, depending on size and revisions. Smart Video adds no markup or subscription."
       },
       {
-        "question": "Is my xAI API key safe in OpenThorn?",
+        "question": "Is my xAI API key safe in Smart Video?",
         "answer": "Keys are encrypted server-side with AES-256-GCM using per-user derived keys and are never exposed raw to the browser. Prepaid credit caps your maximum exposure."
       }
     ]
@@ -416,9 +416,9 @@
     "name": "Perplexity",
     "logo": "/assets/perplexity.png",
     "title": "Build a website with your Perplexity API key",
-    "description": "Connect your Perplexity API key to OpenThorn and build websites with Sonar models — search-grounded AI that can pull in current information while it builds.",
+    "description": "Connect your Perplexity API key to Smart Video and build websites with Sonar models — search-grounded AI that can pull in current information while it builds.",
     "lastVerified": "2026-06-12",
-    "answer": "Yes — Perplexity's Sonar API works with OpenThorn for website generation, with a twist: Sonar models are search-grounded, so generated content can draw on current web information. Create a key at perplexity.ai/settings/api, paste it into OpenThorn (free, encrypted server-side), and pay Perplexity's per-token rates directly.",
+    "answer": "Yes — Perplexity's Sonar API works with Smart Video for website generation, with a twist: Sonar models are search-grounded, so generated content can draw on current web information. Create a key at perplexity.ai/settings/api, paste it into Smart Video (free, encrypted server-side), and pay Perplexity's per-token rates directly.",
     "freeTier": "No standing free tier; Perplexity Pro subscribers receive a monthly API credit allowance.",
     "consoleUrl": "https://www.perplexity.ai/settings/api",
     "consoleLabel": "perplexity.ai/settings/api",
@@ -448,8 +448,8 @@
         "text": "Sonar models bill per token plus a small per-search fee — check the pricing docs so costs stay predictable."
       },
       {
-        "name": "Connect the key to OpenThorn",
-        "text": "Sign up free at openthorn.app, open the Providers page, choose Perplexity, and paste your key. It is encrypted server-side with AES-256-GCM and never exposed raw."
+        "name": "Connect the key to Smart Video",
+        "text": "Sign up free at smartvideo.app, open the Providers page, choose Perplexity, and paste your key. It is encrypted server-side with AES-256-GCM and never exposed raw."
       },
       {
         "name": "Describe your website and ship it",
@@ -463,10 +463,10 @@
       },
       {
         "question": "Do Perplexity Pro subscribers get API credit?",
-        "answer": "Yes — Perplexity Pro includes a monthly API credit allowance, which is enough to build several websites in OpenThorn without separate billing."
+        "answer": "Yes — Perplexity Pro includes a monthly API credit allowance, which is enough to build several websites in Smart Video without separate billing."
       },
       {
-        "question": "Is my Perplexity API key safe in OpenThorn?",
+        "question": "Is my Perplexity API key safe in Smart Video?",
         "answer": "Keys are encrypted server-side with AES-256-GCM using per-user derived keys and are never exposed raw to the browser. You can revoke the key in your Perplexity settings at any time."
       }
     ]
@@ -476,9 +476,9 @@
     "name": "OpenRouter",
     "logo": "/assets/openrouter.png",
     "title": "Build a website with your OpenRouter API key",
-    "description": "Connect one OpenRouter API key to OpenThorn and access hundreds of models — OpenAI, Anthropic, Google, open-source — through a single account and balance.",
+    "description": "Connect one OpenRouter API key to Smart Video and access hundreds of models — OpenAI, Anthropic, Google, open-source — through a single account and balance.",
     "lastVerified": "2026-06-12",
-    "answer": "Yes — OpenRouter is the easiest multi-model option: one API key and one prepaid balance unlock hundreds of models from OpenAI, Anthropic, Google, and open-source labs. Create a key at openrouter.ai, paste it into OpenThorn (free, encrypted server-side), and switch models freely without managing separate provider accounts.",
+    "answer": "Yes — OpenRouter is the easiest multi-model option: one API key and one prepaid balance unlock hundreds of models from OpenAI, Anthropic, Google, and open-source labs. Create a key at openrouter.ai, paste it into Smart Video (free, encrypted server-side), and switch models freely without managing separate provider accounts.",
     "freeTier": "Some hosted open models are free with rate limits; paid models use your prepaid balance at provider rates plus a small platform fee on credit purchases.",
     "consoleUrl": "https://openrouter.ai/settings/keys",
     "consoleLabel": "openrouter.ai",
@@ -508,8 +508,8 @@
         "text": "openrouter.ai/models lists hundreds of models with live per-token prices — including some free ones."
       },
       {
-        "name": "Connect the key to OpenThorn",
-        "text": "Sign up free at openthorn.app, open the Providers page, choose OpenRouter, and paste your key. It is encrypted server-side with AES-256-GCM and never exposed raw."
+        "name": "Connect the key to Smart Video",
+        "text": "Sign up free at smartvideo.app, open the Providers page, choose OpenRouter, and paste your key. It is encrypted server-side with AES-256-GCM and never exposed raw."
       },
       {
         "name": "Describe your website and ship it",
@@ -519,14 +519,14 @@
     "faqs": [
       {
         "question": "Why use OpenRouter instead of a direct provider key?",
-        "answer": "One account, one balance, hundreds of models — you can compare Claude, GPT, Gemini, and open-source models in OpenThorn without creating separate accounts. The trade-off is a small platform fee on credit purchases."
+        "answer": "One account, one balance, hundreds of models — you can compare Claude, GPT, Gemini, and open-source models in Smart Video without creating separate accounts. The trade-off is a small platform fee on credit purchases."
       },
       {
         "question": "Does OpenRouter have free models?",
-        "answer": "Yes — several hosted open-source models are free with rate limits, so you can build your first OpenThorn site for $0 before adding credits."
+        "answer": "Yes — several hosted open-source models are free with rate limits, so you can build your first Smart Video site for $0 before adding credits."
       },
       {
-        "question": "Is my OpenRouter API key safe in OpenThorn?",
+        "question": "Is my OpenRouter API key safe in Smart Video?",
         "answer": "Keys are encrypted server-side with AES-256-GCM using per-user derived keys and are never exposed raw to the browser. Prepaid credits cap your maximum spend."
       }
     ]
@@ -536,9 +536,9 @@
     "name": "Ollama",
     "logo": "/assets/ollama.png",
     "title": "Build a website with Ollama (free local AI)",
-    "description": "Run open models locally with Ollama and build complete websites in OpenThorn with zero API costs — your prompts and code never leave your machine.",
+    "description": "Run open models locally with Ollama and build complete websites in Smart Video with zero API costs — your prompts and code never leave your machine.",
     "lastVerified": "2026-06-12",
-    "answer": "Yes — and it costs nothing: Ollama runs open models like Llama and Qwen 2.5 Coder locally on your own hardware, so there is no API key, no per-token bill, and no data leaving your machine. Install Ollama, pull a model, point OpenThorn at your local endpoint, and build.",
+    "answer": "Yes — and it costs nothing: Ollama runs open models like Llama and Qwen 2.5 Coder locally on your own hardware, so there is no API key, no per-token bill, and no data leaving your machine. Install Ollama, pull a model, point Smart Video at your local endpoint, and build.",
     "freeTier": "Entirely free — models run on your own hardware. The only requirement is enough RAM/VRAM for the model you choose.",
     "consoleUrl": "https://ollama.com/download",
     "consoleLabel": "ollama.com",
@@ -568,8 +568,8 @@
         "text": "Run `ollama pull qwen2.5-coder` in a terminal. A 7B model needs roughly 8 GB of RAM; larger variants produce better code."
       },
       {
-        "name": "Connect Ollama to OpenThorn",
-        "text": "Sign up free at openthorn.app, open the Providers page, choose Ollama, and point it at your local endpoint. No API key required."
+        "name": "Connect Ollama to Smart Video",
+        "text": "Sign up free at smartvideo.app, open the Providers page, choose Ollama, and point it at your local endpoint. No API key required."
       },
       {
         "name": "Describe your website and ship it",
@@ -579,7 +579,7 @@
     "faqs": [
       {
         "question": "Can I really build a website with AI completely free and offline?",
-        "answer": "Yes. Ollama runs open models locally — no API key, no token bills, no cloud. OpenThorn's platform is free, so the entire build costs $0. Quality depends on the model size your hardware can run; local models are weaker than cloud flagships but capable for simpler sites."
+        "answer": "Yes. Ollama runs open models locally — no API key, no token bills, no cloud. Smart Video's platform is free, so the entire build costs $0. Quality depends on the model size your hardware can run; local models are weaker than cloud flagships but capable for simpler sites."
       },
       {
         "question": "What hardware do I need for Ollama?",
@@ -587,7 +587,7 @@
       },
       {
         "question": "Is local AI private?",
-        "answer": "Yes — with Ollama your prompts and generated code never leave your machine. This is the strongest privacy option among all providers OpenThorn supports."
+        "answer": "Yes — with Ollama your prompts and generated code never leave your machine. This is the strongest privacy option among all providers Smart Video supports."
       }
     ]
   },
@@ -596,9 +596,9 @@
     "name": "Cerebras",
     "logo": "/assets/celebras.png",
     "title": "Build a website with your Cerebras API key",
-    "description": "Connect your Cerebras API key to OpenThorn and build websites at the fastest inference speeds available — wafer-scale hardware serving open models at thousands of tokens per second, with a free tier.",
+    "description": "Connect your Cerebras API key to Smart Video and build websites at the fastest inference speeds available — wafer-scale hardware serving open models at thousands of tokens per second, with a free tier.",
     "lastVerified": "2026-06-12",
-    "answer": "Yes — Cerebras serves open models at thousands of tokens per second on wafer-scale hardware, the fastest inference commercially available. It offers a free API tier, so you can build your first OpenThorn website for $0 with near-instant agent iterations. Create a key at cloud.cerebras.ai and paste it into OpenThorn.",
+    "answer": "Yes — Cerebras serves open models at thousands of tokens per second on wafer-scale hardware, the fastest inference commercially available. It offers a free API tier, so you can build your first Smart Video website for $0 with near-instant agent iterations. Create a key at cloud.cerebras.ai and paste it into Smart Video.",
     "freeTier": "Yes — a free tier with daily token limits, no credit card required.",
     "consoleUrl": "https://cloud.cerebras.ai",
     "consoleLabel": "cloud.cerebras.ai",
@@ -628,8 +628,8 @@
         "text": "Paid tiers unlock higher daily token budgets; set alerts in the dashboard."
       },
       {
-        "name": "Connect the key to OpenThorn",
-        "text": "Sign up free at openthorn.app, open the Providers page, choose Cerebras, and paste your key. It is encrypted server-side with AES-256-GCM and never exposed raw."
+        "name": "Connect the key to Smart Video",
+        "text": "Sign up free at smartvideo.app, open the Providers page, choose Cerebras, and paste your key. It is encrypted server-side with AES-256-GCM and never exposed raw."
       },
       {
         "name": "Describe your website and ship it",
@@ -639,14 +639,14 @@
     "faqs": [
       {
         "question": "Why is Cerebras so fast?",
-        "answer": "Cerebras builds wafer-scale chips — entire silicon wafers acting as one processor — which serve open models at thousands of tokens per second, typically the fastest inference commercially available. For an iterative agent like OpenThorn's, that means near-instant build cycles."
+        "answer": "Cerebras builds wafer-scale chips — entire silicon wafers acting as one processor — which serve open models at thousands of tokens per second, typically the fastest inference commercially available. For an iterative agent like Smart Video's, that means near-instant build cycles."
       },
       {
-        "question": "Can I use Cerebras with OpenThorn for free?",
-        "answer": "Yes — Cerebras offers a free API tier with daily token limits and no credit card, and OpenThorn is free, so your first websites cost $0."
+        "question": "Can I use Cerebras with Smart Video for free?",
+        "answer": "Yes — Cerebras offers a free API tier with daily token limits and no credit card, and Smart Video is free, so your first websites cost $0."
       },
       {
-        "question": "Is my Cerebras API key safe in OpenThorn?",
+        "question": "Is my Cerebras API key safe in Smart Video?",
         "answer": "Keys are encrypted server-side with AES-256-GCM using per-user derived keys and are never exposed raw to the browser. You can rotate the key in the Cerebras dashboard at any time."
       }
     ]
@@ -656,9 +656,9 @@
     "name": "NVIDIA NIM",
     "logo": "/assets/nvidia.png",
     "title": "Build a website with your NVIDIA NIM API key",
-    "description": "Connect your NVIDIA NIM API key to OpenThorn and build websites with GPU-optimized open models — NVIDIA's catalog includes free developer credits to start.",
+    "description": "Connect your NVIDIA NIM API key to Smart Video and build websites with GPU-optimized open models — NVIDIA's catalog includes free developer credits to start.",
     "lastVerified": "2026-06-12",
-    "answer": "Yes — NVIDIA's NIM API serves GPU-optimized open models (DeepSeek R1, Nemotron) through build.nvidia.com, and new developer accounts include free credits. Create a key, paste it into OpenThorn (free, encrypted server-side), describe your site, and build your first pages at no cost.",
+    "answer": "Yes — NVIDIA's NIM API serves GPU-optimized open models (DeepSeek R1, Nemotron) through build.nvidia.com, and new developer accounts include free credits. Create a key, paste it into Smart Video (free, encrypted server-side), describe your site, and build your first pages at no cost.",
     "freeTier": "Yes — developer accounts receive free credits on build.nvidia.com to evaluate models.",
     "consoleUrl": "https://build.nvidia.com",
     "consoleLabel": "build.nvidia.com",
@@ -684,8 +684,8 @@
         "text": "Browse build.nvidia.com for available models; DeepSeek R1 and Nemotron are strong choices for code."
       },
       {
-        "name": "Connect the key to OpenThorn",
-        "text": "Sign up free at openthorn.app, open the Providers page, choose NVIDIA NIM, and paste your key. It is encrypted server-side with AES-256-GCM and never exposed raw."
+        "name": "Connect the key to Smart Video",
+        "text": "Sign up free at smartvideo.app, open the Providers page, choose NVIDIA NIM, and paste your key. It is encrypted server-side with AES-256-GCM and never exposed raw."
       },
       {
         "name": "Describe your website and ship it",
@@ -694,15 +694,15 @@
     ],
     "faqs": [
       {
-        "question": "Can I use NVIDIA NIM with OpenThorn for free?",
-        "answer": "Yes — new developer accounts on build.nvidia.com include free credits, and OpenThorn is free, so your first website builds cost $0."
+        "question": "Can I use NVIDIA NIM with Smart Video for free?",
+        "answer": "Yes — new developer accounts on build.nvidia.com include free credits, and Smart Video is free, so your first website builds cost $0."
       },
       {
         "question": "Which NVIDIA-served model is best for website generation?",
         "answer": "DeepSeek R1 is the strongest for reasoning-heavy builds; Llama 3.1 Nemotron Ultra is NVIDIA's tuned large model and handles complete sites well."
       },
       {
-        "question": "Is my NVIDIA API key safe in OpenThorn?",
+        "question": "Is my NVIDIA API key safe in Smart Video?",
         "answer": "Keys are encrypted server-side with AES-256-GCM using per-user derived keys and are never exposed raw to the browser. You can rotate the key on build.nvidia.com at any time."
       }
     ]

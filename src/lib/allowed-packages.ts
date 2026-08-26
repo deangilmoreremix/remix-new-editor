@@ -53,7 +53,7 @@ export const ALLOWED_PACKAGES: AllowedPackage[] = [
   {
     name: '@supabase/supabase-js',
     url: 'https://esm.sh/@supabase/supabase-js@2.45.4',
-    description: 'Supabase client (database + auth). Prefer the injected `@openthorn/db` over importing this directly.',
+    description: 'Supabase client (database + auth). Prefer the injected `@smartvideo/db` over importing this directly.',
   },
 ]
 
@@ -68,6 +68,6 @@ export const RESOLVABLE_PACKAGES = new Set<string>([
   'react/jsx-dev-runtime',
   'react-router-dom',
   // Injected data-layer client (data URL in the import map, not from esm.sh).
-  '@openthorn/db',
+  '@smartvideo/db',
   ...ALLOWED_PACKAGE_NAMES,
 ])

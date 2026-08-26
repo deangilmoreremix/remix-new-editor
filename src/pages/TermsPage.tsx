@@ -138,7 +138,7 @@ export default function TermsPage() {
           You connect your own API keys from third-party AI providers (e.g. OpenAI,
           Anthropic, Google). Those providers are responsible for obligations that apply
           to their models, while Smart Video remains responsible for the transparency,
-          configuration, and use obligations that apply to OpenThorn as a service.
+          configuration, and use obligations that apply to Smart Video as a service.
         </li>
         <li>
           <strong>Intended use.</strong> Smart Video is designed for code and website

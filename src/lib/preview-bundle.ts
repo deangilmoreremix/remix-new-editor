@@ -3,9 +3,9 @@ import { initCompiler } from './compiler'
 import { createVirtualFsPlugin, type VirtualFile } from './virtualFsPlugin'
 // Import the custom hash router source — injected into previews to replace
 // react-router-dom which doesn't work in srcdoc/sandboxed iframes.
-import bloomRouterSource from '../../public/openthorn-router.js?raw'
-import openthornJsxDevSource from '../../public/openthorn-jsx-dev.js?raw'
-import openthornDbSource from '../../public/openthorn-db.js?raw'
+import bloomRouterSource from '../../public/smartvideo-router.js?raw'
+import smartvideoJsxDevSource from '../../public/smartvideo-jsx-dev.js?raw'
+import smartvideoDbSource from '../../public/smartvideo-db.js?raw'
 import { ALLOWED_PACKAGES } from './allowed-packages'
 import { buildSelectModeScript } from './preview-edit'
 
@@ -68,14 +68,14 @@ function getImportMap(instrument = false, hasBackend = false): Record<string, st
   // our shim (served as a data URL) so host elements get a data-oeid attribute.
   if (instrument) {
     map['react/jsx-dev-runtime'] =
-      'data:text/javascript;base64,' + toBase64(openthornJsxDevSource)
+      'data:text/javascript;base64,' + toBase64(smartvideoJsxDevSource)
   }
 
   // When a backend is connected, expose the injected data-layer client. It is a
   // data-URL module (like the router) that reads window.__OPENTHORN_SUPABASE__ and
   // imports @supabase/supabase-js (resolved from the allowlist above).
   if (hasBackend) {
-    map['@openthorn/db'] = 'data:text/javascript;base64,' + toBase64(openthornDbSource)
+    map['@smartvideo/db'] = 'data:text/javascript;base64,' + toBase64(smartvideoDbSource)
   }
 
   return map
@@ -95,7 +95,7 @@ export interface BuildPreviewOptions {
   instrument?: boolean
   /**
    * When set, inject the project's Supabase config (public url + anon key) and the
-   * @openthorn/db client module so generated apps can read/write data + authenticate.
+   * @smartvideo/db client module so generated apps can read/write data + authenticate.
    */
   backend?: { url: string; anonKey: string }
 }
@@ -156,7 +156,7 @@ export async function buildPreview(
 
   const importMap = JSON.stringify({ imports: getImportMap(opts.instrument, Boolean(opts.backend)) }, null, 2)
 
-  // Public Supabase config for the injected @openthorn/db client. Only the public
+  // Public Supabase config for the injected @smartvideo/db client. Only the public
   // url + anon key (RLS is the security boundary). JSON is escaped so a stray "<"
   // can't break out of the inline <script>.
   const backendConfig = opts.backend

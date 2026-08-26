@@ -1,7 +1,7 @@
 import { lazy, Suspense, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import ReelCarousel from '../ReelCarousel/ReelCarousel'
-import styles from './MeetOpenThornSection.module.css'
+import styles from './MeetSmart VideoSection.module.css'
 
 // Heavy (pulls in esbuild-wasm for the live preview) — only loaded on click.
 const LandingTemplateDemo = lazy(() => import('../LandingTemplateDemo/LandingTemplateDemo'))
@@ -16,7 +16,7 @@ const TEMPLATE_BUTTONS = [
   { id: 'tech-blog', name: 'Blog' },
 ]
 
-export default function MeetOpenThornSection() {
+export default function MeetSmart VideoSection() {
   const [activeId, setActiveId] = useState<string | null>(null)
 
   return (

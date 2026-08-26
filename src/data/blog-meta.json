@@ -19,13 +19,13 @@
     "date": "2026-06-12",
     "excerpt": "Lovable, Bolt.new, and v0 all resell AI usage as credits or token packs from $20–25/month. We compare what each actually costs, where each shines, and what the BYOK alternative looks like.",
     "coverImage": "/assets/lovable.png",
-    "ogImage": "https://www.openthorn.app/assets/lovable.png",
-    "tldr": "Lovable Pro costs $25/month (~100 credits), Bolt.new Pro $25/month (~10M tokens), and v0 Premium $20/month. All three resell AI usage with markup and reset monthly. The BYOK alternative — your own API key in a free tool like OpenThorn — prices a typical website at cents to a few dollars, total.",
+    "ogImage": "https://www.smartvideo.app/assets/lovable.png",
+    "tldr": "Lovable Pro costs $25/month (~100 credits), Bolt.new Pro $25/month (~10M tokens), and v0 Premium $20/month. All three resell AI usage with markup and reset monthly. The BYOK alternative — your own API key in a free tool like Smart Video — prices a typical website at cents to a few dollars, total.",
     "itemList": [
       "Lovable",
       "Bolt.new",
       "v0",
-      "OpenThorn (BYOK alternative)"
+      "Smart Video (BYOK alternative)"
     ]
   },
   {
@@ -34,7 +34,7 @@
     "date": "2026-06-12",
     "excerpt": "A five-minute guide to creating an API key with OpenAI, Anthropic, or Google Gemini — including billing setup and the spend limits that keep costs predictable.",
     "coverImage": "/assets/blog_4.png",
-    "ogImage": "https://www.openthorn.app/assets/blog_4.png",
+    "ogImage": "https://www.smartvideo.app/assets/blog_4.png",
     "tldr": "Sign up at platform.openai.com, console.anthropic.com, or aistudio.google.com; add billing (Gemini has a free tier without it); generate a secret key; and set a monthly spend limit. The whole process takes about five minutes, and prepaid credit or budget caps keep costs predictable.",
     "howTo": {
       "name": "Get an AI API key",
@@ -62,10 +62,10 @@
     "slug": "how-to-build-a-website-with-ai-byok",
     "title": "How to Build a Website with AI Using Your Own API Key",
     "date": "2026-06-12",
-    "excerpt": "Build and deploy a complete website with AI for cents, not subscriptions: get an API key, connect it to OpenThorn, describe what you want, and ship — in six steps.",
+    "excerpt": "Build and deploy a complete website with AI for cents, not subscriptions: get an API key, connect it to Smart Video, describe what you want, and ship — in six steps.",
     "coverImage": "/assets/blog_3.png",
-    "ogImage": "https://www.openthorn.app/assets/blog_3.png",
-    "tldr": "Get an API key from any of 12 supported providers, connect it to OpenThorn (free, encrypted server-side), describe your website in plain language, and the AI agent generates, previews, and deploys it. Total cost: your provider's token rates — typically cents to a few dollars per complete site.",
+    "ogImage": "https://www.smartvideo.app/assets/blog_3.png",
+    "tldr": "Get an API key from any of 12 supported providers, connect it to Smart Video (free, encrypted server-side), describe your website in plain language, and the AI agent generates, previews, and deploys it. Total cost: your provider's token rates — typically cents to a few dollars per complete site.",
     "howTo": {
       "name": "Build a website with AI using your own API key",
       "steps": [
@@ -74,8 +74,8 @@
           "text": "Pick any of the 12 supported providers (OpenAI, Anthropic, Google Gemini, and more) and generate an API key in its developer console."
         },
         {
-          "name": "Create a free OpenThorn account",
-          "text": "Sign up at openthorn.app — free, no credit card, no subscription."
+          "name": "Create a free Smart Video account",
+          "text": "Sign up at smartvideo.app — free, no credit card, no subscription."
         },
         {
           "name": "Connect your API key",
@@ -100,12 +100,12 @@
     "slug": "best-byok-ai-website-builders-2026",
     "title": "The Best BYOK AI Website Builders in 2026",
     "date": "2026-06-12",
-    "excerpt": "Most AI builders resell AI usage as credits. These tools let you bring your own API key instead — OpenThorn, bolt.diy, and Dyad compared, plus how they differ from Lovable, Bolt.new, and v0.",
+    "excerpt": "Most AI builders resell AI usage as credits. These tools let you bring your own API key instead — Smart Video, bolt.diy, and Dyad compared, plus how they differ from Lovable, Bolt.new, and v0.",
     "coverImage": "/assets/blog_5.png",
-    "ogImage": "https://www.openthorn.app/assets/blog_5.png",
-    "tldr": "Three tools let you bring your own API key instead of buying platform credits: OpenThorn (free, hosted, 12 providers), bolt.diy (open source, self-hosted), and Dyad (local desktop app). All three eliminate the $20–50/month subscriptions charged by Lovable, Bolt.new, and v0 — you pay raw token rates instead.",
+    "ogImage": "https://www.smartvideo.app/assets/blog_5.png",
+    "tldr": "Three tools let you bring your own API key instead of buying platform credits: Smart Video (free, hosted, 12 providers), bolt.diy (open source, self-hosted), and Dyad (local desktop app). All three eliminate the $20–50/month subscriptions charged by Lovable, Bolt.new, and v0 — you pay raw token rates instead.",
     "itemList": [
-      "OpenThorn",
+      "Smart Video",
       "bolt.diy",
       "Dyad"
     ]
@@ -117,14 +117,14 @@
     "excerpt": "A BYOK (bring-your-own-key) AI website builder is a tool that generates websites with AI while you connect your own API key from a provider like OpenAI or Anthropic — so you pay the provider directly, with no platform markup or subscription.",
     "dateModified": "2026-06-12",
     "coverImage": "/assets/blog_2.jpg",
-    "ogImage": "https://www.openthorn.app/assets/blog_2.jpg",
+    "ogImage": "https://www.smartvideo.app/assets/blog_2.jpg",
     "tldr": "A BYOK (bring-your-own-key) AI website builder generates websites with AI while you connect your own API key from a provider like OpenAI or Anthropic. You pay the provider's raw per-token rates — typically cents to a few dollars per site — instead of a $20–50/month platform subscription with marked-up credits."
   },
   {
-    "slug": "introducing-openthorn",
-    "title": "Introducing OpenThorn — Build Full-Stack Apps from a Single Prompt",
+    "slug": "introducing-smartvideo",
+    "title": "Introducing Smart Video — Build Full-Stack Apps from a Single Prompt",
     "date": "2026-06-06",
-    "excerpt": "Most web apps still take weeks to build. We built OpenThorn to close that gap — describe your app in plain language and ship the same day.",
+    "excerpt": "Most web apps still take weeks to build. We built Smart Video to close that gap — describe your app in plain language and ship the same day.",
     "coverYoutube": "9RJrDvaWHiE"
   }
 ]

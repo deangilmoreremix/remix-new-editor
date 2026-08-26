@@ -1,7 +1,7 @@
 /**
  * Visual click-to-edit support ("Point & Edit").
  *
- * Pure helpers here are unit-tested. The `public/openthorn-jsx-dev.js` shim
+ * Pure helpers here are unit-tested. The `public/smartvideo-jsx-dev.js` shim
  * mirrors `injectOeidProps` (it cannot import TS, so the small logic is
  * duplicated there — keep them in sync).
  */
@@ -171,9 +171,9 @@ export function anchorPopover(
 /**
  * Returns a self-contained <script> (conservative ES5-ish, like
  * preview-runtime-check.ts) that runs inside the sandboxed preview iframe.
- * It is inert until the parent posts {__openthornEdit:'enable'}. While enabled
+ * It is inert until the parent posts {__smartvideoEdit:'enable'}. While enabled
  * it draws a hover outline and, on click, posts the selected element back.
- * Message shape: {__openthornEdit:'selected'|'ready', payload?}.
+ * Message shape: {__smartvideoEdit:'selected'|'ready', payload?}.
  */
 export function buildSelectModeScript(): string {
   return `<script>
@@ -219,7 +219,7 @@ export function buildSelectModeScript(): string {
       rect: { top:r.top, left:r.left, width:r.width, height:r.height },
       styles: styles
     };
-    parent.postMessage({ __openthornEdit:'selected', payload: payload }, '*');
+    parent.postMessage({ __smartvideoEdit:'selected', payload: payload }, '*');
   }
   function enable(){ if (enabled) return; enabled=true; document.body.style.cursor='crosshair';
     document.addEventListener('mousemove', move, true); document.addEventListener('click', pick, true); }
@@ -227,15 +227,15 @@ export function buildSelectModeScript(): string {
     document.removeEventListener('mousemove', move, true); document.removeEventListener('click', pick, true); }
 
   window.addEventListener('message', function(ev){
-    var d = ev.data; if (!d || !d.__openthornEdit) return;
-    if (d.__openthornEdit === 'enable') enable();
-    else if (d.__openthornEdit === 'disable') disable();
+    var d = ev.data; if (!d || !d.__smartvideoEdit) return;
+    if (d.__smartvideoEdit === 'enable') enable();
+    else if (d.__smartvideoEdit === 'disable') disable();
   });
   // Esc inside the preview (where focus often lives) bubbles out to the parent.
   window.addEventListener('keydown', function(e){
-    if (e.key === 'Escape') parent.postMessage({ __openthornEdit:'escape' }, '*');
+    if (e.key === 'Escape') parent.postMessage({ __smartvideoEdit:'escape' }, '*');
   }, true);
-  parent.postMessage({ __openthornEdit:'ready' }, '*');
+  parent.postMessage({ __smartvideoEdit:'ready' }, '*');
 })();
 </script>`
 }

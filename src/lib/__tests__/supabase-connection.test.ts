@@ -82,7 +82,7 @@ describe('connection persistence', () => {
     process.env.KEY_ENCRYPTION_SECRET = 'test-secret-test-secret-test-secret-test'
     process.env.SUPABASE_OAUTH_CLIENT_ID = 'cid'
     process.env.SUPABASE_OAUTH_CLIENT_SECRET = 'csecret'
-    process.env.SUPABASE_URL = 'https://openthorn.supabase.co'
+    process.env.SUPABASE_URL = 'https://smartvideo.supabase.co'
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-key'
   })
 
@@ -140,7 +140,7 @@ describe('management api', () => {
   beforeEach(() => {
     vi.resetModules()
     fetchMock.mockReset()
-    process.env.SUPABASE_URL = 'https://openthorn.supabase.co'
+    process.env.SUPABASE_URL = 'https://smartvideo.supabase.co'
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-key'
   })
 
@@ -203,7 +203,7 @@ describe('schema apply', () => {
     process.env.KEY_ENCRYPTION_SECRET = 'test-secret-test-secret-test-secret-test'
     process.env.SUPABASE_OAUTH_CLIENT_ID = 'cid'
     process.env.SUPABASE_OAUTH_CLIENT_SECRET = 'csecret'
-    process.env.SUPABASE_URL = 'https://openthorn.supabase.co'
+    process.env.SUPABASE_URL = 'https://smartvideo.supabase.co'
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-key'
   })
 
@@ -245,11 +245,11 @@ describe('schema apply', () => {
     fetchMock
       .mockResolvedValueOnce(jsonResponse([conn]))           // getValidAccessToken
       .mockResolvedValueOnce(jsonResponse([{ project_ref: 'ref1' }])) // projectRef
-      .mockResolvedValueOnce(jsonResponse([]))               // ensure _openthorn_migrations
+      .mockResolvedValueOnce(jsonResponse([]))               // ensure _smartvideo_migrations
       .mockResolvedValueOnce(jsonResponse([]))               // applied checksums (none)
       .mockResolvedValueOnce(jsonResponse({}))               // configureProjectAuth (PATCH config/auth)
       .mockResolvedValueOnce(jsonResponse([]))               // apply DDL batch
-      .mockResolvedValueOnce(jsonResponse([]))               // insert into _openthorn_migrations
+      .mockResolvedValueOnce(jsonResponse([]))               // insert into _smartvideo_migrations
       .mockResolvedValueOnce(jsonResponse({}))               // mirror into project_migrations
     const { applySchema } = await import('../../../api/_supabase')
     const out = await applySchema(USER, 'proj-9', {

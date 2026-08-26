@@ -1,16 +1,12 @@
 // Smart Video Studio — embedded iframe wrapper for the Smart Video AI Website Builder.
-// In dev, this points at a separate Vite dev server on :5173.
-// In production, it loads the static build from /openthorn/.
+// Loads the live smartvid.app application.
 
-const isDev = import.meta.env.DEV;
-const OPENTHORN_DEV_URL = 'http://localhost:5173';
-const OPENTHORN_PROD_PATH = '/openthorn/';
+const SMARTVID_URL = 'https://smartvid.app/';
 
 export function SmartVideoStudio() {
   const container = document.createElement('div');
   container.style.cssText = 'width:100%;height:100%;display:flex;flex-direction:column;';
 
-  // Smart Video-style header with matching design tokens
   const header = document.createElement('div');
   header.style.cssText = `
     display:flex;align-items:center;justify-content:space-between;
@@ -27,7 +23,7 @@ export function SmartVideoStudio() {
   container.appendChild(header);
 
   const iframe = document.createElement('iframe');
-  iframe.src = isDev ? OPENTHORN_DEV_URL : OPENTHORN_PROD_PATH;
+  iframe.src = SMARTVID_URL;
   iframe.style.cssText = `
     flex:1;width:100%;border:none;background:var(--color-bg);
     display:block;

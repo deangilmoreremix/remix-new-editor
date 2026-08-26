@@ -135,8 +135,8 @@ export interface AgentRunInput {
   /**
    * Public Supabase config (url + anon key) for the connected backend. Passed
    * into the agent's own compile/done verification builds so generated code that
-   * imports `@openthorn/db` resolves and runs exactly as it does in the real
-   * preview — without it, those builds omit `@openthorn/db` and every
+   * imports `@smartvideo/db` resolves and runs exactly as it does in the real
+   * preview — without it, those builds omit `@smartvideo/db` and every
    * backend-using app falsely fails the runtime smoke test.
    */
   backendConfig?: { url: string; anonKey: string }
@@ -1053,7 +1053,7 @@ class LoopDetector {
 
 // ─── Main Agent Loop ────────────────────────────────────────────────────────
 
-export async function runOpenThornAgent(input: AgentRunInput): Promise<AgentRunResult> {
+export async function runSmart VideoAgent(input: AgentRunInput): Promise<AgentRunResult> {
   const sessionId = generateSessionId()
 
   // ── Resolve provider with fallback ────────────────────────────
@@ -1786,7 +1786,7 @@ interface RunContext {
   /**
    * Backend connection context for set_schema, when a backend is connected.
    * `config` carries the public Supabase url + anon key so verification builds
-   * (compile/done) inject `@openthorn/db` and `window.__OPENTHORN_SUPABASE__`
+   * (compile/done) inject `@smartvideo/db` and `window.__OPENTHORN_SUPABASE__`
    * the same way the real preview does.
    */
   backend?: { projectId: string; config?: { url: string; anonKey: string } }
@@ -2242,7 +2242,7 @@ async function executeTool(
         return {
           content:
             `${head}\n\nTypeScript types for your tables:\n\n${result.types}\n\n` +
-            "Use the data client in your app: import { db, auth } from '@openthorn/db'. " +
+            "Use the data client in your app: import { db, auth } from '@smartvideo/db'. " +
             "Read/write with db.from('<table>').select() / .insert({...}) / .update({...}).eq('id', id) / .delete().eq('id', id) — never pass user_id, it defaults to the signed-in user. " +
             'Build sign-in/up/out UI with auth.signInWithPassword / auth.signUp / auth.signOut and gate writes behind a session.',
           isError: false,
@@ -2876,7 +2876,7 @@ async function callOpenAIWithTools({
   const headers: Record<string, string> = { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` }
   if (providerId === 'openrouter') {
     headers['HTTP-Referer'] = window.location.origin
-    headers['X-OpenRouter-Title'] = 'OpenThorn'
+    headers['X-OpenRouter-Title'] = 'Smart Video'
   }
 
   const openaiMessages = [

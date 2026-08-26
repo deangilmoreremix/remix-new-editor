@@ -28,7 +28,7 @@ describe('deploySite', () => {
     })
 
     const { deploySite } = await import('../deploy')
-    const result = await deploySite('project-12345678', '<!doctype html><html>OpenThorn</html>')
+    const result = await deploySite('project-12345678', '<!doctype html><html>Smart Video</html>')
 
     expect(result).toEqual({
       siteId: 'ot-abc12345-xyz123',
@@ -39,7 +39,7 @@ describe('deploySite', () => {
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-token' },
       body: JSON.stringify({
         projectId: 'project-12345678',
-        html: '<!doctype html><html>OpenThorn</html>',
+        html: '<!doctype html><html>Smart Video</html>',
       }),
     })
   })

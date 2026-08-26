@@ -240,17 +240,17 @@ describe('buildPreview backend injection', () => {
     const { html, errors } = await build()
     expect(errors).toEqual([])
     expect(html).not.toContain('__OPENTHORN_SUPABASE__')
-    expect(html).not.toContain('@openthorn/db')
+    expect(html).not.toContain('@smartvideo/db')
   })
 
-  it('injects the config global + @openthorn/db + supabase-js when a backend is given', async () => {
+  it('injects the config global + @smartvideo/db + supabase-js when a backend is given', async () => {
     const { html, errors } = await build({ backend: { url: 'https://ref1.supabase.co', anonKey: 'anon-123' } })
     expect(errors).toEqual([])
     expect(html).toContain('__OPENTHORN_SUPABASE__')
     expect(html).toContain('https://ref1.supabase.co')
     expect(html).toContain('anon-123')
     const importMap = JSON.parse(html.match(/<script type="importmap">([\s\S]*?)<\/script>/)![1])
-    expect(importMap.imports['@openthorn/db']).toContain('data:text/javascript')
+    expect(importMap.imports['@smartvideo/db']).toContain('data:text/javascript')
     expect(importMap.imports['@supabase/supabase-js']).toContain('esm.sh/@supabase/supabase-js')
   })
 })
@@ -283,11 +283,11 @@ describe('buildPreview instrument option', () => {
 
   it('injects the select-mode script when instrument is true', async () => {
     const { html } = await build({ instrument: true })
-    expect(html).toContain('__openthornEdit')
+    expect(html).toContain('__smartvideoEdit')
   })
 
   it('omits the select-mode script by default', async () => {
     const { html } = await build()
-    expect(html).not.toContain('__openthornEdit')
+    expect(html).not.toContain('__smartvideoEdit')
   })
 })

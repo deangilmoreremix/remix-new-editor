@@ -9,7 +9,7 @@ import { supabase } from './supabase'
 //          backward compatibility and used as a fallback when the server
 //          endpoint is unavailable (e.g. local dev without KEY_ENCRYPTION_SECRET).
 
-const SALT = 'openthorn-v1-key-encryption'
+const SALT = 'smartvideo-v1-key-encryption'
 const serverKeyOps = new Map<string, Promise<string | null>>()
 const serverDecryptResults = new Map<string, string>()
 

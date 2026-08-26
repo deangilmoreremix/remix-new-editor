@@ -20,7 +20,7 @@ import {
   resolveOeidPath,
   type EditSelection,
 } from '../lib/preview-edit'
-import { runOpenThornAgent, type AgentCodeFile, type LlmMessage, type SelectedAgentModel } from '../lib/agent'
+import { runSmart VideoAgent, type AgentCodeFile, type LlmMessage, type SelectedAgentModel } from '../lib/agent'
 import {
   normalizeThinkingLevel,
   type AgentThinkingLevel,
@@ -429,7 +429,7 @@ export default function ProjectBuilderPage() {
   )
   const [backendConnected, setBackendConnected] = useState(false)
   // Public Supabase config (url + anon key) for the connected backend, injected
-  // into preview + deploy so generated apps can use @openthorn/db.
+  // into preview + deploy so generated apps can use @smartvideo/db.
   const [backendConfig, setBackendConfig] = useState<{ url: string; anonKey: string } | null>(null)
   const [cfPagesProjectName, setCfPagesProjectName] = useState<string | null>(null)
   const titleInputRef = useRef<HTMLInputElement>(null)
@@ -875,7 +875,7 @@ export default function ProjectBuilderPage() {
   const selectActive = editMode && !selection
   useEffect(() => {
     const frame = previewFrameRef.current
-    frame?.contentWindow?.postMessage({ __openthornEdit: selectActive ? 'enable' : 'disable' }, '*')
+    frame?.contentWindow?.postMessage({ __smartvideoEdit: selectActive ? 'enable' : 'disable' }, '*')
   }, [selectActive, previewHtml])
 
   useEffect(() => {
@@ -895,7 +895,7 @@ export default function ProjectBuilderPage() {
       if (e.key === 'Escape') exit()
     }
     const onMsg = (e: MessageEvent) => {
-      if (e.data?.__openthornEdit === 'escape') exit()
+      if (e.data?.__smartvideoEdit === 'escape') exit()
     }
     window.addEventListener('keydown', onKey)
     window.addEventListener('message', onMsg)
@@ -909,8 +909,8 @@ export default function ProjectBuilderPage() {
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
       const d = e.data
-      if (!d || !d.__openthornEdit) return
-      if (d.__openthornEdit === 'selected' && d.payload) {
+      if (!d || !d.__smartvideoEdit) return
+      if (d.__smartvideoEdit === 'selected' && d.payload) {
         setSelection(d.payload as EditSelection)
       }
     }
@@ -1132,7 +1132,7 @@ export default function ProjectBuilderPage() {
     return new URL(`/projects/${projectId}`, window.location.origin).toString()
   }, [projectId])
 
-  const findOpenThornAccount = useCallback(async (email: string) => {
+  const findSmart VideoAccount = useCallback(async (email: string) => {
     const normalizedEmail = email.trim().toLowerCase()
     // profiles is locked to self-only via RLS; use the SECURITY DEFINER lookup
     // so we can resolve an invitee's account without exposing the table.
@@ -1171,9 +1171,9 @@ export default function ProjectBuilderPage() {
     }
 
     setInviteLoading(true)
-    let account: Awaited<ReturnType<typeof findOpenThornAccount>>
+    let account: Awaited<ReturnType<typeof findSmart VideoAccount>>
     try {
-      account = await findOpenThornAccount(normalizedEmail)
+      account = await findSmart VideoAccount(normalizedEmail)
     } catch (error) {
       logError('ProjectFindCollaborator', error)
       setInviteLoading(false)
@@ -1225,7 +1225,7 @@ export default function ProjectBuilderPage() {
         setInviteError(getErrorMessage(error, 'Could not invite this collaborator.'))
       }
     }
-  }, [buildInviteLink, collaborators, findOpenThornAccount, inviteEmail, invitePermission, projectId, user])
+  }, [buildInviteLink, collaborators, findSmart VideoAccount, inviteEmail, invitePermission, projectId, user])
 
   const handlePermissionChange = useCallback((collaboratorId: string, permission: SharePermission) => {
     const previousCollaborators = collaborators
@@ -1473,7 +1473,7 @@ export default function ProjectBuilderPage() {
         ? `<system-reminder>\nTEMPLATE MODE: This project was started from the "${templateNameRef.current || 'template'}" template. The existing files are the template foundation — build upon them. Preserve the color system, component structure, and design language. Do not delete template files unless the user explicitly requests it.\n</system-reminder>\n\n${request}`
         : request
 
-      const result = await runOpenThornAgent({
+      const result = await runSmart VideoAgent({
         userId: user.id,
         prompt: effectivePrompt,
         title,
@@ -2600,7 +2600,7 @@ export default function ProjectBuilderPage() {
                           // race where the enable message is posted before the frame's
                           // listener is attached).
                           previewFrameRef.current?.contentWindow?.postMessage(
-                            { __openthornEdit: selectActive ? 'enable' : 'disable' },
+                            { __smartvideoEdit: selectActive ? 'enable' : 'disable' },
                             '*',
                           )
                         }}
