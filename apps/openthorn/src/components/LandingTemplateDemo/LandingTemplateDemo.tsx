@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { buildPreview } from '../../lib/preview-bundle'
 import { TEMPLATES } from '../../lib/templates'
@@ -31,6 +32,7 @@ export default function LandingTemplateDemo({ templateId, onClose }: Props) {
   const [html, setHtml] = useState('')
   const [stepIndex, setStepIndex] = useState(0)
   const activeId = useRef<string | null>(null)
+  const navigate = useNavigate()
 
   // Kick off generation whenever the template changes.
   useEffect(() => {
@@ -68,10 +70,17 @@ export default function LandingTemplateDemo({ templateId, onClose }: Props) {
     return () => document.removeEventListener('keydown', handler)
   }, [onClose])
 
-  const requireSignup = () => {
-    // Close this modal first so the auth overlay isn't hidden behind it.
-    onClose()
-    window.dispatchEvent(new CustomEvent('openthorn:require-auth', { detail: { mode: 'signup' } }))
+  const openInStudio = () => {
+    if (!template) return
+    const projectId = crypto.randomUUID()
+    navigate(`/projects/${projectId}`, {
+      state: {
+        title: template.name,
+        templateFiles: template.files,
+        isTemplate: true,
+        templateName: template.name,
+      },
+    })
   }
 
   if (!template) return null
@@ -155,10 +164,10 @@ export default function LandingTemplateDemo({ templateId, onClose }: Props) {
             transition={{ duration: 0.3, delay: 0.1 }}
           >
             <div className={styles.ctaText}>
-              <strong>Make it yours.</strong> Sign up free to edit with AI and deploy.
+              <strong>Make it yours.</strong> Open this template in the studio — no account required to explore.
             </div>
-            <button className={styles.ctaPrimary} type="button" onClick={requireSignup}>
-              Sign up to edit &amp; deploy →
+            <button className={styles.ctaPrimary} type="button" onClick={openInStudio}>
+              Open in Studio →
             </button>
           </motion.div>
         )}

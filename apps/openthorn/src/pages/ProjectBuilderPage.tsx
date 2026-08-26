@@ -478,10 +478,10 @@ export default function ProjectBuilderPage() {
   }, [projectId, shareLink])
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && !user && !state.templateFiles?.length) {
       navigate('/', { replace: true })
     }
-  }, [loading, user, navigate])
+  }, [loading, user, navigate, state.templateFiles])
 
   useEffect(() => {
     return () => {

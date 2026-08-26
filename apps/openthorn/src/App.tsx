@@ -166,9 +166,9 @@ export default function App() {
             <Route path="/build-with" element={<Layout><BuildWithIndexPage /></Layout>} />
             <Route path="/build-with/:slug" element={<Layout><BuildWithPage /></Layout>} />
             <Route path="/glossary" element={<Layout><GlossaryPage /></Layout>} />
-            <Route path="/dashboard" element={<ProtectedRoute pageName="the Dashboard"><DashboardPage /></ProtectedRoute>} />
-            <Route path="/projects/:projectId" element={<ProtectedRoute pageName="your project"><ProjectBuilderPage /></ProtectedRoute>} />
-            <Route path="/templates" element={<ProtectedRoute pageName="Templates"><TemplatesPage /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/projects/:projectId" element={<ProjectBuilderPage />} />
+            <Route path="/templates" element={<TemplatesPage />} />
             <Route path="/community" element={<ProtectedRoute pageName="Community"><CommunityPage /></ProtectedRoute>} />
             <Route path="/providers" element={<ProtectedRoute pageName="Providers"><ProvidersPage /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute pageName="Profile"><ProfilePage /></ProtectedRoute>} />
