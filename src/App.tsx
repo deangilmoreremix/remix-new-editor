@@ -165,14 +165,14 @@ export default function App() {
             <Route path="/build-with" element={<Layout><BuildWithIndexPage /></Layout>} />
             <Route path="/build-with/:slug" element={<Layout><BuildWithPage /></Layout>} />
             <Route path="/glossary" element={<Layout><GlossaryPage /></Layout>} />
-            <Route path="/dashboard" element={<ProtectedRoute pageName="the Dashboard"><DashboardPage /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<Layout><DashboardPage /></Layout>} />
             <Route path="/website-builder" element={<Layout><StudioWrapper studioPath="smartvideo" /></Layout>} />
-            <Route path="/projects/:projectId" element={<ProtectedRoute pageName="your project"><ProjectBuilderPage /></ProtectedRoute>} />
-            <Route path="/templates" element={<ProtectedRoute pageName="Templates"><TemplatesPage /></ProtectedRoute>} />
-            <Route path="/community" element={<ProtectedRoute pageName="Community"><CommunityPage /></ProtectedRoute>} />
-            <Route path="/providers" element={<ProtectedRoute pageName="Providers"><ProvidersPage /></ProtectedRoute>} />
-            <Route path="/profile" element={<ProtectedRoute pageName="Profile"><ProfilePage /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute pageName="Settings"><SettingsPage /></ProtectedRoute>} />
+            <Route path="/projects/:projectId" element={<Layout><ProjectBuilderPage /></Layout>} />
+            <Route path="/templates" element={<Layout><TemplatesPage /></Layout>} />
+            <Route path="/community" element={<Layout><CommunityPage /></Layout>} />
+            <Route path="/providers" element={<Layout><ProvidersPage /></Layout>} />
+            <Route path="/profile" element={<Layout><ProfilePage /></Layout>} />
+            <Route path="/settings" element={<Layout><SettingsPage /></Layout>} />
             <Route path="/admin" element={<AdminGuard><AdminLayout /></AdminGuard>}>
               <Route index element={<AdminModerationPage />} />
               <Route path="users" element={<AdminUsersPage />} />
