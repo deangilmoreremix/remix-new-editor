@@ -1,4 +1,4 @@
-// Value Stack Section - Here's What You Get Inside AI Video Agency Studio
+// Value Stack Section - Studio Screenshot Showcase
 
 export function ValueStackSection() {
   const section = document.createElement('section');
@@ -9,10 +9,10 @@ export function ValueStackSection() {
     <div class="container mx-auto max-w-7xl">
       <div class="text-center mb-16">
         <h2 id="value-heading" class="value-headline text-3xl md:text-4xl lg:text-5xl font-black text-white mb-6 opacity-0">
-          You're Not Getting One AI Tool — You're Getting A <span class="text-cyan-400 italic">Full AI Creative Production Suite</span>
+          You're Not Getting One AI Tool — You're Getting A <span class="text-cyan-400 italic">Full AI Creative Personalization Production Suite</span>
         </h2>
         <p class="text-xl text-gray-300 max-w-4xl mx-auto">
-          Here's exactly what you unlock when you start building with AI Video Agency Studio:
+          Here's exactly what you unlock when you start building with Smart Video AI Studio:
         </p>
       </div>
 

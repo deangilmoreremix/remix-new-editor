@@ -34,7 +34,7 @@ export function HeroSection() {
 
       <!-- Main Headline with typewriter effect -->
       <h1 id="hero-headline" class="hero-headline mb-6 leading-tight text-4xl md:text-5xl lg:text-6xl xl:text-7xl" style="max-width: 100%; font-size: clamp(2.5rem, 8vw, 4.5rem);">
-        <span class="text-cyan-400 italic font-black" id="headline-part-1">Create Cinematic AI Videos,</span><br/>
+        <span class="text-cyan-400 italic font-black" id="headline-part-1">Create Cinematic Personalized AI Videos,</span><br/>
         <span class="text-white font-black" id="headline-part-2">Images, VFX, Commercials,</span><br/>
         <span class="text-cyan-400 italic font-black" id="headline-part-3">Characters, Agents &</span><br/>
         <span class="text-white font-black" id="headline-part-4">Client-Ready Content</span><br/>
@@ -43,7 +43,7 @@ export function HeroSection() {
 
       <!-- Subheadline -->
       <p class="hero-subheadline text-lg md:text-xl text-gray-300 mb-10 max-w-4xl mx-auto leading-relaxed font-medium" style="font-size: clamp(1.125rem, 2.5vw, 1.25rem);">
-        AI Video Agency Studio gives you a complete creative command center with 60+ AI-powered tools for generating videos, images, characters, commercials, cinematic effects, avatars, lip sync, dubbing, storyboards, edits, workflows, agents, and client-ready content packages — all from one organized platform.
+        Smart Video AI Studio gives you a complete creative command center with 60+ AI-powered tools for generating personalized videos, images, characters, commercials, cinematic effects, avatars, lip sync, dubbing, storyboards, edits, and client-ready viral content packages — all from one organized platform.
       </p>
 
       <!-- Primary CTA with hover effects -->
@@ -173,6 +173,21 @@ export function HeroSection() {
       delay += 150; // 150ms between each part
     });
   }, 300);
+
+  const secondaryButton = section.querySelector('.cta-secondary');
+  if (secondaryButton) {
+    secondaryButton.addEventListener('click', () => {
+      const scrollToShowcase = () => {
+        const target = document.getElementById('made-with-smartvideo');
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      };
+      scrollToShowcase();
+      setTimeout(scrollToShowcase, 400);
+      setTimeout(scrollToShowcase, 1200);
+    });
+  }
 
   // Parallax effect on scroll
   let ticking = false;
