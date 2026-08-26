@@ -1,4 +1,4 @@
-// AI Video Agency Studio Landing Page
+// Smart Video AI Studio Landing Page
 // Optimized with lazy loading for sections
 
 const ALL_APPS = [
@@ -242,7 +242,7 @@ export default async function LandingPage() {
     container.innerHTML = `
       <section class="relative py-32 px-4 text-center bg-[#020205] min-h-screen flex items-center justify-center">
         <div class="container mx-auto max-w-3xl">
-          <h1 class="text-4xl md:text-6xl text-white mb-6">AI Video Agency Studio</h1>
+          <h1 class="text-4xl md:text-6xl text-white mb-6">Smart Video AI Studio</h1>
           <p class="text-xl text-gray-400 mb-4">Something went wrong loading the page.</p>
           <button onclick="window.location.reload()" class="px-6 py-3 bg-cyan-400 text-black font-semibold rounded hover:bg-cyan-300 transition">Try Again</button>
         </div>
