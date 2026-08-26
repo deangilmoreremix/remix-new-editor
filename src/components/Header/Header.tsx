@@ -128,11 +128,7 @@ export default function Header({ onSignIn, onSignUp }: HeaderProps) {
         <a href="/" className={styles.logo}>
           <img src="/assets/logo.png" alt="" className={styles.logoImg} />
           <span className={styles.logoStack}>
-            <span className={styles.logoText}>OpenThorn</span>
-            <span className={styles.logoByline}>
-              by
-              <BtaMark className={styles.btaMark} />
-            </span>
+            <span className={styles.logoText}>SmartVideo</span>
           </span>
         </a>
 
@@ -175,17 +171,10 @@ export default function Header({ onSignIn, onSignUp }: HeaderProps) {
 
           <span className={styles.divider} />
 
-          {/* Pricing */}
-          <Link to="/pricing" className={styles.navItem}>
-            Pricing
+          {/* Dashboard */}
+          <Link to="/dashboard" className={styles.navItem}>
+            My Projects
           </Link>
-
-          <span className={styles.divider} />
-
-          {/* GitHub */}
-          <a href="https://github.com/BuildingTechAlternatives/OpenThorn" className={styles.navItem} target="_blank" rel="noopener noreferrer">
-            GitHub
-          </a>
 
           <span className={styles.divider} />
 
