@@ -6,7 +6,7 @@ const isDev = import.meta.env.DEV;
 const OPENTHORN_DEV_URL = 'http://localhost:5173';
 const OPENTHORN_PROD_PATH = '/openthorn/';
 
-export function Smart VideoStudio() {
+export function SmartVideoStudio() {
   const container = document.createElement('div');
   container.style.cssText = 'width:100%;height:100%;display:flex;flex-direction:column;';
 
@@ -40,4 +40,4 @@ export function Smart VideoStudio() {
   return container;
 }
 
-export default Smart VideoStudio;
+export default SmartVideoStudio;

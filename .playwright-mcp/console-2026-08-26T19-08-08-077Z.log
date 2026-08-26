@@ -1,0 +1,36 @@
+[     783ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-55RYL2JU.js?v=b55d6e97:20102
+[    1052ms] [ERROR] %o
+
+%s
+
+%s
+ ReferenceError: StudioWrapper is not defined
+    at App (http://localhost:5173/src/App.tsx:223:139)
+    at Object.react_stack_bottom_frame (http://localhost:5173/node_modules/.vite/deps/chunk-55RYL2JU.js?v=b55d6e97:18509:20)
+    at renderWithHooks (http://localhost:5173/node_modules/.vite/deps/chunk-55RYL2JU.js?v=b55d6e97:5654:24)
+    at updateFunctionComponent (http://localhost:5173/node_modules/.vite/deps/chunk-55RYL2JU.js?v=b55d6e97:7475:21)
+    at beginWork (http://localhost:5173/node_modules/.vite/deps/chunk-55RYL2JU.js?v=b55d6e97:8525:20)
+    at runWithFiberInDEV (http://localhost:5173/node_modules/.vite/deps/chunk-55RYL2JU.js?v=b55d6e97:997:72)
+    at performUnitOfWork (http://localhost:5173/node_modules/.vite/deps/chunk-55RYL2JU.js?v=b55d6e97:12561:98)
+    at workLoopSync (http://localhost:5173/node_modules/.vite/deps/chunk-55RYL2JU.js?v=b55d6e97:12424:43)
+    at renderRootSync (http://localhost:5173/node_modules/.vite/deps/chunk-55RYL2JU.js?v=b55d6e97:12408:13)
+    at performWorkOnRoot (http://localhost:5173/node_modules/.vite/deps/chunk-55RYL2JU.js?v=b55d6e97:11827:37) The above error occurred in the <App> component. React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary. @ http://localhost:5173/node_modules/.vite/deps/chunk-55RYL2JU.js?v=b55d6e97:7000
+[    1054ms] [ERROR] [ErrorBoundary] ReferenceError: StudioWrapper is not defined
+    at App (http://localhost:5173/src/App.tsx:223:139)
+    at Object.react_stack_bottom_frame (http://localhost:5173/node_modules/.vite/deps/chunk-55RYL2JU.js?v=b55d6e97:18509:20)
+    at renderWithHooks (http://localhost:5173/node_modules/.vite/deps/chunk-55RYL2JU.js?v=b55d6e97:5654:24)
+    at updateFunctionComponent (http://localhost:5173/node_modules/.vite/deps/chunk-55RYL2JU.js?v=b55d6e97:7475:21)
+    at beginWork (http://localhost:5173/node_modules/.vite/deps/chunk-55RYL2JU.js?v=b55d6e97:8525:20)
+    at runWithFiberInDEV (http://localhost:5173/node_modules/.vite/deps/chunk-55RYL2JU.js?v=b55d6e97:997:72)
+    at performUnitOfWork (http://localhost:5173/node_modules/.vite/deps/chunk-55RYL2JU.js?v=b55d6e97:12561:98)
+    at workLoopSync (http://localhost:5173/node_modules/.vite/deps/chunk-55RYL2JU.js?v=b55d6e97:12424:43)
+    at renderRootSync (http://localhost:5173/node_modules/.vite/deps/chunk-55RYL2JU.js?v=b55d6e97:12408:13)
+    at performWorkOnRoot (http://localhost:5173/node_modules/.vite/deps/chunk-55RYL2JU.js?v=b55d6e97:11827:37) 
+    at App (http://localhost:5173/src/App.tsx:181:41)
+    at SupabaseAuthProvider (http://localhost:5173/src/lib/AuthContext.tsx:22:40)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=b55d6e97:7500:13)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=b55d6e97:10787:3)
+    at ErrorBoundary (http://localhost:5173/src/components/ErrorBoundary/ErrorBoundary.tsx:8:5) @ http://localhost:5173/src/components/ErrorBoundary/ErrorBoundary.tsx:17
+[   95233ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5173/src/components/StudioWrapper.tsx:0
+[   95234ms] [ERROR] [vite] Failed to reload /src/App.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5173/@vite/client:881
+[   98504ms] [ERROR] [vite] Failed to reload /src/App.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5173/@vite/client:881

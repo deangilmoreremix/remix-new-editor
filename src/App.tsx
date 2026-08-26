@@ -15,6 +15,7 @@ import AuthModal from './components/AuthModal/AuthModal'
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute'
 import AdminGuard from './components/AdminGuard/AdminGuard'
 import AnnouncementBanner from './components/AnnouncementBanner/AnnouncementBanner'
+import StudioWrapper from './components/StudioWrapper'
 import styles from './App.module.css'
 
 // Route pages are code-split so the heavy builder/preview stack (esbuild-wasm,
@@ -165,7 +166,7 @@ export default function App() {
             <Route path="/build-with/:slug" element={<Layout><BuildWithPage /></Layout>} />
             <Route path="/glossary" element={<Layout><GlossaryPage /></Layout>} />
             <Route path="/dashboard" element={<ProtectedRoute pageName="the Dashboard"><DashboardPage /></ProtectedRoute>} />
-            <Route path="/website-builder" element={<Layout><StudioWrapper page="smartvideo" /></Layout>} />
+            <Route path="/website-builder" element={<Layout><StudioWrapper studioPath="smartvideo" /></Layout>} />
             <Route path="/projects/:projectId" element={<ProtectedRoute pageName="your project"><ProjectBuilderPage /></ProtectedRoute>} />
             <Route path="/templates" element={<ProtectedRoute pageName="Templates"><TemplatesPage /></ProtectedRoute>} />
             <Route path="/community" element={<ProtectedRoute pageName="Community"><CommunityPage /></ProtectedRoute>} />

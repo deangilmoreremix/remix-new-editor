@@ -70,7 +70,7 @@ const pageLoaders = {
   timeline: () => import('../components/TimelineEditorPage.jsx').then(m => m.TimelineEditorPage()),
   'ai-vfx': () => import('../components/AIVFXPage.js').then(m => m.AIVFXPage()),
   'timeline-iframe-warning': () => Promise.resolve(document.createElement('div')),
-  smartvideo: () => import('../components/Smart VideoStudio.js').then(m => m.Smart VideoStudio()),
+  smartvideo: () => import('../components/SmartVideoStudio.js').then(m => m.SmartVideoStudio()),
 };
 
 const GATED_PAGES = {

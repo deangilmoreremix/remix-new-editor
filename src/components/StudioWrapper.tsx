@@ -38,7 +38,7 @@ const STUDIO_LOADERS = {
   'commercial-page': () => import('./CommercialPage.js').then(m => m.CommercialPage()),
   'upscale-page': () => import('./UpscalePage.js').then(m => m.UpscalePage()),
   assist: () => import('./AssistPage.js').then(m => m.AssistPage()),
-  smartvideo: () => import('./Smart VideoStudio.js').then(m => m.Smart VideoStudio()),
+   smartvideo: () => import('./SmartVideoStudio.js').then(m => m.SmartVideoStudio()),
 }
 
 export default function StudioWrapper({ studioPath }: { studioPath: string }) {

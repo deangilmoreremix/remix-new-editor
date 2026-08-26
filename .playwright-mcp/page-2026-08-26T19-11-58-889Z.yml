@@ -1,0 +1,7 @@
+- generic [ref=f4e5]:
+  - img "Smart Video" [ref=f4e7]
+  - heading "Sign in to continue" [level=1] [ref=f4e8]
+  - paragraph [ref=f4e9]: You need an account to access the Dashboard.
+  - generic [ref=f4e10]:
+    - button "Create account" [ref=f4e11] [cursor=pointer]
+    - button "Sign in" [ref=f4e12] [cursor=pointer]

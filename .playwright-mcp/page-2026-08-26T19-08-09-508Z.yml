@@ -1,0 +1,4 @@
+- generic [ref=e4]:
+  - heading "Something went sideways" [level=1] [ref=e9]
+  - paragraph [ref=e10]: StudioWrapper is not defined
+  - button "Reload" [ref=e11] [cursor=pointer]
