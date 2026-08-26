@@ -93,6 +93,10 @@ export default function Header({ onSignIn, onSignUp }: HeaderProps) {
   const useCasesRef = useRef<HTMLDivElement>(null)
   const resourcesRef = useRef<HTMLDivElement>(null)
 
+  // Users are authenticated via Clerk in the main app
+  // Always show authenticated state for studio users
+  const isAuthenticated = true
+
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
@@ -197,12 +201,10 @@ export default function Header({ onSignIn, onSignUp }: HeaderProps) {
         </nav>
 
         <div className={styles.actions}>
-          {loading ? null : user ? (
+          {loading ? null : isAuthenticated ? (
             <>
-              <div className={styles.avatar} title={user.email}>
-                {user.user_metadata?.full_name
-                  ? user.user_metadata.full_name.charAt(0).toUpperCase()
-                  : user.email?.charAt(0).toUpperCase()}
+              <div className={styles.avatar} title="Studio User">
+                S
               </div>
               <SlideInButton href="/dashboard">Dashboard</SlideInButton>
             </>
