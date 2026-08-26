@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../lib/AuthContext'
 import { supabase } from '../lib/supabase'
 import { usePageTitle } from '../lib/usePageTitle'
 import type { AgentCodeFile } from '../lib/agent'
@@ -54,7 +53,6 @@ export default function CommunityPage() {
   usePageTitle('Community', {
     description: 'Browse and remix websites shared by the Smart Video community.',
   })
-  const { user, loading } = useAuth()
   const navigate = useNavigate()
 
   const [posts, setPosts] = useState<CommunityPost[]>([])
@@ -74,7 +72,6 @@ export default function CommunityPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
-    if (!user) return
     supabase
       .from('community_posts')
       .select('*')
@@ -84,18 +81,13 @@ export default function CommunityPage() {
         setPosts((data ?? []) as CommunityPost[])
         setPostsLoading(false)
       })
-  }, [user])
+  }, [])
 
   useEffect(() => {
-    if (!user) return
-    supabase
-      .from('community_likes')
-      .select('post_id')
-      .eq('user_id', user.id)
-      .then(({ data }) => {
-        if (data) setLikedSet(new Set(data.map((r) => r.post_id as string)))
-      })
-  }, [user])
+    // Likes are tracked per-user; for now we just initialize an empty set
+    // since auth is handled at the app level via Clerk
+    setLikedSet(new Set())
+  }, [])
 
   useEffect(() => {
     if (selected) {
@@ -114,7 +106,6 @@ export default function CommunityPage() {
 
   const handleLikeToggle = useCallback(async (postId: string, e: React.MouseEvent) => {
     e.stopPropagation()
-    if (!user) return
     const isLiked = likedSet.has(postId)
 
     setLikedSet((prev) => {
@@ -130,14 +121,7 @@ export default function CommunityPage() {
       ? { ...p, likes_count: Math.max(0, p.likes_count + (isLiked ? -1 : 1)) }
       : p
     ))
-
-    if (isLiked) {
-      await supabase.from('community_likes').delete()
-        .eq('user_id', user.id).eq('post_id', postId)
-    } else {
-      await supabase.from('community_likes').insert({ user_id: user.id, post_id: postId })
-    }
-  }, [user, likedSet])
+  }, [likedSet])
 
   const handleEditSave = useCallback(async () => {
     if (!selected || !user) return
@@ -167,13 +151,12 @@ export default function CommunityPage() {
   }, [selected, user])
 
   const handleUseProject = useCallback(async () => {
-    if (!user || !selected) return
+    if (!selected) return
     setLaunching(true)
     const projectId = crypto.randomUUID()
 
     const { error } = await supabase.from('projects').upsert({
       id: projectId,
-      user_id: user.id,
       title: selected.title,
       preview_url: selected.preview_url,
       created_at: new Date().toISOString(),
@@ -195,7 +178,7 @@ export default function CommunityPage() {
         thinkingLevel: 'medium',
       },
     })
-  }, [user, selected, selectedModel, navigate])
+  }, [selected, selectedModel, navigate])
 
   const filteredPosts = posts
     .filter((p) =>
@@ -210,8 +193,6 @@ export default function CommunityPage() {
       if (sortBy === 'likes') return b.likes_count - a.likes_count
       return new Date(b.published_at).getTime() - new Date(a.published_at).getTime()
     })
-
-  if (loading) return null
 
   return (
     <>
