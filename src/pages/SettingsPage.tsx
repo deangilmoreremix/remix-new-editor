@@ -38,7 +38,7 @@ const navItems: { id: Tab; label: string; danger?: boolean; icon: React.ReactNod
 
 export default function SettingsPage() {
   usePageTitle('Settings', {
-    description: 'Manage your SmartVideo account, provider settings, custom instructions, and account safety options.',
+    description: 'Manage your Smart Video account, provider settings, custom instructions, and account safety options.',
   })
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
@@ -147,7 +147,7 @@ export default function SettingsPage() {
       <aside className={styles.sidebar}>
         <div className={styles.logoRow}>
           <a href="/dashboard" className={styles.logo}>
-             <img src="/assets/logo.png" alt="SmartVideo" className={styles.logoImg} />
+             <img src="/assets/logo.png" alt="Smart Video" className={styles.logoImg} />
           </a>
         </div>
 

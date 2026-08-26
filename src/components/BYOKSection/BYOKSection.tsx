@@ -7,7 +7,7 @@ const featureCards: Carousel3DCard[] = [
   {
     icon: <KeyIcon />,
     title: 'Bring your own keys',
-    description: 'Hook up OpenAI, Anthropic, Gemini - whatever you use. SmartVideo uses your keys only for requests you make.',
+    description: 'Hook up OpenAI, Anthropic, Gemini - whatever you use. Smart Video uses your keys only for requests you make.',
   },
   {
     icon: <DollarIcon />,
@@ -17,12 +17,12 @@ const featureCards: Carousel3DCard[] = [
   {
     icon: <CodeIcon />,
     title: 'Your code, your repo',
-    description: 'Export everything to GitHub, deploy to your own Vercel account. There is no SmartVideo lock-in.',
+    description: 'Export everything to GitHub, deploy to your own Vercel account. There is no Smart Video lock-in.',
   },
   {
     icon: <SparkIcon />,
     title: 'Real code, real time',
-    description: 'SmartVideo writes production-grade code - not a drag-and-drop approximation. Watch every file appear.',
+    description: 'Smart Video writes production-grade code - not a drag-and-drop approximation. Watch every file appear.',
   },
   {
     icon: <GlobeIcon />,
@@ -45,7 +45,7 @@ export default function BYOKSection() {
         viewport={{ once: true, margin: '-60px' }}
         transition={{ duration: 0.5, ease: [0.19, 1, 0.22, 1] }}
       >
-        <div className={styles.kicker}>Why SmartVideo</div>
+        <div className={styles.kicker}>Why Smart Video</div>
         <h2 className={styles.title}>
           Your keys,{' '}
           your control
@@ -53,7 +53,7 @@ export default function BYOKSection() {
         <p className={styles.bodyText}>
           Most AI website builders bundle the AI cost and mark it up behind
           a subscription you can't escape.
-          <span className={styles.bodyHighlight}> SmartVideo is different.</span> You
+          <span className={styles.bodyHighlight}> Smart Video is different.</span> You
           bring your own AI keys, pay providers directly, and keep every line
           of code. Build anything from a landing page to a full-stack app with
           a database and user auth — no vendor lock-in, no recurring tax.

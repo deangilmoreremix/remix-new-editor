@@ -47,7 +47,7 @@ export default function HeroSection() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: [0.19, 1, 0.22, 1], delay: 0.15 }}
         >
-          Build with SmartVideo
+          Build with Smart Video
           <span className={styles.byline}>
             by
             <BtaMark className={styles.bylineMark} />
@@ -61,7 +61,7 @@ export default function HeroSection() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.19, 1, 0.22, 1], delay: 0.4 }}
         >
-          Describe what you want to build — SmartVideo generates the code,
+          Describe what you want to build — Smart Video generates the code,
           wires up a database and auth, and deploys it anywhere. Frontend or full-stack.
         </motion.p>
 

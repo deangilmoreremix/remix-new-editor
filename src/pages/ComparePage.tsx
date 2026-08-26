@@ -70,7 +70,7 @@ export default function ComparePage() {
             <thead>
               <tr>
                 <th scope="col">Feature</th>
-                <th scope="col">SmartVideo</th>
+                <th scope="col">Smart Video</th>
                 <th scope="col">{entry.competitor}</th>
               </tr>
             </thead>

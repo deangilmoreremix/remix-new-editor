@@ -359,4 +359,4 @@ export function getModalManager(container) {
 }
 
 export { EnhancedModalManager };</content>
-<parameter name="filePath">/workspaces/SmartVideo/src/lib/enhancedModalManager.js
+<parameter name="filePath">/workspaces/Smart Video/src/lib/enhancedModalManager.js

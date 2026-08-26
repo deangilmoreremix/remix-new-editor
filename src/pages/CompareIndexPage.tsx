@@ -19,13 +19,13 @@ const entries = compareMeta as CompareEntry[]
 export default function CompareIndexPage() {
   usePageTitle('Comparisons', {
     description:
-      'Compare SmartVideo with Lovable, Bolt.new, v0, and other AI website builders on pricing, BYOK support, model choice, and code ownership.',
+      'Compare Smart Video with Lovable, Bolt.new, v0, and other AI website builders on pricing, BYOK support, model choice, and code ownership.',
   })
 
   useJsonLd({
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-     name: 'SmartVideo comparisons',
+     name: 'Smart Video comparisons',
      itemListElement: entries.map((entry, index) => ({
        '@type': 'ListItem',
        position: index + 1,

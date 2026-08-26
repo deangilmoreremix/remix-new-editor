@@ -75,7 +75,7 @@ export default class App {
     const demoDiv = document.createElement('div');
     demoDiv.innerHTML = `
       <div class="demo-page">
-        <h1>SmartVideo Integration Demo</h1>
+        <h1>Smart Video Integration Demo</h1>
         <p>This demonstrates the complete AI integration for video personalization.</p>
         <div class="demo-content">
           <h2>✅ All Features Implemented</h2>

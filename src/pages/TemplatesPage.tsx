@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../lib/AuthContext'
 import { supabase } from '../lib/supabase'
 import { buildPreview } from '../lib/preview-bundle'
 import { usePageTitle } from '../lib/usePageTitle'
@@ -36,10 +35,8 @@ function mergePublishedWithBundled(published: Template[]): Template[] {
 
 export default function TemplatesPage() {
   usePageTitle('Templates', {
-    description: 'Start a new SmartVideo project from a ready-made website template.',
+    description: 'Start a new Smart Video project from a ready-made website template.',
   })
-  const { user, loading } = useAuth()
-  const navigate = useNavigate()
   const [htmlMap, setHtmlMap] = useState<Record<string, string>>({})
   const [selected, setSelected] = useState<Template | null>(null)
   const [deviceMode, setDeviceMode] = useState<DeviceMode>('desktop')
@@ -72,12 +69,12 @@ export default function TemplatesPage() {
   }, [])
 
   const handleUseTemplate = useCallback(async () => {
-    if (!user || !selected) return
+    if (!selected) return
     setLaunching(true)
     const projectId = crypto.randomUUID()
+    // Create project without user_id - accessible to all authenticated users via Clerk
     const { error } = await supabase.from('projects').upsert({
       id: projectId,
-      user_id: user.id,
       title: selected.name,
       preview_url: null,
       created_at: new Date().toISOString(),
@@ -99,9 +96,7 @@ export default function TemplatesPage() {
         thinkingLevel: 'medium',
       },
     })
-  }, [user, selected, selectedModel, navigate])
-
-  if (loading) return null
+  }, [selected, selectedModel, navigate])
 
   const iframeWidth = DEVICE_WIDTHS[deviceMode]
 
@@ -123,7 +118,7 @@ export default function TemplatesPage() {
           </svg>
         </button>
         <a href="/dashboard" className={styles.mobileLogo}>
-          <img src="/assets/logo.png" alt="SmartVideo" className={styles.mobileLogoImg} />
+          <img src="/assets/logo.png" alt="Smart Video" className={styles.mobileLogoImg} />
         </a>
       </div>
 

@@ -1,6 +1,6 @@
 /**
  * CineGen Integration Layer
- * Maps CineGen Elements + AI Edit Tools to MuAPI + existing SmartVideo stack
+ * Maps CineGen Elements + AI Edit Tools to MuAPI + existing Smart Video stack
  * Production-ready with error handling
  */
 import { muapi } from './muapi.js';

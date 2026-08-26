@@ -55,11 +55,11 @@ function HomePage() {
   useJsonLd({
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
-    name: 'SmartVideo',
+    name: 'Smart Video',
     applicationCategory: 'DeveloperApplication',
     operatingSystem: 'Web',
     description:
-      'SmartVideo is the BYOK AI website builder — describe what you want, get a complete, deployable website. No subscription, no lock-in.',
+      'Smart Video is the BYOK AI website builder — describe what you want, get a complete, deployable website. No subscription, no lock-in.',
     url: 'https://www.smartvid.app',
     offers: {
       '@type': 'Offer',
@@ -165,6 +165,7 @@ export default function App() {
             <Route path="/build-with/:slug" element={<Layout><BuildWithPage /></Layout>} />
             <Route path="/glossary" element={<Layout><GlossaryPage /></Layout>} />
             <Route path="/dashboard" element={<ProtectedRoute pageName="the Dashboard"><DashboardPage /></ProtectedRoute>} />
+            <Route path="/website-builder" element={<Layout><StudioWrapper page="smartvideo" /></Layout>} />
             <Route path="/projects/:projectId" element={<ProtectedRoute pageName="your project"><ProjectBuilderPage /></ProtectedRoute>} />
             <Route path="/templates" element={<ProtectedRoute pageName="Templates"><TemplatesPage /></ProtectedRoute>} />
             <Route path="/community" element={<ProtectedRoute pageName="Community"><CommunityPage /></ProtectedRoute>} />

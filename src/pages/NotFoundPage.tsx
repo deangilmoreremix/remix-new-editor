@@ -9,7 +9,7 @@ export default function NotFoundPage() {
   return (
     <div className={styles.root}>
       <div className={styles.inner}>
-         <img src="/assets/logo.png" alt="SmartVideo" className={styles.logo} />
+         <img src="/assets/logo.png" alt="Smart Video" className={styles.logo} />
         <span className={styles.code} aria-hidden="true">404</span>
         <h1 className={styles.title}>This page wandered off</h1>
         <p className={styles.message}>
@@ -17,7 +17,7 @@ export default function NotFoundPage() {
         </p>
         <div className={styles.actions}>
           <Link to="/" className={styles.button}>
-             Back to SmartVideo
+             Back to Smart Video
           </Link>
           <Link to="/faq" className={styles.ghostLink}>
             Visit the FAQ

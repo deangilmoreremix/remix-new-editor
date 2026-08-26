@@ -48,6 +48,17 @@ const mainNavItems: NavItem[] = [
     ),
   },
   {
+    label: 'Website Builder',
+    tourId: 'website-builder',
+    icon: (
+      <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+        <path d="M2 17l10 5 10-5"/>
+        <path d="M2 12l10 5 10-5"/>
+      </svg>
+    ),
+  },
+  {
     label: 'Templates',
     tourId: 'templates',
     icon: (
@@ -141,6 +152,7 @@ export default function DashboardSidebar({ projects = [], activeFilter = 'all', 
     if (location.pathname === '/providers') return 'Providers'
     if (location.pathname === '/templates') return 'Templates'
     if (location.pathname === '/community') return 'Community'
+    if (location.pathname.startsWith('/projects/') || location.pathname === '/website-builder') return 'Website Builder'
     return 'Home'
   })
   const [notificationsOpen, setNotificationsOpen] = useState(false)
@@ -153,6 +165,7 @@ export default function DashboardSidebar({ projects = [], activeFilter = 'all', 
     else if (location.pathname === '/dashboard') setActiveNav('Home')
     else if (location.pathname === '/templates') setActiveNav('Templates')
     else if (location.pathname === '/community') setActiveNav('Community')
+    else if (location.pathname.startsWith('/projects/') || location.pathname === '/website-builder') setActiveNav('Website Builder')
   }, [location.pathname])
 
   useEffect(() => {
@@ -173,6 +186,7 @@ export default function DashboardSidebar({ projects = [], activeFilter = 'all', 
     if (label === 'Home') navigate('/dashboard')
     if (label === 'Templates') navigate('/templates')
     if (label === 'Community') navigate('/community')
+    if (label === 'Website Builder') navigate('/website-builder')
   }
 
   const handleProjectFilterClick = (label: string) => {
@@ -210,7 +224,7 @@ export default function DashboardSidebar({ projects = [], activeFilter = 'all', 
       {/* Logo */}
       <div className={styles.logoRow}>
         <a href="/dashboard" className={styles.logo}>
-          <img src="/assets/logo.png" alt="SmartVideo" className={styles.logoImg} />
+          <img src="/assets/logo.png" alt="Smart Video" className={styles.logoImg} />
         </a>
         <button
           className={`${styles.bellBtn} ${notificationsOpen ? styles.bellBtnActive : ''}`}

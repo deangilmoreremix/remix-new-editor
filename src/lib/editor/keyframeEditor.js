@@ -765,4 +765,4 @@ export class KeyframeEditor {
     }
   }
 }</content>
-<parameter name="filePath">/workspaces/SmartVideo/src/lib/editor/keyframeEditor.js
+<parameter name="filePath">/workspaces/Smart Video/src/lib/editor/keyframeEditor.js

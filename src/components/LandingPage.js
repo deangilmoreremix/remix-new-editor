@@ -13,7 +13,7 @@ export default class LandingPage {
       <!-- Hero Section -->
       <section class="hero">
         <div class="hero-content">
-          <div class="badge">🚀 SmartVideo Integration Complete</div>
+          <div class="badge">🚀 Smart Video Integration Complete</div>
           <h1>Create Personalized Videos at Scale</h1>
           <p class="hero-subtitle">
             AI-powered video personalization platform with professional avatars,
@@ -150,7 +150,7 @@ export default class LandingPage {
 
       <!-- Footer -->
       <footer class="landing-footer">
-        <p>© 2024 Video Personalization Platform. SmartVideo alternative to Sendspark.</p>
+        <p>© 2024 Video Personalization Platform. Smart Video alternative to Sendspark.</p>
         <div class="footer-links">
           <a href="/personalize">Personalizer</a>
             <a href="/smartvideo-demo">Demo</a>

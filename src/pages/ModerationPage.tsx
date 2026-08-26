@@ -3,13 +3,13 @@ import { usePageTitle } from '../lib/usePageTitle'
 
 export default function ModerationPage() {
   usePageTitle('Moderation and DSA', {
-    description: 'How SmartVideo moderates user-generated sites and complies with the EU Digital Services Act, including how to report illegal content.',
+    description: 'How Smart Video moderates user-generated sites and complies with the EU Digital Services Act, including how to report illegal content.',
   })
   return (
     <LegalPage title="Moderation and DSA Notice" lastUpdated="June 8, 2026">
       <h2>1. Scope</h2>
       <p>
-                 This notice explains how SmartVideo handles reports about illegal content,
+                 This notice explains how Smart Video handles reports about illegal content,
         unlawful activity, intellectual-property complaints, and community moderation.
         It applies to public or shared areas of the service, including Community
         projects, public previews, project metadata, and user-visible profile details.
@@ -26,7 +26,7 @@ export default function ModerationPage() {
 
       <h2>3. How to Report Illegal Content</h2>
       <p>
-                 If you believe content on SmartVideo is illegal or infringes your rights, email us
+                 If you believe content on Smart Video is illegal or infringes your rights, email us
         with the following information:
       </p>
       <ul>
@@ -42,7 +42,7 @@ export default function ModerationPage() {
         We review reports in good faith and may remove, restrict, disable, or preserve
         content where this is necessary to comply with law, protect users, enforce our
         Terms, or investigate abuse. We may also reject reports that are incomplete,
-         abusive, clearly unfounded, or not related to SmartVideo.
+         abusive, clearly unfounded, or not related to Smart Video.
       </p>
       <p>
         When we take moderation action against user content, we will provide the affected
@@ -70,7 +70,7 @@ export default function ModerationPage() {
 
       <h2>7. Community Standards</h2>
       <p>
-                 Public SmartVideo content must not include illegal material, malware, phishing,
+                 Public Smart Video content must not include illegal material, malware, phishing,
         stolen credentials, private personal data, impersonation, copyright-infringing
         material, hate or harassment, sexual exploitation, or content that endangers
         children. Do not publish API keys, passwords, private repository data, or personal

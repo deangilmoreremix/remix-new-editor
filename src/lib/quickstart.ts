@@ -26,7 +26,7 @@ export const DASHBOARD_TOUR_STEPS: DashboardTourStep[] = [
     element: '[data-tour="prompt"]',
     title: 'Or describe your idea',
     description:
-      'Tell OpenThorn what you want to build right here, and the agent generates your whole site live in the browser.',
+      'Tell Smart Video what you want to build right here, and the agent generates your whole site live in the browser.',
   },
 ]
 

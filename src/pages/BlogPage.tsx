@@ -15,7 +15,7 @@ function formatDate(iso: string) {
 
 export default function BlogPage() {
   usePageTitle('Blog', {
-    description: 'Product updates, guides, and stories from the SmartVideo team on building and shipping websites with AI.',
+    description: 'Product updates, guides, and stories from the Smart Video team on building and shipping websites with AI.',
   })
   // Render bundled posts first (matches the prerendered SSR markup, so hydration
   // is stable), then refetch from Supabase to surface posts published since the

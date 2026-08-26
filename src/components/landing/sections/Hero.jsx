@@ -1,4 +1,4 @@
-// Landing Page Hero Section - SmartVideo style
+// Landing Page Hero Section - Smart Video style
 // Large typography, gradient text, prominent CTAs
 
 export function Hero() {

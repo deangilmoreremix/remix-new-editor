@@ -1,0 +1,86 @@
+name: OpenMontage CD
+
+on:
+  push:
+    branches: [develop]
+
+jobs:
+  deploy-api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Render CLI
+        run: |
+          curl -fsSL https://render.com/cli | sh
+          echo "$HOME/.render" >> $GITHUB_PATH
+      - name: Deploy API to Render
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        run: |
+          render deploys create srv-da6u548n74is73el71v0 \
+            --service openmontage-api \
+            --confirm
+
+  deploy-backlot:
+    runs-on: ubuntu-latest
+    needs: deploy-api
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Render CLI
+        run: |
+          curl -fsSL https://render.com/cli | sh
+          echo "$HOME/.render" >> $GITHUB_PATH
+      - name: Deploy Backlot to Render
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        run: |
+          render deploys create srv-da6u57mk1f9s73c1fnv0 \
+            --service openmontage-backlot \
+            --confirm
+
+  health-check:
+    runs-on: ubuntu-latest
+    needs: [deploy-api, deploy-backlot]
+    steps:
+      - name: Check API health
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf https://openmontage-api.onrender.com/health > /dev/null 2>&1; then
+              echo "API is healthy"
+              exit 0
+            fi
+            echo "Waiting for API... attempt $i/30"
+            sleep 10
+          done
+          echo "API health check failed"
+          exit 1
+      - name: Check Backlot health
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf https://openmontage-backlot.onrender.com/api/health > /dev/null 2>&1; then
+              echo "Backlot is healthy"
+              exit 0
+            fi
+            echo "Waiting for Backlot... attempt $i/30"
+            sleep 10
+          done
+          echo "Backlot health check failed"
+          exit 1
+
+  rollback-on-failure:
+    runs-on: ubuntu-latest
+    needs: health-check
+    if: failure()
+    steps:
+      - name: Install Render CLI
+        run: |
+          curl -fsSL https://render.com/cli | sh
+          echo "$HOME/.render" >> $GITHUB_PATH
+      - name: Rollback API
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        run: |
+          echo "Health check failed, rolling back..."
+          render deploys list srv-da6u548n74is73el71v0 --service openmontage-api --limit 2
+          # Rollback to previous deploy (manual step - requires Render dashboard)
+          echo "Rollback required - check Render dashboard"

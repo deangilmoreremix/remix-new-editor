@@ -1,0 +1,240 @@
+- generic [ref=f6e3]:
+  - banner [ref=f6e4]:
+    - generic [ref=f6e5]:
+      - link "Smart Video" [ref=f6e6] [cursor=pointer]:
+        - /url: /
+      - navigation [ref=f6e9]:
+        - button "Solutions" [ref=f6e10] [cursor=pointer]
+        - button "Use Cases" [ref=f6e14] [cursor=pointer]
+        - link "My Projects" [ref=f6e18] [cursor=pointer]:
+          - /url: /dashboard
+        - button "Resources" [ref=f6e20] [cursor=pointer]
+      - generic [ref=f6e23]:
+        - button "Sign in" [ref=f6e24] [cursor=pointer]
+        - button "Start free" [ref=f6e25] [cursor=pointer]
+  - generic [ref=f6e30]:
+    - button "Close menu" [ref=f6e31] [cursor=pointer]
+    - navigation [ref=f6e34]:
+      - generic [ref=f6e35]:
+        - button "Solutions" [ref=f6e36] [cursor=pointer]
+        - generic:
+          - link "Founders" [ref=f6e39] [cursor=pointer]:
+            - /url: /blog/introducing-smartvideo
+          - link "Developers" [ref=f6e40] [cursor=pointer]:
+            - /url: /faq
+          - link "Product Managers" [ref=f6e41] [cursor=pointer]:
+            - /url: /pricing
+          - link "Designers" [ref=f6e42] [cursor=pointer]:
+            - /url: /templates
+          - link "Marketers" [ref=f6e43] [cursor=pointer]:
+            - /url: /templates
+          - link "Agencies" [ref=f6e44] [cursor=pointer]:
+            - /url: /pricing
+          - link "Ops" [ref=f6e45] [cursor=pointer]:
+            - /url: /faq
+      - generic [ref=f6e46]:
+        - button "Use Cases" [ref=f6e47] [cursor=pointer]
+        - generic:
+          - link "Productivity" [ref=f6e50] [cursor=pointer]:
+            - /url: /templates
+          - link "E-Commerce" [ref=f6e51] [cursor=pointer]:
+            - /url: /templates
+          - link "Marketing & Sales" [ref=f6e52] [cursor=pointer]:
+            - /url: /templates
+          - link "SaaS & Startups" [ref=f6e53] [cursor=pointer]:
+            - /url: /templates
+          - link "HR & Recruitment" [ref=f6e54] [cursor=pointer]:
+            - /url: /templates
+          - link "Education" [ref=f6e55] [cursor=pointer]:
+            - /url: /templates
+          - link "Community platforms" [ref=f6e56] [cursor=pointer]:
+            - /url: /community
+      - generic [ref=f6e57]:
+        - button "Resources" [ref=f6e58] [cursor=pointer]
+        - generic:
+          - link "Blog" [ref=f6e61] [cursor=pointer]:
+            - /url: /blog
+          - link "Comparisons" [ref=f6e62] [cursor=pointer]:
+            - /url: /compare
+          - link "Provider Guides" [ref=f6e63] [cursor=pointer]:
+            - /url: /build-with
+          - link "Glossary" [ref=f6e64] [cursor=pointer]:
+            - /url: /glossary
+          - link "Changelog" [ref=f6e65] [cursor=pointer]:
+            - /url: /changelog
+          - link "Templates" [ref=f6e66] [cursor=pointer]:
+            - /url: /templates
+          - link "Docs & FAQs" [ref=f6e67] [cursor=pointer]:
+            - /url: /faq
+      - link "Pricing" [ref=f6e68] [cursor=pointer]:
+        - /url: /pricing
+    - generic [ref=f6e69]:
+      - button "Sign in" [ref=f6e70] [cursor=pointer]
+      - button "Start free" [ref=f6e71] [cursor=pointer]
+  - main [ref=f6e72]:
+    - generic [ref=f6e76]:
+      - heading [level=1] [ref=f6e81]:
+        - text: Build with Smart Video
+        - generic [ref=f6e82]: by
+      - paragraph [ref=f6e89]: Describe what you want to build — Smart Video generates the code, wires up a database and auth, and deploys it anywhere. Frontend or full-stack.
+      - generic [ref=f6e93]:
+        - textbox "Describe your website idea" [ref=f6e96]:
+          - /placeholder: ""
+        - generic [ref=f6e97]:
+          - generic [ref=f6e98]:
+            - button "Upload files" [ref=f6e99] [cursor=pointer]
+            - button [ref=f6e103] [cursor=pointer]
+          - generic [ref=f6e108]:
+            - button "Agent thinking level" [ref=f6e110] [cursor=pointer]:
+              - generic [ref=f6e111]: Medium
+            - button "Send message" [ref=f6e114] [cursor=pointer]:
+              - generic [ref=f6e115]: Send
+      - generic [ref=f6e116]:
+        - generic [ref=f6e117]:
+          - generic [ref=f6e122]: any provider
+          - generic [ref=f6e123]: Own your keys
+        - generic [ref=f6e124]:
+          - generic [ref=f6e130]: usage pricing only
+          - generic [ref=f6e131]: No platform markup
+        - generic [ref=f6e132]:
+          - generic [ref=f6e138]: your repo, your infra
+          - generic [ref=f6e139]: Export real code
+        - generic [ref=f6e140]:
+          - generic [ref=f6e146]: database + auth free
+          - generic [ref=f6e147]: Full-stack ready
+    - generic [ref=f6e150]:
+      - generic [ref=f6e151]:
+        - generic [ref=f6e152]: Why Smart Video
+        - heading "Your keys, your control" [level=2] [ref=f6e153]
+        - paragraph [ref=f6e154]: Most AI website builders bundle the AI cost and mark it up behind a subscription you can't escape. Smart Video is different. You bring your own AI keys, pay providers directly, and keep every line of code. Build anything from a landing page to a full-stack app with a database and user auth — no vendor lock-in, no recurring tax.
+      - generic [ref=f6e156]:
+        - generic:
+          - generic [ref=f6e158] [cursor=pointer]:
+            - heading "Bring your own keys" [level=3] [ref=f6e162]
+            - paragraph [ref=f6e163]: Hook up OpenAI, Anthropic, Gemini - whatever you use. Smart Video uses your keys only for requests you make.
+          - generic [ref=f6e165] [cursor=pointer]:
+            - heading "Zero platform tax" [level=3] [ref=f6e169]
+            - paragraph [ref=f6e170]: No subscription, no per-request markup. You pay providers directly and keep what you save.
+          - generic [ref=f6e172] [cursor=pointer]:
+            - heading "Your code, your repo" [level=3] [ref=f6e177]
+            - paragraph [ref=f6e178]: Export everything to GitHub, deploy to your own Vercel account. There is no Smart Video lock-in.
+          - generic [ref=f6e180] [cursor=pointer]:
+            - heading "Real code, real time" [level=3] [ref=f6e184]
+            - paragraph [ref=f6e185]: Smart Video writes production-grade code - not a drag-and-drop approximation. Watch every file appear.
+          - generic [ref=f6e187] [cursor=pointer]:
+            - heading "Deploy in one click" [level=3] [ref=f6e193]
+            - paragraph [ref=f6e194]: From prompt to production in under a minute. Push live when you're ready, not when a plan allows.
+          - generic [ref=f6e196] [cursor=pointer]:
+            - heading "Full-stack, free" [level=3] [ref=f6e202]
+            - paragraph [ref=f6e203]: Connect your Supabase project and the agent adds a real database and user auth — Supabase free tier included.
+    - generic [ref=f6e205]:
+      - generic [ref=f6e206]:
+        - generic [ref=f6e207]: Build before the idea cools
+        - heading "Turn the next rough prompt into a working app." [level=2] [ref=f6e208]
+        - paragraph [ref=f6e209]: "Skip the platform tax and keep momentum: bring your model keys, generate real code — frontend or full-stack — and ship from your own repo."
+        - generic "Smart Video advantages" [ref=f6e210]:
+          - generic [ref=f6e211]: BYOK pricing
+          - generic [ref=f6e212]: GitHub export
+          - generic [ref=f6e213]: Supabase backend
+          - generic [ref=f6e214]: No subscription wall
+        - paragraph [ref=f6e215]:
+          - text: New here? Learn
+          - link "what a BYOK AI website builder is" [ref=f6e216] [cursor=pointer]:
+            - /url: /blog/what-is-a-byok-ai-website-builder
+          - text: ", compare"
+          - link "AI model pricing" [ref=f6e217] [cursor=pointer]:
+            - /url: /pricing
+          - text: ", or browse the"
+          - link "FAQ" [ref=f6e218] [cursor=pointer]:
+            - /url: /faq
+          - text: .
+      - generic [ref=f6e219]:
+        - generic [ref=f6e220]: Start with one sentence
+        - generic [ref=f6e224]:
+          - textbox "Describe your website idea" [ref=f6e227]:
+            - /placeholder: ""
+          - generic [ref=f6e228]:
+            - generic [ref=f6e229]:
+              - button "Upload files" [ref=f6e230] [cursor=pointer]
+              - button [ref=f6e234] [cursor=pointer]
+            - generic [ref=f6e239]:
+              - button "Agent thinking level" [ref=f6e241] [cursor=pointer]:
+                - generic [ref=f6e242]: Medium
+              - button "Send message" [ref=f6e245] [cursor=pointer]:
+                - generic [ref=f6e246]: Send
+  - contentinfo [ref=f6e247]:
+    - generic [ref=f6e248]:
+      - generic [ref=f6e249]:
+        - generic [ref=f6e250]:
+          - link "Smart Video" [ref=f6e251] [cursor=pointer]:
+            - /url: /
+          - paragraph [ref=f6e253]: Turn a description into a deployed website â€” with your own API keys and your own infrastructure.
+        - generic [ref=f6e254]:
+          - generic [ref=f6e255]: Solutions
+          - generic [ref=f6e256]:
+            - link "Founders" [ref=f6e257] [cursor=pointer]:
+              - /url: /blog/introducing-smartvideo
+            - link "Developers" [ref=f6e258] [cursor=pointer]:
+              - /url: /faq
+            - link "Product Managers" [ref=f6e259] [cursor=pointer]:
+              - /url: /pricing
+            - link "Designers" [ref=f6e260] [cursor=pointer]:
+              - /url: /templates
+            - link "Marketers" [ref=f6e261] [cursor=pointer]:
+              - /url: /templates
+            - link "Agencies" [ref=f6e262] [cursor=pointer]:
+              - /url: /pricing
+            - link "Ops" [ref=f6e263] [cursor=pointer]:
+              - /url: /faq
+        - generic [ref=f6e264]:
+          - generic [ref=f6e265]: Use Cases
+          - generic [ref=f6e266]:
+            - link "Productivity" [ref=f6e267] [cursor=pointer]:
+              - /url: /templates
+            - link "E-Commerce" [ref=f6e268] [cursor=pointer]:
+              - /url: /templates
+            - link "Marketing & Sales" [ref=f6e269] [cursor=pointer]:
+              - /url: /templates
+            - link "SaaS & Startups" [ref=f6e270] [cursor=pointer]:
+              - /url: /templates
+            - link "Education" [ref=f6e271] [cursor=pointer]:
+              - /url: /templates
+            - link "Community platforms" [ref=f6e272] [cursor=pointer]:
+              - /url: /community
+        - generic [ref=f6e273]:
+          - generic [ref=f6e274]: Resources
+          - generic [ref=f6e275]:
+            - link "Blog" [ref=f6e276] [cursor=pointer]:
+              - /url: /blog
+            - link "Changelog" [ref=f6e277] [cursor=pointer]:
+              - /url: /changelog
+            - link "Templates" [ref=f6e278] [cursor=pointer]:
+              - /url: /templates
+            - link "Docs & FAQs" [ref=f6e279] [cursor=pointer]:
+              - /url: /faq
+            - link "Comparisons" [ref=f6e280] [cursor=pointer]:
+              - /url: /compare
+            - link "Provider Guides" [ref=f6e281] [cursor=pointer]:
+              - /url: /build-with
+            - link "Glossary" [ref=f6e282] [cursor=pointer]:
+              - /url: /glossary
+        - generic [ref=f6e283]:
+          - generic [ref=f6e284]: Legal
+          - generic [ref=f6e285]:
+            - link "Privacy Policy" [ref=f6e286] [cursor=pointer]:
+              - /url: /privacy
+            - link "Terms of Service" [ref=f6e287] [cursor=pointer]:
+              - /url: /terms
+            - link "Cookie Policy" [ref=f6e288] [cursor=pointer]:
+              - /url: /cookies
+            - link "Moderation & DSA" [ref=f6e289] [cursor=pointer]:
+              - /url: /moderation
+            - link "Imprint" [ref=f6e290] [cursor=pointer]:
+              - /url: /imprint
+      - generic [ref=f6e291]:
+        - generic [ref=f6e292]: © 2026 Smart Video. All rights reserved.
+        - generic [ref=f6e293]:
+          - link "GitHub" [ref=f6e294] [cursor=pointer]:
+            - /url: https://github.com/BuildingTechAlternatives/Smart Video
+          - link "X" [ref=f6e297] [cursor=pointer]:
+            - /url: https://x.com

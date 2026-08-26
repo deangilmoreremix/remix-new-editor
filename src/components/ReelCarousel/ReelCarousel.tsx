@@ -27,14 +27,14 @@ const bloomSlides: CarouselSlide[] = [
     tag: 'Step 01',
     title: 'Describe what you need',
     description:
-      'Tell SmartVideo what you\'re building — a storefront, a dashboard, a blog. Plain English is all it takes.',
+      'Tell Smart Video what you\'re building — a storefront, a dashboard, a blog. Plain English is all it takes.',
   },
   {
     image: '/assets/project_page.png',
     tag: 'Step 02',
     title: 'See it take shape',
     description:
-      'SmartVideo generates real components and styles live — every file visible as it\'s written.',
+      'Smart Video generates real components and styles live — every file visible as it\'s written.',
   },
   {
     image: '/assets/deployed.png',

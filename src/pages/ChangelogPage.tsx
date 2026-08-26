@@ -36,7 +36,7 @@ function formatDate(date: string) {
 export default function ChangelogPage() {
   usePageTitle('Changelog', {
     description:
-      'Every SmartVideo update, generated automatically from our GitHub commit history — new features, fixes, and improvements as they ship.',
+      'Every Smart Video update, generated automatically from our GitHub commit history — new features, fixes, and improvements as they ship.',
   })
 
   const days = changelog.days as ChangelogDay[]

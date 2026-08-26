@@ -52,7 +52,7 @@ function postAccentColor(title: string): string {
 
 export default function CommunityPage() {
   usePageTitle('Community', {
-    description: 'Browse and remix websites shared by the SmartVideo community.',
+    description: 'Browse and remix websites shared by the Smart Video community.',
   })
   const { user, loading } = useAuth()
   const navigate = useNavigate()
@@ -232,14 +232,14 @@ export default function CommunityPage() {
           </svg>
         </button>
         <a href="/dashboard" className={styles.mobileLogo}>
-          <img src="/assets/logo.png" alt="SmartVideo" className={styles.mobileLogoImg} />
+          <img src="/assets/logo.png" alt="Smart Video" className={styles.mobileLogoImg} />
         </a>
       </div>
 
       <main className={styles.main}>
         <div className={styles.header}>
           <h1 className={styles.heading}>Community</h1>
-          <p className={styles.subheading}>Projects built and shared by the SmartVideo community.</p>
+          <p className={styles.subheading}>Projects built and shared by the Smart Video community.</p>
         </div>
 
         <div className={styles.controls}>

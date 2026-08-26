@@ -18,7 +18,7 @@ export default function AdminLayout() {
     <div className={styles.shell}>
       <aside className={styles.sidebar}>
         <Link to="/dashboard" className={styles.logo}>
-          <img src="/assets/logo.png" alt="SmartVideo" className={styles.logoImg} />
+          <img src="/assets/logo.png" alt="Smart Video" className={styles.logoImg} />
           <span className={styles.logoText}>Admin</span>
         </Link>
         <nav className={styles.nav}>

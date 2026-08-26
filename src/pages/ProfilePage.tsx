@@ -49,7 +49,7 @@ function formatRelativeTime(iso: string): string {
 
 export default function ProfilePage() {
   usePageTitle('Profile', {
-    description: 'View your SmartVideo profile and community activity.',
+    description: 'View your Smart Video profile and community activity.',
   })
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -149,7 +149,7 @@ export default function ProfilePage() {
           </svg>
         </button>
         <a href="/dashboard" className={styles.mobileLogo}>
-          <img src="/assets/logo.png" alt="SmartVideo" className={styles.mobileLogoImg} />
+          <img src="/assets/logo.png" alt="Smart Video" className={styles.mobileLogoImg} />
         </a>
       </div>
 

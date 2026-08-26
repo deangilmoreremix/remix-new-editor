@@ -7,7 +7,7 @@ import {
 import styles from './ConnectBackend.module.css'
 
 interface Props {
-  /** Current SmartVideo project id. */
+  /** Current Smart Video project id. */
   projectId: string
   /** Notified whenever the connected state is determined or changes. */
   onStatusChange?: (connected: boolean) => void
@@ -25,7 +25,7 @@ function statusLabel(status: string): string {
 
 /**
  * "Add a backend" panel. Lets the user authorize their Supabase account (OAuth),
- * pick (or create) a project, and connect it to this SmartVideo project — adding a
+ * pick (or create) a project, and connect it to this Smart Video project — adding a
  * database + auth to the generated app. Self-contained: reads the session from
  * useAuth and the connection status from the project_backends table.
  */

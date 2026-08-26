@@ -143,7 +143,7 @@ export default function LandingTemplateDemo({ templateId, onClose }: Props) {
               transition={{ duration: 0.4 }}
             />
           ) : (
-            <div className={styles.previewError}>Preview unavailable — but you can still build this with SmartVideo.</div>
+            <div className={styles.previewError}>Preview unavailable — but you can still build this with Smart Video.</div>
           )}
         </div>
 

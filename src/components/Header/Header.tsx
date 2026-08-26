@@ -40,12 +40,12 @@ const useCasesItems: DropdownItem[] = [
 
 const resourcesItems: DropdownItem[] = [
   { label: 'Blog', description: 'Product updates, guides, and behind-the-scenes', href: '/blog' },
-   { label: 'Comparisons', description: 'See SmartVideo against Lovable, Bolt.new, and v0', href: '/compare' },
+   { label: 'Comparisons', description: 'See Smart Video against Lovable, Bolt.new, and v0', href: '/compare' },
   { label: 'Provider Guides', description: 'Set up OpenAI, Anthropic, Gemini, and more', href: '/build-with' },
   { label: 'Glossary', description: 'Plain-English AI builder terms and concepts', href: '/glossary' },
   { label: 'Changelog', description: 'What shipped, straight from our commits', href: '/changelog' },
   { label: 'Templates', description: 'Jump-start your next project', href: '/templates' },
-   { label: 'Docs & FAQs', description: 'How SmartVideo works, answered clearly', href: '/faq' },
+   { label: 'Docs & FAQs', description: 'How Smart Video works, answered clearly', href: '/faq' },
 ]
 
 type DropdownKey = 'solutions' | 'useCases' | 'resources'
@@ -128,7 +128,7 @@ export default function Header({ onSignIn, onSignUp }: HeaderProps) {
         <a href="/" className={styles.logo}>
           <img src="/assets/logo.png" alt="" className={styles.logoImg} />
           <span className={styles.logoStack}>
-            <span className={styles.logoText}>SmartVideo</span>
+            <span className={styles.logoText}>Smart Video</span>
           </span>
         </a>
 

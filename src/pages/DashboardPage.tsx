@@ -80,7 +80,7 @@ const INITIAL_VISIBLE = 4
 
 export default function DashboardPage() {
   usePageTitle('Dashboard', {
-    description: 'Create, manage, search, publish, and deploy your SmartVideo projects.',
+    description: 'Create, manage, search, publish, and deploy your Smart Video projects.',
   })
   const { user, loading: authLoading } = useAuth()
   const navigate = useNavigate()
@@ -656,7 +656,7 @@ export default function DashboardPage() {
           </svg>
         </button>
         <a href="/dashboard" className={styles.mobileLogo}>
-          <img src="/assets/logo.png" alt="SmartVideo" className={styles.mobileLogoImg} />
+          <img src="/assets/logo.png" alt="Smart Video" className={styles.mobileLogoImg} />
         </a>
       </div>
 
@@ -1081,7 +1081,7 @@ export default function DashboardPage() {
             </button>
             <h2 className={styles.publishTitle}>Publish to Community</h2>
             <p className={styles.publishSubtitle}>
-              Share <strong>{publishingProject.title}</strong> with the SmartVideo community.
+              Share <strong>{publishingProject.title}</strong> with the Smart Video community.
             </p>
             <label className={styles.publishLabel}>
               Description <span className={styles.publishOptional}>(optional)</span>

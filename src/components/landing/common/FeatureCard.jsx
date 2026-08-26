@@ -1,4 +1,4 @@
-// Feature Card Component - SmartVideo style
+// Feature Card Component - Smart Video style
 // Autoplay video on hover, CTA button, clean layout
 
 export function FeatureCard({ feature }) {
@@ -41,7 +41,7 @@ export function FeatureCard({ feature }) {
       hoverTimeout = setTimeout(() => {
         video.currentTime = 0;
         video.play().catch(() => {});
-      }, 300); // 300ms delay like SmartVideo
+      }, 300); // 300ms delay like Smart Video
     }
   });
   

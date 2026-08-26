@@ -3,20 +3,20 @@ import { usePageTitle } from '../lib/usePageTitle'
 
 export default function PrivacyPage() {
   usePageTitle('Privacy Policy', {
-    description: 'How SmartVideo handles your data. Your provider API keys are encrypted at rest, and we use only cookieless, privacy-friendly analytics.',
+    description: 'How Smart Video handles your data. Your provider API keys are encrypted at rest, and we use only cookieless, privacy-friendly analytics.',
   })
   return (
     <LegalPage title="Privacy Policy" lastUpdated="June 29, 2026">
       <h2>1. Who We Are</h2>
       <p>
-        SmartVideo is operated by <strong>Thomas Tschinkel</strong>, located in{' '}
+        Smart Video is operated by <strong>Thomas Tschinkel</strong>, located in{' '}
         <strong>Rome, Italy</strong> (the "Data Controller"). For privacy-related enquiries,
         contact us at{' '}
         <strong><a href="mailto:btalabs.contact@gmail.com">btalabs.contact@gmail.com</a></strong>.
       </p>
 
       <h2>2. What Data We Process</h2>
-      <p>We process the data needed to provide, secure, and improve SmartVideo:</p>
+      <p>We process the data needed to provide, secure, and improve Smart Video:</p>
       <ul>
         <li>
           <strong>Account and profile data</strong> - email address, display name,
@@ -56,7 +56,7 @@ export default function PrivacyPage() {
         </li>
         <li>
           <strong>Local user memory</strong> - optional browser-local preferences, fixes,
-          and facts inferred from your prompts so SmartVideo can keep useful context across
+          and facts inferred from your prompts so Smart Video can keep useful context across
           projects on the same browser.
         </li>
         <li>
@@ -140,7 +140,7 @@ export default function PrivacyPage() {
           <strong>CDN and package providers</strong> - generated previews may load runtime
           resources such as JavaScript packages, type definitions, or WebAssembly files
           from public CDNs when needed to build, preview, or typecheck generated code.
-          SmartVideo's own fonts are self-hosted and do not involve requests to Google
+          Smart Video's own fonts are self-hosted and do not involve requests to Google
           Fonts or other third-party font services.
         </li>
         <li>
@@ -150,7 +150,7 @@ export default function PrivacyPage() {
         </li>
       </ul>
       <p>
-        SmartVideo does not sell your personal data. API keys are not used for SmartVideo
+        Smart Video does not sell your personal data. API keys are not used for Smart Video
         billing and are not disclosed except where technically necessary to communicate
         with the provider you selected or where legally required.
       </p>
@@ -170,7 +170,7 @@ export default function PrivacyPage() {
         before database storage.
       </p>
       <p>
-        Saved provider API keys are sensitive credentials. SmartVideo encrypts them before
+        Saved provider API keys are sensitive credentials. Smart Video encrypts them before
         database storage and decrypts them only when needed to send your request to the
         provider you selected. This reduces exposure but does not make stored keys risk
         free. You remain responsible for managing provider-side permissions, spend limits,

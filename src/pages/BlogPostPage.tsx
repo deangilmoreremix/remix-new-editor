@@ -54,10 +54,10 @@ export default function BlogPostPage() {
           datePublished: post.date,
           dateModified: post.dateModified ?? post.date,
           url: `https://www.smartvid.app/blog/${post.slug}`,
-          author: { '@type': 'Organization', name: 'SmartVideo' },
+          author: { '@type': 'Organization', name: 'Smart Video' },
           publisher: {
             '@type': 'Organization',
-            name: 'SmartVideo',
+            name: 'Smart Video',
             logo: {
               '@type': 'ImageObject',
               url: 'https://www.smartvid.app/logo.png',
