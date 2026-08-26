@@ -1,0 +1,21 @@
+[    9037ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3199/src/main.js:19
+[    9209ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3199/src/lib/popcornInit.js:41
+[    9229ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3199/src/lib/popcornInit.js:48
+[    9408ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3199/src/lib/popcornInit.js:48
+[    9436ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3199/src/lib/popcornInit.js:48
+[    9451ms] [LOG] [popcorn-init] OK: wrapper-common @ http://127.0.0.1:3199/src/lib/popcornInit.js:48
+[    9468ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://127.0.0.1:3199/src/lib/popcornInit.js:48
+[    9477ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://127.0.0.1:3199/src/lib/popcornInit.js:48
+[    9486ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://127.0.0.1:3199/src/lib/popcornInit.js:48
+[    9494ms] [LOG] [popcorn-init] OK: wrapper-null @ http://127.0.0.1:3199/src/lib/popcornInit.js:48
+[    9509ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://127.0.0.1:3199/src/lib/popcornInit.js:48
+[    9523ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://127.0.0.1:3199/src/lib/popcornInit.js:48
+[    9530ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://127.0.0.1:3199/src/lib/popcornInit.js:48
+[    9541ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://127.0.0.1:3199/src/lib/popcornInit.js:48
+[    9547ms] [LOG] [popcorn-init] OK: player-module @ http://127.0.0.1:3199/src/lib/popcornInit.js:48
+[   15095ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://127.0.0.1:3199/@vite/client:0
+[   15095ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://127.0.0.1:3199/src/main.js?t=1787509511050:0
+[   15096ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://127.0.0.1:3199/@react-refresh:0
+[   15103ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3199/favicon.webp:0
+[   15108ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3199/favicon.webp:0
+[   15109ms] [WARNING] Error while trying to use the following icon from the Manifest: http://127.0.0.1:3199/favicon.webp (Download error or resource isn't a valid image) @ http://127.0.0.1:3199/#/apps:0

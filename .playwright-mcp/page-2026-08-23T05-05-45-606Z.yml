@@ -1,0 +1,714 @@
+- generic [ref=f297e1]:
+  - generic [ref=f297e2]:
+    - banner [ref=f297e3]:
+      - generic [ref=f297e4]:
+        - generic [ref=f297e5]:
+          - generic [ref=f297e6] [cursor=pointer]
+          - navigation [ref=f297e12]:
+            - generic [ref=f297e13] [cursor=pointer]: Explore
+            - generic [ref=f297e14] [cursor=pointer]: Image
+            - generic [ref=f297e15] [cursor=pointer]: Video
+            - generic [ref=f297e16] [cursor=pointer]: Tools
+            - generic [ref=f297e17] [cursor=pointer]: Storyboard
+            - generic [ref=f297e18] [cursor=pointer]: Edit
+            - generic [ref=f297e19] [cursor=pointer]: Character
+            - generic [ref=f297e20] [cursor=pointer]: Vibe Motion
+            - generic [ref=f297e21] [cursor=pointer]: Cinema Studio
+            - generic [ref=f297e22] [cursor=pointer]: Cinema Template Studio
+            - generic [ref=f297e23] [cursor=pointer]: AI Influencer
+            - generic [ref=f297e24] [cursor=pointer]: Smart Video Viral
+            - generic [ref=f297e25] [cursor=pointer]: Apps
+            - generic [ref=f297e26] [cursor=pointer]: Templates
+            - generic [ref=f297e27] [cursor=pointer]: Assist
+            - generic [ref=f297e28] [cursor=pointer]: Community
+            - generic [ref=f297e29] [cursor=pointer]: Content Library
+        - generic [ref=f297e30]:
+          - button "Update API Key" [ref=f297e31]
+          - link "Sign In" [ref=f297e35] [cursor=pointer]:
+            - /url: /signin
+    - generic [ref=f297e36]:
+      - complementary [ref=f297e37]:
+        - generic:
+          - generic [ref=f297e38] [cursor=pointer]:
+            - button [ref=f297e39]
+            - generic [ref=f297e45]: Apps
+          - generic [ref=f297e46] [cursor=pointer]:
+            - button [ref=f297e47]
+            - generic [ref=f297e52]: Image
+          - generic [ref=f297e53] [cursor=pointer]:
+            - button [ref=f297e54]
+            - generic [ref=f297e58]: Video
+          - generic [ref=f297e59] [cursor=pointer]:
+            - button [ref=f297e60]
+            - generic [ref=f297e63]: Cinema Studio
+          - generic [ref=f297e64] [cursor=pointer]:
+            - button [ref=f297e65]
+            - generic [ref=f297e68]: Cinema Template Studio
+          - generic [ref=f297e69] [cursor=pointer]:
+            - button [ref=f297e70]
+            - generic [ref=f297e78]: Storyboard
+          - generic [ref=f297e79] [cursor=pointer]:
+            - button [ref=f297e80]
+            - generic [ref=f297e83]: Effects
+          - generic [ref=f297e84] [cursor=pointer]:
+            - button [ref=f297e85]
+            - generic [ref=f297e89]: Edit
+          - generic [ref=f297e90] [cursor=pointer]:
+            - button [ref=f297e91]
+            - generic [ref=f297e97]: Upscale
+          - generic [ref=f297e98] [cursor=pointer]:
+            - button [ref=f297e99]
+            - generic [ref=f297e104]: Audio
+          - generic [ref=f297e105] [cursor=pointer]:
+            - button [ref=f297e106]
+            - generic [ref=f297e111]: Avatar
+          - generic [ref=f297e112] [cursor=pointer]:
+            - button [ref=f297e113]
+            - generic [ref=f297e118]: Training
+          - generic [ref=f297e119] [cursor=pointer]:
+            - button [ref=f297e120]
+            - generic [ref=f297e124]: Smart Video Academy
+          - generic [ref=f297e125] [cursor=pointer]:
+            - button [ref=f297e126]
+            - generic [ref=f297e131]: Smart Video Viral
+          - generic [ref=f297e132] [cursor=pointer]:
+            - button [ref=f297e133]
+            - generic [ref=f297e137]: Video Tools
+          - generic [ref=f297e138] [cursor=pointer]:
+            - button [ref=f297e139]
+            - generic [ref=f297e142]: Render
+          - generic [ref=f297e143] [cursor=pointer]:
+            - button [ref=f297e144]
+            - generic [ref=f297e149]: Video Agent
+          - generic [ref=f297e150] [cursor=pointer]:
+            - button [ref=f297e151]
+            - generic [ref=f297e155]: Director
+          - generic [ref=f297e156] [cursor=pointer]:
+            - button [ref=f297e157]
+            - generic [ref=f297e163]: Timeline
+          - generic [ref=f297e164] [cursor=pointer]:
+            - button [ref=f297e165]
+            - generic [ref=f297e168]: Chat
+          - generic [ref=f297e169] [cursor=pointer]:
+            - button [ref=f297e170]
+            - generic [ref=f297e174]: Commercial
+          - generic [ref=f297e175] [cursor=pointer]:
+            - button [ref=f297e176]
+            - generic [ref=f297e179]: Templates
+          - generic [ref=f297e180] [cursor=pointer]:
+            - button [ref=f297e181]
+            - generic [ref=f297e185]: Explore
+          - generic [ref=f297e186] [cursor=pointer]:
+            - button [ref=f297e187]
+            - generic [ref=f297e191]: Library
+          - generic [ref=f297e192] [cursor=pointer]:
+            - button [ref=f297e193]
+            - generic [ref=f297e196]: Content
+          - generic [ref=f297e197] [cursor=pointer]:
+            - button [ref=f297e198]
+            - generic [ref=f297e204]: Community
+          - generic [ref=f297e205] [cursor=pointer]:
+            - button [ref=f297e206]
+            - generic [ref=f297e211]: Assist
+          - generic [ref=f297e212] [cursor=pointer]:
+            - button [ref=f297e213]
+            - generic [ref=f297e217]: Commits (0)
+          - generic [ref=f297e218] [cursor=pointer]:
+            - button [ref=f297e219]
+            - generic [ref=f297e223]: AI VFX
+          - generic [ref=f297e224] [cursor=pointer]:
+            - button [ref=f297e225]
+            - generic [ref=f297e229]: Stock Media
+        - generic [ref=f297e230] [cursor=pointer]:
+          - button [ref=f297e231]
+          - generic [ref=f297e235]: Settings
+      - main [ref=f297e236]:
+        - generic [ref=f297e237]:
+          - generic [ref=f297e238]:
+            - button "All studios" [ref=f297e239]
+            - button "Back" [ref=f297e245]
+          - generic [ref=f297e249]:
+            - img "video studio" [ref=f297e250]
+            - generic [ref=f297e252]:
+              - heading "Video Studio" [level=1] [ref=f297e253]
+              - paragraph [ref=f297e254]: Animate images into stunning AI videos with motion effects
+          - generic [ref=f297e256]:
+            - generic [ref=f297e257]:
+              - button "Reference media" [ref=f297e258]
+              - button "Browse stock photos for i2v reference" [ref=f297e263]
+              - button "Use last frame of a video as I2V source" [ref=f297e267]:
+                - img [ref=f297e268]:
+                  - generic [ref=f297e272]: ⏱
+              - button "Upload video to remove watermark" [ref=f297e273]
+              - button "Browse stock videos for v2v input" [ref=f297e278]
+              - textbox "Video prompt" [ref=f297e282]:
+                - /placeholder: Describe the video you want to create
+              - generic [ref=f297e283]:
+                - button "GTM Boost prompt enhancer" [ref=f297e284] [cursor=pointer]: 🎯 GTM Boost
+                - button "Open recipe engine" [ref=f297e285] [cursor=pointer]: 📋 Recipes
+                - button "Open Smart Video AI Monetization Hub" [ref=f297e286] [cursor=pointer]: 💼 Monetize
+                - button "Open prompt gallery" [ref=f297e287] [cursor=pointer]: 📚 Prompts
+            - generic [ref=f297e288]:
+              - generic [ref=f297e289]:
+                - button "Seedance Lite Select AI video model" [ref=f297e290]:
+                  - generic [ref=f297e292]: Seedance Lite
+                  - text: Select AI video model
+                - button "16:9 Change aspect ratio" [ref=f297e295]:
+                  - generic [ref=f297e298]: 16:9
+                  - text: Change aspect ratio
+                - button "5s Set video duration" [ref=f297e301]:
+                  - generic [ref=f297e305]: 5s
+                  - text: Set video duration
+                - button "480p Set output resolution" [ref=f297e308]:
+                  - generic [ref=f297e311]: 480p
+                  - text: Set output resolution
+                - text: Set output quality
+                - button "Advanced Show advanced options" [ref=f297e314]:
+                  - generic [ref=f297e318]: Advanced
+                  - text: Show advanced options
+                - button "Motion & Style Camera movement, motion strength & style presets" [ref=f297e321]:
+                  - generic [ref=f297e324]: Motion & Style
+                  - text: Camera movement, motion strength & style presets
+                - button "Personalize Personalize with a discovered contact" [ref=f297e327]:
+                  - generic [ref=f297e331]: Personalize
+                  - text: Personalize with a discovered contact
+                - button "🖼 Thumbnail" [ref=f297e334] [cursor=pointer]
+              - button "Generate video" [ref=f297e335] [cursor=pointer]: Generate ✨ Generate AI video from prompt
+          - generic [ref=f297e336]:
+            - generic [ref=f297e337]:
+              - generic [ref=f297e338]:
+                - generic [ref=f297e339]: "1"
+                - generic [ref=f297e341]:
+                  - generic [ref=f297e342]: Select generation mode
+                  - generic [ref=f297e343]: Choose between text-to-video or image-to-video. Image-to-video uses your photo as the first frame.
+              - generic [ref=f297e344]:
+                - generic [ref=f297e345]: "2"
+                - generic [ref=f297e347]:
+                  - generic [ref=f297e348]: Upload or describe
+                  - generic [ref=f297e349]: For image-to-video, upload a clear photo. For text-to-video, write a detailed description of the scene and motion.
+              - generic [ref=f297e350]:
+                - generic [ref=f297e351]: "3"
+                - generic [ref=f297e353]:
+                  - generic [ref=f297e354]: Configure output
+                  - generic [ref=f297e355]: Set resolution (480p to 1080p), duration (3-10 seconds), and aspect ratio for your video.
+              - generic [ref=f297e356]:
+                - generic [ref=f297e357]: "4"
+                - generic [ref=f297e359]:
+                  - generic [ref=f297e360]: Generate video
+                  - generic [ref=f297e361]: Video generation takes 1-3 minutes. The result will appear in your library when ready.
+            - generic [ref=f297e362]:
+              - button [ref=f297e363]
+              - generic [ref=f297e367]:
+                - generic [ref=f297e368]:
+                  - generic [ref=f297e369]: ●
+                  - generic [ref=f297e370]: Start with image-to-video for more predictable results
+                - generic [ref=f297e371]:
+                  - generic [ref=f297e372]: ●
+                  - generic [ref=f297e373]: Keep prompts focused on a single action or movement
+                - generic [ref=f297e374]:
+                  - generic [ref=f297e375]: ●
+                  - generic [ref=f297e376]: Use 720p for a good balance of quality and speed
+          - generic [ref=f297e377]: History
+          - status:
+            - generic:
+              - generic:
+                - generic: Frame
+                - slider "Video frame scrubber": "0"
+                - generic: 0:00
+            - generic:
+              - button "↻ Regenerate"
+              - button "↓ Download"
+              - button "🎬 Open in Render"
+              - button "+ New"
+              - button "Publish to Social"
+          - generic [ref=f297e379]:
+            - generic [ref=f297e380]:
+              - generic [ref=f297e381]:
+                - generic [ref=f297e382]: Example Gallery
+                - generic [ref=f297e383]: Click any card to view the prompt or create in this style
+              - generic [ref=f297e384]: 28 examples
+            - generic [ref=f297e385]:
+              - button "All" [ref=f297e386] [cursor=pointer]
+              - button "comedy" [ref=f297e387] [cursor=pointer]
+              - button "retro" [ref=f297e388] [cursor=pointer]
+              - button "skit" [ref=f297e389] [cursor=pointer]
+              - button "social" [ref=f297e390] [cursor=pointer]
+              - button "music-video" [ref=f297e391] [cursor=pointer]
+              - button "y2k" [ref=f297e392] [cursor=pointer]
+              - button "typography" [ref=f297e393] [cursor=pointer]
+              - button "gameplay" [ref=f297e394] [cursor=pointer]
+              - button "slow-motion" [ref=f297e395] [cursor=pointer]
+              - button "nature" [ref=f297e396] [cursor=pointer]
+            - generic [ref=f297e397]:
+              - generic [ref=f297e398] [cursor=pointer]:
+                - generic [ref=f297e399]:
+                  - generic [ref=f297e400]: SOCIAL
+                  - img "1980s open-source family comedy" [ref=f297e401]
+                - generic [ref=f297e402]:
+                  - generic [ref=f297e403]: 1980s open-source family comedy
+                  - generic [ref=f297e404]: minimax
+                  - generic [ref=f297e406]:
+                    - generic [ref=f297e407]: comedy
+                    - generic [ref=f297e408]: retro
+                    - generic [ref=f297e409]: skit
+                  - generic [ref=f297e410]:
+                    - button "View Prompt" [ref=f297e411]
+                    - button "Create This Style" [ref=f297e412]
+              - generic [ref=f297e413] [cursor=pointer]:
+                - generic [ref=f297e414]:
+                  - generic [ref=f297e415]: SOCIAL
+                  - img "Y2K K-Pop Candy Typography Music Video" [ref=f297e416]
+                - generic [ref=f297e417]:
+                  - generic [ref=f297e418]: Y2K K-Pop Candy Typography Music Video
+                  - generic [ref=f297e419]: minimax
+                  - generic [ref=f297e421]:
+                    - generic [ref=f297e422]: music-video
+                    - generic [ref=f297e423]: y2k
+                    - generic [ref=f297e424]: typography
+                  - generic [ref=f297e425]:
+                    - button "View Prompt" [ref=f297e426]
+                    - button "Create This Style" [ref=f297e427]
+              - generic [ref=f297e428] [cursor=pointer]:
+                - generic [ref=f297e429]:
+                  - generic [ref=f297e430]: VFX
+                  - img "Macaw Scream in Extreme Slow Motion" [ref=f297e431]
+                - generic [ref=f297e432]:
+                  - generic [ref=f297e433]: Macaw Scream in Extreme Slow Motion
+                  - generic [ref=f297e434]: minimax
+                  - generic [ref=f297e436]:
+                    - generic [ref=f297e437]: slow-motion
+                    - generic [ref=f297e438]: nature
+                    - generic [ref=f297e439]: macro
+                  - generic [ref=f297e440]:
+                    - button "View Prompt" [ref=f297e441]
+                    - button "Create This Style" [ref=f297e442]
+              - generic [ref=f297e443] [cursor=pointer]:
+                - generic [ref=f297e444]:
+                  - generic [ref=f297e445]: SOCIAL
+                  - img "1980s open-source family comedy" [ref=f297e446]
+                - generic [ref=f297e447]:
+                  - generic [ref=f297e448]: 1980s open-source family comedy
+                  - generic [ref=f297e449]: minimax
+                  - generic [ref=f297e451]:
+                    - generic [ref=f297e452]: comedy
+                    - generic [ref=f297e453]: image-to-video
+                    - generic [ref=f297e454]: opening-frame-reference
+                  - generic [ref=f297e455]:
+                    - button "View Prompt" [ref=f297e456]
+                    - button "Create This Style" [ref=f297e457]
+              - generic [ref=f297e458] [cursor=pointer]:
+                - generic [ref=f297e459]:
+                  - generic [ref=f297e460]: SOCIAL
+                  - img "7-second video. The Office (US) mockumentary style, inside the Dunder Mifflin" [ref=f297e461]
+                - generic [ref=f297e462]:
+                  - generic [ref=f297e463]: 7-second video. The Office (US) mockumentary style, inside the Dunder Mifflin
+                  - generic [ref=f297e464]: minimax
+                  - generic [ref=f297e466]:
+                    - generic [ref=f297e467]: music-video
+                    - generic [ref=f297e468]: text-to-video
+                    - generic [ref=f297e469]: text-prompt
+                  - generic [ref=f297e470]:
+                    - button "View Prompt" [ref=f297e471]
+                    - button "Create This Style" [ref=f297e472]
+              - generic [ref=f297e473] [cursor=pointer]:
+                - generic [ref=f297e474]:
+                  - generic [ref=f297e475]: SOCIAL
+                  - img "\"A hyper-realistic handheld phone video of a quiet suburban backyard on a bright" [ref=f297e476]
+                - generic [ref=f297e477]:
+                  - generic [ref=f297e478]: "\"A hyper-realistic handheld phone video of a quiet suburban backyard on a bright"
+                  - generic [ref=f297e479]: minimax
+                  - generic [ref=f297e481]:
+                    - generic [ref=f297e482]: music-video
+                    - generic [ref=f297e483]: text-to-video
+                    - generic [ref=f297e484]: text-prompt
+                  - generic [ref=f297e485]:
+                    - button "View Prompt" [ref=f297e486]
+                    - button "Create This Style" [ref=f297e487]
+              - generic [ref=f297e488] [cursor=pointer]:
+                - generic [ref=f297e489]:
+                  - generic [ref=f297e490]: SOCIAL
+                  - img "An 1890s field guide plate, drawing itself" [ref=f297e491]
+                - generic [ref=f297e492]:
+                  - generic [ref=f297e493]: An 1890s field guide plate, drawing itself
+                  - generic [ref=f297e494]: minimax
+                  - generic [ref=f297e496]:
+                    - generic [ref=f297e497]: music-video
+                    - generic [ref=f297e498]: text-to-video
+                    - generic [ref=f297e499]: text-prompt
+                  - generic [ref=f297e500]:
+                    - button "View Prompt" [ref=f297e501]
+                    - button "Create This Style" [ref=f297e502]
+              - generic [ref=f297e503] [cursor=pointer]:
+                - generic [ref=f297e504]:
+                  - generic [ref=f297e505]: SOCIAL
+                  - img "Create a 15-second ultra-photorealistic live-action war sequence set in the" [ref=f297e506]
+                - generic [ref=f297e507]:
+                  - generic [ref=f297e508]: Create a 15-second ultra-photorealistic live-action war sequence set in the
+                  - generic [ref=f297e509]: minimax
+                  - generic [ref=f297e511]:
+                    - generic [ref=f297e512]: music-video
+                    - generic [ref=f297e513]: text-to-video
+                    - generic [ref=f297e514]: text-prompt
+                  - generic [ref=f297e515]:
+                    - button "View Prompt" [ref=f297e516]
+                    - button "Create This Style" [ref=f297e517]
+              - generic [ref=f297e518] [cursor=pointer]:
+                - generic [ref=f297e519]:
+                  - generic [ref=f297e520]: SOCIAL
+                  - img "Created using MiniMax H3 on ." [ref=f297e521]
+                - generic [ref=f297e522]:
+                  - generic [ref=f297e523]: Created using MiniMax H3 on .
+                  - generic [ref=f297e524]: minimax
+                  - generic [ref=f297e526]:
+                    - generic [ref=f297e527]: music-video
+                    - generic [ref=f297e528]: text-to-video
+                    - generic [ref=f297e529]: text-prompt
+                  - generic [ref=f297e530]:
+                    - button "View Prompt" [ref=f297e531]
+                    - button "Create This Style" [ref=f297e532]
+              - generic [ref=f297e533] [cursor=pointer]:
+                - generic [ref=f297e534]:
+                  - generic [ref=f297e535]: SOCIAL
+                  - img "Animate the uploaded CHUNG LEE movie poster as a 10-second cinematic martial-art" [ref=f297e536]
+                - generic [ref=f297e537]:
+                  - generic [ref=f297e538]: Animate the uploaded CHUNG LEE movie poster as a 10-second cinematic martial-art
+                  - generic [ref=f297e539]: minimax
+                  - generic [ref=f297e541]:
+                    - generic [ref=f297e542]: music-video
+                    - generic [ref=f297e543]: text-to-video
+                    - generic [ref=f297e544]: text-prompt
+                  - generic [ref=f297e545]:
+                    - button "View Prompt" [ref=f297e546]
+                    - button "Create This Style" [ref=f297e547]
+              - generic [ref=f297e548] [cursor=pointer]:
+                - generic [ref=f297e549]:
+                  - generic [ref=f297e550]: SOCIAL
+                  - img "Creating a sleek, professional ad for using itself. ⚡" [ref=f297e551]
+                - generic [ref=f297e552]:
+                  - generic [ref=f297e553]: Creating a sleek, professional ad for using itself. ⚡
+                  - generic [ref=f297e554]: minimax
+                  - generic [ref=f297e556]:
+                    - generic [ref=f297e557]: music-video
+                    - generic [ref=f297e558]: text-to-video
+                    - generic [ref=f297e559]: text-prompt
+                  - generic [ref=f297e560]:
+                    - button "View Prompt" [ref=f297e561]
+                    - button "Create This Style" [ref=f297e562]
+              - generic [ref=f297e563] [cursor=pointer]:
+                - generic [ref=f297e564]:
+                  - generic [ref=f297e565]: SOCIAL
+                  - img "Dark-pop cyber-grunge rap music video style" [ref=f297e566]
+                - generic [ref=f297e567]:
+                  - generic [ref=f297e568]: Dark-pop cyber-grunge rap music video style
+                  - generic [ref=f297e569]: minimax
+                  - generic [ref=f297e571]:
+                    - generic [ref=f297e572]: music-video
+                    - generic [ref=f297e573]: reference-to-video
+                    - generic [ref=f297e574]: style-reference-images
+                  - generic [ref=f297e575]:
+                    - button "View Prompt" [ref=f297e576]
+                    - button "Create This Style" [ref=f297e577]
+              - generic [ref=f297e578] [cursor=pointer]:
+                - generic [ref=f297e579]:
+                  - generic [ref=f297e580]: SOCIAL
+                  - img "The World's Unluckiest Superhero" [ref=f297e581]
+                - generic [ref=f297e582]:
+                  - generic [ref=f297e583]: The World's Unluckiest Superhero
+                  - generic [ref=f297e584]: minimax
+                  - generic [ref=f297e586]:
+                    - generic [ref=f297e587]: comedy
+                    - generic [ref=f297e588]: text-to-video
+                    - generic [ref=f297e589]: dialogue
+                  - generic [ref=f297e590]:
+                    - button "View Prompt" [ref=f297e591]
+                    - button "Create This Style" [ref=f297e592]
+              - generic [ref=f297e593] [cursor=pointer]:
+                - generic [ref=f297e594]:
+                  - generic [ref=f297e595]: SOCIAL
+                  - img "First try with Minimax H3 and is full cinematic 📽️ 🤩" [ref=f297e596]
+                - generic [ref=f297e597]:
+                  - generic [ref=f297e598]: First try with Minimax H3 and is full cinematic 📽️ 🤩
+                  - generic [ref=f297e599]: minimax
+                  - generic [ref=f297e601]:
+                    - generic [ref=f297e602]: music-video
+                    - generic [ref=f297e603]: text-to-video
+                    - generic [ref=f297e604]: text-prompt
+                  - generic [ref=f297e605]:
+                    - button "View Prompt" [ref=f297e606]
+                    - button "Create This Style" [ref=f297e607]
+              - generic [ref=f297e608] [cursor=pointer]:
+                - generic [ref=f297e609]:
+                  - generic [ref=f297e610]: SOCIAL
+                  - img "hyper-realistic" [ref=f297e611]
+                - generic [ref=f297e612]:
+                  - generic [ref=f297e613]: hyper-realistic
+                  - generic [ref=f297e614]: minimax
+                  - generic [ref=f297e616]:
+                    - generic [ref=f297e617]: music-video
+                    - generic [ref=f297e618]: text-to-video
+                    - generic [ref=f297e619]: text-prompt
+                  - generic [ref=f297e620]:
+                    - button "View Prompt" [ref=f297e621]
+                    - button "Create This Style" [ref=f297e622]
+              - generic [ref=f297e623] [cursor=pointer]:
+                - generic [ref=f297e624]:
+                  - generic [ref=f297e625]: SOCIAL
+                  - img "15-second, 16:9 vertical, continuous single-take video that looks like authentic" [ref=f297e626]
+                - generic [ref=f297e627]:
+                  - generic [ref=f297e628]: 15-second, 16:9 vertical, continuous single-take video that looks like authentic
+                  - generic [ref=f297e629]: minimax
+                  - generic [ref=f297e631]:
+                    - generic [ref=f297e632]: viral-short
+                    - generic [ref=f297e633]: text-to-video
+                    - generic [ref=f297e634]: text-prompt
+                  - generic [ref=f297e635]:
+                    - button "View Prompt" [ref=f297e636]
+                    - button "Create This Style" [ref=f297e637]
+              - generic [ref=f297e638] [cursor=pointer]:
+                - generic [ref=f297e639]:
+                  - generic [ref=f297e640]: SOCIAL
+                  - img "Music Video Study" [ref=f297e641]
+                - generic [ref=f297e642]:
+                  - generic [ref=f297e643]: Music Video Study
+                  - generic [ref=f297e644]: minimax
+                  - generic [ref=f297e646]:
+                    - generic [ref=f297e647]: music-video
+                    - generic [ref=f297e648]: text-to-video
+                    - generic [ref=f297e649]: text-prompt
+                  - generic [ref=f297e650]:
+                    - button "View Prompt" [ref=f297e651]
+                    - button "Create This Style" [ref=f297e652]
+              - generic [ref=f297e653] [cursor=pointer]:
+                - generic [ref=f297e654]:
+                  - generic [ref=f297e655]: SOCIAL
+                  - img "Handcrafted paper-cut stop-motion short" [ref=f297e656]
+                - generic [ref=f297e657]:
+                  - generic [ref=f297e658]: Handcrafted paper-cut stop-motion short
+                  - generic [ref=f297e659]: minimax
+                  - generic [ref=f297e661]:
+                    - generic [ref=f297e662]: viral-short
+                    - generic [ref=f297e663]: text-to-video
+                    - generic [ref=f297e664]: paper-cut-underwater-cave
+                  - generic [ref=f297e665]:
+                    - button "View Prompt" [ref=f297e666]
+                    - button "Create This Style" [ref=f297e667]
+              - generic [ref=f297e668] [cursor=pointer]:
+                - generic [ref=f297e669]:
+                  - generic [ref=f297e670]: SOCIAL
+                  - 'img "Setting: A bright sunny beach" [ref=f297e671]'
+                - generic [ref=f297e672]:
+                  - generic [ref=f297e673]: "Setting: A bright sunny beach"
+                  - generic [ref=f297e674]: minimax
+                  - generic [ref=f297e676]:
+                    - generic [ref=f297e677]: music-video
+                    - generic [ref=f297e678]: text-to-video
+                    - generic [ref=f297e679]: text-prompt
+                  - generic [ref=f297e680]:
+                    - button "View Prompt" [ref=f297e681]
+                    - button "Create This Style" [ref=f297e682]
+              - generic [ref=f297e683] [cursor=pointer]:
+                - generic [ref=f297e684]:
+                  - generic [ref=f297e685]: SOCIAL
+                  - img "🤯 is seriously good at this kind of K-pop lyric" [ref=f297e686]
+                - generic [ref=f297e687]:
+                  - generic [ref=f297e688]: 🤯 is seriously good at this kind of K-pop lyric
+                  - generic [ref=f297e689]: minimax
+                  - generic [ref=f297e691]:
+                    - generic [ref=f297e692]: music-video
+                    - generic [ref=f297e693]: reference-to-video
+                    - generic [ref=f297e694]: text-prompt
+                  - generic [ref=f297e695]:
+                    - button "View Prompt" [ref=f297e696]
+                    - button "Create This Style" [ref=f297e697]
+              - generic [ref=f297e698] [cursor=pointer]:
+                - generic [ref=f297e699]:
+                  - generic [ref=f297e700]: SOCIAL
+                  - img "Krea 2 Turbo + Minimax H3 in Comfyui = ..." [ref=f297e701]
+                - generic [ref=f297e702]:
+                  - generic [ref=f297e703]: Krea 2 Turbo + Minimax H3 in Comfyui = ...
+                  - generic [ref=f297e704]: minimax
+                  - generic [ref=f297e706]:
+                    - generic [ref=f297e707]: music-video
+                    - generic [ref=f297e708]: text-to-video
+                    - generic [ref=f297e709]: text-prompt
+                  - generic [ref=f297e710]:
+                    - button "View Prompt" [ref=f297e711]
+                    - button "Create This Style" [ref=f297e712]
+              - generic [ref=f297e713] [cursor=pointer]:
+                - generic [ref=f297e714]:
+                  - generic [ref=f297e715]: SOCIAL
+                  - img "Cinematic comedy sequence, 15 seconds" [ref=f297e716]
+                - generic [ref=f297e717]:
+                  - generic [ref=f297e718]: Cinematic comedy sequence, 15 seconds
+                  - generic [ref=f297e719]: minimax
+                  - generic [ref=f297e721]:
+                    - generic [ref=f297e722]: music-video
+                    - generic [ref=f297e723]: text-to-video
+                    - generic [ref=f297e724]: text-prompt
+                  - generic [ref=f297e725]:
+                    - button "View Prompt" [ref=f297e726]
+                    - button "Create This Style" [ref=f297e727]
+              - generic [ref=f297e728] [cursor=pointer]:
+                - generic [ref=f297e729]:
+                  - generic [ref=f297e730]: SOCIAL
+                  - img "15 second cinematic sports video in 16:9 inside a real indoor strength competiti" [ref=f297e731]
+                - generic [ref=f297e732]:
+                  - generic [ref=f297e733]: 15 second cinematic sports video in 16:9 inside a real indoor strength competiti
+                  - generic [ref=f297e734]: minimax
+                  - generic [ref=f297e736]:
+                    - generic [ref=f297e737]: music-video
+                    - generic [ref=f297e738]: text-to-video
+                    - generic [ref=f297e739]: text-prompt
+                  - generic [ref=f297e740]:
+                    - button "View Prompt" [ref=f297e741]
+                    - button "Create This Style" [ref=f297e742]
+              - generic [ref=f297e743] [cursor=pointer]:
+                - generic [ref=f297e744]:
+                  - generic [ref=f297e745]: SOCIAL
+                  - img "A young heroic warrior wearing beautifully crafted silver armor, a dark blue cap" [ref=f297e746]
+                - generic [ref=f297e747]:
+                  - generic [ref=f297e748]: A young heroic warrior wearing beautifully crafted silver armor, a dark blue cap
+                  - generic [ref=f297e749]: minimax
+                  - generic [ref=f297e751]:
+                    - generic [ref=f297e752]: music-video
+                    - generic [ref=f297e753]: text-to-video
+                    - generic [ref=f297e754]: text-prompt
+                  - generic [ref=f297e755]:
+                    - button "View Prompt" [ref=f297e756]
+                    - button "Create This Style" [ref=f297e757]
+              - generic [ref=f297e758] [cursor=pointer]:
+                - generic [ref=f297e759]:
+                  - generic [ref=f297e760]: SOCIAL
+                  - img "<image_1> (don't reproduce the image" [ref=f297e761]
+                - generic [ref=f297e762]:
+                  - generic [ref=f297e763]: <image_1> (don't reproduce the image
+                  - generic [ref=f297e764]: minimax
+                  - generic [ref=f297e766]:
+                    - generic [ref=f297e767]: comedy
+                    - generic [ref=f297e768]: text-to-video
+                    - generic [ref=f297e769]: camera-direction
+                  - generic [ref=f297e770]:
+                    - button "View Prompt" [ref=f297e771]
+                    - button "Create This Style" [ref=f297e772]
+              - generic [ref=f297e773] [cursor=pointer]:
+                - generic [ref=f297e774]:
+                  - generic [ref=f297e775]: SOCIAL
+                  - 'img "PROSE & IN-LINE SPATIAL & GLOBAL LOCK]: At 0" [ref=f297e776]'
+                - generic [ref=f297e777]:
+                  - generic [ref=f297e778]: "PROSE & IN-LINE SPATIAL & GLOBAL LOCK]: At 0"
+                  - generic [ref=f297e779]: minimax
+                  - generic [ref=f297e781]:
+                    - generic [ref=f297e782]: music-video
+                    - generic [ref=f297e783]: text-to-video
+                    - generic [ref=f297e784]: text-prompt
+                  - generic [ref=f297e785]:
+                    - button "View Prompt" [ref=f297e786]
+                    - button "Create This Style" [ref=f297e787]
+              - generic [ref=f297e788] [cursor=pointer]:
+                - generic [ref=f297e789]:
+                  - generic [ref=f297e790]: SOCIAL
+                  - img "What if Cleopatra ordered pizza? 😂" [ref=f297e791]
+                - generic [ref=f297e792]:
+                  - generic [ref=f297e793]: What if Cleopatra ordered pizza? 😂
+                  - generic [ref=f297e794]: minimax
+                  - generic [ref=f297e796]:
+                    - generic [ref=f297e797]: music-video
+                    - generic [ref=f297e798]: text-to-video
+                    - generic [ref=f297e799]: text-prompt
+                  - generic [ref=f297e800]:
+                    - button "View Prompt" [ref=f297e801]
+                    - button "Create This Style" [ref=f297e802]
+              - generic [ref=f297e803] [cursor=pointer]:
+                - generic [ref=f297e804]:
+                  - generic [ref=f297e805]: SOCIAL
+                  - img "What if Superman had to do his own laundry? 😂" [ref=f297e806]
+                - generic [ref=f297e807]:
+                  - generic [ref=f297e808]: What if Superman had to do his own laundry? 😂
+                  - generic [ref=f297e809]: minimax
+                  - generic [ref=f297e811]:
+                    - generic [ref=f297e812]: music-video
+                    - generic [ref=f297e813]: text-to-video
+                    - generic [ref=f297e814]: text-prompt
+                  - generic [ref=f297e815]:
+                    - button "View Prompt" [ref=f297e816]
+                    - button "Create This Style" [ref=f297e817]
+  - dialog [ref=f297e818]:
+    - document [ref=f297e819]:
+      - generic [ref=f297e820]:
+        - heading "Smart Video AI Monetization Hub" [level=2] [ref=f297e821]
+        - button "Close modal" [active] [ref=f297e822] [cursor=pointer]
+      - generic [ref=f297e826]:
+        - generic [ref=f297e827]:
+          - button "Tracks" [ref=f297e828] [cursor=pointer]
+          - button "Templates" [ref=f297e829] [cursor=pointer]
+        - generic [ref=f297e830]:
+          - generic [ref=f297e831]:
+            - generic [ref=f297e832]:
+              - searchbox "Search tracks..." [ref=f297e833]
+              - combobox [ref=f297e834]:
+                - option "All Levels" [selected]
+                - option "Beginner"
+                - option "Intermediate"
+                - option "Advanced"
+            - generic [ref=f297e835]:
+              - generic [ref=f297e836] [cursor=pointer]:
+                - generic [ref=f297e837]: Smart Video AI Freelance Video
+                - generic [ref=f297e838]: TRANSFORM YOUR AI Video Skills Into A 5-Figure/Month $5,000-Per-Project Empire Using Cialdini's 6 Principles Of Persuasion, Behavioral Economics, And Neuromarketing Research From Stanford, Harvard, And MIT. This Track Weaponizes The Authority Principle (340% value increase, Stanford 50ms assessments), Scarcity Psychology (640% niche conversion, MIT Sloan), Reciprocity And Liking (47% conversion increase, Harvard Business School), The Endowment Effect For Retainers (3x LTV, Bain & Company), And Cognitive Load Theory For Scaling (500% output increase). Unlike Generic Freelancing Courses That Teach Surface-Level Tactics, This Track Reveals The Neurotoolkit That Elite Freelancers Never Share Publicly — Discover How To Engineer Psychological Decisions That Make Price Irrelevant, Build Authority In 50ms Using Stanford Credibility Research, Position Your Niche For 640% Better Conversion Using MIT Sloan Studies, And Package Irresistible Offers That Trigger Reciprocity Psychology (47% Conversion Increase Per Harvard Business School). You'll Also Master The Endowment Effect For Premium Retainers (3x Lifetime Value Per Bain), Use Cognitive Load Theory To Systematize Everything For Profit Without 80-Hour Weeks (500% Output Increase), And Build Teams That Perform 31% Better Using Emotional Contagion Research From MIT Human Dynamics Lab. Based On Decades Of Peer-Reviewed Research From Stanford Credibility Research Lab, Harvard Business Review, MIT Sloan School Of Management, MIT Media Lab, Wharton School Of Business, Princeton Social Psychology, Cornell Food & Brand Lab, And Bain & Company.
+                - generic [ref=f297e839]: 8 lessons · Beginner
+              - generic [ref=f297e840] [cursor=pointer]:
+                - generic [ref=f297e841]: Smart Video AI Social Media Agency
+                - generic [ref=f297e842]: SCALE FROM $0 TO $1M ARR In Under 12 Months Using Behavioral Psychology, The Hook Model (Nir Eyal), And Attention Economy Research. Harvard Business School Research Shows Agencies Applying Behavioral Psychology Achieve 287% Higher Growth Rates. The Matthew Effect, Creator Brain Models, And Behavioral Economics For Client Retention Form The Exact Playbook Top Agencies Never Share Publicly. This 10-Lesson Track Covers Authority Positioning Using Expert Social Proof Psychology (187% Higher Rates Per HBR), Dream Client Selection Using Similarity Trigger Research (233% Trust Increase Per Princeton), Content Hook Psychology For Attention Capture In 8-Second Windows (Microsoft Research), Algorithm Optimization Using Variable Reward Psychology (300% Engagement Increase Per B.F. Skinner), And Client Retention Using Endowment Effect (3x Lifetime Value Per Bain). You'll Also Master Production Efficiency Using Cognitive Load Theory (500% Output Increase), Trend Prediction Using Social Proof Cascades (2-3 Weeks Early Per MIT), Upselling Psychology Using Consistency Principles (200-400% Revenue Increase), And Team Building Using Emotional Contagion Research (+31% Performance Per MIT Human Dynamics Lab).
+                - generic [ref=f297e843]: 10 lessons · Intermediate
+              - generic [ref=f297e844] [cursor=pointer]:
+                - generic [ref=f297e845]: Smart Video AI YouTube Automation
+                - generic [ref=f297e846]: BUILD AUTOMATED YouTube Channels Generating $10K-100K+/Month Using The Hook Model, Attention Research, And Algorithm Psychology. The Actual Playbook Used By Faceless Channel Owners Who Sold Channels For $500K-$2M. Based On YouTube's Internal Research Revealing Psychological Stickiness, Microsoft's Attention Span Studies (8 Seconds Since 2015), And Viral Content Neuroscience. This 9-Lesson Track Teaches You How To Find Profitable Niches Using Scarcity Psychology (640% Conversion Advantage Per MIT Sloan), Create Addictive Hooks Using Orienting Reflex Psychology (400% Retention Increase), Optimize Thumbnails Using Pre-Attentive Processing Science (+83% CTR Per MIT), Hack Algorithms Using Variable Reward Psychology (300% Engagement Per B.F. Skinner), And Attract Sponsors Using Authority Positioning (+289% Rates Per HBR). You'll Master Production Efficiency Using Cognitive Load Theory (50 Videos In 4 Hours Per Flow State Research), Predict Trends Using Social Proof Cascades (Early Bird Advantage 289% Revenue Increase), And Engineer Monetization Psychology For YPP Approval And Premium Brand Deals.
+                - generic [ref=f297e847]: 9 lessons · Intermediate
+              - generic [ref=f297e848] [cursor=pointer]:
+                - generic [ref=f297e849]: Smart Video AI Product Commercials
+                - generic [ref=f297e850]: CREATE COMMERCIALS That Drive Immediate Purchases Using The AIDA Model, Pain-Amplify-Solve Psychology, And 7 Emotional Triggers From Neuromarketing. Harvard Studies Show 85% Of Purchasing Decisions Are Emotional, While Journal Of Advertising Psychology Shows Proper Hooks Increase Retention 400%. This 7-Lesson Track Teaches The Psychological Framework Behind The World's Highest-Converting Commercial Content — Leverage Loss Aversion (Pain Motivates 2.3x More Than Pleasure Per Kahneman & Tversky), Authority Bias (187% Higher Pricing Per HBR), Sensory Processing Centers (145% Higher Purchase Intent Per MIT Eye-Tracking), And Cognitive Fluency (285% Higher Conversion With Clear Messaging Per MIT Sloan). You'll Master Attention Windows (7-Second Critical Capture Period), Sensory Triggers (Multi-Sensory Experiences Increase Willingness To Pay 23% Per MIT), Storytelling Psychology (Stories Activate 17 Brain Regions For 22x Retention), And Platform-Specific Optimization (Amazon +30%, Shopify +40% Conversion).
+                - generic [ref=f297e851]: 7 lessons · Beginner
+              - generic [ref=f297e852] [cursor=pointer]:
+                - generic [ref=f297e853]: Smart Video AI Real Estate Videos
+                - generic [ref=f297e854]: SELL LISTINGS FASTER Using Neuro-Marketing And Decision Psychology — National Association Of Realtors Research Shows Properties With Video Sell 76% Faster And For 19% More. Applied Psychology Techniques Include The Mere-Exposure Effect (Increases Preference 62%), Gestalt Visual Processing Principles (Make Spaces Appear 32% Larger), And Loss Aversion Triggers (Increase Decision Speed 89%). This 6-Lesson Track Combines Behavioral Economics With Real Estate Psychology To Create Irresistible Listing Videos That Trigger Faster Buyer Decisions And Higher Sale Prices. You'll Master Emotional Attachment Psychology Using Narrative Transportation Theory (Stories Activate 17 Brain Regions), Feature Highlighting Using Serial Position Effect (40% Faster Decisions), Neighborhood Storytelling Using Identity Attachment (19% Value Increase), And Closing Psychology Using Scarcity And Deadline Triggers (89% Faster Sales Without Reduced Satisfaction). Based On Research From National Association Of Realtors, Journal Of Real Estate Research, And Association For Psychological Science.
+                - generic [ref=f297e855]: 6 lessons · Beginner
+              - generic [ref=f297e856] [cursor=pointer]:
+                - generic [ref=f297e857]: Smart Video AI Ecommerce Creatives
+                - generic [ref=f297e858]: UPSCALE PRODUCTS With Psychological Lifestyle Videos That Increase Cart Value 35%+ Using Visual Commerce Psychology And Attention Research From MIT. Eye-Tracking Studies Reveal Product Videos Increase Purchase Intent 145%, While Sensory Processing Research Shows Multi-Sensory Experiences Increase Willingness To Pay 23%. This 8-Lesson Track Teaches The Neuromarketing Framework Behind The World's Highest-Converting Product Videos — Leverage Decision Psychology (Eliminate Paralysis 28% Conversion Increase), Attention Neuroscience (3-Second Hook Window Captures 400% More Retention), And Behavioral Economics (Decoy Effect, Anchoring, Scarcity Triggers). You'll Master Platform-Specific Optimization Using Amazon A+ Psychology (+30% Conversion), Shopify Gallery Psychology (+40%), Social Commerce Shoppability (FOMO And Social Proof Cascades), And Multi-Platform Distribution Psychology (3x Reach With Proper Adaptation Per MIT Sloan).
+                - generic [ref=f297e859]: 8 lessons · Beginner
+              - generic [ref=f297e860] [cursor=pointer]:
+                - generic [ref=f297e861]: Smart Video AI Course Creation Videos
+                - generic [ref=f297e862]: CREATE HIGH-CONVERTING Tutorial Videos That Drive 5x Higher Completion Rates Using Learning Psychology And Attention Retention Science — Stanford Educational Neuroscience Lab Proves Narrative Content Increases Retention 22x, While Dual Coding Theory Shows Multi-Channel Learning Increases Retention 89%. This 7-Lesson Track Teaches The Neuroscience Behind Engaging Educational Video Content — Leverage Cognitive Load Theory (Reduce Mental Bandwidth 73%), Narrative Transportation (Activate 17 Brain Regions For 22x Retention), And Habit Formation Science (66 Days For Content Habits Per European Journal Of Social Psychology). You'll Master Attention Maintenance Psychology (Beyond 6-Minute Threshold Using Visual Variety), Teaser Psychology (Emotionally-Driven Enrollment From 2% To 15% Conversion), Onboarding Psychology (Reduce Early Drop-Off 40%), And Update Communication Psychology (64% Higher Completion With Testing Effect).
+                - generic [ref=f297e863]: 7 lessons · Intermediate
+              - generic [ref=f297e864] [cursor=pointer]:
+                - generic [ref=f297e865]: Smart Video AI SaaS Demo Videos
+                - generic [ref=f297e866]: CREATE PRODUCT DEMOS That Reduce Churn 30% And Increase Upgrades 45% Using BJ Fogg's Behavior Model And Decision Science Psychology. Totango Research Shows Structured Onboarding Reduces Churn By 30%, While Userlane Studies Prove Proper Walkthroughs Reduce Time-To-Value By 43%. This 6-Lesson Track Teaches The Behavioral Science Behind Converting Demo Viewers Into Paying Customers — Leverage Jobs-To-Be-Done Psychology (340% Higher Engagement Per Harvard Business School), Cognitive Load Theory (Reduce Decision Fatigue 60%), And Progressive Disclosure Science (43% Faster Aha Moments Per Userlane). You'll Master Value Communication Psychology (10-Second Hooks Equal 25% Conversion Lift), Walkthrough Psychology (43% Time-To-Value Reduction), And CTA Timing Psychology (120% Higher Clicks At Peak Interest Moments).
+                - generic [ref=f297e867]: 6 lessons · Advanced
+              - generic [ref=f297e868] [cursor=pointer]:
+                - generic [ref=f297e869]: Smart Video AI Influencer Content
+                - generic [ref=f297e870]: CREATE AUTHENTIC, GROWTH-ORIENTED Influencer Content That Drives 600% More Engagement Using Authenticity Psychology, Narrative Transportation Theory, And Social Identity Research. Influencer Marketing Hub Studies Show Authentic Content Generates 600% More Engagement Than Polished But Disingenuous Posts, While Lucidpress Research Proves Consistent Visual Identity Increases Recall 233%. This 8-Lesson Track Teaches The Psychology Behind Building Engaged, Loyal Influencer Audiences — Leverage Personality Psychology (Authenticity Triggers 600% Engagement), Brand Recognition Science (233% Recall With Consistency), And Habit Formation Research (30-Day Consistency Is Critical For Growth Per European Journal Of Social Psychology). You'll Master Community Building Using Emotional Contagion (+31% Performance Per MIT), Social Proof Cascades For Growth, And Cross-Platform Psychology For Maximum Reach.
+                - generic [ref=f297e871]: 8 lessons · Beginner
+              - generic [ref=f297e872] [cursor=pointer]:
+                - generic [ref=f297e873]: Smart Video AI Local Business Videos
+                - generic [ref=f297e874]: INCREASE FOOT TRAFFIC By 25-40% Using Community Psychology And Local Decision-Making Research — Temporal Motivation Theory Shows Time-Sensitive Local Offers Perform 231% Better, While Scarcity Psychology Proves Limited-Time Local Promotions Generate Higher Immediate-Action Rates Than Any Other Trigger. This 5-Lesson Track Teaches The Psychology Behind Converting Local Video Audiences Into Walking Customers. You'll Master Community Decision Psychology (96% Of Local Consumers Use Online Reviews Per BrightLocal), Appetite Trigger Psychology (60% More Foot Traffic With Proper Appetizing Visuals), And Social Commerce Psychology (FOMO Triggers +83% Engagement). Based On Research From BrightLocal, Temporal Motivation Theory Labs, And Community Psychology Research.
+                - generic [ref=f297e875]: 5 lessons · Beginner
+              - generic [ref=f297e876] [cursor=pointer]:
+                - generic [ref=f297e877]: Smart Video AI Wedding Highlights
+                - generic [ref=f297e878]: CREATE EMOTIONAL Wedding Videos Commanding $10K+ Pricing Using Memory Formation Psychology And Emotional Contagion Research — Studies Show Emotional Content Is Remembered 22x Longer (Nature Neuroscience), Videos Triggering Emotional Contagion Through Mirror Neurons Receive 35x More Social Shares (Psychological Science), And High-Value Wedding Videographers Understand They Sell Irreplaceable Emotional Memories Not Just Video Footage. This 6-Lesson Track Teaches The Psychology Behind Capturing And Creating Irreplaceable Wedding Moments — Leverage Memory Formation Science (Emotional Peaks Create Complete Memory Arcs), Music Psychology (Emotional Editing Activates Limbic System), And Premium Positioning Psychology (IKEA Effect +42% Perceived Value). You'll Master Client Psychology (Expectation Management Using Personality Psychology), Invitation Psychology (Anticipation Triggers Increase RSVP 23%), And Premium Upsell Psychology (Bundling And Anchoring For 3x Premium Conversion).
+                - generic [ref=f297e879]: 6 lessons · Intermediate
+              - generic [ref=f297e880] [cursor=pointer]:
+                - generic [ref=f297e881]: Smart Video AI Podcast Promotion
+                - generic [ref=f297e882]: GROW PODCAST AUDIENCES 300% Using Audio-Visual Psychology And Multi-Modal Learning Science — UC Neuroscience Research Shows Dual Audio-Visual Content Increases Retention 89%, While MIT Sloan Social Media Studies Reveal Cross-Platform Content Gets 3x Reach When Properly Adapted For Each Platform's Unique Audience Psychology. This 5-Lesson Track Teaches The Neuroscience Behind Converting Audio Audiences Into Engaged Video Viewers — Leverage Dual Coding Theory (89% Retention With Audio+Visual Per UC), Platform-Specific Psychology (TikTok Processes 2.3x More Information Than YouTube), And Sharing Psychology (Emotional Content Gets 35x More Shares). You'll Master Audiogram Psychology (Branded Waveforms Increase Shares 27%), Intro/Outro Consistency (35% Higher Retention Per Edison Research), And SEO Psychology (Curiosity-Driven Titles 280% Better Discovery).
+                - generic [ref=f297e883]: 5 lessons · Beginner
+              - generic [ref=f297e884] [cursor=pointer]:
+                - generic [ref=f297e885]: Smart Video AI NFT/Web3 Media
+                - generic [ref=f297e886]: CREATE NFT VIDEOS Commanding Premium Prices Using Scarcity Psychology, Exclusivity Triggers, And Digital Ownership Neuroscience — Web3 Research Shows Narrative-Driven NFTs Increase Floor Price 180% (Web3 Analytics), While Strong Communities Generate 500% Higher Secondary Sales (NFT Community Research). This 4-Lesson Track Teaches The Blockchain-Native Psychology Behind Successful NFT Media Projects — Leverage Storytelling Arc Psychology (Narrative Transportation Activates 17 Brain Regions), Visual Style Psychology (Consistent Identity Increases Recognition 233%), And Reveal Psychology (FOMO Triggers Increase Mint Rates 42%). You'll Master Community Psychology (Authenticity Triggers +500% Secondary Sales), And Drop Psychology (Anticipation Triggers 231% Higher Engagement).
+                - generic [ref=f297e887]: 4 lessons · Advanced
+              - generic [ref=f297e888] [cursor=pointer]:
+                - generic [ref=f297e889]: Smart Video AI Music Video Production
+                - generic [ref=f297e890]: CREATE VIRAL Music Videos Using Musical Emotion Psychology, Audio-Visual Synchronization Research, And Attention Retention Neuroscience — Studies Show Rhythm-Aligned Animations Increase Watch Time 35%, Emotionally-Aligned Audio-Visual Content Gets 40% More Engagement, And Visual Storytelling Matching Musical Arcs Receives 2x More Saves Than Generic Music Videos. This 7-Lesson Track Teaches The Neuroscience Of Synchronized Audio-Visual Content — Leverage Affective Neuroscience (Emotion Matching = 40% Higher Engagement), Rhythm Perception Psychology (Synchronized Visuals = 35% Longer Watch Time), And Story Identity Theory (Narrative Consistency = 2x Saves). You'll Master Music Psychology (Emotional Arc Mapping), Concept Visualization (Narrative Transportation), And Multi-Platform Release Psychology (Platform-Specific Optimization For Maximum Reach).
+                - generic [ref=f297e891]: 7 lessons · Intermediate
+              - generic [ref=f297e892] [cursor=pointer]:
+                - generic [ref=f297e893]: Smart Video AI Corporate Training Videos
+                - generic [ref=f297e894]: CREATE CORPORATE TRAINING Videos That Increase Knowledge Retention 45% Using Adult Learning Psychology And Behavioral Science — ATD Research Shows Properly Designed Training Increases Completion 64%, Scenario-Based Learning Increases Recall 75%, And Kirkpatrick's Framework Can Improve Training ROI 13x When Applied With Psychological Measurement Techniques. This 6-Lesson Track Teaches The Corporate Psychology Behind Engaging Employee Learning Content — Leverage Adult Learning Theory (Andragogy Principles = 64% Higher Completion), Cognitive Load Theory (Reduce Mental Bandwidth 73%), And Gamification Psychology (80% Higher Engagement With Points/Badges). You'll Master Scenario-Based Psychology (75% Better Recall), Onboarding Psychology (Belonging Theory = 53% Better Retention), And Feedback Psychology (Testing Effect = 300% Better Long-Term Retention).
+                - generic [ref=f297e895]: 6 lessons · Advanced
+          - generic [ref=f297e896]: Select a track to preview.

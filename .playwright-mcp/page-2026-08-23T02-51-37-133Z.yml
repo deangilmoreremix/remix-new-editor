@@ -1,0 +1,1846 @@
+- generic [ref=f159e3]:
+  - banner [ref=f159e4]:
+    - navigation [ref=f159e5]:
+      - link "Timeline Editor" [ref=f159e6] [cursor=pointer]:
+        - /url: "#/apps"
+      - generic [ref=f159e12]:
+        - link "Explore" [ref=f159e13] [cursor=pointer]:
+          - /url: "#/explore"
+        - link "Image" [ref=f159e14] [cursor=pointer]:
+          - /url: "#/image"
+        - link "Video" [ref=f159e15] [cursor=pointer]:
+          - /url: "#/video"
+        - link "Cinema" [ref=f159e16] [cursor=pointer]:
+          - /url: "#/cinema"
+        - link "Character" [ref=f159e17] [cursor=pointer]:
+          - /url: "#/character"
+        - link "Influencer" [ref=f159e18] [cursor=pointer]:
+          - /url: "#/influencer"
+        - link "Storyboard" [ref=f159e19] [cursor=pointer]:
+          - /url: "#/storyboard"
+        - link "Effects" [ref=f159e20] [cursor=pointer]:
+          - /url: "#/effects"
+        - link "Edit" [ref=f159e21] [cursor=pointer]:
+          - /url: "#/edit"
+        - link "Upscale" [ref=f159e22] [cursor=pointer]:
+          - /url: "#/upscale"
+        - link "Audio" [ref=f159e23] [cursor=pointer]:
+          - /url: "#/audio"
+        - link "Avatar" [ref=f159e24] [cursor=pointer]:
+          - /url: "#/avatar"
+        - link "Training" [ref=f159e25] [cursor=pointer]:
+          - /url: "#/training"
+        - link "Video Tools" [ref=f159e26] [cursor=pointer]:
+          - /url: "#/videotools"
+        - link "Render" [ref=f159e27] [cursor=pointer]:
+          - /url: "#/render"
+        - link "Video Agent" [ref=f159e28] [cursor=pointer]:
+          - /url: "#/video-agent"
+        - link "Director" [ref=f159e29] [cursor=pointer]:
+          - /url: "#/director"
+        - link "Timeline" [ref=f159e30] [cursor=pointer]:
+          - /url: "#/timeline"
+        - link "Chat" [ref=f159e31] [cursor=pointer]:
+          - /url: "#/chat"
+        - link "Commercial" [ref=f159e32] [cursor=pointer]:
+          - /url: "#/commercial"
+        - link "Templates" [ref=f159e33] [cursor=pointer]:
+          - /url: "#/templates"
+        - link "Library" [ref=f159e34] [cursor=pointer]:
+          - /url: "#/library"
+        - link "Community" [ref=f159e35] [cursor=pointer]:
+          - /url: "#/community"
+        - link "Assist" [ref=f159e36] [cursor=pointer]:
+          - /url: "#/assist"
+        - link "AI VFX" [ref=f159e37] [cursor=pointer]:
+          - /url: "#/ai-vfx"
+        - link "AppsNew" [ref=f159e38] [cursor=pointer]:
+          - /url: "#/apps"
+      - generic [ref=f159e39]:
+        - link "Sign In" [ref=f159e40] [cursor=pointer]:
+          - /url: /signin
+        - link "Get Started" [ref=f159e41] [cursor=pointer]:
+          - /url: /signup
+  - banner [ref=f159e42]:
+    - generic [ref=f159e48]:
+      - generic [ref=f159e49]: AI Creative Platform
+      - heading "Create Anything. Sell Everything." [level=1] [ref=f159e52]
+      - paragraph [ref=f159e53]: Create professional images, videos, ads, characters, commercials and social content with AI.
+      - generic [ref=f159e54]:
+        - button "Start Creating" [ref=f159e55]
+        - button "Watch What You Can Make" [ref=f159e58]
+      - generic [ref=f159e62]:
+        - generic [ref=f159e63]:
+          - term [ref=f159e64]: AI models available
+          - definition [ref=f159e65]:
+            - generic [ref=f159e66]: 200+
+            - generic [ref=f159e67]: AI Models
+        - generic [ref=f159e69]:
+          - term [ref=f159e70]: Professional studios included
+          - definition [ref=f159e71]:
+            - generic [ref=f159e72]: "33"
+            - generic [ref=f159e73]: Professional Studios
+  - region [ref=f159e74]:
+    - generic [ref=f159e85]:
+      - generic [ref=f159e86]: Trusted by 10,000+ Creators & Agencies
+      - heading "Create Cinematic AI Videos, Images, VFX, Commercials, Characters, Agents & Client-Ready Content From One Powerful AI Studio" [level=2] [ref=f159e89]:
+        - generic [ref=f159e90]: Create Cinematic AI Videos,
+        - generic [ref=f159e91]: Images, VFX, Commercials,
+        - generic [ref=f159e92]: Characters, Agents &
+        - generic [ref=f159e93]: Client-Ready Content
+        - generic [ref=f159e94]: From One Powerful AI Studio
+      - paragraph [ref=f159e95]: AI Video Agency Studio gives you a complete creative command center with 60+ AI-powered tools for generating videos, images, characters, commercials, cinematic effects, avatars, lip sync, dubbing, storyboards, edits, workflows, agents, and client-ready content packages — all from one organized platform.
+      - generic [ref=f159e96]:
+        - button "Start Building My AI Video Agency" [ref=f159e97]
+        - button "Watch The Demo Video" [ref=f159e102]
+      - region [ref=f159e107]:
+        - heading "Platform Statistics" [level=2] [ref=f159e108]
+        - generic [ref=f159e109]:
+          - generic [ref=f159e110]: "33"
+          - generic [ref=f159e111]: AI Creative Apps
+        - generic [ref=f159e112]:
+          - generic [ref=f159e113]: 60+
+          - generic [ref=f159e114]: AI Features
+        - generic [ref=f159e115]:
+          - generic [ref=f159e116]: 200+
+          - generic [ref=f159e117]: AI Models
+        - generic [ref=f159e118]:
+          - generic [ref=f159e119]: Lifetime
+          - generic [ref=f159e120]: Access
+  - button "💼 Smart Video AI Monetize" [ref=f159e125]:
+    - generic [ref=f159e126]: 💼
+    - generic [ref=f159e127]: Smart Video AI Monetize
+  - region "30 AI Creative Apps + 60+ features" [ref=f159e128]:
+    - generic [ref=f159e130]:
+      - generic [ref=f159e131]: Every App You Need
+      - heading "30 AI Creative Apps" [level=2] [ref=f159e135]
+      - paragraph [ref=f159e136]: One platform. Every creative tool. Build anything from cinematic videos to AI agents.
+    - generic [ref=f159e137]:
+      - generic [ref=f159e139]:
+        - generic [ref=f159e140] [cursor=pointer]:
+          - generic [ref=f159e142]: Image
+          - generic [ref=f159e143]: 🖼️
+        - generic [ref=f159e144] [cursor=pointer]:
+          - generic [ref=f159e146]: Video
+          - generic [ref=f159e147]: 🎬
+        - generic [ref=f159e148] [cursor=pointer]:
+          - generic [ref=f159e150]: Cinema Studio
+          - generic [ref=f159e151]: 🎥
+        - generic [ref=f159e152] [cursor=pointer]:
+          - generic [ref=f159e154]: Character
+          - generic [ref=f159e155]: 🧑
+        - generic [ref=f159e156] [cursor=pointer]:
+          - generic [ref=f159e158]: AI-VFX
+          - generic [ref=f159e159]: ✨
+        - generic [ref=f159e160] [cursor=pointer]:
+          - generic [ref=f159e162]: Influencer
+          - generic [ref=f159e163]: 🌟
+        - generic [ref=f159e164] [cursor=pointer]:
+          - generic [ref=f159e166]: Storyboard
+          - generic [ref=f159e167]: 📋
+        - generic [ref=f159e168] [cursor=pointer]:
+          - generic [ref=f159e170]: Effects
+          - generic [ref=f159e171]: 🎭
+        - generic [ref=f159e172] [cursor=pointer]:
+          - generic [ref=f159e174]: VFX
+          - generic [ref=f159e175]: 💥
+        - generic [ref=f159e176] [cursor=pointer]:
+          - generic [ref=f159e178]: Edit
+          - generic [ref=f159e179]: ✂️
+        - generic [ref=f159e180] [cursor=pointer]:
+          - generic [ref=f159e182]: Upscale
+          - generic [ref=f159e183]: 🔍
+        - generic [ref=f159e184] [cursor=pointer]:
+          - generic [ref=f159e186]: Audio
+          - generic [ref=f159e187]: 🎵
+        - generic [ref=f159e188] [cursor=pointer]:
+          - generic [ref=f159e190]: Avatar
+          - generic [ref=f159e191]: 👤
+        - generic [ref=f159e192] [cursor=pointer]:
+          - generic [ref=f159e194]: Training
+          - generic [ref=f159e195]: 🏋️
+        - generic [ref=f159e196] [cursor=pointer]:
+          - generic [ref=f159e198]: Video Tools
+          - generic [ref=f159e199]: 🔧
+        - generic [ref=f159e200] [cursor=pointer]:
+          - generic [ref=f159e202]: Render
+          - generic [ref=f159e203]: 🚀
+        - generic [ref=f159e204] [cursor=pointer]:
+          - generic [ref=f159e206]: Director
+          - generic [ref=f159e207]: 🎬
+        - generic [ref=f159e208] [cursor=pointer]:
+          - generic [ref=f159e210]: Timeline
+          - generic [ref=f159e211]: ⏱️
+        - generic [ref=f159e212] [cursor=pointer]:
+          - generic [ref=f159e214]: Motion
+          - generic [ref=f159e215]: 🎪
+        - generic [ref=f159e216] [cursor=pointer]:
+          - generic [ref=f159e218]: TikTok
+          - generic [ref=f159e219]: 📱
+        - generic [ref=f159e220] [cursor=pointer]:
+          - generic [ref=f159e222]: Dubbing
+          - generic [ref=f159e223]: 🎙️
+        - generic [ref=f159e224] [cursor=pointer]:
+          - generic [ref=f159e226]: Chat
+          - generic [ref=f159e227]: 💬
+        - generic [ref=f159e228] [cursor=pointer]:
+          - generic [ref=f159e230]: Commercial
+          - generic [ref=f159e231]: 💼
+        - generic [ref=f159e232] [cursor=pointer]:
+          - generic [ref=f159e234]: Templates
+          - generic [ref=f159e235]: 📁
+        - generic [ref=f159e236] [cursor=pointer]:
+          - generic [ref=f159e238]: Explore
+          - generic [ref=f159e239]: 🔍
+        - generic [ref=f159e240] [cursor=pointer]:
+          - generic [ref=f159e242]: Library
+          - generic [ref=f159e243]: 📚
+        - generic [ref=f159e244] [cursor=pointer]:
+          - generic [ref=f159e246]: Community
+          - generic [ref=f159e247]: 👥
+        - generic [ref=f159e248] [cursor=pointer]:
+          - generic [ref=f159e250]: Assist
+          - generic [ref=f159e251]: 🧠
+        - generic [ref=f159e252] [cursor=pointer]:
+          - generic [ref=f159e254]: Lip Sync
+          - generic [ref=f159e255]: 🎭
+        - generic [ref=f159e256] [cursor=pointer]:
+          - generic [ref=f159e258]: Agents
+          - generic [ref=f159e259]: 🤖
+        - generic [ref=f159e260] [cursor=pointer]:
+          - generic [ref=f159e262]: Image
+          - generic [ref=f159e263]: 🖼️
+        - generic [ref=f159e264] [cursor=pointer]:
+          - generic [ref=f159e266]: Video
+          - generic [ref=f159e267]: 🎬
+        - generic [ref=f159e268] [cursor=pointer]:
+          - generic [ref=f159e270]: Cinema Studio
+          - generic [ref=f159e271]: 🎥
+        - generic [ref=f159e272] [cursor=pointer]:
+          - generic [ref=f159e274]: Character
+          - generic [ref=f159e275]: 🧑
+        - generic [ref=f159e276] [cursor=pointer]:
+          - generic [ref=f159e278]: AI-VFX
+          - generic [ref=f159e279]: ✨
+        - generic [ref=f159e280] [cursor=pointer]:
+          - generic [ref=f159e282]: Influencer
+          - generic [ref=f159e283]: 🌟
+        - generic [ref=f159e284] [cursor=pointer]:
+          - generic [ref=f159e286]: Storyboard
+          - generic [ref=f159e287]: 📋
+        - generic [ref=f159e288] [cursor=pointer]:
+          - generic [ref=f159e290]: Effects
+          - generic [ref=f159e291]: 🎭
+        - generic [ref=f159e292] [cursor=pointer]:
+          - generic [ref=f159e294]: VFX
+          - generic [ref=f159e295]: 💥
+        - generic [ref=f159e296] [cursor=pointer]:
+          - generic [ref=f159e298]: Edit
+          - generic [ref=f159e299]: ✂️
+        - generic [ref=f159e300] [cursor=pointer]:
+          - generic [ref=f159e302]: Upscale
+          - generic [ref=f159e303]: 🔍
+        - generic [ref=f159e304] [cursor=pointer]:
+          - generic [ref=f159e306]: Audio
+          - generic [ref=f159e307]: 🎵
+        - generic [ref=f159e308] [cursor=pointer]:
+          - generic [ref=f159e310]: Avatar
+          - generic [ref=f159e311]: 👤
+        - generic [ref=f159e312] [cursor=pointer]:
+          - generic [ref=f159e314]: Training
+          - generic [ref=f159e315]: 🏋️
+        - generic [ref=f159e316] [cursor=pointer]:
+          - generic [ref=f159e318]: Video Tools
+          - generic [ref=f159e319]: 🔧
+        - generic [ref=f159e320] [cursor=pointer]:
+          - generic [ref=f159e322]: Render
+          - generic [ref=f159e323]: 🚀
+        - generic [ref=f159e324] [cursor=pointer]:
+          - generic [ref=f159e326]: Director
+          - generic [ref=f159e327]: 🎬
+        - generic [ref=f159e328] [cursor=pointer]:
+          - generic [ref=f159e330]: Timeline
+          - generic [ref=f159e331]: ⏱️
+        - generic [ref=f159e332] [cursor=pointer]:
+          - generic [ref=f159e334]: Motion
+          - generic [ref=f159e335]: 🎪
+        - generic [ref=f159e336] [cursor=pointer]:
+          - generic [ref=f159e338]: TikTok
+          - generic [ref=f159e339]: 📱
+        - generic [ref=f159e340] [cursor=pointer]:
+          - generic [ref=f159e342]: Dubbing
+          - generic [ref=f159e343]: 🎙️
+        - generic [ref=f159e344] [cursor=pointer]:
+          - generic [ref=f159e346]: Chat
+          - generic [ref=f159e347]: 💬
+        - generic [ref=f159e348] [cursor=pointer]:
+          - generic [ref=f159e350]: Commercial
+          - generic [ref=f159e351]: 💼
+        - generic [ref=f159e352] [cursor=pointer]:
+          - generic [ref=f159e354]: Templates
+          - generic [ref=f159e355]: 📁
+        - generic [ref=f159e356] [cursor=pointer]:
+          - generic [ref=f159e358]: Explore
+          - generic [ref=f159e359]: 🔍
+        - generic [ref=f159e360] [cursor=pointer]:
+          - generic [ref=f159e362]: Library
+          - generic [ref=f159e363]: 📚
+        - generic [ref=f159e364] [cursor=pointer]:
+          - generic [ref=f159e366]: Community
+          - generic [ref=f159e367]: 👥
+        - generic [ref=f159e368] [cursor=pointer]:
+          - generic [ref=f159e370]: Assist
+          - generic [ref=f159e371]: 🧠
+        - generic [ref=f159e372] [cursor=pointer]:
+          - generic [ref=f159e374]: Lip Sync
+          - generic [ref=f159e375]: 🎭
+        - generic [ref=f159e376] [cursor=pointer]:
+          - generic [ref=f159e378]: Agents
+          - generic [ref=f159e379]: 🤖
+        - generic [ref=f159e380] [cursor=pointer]:
+          - generic [ref=f159e382]: Image
+          - generic [ref=f159e383]: 🖼️
+        - generic [ref=f159e384] [cursor=pointer]:
+          - generic [ref=f159e386]: Video
+          - generic [ref=f159e387]: 🎬
+        - generic [ref=f159e388] [cursor=pointer]:
+          - generic [ref=f159e390]: Cinema Studio
+          - generic [ref=f159e391]: 🎥
+        - generic [ref=f159e392] [cursor=pointer]:
+          - generic [ref=f159e394]: Character
+          - generic [ref=f159e395]: 🧑
+        - generic [ref=f159e396] [cursor=pointer]:
+          - generic [ref=f159e398]: AI-VFX
+          - generic [ref=f159e399]: ✨
+        - generic [ref=f159e400] [cursor=pointer]:
+          - generic [ref=f159e402]: Influencer
+          - generic [ref=f159e403]: 🌟
+        - generic [ref=f159e404] [cursor=pointer]:
+          - generic [ref=f159e406]: Storyboard
+          - generic [ref=f159e407]: 📋
+        - generic [ref=f159e408] [cursor=pointer]:
+          - generic [ref=f159e410]: Effects
+          - generic [ref=f159e411]: 🎭
+        - generic [ref=f159e412] [cursor=pointer]:
+          - generic [ref=f159e414]: VFX
+          - generic [ref=f159e415]: 💥
+        - generic [ref=f159e416] [cursor=pointer]:
+          - generic [ref=f159e418]: Edit
+          - generic [ref=f159e419]: ✂️
+        - generic [ref=f159e420] [cursor=pointer]:
+          - generic [ref=f159e422]: Upscale
+          - generic [ref=f159e423]: 🔍
+        - generic [ref=f159e424] [cursor=pointer]:
+          - generic [ref=f159e426]: Audio
+          - generic [ref=f159e427]: 🎵
+        - generic [ref=f159e428] [cursor=pointer]:
+          - generic [ref=f159e430]: Avatar
+          - generic [ref=f159e431]: 👤
+        - generic [ref=f159e432] [cursor=pointer]:
+          - generic [ref=f159e434]: Training
+          - generic [ref=f159e435]: 🏋️
+        - generic [ref=f159e436] [cursor=pointer]:
+          - generic [ref=f159e438]: Video Tools
+          - generic [ref=f159e439]: 🔧
+        - generic [ref=f159e440] [cursor=pointer]:
+          - generic [ref=f159e442]: Render
+          - generic [ref=f159e443]: 🚀
+        - generic [ref=f159e444] [cursor=pointer]:
+          - generic [ref=f159e446]: Director
+          - generic [ref=f159e447]: 🎬
+        - generic [ref=f159e448] [cursor=pointer]:
+          - generic [ref=f159e450]: Timeline
+          - generic [ref=f159e451]: ⏱️
+        - generic [ref=f159e452] [cursor=pointer]:
+          - generic [ref=f159e454]: Motion
+          - generic [ref=f159e455]: 🎪
+        - generic [ref=f159e456] [cursor=pointer]:
+          - generic [ref=f159e458]: TikTok
+          - generic [ref=f159e459]: 📱
+        - generic [ref=f159e460] [cursor=pointer]:
+          - generic [ref=f159e462]: Dubbing
+          - generic [ref=f159e463]: 🎙️
+        - generic [ref=f159e464] [cursor=pointer]:
+          - generic [ref=f159e466]: Chat
+          - generic [ref=f159e467]: 💬
+        - generic [ref=f159e468] [cursor=pointer]:
+          - generic [ref=f159e470]: Commercial
+          - generic [ref=f159e471]: 💼
+        - generic [ref=f159e472] [cursor=pointer]:
+          - generic [ref=f159e474]: Templates
+          - generic [ref=f159e475]: 📁
+        - generic [ref=f159e476] [cursor=pointer]:
+          - generic [ref=f159e478]: Explore
+          - generic [ref=f159e479]: 🔍
+        - generic [ref=f159e480] [cursor=pointer]:
+          - generic [ref=f159e482]: Library
+          - generic [ref=f159e483]: 📚
+        - generic [ref=f159e484] [cursor=pointer]:
+          - generic [ref=f159e486]: Community
+          - generic [ref=f159e487]: 👥
+        - generic [ref=f159e488] [cursor=pointer]:
+          - generic [ref=f159e490]: Assist
+          - generic [ref=f159e491]: 🧠
+        - generic [ref=f159e492] [cursor=pointer]:
+          - generic [ref=f159e494]: Lip Sync
+          - generic [ref=f159e495]: 🎭
+        - generic [ref=f159e496] [cursor=pointer]:
+          - generic [ref=f159e498]: Agents
+          - generic [ref=f159e499]: 🤖
+      - generic [ref=f159e501]:
+        - generic [ref=f159e502] [cursor=pointer]:
+          - generic [ref=f159e504]: Agents
+          - generic [ref=f159e505]: 🤖
+        - generic [ref=f159e506] [cursor=pointer]:
+          - generic [ref=f159e508]: Lip Sync
+          - generic [ref=f159e509]: 🎭
+        - generic [ref=f159e510] [cursor=pointer]:
+          - generic [ref=f159e512]: Assist
+          - generic [ref=f159e513]: 🧠
+        - generic [ref=f159e514] [cursor=pointer]:
+          - generic [ref=f159e516]: Community
+          - generic [ref=f159e517]: 👥
+        - generic [ref=f159e518] [cursor=pointer]:
+          - generic [ref=f159e520]: Library
+          - generic [ref=f159e521]: 📚
+        - generic [ref=f159e522] [cursor=pointer]:
+          - generic [ref=f159e524]: Explore
+          - generic [ref=f159e525]: 🔍
+        - generic [ref=f159e526] [cursor=pointer]:
+          - generic [ref=f159e528]: Templates
+          - generic [ref=f159e529]: 📁
+        - generic [ref=f159e530] [cursor=pointer]:
+          - generic [ref=f159e532]: Commercial
+          - generic [ref=f159e533]: 💼
+        - generic [ref=f159e534] [cursor=pointer]:
+          - generic [ref=f159e536]: Chat
+          - generic [ref=f159e537]: 💬
+        - generic [ref=f159e538] [cursor=pointer]:
+          - generic [ref=f159e540]: Dubbing
+          - generic [ref=f159e541]: 🎙️
+        - generic [ref=f159e542] [cursor=pointer]:
+          - generic [ref=f159e544]: TikTok
+          - generic [ref=f159e545]: 📱
+        - generic [ref=f159e546] [cursor=pointer]:
+          - generic [ref=f159e548]: Motion
+          - generic [ref=f159e549]: 🎪
+        - generic [ref=f159e550] [cursor=pointer]:
+          - generic [ref=f159e552]: Timeline
+          - generic [ref=f159e553]: ⏱️
+        - generic [ref=f159e554] [cursor=pointer]:
+          - generic [ref=f159e556]: Director
+          - generic [ref=f159e557]: 🎬
+        - generic [ref=f159e558] [cursor=pointer]:
+          - generic [ref=f159e560]: Render
+          - generic [ref=f159e561]: 🚀
+        - generic [ref=f159e562] [cursor=pointer]:
+          - generic [ref=f159e564]: Video Tools
+          - generic [ref=f159e565]: 🔧
+        - generic [ref=f159e566] [cursor=pointer]:
+          - generic [ref=f159e568]: Training
+          - generic [ref=f159e569]: 🏋️
+        - generic [ref=f159e570] [cursor=pointer]:
+          - generic [ref=f159e572]: Avatar
+          - generic [ref=f159e573]: 👤
+        - generic [ref=f159e574] [cursor=pointer]:
+          - generic [ref=f159e576]: Audio
+          - generic [ref=f159e577]: 🎵
+        - generic [ref=f159e578] [cursor=pointer]:
+          - generic [ref=f159e580]: Upscale
+          - generic [ref=f159e581]: 🔍
+        - generic [ref=f159e582] [cursor=pointer]:
+          - generic [ref=f159e584]: Edit
+          - generic [ref=f159e585]: ✂️
+        - generic [ref=f159e586] [cursor=pointer]:
+          - generic [ref=f159e588]: VFX
+          - generic [ref=f159e589]: 💥
+        - generic [ref=f159e590] [cursor=pointer]:
+          - generic [ref=f159e592]: Effects
+          - generic [ref=f159e593]: 🎭
+        - generic [ref=f159e594] [cursor=pointer]:
+          - generic [ref=f159e596]: Storyboard
+          - generic [ref=f159e597]: 📋
+        - generic [ref=f159e598] [cursor=pointer]:
+          - generic [ref=f159e600]: Influencer
+          - generic [ref=f159e601]: 🌟
+        - generic [ref=f159e602] [cursor=pointer]:
+          - generic [ref=f159e604]: AI-VFX
+          - generic [ref=f159e605]: ✨
+        - generic [ref=f159e606] [cursor=pointer]:
+          - generic [ref=f159e608]: Character
+          - generic [ref=f159e609]: 🧑
+        - generic [ref=f159e610] [cursor=pointer]:
+          - generic [ref=f159e612]: Cinema Studio
+          - generic [ref=f159e613]: 🎥
+        - generic [ref=f159e614] [cursor=pointer]:
+          - generic [ref=f159e616]: Video
+          - generic [ref=f159e617]: 🎬
+        - generic [ref=f159e618] [cursor=pointer]:
+          - generic [ref=f159e620]: Image
+          - generic [ref=f159e621]: 🖼️
+        - generic [ref=f159e622] [cursor=pointer]:
+          - generic [ref=f159e624]: Agents
+          - generic [ref=f159e625]: 🤖
+        - generic [ref=f159e626] [cursor=pointer]:
+          - generic [ref=f159e628]: Lip Sync
+          - generic [ref=f159e629]: 🎭
+        - generic [ref=f159e630] [cursor=pointer]:
+          - generic [ref=f159e632]: Assist
+          - generic [ref=f159e633]: 🧠
+        - generic [ref=f159e634] [cursor=pointer]:
+          - generic [ref=f159e636]: Community
+          - generic [ref=f159e637]: 👥
+        - generic [ref=f159e638] [cursor=pointer]:
+          - generic [ref=f159e640]: Library
+          - generic [ref=f159e641]: 📚
+        - generic [ref=f159e642] [cursor=pointer]:
+          - generic [ref=f159e644]: Explore
+          - generic [ref=f159e645]: 🔍
+        - generic [ref=f159e646] [cursor=pointer]:
+          - generic [ref=f159e648]: Templates
+          - generic [ref=f159e649]: 📁
+        - generic [ref=f159e650] [cursor=pointer]:
+          - generic [ref=f159e652]: Commercial
+          - generic [ref=f159e653]: 💼
+        - generic [ref=f159e654] [cursor=pointer]:
+          - generic [ref=f159e656]: Chat
+          - generic [ref=f159e657]: 💬
+        - generic [ref=f159e658] [cursor=pointer]:
+          - generic [ref=f159e660]: Dubbing
+          - generic [ref=f159e661]: 🎙️
+        - generic [ref=f159e662] [cursor=pointer]:
+          - generic [ref=f159e664]: TikTok
+          - generic [ref=f159e665]: 📱
+        - generic [ref=f159e666] [cursor=pointer]:
+          - generic [ref=f159e668]: Motion
+          - generic [ref=f159e669]: 🎪
+        - generic [ref=f159e670] [cursor=pointer]:
+          - generic [ref=f159e672]: Timeline
+          - generic [ref=f159e673]: ⏱️
+        - generic [ref=f159e674] [cursor=pointer]:
+          - generic [ref=f159e676]: Director
+          - generic [ref=f159e677]: 🎬
+        - generic [ref=f159e678] [cursor=pointer]:
+          - generic [ref=f159e680]: Render
+          - generic [ref=f159e681]: 🚀
+        - generic [ref=f159e682] [cursor=pointer]:
+          - generic [ref=f159e684]: Video Tools
+          - generic [ref=f159e685]: 🔧
+        - generic [ref=f159e686] [cursor=pointer]:
+          - generic [ref=f159e688]: Training
+          - generic [ref=f159e689]: 🏋️
+        - generic [ref=f159e690] [cursor=pointer]:
+          - generic [ref=f159e692]: Avatar
+          - generic [ref=f159e693]: 👤
+        - generic [ref=f159e694] [cursor=pointer]:
+          - generic [ref=f159e696]: Audio
+          - generic [ref=f159e697]: 🎵
+        - generic [ref=f159e698] [cursor=pointer]:
+          - generic [ref=f159e700]: Upscale
+          - generic [ref=f159e701]: 🔍
+        - generic [ref=f159e702] [cursor=pointer]:
+          - generic [ref=f159e704]: Edit
+          - generic [ref=f159e705]: ✂️
+        - generic [ref=f159e706] [cursor=pointer]:
+          - generic [ref=f159e708]: VFX
+          - generic [ref=f159e709]: 💥
+        - generic [ref=f159e710] [cursor=pointer]:
+          - generic [ref=f159e712]: Effects
+          - generic [ref=f159e713]: 🎭
+        - generic [ref=f159e714] [cursor=pointer]:
+          - generic [ref=f159e716]: Storyboard
+          - generic [ref=f159e717]: 📋
+        - generic [ref=f159e718] [cursor=pointer]:
+          - generic [ref=f159e720]: Influencer
+          - generic [ref=f159e721]: 🌟
+        - generic [ref=f159e722] [cursor=pointer]:
+          - generic [ref=f159e724]: AI-VFX
+          - generic [ref=f159e725]: ✨
+        - generic [ref=f159e726] [cursor=pointer]:
+          - generic [ref=f159e728]: Character
+          - generic [ref=f159e729]: 🧑
+        - generic [ref=f159e730] [cursor=pointer]:
+          - generic [ref=f159e732]: Cinema Studio
+          - generic [ref=f159e733]: 🎥
+        - generic [ref=f159e734] [cursor=pointer]:
+          - generic [ref=f159e736]: Video
+          - generic [ref=f159e737]: 🎬
+        - generic [ref=f159e738] [cursor=pointer]:
+          - generic [ref=f159e740]: Image
+          - generic [ref=f159e741]: 🖼️
+        - generic [ref=f159e742] [cursor=pointer]:
+          - generic [ref=f159e744]: Agents
+          - generic [ref=f159e745]: 🤖
+        - generic [ref=f159e746] [cursor=pointer]:
+          - generic [ref=f159e748]: Lip Sync
+          - generic [ref=f159e749]: 🎭
+        - generic [ref=f159e750] [cursor=pointer]:
+          - generic [ref=f159e752]: Assist
+          - generic [ref=f159e753]: 🧠
+        - generic [ref=f159e754] [cursor=pointer]:
+          - generic [ref=f159e756]: Community
+          - generic [ref=f159e757]: 👥
+        - generic [ref=f159e758] [cursor=pointer]:
+          - generic [ref=f159e760]: Library
+          - generic [ref=f159e761]: 📚
+        - generic [ref=f159e762] [cursor=pointer]:
+          - generic [ref=f159e764]: Explore
+          - generic [ref=f159e765]: 🔍
+        - generic [ref=f159e766] [cursor=pointer]:
+          - generic [ref=f159e768]: Templates
+          - generic [ref=f159e769]: 📁
+        - generic [ref=f159e770] [cursor=pointer]:
+          - generic [ref=f159e772]: Commercial
+          - generic [ref=f159e773]: 💼
+        - generic [ref=f159e774] [cursor=pointer]:
+          - generic [ref=f159e776]: Chat
+          - generic [ref=f159e777]: 💬
+        - generic [ref=f159e778] [cursor=pointer]:
+          - generic [ref=f159e780]: Dubbing
+          - generic [ref=f159e781]: 🎙️
+        - generic [ref=f159e782] [cursor=pointer]:
+          - generic [ref=f159e784]: TikTok
+          - generic [ref=f159e785]: 📱
+        - generic [ref=f159e786] [cursor=pointer]:
+          - generic [ref=f159e788]: Motion
+          - generic [ref=f159e789]: 🎪
+        - generic [ref=f159e790] [cursor=pointer]:
+          - generic [ref=f159e792]: Timeline
+          - generic [ref=f159e793]: ⏱️
+        - generic [ref=f159e794] [cursor=pointer]:
+          - generic [ref=f159e796]: Director
+          - generic [ref=f159e797]: 🎬
+        - generic [ref=f159e798] [cursor=pointer]:
+          - generic [ref=f159e800]: Render
+          - generic [ref=f159e801]: 🚀
+        - generic [ref=f159e802] [cursor=pointer]:
+          - generic [ref=f159e804]: Video Tools
+          - generic [ref=f159e805]: 🔧
+        - generic [ref=f159e806] [cursor=pointer]:
+          - generic [ref=f159e808]: Training
+          - generic [ref=f159e809]: 🏋️
+        - generic [ref=f159e810] [cursor=pointer]:
+          - generic [ref=f159e812]: Avatar
+          - generic [ref=f159e813]: 👤
+        - generic [ref=f159e814] [cursor=pointer]:
+          - generic [ref=f159e816]: Audio
+          - generic [ref=f159e817]: 🎵
+        - generic [ref=f159e818] [cursor=pointer]:
+          - generic [ref=f159e820]: Upscale
+          - generic [ref=f159e821]: 🔍
+        - generic [ref=f159e822] [cursor=pointer]:
+          - generic [ref=f159e824]: Edit
+          - generic [ref=f159e825]: ✂️
+        - generic [ref=f159e826] [cursor=pointer]:
+          - generic [ref=f159e828]: VFX
+          - generic [ref=f159e829]: 💥
+        - generic [ref=f159e830] [cursor=pointer]:
+          - generic [ref=f159e832]: Effects
+          - generic [ref=f159e833]: 🎭
+        - generic [ref=f159e834] [cursor=pointer]:
+          - generic [ref=f159e836]: Storyboard
+          - generic [ref=f159e837]: 📋
+        - generic [ref=f159e838] [cursor=pointer]:
+          - generic [ref=f159e840]: Influencer
+          - generic [ref=f159e841]: 🌟
+        - generic [ref=f159e842] [cursor=pointer]:
+          - generic [ref=f159e844]: AI-VFX
+          - generic [ref=f159e845]: ✨
+        - generic [ref=f159e846] [cursor=pointer]:
+          - generic [ref=f159e848]: Character
+          - generic [ref=f159e849]: 🧑
+        - generic [ref=f159e850] [cursor=pointer]:
+          - generic [ref=f159e852]: Cinema Studio
+          - generic [ref=f159e853]: 🎥
+        - generic [ref=f159e854] [cursor=pointer]:
+          - generic [ref=f159e856]: Video
+          - generic [ref=f159e857]: 🎬
+        - generic [ref=f159e858] [cursor=pointer]:
+          - generic [ref=f159e860]: Image
+          - generic [ref=f159e861]: 🖼️
+      - generic [ref=f159e863]:
+        - generic [ref=f159e864] [cursor=pointer]:
+          - generic [ref=f159e866]: 33 AI Creative Apps Access
+          - generic [ref=f159e867]: ⚡
+        - generic [ref=f159e868] [cursor=pointer]:
+          - generic [ref=f159e870]: 60+ AI Features & Tools
+          - generic [ref=f159e871]: ⚡
+        - generic [ref=f159e872] [cursor=pointer]:
+          - generic [ref=f159e874]: 200+ AI Models Library
+          - generic [ref=f159e875]: ⚡
+        - generic [ref=f159e876] [cursor=pointer]:
+          - generic [ref=f159e878]: Professional Timeline Editor
+          - generic [ref=f159e879]: ⚡
+        - generic [ref=f159e880] [cursor=pointer]:
+          - generic [ref=f159e882]: 4K/8K Export Quality
+          - generic [ref=f159e883]: ⚡
+        - generic [ref=f159e884] [cursor=pointer]:
+          - generic [ref=f159e886]: No Watermarks on Exports
+          - generic [ref=f159e887]: ⚡
+        - generic [ref=f159e888] [cursor=pointer]:
+          - generic [ref=f159e890]: Cloud Storage (50GB)
+          - generic [ref=f159e891]: ⚡
+        - generic [ref=f159e892] [cursor=pointer]:
+          - generic [ref=f159e894]: Priority GPU Rendering
+          - generic [ref=f159e895]: ⚡
+        - generic [ref=f159e896] [cursor=pointer]:
+          - generic [ref=f159e898]: Text-to-Image Generation
+          - generic [ref=f159e899]: ⚡
+        - generic [ref=f159e900] [cursor=pointer]:
+          - generic [ref=f159e902]: Image-to-Image Generation
+          - generic [ref=f159e903]: ⚡
+        - generic [ref=f159e904] [cursor=pointer]:
+          - generic [ref=f159e906]: Text-to-Video Creation
+          - generic [ref=f159e907]: ⚡
+        - generic [ref=f159e908] [cursor=pointer]:
+          - generic [ref=f159e910]: Image-to-Video Transformation
+          - generic [ref=f159e911]: ⚡
+        - generic [ref=f159e912] [cursor=pointer]:
+          - generic [ref=f159e914]: Video-to-Video Editing
+          - generic [ref=f159e915]: ⚡
+        - generic [ref=f159e916] [cursor=pointer]:
+          - generic [ref=f159e918]: AI Prompt Enhancement
+          - generic [ref=f159e919]: ⚡
+        - generic [ref=f159e920] [cursor=pointer]:
+          - generic [ref=f159e922]: Cinematic Prompt Rewriting
+          - generic [ref=f159e923]: ⚡
+        - generic [ref=f159e924] [cursor=pointer]:
+          - generic [ref=f159e926]: Multi-Model Generation
+          - generic [ref=f159e927]: ⚡
+        - generic [ref=f159e928] [cursor=pointer]:
+          - generic [ref=f159e930]: Aspect Ratio Selection
+          - generic [ref=f159e931]: ⚡
+        - generic [ref=f159e932] [cursor=pointer]:
+          - generic [ref=f159e934]: Style Preset Selection
+          - generic [ref=f159e935]: ⚡
+        - generic [ref=f159e936] [cursor=pointer]:
+          - generic [ref=f159e938]: Cinematic Camera Presets
+          - generic [ref=f159e939]: ⚡
+        - generic [ref=f159e940] [cursor=pointer]:
+          - generic [ref=f159e942]: Lens Style Controls
+          - generic [ref=f159e943]: ⚡
+        - generic [ref=f159e944] [cursor=pointer]:
+          - generic [ref=f159e946]: Focal Length Controls
+          - generic [ref=f159e947]: ⚡
+        - generic [ref=f159e948] [cursor=pointer]:
+          - generic [ref=f159e950]: Aperture Controls
+          - generic [ref=f159e951]: ⚡
+        - generic [ref=f159e952] [cursor=pointer]:
+          - generic [ref=f159e954]: Shot Type Selection
+          - generic [ref=f159e955]: ⚡
+        - generic [ref=f159e956] [cursor=pointer]:
+          - generic [ref=f159e958]: Lighting Mood Controls
+          - generic [ref=f159e959]: ⚡
+        - generic [ref=f159e960] [cursor=pointer]:
+          - generic [ref=f159e962]: Scene Composition Guidance
+          - generic [ref=f159e963]: ⚡
+        - generic [ref=f159e964] [cursor=pointer]:
+          - generic [ref=f159e966]: Camera Movement Prompts
+          - generic [ref=f159e967]: ⚡
+        - generic [ref=f159e968] [cursor=pointer]:
+          - generic [ref=f159e970]: Film-Style Visual Direction
+          - generic [ref=f159e971]: ⚡
+        - generic [ref=f159e972] [cursor=pointer]:
+          - generic [ref=f159e974]: Director-Style Scene Planning
+          - generic [ref=f159e975]: ⚡
+        - generic [ref=f159e976] [cursor=pointer]:
+          - generic [ref=f159e978]: Consistent Character Creation
+          - generic [ref=f159e979]: ⚡
+        - generic [ref=f159e980] [cursor=pointer]:
+          - generic [ref=f159e982]: AI Avatar Generation
+          - generic [ref=f159e983]: ⚡
+        - generic [ref=f159e984] [cursor=pointer]:
+          - generic [ref=f159e986]: Talking Avatar Creation
+          - generic [ref=f159e987]: ⚡
+        - generic [ref=f159e988] [cursor=pointer]:
+          - generic [ref=f159e990]: AI Influencer Content
+          - generic [ref=f159e991]: ⚡
+        - generic [ref=f159e992] [cursor=pointer]:
+          - generic [ref=f159e994]: Character Transformation
+          - generic [ref=f159e995]: ⚡
+        - generic [ref=f159e996] [cursor=pointer]:
+          - generic [ref=f159e998]: Fashion-Style Creator Shots
+          - generic [ref=f159e999]: ⚡
+        - generic [ref=f159e1000] [cursor=pointer]:
+          - generic [ref=f159e1002]: Profile Image Generation
+          - generic [ref=f159e1003]: ⚡
+        - generic [ref=f159e1004] [cursor=pointer]:
+          - generic [ref=f159e1006]: Persona-Based Visual Content
+          - generic [ref=f159e1007]: ⚡
+        - generic [ref=f159e1008] [cursor=pointer]:
+          - generic [ref=f159e1010]: Brand Mascot Creation
+          - generic [ref=f159e1011]: ⚡
+        - generic [ref=f159e1012] [cursor=pointer]:
+          - generic [ref=f159e1014]: Virtual Spokesperson Content
+          - generic [ref=f159e1015]: ⚡
+        - generic [ref=f159e1016] [cursor=pointer]:
+          - generic [ref=f159e1018]: Explosion Effects
+          - generic [ref=f159e1019]: ⚡
+        - generic [ref=f159e1020] [cursor=pointer]:
+          - generic [ref=f159e1022]: Fire Effects
+          - generic [ref=f159e1023]: ⚡
+        - generic [ref=f159e1024] [cursor=pointer]:
+          - generic [ref=f159e1026]: Lightning Effects
+          - generic [ref=f159e1027]: ⚡
+        - generic [ref=f159e1028] [cursor=pointer]:
+          - generic [ref=f159e1030]: Tornado Effects
+          - generic [ref=f159e1031]: ⚡
+        - generic [ref=f159e1032] [cursor=pointer]:
+          - generic [ref=f159e1034]: Disintegration Effects
+          - generic [ref=f159e1035]: ⚡
+        - generic [ref=f159e1036] [cursor=pointer]:
+          - generic [ref=f159e1038]: Energy Effects
+          - generic [ref=f159e1039]: ⚡
+        - generic [ref=f159e1040] [cursor=pointer]:
+          - generic [ref=f159e1042]: Action Scene Effects
+          - generic [ref=f159e1043]: ⚡
+        - generic [ref=f159e1044] [cursor=pointer]:
+          - generic [ref=f159e1046]: Motion Effects
+          - generic [ref=f159e1047]: ⚡
+        - generic [ref=f159e1048] [cursor=pointer]:
+          - generic [ref=f159e1050]: Style Transfer Effects
+          - generic [ref=f159e1051]: ⚡
+        - generic [ref=f159e1052] [cursor=pointer]:
+          - generic [ref=f159e1054]: Cinematic Transformation Effects
+          - generic [ref=f159e1055]: ⚡
+        - generic [ref=f159e1056] [cursor=pointer]:
+          - generic [ref=f159e1058]: AI Video Editing Assistance
+          - generic [ref=f159e1059]: ⚡
+        - generic [ref=f159e1060] [cursor=pointer]:
+          - generic [ref=f159e1062]: Timeline Editing
+          - generic [ref=f159e1063]: ⚡
+        - generic [ref=f159e1064] [cursor=pointer]:
+          - generic [ref=f159e1066]: Scene Arrangement
+          - generic [ref=f159e1067]: ⚡
+        - generic [ref=f159e1068] [cursor=pointer]:
+          - generic [ref=f159e1070]: Clip Organization
+          - generic [ref=f159e1071]: ⚡
+        - generic [ref=f159e1072] [cursor=pointer]:
+          - generic [ref=f159e1074]: Asset Previewing
+          - generic [ref=f159e1075]: ⚡
+        - generic [ref=f159e1076] [cursor=pointer]:
+          - generic [ref=f159e1078]: Render Management
+          - generic [ref=f159e1079]: ⚡
+        - generic [ref=f159e1080] [cursor=pointer]:
+          - generic [ref=f159e1082]: AI Upscaling
+          - generic [ref=f159e1083]: ⚡
+        - generic [ref=f159e1084] [cursor=pointer]:
+          - generic [ref=f159e1086]: Video Enhancement
+          - generic [ref=f159e1087]: ⚡
+        - generic [ref=f159e1088] [cursor=pointer]:
+          - generic [ref=f159e1090]: Image Enhancement
+          - generic [ref=f159e1091]: ⚡
+        - generic [ref=f159e1092] [cursor=pointer]:
+          - generic [ref=f159e1094]: Output Export Workflow
+          - generic [ref=f159e1095]: ⚡
+        - generic [ref=f159e1096] [cursor=pointer]:
+          - generic [ref=f159e1098]: Product Commercial Generation
+          - generic [ref=f159e1099]: ⚡
+        - generic [ref=f159e1100] [cursor=pointer]:
+          - generic [ref=f159e1102]: Ecommerce Ad Creative
+          - generic [ref=f159e1103]: ⚡
+        - generic [ref=f159e1104] [cursor=pointer]:
+          - generic [ref=f159e1106]: Local Business Promo Creation
+          - generic [ref=f159e1107]: ⚡
+        - generic [ref=f159e1108] [cursor=pointer]:
+          - generic [ref=f159e1110]: Social Media Video Creation
+          - generic [ref=f159e1111]: ⚡
+        - generic [ref=f159e1112] [cursor=pointer]:
+          - generic [ref=f159e1114]: TikTok Content Generation
+          - generic [ref=f159e1115]: ⚡
+        - generic [ref=f159e1116] [cursor=pointer]:
+          - generic [ref=f159e1118]: YouTube Thumbnail Creation
+          - generic [ref=f159e1119]: ⚡
+        - generic [ref=f159e1120] [cursor=pointer]:
+          - generic [ref=f159e1122]: Campaign Storyboard Creation
+          - generic [ref=f159e1123]: ⚡
+        - generic [ref=f159e1124] [cursor=pointer]:
+          - generic [ref=f159e1126]: Client Asset Library
+          - generic [ref=f159e1127]: ⚡
+        - generic [ref=f159e1128] [cursor=pointer]:
+          - generic [ref=f159e1130]: Agency Service Packaging
+          - generic [ref=f159e1131]: ⚡
+        - generic [ref=f159e1132] [cursor=pointer]:
+          - generic [ref=f159e1134]: Client-Ready Content Packages
+          - generic [ref=f159e1135]: ⚡
+        - generic [ref=f159e1136] [cursor=pointer]:
+          - generic [ref=f159e1138]: AI Video Agents
+          - generic [ref=f159e1139]: ⚡
+        - generic [ref=f159e1140] [cursor=pointer]:
+          - generic [ref=f159e1142]: Creative Workflow Automation
+          - generic [ref=f159e1143]: ⚡
+        - generic [ref=f159e1144] [cursor=pointer]:
+          - generic [ref=f159e1146]: AI Assistant Chat
+          - generic [ref=f159e1147]: ⚡
+        - generic [ref=f159e1148] [cursor=pointer]:
+          - generic [ref=f159e1150]: MCP-Ready Controls
+          - generic [ref=f159e1151]: ⚡
+        - generic [ref=f159e1152] [cursor=pointer]:
+          - generic [ref=f159e1154]: CLI Workflow Control
+          - generic [ref=f159e1155]: ⚡
+        - generic [ref=f159e1156] [cursor=pointer]:
+          - generic [ref=f159e1158]: Template-Based Generation
+          - generic [ref=f159e1159]: ⚡
+        - generic [ref=f159e1160] [cursor=pointer]:
+          - generic [ref=f159e1162]: Repeatable Client Workflows
+          - generic [ref=f159e1163]: ⚡
+        - generic [ref=f159e1164] [cursor=pointer]:
+          - generic [ref=f159e1166]: Custom Workflow Builder
+          - generic [ref=f159e1167]: ⚡
+        - generic [ref=f159e1168] [cursor=pointer]:
+          - generic [ref=f159e1170]: API Access
+          - generic [ref=f159e1171]: ⚡
+        - generic [ref=f159e1172] [cursor=pointer]:
+          - generic [ref=f159e1174]: Webhook Integrations
+          - generic [ref=f159e1175]: ⚡
+        - generic [ref=f159e1176] [cursor=pointer]:
+          - generic [ref=f159e1178]: 33 AI Creative Apps Access
+          - generic [ref=f159e1179]: ⚡
+        - generic [ref=f159e1180] [cursor=pointer]:
+          - generic [ref=f159e1182]: 60+ AI Features & Tools
+          - generic [ref=f159e1183]: ⚡
+        - generic [ref=f159e1184] [cursor=pointer]:
+          - generic [ref=f159e1186]: 200+ AI Models Library
+          - generic [ref=f159e1187]: ⚡
+        - generic [ref=f159e1188] [cursor=pointer]:
+          - generic [ref=f159e1190]: Professional Timeline Editor
+          - generic [ref=f159e1191]: ⚡
+        - generic [ref=f159e1192] [cursor=pointer]:
+          - generic [ref=f159e1194]: 4K/8K Export Quality
+          - generic [ref=f159e1195]: ⚡
+        - generic [ref=f159e1196] [cursor=pointer]:
+          - generic [ref=f159e1198]: No Watermarks on Exports
+          - generic [ref=f159e1199]: ⚡
+        - generic [ref=f159e1200] [cursor=pointer]:
+          - generic [ref=f159e1202]: Cloud Storage (50GB)
+          - generic [ref=f159e1203]: ⚡
+        - generic [ref=f159e1204] [cursor=pointer]:
+          - generic [ref=f159e1206]: Priority GPU Rendering
+          - generic [ref=f159e1207]: ⚡
+        - generic [ref=f159e1208] [cursor=pointer]:
+          - generic [ref=f159e1210]: Text-to-Image Generation
+          - generic [ref=f159e1211]: ⚡
+        - generic [ref=f159e1212] [cursor=pointer]:
+          - generic [ref=f159e1214]: Image-to-Image Generation
+          - generic [ref=f159e1215]: ⚡
+        - generic [ref=f159e1216] [cursor=pointer]:
+          - generic [ref=f159e1218]: Text-to-Video Creation
+          - generic [ref=f159e1219]: ⚡
+        - generic [ref=f159e1220] [cursor=pointer]:
+          - generic [ref=f159e1222]: Image-to-Video Transformation
+          - generic [ref=f159e1223]: ⚡
+        - generic [ref=f159e1224] [cursor=pointer]:
+          - generic [ref=f159e1226]: Video-to-Video Editing
+          - generic [ref=f159e1227]: ⚡
+        - generic [ref=f159e1228] [cursor=pointer]:
+          - generic [ref=f159e1230]: AI Prompt Enhancement
+          - generic [ref=f159e1231]: ⚡
+        - generic [ref=f159e1232] [cursor=pointer]:
+          - generic [ref=f159e1234]: Cinematic Prompt Rewriting
+          - generic [ref=f159e1235]: ⚡
+        - generic [ref=f159e1236] [cursor=pointer]:
+          - generic [ref=f159e1238]: Multi-Model Generation
+          - generic [ref=f159e1239]: ⚡
+        - generic [ref=f159e1240] [cursor=pointer]:
+          - generic [ref=f159e1242]: Aspect Ratio Selection
+          - generic [ref=f159e1243]: ⚡
+        - generic [ref=f159e1244] [cursor=pointer]:
+          - generic [ref=f159e1246]: Style Preset Selection
+          - generic [ref=f159e1247]: ⚡
+        - generic [ref=f159e1248] [cursor=pointer]:
+          - generic [ref=f159e1250]: Cinematic Camera Presets
+          - generic [ref=f159e1251]: ⚡
+        - generic [ref=f159e1252] [cursor=pointer]:
+          - generic [ref=f159e1254]: Lens Style Controls
+          - generic [ref=f159e1255]: ⚡
+        - generic [ref=f159e1256] [cursor=pointer]:
+          - generic [ref=f159e1258]: Focal Length Controls
+          - generic [ref=f159e1259]: ⚡
+        - generic [ref=f159e1260] [cursor=pointer]:
+          - generic [ref=f159e1262]: Aperture Controls
+          - generic [ref=f159e1263]: ⚡
+        - generic [ref=f159e1264] [cursor=pointer]:
+          - generic [ref=f159e1266]: Shot Type Selection
+          - generic [ref=f159e1267]: ⚡
+        - generic [ref=f159e1268] [cursor=pointer]:
+          - generic [ref=f159e1270]: Lighting Mood Controls
+          - generic [ref=f159e1271]: ⚡
+        - generic [ref=f159e1272] [cursor=pointer]:
+          - generic [ref=f159e1274]: Scene Composition Guidance
+          - generic [ref=f159e1275]: ⚡
+        - generic [ref=f159e1276] [cursor=pointer]:
+          - generic [ref=f159e1278]: Camera Movement Prompts
+          - generic [ref=f159e1279]: ⚡
+        - generic [ref=f159e1280] [cursor=pointer]:
+          - generic [ref=f159e1282]: Film-Style Visual Direction
+          - generic [ref=f159e1283]: ⚡
+        - generic [ref=f159e1284] [cursor=pointer]:
+          - generic [ref=f159e1286]: Director-Style Scene Planning
+          - generic [ref=f159e1287]: ⚡
+        - generic [ref=f159e1288] [cursor=pointer]:
+          - generic [ref=f159e1290]: Consistent Character Creation
+          - generic [ref=f159e1291]: ⚡
+        - generic [ref=f159e1292] [cursor=pointer]:
+          - generic [ref=f159e1294]: AI Avatar Generation
+          - generic [ref=f159e1295]: ⚡
+        - generic [ref=f159e1296] [cursor=pointer]:
+          - generic [ref=f159e1298]: Talking Avatar Creation
+          - generic [ref=f159e1299]: ⚡
+        - generic [ref=f159e1300] [cursor=pointer]:
+          - generic [ref=f159e1302]: AI Influencer Content
+          - generic [ref=f159e1303]: ⚡
+        - generic [ref=f159e1304] [cursor=pointer]:
+          - generic [ref=f159e1306]: Character Transformation
+          - generic [ref=f159e1307]: ⚡
+        - generic [ref=f159e1308] [cursor=pointer]:
+          - generic [ref=f159e1310]: Fashion-Style Creator Shots
+          - generic [ref=f159e1311]: ⚡
+        - generic [ref=f159e1312] [cursor=pointer]:
+          - generic [ref=f159e1314]: Profile Image Generation
+          - generic [ref=f159e1315]: ⚡
+        - generic [ref=f159e1316] [cursor=pointer]:
+          - generic [ref=f159e1318]: Persona-Based Visual Content
+          - generic [ref=f159e1319]: ⚡
+        - generic [ref=f159e1320] [cursor=pointer]:
+          - generic [ref=f159e1322]: Brand Mascot Creation
+          - generic [ref=f159e1323]: ⚡
+        - generic [ref=f159e1324] [cursor=pointer]:
+          - generic [ref=f159e1326]: Virtual Spokesperson Content
+          - generic [ref=f159e1327]: ⚡
+        - generic [ref=f159e1328] [cursor=pointer]:
+          - generic [ref=f159e1330]: Explosion Effects
+          - generic [ref=f159e1331]: ⚡
+        - generic [ref=f159e1332] [cursor=pointer]:
+          - generic [ref=f159e1334]: Fire Effects
+          - generic [ref=f159e1335]: ⚡
+        - generic [ref=f159e1336] [cursor=pointer]:
+          - generic [ref=f159e1338]: Lightning Effects
+          - generic [ref=f159e1339]: ⚡
+        - generic [ref=f159e1340] [cursor=pointer]:
+          - generic [ref=f159e1342]: Tornado Effects
+          - generic [ref=f159e1343]: ⚡
+        - generic [ref=f159e1344] [cursor=pointer]:
+          - generic [ref=f159e1346]: Disintegration Effects
+          - generic [ref=f159e1347]: ⚡
+        - generic [ref=f159e1348] [cursor=pointer]:
+          - generic [ref=f159e1350]: Energy Effects
+          - generic [ref=f159e1351]: ⚡
+        - generic [ref=f159e1352] [cursor=pointer]:
+          - generic [ref=f159e1354]: Action Scene Effects
+          - generic [ref=f159e1355]: ⚡
+        - generic [ref=f159e1356] [cursor=pointer]:
+          - generic [ref=f159e1358]: Motion Effects
+          - generic [ref=f159e1359]: ⚡
+        - generic [ref=f159e1360] [cursor=pointer]:
+          - generic [ref=f159e1362]: Style Transfer Effects
+          - generic [ref=f159e1363]: ⚡
+        - generic [ref=f159e1364] [cursor=pointer]:
+          - generic [ref=f159e1366]: Cinematic Transformation Effects
+          - generic [ref=f159e1367]: ⚡
+        - generic [ref=f159e1368] [cursor=pointer]:
+          - generic [ref=f159e1370]: AI Video Editing Assistance
+          - generic [ref=f159e1371]: ⚡
+        - generic [ref=f159e1372] [cursor=pointer]:
+          - generic [ref=f159e1374]: Timeline Editing
+          - generic [ref=f159e1375]: ⚡
+        - generic [ref=f159e1376] [cursor=pointer]:
+          - generic [ref=f159e1378]: Scene Arrangement
+          - generic [ref=f159e1379]: ⚡
+        - generic [ref=f159e1380] [cursor=pointer]:
+          - generic [ref=f159e1382]: Clip Organization
+          - generic [ref=f159e1383]: ⚡
+        - generic [ref=f159e1384] [cursor=pointer]:
+          - generic [ref=f159e1386]: Asset Previewing
+          - generic [ref=f159e1387]: ⚡
+        - generic [ref=f159e1388] [cursor=pointer]:
+          - generic [ref=f159e1390]: Render Management
+          - generic [ref=f159e1391]: ⚡
+        - generic [ref=f159e1392] [cursor=pointer]:
+          - generic [ref=f159e1394]: AI Upscaling
+          - generic [ref=f159e1395]: ⚡
+        - generic [ref=f159e1396] [cursor=pointer]:
+          - generic [ref=f159e1398]: Video Enhancement
+          - generic [ref=f159e1399]: ⚡
+        - generic [ref=f159e1400] [cursor=pointer]:
+          - generic [ref=f159e1402]: Image Enhancement
+          - generic [ref=f159e1403]: ⚡
+        - generic [ref=f159e1404] [cursor=pointer]:
+          - generic [ref=f159e1406]: Output Export Workflow
+          - generic [ref=f159e1407]: ⚡
+        - generic [ref=f159e1408] [cursor=pointer]:
+          - generic [ref=f159e1410]: Product Commercial Generation
+          - generic [ref=f159e1411]: ⚡
+        - generic [ref=f159e1412] [cursor=pointer]:
+          - generic [ref=f159e1414]: Ecommerce Ad Creative
+          - generic [ref=f159e1415]: ⚡
+        - generic [ref=f159e1416] [cursor=pointer]:
+          - generic [ref=f159e1418]: Local Business Promo Creation
+          - generic [ref=f159e1419]: ⚡
+        - generic [ref=f159e1420] [cursor=pointer]:
+          - generic [ref=f159e1422]: Social Media Video Creation
+          - generic [ref=f159e1423]: ⚡
+        - generic [ref=f159e1424] [cursor=pointer]:
+          - generic [ref=f159e1426]: TikTok Content Generation
+          - generic [ref=f159e1427]: ⚡
+        - generic [ref=f159e1428] [cursor=pointer]:
+          - generic [ref=f159e1430]: YouTube Thumbnail Creation
+          - generic [ref=f159e1431]: ⚡
+        - generic [ref=f159e1432] [cursor=pointer]:
+          - generic [ref=f159e1434]: Campaign Storyboard Creation
+          - generic [ref=f159e1435]: ⚡
+        - generic [ref=f159e1436] [cursor=pointer]:
+          - generic [ref=f159e1438]: Client Asset Library
+          - generic [ref=f159e1439]: ⚡
+        - generic [ref=f159e1440] [cursor=pointer]:
+          - generic [ref=f159e1442]: Agency Service Packaging
+          - generic [ref=f159e1443]: ⚡
+        - generic [ref=f159e1444] [cursor=pointer]:
+          - generic [ref=f159e1446]: Client-Ready Content Packages
+          - generic [ref=f159e1447]: ⚡
+        - generic [ref=f159e1448] [cursor=pointer]:
+          - generic [ref=f159e1450]: AI Video Agents
+          - generic [ref=f159e1451]: ⚡
+        - generic [ref=f159e1452] [cursor=pointer]:
+          - generic [ref=f159e1454]: Creative Workflow Automation
+          - generic [ref=f159e1455]: ⚡
+        - generic [ref=f159e1456] [cursor=pointer]:
+          - generic [ref=f159e1458]: AI Assistant Chat
+          - generic [ref=f159e1459]: ⚡
+        - generic [ref=f159e1460] [cursor=pointer]:
+          - generic [ref=f159e1462]: MCP-Ready Controls
+          - generic [ref=f159e1463]: ⚡
+        - generic [ref=f159e1464] [cursor=pointer]:
+          - generic [ref=f159e1466]: CLI Workflow Control
+          - generic [ref=f159e1467]: ⚡
+        - generic [ref=f159e1468] [cursor=pointer]:
+          - generic [ref=f159e1470]: Template-Based Generation
+          - generic [ref=f159e1471]: ⚡
+        - generic [ref=f159e1472] [cursor=pointer]:
+          - generic [ref=f159e1474]: Repeatable Client Workflows
+          - generic [ref=f159e1475]: ⚡
+        - generic [ref=f159e1476] [cursor=pointer]:
+          - generic [ref=f159e1478]: Custom Workflow Builder
+          - generic [ref=f159e1479]: ⚡
+        - generic [ref=f159e1480] [cursor=pointer]:
+          - generic [ref=f159e1482]: API Access
+          - generic [ref=f159e1483]: ⚡
+        - generic [ref=f159e1484] [cursor=pointer]:
+          - generic [ref=f159e1486]: Webhook Integrations
+          - generic [ref=f159e1487]: ⚡
+        - generic [ref=f159e1488] [cursor=pointer]:
+          - generic [ref=f159e1490]: 33 AI Creative Apps Access
+          - generic [ref=f159e1491]: ⚡
+        - generic [ref=f159e1492] [cursor=pointer]:
+          - generic [ref=f159e1494]: 60+ AI Features & Tools
+          - generic [ref=f159e1495]: ⚡
+        - generic [ref=f159e1496] [cursor=pointer]:
+          - generic [ref=f159e1498]: 200+ AI Models Library
+          - generic [ref=f159e1499]: ⚡
+        - generic [ref=f159e1500] [cursor=pointer]:
+          - generic [ref=f159e1502]: Professional Timeline Editor
+          - generic [ref=f159e1503]: ⚡
+        - generic [ref=f159e1504] [cursor=pointer]:
+          - generic [ref=f159e1506]: 4K/8K Export Quality
+          - generic [ref=f159e1507]: ⚡
+        - generic [ref=f159e1508] [cursor=pointer]:
+          - generic [ref=f159e1510]: No Watermarks on Exports
+          - generic [ref=f159e1511]: ⚡
+        - generic [ref=f159e1512] [cursor=pointer]:
+          - generic [ref=f159e1514]: Cloud Storage (50GB)
+          - generic [ref=f159e1515]: ⚡
+        - generic [ref=f159e1516] [cursor=pointer]:
+          - generic [ref=f159e1518]: Priority GPU Rendering
+          - generic [ref=f159e1519]: ⚡
+        - generic [ref=f159e1520] [cursor=pointer]:
+          - generic [ref=f159e1522]: Text-to-Image Generation
+          - generic [ref=f159e1523]: ⚡
+        - generic [ref=f159e1524] [cursor=pointer]:
+          - generic [ref=f159e1526]: Image-to-Image Generation
+          - generic [ref=f159e1527]: ⚡
+        - generic [ref=f159e1528] [cursor=pointer]:
+          - generic [ref=f159e1530]: Text-to-Video Creation
+          - generic [ref=f159e1531]: ⚡
+        - generic [ref=f159e1532] [cursor=pointer]:
+          - generic [ref=f159e1534]: Image-to-Video Transformation
+          - generic [ref=f159e1535]: ⚡
+        - generic [ref=f159e1536] [cursor=pointer]:
+          - generic [ref=f159e1538]: Video-to-Video Editing
+          - generic [ref=f159e1539]: ⚡
+        - generic [ref=f159e1540] [cursor=pointer]:
+          - generic [ref=f159e1542]: AI Prompt Enhancement
+          - generic [ref=f159e1543]: ⚡
+        - generic [ref=f159e1544] [cursor=pointer]:
+          - generic [ref=f159e1546]: Cinematic Prompt Rewriting
+          - generic [ref=f159e1547]: ⚡
+        - generic [ref=f159e1548] [cursor=pointer]:
+          - generic [ref=f159e1550]: Multi-Model Generation
+          - generic [ref=f159e1551]: ⚡
+        - generic [ref=f159e1552] [cursor=pointer]:
+          - generic [ref=f159e1554]: Aspect Ratio Selection
+          - generic [ref=f159e1555]: ⚡
+        - generic [ref=f159e1556] [cursor=pointer]:
+          - generic [ref=f159e1558]: Style Preset Selection
+          - generic [ref=f159e1559]: ⚡
+        - generic [ref=f159e1560] [cursor=pointer]:
+          - generic [ref=f159e1562]: Cinematic Camera Presets
+          - generic [ref=f159e1563]: ⚡
+        - generic [ref=f159e1564] [cursor=pointer]:
+          - generic [ref=f159e1566]: Lens Style Controls
+          - generic [ref=f159e1567]: ⚡
+        - generic [ref=f159e1568] [cursor=pointer]:
+          - generic [ref=f159e1570]: Focal Length Controls
+          - generic [ref=f159e1571]: ⚡
+        - generic [ref=f159e1572] [cursor=pointer]:
+          - generic [ref=f159e1574]: Aperture Controls
+          - generic [ref=f159e1575]: ⚡
+        - generic [ref=f159e1576] [cursor=pointer]:
+          - generic [ref=f159e1578]: Shot Type Selection
+          - generic [ref=f159e1579]: ⚡
+        - generic [ref=f159e1580] [cursor=pointer]:
+          - generic [ref=f159e1582]: Lighting Mood Controls
+          - generic [ref=f159e1583]: ⚡
+        - generic [ref=f159e1584] [cursor=pointer]:
+          - generic [ref=f159e1586]: Scene Composition Guidance
+          - generic [ref=f159e1587]: ⚡
+        - generic [ref=f159e1588] [cursor=pointer]:
+          - generic [ref=f159e1590]: Camera Movement Prompts
+          - generic [ref=f159e1591]: ⚡
+        - generic [ref=f159e1592] [cursor=pointer]:
+          - generic [ref=f159e1594]: Film-Style Visual Direction
+          - generic [ref=f159e1595]: ⚡
+        - generic [ref=f159e1596] [cursor=pointer]:
+          - generic [ref=f159e1598]: Director-Style Scene Planning
+          - generic [ref=f159e1599]: ⚡
+        - generic [ref=f159e1600] [cursor=pointer]:
+          - generic [ref=f159e1602]: Consistent Character Creation
+          - generic [ref=f159e1603]: ⚡
+        - generic [ref=f159e1604] [cursor=pointer]:
+          - generic [ref=f159e1606]: AI Avatar Generation
+          - generic [ref=f159e1607]: ⚡
+        - generic [ref=f159e1608] [cursor=pointer]:
+          - generic [ref=f159e1610]: Talking Avatar Creation
+          - generic [ref=f159e1611]: ⚡
+        - generic [ref=f159e1612] [cursor=pointer]:
+          - generic [ref=f159e1614]: AI Influencer Content
+          - generic [ref=f159e1615]: ⚡
+        - generic [ref=f159e1616] [cursor=pointer]:
+          - generic [ref=f159e1618]: Character Transformation
+          - generic [ref=f159e1619]: ⚡
+        - generic [ref=f159e1620] [cursor=pointer]:
+          - generic [ref=f159e1622]: Fashion-Style Creator Shots
+          - generic [ref=f159e1623]: ⚡
+        - generic [ref=f159e1624] [cursor=pointer]:
+          - generic [ref=f159e1626]: Profile Image Generation
+          - generic [ref=f159e1627]: ⚡
+        - generic [ref=f159e1628] [cursor=pointer]:
+          - generic [ref=f159e1630]: Persona-Based Visual Content
+          - generic [ref=f159e1631]: ⚡
+        - generic [ref=f159e1632] [cursor=pointer]:
+          - generic [ref=f159e1634]: Brand Mascot Creation
+          - generic [ref=f159e1635]: ⚡
+        - generic [ref=f159e1636] [cursor=pointer]:
+          - generic [ref=f159e1638]: Virtual Spokesperson Content
+          - generic [ref=f159e1639]: ⚡
+        - generic [ref=f159e1640] [cursor=pointer]:
+          - generic [ref=f159e1642]: Explosion Effects
+          - generic [ref=f159e1643]: ⚡
+        - generic [ref=f159e1644] [cursor=pointer]:
+          - generic [ref=f159e1646]: Fire Effects
+          - generic [ref=f159e1647]: ⚡
+        - generic [ref=f159e1648] [cursor=pointer]:
+          - generic [ref=f159e1650]: Lightning Effects
+          - generic [ref=f159e1651]: ⚡
+        - generic [ref=f159e1652] [cursor=pointer]:
+          - generic [ref=f159e1654]: Tornado Effects
+          - generic [ref=f159e1655]: ⚡
+        - generic [ref=f159e1656] [cursor=pointer]:
+          - generic [ref=f159e1658]: Disintegration Effects
+          - generic [ref=f159e1659]: ⚡
+        - generic [ref=f159e1660] [cursor=pointer]:
+          - generic [ref=f159e1662]: Energy Effects
+          - generic [ref=f159e1663]: ⚡
+        - generic [ref=f159e1664] [cursor=pointer]:
+          - generic [ref=f159e1666]: Action Scene Effects
+          - generic [ref=f159e1667]: ⚡
+        - generic [ref=f159e1668] [cursor=pointer]:
+          - generic [ref=f159e1670]: Motion Effects
+          - generic [ref=f159e1671]: ⚡
+        - generic [ref=f159e1672] [cursor=pointer]:
+          - generic [ref=f159e1674]: Style Transfer Effects
+          - generic [ref=f159e1675]: ⚡
+        - generic [ref=f159e1676] [cursor=pointer]:
+          - generic [ref=f159e1678]: Cinematic Transformation Effects
+          - generic [ref=f159e1679]: ⚡
+        - generic [ref=f159e1680] [cursor=pointer]:
+          - generic [ref=f159e1682]: AI Video Editing Assistance
+          - generic [ref=f159e1683]: ⚡
+        - generic [ref=f159e1684] [cursor=pointer]:
+          - generic [ref=f159e1686]: Timeline Editing
+          - generic [ref=f159e1687]: ⚡
+        - generic [ref=f159e1688] [cursor=pointer]:
+          - generic [ref=f159e1690]: Scene Arrangement
+          - generic [ref=f159e1691]: ⚡
+        - generic [ref=f159e1692] [cursor=pointer]:
+          - generic [ref=f159e1694]: Clip Organization
+          - generic [ref=f159e1695]: ⚡
+        - generic [ref=f159e1696] [cursor=pointer]:
+          - generic [ref=f159e1698]: Asset Previewing
+          - generic [ref=f159e1699]: ⚡
+        - generic [ref=f159e1700] [cursor=pointer]:
+          - generic [ref=f159e1702]: Render Management
+          - generic [ref=f159e1703]: ⚡
+        - generic [ref=f159e1704] [cursor=pointer]:
+          - generic [ref=f159e1706]: AI Upscaling
+          - generic [ref=f159e1707]: ⚡
+        - generic [ref=f159e1708] [cursor=pointer]:
+          - generic [ref=f159e1710]: Video Enhancement
+          - generic [ref=f159e1711]: ⚡
+        - generic [ref=f159e1712] [cursor=pointer]:
+          - generic [ref=f159e1714]: Image Enhancement
+          - generic [ref=f159e1715]: ⚡
+        - generic [ref=f159e1716] [cursor=pointer]:
+          - generic [ref=f159e1718]: Output Export Workflow
+          - generic [ref=f159e1719]: ⚡
+        - generic [ref=f159e1720] [cursor=pointer]:
+          - generic [ref=f159e1722]: Product Commercial Generation
+          - generic [ref=f159e1723]: ⚡
+        - generic [ref=f159e1724] [cursor=pointer]:
+          - generic [ref=f159e1726]: Ecommerce Ad Creative
+          - generic [ref=f159e1727]: ⚡
+        - generic [ref=f159e1728] [cursor=pointer]:
+          - generic [ref=f159e1730]: Local Business Promo Creation
+          - generic [ref=f159e1731]: ⚡
+        - generic [ref=f159e1732] [cursor=pointer]:
+          - generic [ref=f159e1734]: Social Media Video Creation
+          - generic [ref=f159e1735]: ⚡
+        - generic [ref=f159e1736] [cursor=pointer]:
+          - generic [ref=f159e1738]: TikTok Content Generation
+          - generic [ref=f159e1739]: ⚡
+        - generic [ref=f159e1740] [cursor=pointer]:
+          - generic [ref=f159e1742]: YouTube Thumbnail Creation
+          - generic [ref=f159e1743]: ⚡
+        - generic [ref=f159e1744] [cursor=pointer]:
+          - generic [ref=f159e1746]: Campaign Storyboard Creation
+          - generic [ref=f159e1747]: ⚡
+        - generic [ref=f159e1748] [cursor=pointer]:
+          - generic [ref=f159e1750]: Client Asset Library
+          - generic [ref=f159e1751]: ⚡
+        - generic [ref=f159e1752] [cursor=pointer]:
+          - generic [ref=f159e1754]: Agency Service Packaging
+          - generic [ref=f159e1755]: ⚡
+        - generic [ref=f159e1756] [cursor=pointer]:
+          - generic [ref=f159e1758]: Client-Ready Content Packages
+          - generic [ref=f159e1759]: ⚡
+        - generic [ref=f159e1760] [cursor=pointer]:
+          - generic [ref=f159e1762]: AI Video Agents
+          - generic [ref=f159e1763]: ⚡
+        - generic [ref=f159e1764] [cursor=pointer]:
+          - generic [ref=f159e1766]: Creative Workflow Automation
+          - generic [ref=f159e1767]: ⚡
+        - generic [ref=f159e1768] [cursor=pointer]:
+          - generic [ref=f159e1770]: AI Assistant Chat
+          - generic [ref=f159e1771]: ⚡
+        - generic [ref=f159e1772] [cursor=pointer]:
+          - generic [ref=f159e1774]: MCP-Ready Controls
+          - generic [ref=f159e1775]: ⚡
+        - generic [ref=f159e1776] [cursor=pointer]:
+          - generic [ref=f159e1778]: CLI Workflow Control
+          - generic [ref=f159e1779]: ⚡
+        - generic [ref=f159e1780] [cursor=pointer]:
+          - generic [ref=f159e1782]: Template-Based Generation
+          - generic [ref=f159e1783]: ⚡
+        - generic [ref=f159e1784] [cursor=pointer]:
+          - generic [ref=f159e1786]: Repeatable Client Workflows
+          - generic [ref=f159e1787]: ⚡
+        - generic [ref=f159e1788] [cursor=pointer]:
+          - generic [ref=f159e1790]: Custom Workflow Builder
+          - generic [ref=f159e1791]: ⚡
+        - generic [ref=f159e1792] [cursor=pointer]:
+          - generic [ref=f159e1794]: API Access
+          - generic [ref=f159e1795]: ⚡
+        - generic [ref=f159e1796] [cursor=pointer]:
+          - generic [ref=f159e1798]: Webhook Integrations
+          - generic [ref=f159e1799]: ⚡
+  - region [ref=f159e1800]:
+    - generic [ref=f159e1802]:
+      - generic [ref=f159e1803]: The Smarter Way To Create AI Content
+      - heading "Stop buying scattered AI tools. Start building a complete AI video agency with one platform that helps you create images, videos, VFX, commercials, characters, avatars, storyboards, edits, workflows, agents, and client-ready creative packages." [level=2] [ref=f159e1808]
+      - paragraph [ref=f159e1809]: AI Video Agency Studio is the all-in-one creative command center that replaces 10+ subscriptions and puts everything you need to create, edit, and deliver professional AI content in one place.
+      - generic [ref=f159e1810]:
+        - button "Start Building My AI Video Agency →" [ref=f159e1811]
+        - button "See It In Action" [ref=f159e1812]
+  - region [ref=f159e1815]:
+    - generic [ref=f159e1816]:
+      - generic [ref=f159e1817]:
+        - heading "Inside The AI Video Agency Studio Platform" [level=2] [ref=f159e1818]
+        - paragraph [ref=f159e1819]: Six powerful creative engines working together. Generate, enhance, produce, localize, automate, and scale — all from one unified command center.
+      - generic [ref=f159e1820]:
+        - generic [ref=f159e1823] [cursor=pointer]:
+          - generic [ref=f159e1824]: 🎨
+          - heading "Create" [level=3] [ref=f159e1826]
+          - paragraph [ref=f159e1827]: Start from scratch with AI-powered generation
+          - generic [ref=f159e1828]:
+            - generic [ref=f159e1829]: Image
+            - generic [ref=f159e1830]: Video
+            - generic [ref=f159e1831]: Cinema Studio
+            - generic [ref=f159e1832]: Character
+            - generic [ref=f159e1833]: Influencer
+            - generic [ref=f159e1834]: Commercial
+        - generic [ref=f159e1839] [cursor=pointer]:
+          - generic [ref=f159e1840]: ✨
+          - heading "Enhance" [level=3] [ref=f159e1842]
+          - paragraph [ref=f159e1843]: Transform and improve existing content
+          - generic [ref=f159e1844]:
+            - generic [ref=f159e1845]: Effects
+            - generic [ref=f159e1846]: VFX
+            - generic [ref=f159e1847]: AI-VFX
+            - generic [ref=f159e1848]: Motion
+            - generic [ref=f159e1849]: Upscale
+            - generic [ref=f159e1850]: Edit
+        - generic [ref=f159e1855] [cursor=pointer]:
+          - generic [ref=f159e1856]: 🎬
+          - heading "Produce" [level=3] [ref=f159e1858]
+          - paragraph [ref=f159e1859]: Plan, structure, and assemble projects
+          - generic [ref=f159e1860]:
+            - generic [ref=f159e1861]: Storyboard
+            - generic [ref=f159e1862]: Director
+            - generic [ref=f159e1863]: Timeline
+            - generic [ref=f159e1864]: Render
+            - generic [ref=f159e1865]: Video Tools
+            - generic [ref=f159e1866]: Audio
+        - generic [ref=f159e1871] [cursor=pointer]:
+          - generic [ref=f159e1872]: 🌍
+          - heading "Localize" [level=3] [ref=f159e1874]
+          - paragraph [ref=f159e1875]: Adapt content for global audiences
+          - generic [ref=f159e1876]:
+            - generic [ref=f159e1877]: Dubbing
+            - generic [ref=f159e1878]: Lip Sync
+            - generic [ref=f159e1879]: Avatar
+            - generic [ref=f159e1880]: TikTok
+            - generic [ref=f159e1881]: Social Content
+        - generic [ref=f159e1886] [cursor=pointer]:
+          - generic [ref=f159e1887]: 🤖
+          - heading "Automate" [level=3] [ref=f159e1889]
+          - paragraph [ref=f159e1890]: Streamline workflows with AI assistance
+          - generic [ref=f159e1891]:
+            - generic [ref=f159e1892]: Agents
+            - generic [ref=f159e1893]: Assist
+            - generic [ref=f159e1894]: Chat
+        - generic [ref=f159e1899] [cursor=pointer]:
+          - generic [ref=f159e1900]: 📊
+          - heading "Scale" [level=3] [ref=f159e1902]
+          - paragraph [ref=f159e1903]: Manage, reuse, and grow your creative assets
+          - generic [ref=f159e1904]:
+            - generic [ref=f159e1905]: Templates
+            - generic [ref=f159e1906]: Explore
+            - generic [ref=f159e1907]: Library
+            - generic [ref=f159e1908]: Community
+            - generic [ref=f159e1909]: Training
+      - generic [ref=f159e1913]:
+        - generic [ref=f159e1914]:
+          - generic [ref=f159e1915]: "0"
+          - generic [ref=f159e1917]: AI Creative Apps
+        - generic [ref=f159e1918]:
+          - generic [ref=f159e1919]: 0+
+          - generic [ref=f159e1921]: AI Features
+        - generic [ref=f159e1922]:
+          - generic [ref=f159e1923]: 0+
+          - generic [ref=f159e1925]: AI Models
+        - generic [ref=f159e1926]:
+          - generic [ref=f159e1927]: $297
+          - generic [ref=f159e1929]: Lifetime Access
+  - region [ref=f159e1936]:
+    - generic [ref=f159e1937]:
+      - generic [ref=f159e1938]:
+        - heading "60+ AI Features Designed To Help You Create, Edit, Automate, Package & Sell AI Video Services" [level=2] [ref=f159e1939]
+        - paragraph [ref=f159e1940]: Every feature is designed to help you produce professional-quality content faster, scale your creative output, and build a sustainable AI video agency business.
+      - button "Unlock The 60+ AI Creative Tools →" [ref=f159e1942]
+  - region [ref=f159e1975]:
+    - generic [ref=f159e1976]:
+      - generic [ref=f159e1977]:
+        - heading "AI Video Is Exploding… But Most People Still Can't Turn It Into A Real Business" [level=2] [ref=f159e1978]
+        - paragraph [ref=f159e1979]: "Everyone's talking about AI video tools, but here's the harsh reality: Most creators and agencies are stuck buying 10+ different tools, learning complex workflows, and still delivering mediocre results that don't impress clients."
+      - generic [ref=f159e1980]:
+        - generic [ref=f159e1981]:
+          - generic [ref=f159e1982]: 💸
+          - heading "Subscription Overload" [level=3] [ref=f159e1984]
+          - paragraph [ref=f159e1985]: $50/month for image generation, $30/month for video tools, $25/month for VFX software... It adds up fast and still leaves gaps in your creative workflow.
+        - generic [ref=f159e1986]:
+          - generic [ref=f159e1987]: 🔄
+          - heading "Workflow Chaos" [level=3] [ref=f159e1989]
+          - paragraph [ref=f159e1990]: Generate in one tool, edit in another, render in a third, export to a fourth. By the time you finish a single video, your client has moved on to someone faster.
+        - generic [ref=f159e1991]:
+          - generic [ref=f159e1992]: 📉
+          - heading "Mediocre Results" [level=3] [ref=f159e1994]
+          - paragraph [ref=f159e1995]: Fragmented tools produce fragmented results. Your videos look amateur, your VFX looks cheap, and your clients notice the difference.
+      - generic [ref=f159e1997]:
+        - heading "Here's The Truth:" [level=3] [ref=f159e1998]
+        - paragraph [ref=f159e1999]: You don't need 10 different subscriptions and a PhD in video editing. You need one comprehensive platform that handles everything from concept to client delivery.
+  - region [ref=f159e2000]:
+    - generic [ref=f159e2001]:
+      - generic [ref=f159e2002]:
+        - heading "Go From Simple Idea To Finished Client Asset In Minutes" [level=2] [ref=f159e2003]
+        - paragraph [ref=f159e2004]: Stop juggling multiple tools and complex workflows. AI Video Agency Studio gives you a streamlined creative pipeline that turns concepts into polished deliverables.
+      - generic [ref=f159e2007]:
+        - generic [ref=f159e2008]:
+          - generic [ref=f159e2009]: 💡
+          - heading "1. Ideate" [level=3] [ref=f159e2011]
+          - paragraph [ref=f159e2012]: Use AI chat and explore features to brainstorm creative concepts, write compelling prompts, and plan your video strategy.
+          - generic [ref=f159e2013]: Chat • Explore • Assist
+        - generic [ref=f159e2014]:
+          - generic [ref=f159e2015]: 🎬
+          - heading "2. Generate" [level=3] [ref=f159e2017]
+          - paragraph [ref=f159e2018]: Create cinematic videos, stunning images, and visual effects using our 200+ AI models and professional-grade tools.
+          - generic [ref=f159e2019]: Image • Video • Cinema
+        - generic [ref=f159e2020]:
+          - generic [ref=f159e2021]: ✨
+          - heading "3. Enhance" [level=3] [ref=f159e2023]
+          - paragraph [ref=f159e2024]: Add VFX, effects, motion, upscale quality, and apply professional editing techniques to polish your content.
+          - generic [ref=f159e2025]: VFX • Effects • Edit
+        - generic [ref=f159e2026]:
+          - generic [ref=f159e2027]: 🎯
+          - heading "4. Produce" [level=3] [ref=f159e2029]
+          - paragraph [ref=f159e2030]: Arrange scenes in timeline, add audio, dub for multiple languages, and finalize your professional video production.
+          - generic [ref=f159e2031]: Timeline • Audio • Dubbing
+        - generic [ref=f159e2032]:
+          - generic [ref=f159e2033]: 🚀
+          - heading "5. Deliver" [level=3] [ref=f159e2035]
+          - paragraph [ref=f159e2036]: Export in multiple formats, organize in your library, and deliver polished client-ready packages with professional branding.
+          - generic [ref=f159e2037]: Render • Library • Commercial
+      - generic [ref=f159e2039]:
+        - heading "From Concept To Client Delivery In One Platform" [level=3] [ref=f159e2040]
+        - paragraph [ref=f159e2041]: No more switching between 10 different tools. Everything you need is right here.
+        - button "Start My First AI Video Project →" [ref=f159e2042]
+  - region [ref=f159e2043]:
+    - generic [ref=f159e2044]:
+      - generic [ref=f159e2045]:
+        - heading "Why Keep Paying For Scattered AI Tools When You Can Build From One Creative Command Center?" [level=2] [ref=f159e2046]
+        - paragraph [ref=f159e2047]: "Most creators waste hundreds of dollars monthly on fragmented AI tools that don't work together. Here's what you're really paying for:"
+      - generic [ref=f159e2049]:
+        - generic [ref=f159e2050]:
+          - heading "Other AI Tools" [level=3] [ref=f159e2051]
+          - generic [ref=f159e2052]:
+            - generic [ref=f159e2053]:
+              - generic [ref=f159e2054]: 💸
+              - generic [ref=f159e2055]: $30–$100/month per tool
+            - generic [ref=f159e2056]:
+              - generic [ref=f159e2057]: 🔄
+              - generic [ref=f159e2058]: Export → Import → Export
+            - generic [ref=f159e2059]:
+              - generic [ref=f159e2060]: 📱
+              - generic [ref=f159e2061]: Limited mobile access
+            - generic [ref=f159e2062]:
+              - generic [ref=f159e2063]: 🚫
+              - generic [ref=f159e2064]: Content restrictions
+            - generic [ref=f159e2065]:
+              - generic [ref=f159e2066]: 🕐
+              - generic [ref=f159e2067]: Hours of learning required
+        - generic [ref=f159e2068]: VS
+        - generic [ref=f159e2072]:
+          - heading "AI Video Agency Studio" [level=3] [ref=f159e2073]
+          - generic [ref=f159e2074]:
+            - generic [ref=f159e2075]:
+              - generic [ref=f159e2076]: 🆓
+              - generic [ref=f159e2077]: Lifetime access, no subscriptions
+            - generic [ref=f159e2078]:
+              - generic [ref=f159e2079]: 🔗
+              - generic [ref=f159e2080]: Everything works together
+            - generic [ref=f159e2081]:
+              - generic [ref=f159e2082]: 📱
+              - generic [ref=f159e2083]: Full mobile & desktop access
+            - generic [ref=f159e2084]:
+              - generic [ref=f159e2085]: ✅
+              - generic [ref=f159e2086]: No content restrictions
+            - generic [ref=f159e2087]:
+              - generic [ref=f159e2088]: ⚡
+              - generic [ref=f159e2089]: Ready to use immediately
+      - generic [ref=f159e2091]:
+        - heading "The Math Is Simple:" [level=3] [ref=f159e2092]
+        - paragraph [ref=f159e2093]: Stop paying $200+/month for fragmented tools. Get everything in one platform for a one-time price.
+  - region [ref=f159e2094]:
+    - generic [ref=f159e2095]:
+      - generic [ref=f159e2096]:
+        - heading "You're Not Getting One AI Tool — You're Getting A Full AI Creative Production Suite" [level=2] [ref=f159e2097]
+        - paragraph [ref=f159e2098]: "Here's exactly what you unlock when you start building with AI Video Agency Studio:"
+      - generic [ref=f159e2099]:
+        - generic [ref=f159e2101]:
+          - generic [ref=f159e2102]: 🎯
+          - generic [ref=f159e2104]:
+            - heading "Complete Creative Command Center" [level=3] [ref=f159e2105]
+            - paragraph [ref=f159e2106]: One unified platform that handles your entire creative workflow from concept to client delivery. No more switching between apps, losing files, or dealing with incompatible formats.
+            - generic [ref=f159e2107]:
+              - generic [ref=f159e2108]:
+                - generic [ref=f159e2109]: "33"
+                - generic [ref=f159e2110]: Creative Tools
+              - generic [ref=f159e2111]:
+                - generic [ref=f159e2112]: 60+
+                - generic [ref=f159e2113]: AI Capabilities
+              - generic [ref=f159e2114]:
+                - generic [ref=f159e2115]: 200+
+                - generic [ref=f159e2116]: AI Engines
+              - generic [ref=f159e2117]:
+                - generic [ref=f159e2118]: Lifetime Access
+                - generic [ref=f159e2119]: No Limits
+        - generic [ref=f159e2120]:
+          - generic [ref=f159e2121] [cursor=pointer]:
+            - generic [ref=f159e2122]: 🎨
+            - heading "Create Engine" [level=4] [ref=f159e2124]
+            - paragraph [ref=f159e2125]: Start from scratch with AI-powered generation tools
+            - generic [ref=f159e2126]: Image • Video • Cinema • Character • Influencer • Commercial
+          - generic [ref=f159e2127] [cursor=pointer]:
+            - generic [ref=f159e2128]: ✨
+            - heading "Enhance Engine" [level=4] [ref=f159e2130]
+            - paragraph [ref=f159e2131]: Transform and improve existing content
+            - generic [ref=f159e2132]: Effects • VFX • Motion • Upscale • Edit
+          - generic [ref=f159e2133] [cursor=pointer]:
+            - generic [ref=f159e2134]: 🎬
+            - heading "Produce Engine" [level=4] [ref=f159e2136]
+            - paragraph [ref=f159e2137]: Plan, structure, and assemble projects
+            - generic [ref=f159e2138]: Storyboard • Director • Timeline • Render • Audio
+          - generic [ref=f159e2139] [cursor=pointer]:
+            - generic [ref=f159e2140]: 🌍
+            - heading "Localize Engine" [level=4] [ref=f159e2142]
+            - paragraph [ref=f159e2143]: Adapt content for global audiences
+            - generic [ref=f159e2144]: Dubbing • Lip Sync • Avatar • TikTok
+          - generic [ref=f159e2145] [cursor=pointer]:
+            - generic [ref=f159e2146]: 🤖
+            - heading "Automate Engine" [level=4] [ref=f159e2148]
+            - paragraph [ref=f159e2149]: Streamline workflows with AI assistance
+            - generic [ref=f159e2150]: Video Agent • Agents • Workflows • Assist • Chat
+          - generic [ref=f159e2151] [cursor=pointer]:
+            - generic [ref=f159e2152]: 📊
+            - heading "Scale Engine" [level=4] [ref=f159e2154]
+            - paragraph [ref=f159e2155]: Manage, reuse, and grow your creative assets
+            - generic [ref=f159e2156]: Templates • Explore • Library • Community • Training
+        - generic [ref=f159e2158]:
+          - generic [ref=f159e2159]:
+            - generic [ref=f159e2160]: 🎥
+            - heading "Professional Quality" [level=4] [ref=f159e2162]
+            - paragraph [ref=f159e2163]: Hollywood-grade cinematic tools, professional VFX, and broadcast-ready output formats.
+          - generic [ref=f159e2164]:
+            - generic [ref=f159e2165]: ⚡
+            - heading "Lightning Fast" [level=4] [ref=f159e2167]
+            - paragraph [ref=f159e2168]: GPU-accelerated rendering, optimized AI models, and streamlined workflows for rapid production.
+          - generic [ref=f159e2169]:
+            - generic [ref=f159e2170]: 🚀
+            - heading "Agency Ready" [level=4] [ref=f159e2172]
+            - paragraph [ref=f159e2173]: Client management tools, professional templates, and business-ready content packages.
+  - region [ref=f159e2174]:
+    - generic [ref=f159e2175]:
+      - generic [ref=f159e2176]:
+        - heading "This Is Not Just A Tool — It's An AI Video Agency Business In A Box" [level=2] [ref=f159e2177]
+        - paragraph [ref=f159e2178]: While others give you a single AI feature, AI Video Agency Studio gives you everything you need to start, run, and scale a complete AI video production agency.
+      - generic [ref=f159e2179]:
+        - generic [ref=f159e2180]:
+          - generic [ref=f159e2181]:
+            - heading "🏢 Turn Your Skills Into A Business" [level=3] [ref=f159e2182]:
+              - generic [ref=f159e2183]: 🏢
+              - text: Turn Your Skills Into A Business
+            - paragraph [ref=f159e2184]: Stop freelancing with expensive tools. Build a sustainable agency business with one comprehensive platform that handles everything from client intake to final delivery.
+          - generic [ref=f159e2185]:
+            - heading "⚡ 10x Your Production Speed" [level=3] [ref=f159e2186]:
+              - generic [ref=f159e2187]: ⚡
+              - text: 10x Your Production Speed
+            - paragraph [ref=f159e2188]: What used to take days of editing now takes minutes. Generate concepts, create assets, edit professionally, and deliver client-ready packages in record time.
+          - generic [ref=f159e2189]:
+            - heading "🎯 Premium Client Results" [level=3] [ref=f159e2190]:
+              - generic [ref=f159e2191]: 🎯
+              - text: Premium Client Results
+            - paragraph [ref=f159e2192]: Deliver Hollywood-quality videos, stunning VFX, and professional commercials that make your clients look amazing and keep them coming back for more.
+          - generic [ref=f159e2193]:
+            - heading "📈 Scale Without Limits" [level=3] [ref=f159e2194]:
+              - generic [ref=f159e2195]: 📈
+              - text: Scale Without Limits
+            - paragraph [ref=f159e2196]: Handle multiple clients simultaneously, automate repetitive tasks, and grow your agency without being bottlenecked by expensive software subscriptions.
+        - generic [ref=f159e2197]:
+          - generic [ref=f159e2198]:
+            - generic [ref=f159e2199] [cursor=pointer]: A
+            - generic [ref=f159e2201]:
+              - heading "Agency Dashboard" [level=4] [ref=f159e2202]
+              - paragraph [ref=f159e2203]: Client projects & revenue tracking
+          - generic [ref=f159e2204]:
+            - generic [ref=f159e2205] [cursor=pointer]:
+              - generic [ref=f159e2206]:
+                - generic [ref=f159e2207]: Tech Startup Commercial
+                - generic [ref=f159e2208]: In Progress
+              - generic [ref=f159e2211]: "Due: Tomorrow"
+            - generic [ref=f159e2212] [cursor=pointer]:
+              - generic [ref=f159e2213]:
+                - generic [ref=f159e2214]: E-commerce Product Videos
+                - generic [ref=f159e2215]: Completed
+              - generic [ref=f159e2218]: "Revenue: $2,400"
+            - generic [ref=f159e2219] [cursor=pointer]:
+              - generic [ref=f159e2220]:
+                - generic [ref=f159e2221]: Social Media Campaign
+                - generic [ref=f159e2222]: Planning
+              - generic [ref=f159e2225]: "Client: Fashion Brand"
+          - generic [ref=f159e2227]:
+            - generic [ref=f159e2228]:
+              - generic [ref=f159e2229]: "12"
+              - generic [ref=f159e2230]: Active Projects
+            - generic [ref=f159e2231]:
+              - generic [ref=f159e2232]: $24K
+              - generic [ref=f159e2233]: Monthly Revenue
+            - generic [ref=f159e2234]:
+              - generic [ref=f159e2235]: 95%
+              - generic [ref=f159e2236]: Client Satisfaction
+  - region [ref=f159e2237]:
+    - generic [ref=f159e2238]:
+      - generic [ref=f159e2239]:
+        - generic [ref=f159e2240]: 💎 Lifetime Access Pricing
+        - heading "Get Lifetime Access Today" [level=2] [ref=f159e2241]
+        - paragraph [ref=f159e2242]: Choose the plan that fits your needs. Pay once, own forever. No subscriptions, no hidden fees.
+      - generic [ref=f159e2243]:
+        - generic [ref=f159e2245]:
+          - generic [ref=f159e2246]:
+            - heading "Lifetime Access" [level=3] [ref=f159e2247]
+            - generic [ref=f159e2248]: $297
+            - generic [ref=f159e2249]: One-time payment • Forever yours
+          - generic [ref=f159e2250]:
+            - generic [ref=f159e2251]: "Everything Included:"
+            - list [ref=f159e2252]:
+              - listitem [ref=f159e2253]:
+                - generic [ref=f159e2254]: ✓
+                - generic [ref=f159e2256]: Full access to all 33 AI Creative Apps
+              - listitem [ref=f159e2257]:
+                - generic [ref=f159e2258]: ✓
+                - generic [ref=f159e2260]: All 60+ AI Features & Capabilities
+              - listitem [ref=f159e2261]:
+                - generic [ref=f159e2262]: ✓
+                - generic [ref=f159e2264]: 200+ AI Models Library
+              - listitem [ref=f159e2265]:
+                - generic [ref=f159e2266]: ✓
+                - generic [ref=f159e2268]: Commercial Usage Rights
+              - listitem [ref=f159e2269]:
+                - generic [ref=f159e2270]: ✓
+                - generic [ref=f159e2272]: Priority Support Access
+              - listitem [ref=f159e2273]:
+                - generic [ref=f159e2274]: ✓
+                - generic [ref=f159e2276]: Lifetime Updates
+          - button "Get Lifetime Access — $297" [ref=f159e2277]
+          - paragraph [ref=f159e2279]: 30-day money-back guarantee
+        - generic [ref=f159e2280]:
+          - generic [ref=f159e2281]: ⚡ Most Popular
+          - generic [ref=f159e2285]:
+            - generic [ref=f159e2286]:
+              - heading "Whitelabel Pro" [level=3] [ref=f159e2287]
+              - generic [ref=f159e2288]: $997
+              - generic [ref=f159e2289]: One-time payment • Full ownership
+            - generic [ref=f159e2290]:
+              - generic [ref=f159e2291]: "Everything in Lifetime, plus:"
+              - list [ref=f159e2292]:
+                - listitem [ref=f159e2293]:
+                  - generic [ref=f159e2294]: ✓
+                  - generic [ref=f159e2296]:
+                    - strong [ref=f159e2297]: Your Own Branding
+                    - text: — Remove all watermarks & use custom logos
+                - listitem [ref=f159e2298]:
+                  - generic [ref=f159e2299]: ✓
+                  - generic [ref=f159e2301]:
+                    - strong [ref=f159e2302]: Resell Rights
+                    - text: — Package & sell AI services to your clients
+                - listitem [ref=f159e2303]:
+                  - generic [ref=f159e2304]: ✓
+                  - generic [ref=f159e2306]:
+                    - strong [ref=f159e2307]: Whitelabel Domain
+                    - text: — Deploy on your own domain name
+                - listitem [ref=f159e2308]:
+                  - generic [ref=f159e2309]: ✓
+                  - generic [ref=f159e2311]:
+                    - strong [ref=f159e2312]: Priority GPU+
+                    - text: — 10x faster rendering speeds
+                - listitem [ref=f159e2313]:
+                  - generic [ref=f159e2314]: ✓
+                  - generic [ref=f159e2316]:
+                    - strong [ref=f159e2317]: Unlimited Clients
+                    - text: — Build unlimited client accounts
+                - listitem [ref=f159e2318]:
+                  - generic [ref=f159e2319]: ✓
+                  - generic [ref=f159e2321]:
+                    - strong [ref=f159e2322]: API Access
+                    - text: — Integrate into your own products
+                - listitem [ref=f159e2323]:
+                  - generic [ref=f159e2324]: ✓
+                  - generic [ref=f159e2326]:
+                    - strong [ref=f159e2327]: Custom Workflows
+                    - text: — Build & sell workflow templates
+                - listitem [ref=f159e2328]:
+                  - generic [ref=f159e2329]: ✓
+                  - generic [ref=f159e2331]:
+                    - strong [ref=f159e2332]: Dedicated Support
+                    - text: — 24/7 priority assistance
+            - button "Get Whitelabel Pro — $997" [ref=f159e2333]
+            - paragraph [ref=f159e2335]: 30-day money-back guarantee • Instant delivery
+      - generic [ref=f159e2336]:
+        - generic [ref=f159e2337]:
+          - heading "Compare All Features" [level=3] [ref=f159e2338]
+          - paragraph [ref=f159e2339]: Click each category to explore all available features
+        - generic [ref=f159e2340]:
+          - button "Core Platform" [ref=f159e2341]
+          - button "Generation Tools" [ref=f159e2342]
+          - button "Cinema & Visual" [ref=f159e2343]
+          - button "Character & Avatar" [ref=f159e2344]
+          - button "VFX & Effects" [ref=f159e2345]
+          - button "Editing & Export" [ref=f159e2346]
+          - button "Business & Agency" [ref=f159e2347]
+          - button "Automation & AI" [ref=f159e2348]
+        - generic [ref=f159e2350]:
+          - generic [ref=f159e2351]:
+            - generic [ref=f159e2352]: ✓
+            - generic [ref=f159e2354]: 33 AI Creative Apps Access
+          - generic [ref=f159e2355]:
+            - generic [ref=f159e2356]: ✓
+            - generic [ref=f159e2358]: 60+ AI Features & Tools
+          - generic [ref=f159e2359]:
+            - generic [ref=f159e2360]: ✓
+            - generic [ref=f159e2362]: 200+ AI Models Library
+          - generic [ref=f159e2363]:
+            - generic [ref=f159e2364]: ✓
+            - generic [ref=f159e2366]: Professional Timeline Editor
+          - generic [ref=f159e2367]:
+            - generic [ref=f159e2368]: ✓
+            - generic [ref=f159e2370]: 4K/8K Export Quality
+          - generic [ref=f159e2371]:
+            - generic [ref=f159e2372]: ✓
+            - generic [ref=f159e2374]: No Watermarks on Exports
+          - generic [ref=f159e2375]:
+            - generic [ref=f159e2376]: ✓
+            - generic [ref=f159e2378]: Cloud Storage (50GB)
+          - generic [ref=f159e2379]:
+            - generic [ref=f159e2380]: ✓
+            - generic [ref=f159e2382]: Priority GPU Rendering
+      - generic [ref=f159e2383]:
+        - generic [ref=f159e2384]:
+          - generic [ref=f159e2385]: 2,847
+          - generic [ref=f159e2386]: Lifetime Members
+        - generic [ref=f159e2387]:
+          - generic [ref=f159e2388]: $4.2M+
+          - generic [ref=f159e2389]: Earned by Members
+        - generic [ref=f159e2390]:
+          - generic [ref=f159e2391]: 4.9/5
+          - generic [ref=f159e2392]: Average Rating
+  - region [ref=f159e2393]:
+    - generic [ref=f159e2395]:
+      - heading "Start Building Your AI Video Agency Today" [level=2] [ref=f159e2396]
+      - paragraph [ref=f159e2397]: Join the creators and agencies who are already using AI Video Agency Studio to create stunning content, win more clients, and build sustainable businesses.
+      - generic [ref=f159e2398]:
+        - button "🚀 Start My AI Video Agency" [ref=f159e2399]
+        - button "🎬 Watch Success Stories" [ref=f159e2403]
+      - generic [ref=f159e2409]:
+        - generic [ref=f159e2410]: ✓
+        - generic [ref=f159e2412]:
+          - generic [ref=f159e2413]: 30-Day Money Back Guarantee
+          - generic [ref=f159e2414]: Full refund if not completely satisfied
+      - generic [ref=f159e2415]:
+        - generic [ref=f159e2416]:
+          - link "Explore All Apps" [ref=f159e2417] [cursor=pointer]:
+            - /url: /apps
+          - link "Documentation" [ref=f159e2418] [cursor=pointer]:
+            - /url: /docs
+          - link "Community" [ref=f159e2419] [cursor=pointer]:
+            - /url: /community
+          - link "Privacy Policy" [ref=f159e2420] [cursor=pointer]:
+            - /url: /privacy
+          - link "Terms of Service" [ref=f159e2421] [cursor=pointer]:
+            - /url: /terms
+        - generic [ref=f159e2422]: © 2026 AI Video Agency Studio. Open source and community-driven.

@@ -1,0 +1,10 @@
+{
+  "/_app": "pages/_app.js",
+  "/_document": "pages/_document.js",
+  "/_error": "pages/_error.js",
+  "/api/generate-status": "pages/api/generate-status.js",
+  "/api/generate-video": "pages/api/generate-video.js",
+  "/api/proxy-muapi": "pages/api/proxy-muapi.js",
+  "/api/user-credits": "pages/api/user-credits.js",
+  "/404": "pages/404.html"
+}

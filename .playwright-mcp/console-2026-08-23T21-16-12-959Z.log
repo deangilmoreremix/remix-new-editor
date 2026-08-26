@@ -1,0 +1,22 @@
+[     974ms] [LOG] [popcorn-init] OK: plugin-image @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    1931ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2013ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2154ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2170ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2185ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2218ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2241ms] [LOG] [popcorn-init] OK: plugin-form @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2264ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2297ms] [LOG] [popcorn-init] OK: plugin-popup @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2316ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2347ms] [LOG] [popcorn-init] OK: plugin-skip @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2446ms] [LOG] [popcorn-init] OK: plugin-text @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2505ms] [LOG] [popcorn-init] OK: plugin-social @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2532ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2577ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2614ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2648ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2731ms] [LOG] [popcorn-init] OK: plugin-combined @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2753ms] [LOG] [popcorn-init] OK: plugin-background @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2753ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://127.0.0.1:3100/src/lib/popcornInit.js:60
+[    2753ms] [LOG] [popcorn] function 19 @ http://127.0.0.1:3100/src/main.js:4

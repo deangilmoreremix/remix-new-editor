@@ -1,0 +1,49 @@
+[     465ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3100/src/main.js:19
+[     533ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3100/src/lib/popcornInit.js:41
+[     548ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[     582ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[     755ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[     797ms] [LOG] [popcorn-init] OK: wrapper-common @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    1151ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    1190ms] [LOG] [App] Landing page rendered @ http://127.0.0.1:3100/src/main.js:88
+[    1509ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    1696ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    1808ms] [LOG] [popcorn-init] OK: wrapper-null @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    1926ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    1956ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    1965ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    1970ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2004ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=708fd709:20096
+[    2088ms] [LOG] [popcorn-init] OK: player-module @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2229ms] [LOG] [popcorn-init] OK: plugin-image @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2243ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2251ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2257ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2266ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2272ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2277ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2287ms] [LOG] [popcorn-init] OK: plugin-form @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2336ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2342ms] [LOG] [popcorn-init] OK: plugin-popup @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2351ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2356ms] [LOG] [popcorn-init] OK: plugin-skip @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2383ms] [LOG] [popcorn-init] OK: plugin-text @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2392ms] [LOG] [popcorn-init] OK: plugin-social @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2399ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2418ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2425ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2432ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2437ms] [LOG] [popcorn-init] OK: plugin-combined @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2442ms] [LOG] [popcorn-init] OK: plugin-background @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2442ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://127.0.0.1:3100/src/lib/popcornInit.js:60
+[    2443ms] [LOG] [popcorn] function 19 @ http://127.0.0.1:3100/src/main.js:4
+[   56911ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3100/?token=kegRq3mcvU8p' failed:  @ http://127.0.0.1:3100/@vite/client:535
+[   56912ms] [LOG] [vite] server connection lost. Polling for restart... @ http://127.0.0.1:3100/@vite/client:559
+[   57976ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[   58979ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[   59981ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[   60985ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[   61993ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[   62996ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[   64002ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[   65007ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0

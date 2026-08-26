@@ -12,6 +12,13 @@ import { mountPersonalizePopover, replaceTokensInPrompt } from './personalize/pe
 import { navigate } from '../lib/router.js';
 import { saveGeneratedAsset } from '../lib/assets/assetActions.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { createModelParameterControls } from '../lib/studio-components/vanilla/ModelParameterControls.js';
+import { createPromptTextarea } from '../lib/studio-components/vanilla/PromptComposer.js';
+import { formatErrorMessage } from '../lib/studio-components/formatError.js';
+import { getSupplementalModelInputs, buildSupplementalInputPayload } from '../lib/modelParameters.js';
+import { getModelMediaCapabilities } from '../lib/modelCapabilities.js';
+import { getImageInputProfile } from '../lib/videoMediaInputs.js';
+import { getImageSizeCapability, buildImageSizePayload } from '../lib/imageSizing.js';
 
 export function VideoStudio() {
     const container = document.createElement('div');
@@ -39,6 +46,7 @@ export function VideoStudio() {
     let negativePrompt = '';
     let seed = -1;
     let showAdvanced = false;
+    let supplementalParams = {};
 
     const getCurrentModels = () => v2vMode ? v2vModels : (imageMode ? i2vModels : t2vModels);
     const getCurrentAspectRatios = (id) => imageMode ? getAspectRatiosForI2VModel(id) : getAspectRatiosForVideoModel(id);
@@ -229,26 +237,21 @@ export function VideoStudio() {
 
     topRow.appendChild(videoPickerBtn);
 
-    const textarea = document.createElement('textarea');
-    textarea.id = 'v-prompt-textarea';
-    textarea.placeholder = 'Describe the video you want to create';
+    const textareaComposer = createPromptTextarea({
+        placeholder: 'Describe the video you want to create',
+        value: '',
+        maxHeightMobile: 150,
+        maxHeightDesktop: 250,
+        id: 'v-prompt-textarea',
+        rows: 1
+    });
+    const textarea = textareaComposer.element;
     textarea.className = 'flex-1 bg-transparent border-none text-white text-base md:text-xl placeholder:text-muted focus:outline-none resize-none pt-2.5 leading-relaxed min-h-[40px] max-h-[150px] md:max-h-[250px] overflow-y-auto custom-scrollbar';
-    textarea.rows = 1;
-    textarea.oninput = () => {
-        textarea.style.height = 'auto';
-        const maxHeight = window.innerWidth < 768 ? 150 : 250;
-        textarea.style.height = Math.min(textarea.scrollHeight, maxHeight) + 'px';
-    };
 
     const videoPrefill = localStorage.getItem('prefill_prompt');
     if (videoPrefill) {
-        textarea.value = videoPrefill;
+        textareaComposer.setValue(videoPrefill);
         localStorage.removeItem('prefill_prompt');
-        requestAnimationFrame(() => {
-            textarea.style.height = 'auto';
-            const maxHeight = window.innerWidth < 768 ? 150 : 250;
-            textarea.style.height = Math.min(textarea.scrollHeight, maxHeight) + 'px';
-        });
     }
 
     topRow.appendChild(textarea);
@@ -264,11 +267,8 @@ export function VideoStudio() {
     gtmBtn.addEventListener('click', () => {
       import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
         openGTMPromptModal('video-studio', (prompt) => {
-          textarea.value = prompt;
-          textarea.dispatchEvent(new Event('input', { bubbles: true }));
-          textarea.focus();
-          textarea.style.height = 'auto';
-          textarea.style.height = Math.min(textarea.scrollHeight, 250) + 'px';
+          textareaComposer.setValue(prompt);
+          textareaComposer.focus();
         });
       }).catch((err) => console.error('[VideoStudio] GTM Boost failed:', err));
     });
@@ -441,74 +441,57 @@ export function VideoStudio() {
     container.appendChild(inlineInstructions);
 
     // ==========================================
-    // ADVANCED OPTIONS PANEL
+    // ADVANCED OPTIONS PANEL (Dynamic from model schema)
     // ==========================================
     const advancedPanel = document.createElement('div');
     advancedPanel.className = 'w-full mt-6 animate-fade-in-up hidden';
     advancedPanel.id = 'v-advanced-panel';
-    advancedPanel.innerHTML = `
-        <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex flex-col gap-4">
-            <div class="flex items-center justify-between pb-3 border-b border-white/5">
-                <h3 class="text-sm font-bold text-white">Advanced Options</h3>
-                <button id="v-close-adv-btn" class="text-white/40 hover:text-white transition-colors">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                </button>
-            </div>
-            
-            <!-- Negative Prompt -->
-            <div class="flex flex-col gap-2">
-                <label class="text-xs font-bold text-secondary uppercase tracking-wider">Negative Prompt</label>
-                <input type="text" id="v-negative-prompt-input" 
-                    placeholder="What to exclude from the video (e.g., blurry, distorted, watermark)"
-                    class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors">
-            </div>
-            
-            <!-- Seed -->
-            <div class="flex flex-col gap-2">
-                <div class="flex items-center justify-between">
-                    <label class="text-xs font-bold text-secondary uppercase tracking-wider">Seed</label>
-                    <button id="v-randomize-seed-btn" class="text-xs font-bold text-primary hover:text-primary/80 transition-colors">Randomize</button>
-                </div>
-                <input type="number" id="v-seed-input" 
-                    placeholder="-1 for random"
-                    value="-1"
-                    class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors">
-            </div>
-        </div>
-    `;
     container.appendChild(advancedPanel);
+
+    // Model parameter controls (dynamic, schema-driven)
+    let modelControls = null;
+
+    const renderModelParameterControls = () => {
+        const model = getCurrentModel();
+        if (modelControls) {
+            modelControls.destroy();
+            modelControls = null;
+        }
+        if (!model || getSupplementalModelInputs(model).length === 0) {
+            advancedPanel.innerHTML = '';
+            advancedPanel.classList.add('hidden');
+            return;
+        }
+        modelControls = createModelParameterControls({
+            model,
+            initialValues: supplementalParams,
+            onChange: (key, value) => {
+                supplementalParams[key] = value;
+            },
+            onPayloadChange: (payload) => {
+                supplementalParams = payload;
+            }
+        });
+        advancedPanel.innerHTML = '';
+        advancedPanel.appendChild(modelControls.element);
+        advancedPanel.classList.remove('hidden');
+    };
 
     // Advanced panel toggle logic
     const toggleAdvanced = () => {
         showAdvanced = !showAdvanced;
         advancedPanel.classList.toggle('hidden', !showAdvanced);
         document.getElementById('v-advanced-btn-label').textContent = showAdvanced ? 'Less' : 'Advanced';
+        if (showAdvanced) renderModelParameterControls();
     };
-    
+
     // Add advanced panel to container first
     container.appendChild(advancedPanel);
-    
+
     // Now set up event handlers after elements are in DOM
     advancedBtn.onclick = toggleAdvanced;
     const vCloseAdvBtn = advancedPanel.querySelector('#v-close-adv-btn');
     if (vCloseAdvBtn) vCloseAdvBtn.onclick = toggleAdvanced;
-    
-    // Negative prompt
-    const vNegPromptInput = advancedPanel.querySelector('#v-negative-prompt-input');
-    if (vNegPromptInput) vNegPromptInput.oninput = (e) => { negativePrompt = e.target.value; };
-    
-    // Seed input
-    const vSeedInput = advancedPanel.querySelector('#v-seed-input');
-    if (vSeedInput) vSeedInput.oninput = (e) => { seed = parseInt(e.target.value) || -1; };
-    
-    // Randomize seed button
-    const vRandSeedBtn = advancedPanel.querySelector('#v-randomize-seed-btn');
-    if (vRandSeedBtn) {
-        vRandSeedBtn.onclick = () => {
-            seed = Math.floor(Math.random() * 999999999);
-            if (vSeedInput) vSeedInput.value = seed;
-        };
-    }
 
     // ==========================================
     // 3. DROPDOWNS
@@ -1045,7 +1028,7 @@ export function VideoStudio() {
 
     newPromptBtn.onclick = () => {
         resetToPromptBar();
-        textarea.value = '';
+        textareaComposer.setValue('');
         picker.reset();
         uploadedImageUrl = null;
         imageMode = false;
@@ -1055,25 +1038,31 @@ export function VideoStudio() {
         selectedModel = t2vModels[0].id;
         selectedModelName = t2vModels[0].name;
         document.getElementById('v-model-btn-label').textContent = selectedModelName;
+        supplementalParams = {};
+        if (modelControls) { modelControls.destroy(); modelControls = null; }
+        advancedPanel.classList.add('hidden');
+        showAdvanced = false;
+        document.getElementById('v-advanced-btn-label').textContent = 'Advanced';
         updateControlsForModel(selectedModel);
         textarea.placeholder = 'Describe the video you want to create';
         textarea.disabled = false;
-        textarea.focus();
+        textareaComposer.focus();
     };
 
     extendBtn.onclick = () => {
         if (!lastGenerationId) return;
         resetToPromptBar();
-        textarea.value = '';
+        textareaComposer.setValue('');
         picker.reset();
         uploadedImageUrl = null;
         imageMode = false;
         selectedModel = 'seedance-v2.0-extend';
         selectedModelName = 'Seedance 2.0 Extend';
         document.getElementById('v-model-btn-label').textContent = selectedModelName;
+        supplementalParams = {};
         updateControlsForModel(selectedModel);
         textarea.placeholder = 'Optional: describe how to continue the video...';
-        textarea.focus();
+        textareaComposer.focus();
     };
 
     // ==========================================
@@ -1224,6 +1213,8 @@ export function VideoStudio() {
                 const resolutions = getCurrentResolutions(selectedModel);
                 if (resolutions.length > 0) i2vParams.resolution = selectedResolution;
                 if (selectedQuality) i2vParams.quality = selectedQuality;
+                // Add dynamic supplemental parameters from model schema
+                Object.assign(i2vParams, buildSupplementalInputPayload(getCurrentModel(), supplementalParams));
 
                 const res = await muapi.generateI2V(i2vParams);
                 console.log('[VideoStudio] I2V response:', res);
@@ -1269,6 +1260,9 @@ export function VideoStudio() {
 
             if (selectedQuality) params.quality = selectedQuality;
 
+            // Add dynamic supplemental parameters from model schema
+            Object.assign(params, buildSupplementalInputPayload(getCurrentModel(), supplementalParams));
+
             const res = await muapi.generateVideo(params);
 
             console.log('[VideoStudio] Full response:', res);
@@ -1299,11 +1293,11 @@ export function VideoStudio() {
                 throw new Error('No video URL returned by API');
             }
         } catch (e) {
-            generateBtn.innerHTML = `Error: ${e.message.slice(0, 40)}`;
+            generateBtn.innerHTML = `⚠️ ${formatErrorMessage(e, 'Generation failed')}`;
             setTimeout(() => {
                 generateBtn.innerHTML = `Generate ✨`;
                 generateBtn.disabled = false;
-            }, 3000);
+            }, 5000);
             return;
         }
         generateBtn.disabled = false;

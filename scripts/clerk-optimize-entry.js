@@ -7,4 +7,3 @@ import 'react';
 import 'react-dom';
 import 'react/jsx-runtime';
 import '@clerk/react';
-import '@chakra-ui/react';

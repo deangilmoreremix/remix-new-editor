@@ -1,0 +1,40 @@
+[   27605ms] [ERROR] Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap' violates the following Content Security Policy directive: "style-src 'self' 'unsafe-inline' https://clerk.smartvid.app". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked. @ http://127.0.0.1:3100/#/landing:43
+[   28606ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3100/src/main.js:19
+[   28898ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3100/src/lib/popcornInit.js:41
+[   28903ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   29785ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   29798ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   29804ms] [LOG] [popcorn-init] OK: wrapper-common @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   29808ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   29819ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   29829ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   29835ms] [LOG] [popcorn-init] OK: wrapper-null @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   29845ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   29850ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   29857ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   29863ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   29867ms] [LOG] [popcorn-init] OK: player-module @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   38072ms] [LOG] [App] Landing page rendered @ http://127.0.0.1:3100/src/main.js:88
+[   40015ms] [LOG] [popcorn-init] OK: plugin-image @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   40059ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=708fd709:20096
+[   40855ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   41103ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   41275ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   41763ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   41933ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   41974ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   42446ms] [LOG] [popcorn-init] OK: plugin-form @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   42972ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   43065ms] [LOG] [popcorn-init] OK: plugin-popup @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   43152ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   43176ms] [LOG] [popcorn-init] OK: plugin-skip @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   43348ms] [LOG] [popcorn-init] OK: plugin-text @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   43444ms] [LOG] [popcorn-init] OK: plugin-social @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   43492ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   43590ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   43638ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   43703ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   43744ms] [LOG] [popcorn-init] OK: plugin-combined @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   43785ms] [LOG] [popcorn-init] OK: plugin-background @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   43785ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://127.0.0.1:3100/src/lib/popcornInit.js:60
+[   43785ms] [LOG] [popcorn] function 19 @ http://127.0.0.1:3100/src/main.js:4

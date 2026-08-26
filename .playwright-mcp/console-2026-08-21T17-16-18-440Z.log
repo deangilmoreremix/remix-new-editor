@@ -1,0 +1,40 @@
+[    2270ms] [LOG] [App] Starting initialization... @ http://localhost:3000/src/main.js?t=1787332233225:16
+[    2363ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3000/src/lib/popcornInit.js:41
+[    2502ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3000/src/lib/popcornInit.js:48
+[    2753ms] [LOG] [App] Landing page rendered @ http://localhost:3000/src/main.js?t=1787332233225:85
+[    2888ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3000/src/lib/popcornInit.js:48
+[    2949ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3000/src/lib/popcornInit.js:48
+[    3011ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3000/src/lib/popcornInit.js:48
+[    3037ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3000/src/lib/popcornInit.js:48
+[    3067ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3000/src/lib/popcornInit.js:48
+[    3152ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/@id/components/form/FormSelect::/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/lib/constants/forms.js:0
+[    3152ms] [ERROR] [ModalSystem] mount failed TypeError: Failed to fetch dynamically imported module: http://localhost:3000/src/mountModalSystem.jsx @ http://localhost:3000/src/main.js?t=1787332233225:335
+[    3176ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3000/src/lib/popcornInit.js:48
+[    3278ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3000/src/lib/popcornInit.js:48
+[    3294ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3000/src/lib/popcornInit.js:48
+[    3301ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3000/src/lib/popcornInit.js:48
+[    3307ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3000/src/lib/popcornInit.js:48
+[    3320ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3000/src/lib/popcornInit.js:48
+[    3331ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3000/src/lib/popcornInit.js:48
+[    3344ms] [ERROR] [popcorn-init] FAILED at: plugin-image TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/image/popcorn.image.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[    3414ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonTransition TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/jsonTransition/popcorn.jsonTransition.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[    3484ms] [ERROR] [popcorn-init] FAILED at: plugin-lottie-json TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/lottie-json/popcorn.lottie-json.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[    3527ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3000/src/lib/popcornInit.js:48
+[    3540ms] [ERROR] [popcorn-init] FAILED at: plugin-personalizedImage TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/personalizedImage/popcorn.personalizedImage.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[    3548ms] [ERROR] [popcorn-init] FAILED at: plugin-loopPlugin TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/loopPlugin/popcorn.loopPlugin.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[    3552ms] [ERROR] [popcorn-init] FAILED at: plugin-pausePlugin TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/pausePlugin/popcorn.pausePlugin.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[    3561ms] [ERROR] [popcorn-init] FAILED at: plugin-form TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/form/popcorn.form.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[    3598ms] [ERROR] [popcorn-init] FAILED at: plugin-retarget TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/retarget/popcorn.retarget.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[    3673ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:3000/src/lib/popcornInit.js:48
+[    3728ms] [ERROR] [popcorn-init] FAILED at: plugin-sequencer TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/sequencer/popcorn.sequencer.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[    3737ms] [ERROR] [popcorn-init] FAILED at: plugin-skip TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/skip/popcorn.skip.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[    3752ms] [ERROR] [popcorn-init] FAILED at: plugin-text TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/text/popcorn.text.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[    3786ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:3000/src/lib/popcornInit.js:48
+[    3794ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonAnimation TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/jsonAnimation/popcorn.jsonAnimation.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[    3820ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:3000/src/lib/popcornInit.js:48
+[    3829ms] [ERROR] [popcorn-init] FAILED at: plugin-seethroughtext TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/seethroughtext/popcorn.seethroughtext.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[    3842ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:3000/src/lib/popcornInit.js:48
+[    3857ms] [ERROR] [popcorn-init] FAILED at: plugin-combined TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/combined/popcorn.combined.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[    3867ms] [ERROR] [popcorn-init] FAILED at: plugin-background TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/background/popcorn.background.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[    3867ms] [LOG] [popcorn-init] SUMMARY: 5/20 plugins registered; FAILED: plugin-image, plugin-jsonTransition, plugin-lottie-json, plugin-personalizedImage, plugin-loopPlugin, plugin-pausePlugin, plugin-form, plugin-retarget, plugin-sequencer, plugin-skip, plugin-text, plugin-jsonAnimation, plugin-seethroughtext, plugin-combined, plugin-background @ http://localhost:3000/src/lib/popcornInit.js:60
+[    3867ms] [LOG] [popcorn] function 5 @ http://localhost:3000/src/main.js?t=1787332233225:4

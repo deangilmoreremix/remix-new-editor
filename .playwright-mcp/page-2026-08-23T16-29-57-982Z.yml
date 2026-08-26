@@ -1,0 +1,790 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - generic [ref=e6] [cursor=pointer]
+          - navigation [ref=e12]:
+            - generic [ref=e13] [cursor=pointer]: Explore
+            - generic [ref=e14] [cursor=pointer]: Image
+            - generic [ref=e15] [cursor=pointer]: Video
+            - generic [ref=e16] [cursor=pointer]: Tools
+            - generic [ref=e17] [cursor=pointer]: Storyboard
+            - generic [ref=e18] [cursor=pointer]: Edit
+            - generic [ref=e19] [cursor=pointer]: Character
+            - generic [ref=e20] [cursor=pointer]: Vibe Motion
+            - generic [ref=e21] [cursor=pointer]: Cinema Studio
+            - generic [ref=e22] [cursor=pointer]: Cinema Template Studio
+            - generic [ref=e23] [cursor=pointer]: AI Influencer
+            - generic [ref=e24] [cursor=pointer]: Smart Video Viral
+            - generic [ref=e25] [cursor=pointer]: Apps
+            - generic [ref=e26] [cursor=pointer]: Templates
+            - generic [ref=e27] [cursor=pointer]: Assist
+            - generic [ref=e28] [cursor=pointer]: Community
+            - generic [ref=e29] [cursor=pointer]: Content Library
+        - generic [ref=e30]:
+          - button "Update API Key" [ref=e31]
+          - link "Sign In" [ref=e231] [cursor=pointer]:
+            - /url: /signin
+    - generic [ref=e34]:
+      - complementary [ref=e35]:
+        - generic [ref=e36]:
+          - generic [ref=e37] [cursor=pointer]:
+            - button [ref=e38]
+            - generic [ref=e44]: Apps
+          - generic [ref=e45] [cursor=pointer]:
+            - button [ref=e46]
+            - generic [ref=e51]: Image
+          - generic [ref=e52] [cursor=pointer]:
+            - button [ref=e53]
+            - generic [ref=e57]: Video
+          - generic [ref=e58] [cursor=pointer]:
+            - button [ref=e59]
+            - generic [ref=e62]: Cinema Studio
+          - generic [ref=e63] [cursor=pointer]:
+            - button [ref=e64]
+            - generic [ref=e67]: Cinema Template Studio
+          - generic [ref=e68] [cursor=pointer]:
+            - button [ref=e69]
+            - generic [ref=e77]: Storyboard
+          - generic [ref=e78] [cursor=pointer]:
+            - button [ref=e79]
+            - generic [ref=e82]: Effects
+          - generic [ref=e83] [cursor=pointer]:
+            - button [ref=e84]
+            - generic [ref=e88]: Edit
+          - generic [ref=e89] [cursor=pointer]:
+            - button [ref=e90]
+            - generic [ref=e96]: Upscale
+          - generic [ref=e97] [cursor=pointer]:
+            - button [ref=e98]
+            - generic [ref=e103]: Audio
+          - generic [ref=e104] [cursor=pointer]:
+            - button [ref=e105]
+            - generic [ref=e110]: Avatar
+          - generic [ref=e111] [cursor=pointer]:
+            - button [ref=e112]
+            - generic [ref=e117]: Training
+          - generic [ref=e118] [cursor=pointer]:
+            - button [ref=e119]
+            - generic [ref=e123]: Smart Video Academy
+          - generic [ref=e124] [cursor=pointer]:
+            - button [ref=e125]
+            - generic [ref=e130]: Smart Video Viral
+          - generic [ref=e131] [cursor=pointer]:
+            - button [ref=e132]
+            - generic [ref=e136]: Video Tools
+          - generic [ref=e137] [cursor=pointer]:
+            - button [ref=e138]
+            - generic [ref=e141]: Render
+          - generic [ref=e142] [cursor=pointer]:
+            - button [ref=e143]
+            - generic [ref=e147]: Director
+          - generic [ref=e148] [cursor=pointer]:
+            - button [ref=e149]
+            - generic [ref=e155]: Timeline
+          - generic [ref=e156] [cursor=pointer]:
+            - button [ref=e157]
+            - generic [ref=e160]: Chat
+          - generic [ref=e161] [cursor=pointer]:
+            - button [ref=e162]
+            - generic [ref=e166]: Commercial
+          - generic [ref=e167] [cursor=pointer]:
+            - button [ref=e168]
+            - generic [ref=e171]: Templates
+          - generic [ref=e172] [cursor=pointer]:
+            - button [ref=e173]
+            - generic [ref=e177]: Explore
+          - generic [ref=e178] [cursor=pointer]:
+            - button [ref=e179]
+            - generic [ref=e183]: Library
+          - generic [ref=e184] [cursor=pointer]:
+            - button [ref=e185]
+            - generic [ref=e188]: Content
+          - generic [ref=e189] [cursor=pointer]:
+            - button [ref=e190]
+            - generic [ref=e196]: Community
+          - generic [ref=e197] [cursor=pointer]:
+            - button [ref=e198]
+            - generic [ref=e203]: Assist
+          - generic [ref=e204] [cursor=pointer]:
+            - button [ref=e205]
+            - generic [ref=e209]: Commits (0)
+          - generic [ref=e210] [cursor=pointer]:
+            - button [ref=e211]
+            - generic [ref=e215]: AI VFX
+          - generic [ref=e216] [cursor=pointer]:
+            - button [ref=e217]
+            - generic [ref=e221]: Stock Media
+        - generic [ref=e223] [cursor=pointer]:
+          - button [ref=e224]
+          - generic [ref=e228]: Settings
+      - main [ref=e229]:
+        - generic [ref=e232]:
+          - generic [ref=e233]:
+            - generic [ref=e234]:
+              - button "All studios" [ref=e235]
+              - button [ref=e241]
+              - generic [ref=e244]:
+                - generic [ref=e245]: 🎬
+                - generic [ref=e246]:
+                  - heading "Cinematic Short Film" [level=1] [ref=e247]
+                  - paragraph [ref=e248]: Create your cinematic films video
+            - generic [ref=e249]:
+              - generic [ref=e250]: API key set
+              - generic [ref=e253]:
+                - button "Quick Mode" [ref=e254]
+                - button "Advanced" [ref=e255]
+              - button "💾 Save" [ref=e256]:
+                - generic [ref=e257]: 💾
+                - text: Save
+          - generic [ref=e258]:
+            - generic [ref=e259]:
+              - generic [ref=e260]:
+                - img "Cinematic Short Film" [ref=e262]
+                - button "🖼 Thumbnail" [ref=e263]
+                - heading "Cinematic Short Film" [level=1] [ref=e264]
+                - paragraph [ref=e265]: Professional short film with narrative arc
+                - generic [ref=e266]:
+                  - generic [ref=e267]: Video
+                  - generic [ref=e268]: Cinematic Films
+              - generic [ref=e269]:
+                - generic [ref=e271]:
+                  - generic [ref=e272]:
+                    - generic [ref=e273]:
+                      - heading "Video Intent" [level=2] [ref=e274]
+                      - paragraph [ref=e275]: Describe the video you want to create
+                    - button "🎨 Storyboard" [ref=e276]
+                  - generic [ref=e277]:
+                    - generic [ref=e278]:
+                      - generic [ref=e279]: Video Type
+                      - combobox [ref=e280]:
+                        - option "commercial" [selected]
+                        - option "brand film"
+                        - option "trailer"
+                        - option "social reel"
+                        - option "testimonial"
+                        - option "documentary"
+                        - option "short film"
+                        - option "explainer"
+                    - generic [ref=e281]:
+                      - generic [ref=e282]: Duration (seconds)
+                      - spinbutton [ref=e283]: "60"
+                    - generic [ref=e284]:
+                      - generic [ref=e285]: Aspect Ratio
+                      - combobox [ref=e286]:
+                        - option "16:9" [selected]
+                        - option "9:16"
+                        - option "1:1"
+                        - option "4:5"
+                    - generic [ref=e287]:
+                      - generic [ref=e288]: Tone
+                      - combobox [ref=e289]:
+                        - option "dramatic"
+                        - option "cinematic" [selected]
+                        - option "upbeat"
+                        - option "luxury"
+                        - option "gritty"
+                        - option "minimal"
+                        - option "emotional"
+                        - option "humorous"
+                    - generic [ref=e290]:
+                      - generic [ref=e291]: Style Preset
+                      - combobox [ref=e292]:
+                        - option "None"
+                        - option "Photorealistic"
+                        - option "Cinematic" [selected]
+                        - option "Noir"
+                        - option "Anime"
+                        - option "Watercolor"
+                        - option "Oil Painting"
+                        - option "Cyberpunk"
+                        - option "Fantasy"
+                        - option "Documentary"
+                    - generic [ref=e293]:
+                      - generic [ref=e294]: Lighting Preset
+                      - combobox [ref=e295]:
+                        - option "None"
+                        - option "Golden Hour" [selected]
+                        - option "Neon"
+                        - option "Studio"
+                        - option "Dramatic"
+                        - option "Soft"
+                        - option "Volumetric"
+                        - option "High Key"
+                        - option "Low Key"
+                    - generic [ref=e296]:
+                      - generic [ref=e297]: Color Grade
+                      - combobox [ref=e298]:
+                        - option "None"
+                        - option "Warm"
+                        - option "Cool"
+                        - option "Desaturated"
+                        - option "Vibrant"
+                        - option "Monochrome"
+                        - option "Sepia"
+                        - option "Teal & Orange" [selected]
+                    - generic [ref=e299]:
+                      - generic [ref=e300]: Target Audience
+                      - textbox "e.g. Gen Z, professionals" [ref=e301]
+                    - generic [ref=e302]:
+                      - generic [ref=e303]: Call to Action (optional)
+                      - textbox "e.g. Buy now, Sign up" [ref=e304]
+                    - generic [ref=e305]:
+                      - generic [ref=e306]: Subject
+                      - textbox "What is the video about?" [ref=e307]
+                    - generic [ref=e308]:
+                      - generic [ref=e309]: Premise
+                      - textbox "Core narrative or value prop..." [ref=e310]
+                  - generic [ref=e311]:
+                    - button "Reset" [ref=e312]
+                    - generic [ref=e313]: Video intent is saved automatically
+                - generic [ref=e314]:
+                  - heading "Basic Information" [level=2] [ref=e315]
+                  - paragraph [ref=e316]: Enter the key details for your video
+                - generic [ref=e317]:
+                  - generic [ref=e318]:
+                    - generic [ref=e319]: Genre *
+                    - combobox [ref=e321] [cursor=pointer]:
+                      - option "action" [selected]
+                      - option "drama"
+                      - option "comedy"
+                      - option "horror"
+                      - option "sci-fi"
+                      - option "romance"
+                      - option "thriller"
+                  - generic [ref=e322]:
+                    - generic [ref=e323]:
+                      - generic [ref=e324]: Story Premise *
+                      - generic [ref=e325]:
+                        - button "Enhance" [ref=e326]
+                        - button "GTM Boost prompt enhancer" [ref=e327] [cursor=pointer]: 🎯 GTM Boost
+                    - textbox "What happens in your story?" [ref=e328]
+                  - generic [ref=e329]:
+                    - generic [ref=e330]: Tone
+                    - combobox [ref=e332] [cursor=pointer]:
+                      - option "dramatic" [selected]
+                      - option "lighthearted"
+                      - option "mysterious"
+                      - option "uplifting"
+                - generic [ref=e333]:
+                  - generic [ref=e334]:
+                    - generic [ref=e335]:
+                      - heading "Scene Timeline" [level=2] [ref=e336]
+                      - paragraph [ref=e337]: Auto-selected scenes for your video
+                    - button "🔄 Refresh" [ref=e338]
+                  - generic [ref=e340]:
+                    - generic [ref=e341]: 🎬
+                    - paragraph [ref=e342]: Scenes will be auto-selected when you generate
+                - generic [ref=e343]:
+                  - generic [ref=e344]:
+                    - generic [ref=e345]:
+                      - heading "Scene Builder" [level=2] [ref=e346]
+                      - paragraph [ref=e347]: Structure your video into scenes
+                    - generic [ref=e348]:
+                      - button "+ Add Scene" [ref=e349]
+                      - button "🎨 Storyboard" [ref=e350]
+                  - paragraph [ref=e353]: No scenes yet. Add a scene or generate from the timeline.
+              - generic [ref=e355]:
+                - generic [ref=e356]: Model
+                - button "AI Video Effects" [ref=e357]
+              - generic [ref=e363]:
+                - generic [ref=e364]: Video Source (V2V)
+                - button "Upload video" [ref=e365]
+              - generic [ref=e366]:
+                - generic [ref=e367]:
+                  - generic [ref=e368]:
+                    - generic [ref=e369]: AI Enhancer
+                    - generic [ref=e370]: Keeps the simple template flow, but auto-detects niche, applies cinematic prompt expansion, scene logic, and cleanup in the background.
+                  - button [ref=e371]
+                - button "Show Advanced Controls" [ref=e373]
+              - button "GTM Boost prompt enhancer" [ref=e374] [cursor=pointer]: 🎯 GTM Boost
+              - button "Generate template" [ref=e375]: Generate
+              - button "💬 Add AI Captions" [ref=e376]
+              - button "Personalize Personalize with a discovered contact" [ref=e378]:
+                - generic [ref=e382]: Personalize
+                - text: Personalize with a discovered contact
+              - generic [ref=e385]:
+                - heading "Creative Intelligence" [level=2] [ref=e386]
+                - paragraph [ref=e387]: These tiles show the cinematic structure, creative direction, and visual strategy this template will use to build your final video.
+                - generic [ref=e388]:
+                  - generic [ref=e389] [cursor=pointer]:
+                    - generic [ref=e390]: 🏷️
+                    - heading "Auto-Detected Niche" [level=3] [ref=e391]
+                    - textbox [ref=e392]: general-business
+                  - generic [ref=e393] [cursor=pointer]:
+                    - generic [ref=e394]: 🎬
+                    - heading "Scene Structure" [level=3] [ref=e395]
+                    - textbox [ref=e396]: Establish world → Introduce protagonist → Inciting incident → Rising action → Midpoint shift → Complications → Climax → Falling action → Final reveal
+                  - generic [ref=e397] [cursor=pointer]:
+                    - generic [ref=e398]: 🎥
+                    - heading "Cinematic Enrichment" [level=3] [ref=e399]
+                    - textbox [ref=e400]: Dynamic camera movement, shallow depth of field, professional lighting
+                  - generic [ref=e401] [cursor=pointer]:
+                    - generic [ref=e402]: ⚙️
+                    - heading "Visual Style" [level=3] [ref=e403]
+                    - textbox [ref=e404]: Polished, cinematic, high-contrast, premium aesthetic
+                  - generic [ref=e405] [cursor=pointer]:
+                    - generic [ref=e406]: ✨
+                    - heading "Enhancer Keywords" [level=3] [ref=e407]
+                    - textbox [ref=e408]: cinematic, professional, 4K, high quality, premium
+            - generic [ref=e409]:
+              - generic [ref=e410]:
+                - heading "Output" [level=3] [ref=e411]
+                - generic [ref=e412]:
+                  - generic [ref=e413]:
+                    - generic [ref=e414]: Video
+                    - generic [ref=e415]: Cinematic Films
+                    - generic [ref=e416]: 16:9
+                  - generic [ref=e419]:
+                    - generic [ref=e420]:
+                      - generic [ref=e421]: Preview / Output Panel
+                      - generic [ref=e422]: Standby State
+                    - generic [ref=e423]: Upload an image and click Generate to see results
+              - generic [ref=e424]:
+                - generic [ref=e425]:
+                  - button "Enhanced Prompt" [ref=e426]
+                  - button "Scene Beats" [ref=e427]
+                  - button "Voiceover" [ref=e428]
+                  - button "Negative Prompt" [ref=e429]
+                - generic [ref=e430]:
+                  - generic [ref=e431]:
+                    - generic [ref=e432]: Editable Output
+                    - button "✨" [ref=e433]
+                  - textbox [ref=e434]: Click Generate to create an enhanced prompt...
+  - dialog [ref=e435]:
+    - document [ref=e436]:
+      - generic [ref=e437]:
+        - heading "💬 AI Captions" [level=2] [ref=e438]
+        - button "Close modal" [ref=e439] [cursor=pointer]
+      - generic [ref=e443]:
+        - paragraph [ref=e444]: Add AI-generated animated captions to your video. Choose a language and viral caption theme.
+        - generic [ref=e445]:
+          - button "🔗 Video URL" [ref=e446] [cursor=pointer]:
+            - generic [ref=e447]: 🔗
+            - text: Video URL
+          - button "📁 Upload Video" [ref=e448] [cursor=pointer]:
+            - generic [ref=e449]: 📁
+            - text: Upload Video
+        - generic [ref=e450]:
+          - generic [ref=e451]:
+            - generic [ref=e452]: Upload Video
+            - generic [ref=e453] [cursor=pointer]: 📁 Drop a video here or click to browse MP4, WebM, MOV — max 600MB or 10 minutes
+          - generic [ref=e455]:
+            - generic [ref=e456]:
+              - generic [ref=e457]: Language
+              - combobox "Language Language Language" [ref=e671] [cursor=pointer]:
+                - option "English" [selected]
+                - option "English (USA)"
+                - option "English (UK)"
+                - option "English (Australia)"
+                - option "English (Canada)"
+                - option "Japanese"
+                - option "Chinese"
+                - option "German"
+                - option "Hindi"
+                - option "French"
+                - option "French (France)"
+                - option "French (Canada)"
+                - option "Korean"
+                - option "Portuguese (Brazil)"
+                - option "Portuguese (Portugal)"
+                - option "Portuguese"
+                - option "Spanish (Spain)"
+                - option "Spanish (Mexico)"
+                - option "Italian"
+                - option "Spanish"
+                - option "Indonesian"
+                - option "Dutch"
+                - option "Turkish"
+                - option "Filipino"
+                - option "Polish"
+                - option "Swedish"
+                - option "Bulgarian"
+                - option "Romanian"
+                - option "Arabic (Saudi Arabia)"
+                - option "Arabic (UAE)"
+                - option "Arabic"
+                - option "Czech"
+                - option "Greek"
+                - option "Finnish"
+                - option "Croatian"
+                - option "Malay"
+                - option "Slovak"
+                - option "Danish"
+                - option "Tamil"
+                - option "Telugu"
+                - option "Ukrainian"
+                - option "Russian"
+                - option "Hungarian"
+                - option "Norwegian"
+                - option "Vietnamese"
+            - generic [ref=e459]:
+              - generic [ref=e460]: Caption Theme
+              - combobox "Caption Theme Caption Theme Caption Theme" [ref=e672] [cursor=pointer]:
+                - option "Hormozi 1" [selected]
+                - option "Hormozi 2"
+                - option "Hormozi 3"
+                - option "Beast"
+                - option "Ali"
+                - option "Noah"
+                - option "Karl"
+                - option "Luke"
+                - option "Devin"
+                - option "Celine"
+                - option "Maya"
+                - option "Ella"
+                - option "Dan"
+                - option "David"
+                - option "Tracy"
+                - option "Umi"
+                - option "Iman"
+                - option "William"
+          - generic [ref=e462]:
+            - generic [ref=e463]: Theme Preview
+            - generic [ref=e464]:
+              - button "Hormozi 1" [ref=e465] [cursor=pointer]
+              - button "Hormozi 2" [ref=e467] [cursor=pointer]
+              - button "Hormozi 3" [ref=e469] [cursor=pointer]
+              - button "Beast" [ref=e471] [cursor=pointer]
+              - button "Ali" [ref=e473] [cursor=pointer]
+              - button "Noah" [ref=e475] [cursor=pointer]
+              - button "Karl" [ref=e477] [cursor=pointer]
+              - button "Luke" [ref=e479] [cursor=pointer]
+              - button "Devin" [ref=e481] [cursor=pointer]
+      - generic [ref=e483]:
+        - button "Cancel" [ref=e484] [cursor=pointer]
+        - button "✨ Generate Captions" [ref=e485] [cursor=pointer]
+  - dialog [ref=e620]:
+    - document [ref=e621]:
+      - generic [ref=e622]:
+        - heading "💬 AI Captions" [level=2] [ref=e623]
+        - button "Close modal" [ref=e624] [cursor=pointer]
+      - generic [ref=e628]:
+        - paragraph [ref=e629]: Add AI-generated animated captions to your video. Choose a language and viral caption theme.
+        - generic [ref=e630]:
+          - button "🔗 Video URL" [ref=e631] [cursor=pointer]:
+            - generic [ref=e632]: 🔗
+            - text: Video URL
+          - button "📁 Upload Video" [ref=e633] [cursor=pointer]:
+            - generic [ref=e634]: 📁
+            - text: Upload Video
+        - generic [ref=e635]:
+          - generic [ref=e636]:
+            - generic [ref=e637]: Upload Video
+            - generic [ref=e638] [cursor=pointer]: 📁 Drop a video here or click to browse MP4, WebM, MOV — max 600MB or 10 minutes
+          - generic [ref=e640]:
+            - generic [ref=e641]:
+              - generic [ref=e642]: Language
+              - combobox [ref=e643] [cursor=pointer]:
+                - option "English" [selected]
+                - option "English (USA)"
+                - option "English (UK)"
+                - option "English (Australia)"
+                - option "English (Canada)"
+                - option "Japanese"
+                - option "Chinese"
+                - option "German"
+                - option "Hindi"
+                - option "French"
+                - option "French (France)"
+                - option "French (Canada)"
+                - option "Korean"
+                - option "Portuguese (Brazil)"
+                - option "Portuguese (Portugal)"
+                - option "Portuguese"
+                - option "Spanish (Spain)"
+                - option "Spanish (Mexico)"
+                - option "Italian"
+                - option "Spanish"
+                - option "Indonesian"
+                - option "Dutch"
+                - option "Turkish"
+                - option "Filipino"
+                - option "Polish"
+                - option "Swedish"
+                - option "Bulgarian"
+                - option "Romanian"
+                - option "Arabic (Saudi Arabia)"
+                - option "Arabic (UAE)"
+                - option "Arabic"
+                - option "Czech"
+                - option "Greek"
+                - option "Finnish"
+                - option "Croatian"
+                - option "Malay"
+                - option "Slovak"
+                - option "Danish"
+                - option "Tamil"
+                - option "Telugu"
+                - option "Ukrainian"
+                - option "Russian"
+                - option "Hungarian"
+                - option "Norwegian"
+                - option "Vietnamese"
+            - generic [ref=e644]:
+              - generic [ref=e645]: Caption Theme
+              - combobox [ref=e646] [cursor=pointer]:
+                - option "Hormozi 1" [selected]
+                - option "Hormozi 2"
+                - option "Hormozi 3"
+                - option "Beast"
+                - option "Ali"
+                - option "Noah"
+                - option "Karl"
+                - option "Luke"
+                - option "Devin"
+                - option "Celine"
+                - option "Maya"
+                - option "Ella"
+                - option "Dan"
+                - option "David"
+                - option "Tracy"
+                - option "Umi"
+                - option "Iman"
+                - option "William"
+          - generic [ref=e647]:
+            - generic [ref=e648]: Theme Preview
+            - generic [ref=e649]:
+              - button "Hormozi 1" [ref=e650] [cursor=pointer]
+              - button "Hormozi 2" [ref=e652] [cursor=pointer]
+              - button "Hormozi 3" [ref=e654] [cursor=pointer]
+              - button "Beast" [ref=e656] [cursor=pointer]
+              - button "Ali" [ref=e658] [cursor=pointer]
+              - button "Noah" [ref=e660] [cursor=pointer]
+              - button "Karl" [ref=e662] [cursor=pointer]
+              - button "Luke" [ref=e664] [cursor=pointer]
+              - button "Devin" [ref=e666] [cursor=pointer]
+      - generic [ref=e668]:
+        - button "Cancel" [ref=e669] [cursor=pointer]
+        - button "✨ Generate Captions" [ref=e670] [cursor=pointer]
+  - dialog [ref=e673]:
+    - document [ref=e674]:
+      - generic [ref=e675]:
+        - heading "💬 AI Captions" [level=2] [ref=e676]
+        - button "Close modal" [active] [ref=e677] [cursor=pointer]
+      - generic [ref=e681]:
+        - paragraph [ref=e682]: Add AI-generated animated captions to your video. Choose a language and viral caption theme.
+        - generic [ref=e683]:
+          - button "🔗 Video URL" [ref=e684] [cursor=pointer]:
+            - generic [ref=e685]: 🔗
+            - text: Video URL
+          - button "📁 Upload Video" [ref=e686] [cursor=pointer]:
+            - generic [ref=e687]: 📁
+            - text: Upload Video
+        - generic [ref=e688]:
+          - generic [ref=e689]:
+            - generic [ref=e690]: Upload Video
+            - generic [ref=e691] [cursor=pointer]: 📁 Drop a video here or click to browse MP4, WebM, MOV — max 600MB or 10 minutes
+          - generic [ref=e693]:
+            - generic [ref=e694]:
+              - generic [ref=e695]: Language
+              - combobox [ref=e696] [cursor=pointer]:
+                - option "English" [selected]
+                - option "English (USA)"
+                - option "English (UK)"
+                - option "English (Australia)"
+                - option "English (Canada)"
+                - option "Japanese"
+                - option "Chinese"
+                - option "German"
+                - option "Hindi"
+                - option "French"
+                - option "French (France)"
+                - option "French (Canada)"
+                - option "Korean"
+                - option "Portuguese (Brazil)"
+                - option "Portuguese (Portugal)"
+                - option "Portuguese"
+                - option "Spanish (Spain)"
+                - option "Spanish (Mexico)"
+                - option "Italian"
+                - option "Spanish"
+                - option "Indonesian"
+                - option "Dutch"
+                - option "Turkish"
+                - option "Filipino"
+                - option "Polish"
+                - option "Swedish"
+                - option "Bulgarian"
+                - option "Romanian"
+                - option "Arabic (Saudi Arabia)"
+                - option "Arabic (UAE)"
+                - option "Arabic"
+                - option "Czech"
+                - option "Greek"
+                - option "Finnish"
+                - option "Croatian"
+                - option "Malay"
+                - option "Slovak"
+                - option "Danish"
+                - option "Tamil"
+                - option "Telugu"
+                - option "Ukrainian"
+                - option "Russian"
+                - option "Hungarian"
+                - option "Norwegian"
+                - option "Vietnamese"
+            - generic [ref=e697]:
+              - generic [ref=e698]: Caption Theme
+              - combobox [ref=e699] [cursor=pointer]:
+                - option "Hormozi 1" [selected]
+                - option "Hormozi 2"
+                - option "Hormozi 3"
+                - option "Beast"
+                - option "Ali"
+                - option "Noah"
+                - option "Karl"
+                - option "Luke"
+                - option "Devin"
+                - option "Celine"
+                - option "Maya"
+                - option "Ella"
+                - option "Dan"
+                - option "David"
+                - option "Tracy"
+                - option "Umi"
+                - option "Iman"
+                - option "William"
+          - generic [ref=e700]:
+            - generic [ref=e701]: Theme Preview
+            - generic [ref=e702]:
+              - button "Hormozi 1" [ref=e703] [cursor=pointer]
+              - button "Hormozi 2" [ref=e705] [cursor=pointer]
+              - button "Hormozi 3" [ref=e707] [cursor=pointer]
+              - button "Beast" [ref=e709] [cursor=pointer]
+              - button "Ali" [ref=e711] [cursor=pointer]
+              - button "Noah" [ref=e713] [cursor=pointer]
+              - button "Karl" [ref=e715] [cursor=pointer]
+              - button "Luke" [ref=e717] [cursor=pointer]
+              - button "Devin" [ref=e719] [cursor=pointer]
+      - generic [ref=e721]:
+        - button "Cancel" [ref=e722] [cursor=pointer]
+        - button "✨ Generate Captions" [ref=e723] [cursor=pointer]
+  - generic [ref=e724]:
+    - generic [ref=e725]:
+      - generic [ref=e726]:
+        - heading "Stock Media" [level=2] [ref=e727]
+        - paragraph [ref=e728]: Select media to use in Cinema Studio
+      - button [ref=e729]
+    - generic [ref=e734]:
+      - generic [ref=e735]:
+        - button "Search" [ref=e736] [cursor=pointer]
+        - button "Curated" [ref=e737]
+        - button "Popular" [ref=e738]
+        - button "Collections" [ref=e739]
+        - button "My Collections" [ref=e740]
+      - textbox "Search Pexels..." [ref=e741]
+      - combobox [ref=e742] [cursor=pointer]:
+        - option "All Types" [selected]
+        - option "Photos"
+        - option "Videos"
+      - combobox [ref=e743] [cursor=pointer]:
+        - option "All Orientations" [selected]
+        - option "Landscape"
+        - option "Portrait"
+        - option "Square"
+      - combobox [ref=e744] [cursor=pointer]:
+        - option "All Sizes" [selected]
+        - option "Large"
+        - option "Medium"
+        - option "Small"
+      - combobox [ref=e745] [cursor=pointer]:
+        - option "All Colors" [selected]
+        - option "Red"
+        - option "Orange"
+        - option "Yellow"
+        - option "Green"
+        - option "Turquoise"
+        - option "Blue"
+        - option "Violet"
+        - option "Pink"
+        - option "Brown"
+        - option "Black"
+        - option "Gray"
+        - option "White"
+    - generic [ref=e747]:
+      - button "A sailboat navigating the dramatic and cloudy landscape of Milford Sound. by Eclipse Chasers" [ref=e748] [cursor=pointer]:
+        - img "A sailboat navigating the dramatic and cloudy landscape of Milford Sound." [ref=e749]
+        - generic [ref=e750]: PHOTO
+        - generic [ref=e751]: By Eclipse Chasers
+      - button "Explore the rugged beauty of a Norwegian mountain landscape with a flowing river. by Erik Schereder" [ref=e753] [cursor=pointer]:
+        - img "Explore the rugged beauty of a Norwegian mountain landscape with a flowing river." [ref=e754]
+        - generic [ref=e755]: PHOTO
+        - generic [ref=e756]: By Erik Schereder
+      - button "Intricate metal lattice ceiling at King's Cross Station, London, showcasing modern architectural design. by Lester Bonilla" [ref=e758] [cursor=pointer]:
+        - img "Intricate metal lattice ceiling at King's Cross Station, London, showcasing modern architectural design." [ref=e759]
+        - generic [ref=e760]: PHOTO
+        - generic [ref=e761]: By Lester Bonilla
+      - button "A traditional Kyrgyz falconer with an eagle and horse in a stunning mountain setting. by Suraj Rajendran" [ref=e763] [cursor=pointer]:
+        - img "A traditional Kyrgyz falconer with an eagle and horse in a stunning mountain setting." [ref=e764]
+        - generic [ref=e765]: PHOTO
+        - generic [ref=e766]: By Suraj Rajendran
+      - button "Stylish young man poses dramatically outdoors in Quito, Ecuador. by Jhair Guerrero" [ref=e768] [cursor=pointer]:
+        - img "Stylish young man poses dramatically outdoors in Quito, Ecuador." [ref=e769]
+        - generic [ref=e770]: PHOTO
+        - generic [ref=e771]: By Jhair Guerrero
+      - button "Tranquil scene of a cottage window overlooking a lush green landscape on a sunny day. by Michael S" [ref=e773] [cursor=pointer]:
+        - img "Tranquil scene of a cottage window overlooking a lush green landscape on a sunny day." [ref=e774]
+        - generic [ref=e775]: PHOTO
+        - generic [ref=e776]: By Michael S
+      - button "A stunning view of Jetřichovice rock formation surrounded by forest in Czech Republic. by Riedelmax ." [ref=e778] [cursor=pointer]:
+        - img "A stunning view of Jetřichovice rock formation surrounded by forest in Czech Republic." [ref=e779]
+        - generic [ref=e780]: PHOTO
+        - generic [ref=e781]: By Riedelmax .
+      - button "A young woman poses stylishly in the sunlit Mediapark, Cologne, Germany. by Maria Grazia Guainazzo" [ref=e783] [cursor=pointer]:
+        - img "A young woman poses stylishly in the sunlit Mediapark, Cologne, Germany." [ref=e784]
+        - generic [ref=e785]: PHOTO
+        - generic [ref=e786]: By Maria Grazia Guainazzo
+      - button "Serene misty forest with towering trees and exposed roots, perfect for nature enthusiasts. by Kousthub Anand" [ref=e788] [cursor=pointer]:
+        - img "Serene misty forest with towering trees and exposed roots, perfect for nature enthusiasts." [ref=e789]
+        - generic [ref=e790]: PHOTO
+        - generic [ref=e791]: By Kousthub Anand
+      - button "Scenic view of New York City skyline featuring Brooklyn Bridge and waterfront. by Naro K" [ref=e793] [cursor=pointer]:
+        - img "Scenic view of New York City skyline featuring Brooklyn Bridge and waterfront." [ref=e794]
+        - generic [ref=e795]: PHOTO
+        - generic [ref=e796]: By Naro K
+      - button "A beautiful view of the ornate rooftops of the Grand Palace in Bangkok, Thailand, under a cloudy sky. by feLiX fANg" [ref=e798] [cursor=pointer]:
+        - img "A beautiful view of the ornate rooftops of the Grand Palace in Bangkok, Thailand, under a cloudy sky." [ref=e799]
+        - generic [ref=e800]: PHOTO
+        - generic [ref=e801]: By feLiX fANg
+      - button "A graceful egret takes flight over a jungle stream, surrounded by lush tropical foliage. by Cecilia Pérez Lobo" [ref=e803] [cursor=pointer]:
+        - img "A graceful egret takes flight over a jungle stream, surrounded by lush tropical foliage." [ref=e804]
+        - generic [ref=e805]: PHOTO
+        - generic [ref=e806]: By Cecilia Pérez Lobo
+      - button "Elderly man in Ankara sitting at table, enjoying Turkish tea in a candid moment. by Ahmed ؜" [ref=e808] [cursor=pointer]:
+        - img "Elderly man in Ankara sitting at table, enjoying Turkish tea in a candid moment." [ref=e809]
+        - generic [ref=e810]: PHOTO
+        - generic [ref=e811]: By Ahmed ؜
+      - button "A woman in white dress holds a rustic bowl with red and green cherries. by Özge Arsoy" [ref=e813] [cursor=pointer]:
+        - img "A woman in white dress holds a rustic bowl with red and green cherries." [ref=e814]
+        - generic [ref=e815]: PHOTO
+        - generic [ref=e816]: By Özge Arsoy
+      - button "A serene cafe corner with a vibrant bookshelf and seating, ideal for relaxation. by Fidan Nazim qizi" [ref=e818] [cursor=pointer]:
+        - img "A serene cafe corner with a vibrant bookshelf and seating, ideal for relaxation." [ref=e819]
+        - generic [ref=e820]: PHOTO
+        - generic [ref=e821]: By Fidan Nazim qizi
+      - button "Elegant living room with artistic wall shelves and decor in a modern setting. by mirouwqi" [ref=e823] [cursor=pointer]:
+        - img "Elegant living room with artistic wall shelves and decor in a modern setting." [ref=e824]
+        - generic [ref=e825]: PHOTO
+        - generic [ref=e826]: By mirouwqi
+      - button "An Asian family in traditional attire enjoying a day at a Bangkok temple, exuding cultural charm. by Nitin Rajliwal" [ref=e828] [cursor=pointer]:
+        - img "An Asian family in traditional attire enjoying a day at a Bangkok temple, exuding cultural charm." [ref=e829]
+        - generic [ref=e830]: PHOTO
+        - generic [ref=e831]: By Nitin Rajliwal
+      - button "Stylish portrait of a woman in a vibrant floral dress outdoors by wooden stairs. by Butch Carmichael" [ref=e833] [cursor=pointer]:
+        - img "Stylish portrait of a woman in a vibrant floral dress outdoors by wooden stairs." [ref=e834]
+        - generic [ref=e835]: PHOTO
+        - generic [ref=e836]: By Butch Carmichael
+      - button "A slice of cake and a cup of coffee on a red checkered tablecloth, creating a cozy cafe vibe. by Priyanshi Garg" [ref=e838] [cursor=pointer]:
+        - img "A slice of cake and a cup of coffee on a red checkered tablecloth, creating a cozy cafe vibe." [ref=e839]
+        - generic [ref=e840]: PHOTO
+        - generic [ref=e841]: By Priyanshi Garg
+      - button "Elderly man with white beard in bright orange robe and turban stands against a dark background. by Ekam Juneja" [ref=e843] [cursor=pointer]:
+        - img "Elderly man with white beard in bright orange robe and turban stands against a dark background." [ref=e844]
+        - generic [ref=e845]: PHOTO
+        - generic [ref=e846]: By Ekam Juneja
+    - generic [ref=e851]:
+      - text: Media provided by
+      - link "Pexels" [ref=e852] [cursor=pointer]:
+        - /url: https://www.pexels.com

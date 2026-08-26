@@ -156,7 +156,7 @@ export default function AuthModal({ isOpen, onClose, initialMode }: AuthModalPro
       return (
         <div className={styles.successState}>
           <div className={styles.successIcon}>
-            <img src="/assets/logo.png" alt="OpenThorn" className={styles.successLogo} />
+            <img src="/assets/logo.png" alt="SmartVideo" className={styles.successLogo} />
           </div>
           <h3 className={styles.successTitle}>Check your email</h3>
           <p className={styles.successText}>
@@ -173,7 +173,7 @@ export default function AuthModal({ isOpen, onClose, initialMode }: AuthModalPro
       return (
         <div className={styles.successState}>
           <div className={styles.successIcon}>
-            <img src="/assets/logo.png" alt="OpenThorn" className={styles.successLogo} />
+            <img src="/assets/logo.png" alt="SmartVideo" className={styles.successLogo} />
           </div>
           <h3 className={styles.successTitle}>Reset link sent</h3>
           <p className={styles.successText}>
@@ -189,9 +189,9 @@ export default function AuthModal({ isOpen, onClose, initialMode }: AuthModalPro
     // Normal form views
     return (
       <>
-        {/* OpenThorn logo */}
+        {/* SmartVideo logo */}
         <div className={styles.brandIcon}>
-          <img src="/assets/logo.png" alt="OpenThorn" className={styles.brandLogo} />
+          <img src="/assets/logo.png" alt="SmartVideo" className={styles.brandLogo} />
         </div>
 
         {/* Tab switcher */}

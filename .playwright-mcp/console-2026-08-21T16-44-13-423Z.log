@@ -1,0 +1,112 @@
+[   13259ms] [LOG] [App] Starting initialization... @ http://localhost:3101/src/main.js?t=1787330646767:19
+[   13414ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3101/src/lib/popcornInit.js:41
+[   13453ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3101/src/lib/popcornInit.js:48
+[   13462ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3101/src/lib/popcornInit.js:48
+[   13468ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3101/src/lib/popcornInit.js:48
+[   13473ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3101/src/lib/popcornInit.js:48
+[   13478ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3101/src/lib/popcornInit.js:48
+[   13625ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3101/src/lib/popcornInit.js:48
+[   13633ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3101/src/lib/popcornInit.js:48
+[   13637ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3101/src/lib/popcornInit.js:48
+[   13658ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3101/src/lib/popcornInit.js:48
+[   13666ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3101/src/lib/popcornInit.js:48
+[   13671ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3101/src/lib/popcornInit.js:48
+[   13678ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3101/src/lib/popcornInit.js:48
+[   13685ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3101/src/lib/popcornInit.js:48
+[   16161ms] [LOG] [App] Studio landing page rendered: image @ http://localhost:3101/src/main.js?t=1787330646767:97
+[   23248ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3101/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=614e0d00:20096
+[   23259ms] [ERROR] [ModalSystem] mount failed TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/main.js?t=1787330646767:319
+[   23273ms] [ERROR] [popcorn-init] FAILED at: plugin-image TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   23426ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonTransition TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   23469ms] [ERROR] [popcorn-init] FAILED at: plugin-lottie-json TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   23551ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3101/src/lib/popcornInit.js:48
+[   23605ms] [ERROR] [popcorn-init] FAILED at: plugin-personalizedImage TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   23725ms] [ERROR] [popcorn-init] FAILED at: plugin-loopPlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   23781ms] [ERROR] [popcorn-init] FAILED at: plugin-pausePlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   24634ms] [ERROR] [popcorn-init] FAILED at: plugin-form TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   25003ms] [ERROR] [popcorn-init] FAILED at: plugin-retarget TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   25044ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:3101/src/lib/popcornInit.js:48
+[   25099ms] [ERROR] [popcorn-init] FAILED at: plugin-sequencer TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   25115ms] [ERROR] [popcorn-init] FAILED at: plugin-skip TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   25205ms] [ERROR] [popcorn-init] FAILED at: plugin-text TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   25362ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:3101/src/lib/popcornInit.js:48
+[   25403ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonAnimation TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   25459ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:3101/src/lib/popcornInit.js:48
+[   25538ms] [ERROR] [popcorn-init] FAILED at: plugin-seethroughtext TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   25572ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:3101/src/lib/popcornInit.js:48
+[   25594ms] [ERROR] [popcorn-init] FAILED at: plugin-combined TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   25615ms] [ERROR] [popcorn-init] FAILED at: plugin-background TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   25615ms] [LOG] [popcorn-init] SUMMARY: 5/20 plugins registered; FAILED: plugin-image, plugin-jsonTransition, plugin-lottie-json, plugin-personalizedImage, plugin-loopPlugin, plugin-pausePlugin, plugin-form, plugin-retarget, plugin-sequencer, plugin-skip, plugin-text, plugin-jsonAnimation, plugin-seethroughtext, plugin-combined, plugin-background @ http://localhost:3101/src/lib/popcornInit.js:60
+[   25615ms] [LOG] [popcorn] function 5 @ http://localhost:3101/src/main.js?t=1787330646767:4
+[   70150ms] [LOG] [App] Starting initialization... @ http://localhost:3101/src/main.js?t=1787330717641:19
+[   70169ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3101/src/lib/popcornInit.js:41
+[   70170ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3101/src/lib/popcornInit.js:48
+[   70171ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3101/src/lib/popcornInit.js:48
+[   70172ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3101/src/lib/popcornInit.js:48
+[   70173ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3101/src/lib/popcornInit.js:48
+[   70173ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3101/src/lib/popcornInit.js:48
+[   70174ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3101/src/lib/popcornInit.js:48
+[   70175ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3101/src/lib/popcornInit.js:48
+[   70175ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3101/src/lib/popcornInit.js:48
+[   70175ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3101/src/lib/popcornInit.js:48
+[   70176ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3101/src/lib/popcornInit.js:48
+[   70176ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3101/src/lib/popcornInit.js:48
+[   70176ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3101/src/lib/popcornInit.js:48
+[   70177ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3101/src/lib/popcornInit.js:48
+[   70451ms] [LOG] [App] Studio landing page rendered: image @ http://localhost:3101/src/main.js?t=1787330717641:97
+[   73724ms] [ERROR] [popcorn-init] FAILED at: plugin-image TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   73728ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3101/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=614e0d00:20096
+[   73729ms] [ERROR] [ModalSystem] mount failed TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/main.js?t=1787330717641:319
+[   73746ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonTransition TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   73756ms] [ERROR] [popcorn-init] FAILED at: plugin-lottie-json TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   73768ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3101/src/lib/popcornInit.js:48
+[   73776ms] [ERROR] [popcorn-init] FAILED at: plugin-personalizedImage TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   73797ms] [ERROR] [popcorn-init] FAILED at: plugin-loopPlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   73827ms] [ERROR] [popcorn-init] FAILED at: plugin-pausePlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   73847ms] [ERROR] [popcorn-init] FAILED at: plugin-form TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   73863ms] [ERROR] [popcorn-init] FAILED at: plugin-retarget TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   73869ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:3101/src/lib/popcornInit.js:48
+[   73877ms] [ERROR] [popcorn-init] FAILED at: plugin-sequencer TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   73883ms] [ERROR] [popcorn-init] FAILED at: plugin-skip TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   73951ms] [ERROR] [popcorn-init] FAILED at: plugin-text TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   73969ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:3101/src/lib/popcornInit.js:48
+[   73977ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonAnimation TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   73992ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:3101/src/lib/popcornInit.js:48
+[   73998ms] [ERROR] [popcorn-init] FAILED at: plugin-seethroughtext TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   74003ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:3101/src/lib/popcornInit.js:48
+[   74010ms] [ERROR] [popcorn-init] FAILED at: plugin-combined TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   74018ms] [ERROR] [popcorn-init] FAILED at: plugin-background TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   74018ms] [LOG] [popcorn-init] SUMMARY: 5/20 plugins registered; FAILED: plugin-image, plugin-jsonTransition, plugin-lottie-json, plugin-personalizedImage, plugin-loopPlugin, plugin-pausePlugin, plugin-form, plugin-retarget, plugin-sequencer, plugin-skip, plugin-text, plugin-jsonAnimation, plugin-seethroughtext, plugin-combined, plugin-background @ http://localhost:3101/src/lib/popcornInit.js:60
+[   74019ms] [LOG] [popcorn] function 5 @ http://localhost:3101/src/main.js?t=1787330717641:4

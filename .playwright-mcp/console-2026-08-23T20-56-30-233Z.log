@@ -1,0 +1,29 @@
+[   25622ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3100/#/image:0
+[   25622ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3100/#/image:0
+[   25622ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3100/#/image:0
+[   25622ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3100/#/image:0
+[  113820ms] [LOG] [vite] server connection lost. Polling for restart... @ http://127.0.0.1:3100/@vite/client:559
+[  113829ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[  114833ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[  115839ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[  116843ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[  117847ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[  118850ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[  119855ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[  120858ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[  121863ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[  122867ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[  123872ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[  124877ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[  125881ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[  126886ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[  127892ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[  128895ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[  129899ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[  130904ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[  131908ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[  152139ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3100/src/main.js:19
+[  152472ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3100/src/lib/popcornInit.js:41
+[  152724ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[  154159ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[  155848ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3100/src/lib/popcornInit.js:48

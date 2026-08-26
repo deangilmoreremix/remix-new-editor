@@ -1,0 +1,53 @@
+[     798ms] [LOG] [App] Starting initialization... @ http://localhost:3100/src/main.js?t=1787524165275:19
+[     830ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:41
+[     834ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[     845ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[     848ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[     852ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[     855ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[     856ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[     857ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[     857ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[     858ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[     858ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[     859ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[     861ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[     863ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    3208ms] [LOG] [popcorn-init] OK: plugin-image @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    3212ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=708fd709:20096
+[    3415ms] [LOG] [App] Landing page rendered @ http://localhost:3100/src/main.js?t=1787524165275:88
+[    3600ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    3648ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    3669ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    3757ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    3773ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    3842ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    3937ms] [LOG] [popcorn-init] OK: plugin-form @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    4111ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    4140ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    4198ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    4334ms] [LOG] [popcorn-init] OK: plugin-skip @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    4398ms] [LOG] [popcorn-init] OK: plugin-text @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    4993ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    5009ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    5126ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    5148ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    5176ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    5197ms] [LOG] [popcorn-init] OK: plugin-combined @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    5210ms] [LOG] [popcorn-init] OK: plugin-background @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    5210ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:60
+[    5210ms] [LOG] [popcorn] function 19 @ http://localhost:3100/src/main.js?t=1787524165275:4
+[   19406ms] [LOG] [Landing] section loaded: hook keys: [HookSection] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[   19408ms] [LOG] [Landing] section created: hook type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[   19410ms] [LOG] [Landing] section loaded: scrolling keys: [ScrollingAppStrip] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[   19422ms] [LOG] [Landing] section created: scrolling type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[   19518ms] [LOG] [Landing] section loaded: engines keys: [SixEnginesSection] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[   19521ms] [LOG] [Landing] section created: engines type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[   19522ms] [LOG] [Landing] section loaded: apps keys: [AppsGridSection] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[   19525ms] [LOG] [Landing] section created: apps type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[   19624ms] [LOG] [Landing] section loaded: ai-workflow keys: [MinimaxWorkflowSection, default] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[   19625ms] [LOG] [Landing] section created: ai-workflow type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[   19632ms] [LOG] [Landing] section loaded: ugc keys: [UGCDemoShowcase, default] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[   19638ms] [LOG] [Landing] section created: ugc type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[   19639ms] [LOG] [Landing] section loaded: made-with keys: [MadeWithSmartVideo, default] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[   19650ms] [LOG] [Landing] section created: made-with type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132

@@ -1,0 +1,55 @@
+[     407ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3100/src/main.js:19
+[     738ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3100/src/lib/popcornInit.js:41
+[     976ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    1005ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    1025ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    1030ms] [LOG] [popcorn-init] OK: wrapper-common @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    1033ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    1037ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    1041ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    1045ms] [LOG] [popcorn-init] OK: wrapper-null @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    1048ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    1051ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    1062ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    1065ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    1068ms] [LOG] [popcorn-init] OK: player-module @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    1981ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=708fd709:20096
+[    2001ms] [LOG] [App] Initialized in 1594.40ms @ http://127.0.0.1:3100/src/main.js:164
+[    2001ms] [LOG] [App] Navigating to initial page: ai-vfx @ http://127.0.0.1:3100/src/main.js:165
+[    2002ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://127.0.0.1:3100/src/main.js:176
+[    2243ms] [WARNING] Unrecognized origin: 'fullscreen'. @ http://127.0.0.1:3100/src/components/AIVFXPage.js:28
+[    2244ms] [ERROR] Error while parsing the 'sandbox' attribute: 'allow-popups-to-escape-same-origin' is an invalid sandbox flag. @ http://127.0.0.1:3100/src/components/AIVFXPage.js:29
+[    2312ms] [LOG] [popcorn-init] OK: plugin-image @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    2357ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ http://127.0.0.1:3100/ai-vfx/:0
+[    3021ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    3063ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    3085ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    3095ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    3102ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    3108ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    3118ms] [LOG] [popcorn-init] OK: plugin-form @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    3166ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    3198ms] [LOG] [popcorn-init] OK: plugin-popup @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    3205ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    3211ms] [LOG] [popcorn-init] OK: plugin-skip @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    3223ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[    3245ms] [LOG] [popcorn-init] OK: plugin-text @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    3476ms] [LOG] [popcorn-init] OK: plugin-social @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    3531ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    3593ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    3602ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    3610ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    3625ms] [LOG] [popcorn-init] OK: plugin-combined @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    3633ms] [LOG] [popcorn-init] OK: plugin-background @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[    3633ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://127.0.0.1:3100/src/lib/popcornInit.js:60
+[    3633ms] [LOG] [popcorn] function 19 @ http://127.0.0.1:3100/src/main.js:4
+[    3888ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/client?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2:0
+[    4176ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[    4327ms] [ERROR] e: The Request HTTP Origin header must be equal to or a subdomain of the requesting URL.
+    at il._baseFetch (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:171)
+    at async io.execute (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:6812)
+    at async rA._baseGet (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:497)
+    at async Promise.all (index 1)
+    at async #eY (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:236310)
+    at async s7.load (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:193944)
+    at async _a15.getEntryChunks (http://127.0.0.1:3100/node_modules/.vite/deps/@clerk_react.js?v=708fd709:7972:9) @ http://127.0.0.1:3100/node_modules/.vite/deps/@clerk_react.js?v=708fd709:7983

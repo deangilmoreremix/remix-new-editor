@@ -1,0 +1,257 @@
+- generic [ref=f77e2]:
+  - banner [ref=f77e3]:
+    - generic [ref=f77e4]:
+      - generic [ref=f77e5]:
+        - generic [ref=f77e6] [cursor=pointer]
+        - navigation [ref=f77e12]:
+          - generic [ref=f77e13] [cursor=pointer]: Explore
+          - generic [ref=f77e14] [cursor=pointer]: Image
+          - generic [ref=f77e15] [cursor=pointer]: Video
+          - generic [ref=f77e16] [cursor=pointer]: Tools
+          - generic [ref=f77e17] [cursor=pointer]: Storyboard
+          - generic [ref=f77e18] [cursor=pointer]: Edit
+          - generic [ref=f77e19] [cursor=pointer]: Character
+          - generic [ref=f77e20] [cursor=pointer]: Vibe Motion
+          - generic [ref=f77e21] [cursor=pointer]: Cinema Studio
+          - generic [ref=f77e22] [cursor=pointer]: Cinema Template Studio
+          - generic [ref=f77e23] [cursor=pointer]: AI Influencer
+          - generic [ref=f77e24] [cursor=pointer]: Smart Video Viral
+          - generic [ref=f77e25] [cursor=pointer]: Apps
+          - generic [ref=f77e26] [cursor=pointer]: Templates
+          - generic [ref=f77e27] [cursor=pointer]: Assist
+          - generic [ref=f77e28] [cursor=pointer]: Community
+          - generic [ref=f77e29] [cursor=pointer]: Content Library
+      - button "Update API Key" [ref=f77e31]
+  - generic [ref=f77e34]:
+    - complementary [ref=f77e35]:
+      - generic [ref=f77e36]:
+        - generic [ref=f77e37] [cursor=pointer]:
+          - button [ref=f77e38]
+          - generic [ref=f77e44]: Apps
+        - generic [ref=f77e45] [cursor=pointer]:
+          - button [ref=f77e46]
+          - generic [ref=f77e51]: Image
+        - generic [ref=f77e52] [cursor=pointer]:
+          - button [ref=f77e53]
+          - generic [ref=f77e57]: Video
+        - generic [ref=f77e58] [cursor=pointer]:
+          - button [ref=f77e59]
+          - generic [ref=f77e62]: Cinema Studio
+        - generic [ref=f77e63] [cursor=pointer]:
+          - button [ref=f77e64]
+          - generic [ref=f77e67]: Cinema Template Studio
+        - generic [ref=f77e68] [cursor=pointer]:
+          - button [ref=f77e69]
+          - generic [ref=f77e77]: Storyboard
+        - generic [ref=f77e78] [cursor=pointer]:
+          - button [ref=f77e79]
+          - generic [ref=f77e82]: Effects
+        - generic [ref=f77e83] [cursor=pointer]:
+          - button [ref=f77e84]
+          - generic [ref=f77e88]: Edit
+        - generic [ref=f77e89] [cursor=pointer]:
+          - button [ref=f77e90]
+          - generic [ref=f77e96]: Upscale
+        - generic [ref=f77e97] [cursor=pointer]:
+          - button [ref=f77e98]
+          - generic [ref=f77e103]: Audio
+        - generic [ref=f77e104] [cursor=pointer]:
+          - button [ref=f77e105]
+          - generic [ref=f77e110]: Avatar
+        - generic [ref=f77e111] [cursor=pointer]:
+          - button [ref=f77e112]
+          - generic [ref=f77e117]: Training
+        - generic [ref=f77e118] [cursor=pointer]:
+          - button [ref=f77e119]
+          - generic [ref=f77e123]: Smart Video Academy
+        - generic [ref=f77e124] [cursor=pointer]:
+          - button [ref=f77e125]
+          - generic [ref=f77e130]: Smart Video Viral
+        - generic [ref=f77e131] [cursor=pointer]:
+          - button [ref=f77e132]
+          - generic [ref=f77e136]: Video Tools
+        - generic [ref=f77e137] [cursor=pointer]:
+          - button [ref=f77e138]
+          - generic [ref=f77e141]: Render
+        - generic [ref=f77e142] [cursor=pointer]:
+          - button [ref=f77e143]
+          - generic [ref=f77e147]: Director
+        - generic [ref=f77e148] [cursor=pointer]:
+          - button [ref=f77e149]
+          - generic [ref=f77e155]: Timeline
+        - generic [ref=f77e156] [cursor=pointer]:
+          - button [ref=f77e157]
+          - generic [ref=f77e160]: Chat
+        - generic [ref=f77e161] [cursor=pointer]:
+          - button [ref=f77e162]
+          - generic [ref=f77e166]: Commercial
+        - generic [ref=f77e167] [cursor=pointer]:
+          - button [ref=f77e168]
+          - generic [ref=f77e171]: Templates
+        - generic [ref=f77e172] [cursor=pointer]:
+          - button [ref=f77e173]
+          - generic [ref=f77e177]: Explore
+        - generic [ref=f77e178] [cursor=pointer]:
+          - button [ref=f77e179]
+          - generic [ref=f77e183]: Library
+        - generic [ref=f77e184] [cursor=pointer]:
+          - button [ref=f77e185]
+          - generic [ref=f77e188]: Content
+        - generic [ref=f77e189] [cursor=pointer]:
+          - button [ref=f77e190]
+          - generic [ref=f77e196]: Community
+        - generic [ref=f77e197] [cursor=pointer]:
+          - button [ref=f77e198]
+          - generic [ref=f77e203]: Assist
+        - generic [ref=f77e204] [cursor=pointer]:
+          - button [ref=f77e205]
+          - generic [ref=f77e209]: Commits (0)
+        - generic [ref=f77e210] [cursor=pointer]:
+          - button [ref=f77e211]
+          - generic [ref=f77e215]: AI VFX
+        - generic [ref=f77e216] [cursor=pointer]:
+          - button [ref=f77e217]
+          - generic [ref=f77e221]: Stock Media
+      - generic [ref=f77e223] [cursor=pointer]:
+        - button [ref=f77e224]
+        - generic [ref=f77e228]: Settings
+    - main [ref=f77e229]:
+      - generic [ref=f77e231]:
+        - generic [ref=f77e232]:
+          - heading "Apps" [level=1] [ref=f77e233]
+          - paragraph [ref=f77e234]: All creative tools in one place. Studios, effects, templates, and more.
+        - textbox "Search tools and templates..." [ref=f77e236]
+        - generic [ref=f77e237]:
+          - heading "Core Studios 3" [level=2] [ref=f77e238]:
+            - text: Core Studios
+            - generic [ref=f77e239]: "3"
+          - generic [ref=f77e240]:
+            - button "Image Studio Image Studio Generate images with 20+ AI models 20+ models" [ref=f77e241] [cursor=pointer]:
+              - img "Image Studio" [ref=f77e243]
+              - generic [ref=f77e244]:
+                - generic [ref=f77e251]:
+                  - generic [ref=f77e252]: Image Studio
+                  - generic [ref=f77e253]: Generate images with 20+ AI models
+                - generic [ref=f77e254]: 20+ models
+            - button "Video Studio Video Studio Create AI videos from text and images 15+ models" [ref=f77e255] [cursor=pointer]:
+              - img "Video Studio" [ref=f77e257]
+              - generic [ref=f77e258]:
+                - generic [ref=f77e264]:
+                  - generic [ref=f77e265]: Video Studio
+                  - generic [ref=f77e266]: Create AI videos from text and images
+                - generic [ref=f77e267]: 15+ models
+            - button "Cinema Studio Cinema Studio Cinematic shots with camera controls 6 cameras" [ref=f77e268] [cursor=pointer]:
+              - img "Cinema Studio" [ref=f77e270]
+              - generic [ref=f77e271]:
+                - generic [ref=f77e277]:
+                  - generic [ref=f77e278]: Cinema Studio
+                  - generic [ref=f77e279]: Cinematic shots with camera controls
+                - generic [ref=f77e280]: 6 cameras
+        - generic [ref=f77e281]:
+          - heading "Tools & Editors 7" [level=2] [ref=f77e282]:
+            - text: Tools & Editors
+            - generic [ref=f77e283]: "7"
+          - generic [ref=f77e284]:
+            - button "Storyboard Studio Storyboard Studio Multi-frame generation for sequences Frames" [ref=f77e285] [cursor=pointer]:
+              - img "Storyboard Studio" [ref=f77e287]
+              - generic [ref=f77e288]:
+                - generic [ref=f77e298]:
+                  - generic [ref=f77e299]: Storyboard Studio
+                  - generic [ref=f77e300]: Multi-frame generation for sequences
+                - generic [ref=f77e301]: Frames
+            - button "Effects Studio Effects Studio Apply 350+ visual effects 350+ effects" [ref=f77e302] [cursor=pointer]:
+              - img "Effects Studio" [ref=f77e304]
+              - generic [ref=f77e305]:
+                - generic [ref=f77e310]:
+                  - generic [ref=f77e311]: Effects Studio
+                  - generic [ref=f77e312]: Apply 350+ visual effects
+                - generic [ref=f77e313]: 350+ effects
+            - button "Edit Studio Edit Studio Remove objects, backgrounds, reframe 9 tools" [ref=f77e314] [cursor=pointer]:
+              - img "Edit Studio" [ref=f77e316]
+              - generic [ref=f77e317]:
+                - generic [ref=f77e323]:
+                  - generic [ref=f77e324]: Edit Studio
+                  - generic [ref=f77e325]: Remove objects, backgrounds, reframe
+                - generic [ref=f77e326]: 9 tools
+            - button "Upscale Suite Upscale Suite AI upscale and enhance images 3 methods" [ref=f77e327] [cursor=pointer]:
+              - img "Upscale Suite" [ref=f77e329]
+              - generic [ref=f77e330]:
+                - generic [ref=f77e338]:
+                  - generic [ref=f77e339]: Upscale Suite
+                  - generic [ref=f77e340]: AI upscale and enhance images
+                - generic [ref=f77e341]: 3 methods
+            - button "Character Studio Character Studio Consistent character generation Face ID" [ref=f77e342] [cursor=pointer]:
+              - img "Character Studio" [ref=f77e344]
+              - generic [ref=f77e345]:
+                - generic [ref=f77e351]:
+                  - generic [ref=f77e352]: Character Studio
+                  - generic [ref=f77e353]: Consistent character generation
+                - generic [ref=f77e354]: Face ID
+            - button "Commercial Studio Commercial Studio Product photography and ads Ads" [ref=f77e355] [cursor=pointer]:
+              - img "Commercial Studio" [ref=f77e357]
+              - generic [ref=f77e358]:
+                - generic [ref=f77e364]:
+                  - generic [ref=f77e365]: Commercial Studio
+                  - generic [ref=f77e366]: Product photography and ads
+                - generic [ref=f77e367]: Ads
+            - button "Smart Video Viral Smart Video Viral AI-powered viral video generation Viral" [ref=f77e368] [cursor=pointer]:
+              - img "Smart Video Viral" [ref=f77e370]
+              - generic [ref=f77e371]:
+                - generic [ref=f77e378]:
+                  - generic [ref=f77e379]: Smart Video Viral
+                  - generic [ref=f77e380]: AI-powered viral video generation
+                - generic [ref=f77e381]: Viral
+        - generic [ref=f77e382]:
+          - heading "AI Apps 7" [level=2] [ref=f77e383]:
+            - text: AI Apps
+            - generic [ref=f77e384]: "7"
+          - generic [ref=f77e385]:
+            - button "Audio Studio Audio Studio Generate music, speech, and sound effects AI Audio" [ref=f77e386] [cursor=pointer]:
+              - img "Audio Studio" [ref=f77e388]
+              - generic [ref=f77e389]:
+                - generic [ref=f77e396]:
+                  - generic [ref=f77e397]: Audio Studio
+                  - generic [ref=f77e398]: Generate music, speech, and sound effects
+                - generic [ref=f77e399]: AI Audio
+            - button "Avatar Studio Avatar Studio AI avatars and lip sync video generation AI Avatars" [ref=f77e400] [cursor=pointer]:
+              - img "Avatar Studio" [ref=f77e402]
+              - generic [ref=f77e403]:
+                - generic [ref=f77e409]:
+                  - generic [ref=f77e410]: Avatar Studio
+                  - generic [ref=f77e411]: AI avatars and lip sync video generation
+                - generic [ref=f77e412]: AI Avatars
+            - button "Training Studio Training Studio Train custom LoRA models from your images LoRA" [ref=f77e413] [cursor=pointer]:
+              - img "Training Studio" [ref=f77e415]
+              - generic [ref=f77e416]:
+                - generic [ref=f77e423]:
+                  - generic [ref=f77e424]: Training Studio
+                  - generic [ref=f77e425]: Train custom LoRA models from your images
+                - generic [ref=f77e426]: LoRA
+            - button "Video Tools Video Tools Upscale, edit, translate, and enhance videos Video Tools" [ref=f77e427] [cursor=pointer]:
+              - img "Video Tools" [ref=f77e429]
+              - generic [ref=f77e430]:
+                - generic [ref=f77e436]:
+                  - generic [ref=f77e437]: Video Tools
+                  - generic [ref=f77e438]: Upscale, edit, translate, and enhance videos
+                - generic [ref=f77e439]: Video Tools
+            - button "Chat Studio Chat Studio AI-powered text generation and conversation LLM" [ref=f77e440] [cursor=pointer]:
+              - img "Chat Studio" [ref=f77e442]
+              - generic [ref=f77e443]:
+                - generic [ref=f77e448]:
+                  - generic [ref=f77e449]: Chat Studio
+                  - generic [ref=f77e450]: AI-powered text generation and conversation
+                - generic [ref=f77e451]: LLM
+            - button "Lip Sync Lip Sync Animate portraits or sync lips to audio with AI Lip Sync" [ref=f77e452] [cursor=pointer]:
+              - img "Lip Sync" [ref=f77e454]
+              - generic [ref=f77e455]:
+                - generic [ref=f77e461]:
+                  - generic [ref=f77e462]: Lip Sync
+                  - generic [ref=f77e463]: Animate portraits or sync lips to audio with AI
+                - generic [ref=f77e464]: Lip Sync
+            - button "Video Render Video Render Render and export your video projects Export" [ref=f77e465] [cursor=pointer]:
+              - img "Video Render" [ref=f77e467]
+              - generic [ref=f77e468]:
+                - generic [ref=f77e473]:
+                  - generic [ref=f77e474]: Video Render
+                  - generic [ref=f77e475]: Render and export your video projects
+                - generic [ref=f77e476]: Export

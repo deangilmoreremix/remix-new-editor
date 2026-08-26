@@ -1,9 +1,354 @@
 {
-  "generatedAt": "2026-06-16",
+  "generatedAt": "2026-08-26",
   "days": [
+    {
+      "date": "2026-08-25",
+      "entries": [
+        {
+          "category": "Fix",
+          "message": "fix(agent): send reasoning_effort 'none' with OpenAI tool calls",
+          "sha": "a1aaf5b06533eb066c444300530b5f8cf299c67f",
+          "shortSha": "a1aaf5b",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/a1aaf5b06533eb066c444300530b5f8cf299c67f"
+        },
+        {
+          "category": "Fix",
+          "message": "fix(agent): omit reasoning_effort on direct-OpenAI tool calls",
+          "sha": "c1614a69675ecccd9f7d79a35ee0d8f16db0f0a7",
+          "shortSha": "c1614a6",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/c1614a69675ecccd9f7d79a35ee0d8f16db0f0a7"
+        },
+        {
+          "category": "Fix",
+          "message": "fix(agent): cover gemini-3-pro ids and provider-spec edge cases from API audit",
+          "sha": "4850cad19fe07ed90a3818369ef1f1f7300057d3",
+          "shortSha": "4850cad",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/4850cad19fe07ed90a3818369ef1f1f7300057d3"
+        },
+        {
+          "category": "Fix",
+          "message": "fix(agent): OpenAI 400 on tool schemas; no more silent no-tools fallback",
+          "sha": "71435c0b63757f613581c1db58bee962a8d0d13c",
+          "shortSha": "71435c0",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/71435c0b63757f613581c1db58bee962a8d0d13c"
+        },
+        {
+          "category": "Fix",
+          "message": "fix(agent): don't end runs on length-truncated OpenAI responses",
+          "sha": "59bb2be0c7a5863daf1dc551de53de3a1e440e4b",
+          "shortSha": "59bb2be",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/59bb2be0c7a5863daf1dc551de53de3a1e440e4b"
+        },
+        {
+          "category": "Fix",
+          "message": "fix(agent): use max_completion_tokens for direct OpenAI calls",
+          "sha": "4ce6ac21778e4487b4ef3a294d2679414eaaa4a6",
+          "shortSha": "4ce6ac2",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/4ce6ac21778e4487b4ef3a294d2679414eaaa4a6"
+        },
+        {
+          "category": "Improved",
+          "message": "feat(providers): trim to 12 core providers and refresh model catalogs",
+          "sha": "da887d70a45747f15d20c19ae129a3fc5ad8112c",
+          "shortSha": "da887d7",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/da887d70a45747f15d20c19ae129a3fc5ad8112c"
+        },
+        {
+          "category": "Fix",
+          "message": "fix(agent): stop chat history being wiped on project reopen",
+          "sha": "5e5f5aa086137af11d3e42abbd0d6e8a87db044a",
+          "shortSha": "5e5f5aa",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/5e5f5aa086137af11d3e42abbd0d6e8a87db044a"
+        }
+      ]
+    },
+    {
+      "date": "2026-08-24",
+      "entries": [
+        {
+          "category": "Fix",
+          "message": "fix(seo): allow AdSense in CSP, real HTTP 404s, data-driven lastmod, head meta polish, expand glossary",
+          "sha": "847251e3d177c02eac5e90d737667bec964fa1c5",
+          "shortSha": "847251e",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/847251e3d177c02eac5e90d737667bec964fa1c5"
+        },
+        {
+          "category": "Improved",
+          "message": "feat(ui): add new-conversation button to chat panel",
+          "sha": "d429519d7ceceabbd9063de058dc2111169b544d",
+          "shortSha": "d429519",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/d429519d7ceceabbd9063de058dc2111169b544d"
+        }
+      ]
+    },
+    {
+      "date": "2026-08-22",
+      "entries": [
+        {
+          "category": "New",
+          "message": "Add AdSense site verification script",
+          "sha": "c5b1ceab421bd53c92874f4a07510087fa235250",
+          "shortSha": "c5b1cea",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/c5b1ceab421bd53c92874f4a07510087fa235250"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-28",
+      "entries": [
+        {
+          "category": "Fix",
+          "message": "fix(content): correct outdated info on public pages (Netlify->Cloudflare Pages, 17->18 providers)",
+          "sha": "b0fae841c294cfbe02d84318402954200f287491",
+          "shortSha": "b0fae84",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/b0fae841c294cfbe02d84318402954200f287491"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-18",
+      "entries": [
+        {
+          "category": "Improved",
+          "message": "feat(marketing): surface full-stack / Supabase backend on public pages",
+          "sha": "ebc9e243377193de596b16b39b7f15c65a36f11b",
+          "shortSha": "ebc9e24",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/ebc9e243377193de596b16b39b7f15c65a36f11b"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-17",
+      "entries": [
+        {
+          "category": "Fix",
+          "message": "fix(backend): auto-confirm signups + reliable auth-app preview",
+          "sha": "f0a3d990c362e6f5241c6c20354a3f971e28d39a",
+          "shortSha": "f0a3d99",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/f0a3d990c362e6f5241c6c20354a3f971e28d39a"
+        },
+        {
+          "category": "Fix",
+          "message": "fix(ui): match tool progress by call id so parallel same-named calls resolve",
+          "sha": "3a121eca623a3b49d6480923a34dfecd49edfde5",
+          "shortSha": "3a121ec",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/3a121eca623a3b49d6480923a34dfecd49edfde5"
+        },
+        {
+          "category": "Fix",
+          "message": "fix(backend): include backendConfig in preview/deploy effect deps (no stale config)",
+          "sha": "e752fa7ec511cdd2a6b1ea803436dd2506e97c6d",
+          "shortSha": "e752fa7",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/e752fa7ec511cdd2a6b1ea803436dd2506e97c6d"
+        },
+        {
+          "category": "Fix",
+          "message": "fix(backend): process.env stub so supabase-js loads in the sandbox",
+          "sha": "3f720a9d5ab50c7cf3e1225d6609e23dce4c6956",
+          "shortSha": "3f720a9",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/3f720a9d5ab50c7cf3e1225d6609e23dce4c6956"
+        },
+        {
+          "category": "Improved",
+          "message": "feat(agent): guide the agent to use @openthorn/db for data + auth",
+          "sha": "e704a1a43e6e5694e7816760f605c5bb92b2ba26",
+          "shortSha": "e704a1a",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/e704a1a43e6e5694e7816760f605c5bb92b2ba26"
+        },
+        {
+          "category": "Improved",
+          "message": "feat(backend): pass project Supabase config into preview + deploy builds",
+          "sha": "ad0dd8fcec61bc04bc3e2d55d6ad8e3f8aa0d568",
+          "shortSha": "ad0dd8f",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/ad0dd8fcec61bc04bc3e2d55d6ad8e3f8aa0d568"
+        },
+        {
+          "category": "Improved",
+          "message": "feat(backend): inject Supabase config + @openthorn/db into preview/deploy",
+          "sha": "1e9b1a709965f4da2a53a0d2660d8717dc1af8cd",
+          "shortSha": "1e9b1a7",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/1e9b1a709965f4da2a53a0d2660d8717dc1af8cd"
+        },
+        {
+          "category": "Improved",
+          "message": "feat(backend): supabase-js allowlist + @openthorn/db client source",
+          "sha": "b2639121a6669eb026748630447b1a5d2ce36fb0",
+          "shortSha": "b263912",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/b2639121a6669eb026748630447b1a5d2ce36fb0"
+        },
+        {
+          "category": "Improved",
+          "message": "feat(agent): pass project id + backend flag into agent runs",
+          "sha": "8912b1916aed6750ab58a4b32fe4b18f0183624c",
+          "shortSha": "8912b19",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/8912b1916aed6750ab58a4b32fe4b18f0183624c"
+        },
+        {
+          "category": "Improved",
+          "message": "feat(agent): dispatch set_schema to /api/migrate with project context",
+          "sha": "3beba4be16f74ea8f713f9d30c5db4bcdb91f2f2",
+          "shortSha": "3beba4b",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/3beba4be16f74ea8f713f9d30c5db4bcdb91f2f2"
+        },
+        {
+          "category": "Improved",
+          "message": "feat(agent): set_schema tool, gated on a connected backend",
+          "sha": "3c14044e1a0ebffd37927f9282bb2619f3301f82",
+          "shortSha": "3c14044",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/3c14044e1a0ebffd37927f9282bb2619f3301f82"
+        },
+        {
+          "category": "Improved",
+          "message": "feat(backend): applySchema client helper",
+          "sha": "d9aaf0dc13e024d395cc3479cc92c00bb6a1c5eb",
+          "shortSha": "d9aaf0d",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/d9aaf0dc13e024d395cc3479cc92c00bb6a1c5eb"
+        },
+        {
+          "category": "Improved",
+          "message": "feat(backend): /api/migrate endpoint + dev shim",
+          "sha": "b97f495fb03ab7fd16889817cac0f6bfd0ea5c38",
+          "shortSha": "b97f495",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/b97f495fb03ab7fd16889817cac0f6bfd0ea5c38"
+        },
+        {
+          "category": "Improved",
+          "message": "feat(backend): apply schema via Management API + migration ledger",
+          "sha": "fe86134e4de9a1d7b0b911c3284df23ef999b288",
+          "shortSha": "fe86134",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/fe86134e4de9a1d7b0b911c3284df23ef999b288"
+        },
+        {
+          "category": "Improved",
+          "message": "feat(backend): declarative schema → idempotent SQL compiler",
+          "sha": "9cff71c0e56d3f4793e1b6a166ecdbf17b9ff4f6",
+          "shortSha": "9cff71c",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/9cff71c0e56d3f4793e1b6a166ecdbf17b9ff4f6"
+        },
+        {
+          "category": "Improved",
+          "message": "feat(backend): green toolbar button when connected + project-level disconnect",
+          "sha": "f8f5636ed638c81fe504fc347622abde06248c17",
+          "shortSha": "f8f5636",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/f8f5636ed638c81fe504fc347622abde06248c17"
+        },
+        {
+          "category": "Fix",
+          "message": "fix(backend): poll project status so provisioning clears automatically",
+          "sha": "3a9a775b213ad18da94ba4544afa6bbd9924b453",
+          "shortSha": "3a9a775",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/3a9a775b213ad18da94ba4544afa6bbd9924b453"
+        },
+        {
+          "category": "Improved",
+          "message": "feat(backend): create-project from picker + accept publishable API keys",
+          "sha": "f226b7eded7637a0f7ad577775c5b85f6732791d",
+          "shortSha": "f226b7e",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/f226b7eded7637a0f7ad577775c5b85f6732791d"
+        },
+        {
+          "category": "Fix",
+          "message": "fix(backend): auto-open Backend modal after OAuth redirect",
+          "sha": "81c311abb4a904beb26d75b79bb9fec4403fd874",
+          "shortSha": "81c311a",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/81c311abb4a904beb26d75b79bb9fec4403fd874"
+        },
+        {
+          "category": "Fix",
+          "message": "fix(backend): move Connect-backend to a toolbar button + dedicated modal",
+          "sha": "d8620b521bec54a7531ab3305ea69483608cb6ce",
+          "shortSha": "d8620b5",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/d8620b521bec54a7531ab3305ea69483608cb6ce"
+        },
+        {
+          "category": "Fix",
+          "message": "fix(db): make supabase_connection_status a security_invoker view (RLS)",
+          "sha": "0a5e8512d2d04b2096b61a8ec25d035bd9db9d97",
+          "shortSha": "0a5e851",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/0a5e8512d2d04b2096b61a8ec25d035bd9db9d97"
+        },
+        {
+          "category": "Improved",
+          "message": "feat(backend): Connect backend UI panel in deploy modal",
+          "sha": "7f9889c782610ce55af8c34d6f26655ad13eee13",
+          "shortSha": "7f9889c",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/7f9889c782610ce55af8c34d6f26655ad13eee13"
+        },
+        {
+          "category": "Improved",
+          "message": "feat(backend): client helper for the connect-backend flow",
+          "sha": "43f836b469564d07e1c6da6c4d0ea1c0b071e416",
+          "shortSha": "43f836b",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/43f836b469564d07e1c6da6c4d0ea1c0b071e416"
+        },
+        {
+          "category": "Improved",
+          "message": "feat(backend): dev shim for /api/supabase-oauth",
+          "sha": "ad301f98d45cda23a04a4cdc5971a1fe649e9b1c",
+          "shortSha": "ad301f9",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/ad301f98d45cda23a04a4cdc5971a1fe649e9b1c"
+        },
+        {
+          "category": "Improved",
+          "message": "feat(backend): /api/supabase-oauth start/callback/pick-project/revoke",
+          "sha": "c25d08588d42dffbc051f4f8388dd898312a1ce7",
+          "shortSha": "c25d085",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/c25d08588d42dffbc051f4f8388dd898312a1ce7"
+        },
+        {
+          "category": "Improved",
+          "message": "feat(backend): list org projects, fetch anon key, save project backend",
+          "sha": "8e792d6e5dcb4abd860c8f9d3eaf7bf0afc5c16e",
+          "shortSha": "8e792d6",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/8e792d6e5dcb4abd860c8f9d3eaf7bf0afc5c16e"
+        },
+        {
+          "category": "Improved",
+          "message": "feat(backend): persist + auto-refresh Supabase OAuth tokens",
+          "sha": "3fd9ea01935a66d5b0670f0f03313204bacc3101",
+          "shortSha": "3fd9ea0",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/3fd9ea01935a66d5b0670f0f03313204bacc3101"
+        },
+        {
+          "category": "Improved",
+          "message": "feat(backend): Supabase OAuth code exchange + token refresh",
+          "sha": "146daa301c6dbc3e97a5897e00c102fd31bf1e51",
+          "shortSha": "146daa3",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/146daa301c6dbc3e97a5897e00c102fd31bf1e51"
+        },
+        {
+          "category": "Improved",
+          "message": "feat(backend): signed OAuth state tokens for Supabase connect flow",
+          "sha": "c0edc3b79a8e5cc1fb947ffb4cf990073c4501b8",
+          "shortSha": "c0edc3b",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/c0edc3b79a8e5cc1fb947ffb4cf990073c4501b8"
+        },
+        {
+          "category": "Improved",
+          "message": "feat(db): supabase connection, project_backends, project_migrations tables",
+          "sha": "f31a810f48e040ea76864fe4d0054f9fe44bce90",
+          "shortSha": "f31a810",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/f31a810f48e040ea76864fe4d0054f9fe44bce90"
+        }
+      ]
+    },
     {
       "date": "2026-06-16",
       "entries": [
+        {
+          "category": "Fix",
+          "message": "fix(agent): stop forced builds on conversational replies; guard large rewrites",
+          "sha": "8c501594dd3f27d9580cc759acc983e4ca7427ee",
+          "shortSha": "8c50159",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/8c501594dd3f27d9580cc759acc983e4ca7427ee"
+        },
+        {
+          "category": "Improved",
+          "message": "feat(agent): add shadcn + karpathy skills; expand ui-ux-pro-max to full version",
+          "sha": "94ec280281255d870a8308c87d4f6eabfc83adb5",
+          "shortSha": "94ec280",
+          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/94ec280281255d870a8308c87d4f6eabfc83adb5"
+        },
         {
           "category": "Improved",
           "message": "feat(agent): make skill-loading proactive and always available",
@@ -1523,305 +1868,6 @@
           "sha": "f7e8830be2421f324a69b70098f7577f6a423148",
           "shortSha": "f7e8830",
           "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/f7e8830be2421f324a69b70098f7577f6a423148"
-        },
-        {
-          "category": "Improved",
-          "message": "feat: add PrivacyPage with GDPR-compliant privacy policy",
-          "sha": "9aa7ad0fa2b07f54eb7242587c94393297d6ad4d",
-          "shortSha": "9aa7ad0",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/9aa7ad0fa2b07f54eb7242587c94393297d6ad4d"
-        },
-        {
-          "category": "Improved",
-          "message": "feat: add shared LegalPage layout component",
-          "sha": "dd3cfcf4b0e91d5ae5e30667e20cb3b17c558fb7",
-          "shortSha": "dd3cfcf",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/dd3cfcf4b0e91d5ae5e30667e20cb3b17c558fb7"
-        },
-        {
-          "category": "Fix",
-          "message": "fix: type ReelCarousel variants as Variants to resolve TS2322 build error",
-          "sha": "e4980b41987b663f9953a9b156e2425debd461b6",
-          "shortSha": "e4980b4",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/e4980b41987b663f9953a9b156e2425debd461b6"
-        },
-        {
-          "category": "Improved",
-          "message": "feat: add 10 new LLM providers to providers page with letter fallback logos",
-          "sha": "ff431fdbe47011bfb84912a795dada3a302c3ac1",
-          "shortSha": "ff431fd",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/ff431fdbe47011bfb84912a795dada3a302c3ac1"
-        },
-        {
-          "category": "Fix",
-          "message": "fix: navigate to home on sign-out; add remotion ad assets and ReelCarousel redesign",
-          "sha": "661852ee9c964d02db33c01c9357e19446ad6fe4",
-          "shortSha": "661852e",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/661852ee9c964d02db33c01c9357e19446ad6fe4"
-        },
-        {
-          "category": "Improved",
-          "message": "feat: show auth gate instead of silent redirect on protected pages",
-          "sha": "abf7cc5f3f6ebd96479128bc622ea4c407818535",
-          "shortSha": "abf7cc5",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/abf7cc5f3f6ebd96479128bc622ea4c407818535"
-        },
-        {
-          "category": "Improved",
-          "message": "content: rewrite introducing-openthorn article — accurate BYOK/no-subscription positioning",
-          "sha": "b470f2707e87f17134ac7bf1a832e52a8f90a48a",
-          "shortSha": "b470f27",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/b470f2707e87f17134ac7bf1a832e52a8f90a48a"
-        },
-        {
-          "category": "Improved",
-          "message": "feat: redesign BlogPage with editorial layout and fix video poster to t=2",
-          "sha": "2ef6c7e703cf605c46e58c0797d3b7a96cead4fd",
-          "shortSha": "2ef6c7e",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/2ef6c7e703cf605c46e58c0797d3b7a96cead4fd"
-        },
-        {
-          "category": "Improved",
-          "message": "feat: wire up /blog and /blog/:slug routes, update header Blog link",
-          "sha": "86d6b4a2fb69e987e171a90a9dd6b0327f4798f8",
-          "shortSha": "86d6b4a",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/86d6b4a2fb69e987e171a90a9dd6b0327f4798f8"
-        },
-        {
-          "category": "Improved",
-          "message": "feat: add BlogPostPage article component with markdown rendering",
-          "sha": "4e06bc008aa4bd7955360002b0ec517c8fbf06dd",
-          "shortSha": "4e06bc0",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/4e06bc008aa4bd7955360002b0ec517c8fbf06dd"
-        },
-        {
-          "category": "Improved",
-          "message": "feat: add BlogPage listing component",
-          "sha": "65424a9ddf6b4be559efa94de2d6da8848d2405f",
-          "shortSha": "65424a9",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/65424a9ddf6b4be559efa94de2d6da8848d2405f"
-        },
-        {
-          "category": "Improved",
-          "message": "feat: add blog post registry with introducing-openthorn post",
-          "sha": "f2caac48325e7ddd9f3ee8d77b1e085e1a4fc7ab",
-          "shortSha": "f2caac4",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/f2caac48325e7ddd9f3ee8d77b1e085e1a4fc7ab"
-        },
-        {
-          "category": "Improved",
-          "message": "feat: add introducing-openthorn blog post content",
-          "sha": "49b0f39cfe5ab8bcebfc1b372f29a29b8a780b1b",
-          "shortSha": "49b0f39",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/49b0f39cfe5ab8bcebfc1b372f29a29b8a780b1b"
-        },
-        {
-          "category": "Improved",
-          "message": "feat: add openthorn promo video to public assets",
-          "sha": "32ae51492de14a9e09410b684a3ad1e6e6ede8bf",
-          "shortSha": "32ae514",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/32ae51492de14a9e09410b684a3ad1e6e6ede8bf"
-        },
-        {
-          "category": "Improved",
-          "message": "feat: add Meet OpenThorn and AI Website Builder to Scene 1",
-          "sha": "9cf493f1c12671fe4bf297ad0f62533b721f08e7",
-          "shortSha": "9cf493f",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/9cf493f1c12671fe4bf297ad0f62533b721f08e7"
-        },
-        {
-          "category": "Improved",
-          "message": "feat: remove audio from OpenThornAd — video only",
-          "sha": "c3556b05ac4e0d91b7c6cd5eb8501fa264e1c92e",
-          "shortSha": "c3556b0",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/c3556b05ac4e0d91b7c6cd5eb8501fa264e1c92e"
-        },
-        {
-          "category": "Improved",
-          "message": "feat: register OpenThornAd composition and add render scripts",
-          "sha": "d97c1da6b7e0ca05f3aafaf0bbc00ff622c4a9e2",
-          "shortSha": "d97c1da",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/d97c1da6b7e0ca05f3aafaf0bbc00ff622c4a9e2"
-        },
-        {
-          "category": "Improved",
-          "message": "feat: implement FinalScene with tri-color glow and fade to black",
-          "sha": "c47b866ece4d6e1b953bf71a34cab30e4ddd28bd",
-          "shortSha": "c47b866",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/c47b866ece4d6e1b953bf71a34cab30e4ddd28bd"
-        },
-        {
-          "category": "Improved",
-          "message": "feat: implement ProviderScene with staggered grayscale logo row",
-          "sha": "e2d925fb49f1d8e11379d8a838b27035efe78f78",
-          "shortSha": "e2d925f",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/e2d925fb49f1d8e11379d8a838b27035efe78f78"
-        },
-        {
-          "category": "Improved",
-          "message": "feat: implement StatementScene with text reveal and underline draw",
-          "sha": "2985264b5d04b2dbadc8edfce29214d13460a627",
-          "shortSha": "2985264",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/2985264b5d04b2dbadc8edfce29214d13460a627"
-        },
-        {
-          "category": "Improved",
-          "message": "feat: implement LogoRevealScene with spring scale and purple glow",
-          "sha": "fd02557cfcaac619294bfc89e8286c4a2e339355",
-          "shortSha": "fd02557",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/fd02557cfcaac619294bfc89e8286c4a2e339355"
-        },
-        {
-          "category": "Improved",
-          "message": "feat: scaffold OpenThornAd composition with scene structure",
-          "sha": "56de67a151f19b20f38f7327c77f0637533f0e07",
-          "shortSha": "56de67a",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/56de67a151f19b20f38f7327c77f0637533f0e07"
-        },
-        {
-          "category": "Improved",
-          "message": "feat: install @remotion/google-fonts and copy ad image assets",
-          "sha": "25f9787f97ab0d251152b19d1f5f348cce0afc7c",
-          "shortSha": "25f9787",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/25f9787f97ab0d251152b19d1f5f348cce0afc7c"
-        }
-      ]
-    },
-    {
-      "date": "2026-06-05",
-      "entries": [
-        {
-          "category": "Improved",
-          "message": "feat: track project_created, project_deployed, project_published events",
-          "sha": "ed13107553de7a8a47e24c5488f2c6e8dcc59f14",
-          "shortSha": "ed13107",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/ed13107553de7a8a47e24c5488f2c6e8dcc59f14"
-        },
-        {
-          "category": "Improved",
-          "message": "feat: send ErrorBoundary errors to Sentry",
-          "sha": "a28a93ba3aac36c6c735d5c85ce2887fe23d0b3d",
-          "shortSha": "a28a93b",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/a28a93ba3aac36c6c735d5c85ce2887fe23d0b3d"
-        },
-        {
-          "category": "Improved",
-          "message": "feat: identify users in Sentry/PostHog on auth change, track sign_in and sign_up",
-          "sha": "634683799cdd7bbc6557159cda1aa88187d3eb92",
-          "shortSha": "6346837",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/634683799cdd7bbc6557159cda1aa88187d3eb92"
-        },
-        {
-          "category": "Improved",
-          "message": "feat: initialise Sentry and PostHog on app startup, track SPA page views",
-          "sha": "b6721913aa7a44eb87bafd68e3537efb1921a834",
-          "shortSha": "b672191",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/b6721913aa7a44eb87bafd68e3537efb1921a834"
-        },
-        {
-          "category": "Improved",
-          "message": "feat: add useAnalytics hook for SPA page-view tracking",
-          "sha": "e9aa1418146bab2dcc17be821a68d53ae729bc15",
-          "shortSha": "e9aa141",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/e9aa1418146bab2dcc17be821a68d53ae729bc15"
-        },
-        {
-          "category": "Improved",
-          "message": "feat: add PostHog analytics wrapper module",
-          "sha": "4068faf1e6e33b8c9764b7b4eeb8940f0aa433f6",
-          "shortSha": "4068faf",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/4068faf1e6e33b8c9764b7b4eeb8940f0aa433f6"
-        },
-        {
-          "category": "Improved",
-          "message": "feat: add Sentry wrapper module",
-          "sha": "7d75d8e5bfd0c947552f827afa4a9891045f0a3c",
-          "shortSha": "7d75d8e",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/7d75d8e5bfd0c947552f827afa4a9891045f0a3c"
-        },
-        {
-          "category": "Improved",
-          "message": "feat: production readiness — SEO, security headers, dynamic titles, branding",
-          "sha": "146fb4318deebecdde87630b1768459ecafae93e",
-          "shortSha": "146fb43",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/146fb4318deebecdde87630b1768459ecafae93e"
-        },
-        {
-          "category": "Fix",
-          "message": "fix: community page layout and model selector positioning",
-          "sha": "419d0ee0623342c9e7c105d15b2575efcd4f48df",
-          "shortSha": "419d0ee",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/419d0ee0623342c9e7c105d15b2575efcd4f48df"
-        },
-        {
-          "category": "Fix",
-          "message": "fix: render community overlay outside root div to fix sidebar z-index overlap",
-          "sha": "968198c9d6aa0dbd79e7b0af0304cc0ebbbedddf",
-          "shortSha": "968198c",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/968198c9d6aa0dbd79e7b0af0304cc0ebbbedddf"
-        },
-        {
-          "category": "Fix",
-          "message": "fix: render publish modals outside root div to fix z-index stacking context",
-          "sha": "e400348f54e66f7609fad6d874244f732a6b5416",
-          "shortSha": "e400348",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/e400348f54e66f7609fad6d874244f732a6b5416"
-        },
-        {
-          "category": "Fix",
-          "message": "fix: match publish button height to topbar and use upload icon instead of share icon",
-          "sha": "a806ec291e8d7c3b701fa95c2a625e0e1083786c",
-          "shortSha": "a806ec2",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/a806ec291e8d7c3b701fa95c2a625e0e1083786c"
-        },
-        {
-          "category": "Improved",
-          "message": "feat: add Publish to Community button in project builder topbar",
-          "sha": "4568ce1bc06114f9ec987beedf6cce90da805564",
-          "shortSha": "4568ce1",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/4568ce1bc06114f9ec987beedf6cce90da805564"
-        },
-        {
-          "category": "Improved",
-          "message": "feat: add CommunityPage with grid/list view, likes, search, sort and project fork overlay",
-          "sha": "d0784754f9b7f0d3452dbc6d6160fd294a8e5ad0",
-          "shortSha": "d078475",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/d0784754f9b7f0d3452dbc6d6160fd294a8e5ad0"
-        },
-        {
-          "category": "Improved",
-          "message": "feat: add Publish to Community action in project context menu with modal",
-          "sha": "3f9ea09abd2ba89f9afdc8e8c00b097f3a9c6c09",
-          "shortSha": "3f9ea09",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/3f9ea09abd2ba89f9afdc8e8c00b097f3a9c6c09"
-        },
-        {
-          "category": "Improved",
-          "message": "feat: remove Resources tab and wire Community navigation in sidebar",
-          "sha": "4985ccac288065472c5cf345e1ce2c0138189372",
-          "shortSha": "4985cca",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/4985ccac288065472c5cf345e1ce2c0138189372"
-        },
-        {
-          "category": "Fix",
-          "message": "fix: update deployment URL prefix from bloom to openthorn and simplify naming format",
-          "sha": "81d99d1d2ba19592151fe1ab7c45c1eefecaed67",
-          "shortSha": "81d99d1",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/81d99d1d2ba19592151fe1ab7c45c1eefecaed67"
-        },
-        {
-          "category": "Fix",
-          "message": "fix: prevent agent resume from triggering on tab switch",
-          "sha": "acefbdc15213ffc730d9a3d71f438c283b4f3bb8",
-          "shortSha": "acefbdc",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/acefbdc15213ffc730d9a3d71f438c283b4f3bb8"
-        },
-        {
-          "category": "Improved",
-          "message": "perf: reduce agent stuck loops and move expensive reviews to High/Extra High",
-          "sha": "02cdc0bdfff3684c0cfcbbb9a28985537d283ff3",
-          "shortSha": "02cdc0b",
-          "url": "https://github.com/BuildingTechAlternatives/OpenThorn/commit/02cdc0bdfff3684c0cfcbbb9a28985537d283ff3"
         }
       ]
     }

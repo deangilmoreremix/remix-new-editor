@@ -36,7 +36,7 @@ function formatDate(date: string) {
 export default function ChangelogPage() {
   usePageTitle('Changelog', {
     description:
-      'Every OpenThorn update, generated automatically from our GitHub commit history — new features, fixes, and improvements as they ship.',
+      'Every SmartVideo update, generated automatically from our GitHub commit history — new features, fixes, and improvements as they ship.',
   })
 
   const days = changelog.days as ChangelogDay[]
@@ -50,15 +50,8 @@ export default function ChangelogPage() {
             What <span className={styles.titleAccent}>shipped</span>
           </h1>
           <p className={styles.subtitle}>
-            Every update, straight from our{' '}
-            <a
-              href="https://github.com/BuildingTechAlternatives/OpenThorn"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              GitHub repository
-            </a>
-            . This page regenerates automatically with every push.
+            Every update, straight from our repository.
+            This page regenerates automatically with every push.
           </p>
           {days[0] && (
             <p className={styles.lastUpdated}>

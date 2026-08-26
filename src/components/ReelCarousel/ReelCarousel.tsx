@@ -27,14 +27,14 @@ const bloomSlides: CarouselSlide[] = [
     tag: 'Step 01',
     title: 'Describe what you need',
     description:
-      'Tell OpenThorn what you\'re building — a storefront, a dashboard, a blog. Plain English is all it takes.',
+      'Tell SmartVideo what you\'re building — a storefront, a dashboard, a blog. Plain English is all it takes.',
   },
   {
     image: '/assets/project_page.png',
     tag: 'Step 02',
     title: 'See it take shape',
     description:
-      'OpenThorn generates real components and styles live — every file visible as it\'s written.',
+      'SmartVideo generates real components and styles live — every file visible as it\'s written.',
   },
   {
     image: '/assets/deployed.png',

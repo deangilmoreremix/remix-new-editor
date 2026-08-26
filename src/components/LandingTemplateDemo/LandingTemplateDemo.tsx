@@ -71,7 +71,7 @@ export default function LandingTemplateDemo({ templateId, onClose }: Props) {
   const requireSignup = () => {
     // Close this modal first so the auth overlay isn't hidden behind it.
     onClose()
-    window.dispatchEvent(new CustomEvent('openthorn:require-auth', { detail: { mode: 'signup' } }))
+    window.dispatchEvent(new CustomEvent('smartvid:require-auth', { detail: { mode: 'signup' } }))
   }
 
   if (!template) return null
@@ -102,7 +102,7 @@ export default function LandingTemplateDemo({ templateId, onClose }: Props) {
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
             </svg>
-            {template.name.toLowerCase().replace(/\s+/g, '-')}.openthorn.app
+            {template.name.toLowerCase().replace(/\s+/g, '-')}.smartvid.app
           </div>
           <button className={styles.close} type="button" onClick={onClose} aria-label="Close">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -143,7 +143,7 @@ export default function LandingTemplateDemo({ templateId, onClose }: Props) {
               transition={{ duration: 0.4 }}
             />
           ) : (
-            <div className={styles.previewError}>Preview unavailable — but you can still build this with OpenThorn.</div>
+            <div className={styles.previewError}>Preview unavailable — but you can still build this with SmartVideo.</div>
           )}
         </div>
 

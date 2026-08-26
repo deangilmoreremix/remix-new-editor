@@ -27,7 +27,7 @@ const roleCopy: Record<HighlightRole, { label: string; short: string; detail: st
 
 export default function PricingPage() {
   usePageTitle('Model Pricing', {
-    description: 'Compare per-token pricing across the AI providers OpenThorn supports. You pay your provider directly — OpenThorn charges no subscription.',
+    description: 'Compare per-token pricing across the AI providers SmartVideo supports. You pay your provider directly — SmartVideo charges no subscription.',
   })
   const [models, setModels] = useState<ModelEntry[]>([])
   const [error, setError] = useState<string | null>(null)

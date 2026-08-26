@@ -1,0 +1,597 @@
+[    4973ms] [LOG] [App] Starting initialization... @ http://localhost:3100/src/main.js?t=1787381339209:19
+[    4992ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:41
+[    4993ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:48
+[    4994ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:48
+[    4995ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:48
+[    4996ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:48
+[    4997ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:48
+[    4997ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:48
+[    4998ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:48
+[    4999ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:48
+[    4999ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:48
+[    5000ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:48
+[    5001ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:48
+[    5002ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:48
+[    5002ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:48
+[    7873ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=ffb3b7c5:20096
+[    7878ms] [LOG] [App] Initialized in 2904.60ms @ http://localhost:3100/src/main.js?t=1787381339209:159
+[    7878ms] [LOG] [App] Navigating to initial page: viral @ http://localhost:3100/src/main.js?t=1787381339209:160
+[    7878ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://localhost:3100/src/main.js?t=1787381339209:171
+[    8143ms] [ERROR] [ModalSystem] mount failed TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381184778:26:22 @ http://localhost:3100/src/main.js?t=1787381339209:324
+[    8146ms] [ERROR] [popcorn-init] FAILED at: plugin-image TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381184778:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:55
+[    8173ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonTransition TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381184778:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:55
+[    8189ms] [ERROR] [popcorn-init] FAILED at: plugin-lottie-json TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381184778:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:55
+[    8218ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:48
+[    8229ms] [ERROR] [popcorn-init] FAILED at: plugin-personalizedImage TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381184778:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:55
+[    8257ms] [ERROR] [popcorn-init] FAILED at: plugin-loopPlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381184778:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:55
+[    8266ms] [ERROR] [popcorn-init] FAILED at: plugin-pausePlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381184778:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:55
+[    8391ms] [ERROR] [popcorn-init] FAILED at: plugin-form TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381184778:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:55
+[    8413ms] [ERROR] [popcorn-init] FAILED at: plugin-retarget TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381184778:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:55
+[    8423ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:48
+[    8437ms] [ERROR] [popcorn-init] FAILED at: plugin-sequencer TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381184778:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:55
+[    8447ms] [ERROR] [popcorn-init] FAILED at: plugin-skip TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381184778:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:55
+[    8519ms] [ERROR] [popcorn-init] FAILED at: plugin-text TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381184778:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:55
+[    8536ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:48
+[    8544ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonAnimation TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381184778:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:55
+[    8562ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:48
+[    8572ms] [ERROR] [popcorn-init] FAILED at: plugin-seethroughtext TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381184778:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:55
+[    8577ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:48
+[    8584ms] [ERROR] [popcorn-init] FAILED at: plugin-combined TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381184778:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:55
+[    8591ms] [ERROR] [popcorn-init] FAILED at: plugin-background TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381184778:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:55
+[    8592ms] [LOG] [popcorn-init] SUMMARY: 5/20 plugins registered; FAILED: plugin-image, plugin-jsonTransition, plugin-lottie-json, plugin-personalizedImage, plugin-loopPlugin, plugin-pausePlugin, plugin-form, plugin-retarget, plugin-sequencer, plugin-skip, plugin-text, plugin-jsonAnimation, plugin-seethroughtext, plugin-combined, plugin-background @ http://localhost:3100/src/lib/popcornInit.js?t=1787381184778:60
+[    8592ms] [LOG] [popcorn] function 5 @ http://localhost:3100/src/main.js?t=1787381339209:4
+[    9506ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/16c92ac9-5dcb-42d8-910c-95ca98fcf03d/059057d8-0925-49fe-a019-d1db2f5f27a4-1787328993013-poster:0
+[    9506ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/72ed0c5d-2ec2-4a0a-a1cd-683135439e17/5dcf48e1-e30c-45ea-916b-365db6aaf107-1787326914109-poster:0
+[    9506ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/fcbeabfa-3590-4518-bb47-6bd17f6bdd93/328f7aac-5baf-45ef-a102-888ec3d9d958-1787322644879-poster:0
+[    9507ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/0bdb1be9-f8f6-4641-b439-b2b96865195b/4855756b-383b-4afb-9686-da48d3a0fe20-1787318483414-poster:0
+[    9507ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/141cdcae-8fa4-48b8-b961-2da1edc815cb/ac063ef4-231c-4189-9e3a-528309f62d37-1787316337782-poster:0
+[    9508ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/29886a95-6327-4cec-930f-7c6314265aca/49838541-e379-44b9-a3e5-e1c77364da61-1787314288064-poster:0
+[    9508ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/10abe959-e5a9-4aa9-850b-4d447da35513/bed88de9-dbd2-4204-af0e-c33aff565283-1787314253535-poster:0
+[    9508ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/8cff0fea-4a71-47c3-8cb4-b37539e66696/96168653-1377-4aa6-8451-1735e12a96ac-1787310080468-poster:0
+[    9509ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/315707d1-e1b1-4b80-bd5f-dc19987bda95/db860dd5-8d2d-4091-bc86-9ae25f691cd4-1787307937323-poster:0
+[    9509ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/7899d2b0-5235-410b-8e3f-9db53e33b772/afd16ae2-e224-4d56-ab2e-601c63f77294-1787305902648-poster:0
+[    9509ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/0e696c50-8685-42b6-94f3-a34ed67de26e/e62e99fe-d96b-4a28-9797-7bdbbadcf143-1787301716179-poster:0
+[    9510ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/ea0a1d66-3f3e-4f74-af1e-44008b012219/5f893f15-b132-468f-9fde-3850be566e8e-1787301689967-poster:0
+[    9650ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/7de1fd00-de07-4e42-8096-40dd343cb557/ed7ff408-3ff1-49b2-8dab-462dc28c5910-1787328943786:0
+[   13536ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/cfc6deac-83b2-4ff0-b2c9-67c0a4c533f1/9f97a2fa-cd40-40f5-a1ca-49257209c127-1785054500974:0
+[   18557ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/9493a733-5408-4ee8-a898-0bc0800809b0/05066164-e1e4-49a1-80b7-019e686551af-1786638677959:0
+[   23534ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/c3a67d5f-8083-4eb8-bf32-2f06f8660eb4/c32467c5-a69c-469c-a525-a9941e0e7a82-1786408829975:0
+[   28536ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/de324335-5510-414b-82b6-bbf82a5b2ca2/53fbeb10-f832-40d7-8858-363b29e698aa-1787150553177:0
+[   33536ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/c7104541-3e57-414f-aa91-245b2d57763e/1cf63605-d28a-4596-a270-c2bba510407a-1787150538265:0
+[   38538ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/c85cc8fe-e596-4b57-8614-91b0dd10068a/825493e1-8bcf-4e11-913d-e8f58f0c7272-1787150538265:0
+[   43535ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/935b0347-8ffa-4ae4-8d92-b56d5afc397d/664a30af-453d-4159-9c0e-1faac203a7bb-1785056488158:0
+[   46443ms] [LOG] [App] Starting initialization... @ http://localhost:3100/src/main.js?t=1787381380498:19
+[   46463ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:41
+[   46464ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:48
+[   46465ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:48
+[   46466ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:48
+[   46467ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:48
+[   46468ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:48
+[   46468ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:48
+[   46469ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:48
+[   46470ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:48
+[   46471ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:48
+[   46471ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:48
+[   46472ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:48
+[   46472ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:48
+[   46472ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:48
+[   48670ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=ffb3b7c5:20096
+[   48674ms] [LOG] [App] Initialized in 2230.50ms @ http://localhost:3100/src/main.js?t=1787381380498:159
+[   48674ms] [LOG] [App] Navigating to initial page: viral @ http://localhost:3100/src/main.js?t=1787381380498:160
+[   48674ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://localhost:3100/src/main.js?t=1787381380498:171
+[   49197ms] [ERROR] [popcorn-init] FAILED at: plugin-image TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381380498:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:55
+[   49197ms] [ERROR] [ModalSystem] mount failed TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381380498:26:22 @ http://localhost:3100/src/main.js?t=1787381380498:324
+[   49326ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonTransition TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381380498:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:55
+[   49390ms] [ERROR] [popcorn-init] FAILED at: plugin-lottie-json TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381380498:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:55
+[   49410ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:48
+[   49418ms] [ERROR] [popcorn-init] FAILED at: plugin-personalizedImage TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381380498:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:55
+[   49426ms] [ERROR] [popcorn-init] FAILED at: plugin-loopPlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381380498:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:55
+[   49435ms] [ERROR] [popcorn-init] FAILED at: plugin-pausePlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381380498:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:55
+[   49453ms] [ERROR] [popcorn-init] FAILED at: plugin-form TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381380498:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:55
+[   49471ms] [ERROR] [popcorn-init] FAILED at: plugin-retarget TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381380498:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:55
+[   49481ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:48
+[   49490ms] [ERROR] [popcorn-init] FAILED at: plugin-sequencer TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381380498:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:55
+[   49499ms] [ERROR] [popcorn-init] FAILED at: plugin-skip TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381380498:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:55
+[   49539ms] [ERROR] [popcorn-init] FAILED at: plugin-text TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381380498:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:55
+[   49555ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:48
+[   49568ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonAnimation TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381380498:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:55
+[   49591ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:48
+[   49600ms] [ERROR] [popcorn-init] FAILED at: plugin-seethroughtext TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381380498:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:55
+[   49605ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:48
+[   49615ms] [ERROR] [popcorn-init] FAILED at: plugin-combined TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381380498:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:55
+[   49622ms] [ERROR] [popcorn-init] FAILED at: plugin-background TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381380498:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:55
+[   49622ms] [LOG] [popcorn-init] SUMMARY: 5/20 plugins registered; FAILED: plugin-image, plugin-jsonTransition, plugin-lottie-json, plugin-personalizedImage, plugin-loopPlugin, plugin-pausePlugin, plugin-form, plugin-retarget, plugin-sequencer, plugin-skip, plugin-text, plugin-jsonAnimation, plugin-seethroughtext, plugin-combined, plugin-background @ http://localhost:3100/src/lib/popcornInit.js?t=1787381380498:60
+[   49622ms] [LOG] [popcorn] function 5 @ http://localhost:3100/src/main.js?t=1787381380498:4
+[   51151ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/16c92ac9-5dcb-42d8-910c-95ca98fcf03d/059057d8-0925-49fe-a019-d1db2f5f27a4-1787328993013-poster:0
+[   51151ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/72ed0c5d-2ec2-4a0a-a1cd-683135439e17/5dcf48e1-e30c-45ea-916b-365db6aaf107-1787326914109-poster:0
+[   51152ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/fcbeabfa-3590-4518-bb47-6bd17f6bdd93/328f7aac-5baf-45ef-a102-888ec3d9d958-1787322644879-poster:0
+[   51152ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/0bdb1be9-f8f6-4641-b439-b2b96865195b/4855756b-383b-4afb-9686-da48d3a0fe20-1787318483414-poster:0
+[   51152ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/141cdcae-8fa4-48b8-b961-2da1edc815cb/ac063ef4-231c-4189-9e3a-528309f62d37-1787316337782-poster:0
+[   51152ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/29886a95-6327-4cec-930f-7c6314265aca/49838541-e379-44b9-a3e5-e1c77364da61-1787314288064-poster:0
+[   51152ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/10abe959-e5a9-4aa9-850b-4d447da35513/bed88de9-dbd2-4204-af0e-c33aff565283-1787314253535-poster:0
+[   51152ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/8cff0fea-4a71-47c3-8cb4-b37539e66696/96168653-1377-4aa6-8451-1735e12a96ac-1787310080468-poster:0
+[   51152ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/315707d1-e1b1-4b80-bd5f-dc19987bda95/db860dd5-8d2d-4091-bc86-9ae25f691cd4-1787307937323-poster:0
+[   51152ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/7899d2b0-5235-410b-8e3f-9db53e33b772/afd16ae2-e224-4d56-ab2e-601c63f77294-1787305902648-poster:0
+[   51153ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/0e696c50-8685-42b6-94f3-a34ed67de26e/e62e99fe-d96b-4a28-9797-7bdbbadcf143-1787301716179-poster:0
+[   51153ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/ea0a1d66-3f3e-4f74-af1e-44008b012219/5f893f15-b132-468f-9fde-3850be566e8e-1787301689967-poster:0
+[   51233ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/7de1fd00-de07-4e42-8096-40dd343cb557/ed7ff408-3ff1-49b2-8dab-462dc28c5910-1787328943786:0
+[   54437ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/7dd9b6fb-679e-485e-bbbb-18a5e436d928/4c126746-e56e-408a-8f02-95786c4db63f-1786956155884:0
+[   59452ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/35d9ec3e-0b52-45d9-a73f-c00ba19ff72a/53e5b65c-da43-4953-a78a-b051b7187923-1785054456118:0
+[   61272ms] [LOG] [App] Starting initialization... @ http://localhost:3100/src/main.js?t=1787381395627:19
+[   61297ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:41
+[   61298ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:48
+[   61299ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:48
+[   61300ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:48
+[   61301ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:48
+[   61302ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:48
+[   61304ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:48
+[   61305ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:48
+[   61306ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:48
+[   61307ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:48
+[   61308ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:48
+[   61309ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:48
+[   61310ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:48
+[   61311ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:48
+[   63290ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=ffb3b7c5:20096
+[   63293ms] [LOG] [App] Initialized in 2021.30ms @ http://localhost:3100/src/main.js?t=1787381395627:159
+[   63293ms] [LOG] [App] Navigating to initial page: viral @ http://localhost:3100/src/main.js?t=1787381395627:160
+[   63294ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://localhost:3100/src/main.js?t=1787381395627:171
+[   65230ms] [ERROR] [ModalSystem] mount failed TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381395627:26:22 @ http://localhost:3100/src/main.js?t=1787381395627:324
+[   65234ms] [ERROR] [popcorn-init] FAILED at: plugin-image TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381395627:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:55
+[   65254ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonTransition TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381395627:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:55
+[   65748ms] [ERROR] [popcorn-init] FAILED at: plugin-lottie-json TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381395627:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:55
+[   65808ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/16c92ac9-5dcb-42d8-910c-95ca98fcf03d/059057d8-0925-49fe-a019-d1db2f5f27a4-1787328993013-poster:0
+[   65809ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/72ed0c5d-2ec2-4a0a-a1cd-683135439e17/5dcf48e1-e30c-45ea-916b-365db6aaf107-1787326914109-poster:0
+[   65810ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/fcbeabfa-3590-4518-bb47-6bd17f6bdd93/328f7aac-5baf-45ef-a102-888ec3d9d958-1787322644879-poster:0
+[   65811ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/0bdb1be9-f8f6-4641-b439-b2b96865195b/4855756b-383b-4afb-9686-da48d3a0fe20-1787318483414-poster:0
+[   65812ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/141cdcae-8fa4-48b8-b961-2da1edc815cb/ac063ef4-231c-4189-9e3a-528309f62d37-1787316337782-poster:0
+[   65813ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/29886a95-6327-4cec-930f-7c6314265aca/49838541-e379-44b9-a3e5-e1c77364da61-1787314288064-poster:0
+[   65827ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/10abe959-e5a9-4aa9-850b-4d447da35513/bed88de9-dbd2-4204-af0e-c33aff565283-1787314253535-poster:0
+[   65829ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/8cff0fea-4a71-47c3-8cb4-b37539e66696/96168653-1377-4aa6-8451-1735e12a96ac-1787310080468-poster:0
+[   65833ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/315707d1-e1b1-4b80-bd5f-dc19987bda95/db860dd5-8d2d-4091-bc86-9ae25f691cd4-1787307937323-poster:0
+[   65835ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/7899d2b0-5235-410b-8e3f-9db53e33b772/afd16ae2-e224-4d56-ab2e-601c63f77294-1787305902648-poster:0
+[   65837ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/0e696c50-8685-42b6-94f3-a34ed67de26e/e62e99fe-d96b-4a28-9797-7bdbbadcf143-1787301716179-poster:0
+[   65838ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/ea0a1d66-3f3e-4f74-af1e-44008b012219/5f893f15-b132-468f-9fde-3850be566e8e-1787301689967-poster:0
+[   65907ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/7de1fd00-de07-4e42-8096-40dd343cb557/ed7ff408-3ff1-49b2-8dab-462dc28c5910-1787328943786:0
+[   66286ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:48
+[   66482ms] [ERROR] [popcorn-init] FAILED at: plugin-personalizedImage TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381395627:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:55
+[   66501ms] [ERROR] [popcorn-init] FAILED at: plugin-loopPlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381395627:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:55
+[   66529ms] [ERROR] [popcorn-init] FAILED at: plugin-pausePlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381395627:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:55
+[   66660ms] [ERROR] [popcorn-init] FAILED at: plugin-form TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381395627:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:55
+[   66676ms] [ERROR] [popcorn-init] FAILED at: plugin-retarget TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381395627:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:55
+[   66683ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:48
+[   66694ms] [ERROR] [popcorn-init] FAILED at: plugin-sequencer TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381395627:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:55
+[   66710ms] [ERROR] [popcorn-init] FAILED at: plugin-skip TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381395627:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:55
+[   66754ms] [ERROR] [popcorn-init] FAILED at: plugin-text TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381395627:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:55
+[   66768ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:48
+[   66776ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonAnimation TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381395627:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:55
+[   66946ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:48
+[   66959ms] [ERROR] [popcorn-init] FAILED at: plugin-seethroughtext TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381395627:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:55
+[   66968ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:48
+[   66977ms] [ERROR] [popcorn-init] FAILED at: plugin-combined TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381395627:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:55
+[   66985ms] [ERROR] [popcorn-init] FAILED at: plugin-background TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381395627:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:55
+[   66985ms] [LOG] [popcorn-init] SUMMARY: 5/20 plugins registered; FAILED: plugin-image, plugin-jsonTransition, plugin-lottie-json, plugin-personalizedImage, plugin-loopPlugin, plugin-pausePlugin, plugin-form, plugin-retarget, plugin-sequencer, plugin-skip, plugin-text, plugin-jsonAnimation, plugin-seethroughtext, plugin-combined, plugin-background @ http://localhost:3100/src/lib/popcornInit.js?t=1787381395627:60
+[   66985ms] [LOG] [popcorn] function 5 @ http://localhost:3100/src/main.js?t=1787381395627:4
+[   70460ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/f4e3d741-375f-4ef6-bad3-8272f4896105/2b0a3d7b-0a93-4746-a8aa-1de0529d9f9e-1785054481122:0
+[   75448ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/1d32aea7-8e42-48b7-854a-790c0847f6b5/b159af0c-26d7-41c6-ad20-bd32382b4bc6-1785054383499:0
+[   80447ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/163a5f5a-dd97-478f-986c-cd91e15190b0/ee5d3e77-65fa-425e-b2c5-710104fa8d02-1785400720143:0
+[   86772ms] [LOG] [App] Starting initialization... @ http://localhost:3100/src/main.js?t=1787381419295:19
+[   86791ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:41
+[   86792ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:48
+[   86793ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:48
+[   86794ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:48
+[   86794ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:48
+[   86795ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:48
+[   86796ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:48
+[   86796ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:48
+[   86797ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:48
+[   86797ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:48
+[   86798ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:48
+[   86798ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:48
+[   86799ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:48
+[   86799ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:48
+[   89707ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=ffb3b7c5:20096
+[   89712ms] [LOG] [App] Initialized in 2940.60ms @ http://localhost:3100/src/main.js?t=1787381419295:159
+[   89713ms] [LOG] [App] Navigating to initial page: viral @ http://localhost:3100/src/main.js?t=1787381419295:160
+[   89713ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://localhost:3100/src/main.js?t=1787381419295:171
+[   90792ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/16c92ac9-5dcb-42d8-910c-95ca98fcf03d/059057d8-0925-49fe-a019-d1db2f5f27a4-1787328993013-poster:0
+[   90794ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/72ed0c5d-2ec2-4a0a-a1cd-683135439e17/5dcf48e1-e30c-45ea-916b-365db6aaf107-1787326914109-poster:0
+[   90796ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/fcbeabfa-3590-4518-bb47-6bd17f6bdd93/328f7aac-5baf-45ef-a102-888ec3d9d958-1787322644879-poster:0
+[   90797ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/0bdb1be9-f8f6-4641-b439-b2b96865195b/4855756b-383b-4afb-9686-da48d3a0fe20-1787318483414-poster:0
+[   90799ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/141cdcae-8fa4-48b8-b961-2da1edc815cb/ac063ef4-231c-4189-9e3a-528309f62d37-1787316337782-poster:0
+[   90801ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/29886a95-6327-4cec-930f-7c6314265aca/49838541-e379-44b9-a3e5-e1c77364da61-1787314288064-poster:0
+[   90803ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/10abe959-e5a9-4aa9-850b-4d447da35513/bed88de9-dbd2-4204-af0e-c33aff565283-1787314253535-poster:0
+[   90805ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/8cff0fea-4a71-47c3-8cb4-b37539e66696/96168653-1377-4aa6-8451-1735e12a96ac-1787310080468-poster:0
+[   90805ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/315707d1-e1b1-4b80-bd5f-dc19987bda95/db860dd5-8d2d-4091-bc86-9ae25f691cd4-1787307937323-poster:0
+[   90805ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/7899d2b0-5235-410b-8e3f-9db53e33b772/afd16ae2-e224-4d56-ab2e-601c63f77294-1787305902648-poster:0
+[   90806ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/0e696c50-8685-42b6-94f3-a34ed67de26e/e62e99fe-d96b-4a28-9797-7bdbbadcf143-1787301716179-poster:0
+[   90806ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/ea0a1d66-3f3e-4f74-af1e-44008b012219/5f893f15-b132-468f-9fde-3850be566e8e-1787301689967-poster:0
+[   90883ms] [ERROR] [ModalSystem] mount failed TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381419295:26:22 @ http://localhost:3100/src/main.js?t=1787381419295:324
+[   90889ms] [ERROR] [popcorn-init] FAILED at: plugin-image TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381419295:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:55
+[   91100ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonTransition TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381419295:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:55
+[   91108ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/7de1fd00-de07-4e42-8096-40dd343cb557/ed7ff408-3ff1-49b2-8dab-462dc28c5910-1787328943786:0
+[   91420ms] [ERROR] [popcorn-init] FAILED at: plugin-lottie-json TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381419295:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:55
+[   91467ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:48
+[   91550ms] [ERROR] [popcorn-init] FAILED at: plugin-personalizedImage TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381419295:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:55
+[   91575ms] [ERROR] [popcorn-init] FAILED at: plugin-loopPlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381419295:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:55
+[   91588ms] [ERROR] [popcorn-init] FAILED at: plugin-pausePlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381419295:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:55
+[   91661ms] [ERROR] [popcorn-init] FAILED at: plugin-form TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381419295:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:55
+[   91677ms] [ERROR] [popcorn-init] FAILED at: plugin-retarget TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381419295:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:55
+[   91685ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:48
+[   91695ms] [ERROR] [popcorn-init] FAILED at: plugin-sequencer TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381419295:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:55
+[   91703ms] [ERROR] [popcorn-init] FAILED at: plugin-skip TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381419295:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:55
+[   91760ms] [ERROR] [popcorn-init] FAILED at: plugin-text TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381419295:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:55
+[   91775ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:48
+[   91782ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonAnimation TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381419295:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:55
+[   91802ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:48
+[   91814ms] [ERROR] [popcorn-init] FAILED at: plugin-seethroughtext TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381419295:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:55
+[   91819ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:48
+[   91827ms] [ERROR] [popcorn-init] FAILED at: plugin-combined TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381419295:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:55
+[   91838ms] [ERROR] [popcorn-init] FAILED at: plugin-background TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381419295:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:55
+[   91839ms] [LOG] [popcorn-init] SUMMARY: 5/20 plugins registered; FAILED: plugin-image, plugin-jsonTransition, plugin-lottie-json, plugin-personalizedImage, plugin-loopPlugin, plugin-pausePlugin, plugin-form, plugin-retarget, plugin-sequencer, plugin-skip, plugin-text, plugin-jsonAnimation, plugin-seethroughtext, plugin-combined, plugin-background @ http://localhost:3100/src/lib/popcornInit.js?t=1787381419295:60
+[   91839ms] [LOG] [popcorn] function 5 @ http://localhost:3100/src/main.js?t=1787381419295:4
+[   95450ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/9cc89b1a-74c0-49ae-8a5e-6f64aef3d815/d1369c35-b861-446d-8b7f-41ba1e2fd31b-1785400720143:0
+[  100451ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/28a81779-6f1e-4bdd-a247-c9b03e33c3bd/5fec82f7-e48a-42ec-990f-a48e279c61ba-1785054390917:0
+[  105449ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/07e75030-140d-4c23-ae03-e27d2318b16e/8889eb8b-c4d4-4fc8-bfec-21e2896f1cd4-1785681136951:0
+[  110452ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/cfc6deac-83b2-4ff0-b2c9-67c0a4c533f1/9f97a2fa-cd40-40f5-a1ca-49257209c127-1785054500974:0
+[  119859ms] [LOG] [App] Starting initialization... @ http://localhost:3100/src/main.js?t=1787381450704:19
+[  119878ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:41
+[  119879ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:48
+[  119880ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:48
+[  119881ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:48
+[  119882ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:48
+[  119882ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:48
+[  119883ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:48
+[  119884ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:48
+[  119885ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:48
+[  119886ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:48
+[  119886ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:48
+[  119887ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:48
+[  119888ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:48
+[  119889ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:48
+[  122661ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=ffb3b7c5:20096
+[  122665ms] [LOG] [App] Initialized in 2805.70ms @ http://localhost:3100/src/main.js?t=1787381450704:159
+[  122665ms] [LOG] [App] Navigating to initial page: viral @ http://localhost:3100/src/main.js?t=1787381450704:160
+[  122666ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://localhost:3100/src/main.js?t=1787381450704:171
+[  123494ms] [ERROR] [popcorn-init] FAILED at: plugin-image TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381450704:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:55
+[  123495ms] [ERROR] [ModalSystem] mount failed TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381450704:26:22 @ http://localhost:3100/src/main.js?t=1787381450704:324
+[  124012ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/16c92ac9-5dcb-42d8-910c-95ca98fcf03d/059057d8-0925-49fe-a019-d1db2f5f27a4-1787328993013-poster:0
+[  124016ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/72ed0c5d-2ec2-4a0a-a1cd-683135439e17/5dcf48e1-e30c-45ea-916b-365db6aaf107-1787326914109-poster:0
+[  124017ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/fcbeabfa-3590-4518-bb47-6bd17f6bdd93/328f7aac-5baf-45ef-a102-888ec3d9d958-1787322644879-poster:0
+[  124017ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/0bdb1be9-f8f6-4641-b439-b2b96865195b/4855756b-383b-4afb-9686-da48d3a0fe20-1787318483414-poster:0
+[  124018ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/141cdcae-8fa4-48b8-b961-2da1edc815cb/ac063ef4-231c-4189-9e3a-528309f62d37-1787316337782-poster:0
+[  124018ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/29886a95-6327-4cec-930f-7c6314265aca/49838541-e379-44b9-a3e5-e1c77364da61-1787314288064-poster:0
+[  124021ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/10abe959-e5a9-4aa9-850b-4d447da35513/bed88de9-dbd2-4204-af0e-c33aff565283-1787314253535-poster:0
+[  124033ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/8cff0fea-4a71-47c3-8cb4-b37539e66696/96168653-1377-4aa6-8451-1735e12a96ac-1787310080468-poster:0
+[  124046ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/315707d1-e1b1-4b80-bd5f-dc19987bda95/db860dd5-8d2d-4091-bc86-9ae25f691cd4-1787307937323-poster:0
+[  124048ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/7899d2b0-5235-410b-8e3f-9db53e33b772/afd16ae2-e224-4d56-ab2e-601c63f77294-1787305902648-poster:0
+[  124053ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/0e696c50-8685-42b6-94f3-a34ed67de26e/e62e99fe-d96b-4a28-9797-7bdbbadcf143-1787301716179-poster:0
+[  124085ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/ea0a1d66-3f3e-4f74-af1e-44008b012219/5f893f15-b132-468f-9fde-3850be566e8e-1787301689967-poster:0
+[  124128ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/7de1fd00-de07-4e42-8096-40dd343cb557/ed7ff408-3ff1-49b2-8dab-462dc28c5910-1787328943786:0
+[  124163ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonTransition TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381450704:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:55
+[  124449ms] [ERROR] [popcorn-init] FAILED at: plugin-lottie-json TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381450704:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:55
+[  124539ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:48
+[  124567ms] [ERROR] [popcorn-init] FAILED at: plugin-personalizedImage TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381450704:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:55
+[  124588ms] [ERROR] [popcorn-init] FAILED at: plugin-loopPlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381450704:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:55
+[  124601ms] [ERROR] [popcorn-init] FAILED at: plugin-pausePlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381450704:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:55
+[  124627ms] [ERROR] [popcorn-init] FAILED at: plugin-form TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381450704:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:55
+[  124647ms] [ERROR] [popcorn-init] FAILED at: plugin-retarget TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381450704:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:55
+[  124658ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:48
+[  124672ms] [ERROR] [popcorn-init] FAILED at: plugin-sequencer TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381450704:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:55
+[  124679ms] [ERROR] [popcorn-init] FAILED at: plugin-skip TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381450704:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:55
+[  124722ms] [ERROR] [popcorn-init] FAILED at: plugin-text TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381450704:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:55
+[  124757ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:48
+[  124773ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonAnimation TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381450704:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:55
+[  124804ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:48
+[  124815ms] [ERROR] [popcorn-init] FAILED at: plugin-seethroughtext TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381450704:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:55
+[  124825ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:48
+[  124832ms] [ERROR] [popcorn-init] FAILED at: plugin-combined TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381450704:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:55
+[  124843ms] [ERROR] [popcorn-init] FAILED at: plugin-background TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381450704:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:55
+[  124844ms] [LOG] [popcorn-init] SUMMARY: 5/20 plugins registered; FAILED: plugin-image, plugin-jsonTransition, plugin-lottie-json, plugin-personalizedImage, plugin-loopPlugin, plugin-pausePlugin, plugin-form, plugin-retarget, plugin-sequencer, plugin-skip, plugin-text, plugin-jsonAnimation, plugin-seethroughtext, plugin-combined, plugin-background @ http://localhost:3100/src/lib/popcornInit.js?t=1787381450704:60
+[  124844ms] [LOG] [popcorn] function 5 @ http://localhost:3100/src/main.js?t=1787381450704:4
+[  128737ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/de324335-5510-414b-82b6-bbf82a5b2ca2/53fbeb10-f832-40d7-8858-363b29e698aa-1787150553177:0
+[  132406ms] [LOG] [App] Starting initialization... @ http://localhost:3100/src/main.js?t=1787381465745:19
+[  132428ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:41
+[  132429ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:48
+[  132429ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:48
+[  132430ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:48
+[  132431ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:48
+[  132431ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:48
+[  132432ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:48
+[  132432ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:48
+[  132433ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:48
+[  132434ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:48
+[  132434ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:48
+[  132435ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:48
+[  132436ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:48
+[  132436ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:48
+[  133301ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=ffb3b7c5:20096
+[  133305ms] [LOG] [App] Initialized in 898.10ms @ http://localhost:3100/src/main.js?t=1787381465745:159
+[  133305ms] [LOG] [App] Navigating to initial page: viral @ http://localhost:3100/src/main.js?t=1787381465745:160
+[  133305ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://localhost:3100/src/main.js?t=1787381465745:171
+[  136853ms] [ERROR] [ModalSystem] mount failed TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381465745:26:22 @ http://localhost:3100/src/main.js?t=1787381465745:324
+[  136856ms] [ERROR] [popcorn-init] FAILED at: plugin-image TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381465745:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:55
+[  136966ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/16c92ac9-5dcb-42d8-910c-95ca98fcf03d/059057d8-0925-49fe-a019-d1db2f5f27a4-1787328993013-poster:0
+[  136966ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/72ed0c5d-2ec2-4a0a-a1cd-683135439e17/5dcf48e1-e30c-45ea-916b-365db6aaf107-1787326914109-poster:0
+[  136966ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/fcbeabfa-3590-4518-bb47-6bd17f6bdd93/328f7aac-5baf-45ef-a102-888ec3d9d958-1787322644879-poster:0
+[  136966ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/0bdb1be9-f8f6-4641-b439-b2b96865195b/4855756b-383b-4afb-9686-da48d3a0fe20-1787318483414-poster:0
+[  136966ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/141cdcae-8fa4-48b8-b961-2da1edc815cb/ac063ef4-231c-4189-9e3a-528309f62d37-1787316337782-poster:0
+[  136966ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/29886a95-6327-4cec-930f-7c6314265aca/49838541-e379-44b9-a3e5-e1c77364da61-1787314288064-poster:0
+[  136967ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/10abe959-e5a9-4aa9-850b-4d447da35513/bed88de9-dbd2-4204-af0e-c33aff565283-1787314253535-poster:0
+[  136967ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/8cff0fea-4a71-47c3-8cb4-b37539e66696/96168653-1377-4aa6-8451-1735e12a96ac-1787310080468-poster:0
+[  136967ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/315707d1-e1b1-4b80-bd5f-dc19987bda95/db860dd5-8d2d-4091-bc86-9ae25f691cd4-1787307937323-poster:0
+[  136967ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/7899d2b0-5235-410b-8e3f-9db53e33b772/afd16ae2-e224-4d56-ab2e-601c63f77294-1787305902648-poster:0
+[  136967ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/0e696c50-8685-42b6-94f3-a34ed67de26e/e62e99fe-d96b-4a28-9797-7bdbbadcf143-1787301716179-poster:0
+[  137009ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/ea0a1d66-3f3e-4f74-af1e-44008b012219/5f893f15-b132-468f-9fde-3850be566e8e-1787301689967-poster:0
+[  137023ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonTransition TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381465745:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:55
+[  137133ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/7de1fd00-de07-4e42-8096-40dd343cb557/ed7ff408-3ff1-49b2-8dab-462dc28c5910-1787328943786:0
+[  137194ms] [ERROR] [popcorn-init] FAILED at: plugin-lottie-json TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381465745:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:55
+[  137310ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:48
+[  137358ms] [ERROR] [popcorn-init] FAILED at: plugin-personalizedImage TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381465745:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:55
+[  137461ms] [ERROR] [popcorn-init] FAILED at: plugin-loopPlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381465745:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:55
+[  137838ms] [ERROR] [popcorn-init] FAILED at: plugin-pausePlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381465745:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:55
+[  137887ms] [ERROR] [popcorn-init] FAILED at: plugin-form TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381465745:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:55
+[  137904ms] [ERROR] [popcorn-init] FAILED at: plugin-retarget TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381465745:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:55
+[  137914ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:48
+[  137923ms] [ERROR] [popcorn-init] FAILED at: plugin-sequencer TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381465745:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:55
+[  137935ms] [ERROR] [popcorn-init] FAILED at: plugin-skip TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381465745:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:55
+[  137999ms] [ERROR] [popcorn-init] FAILED at: plugin-text TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381465745:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:55
+[  138016ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:48
+[  138026ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonAnimation TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381465745:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:55
+[  138049ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:48
+[  138059ms] [ERROR] [popcorn-init] FAILED at: plugin-seethroughtext TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381465745:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:55
+[  138065ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:48
+[  138073ms] [ERROR] [popcorn-init] FAILED at: plugin-combined TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381465745:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:55
+[  138087ms] [ERROR] [popcorn-init] FAILED at: plugin-background TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381465745:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:55
+[  138087ms] [LOG] [popcorn-init] SUMMARY: 5/20 plugins registered; FAILED: plugin-image, plugin-jsonTransition, plugin-lottie-json, plugin-personalizedImage, plugin-loopPlugin, plugin-pausePlugin, plugin-form, plugin-retarget, plugin-sequencer, plugin-skip, plugin-text, plugin-jsonAnimation, plugin-seethroughtext, plugin-combined, plugin-background @ http://localhost:3100/src/lib/popcornInit.js?t=1787381465745:60
+[  138087ms] [LOG] [popcorn] function 5 @ http://localhost:3100/src/main.js?t=1787381465745:4
+[  141528ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/935b0347-8ffa-4ae4-8d92-b56d5afc397d/664a30af-453d-4159-9c0e-1faac203a7bb-1785056488158:0
+[  146512ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/1b5632de-2a95-414a-aafd-84705bb59a70/0a099101-1e51-422b-b91e-d4e55499b22a-1787149789511:0
+[  150224ms] [LOG] [App] Starting initialization... @ http://localhost:3100/src/main.js?t=1787381483206:19
+[  150243ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:41
+[  150244ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:48
+[  150245ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:48
+[  150246ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:48
+[  150247ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:48
+[  150248ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:48
+[  150249ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:48
+[  150250ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:48
+[  150250ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:48
+[  150251ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:48
+[  150251ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:48
+[  150252ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:48
+[  150253ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:48
+[  150253ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:48
+[  154238ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=ffb3b7c5:20096
+[  154242ms] [LOG] [App] Initialized in 4017.20ms @ http://localhost:3100/src/main.js?t=1787381483206:159
+[  154242ms] [LOG] [App] Navigating to initial page: viral @ http://localhost:3100/src/main.js?t=1787381483206:160
+[  154242ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://localhost:3100/src/main.js?t=1787381483206:171
+[  154911ms] [ERROR] [popcorn-init] FAILED at: plugin-image TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381483206:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:55
+[  154912ms] [ERROR] [ModalSystem] mount failed TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381483206:26:22 @ http://localhost:3100/src/main.js?t=1787381483206:324
+[  155400ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/16c92ac9-5dcb-42d8-910c-95ca98fcf03d/059057d8-0925-49fe-a019-d1db2f5f27a4-1787328993013-poster:0
+[  155401ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/72ed0c5d-2ec2-4a0a-a1cd-683135439e17/5dcf48e1-e30c-45ea-916b-365db6aaf107-1787326914109-poster:0
+[  155401ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/fcbeabfa-3590-4518-bb47-6bd17f6bdd93/328f7aac-5baf-45ef-a102-888ec3d9d958-1787322644879-poster:0
+[  155402ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/0bdb1be9-f8f6-4641-b439-b2b96865195b/4855756b-383b-4afb-9686-da48d3a0fe20-1787318483414-poster:0
+[  155402ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/141cdcae-8fa4-48b8-b961-2da1edc815cb/ac063ef4-231c-4189-9e3a-528309f62d37-1787316337782-poster:0
+[  155402ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/29886a95-6327-4cec-930f-7c6314265aca/49838541-e379-44b9-a3e5-e1c77364da61-1787314288064-poster:0
+[  155403ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/10abe959-e5a9-4aa9-850b-4d447da35513/bed88de9-dbd2-4204-af0e-c33aff565283-1787314253535-poster:0
+[  155403ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/8cff0fea-4a71-47c3-8cb4-b37539e66696/96168653-1377-4aa6-8451-1735e12a96ac-1787310080468-poster:0
+[  155403ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/315707d1-e1b1-4b80-bd5f-dc19987bda95/db860dd5-8d2d-4091-bc86-9ae25f691cd4-1787307937323-poster:0
+[  155403ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/7899d2b0-5235-410b-8e3f-9db53e33b772/afd16ae2-e224-4d56-ab2e-601c63f77294-1787305902648-poster:0
+[  155403ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/0e696c50-8685-42b6-94f3-a34ed67de26e/e62e99fe-d96b-4a28-9797-7bdbbadcf143-1787301716179-poster:0
+[  155404ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/ea0a1d66-3f3e-4f74-af1e-44008b012219/5f893f15-b132-468f-9fde-3850be566e8e-1787301689967-poster:0
+[  155450ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonTransition TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381483206:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:55
+[  155454ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/7de1fd00-de07-4e42-8096-40dd343cb557/ed7ff408-3ff1-49b2-8dab-462dc28c5910-1787328943786:0
+[  155614ms] [ERROR] [popcorn-init] FAILED at: plugin-lottie-json TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381483206:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:55
+[  155781ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:48
+[  155809ms] [ERROR] [popcorn-init] FAILED at: plugin-personalizedImage TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381483206:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:55
+[  155854ms] [ERROR] [popcorn-init] FAILED at: plugin-loopPlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381483206:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:55
+[  155873ms] [ERROR] [popcorn-init] FAILED at: plugin-pausePlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381483206:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:55
+[  155896ms] [ERROR] [popcorn-init] FAILED at: plugin-form TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381483206:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:55
+[  155915ms] [ERROR] [popcorn-init] FAILED at: plugin-retarget TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381483206:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:55
+[  155926ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:48
+[  155941ms] [ERROR] [popcorn-init] FAILED at: plugin-sequencer TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381483206:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:55
+[  155948ms] [ERROR] [popcorn-init] FAILED at: plugin-skip TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381483206:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:55
+[  155980ms] [ERROR] [popcorn-init] FAILED at: plugin-text TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381483206:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:55
+[  155998ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:48
+[  156008ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonAnimation TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381483206:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:55
+[  156026ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:48
+[  156037ms] [ERROR] [popcorn-init] FAILED at: plugin-seethroughtext TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381483206:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:55
+[  156046ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:48
+[  156059ms] [ERROR] [popcorn-init] FAILED at: plugin-combined TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381483206:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:55
+[  156069ms] [ERROR] [popcorn-init] FAILED at: plugin-background TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381483206:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:55
+[  156069ms] [LOG] [popcorn-init] SUMMARY: 5/20 plugins registered; FAILED: plugin-image, plugin-jsonTransition, plugin-lottie-json, plugin-personalizedImage, plugin-loopPlugin, plugin-pausePlugin, plugin-form, plugin-retarget, plugin-sequencer, plugin-skip, plugin-text, plugin-jsonAnimation, plugin-seethroughtext, plugin-combined, plugin-background @ http://localhost:3100/src/lib/popcornInit.js?t=1787381483206:60
+[  156069ms] [LOG] [popcorn] function 5 @ http://localhost:3100/src/main.js?t=1787381483206:4
+[  160148ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/35d9ec3e-0b52-45d9-a73f-c00ba19ff72a/53e5b65c-da43-4953-a78a-b051b7187923-1785054456118:0
+[  165150ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/b47cda92-83d9-499f-94e3-7e264e613d4b/d3914a74-872b-4bb7-bc01-e9dccf673c39-1786518098511:0
+[  170149ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/f4e3d741-375f-4ef6-bad3-8272f4896105/2b0a3d7b-0a93-4746-a8aa-1de0529d9f9e-1785054481122:0
+[  175150ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/1d32aea7-8e42-48b7-854a-790c0847f6b5/b159af0c-26d7-41c6-ad20-bd32382b4bc6-1785054383499:0
+[  180149ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/163a5f5a-dd97-478f-986c-cd91e15190b0/ee5d3e77-65fa-425e-b2c5-710104fa8d02-1785400720143:0
+[  185151ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/27dee085-e2d9-484d-84e8-4f0de4a96cb0/8ce6cf6a-3455-44f2-b22d-bcd37e34128e-1785400720143:0
+[  190155ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/710a7256-a306-476b-9186-4481a6650df9/f8f5b9ac-2829-472e-864b-fea036e8b11e-1785400720143:0
+[  195154ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/9cc89b1a-74c0-49ae-8a5e-6f64aef3d815/d1369c35-b861-446d-8b7f-41ba1e2fd31b-1785400720143:0
+[  200151ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/28a81779-6f1e-4bdd-a247-c9b03e33c3bd/5fec82f7-e48a-42ec-990f-a48e279c61ba-1785054390917:0
+[  205148ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/07e75030-140d-4c23-ae03-e27d2318b16e/8889eb8b-c4d4-4fc8-bfec-21e2896f1cd4-1785681136951:0
+[  210152ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/cfc6deac-83b2-4ff0-b2c9-67c0a4c533f1/9f97a2fa-cd40-40f5-a1ca-49257209c127-1785054500974:0
+[  215149ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/9493a733-5408-4ee8-a898-0bc0800809b0/05066164-e1e4-49a1-80b7-019e686551af-1786638677959:0
+[  220148ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/c3a67d5f-8083-4eb8-bf32-2f06f8660eb4/c32467c5-a69c-469c-a525-a9941e0e7a82-1786408829975:0
+[  225152ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/de324335-5510-414b-82b6-bbf82a5b2ca2/53fbeb10-f832-40d7-8858-363b29e698aa-1787150553177:0
+[  230148ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/c7104541-3e57-414f-aa91-245b2d57763e/1cf63605-d28a-4596-a270-c2bba510407a-1787150538265:0
+[  235149ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/c85cc8fe-e596-4b57-8614-91b0dd10068a/825493e1-8bcf-4e11-913d-e8f58f0c7272-1787150538265:0
+[  240151ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/935b0347-8ffa-4ae4-8d92-b56d5afc397d/664a30af-453d-4159-9c0e-1faac203a7bb-1785056488158:0
+[  245151ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/1b5632de-2a95-414a-aafd-84705bb59a70/0a099101-1e51-422b-b91e-d4e55499b22a-1787149789511:0
+[  250160ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/46a3cd3a-2755-4c54-833b-55b4c294d13a/45108068-e694-4abe-8629-c9ae5eb31449-1787150499332:0
+[  255152ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/7dd9b6fb-679e-485e-bbbb-18a5e436d928/4c126746-e56e-408a-8f02-95786c4db63f-1786956155884:0
+[  260152ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/35d9ec3e-0b52-45d9-a73f-c00ba19ff72a/53e5b65c-da43-4953-a78a-b051b7187923-1785054456118:0
+[  265151ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/b47cda92-83d9-499f-94e3-7e264e613d4b/d3914a74-872b-4bb7-bc01-e9dccf673c39-1786518098511:0
+[  270152ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/f4e3d741-375f-4ef6-bad3-8272f4896105/2b0a3d7b-0a93-4746-a8aa-1de0529d9f9e-1785054481122:0
+[  275150ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/1d32aea7-8e42-48b7-854a-790c0847f6b5/b159af0c-26d7-41c6-ad20-bd32382b4bc6-1785054383499:0
+[  280150ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/163a5f5a-dd97-478f-986c-cd91e15190b0/ee5d3e77-65fa-425e-b2c5-710104fa8d02-1785400720143:0
+[  285151ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/27dee085-e2d9-484d-84e8-4f0de4a96cb0/8ce6cf6a-3455-44f2-b22d-bcd37e34128e-1785400720143:0
+[  290149ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/710a7256-a306-476b-9186-4481a6650df9/f8f5b9ac-2829-472e-864b-fea036e8b11e-1785400720143:0
+[  295178ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/9cc89b1a-74c0-49ae-8a5e-6f64aef3d815/d1369c35-b861-446d-8b7f-41ba1e2fd31b-1785400720143:0
+[  300150ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/28a81779-6f1e-4bdd-a247-c9b03e33c3bd/5fec82f7-e48a-42ec-990f-a48e279c61ba-1785054390917:0
+[  305152ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/07e75030-140d-4c23-ae03-e27d2318b16e/8889eb8b-c4d4-4fc8-bfec-21e2896f1cd4-1785681136951:0
+[  310150ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/cfc6deac-83b2-4ff0-b2c9-67c0a4c533f1/9f97a2fa-cd40-40f5-a1ca-49257209c127-1785054500974:0
+[  315149ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/9493a733-5408-4ee8-a898-0bc0800809b0/05066164-e1e4-49a1-80b7-019e686551af-1786638677959:0
+[  320150ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/c3a67d5f-8083-4eb8-bf32-2f06f8660eb4/c32467c5-a69c-469c-a525-a9941e0e7a82-1786408829975:0
+[  325150ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/de324335-5510-414b-82b6-bbf82a5b2ca2/53fbeb10-f832-40d7-8858-363b29e698aa-1787150553177:0
+[  333843ms] [LOG] [App] Starting initialization... @ http://localhost:3100/src/main.js?t=1787381665914:19
+[  333862ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3100/src/lib/popcornInit.js?t=1787381665914:41
+[  333862ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3100/src/lib/popcornInit.js?t=1787381665914:48
+[  333863ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3100/src/lib/popcornInit.js?t=1787381665914:48
+[  333864ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381665914:48
+[  333864ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3100/src/lib/popcornInit.js?t=1787381665914:48
+[  333865ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381665914:48
+[  333866ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3100/src/lib/popcornInit.js?t=1787381665914:48
+[  333866ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3100/src/lib/popcornInit.js?t=1787381665914:48
+[  333867ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3100/src/lib/popcornInit.js?t=1787381665914:48
+[  333867ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3100/src/lib/popcornInit.js?t=1787381665914:48
+[  333868ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3100/src/lib/popcornInit.js?t=1787381665914:48
+[  333868ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3100/src/lib/popcornInit.js?t=1787381665914:48
+[  333869ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3100/src/lib/popcornInit.js?t=1787381665914:48
+[  333870ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3100/src/lib/popcornInit.js?t=1787381665914:48
+[  336456ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=ffb3b7c5:20096
+[  336459ms] [LOG] [App] Initialized in 2616.00ms @ http://localhost:3100/src/main.js?t=1787381665914:159
+[  336459ms] [LOG] [App] Navigating to initial page: viral @ http://localhost:3100/src/main.js?t=1787381665914:160
+[  336460ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://localhost:3100/src/main.js?t=1787381665914:171
+[  336677ms] [ERROR] [popcorn-init] FAILED at: plugin-image TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381665914:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381665914:55
+[  336677ms] [ERROR] [ModalSystem] mount failed TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381665914:26:22 @ http://localhost:3100/src/main.js?t=1787381665914:324
+[  336718ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonTransition TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381665914:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381665914:55
+[  336750ms] [ERROR] [popcorn-init] FAILED at: plugin-lottie-json TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381665914:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381665914:55
+[  336792ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3100/src/lib/popcornInit.js?t=1787381665914:48
+[  337357ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/16c92ac9-5dcb-42d8-910c-95ca98fcf03d/059057d8-0925-49fe-a019-d1db2f5f27a4-1787328993013-poster:0
+[  337402ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/72ed0c5d-2ec2-4a0a-a1cd-683135439e17/5dcf48e1-e30c-45ea-916b-365db6aaf107-1787326914109-poster:0
+[  337402ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/fcbeabfa-3590-4518-bb47-6bd17f6bdd93/328f7aac-5baf-45ef-a102-888ec3d9d958-1787322644879-poster:0
+[  337402ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/0bdb1be9-f8f6-4641-b439-b2b96865195b/4855756b-383b-4afb-9686-da48d3a0fe20-1787318483414-poster:0
+[  337403ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/141cdcae-8fa4-48b8-b961-2da1edc815cb/ac063ef4-231c-4189-9e3a-528309f62d37-1787316337782-poster:0
+[  337403ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/29886a95-6327-4cec-930f-7c6314265aca/49838541-e379-44b9-a3e5-e1c77364da61-1787314288064-poster:0
+[  337403ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/10abe959-e5a9-4aa9-850b-4d447da35513/bed88de9-dbd2-4204-af0e-c33aff565283-1787314253535-poster:0
+[  337403ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/8cff0fea-4a71-47c3-8cb4-b37539e66696/96168653-1377-4aa6-8451-1735e12a96ac-1787310080468-poster:0
+[  337403ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/315707d1-e1b1-4b80-bd5f-dc19987bda95/db860dd5-8d2d-4091-bc86-9ae25f691cd4-1787307937323-poster:0
+[  337403ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/7899d2b0-5235-410b-8e3f-9db53e33b772/afd16ae2-e224-4d56-ab2e-601c63f77294-1787305902648-poster:0
+[  337403ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/0e696c50-8685-42b6-94f3-a34ed67de26e/e62e99fe-d96b-4a28-9797-7bdbbadcf143-1787301716179-poster:0
+[  337404ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/ea0a1d66-3f3e-4f74-af1e-44008b012219/5f893f15-b132-468f-9fde-3850be566e8e-1787301689967-poster:0
+[  337454ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://cdn.imglume.com/prompts/byradar/7de1fd00-de07-4e42-8096-40dd343cb557/ed7ff408-3ff1-49b2-8dab-462dc28c5910-1787328943786:0
+[  337504ms] [ERROR] [popcorn-init] FAILED at: plugin-personalizedImage TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381665914:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381665914:55
+[  337614ms] [ERROR] [popcorn-init] FAILED at: plugin-loopPlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381665914:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381665914:55
+[  337754ms] [ERROR] [popcorn-init] FAILED at: plugin-pausePlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787381665914:26:22 @ http://localhost:3100/src/lib/popcornInit.js?t=1787381665914:55

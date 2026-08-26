@@ -1,0 +1,1166 @@
+- generic [active] [ref=f23e1]:
+  - generic [ref=f23e2]:
+    - generic [ref=f23e3]:
+      - generic [ref=f23e14]:
+        - link [ref=f23e15] [cursor=pointer]:
+          - /url: https://www.atlascloud.ai/?ref=JPM683
+          - img "Atlas Cloud" [ref=f23e16]
+        - generic [ref=f23e17]:
+          - link "Open GitHub repository" [ref=f23e18] [cursor=pointer]:
+            - /url: https://github.com/AtlasCloudAI/awesome-minimax-h3-prompts
+            - img "GitHub" [ref=f23e19]
+          - button "Switch language" [ref=f23e21] [cursor=pointer]
+      - generic [ref=f23e28]:
+        - generic [ref=f23e29]: AI Video Generation Prompt Gallery & API
+        - heading [level=1] [ref=f23e33]:
+          - img "MiniMax H3 icon" [ref=f23e34]
+          - text: MINIMAX H3
+        - paragraph [ref=f23e35]: MiniMax H3 Prompt Library
+        - paragraph [ref=f23e36]: Official MiniMax H3 showcase prompts for multimodal AI video — one context of text, images, video and sound, every clip with native stereo audio. 4–15s at 24 FPS · 768p / 1440p · up to 9 image, 3 video and 3 audio references. Browse brand film, motion graphics, AI narrative, e-commerce, game and industrial cases with real video previews, copy-ready and API-callable.
+        - generic [ref=f23e38]:
+          - link "Seedance 2.5 Prompt Library" [ref=f23e39] [cursor=pointer]:
+            - /url: /prompts-hub/seedance-2-5-prompt
+          - link "MiniMax H3 Prompt Library" [ref=f23e40] [cursor=pointer]:
+            - /url: /prompts-hub/minimax-h3-prompt
+          - link "Wan 3.0 Prompt Library" [ref=f23e41] [cursor=pointer]:
+            - /url: /prompts-hub/wan-3-0-prompt
+          - link "Seedream 5.0 Pro Prompt Library" [ref=f23e42] [cursor=pointer]:
+            - /url: /prompts-hub/seedream-5-pro-prompt
+          - link "GPT Image 2 Prompt Library" [ref=f23e43] [cursor=pointer]:
+            - /url: /prompts-hub/gpt-image-2-prompt
+          - link "Happy Horse 1.0 Prompt Library" [ref=f23e44] [cursor=pointer]:
+            - /url: /prompts-hub/happy-horse-1-prompt
+          - link "Seedance 2 Prompt Library" [ref=f23e45] [cursor=pointer]:
+            - /url: /prompts-hub/seedance-2-prompt
+          - link "Gemini Omni Flash Prompt Library" [ref=f23e46] [cursor=pointer]:
+            - /url: /prompts-hub/gemini-omni-prompt
+        - generic [ref=f23e47]:
+          - generic [ref=f23e48]:
+            - textbox "Describe what to generate, or click \"Try Now\" on any card to autofill..." [ref=f23e49]
+            - generic [ref=f23e50]:
+              - button "Random" [ref=f23e51] [cursor=pointer]
+              - generic [ref=f23e55]: Prompt text is carried to the generation page.
+              - link "API Available" [ref=f23e56] [cursor=pointer]:
+                - /url: /prompts-hub/login?ref=JPM683
+          - button "Generate" [ref=f23e61] [cursor=pointer]
+        - generic [ref=f23e64]:
+          - text: Powered by
+          - link "Atlas Cloud" [ref=f23e65] [cursor=pointer]:
+            - /url: https://www.atlascloud.ai/?ref=JPM683
+    - banner [ref=f23e66]:
+      - generic [ref=f23e67]:
+        - generic [ref=f23e68]:
+          - generic [ref=f23e69]:
+            - heading "Prompt Gallery" [level=1] [ref=f23e70]
+            - paragraph [ref=f23e71]: Showing 51 of 51 prompts
+          - textbox "Search title, description, or prompt" [ref=f23e73]
+        - generic [ref=f23e75]:
+          - button "ALL (51)" [ref=f23e76] [cursor=pointer]
+          - button "VISUAL CREATIVE & PACKAGING (8)" [ref=f23e77] [cursor=pointer]
+          - button "ANIMATION & STYLIZED (6)" [ref=f23e78] [cursor=pointer]
+          - button "DIGITAL & GAME CREATIVE (5)" [ref=f23e79] [cursor=pointer]
+          - button "BRAND FILM & CINEMATIC (5)" [ref=f23e80] [cursor=pointer]
+          - button "PRECISE INSTRUCTION FOLLOWING (4)" [ref=f23e81] [cursor=pointer]
+          - button "MOTION GRAPHICS & VFX (4)" [ref=f23e82] [cursor=pointer]
+          - button "AI NARRATIVE (3)" [ref=f23e83] [cursor=pointer]
+          - button "MULTI-ASSET REFERENCE (3)" [ref=f23e84] [cursor=pointer]
+          - button "STYLE PRESETS (2)" [ref=f23e85] [cursor=pointer]
+          - button "PRODUCT & E-COMMERCE (2)" [ref=f23e86] [cursor=pointer]
+    - generic [ref=f23e87]:
+      - generic [ref=f23e88]:
+        - textbox "Search title, description, or prompt" [ref=f23e93]
+        - generic [ref=f23e94]:
+          - button "All" [ref=f23e95] [cursor=pointer]
+          - button "Official" [ref=f23e96] [cursor=pointer]
+          - button "Community" [ref=f23e97] [cursor=pointer]
+      - generic [ref=f23e99]:
+        - button "ALL (51)" [ref=f23e100] [cursor=pointer]
+        - button "VISUAL CREATIVE & PACKAGING (8)" [ref=f23e101] [cursor=pointer]
+        - button "ANIMATION & STYLIZED (6)" [ref=f23e102] [cursor=pointer]
+        - button "DIGITAL & GAME CREATIVE (5)" [ref=f23e103] [cursor=pointer]
+        - button "BRAND FILM & CINEMATIC (5)" [ref=f23e104] [cursor=pointer]
+        - button "PRECISE INSTRUCTION FOLLOWING (4)" [ref=f23e105] [cursor=pointer]
+        - button "MOTION GRAPHICS & VFX (4)" [ref=f23e106] [cursor=pointer]
+        - button "AI NARRATIVE (3)" [ref=f23e107] [cursor=pointer]
+        - button "MULTI-ASSET REFERENCE (3)" [ref=f23e108] [cursor=pointer]
+        - button "STYLE PRESETS (2)" [ref=f23e109] [cursor=pointer]
+        - button "PRODUCT & E-COMMERCE (2)" [ref=f23e110] [cursor=pointer]
+        - button "+6 More" [ref=f23e111] [cursor=pointer]
+    - main [ref=f23e112]:
+      - generic [ref=f23e113]: Showing 51 of 51 prompts
+      - generic [ref=f23e115]:
+        - generic [ref=f23e116]:
+          - article [ref=f23e117]:
+            - generic [ref=f23e118]:
+              - generic [ref=f23e121]: Digital & Game Creative
+              - button "Preview video" [ref=f23e122] [cursor=pointer]
+            - generic [ref=f23e124]:
+              - generic [ref=f23e125]:
+                - generic [ref=f23e126]: official
+                - generic [ref=f23e127]: "@MiniMax"
+              - heading "Cyberpunk Character UI Customization" [level=3] [ref=f23e128]
+              - paragraph [ref=f23e129]: A sequence showing a character's cybernetic arm customization through detailed UI panels in a vibrant setting.
+              - generic [ref=f23e130]:
+                - generic [ref=f23e131]: "Platform: official"
+                - generic [ref=f23e132]: "Language: English"
+                - generic [ref=f23e133]: "Likes: 0"
+                - generic [ref=f23e134]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e136] [cursor=pointer]:
+                - generic [ref=f23e137]: Prompt
+                - generic [ref=f23e138]: ⌄
+              - generic [ref=f23e139]:
+                - button "Copy Prompt" [ref=f23e140] [cursor=pointer]
+                - button "Try Now" [ref=f23e141] [cursor=pointer]
+          - article [ref=f23e142]:
+            - generic [ref=f23e143]:
+              - generic [ref=f23e146]: Precise Instruction Following
+              - button "Preview video" [ref=f23e147] [cursor=pointer]
+            - generic [ref=f23e149]:
+              - generic [ref=f23e150]:
+                - generic [ref=f23e151]: official
+                - generic [ref=f23e152]: "@MiniMax"
+              - heading "High-Precision Instruction Following" [level=3] [ref=f23e153]
+              - paragraph [ref=f23e154]: Replace objects, modify furniture, remove effects, and add elements based on a reference video.
+              - generic [ref=f23e155]:
+                - generic [ref=f23e156]: "Platform: official"
+                - generic [ref=f23e157]: "Language: English"
+                - generic [ref=f23e158]: "Likes: 0"
+                - generic [ref=f23e159]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e161] [cursor=pointer]:
+                - generic [ref=f23e162]: Prompt
+                - generic [ref=f23e163]: ⌄
+              - generic [ref=f23e164]:
+                - button "Copy Prompt" [ref=f23e165] [cursor=pointer]
+                - button "Try Now" [ref=f23e166] [cursor=pointer]
+          - article [ref=f23e167]:
+            - generic [ref=f23e168]:
+              - generic [ref=f23e171]: Visual Creative & Packaging
+              - button "Preview video" [ref=f23e172] [cursor=pointer]
+            - generic [ref=f23e174]:
+              - generic [ref=f23e175]:
+                - generic [ref=f23e176]: official
+                - generic [ref=f23e177]: "@MiniMax"
+              - heading "Dynamic Poster Video With Sound" [level=3] [ref=f23e178]
+              - paragraph [ref=f23e179]: Create a dynamic poster video retaining the original frame, color scheme, and 3D figurine feel.
+              - generic [ref=f23e180]:
+                - generic [ref=f23e181]: "Platform: official"
+                - generic [ref=f23e182]: "Language: English"
+                - generic [ref=f23e183]: "Likes: 0"
+                - generic [ref=f23e184]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e186] [cursor=pointer]:
+                - generic [ref=f23e187]: Prompt
+                - generic [ref=f23e188]: ⌄
+              - generic [ref=f23e189]:
+                - button "Copy Prompt" [ref=f23e190] [cursor=pointer]
+                - button "Try Now" [ref=f23e191] [cursor=pointer]
+          - article [ref=f23e192]:
+            - generic [ref=f23e193]:
+              - generic [ref=f23e196]: Visual Creative & Packaging
+              - button "Preview video" [ref=f23e197] [cursor=pointer]
+            - generic [ref=f23e199]:
+              - generic [ref=f23e200]:
+                - generic [ref=f23e201]: official
+                - generic [ref=f23e202]: "@MiniMax"
+              - heading "Retro Anime-Style Crime Movie Title Sequence" [level=3] [ref=f23e203]
+              - paragraph [ref=f23e204]: A 15-second title sequence with retro Japanese anime visuals, hard-edged silhouettes, and a suspenseful jazz soundtrack.
+              - generic [ref=f23e205]:
+                - generic [ref=f23e206]: "Platform: official"
+                - generic [ref=f23e207]: "Language: English"
+                - generic [ref=f23e208]: "Likes: 0"
+                - generic [ref=f23e209]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e211] [cursor=pointer]:
+                - generic [ref=f23e212]: Prompt
+                - generic [ref=f23e213]: ⌄
+              - generic [ref=f23e214]:
+                - button "Copy Prompt" [ref=f23e215] [cursor=pointer]
+                - button "Try Now" [ref=f23e216] [cursor=pointer]
+          - article [ref=f23e217]:
+            - generic [ref=f23e218]:
+              - generic [ref=f23e221]: Character & Object Editing
+              - button "Preview video" [ref=f23e222] [cursor=pointer]
+            - generic [ref=f23e224]:
+              - generic [ref=f23e225]:
+                - generic [ref=f23e226]: official
+                - generic [ref=f23e227]: "@MiniMax"
+              - heading "Add A Teammate In Uniform" [level=3] [ref=f23e228]
+              - paragraph [ref=f23e229]: Add a person in matching team uniform on the left, mirroring the action of others.
+              - generic [ref=f23e230]:
+                - generic [ref=f23e231]: "Platform: official"
+                - generic [ref=f23e232]: "Language: English"
+                - generic [ref=f23e233]: "Likes: 0"
+                - generic [ref=f23e234]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e236] [cursor=pointer]:
+                - generic [ref=f23e237]: Prompt
+                - generic [ref=f23e238]: ⌄
+              - generic [ref=f23e239]:
+                - button "Copy Prompt" [ref=f23e240] [cursor=pointer]
+                - button "Try Now" [ref=f23e241] [cursor=pointer]
+          - article [ref=f23e242]:
+            - generic [ref=f23e243]:
+              - generic [ref=f23e246]: Brand Film & Cinematic
+              - button "Preview video" [ref=f23e247] [cursor=pointer]
+            - generic [ref=f23e249]:
+              - generic [ref=f23e250]:
+                - generic [ref=f23e251]: official
+                - generic [ref=f23e252]: "@MiniMax"
+              - heading "Night Fire Fashion Short With VHS Glitches" [level=3] [ref=f23e253]
+              - paragraph [ref=f23e254]: A 15-second fashion short featuring a woman in a leather coat with firelight reflections, using VHS glitches and film grain effects.
+              - generic [ref=f23e255]:
+                - generic [ref=f23e256]: "Platform: official"
+                - generic [ref=f23e257]: "Language: English"
+                - generic [ref=f23e258]: "Likes: 0"
+                - generic [ref=f23e259]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e261] [cursor=pointer]:
+                - generic [ref=f23e262]: Prompt
+                - generic [ref=f23e263]: ⌄
+              - generic [ref=f23e264]:
+                - button "Copy Prompt" [ref=f23e265] [cursor=pointer]
+                - button "Try Now" [ref=f23e266] [cursor=pointer]
+          - article [ref=f23e267]:
+            - generic [ref=f23e268]:
+              - generic [ref=f23e271]: Industrial & Embodied AI
+              - button "Preview video" [ref=f23e272] [cursor=pointer]
+            - generic [ref=f23e274]:
+              - generic [ref=f23e275]:
+                - generic [ref=f23e276]: official
+                - generic [ref=f23e277]: "@MiniMax"
+              - heading "Office Background Replacement For Robotic Demo" [level=3] [ref=f23e278]
+              - paragraph [ref=f23e279]: Replace the original desk with a standard office workstation, featuring blinds and metal filing cabinets, while perfectly preserving all original motion and lighting.
+              - generic [ref=f23e280]:
+                - generic [ref=f23e281]: "Platform: official"
+                - generic [ref=f23e282]: "Language: English"
+                - generic [ref=f23e283]: "Likes: 0"
+                - generic [ref=f23e284]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e286] [cursor=pointer]:
+                - generic [ref=f23e287]: Prompt
+                - generic [ref=f23e288]: ⌄
+              - generic [ref=f23e289]:
+                - button "Copy Prompt" [ref=f23e290] [cursor=pointer]
+                - button "Try Now" [ref=f23e291] [cursor=pointer]
+          - article [ref=f23e292]:
+            - generic [ref=f23e293]:
+              - generic [ref=f23e296]: Brand Film & Cinematic
+              - button "Preview video" [ref=f23e297] [cursor=pointer]
+            - generic [ref=f23e299]:
+              - generic [ref=f23e300]:
+                - generic [ref=f23e301]: official
+                - generic [ref=f23e302]: "@MiniMax"
+              - heading "Cinematic Portal To The Stars" [level=3] [ref=f23e303]
+              - paragraph [ref=f23e304]: A wide shot slowly pushes towards a massive dark cosmic portal with a lone, small figure before it.
+              - generic [ref=f23e305]:
+                - generic [ref=f23e306]: "Platform: official"
+                - generic [ref=f23e307]: "Language: English"
+                - generic [ref=f23e308]: "Likes: 0"
+                - generic [ref=f23e309]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e311] [cursor=pointer]:
+                - generic [ref=f23e312]: Prompt
+                - generic [ref=f23e313]: ⌄
+              - generic [ref=f23e314]:
+                - button "Copy Prompt" [ref=f23e315] [cursor=pointer]
+                - button "Try Now" [ref=f23e316] [cursor=pointer]
+          - article [ref=f23e317]:
+            - generic [ref=f23e318]:
+              - generic [ref=f23e321]: Multi-Asset Reference
+              - button "Preview video" [ref=f23e322] [cursor=pointer]
+            - generic [ref=f23e324]:
+              - generic [ref=f23e325]:
+                - generic [ref=f23e326]: official
+                - generic [ref=f23e327]: "@MiniMax"
+              - heading "Multi-Reference Shot Rhythm And Style" [level=3] [ref=f23e328]
+              - paragraph [ref=f23e329]: A video strictly referencing the shot rhythm, transition style, and music of the example video.
+              - generic [ref=f23e330]:
+                - generic [ref=f23e331]: "Platform: official"
+                - generic [ref=f23e332]: "Language: English"
+                - generic [ref=f23e333]: "Likes: 0"
+                - generic [ref=f23e334]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e336] [cursor=pointer]:
+                - generic [ref=f23e337]: Prompt
+                - generic [ref=f23e338]: ⌄
+              - generic [ref=f23e339]:
+                - button "Copy Prompt" [ref=f23e340] [cursor=pointer]
+                - button "Try Now" [ref=f23e341] [cursor=pointer]
+          - article [ref=f23e342]:
+            - generic [ref=f23e343]:
+              - generic [ref=f23e346]: AI Narrative
+              - button "Preview video" [ref=f23e347] [cursor=pointer]
+            - generic [ref=f23e349]:
+              - generic [ref=f23e350]:
+                - generic [ref=f23e351]: official
+                - generic [ref=f23e352]: "@MiniMax"
+              - heading "Domestic Dispute Short Drama" [level=3] [ref=f23e353]
+              - paragraph [ref=f23e354]: A tense family argument in a warm-lit Chinese home with realistic acting and tight editing.
+              - generic [ref=f23e355]:
+                - generic [ref=f23e356]: "Platform: official"
+                - generic [ref=f23e357]: "Language: English"
+                - generic [ref=f23e358]: "Likes: 0"
+                - generic [ref=f23e359]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e361] [cursor=pointer]:
+                - generic [ref=f23e362]: Prompt
+                - generic [ref=f23e363]: ⌄
+              - generic [ref=f23e364]:
+                - button "Copy Prompt" [ref=f23e365] [cursor=pointer]
+                - button "Try Now" [ref=f23e366] [cursor=pointer]
+          - article [ref=f23e367]:
+            - generic [ref=f23e368]:
+              - generic [ref=f23e371]: Style Presets
+              - button "Preview video" [ref=f23e372] [cursor=pointer]
+            - generic [ref=f23e374]:
+              - generic [ref=f23e375]:
+                - generic [ref=f23e376]: official
+                - generic [ref=f23e377]: "@MiniMax"
+              - heading "Evening Tram Hand-Drawn Light Animation" [level=3] [ref=f23e378]
+              - paragraph [ref=f23e379]: A nostalgic 15-second video blends live-action tram footage with hand-drawn glowing animations that transform continuously.
+              - generic [ref=f23e380]:
+                - generic [ref=f23e381]: "Platform: official"
+                - generic [ref=f23e382]: "Language: English"
+                - generic [ref=f23e383]: "Likes: 0"
+                - generic [ref=f23e384]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e386] [cursor=pointer]:
+                - generic [ref=f23e387]: Prompt
+                - generic [ref=f23e388]: ⌄
+              - generic [ref=f23e389]:
+                - button "Copy Prompt" [ref=f23e390] [cursor=pointer]
+                - button "Try Now" [ref=f23e391] [cursor=pointer]
+          - article [ref=f23e392]:
+            - generic [ref=f23e393]:
+              - generic [ref=f23e396]: Digital & Game Creative
+              - button "Preview video" [ref=f23e397] [cursor=pointer]
+            - generic [ref=f23e399]:
+              - generic [ref=f23e400]:
+                - generic [ref=f23e401]: official
+                - generic [ref=f23e402]: "@MiniMax"
+              - heading "Dynamic Product Landing Page Scrolling" [level=3] [ref=f23e403]
+              - paragraph [ref=f23e404]: A video demonstrating a powerful, kinetic product landing page with bold typography and dynamic interactive effects.
+              - generic [ref=f23e405]:
+                - generic [ref=f23e406]: "Platform: official"
+                - generic [ref=f23e407]: "Language: English"
+                - generic [ref=f23e408]: "Likes: 0"
+                - generic [ref=f23e409]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e411] [cursor=pointer]:
+                - generic [ref=f23e412]: Prompt
+                - generic [ref=f23e413]: ⌄
+              - generic [ref=f23e414]:
+                - button "Copy Prompt" [ref=f23e415] [cursor=pointer]
+                - button "Try Now" [ref=f23e416] [cursor=pointer]
+          - article [ref=f23e417]:
+            - generic [ref=f23e418]:
+              - generic [ref=f23e421]: Precise Instruction Following
+              - button "Preview video" [ref=f23e422] [cursor=pointer]
+            - generic [ref=f23e424]:
+              - generic [ref=f23e425]:
+                - generic [ref=f23e426]: official
+                - generic [ref=f23e427]: "@MiniMax"
+              - heading "High-Precision Instruction Following" [level=3] [ref=f23e428]
+              - paragraph [ref=f23e429]: Replace products, modify signage, and change final dialogue based on a reference video.
+              - generic [ref=f23e430]:
+                - generic [ref=f23e431]: "Platform: official"
+                - generic [ref=f23e432]: "Language: English"
+                - generic [ref=f23e433]: "Likes: 0"
+                - generic [ref=f23e434]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e436] [cursor=pointer]:
+                - generic [ref=f23e437]: Prompt
+                - generic [ref=f23e438]: ⌄
+              - generic [ref=f23e439]:
+                - button "Copy Prompt" [ref=f23e440] [cursor=pointer]
+                - button "Try Now" [ref=f23e441] [cursor=pointer]
+          - article [ref=f23e442]:
+            - generic [ref=f23e443]:
+              - generic [ref=f23e446]: Voice Cloning
+              - button "Preview video" [ref=f23e447] [cursor=pointer]
+            - generic [ref=f23e449]:
+              - generic [ref=f23e450]:
+                - generic [ref=f23e451]: official
+                - generic [ref=f23e452]: "@MiniMax"
+              - heading "Voice Clone And Transfer" [level=3] [ref=f23e453]
+              - paragraph [ref=f23e454]: A character speaks a line using a cloned voice reference from audio.
+              - generic [ref=f23e455]:
+                - generic [ref=f23e456]: "Platform: official"
+                - generic [ref=f23e457]: "Language: English"
+                - generic [ref=f23e458]: "Likes: 0"
+                - generic [ref=f23e459]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e461] [cursor=pointer]:
+                - generic [ref=f23e462]: Prompt
+                - generic [ref=f23e463]: ⌄
+              - generic [ref=f23e464]:
+                - button "Copy Prompt" [ref=f23e465] [cursor=pointer]
+                - button "Try Now" [ref=f23e466] [cursor=pointer]
+          - article [ref=f23e467]:
+            - generic [ref=f23e468]:
+              - generic [ref=f23e471]: Digital & Game Creative
+              - button "Preview video" [ref=f23e472] [cursor=pointer]
+            - generic [ref=f23e474]:
+              - generic [ref=f23e475]:
+                - generic [ref=f23e476]: official
+                - generic [ref=f23e477]: "@MiniMax"
+              - heading "2D Hand-Drawn Dog Reaction Game" [level=3] [ref=f23e478]
+              - paragraph [ref=f23e479]: A 10-second, 4:3 game video featuring a cute beagle dodging hands in a minimalist, hand-drawn reaction game interface.
+              - generic [ref=f23e480]:
+                - generic [ref=f23e481]: "Platform: official"
+                - generic [ref=f23e482]: "Language: English"
+                - generic [ref=f23e483]: "Likes: 0"
+                - generic [ref=f23e484]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e486] [cursor=pointer]:
+                - generic [ref=f23e487]: Prompt
+                - generic [ref=f23e488]: ⌄
+              - generic [ref=f23e489]:
+                - button "Copy Prompt" [ref=f23e490] [cursor=pointer]
+                - button "Try Now" [ref=f23e491] [cursor=pointer]
+          - article [ref=f23e492]:
+            - generic [ref=f23e493]:
+              - generic [ref=f23e496]: Animation & Stylized
+              - button "Preview video" [ref=f23e497] [cursor=pointer]
+            - generic [ref=f23e499]:
+              - generic [ref=f23e500]:
+                - generic [ref=f23e501]: official
+                - generic [ref=f23e502]: "@MiniMax"
+              - heading "Otome Game Male Lead PV" [level=3] [ref=f23e503]
+              - paragraph [ref=f23e504]: A character PV for an otome game male lead, strictly adhering to the reference image for identity and CG quality.
+              - generic [ref=f23e505]:
+                - generic [ref=f23e506]: "Platform: official"
+                - generic [ref=f23e507]: "Language: English"
+                - generic [ref=f23e508]: "Likes: 0"
+                - generic [ref=f23e509]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e511] [cursor=pointer]:
+                - generic [ref=f23e512]: Prompt
+                - generic [ref=f23e513]: ⌄
+              - generic [ref=f23e514]:
+                - button "Copy Prompt" [ref=f23e515] [cursor=pointer]
+                - button "Try Now" [ref=f23e516] [cursor=pointer]
+          - article [ref=f23e517]:
+            - generic [ref=f23e518]:
+              - generic [ref=f23e521]: Animation & Stylized
+              - button "Preview video" [ref=f23e522] [cursor=pointer]
+            - generic [ref=f23e524]:
+              - generic [ref=f23e525]:
+                - generic [ref=f23e526]: official
+                - generic [ref=f23e527]: "@MiniMax"
+              - heading "Fateful Xianxia Character Sequence" [level=3] [ref=f23e528]
+              - paragraph [ref=f23e529]: A high-quality 4K 16:9 3D cinematic sequence with a xianxia aesthetic, following specific shot compositions and character consistency.
+              - generic [ref=f23e530]:
+                - generic [ref=f23e531]: "Platform: official"
+                - generic [ref=f23e532]: "Language: English"
+                - generic [ref=f23e533]: "Likes: 0"
+                - generic [ref=f23e534]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e536] [cursor=pointer]:
+                - generic [ref=f23e537]: Prompt
+                - generic [ref=f23e538]: ⌄
+              - generic [ref=f23e539]:
+                - button "Copy Prompt" [ref=f23e540] [cursor=pointer]
+                - button "Try Now" [ref=f23e541] [cursor=pointer]
+        - generic [ref=f23e542]:
+          - article [ref=f23e543]:
+            - generic [ref=f23e544]:
+              - generic [ref=f23e547]: Style Presets
+              - button "Preview video" [ref=f23e548] [cursor=pointer]
+            - generic [ref=f23e550]:
+              - generic [ref=f23e551]:
+                - generic [ref=f23e552]: official
+                - generic [ref=f23e553]: "@MiniMax"
+              - heading "Style Presets" [level=3] [ref=f23e554]
+              - paragraph [ref=f23e555]: Style Presets
+              - generic [ref=f23e556]:
+                - generic [ref=f23e557]: "Platform: official"
+                - generic [ref=f23e558]: "Language: English"
+                - generic [ref=f23e559]: "Likes: 0"
+                - generic [ref=f23e560]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e562] [cursor=pointer]:
+                - generic [ref=f23e563]: Prompt
+                - generic [ref=f23e564]: ⌄
+              - generic [ref=f23e565]:
+                - button "Copy Prompt" [ref=f23e566] [cursor=pointer]
+                - button "Try Now" [ref=f23e567] [cursor=pointer]
+          - article [ref=f23e568]:
+            - generic [ref=f23e569]:
+              - generic [ref=f23e572]: Visual Creative & Packaging
+              - button "Preview video" [ref=f23e573] [cursor=pointer]
+            - generic [ref=f23e575]:
+              - generic [ref=f23e576]:
+                - generic [ref=f23e577]: official
+                - generic [ref=f23e578]: "@MiniMax"
+              - heading "Late-Night Laundromat Glow Animation Mix" [level=3] [ref=f23e579]
+              - paragraph [ref=f23e580]: A 15-second video mixing live-action of a quiet laundromat at night with hand-drawn glowing animation.
+              - generic [ref=f23e581]:
+                - generic [ref=f23e582]: "Platform: official"
+                - generic [ref=f23e583]: "Language: English"
+                - generic [ref=f23e584]: "Likes: 0"
+                - generic [ref=f23e585]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e587] [cursor=pointer]:
+                - generic [ref=f23e588]: Prompt
+                - generic [ref=f23e589]: ⌄
+              - generic [ref=f23e590]:
+                - button "Copy Prompt" [ref=f23e591] [cursor=pointer]
+                - button "Try Now" [ref=f23e592] [cursor=pointer]
+          - article [ref=f23e593]:
+            - generic [ref=f23e594]:
+              - generic [ref=f23e597]: Scene & VFX Editing
+              - button "Preview video" [ref=f23e598] [cursor=pointer]
+            - generic [ref=f23e600]:
+              - generic [ref=f23e601]:
+                - generic [ref=f23e602]: official
+                - generic [ref=f23e603]: "@MiniMax"
+              - heading "Replace Green Screen With Fairy Tale Background" [level=3] [ref=f23e604]
+              - paragraph [ref=f23e605]: Remove the green screen and add a fairy tale background, matching the action and adjusting the lighting.
+              - generic [ref=f23e606]:
+                - generic [ref=f23e607]: "Platform: official"
+                - generic [ref=f23e608]: "Language: English"
+                - generic [ref=f23e609]: "Likes: 0"
+                - generic [ref=f23e610]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e612] [cursor=pointer]:
+                - generic [ref=f23e613]: Prompt
+                - generic [ref=f23e614]: ⌄
+              - generic [ref=f23e615]:
+                - button "Copy Prompt" [ref=f23e616] [cursor=pointer]
+                - button "Try Now" [ref=f23e617] [cursor=pointer]
+          - article [ref=f23e618]:
+            - generic [ref=f23e619]:
+              - generic [ref=f23e622]: Product & E-commerce
+              - button "Preview video" [ref=f23e623] [cursor=pointer]
+            - generic [ref=f23e625]:
+              - generic [ref=f23e626]:
+                - generic [ref=f23e627]: official
+                - generic [ref=f23e628]: "@MiniMax"
+              - heading "Ergonomic Chair Product Showcase" [level=3] [ref=f23e629]
+              - paragraph [ref=f23e630]: A 360-degree showcase of a high-end ergonomic chair with detailed animations of its features and support mechanisms.
+              - generic [ref=f23e631]:
+                - generic [ref=f23e632]: "Platform: official"
+                - generic [ref=f23e633]: "Language: English"
+                - generic [ref=f23e634]: "Likes: 0"
+                - generic [ref=f23e635]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e637] [cursor=pointer]:
+                - generic [ref=f23e638]: Prompt
+                - generic [ref=f23e639]: ⌄
+              - generic [ref=f23e640]:
+                - button "Copy Prompt" [ref=f23e641] [cursor=pointer]
+                - button "Try Now" [ref=f23e642] [cursor=pointer]
+          - article [ref=f23e643]:
+            - generic [ref=f23e644]:
+              - generic [ref=f23e647]: Digital & Game Creative
+              - button "Preview video" [ref=f23e648] [cursor=pointer]
+            - generic [ref=f23e650]:
+              - generic [ref=f23e651]:
+                - generic [ref=f23e652]: official
+                - generic [ref=f23e653]: "@MiniMax"
+              - heading "Digital Pet Compendium Interface Animation" [level=3] [ref=f23e654]
+              - paragraph [ref=f23e655]: A 15-second, 16:9 video animating a stable, elegant digital pet compendium UI with mouse interactions and four cute pets.
+              - generic [ref=f23e656]:
+                - generic [ref=f23e657]: "Platform: official"
+                - generic [ref=f23e658]: "Language: English"
+                - generic [ref=f23e659]: "Likes: 0"
+                - generic [ref=f23e660]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e662] [cursor=pointer]:
+                - generic [ref=f23e663]: Prompt
+                - generic [ref=f23e664]: ⌄
+              - generic [ref=f23e665]:
+                - button "Copy Prompt" [ref=f23e666] [cursor=pointer]
+                - button "Try Now" [ref=f23e667] [cursor=pointer]
+          - article [ref=f23e668]:
+            - generic [ref=f23e669]:
+              - generic [ref=f23e672]: AI Narrative
+              - button "Preview video" [ref=f23e673] [cursor=pointer]
+            - generic [ref=f23e675]:
+              - generic [ref=f23e676]:
+                - generic [ref=f23e677]: official
+                - generic [ref=f23e678]: "@MiniMax"
+              - heading "Vampire Romance Short Drama Teaser" [level=3] [ref=f23e679]
+              - paragraph [ref=f23e680]: A 15-second dark romantic teaser where a human girl awakens a vampire lord with a dangerous attraction.
+              - generic [ref=f23e681]:
+                - generic [ref=f23e682]: "Platform: official"
+                - generic [ref=f23e683]: "Language: English"
+                - generic [ref=f23e684]: "Likes: 0"
+                - generic [ref=f23e685]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e687] [cursor=pointer]:
+                - generic [ref=f23e688]: Prompt
+                - generic [ref=f23e689]: ⌄
+              - generic [ref=f23e690]:
+                - button "Copy Prompt" [ref=f23e691] [cursor=pointer]
+                - button "Try Now" [ref=f23e692] [cursor=pointer]
+          - article [ref=f23e693]:
+            - generic [ref=f23e694]:
+              - generic [ref=f23e697]: Motion Graphics & VFX
+              - button "Preview video" [ref=f23e698] [cursor=pointer]
+            - generic [ref=f23e700]:
+              - generic [ref=f23e701]:
+                - generic [ref=f23e702]: official
+                - generic [ref=f23e703]: "@MiniMax"
+              - heading "Chinese Dynamic Typography Experimental Video" [level=3] [ref=f23e704]
+              - paragraph [ref=f23e705]: A high-density kinetic typography short film with white and dark red Chinese text moving on a black background.
+              - generic [ref=f23e706]:
+                - generic [ref=f23e707]: "Platform: official"
+                - generic [ref=f23e708]: "Language: English"
+                - generic [ref=f23e709]: "Likes: 0"
+                - generic [ref=f23e710]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e712] [cursor=pointer]:
+                - generic [ref=f23e713]: Prompt
+                - generic [ref=f23e714]: ⌄
+              - generic [ref=f23e715]:
+                - button "Copy Prompt" [ref=f23e716] [cursor=pointer]
+                - button "Try Now" [ref=f23e717] [cursor=pointer]
+          - article [ref=f23e718]:
+            - generic [ref=f23e719]:
+              - generic [ref=f23e722]: Animation & Stylized
+              - button "Preview video" [ref=f23e723] [cursor=pointer]
+            - generic [ref=f23e725]:
+              - generic [ref=f23e726]:
+                - generic [ref=f23e727]: official
+                - generic [ref=f23e728]: "@MiniMax"
+              - heading "Claymation Fox's Heroic Leap" [level=3] [ref=f23e729]
+              - paragraph [ref=f23e730]: A claymation fox sprints to a cliff edge and heroically leaps in slow motion over a vast lava canyon.
+              - generic [ref=f23e731]:
+                - generic [ref=f23e732]: "Platform: official"
+                - generic [ref=f23e733]: "Language: English"
+                - generic [ref=f23e734]: "Likes: 0"
+                - generic [ref=f23e735]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e737] [cursor=pointer]:
+                - generic [ref=f23e738]: Prompt
+                - generic [ref=f23e739]: ⌄
+              - generic [ref=f23e740]:
+                - button "Copy Prompt" [ref=f23e741] [cursor=pointer]
+                - button "Try Now" [ref=f23e742] [cursor=pointer]
+          - article [ref=f23e743]:
+            - generic [ref=f23e744]:
+              - generic [ref=f23e747]: Multi-Asset Reference
+              - button "Preview video" [ref=f23e748] [cursor=pointer]
+            - generic [ref=f23e750]:
+              - generic [ref=f23e751]:
+                - generic [ref=f23e752]: official
+                - generic [ref=f23e753]: "@MiniMax"
+              - heading "Coffee To Desert Seamless Transformation" [level=3] [ref=f23e754]
+              - paragraph [ref=f23e755]: A macro shot of coffee surface details seamlessly transforms into a desert landscape in one continuous take.
+              - generic [ref=f23e756]:
+                - generic [ref=f23e757]: "Platform: official"
+                - generic [ref=f23e758]: "Language: English"
+                - generic [ref=f23e759]: "Likes: 0"
+                - generic [ref=f23e760]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e762] [cursor=pointer]:
+                - generic [ref=f23e763]: Prompt
+                - generic [ref=f23e764]: ⌄
+              - generic [ref=f23e765]:
+                - button "Copy Prompt" [ref=f23e766] [cursor=pointer]
+                - button "Try Now" [ref=f23e767] [cursor=pointer]
+          - article [ref=f23e768]:
+            - generic [ref=f23e769]:
+              - generic [ref=f23e772]: Motion Graphics & VFX
+              - button "Preview video" [ref=f23e773] [cursor=pointer]
+            - generic [ref=f23e775]:
+              - generic [ref=f23e776]:
+                - generic [ref=f23e777]: official
+                - generic [ref=f23e778]: "@MiniMax"
+              - heading "Red And Cyan Closed Rectangles" [level=3] [ref=f23e779]
+              - paragraph [ref=f23e780]: All boxes must be simple, continuous closed rectangles in red or cyan with no decorations at the vertices.
+              - generic [ref=f23e781]:
+                - generic [ref=f23e782]: "Platform: official"
+                - generic [ref=f23e783]: "Language: English"
+                - generic [ref=f23e784]: "Likes: 0"
+                - generic [ref=f23e785]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e787] [cursor=pointer]:
+                - generic [ref=f23e788]: Prompt
+                - generic [ref=f23e789]: ⌄
+              - generic [ref=f23e790]:
+                - button "Copy Prompt" [ref=f23e791] [cursor=pointer]
+                - button "Try Now" [ref=f23e792] [cursor=pointer]
+          - article [ref=f23e793]:
+            - generic [ref=f23e794]:
+              - generic [ref=f23e797]: Industrial & Embodied AI
+              - button "Preview video" [ref=f23e798] [cursor=pointer]
+            - generic [ref=f23e800]:
+              - generic [ref=f23e801]:
+                - generic [ref=f23e802]: official
+                - generic [ref=f23e803]: "@MiniMax"
+              - heading "Robotic Arm Pick And Place Demo" [level=3] [ref=f23e804]
+              - paragraph [ref=f23e805]: A fixed shot shows a robotic arm descending, grabbing a red block, moving it forward, and placing it down.
+              - generic [ref=f23e806]:
+                - generic [ref=f23e807]: "Platform: official"
+                - generic [ref=f23e808]: "Language: English"
+                - generic [ref=f23e809]: "Likes: 0"
+                - generic [ref=f23e810]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e812] [cursor=pointer]:
+                - generic [ref=f23e813]: Prompt
+                - generic [ref=f23e814]: ⌄
+              - generic [ref=f23e815]:
+                - button "Copy Prompt" [ref=f23e816] [cursor=pointer]
+                - button "Try Now" [ref=f23e817] [cursor=pointer]
+          - article [ref=f23e818]:
+            - generic [ref=f23e819]:
+              - generic [ref=f23e822]: Character/Motion/Camera Reference
+              - button "Preview video" [ref=f23e823] [cursor=pointer]
+            - generic [ref=f23e825]:
+              - generic [ref=f23e826]:
+                - generic [ref=f23e827]: official
+                - generic [ref=f23e828]: "@MiniMax"
+              - heading "Capybara Suit Pyramid Sequence" [level=3] [ref=f23e829]
+              - paragraph [ref=f23e830]: Three realistic capybaras in suits mimic a complex choreographed pyramid formation.
+              - generic [ref=f23e831]:
+                - generic [ref=f23e832]: "Platform: official"
+                - generic [ref=f23e833]: "Language: English"
+                - generic [ref=f23e834]: "Likes: 0"
+                - generic [ref=f23e835]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e837] [cursor=pointer]:
+                - generic [ref=f23e838]: Prompt
+                - generic [ref=f23e839]: ⌄
+              - generic [ref=f23e840]:
+                - button "Copy Prompt" [ref=f23e841] [cursor=pointer]
+                - button "Try Now" [ref=f23e842] [cursor=pointer]
+          - article [ref=f23e843]:
+            - generic [ref=f23e844]:
+              - generic [ref=f23e847]: Motion Graphics & VFX
+              - button "Preview video" [ref=f23e848] [cursor=pointer]
+            - generic [ref=f23e850]:
+              - generic [ref=f23e851]:
+                - generic [ref=f23e852]: official
+                - generic [ref=f23e853]: "@MiniMax"
+              - heading "High-End Motion Graphics Brand Film" [level=3] [ref=f23e854]
+              - paragraph [ref=f23e855]: A 15-second high-end motion graphics film visualizing intelligence growing from one node to everyone.
+              - generic [ref=f23e856]:
+                - generic [ref=f23e857]: "Platform: official"
+                - generic [ref=f23e858]: "Language: English"
+                - generic [ref=f23e859]: "Likes: 0"
+                - generic [ref=f23e860]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e862] [cursor=pointer]:
+                - generic [ref=f23e863]: Prompt
+                - generic [ref=f23e864]: ⌄
+              - generic [ref=f23e865]:
+                - button "Copy Prompt" [ref=f23e866] [cursor=pointer]
+                - button "Try Now" [ref=f23e867] [cursor=pointer]
+          - article [ref=f23e868]:
+            - generic [ref=f23e869]:
+              - generic [ref=f23e872]: Animation & Stylized
+              - button "Preview video" [ref=f23e873] [cursor=pointer]
+            - generic [ref=f23e875]:
+              - generic [ref=f23e876]:
+                - generic [ref=f23e877]: official
+                - generic [ref=f23e878]: "@MiniMax"
+              - heading "First-Person FPS Gameplay Simulation" [level=3] [ref=f23e879]
+              - paragraph [ref=f23e880]: A first-person view simulating realistic FPS gameplay with weapon handling, movement, and AAA game visual quality.
+              - generic [ref=f23e881]:
+                - generic [ref=f23e882]: "Platform: official"
+                - generic [ref=f23e883]: "Language: English"
+                - generic [ref=f23e884]: "Likes: 0"
+                - generic [ref=f23e885]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e887] [cursor=pointer]:
+                - generic [ref=f23e888]: Prompt
+                - generic [ref=f23e889]: ⌄
+              - generic [ref=f23e890]:
+                - button "Copy Prompt" [ref=f23e891] [cursor=pointer]
+                - button "Try Now" [ref=f23e892] [cursor=pointer]
+          - article [ref=f23e893]:
+            - generic [ref=f23e894]:
+              - generic [ref=f23e897]: Animation & Stylized
+              - button "Preview video" [ref=f23e898] [cursor=pointer]
+            - generic [ref=f23e900]:
+              - generic [ref=f23e901]:
+                - generic [ref=f23e902]: official
+                - generic [ref=f23e903]: "@MiniMax"
+              - heading "Ambiguous Date Scene In Red And Black" [level=3] [ref=f23e904]
+              - paragraph [ref=f23e905]: A realistic, cinematic close-up of a man and woman in a dim, luxurious red and black interior setting.
+              - generic [ref=f23e906]:
+                - generic [ref=f23e907]: "Platform: official"
+                - generic [ref=f23e908]: "Language: English"
+                - generic [ref=f23e909]: "Likes: 0"
+                - generic [ref=f23e910]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e912] [cursor=pointer]:
+                - generic [ref=f23e913]: Prompt
+                - generic [ref=f23e914]: ⌄
+              - generic [ref=f23e915]:
+                - button "Copy Prompt" [ref=f23e916] [cursor=pointer]
+                - button "Try Now" [ref=f23e917] [cursor=pointer]
+          - article [ref=f23e918]:
+            - generic [ref=f23e919]:
+              - generic [ref=f23e922]: Character & Object Editing
+              - button "Preview video" [ref=f23e923] [cursor=pointer]
+            - generic [ref=f23e925]:
+              - generic [ref=f23e926]:
+                - generic [ref=f23e927]: official
+                - generic [ref=f23e928]: "@MiniMax"
+              - heading "Swap Child For Dog And Change Jacket" [level=3] [ref=f23e929]
+              - paragraph [ref=f23e930]: Replace the child at the back with a golden retriever and change the leftmost child's jacket to denim.
+              - generic [ref=f23e931]:
+                - generic [ref=f23e932]: "Platform: official"
+                - generic [ref=f23e933]: "Language: English"
+                - generic [ref=f23e934]: "Likes: 0"
+                - generic [ref=f23e935]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e937] [cursor=pointer]:
+                - generic [ref=f23e938]: Prompt
+                - generic [ref=f23e939]: ⌄
+              - generic [ref=f23e940]:
+                - button "Copy Prompt" [ref=f23e941] [cursor=pointer]
+                - button "Try Now" [ref=f23e942] [cursor=pointer]
+          - article [ref=f23e943]:
+            - generic [ref=f23e944]:
+              - generic [ref=f23e947]: Multi-Asset Reference
+              - button "Preview video" [ref=f23e948] [cursor=pointer]
+            - generic [ref=f23e950]:
+              - generic [ref=f23e951]:
+                - generic [ref=f23e952]: official
+                - generic [ref=f23e953]: "@MiniMax"
+              - heading "Real World With Minecraft-Style Elements" [level=3] [ref=f23e954]
+              - paragraph [ref=f23e955]: A real-world scene where trees and cars transform into 3D pixelated Minecraft-style objects.
+              - generic [ref=f23e956]:
+                - generic [ref=f23e957]: "Platform: official"
+                - generic [ref=f23e958]: "Language: English"
+                - generic [ref=f23e959]: "Likes: 0"
+                - generic [ref=f23e960]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e962] [cursor=pointer]:
+                - generic [ref=f23e963]: Prompt
+                - generic [ref=f23e964]: ⌄
+              - generic [ref=f23e965]:
+                - button "Copy Prompt" [ref=f23e966] [cursor=pointer]
+                - button "Try Now" [ref=f23e967] [cursor=pointer]
+        - generic [ref=f23e968]:
+          - article [ref=f23e969]:
+            - generic [ref=f23e970]:
+              - generic [ref=f23e973]: Brand Film & Cinematic
+              - button "Preview video" [ref=f23e974] [cursor=pointer]
+            - generic [ref=f23e976]:
+              - generic [ref=f23e977]:
+                - generic [ref=f23e978]: official
+                - generic [ref=f23e979]: "@MiniMax"
+              - heading "Telescope Peek At MiniMax Fashion" [level=3] [ref=f23e980]
+              - paragraph [ref=f23e981]: A vintage telescope view reveals MiniMax in a stylish, Wes Anderson-inspired sequence with subtle text overlays.
+              - generic [ref=f23e982]:
+                - generic [ref=f23e983]: "Platform: official"
+                - generic [ref=f23e984]: "Language: English"
+                - generic [ref=f23e985]: "Likes: 0"
+                - generic [ref=f23e986]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e988] [cursor=pointer]:
+                - generic [ref=f23e989]: Prompt
+                - generic [ref=f23e990]: ⌄
+              - generic [ref=f23e991]:
+                - button "Copy Prompt" [ref=f23e992] [cursor=pointer]
+                - button "Try Now" [ref=f23e993] [cursor=pointer]
+          - article [ref=f23e994]:
+            - generic [ref=f23e995]:
+              - generic [ref=f23e998]: Visual Creative & Packaging
+              - button "Preview video" [ref=f23e999] [cursor=pointer]
+            - generic [ref=f23e1001]:
+              - generic [ref=f23e1002]:
+                - generic [ref=f23e1003]: official
+                - generic [ref=f23e1004]: "@MiniMax"
+              - heading "Seaside Market With Animated Highlights" [level=3] [ref=f23e1005]
+              - paragraph [ref=f23e1006]: A 10-15 second video of a bright seaside market where pointed objects turn into 2D animation.
+              - generic [ref=f23e1007]:
+                - generic [ref=f23e1008]: "Platform: official"
+                - generic [ref=f23e1009]: "Language: English"
+                - generic [ref=f23e1010]: "Likes: 0"
+                - generic [ref=f23e1011]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e1013] [cursor=pointer]:
+                - generic [ref=f23e1014]: Prompt
+                - generic [ref=f23e1015]: ⌄
+              - generic [ref=f23e1016]:
+                - button "Copy Prompt" [ref=f23e1017] [cursor=pointer]
+                - button "Try Now" [ref=f23e1018] [cursor=pointer]
+          - article [ref=f23e1019]:
+            - generic [ref=f23e1020]:
+              - generic [ref=f23e1023]: Precise Instruction Following
+              - button "Preview video" [ref=f23e1024] [cursor=pointer]
+            - generic [ref=f23e1026]:
+              - generic [ref=f23e1027]:
+                - generic [ref=f23e1028]: official
+                - generic [ref=f23e1029]: "@MiniMax"
+              - heading "Precise Instruction Following" [level=3] [ref=f23e1030]
+              - paragraph [ref=f23e1031]: Precise Instruction Following
+              - generic [ref=f23e1032]:
+                - generic [ref=f23e1033]: "Platform: official"
+                - generic [ref=f23e1034]: "Language: English"
+                - generic [ref=f23e1035]: "Likes: 0"
+                - generic [ref=f23e1036]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e1038] [cursor=pointer]:
+                - generic [ref=f23e1039]: Prompt
+                - generic [ref=f23e1040]: ⌄
+              - generic [ref=f23e1041]:
+                - button "Copy Prompt" [ref=f23e1042] [cursor=pointer]
+                - button "Try Now" [ref=f23e1043] [cursor=pointer]
+          - article [ref=f23e1044]:
+            - generic [ref=f23e1045]:
+              - generic [ref=f23e1048]: Animation & Stylized
+              - button "Preview video" [ref=f23e1049] [cursor=pointer]
+            - generic [ref=f23e1051]:
+              - generic [ref=f23e1052]:
+                - generic [ref=f23e1053]: official
+                - generic [ref=f23e1054]: "@MiniMax"
+              - heading "Otome Visual Novel Interface Transition" [level=3] [ref=f23e1055]
+              - paragraph [ref=f23e1056]: A high-end Chinese otome game visual novel interface transitions smoothly from a choice screen to a character's intrigued reaction.
+              - generic [ref=f23e1057]:
+                - generic [ref=f23e1058]: "Platform: official"
+                - generic [ref=f23e1059]: "Language: English"
+                - generic [ref=f23e1060]: "Likes: 0"
+                - generic [ref=f23e1061]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e1063] [cursor=pointer]:
+                - generic [ref=f23e1064]: Prompt
+                - generic [ref=f23e1065]: ⌄
+              - generic [ref=f23e1066]:
+                - button "Copy Prompt" [ref=f23e1067] [cursor=pointer]
+                - button "Try Now" [ref=f23e1068] [cursor=pointer]
+          - article [ref=f23e1069]:
+            - generic [ref=f23e1070]:
+              - generic [ref=f23e1073]: Motion Graphics & VFX
+              - button "Preview video" [ref=f23e1074] [cursor=pointer]
+            - generic [ref=f23e1076]:
+              - generic [ref=f23e1077]:
+                - generic [ref=f23e1078]: official
+                - generic [ref=f23e1079]: "@MiniMax"
+              - heading "Abstract Tech MG Brand Short For H3" [level=3] [ref=f23e1080]
+              - paragraph [ref=f23e1081]: A 15-second abstract motion graphics piece visualizing H3's unified multimodal architecture.
+              - generic [ref=f23e1082]:
+                - generic [ref=f23e1083]: "Platform: official"
+                - generic [ref=f23e1084]: "Language: English"
+                - generic [ref=f23e1085]: "Likes: 0"
+                - generic [ref=f23e1086]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e1088] [cursor=pointer]:
+                - generic [ref=f23e1089]: Prompt
+                - generic [ref=f23e1090]: ⌄
+              - generic [ref=f23e1091]:
+                - button "Copy Prompt" [ref=f23e1092] [cursor=pointer]
+                - button "Try Now" [ref=f23e1093] [cursor=pointer]
+          - article [ref=f23e1094]:
+            - generic [ref=f23e1095]:
+              - generic [ref=f23e1098]: AI Narrative
+              - button "Preview video" [ref=f23e1099] [cursor=pointer]
+            - generic [ref=f23e1101]:
+              - generic [ref=f23e1102]:
+                - generic [ref=f23e1103]: official
+                - generic [ref=f23e1104]: "@MiniMax"
+              - heading "Ancient Martial Arts Suspense In Snowy Bamboo Forest" [level=3] [ref=f23e1105]
+              - paragraph [ref=f23e1106]: A cold-toned night scene in a bamboo forest with falling snow, featuring a tense martial arts investigation with cinematic lighting.
+              - generic [ref=f23e1107]:
+                - generic [ref=f23e1108]: "Platform: official"
+                - generic [ref=f23e1109]: "Language: English"
+                - generic [ref=f23e1110]: "Likes: 0"
+                - generic [ref=f23e1111]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e1113] [cursor=pointer]:
+                - generic [ref=f23e1114]: Prompt
+                - generic [ref=f23e1115]: ⌄
+              - generic [ref=f23e1116]:
+                - button "Copy Prompt" [ref=f23e1117] [cursor=pointer]
+                - button "Try Now" [ref=f23e1118] [cursor=pointer]
+          - article [ref=f23e1119]:
+            - generic [ref=f23e1120]:
+              - generic [ref=f23e1123]: Visual Creative & Packaging
+              - button "Preview video" [ref=f23e1124] [cursor=pointer]
+            - generic [ref=f23e1126]:
+              - generic [ref=f23e1127]:
+                - generic [ref=f23e1128]: official
+                - generic [ref=f23e1129]: "@MiniMax"
+              - heading "Dark-Pop Cyber-Grunge Rap Music Video" [level=3] [ref=f23e1130]
+              - paragraph [ref=f23e1131]: A fast-cut music video with high-fashion realism, film magazine texture, and 90s/00s zine collage aesthetics.
+              - generic [ref=f23e1132]:
+                - generic [ref=f23e1133]: "Platform: official"
+                - generic [ref=f23e1134]: "Language: English"
+                - generic [ref=f23e1135]: "Likes: 0"
+                - generic [ref=f23e1136]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e1138] [cursor=pointer]:
+                - generic [ref=f23e1139]: Prompt
+                - generic [ref=f23e1140]: ⌄
+              - generic [ref=f23e1141]:
+                - button "Copy Prompt" [ref=f23e1142] [cursor=pointer]
+                - button "Try Now" [ref=f23e1143] [cursor=pointer]
+          - article [ref=f23e1144]:
+            - generic [ref=f23e1145]:
+              - generic [ref=f23e1148]: Character/Motion/Camera Reference
+              - button "Preview video" [ref=f23e1149] [cursor=pointer]
+            - generic [ref=f23e1151]:
+              - generic [ref=f23e1152]:
+                - generic [ref=f23e1153]: official
+                - generic [ref=f23e1154]: "@MiniMax"
+              - heading "Playful Kitchen Foam Fight" [level=3] [ref=f23e1155]
+              - paragraph [ref=f23e1156]: A couple playfully throws dish soap foam at each other in a kitchen, based on specific action references.
+              - generic [ref=f23e1157]:
+                - generic [ref=f23e1158]: "Platform: official"
+                - generic [ref=f23e1159]: "Language: English"
+                - generic [ref=f23e1160]: "Likes: 0"
+                - generic [ref=f23e1161]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e1163] [cursor=pointer]:
+                - generic [ref=f23e1164]: Prompt
+                - generic [ref=f23e1165]: ⌄
+              - generic [ref=f23e1166]:
+                - button "Copy Prompt" [ref=f23e1167] [cursor=pointer]
+                - button "Try Now" [ref=f23e1168] [cursor=pointer]
+          - article [ref=f23e1169]:
+            - generic [ref=f23e1170]:
+              - generic [ref=f23e1173]: Digital & Game Creative
+              - button "Preview video" [ref=f23e1174] [cursor=pointer]
+            - generic [ref=f23e1176]:
+              - generic [ref=f23e1177]:
+                - generic [ref=f23e1178]: official
+                - generic [ref=f23e1179]: "@MiniMax"
+              - heading "Website UI Simulation With Car Light" [level=3] [ref=f23e1180]
+              - paragraph [ref=f23e1181]: A website UI animation where the title slides down, text fields slide up, and car lights transition from dark to red.
+              - generic [ref=f23e1182]:
+                - generic [ref=f23e1183]: "Platform: official"
+                - generic [ref=f23e1184]: "Language: English"
+                - generic [ref=f23e1185]: "Likes: 0"
+                - generic [ref=f23e1186]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e1188] [cursor=pointer]:
+                - generic [ref=f23e1189]: Prompt
+                - generic [ref=f23e1190]: ⌄
+              - generic [ref=f23e1191]:
+                - button "Copy Prompt" [ref=f23e1192] [cursor=pointer]
+                - button "Try Now" [ref=f23e1193] [cursor=pointer]
+          - article [ref=f23e1194]:
+            - generic [ref=f23e1195]:
+              - generic [ref=f23e1198]: Brand Film & Cinematic
+              - button "Preview video" [ref=f23e1199] [cursor=pointer]
+            - generic [ref=f23e1201]:
+              - generic [ref=f23e1202]:
+                - generic [ref=f23e1203]: official
+                - generic [ref=f23e1204]: "@MiniMax"
+              - heading "Desert Fashion Campaign With Retro Car" [level=3] [ref=f23e1205]
+              - paragraph [ref=f23e1206]: A high-fashion video of a woman retrieving a bag from a car trunk in a desert, blending clothing and bags naturally into the narrative.
+              - generic [ref=f23e1207]:
+                - generic [ref=f23e1208]: "Platform: official"
+                - generic [ref=f23e1209]: "Language: English"
+                - generic [ref=f23e1210]: "Likes: 0"
+                - generic [ref=f23e1211]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e1213] [cursor=pointer]:
+                - generic [ref=f23e1214]: Prompt
+                - generic [ref=f23e1215]: ⌄
+              - generic [ref=f23e1216]:
+                - button "Copy Prompt" [ref=f23e1217] [cursor=pointer]
+                - button "Try Now" [ref=f23e1218] [cursor=pointer]
+          - article [ref=f23e1219]:
+            - generic [ref=f23e1220]:
+              - generic [ref=f23e1223]: Brand Film & Cinematic
+              - button "Preview video" [ref=f23e1224] [cursor=pointer]
+            - generic [ref=f23e1226]:
+              - generic [ref=f23e1227]:
+                - generic [ref=f23e1228]: official
+                - generic [ref=f23e1229]: "@MiniMax"
+              - heading "Epic Sci-Fi Trailer Transitions" [level=3] [ref=f23e1230]
+              - paragraph [ref=f23e1231]: Fast-paced, grand sci-fi cuts with bridge shakes, light flashes, and cinematic title animations.
+              - generic [ref=f23e1232]:
+                - generic [ref=f23e1233]: "Platform: official"
+                - generic [ref=f23e1234]: "Language: English"
+                - generic [ref=f23e1235]: "Likes: 0"
+                - generic [ref=f23e1236]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e1238] [cursor=pointer]:
+                - generic [ref=f23e1239]: Prompt
+                - generic [ref=f23e1240]: ⌄
+              - generic [ref=f23e1241]:
+                - button "Copy Prompt" [ref=f23e1242] [cursor=pointer]
+                - button "Try Now" [ref=f23e1243] [cursor=pointer]
+          - article [ref=f23e1244]:
+            - generic [ref=f23e1245]:
+              - generic [ref=f23e1248]: Visual Creative & Packaging
+              - button "Preview video" [ref=f23e1249] [cursor=pointer]
+            - generic [ref=f23e1251]:
+              - generic [ref=f23e1252]:
+                - generic [ref=f23e1253]: official
+                - generic [ref=f23e1254]: "@MiniMax"
+              - heading "Character Interaction In Graphic Spaces" [level=3] [ref=f23e1255]
+              - paragraph [ref=f23e1256]: A character dynamically moves through and interacts with graphic elements across multiple image spaces.
+              - generic [ref=f23e1257]:
+                - generic [ref=f23e1258]: "Platform: official"
+                - generic [ref=f23e1259]: "Language: English"
+                - generic [ref=f23e1260]: "Likes: 0"
+                - generic [ref=f23e1261]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e1263] [cursor=pointer]:
+                - generic [ref=f23e1264]: Prompt
+                - generic [ref=f23e1265]: ⌄
+              - generic [ref=f23e1266]:
+                - button "Copy Prompt" [ref=f23e1267] [cursor=pointer]
+                - button "Try Now" [ref=f23e1268] [cursor=pointer]
+          - article [ref=f23e1269]:
+            - generic [ref=f23e1270]:
+              - generic [ref=f23e1273]: Precise Instruction Following
+              - button "Preview video" [ref=f23e1274] [cursor=pointer]
+            - generic [ref=f23e1276]:
+              - generic [ref=f23e1277]:
+                - generic [ref=f23e1278]: official
+                - generic [ref=f23e1279]: "@MiniMax"
+              - heading "Precise Instruction Following" [level=3] [ref=f23e1280]
+              - paragraph [ref=f23e1281]: Precise Instruction Following
+              - generic [ref=f23e1282]:
+                - generic [ref=f23e1283]: "Platform: official"
+                - generic [ref=f23e1284]: "Language: English"
+                - generic [ref=f23e1285]: "Likes: 0"
+                - generic [ref=f23e1286]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e1288] [cursor=pointer]:
+                - generic [ref=f23e1289]: Prompt
+                - generic [ref=f23e1290]: ⌄
+              - generic [ref=f23e1291]:
+                - button "Copy Prompt" [ref=f23e1292] [cursor=pointer]
+                - button "Try Now" [ref=f23e1293] [cursor=pointer]
+          - article [ref=f23e1294]:
+            - generic [ref=f23e1295]:
+              - generic [ref=f23e1298]: Visual Creative & Packaging
+              - button "Preview video" [ref=f23e1299] [cursor=pointer]
+            - generic [ref=f23e1301]:
+              - generic [ref=f23e1302]:
+                - generic [ref=f23e1303]: official
+                - generic [ref=f23e1304]: "@MiniMax"
+              - heading "Green Screen To Fairy Tale Background" [level=3] [ref=f23e1305]
+              - paragraph [ref=f23e1306]: Remove the green screen from Video 1 and replace it with a fairy-tale background matching Video 2's style.
+              - generic [ref=f23e1307]:
+                - generic [ref=f23e1308]: "Platform: official"
+                - generic [ref=f23e1309]: "Language: English"
+                - generic [ref=f23e1310]: "Likes: 0"
+                - generic [ref=f23e1311]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e1313] [cursor=pointer]:
+                - generic [ref=f23e1314]: Prompt
+                - generic [ref=f23e1315]: ⌄
+              - generic [ref=f23e1316]:
+                - button "Copy Prompt" [ref=f23e1317] [cursor=pointer]
+                - button "Try Now" [ref=f23e1318] [cursor=pointer]
+          - article [ref=f23e1319]:
+            - generic [ref=f23e1320]:
+              - generic [ref=f23e1323]: Audio & Dialogue Editing
+              - button "Preview video" [ref=f23e1324] [cursor=pointer]
+            - generic [ref=f23e1326]:
+              - generic [ref=f23e1327]:
+                - generic [ref=f23e1328]: official
+                - generic [ref=f23e1329]: "@MiniMax"
+              - heading "Dialogue And Voice Tone Modification" [level=3] [ref=f23e1330]
+              - paragraph [ref=f23e1331]: Change the female character's dialogue and adjust her performance to match new audio.
+              - generic [ref=f23e1332]:
+                - generic [ref=f23e1333]: "Platform: official"
+                - generic [ref=f23e1334]: "Language: English"
+                - generic [ref=f23e1335]: "Likes: 0"
+                - generic [ref=f23e1336]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e1338] [cursor=pointer]:
+                - generic [ref=f23e1339]: Prompt
+                - generic [ref=f23e1340]: ⌄
+              - generic [ref=f23e1341]:
+                - button "Copy Prompt" [ref=f23e1342] [cursor=pointer]
+                - button "Try Now" [ref=f23e1343] [cursor=pointer]
+          - article [ref=f23e1344]:
+            - generic [ref=f23e1345]:
+              - generic [ref=f23e1348]: Product & E-commerce
+              - button "Preview video" [ref=f23e1349] [cursor=pointer]
+            - generic [ref=f23e1351]:
+              - generic [ref=f23e1352]:
+                - generic [ref=f23e1353]: official
+                - generic [ref=f23e1354]: "@MiniMax"
+              - heading "High-Fashion Eyewear Advert" [level=3] [ref=f23e1355]
+              - paragraph [ref=f23e1356]: A sleek white studio ad featuring two models wearing futuristic geometric sunglasses.
+              - generic [ref=f23e1357]:
+                - generic [ref=f23e1358]: "Platform: official"
+                - generic [ref=f23e1359]: "Language: English"
+                - generic [ref=f23e1360]: "Likes: 0"
+                - generic [ref=f23e1361]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e1363] [cursor=pointer]:
+                - generic [ref=f23e1364]: Prompt
+                - generic [ref=f23e1365]: ⌄
+              - generic [ref=f23e1366]:
+                - button "Copy Prompt" [ref=f23e1367] [cursor=pointer]
+                - button "Try Now" [ref=f23e1368] [cursor=pointer]
+          - article [ref=f23e1369]:
+            - generic [ref=f23e1370]:
+              - generic [ref=f23e1373]: Visual Creative & Packaging
+              - button "Preview video" [ref=f23e1374] [cursor=pointer]
+            - generic [ref=f23e1376]:
+              - generic [ref=f23e1377]:
+                - generic [ref=f23e1378]: official
+                - generic [ref=f23e1379]: "@MiniMax"
+              - heading "Evening Kitchen Glow Animation Fusion" [level=3] [ref=f23e1380]
+              - paragraph [ref=f23e1381]: A 15-second video blending live-action and hand-drawn glow animation in a cozy, handheld-shot evening kitchen.
+              - generic [ref=f23e1382]:
+                - generic [ref=f23e1383]: "Platform: official"
+                - generic [ref=f23e1384]: "Language: English"
+                - generic [ref=f23e1385]: "Likes: 0"
+                - generic [ref=f23e1386]: "Published: -"
+              - button "Prompt ⌄" [ref=f23e1388] [cursor=pointer]:
+                - generic [ref=f23e1389]: Prompt
+                - generic [ref=f23e1390]: ⌄
+              - generic [ref=f23e1391]:
+                - button "Copy Prompt" [ref=f23e1392] [cursor=pointer]
+                - button "Try Now" [ref=f23e1393] [cursor=pointer]
+  - alert [ref=f23e1394]

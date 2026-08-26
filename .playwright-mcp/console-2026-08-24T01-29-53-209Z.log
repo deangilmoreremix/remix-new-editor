@@ -1,0 +1,97 @@
+[   13862ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3100/src/main.js:19
+[   14163ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3100/src/lib/popcornInit.js:41
+[   14190ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   14221ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   14241ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   14258ms] [LOG] [popcorn-init] OK: wrapper-common @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   14273ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   14307ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   14332ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   14350ms] [LOG] [popcorn-init] OK: wrapper-null @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   14360ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   14371ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   14391ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   14455ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   14508ms] [LOG] [popcorn-init] OK: player-module @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   16373ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=708fd709:20096
+[   16395ms] [LOG] [App] Initialized in 2531.80ms @ http://127.0.0.1:3100/src/main.js:164
+[   16395ms] [LOG] [App] Navigating to initial page: ai-vfx @ http://127.0.0.1:3100/src/main.js:165
+[   16395ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://127.0.0.1:3100/src/main.js:176
+[   16719ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[   17022ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/client?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2:0
+[   17033ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[   17037ms] [ERROR] e: The Request HTTP Origin header must be equal to or a subdomain of the requesting URL.
+    at il._baseFetch (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:171)
+    at async io.execute (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:6812)
+    at async rA._baseGet (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:497)
+    at async Promise.all (index 1)
+    at async #eY (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:236310)
+    at async s7.load (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:193944)
+    at async _a15.getEntryChunks (http://127.0.0.1:3100/node_modules/.vite/deps/@clerk_react.js?v=708fd709:7972:9) @ http://127.0.0.1:3100/node_modules/.vite/deps/@clerk_react.js?v=708fd709:7983
+[   19142ms] [WARNING] Unrecognized origin: 'fullscreen'. @ http://127.0.0.1:3100/src/components/AIVFXPage.js:28
+[   19142ms] [ERROR] Error while parsing the 'sandbox' attribute: 'allow-popups-to-escape-same-origin' is an invalid sandbox flag. @ http://127.0.0.1:3100/src/components/AIVFXPage.js:29
+[   19174ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ http://127.0.0.1:3100/ai-vfx/:0
+[   19192ms] [ERROR] Executing inline script violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-LcsuUMiDkprrt6ZKeiLP4iYNhWo8NqaSbAgtoZxVK3s='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked. @ http://127.0.0.1:3100/ai-vfx/:0
+[   19195ms] [ERROR] Executing inline script violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-OBTN3RiyCV4Bq7dFqZ5a2pAXjnCcCYeTJMO2I/LYKeo='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked. @ http://127.0.0.1:3100/ai-vfx/:0
+[   19195ms] [ERROR] Executing inline script violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-/FCfs1sZADOYcCymFrPWXyCNMD8Br9+h7JF2mjsrzPo='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked. @ http://127.0.0.1:3100/ai-vfx/:0
+[   19196ms] [ERROR] Executing inline script violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-K07QH1pK72Scrt+4HZDp9FEoQPe7364dtFUXtt8RKj8='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked. @ http://127.0.0.1:3100/ai-vfx/:0
+[   19196ms] [ERROR] Executing inline script violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-XLYtqACqnSp+ekXEVRzpSWYrkSaOA6JrpPh7GY2kQw4='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked. @ http://127.0.0.1:3100/ai-vfx/:0
+[   19196ms] [ERROR] Executing inline script violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-iRWBt0z1qBbB9VCDl3SrJXa6TiRqSaC3RWSEgXO1CQE='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked. @ http://127.0.0.1:3100/ai-vfx/:0
+[   19196ms] [ERROR] Executing inline script violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-UNMfdsrJoVktuI73NTUkgH8ku9KJnxLhmlwg5yIhazk='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked. @ http://127.0.0.1:3100/ai-vfx/:0
+[   19196ms] [ERROR] Executing inline script violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-MMq1VsATVAPJw2IUKCjmPP7dJFeYMS7q2DRKHEFeNoA='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked. @ http://127.0.0.1:3100/ai-vfx/:0
+[   19432ms] Error: Connection closed.
+    at t (http://127.0.0.1:3100/_next/static/chunks/315-d6afd8d28256cde2.js:1:133067)
+[   19440ms] Error: Connection closed.
+    at t (http://127.0.0.1:3100/_next/static/chunks/315-d6afd8d28256cde2.js:1:133067)
+[   19586ms] [LOG] [popcorn-init] OK: plugin-image @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   19905ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   19949ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   19984ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   20021ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   20076ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   20100ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   20254ms] [LOG] [popcorn-init] OK: plugin-form @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   20622ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   20669ms] [LOG] [popcorn-init] OK: plugin-popup @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   20756ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   20781ms] [LOG] [popcorn-init] OK: plugin-skip @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   20976ms] [LOG] [popcorn-init] OK: plugin-text @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   21140ms] [LOG] [popcorn-init] OK: plugin-social @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   21326ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   21395ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   21451ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   21494ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   21522ms] [LOG] [popcorn-init] OK: plugin-combined @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   21550ms] [LOG] [popcorn-init] OK: plugin-background @ http://127.0.0.1:3100/src/lib/popcornInit.js:48
+[   21550ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://127.0.0.1:3100/src/lib/popcornInit.js:60
+[   21550ms] [LOG] [popcorn] function 19 @ http://127.0.0.1:3100/src/main.js:4
+[   78953ms] [LOG] [vite] server connection lost. Polling for restart... @ http://127.0.0.1:3100/@vite/client:559
+[   78976ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[   86657ms] [ERROR] Failed to load resource: net::ERR_EMPTY_RESPONSE @ http://127.0.0.1:3100/src/components/Header.js:0
+[   86663ms] [LOG] [vite] server connection lost. Polling for restart... @ http://127.0.0.1:3100/@vite/client:559
+[   86665ms] [ERROR] Failed to load resource: net::ERR_EMPTY_RESPONSE @ http://127.0.0.1:3100/src/lib/router.js:0
+[   86665ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/src/lib/loading.js:0
+[   86665ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/src/lib/security.js:0
+[   86665ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/src/lib/apiKeyManager.js:0
+[   86665ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/src/lib/errorBoundary.js:0
+[   86665ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/src/lib/monetizationIntegration.js:0
+[   86666ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/src/lib/performance.js:0
+[   86667ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/src/style.css:0
+[   86668ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/src/lib/clerkInit.js:0
+[   86668ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/src/lib/analytics.js:0
+[   86671ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[   86678ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/favicon.webp:0
+[   86695ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/favicon.webp:0
+[   86696ms] [WARNING] Error while trying to use the following icon from the Manifest: http://127.0.0.1:3100/favicon.webp (Download error or resource isn't a valid image) @ http://127.0.0.1:3100/#/ai-vfx:0
+[   87746ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[   88758ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[   89765ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[   90770ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[   91774ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[   92777ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[   93784ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[   94790ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[   95793ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[   96797ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[   97801ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0
+[   98806ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3100/:0

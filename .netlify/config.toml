@@ -1,0 +1,12 @@
+[site]
+  id = "ec2fbb0c-c375-4554-898c-194485c2621d"
+
+[project]
+  project_path = "."
+
+[build]
+  # No local build; we upload prebuilt dist/
+  publish = "dist"
+
+[context.production]
+  command = "npm install --include=optional && npm run build"

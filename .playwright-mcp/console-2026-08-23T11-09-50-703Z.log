@@ -1,0 +1,387 @@
+[     471ms] [LOG] [App] Starting initialization... @ http://localhost:5173/src/main.js:19
+[     596ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:5173/src/lib/popcornInit.js:41
+[     614ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:5173/src/lib/popcornInit.js:48
+[     636ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:5173/src/lib/popcornInit.js:48
+[     653ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:5173/src/lib/popcornInit.js:48
+[     688ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:5173/src/lib/popcornInit.js:48
+[     739ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:5173/src/lib/popcornInit.js:48
+[     747ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:5173/src/lib/popcornInit.js:48
+[     747ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:5173/src/lib/popcornInit.js:48
+[     748ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:5173/src/lib/popcornInit.js:48
+[     749ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:5173/src/lib/popcornInit.js:48
+[     752ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:5173/src/lib/popcornInit.js:48
+[     754ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:5173/src/lib/popcornInit.js:48
+[     754ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:5173/src/lib/popcornInit.js:48
+[     755ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:5173/src/lib/popcornInit.js:48
+[    1039ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:20096
+[    1044ms] [LOG] [App] Initialized in 572.40ms @ http://localhost:5173/src/main.js:164
+[    1044ms] [LOG] [App] Navigating to initial page: cinema-template @ http://localhost:5173/src/main.js:165
+[    1044ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://localhost:5173/src/main.js:176
+[    1855ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[    1932ms] [LOG] [popcorn-init] OK: plugin-image @ http://localhost:5173/src/lib/popcornInit.js:48
+[    2094ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[    2628ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://localhost:5173/src/lib/popcornInit.js:48
+[    2677ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://localhost:5173/src/lib/popcornInit.js:48
+[    2702ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:5173/src/lib/popcornInit.js:48
+[    2714ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://localhost:5173/src/lib/popcornInit.js:48
+[    2721ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://localhost:5173/src/lib/popcornInit.js:48
+[    2736ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://localhost:5173/src/lib/popcornInit.js:48
+[    2767ms] [LOG] [popcorn-init] OK: plugin-form @ http://localhost:5173/src/lib/popcornInit.js:48
+[    2798ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://localhost:5173/src/lib/popcornInit.js:48
+[    2826ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:5173/src/lib/popcornInit.js:48
+[    2840ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://localhost:5173/src/lib/popcornInit.js:48
+[    2853ms] [LOG] [popcorn-init] OK: plugin-skip @ http://localhost:5173/src/lib/popcornInit.js:48
+[    2885ms] [LOG] [popcorn-init] OK: plugin-text @ http://localhost:5173/src/lib/popcornInit.js:48
+[    2907ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:5173/src/lib/popcornInit.js:48
+[    2915ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://localhost:5173/src/lib/popcornInit.js:48
+[    2934ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:5173/src/lib/popcornInit.js:48
+[    2951ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://localhost:5173/src/lib/popcornInit.js:48
+[    2960ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:5173/src/lib/popcornInit.js:48
+[    2970ms] [LOG] [popcorn-init] OK: plugin-combined @ http://localhost:5173/src/lib/popcornInit.js:48
+[    2992ms] [LOG] [popcorn-init] OK: plugin-background @ http://localhost:5173/src/lib/popcornInit.js:48
+[    2992ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://localhost:5173/src/lib/popcornInit.js:60
+[    2992ms] [LOG] [popcorn] function 19 @ http://localhost:5173/src/main.js:4
+[  117824ms] [LOG] [App] Starting initialization... @ http://localhost:5173/src/main.js?t=1787483501968:19
+[  117977ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:5173/src/lib/popcornInit.js:41
+[  118058ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:5173/src/lib/popcornInit.js:48
+[  118074ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:5173/src/lib/popcornInit.js:48
+[  118075ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:5173/src/lib/popcornInit.js:48
+[  118078ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:5173/src/lib/popcornInit.js:48
+[  118081ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:5173/src/lib/popcornInit.js:48
+[  118091ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:5173/src/lib/popcornInit.js:48
+[  118098ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:5173/src/lib/popcornInit.js:48
+[  118099ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:5173/src/lib/popcornInit.js:48
+[  118100ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:5173/src/lib/popcornInit.js:48
+[  118102ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:5173/src/lib/popcornInit.js:48
+[  118104ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:5173/src/lib/popcornInit.js:48
+[  118106ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:5173/src/lib/popcornInit.js:48
+[  118109ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:5173/src/lib/popcornInit.js:48
+[  118560ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:20096
+[  118573ms] [LOG] [App] Initialized in 747.20ms @ http://localhost:5173/src/main.js?t=1787483501968:164
+[  118573ms] [LOG] [App] Navigating to initial page: cinema-template @ http://localhost:5173/src/main.js?t=1787483501968:165
+[  118573ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://localhost:5173/src/main.js?t=1787483501968:176
+[  120898ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[  121015ms] [LOG] [popcorn-init] OK: plugin-image @ http://localhost:5173/src/lib/popcornInit.js:48
+[  121114ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[  122689ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://localhost:5173/src/lib/popcornInit.js:48
+[  122757ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://localhost:5173/src/lib/popcornInit.js:48
+[  122779ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:5173/src/lib/popcornInit.js:48
+[  122808ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://localhost:5173/src/lib/popcornInit.js:48
+[  122840ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://localhost:5173/src/lib/popcornInit.js:48
+[  122872ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://localhost:5173/src/lib/popcornInit.js:48
+[  122891ms] [LOG] [popcorn-init] OK: plugin-form @ http://localhost:5173/src/lib/popcornInit.js:48
+[  122940ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://localhost:5173/src/lib/popcornInit.js:48
+[  122947ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:5173/src/lib/popcornInit.js:48
+[  122957ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://localhost:5173/src/lib/popcornInit.js:48
+[  122968ms] [LOG] [popcorn-init] OK: plugin-skip @ http://localhost:5173/src/lib/popcornInit.js:48
+[  123003ms] [LOG] [popcorn-init] OK: plugin-text @ http://localhost:5173/src/lib/popcornInit.js:48
+[  123016ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:5173/src/lib/popcornInit.js:48
+[  123024ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://localhost:5173/src/lib/popcornInit.js:48
+[  123045ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:5173/src/lib/popcornInit.js:48
+[  123057ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://localhost:5173/src/lib/popcornInit.js:48
+[  123080ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:5173/src/lib/popcornInit.js:48
+[  123087ms] [LOG] [popcorn-init] OK: plugin-combined @ http://localhost:5173/src/lib/popcornInit.js:48
+[  123097ms] [LOG] [popcorn-init] OK: plugin-background @ http://localhost:5173/src/lib/popcornInit.js:48
+[  123097ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://localhost:5173/src/lib/popcornInit.js:60
+[  123097ms] [LOG] [popcorn] function 19 @ http://localhost:5173/src/main.js?t=1787483501968:4
+[  132877ms] [LOG] [App] Starting initialization... @ http://localhost:5173/src/main.js?t=1787483517684:19
+[  132911ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:5173/src/lib/popcornInit.js:41
+[  132914ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:5173/src/lib/popcornInit.js:48
+[  132917ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:5173/src/lib/popcornInit.js:48
+[  132918ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:5173/src/lib/popcornInit.js:48
+[  132919ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:5173/src/lib/popcornInit.js:48
+[  132919ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:5173/src/lib/popcornInit.js:48
+[  132920ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:5173/src/lib/popcornInit.js:48
+[  132921ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:5173/src/lib/popcornInit.js:48
+[  132921ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:5173/src/lib/popcornInit.js:48
+[  133078ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:5173/src/lib/popcornInit.js:48
+[  133081ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:5173/src/lib/popcornInit.js:48
+[  133082ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:5173/src/lib/popcornInit.js:48
+[  133083ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:5173/src/lib/popcornInit.js:48
+[  133083ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:5173/src/lib/popcornInit.js:48
+[  133625ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:20096
+[  133632ms] [LOG] [App] Initialized in 754.30ms @ http://localhost:5173/src/main.js?t=1787483517684:164
+[  133632ms] [LOG] [App] Navigating to initial page: cinema-template @ http://localhost:5173/src/main.js?t=1787483517684:165
+[  133632ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://localhost:5173/src/main.js?t=1787483517684:176
+[  136615ms] [LOG] [popcorn-init] OK: plugin-image @ http://localhost:5173/src/lib/popcornInit.js:48
+[  136653ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[  137011ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[  138781ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://localhost:5173/src/lib/popcornInit.js:48
+[  138816ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://localhost:5173/src/lib/popcornInit.js:48
+[  138935ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:5173/src/lib/popcornInit.js:48
+[  138943ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://localhost:5173/src/lib/popcornInit.js:48
+[  138950ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://localhost:5173/src/lib/popcornInit.js:48
+[  138956ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://localhost:5173/src/lib/popcornInit.js:48
+[  138967ms] [LOG] [popcorn-init] OK: plugin-form @ http://localhost:5173/src/lib/popcornInit.js:48
+[  138984ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://localhost:5173/src/lib/popcornInit.js:48
+[  138990ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:5173/src/lib/popcornInit.js:48
+[  138998ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://localhost:5173/src/lib/popcornInit.js:48
+[  139005ms] [LOG] [popcorn-init] OK: plugin-skip @ http://localhost:5173/src/lib/popcornInit.js:48
+[  139037ms] [LOG] [popcorn-init] OK: plugin-text @ http://localhost:5173/src/lib/popcornInit.js:48
+[  139049ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:5173/src/lib/popcornInit.js:48
+[  139056ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://localhost:5173/src/lib/popcornInit.js:48
+[  139188ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:5173/src/lib/popcornInit.js:48
+[  139196ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://localhost:5173/src/lib/popcornInit.js:48
+[  139204ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:5173/src/lib/popcornInit.js:48
+[  139222ms] [LOG] [popcorn-init] OK: plugin-combined @ http://localhost:5173/src/lib/popcornInit.js:48
+[  139231ms] [LOG] [popcorn-init] OK: plugin-background @ http://localhost:5173/src/lib/popcornInit.js:48
+[  139231ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://localhost:5173/src/lib/popcornInit.js:60
+[  139231ms] [LOG] [popcorn] function 19 @ http://localhost:5173/src/main.js?t=1787483517684:4
+[  430841ms] [LOG] [App] Starting initialization... @ http://localhost:5173/src/main.js?t=1787483816269:19
+[  430876ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:5173/src/lib/popcornInit.js:41
+[  430881ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:5173/src/lib/popcornInit.js:48
+[  430889ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:5173/src/lib/popcornInit.js:48
+[  430892ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:5173/src/lib/popcornInit.js:48
+[  430893ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:5173/src/lib/popcornInit.js:48
+[  430895ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:5173/src/lib/popcornInit.js:48
+[  430896ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:5173/src/lib/popcornInit.js:48
+[  430898ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:5173/src/lib/popcornInit.js:48
+[  430900ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:5173/src/lib/popcornInit.js:48
+[  430901ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:5173/src/lib/popcornInit.js:48
+[  430902ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:5173/src/lib/popcornInit.js:48
+[  430903ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:5173/src/lib/popcornInit.js:48
+[  430904ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:5173/src/lib/popcornInit.js:48
+[  430906ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:5173/src/lib/popcornInit.js:48
+[  431236ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:20096
+[  431247ms] [LOG] [App] Initialized in 405.90ms @ http://localhost:5173/src/main.js?t=1787483816269:164
+[  431247ms] [LOG] [App] Navigating to initial page: cinema-template @ http://localhost:5173/src/main.js?t=1787483816269:165
+[  431247ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://localhost:5173/src/main.js?t=1787483816269:176
+[  433984ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[  434346ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[  435457ms] [LOG] [popcorn-init] OK: plugin-image @ http://localhost:5173/src/lib/popcornInit.js:48
+[  436820ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://localhost:5173/src/lib/popcornInit.js:48
+[  436874ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://localhost:5173/src/lib/popcornInit.js:48
+[  437006ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:5173/src/lib/popcornInit.js:48
+[  437025ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://localhost:5173/src/lib/popcornInit.js:48
+[  437037ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://localhost:5173/src/lib/popcornInit.js:48
+[  437045ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://localhost:5173/src/lib/popcornInit.js:48
+[  437072ms] [LOG] [popcorn-init] OK: plugin-form @ http://localhost:5173/src/lib/popcornInit.js:48
+[  437142ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://localhost:5173/src/lib/popcornInit.js:48
+[  437213ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:5173/src/lib/popcornInit.js:48
+[  437255ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://localhost:5173/src/lib/popcornInit.js:48
+[  437263ms] [LOG] [popcorn-init] OK: plugin-skip @ http://localhost:5173/src/lib/popcornInit.js:48
+[  437288ms] [LOG] [popcorn-init] OK: plugin-text @ http://localhost:5173/src/lib/popcornInit.js:48
+[  437300ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:5173/src/lib/popcornInit.js:48
+[  437316ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://localhost:5173/src/lib/popcornInit.js:48
+[  437335ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:5173/src/lib/popcornInit.js:48
+[  437344ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://localhost:5173/src/lib/popcornInit.js:48
+[  437355ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:5173/src/lib/popcornInit.js:48
+[  437365ms] [LOG] [popcorn-init] OK: plugin-combined @ http://localhost:5173/src/lib/popcornInit.js:48
+[  437372ms] [LOG] [popcorn-init] OK: plugin-background @ http://localhost:5173/src/lib/popcornInit.js:48
+[  437372ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://localhost:5173/src/lib/popcornInit.js:60
+[  437372ms] [LOG] [popcorn] function 19 @ http://localhost:5173/src/main.js?t=1787483816269:4
+[  440766ms] [LOG] [App] Starting initialization... @ http://localhost:5173/src/main.js?t=1787483828296:19
+[  440783ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:5173/src/lib/popcornInit.js:41
+[  440785ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:5173/src/lib/popcornInit.js:48
+[  440789ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:5173/src/lib/popcornInit.js:48
+[  440789ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:5173/src/lib/popcornInit.js:48
+[  440790ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:5173/src/lib/popcornInit.js:48
+[  440790ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:5173/src/lib/popcornInit.js:48
+[  440791ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:5173/src/lib/popcornInit.js:48
+[  440792ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:5173/src/lib/popcornInit.js:48
+[  440792ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:5173/src/lib/popcornInit.js:48
+[  440793ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:5173/src/lib/popcornInit.js:48
+[  440794ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:5173/src/lib/popcornInit.js:48
+[  440794ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:5173/src/lib/popcornInit.js:48
+[  440795ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:5173/src/lib/popcornInit.js:48
+[  440796ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:5173/src/lib/popcornInit.js:48
+[  441083ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:20096
+[  441115ms] [LOG] [App] Initialized in 348.40ms @ http://localhost:5173/src/main.js?t=1787483828296:164
+[  441119ms] [LOG] [App] Navigating to initial page: cinema-template @ http://localhost:5173/src/main.js?t=1787483828296:165
+[  441132ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://localhost:5173/src/main.js?t=1787483828296:176
+[  442474ms] [LOG] [popcorn-init] OK: plugin-image @ http://localhost:5173/src/lib/popcornInit.js:48
+[  442581ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[  442817ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[  443372ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://localhost:5173/src/lib/popcornInit.js:48
+[  443407ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://localhost:5173/src/lib/popcornInit.js:48
+[  443424ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:5173/src/lib/popcornInit.js:48
+[  443439ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://localhost:5173/src/lib/popcornInit.js:48
+[  443449ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://localhost:5173/src/lib/popcornInit.js:48
+[  443455ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://localhost:5173/src/lib/popcornInit.js:48
+[  443471ms] [LOG] [popcorn-init] OK: plugin-form @ http://localhost:5173/src/lib/popcornInit.js:48
+[  443485ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://localhost:5173/src/lib/popcornInit.js:48
+[  443496ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:5173/src/lib/popcornInit.js:48
+[  443504ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://localhost:5173/src/lib/popcornInit.js:48
+[  443517ms] [LOG] [popcorn-init] OK: plugin-skip @ http://localhost:5173/src/lib/popcornInit.js:48
+[  443567ms] [LOG] [popcorn-init] OK: plugin-text @ http://localhost:5173/src/lib/popcornInit.js:48
+[  443590ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:5173/src/lib/popcornInit.js:48
+[  443635ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://localhost:5173/src/lib/popcornInit.js:48
+[  443666ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:5173/src/lib/popcornInit.js:48
+[  443673ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://localhost:5173/src/lib/popcornInit.js:48
+[  443684ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:5173/src/lib/popcornInit.js:48
+[  443691ms] [LOG] [popcorn-init] OK: plugin-combined @ http://localhost:5173/src/lib/popcornInit.js:48
+[  443702ms] [LOG] [popcorn-init] OK: plugin-background @ http://localhost:5173/src/lib/popcornInit.js:48
+[  443702ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://localhost:5173/src/lib/popcornInit.js:60
+[  443702ms] [LOG] [popcorn] function 19 @ http://localhost:5173/src/main.js?t=1787483828296:4
+[  449924ms] [LOG] [App] Starting initialization... @ http://localhost:5173/src/main.js?t=1787483838581:19
+[  449948ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:5173/src/lib/popcornInit.js:41
+[  449949ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:5173/src/lib/popcornInit.js:48
+[  449950ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:5173/src/lib/popcornInit.js:48
+[  449951ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:5173/src/lib/popcornInit.js:48
+[  449951ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:5173/src/lib/popcornInit.js:48
+[  449951ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:5173/src/lib/popcornInit.js:48
+[  449952ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:5173/src/lib/popcornInit.js:48
+[  449952ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:5173/src/lib/popcornInit.js:48
+[  449952ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:5173/src/lib/popcornInit.js:48
+[  449953ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:5173/src/lib/popcornInit.js:48
+[  449953ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:5173/src/lib/popcornInit.js:48
+[  449953ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:5173/src/lib/popcornInit.js:48
+[  449954ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:5173/src/lib/popcornInit.js:48
+[  449954ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:5173/src/lib/popcornInit.js:48
+[  450189ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:20096
+[  450197ms] [LOG] [App] Initialized in 272.10ms @ http://localhost:5173/src/main.js?t=1787483838581:164
+[  450197ms] [LOG] [App] Navigating to initial page: cinema-template @ http://localhost:5173/src/main.js?t=1787483838581:165
+[  450197ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://localhost:5173/src/main.js?t=1787483838581:176
+[  451873ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[  452140ms] [LOG] [popcorn-init] OK: plugin-image @ http://localhost:5173/src/lib/popcornInit.js:48
+[  452230ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[  452824ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://localhost:5173/src/lib/popcornInit.js:48
+[  452849ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://localhost:5173/src/lib/popcornInit.js:48
+[  452900ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:5173/src/lib/popcornInit.js:48
+[  452907ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://localhost:5173/src/lib/popcornInit.js:48
+[  452915ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://localhost:5173/src/lib/popcornInit.js:48
+[  452921ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://localhost:5173/src/lib/popcornInit.js:48
+[  452934ms] [LOG] [popcorn-init] OK: plugin-form @ http://localhost:5173/src/lib/popcornInit.js:48
+[  452948ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://localhost:5173/src/lib/popcornInit.js:48
+[  452953ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:5173/src/lib/popcornInit.js:48
+[  452964ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://localhost:5173/src/lib/popcornInit.js:48
+[  452970ms] [LOG] [popcorn-init] OK: plugin-skip @ http://localhost:5173/src/lib/popcornInit.js:48
+[  453006ms] [LOG] [popcorn-init] OK: plugin-text @ http://localhost:5173/src/lib/popcornInit.js:48
+[  453023ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:5173/src/lib/popcornInit.js:48
+[  453032ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://localhost:5173/src/lib/popcornInit.js:48
+[  453057ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:5173/src/lib/popcornInit.js:48
+[  453066ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://localhost:5173/src/lib/popcornInit.js:48
+[  453072ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:5173/src/lib/popcornInit.js:48
+[  453081ms] [LOG] [popcorn-init] OK: plugin-combined @ http://localhost:5173/src/lib/popcornInit.js:48
+[  453094ms] [LOG] [popcorn-init] OK: plugin-background @ http://localhost:5173/src/lib/popcornInit.js:48
+[  453094ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://localhost:5173/src/lib/popcornInit.js:60
+[  453095ms] [LOG] [popcorn] function 19 @ http://localhost:5173/src/main.js?t=1787483838581:4
+[  464437ms] [LOG] [App] Starting initialization... @ http://localhost:5173/src/main.js?t=1787483852803:19
+[  464456ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:5173/src/lib/popcornInit.js:41
+[  464459ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:5173/src/lib/popcornInit.js:48
+[  464461ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:5173/src/lib/popcornInit.js:48
+[  464462ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:5173/src/lib/popcornInit.js:48
+[  464463ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:5173/src/lib/popcornInit.js:48
+[  464463ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:5173/src/lib/popcornInit.js:48
+[  464464ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:5173/src/lib/popcornInit.js:48
+[  464464ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:5173/src/lib/popcornInit.js:48
+[  464464ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:5173/src/lib/popcornInit.js:48
+[  464465ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:5173/src/lib/popcornInit.js:48
+[  464465ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:5173/src/lib/popcornInit.js:48
+[  464466ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:5173/src/lib/popcornInit.js:48
+[  464466ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:5173/src/lib/popcornInit.js:48
+[  464467ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:5173/src/lib/popcornInit.js:48
+[  464510ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:20096
+[  464515ms] [LOG] [App] Initialized in 77.80ms @ http://localhost:5173/src/main.js?t=1787483852803:164
+[  464515ms] [LOG] [App] Navigating to initial page: cinema-template @ http://localhost:5173/src/main.js?t=1787483852803:165
+[  464515ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://localhost:5173/src/main.js?t=1787483852803:176
+[  465356ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[  465930ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[  466202ms] [LOG] [popcorn-init] OK: plugin-image @ http://localhost:5173/src/lib/popcornInit.js:48
+[  467107ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://localhost:5173/src/lib/popcornInit.js:48
+[  467119ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://localhost:5173/src/lib/popcornInit.js:48
+[  467135ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:5173/src/lib/popcornInit.js:48
+[  467142ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://localhost:5173/src/lib/popcornInit.js:48
+[  467149ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://localhost:5173/src/lib/popcornInit.js:48
+[  467156ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://localhost:5173/src/lib/popcornInit.js:48
+[  467169ms] [LOG] [popcorn-init] OK: plugin-form @ http://localhost:5173/src/lib/popcornInit.js:48
+[  467191ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://localhost:5173/src/lib/popcornInit.js:48
+[  467200ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:5173/src/lib/popcornInit.js:48
+[  467211ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://localhost:5173/src/lib/popcornInit.js:48
+[  467218ms] [LOG] [popcorn-init] OK: plugin-skip @ http://localhost:5173/src/lib/popcornInit.js:48
+[  467271ms] [LOG] [popcorn-init] OK: plugin-text @ http://localhost:5173/src/lib/popcornInit.js:48
+[  467282ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:5173/src/lib/popcornInit.js:48
+[  467289ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://localhost:5173/src/lib/popcornInit.js:48
+[  467306ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:5173/src/lib/popcornInit.js:48
+[  467314ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://localhost:5173/src/lib/popcornInit.js:48
+[  467320ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:5173/src/lib/popcornInit.js:48
+[  467329ms] [LOG] [popcorn-init] OK: plugin-combined @ http://localhost:5173/src/lib/popcornInit.js:48
+[  467341ms] [LOG] [popcorn-init] OK: plugin-background @ http://localhost:5173/src/lib/popcornInit.js:48
+[  467341ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://localhost:5173/src/lib/popcornInit.js:60
+[  467341ms] [LOG] [popcorn] function 19 @ http://localhost:5173/src/main.js?t=1787483852803:4
+[  948837ms] [LOG] [App] Starting initialization... @ http://localhost:5173/src/main.js?t=1787484334331:19
+[  948896ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:41
+[  948897ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:48
+[  948902ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:48
+[  948907ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:48
+[  948907ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:48
+[  948908ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:48
+[  948909ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:48
+[  948910ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:48
+[  948910ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:48
+[  948911ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:48
+[  948912ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:48
+[  948914ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:48
+[  948918ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:48
+[  948919ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:48
+[  950691ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:20096
+[  950726ms] [LOG] [App] Initialized in 1889.30ms @ http://localhost:5173/src/main.js?t=1787484334331:164
+[  950726ms] [LOG] [App] Navigating to initial page: cinema-template @ http://localhost:5173/src/main.js?t=1787484334331:165
+[  950727ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://localhost:5173/src/main.js?t=1787484334331:176
+[  951132ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[  951329ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[  952252ms] [LOG] [popcorn-init] OK: plugin-image @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:48
+[  953151ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:48
+[  953990ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:48
+[  954008ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:48
+[  954025ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:48
+[  954034ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:48
+[  954042ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:48
+[  954061ms] [LOG] [popcorn-init] OK: plugin-form @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:48
+[  954099ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:48
+[  954116ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:48
+[  954131ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:48
+[  954139ms] [LOG] [popcorn-init] OK: plugin-skip @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:48
+[  954183ms] [LOG] [popcorn-init] OK: plugin-text @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:48
+[  954209ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:48
+[  954223ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:48
+[  954253ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:48
+[  954265ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:48
+[  954284ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:48
+[  954301ms] [LOG] [popcorn-init] OK: plugin-combined @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:48
+[  954319ms] [LOG] [popcorn-init] OK: plugin-background @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:48
+[  954319ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://localhost:5173/src/lib/popcornInit.js?t=1787484334331:60
+[  954320ms] [LOG] [popcorn] function 19 @ http://localhost:5173/src/main.js?t=1787484334331:4
+[  959385ms] [LOG] [App] Starting initialization... @ http://localhost:5173/src/main.js?t=1787484347371:19
+[  959411ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:41
+[  959413ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:48
+[  959414ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:48
+[  959415ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:48
+[  959416ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:48
+[  959417ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:48
+[  959417ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:48
+[  959417ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:48
+[  959418ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:48
+[  959419ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:48
+[  959420ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:48
+[  959421ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:48
+[  959422ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:48
+[  959422ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:48
+[  960348ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:20096
+[  960358ms] [LOG] [App] Initialized in 973.10ms @ http://localhost:5173/src/main.js?t=1787484347371:164
+[  960358ms] [LOG] [App] Navigating to initial page: cinema-template @ http://localhost:5173/src/main.js?t=1787484347371:165
+[  960359ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://localhost:5173/src/main.js?t=1787484347371:176
+[  961076ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[  961278ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[  961841ms] [LOG] [popcorn-init] OK: plugin-image @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:48
+[  963220ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:48
+[  963250ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:48
+[  963283ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:48
+[  963295ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:48
+[  963315ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:48
+[  963335ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:48
+[  963466ms] [LOG] [popcorn-init] OK: plugin-form @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:48
+[  963490ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:48
+[  963495ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:48
+[  963516ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:48
+[  963535ms] [LOG] [popcorn-init] OK: plugin-skip @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:48
+[  963577ms] [LOG] [popcorn-init] OK: plugin-text @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:48
+[  963588ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:48
+[  963596ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:48
+[  963613ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:48
+[  963624ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:48
+[  963630ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:48
+[  963638ms] [LOG] [popcorn-init] OK: plugin-combined @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:48
+[  963646ms] [LOG] [popcorn-init] OK: plugin-background @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:48
+[  963647ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://localhost:5173/src/lib/popcornInit.js?t=1787484347371:60
+[  963647ms] [LOG] [popcorn] function 19 @ http://localhost:5173/src/main.js?t=1787484347371:4

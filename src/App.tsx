@@ -8,7 +8,6 @@ import { getErrorMessage, logError } from './lib/errors'
 import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary'
 import Header from './components/Header/Header'
 import HeroSection from './components/HeroSection/HeroSection'
-import MeetOpenThornSection from './components/MeetOpenThornSection/MeetOpenThornSection'
 import BYOKSection from './components/BYOKSection/BYOKSection'
 import BottomCTA from './components/BottomCTA/BottomCTA'
 import Footer from './components/Footer/Footer'
@@ -56,12 +55,12 @@ function HomePage() {
   useJsonLd({
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
-    name: 'OpenThorn',
+    name: 'SmartVideo',
     applicationCategory: 'DeveloperApplication',
     operatingSystem: 'Web',
     description:
-      'OpenThorn is the BYOK AI website builder — describe what you want, get a complete, deployable website. No subscription, no lock-in.',
-    url: 'https://www.openthorn.app',
+      'SmartVideo is the BYOK AI website builder — describe what you want, get a complete, deployable website. No subscription, no lock-in.',
+    url: 'https://www.smartvid.app',
     offers: {
       '@type': 'Offer',
       price: '0',
@@ -73,7 +72,6 @@ function HomePage() {
   return (
     <>
       <HeroSection />
-      <MeetOpenThornSection />
       <BYOKSection />
       <BottomCTA />
     </>
@@ -103,8 +101,8 @@ function Layout({ children }: { children: React.ReactNode }) {
       if (mode === 'signup') openSignUp()
       else openSignIn()
     }
-    window.addEventListener('openthorn:require-auth', handleRequireAuth)
-    return () => window.removeEventListener('openthorn:require-auth', handleRequireAuth)
+    window.addEventListener('smartvid:require-auth', handleRequireAuth)
+    return () => window.removeEventListener('smartvid:require-auth', handleRequireAuth)
   }, [])
 
   return (

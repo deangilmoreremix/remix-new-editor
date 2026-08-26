@@ -19,7 +19,7 @@ interface DropdownItem {
 }
 
 const solutionsItems: DropdownItem[] = [
-  { label: 'Founders', description: 'Go from idea to working MVP in hours', href: '/blog/introducing-openthorn' },
+   { label: 'Founders', description: 'Go from idea to working MVP in hours', href: '/blog/introducing-smartvideo' },
   { label: 'Developers', description: 'Scaffold full-stack apps from a description', href: '/faq' },
   { label: 'Product managers', description: 'Skip the handoff, build it directly', href: '/pricing' },
   { label: 'Designers', description: 'Turn mockups into real interfaces', href: '/templates' },
@@ -40,12 +40,12 @@ const useCasesItems: DropdownItem[] = [
 
 const resourcesItems: DropdownItem[] = [
   { label: 'Blog', description: 'Product updates, guides, and behind-the-scenes', href: '/blog' },
-  { label: 'Comparisons', description: 'See OpenThorn against Lovable, Bolt.new, and v0', href: '/compare' },
+   { label: 'Comparisons', description: 'See SmartVideo against Lovable, Bolt.new, and v0', href: '/compare' },
   { label: 'Provider Guides', description: 'Set up OpenAI, Anthropic, Gemini, and more', href: '/build-with' },
   { label: 'Glossary', description: 'Plain-English AI builder terms and concepts', href: '/glossary' },
   { label: 'Changelog', description: 'What shipped, straight from our commits', href: '/changelog' },
   { label: 'Templates', description: 'Jump-start your next project', href: '/templates' },
-  { label: 'Docs & FAQs', description: 'How OpenThorn works, answered clearly', href: '/faq' },
+   { label: 'Docs & FAQs', description: 'How SmartVideo works, answered clearly', href: '/faq' },
 ]
 
 type DropdownKey = 'solutions' | 'useCases' | 'resources'

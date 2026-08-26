@@ -1,0 +1,48 @@
+[      79ms] [LOG] [App] Starting initialization... @ http://localhost:3100/src/main.js?t=1787523865681:19
+[      92ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:41
+[      94ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[      96ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[      97ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[      97ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[      97ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[      98ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[      98ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[      99ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[      99ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[      99ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[     100ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[     100ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[     100ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[     392ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=708fd709:20096
+[     395ms] [LOG] [App] Initialized in 316.10ms @ http://localhost:3100/src/main.js?t=1787523865681:164
+[     395ms] [LOG] [App] Navigating to initial page: upscale @ http://localhost:3100/src/main.js?t=1787523865681:165
+[     395ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://localhost:3100/src/main.js?t=1787523865681:176
+[    1005ms] [LOG] [popcorn-init] OK: plugin-image @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1013ms] [ERROR] [Router] Failed to load page: upscale ReferenceError: renderProviderLogoImg is not defined
+    at updateTrigger (http://localhost:3100/src/components/UpscaleStudio.js?t=1787523865681:69:30)
+    at Module.UpscaleStudio (http://localhost:3100/src/components/UpscaleStudio.js?t=1787523865681:75:3)
+    at http://localhost:3100/src/lib/router.js?t=1787523865681:99:91
+    at async navigate (http://localhost:3100/src/lib/router.js?t=1787523865681:225:17) @ http://localhost:3100/src/lib/router.js?t=1787523865681:245
+[    1202ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1210ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[    1221ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1229ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1235ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1241ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1246ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1256ms] [LOG] [popcorn-init] OK: plugin-form @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1266ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1272ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1277ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1281ms] [LOG] [popcorn-init] OK: plugin-skip @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1290ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[    1300ms] [LOG] [popcorn-init] OK: plugin-text @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1308ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1314ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1343ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1349ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1361ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1365ms] [LOG] [popcorn-init] OK: plugin-combined @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1371ms] [LOG] [popcorn-init] OK: plugin-background @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1371ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:60
+[    1371ms] [LOG] [popcorn] function 19 @ http://localhost:3100/src/main.js?t=1787523865681:4

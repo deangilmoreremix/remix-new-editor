@@ -36,7 +36,7 @@ function mergePublishedWithBundled(published: Template[]): Template[] {
 
 export default function TemplatesPage() {
   usePageTitle('Templates', {
-    description: 'Start a new OpenThorn project from a ready-made website template.',
+    description: 'Start a new SmartVideo project from a ready-made website template.',
   })
   const { user, loading } = useAuth()
   const navigate = useNavigate()
@@ -123,7 +123,7 @@ export default function TemplatesPage() {
           </svg>
         </button>
         <a href="/dashboard" className={styles.mobileLogo}>
-          <img src="/assets/logo.png" alt="OpenThorn" className={styles.mobileLogoImg} />
+          <img src="/assets/logo.png" alt="SmartVideo" className={styles.mobileLogoImg} />
         </a>
       </div>
 

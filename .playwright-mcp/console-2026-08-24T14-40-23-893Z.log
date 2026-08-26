@@ -1,0 +1,21 @@
+[     377ms] [WARNING] Error with Permissions-Policy header: Invalid allowlist item for feature *. Allowlist item must be *, self, or quoted url. @ :0
+[     377ms] [WARNING] Error with Permissions-Policy header: Unrecognized feature: '*'. @ :0
+[    1319ms] [ERROR] No user channel found. Please subscribe to a user first. @ https://public.zight.com/vite/assets/pusher-COCWOBsy.js:460
+[    1457ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ https://share.zight.com/01a03436-925a-73bf-9743-19a984705b07:0
+[    1471ms] [ERROR] Failed to load resource: the server responded with a status of 401 () @ https://share.zight.com/api/v5/collections?page=1&per_page=20&sort=name:0
+[    1700ms] Cannot load collections list
+[    1943ms] [LOG] [CIO GTM] Snippet starting… @ :0
+[    1943ms] [LOG] [CIO GTM] Initializing analytics stub… @ :0
+[    1943ms] [LOG] [CIO GTM] Loading Customer.io library with key: 1bf458273bd553d82936 @ :0
+[    1944ms] [LOG] [CIO GTM] Called analytics.page() @ :0
+[    1944ms] [LOG] [CIO GTM] Running initial identifyFromDataLayer() @ :0
+[    1944ms] [LOG] [CIO GTM] identifyFromDataLayer() called. @ :0
+[    1944ms] [LOG] [CIO GTM] Scanning dataLayer for user… size: 4 @ :0
+[    1944ms] [LOG] [CIO GTM]  dataLayer item[3]: {event: gtm.load, gtm.uniqueEventId: 22} @ :0
+[    1946ms] [LOG] [CIO GTM]  dataLayer item[2]: {event: gtm.dom, gtm.uniqueEventId: 7} @ :0
+[    1946ms] [LOG] [CIO GTM]  dataLayer item[1]: {gtm.start: 1787582424287, event: gtm.js, gtm.uniqueEventId: 3} @ :0
+[    1946ms] [LOG] [CIO GTM]  dataLayer item[0]: {email: , userId: , name: , organization_name: , organization_id: } @ :0
+[    1947ms] [LOG] [CIO GTM] No suitable user object found in dataLayer. @ :0
+[    1947ms] [LOG] [CIO GTM] identifyFromDataLayer: aborting, no user found. @ :0
+[    1947ms] [LOG] [CIO GTM] dataLayer.push override installed. @ :0
+[    2260ms] [LOG] [CIO GTM] Customer.io analytics.ready() fired. [Array(4)] @ :0

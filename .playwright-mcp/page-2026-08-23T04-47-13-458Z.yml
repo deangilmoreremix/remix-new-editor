@@ -1,0 +1,125 @@
+- generic [ref=f287e2]:
+  - banner [ref=f287e3]:
+    - generic [ref=f287e4]:
+      - generic [ref=f287e5]:
+        - generic [ref=f287e6] [cursor=pointer]
+        - navigation [ref=f287e12]:
+          - generic [ref=f287e13] [cursor=pointer]: Explore
+          - generic [ref=f287e14] [cursor=pointer]: Image
+          - generic [ref=f287e15] [cursor=pointer]: Video
+          - generic [ref=f287e16] [cursor=pointer]: Tools
+          - generic [ref=f287e17] [cursor=pointer]: Storyboard
+          - generic [ref=f287e18] [cursor=pointer]: Edit
+          - generic [ref=f287e19] [cursor=pointer]: Character
+          - generic [ref=f287e20] [cursor=pointer]: Vibe Motion
+          - generic [ref=f287e21] [cursor=pointer]: Cinema Studio
+          - generic [ref=f287e22] [cursor=pointer]: Cinema Template Studio
+          - generic [ref=f287e23] [cursor=pointer]: AI Influencer
+          - generic [ref=f287e24] [cursor=pointer]: Smart Video Viral
+          - generic [ref=f287e25] [cursor=pointer]: Apps
+          - generic [ref=f287e26] [cursor=pointer]: Templates
+          - generic [ref=f287e27] [cursor=pointer]: Assist
+          - generic [ref=f287e28] [cursor=pointer]: Community
+          - generic [ref=f287e29] [cursor=pointer]: Content Library
+      - generic [ref=f287e30]:
+        - button "Update API Key" [ref=f287e31]
+        - link "Sign In" [ref=f287e35] [cursor=pointer]:
+          - /url: /signin
+  - generic [ref=f287e36]:
+    - complementary [ref=f287e37]:
+      - generic [ref=f287e38]:
+        - generic [ref=f287e39] [cursor=pointer]:
+          - button [ref=f287e40]
+          - generic [ref=f287e46]: Apps
+        - generic [ref=f287e47] [cursor=pointer]:
+          - button [ref=f287e48]
+          - generic [ref=f287e53]: Image
+        - generic [ref=f287e54] [cursor=pointer]:
+          - button [ref=f287e55]
+          - generic [ref=f287e59]: Video
+        - generic [ref=f287e60] [cursor=pointer]:
+          - button [ref=f287e61]
+          - generic [ref=f287e64]: Cinema Studio
+        - generic [ref=f287e65] [cursor=pointer]:
+          - button [ref=f287e66]
+          - generic [ref=f287e69]: Cinema Template Studio
+        - generic [ref=f287e70] [cursor=pointer]:
+          - button [ref=f287e71]
+          - generic [ref=f287e79]: Storyboard
+        - generic [ref=f287e80] [cursor=pointer]:
+          - button [ref=f287e81]
+          - generic [ref=f287e84]: Effects
+        - generic [ref=f287e85] [cursor=pointer]:
+          - button [ref=f287e86]
+          - generic [ref=f287e90]: Edit
+        - generic [ref=f287e91] [cursor=pointer]:
+          - button [ref=f287e92]
+          - generic [ref=f287e98]: Upscale
+        - generic [ref=f287e99] [cursor=pointer]:
+          - button [ref=f287e100]
+          - generic [ref=f287e105]: Audio
+        - generic [ref=f287e106] [cursor=pointer]:
+          - button [ref=f287e107]
+          - generic [ref=f287e112]: Avatar
+        - generic [ref=f287e113] [cursor=pointer]:
+          - button [ref=f287e114]
+          - generic [ref=f287e119]: Training
+        - generic [ref=f287e120] [cursor=pointer]:
+          - button [ref=f287e121]
+          - generic [ref=f287e125]: Smart Video Academy
+        - generic [ref=f287e126] [cursor=pointer]:
+          - button [ref=f287e127]
+          - generic [ref=f287e132]: Smart Video Viral
+        - generic [ref=f287e133] [cursor=pointer]:
+          - button [ref=f287e134]
+          - generic [ref=f287e138]: Video Tools
+        - generic [ref=f287e139] [cursor=pointer]:
+          - button [ref=f287e140]
+          - generic [ref=f287e143]: Render
+        - generic [ref=f287e144] [cursor=pointer]:
+          - button [ref=f287e145]
+          - generic [ref=f287e150]: Video Agent
+        - generic [ref=f287e151] [cursor=pointer]:
+          - button [ref=f287e152]
+          - generic [ref=f287e156]: Director
+        - generic [ref=f287e157] [cursor=pointer]:
+          - button [ref=f287e158]
+          - generic [ref=f287e164]: Timeline
+        - generic [ref=f287e165] [cursor=pointer]:
+          - button [ref=f287e166]
+          - generic [ref=f287e169]: Chat
+        - generic [ref=f287e170] [cursor=pointer]:
+          - button [ref=f287e171]
+          - generic [ref=f287e175]: Commercial
+        - generic [ref=f287e176] [cursor=pointer]:
+          - button [ref=f287e177]
+          - generic [ref=f287e180]: Templates
+        - generic [ref=f287e181] [cursor=pointer]:
+          - button [ref=f287e182]
+          - generic [ref=f287e186]: Explore
+        - generic [ref=f287e187] [cursor=pointer]:
+          - button [ref=f287e188]
+          - generic [ref=f287e192]: Library
+        - generic [ref=f287e193] [cursor=pointer]:
+          - button [ref=f287e194]
+          - generic [ref=f287e197]: Content
+        - generic [ref=f287e198] [cursor=pointer]:
+          - button [ref=f287e199]
+          - generic [ref=f287e205]: Community
+        - generic [ref=f287e206] [cursor=pointer]:
+          - button [ref=f287e207]
+          - generic [ref=f287e212]: Assist
+        - generic [ref=f287e213] [cursor=pointer]:
+          - button [ref=f287e214]
+          - generic [ref=f287e218]: Commits (0)
+        - generic [ref=f287e219] [cursor=pointer]:
+          - button [ref=f287e220]
+          - generic [ref=f287e224]: AI VFX
+        - generic [ref=f287e225] [cursor=pointer]:
+          - button [ref=f287e226]
+          - generic [ref=f287e230]: Stock Media
+      - generic [ref=f287e232] [cursor=pointer]:
+        - button [ref=f287e233]
+        - generic [ref=f287e237]: Settings
+    - main [ref=f287e238]:
+      - generic [ref=f287e239]: "Failed to load cinema: getCustomThumbnailFromCache is not defined"

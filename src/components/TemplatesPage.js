@@ -1,4 +1,4 @@
-import { allTemplates, getAllCategories } from '../lib/templates.js';
+import { allTemplates, getAllCategories } from '../lib/videoTemplates.js';
 import { NICHE_LABELS_MAP } from '../lib/nicheTemplatesIndex.js';
 import { navigate } from '../lib/router.js';
 import { getTemplateThumbnail, createThumbnailImg, createHeroSection } from '../lib/thumbnails.js';

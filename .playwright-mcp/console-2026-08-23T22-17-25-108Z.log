@@ -1,0 +1,138 @@
+[    2944ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3100/src/main.js?t=1787523372002:19
+[    3039ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:41
+[    3049ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:48
+[    3065ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:48
+[    3072ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:48
+[    3086ms] [LOG] [popcorn-init] OK: wrapper-common @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:48
+[    3093ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:48
+[    3102ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:48
+[    3116ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:48
+[    3126ms] [LOG] [popcorn-init] OK: wrapper-null @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:48
+[    3144ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:48
+[    3175ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:48
+[    3217ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:48
+[    3300ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:48
+[    3458ms] [LOG] [popcorn-init] OK: player-module @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:48
+[    3968ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=708fd709:20096
+[    3987ms] [LOG] [App] Initialized in 1041.80ms @ http://127.0.0.1:3100/src/main.js?t=1787523372002:164
+[    3987ms] [LOG] [App] Navigating to initial page: openthorn @ http://127.0.0.1:3100/src/main.js?t=1787523372002:165
+[    3987ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://127.0.0.1:3100/src/main.js?t=1787523372002:176
+[    4508ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[    5099ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/client?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2:0
+[    5264ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[    5265ms] [ERROR] e: The Request HTTP Origin header must be equal to or a subdomain of the requesting URL.
+    at il._baseFetch (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:171)
+    at async io.execute (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:6812)
+    at async rA._baseGet (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:497)
+    at async Promise.all (index 1)
+    at async #eY (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:236310)
+    at async s7.load (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:193944)
+    at async _a15.getEntryChunks (http://127.0.0.1:3100/node_modules/.vite/deps/@clerk_react.js?v=708fd709:7972:9) @ http://127.0.0.1:3100/node_modules/.vite/deps/@clerk_react.js?v=708fd709:7983
+[    5737ms] [LOG] [popcorn-init] OK: plugin-image @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:48
+[    6617ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:48
+[    6693ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:48
+[    6835ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:48
+[    6852ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:48
+[    6879ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:48
+[    6901ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:48
+[    7162ms] [LOG] [popcorn-init] OK: plugin-form @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:48
+[    7260ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:48
+[    7277ms] [LOG] [popcorn-init] OK: plugin-popup @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:48
+[    7335ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:48
+[    7365ms] [LOG] [popcorn-init] OK: plugin-skip @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:48
+[    7523ms] [LOG] [popcorn-init] OK: plugin-text @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:48
+[    7664ms] [LOG] [popcorn-init] OK: plugin-social @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:48
+[    7675ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:48
+[    7787ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:48
+[    7836ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:48
+[    7848ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:48
+[    7863ms] [LOG] [popcorn-init] OK: plugin-combined @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:48
+[    7874ms] [LOG] [popcorn-init] OK: plugin-background @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:48
+[    7874ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523372002:60
+[    7874ms] [LOG] [popcorn] function 19 @ http://127.0.0.1:3100/src/main.js?t=1787523372002:4
+[   13565ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[   13566ms] [LOG] %c[Vercel Web Analytics]%c [view] http://localhost:5173/ color: rgb(120, 120, 120) color: inherit {o: http://localhost:5173/, sv: 0.1.3, sdkn: @vercel/analytics/react, sdkv: 2.0.1, ts: 1787523458673} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[   13568ms] [LOG] %c[Vercel Speed Insights]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/speed-insights/script.debug.js:0
+[   16176ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project-ref.supabase.co/rest/v1/app_config?select=key%2Cvalue:0
+[   17427ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project-ref.supabase.co/rest/v1/app_config?select=key%2Cvalue:0
+[   19489ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project-ref.supabase.co/rest/v1/app_config?select=key%2Cvalue:0
+[   23620ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project-ref.supabase.co/rest/v1/app_config?select=key%2Cvalue:0
+[   23981ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project-ref.supabase.co/rest/v1/default_models?select=*&provider_id=in.%28anthropic%2Copenai%2Cgoogle%29:0
+[   23981ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project-ref.supabase.co/rest/v1/default_models?select=*&provider_id=in.%28anthropic%2Copenai%2Cgoogle%29:0
+[   23981ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project-ref.supabase.co/rest/v1/default_models?select=*&provider_id=in.%28anthropic%2Copenai%2Cgoogle%29:0
+[   24049ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project-ref.supabase.co/rest/v1/default_models?select=*&provider_id=in.%28anthropic%2Copenai%2Cgoogle%29:0
+[   30160ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3100/src/main.js?t=1787523469413:19
+[   30180ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:41
+[   30181ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:48
+[   30182ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:48
+[   30183ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:48
+[   30184ms] [LOG] [popcorn-init] OK: wrapper-common @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:48
+[   30187ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:48
+[   30188ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:48
+[   30189ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:48
+[   30190ms] [LOG] [popcorn-init] OK: wrapper-null @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:48
+[   30191ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:48
+[   30192ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:48
+[   30193ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:48
+[   30193ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:48
+[   30194ms] [LOG] [popcorn-init] OK: player-module @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:48
+[   31229ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=708fd709:20096
+[   31237ms] [LOG] [App] Initialized in 1076.70ms @ http://127.0.0.1:3100/src/main.js?t=1787523469413:164
+[   31237ms] [LOG] [App] Navigating to initial page: openthorn @ http://127.0.0.1:3100/src/main.js?t=1787523469413:165
+[   31237ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://127.0.0.1:3100/src/main.js?t=1787523469413:176
+[   31544ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[   31991ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[   32301ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/client?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2:0
+[   32303ms] [ERROR] e: The Request HTTP Origin header must be equal to or a subdomain of the requesting URL.
+    at il._baseFetch (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:171)
+    at async io.execute (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:6812)
+    at async rA._baseGet (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:497)
+    at async Promise.all (index 1)
+    at async #eY (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:236310)
+    at async s7.load (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:193944)
+    at async _a15.getEntryChunks (http://127.0.0.1:3100/node_modules/.vite/deps/@clerk_react.js?v=708fd709:7972:9) @ http://127.0.0.1:3100/node_modules/.vite/deps/@clerk_react.js?v=708fd709:7983
+[   35825ms] [LOG] [popcorn-init] OK: plugin-image @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:48
+[   36014ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[   36014ms] [LOG] %c[Vercel Web Analytics]%c [view] http://localhost:5173/ color: rgb(120, 120, 120) color: inherit {o: http://localhost:5173/, sv: 0.1.3, sdkn: @vercel/analytics/react, sdkv: 2.0.1, ts: 1787523481122} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[   36015ms] [LOG] %c[Vercel Speed Insights]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/speed-insights/script.debug.js:0
+[   37359ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:48
+[   37370ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:48
+[   37384ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:48
+[   37392ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:48
+[   37399ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:48
+[   37408ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:48
+[   37426ms] [LOG] [popcorn-init] OK: plugin-form @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:48
+[   37446ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:48
+[   37456ms] [LOG] [popcorn-init] OK: plugin-popup @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:48
+[   37466ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:48
+[   37473ms] [LOG] [popcorn-init] OK: plugin-skip @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:48
+[   37577ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project-ref.supabase.co/rest/v1/app_config?select=key%2Cvalue:0
+[   37651ms] [LOG] [popcorn-init] OK: plugin-text @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:48
+[   37671ms] [LOG] [popcorn-init] OK: plugin-social @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:48
+[   37681ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:48
+[   37699ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:48
+[   37707ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:48
+[   37713ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:48
+[   37722ms] [LOG] [popcorn-init] OK: plugin-combined @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:48
+[   37729ms] [LOG] [popcorn-init] OK: plugin-background @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:48
+[   37729ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://127.0.0.1:3100/src/lib/popcornInit.js?t=1787523469413:60
+[   37730ms] [LOG] [popcorn] function 19 @ http://127.0.0.1:3100/src/main.js?t=1787523469413:4
+[   38686ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project-ref.supabase.co/rest/v1/app_config?select=key%2Cvalue:0
+[   40858ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project-ref.supabase.co/rest/v1/app_config?select=key%2Cvalue:0
+[   45068ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project-ref.supabase.co/rest/v1/app_config?select=key%2Cvalue:0
+[   45376ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project-ref.supabase.co/rest/v1/default_models?select=*&provider_id=in.%28anthropic%2Copenai%2Cgoogle%29:0
+[   45378ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project-ref.supabase.co/rest/v1/default_models?select=*&provider_id=in.%28anthropic%2Copenai%2Cgoogle%29:0
+[   45457ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project-ref.supabase.co/rest/v1/default_models?select=*&provider_id=in.%28anthropic%2Copenai%2Cgoogle%29:0
+[   45458ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project-ref.supabase.co/rest/v1/default_models?select=*&provider_id=in.%28anthropic%2Copenai%2Cgoogle%29:0
+[   46630ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project-ref.supabase.co/rest/v1/default_models?select=*&provider_id=in.%28anthropic%2Copenai%2Cgoogle%29:0
+[   46630ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project-ref.supabase.co/rest/v1/default_models?select=*&provider_id=in.%28anthropic%2Copenai%2Cgoogle%29:0
+[   47007ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project-ref.supabase.co/rest/v1/default_models?select=*&provider_id=in.%28anthropic%2Copenai%2Cgoogle%29:0
+[   47009ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project-ref.supabase.co/rest/v1/default_models?select=*&provider_id=in.%28anthropic%2Copenai%2Cgoogle%29:0
+[   48892ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project-ref.supabase.co/rest/v1/default_models?select=*&provider_id=in.%28anthropic%2Copenai%2Cgoogle%29:0
+[   49122ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project-ref.supabase.co/rest/v1/default_models?select=*&provider_id=in.%28anthropic%2Copenai%2Cgoogle%29:0
+[   49182ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project-ref.supabase.co/rest/v1/default_models?select=*&provider_id=in.%28anthropic%2Copenai%2Cgoogle%29:0
+[   49183ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project-ref.supabase.co/rest/v1/default_models?select=*&provider_id=in.%28anthropic%2Copenai%2Cgoogle%29:0
+[   52967ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project-ref.supabase.co/rest/v1/default_models?select=*&provider_id=in.%28anthropic%2Copenai%2Cgoogle%29:0
+[   53319ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project-ref.supabase.co/rest/v1/default_models?select=*&provider_id=in.%28anthropic%2Copenai%2Cgoogle%29:0
+[   53319ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project-ref.supabase.co/rest/v1/default_models?select=*&provider_id=in.%28anthropic%2Copenai%2Cgoogle%29:0
+[   53319ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project-ref.supabase.co/rest/v1/default_models?select=*&provider_id=in.%28anthropic%2Copenai%2Cgoogle%29:0

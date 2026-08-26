@@ -1,0 +1,143 @@
+- generic [active] [ref=f87e1]:
+  - heading "Directory listing for /videos/" [level=1] [ref=f87e2]
+  - separator [ref=f87e3]
+  - list [ref=f87e4]:
+    - listitem [ref=f87e5]:
+      - link "studio-demo-studio-academy-1787507044457.mp4" [ref=f87e6] [cursor=pointer]:
+        - /url: studio-demo-studio-academy-1787507044457.mp4
+    - listitem [ref=f87e7]:
+      - link "studio-demo-studio-ai-vfx-1787506875047.mp4" [ref=f87e8] [cursor=pointer]:
+        - /url: studio-demo-studio-ai-vfx-1787506875047.mp4
+    - listitem [ref=f87e9]:
+      - link "studio-demo-studio-apps-1787506914562.mp4" [ref=f87e10] [cursor=pointer]:
+        - /url: studio-demo-studio-apps-1787506914562.mp4
+    - listitem [ref=f87e11]:
+      - link "studio-demo-studio-assist-1787507032406.mp4" [ref=f87e12] [cursor=pointer]:
+        - /url: studio-demo-studio-assist-1787507032406.mp4
+    - listitem [ref=f87e13]:
+      - link "studio-demo-studio-audio-1787506733559.mp4" [ref=f87e14] [cursor=pointer]:
+        - /url: studio-demo-studio-audio-1787506733559.mp4
+    - listitem [ref=f87e15]:
+      - link "studio-demo-studio-avatar-1787506738961.mp4" [ref=f87e16] [cursor=pointer]:
+        - /url: studio-demo-studio-avatar-1787506738961.mp4
+    - listitem [ref=f87e17]:
+      - link "studio-demo-studio-character-1787506503883.mp4" [ref=f87e18] [cursor=pointer]:
+        - /url: studio-demo-studio-character-1787506503883.mp4
+    - listitem [ref=f87e19]:
+      - link "studio-demo-studio-character-page-1787507139959.mp4" [ref=f87e20] [cursor=pointer]:
+        - /url: studio-demo-studio-character-page-1787507139959.mp4
+    - listitem [ref=f87e21]:
+      - link "studio-demo-studio-chat-1787506781583.mp4" [ref=f87e22] [cursor=pointer]:
+        - /url: studio-demo-studio-chat-1787506781583.mp4
+    - listitem [ref=f87e23]:
+      - link "studio-demo-studio-cinema-1787506330244.mp4" [ref=f87e24] [cursor=pointer]:
+        - /url: studio-demo-studio-cinema-1787506330244.mp4
+    - listitem [ref=f87e25]:
+      - link "studio-demo-studio-cinema-template-1787506347625.mp4" [ref=f87e26] [cursor=pointer]:
+        - /url: studio-demo-studio-cinema-template-1787506347625.mp4
+    - listitem [ref=f87e27]:
+      - link "studio-demo-studio-commercial-1787506575301.mp4" [ref=f87e28] [cursor=pointer]:
+        - /url: studio-demo-studio-commercial-1787506575301.mp4
+    - listitem [ref=f87e29]:
+      - link "studio-demo-studio-commercial-page-1787507161816.mp4" [ref=f87e30] [cursor=pointer]:
+        - /url: studio-demo-studio-commercial-page-1787507161816.mp4
+    - listitem [ref=f87e31]:
+      - link "studio-demo-studio-community-1787507014424.mp4" [ref=f87e32] [cursor=pointer]:
+        - /url: studio-demo-studio-community-1787507014424.mp4
+    - listitem [ref=f87e33]:
+      - link "studio-demo-studio-content-library-1787506996188.mp4" [ref=f87e34] [cursor=pointer]:
+        - /url: studio-demo-studio-content-library-1787506996188.mp4
+    - listitem [ref=f87e35]:
+      - link "studio-demo-studio-director-1787506865958.mp4" [ref=f87e36] [cursor=pointer]:
+        - /url: studio-demo-studio-director-1787506865958.mp4
+    - listitem [ref=f87e37]:
+      - link "studio-demo-studio-edit-1787506391025.mp4" [ref=f87e38] [cursor=pointer]:
+        - /url: studio-demo-studio-edit-1787506391025.mp4
+    - listitem [ref=f87e39]:
+      - link "studio-demo-studio-effects-1787506378664.mp4" [ref=f87e40] [cursor=pointer]:
+        - /url: studio-demo-studio-effects-1787506378664.mp4
+    - listitem [ref=f87e41]:
+      - link "studio-demo-studio-effects-page-1787507146152.mp4" [ref=f87e42] [cursor=pointer]:
+        - /url: studio-demo-studio-effects-page-1787507146152.mp4
+    - listitem [ref=f87e43]:
+      - link "studio-demo-studio-explore-1787506933317.mp4" [ref=f87e44] [cursor=pointer]:
+        - /url: studio-demo-studio-explore-1787506933317.mp4
+    - listitem [ref=f87e45]:
+      - link "studio-demo-studio-image-1787506296998.mp4" [ref=f87e46] [cursor=pointer]:
+        - /url: studio-demo-studio-image-1787506296998.mp4
+    - listitem [ref=f87e47]:
+      - link "studio-demo-studio-image-to-image-1787507078018.mp4" [ref=f87e48] [cursor=pointer]:
+        - /url: studio-demo-studio-image-to-image-1787507078018.mp4
+    - listitem [ref=f87e49]:
+      - link "studio-demo-studio-image-to-video-1787507107646.mp4" [ref=f87e50] [cursor=pointer]:
+        - /url: studio-demo-studio-image-to-video-1787507107646.mp4
+    - listitem [ref=f87e51]:
+      - link "studio-demo-studio-influencer-1787506824904.mp4" [ref=f87e52] [cursor=pointer]:
+        - /url: studio-demo-studio-influencer-1787506824904.mp4
+    - listitem [ref=f87e53]:
+      - link "studio-demo-studio-influencer-page-1787507156376.mp4" [ref=f87e54] [cursor=pointer]:
+        - /url: studio-demo-studio-influencer-page-1787507156376.mp4
+    - listitem [ref=f87e55]:
+      - link "studio-demo-studio-library-1787506978287.mp4" [ref=f87e56] [cursor=pointer]:
+        - /url: studio-demo-studio-library-1787506978287.mp4
+    - listitem [ref=f87e57]:
+      - link "studio-demo-studio-lipsync-1787506806568.mp4" [ref=f87e58] [cursor=pointer]:
+        - /url: studio-demo-studio-lipsync-1787506806568.mp4
+    - listitem [ref=f87e59]:
+      - link "studio-demo-studio-pexels-media-1787507038510.mp4" [ref=f87e60] [cursor=pointer]:
+        - /url: studio-demo-studio-pexels-media-1787507038510.mp4
+    - listitem [ref=f87e61]:
+      - link "studio-demo-studio-render-1787506879777.mp4" [ref=f87e62] [cursor=pointer]:
+        - /url: studio-demo-studio-render-1787506879777.mp4
+    - listitem [ref=f87e63]:
+      - link "studio-demo-studio-storyboard-1787506367659.mp4" [ref=f87e64] [cursor=pointer]:
+        - /url: studio-demo-studio-storyboard-1787506367659.mp4
+    - listitem [ref=f87e65]:
+      - link "studio-demo-studio-storyboard-page-1787507151257.mp4" [ref=f87e66] [cursor=pointer]:
+        - /url: studio-demo-studio-storyboard-page-1787507151257.mp4
+    - listitem [ref=f87e67]:
+      - link "studio-demo-studio-studios-fashion-studio-1787507179188.mp4" [ref=f87e68] [cursor=pointer]:
+        - /url: studio-demo-studio-studios-fashion-studio-1787507179188.mp4
+    - listitem [ref=f87e69]:
+      - link "studio-demo-studio-studios-product-photo-studio-1787507174060.mp4" [ref=f87e70] [cursor=pointer]:
+        - /url: studio-demo-studio-studios-product-photo-studio-1787507174060.mp4
+    - listitem [ref=f87e71]:
+      - link "studio-demo-studio-templates-1787506952047.mp4" [ref=f87e72] [cursor=pointer]:
+        - /url: studio-demo-studio-templates-1787506952047.mp4
+    - listitem [ref=f87e73]:
+      - link "studio-demo-studio-text-to-image-1787507050501.mp4" [ref=f87e74] [cursor=pointer]:
+        - /url: studio-demo-studio-text-to-image-1787507050501.mp4
+    - listitem [ref=f87e75]:
+      - link "studio-demo-studio-text-to-video-1787507098584.mp4" [ref=f87e76] [cursor=pointer]:
+        - /url: studio-demo-studio-text-to-video-1787507098584.mp4
+    - listitem [ref=f87e77]:
+      - link "studio-demo-studio-timeline-1787506898608.mp4" [ref=f87e78] [cursor=pointer]:
+        - /url: studio-demo-studio-timeline-1787506898608.mp4
+    - listitem [ref=f87e79]:
+      - link "studio-demo-studio-training-1787506758532.mp4" [ref=f87e80] [cursor=pointer]:
+        - /url: studio-demo-studio-training-1787506758532.mp4
+    - listitem [ref=f87e81]:
+      - link "studio-demo-studio-upscale-1787506486001.mp4" [ref=f87e82] [cursor=pointer]:
+        - /url: studio-demo-studio-upscale-1787506486001.mp4
+    - listitem [ref=f87e83]:
+      - link "studio-demo-studio-upscale-page-1787507167219.mp4" [ref=f87e84] [cursor=pointer]:
+        - /url: studio-demo-studio-upscale-page-1787507167219.mp4
+    - listitem [ref=f87e85]:
+      - link "studio-demo-studio-video-1787506315244.mp4" [ref=f87e86] [cursor=pointer]:
+        - /url: studio-demo-studio-video-1787506315244.mp4
+    - listitem [ref=f87e87]:
+      - link "studio-demo-studio-video-agent-1787506848239.mp4" [ref=f87e88] [cursor=pointer]:
+        - /url: studio-demo-studio-video-agent-1787506848239.mp4
+    - listitem [ref=f87e89]:
+      - link "studio-demo-studio-video-to-video-1787507116416.mp4" [ref=f87e90] [cursor=pointer]:
+        - /url: studio-demo-studio-video-to-video-1787507116416.mp4
+    - listitem [ref=f87e91]:
+      - link "studio-demo-studio-video-watermark-1787507134517.mp4" [ref=f87e92] [cursor=pointer]:
+        - /url: studio-demo-studio-video-watermark-1787507134517.mp4
+    - listitem [ref=f87e93]:
+      - link "studio-demo-studio-videotools-1787506763697.mp4" [ref=f87e94] [cursor=pointer]:
+        - /url: studio-demo-studio-videotools-1787506763697.mp4
+    - listitem [ref=f87e95]:
+      - link "studio-demo-studio-viral-1787506841394.mp4" [ref=f87e96] [cursor=pointer]:
+        - /url: studio-demo-studio-viral-1787506841394.mp4
+  - separator [ref=f87e97]

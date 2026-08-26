@@ -1,0 +1,461 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6] [cursor=pointer]
+        - navigation [ref=e12]:
+          - generic [ref=e13] [cursor=pointer]: Explore
+          - generic [ref=e14] [cursor=pointer]: Image
+          - generic [ref=e15] [cursor=pointer]: Video
+          - generic [ref=e16] [cursor=pointer]: Tools
+          - generic [ref=e17] [cursor=pointer]: Storyboard
+          - generic [ref=e18] [cursor=pointer]: Edit
+          - generic [ref=e19] [cursor=pointer]: Character
+          - generic [ref=e20] [cursor=pointer]: Vibe Motion
+          - generic [ref=e21] [cursor=pointer]: Cinema Studio
+          - generic [ref=e22] [cursor=pointer]: Cinema Template Studio
+          - generic [ref=e23] [cursor=pointer]: AI Influencer
+          - generic [ref=e24] [cursor=pointer]: Smart Video Viral
+          - generic [ref=e25] [cursor=pointer]: Apps
+          - generic [ref=e26] [cursor=pointer]: Templates
+          - generic [ref=e27] [cursor=pointer]: Assist
+          - generic [ref=e28] [cursor=pointer]: Community
+          - generic [ref=e29] [cursor=pointer]: Content Library
+      - button "Update API Key" [ref=e31]
+  - generic [ref=e34]:
+    - complementary [ref=e35]:
+      - generic [ref=e36]:
+        - generic [ref=e37] [cursor=pointer]:
+          - button [ref=e38]
+          - generic [ref=e44]: Apps
+        - generic [ref=e45] [cursor=pointer]:
+          - button [ref=e46]
+          - generic [ref=e51]: Image
+        - generic [ref=e52] [cursor=pointer]:
+          - button [ref=e53]
+          - generic [ref=e57]: Video
+        - generic [ref=e58] [cursor=pointer]:
+          - button [ref=e59]
+          - generic [ref=e62]: Cinema Studio
+        - generic [ref=e63] [cursor=pointer]:
+          - button [ref=e64]
+          - generic [ref=e67]: Cinema Template Studio
+        - generic [ref=e68] [cursor=pointer]:
+          - button [ref=e69]
+          - generic [ref=e77]: Storyboard
+        - generic [ref=e78] [cursor=pointer]:
+          - button [ref=e79]
+          - generic [ref=e82]: Effects
+        - generic [ref=e83] [cursor=pointer]:
+          - button [ref=e84]
+          - generic [ref=e88]: Edit
+        - generic [ref=e89] [cursor=pointer]:
+          - button [ref=e90]
+          - generic [ref=e96]: Upscale
+        - generic [ref=e97] [cursor=pointer]:
+          - button [ref=e98]
+          - generic [ref=e103]: Audio
+        - generic [ref=e104] [cursor=pointer]:
+          - button [ref=e105]
+          - generic [ref=e110]: Avatar
+        - generic [ref=e111] [cursor=pointer]:
+          - button [ref=e112]
+          - generic [ref=e117]: Training
+        - generic [ref=e118] [cursor=pointer]:
+          - button [ref=e119]
+          - generic [ref=e123]: Smart Video Academy
+        - generic [ref=e124] [cursor=pointer]:
+          - button [ref=e125]
+          - generic [ref=e130]: Smart Video Viral
+        - generic [ref=e131] [cursor=pointer]:
+          - button [ref=e132]
+          - generic [ref=e136]: Video Tools
+        - generic [ref=e137] [cursor=pointer]:
+          - button [ref=e138]
+          - generic [ref=e141]: Render
+        - generic [ref=e142] [cursor=pointer]:
+          - button [ref=e143]
+          - generic [ref=e148]: Video Agent
+        - generic [ref=e149] [cursor=pointer]:
+          - button [ref=e150]
+          - generic [ref=e154]: Director
+        - generic [ref=e155] [cursor=pointer]:
+          - button [ref=e156]
+          - generic [ref=e162]: Timeline
+        - generic [ref=e163] [cursor=pointer]:
+          - button [ref=e164]
+          - generic [ref=e167]: Chat
+        - generic [ref=e168] [cursor=pointer]:
+          - button [ref=e169]
+          - generic [ref=e173]: Commercial
+        - generic [ref=e174] [cursor=pointer]:
+          - button [ref=e175]
+          - generic [ref=e178]: Templates
+        - generic [ref=e179] [cursor=pointer]:
+          - button [ref=e180]
+          - generic [ref=e184]: Explore
+        - generic [ref=e185] [cursor=pointer]:
+          - button [ref=e186]
+          - generic [ref=e190]: Library
+        - generic [ref=e191] [cursor=pointer]:
+          - button [ref=e192]
+          - generic [ref=e195]: Content
+        - generic [ref=e196] [cursor=pointer]:
+          - button [ref=e197]
+          - generic [ref=e203]: Community
+        - generic [ref=e204] [cursor=pointer]:
+          - button [ref=e205]
+          - generic [ref=e210]: Assist
+        - generic [ref=e211] [cursor=pointer]:
+          - button [ref=e212]
+          - generic [ref=e216]: Commits (0)
+        - generic [ref=e217] [cursor=pointer]:
+          - button [ref=e218]
+          - generic [ref=e222]: AI VFX
+      - generic [ref=e224] [cursor=pointer]:
+        - button [ref=e225]
+        - generic [ref=e229]: Settings
+    - main [ref=e230]:
+      - generic [ref=e231]:
+        - generic [ref=e232]:
+          - generic [ref=e233]:
+            - button "All studios" [ref=e234]
+            - button [ref=e240]
+            - generic [ref=e243]:
+              - generic [ref=e244]: 🎬
+              - generic [ref=e246]:
+                - heading "CINEMATIC TEMPLATES" [level=1] [ref=e247]
+                - paragraph [ref=e248]: 46 Templates
+          - generic [ref=e249]:
+            - button "❤️ Favorites" [ref=e250]:
+              - generic [ref=e251]: ❤️
+              - generic [ref=e252]: Favorites
+            - button "🕐 Recent" [ref=e253]:
+              - generic [ref=e254]: 🕐
+              - generic [ref=e255]: Recent
+            - button "✨ My Templates" [ref=e256]:
+              - generic [ref=e257]: ✨
+              - generic [ref=e258]: My Templates
+        - generic [ref=e260]:
+          - generic [ref=e261] [cursor=pointer]:
+            - generic [ref=e262]:
+              - button "🖼" [ref=e263]
+              - button "🤍" [ref=e264]
+            - img "Cinematic Short Film" [ref=e266]
+            - heading "Cinematic Short Film" [level=3] [ref=e267]
+            - paragraph [ref=e268]: Professional short film with narrative arc
+          - generic [ref=e269] [cursor=pointer]:
+            - generic [ref=e270]:
+              - button "🖼" [ref=e271]
+              - button "🤍" [ref=e272]
+            - img "Mini Movie" [ref=e274]
+            - heading "Mini Movie" [level=3] [ref=e275]
+            - paragraph [ref=e276]: Multi-scene story-driven video
+          - generic [ref=e277] [cursor=pointer]:
+            - generic [ref=e278]:
+              - button "🖼" [ref=e279]
+              - button "🤍" [ref=e280]
+            - img "Trailer Video" [ref=e282]
+            - heading "Trailer Video" [level=3] [ref=e283]
+            - paragraph [ref=e284]: High-impact promotional trailer
+          - generic [ref=e285] [cursor=pointer]:
+            - generic [ref=e286]:
+              - button "🖼" [ref=e287]
+              - button "🤍" [ref=e288]
+            - img "Character-Driven Scene" [ref=e290]
+            - heading "Character-Driven Scene" [level=3] [ref=e291]
+            - paragraph [ref=e292]: Emotionally focused character moment
+          - generic [ref=e293] [cursor=pointer]:
+            - generic [ref=e294]:
+              - button "🖼" [ref=e295]
+              - button "🤍" [ref=e296]
+            - img "Storyboarded Scene Sequence" [ref=e298]
+            - heading "Storyboarded Scene Sequence" [level=3] [ref=e299]
+            - paragraph [ref=e300]: Carefully planned visual sequence
+          - generic [ref=e301] [cursor=pointer]:
+            - generic [ref=e302]:
+              - button "🖼" [ref=e303]
+              - button "🤍" [ref=e304]
+            - img "Music-Driven Visual Sequence" [ref=e306]
+            - heading "Music-Driven Visual Sequence" [level=3] [ref=e307]
+            - paragraph [ref=e308]: Visuals synchronized to music
+          - generic [ref=e309] [cursor=pointer]:
+            - generic [ref=e310]:
+              - button "🖼" [ref=e311]
+              - button "🤍" [ref=e312]
+            - img "Brand Film" [ref=e314]
+            - heading "Brand Film" [level=3] [ref=e315]
+            - paragraph [ref=e316]: Long-form brand storytelling video
+          - generic [ref=e317] [cursor=pointer]:
+            - generic [ref=e318]:
+              - button "🖼" [ref=e319]
+              - button "🤍" [ref=e320]
+            - img "Business Film" [ref=e322]
+            - heading "Business Film" [level=3] [ref=e323]
+            - paragraph [ref=e324]: Professional business presentation
+          - generic [ref=e325] [cursor=pointer]:
+            - generic [ref=e326]:
+              - button "🖼" [ref=e327]
+              - button "🤍" [ref=e328]
+            - img "Visual Pitch Film" [ref=e330]
+            - heading "Visual Pitch Film" [level=3] [ref=e331]
+            - paragraph [ref=e332]: Startup/investor pitch video
+          - generic [ref=e333] [cursor=pointer]:
+            - generic [ref=e334]:
+              - button "🖼" [ref=e335]
+              - button "🤍" [ref=e336]
+            - img "Case Study Film" [ref=e338]
+            - heading "Case Study Film" [level=3] [ref=e339]
+            - paragraph [ref=e340]: Client success story video
+          - generic [ref=e341] [cursor=pointer]:
+            - generic [ref=e342]:
+              - button "🖼" [ref=e343]
+              - button "🤍" [ref=e344]
+            - img "Founder Story Film" [ref=e346]
+            - heading "Founder Story Film" [level=3] [ref=e347]
+            - paragraph [ref=e348]: Personal founder narrative
+          - generic [ref=e349] [cursor=pointer]:
+            - generic [ref=e350]:
+              - button "🖼" [ref=e351]
+              - button "🤍" [ref=e352]
+            - img "Ad Film" [ref=e354]
+            - heading "Ad Film" [level=3] [ref=e355]
+            - paragraph [ref=e356]: High-production commercial
+          - generic [ref=e357] [cursor=pointer]:
+            - generic [ref=e358]:
+              - button "🖼" [ref=e359]
+              - button "🤍" [ref=e360]
+            - img "AI Commercial" [ref=e362]
+            - heading "AI Commercial" [level=3] [ref=e363]
+            - paragraph [ref=e364]: AI-themed commercial content
+          - generic [ref=e365] [cursor=pointer]:
+            - generic [ref=e366]:
+              - button "🖼" [ref=e367]
+              - button "🤍" [ref=e368]
+            - img "High-End UGC Cinematic Ad" [ref=e370]
+            - heading "High-End UGC Cinematic Ad" [level=3] [ref=e371]
+            - paragraph [ref=e372]: Authentic-feeling premium ad
+          - generic [ref=e373] [cursor=pointer]:
+            - generic [ref=e374]:
+              - button "🖼" [ref=e375]
+              - button "🤍" [ref=e376]
+            - img "Promo Film" [ref=e378]
+            - heading "Promo Film" [level=3] [ref=e379]
+            - paragraph [ref=e380]: Event/promotion announcement
+          - generic [ref=e381] [cursor=pointer]:
+            - generic [ref=e382]:
+              - button "🖼" [ref=e383]
+              - button "🤍" [ref=e384]
+            - img "Social Cinematic Reel" [ref=e386]
+            - heading "Social Cinematic Reel" [level=3] [ref=e387]
+            - paragraph [ref=e388]: Vertical cinematic social content
+          - generic [ref=e389] [cursor=pointer]:
+            - generic [ref=e390]:
+              - button "🖼" [ref=e391]
+              - button "🤍" [ref=e392]
+            - img "YouTube Cinematic Short" [ref=e394]
+            - heading "YouTube Cinematic Short" [level=3] [ref=e395]
+            - paragraph [ref=e396]: YouTube Shorts optimized content
+          - generic [ref=e397] [cursor=pointer]:
+            - generic [ref=e398]:
+              - button "🖼" [ref=e399]
+              - button "🤍" [ref=e400]
+            - img "Documentary-Style Video" [ref=e402]
+            - heading "Documentary-Style Video" [level=3] [ref=e403]
+            - paragraph [ref=e404]: Authentic documentary narrative
+          - generic [ref=e405] [cursor=pointer]:
+            - generic [ref=e406]:
+              - button "🖼" [ref=e407]
+              - button "🤍" [ref=e408]
+            - img "Cinematic Explainer Video" [ref=e410]
+            - heading "Cinematic Explainer Video" [level=3] [ref=e411]
+            - paragraph [ref=e412]: Story-driven explainer content
+          - generic [ref=e413] [cursor=pointer]:
+            - generic [ref=e414]:
+              - button "🖼" [ref=e415]
+              - button "🤍" [ref=e416]
+            - img "Testimonial Film" [ref=e418]
+            - heading "Testimonial Film" [level=3] [ref=e419]
+            - paragraph [ref=e420]: Customer testimonial video
+          - generic [ref=e421] [cursor=pointer]:
+            - generic [ref=e422]:
+              - button "🖼" [ref=e423]
+              - button "🤍" [ref=e424]
+            - img "Luxury Brand Style Video" [ref=e426]
+            - heading "Luxury Brand Style Video" [level=3] [ref=e427]
+            - paragraph [ref=e428]: Premium luxury brand content
+          - generic [ref=e429] [cursor=pointer]:
+            - generic [ref=e430]:
+              - button "🖼" [ref=e431]
+              - button "🤍" [ref=e432]
+            - img "Restaurant/Cafe Cinematic Film" [ref=e434]
+            - heading "Restaurant/Cafe Cinematic Film" [level=3] [ref=e435]
+            - paragraph [ref=e436]: Food establishment promotional
+          - generic [ref=e437] [cursor=pointer]:
+            - generic [ref=e438]:
+              - button "🖼" [ref=e439]
+              - button "🤍" [ref=e440]
+            - img "Real Estate Cinematic Property" [ref=e442]
+            - heading "Real Estate Cinematic Property" [level=3] [ref=e443]
+            - paragraph [ref=e444]: Property showcase video
+          - generic [ref=e445] [cursor=pointer]:
+            - generic [ref=e446]:
+              - button "🖼" [ref=e447]
+              - button "🤍" [ref=e448]
+            - img "Automotive Cinematic Promo" [ref=e450]
+            - heading "Automotive Cinematic Promo" [level=3] [ref=e451]
+            - paragraph [ref=e452]: Vehicle showcase video
+          - generic [ref=e453] [cursor=pointer]:
+            - generic [ref=e454]:
+              - button "🖼" [ref=e455]
+              - button "🤍" [ref=e456]
+            - img "Fashion & Lifestyle Film" [ref=e458]
+            - heading "Fashion & Lifestyle Film" [level=3] [ref=e459]
+            - paragraph [ref=e460]: Fashion brand/lifestyle content
+          - generic [ref=e461] [cursor=pointer]:
+            - generic [ref=e462]:
+              - button "🖼" [ref=e463]
+              - button "🤍" [ref=e464]
+            - img "Fitness Transformation Video" [ref=e466]
+            - heading "Fitness Transformation Video" [level=3] [ref=e467]
+            - paragraph [ref=e468]: Before/after fitness showcase
+          - generic [ref=e469] [cursor=pointer]:
+            - generic [ref=e470]:
+              - button "🖼" [ref=e471]
+              - button "🤍" [ref=e472]
+            - img "Event Recap Film" [ref=e474]
+            - heading "Event Recap Film" [level=3] [ref=e475]
+            - paragraph [ref=e476]: Event highlight reel
+          - generic [ref=e477] [cursor=pointer]:
+            - generic [ref=e478]:
+              - button "🖼" [ref=e479]
+              - button "🤍" [ref=e480]
+            - img "Local Business Cinematic Promo" [ref=e482]
+            - heading "Local Business Cinematic Promo" [level=3] [ref=e483]
+            - paragraph [ref=e484]: Local business promotional video
+          - generic [ref=e485] [cursor=pointer]:
+            - generic [ref=e486]:
+              - button "🖼" [ref=e487]
+              - button "🤍" [ref=e488]
+            - img "Opening Scene" [ref=e490]
+            - heading "Opening Scene" [level=3] [ref=e491]
+            - paragraph [ref=e492]: Captivating opening that hooks viewers immediately
+          - generic [ref=e493] [cursor=pointer]:
+            - generic [ref=e494]:
+              - button "🖼" [ref=e495]
+              - button "🤍" [ref=e496]
+            - img "Character Introduction Scene" [ref=e498]
+            - heading "Character Introduction Scene" [level=3] [ref=e499]
+            - paragraph [ref=e500]: Memorable introduction of a key character
+          - generic [ref=e501] [cursor=pointer]:
+            - generic [ref=e502]:
+              - button "🖼" [ref=e503]
+              - button "🤍" [ref=e504]
+            - img "Conflict Scene" [ref=e506]
+            - heading "Conflict Scene" [level=3] [ref=e507]
+            - paragraph [ref=e508]: High-stakes confrontation or obstacle
+          - generic [ref=e509] [cursor=pointer]:
+            - generic [ref=e510]:
+              - button "🖼" [ref=e511]
+              - button "🤍" [ref=e512]
+            - img "Emotional Turning Point" [ref=e514]
+            - heading "Emotional Turning Point" [level=3] [ref=e515]
+            - paragraph [ref=e516]: Powerful moment that changes everything
+          - generic [ref=e517] [cursor=pointer]:
+            - generic [ref=e518]:
+              - button "🖼" [ref=e519]
+              - button "🤍" [ref=e520]
+            - img "Climax Scene" [ref=e522]
+            - heading "Climax Scene" [level=3] [ref=e523]
+            - paragraph [ref=e524]: The peak moment of action or revelation
+          - generic [ref=e525] [cursor=pointer]:
+            - generic [ref=e526]:
+              - button "🖼" [ref=e527]
+              - button "🤍" [ref=e528]
+            - img "Resolution Scene" [ref=e530]
+            - heading "Resolution Scene" [level=3] [ref=e531]
+            - paragraph [ref=e532]: Wrapping up story threads beautifully
+          - generic [ref=e533] [cursor=pointer]:
+            - generic [ref=e534]:
+              - button "🖼" [ref=e535]
+              - button "🤍" [ref=e536]
+            - img "Voiceover Story Film" [ref=e538]
+            - heading "Voiceover Story Film" [level=3] [ref=e539]
+            - paragraph [ref=e540]: Narrative driven by powerful voiceover
+          - generic [ref=e541] [cursor=pointer]:
+            - generic [ref=e542]:
+              - button "🖼" [ref=e543]
+              - button "🤍" [ref=e544]
+            - img "Drama Film Scene" [ref=e546]
+            - heading "Drama Film Scene" [level=3] [ref=e547]
+            - paragraph [ref=e548]: Intense dramatic character moment
+          - generic [ref=e549] [cursor=pointer]:
+            - generic [ref=e550]:
+              - button "🖼" [ref=e551]
+              - button "🤍" [ref=e552]
+            - img "Action Film Scene" [ref=e554]
+            - heading "Action Film Scene" [level=3] [ref=e555]
+            - paragraph [ref=e556]: High-octane action sequence
+          - generic [ref=e557] [cursor=pointer]:
+            - generic [ref=e558]:
+              - button "🖼" [ref=e559]
+              - button "🤍" [ref=e560]
+            - img "Thriller Scene" [ref=e562]
+            - heading "Thriller Scene" [level=3] [ref=e563]
+            - paragraph [ref=e564]: Suspenseful edge-of-your-seat moment
+          - generic [ref=e565] [cursor=pointer]:
+            - generic [ref=e566]:
+              - button "🖼" [ref=e567]
+              - button "🤍" [ref=e568]
+            - img "Sci-Fi Film Scene" [ref=e570]
+            - heading "Sci-Fi Film Scene" [level=3] [ref=e571]
+            - paragraph [ref=e572]: Futuristic sci-fi visual spectacle
+          - generic [ref=e573] [cursor=pointer]:
+            - generic [ref=e574]:
+              - button "🖼" [ref=e575]
+              - button "🤍" [ref=e576]
+            - img "Noir Film Scene" [ref=e578]
+            - heading "Noir Film Scene" [level=3] [ref=e579]
+            - paragraph [ref=e580]: Classic film noir atmospheric moment
+          - generic [ref=e581] [cursor=pointer]:
+            - generic [ref=e582]:
+              - button "🖼" [ref=e583]
+              - button "🤍" [ref=e584]
+            - img "Single Scene Generator" [ref=e586]
+            - heading "Single Scene Generator" [level=3] [ref=e587]
+            - paragraph [ref=e588]: Create a single powerful scene
+          - generic [ref=e589] [cursor=pointer]:
+            - generic [ref=e590]:
+              - button "🖼" [ref=e591]
+              - button "🤍" [ref=e592]
+            - img "Multi-Scene Story Generator" [ref=e594]
+            - heading "Multi-Scene Story Generator" [level=3] [ref=e595]
+            - paragraph [ref=e596]: Create a story with multiple connected scenes
+          - generic [ref=e597] [cursor=pointer]:
+            - generic [ref=e598]:
+              - button "🖼" [ref=e599]
+              - button "🤍" [ref=e600]
+            - img "Shot Sequence Builder" [ref=e602]
+            - heading "Shot Sequence Builder" [level=3] [ref=e603]
+            - paragraph [ref=e604]: Design a specific sequence of shots
+          - generic [ref=e605] [cursor=pointer]:
+            - generic [ref=e606]:
+              - button "🖼" [ref=e607]
+              - button "🤍" [ref=e608]
+            - img "Movie Poster" [ref=e610]
+            - heading "Movie Poster" [level=3] [ref=e611]
+            - paragraph [ref=e612]: Create a stunning movie poster
+          - generic [ref=e613] [cursor=pointer]:
+            - generic [ref=e614]:
+              - button "🖼" [ref=e615]
+              - button "🤍" [ref=e616]
+            - img "Coming Soon Trailer" [ref=e618]
+            - heading "Coming Soon Trailer" [level=3] [ref=e619]
+            - paragraph [ref=e620]: Tease an upcoming release
+          - generic [ref=e621] [cursor=pointer]:
+            - generic [ref=e622]:
+              - button "🖼" [ref=e623]
+              - button "🤍" [ref=e624]
+            - img "Film Intro Sequence" [ref=e626]
+            - heading "Film Intro Sequence" [level=3] [ref=e627]
+            - paragraph [ref=e628]: Elegant opening title sequence

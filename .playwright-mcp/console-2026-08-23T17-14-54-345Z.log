@@ -1,0 +1,136 @@
+[    3715ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3103/src/main.js:19
+[    3717ms] [INFO] [dev] Auth bypass active — seeded placeholder API key (no real Muapi key set). @ http://127.0.0.1:3103/src/lib/apiKeyManager.js:274
+[    4089ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3103/src/lib/popcornInit.js:41
+[    4942ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    6441ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    7366ms] [LOG] [App] Landing page rendered @ http://127.0.0.1:3103/src/main.js:88
+[    7565ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    7760ms] [LOG] [popcorn-init] OK: wrapper-common @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    7783ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    7792ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    7801ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    7814ms] [LOG] [popcorn-init] OK: wrapper-null @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    7823ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    7836ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    7844ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    7853ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    7901ms] [LOG] [popcorn-init] OK: player-module @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    7965ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3103/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=d550000b:20096
+[    8261ms] [LOG] [popcorn-init] OK: plugin-image @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    8298ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    8324ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    8352ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    8389ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    8403ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    8420ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    8528ms] [LOG] [popcorn-init] OK: plugin-form @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    8664ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    8698ms] [LOG] [popcorn-init] OK: plugin-popup @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    8742ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    8755ms] [LOG] [popcorn-init] OK: plugin-skip @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    8822ms] [LOG] [popcorn-init] OK: plugin-text @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    8853ms] [LOG] [popcorn-init] OK: plugin-social @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    8887ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    8944ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    8975ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    8997ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    9016ms] [LOG] [popcorn-init] OK: plugin-combined @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    9036ms] [LOG] [popcorn-init] OK: plugin-background @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    9036ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://127.0.0.1:3103/src/lib/popcornInit.js:60
+[    9036ms] [LOG] [popcorn] function 19 @ http://127.0.0.1:3103/src/main.js:4
+[   13519ms] [LOG] [Landing] section loaded: engines keys: [SixEnginesSection] @ http://127.0.0.1:3103/src/components/landing/LandingPage.jsx:122
+[   13521ms] [LOG] [Landing] section created: engines type: HTMLElement @ http://127.0.0.1:3103/src/components/landing/LandingPage.jsx:132
+[   13525ms] [LOG] [Landing] section loaded: apps keys: [AppsGridSection] @ http://127.0.0.1:3103/src/components/landing/LandingPage.jsx:122
+[   13528ms] [LOG] [Landing] section created: apps type: HTMLElement @ http://127.0.0.1:3103/src/components/landing/LandingPage.jsx:132
+[   13530ms] [LOG] [Landing] section loaded: scrolling keys: [ScrollingAppStrip] @ http://127.0.0.1:3103/src/components/landing/LandingPage.jsx:122
+[   13536ms] [LOG] [Landing] section created: scrolling type: HTMLElement @ http://127.0.0.1:3103/src/components/landing/LandingPage.jsx:132
+[   13648ms] [LOG] [Landing] section loaded: hook keys: [HookSection] @ http://127.0.0.1:3103/src/components/landing/LandingPage.jsx:122
+[   13649ms] [LOG] [Landing] section created: hook type: HTMLElement @ http://127.0.0.1:3103/src/components/landing/LandingPage.jsx:132
+[   13824ms] [LOG] [Landing] section loaded: comparison keys: [ComparisonSection] @ http://127.0.0.1:3103/src/components/landing/LandingPage.jsx:122
+[   13824ms] [LOG] [Landing] section created: comparison type: HTMLElement @ http://127.0.0.1:3103/src/components/landing/LandingPage.jsx:132
+[   13840ms] [LOG] [Landing] section loaded: repos keys: [RepoShowcase, default] @ http://127.0.0.1:3103/src/components/landing/LandingPage.jsx:122
+[   13842ms] [LOG] [Landing] section created: repos type: HTMLElement @ http://127.0.0.1:3103/src/components/landing/LandingPage.jsx:132
+[   13885ms] [LOG] [Landing] section loaded: problem keys: [ProblemSection] @ http://127.0.0.1:3103/src/components/landing/LandingPage.jsx:122
+[   13885ms] [LOG] [Landing] section created: problem type: HTMLElement @ http://127.0.0.1:3103/src/components/landing/LandingPage.jsx:132
+[   14122ms] [LOG] [Landing] section loaded: workflow keys: [WorkflowSection] @ http://127.0.0.1:3103/src/components/landing/LandingPage.jsx:122
+[   14123ms] [LOG] [Landing] section created: workflow type: HTMLElement @ http://127.0.0.1:3103/src/components/landing/LandingPage.jsx:132
+[   14134ms] [LOG] [Landing] section loaded: made-with keys: [MadeWithSmartVideo, default] @ http://127.0.0.1:3103/src/components/landing/LandingPage.jsx:122
+[   14162ms] [LOG] [Landing] section created: made-with type: HTMLElement @ http://127.0.0.1:3103/src/components/landing/LandingPage.jsx:132
+[   14440ms] [LOG] [Landing] section loaded: ai-workflow keys: [MinimaxWorkflowSection, default] @ http://127.0.0.1:3103/src/components/landing/LandingPage.jsx:122
+[   14440ms] [LOG] [Landing] section created: ai-workflow type: HTMLElement @ http://127.0.0.1:3103/src/components/landing/LandingPage.jsx:132
+[   14441ms] [LOG] [Landing] section loaded: repo-video keys: [MmxActionVfxSection, MmxAnimationSection, MmxCinemaSection, MmxCommercialSection, MmxFashionSection, MmxSocialSection, SdActionSection, SdAnimationSection, SdCinemaSection, SdCommercialSection, SdSocialSection, ShowcaseRepoVideo, ZlCinemaSection, default] @ http://127.0.0.1:3103/src/components/landing/LandingPage.jsx:122
+[   14760ms] [LOG] [Landing] section created: repo-video type: HTMLDivElement @ http://127.0.0.1:3103/src/components/landing/LandingPage.jsx:132
+[   16440ms] [LOG] [Landing] section loaded: academy keys: [AcademyVideoShowcase, default] @ http://127.0.0.1:3103/src/components/landing/LandingPage.jsx:122
+[   16461ms] [LOG] [Landing] section created: academy type: HTMLElement @ http://127.0.0.1:3103/src/components/landing/LandingPage.jsx:132
+[   16495ms] [LOG] [Landing] section loaded: offer keys: [OfferSection] @ http://127.0.0.1:3103/src/components/landing/LandingPage.jsx:122
+[   16498ms] [LOG] [Landing] section created: offer type: HTMLElement @ http://127.0.0.1:3103/src/components/landing/LandingPage.jsx:132
+[   16499ms] [LOG] [Landing] section loaded: value keys: [ValueStackSection] @ http://127.0.0.1:3103/src/components/landing/LandingPage.jsx:122
+[   16501ms] [LOG] [Landing] section created: value type: HTMLElement @ http://127.0.0.1:3103/src/components/landing/LandingPage.jsx:132
+[   16501ms] [LOG] [Landing] section loaded: agency keys: [AgencySection] @ http://127.0.0.1:3103/src/components/landing/LandingPage.jsx:122
+[   16503ms] [LOG] [Landing] section created: agency type: HTMLElement @ http://127.0.0.1:3103/src/components/landing/LandingPage.jsx:132
+[   16503ms] [LOG] [Landing] section loaded: cta keys: [FinalCTASection] @ http://127.0.0.1:3103/src/components/landing/LandingPage.jsx:122
+[   16504ms] [LOG] [Landing] section created: cta type: HTMLElement @ http://127.0.0.1:3103/src/components/landing/LandingPage.jsx:132
+[   33629ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3103/src/main.js:19
+[   33697ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3103/src/lib/popcornInit.js:41
+[   33707ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[   33709ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[   33712ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[   33713ms] [LOG] [popcorn-init] OK: wrapper-common @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[   33715ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[   33716ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[   33717ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[   33718ms] [LOG] [popcorn-init] OK: wrapper-null @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[   33718ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[   33720ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[   33720ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[   33722ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[   33732ms] [LOG] [popcorn-init] OK: player-module @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[   34774ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3103/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=d550000b:20096
+[   34788ms] [LOG] [App] Initialized in 1158.50ms @ http://127.0.0.1:3103/src/main.js:164
+[   34788ms] [LOG] [App] Navigating to initial page: image @ http://127.0.0.1:3103/src/main.js:165
+[   34788ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://127.0.0.1:3103/src/main.js:176
+[   34901ms] [LOG] [popcorn-init] OK: plugin-image @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[   35370ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[   35468ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[   35601ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[   35605ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/client?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2:0
+[   35606ms] [ERROR] e: The Request HTTP Origin header must be equal to or a subdomain of the requesting URL.
+    at il._baseFetch (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:171)
+    at async io.execute (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:6812)
+    at async rA._baseGet (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:497)
+    at async Promise.all (index 1)
+    at async #eY (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:236310)
+    at async s7.load (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:193944)
+    at async _a15.getEntryChunks (http://127.0.0.1:3103/node_modules/.vite/deps/@clerk_react.js?v=d550000b:8043:9) @ http://127.0.0.1:3103/node_modules/.vite/deps/@clerk_react.js?v=d550000b:8054
+[   35931ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[   35991ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[   36002ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[   36014ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[   36019ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[   36057ms] [LOG] [popcorn-init] OK: plugin-form @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[   36084ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[   36227ms] [LOG] [popcorn-init] OK: plugin-popup @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[   36294ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[   36603ms] [LOG] [popcorn-init] OK: plugin-skip @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[   36780ms] [LOG] [popcorn-init] OK: plugin-text @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[   36801ms] [LOG] [popcorn-init] OK: plugin-social @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[   36810ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[   36833ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[   36852ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[   36863ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[   36870ms] [LOG] [popcorn-init] OK: plugin-combined @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[   36886ms] [LOG] [popcorn-init] OK: plugin-background @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[   36886ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://127.0.0.1:3103/src/lib/popcornInit.js:60
+[   36886ms] [LOG] [popcorn] function 19 @ http://127.0.0.1:3103/src/main.js:4
+[   66854ms] [ERROR] [2026-08-23T17:16:01.198Z] [ERROR] Uncaught error | {"filename":"http://127.0.0.1:3103/src/components/ImageStudio.js","lineno":820,"colno":7} @ http://127.0.0.1:3103/src/lib/logger.js:84
+[   66854ms] [ERROR] ReferenceError: _imageStudioOutsideClickHandler is not defined
+    at ImageStudio.modelBtn.onclick (http://127.0.0.1:3103/src/components/ImageStudio.js:820:7) @ http://127.0.0.1:3103/src/lib/logger.js:85
+[   66855ms] [ERROR] [Global Error] ReferenceError: _imageStudioOutsideClickHandler is not defined
+    at ImageStudio.modelBtn.onclick (http://127.0.0.1:3103/src/components/ImageStudio.js:820:7) @ http://127.0.0.1:3103/src/main.js:22
+[   66855ms] [LOG] [Analytics] error {errorType: uncaught_exception, message: Uncaught ReferenceError: _imageStudioOutsideClickHandler is not defined, filename: http://127.0.0.1:3103/src/components/ImageStudio.js, lineno: 820} @ http://127.0.0.1:3103/src/lib/analytics.js:36
+[   66862ms] ReferenceError: _imageStudioOutsideClickHandler is not defined
+    at ImageStudio.modelBtn.onclick (http://127.0.0.1:3103/src/components/ImageStudio.js:820:7)
+[   67063ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3103/#/image:0
+[   67063ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3103/#/image:0
+[   67063ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3103/#/image:0
+[   67064ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3103/#/image:0

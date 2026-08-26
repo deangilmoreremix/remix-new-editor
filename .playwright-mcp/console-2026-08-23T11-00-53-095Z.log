@@ -1,0 +1,189 @@
+[    4910ms] [LOG] [App] Starting initialization... @ http://localhost:5173/src/main.js?t=1787482817298:19
+[    4996ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:41
+[    5002ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:48
+[    5025ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:48
+[    5040ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:48
+[    5054ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:48
+[    5067ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:48
+[    5083ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:48
+[    5109ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:48
+[    5126ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:48
+[    5198ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:48
+[    5216ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:48
+[    5225ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:48
+[    5231ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:48
+[    5241ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:48
+[    7335ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=67954b94:20096
+[    7356ms] [LOG] [App] Initialized in 2445.40ms @ http://localhost:5173/src/main.js?t=1787482817298:164
+[    7356ms] [LOG] [App] Navigating to initial page: cinema-template @ http://localhost:5173/src/main.js?t=1787482817298:165
+[    7357ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://localhost:5173/src/main.js?t=1787482817298:176
+[    7558ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5173/src/components/CinemaTemplateStudio.js?t=1787482817298:0
+[    7583ms] [ERROR] [Router] Failed to load page: cinema-template TypeError: Failed to fetch dynamically imported module: http://localhost:5173/src/components/CinemaTemplateStudio.js?t=1787482817298 @ http://localhost:5173/src/lib/router.js?t=1787482817298:245
+[    7586ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[    7782ms] [LOG] [popcorn-init] OK: plugin-image @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:48
+[    7783ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[    8091ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:48
+[    8119ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:48
+[    8131ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:48
+[    8143ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:48
+[    8150ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:48
+[    8157ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:48
+[    8173ms] [LOG] [popcorn-init] OK: plugin-form @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:48
+[    8223ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:48
+[    8229ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:48
+[    8237ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:48
+[    8243ms] [LOG] [popcorn-init] OK: plugin-skip @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:48
+[    8267ms] [LOG] [popcorn-init] OK: plugin-text @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:48
+[    8276ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:48
+[    8283ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:48
+[    8296ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:48
+[    8303ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:48
+[    8309ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:48
+[    8318ms] [LOG] [popcorn-init] OK: plugin-combined @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:48
+[    8326ms] [LOG] [popcorn-init] OK: plugin-background @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:48
+[    8326ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://localhost:5173/src/lib/popcornInit.js?t=1787482817298:60
+[    8326ms] [LOG] [popcorn] function 19 @ http://localhost:5173/src/main.js?t=1787482817298:4
+[  210956ms] [LOG] [App] Starting initialization... @ http://localhost:5173/src/main.js?t=1787483056389:19
+[  211041ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:41
+[  211043ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:48
+[  211047ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:48
+[  211052ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:48
+[  211055ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:48
+[  211057ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:48
+[  211058ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:48
+[  211059ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:48
+[  211061ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:48
+[  211062ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:48
+[  211063ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:48
+[  211064ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:48
+[  211066ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:48
+[  211067ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:48
+[  212148ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=67954b94:20096
+[  212167ms] [LOG] [App] Initialized in 1209.40ms @ http://localhost:5173/src/main.js?t=1787483056389:164
+[  212167ms] [LOG] [App] Navigating to initial page: cinema-template @ http://localhost:5173/src/main.js?t=1787483056389:165
+[  212168ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://localhost:5173/src/main.js?t=1787483056389:176
+[  213104ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[  213430ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[  213618ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5173/src/components/CinemaTemplateStudio.js?t=1787483056389:0
+[  213621ms] [ERROR] [Router] Failed to load page: cinema-template TypeError: Failed to fetch dynamically imported module: http://localhost:5173/src/components/CinemaTemplateStudio.js?t=1787483056389 @ http://localhost:5173/src/lib/router.js?t=1787483056389:245
+[  214113ms] [LOG] [popcorn-init] OK: plugin-image @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:48
+[  214830ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:48
+[  214853ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:48
+[  214871ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:48
+[  214881ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:48
+[  214890ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:48
+[  214901ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:48
+[  214928ms] [LOG] [popcorn-init] OK: plugin-form @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:48
+[  214970ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:48
+[  214992ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:48
+[  215005ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:48
+[  215020ms] [LOG] [popcorn-init] OK: plugin-skip @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:48
+[  215107ms] [LOG] [popcorn-init] OK: plugin-text @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:48
+[  215134ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:48
+[  215168ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:48
+[  215195ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:48
+[  215215ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:48
+[  215261ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:48
+[  215286ms] [LOG] [popcorn-init] OK: plugin-combined @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:48
+[  215297ms] [LOG] [popcorn-init] OK: plugin-background @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:48
+[  215297ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://localhost:5173/src/lib/popcornInit.js?t=1787483056389:60
+[  215298ms] [LOG] [popcorn] function 19 @ http://localhost:5173/src/main.js?t=1787483056389:4
+[  241144ms] [LOG] [App] Starting initialization... @ http://localhost:5173/src/main.js?t=1787483083475:19
+[  241195ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:41
+[  241196ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:48
+[  241197ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:48
+[  241199ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:48
+[  241201ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:48
+[  241203ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:48
+[  241204ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:48
+[  241205ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:48
+[  241206ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:48
+[  241207ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:48
+[  241209ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:48
+[  241210ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:48
+[  241210ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:48
+[  241211ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:48
+[  242475ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=67954b94:20096
+[  242485ms] [LOG] [App] Initialized in 1340.00ms @ http://localhost:5173/src/main.js?t=1787483083475:164
+[  242485ms] [LOG] [App] Navigating to initial page: cinema-template @ http://localhost:5173/src/main.js?t=1787483083475:165
+[  242486ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://localhost:5173/src/main.js?t=1787483083475:176
+[  243579ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5173/src/components/CinemaTemplateStudio.js?t=1787483083475:0
+[  243585ms] [ERROR] [Router] Failed to load page: cinema-template TypeError: Failed to fetch dynamically imported module: http://localhost:5173/src/components/CinemaTemplateStudio.js?t=1787483083475 @ http://localhost:5173/src/lib/router.js?t=1787483083475:245
+[  244609ms] [LOG] [popcorn-init] OK: plugin-image @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:48
+[  244616ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[  244769ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[  245114ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:5173/@vite/client:559
+[  245186ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  245686ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:48
+[  245701ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/lib/popcorn/plugins/lottie-json/popcorn.lottie-json.js?t=1787483083475:0
+[  245702ms] [ERROR] [popcorn-init] FAILED at: plugin-lottie-json TypeError: Failed to fetch dynamically imported module: http://localhost:5173/lib/popcorn/plugins/lottie-json/popcorn.lottie-json.js?t=1787483083475 @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:55
+[  245716ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/lib/popcorn/plugins/json-button/popcorn.json-button.js:0
+[  245717ms] [ERROR] [popcorn-init] FAILED at: plugin-json-button TypeError: Failed to fetch dynamically imported module: http://localhost:5173/lib/popcorn/plugins/json-button/popcorn.json-button.js @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:55
+[  245743ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/lib/popcorn/plugins/personalizedImage/popcorn.personalizedImage.js?t=1787483083475:0
+[  245743ms] [ERROR] [popcorn-init] FAILED at: plugin-personalizedImage TypeError: Failed to fetch dynamically imported module: http://localhost:5173/lib/popcorn/plugins/personalizedImage/popcorn.personalizedImage.js?t=1787483083475 @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:55
+[  245750ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/lib/popcorn/plugins/loopPlugin/popcorn.loopPlugin.js?t=1787483083475:0
+[  245750ms] [ERROR] [popcorn-init] FAILED at: plugin-loopPlugin TypeError: Failed to fetch dynamically imported module: http://localhost:5173/lib/popcorn/plugins/loopPlugin/popcorn.loopPlugin.js?t=1787483083475 @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:55
+[  245751ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/lib/popcorn/plugins/pausePlugin/popcorn.pausePlugin.js?t=1787483083475:0
+[  245752ms] [ERROR] [popcorn-init] FAILED at: plugin-pausePlugin TypeError: Failed to fetch dynamically imported module: http://localhost:5173/lib/popcorn/plugins/pausePlugin/popcorn.pausePlugin.js?t=1787483083475 @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:55
+[  245754ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/lib/popcorn/plugins/form/popcorn.form.js?t=1787483083475:0
+[  245754ms] [ERROR] [popcorn-init] FAILED at: plugin-form TypeError: Failed to fetch dynamically imported module: http://localhost:5173/lib/popcorn/plugins/form/popcorn.form.js?t=1787483083475 @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:55
+[  245756ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/lib/popcorn/plugins/retarget/popcorn.retarget.js?t=1787483083475:0
+[  245756ms] [ERROR] [popcorn-init] FAILED at: plugin-retarget TypeError: Failed to fetch dynamically imported module: http://localhost:5173/lib/popcorn/plugins/retarget/popcorn.retarget.js?t=1787483083475 @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:55
+[  245759ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/lib/popcorn/plugins/popup/popcorn.popup.js:0
+[  245760ms] [ERROR] [popcorn-init] FAILED at: plugin-popup TypeError: Failed to fetch dynamically imported module: http://localhost:5173/lib/popcorn/plugins/popup/popcorn.popup.js @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:55
+[  245761ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/lib/popcorn/plugins/sequencer/popcorn.sequencer.js?t=1787483083475:0
+[  245761ms] [ERROR] [popcorn-init] FAILED at: plugin-sequencer TypeError: Failed to fetch dynamically imported module: http://localhost:5173/lib/popcorn/plugins/sequencer/popcorn.sequencer.js?t=1787483083475 @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:55
+[  245764ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/lib/popcorn/plugins/skip/popcorn.skip.js?t=1787483083475:0
+[  245764ms] [ERROR] [popcorn-init] FAILED at: plugin-skip TypeError: Failed to fetch dynamically imported module: http://localhost:5173/lib/popcorn/plugins/skip/popcorn.skip.js?t=1787483083475 @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:55
+[  245765ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/lib/popcorn/plugins/text/popcorn.text.js?t=1787483083475:0
+[  245765ms] [ERROR] [popcorn-init] FAILED at: plugin-text TypeError: Failed to fetch dynamically imported module: http://localhost:5173/lib/popcorn/plugins/text/popcorn.text.js?t=1787483083475 @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:55
+[  245768ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/lib/popcorn/plugins/social/popcorn.social.js:0
+[  245769ms] [ERROR] [popcorn-init] FAILED at: plugin-social TypeError: Failed to fetch dynamically imported module: http://localhost:5173/lib/popcorn/plugins/social/popcorn.social.js @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:55
+[  245771ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/lib/popcorn/plugins/jsonAnimation/popcorn.jsonAnimation.js?t=1787483083475:0
+[  245772ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonAnimation TypeError: Failed to fetch dynamically imported module: http://localhost:5173/lib/popcorn/plugins/jsonAnimation/popcorn.jsonAnimation.js?t=1787483083475 @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:55
+[  245775ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/lib/popcorn/plugins/videoTransition/popcorn.videoTransition.js:0
+[  245775ms] [ERROR] [popcorn-init] FAILED at: plugin-videoTransition TypeError: Failed to fetch dynamically imported module: http://localhost:5173/lib/popcorn/plugins/videoTransition/popcorn.videoTransition.js @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:55
+[  245777ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/lib/popcorn/plugins/seethroughtext/popcorn.seethroughtext.js?t=1787483083475:0
+[  245777ms] [ERROR] [popcorn-init] FAILED at: plugin-seethroughtext TypeError: Failed to fetch dynamically imported module: http://localhost:5173/lib/popcorn/plugins/seethroughtext/popcorn.seethroughtext.js?t=1787483083475 @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:55
+[  245780ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/lib/popcorn/plugins/wikipedia/popcorn.wikipedia.js:0
+[  245780ms] [ERROR] [popcorn-init] FAILED at: plugin-wikipedia TypeError: Failed to fetch dynamically imported module: http://localhost:5173/lib/popcorn/plugins/wikipedia/popcorn.wikipedia.js @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:55
+[  245782ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/lib/popcorn/plugins/combined/popcorn.combined.js?t=1787483083475:0
+[  245782ms] [ERROR] [popcorn-init] FAILED at: plugin-combined TypeError: Failed to fetch dynamically imported module: http://localhost:5173/lib/popcorn/plugins/combined/popcorn.combined.js?t=1787483083475 @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:55
+[  245783ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/lib/popcorn/plugins/background/popcorn.background.js?t=1787483083475:0
+[  245784ms] [ERROR] [popcorn-init] FAILED at: plugin-background TypeError: Failed to fetch dynamically imported module: http://localhost:5173/lib/popcorn/plugins/background/popcorn.background.js?t=1787483083475 @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:55
+[  245784ms] [LOG] [popcorn-init] SUMMARY: 2/20 plugins registered; FAILED: plugin-lottie-json, plugin-json-button, plugin-personalizedImage, plugin-loopPlugin, plugin-pausePlugin, plugin-form, plugin-retarget, plugin-popup, plugin-sequencer, plugin-skip, plugin-text, plugin-social, plugin-jsonAnimation, plugin-videoTransition, plugin-seethroughtext, plugin-wikipedia, plugin-combined, plugin-background @ http://localhost:5173/src/lib/popcornInit.js?t=1787483083475:60
+[  245784ms] [LOG] [popcorn] function 2 @ http://localhost:5173/src/main.js?t=1787483083475:4
+[  246189ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  247195ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  248200ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  249203ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  250209ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  251212ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  252218ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  253234ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  254242ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  255254ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  256259ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  257263ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  258268ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  259285ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  260292ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  261297ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  262303ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  263306ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  264309ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  265314ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  266320ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  267324ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  268331ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  269353ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  270357ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  271366ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  272372ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  273376ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  274389ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  275408ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  276412ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  277417ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  278420ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0
+[  279425ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5173/:0

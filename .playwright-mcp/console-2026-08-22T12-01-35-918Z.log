@@ -1,0 +1,64 @@
+[   10650ms] [LOG] [App] Starting initialization... @ http://localhost:3000/src/main.js?t=1787400100273:16
+[   10735ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3000/src/lib/popcornInit.js?t=1787400100210:41
+[   10747ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3000/src/lib/popcornInit.js?t=1787400100210:48
+[   10889ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3000/src/lib/popcornInit.js?t=1787400100210:48
+[   10892ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3000/src/lib/popcornInit.js?t=1787400100210:48
+[   10893ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3000/src/lib/popcornInit.js?t=1787400100210:48
+[   10896ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3000/src/lib/popcornInit.js?t=1787400100210:48
+[   10897ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3000/src/lib/popcornInit.js?t=1787400100210:48
+[   10898ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3000/src/lib/popcornInit.js?t=1787400100210:48
+[   10899ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3000/src/lib/popcornInit.js?t=1787400100210:48
+[   10900ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3000/src/lib/popcornInit.js?t=1787400100210:48
+[   10901ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3000/src/lib/popcornInit.js?t=1787400100210:48
+[   10901ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3000/src/lib/popcornInit.js?t=1787400100210:48
+[   10903ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3000/src/lib/popcornInit.js?t=1787400100210:48
+[   10904ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3000/src/lib/popcornInit.js?t=1787400100210:48
+[   11917ms] [LOG] [App] Landing page rendered @ http://localhost:3000/src/main.js?t=1787400100273:85
+[   16188ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/@id/public/static/images/toolbar/CTA.svg::/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/lib/constants/modals.js:0
+[   16188ms] [ERROR] [ModalSystem] mount failed TypeError: Failed to fetch dynamically imported module: http://localhost:3000/src/mountModalSystem.jsx @ http://localhost:3000/src/main.js?t=1787400100273:335
+[   16189ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/@id/public/static/images/toolbar/template_pack.svg::/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/lib/constants/modals.js:0
+[   17405ms] [ERROR] Failed to load resource: the server responded with a status of 504 (Outdated Request) @ http://localhost:3000/components/form/TimeInput.jsx:0
+[   17405ms] [ERROR] [popcorn-init] FAILED at: plugin-image TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/image/popcorn.image.js @ http://localhost:3000/src/lib/popcornInit.js?t=1787400100210:55
+[   17421ms] [ERROR] Failed to load resource: the server responded with a status of 504 (Outdated Request) @ http://localhost:3000/components/form/FormTextField.jsx:0
+[   17430ms] [ERROR] Failed to load resource: the server responded with a status of 504 (Outdated Request) @ http://localhost:3000/components/form/FormColor.jsx:0
+[   17438ms] [ERROR] Failed to load resource: the server responded with a status of 504 (Outdated Request) @ http://localhost:3000/components/form/FormRadioButton.jsx:0
+[   17446ms] [ERROR] Failed to load resource: the server responded with a status of 504 (Outdated Request) @ http://localhost:3000/components/form/FormSelect.jsx:0
+[   10650ms] [LOG] [App] Starting initialization... @ http://localhost:3000/src/main.js?t=1787400100273:16
+[   10735ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3000/src/lib/popcornInit.js?t=1787400100210:41
+[   10747ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3000/src/lib/popcornInit.js?t=1787400100210:48
+[   10889ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3000/src/lib/popcornInit.js?t=1787400100210:48
+[   10892ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3000/src/lib/popcornInit.js?t=1787400100210:48
+[   10893ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3000/src/lib/popcornInit.js?t=1787400100210:48
+[   10896ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3000/src/lib/popcornInit.js?t=1787400100210:48
+[   10897ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3000/src/lib/popcornInit.js?t=1787400100210:48
+[   10898ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3000/src/lib/popcornInit.js?t=1787400100210:48
+[   10899ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3000/src/lib/popcornInit.js?t=1787400100210:48
+[   10900ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3000/src/lib/popcornInit.js?t=1787400100210:48
+[   10901ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3000/src/lib/popcornInit.js?t=1787400100210:48
+[   10901ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3000/src/lib/popcornInit.js?t=1787400100210:48
+[   10903ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3000/src/lib/popcornInit.js?t=1787400100210:48
+[   10904ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3000/src/lib/popcornInit.js?t=1787400100210:48
+[   11917ms] [LOG] [App] Landing page rendered @ http://localhost:3000/src/main.js?t=1787400100273:85
+[   16188ms] [ERROR] [ModalSystem] mount failed TypeError: Failed to fetch dynamically imported module: http://localhost:3000/src/mountModalSystem.jsx @ http://localhost:3000/src/main.js?t=1787400100273:335
+[   17405ms] [ERROR] [popcorn-init] FAILED at: plugin-image TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/image/popcorn.image.js @ http://localhost:3000/src/lib/popcornInit.js?t=1787400100210:55
+[   16188ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/@id/public/static/images/toolbar/CTA.svg::/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/lib/constants/modals.js:0
+[   16189ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/@id/public/static/images/toolbar/template_pack.svg::/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/lib/constants/modals.js:0
+[   17405ms] [ERROR] Failed to load resource: the server responded with a status of 504 (Outdated Request) @ http://localhost:3000/components/form/TimeInput.jsx:0
+[   17421ms] [ERROR] Failed to load resource: the server responded with a status of 504 (Outdated Request) @ http://localhost:3000/components/form/FormTextField.jsx:0
+[   17430ms] [ERROR] Failed to load resource: the server responded with a status of 504 (Outdated Request) @ http://localhost:3000/components/form/FormColor.jsx:0
+[   17438ms] [ERROR] Failed to load resource: the server responded with a status of 504 (Outdated Request) @ http://localhost:3000/components/form/FormRadioButton.jsx:0
+[   17446ms] [ERROR] Failed to load resource: the server responded with a status of 504 (Outdated Request) @ http://localhost:3000/components/form/FormSelect.jsx:0
+[   17451ms] [ERROR] Failed to load resource: the server responded with a status of 504 (Outdated Request) @ http://localhost:3000/components/form/FormList.jsx:0
+[   17460ms] [ERROR] Failed to load resource: the server responded with a status of 504 (Outdated Request) @ http://localhost:3000/components/form/FormSlider.jsx:0
+[   17460ms] [ERROR] Failed to load resource: the server responded with a status of 504 (Outdated Request) @ http://localhost:3000/components/form/FormCheckboxField.jsx:0
+[   17472ms] [ERROR] Failed to load resource: the server responded with a status of 504 (Outdated Request) @ http://localhost:3000/components/form/FormTextArea.jsx?t=1787400100269:0
+[   17473ms] [ERROR] Failed to load resource: the server responded with a status of 504 (Outdated Request) @ http://localhost:3000/components/form/AngleInput.jsx:0
+[   17477ms] [ERROR] Failed to load resource: the server responded with a status of 504 (Outdated Request) @ http://localhost:3000/components/form/TagsFormInput.jsx:0
+[   17478ms] [ERROR] Failed to load resource: the server responded with a status of 504 (Outdated Request) @ http://localhost:3000/components/form/FormTokensTextArea.jsx:0
+[   17484ms] [ERROR] Failed to load resource: the server responded with a status of 504 (Outdated Request) @ http://localhost:3000/components/form/AutoCompleteSelect.jsx?t=1787400100268:0
+[   17574ms] [ERROR] Failed to load resource: the server responded with a status of 504 (Outdated Request) @ http://localhost:3000/components/media/DropButton.jsx:0
+[   17600ms] [ERROR] Failed to load resource: the server responded with a status of 504 (Outdated Request) @ http://localhost:3000/components/form/FormEnterBlurField.jsx:0
+[   17608ms] [ERROR] Failed to load resource: the server responded with a status of 504 (Outdated Request) @ http://localhost:3000/lib/requestCreator.js:0
+[   17634ms] [ERROR] Failed to load resource: the server responded with a status of 504 (Outdated Request) @ http://localhost:3000/lib/lottie/utils.js:0
+[   17732ms] [ERROR] Failed to load resource: the server responded with a status of 504 (Outdated Request) @ http://localhost:3000/src/main.js?t=1787400113315:0
+[   17736ms] [ERROR] Failed to load resource: the server responded with a status of 504 (Outdated Request) @ http://localhost:3000/@vite/client:0

@@ -1,0 +1,60 @@
+- generic [ref=f3e3]:
+  - banner [ref=f3e4]:
+    - navigation [ref=f3e5]:
+      - link [ref=f3e6] [cursor=pointer]:
+        - /url: "#/apps"
+      - generic [ref=f3e11]:
+        - link "Sign In" [ref=f3e12] [cursor=pointer]:
+          - /url: /signin
+        - link "Get Started" [ref=f3e13] [cursor=pointer]:
+          - /url: /signup
+  - banner [ref=f3e14]:
+    - generic [ref=f3e20]:
+      - generic [ref=f3e21]: AI Creative Personalization Platform
+      - heading "Create Anything. Personalize Everything." [level=1] [ref=f3e24]
+      - paragraph [ref=f3e25]: Create personalized cinematic images, videos, ads, characters, commercials and viral social media content with AI.
+      - generic [ref=f3e26]:
+        - button "Get AI Cinematic Story Study" [ref=f3e28] [cursor=pointer]:
+          - generic [ref=f3e29]:
+            - generic [ref=f3e30]: Get AI Cinematic Story Study
+            - generic [ref=f3e32]: Create movie-quality trailers, story studies, and cinematic content with AI.
+          - generic [ref=f3e36]: We accept Visa, Mastercard, American Express, Discover, JCB, Affirm, Klarna, and Afterpay.
+        - button "Watch What You Can Make" [ref=f3e64]
+      - generic [ref=f3e68]:
+        - generic [ref=f3e69]:
+          - term [ref=f3e70]: AI models available
+          - definition [ref=f3e71]:
+            - generic [ref=f3e72]: 200+
+            - generic [ref=f3e73]: AI Models
+        - generic [ref=f3e75]:
+          - term [ref=f3e76]: Professional studios included
+          - definition [ref=f3e77]:
+            - generic [ref=f3e78]: "34"
+            - generic [ref=f3e79]: Professional Studios
+  - region [ref=f3e80]:
+    - generic [ref=f3e91]:
+      - generic [ref=f3e92]: Trusted by Thousands of Creators & Agencies
+      - heading "Create Cinematic Personalized AI Videos, Images, VFX, Commercials, Characters, Agents & Client-Ready Content From One Powerful AI Studio" [level=2] [ref=f3e95]:
+        - generic [ref=f3e96]: Create Cinematic Personalized AI Videos,
+        - generic [ref=f3e97]: Images, VFX, Commercials,
+        - generic [ref=f3e98]: Characters, Agents &
+        - generic [ref=f3e99]: Client-Ready Content
+        - generic [ref=f3e100]: From One Powerful AI Studio
+      - paragraph [ref=f3e101]: Smart Video AI Studio gives you a complete creative command center with 60+ AI-powered tools for generating personalized videos, images, characters, commercials, cinematic effects, avatars, lip sync, dubbing, storyboards, edits, and client-ready viral content packages — all from one organized platform.
+      - generic [ref=f3e102]:
+        - button "Start Building My AI Video Agency" [ref=f3e103]
+        - button "Watch The Demo Videos" [ref=f3e108]
+      - region [ref=f3e113]:
+        - heading "Platform Statistics" [level=2] [ref=f3e114]
+        - generic [ref=f3e115]:
+          - generic [ref=f3e116]: "34"
+          - generic [ref=f3e117]: AI Creative Apps
+        - generic [ref=f3e118]:
+          - generic [ref=f3e119]: 60+
+          - generic [ref=f3e120]: AI Features
+        - generic [ref=f3e121]:
+          - generic [ref=f3e122]: 200+
+          - generic [ref=f3e123]: AI Models
+        - generic [ref=f3e124]:
+          - generic [ref=f3e125]: Lifetime
+          - generic [ref=f3e126]: Access

@@ -324,6 +324,10 @@ export function init(source) {
   }
   // initializeSockets(creator.authorization, creator.currentUser, creator.hostname);
 
+  if (typeof window !== 'undefined') {
+    window.__stores = stores;
+  }
+
   return { creator, stores };
 }
 

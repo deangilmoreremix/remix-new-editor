@@ -13,7 +13,7 @@ interface CompareEntry {
   lastVerified: string
   answer: string
   intro: string
-  rows: { feature: string; openthorn: string; competitor: string }[]
+  rows: { feature: string; smartvideo: string; competitor: string }[]
   faqs: { question: string; answer: string }[]
   verdict: string
 }
@@ -70,7 +70,7 @@ export default function ComparePage() {
             <thead>
               <tr>
                 <th scope="col">Feature</th>
-                <th scope="col">OpenThorn</th>
+                <th scope="col">SmartVideo</th>
                 <th scope="col">{entry.competitor}</th>
               </tr>
             </thead>
@@ -78,7 +78,7 @@ export default function ComparePage() {
               {entry.rows.map((row) => (
                 <tr key={row.feature}>
                   <th scope="row">{row.feature}</th>
-                  <td>{row.openthorn}</td>
+                  <td>{row.smartvideo}</td>
                   <td>{row.competitor}</td>
                 </tr>
               ))}

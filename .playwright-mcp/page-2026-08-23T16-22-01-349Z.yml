@@ -1,0 +1,481 @@
+- generic [active] [ref=f40e1]:
+  - generic [ref=f40e2]:
+    - banner [ref=f40e3]:
+      - generic [ref=f40e4]:
+        - generic [ref=f40e5]:
+          - generic [ref=f40e6] [cursor=pointer]
+          - navigation [ref=f40e12]:
+            - generic [ref=f40e13] [cursor=pointer]: Explore
+            - generic [ref=f40e14] [cursor=pointer]: Image
+            - generic [ref=f40e15] [cursor=pointer]: Video
+            - generic [ref=f40e16] [cursor=pointer]: Tools
+            - generic [ref=f40e17] [cursor=pointer]: Storyboard
+            - generic [ref=f40e18] [cursor=pointer]: Edit
+            - generic [ref=f40e19] [cursor=pointer]: Character
+            - generic [ref=f40e20] [cursor=pointer]: Vibe Motion
+            - generic [ref=f40e21] [cursor=pointer]: Cinema Studio
+            - generic [ref=f40e22] [cursor=pointer]: Cinema Template Studio
+            - generic [ref=f40e23] [cursor=pointer]: AI Influencer
+            - generic [ref=f40e24] [cursor=pointer]: Smart Video Viral
+            - generic [ref=f40e25] [cursor=pointer]: Apps
+            - generic [ref=f40e26] [cursor=pointer]: Templates
+            - generic [ref=f40e27] [cursor=pointer]: Assist
+            - generic [ref=f40e28] [cursor=pointer]: Community
+            - generic [ref=f40e29] [cursor=pointer]: Content Library
+        - generic [ref=f40e30]:
+          - button "Update API Key" [ref=f40e31]
+          - link "Sign In" [ref=f40e35] [cursor=pointer]:
+            - /url: /signin
+    - generic [ref=f40e36]:
+      - complementary [ref=f40e37]:
+        - generic [ref=f40e38]:
+          - generic [ref=f40e39] [cursor=pointer]:
+            - button [ref=f40e40]
+            - generic [ref=f40e46]: Apps
+          - generic [ref=f40e47] [cursor=pointer]:
+            - button [ref=f40e48]
+            - generic [ref=f40e53]: Image
+          - generic [ref=f40e54] [cursor=pointer]:
+            - button [ref=f40e55]
+            - generic [ref=f40e59]: Video
+          - generic [ref=f40e60] [cursor=pointer]:
+            - button [ref=f40e61]
+            - generic [ref=f40e64]: Cinema Studio
+          - generic [ref=f40e65] [cursor=pointer]:
+            - button [ref=f40e66]
+            - generic [ref=f40e69]: Cinema Template Studio
+          - generic [ref=f40e70] [cursor=pointer]:
+            - button [ref=f40e71]
+            - generic [ref=f40e79]: Storyboard
+          - generic [ref=f40e80] [cursor=pointer]:
+            - button [ref=f40e81]
+            - generic [ref=f40e84]: Effects
+          - generic [ref=f40e85] [cursor=pointer]:
+            - button [ref=f40e86]
+            - generic [ref=f40e90]: Edit
+          - generic [ref=f40e91] [cursor=pointer]:
+            - button [ref=f40e92]
+            - generic [ref=f40e98]: Upscale
+          - generic [ref=f40e99] [cursor=pointer]:
+            - button [ref=f40e100]
+            - generic [ref=f40e105]: Audio
+          - generic [ref=f40e106] [cursor=pointer]:
+            - button [ref=f40e107]
+            - generic [ref=f40e112]: Avatar
+          - generic [ref=f40e113] [cursor=pointer]:
+            - button [ref=f40e114]
+            - generic [ref=f40e119]: Training
+          - generic [ref=f40e120] [cursor=pointer]:
+            - button [ref=f40e121]
+            - generic [ref=f40e125]: Smart Video Academy
+          - generic [ref=f40e126] [cursor=pointer]:
+            - button [ref=f40e127]
+            - generic [ref=f40e132]: Smart Video Viral
+          - generic [ref=f40e133] [cursor=pointer]:
+            - button [ref=f40e134]
+            - generic [ref=f40e138]: Video Tools
+          - generic [ref=f40e139] [cursor=pointer]:
+            - button [ref=f40e140]
+            - generic [ref=f40e143]: Render
+          - generic [ref=f40e144] [cursor=pointer]:
+            - button [ref=f40e145]
+            - generic [ref=f40e149]: Director
+          - generic [ref=f40e150] [cursor=pointer]:
+            - button [ref=f40e151]
+            - generic [ref=f40e157]: Timeline
+          - generic [ref=f40e158] [cursor=pointer]:
+            - button [ref=f40e159]
+            - generic [ref=f40e162]: Chat
+          - generic [ref=f40e163] [cursor=pointer]:
+            - button [ref=f40e164]
+            - generic [ref=f40e168]: Commercial
+          - generic [ref=f40e169] [cursor=pointer]:
+            - button [ref=f40e170]
+            - generic [ref=f40e173]: Templates
+          - generic [ref=f40e174] [cursor=pointer]:
+            - button [ref=f40e175]
+            - generic [ref=f40e179]: Explore
+          - generic [ref=f40e180] [cursor=pointer]:
+            - button [ref=f40e181]
+            - generic [ref=f40e185]: Library
+          - generic [ref=f40e186] [cursor=pointer]:
+            - button [ref=f40e187]
+            - generic [ref=f40e190]: Content
+          - generic [ref=f40e191] [cursor=pointer]:
+            - button [ref=f40e192]
+            - generic [ref=f40e198]: Community
+          - generic [ref=f40e199] [cursor=pointer]:
+            - button [ref=f40e200]
+            - generic [ref=f40e205]: Assist
+          - generic [ref=f40e206] [cursor=pointer]:
+            - button [ref=f40e207]
+            - generic [ref=f40e211]: Commits (0)
+          - generic [ref=f40e212] [cursor=pointer]:
+            - button [ref=f40e213]
+            - generic [ref=f40e217]: AI VFX
+          - generic [ref=f40e218] [cursor=pointer]:
+            - button [ref=f40e219]
+            - generic [ref=f40e223]: Stock Media
+        - generic [ref=f40e225] [cursor=pointer]:
+          - button [ref=f40e226]
+          - generic [ref=f40e230]: Settings
+      - main [ref=f40e231]:
+        - generic [ref=f40e232]:
+          - generic [ref=f40e630]:
+            - generic [ref=f40e631]:
+              - button "All studios" [ref=f40e632]
+              - button [ref=f40e638]
+              - generic [ref=f40e641]:
+                - generic [ref=f40e642]: 🎬
+                - generic [ref=f40e643]:
+                  - heading "Cinematic Short Film" [level=1] [ref=f40e644]
+                  - paragraph [ref=f40e645]: Create your cinematic films video
+            - generic [ref=f40e646]:
+              - generic [ref=f40e647]: API key set
+              - generic [ref=f40e650]:
+                - button "Quick Mode" [ref=f40e651]
+                - button "Advanced" [ref=f40e652]
+              - button "💾 Save" [ref=f40e653]:
+                - generic [ref=f40e654]: 💾
+                - text: Save
+          - generic [ref=f40e655]:
+            - generic [ref=f40e656]:
+              - generic [ref=f40e657]:
+                - img "Cinematic Short Film" [ref=f40e659]
+                - button "🖼 Thumbnail" [ref=f40e660]
+                - heading "Cinematic Short Film" [level=1] [ref=f40e661]
+                - paragraph [ref=f40e662]: Professional short film with narrative arc
+                - generic [ref=f40e663]:
+                  - generic [ref=f40e664]: Video
+                  - generic [ref=f40e665]: Cinematic Films
+              - generic [ref=f40e666]:
+                - generic [ref=f40e668]:
+                  - generic [ref=f40e669]:
+                    - generic [ref=f40e670]:
+                      - heading "Video Intent" [level=2] [ref=f40e671]
+                      - paragraph [ref=f40e672]: Describe the video you want to create
+                    - button "🎨 Storyboard" [ref=f40e673]
+                  - generic [ref=f40e674]:
+                    - generic [ref=f40e675]:
+                      - generic [ref=f40e676]: Video Type
+                      - combobox [ref=f40e677]:
+                        - option "commercial" [selected]
+                        - option "brand film"
+                        - option "trailer"
+                        - option "social reel"
+                        - option "testimonial"
+                        - option "documentary"
+                        - option "short film"
+                        - option "explainer"
+                    - generic [ref=f40e678]:
+                      - generic [ref=f40e679]: Duration (seconds)
+                      - spinbutton [ref=f40e680]: "60"
+                    - generic [ref=f40e681]:
+                      - generic [ref=f40e682]: Aspect Ratio
+                      - combobox [ref=f40e683]:
+                        - option "16:9" [selected]
+                        - option "9:16"
+                        - option "1:1"
+                        - option "4:5"
+                    - generic [ref=f40e684]:
+                      - generic [ref=f40e685]: Tone
+                      - combobox [ref=f40e686]:
+                        - option "dramatic"
+                        - option "cinematic" [selected]
+                        - option "upbeat"
+                        - option "luxury"
+                        - option "gritty"
+                        - option "minimal"
+                        - option "emotional"
+                        - option "humorous"
+                    - generic [ref=f40e687]:
+                      - generic [ref=f40e688]: Style Preset
+                      - combobox [ref=f40e689]:
+                        - option "None"
+                        - option "Photorealistic"
+                        - option "Cinematic" [selected]
+                        - option "Noir"
+                        - option "Anime"
+                        - option "Watercolor"
+                        - option "Oil Painting"
+                        - option "Cyberpunk"
+                        - option "Fantasy"
+                        - option "Documentary"
+                    - generic [ref=f40e690]:
+                      - generic [ref=f40e691]: Lighting Preset
+                      - combobox [ref=f40e692]:
+                        - option "None"
+                        - option "Golden Hour" [selected]
+                        - option "Neon"
+                        - option "Studio"
+                        - option "Dramatic"
+                        - option "Soft"
+                        - option "Volumetric"
+                        - option "High Key"
+                        - option "Low Key"
+                    - generic [ref=f40e693]:
+                      - generic [ref=f40e694]: Color Grade
+                      - combobox [ref=f40e695]:
+                        - option "None"
+                        - option "Warm"
+                        - option "Cool"
+                        - option "Desaturated"
+                        - option "Vibrant"
+                        - option "Monochrome"
+                        - option "Sepia"
+                        - option "Teal & Orange" [selected]
+                    - generic [ref=f40e696]:
+                      - generic [ref=f40e697]: Target Audience
+                      - textbox "e.g. Gen Z, professionals" [ref=f40e698]
+                    - generic [ref=f40e699]:
+                      - generic [ref=f40e700]: Call to Action (optional)
+                      - textbox "e.g. Buy now, Sign up" [ref=f40e701]
+                    - generic [ref=f40e702]:
+                      - generic [ref=f40e703]: Subject
+                      - textbox "What is the video about?" [ref=f40e704]
+                    - generic [ref=f40e705]:
+                      - generic [ref=f40e706]: Premise
+                      - textbox "Core narrative or value prop..." [ref=f40e707]
+                  - generic [ref=f40e708]:
+                    - button "Reset" [ref=f40e709]
+                    - generic [ref=f40e710]: Video intent is saved automatically
+                - generic [ref=f40e711]:
+                  - heading "Basic Information" [level=2] [ref=f40e712]
+                  - paragraph [ref=f40e713]: Enter the key details for your video
+                - generic [ref=f40e714]:
+                  - generic [ref=f40e715]:
+                    - generic [ref=f40e716]: Genre *
+                    - combobox [ref=f40e718] [cursor=pointer]:
+                      - option "action" [selected]
+                      - option "drama"
+                      - option "comedy"
+                      - option "horror"
+                      - option "sci-fi"
+                      - option "romance"
+                      - option "thriller"
+                  - generic [ref=f40e719]:
+                    - generic [ref=f40e720]:
+                      - generic [ref=f40e721]: Story Premise *
+                      - generic [ref=f40e722]:
+                        - button "Enhance" [ref=f40e723]
+                        - button "GTM Boost prompt enhancer" [ref=f40e724] [cursor=pointer]: 🎯 GTM Boost
+                    - textbox "What happens in your story?" [ref=f40e725]
+                  - generic [ref=f40e726]:
+                    - generic [ref=f40e727]: Tone
+                    - combobox [ref=f40e729] [cursor=pointer]:
+                      - option "dramatic" [selected]
+                      - option "lighthearted"
+                      - option "mysterious"
+                      - option "uplifting"
+                - generic [ref=f40e730]:
+                  - generic [ref=f40e731]:
+                    - generic [ref=f40e732]:
+                      - heading "Scene Timeline" [level=2] [ref=f40e733]
+                      - paragraph [ref=f40e734]: Auto-selected scenes for your video
+                    - button "🔄 Refresh" [ref=f40e735]
+                  - generic [ref=f40e737]:
+                    - generic [ref=f40e738]: 🎬
+                    - paragraph [ref=f40e739]: Scenes will be auto-selected when you generate
+                - generic [ref=f40e740]:
+                  - generic [ref=f40e741]:
+                    - generic [ref=f40e742]:
+                      - heading "Scene Builder" [level=2] [ref=f40e743]
+                      - paragraph [ref=f40e744]: Structure your video into scenes
+                    - generic [ref=f40e745]:
+                      - button "+ Add Scene" [ref=f40e746]
+                      - button "🎨 Storyboard" [ref=f40e747]
+                  - paragraph [ref=f40e750]: No scenes yet. Add a scene or generate from the timeline.
+              - generic [ref=f40e752]:
+                - generic [ref=f40e753]: Model
+                - button "AI Video Effects" [ref=f40e754]
+              - generic [ref=f40e760]:
+                - generic [ref=f40e761]: Video Source (V2V)
+                - button "Upload video" [ref=f40e762]
+              - generic [ref=f40e763]:
+                - generic [ref=f40e764]:
+                  - generic [ref=f40e765]:
+                    - generic [ref=f40e766]: AI Enhancer
+                    - generic [ref=f40e767]: Keeps the simple template flow, but auto-detects niche, applies cinematic prompt expansion, scene logic, and cleanup in the background.
+                  - button [ref=f40e768]
+                - button "Show Advanced Controls" [ref=f40e770]
+              - button "GTM Boost prompt enhancer" [ref=f40e771] [cursor=pointer]: 🎯 GTM Boost
+              - button "Generate template" [ref=f40e772]: Generate
+              - button "💬 Add AI Captions" [ref=f40e773]
+              - button "Personalize Personalize with a discovered contact" [ref=f40e775]:
+                - generic [ref=f40e779]: Personalize
+                - text: Personalize with a discovered contact
+              - generic [ref=f40e782]:
+                - heading "Creative Intelligence" [level=2] [ref=f40e783]
+                - paragraph [ref=f40e784]: These tiles show the cinematic structure, creative direction, and visual strategy this template will use to build your final video.
+                - generic [ref=f40e785]:
+                  - generic [ref=f40e786] [cursor=pointer]:
+                    - generic [ref=f40e787]: 🏷️
+                    - heading "Auto-Detected Niche" [level=3] [ref=f40e788]
+                    - textbox [ref=f40e789]: general-business
+                  - generic [ref=f40e790] [cursor=pointer]:
+                    - generic [ref=f40e791]: 🎬
+                    - heading "Scene Structure" [level=3] [ref=f40e792]
+                    - textbox [ref=f40e793]: Establish world → Introduce protagonist → Inciting incident → Rising action → Midpoint shift → Complications → Climax → Falling action → Final reveal
+                  - generic [ref=f40e794] [cursor=pointer]:
+                    - generic [ref=f40e795]: 🎥
+                    - heading "Cinematic Enrichment" [level=3] [ref=f40e796]
+                    - textbox [ref=f40e797]: Dynamic camera movement, shallow depth of field, professional lighting
+                  - generic [ref=f40e798] [cursor=pointer]:
+                    - generic [ref=f40e799]: ⚙️
+                    - heading "Visual Style" [level=3] [ref=f40e800]
+                    - textbox [ref=f40e801]: Polished, cinematic, high-contrast, premium aesthetic
+                  - generic [ref=f40e802] [cursor=pointer]:
+                    - generic [ref=f40e803]: ✨
+                    - heading "Enhancer Keywords" [level=3] [ref=f40e804]
+                    - textbox [ref=f40e805]: cinematic, professional, 4K, high quality, premium
+            - generic [ref=f40e806]:
+              - generic [ref=f40e807]:
+                - heading "Output" [level=3] [ref=f40e808]
+                - generic [ref=f40e809]:
+                  - generic [ref=f40e810]:
+                    - generic [ref=f40e811]: Video
+                    - generic [ref=f40e812]: Cinematic Films
+                    - generic [ref=f40e813]: 16:9
+                  - generic [ref=f40e816]:
+                    - generic [ref=f40e817]:
+                      - generic [ref=f40e818]: Preview / Output Panel
+                      - generic [ref=f40e819]: Standby State
+                    - generic [ref=f40e820]: Upload an image and click Generate to see results
+              - generic [ref=f40e821]:
+                - generic [ref=f40e822]:
+                  - button "Enhanced Prompt" [ref=f40e823]
+                  - button "Scene Beats" [ref=f40e824]
+                  - button "Voiceover" [ref=f40e825]
+                  - button "Negative Prompt" [ref=f40e826]
+                - generic [ref=f40e827]:
+                  - generic [ref=f40e828]:
+                    - generic [ref=f40e829]: Editable Output
+                    - button "✨" [ref=f40e830]
+                  - textbox [ref=f40e831]: Click Generate to create an enhanced prompt...
+  - generic [ref=f40e832]:
+    - generic [ref=f40e833]:
+      - generic [ref=f40e834]:
+        - heading "Stock Media" [level=2] [ref=f40e835]
+        - paragraph [ref=f40e836]: Select media to use in Cinema Studio
+      - button [ref=f40e837]
+    - generic [ref=f40e842]:
+      - generic [ref=f40e843]:
+        - button "Search" [ref=f40e844] [cursor=pointer]
+        - button "Curated" [ref=f40e845]
+        - button "Popular" [ref=f40e846]
+        - button "Collections" [ref=f40e847]
+        - button "My Collections" [ref=f40e848]
+      - textbox "Search Pexels..." [ref=f40e849]
+      - combobox [ref=f40e850] [cursor=pointer]:
+        - option "All Types" [selected]
+        - option "Photos"
+        - option "Videos"
+      - combobox [ref=f40e851] [cursor=pointer]:
+        - option "All Orientations" [selected]
+        - option "Landscape"
+        - option "Portrait"
+        - option "Square"
+      - combobox [ref=f40e852] [cursor=pointer]:
+        - option "All Sizes" [selected]
+        - option "Large"
+        - option "Medium"
+        - option "Small"
+      - combobox [ref=f40e853] [cursor=pointer]:
+        - option "All Colors" [selected]
+        - option "Red"
+        - option "Orange"
+        - option "Yellow"
+        - option "Green"
+        - option "Turquoise"
+        - option "Blue"
+        - option "Violet"
+        - option "Pink"
+        - option "Brown"
+        - option "Black"
+        - option "Gray"
+        - option "White"
+    - generic [ref=f40e855]:
+      - button "A sailboat navigating the dramatic and cloudy landscape of Milford Sound. by Eclipse Chasers" [ref=f40e856] [cursor=pointer]:
+        - img "A sailboat navigating the dramatic and cloudy landscape of Milford Sound." [ref=f40e857]
+        - generic [ref=f40e858]: PHOTO
+        - generic [ref=f40e859]: By Eclipse Chasers
+      - button "Explore the rugged beauty of a Norwegian mountain landscape with a flowing river. by Erik Schereder" [ref=f40e861] [cursor=pointer]:
+        - img "Explore the rugged beauty of a Norwegian mountain landscape with a flowing river." [ref=f40e862]
+        - generic [ref=f40e863]: PHOTO
+        - generic [ref=f40e864]: By Erik Schereder
+      - button "Intricate metal lattice ceiling at King's Cross Station, London, showcasing modern architectural design. by Lester Bonilla" [ref=f40e866] [cursor=pointer]:
+        - img "Intricate metal lattice ceiling at King's Cross Station, London, showcasing modern architectural design." [ref=f40e867]
+        - generic [ref=f40e868]: PHOTO
+        - generic [ref=f40e869]: By Lester Bonilla
+      - button "A traditional Kyrgyz falconer with an eagle and horse in a stunning mountain setting. by Suraj Rajendran" [ref=f40e871] [cursor=pointer]:
+        - img "A traditional Kyrgyz falconer with an eagle and horse in a stunning mountain setting." [ref=f40e872]
+        - generic [ref=f40e873]: PHOTO
+        - generic [ref=f40e874]: By Suraj Rajendran
+      - button "Stylish young man poses dramatically outdoors in Quito, Ecuador. by Jhair Guerrero" [ref=f40e876] [cursor=pointer]:
+        - img "Stylish young man poses dramatically outdoors in Quito, Ecuador." [ref=f40e877]
+        - generic [ref=f40e878]: PHOTO
+        - generic [ref=f40e879]: By Jhair Guerrero
+      - button "Tranquil scene of a cottage window overlooking a lush green landscape on a sunny day. by Michael S" [ref=f40e881] [cursor=pointer]:
+        - img "Tranquil scene of a cottage window overlooking a lush green landscape on a sunny day." [ref=f40e882]
+        - generic [ref=f40e883]: PHOTO
+        - generic [ref=f40e884]: By Michael S
+      - button "A stunning view of Jetřichovice rock formation surrounded by forest in Czech Republic. by Riedelmax ." [ref=f40e886] [cursor=pointer]:
+        - img "A stunning view of Jetřichovice rock formation surrounded by forest in Czech Republic." [ref=f40e887]
+        - generic [ref=f40e888]: PHOTO
+        - generic [ref=f40e889]: By Riedelmax .
+      - button "A young woman poses stylishly in the sunlit Mediapark, Cologne, Germany. by Maria Grazia Guainazzo" [ref=f40e891] [cursor=pointer]:
+        - img "A young woman poses stylishly in the sunlit Mediapark, Cologne, Germany." [ref=f40e892]
+        - generic [ref=f40e893]: PHOTO
+        - generic [ref=f40e894]: By Maria Grazia Guainazzo
+      - button "Serene misty forest with towering trees and exposed roots, perfect for nature enthusiasts. by Kousthub Anand" [ref=f40e896] [cursor=pointer]:
+        - img "Serene misty forest with towering trees and exposed roots, perfect for nature enthusiasts." [ref=f40e897]
+        - generic [ref=f40e898]: PHOTO
+        - generic [ref=f40e899]: By Kousthub Anand
+      - button "Scenic view of New York City skyline featuring Brooklyn Bridge and waterfront. by Naro K" [ref=f40e901] [cursor=pointer]:
+        - img "Scenic view of New York City skyline featuring Brooklyn Bridge and waterfront." [ref=f40e902]
+        - generic [ref=f40e903]: PHOTO
+        - generic [ref=f40e904]: By Naro K
+      - button "A beautiful view of the ornate rooftops of the Grand Palace in Bangkok, Thailand, under a cloudy sky. by feLiX fANg" [ref=f40e906] [cursor=pointer]:
+        - img "A beautiful view of the ornate rooftops of the Grand Palace in Bangkok, Thailand, under a cloudy sky." [ref=f40e907]
+        - generic [ref=f40e908]: PHOTO
+        - generic [ref=f40e909]: By feLiX fANg
+      - button "A graceful egret takes flight over a jungle stream, surrounded by lush tropical foliage. by Cecilia Pérez Lobo" [ref=f40e911] [cursor=pointer]:
+        - img "A graceful egret takes flight over a jungle stream, surrounded by lush tropical foliage." [ref=f40e912]
+        - generic [ref=f40e913]: PHOTO
+        - generic [ref=f40e914]: By Cecilia Pérez Lobo
+      - button "Elderly man in Ankara sitting at table, enjoying Turkish tea in a candid moment. by Ahmed ؜" [ref=f40e916] [cursor=pointer]:
+        - img "Elderly man in Ankara sitting at table, enjoying Turkish tea in a candid moment." [ref=f40e917]
+        - generic [ref=f40e918]: PHOTO
+        - generic [ref=f40e919]: By Ahmed ؜
+      - button "A woman in white dress holds a rustic bowl with red and green cherries. by Özge Arsoy" [ref=f40e921] [cursor=pointer]:
+        - img "A woman in white dress holds a rustic bowl with red and green cherries." [ref=f40e922]
+        - generic [ref=f40e923]: PHOTO
+        - generic [ref=f40e924]: By Özge Arsoy
+      - button "A serene cafe corner with a vibrant bookshelf and seating, ideal for relaxation. by Fidan Nazim qizi" [ref=f40e926] [cursor=pointer]:
+        - img "A serene cafe corner with a vibrant bookshelf and seating, ideal for relaxation." [ref=f40e927]
+        - generic [ref=f40e928]: PHOTO
+        - generic [ref=f40e929]: By Fidan Nazim qizi
+      - button "Elegant living room with artistic wall shelves and decor in a modern setting. by mirouwqi" [ref=f40e931] [cursor=pointer]:
+        - img "Elegant living room with artistic wall shelves and decor in a modern setting." [ref=f40e932]
+        - generic [ref=f40e933]: PHOTO
+        - generic [ref=f40e934]: By mirouwqi
+      - button "An Asian family in traditional attire enjoying a day at a Bangkok temple, exuding cultural charm. by Nitin Rajliwal" [ref=f40e936] [cursor=pointer]:
+        - img "An Asian family in traditional attire enjoying a day at a Bangkok temple, exuding cultural charm." [ref=f40e937]
+        - generic [ref=f40e938]: PHOTO
+        - generic [ref=f40e939]: By Nitin Rajliwal
+      - button "Stylish portrait of a woman in a vibrant floral dress outdoors by wooden stairs. by Butch Carmichael" [ref=f40e941] [cursor=pointer]:
+        - img "Stylish portrait of a woman in a vibrant floral dress outdoors by wooden stairs." [ref=f40e942]
+        - generic [ref=f40e943]: PHOTO
+        - generic [ref=f40e944]: By Butch Carmichael
+      - button "A slice of cake and a cup of coffee on a red checkered tablecloth, creating a cozy cafe vibe. by Priyanshi Garg" [ref=f40e946] [cursor=pointer]:
+        - img "A slice of cake and a cup of coffee on a red checkered tablecloth, creating a cozy cafe vibe." [ref=f40e947]
+        - generic [ref=f40e948]: PHOTO
+        - generic [ref=f40e949]: By Priyanshi Garg
+      - button "Elderly man with white beard in bright orange robe and turban stands against a dark background. by Ekam Juneja" [ref=f40e951] [cursor=pointer]:
+        - img "Elderly man with white beard in bright orange robe and turban stands against a dark background." [ref=f40e952]
+        - generic [ref=f40e953]: PHOTO
+        - generic [ref=f40e954]: By Ekam Juneja
+    - generic [ref=f40e959]:
+      - text: Media provided by
+      - link "Pexels" [ref=f40e960] [cursor=pointer]:
+        - /url: https://www.pexels.com

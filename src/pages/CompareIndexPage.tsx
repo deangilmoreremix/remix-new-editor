@@ -19,18 +19,18 @@ const entries = compareMeta as CompareEntry[]
 export default function CompareIndexPage() {
   usePageTitle('Comparisons', {
     description:
-      'Compare OpenThorn with Lovable, Bolt.new, v0, and other AI website builders on pricing, BYOK support, model choice, and code ownership.',
+      'Compare SmartVideo with Lovable, Bolt.new, v0, and other AI website builders on pricing, BYOK support, model choice, and code ownership.',
   })
 
   useJsonLd({
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    name: 'OpenThorn comparisons',
-    itemListElement: entries.map((entry, index) => ({
-      '@type': 'ListItem',
-      position: index + 1,
-      name: entry.title,
-      url: `https://www.openthorn.app/compare/${entry.slug}`,
+     name: 'SmartVideo comparisons',
+     itemListElement: entries.map((entry, index) => ({
+       '@type': 'ListItem',
+       position: index + 1,
+       name: entry.title,
+       url: `https://www.smartvid.app/compare/${entry.slug}`,
     })),
   })
 

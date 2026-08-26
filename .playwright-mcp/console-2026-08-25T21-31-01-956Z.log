@@ -1,0 +1,4 @@
+[  242304ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://bzxohkrxcwodllketcpz.supabase.co/rest/v1/default_models?select=*&provider_id=in.%28anthropic%2Copenai%2Cgoogle%29:0
+[  242400ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://bzxohkrxcwodllketcpz.supabase.co/rest/v1/default_models?select=*&provider_id=in.%28anthropic%2Copenai%2Cgoogle%29:0
+[  242787ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://bzxohkrxcwodllketcpz.supabase.co/rest/v1/default_models?select=*&provider_id=in.%28anthropic%2Copenai%2Cgoogle%29:0
+[  242894ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://bzxohkrxcwodllketcpz.supabase.co/rest/v1/default_models?select=*&provider_id=in.%28anthropic%2Copenai%2Cgoogle%29:0

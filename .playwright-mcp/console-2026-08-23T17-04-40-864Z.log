@@ -1,0 +1,4 @@
+[     487ms] [LOG] [App] Starting initialization... @ http://localhost:3100/src/main.js:19
+[     715ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3100/src/lib/popcornInit.js:41
+[    1129ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3100/src/lib/popcornInit.js:48
+[    3867ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3100/src/lib/popcornInit.js:48

@@ -53,17 +53,17 @@ export default function BlogPostPage() {
           description: post.excerpt,
           datePublished: post.date,
           dateModified: post.dateModified ?? post.date,
-          url: `https://www.openthorn.app/blog/${post.slug}`,
-          author: { '@type': 'Organization', name: 'OpenThorn' },
+          url: `https://www.smartvid.app/blog/${post.slug}`,
+          author: { '@type': 'Organization', name: 'SmartVideo' },
           publisher: {
             '@type': 'Organization',
-            name: 'OpenThorn',
+            name: 'SmartVideo',
             logo: {
               '@type': 'ImageObject',
-              url: 'https://www.openthorn.app/logo.png',
+              url: 'https://www.smartvid.app/logo.png',
             },
           },
-          image: post.ogImage ?? 'https://www.openthorn.app/og-card.png',
+          image: post.ogImage ?? 'https://www.smartvid.app/og-card.png',
         }
       : {}
   )
@@ -74,8 +74,8 @@ export default function BlogPostPage() {
           '@context': 'https://schema.org',
           '@type': 'BreadcrumbList',
           itemListElement: [
-            { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.openthorn.app/' },
-            { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://www.openthorn.app/blog' },
+             { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.smartvid.app/' },
+             { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://www.smartvid.app/blog' },
             { '@type': 'ListItem', position: 3, name: post.title },
           ],
         }

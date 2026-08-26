@@ -4,7 +4,7 @@ import { useJsonLd } from '../lib/useJsonLd'
 import glossary from '../data/glossary.json'
 import styles from './GlossaryPage.module.css'
 
-const SITE_URL = 'https://www.openthorn.app'
+const SITE_URL = 'https://www.smartvid.app'
 
 export default function GlossaryPage() {
   usePageTitle('AI Website Builder Glossary', {

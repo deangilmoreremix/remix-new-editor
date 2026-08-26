@@ -1,0 +1,633 @@
+- generic [ref=f289e2]:
+  - banner [ref=f289e3]:
+    - generic [ref=f289e4]:
+      - generic [ref=f289e5]:
+        - generic [ref=f289e6] [cursor=pointer]
+        - navigation [ref=f289e12]:
+          - generic [ref=f289e13] [cursor=pointer]: Explore
+          - generic [ref=f289e14] [cursor=pointer]: Image
+          - generic [ref=f289e15] [cursor=pointer]: Video
+          - generic [ref=f289e16] [cursor=pointer]: Tools
+          - generic [ref=f289e17] [cursor=pointer]: Storyboard
+          - generic [ref=f289e18] [cursor=pointer]: Edit
+          - generic [ref=f289e19] [cursor=pointer]: Character
+          - generic [ref=f289e20] [cursor=pointer]: Vibe Motion
+          - generic [ref=f289e21] [cursor=pointer]: Cinema Studio
+          - generic [ref=f289e22] [cursor=pointer]: Cinema Template Studio
+          - generic [ref=f289e23] [cursor=pointer]: AI Influencer
+          - generic [ref=f289e24] [cursor=pointer]: Smart Video Viral
+          - generic [ref=f289e25] [cursor=pointer]: Apps
+          - generic [ref=f289e26] [cursor=pointer]: Templates
+          - generic [ref=f289e27] [cursor=pointer]: Assist
+          - generic [ref=f289e28] [cursor=pointer]: Community
+          - generic [ref=f289e29] [cursor=pointer]: Content Library
+      - generic [ref=f289e30]:
+        - button "Update API Key" [ref=f289e31]
+        - link "Sign In" [ref=f289e35] [cursor=pointer]:
+          - /url: /signin
+  - generic [ref=f289e36]:
+    - complementary [ref=f289e37]:
+      - generic:
+        - generic [ref=f289e38] [cursor=pointer]:
+          - button [ref=f289e39]
+          - generic [ref=f289e45]: Apps
+        - generic [ref=f289e46] [cursor=pointer]:
+          - button [ref=f289e47]
+          - generic [ref=f289e52]: Image
+        - generic [ref=f289e53] [cursor=pointer]:
+          - button [ref=f289e54]
+          - generic [ref=f289e58]: Video
+        - generic [ref=f289e59] [cursor=pointer]:
+          - button [ref=f289e60]
+          - generic [ref=f289e63]: Cinema Studio
+        - generic [ref=f289e64] [cursor=pointer]:
+          - button [ref=f289e65]
+          - generic [ref=f289e68]: Cinema Template Studio
+        - generic [ref=f289e69] [cursor=pointer]:
+          - button [ref=f289e70]
+          - generic [ref=f289e78]: Storyboard
+        - generic [ref=f289e79] [cursor=pointer]:
+          - button [ref=f289e80]
+          - generic [ref=f289e83]: Effects
+        - generic [ref=f289e84] [cursor=pointer]:
+          - button [ref=f289e85]
+          - generic [ref=f289e89]: Edit
+        - generic [ref=f289e90] [cursor=pointer]:
+          - button [ref=f289e91]
+          - generic [ref=f289e97]: Upscale
+        - generic [ref=f289e98] [cursor=pointer]:
+          - button [ref=f289e99]
+          - generic [ref=f289e104]: Audio
+        - generic [ref=f289e105] [cursor=pointer]:
+          - button [ref=f289e106]
+          - generic [ref=f289e111]: Avatar
+        - generic [ref=f289e112] [cursor=pointer]:
+          - button [ref=f289e113]
+          - generic [ref=f289e118]: Training
+        - generic [ref=f289e119] [cursor=pointer]:
+          - button [ref=f289e120]
+          - generic [ref=f289e124]: Smart Video Academy
+        - generic [ref=f289e125] [cursor=pointer]:
+          - button [ref=f289e126]
+          - generic [ref=f289e131]: Smart Video Viral
+        - generic [ref=f289e132] [cursor=pointer]:
+          - button [ref=f289e133]
+          - generic [ref=f289e137]: Video Tools
+        - generic [ref=f289e138] [cursor=pointer]:
+          - button [ref=f289e139]
+          - generic [ref=f289e142]: Render
+        - generic [ref=f289e143] [cursor=pointer]:
+          - button [ref=f289e144]
+          - generic [ref=f289e149]: Video Agent
+        - generic [ref=f289e150] [cursor=pointer]:
+          - button [ref=f289e151]
+          - generic [ref=f289e155]: Director
+        - generic [ref=f289e156] [cursor=pointer]:
+          - button [ref=f289e157]
+          - generic [ref=f289e163]: Timeline
+        - generic [ref=f289e164] [cursor=pointer]:
+          - button [ref=f289e165]
+          - generic [ref=f289e168]: Chat
+        - generic [ref=f289e169] [cursor=pointer]:
+          - button [ref=f289e170]
+          - generic [ref=f289e174]: Commercial
+        - generic [ref=f289e175] [cursor=pointer]:
+          - button [ref=f289e176]
+          - generic [ref=f289e179]: Templates
+        - generic [ref=f289e180] [cursor=pointer]:
+          - button [ref=f289e181]
+          - generic [ref=f289e185]: Explore
+        - generic [ref=f289e186] [cursor=pointer]:
+          - button [ref=f289e187]
+          - generic [ref=f289e191]: Library
+        - generic [ref=f289e192] [cursor=pointer]:
+          - button [ref=f289e193]
+          - generic [ref=f289e196]: Content
+        - generic [ref=f289e197] [cursor=pointer]:
+          - button [ref=f289e198]
+          - generic [ref=f289e204]: Community
+        - generic [ref=f289e205] [cursor=pointer]:
+          - button [ref=f289e206]
+          - generic [ref=f289e211]: Assist
+        - generic [ref=f289e212] [cursor=pointer]:
+          - button [ref=f289e213]
+          - generic [ref=f289e217]: Commits (0)
+        - generic [ref=f289e218] [cursor=pointer]:
+          - button [ref=f289e219]
+          - generic [ref=f289e223]: AI VFX
+        - generic [ref=f289e224] [cursor=pointer]:
+          - button [ref=f289e225]
+          - generic [ref=f289e229]: Stock Media
+      - generic [ref=f289e230] [cursor=pointer]:
+        - button [ref=f289e231]
+        - generic [ref=f289e235]: Settings
+    - main [ref=f289e236]:
+      - generic [ref=f289e237]:
+        - generic [ref=f289e238]:
+          - button "All studios" [ref=f289e239]
+          - button "Back" [ref=f289e245]
+        - generic [ref=f289e249]:
+          - img "video studio" [ref=f289e250]
+          - generic [ref=f289e252]:
+            - heading "Video Studio" [level=1] [ref=f289e253]
+            - paragraph [ref=f289e254]: Animate images into stunning AI videos with motion effects
+        - generic [ref=f289e256]:
+          - generic [ref=f289e257]:
+            - button "Reference media" [ref=f289e258]
+            - button "Browse stock photos for i2v reference" [ref=f289e263]
+            - button "Use last frame of a video as I2V source" [ref=f289e267]:
+              - img [ref=f289e268]:
+                - generic [ref=f289e272]: ⏱
+            - button "Upload video to remove watermark" [ref=f289e273]
+            - button "Browse stock videos for v2v input" [ref=f289e278]
+            - textbox "Video prompt" [ref=f289e282]:
+              - /placeholder: Describe the video you want to create
+            - generic [ref=f289e283]:
+              - button "GTM Boost prompt enhancer" [ref=f289e284] [cursor=pointer]: 🎯 GTM Boost
+              - button "Open recipe engine" [ref=f289e285] [cursor=pointer]: 📋 Recipes
+              - button "Open Smart Video AI Monetization Hub" [ref=f289e286] [cursor=pointer]: 💼 Monetize
+              - button "Open prompt gallery" [ref=f289e287] [cursor=pointer]: 📚 Prompts
+          - generic [ref=f289e288]:
+            - generic [ref=f289e289]:
+              - button "Seedance Lite Select AI video model" [ref=f289e290]:
+                - generic [ref=f289e292]: Seedance Lite
+                - text: Select AI video model
+              - button "16:9 Change aspect ratio" [ref=f289e295]:
+                - generic [ref=f289e298]: 16:9
+                - text: Change aspect ratio
+              - button "15s Set video duration" [ref=f289e301]:
+                - generic [ref=f289e305]: 15s
+                - text: Set video duration
+              - button "480p Set output resolution" [ref=f289e308]:
+                - generic [ref=f289e311]: 480p
+                - text: Set output resolution
+              - text: Set output quality
+              - button "Advanced Show advanced options" [ref=f289e314]:
+                - generic [ref=f289e318]: Advanced
+                - text: Show advanced options
+              - button "Motion & Style Camera movement, motion strength & style presets" [ref=f289e321]:
+                - generic [ref=f289e324]: Motion & Style
+                - text: Camera movement, motion strength & style presets
+              - button "Personalize Personalize with a discovered contact" [ref=f289e327]:
+                - generic [ref=f289e331]: Personalize
+                - text: Personalize with a discovered contact
+              - button "🖼 Thumbnail" [ref=f289e334] [cursor=pointer]
+            - button "Generate video" [ref=f289e335] [cursor=pointer]: Generate ✨ Generate AI video from prompt
+        - generic [ref=f289e336]:
+          - generic [ref=f289e337]:
+            - generic [ref=f289e338]:
+              - generic [ref=f289e339]: "1"
+              - generic [ref=f289e341]:
+                - generic [ref=f289e342]: Select generation mode
+                - generic [ref=f289e343]: Choose between text-to-video or image-to-video. Image-to-video uses your photo as the first frame.
+            - generic [ref=f289e344]:
+              - generic [ref=f289e345]: "2"
+              - generic [ref=f289e347]:
+                - generic [ref=f289e348]: Upload or describe
+                - generic [ref=f289e349]: For image-to-video, upload a clear photo. For text-to-video, write a detailed description of the scene and motion.
+            - generic [ref=f289e350]:
+              - generic [ref=f289e351]: "3"
+              - generic [ref=f289e353]:
+                - generic [ref=f289e354]: Configure output
+                - generic [ref=f289e355]: Set resolution (480p to 1080p), duration (3-10 seconds), and aspect ratio for your video.
+            - generic [ref=f289e356]:
+              - generic [ref=f289e357]: "4"
+              - generic [ref=f289e359]:
+                - generic [ref=f289e360]: Generate video
+                - generic [ref=f289e361]: Video generation takes 1-3 minutes. The result will appear in your library when ready.
+          - generic [ref=f289e362]:
+            - button [ref=f289e363]
+            - generic [ref=f289e367]:
+              - generic [ref=f289e368]:
+                - generic [ref=f289e369]: ●
+                - generic [ref=f289e370]: Start with image-to-video for more predictable results
+              - generic [ref=f289e371]:
+                - generic [ref=f289e372]: ●
+                - generic [ref=f289e373]: Keep prompts focused on a single action or movement
+              - generic [ref=f289e374]:
+                - generic [ref=f289e375]: ●
+                - generic [ref=f289e376]: Use 720p for a good balance of quality and speed
+        - generic [ref=f289e377]: History
+        - status:
+          - generic:
+            - generic:
+              - generic: Frame
+              - slider "Video frame scrubber": "0"
+              - generic: 0:00
+          - generic:
+            - button "↻ Regenerate"
+            - button "↓ Download"
+            - button "🎬 Open in Render"
+            - button "+ New"
+            - button "Publish to Social"
+        - generic [ref=f289e379]:
+          - generic [ref=f289e380]:
+            - generic [ref=f289e381]:
+              - generic [ref=f289e382]: Example Gallery
+              - generic [ref=f289e383]: Click any card to view the prompt or create in this style
+            - generic [ref=f289e384]: 28 examples
+          - generic [ref=f289e385]:
+            - button "All" [ref=f289e386] [cursor=pointer]
+            - button "comedy" [ref=f289e387] [cursor=pointer]
+            - button "retro" [ref=f289e388] [cursor=pointer]
+            - button "skit" [ref=f289e389] [cursor=pointer]
+            - button "social" [ref=f289e390] [cursor=pointer]
+            - button "music-video" [ref=f289e391] [cursor=pointer]
+            - button "y2k" [ref=f289e392] [cursor=pointer]
+            - button "typography" [ref=f289e393] [cursor=pointer]
+            - button "gameplay" [ref=f289e394] [cursor=pointer]
+            - button "slow-motion" [ref=f289e395] [cursor=pointer]
+            - button "nature" [ref=f289e396] [cursor=pointer]
+          - generic [ref=f289e397]:
+            - generic [ref=f289e398] [cursor=pointer]:
+              - generic [ref=f289e399]:
+                - generic [ref=f289e400]: SOCIAL
+                - img "1980s open-source family comedy" [ref=f289e401]
+              - generic [ref=f289e402]:
+                - generic [ref=f289e403]: 1980s open-source family comedy
+                - generic [ref=f289e404]: minimax
+                - generic [ref=f289e406]:
+                  - generic [ref=f289e407]: comedy
+                  - generic [ref=f289e408]: retro
+                  - generic [ref=f289e409]: skit
+                - generic [ref=f289e410]:
+                  - button "View Prompt" [ref=f289e411]
+                  - button "Create This Style" [ref=f289e412]
+            - generic [ref=f289e413] [cursor=pointer]:
+              - generic [ref=f289e414]:
+                - generic [ref=f289e415]: SOCIAL
+                - img "Y2K K-Pop Candy Typography Music Video" [ref=f289e416]
+              - generic [ref=f289e417]:
+                - generic [ref=f289e418]: Y2K K-Pop Candy Typography Music Video
+                - generic [ref=f289e419]: minimax
+                - generic [ref=f289e421]:
+                  - generic [ref=f289e422]: music-video
+                  - generic [ref=f289e423]: y2k
+                  - generic [ref=f289e424]: typography
+                - generic [ref=f289e425]:
+                  - button "View Prompt" [ref=f289e426]
+                  - button "Create This Style" [ref=f289e427]
+            - generic [ref=f289e428] [cursor=pointer]:
+              - generic [ref=f289e429]:
+                - generic [ref=f289e430]: VFX
+                - img "Macaw Scream in Extreme Slow Motion" [ref=f289e431]
+              - generic [ref=f289e432]:
+                - generic [ref=f289e433]: Macaw Scream in Extreme Slow Motion
+                - generic [ref=f289e434]: minimax
+                - generic [ref=f289e436]:
+                  - generic [ref=f289e437]: slow-motion
+                  - generic [ref=f289e438]: nature
+                  - generic [ref=f289e439]: macro
+                - generic [ref=f289e440]:
+                  - button "View Prompt" [ref=f289e441]
+                  - button "Create This Style" [ref=f289e442]
+            - generic [ref=f289e443] [cursor=pointer]:
+              - generic [ref=f289e444]:
+                - generic [ref=f289e445]: SOCIAL
+                - img "1980s open-source family comedy" [ref=f289e446]
+              - generic [ref=f289e447]:
+                - generic [ref=f289e448]: 1980s open-source family comedy
+                - generic [ref=f289e449]: minimax
+                - generic [ref=f289e451]:
+                  - generic [ref=f289e452]: comedy
+                  - generic [ref=f289e453]: image-to-video
+                  - generic [ref=f289e454]: opening-frame-reference
+                - generic [ref=f289e455]:
+                  - button "View Prompt" [ref=f289e456]
+                  - button "Create This Style" [ref=f289e457]
+            - generic [ref=f289e458] [cursor=pointer]:
+              - generic [ref=f289e459]:
+                - generic [ref=f289e460]: SOCIAL
+                - img "7-second video. The Office (US) mockumentary style, inside the Dunder Mifflin" [ref=f289e461]
+              - generic [ref=f289e462]:
+                - generic [ref=f289e463]: 7-second video. The Office (US) mockumentary style, inside the Dunder Mifflin
+                - generic [ref=f289e464]: minimax
+                - generic [ref=f289e466]:
+                  - generic [ref=f289e467]: music-video
+                  - generic [ref=f289e468]: text-to-video
+                  - generic [ref=f289e469]: text-prompt
+                - generic [ref=f289e470]:
+                  - button "View Prompt" [ref=f289e471]
+                  - button "Create This Style" [ref=f289e472]
+            - generic [ref=f289e473] [cursor=pointer]:
+              - generic [ref=f289e474]:
+                - generic [ref=f289e475]: SOCIAL
+                - img "\"A hyper-realistic handheld phone video of a quiet suburban backyard on a bright" [ref=f289e476]
+              - generic [ref=f289e477]:
+                - generic [ref=f289e478]: "\"A hyper-realistic handheld phone video of a quiet suburban backyard on a bright"
+                - generic [ref=f289e479]: minimax
+                - generic [ref=f289e481]:
+                  - generic [ref=f289e482]: music-video
+                  - generic [ref=f289e483]: text-to-video
+                  - generic [ref=f289e484]: text-prompt
+                - generic [ref=f289e485]:
+                  - button "View Prompt" [ref=f289e486]
+                  - button "Create This Style" [ref=f289e487]
+            - generic [ref=f289e488] [cursor=pointer]:
+              - generic [ref=f289e489]:
+                - generic [ref=f289e490]: SOCIAL
+                - img "An 1890s field guide plate, drawing itself" [ref=f289e491]
+              - generic [ref=f289e492]:
+                - generic [ref=f289e493]: An 1890s field guide plate, drawing itself
+                - generic [ref=f289e494]: minimax
+                - generic [ref=f289e496]:
+                  - generic [ref=f289e497]: music-video
+                  - generic [ref=f289e498]: text-to-video
+                  - generic [ref=f289e499]: text-prompt
+                - generic [ref=f289e500]:
+                  - button "View Prompt" [ref=f289e501]
+                  - button "Create This Style" [ref=f289e502]
+            - generic [ref=f289e503] [cursor=pointer]:
+              - generic [ref=f289e504]:
+                - generic [ref=f289e505]: SOCIAL
+                - img "Create a 15-second ultra-photorealistic live-action war sequence set in the" [ref=f289e506]
+              - generic [ref=f289e507]:
+                - generic [ref=f289e508]: Create a 15-second ultra-photorealistic live-action war sequence set in the
+                - generic [ref=f289e509]: minimax
+                - generic [ref=f289e511]:
+                  - generic [ref=f289e512]: music-video
+                  - generic [ref=f289e513]: text-to-video
+                  - generic [ref=f289e514]: text-prompt
+                - generic [ref=f289e515]:
+                  - button "View Prompt" [ref=f289e516]
+                  - button "Create This Style" [ref=f289e517]
+            - generic [ref=f289e518] [cursor=pointer]:
+              - generic [ref=f289e519]:
+                - generic [ref=f289e520]: SOCIAL
+                - img "Created using MiniMax H3 on ." [ref=f289e521]
+              - generic [ref=f289e522]:
+                - generic [ref=f289e523]: Created using MiniMax H3 on .
+                - generic [ref=f289e524]: minimax
+                - generic [ref=f289e526]:
+                  - generic [ref=f289e527]: music-video
+                  - generic [ref=f289e528]: text-to-video
+                  - generic [ref=f289e529]: text-prompt
+                - generic [ref=f289e530]:
+                  - button "View Prompt" [ref=f289e531]
+                  - button "Create This Style" [ref=f289e532]
+            - generic [ref=f289e533] [cursor=pointer]:
+              - generic [ref=f289e534]:
+                - generic [ref=f289e535]: SOCIAL
+                - img "Animate the uploaded CHUNG LEE movie poster as a 10-second cinematic martial-art" [ref=f289e536]
+              - generic [ref=f289e537]:
+                - generic [ref=f289e538]: Animate the uploaded CHUNG LEE movie poster as a 10-second cinematic martial-art
+                - generic [ref=f289e539]: minimax
+                - generic [ref=f289e541]:
+                  - generic [ref=f289e542]: music-video
+                  - generic [ref=f289e543]: text-to-video
+                  - generic [ref=f289e544]: text-prompt
+                - generic [ref=f289e545]:
+                  - button "View Prompt" [ref=f289e546]
+                  - button "Create This Style" [ref=f289e547]
+            - generic [ref=f289e548] [cursor=pointer]:
+              - generic [ref=f289e549]:
+                - generic [ref=f289e550]: SOCIAL
+                - img "Creating a sleek, professional ad for using itself. ⚡" [ref=f289e551]
+              - generic [ref=f289e552]:
+                - generic [ref=f289e553]: Creating a sleek, professional ad for using itself. ⚡
+                - generic [ref=f289e554]: minimax
+                - generic [ref=f289e556]:
+                  - generic [ref=f289e557]: music-video
+                  - generic [ref=f289e558]: text-to-video
+                  - generic [ref=f289e559]: text-prompt
+                - generic [ref=f289e560]:
+                  - button "View Prompt" [ref=f289e561]
+                  - button "Create This Style" [ref=f289e562]
+            - generic [ref=f289e563] [cursor=pointer]:
+              - generic [ref=f289e564]:
+                - generic [ref=f289e565]: SOCIAL
+                - img "Dark-pop cyber-grunge rap music video style" [ref=f289e566]
+              - generic [ref=f289e567]:
+                - generic [ref=f289e568]: Dark-pop cyber-grunge rap music video style
+                - generic [ref=f289e569]: minimax
+                - generic [ref=f289e571]:
+                  - generic [ref=f289e572]: music-video
+                  - generic [ref=f289e573]: reference-to-video
+                  - generic [ref=f289e574]: style-reference-images
+                - generic [ref=f289e575]:
+                  - button "View Prompt" [ref=f289e576]
+                  - button "Create This Style" [ref=f289e577]
+            - generic [ref=f289e578] [cursor=pointer]:
+              - generic [ref=f289e579]:
+                - generic [ref=f289e580]: SOCIAL
+                - img "The World's Unluckiest Superhero" [ref=f289e581]
+              - generic [ref=f289e582]:
+                - generic [ref=f289e583]: The World's Unluckiest Superhero
+                - generic [ref=f289e584]: minimax
+                - generic [ref=f289e586]:
+                  - generic [ref=f289e587]: comedy
+                  - generic [ref=f289e588]: text-to-video
+                  - generic [ref=f289e589]: dialogue
+                - generic [ref=f289e590]:
+                  - button "View Prompt" [ref=f289e591]
+                  - button "Create This Style" [ref=f289e592]
+            - generic [ref=f289e593] [cursor=pointer]:
+              - generic [ref=f289e594]:
+                - generic [ref=f289e595]: SOCIAL
+                - img "First try with Minimax H3 and is full cinematic 📽️ 🤩" [ref=f289e596]
+              - generic [ref=f289e597]:
+                - generic [ref=f289e598]: First try with Minimax H3 and is full cinematic 📽️ 🤩
+                - generic [ref=f289e599]: minimax
+                - generic [ref=f289e601]:
+                  - generic [ref=f289e602]: music-video
+                  - generic [ref=f289e603]: text-to-video
+                  - generic [ref=f289e604]: text-prompt
+                - generic [ref=f289e605]:
+                  - button "View Prompt" [ref=f289e606]
+                  - button "Create This Style" [ref=f289e607]
+            - generic [ref=f289e608] [cursor=pointer]:
+              - generic [ref=f289e609]:
+                - generic [ref=f289e610]: SOCIAL
+                - img "hyper-realistic" [ref=f289e611]
+              - generic [ref=f289e612]:
+                - generic [ref=f289e613]: hyper-realistic
+                - generic [ref=f289e614]: minimax
+                - generic [ref=f289e616]:
+                  - generic [ref=f289e617]: music-video
+                  - generic [ref=f289e618]: text-to-video
+                  - generic [ref=f289e619]: text-prompt
+                - generic [ref=f289e620]:
+                  - button "View Prompt" [ref=f289e621]
+                  - button "Create This Style" [ref=f289e622]
+            - generic [ref=f289e623] [cursor=pointer]:
+              - generic [ref=f289e624]:
+                - generic [ref=f289e625]: SOCIAL
+                - img "15-second, 16:9 vertical, continuous single-take video that looks like authentic" [ref=f289e626]
+              - generic [ref=f289e627]:
+                - generic [ref=f289e628]: 15-second, 16:9 vertical, continuous single-take video that looks like authentic
+                - generic [ref=f289e629]: minimax
+                - generic [ref=f289e631]:
+                  - generic [ref=f289e632]: viral-short
+                  - generic [ref=f289e633]: text-to-video
+                  - generic [ref=f289e634]: text-prompt
+                - generic [ref=f289e635]:
+                  - button "View Prompt" [ref=f289e636]
+                  - button "Create This Style" [ref=f289e637]
+            - generic [ref=f289e638] [cursor=pointer]:
+              - generic [ref=f289e639]:
+                - generic [ref=f289e640]: SOCIAL
+                - img "Music Video Study" [ref=f289e641]
+              - generic [ref=f289e642]:
+                - generic [ref=f289e643]: Music Video Study
+                - generic [ref=f289e644]: minimax
+                - generic [ref=f289e646]:
+                  - generic [ref=f289e647]: music-video
+                  - generic [ref=f289e648]: text-to-video
+                  - generic [ref=f289e649]: text-prompt
+                - generic [ref=f289e650]:
+                  - button "View Prompt" [ref=f289e651]
+                  - button "Create This Style" [ref=f289e652]
+            - generic [ref=f289e653] [cursor=pointer]:
+              - generic [ref=f289e654]:
+                - generic [ref=f289e655]: SOCIAL
+                - img "Handcrafted paper-cut stop-motion short" [ref=f289e656]
+              - generic [ref=f289e657]:
+                - generic [ref=f289e658]: Handcrafted paper-cut stop-motion short
+                - generic [ref=f289e659]: minimax
+                - generic [ref=f289e661]:
+                  - generic [ref=f289e662]: viral-short
+                  - generic [ref=f289e663]: text-to-video
+                  - generic [ref=f289e664]: paper-cut-underwater-cave
+                - generic [ref=f289e665]:
+                  - button "View Prompt" [ref=f289e666]
+                  - button "Create This Style" [ref=f289e667]
+            - generic [ref=f289e668] [cursor=pointer]:
+              - generic [ref=f289e669]:
+                - generic [ref=f289e670]: SOCIAL
+                - 'img "Setting: A bright sunny beach" [ref=f289e671]'
+              - generic [ref=f289e672]:
+                - generic [ref=f289e673]: "Setting: A bright sunny beach"
+                - generic [ref=f289e674]: minimax
+                - generic [ref=f289e676]:
+                  - generic [ref=f289e677]: music-video
+                  - generic [ref=f289e678]: text-to-video
+                  - generic [ref=f289e679]: text-prompt
+                - generic [ref=f289e680]:
+                  - button "View Prompt" [ref=f289e681]
+                  - button "Create This Style" [ref=f289e682]
+            - generic [ref=f289e683] [cursor=pointer]:
+              - generic [ref=f289e684]:
+                - generic [ref=f289e685]: SOCIAL
+                - img "🤯 is seriously good at this kind of K-pop lyric" [ref=f289e686]
+              - generic [ref=f289e687]:
+                - generic [ref=f289e688]: 🤯 is seriously good at this kind of K-pop lyric
+                - generic [ref=f289e689]: minimax
+                - generic [ref=f289e691]:
+                  - generic [ref=f289e692]: music-video
+                  - generic [ref=f289e693]: reference-to-video
+                  - generic [ref=f289e694]: text-prompt
+                - generic [ref=f289e695]:
+                  - button "View Prompt" [ref=f289e696]
+                  - button "Create This Style" [ref=f289e697]
+            - generic [ref=f289e698] [cursor=pointer]:
+              - generic [ref=f289e699]:
+                - generic [ref=f289e700]: SOCIAL
+                - img "Krea 2 Turbo + Minimax H3 in Comfyui = ..." [ref=f289e701]
+              - generic [ref=f289e702]:
+                - generic [ref=f289e703]: Krea 2 Turbo + Minimax H3 in Comfyui = ...
+                - generic [ref=f289e704]: minimax
+                - generic [ref=f289e706]:
+                  - generic [ref=f289e707]: music-video
+                  - generic [ref=f289e708]: text-to-video
+                  - generic [ref=f289e709]: text-prompt
+                - generic [ref=f289e710]:
+                  - button "View Prompt" [ref=f289e711]
+                  - button "Create This Style" [ref=f289e712]
+            - generic [ref=f289e713] [cursor=pointer]:
+              - generic [ref=f289e714]:
+                - generic [ref=f289e715]: SOCIAL
+                - img "Cinematic comedy sequence, 15 seconds" [ref=f289e716]
+              - generic [ref=f289e717]:
+                - generic [ref=f289e718]: Cinematic comedy sequence, 15 seconds
+                - generic [ref=f289e719]: minimax
+                - generic [ref=f289e721]:
+                  - generic [ref=f289e722]: music-video
+                  - generic [ref=f289e723]: text-to-video
+                  - generic [ref=f289e724]: text-prompt
+                - generic [ref=f289e725]:
+                  - button "View Prompt" [ref=f289e726]
+                  - button "Create This Style" [ref=f289e727]
+            - generic [ref=f289e728] [cursor=pointer]:
+              - generic [ref=f289e729]:
+                - generic [ref=f289e730]: SOCIAL
+                - img "15 second cinematic sports video in 16:9 inside a real indoor strength competiti" [ref=f289e731]
+              - generic [ref=f289e732]:
+                - generic [ref=f289e733]: 15 second cinematic sports video in 16:9 inside a real indoor strength competiti
+                - generic [ref=f289e734]: minimax
+                - generic [ref=f289e736]:
+                  - generic [ref=f289e737]: music-video
+                  - generic [ref=f289e738]: text-to-video
+                  - generic [ref=f289e739]: text-prompt
+                - generic [ref=f289e740]:
+                  - button "View Prompt" [ref=f289e741]
+                  - button "Create This Style" [ref=f289e742]
+            - generic [ref=f289e743] [cursor=pointer]:
+              - generic [ref=f289e744]:
+                - generic [ref=f289e745]: SOCIAL
+                - img "A young heroic warrior wearing beautifully crafted silver armor, a dark blue cap" [ref=f289e746]
+              - generic [ref=f289e747]:
+                - generic [ref=f289e748]: A young heroic warrior wearing beautifully crafted silver armor, a dark blue cap
+                - generic [ref=f289e749]: minimax
+                - generic [ref=f289e751]:
+                  - generic [ref=f289e752]: music-video
+                  - generic [ref=f289e753]: text-to-video
+                  - generic [ref=f289e754]: text-prompt
+                - generic [ref=f289e755]:
+                  - button "View Prompt" [ref=f289e756]
+                  - button "Create This Style" [ref=f289e757]
+            - generic [ref=f289e758] [cursor=pointer]:
+              - generic [ref=f289e759]:
+                - generic [ref=f289e760]: SOCIAL
+                - img "<image_1> (don't reproduce the image" [ref=f289e761]
+              - generic [ref=f289e762]:
+                - generic [ref=f289e763]: <image_1> (don't reproduce the image
+                - generic [ref=f289e764]: minimax
+                - generic [ref=f289e766]:
+                  - generic [ref=f289e767]: comedy
+                  - generic [ref=f289e768]: text-to-video
+                  - generic [ref=f289e769]: camera-direction
+                - generic [ref=f289e770]:
+                  - button "View Prompt" [ref=f289e771]
+                  - button "Create This Style" [ref=f289e772]
+            - generic [ref=f289e773] [cursor=pointer]:
+              - generic [ref=f289e774]:
+                - generic [ref=f289e775]: SOCIAL
+                - 'img "PROSE & IN-LINE SPATIAL & GLOBAL LOCK]: At 0" [ref=f289e776]'
+              - generic [ref=f289e777]:
+                - generic [ref=f289e778]: "PROSE & IN-LINE SPATIAL & GLOBAL LOCK]: At 0"
+                - generic [ref=f289e779]: minimax
+                - generic [ref=f289e781]:
+                  - generic [ref=f289e782]: music-video
+                  - generic [ref=f289e783]: text-to-video
+                  - generic [ref=f289e784]: text-prompt
+                - generic [ref=f289e785]:
+                  - button "View Prompt" [ref=f289e786]
+                  - button "Create This Style" [ref=f289e787]
+            - generic [ref=f289e788] [cursor=pointer]:
+              - generic [ref=f289e789]:
+                - generic [ref=f289e790]: SOCIAL
+                - img "What if Cleopatra ordered pizza? 😂" [ref=f289e791]
+              - generic [ref=f289e792]:
+                - generic [ref=f289e793]: What if Cleopatra ordered pizza? 😂
+                - generic [ref=f289e794]: minimax
+                - generic [ref=f289e796]:
+                  - generic [ref=f289e797]: music-video
+                  - generic [ref=f289e798]: text-to-video
+                  - generic [ref=f289e799]: text-prompt
+                - generic [ref=f289e800]:
+                  - button "View Prompt" [ref=f289e801]
+                  - button "Create This Style" [ref=f289e802]
+            - generic [ref=f289e803] [cursor=pointer]:
+              - generic [ref=f289e804]:
+                - generic [ref=f289e805]: SOCIAL
+                - img "What if Superman had to do his own laundry? 😂" [ref=f289e806]
+              - generic [ref=f289e807]:
+                - generic [ref=f289e808]: What if Superman had to do his own laundry? 😂
+                - generic [ref=f289e809]: minimax
+                - generic [ref=f289e811]:
+                  - generic [ref=f289e812]: music-video
+                  - generic [ref=f289e813]: text-to-video
+                  - generic [ref=f289e814]: text-prompt
+                - generic [ref=f289e815]:
+                  - button "View Prompt" [ref=f289e816]
+                  - button "Create This Style" [ref=f289e817]

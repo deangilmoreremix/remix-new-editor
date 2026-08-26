@@ -1,0 +1,281 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - link "OpenThorn by" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e7]:
+          - generic [ref=e8]: OpenThorn
+          - generic [ref=e9]: by
+      - navigation [ref=e16]:
+        - button "Solutions" [ref=e17] [cursor=pointer]
+        - button "Use Cases" [ref=e21] [cursor=pointer]
+        - link "Pricing" [ref=e25] [cursor=pointer]:
+          - /url: /pricing
+        - link "GitHub" [ref=e27] [cursor=pointer]:
+          - /url: https://github.com/BuildingTechAlternatives/OpenThorn
+        - button "Resources" [ref=e29] [cursor=pointer]
+      - generic [ref=e32]:
+        - button "Sign in" [ref=e33] [cursor=pointer]
+        - button "Start free" [ref=e34] [cursor=pointer]
+  - generic [ref=e39]:
+    - button "Close menu" [ref=e40] [cursor=pointer]
+    - navigation [ref=e43]:
+      - generic [ref=e44]:
+        - button "Solutions" [ref=e45] [cursor=pointer]
+        - generic:
+          - link "Founders" [ref=e48] [cursor=pointer]:
+            - /url: /blog/introducing-openthorn
+          - link "Developers" [ref=e49] [cursor=pointer]:
+            - /url: /faq
+          - link "Product Managers" [ref=e50] [cursor=pointer]:
+            - /url: /pricing
+          - link "Designers" [ref=e51] [cursor=pointer]:
+            - /url: /templates
+          - link "Marketers" [ref=e52] [cursor=pointer]:
+            - /url: /templates
+          - link "Agencies" [ref=e53] [cursor=pointer]:
+            - /url: /pricing
+          - link "Ops" [ref=e54] [cursor=pointer]:
+            - /url: /faq
+      - generic [ref=e55]:
+        - button "Use Cases" [ref=e56] [cursor=pointer]
+        - generic:
+          - link "Productivity" [ref=e59] [cursor=pointer]:
+            - /url: /templates
+          - link "E-Commerce" [ref=e60] [cursor=pointer]:
+            - /url: /templates
+          - link "Marketing & Sales" [ref=e61] [cursor=pointer]:
+            - /url: /templates
+          - link "SaaS & Startups" [ref=e62] [cursor=pointer]:
+            - /url: /templates
+          - link "HR & Recruitment" [ref=e63] [cursor=pointer]:
+            - /url: /templates
+          - link "Education" [ref=e64] [cursor=pointer]:
+            - /url: /templates
+          - link "Community platforms" [ref=e65] [cursor=pointer]:
+            - /url: /community
+      - generic [ref=e66]:
+        - button "Resources" [ref=e67] [cursor=pointer]
+        - generic:
+          - link "Blog" [ref=e70] [cursor=pointer]:
+            - /url: /blog
+          - link "Comparisons" [ref=e71] [cursor=pointer]:
+            - /url: /compare
+          - link "Provider Guides" [ref=e72] [cursor=pointer]:
+            - /url: /build-with
+          - link "Glossary" [ref=e73] [cursor=pointer]:
+            - /url: /glossary
+          - link "Changelog" [ref=e74] [cursor=pointer]:
+            - /url: /changelog
+          - link "Templates" [ref=e75] [cursor=pointer]:
+            - /url: /templates
+          - link "Docs & FAQs" [ref=e76] [cursor=pointer]:
+            - /url: /faq
+      - link "Pricing" [ref=e77] [cursor=pointer]:
+        - /url: /pricing
+      - link "GitHub" [ref=e78] [cursor=pointer]:
+        - /url: https://github.com/BuildingTechAlternatives/OpenThorn
+    - generic [ref=e79]:
+      - button "Sign in" [ref=e80] [cursor=pointer]
+      - button "Start free" [ref=e81] [cursor=pointer]
+  - main [ref=e82]:
+    - generic [ref=e86]:
+      - heading [level=1] [ref=e91]:
+        - text: Build with OpenThorn
+        - generic [ref=e92]: by
+      - paragraph [ref=e99]: Describe what you want to build — OpenThorn generates the code, wires up a database and auth, and deploys it anywhere. Frontend or full-stack.
+      - generic [ref=e103]:
+        - generic [ref=e105]:
+          - textbox "Describe your website idea" [ref=e106]:
+            - /placeholder: ""
+          - generic: Design a
+        - generic [ref=e107]:
+          - generic [ref=e108]:
+            - button "Upload files" [ref=e109] [cursor=pointer]
+            - button [ref=e113] [cursor=pointer]
+          - generic [ref=e118]:
+            - button "Agent thinking level" [ref=e120] [cursor=pointer]:
+              - generic [ref=e121]: Medium
+            - button "Send message" [ref=e124] [cursor=pointer]:
+              - generic [ref=e125]: Send
+      - generic [ref=e126]:
+        - generic [ref=e127]:
+          - generic [ref=e132]: any provider
+          - generic [ref=e133]: Own your keys
+        - generic [ref=e134]:
+          - generic [ref=e140]: usage pricing only
+          - generic [ref=e141]: No platform markup
+        - generic [ref=e142]:
+          - generic [ref=e148]: your repo, your infra
+          - generic [ref=e149]: Export real code
+        - generic [ref=e150]:
+          - generic [ref=e156]: database + auth free
+          - generic [ref=e157]: Full-stack ready
+      - link [ref=e159] [cursor=pointer]:
+        - /url: https://www.producthunt.com/products/openthorn?utm_source=badge-follow&utm_medium=badge&utm_source=badge-openthorn
+        - img "OpenThorn on Product Hunt" [ref=e160]
+    - generic [ref=e163]:
+      - generic [ref=e164]:
+        - generic [ref=e165]: How OpenThorn works
+        - heading "From prompt to production" [level=2] [ref=e166]
+      - generic [ref=e168]:
+        - generic [ref=e169]:
+          - generic [ref=e171]:
+            - generic [ref=e172]: Step 01
+            - heading "Describe what you need" [level=3] [ref=e173]
+            - paragraph [ref=e174]: Tell OpenThorn what you're building — a storefront, a dashboard, a blog. Plain English is all it takes.
+          - navigation [ref=e175]:
+            - button "Go to Step 01" [ref=e176] [cursor=pointer]:
+              - generic [ref=e179]: Step 01
+            - button "Go to Step 02" [ref=e180] [cursor=pointer]:
+              - generic [ref=e182]: Step 02
+            - button "Go to Step 03" [ref=e183] [cursor=pointer]:
+              - generic [ref=e185]: Step 03
+        - img "Describe what you need" [ref=e195]
+      - generic [ref=e196]:
+        - heading "See it build, live" [level=3] [ref=e197]
+        - generic [ref=e198]:
+          - button "Portfolio" [ref=e199] [cursor=pointer]
+          - button "SaaS Landing" [ref=e200] [cursor=pointer]
+          - button "E-commerce" [ref=e201] [cursor=pointer]
+          - button "Photography" [ref=e202] [cursor=pointer]
+          - button "Restaurant" [ref=e203] [cursor=pointer]
+          - button "Blog" [ref=e204] [cursor=pointer]
+    - generic [ref=e205]:
+      - generic [ref=e206]:
+        - generic [ref=e207]: Why OpenThorn
+        - heading "Your keys, your control" [level=2] [ref=e208]
+        - paragraph [ref=e209]: Most AI website builders bundle the AI cost and mark it up behind a subscription you can't escape. OpenThorn is different. You bring your own AI keys, pay providers directly, and keep every line of code. Build anything from a landing page to a full-stack app with a database and user auth — no vendor lock-in, no recurring tax.
+      - generic [ref=e211]:
+        - generic:
+          - generic [ref=e213] [cursor=pointer]:
+            - heading "Bring your own keys" [level=3] [ref=e217]
+            - paragraph [ref=e218]: Hook up OpenAI, Anthropic, Gemini - whatever you use. OpenThorn uses your keys only for requests you make.
+          - generic [ref=e220] [cursor=pointer]:
+            - heading "Zero platform tax" [level=3] [ref=e224]
+            - paragraph [ref=e225]: No subscription, no per-request markup. You pay providers directly and keep what you save.
+          - generic [ref=e227] [cursor=pointer]:
+            - heading "Your code, your repo" [level=3] [ref=e232]
+            - paragraph [ref=e233]: Export everything to GitHub, deploy to your own Vercel account. There is no OpenThorn lock-in.
+          - generic [ref=e235] [cursor=pointer]:
+            - heading "Real code, real time" [level=3] [ref=e239]
+            - paragraph [ref=e240]: OpenThorn writes production-grade code - not a drag-and-drop approximation. Watch every file appear.
+          - generic [ref=e242] [cursor=pointer]:
+            - heading "Deploy in one click" [level=3] [ref=e248]
+            - paragraph [ref=e249]: From prompt to production in under a minute. Push live when you're ready, not when a plan allows.
+          - generic [ref=e251] [cursor=pointer]:
+            - heading "Full-stack, free" [level=3] [ref=e257]
+            - paragraph [ref=e258]: Connect your Supabase project and the agent adds a real database and user auth — Supabase free tier included.
+    - generic [ref=e260]:
+      - generic [ref=e261]:
+        - generic [ref=e262]: Build before the idea cools
+        - heading "Turn the next rough prompt into a working app." [level=2] [ref=e263]
+        - paragraph [ref=e264]: "Skip the platform tax and keep momentum: bring your model keys, generate real code — frontend or full-stack — and ship from your own repo."
+        - generic "OpenThorn advantages" [ref=e265]:
+          - generic [ref=e266]: BYOK pricing
+          - generic [ref=e267]: GitHub export
+          - generic [ref=e268]: Supabase backend
+          - generic [ref=e269]: No subscription wall
+        - paragraph [ref=e270]:
+          - text: New here? Learn
+          - link "what a BYOK AI website builder is" [ref=e271] [cursor=pointer]:
+            - /url: /blog/what-is-a-byok-ai-website-builder
+          - text: ", compare"
+          - link "AI model pricing" [ref=e272] [cursor=pointer]:
+            - /url: /pricing
+          - text: ", or browse the"
+          - link "FAQ" [ref=e273] [cursor=pointer]:
+            - /url: /faq
+          - text: .
+      - generic [ref=e274]:
+        - generic [ref=e275]: Start with one sentence
+        - generic [ref=e279]:
+          - generic [ref=e281]:
+            - textbox "Describe your website idea" [ref=e282]:
+              - /placeholder: ""
+            - generic: Design a
+          - generic [ref=e283]:
+            - generic [ref=e284]:
+              - button "Upload files" [ref=e285] [cursor=pointer]
+              - button [ref=e289] [cursor=pointer]
+            - generic [ref=e294]:
+              - button "Agent thinking level" [ref=e296] [cursor=pointer]:
+                - generic [ref=e297]: Medium
+              - button "Send message" [ref=e300] [cursor=pointer]:
+                - generic [ref=e301]: Send
+  - contentinfo [ref=e302]:
+    - generic [ref=e303]:
+      - generic [ref=e304]:
+        - generic [ref=e305]:
+          - link "OpenThorn" [ref=e306] [cursor=pointer]:
+            - /url: /
+          - paragraph [ref=e308]: Turn a description into a deployed website â€” with your own API keys and your own infrastructure.
+        - generic [ref=e309]:
+          - generic [ref=e310]: Solutions
+          - generic [ref=e311]:
+            - link "Founders" [ref=e312] [cursor=pointer]:
+              - /url: /blog/introducing-openthorn
+            - link "Developers" [ref=e313] [cursor=pointer]:
+              - /url: /faq
+            - link "Product Managers" [ref=e314] [cursor=pointer]:
+              - /url: /pricing
+            - link "Designers" [ref=e315] [cursor=pointer]:
+              - /url: /templates
+            - link "Marketers" [ref=e316] [cursor=pointer]:
+              - /url: /templates
+            - link "Agencies" [ref=e317] [cursor=pointer]:
+              - /url: /pricing
+            - link "Ops" [ref=e318] [cursor=pointer]:
+              - /url: /faq
+        - generic [ref=e319]:
+          - generic [ref=e320]: Use Cases
+          - generic [ref=e321]:
+            - link "Productivity" [ref=e322] [cursor=pointer]:
+              - /url: /templates
+            - link "E-Commerce" [ref=e323] [cursor=pointer]:
+              - /url: /templates
+            - link "Marketing & Sales" [ref=e324] [cursor=pointer]:
+              - /url: /templates
+            - link "SaaS & Startups" [ref=e325] [cursor=pointer]:
+              - /url: /templates
+            - link "Education" [ref=e326] [cursor=pointer]:
+              - /url: /templates
+            - link "Community platforms" [ref=e327] [cursor=pointer]:
+              - /url: /community
+        - generic [ref=e328]:
+          - generic [ref=e329]: Resources
+          - generic [ref=e330]:
+            - link "Blog" [ref=e331] [cursor=pointer]:
+              - /url: /blog
+            - link "Changelog" [ref=e332] [cursor=pointer]:
+              - /url: /changelog
+            - link "Templates" [ref=e333] [cursor=pointer]:
+              - /url: /templates
+            - link "Docs & FAQs" [ref=e334] [cursor=pointer]:
+              - /url: /faq
+            - link "Comparisons" [ref=e335] [cursor=pointer]:
+              - /url: /compare
+            - link "Provider Guides" [ref=e336] [cursor=pointer]:
+              - /url: /build-with
+            - link "Glossary" [ref=e337] [cursor=pointer]:
+              - /url: /glossary
+        - generic [ref=e338]:
+          - generic [ref=e339]: Legal
+          - generic [ref=e340]:
+            - link "Privacy Policy" [ref=e341] [cursor=pointer]:
+              - /url: /privacy
+            - link "Terms of Service" [ref=e342] [cursor=pointer]:
+              - /url: /terms
+            - link "Cookie Policy" [ref=e343] [cursor=pointer]:
+              - /url: /cookies
+            - link "Moderation & DSA" [ref=e344] [cursor=pointer]:
+              - /url: /moderation
+            - link "Imprint" [ref=e345] [cursor=pointer]:
+              - /url: /imprint
+      - generic [ref=e346]:
+        - generic [ref=e347]: © 2026 OpenThorn. All rights reserved.
+        - generic [ref=e348]:
+          - link "GitHub" [ref=e349] [cursor=pointer]:
+            - /url: https://github.com/BuildingTechAlternatives/OpenThorn
+          - link "X" [ref=e352] [cursor=pointer]:
+            - /url: https://x.com

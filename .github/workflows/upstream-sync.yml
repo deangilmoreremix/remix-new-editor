@@ -1,0 +1,278 @@
+name: Upstream Sync - MuAPI Catalog
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    inputs:
+      force_sync:
+        description: 'Force sync even if no changes'
+        required: false
+        type: boolean
+        default: false
+      create_pr:
+        description: 'Auto-create PR with changes'
+        required: false
+        type: boolean
+        default: true
+      skip_tests:
+        description: 'Skip test execution'
+        required: false
+        type: boolean
+        default: false
+  repository_dispatch:
+    types: [upstream-push]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: upstream-sync
+  cancel-in-progress: false
+
+jobs:
+  check-upstream:
+    name: Check Upstream Changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      has_changes: ${{ steps.detect.outputs.has_changes }}
+      new_commit: ${{ steps.detect.outputs.new_commit }}
+      changed_files: ${{ steps.detect.outputs.changed_files }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch upstream remote
+        run: |
+          git remote add upstream-muapi https://github.com/Anil-matcha/Open-Generative-AI.git 2>/dev/null || true
+          git fetch upstream-muapi main
+
+      - name: Detect changes since last sync
+        id: detect
+        run: |
+          LAST_SYNC_FILE=".last-upstream-sync"
+          if [ -f "$LAST_SYNC_FILE" ]; then
+            LAST_SHA=$(cat "$LAST_SYNC_FILE")
+          else
+            LAST_SHA=$(git rev-list --max-parents=0 HEAD)
+          fi
+
+          UPSTREAM_SHA=$(git rev-parse upstream-muapi/main)
+
+          if [ "$LAST_SHA" != "$UPSTREAM_SHA" ]; then
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            echo "new_commit=$UPSTREAM_SHA" >> "$GITHUB_OUTPUT"
+            CHANGED_FILES=$(git diff --name-only "$LAST_SHA".."$UPSTREAM_SHA" | jq -R -s -c 'split("\n") | map(select(length > 0))')
+            echo "changed_files=$CHANGED_FILES" >> "$GITHUB_OUTPUT"
+            echo "Changes detected: $LAST_SHA -> $UPSTREAM_SHA"
+          else
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            echo "new_commit=$UPSTREAM_SHA" >> "$GITHUB_OUTPUT"
+            echo "changed_files=[]" >> "$GITHUB_OUTPUT"
+            echo "No changes detected since last sync ($LAST_SHA)"
+          fi
+
+  sync-catalog:
+    name: Sync MuAPI Catalog
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: check-upstream
+    if: needs.check-upstream.outputs.has_changes == 'true' || github.event.inputs.force_sync == 'true'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Fetch upstream
+        run: |
+          git remote add upstream-muapi https://github.com/Anil-matcha/Open-Generative-AI.git 2>/dev/null || true
+          git fetch upstream-muapi main
+
+      - name: Run catalog sync script
+        run: node scripts/muapi-catalog-sync.mjs --source upstream
+
+      - name: Run health monitor
+        run: node scripts/muapi-health-monitor.mjs --full-report --output sync-report.json
+
+      - name: Upload sync report
+        uses: actions/upload-artifact@v4
+        with:
+          name: sync-report-${{ github.run_number }}
+          path: sync-report.json
+          retention-days: 30
+
+      - name: Run tests
+        if: github.event.inputs.skip_tests != 'true'
+        id: tests
+        run: npm test
+        continue-on-error: true
+
+      - name: Parse health report
+        if: steps.tests.outcome == 'success'
+        id: report
+        run: |
+          if [ -f sync-report.json ]; then
+            MODEL_COUNT=$(jq '.modelCount // .totalModels // 0' sync-report.json)
+            HEALTH_STATUS=$(jq -r '.status // .health // "unknown"' sync-report.json)
+            CHANGES_SUMMARY=$(jq -r '.summary // .changes // "No summary available"' sync-report.json)
+            echo "model_count=$MODEL_COUNT" >> "$GITHUB_OUTPUT"
+            echo "health_status=$HEALTH_STATUS" >> "$GITHUB_OUTPUT"
+            echo "changes_summary=$CHANGES_SUMMARY" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create sync branch and commit
+        if: steps.tests.outcome == 'success' && github.event.inputs.create_pr != 'false'
+        id: commit
+        run: |
+          BRANCH_NAME="auto-sync/upstream-muapi-${{ github.run_number }}"
+          echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git checkout -b "$BRANCH_NAME"
+          git add -A
+          git commit -m "🤖 Auto-sync: Update MuAPI model catalog from upstream
+
+Source: upstream-muapi/main
+Commit: ${{ needs.check-upstream.outputs.new_commit }}
+Run: ${{ github.run_number }}
+
+Changes:
+${{ needs.check-upstream.outputs.changed_files }}"
+
+          git push origin "$BRANCH_NAME"
+          echo "Branch pushed: $BRANCH_NAME"
+
+      - name: Create pull request
+        if: steps.tests.outcome == 'success' && github.event.inputs.create_pr != 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH_NAME="auto-sync/upstream-muapi-${{ github.run_number }}"
+
+          cat > pr-body.md << 'EOF'
+          ## 🤖 Auto-sync: MuAPI Model Catalog Update
+
+          This PR was automatically generated by the upstream sync workflow.
+
+          ### Source
+          - **Remote:** upstream-muapi
+          - **Branch:** main
+          - **Commit:** ${{ needs.check-upstream.outputs.new_commit }}
+
+          ### Health Report
+          - **Status:** ${{ steps.report.outputs.health_status }}
+          - **Model Count:** ${{ steps.report.outputs.model_count }}
+          - **Summary:** ${{ steps.report.outputs.changes_summary }}
+
+          ### Changed Files
+          ${{ needs.check-upstream.outputs.changed_files }}
+
+          ---
+          *Generated by [upstream-sync.yml](/.github/workflows/upstream-sync.yml)*
+          EOF
+
+          gh pr create \
+            --title "🤖 Auto-sync: Update MuAPI model catalog from upstream" \
+            --body-file pr-body.md \
+            --label "auto-sync" \
+            --label "models" \
+            --label "upstream" \
+            --base main \
+            --head "$BRANCH_NAME"
+
+      - name: Save last sync timestamp
+        if: steps.tests.outcome == 'success'
+        run: |
+          echo "${{ needs.check-upstream.outputs.new_commit }}" > .last-upstream-sync
+          git add .last-upstream-sync
+          git commit -m "chore: update last upstream sync timestamp" || true
+          git push origin HEAD:main || true
+
+      - name: Upload failed changes
+        if: steps.tests.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: failed-sync-${{ github.run_number }}
+          path: |
+            sync-report.json
+            .
+          retention-days: 14
+
+      - name: Create failure issue
+        if: steps.tests.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cat > issue-body.md << 'EOF'
+          ## ❌ Upstream Sync Failed
+
+          The automated upstream sync workflow failed during test execution.
+
+          ### Details
+          - **Run:** ${{ github.run_number }}
+          - **Commit:** ${{ needs.check-upstream.outputs.new_commit }}
+          - **Workflow:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_number }}
+
+          ### Required Action
+          Please review the workflow logs and resolve the test failures before the next scheduled sync.
+
+          ---
+          *This issue was automatically created by the upstream sync workflow.*
+          EOF
+
+          gh issue create \
+            --title "❌ Upstream sync failed - Run #${{ github.run_number }}" \
+            --body-file issue-body.md \
+            --label "sync-failure"
+
+  notify:
+    name: Sync Notification
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [check-upstream, sync-catalog]
+    if: always()
+    steps:
+      - name: Sync succeeded
+        if: needs.sync-catalog.result == 'success'
+        run: |
+          echo "## ✅ Upstream Sync Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Detail | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| New Commit | \`${{ needs.check-upstream.outputs.new_commit }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Has Changes | ${{ needs.check-upstream.outputs.has_changes }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Run Number | ${{ github.run_number }} |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Sync failed
+        if: needs.sync-catalog.result == 'failure'
+        run: |
+          echo "## ❌ Upstream Sync Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The sync workflow failed. A failure issue has been created." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Run:** [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+
+      - name: Sync skipped
+        if: needs.sync-catalog.result == 'skipped'
+        run: |
+          echo "## ⏭️ Upstream Sync Skipped" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "No changes detected since last sync. Force sync was not requested." >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,201 @@
+[   25913ms] [LOG] [App] Starting initialization... @ http://localhost:3100/src/main.js?t=1787501184932:19
+[   25924ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:41
+[   25925ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   25926ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   25927ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   25928ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   25929ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   25930ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   25931ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   25932ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   25933ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   25933ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   25934ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   25934ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   25935ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   26860ms] [LOG] [App] Landing page rendered @ http://localhost:3100/src/main.js?t=1787501184932:88
+[   28027ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:20096
+[   28084ms] [LOG] [popcorn-init] OK: plugin-image @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   28600ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   28613ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   28632ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   28644ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   28653ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   28662ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   28702ms] [LOG] [popcorn-init] OK: plugin-form @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   28731ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   28985ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   28997ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   29010ms] [LOG] [popcorn-init] OK: plugin-skip @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   29042ms] [LOG] [popcorn-init] OK: plugin-text @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   29054ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   29062ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   29079ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   29086ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   29091ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   29097ms] [LOG] [popcorn-init] OK: plugin-combined @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   29104ms] [LOG] [popcorn-init] OK: plugin-background @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   29104ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:60
+[   29104ms] [LOG] [popcorn] function 19 @ http://localhost:3100/src/main.js?t=1787501184932:4
+[   51720ms] [LOG] [App] Starting initialization... @ http://localhost:3100/src/main.js?t=1787501184932:19
+[   51728ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:41
+[   51729ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   51730ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   51731ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   51732ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   51732ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   51733ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   51733ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   51733ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   51733ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   51734ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   51734ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   51734ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   51734ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   52673ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:20096
+[   52678ms] [LOG] [App] Clerk page rendered: signup @ http://localhost:3100/src/main.js?t=1787501184932:109
+[   52699ms] [ERROR] [2026-08-23T16:06:55.416Z] [ERROR] Uncaught error | {"filename":"http://localhost:3100/src/components/landing/SignUpPage.jsx","lineno":42,"colno":31} @ http://localhost:3100/src/lib/logger.js:84
+[   52699ms] [ERROR] ReferenceError: user is not defined
+    at SignUpPage (http://localhost:3100/src/components/landing/SignUpPage.jsx:42:31)
+    at Object.react_stack_bottom_frame (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:18503:20)
+    at renderWithHooks (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:5648:24)
+    at updateFunctionComponent (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:7469:21)
+    at beginWork (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:8519:20)
+    at runWithFiberInDEV (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:991:72)
+    at performUnitOfWork (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:12555:98)
+    at workLoopSync (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:12418:43)
+    at renderRootSync (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:12402:13)
+    at performWorkOnRoot (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:11821:37) @ http://localhost:3100/src/lib/logger.js:85
+[   52701ms] [ERROR] [Global Error] ReferenceError: user is not defined
+    at SignUpPage (http://localhost:3100/src/components/landing/SignUpPage.jsx:42:31)
+    at Object.react_stack_bottom_frame (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:18503:20)
+    at renderWithHooks (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:5648:24)
+    at updateFunctionComponent (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:7469:21)
+    at beginWork (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:8519:20)
+    at runWithFiberInDEV (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:991:72)
+    at performUnitOfWork (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:12555:98)
+    at workLoopSync (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:12418:43)
+    at renderRootSync (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:12402:13)
+    at performWorkOnRoot (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:11821:37) @ http://localhost:3100/src/main.js?t=1787501184932:22
+[   52701ms] [LOG] [Analytics] error {errorType: uncaught_exception, message: Uncaught ReferenceError: user is not defined, filename: http://localhost:3100/src/components/landing/SignUpPage.jsx, lineno: 42} @ http://localhost:3100/src/lib/analytics.js:36
+[   52742ms] ReferenceError: user is not defined
+    at SignUpPage (http://localhost:3100/src/components/landing/SignUpPage.jsx:42:31)
+    at Object.react_stack_bottom_frame (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:18503:20)
+    at renderWithHooks (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:5648:24)
+    at updateFunctionComponent (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:7469:21)
+    at beginWork (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:8519:20)
+    at runWithFiberInDEV (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:991:72)
+    at performUnitOfWork (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:12555:98)
+    at workLoopSync (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:12418:43)
+    at renderRootSync (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:12402:13)
+    at performWorkOnRoot (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:11821:37)
+[   52702ms] [WARNING] %s
+
+%s
+ An error occurred in the <SignUpPage> component. Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries. @ http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:6959
+[   52975ms] [LOG] [popcorn-init] OK: plugin-image @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   53133ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   53153ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   53160ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   53166ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   53172ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   53177ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   53188ms] [LOG] [popcorn-init] OK: plugin-form @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   53199ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   53201ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[   53210ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   53219ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   53224ms] [LOG] [popcorn-init] OK: plugin-skip @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   53244ms] [LOG] [popcorn-init] OK: plugin-text @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   53252ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   53257ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   53270ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   53276ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   53280ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   53286ms] [LOG] [popcorn-init] OK: plugin-combined @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   53291ms] [LOG] [popcorn-init] OK: plugin-background @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:48
+[   53291ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://localhost:3100/src/lib/popcornInit.js?t=1787501184932:60
+[   53291ms] [LOG] [popcorn] function 19 @ http://localhost:3100/src/main.js?t=1787501184932:4
+[   53297ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[   56755ms] [LOG] [App] Starting initialization... @ http://localhost:3100/src/main.js?t=1787501217948:19
+[   56763ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:41
+[   56764ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:48
+[   56764ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:48
+[   56765ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:48
+[   56765ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:48
+[   56766ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:48
+[   56766ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:48
+[   56767ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:48
+[   56767ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:48
+[   56767ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:48
+[   56768ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:48
+[   56768ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:48
+[   56768ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:48
+[   56769ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:48
+[   56874ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:20096
+[   56876ms] [LOG] [App] Clerk page rendered: signup @ http://localhost:3100/src/main.js?t=1787501217948:109
+[   56882ms] [ERROR] [2026-08-23T16:06:59.599Z] [ERROR] Uncaught error | {"filename":"http://localhost:3100/src/components/landing/SignUpPage.jsx?t=1787501217948","lineno":42,"colno":31} @ http://localhost:3100/src/lib/logger.js:84
+[   56882ms] [ERROR] ReferenceError: user is not defined
+    at SignUpPage (http://localhost:3100/src/components/landing/SignUpPage.jsx?t=1787501217948:42:31)
+    at Object.react_stack_bottom_frame (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:18503:20)
+    at renderWithHooks (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:5648:24)
+    at updateFunctionComponent (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:7469:21)
+    at beginWork (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:8519:20)
+    at runWithFiberInDEV (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:991:72)
+    at performUnitOfWork (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:12555:98)
+    at workLoopSync (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:12418:43)
+    at renderRootSync (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:12402:13)
+    at performWorkOnRoot (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:11821:37) @ http://localhost:3100/src/lib/logger.js:85
+[   56885ms] [ERROR] [Global Error] ReferenceError: user is not defined
+    at SignUpPage (http://localhost:3100/src/components/landing/SignUpPage.jsx?t=1787501217948:42:31)
+    at Object.react_stack_bottom_frame (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:18503:20)
+    at renderWithHooks (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:5648:24)
+    at updateFunctionComponent (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:7469:21)
+    at beginWork (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:8519:20)
+    at runWithFiberInDEV (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:991:72)
+    at performUnitOfWork (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:12555:98)
+    at workLoopSync (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:12418:43)
+    at renderRootSync (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:12402:13)
+    at performWorkOnRoot (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:11821:37) @ http://localhost:3100/src/main.js?t=1787501217948:22
+[   56885ms] [LOG] [Analytics] error {errorType: uncaught_exception, message: Uncaught ReferenceError: user is not defined, filename: http://localhost:3100/src/components/landing/SignUpPage.jsx?t=1787501217948, lineno: 42} @ http://localhost:3100/src/lib/analytics.js:36
+[   57013ms] ReferenceError: user is not defined
+    at SignUpPage (http://localhost:3100/src/components/landing/SignUpPage.jsx?t=1787501217948:42:31)
+    at Object.react_stack_bottom_frame (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:18503:20)
+    at renderWithHooks (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:5648:24)
+    at updateFunctionComponent (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:7469:21)
+    at beginWork (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:8519:20)
+    at runWithFiberInDEV (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:991:72)
+    at performUnitOfWork (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:12555:98)
+    at workLoopSync (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:12418:43)
+    at renderRootSync (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:12402:13)
+    at performWorkOnRoot (http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:11821:37)
+[   56886ms] [WARNING] %s
+
+%s
+ An error occurred in the <SignUpPage> component. Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries. @ http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:6959
+[   57079ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[   57220ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[   58386ms] [LOG] [popcorn-init] OK: plugin-image @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:48
+[   58622ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:48
+[   58630ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:48
+[   58637ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:48
+[   58644ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:48
+[   58651ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:48
+[   58657ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:48
+[   58669ms] [LOG] [popcorn-init] OK: plugin-form @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:48
+[   58685ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:48
+[   58691ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:48
+[   58698ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:48
+[   58706ms] [LOG] [popcorn-init] OK: plugin-skip @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:48
+[   58725ms] [LOG] [popcorn-init] OK: plugin-text @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:48
+[   58735ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:48
+[   58743ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:48
+[   58754ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:48
+[   58761ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:48
+[   58764ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:48
+[   58771ms] [LOG] [popcorn-init] OK: plugin-combined @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:48
+[   58777ms] [LOG] [popcorn-init] OK: plugin-background @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:48
+[   58777ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://localhost:3100/src/lib/popcornInit.js?t=1787501217948:60
+[   58777ms] [LOG] [popcorn] function 19 @ http://localhost:3100/src/main.js?t=1787501217948:4

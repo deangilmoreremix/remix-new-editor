@@ -1,0 +1,11 @@
+[     636ms] ReferenceError: AuthPage is not defined
+    at k (https://smartvid.app/assets/ClerkAuth-BIRQIEbw.js:1:7699)
+    at ao (https://smartvid.app/assets/client-FO_zRJI2.js:20:52245)
+    at Yi (https://smartvid.app/assets/client-FO_zRJI2.js:20:72720)
+    at fu (https://smartvid.app/assets/client-FO_zRJI2.js:20:82976)
+    at hc (https://smartvid.app/assets/client-FO_zRJI2.js:20:123527)
+    at pc (https://smartvid.app/assets/client-FO_zRJI2.js:20:123455)
+    at dc (https://smartvid.app/assets/client-FO_zRJI2.js:20:123297)
+    at ec (https://smartvid.app/assets/client-FO_zRJI2.js:20:119044)
+    at Qc (https://smartvid.app/assets/client-FO_zRJI2.js:20:134581)
+    at MessagePort.N (https://smartvid.app/assets/client-FO_zRJI2.js:11:1518)

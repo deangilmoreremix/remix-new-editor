@@ -1,0 +1,462 @@
+[     107ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3109/src/main.js?t=1787397597379:19
+[     124ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:41
+[     125ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:48
+[     127ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:48
+[     128ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:48
+[     129ms] [LOG] [popcorn-init] OK: wrapper-common @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:48
+[     130ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:48
+[     130ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:48
+[     130ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:48
+[     131ms] [LOG] [popcorn-init] OK: wrapper-null @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:48
+[     131ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:48
+[     132ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:48
+[     132ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:48
+[     132ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:48
+[     133ms] [LOG] [popcorn-init] OK: player-module @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:48
+[     392ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3109/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=a4d3c1a3:20096
+[     399ms] [LOG] [App] Initialized in 291.80ms @ http://127.0.0.1:3109/src/main.js?t=1787397597379:164
+[     399ms] [LOG] [App] Navigating to initial page: video @ http://127.0.0.1:3109/src/main.js?t=1787397597379:165
+[     399ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://127.0.0.1:3109/src/main.js?t=1787397597379:176
+[     822ms] [ERROR] [ModalSystem] mount failed TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397597379:26:22 @ http://127.0.0.1:3109/src/main.js?t=1787397597379:329
+[     824ms] [ERROR] [popcorn-init] FAILED at: plugin-image TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397597379:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:55
+[     896ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonTransition TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397597379:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:55
+[     916ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[    1126ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[    1127ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/client?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2:0
+[    1134ms] [ERROR] [popcorn-init] FAILED at: plugin-lottie-json TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397597379:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:55
+[    1137ms] [ERROR] e: The Request HTTP Origin header must be equal to or a subdomain of the requesting URL.
+    at il._baseFetch (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:171)
+    at async io.execute (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:6812)
+    at async rA._baseGet (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:497)
+    at async Promise.all (index 1)
+    at async #eY (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:236310)
+    at async s7.load (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:193944)
+    at async _a15.getEntryChunks (http://127.0.0.1:3109/node_modules/.vite/deps/@clerk_react.js?v=a4d3c1a3:8043:9) @ http://127.0.0.1:3109/node_modules/.vite/deps/@clerk_react.js?v=a4d3c1a3:8054
+[    1152ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:48
+[    1164ms] [ERROR] [popcorn-init] FAILED at: plugin-personalizedImage TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397597379:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:55
+[    1177ms] [ERROR] [popcorn-init] FAILED at: plugin-loopPlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397597379:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:55
+[    1186ms] [ERROR] [popcorn-init] FAILED at: plugin-pausePlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397597379:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:55
+[    1197ms] [ERROR] [popcorn-init] FAILED at: plugin-form TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397597379:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:55
+[    1208ms] [ERROR] [popcorn-init] FAILED at: plugin-retarget TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397597379:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:55
+[    1212ms] [LOG] [popcorn-init] OK: plugin-popup @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:48
+[    1220ms] [ERROR] [popcorn-init] FAILED at: plugin-sequencer TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397597379:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:55
+[    1225ms] [ERROR] [popcorn-init] FAILED at: plugin-skip TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397597379:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:55
+[    1250ms] [ERROR] [popcorn-init] FAILED at: plugin-text TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397597379:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:55
+[    1259ms] [LOG] [popcorn-init] OK: plugin-social @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:48
+[    1265ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonAnimation TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397597379:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:55
+[    1278ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:48
+[    1291ms] [ERROR] [popcorn-init] FAILED at: plugin-seethroughtext TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397597379:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:55
+[    1298ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:48
+[    1305ms] [ERROR] [popcorn-init] FAILED at: plugin-combined TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397597379:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:55
+[    1311ms] [ERROR] [popcorn-init] FAILED at: plugin-background TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397597379:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:55
+[    1311ms] [LOG] [popcorn-init] SUMMARY: 5/20 plugins registered; FAILED: plugin-image, plugin-jsonTransition, plugin-lottie-json, plugin-personalizedImage, plugin-loopPlugin, plugin-pausePlugin, plugin-form, plugin-retarget, plugin-sequencer, plugin-skip, plugin-text, plugin-jsonAnimation, plugin-seethroughtext, plugin-combined, plugin-background @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397597379:60
+[    1311ms] [LOG] [popcorn] function 5 @ http://127.0.0.1:3109/src/main.js?t=1787397597379:4
+[   25410ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3109/src/main.js?t=1787397629827:19
+[   25425ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:41
+[   25426ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:48
+[   25427ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:48
+[   25427ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:48
+[   25428ms] [LOG] [popcorn-init] OK: wrapper-common @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:48
+[   25430ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:48
+[   25431ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:48
+[   25431ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:48
+[   25432ms] [LOG] [popcorn-init] OK: wrapper-null @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:48
+[   25433ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:48
+[   25433ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:48
+[   25434ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:48
+[   25434ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:48
+[   25435ms] [LOG] [popcorn-init] OK: player-module @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:48
+[   26154ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3109/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=a4d3c1a3:20096
+[   26156ms] [LOG] [App] Initialized in 746.20ms @ http://127.0.0.1:3109/src/main.js?t=1787397629827:164
+[   26156ms] [LOG] [App] Navigating to initial page: video @ http://127.0.0.1:3109/src/main.js?t=1787397629827:165
+[   26156ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://127.0.0.1:3109/src/main.js?t=1787397629827:176
+[   26615ms] [ERROR] [popcorn-init] FAILED at: plugin-image TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397629827:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:55
+[   26616ms] [ERROR] [ModalSystem] mount failed TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397629827:26:22 @ http://127.0.0.1:3109/src/main.js?t=1787397629827:329
+[   26667ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonTransition TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397629827:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:55
+[   26805ms] [ERROR] [popcorn-init] FAILED at: plugin-lottie-json TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397629827:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:55
+[   26873ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[   26887ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:48
+[   26919ms] [ERROR] [popcorn-init] FAILED at: plugin-personalizedImage TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397629827:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:55
+[   26926ms] [ERROR] [popcorn-init] FAILED at: plugin-loopPlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397629827:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:55
+[   27011ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[   27020ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/client?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2:0
+[   27030ms] [ERROR] e: The Request HTTP Origin header must be equal to or a subdomain of the requesting URL.
+    at il._baseFetch (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:171)
+    at async io.execute (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:6812)
+    at async rA._baseGet (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:497)
+    at async Promise.all (index 1)
+    at async #eY (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:236310)
+    at async s7.load (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:193944)
+    at async _a15.getEntryChunks (http://127.0.0.1:3109/node_modules/.vite/deps/@clerk_react.js?v=a4d3c1a3:8043:9) @ http://127.0.0.1:3109/node_modules/.vite/deps/@clerk_react.js?v=a4d3c1a3:8054
+[   27032ms] [ERROR] [popcorn-init] FAILED at: plugin-pausePlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397629827:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:55
+[   27053ms] [ERROR] [popcorn-init] FAILED at: plugin-form TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397629827:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:55
+[   27150ms] [ERROR] [popcorn-init] FAILED at: plugin-retarget TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397629827:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:55
+[   27157ms] [LOG] [popcorn-init] OK: plugin-popup @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:48
+[   27185ms] [ERROR] [popcorn-init] FAILED at: plugin-sequencer TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397629827:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:55
+[   27192ms] [ERROR] [popcorn-init] FAILED at: plugin-skip TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397629827:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:55
+[   27218ms] [ERROR] [popcorn-init] FAILED at: plugin-text TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397629827:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:55
+[   27226ms] [LOG] [popcorn-init] OK: plugin-social @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:48
+[   27235ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonAnimation TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397629827:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:55
+[   27300ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:48
+[   27319ms] [ERROR] [popcorn-init] FAILED at: plugin-seethroughtext TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397629827:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:55
+[   27324ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:48
+[   27334ms] [ERROR] [popcorn-init] FAILED at: plugin-combined TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397629827:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:55
+[   27345ms] [ERROR] [popcorn-init] FAILED at: plugin-background TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397629827:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:55
+[   27346ms] [LOG] [popcorn-init] SUMMARY: 5/20 plugins registered; FAILED: plugin-image, plugin-jsonTransition, plugin-lottie-json, plugin-personalizedImage, plugin-loopPlugin, plugin-pausePlugin, plugin-form, plugin-retarget, plugin-sequencer, plugin-skip, plugin-text, plugin-jsonAnimation, plugin-seethroughtext, plugin-combined, plugin-background @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397629827:60
+[   27346ms] [LOG] [popcorn] function 5 @ http://127.0.0.1:3109/src/main.js?t=1787397629827:4
+[   40572ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[   40572ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[   40572ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[   40572ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[   40572ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[   40572ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[   40572ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[   40575ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[   40575ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[   40575ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[   40593ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[   40593ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[   40594ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[   40594ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[   40594ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[   40594ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[   40594ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[   40594ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[   40594ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[   40594ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[   40594ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[   40594ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[   40594ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[   40594ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[   50665ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3109/src/main.js?t=1787397654309:19
+[   50683ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:41
+[   50684ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:48
+[   50685ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:48
+[   50686ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:48
+[   50687ms] [LOG] [popcorn-init] OK: wrapper-common @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:48
+[   50687ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:48
+[   50688ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:48
+[   50688ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:48
+[   50689ms] [LOG] [popcorn-init] OK: wrapper-null @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:48
+[   50689ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:48
+[   50690ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:48
+[   50691ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:48
+[   50691ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:48
+[   50692ms] [LOG] [popcorn-init] OK: player-module @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:48
+[   51023ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3109/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=a4d3c1a3:20096
+[   51027ms] [LOG] [App] Initialized in 361.40ms @ http://127.0.0.1:3109/src/main.js?t=1787397654309:164
+[   51027ms] [LOG] [App] Navigating to initial page: video @ http://127.0.0.1:3109/src/main.js?t=1787397654309:165
+[   51027ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://127.0.0.1:3109/src/main.js?t=1787397654309:176
+[   51733ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[   51748ms] [ERROR] [popcorn-init] FAILED at: plugin-image TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397654309:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:55
+[   51749ms] [ERROR] [ModalSystem] mount failed TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397654309:26:22 @ http://127.0.0.1:3109/src/main.js?t=1787397654309:329
+[   51976ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[   51977ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/client?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2:0
+[   51985ms] [ERROR] e: The Request HTTP Origin header must be equal to or a subdomain of the requesting URL.
+    at il._baseFetch (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:171)
+    at async io.execute (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:6812)
+    at async rA._baseGet (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:497)
+    at async Promise.all (index 1)
+    at async #eY (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:236310)
+    at async s7.load (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:193944)
+    at async _a15.getEntryChunks (http://127.0.0.1:3109/node_modules/.vite/deps/@clerk_react.js?v=a4d3c1a3:8043:9) @ http://127.0.0.1:3109/node_modules/.vite/deps/@clerk_react.js?v=a4d3c1a3:8054
+[   51995ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonTransition TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397654309:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:55
+[   52185ms] [ERROR] [popcorn-init] FAILED at: plugin-lottie-json TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397654309:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:55
+[   52205ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:48
+[   52220ms] [ERROR] [popcorn-init] FAILED at: plugin-personalizedImage TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397654309:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:55
+[   52226ms] [ERROR] [popcorn-init] FAILED at: plugin-loopPlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397654309:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:55
+[   52232ms] [ERROR] [popcorn-init] FAILED at: plugin-pausePlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397654309:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:55
+[   52247ms] [ERROR] [popcorn-init] FAILED at: plugin-form TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397654309:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:55
+[   52261ms] [ERROR] [popcorn-init] FAILED at: plugin-retarget TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397654309:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:55
+[   52266ms] [LOG] [popcorn-init] OK: plugin-popup @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:48
+[   52275ms] [ERROR] [popcorn-init] FAILED at: plugin-sequencer TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397654309:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:55
+[   52282ms] [ERROR] [popcorn-init] FAILED at: plugin-skip TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397654309:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:55
+[   52342ms] [ERROR] [popcorn-init] FAILED at: plugin-text TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397654309:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:55
+[   52353ms] [LOG] [popcorn-init] OK: plugin-social @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:48
+[   52361ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonAnimation TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397654309:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:55
+[   52374ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:48
+[   52382ms] [ERROR] [popcorn-init] FAILED at: plugin-seethroughtext TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397654309:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:55
+[   52387ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:48
+[   52392ms] [ERROR] [popcorn-init] FAILED at: plugin-combined TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397654309:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:55
+[   52401ms] [ERROR] [popcorn-init] FAILED at: plugin-background TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397654309:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:55
+[   52402ms] [LOG] [popcorn-init] SUMMARY: 5/20 plugins registered; FAILED: plugin-image, plugin-jsonTransition, plugin-lottie-json, plugin-personalizedImage, plugin-loopPlugin, plugin-pausePlugin, plugin-form, plugin-retarget, plugin-sequencer, plugin-skip, plugin-text, plugin-jsonAnimation, plugin-seethroughtext, plugin-combined, plugin-background @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397654309:60
+[   52402ms] [LOG] [popcorn] function 5 @ http://127.0.0.1:3109/src/main.js?t=1787397654309:4
+[  110873ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3109/src/main.js?t=1787397715278:19
+[  110897ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:41
+[  110899ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:48
+[  110900ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:48
+[  110901ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:48
+[  110901ms] [LOG] [popcorn-init] OK: wrapper-common @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:48
+[  110902ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:48
+[  110903ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:48
+[  110903ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:48
+[  110904ms] [LOG] [popcorn-init] OK: wrapper-null @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:48
+[  110904ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:48
+[  110905ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:48
+[  110906ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:48
+[  110906ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:48
+[  110907ms] [LOG] [popcorn-init] OK: player-module @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:48
+[  111410ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3109/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=a4d3c1a3:20096
+[  111414ms] [LOG] [App] Initialized in 540.40ms @ http://127.0.0.1:3109/src/main.js?t=1787397715278:164
+[  111414ms] [LOG] [App] Navigating to initial page: video @ http://127.0.0.1:3109/src/main.js?t=1787397715278:165
+[  111414ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://127.0.0.1:3109/src/main.js?t=1787397715278:176
+[  112297ms] [ERROR] [popcorn-init] FAILED at: plugin-image TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397715278:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:55
+[  112297ms] [ERROR] [ModalSystem] mount failed TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397715278:26:22 @ http://127.0.0.1:3109/src/main.js?t=1787397715278:329
+[  112478ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[  112548ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonTransition TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397715278:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:55
+[  112592ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[  112611ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/client?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2:0
+[  112618ms] [ERROR] e: The Request HTTP Origin header must be equal to or a subdomain of the requesting URL.
+    at il._baseFetch (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:171)
+    at async io.execute (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:6812)
+    at async rA._baseGet (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:497)
+    at async Promise.all (index 1)
+    at async #eY (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:236310)
+    at async s7.load (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:193944)
+    at async _a15.getEntryChunks (http://127.0.0.1:3109/node_modules/.vite/deps/@clerk_react.js?v=a4d3c1a3:8043:9) @ http://127.0.0.1:3109/node_modules/.vite/deps/@clerk_react.js?v=a4d3c1a3:8054
+[  112807ms] [ERROR] [popcorn-init] FAILED at: plugin-lottie-json TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397715278:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:55
+[  112817ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:48
+[  112824ms] [ERROR] [popcorn-init] FAILED at: plugin-personalizedImage TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397715278:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:55
+[  112830ms] [ERROR] [popcorn-init] FAILED at: plugin-loopPlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397715278:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:55
+[  112838ms] [ERROR] [popcorn-init] FAILED at: plugin-pausePlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397715278:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:55
+[  112858ms] [ERROR] [popcorn-init] FAILED at: plugin-form TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397715278:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:55
+[  112875ms] [ERROR] [popcorn-init] FAILED at: plugin-retarget TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397715278:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:55
+[  112884ms] [LOG] [popcorn-init] OK: plugin-popup @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:48
+[  112901ms] [ERROR] [popcorn-init] FAILED at: plugin-sequencer TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397715278:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:55
+[  112969ms] [ERROR] [popcorn-init] FAILED at: plugin-skip TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397715278:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:55
+[  113058ms] [ERROR] [popcorn-init] FAILED at: plugin-text TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397715278:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:55
+[  113065ms] [LOG] [popcorn-init] OK: plugin-social @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:48
+[  113072ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonAnimation TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397715278:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:55
+[  113083ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:48
+[  113088ms] [ERROR] [popcorn-init] FAILED at: plugin-seethroughtext TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397715278:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:55
+[  113093ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:48
+[  113098ms] [ERROR] [popcorn-init] FAILED at: plugin-combined TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397715278:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:55
+[  113104ms] [ERROR] [popcorn-init] FAILED at: plugin-background TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397715278:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:55
+[  113105ms] [LOG] [popcorn-init] SUMMARY: 5/20 plugins registered; FAILED: plugin-image, plugin-jsonTransition, plugin-lottie-json, plugin-personalizedImage, plugin-loopPlugin, plugin-pausePlugin, plugin-form, plugin-retarget, plugin-sequencer, plugin-skip, plugin-text, plugin-jsonAnimation, plugin-seethroughtext, plugin-combined, plugin-background @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397715278:60
+[  113105ms] [LOG] [popcorn] function 5 @ http://127.0.0.1:3109/src/main.js?t=1787397715278:4
+[  136896ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3109/src/main.js?t=1787397741736:19
+[  136914ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:41
+[  136916ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:48
+[  136918ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:48
+[  136918ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:48
+[  136921ms] [LOG] [popcorn-init] OK: wrapper-common @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:48
+[  136922ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:48
+[  136922ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:48
+[  136923ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:48
+[  136923ms] [LOG] [popcorn-init] OK: wrapper-null @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:48
+[  136924ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:48
+[  136925ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:48
+[  136925ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:48
+[  136926ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:48
+[  136927ms] [LOG] [popcorn-init] OK: player-module @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:48
+[  137835ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3109/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=a4d3c1a3:20096
+[  137840ms] [LOG] [App] Initialized in 943.50ms @ http://127.0.0.1:3109/src/main.js?t=1787397741736:164
+[  137840ms] [LOG] [App] Navigating to initial page: video @ http://127.0.0.1:3109/src/main.js?t=1787397741736:165
+[  137841ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://127.0.0.1:3109/src/main.js?t=1787397741736:176
+[  138673ms] [ERROR] [ModalSystem] mount failed TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397741736:26:22 @ http://127.0.0.1:3109/src/main.js?t=1787397741736:329
+[  138677ms] [ERROR] [popcorn-init] FAILED at: plugin-image TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397741736:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:55
+[  138731ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonTransition TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397741736:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:55
+[  138872ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[  138890ms] [ERROR] [popcorn-init] FAILED at: plugin-lottie-json TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397741736:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:55
+[  138956ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[  138959ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/client?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2:0
+[  138963ms] [ERROR] e: The Request HTTP Origin header must be equal to or a subdomain of the requesting URL.
+    at il._baseFetch (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:171)
+    at async io.execute (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:6812)
+    at async rA._baseGet (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:497)
+    at async Promise.all (index 1)
+    at async #eY (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:236310)
+    at async s7.load (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:193944)
+    at async _a15.getEntryChunks (http://127.0.0.1:3109/node_modules/.vite/deps/@clerk_react.js?v=a4d3c1a3:8043:9) @ http://127.0.0.1:3109/node_modules/.vite/deps/@clerk_react.js?v=a4d3c1a3:8054
+[  138984ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:48
+[  139052ms] [ERROR] [popcorn-init] FAILED at: plugin-personalizedImage TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397741736:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:55
+[  139119ms] [ERROR] [popcorn-init] FAILED at: plugin-loopPlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397741736:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:55
+[  139143ms] [ERROR] [popcorn-init] FAILED at: plugin-pausePlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397741736:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:55
+[  139162ms] [ERROR] [popcorn-init] FAILED at: plugin-form TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397741736:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:55
+[  139181ms] [ERROR] [popcorn-init] FAILED at: plugin-retarget TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397741736:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:55
+[  139188ms] [LOG] [popcorn-init] OK: plugin-popup @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:48
+[  139199ms] [ERROR] [popcorn-init] FAILED at: plugin-sequencer TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397741736:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:55
+[  139207ms] [ERROR] [popcorn-init] FAILED at: plugin-skip TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397741736:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:55
+[  139252ms] [ERROR] [popcorn-init] FAILED at: plugin-text TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397741736:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:55
+[  139260ms] [LOG] [popcorn-init] OK: plugin-social @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:48
+[  139267ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonAnimation TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397741736:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:55
+[  139280ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:48
+[  139287ms] [ERROR] [popcorn-init] FAILED at: plugin-seethroughtext TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397741736:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:55
+[  139290ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:48
+[  139298ms] [ERROR] [popcorn-init] FAILED at: plugin-combined TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397741736:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:55
+[  139305ms] [ERROR] [popcorn-init] FAILED at: plugin-background TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397741736:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:55
+[  139305ms] [LOG] [popcorn-init] SUMMARY: 5/20 plugins registered; FAILED: plugin-image, plugin-jsonTransition, plugin-lottie-json, plugin-personalizedImage, plugin-loopPlugin, plugin-pausePlugin, plugin-form, plugin-retarget, plugin-sequencer, plugin-skip, plugin-text, plugin-jsonAnimation, plugin-seethroughtext, plugin-combined, plugin-background @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397741736:60
+[  139306ms] [LOG] [popcorn] function 5 @ http://127.0.0.1:3109/src/main.js?t=1787397741736:4
+[  151209ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[  151209ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[  151209ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[  151209ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[  151209ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[  151209ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[  151209ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[  151210ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[  151210ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[  151210ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[  151217ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[  151217ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[  151218ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[  151218ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[  151218ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[  151218ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[  151218ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[  151218ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[  151218ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[  151218ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[  151218ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[  151218ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[  151218ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[  151219ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3109/video#/video:0
+[  160680ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3109/src/main.js?t=1787397764586:19
+[  160706ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:41
+[  160707ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:48
+[  160709ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:48
+[  160711ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:48
+[  160712ms] [LOG] [popcorn-init] OK: wrapper-common @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:48
+[  160714ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:48
+[  160715ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:48
+[  160715ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:48
+[  160716ms] [LOG] [popcorn-init] OK: wrapper-null @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:48
+[  160716ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:48
+[  160717ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:48
+[  160717ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:48
+[  160718ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:48
+[  160719ms] [LOG] [popcorn-init] OK: player-module @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:48
+[  161337ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3109/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=a4d3c1a3:20096
+[  161343ms] [LOG] [App] Initialized in 663.00ms @ http://127.0.0.1:3109/src/main.js?t=1787397764586:164
+[  161343ms] [LOG] [App] Navigating to initial page: video @ http://127.0.0.1:3109/src/main.js?t=1787397764586:165
+[  161343ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://127.0.0.1:3109/src/main.js?t=1787397764586:176
+[  161953ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[  162132ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/client?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2:0
+[  162132ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[  162134ms] [ERROR] e: The Request HTTP Origin header must be equal to or a subdomain of the requesting URL.
+    at il._baseFetch (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:171)
+    at async io.execute (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:6812)
+    at async rA._baseGet (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:497)
+    at async Promise.all (index 1)
+    at async #eY (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:236310)
+    at async s7.load (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:193944)
+    at async _a15.getEntryChunks (http://127.0.0.1:3109/node_modules/.vite/deps/@clerk_react.js?v=a4d3c1a3:8043:9) @ http://127.0.0.1:3109/node_modules/.vite/deps/@clerk_react.js?v=a4d3c1a3:8054
+[  162831ms] [ERROR] [ModalSystem] mount failed TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397764586:26:22 @ http://127.0.0.1:3109/src/main.js?t=1787397764586:329
+[  162836ms] [ERROR] [popcorn-init] FAILED at: plugin-image TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397764586:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:55
+[  162890ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonTransition TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397764586:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:55
+[  163150ms] [ERROR] [popcorn-init] FAILED at: plugin-lottie-json TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397764586:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:55
+[  163328ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:48
+[  163338ms] [ERROR] [popcorn-init] FAILED at: plugin-personalizedImage TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397764586:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:55
+[  163349ms] [ERROR] [popcorn-init] FAILED at: plugin-loopPlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397764586:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:55
+[  163364ms] [ERROR] [popcorn-init] FAILED at: plugin-pausePlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397764586:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:55
+[  163404ms] [ERROR] [popcorn-init] FAILED at: plugin-form TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397764586:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:55
+[  163552ms] [ERROR] [popcorn-init] FAILED at: plugin-retarget TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397764586:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:55
+[  163561ms] [LOG] [popcorn-init] OK: plugin-popup @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:48
+[  163580ms] [ERROR] [popcorn-init] FAILED at: plugin-sequencer TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397764586:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:55
+[  163592ms] [ERROR] [popcorn-init] FAILED at: plugin-skip TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397764586:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:55
+[  163619ms] [ERROR] [popcorn-init] FAILED at: plugin-text TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397764586:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:55
+[  163631ms] [LOG] [popcorn-init] OK: plugin-social @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:48
+[  163641ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonAnimation TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397764586:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:55
+[  163656ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:48
+[  163669ms] [ERROR] [popcorn-init] FAILED at: plugin-seethroughtext TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397764586:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:55
+[  163676ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:48
+[  163693ms] [ERROR] [popcorn-init] FAILED at: plugin-combined TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397764586:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:55
+[  163705ms] [ERROR] [popcorn-init] FAILED at: plugin-background TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://127.0.0.1:3109/components/modals/RetargetOptInModal.jsx?t=1787397764586:26:22 @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:55
+[  163706ms] [LOG] [popcorn-init] SUMMARY: 5/20 plugins registered; FAILED: plugin-image, plugin-jsonTransition, plugin-lottie-json, plugin-personalizedImage, plugin-loopPlugin, plugin-pausePlugin, plugin-form, plugin-retarget, plugin-sequencer, plugin-skip, plugin-text, plugin-jsonAnimation, plugin-seethroughtext, plugin-combined, plugin-background @ http://127.0.0.1:3109/src/lib/popcornInit.js?t=1787397764586:60
+[  163706ms] [LOG] [popcorn] function 5 @ http://127.0.0.1:3109/src/main.js?t=1787397764586:4

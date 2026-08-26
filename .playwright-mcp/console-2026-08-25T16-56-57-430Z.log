@@ -1,0 +1,795 @@
+[      36ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Connection closed before receiving a handshake response @ http://localhost:3000/@vite/client:1034
+[    1210ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Connection closed before receiving a handshake response @ http://localhost:3000/@vite/client:1034
+[    2829ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Connection closed before receiving a handshake response @ http://localhost:3000/@vite/client:1034
+[    6198ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Connection closed before receiving a handshake response @ http://localhost:3000/@vite/client:1034
+[   10386ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Connection closed before receiving a handshake response @ http://localhost:3000/@vite/client:1034
+[   15340ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/:0
+[   22465ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_react-dom_4411d9bd._.js:15305
+[   23888ms] Error: ./packages/studio/src/components/WorkflowStudio.jsx:5:1
+Export buildWorkflowApiSnippets doesn't exist in target module
+   3 | import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+   4 | import { useParams, useRouter } from "next/navigation";
+>  5 | import {
+     | ^^^^^^^^
+>  6 |   getTemplateWorkflows,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+>  7 |   getUserWorkflows,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+>  8 |   getPublishedWorkflows,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+>  9 |   createWorkflow,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 10 |   updateWorkflowName,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 11 |   deleteWorkflow,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 12 |   getWorkflowInputs,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 13 |   executeWorkflow,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 14 |   getAllNodeSchemas,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 15 |   getWorkflowData,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 16 |   buildWorkflowApiSnippets,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 17 | } from "../muapi.js";
+     | ^^^^^^^^^^^^^^^^^^^^^^
+  18 | import dynamic from "next/dynamic";
+  19 |
+  20 | const WorkflowUI = dynamic(() => import("./WorkflowUI"), {
+
+The export buildWorkflowApiSnippets was not found in module [project]/packages/studio/src/muapi.js [app-client] (ecmascript).
+Did you mean to import deleteWorkflow?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./packages/studio/src/components/WorkflowStudio.jsx [Client Component Browser]
+    ./packages/studio/src/index.js [Client Component Browser]
+    ./components/StandaloneShell.js [Client Component Browser]
+    ./components/landing/LandingPage.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./packages/studio/src/components/WorkflowStudio.jsx [Client Component SSR]
+    ./packages/studio/src/index.js [Client Component SSR]
+    ./components/StandaloneShell.js [Client Component SSR]
+    ./components/landing/LandingPage.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component]
+
+
+    at <unknown> (Error: ./packages/studio/src/components/WorkflowStudio.jsx:5:1)
+    at Object.getCompilationErrors (file:///Users/deanellgilmore/Downloads/openbolt/OpenHiggsBolt/node_modules/next/dist/server/dev/hot-reloader-turbopack.js:775:59)
+    at DevBundlerService.getCompilationError (file:///Users/deanellgilmore/Downloads/openbolt/OpenHiggsBolt/node_modules/next/dist/server/lib/dev-bundler-service.js:39:55)
+    at DevServer.getCompilationError (file:///Users/deanellgilmore/Downloads/openbolt/OpenHiggsBolt/node_modules/next/dist/server/dev/next-dev-server.js:721:42)
+    at DevServer.findPageComponents (file:///Users/deanellgilmore/Downloads/openbolt/OpenHiggsBolt/node_modules/next/dist/server/dev/next-dev-server.js:691:43)
+    at async DevServer.renderErrorToResponseImpl (file:///Users/deanellgilmore/Downloads/openbolt/OpenHiggsBolt/node_modules/next/dist/server/base-server.js:1687:26)
+[   26984ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/favicon.ico:0
+[   27363ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_d0aa886c._.js:2207
+[   27757ms] [ERROR] ./packages/studio/src/components/WorkflowStudio.jsx:5:1
+Export buildWorkflowApiSnippets doesn't exist in target module
+   3 | import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+   4 | import { useParams, useRouter } from "next/navigation";
+>  5 | import {
+     | ^^^^^^^^
+>  6 |   getTemplateWorkflows,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+>  7 |   getUserWorkflows,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+>  8 |   getPublishedWorkflows,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+>  9 |   createWorkflow,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 10 |   updateWorkflowName,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 11 |   deleteWorkflow,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 12 |   getWorkflowInputs,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 13 |   executeWorkflow,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 14 |   getAllNodeSchemas,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 15 |   getWorkflowData,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 16 |   buildWorkflowApiSnippets,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 17 | } from "../muapi.js";
+     | ^^^^^^^^^^^^^^^^^^^^^^
+  18 | import dynamic from "next/dynamic";
+  19 |
+  20 | const WorkflowUI = dynamic(() => import("./WorkflowUI"), {
+
+The export buildWorkflowApiSnippets was not found in module [project]/packages/studio/src/muapi.js [app-client] (ecmascript).
+Did you mean to import deleteWorkflow?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./packages/studio/src/components/WorkflowStudio.jsx [Client Component Browser]
+    ./packages/studio/src/index.js [Client Component Browser]
+    ./components/StandaloneShell.js [Client Component Browser]
+    ./components/landing/LandingPage.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./packages/studio/src/components/WorkflowStudio.jsx [Client Component SSR]
+    ./packages/studio/src/index.js [Client Component SSR]
+    ./components/StandaloneShell.js [Client Component SSR]
+    ./components/landing/LandingPage.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_5b402162._.js:1747
+[   27760ms] [ERROR] ./packages/studio/src/components/WorkflowStudio.jsx:5:1
+Export buildWorkflowApiSnippets doesn't exist in target module
+   3 | import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+   4 | import { useParams, useRouter } from "next/navigation";
+>  5 | import {
+     | ^^^^^^^^
+>  6 |   getTemplateWorkflows,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+>  7 |   getUserWorkflows,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+>  8 |   getPublishedWorkflows,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+>  9 |   createWorkflow,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 10 |   updateWorkflowName,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 11 |   deleteWorkflow,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 12 |   getWorkflowInputs,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 13 |   executeWorkflow,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 14 |   getAllNodeSchemas,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 15 |   getWorkflowData,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 16 |   buildWorkflowApiSnippets,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 17 | } from "../muapi.js";
+     | ^^^^^^^^^^^^^^^^^^^^^^
+  18 | import dynamic from "next/dynamic";
+  19 |
+  20 | const WorkflowUI = dynamic(() => import("./WorkflowUI"), {
+
+The export buildWorkflowApiSnippets was not found in module [project]/packages/studio/src/muapi.js [app-ssr] (ecmascript).
+Did you mean to import deleteWorkflow?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./packages/studio/src/components/WorkflowStudio.jsx [Client Component Browser]
+    ./packages/studio/src/index.js [Client Component Browser]
+    ./components/StandaloneShell.js [Client Component Browser]
+    ./components/landing/LandingPage.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./packages/studio/src/components/WorkflowStudio.jsx [Client Component SSR]
+    ./packages/studio/src/index.js [Client Component SSR]
+    ./components/StandaloneShell.js [Client Component SSR]
+    ./components/landing/LandingPage.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_5b402162._.js:1747
+[   27760ms] [ERROR] ./packages/studio/src/lib/promptRecipes.js:1:1
+Export generateCharacterVideo doesn't exist in target module
+> 1 | import * as muapi from '../muapi.js';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | export function fillTemplate(prompt, values) {
+  4 |   return prompt.replace(/\{\{(\w+)\}\}/g, (_, key) => (values && values[key]) || '');
+
+The export generateCharacterVideo was not found in module [project]/packages/studio/src/muapi.js [app-client] (ecmascript).
+Did you mean to import generateVideo?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./packages/studio/src/lib/promptRecipes.js [Client Component Browser]
+    ./packages/studio/src/components/AiInfluencerStudio.jsx [Client Component Browser]
+    ./packages/studio/src/index.js [Client Component Browser]
+    ./components/StandaloneShell.js [Client Component Browser]
+    ./components/landing/LandingPage.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./packages/studio/src/lib/promptRecipes.js [Client Component SSR]
+    ./packages/studio/src/components/AiInfluencerStudio.jsx [Client Component SSR]
+    ./packages/studio/src/index.js [Client Component SSR]
+    ./components/StandaloneShell.js [Client Component SSR]
+    ./components/landing/LandingPage.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_5b402162._.js:1747
+[   27760ms] [ERROR] ./packages/studio/src/lib/promptRecipes.js:1:1
+Export generateCharacterVideo doesn't exist in target module
+> 1 | import * as muapi from '../muapi.js';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | export function fillTemplate(prompt, values) {
+  4 |   return prompt.replace(/\{\{(\w+)\}\}/g, (_, key) => (values && values[key]) || '');
+
+The export generateCharacterVideo was not found in module [project]/packages/studio/src/muapi.js [app-ssr] (ecmascript).
+Did you mean to import generateVideo?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./packages/studio/src/lib/promptRecipes.js [Client Component Browser]
+    ./packages/studio/src/components/AiInfluencerStudio.jsx [Client Component Browser]
+    ./packages/studio/src/index.js [Client Component Browser]
+    ./components/StandaloneShell.js [Client Component Browser]
+    ./components/landing/LandingPage.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./packages/studio/src/lib/promptRecipes.js [Client Component SSR]
+    ./packages/studio/src/components/AiInfluencerStudio.jsx [Client Component SSR]
+    ./packages/studio/src/index.js [Client Component SSR]
+    ./components/StandaloneShell.js [Client Component SSR]
+    ./components/landing/LandingPage.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_5b402162._.js:1747
+[   27760ms] [ERROR] ./packages/studio/src/components/ImageStudio.jsx:4:1
+Export generateImageEditGrok doesn't exist in target module
+  2 |
+  3 | import { useState, useEffect, useRef, useCallback } from "react";
+> 4 | import { generateImage, generateI2I, uploadFile, generateImageEditGrok } from "../muapi.js";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 | import { setCharacterSheet } from "../lib/characterStore";
+  6 | import DrawModal from "./DrawModal.jsx";
+  7 | import { PublishStep } from "../../../../components/SocialPublishProvider";
+
+The export generateImageEditGrok was not found in module [project]/packages/studio/src/muapi.js [app-client] (ecmascript).
+Did you mean to import generateImage?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./packages/studio/src/components/ImageStudio.jsx [Client Component Browser]
+    ./packages/studio/src/index.js [Client Component Browser]
+    ./components/StandaloneShell.js [Client Component Browser]
+    ./components/landing/LandingPage.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./packages/studio/src/components/ImageStudio.jsx [Client Component SSR]
+    ./packages/studio/src/index.js [Client Component SSR]
+    ./components/StandaloneShell.js [Client Component SSR]
+    ./components/landing/LandingPage.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_5b402162._.js:1747
+[   27761ms] [ERROR] ./packages/studio/src/components/ImageStudio.jsx:4:1
+Export generateImageEditGrok doesn't exist in target module
+  2 |
+  3 | import { useState, useEffect, useRef, useCallback } from "react";
+> 4 | import { generateImage, generateI2I, uploadFile, generateImageEditGrok } from "../muapi.js";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 | import { setCharacterSheet } from "../lib/characterStore";
+  6 | import DrawModal from "./DrawModal.jsx";
+  7 | import { PublishStep } from "../../../../components/SocialPublishProvider";
+
+The export generateImageEditGrok was not found in module [project]/packages/studio/src/muapi.js [app-ssr] (ecmascript).
+Did you mean to import generateImage?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./packages/studio/src/components/ImageStudio.jsx [Client Component Browser]
+    ./packages/studio/src/index.js [Client Component Browser]
+    ./components/StandaloneShell.js [Client Component Browser]
+    ./components/landing/LandingPage.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./packages/studio/src/components/ImageStudio.jsx [Client Component SSR]
+    ./packages/studio/src/index.js [Client Component SSR]
+    ./components/StandaloneShell.js [Client Component SSR]
+    ./components/landing/LandingPage.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_5b402162._.js:1747
+[   27761ms] [ERROR] ./packages/studio/src/components/VideoStudio.jsx:10:1
+Export getModesForModel doesn't exist in target module
+   8 | import { fillTemplate } from "../lib/promptRecipes";
+   9 | import registry from "../skills/registry.json";
+> 10 | import {
+     | ^^^^^^^^
+> 11 |   t2vModels,
+     | ^^^^^^^^^^^^
+> 12 |   i2vModels,
+     | ^^^^^^^^^^^^
+> 13 |   v2vModels,
+     | ^^^^^^^^^^^^
+> 14 |   getAspectRatiosForVideoModel,
+     | ^^^^^^^^^^^^
+> 15 |   getDurationsForModel,
+     | ^^^^^^^^^^^^
+> 16 |   getResolutionsForVideoModel,
+     | ^^^^^^^^^^^^
+> 17 |   getAspectRatiosForI2VModel,
+     | ^^^^^^^^^^^^
+> 18 |   getDurationsForI2VModel,
+     | ^^^^^^^^^^^^
+> 19 |   getResolutionsForI2VModel,
+     | ^^^^^^^^^^^^
+> 20 |   getEffectsForI2VModel,
+     | ^^^^^^^^^^^^
+> 21 |   getDefaultEffectForI2VModel,
+     | ^^^^^^^^^^^^
+> 22 |   getModesForModel,
+     | ^^^^^^^^^^^^
+> 23 |   getMaxImagesForI2VModel,
+     | ^^^^^^^^^^^^
+> 24 | } from "../models.js";
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+  25 | import { getAdvancedControlsForModel, buildAdvancedPayload } from "../videoAdvancedControls.js";
+  26 | import { PublishStep } from "../../../../components/SocialPublishProvider";
+  27 | import { AssistStep } from "../../../../components/AiAssistantProvider";
+
+The export getModesForModel was not found in module [project]/packages/studio/src/models.js [app-client] (ecmascript).
+Did you mean to import getAspectRatiosForModel?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./packages/studio/src/components/VideoStudio.jsx [Client Component Browser]
+    ./packages/studio/src/index.js [Client Component Browser]
+    ./components/StandaloneShell.js [Client Component Browser]
+    ./components/landing/LandingPage.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./packages/studio/src/components/VideoStudio.jsx [Client Component SSR]
+    ./packages/studio/src/index.js [Client Component SSR]
+    ./components/StandaloneShell.js [Client Component SSR]
+    ./components/landing/LandingPage.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_5b402162._.js:1747
+[   27762ms] [ERROR] ./packages/studio/src/components/VideoStudio.jsx:10:1
+Export getModesForModel doesn't exist in target module
+   8 | import { fillTemplate } from "../lib/promptRecipes";
+   9 | import registry from "../skills/registry.json";
+> 10 | import {
+     | ^^^^^^^^
+> 11 |   t2vModels,
+     | ^^^^^^^^^^^^
+> 12 |   i2vModels,
+     | ^^^^^^^^^^^^
+> 13 |   v2vModels,
+     | ^^^^^^^^^^^^
+> 14 |   getAspectRatiosForVideoModel,
+     | ^^^^^^^^^^^^
+> 15 |   getDurationsForModel,
+     | ^^^^^^^^^^^^
+> 16 |   getResolutionsForVideoModel,
+     | ^^^^^^^^^^^^
+> 17 |   getAspectRatiosForI2VModel,
+     | ^^^^^^^^^^^^
+> 18 |   getDurationsForI2VModel,
+     | ^^^^^^^^^^^^
+> 19 |   getResolutionsForI2VModel,
+     | ^^^^^^^^^^^^
+> 20 |   getEffectsForI2VModel,
+     | ^^^^^^^^^^^^
+> 21 |   getDefaultEffectForI2VModel,
+     | ^^^^^^^^^^^^
+> 22 |   getModesForModel,
+     | ^^^^^^^^^^^^
+> 23 |   getMaxImagesForI2VModel,
+     | ^^^^^^^^^^^^
+> 24 | } from "../models.js";
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+  25 | import { getAdvancedControlsForModel, buildAdvancedPayload } from "../videoAdvancedControls.js";
+  26 | import { PublishStep } from "../../../../components/SocialPublishProvider";
+  27 | import { AssistStep } from "../../../../components/AiAssistantProvider";
+
+The export getModesForModel was not found in module [project]/packages/studio/src/models.js [app-ssr] (ecmascript).
+Did you mean to import getAspectRatiosForModel?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./packages/studio/src/components/VideoStudio.jsx [Client Component Browser]
+    ./packages/studio/src/index.js [Client Component Browser]
+    ./components/StandaloneShell.js [Client Component Browser]
+    ./components/landing/LandingPage.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./packages/studio/src/components/VideoStudio.jsx [Client Component SSR]
+    ./packages/studio/src/index.js [Client Component SSR]
+    ./components/StandaloneShell.js [Client Component SSR]
+    ./components/landing/LandingPage.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_5b402162._.js:1747
+[   27808ms] [LOG] {file: Object} @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_next-devtools_index_5277ebc8.js:16058
+[   28300ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_d0aa886c._.js:2495
+[   35990ms] [ERROR] ./packages/studio/src/components/WorkflowStudio.jsx:5:1
+Export buildWorkflowApiSnippets doesn't exist in target module
+   3 | import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+   4 | import { useParams, useRouter } from "next/navigation";
+>  5 | import {
+     | ^^^^^^^^
+>  6 |   getTemplateWorkflows,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+>  7 |   getUserWorkflows,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+>  8 |   getPublishedWorkflows,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+>  9 |   createWorkflow,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 10 |   updateWorkflowName,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 11 |   deleteWorkflow,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 12 |   getWorkflowInputs,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 13 |   executeWorkflow,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 14 |   getAllNodeSchemas,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 15 |   getWorkflowData,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 16 |   buildWorkflowApiSnippets,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 17 | } from "../muapi.js";
+     | ^^^^^^^^^^^^^^^^^^^^^^
+  18 | import dynamic from "next/dynamic";
+  19 |
+  20 | const WorkflowUI = dynamic(() => import("./WorkflowUI"), {
+
+The export buildWorkflowApiSnippets was not found in module [project]/packages/studio/src/muapi.js [app-client] (ecmascript).
+Did you mean to import deleteWorkflow?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./packages/studio/src/components/WorkflowStudio.jsx [Client Component Browser]
+    ./packages/studio/src/index.js [Client Component Browser]
+    ./components/StandaloneShell.js [Client Component Browser]
+    ./components/landing/LandingPage.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./packages/studio/src/components/WorkflowStudio.jsx [Client Component SSR]
+    ./packages/studio/src/index.js [Client Component SSR]
+    ./components/StandaloneShell.js [Client Component SSR]
+    ./components/landing/LandingPage.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_5b402162._.js:1747
+[   35991ms] [ERROR] ./packages/studio/src/components/WorkflowStudio.jsx:5:1
+Export buildWorkflowApiSnippets doesn't exist in target module
+   3 | import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+   4 | import { useParams, useRouter } from "next/navigation";
+>  5 | import {
+     | ^^^^^^^^
+>  6 |   getTemplateWorkflows,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+>  7 |   getUserWorkflows,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+>  8 |   getPublishedWorkflows,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+>  9 |   createWorkflow,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 10 |   updateWorkflowName,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 11 |   deleteWorkflow,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 12 |   getWorkflowInputs,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 13 |   executeWorkflow,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 14 |   getAllNodeSchemas,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 15 |   getWorkflowData,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 16 |   buildWorkflowApiSnippets,
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 17 | } from "../muapi.js";
+     | ^^^^^^^^^^^^^^^^^^^^^^
+  18 | import dynamic from "next/dynamic";
+  19 |
+  20 | const WorkflowUI = dynamic(() => import("./WorkflowUI"), {
+
+The export buildWorkflowApiSnippets was not found in module [project]/packages/studio/src/muapi.js [app-ssr] (ecmascript).
+Did you mean to import deleteWorkflow?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./packages/studio/src/components/WorkflowStudio.jsx [Client Component Browser]
+    ./packages/studio/src/index.js [Client Component Browser]
+    ./components/StandaloneShell.js [Client Component Browser]
+    ./components/landing/LandingPage.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./packages/studio/src/components/WorkflowStudio.jsx [Client Component SSR]
+    ./packages/studio/src/index.js [Client Component SSR]
+    ./components/StandaloneShell.js [Client Component SSR]
+    ./components/landing/LandingPage.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_5b402162._.js:1747
+[   35992ms] [ERROR] ./packages/studio/src/lib/promptRecipes.js:1:1
+Export generateCharacterVideo doesn't exist in target module
+> 1 | import * as muapi from '../muapi.js';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | export function fillTemplate(prompt, values) {
+  4 |   return prompt.replace(/\{\{(\w+)\}\}/g, (_, key) => (values && values[key]) || '');
+
+The export generateCharacterVideo was not found in module [project]/packages/studio/src/muapi.js [app-client] (ecmascript).
+Did you mean to import generateVideo?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./packages/studio/src/lib/promptRecipes.js [Client Component Browser]
+    ./packages/studio/src/components/AiInfluencerStudio.jsx [Client Component Browser]
+    ./packages/studio/src/index.js [Client Component Browser]
+    ./components/StandaloneShell.js [Client Component Browser]
+    ./components/landing/LandingPage.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./packages/studio/src/lib/promptRecipes.js [Client Component SSR]
+    ./packages/studio/src/components/AiInfluencerStudio.jsx [Client Component SSR]
+    ./packages/studio/src/index.js [Client Component SSR]
+    ./components/StandaloneShell.js [Client Component SSR]
+    ./components/landing/LandingPage.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_5b402162._.js:1747
+[   35992ms] [ERROR] ./packages/studio/src/lib/promptRecipes.js:1:1
+Export generateCharacterVideo doesn't exist in target module
+> 1 | import * as muapi from '../muapi.js';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | export function fillTemplate(prompt, values) {
+  4 |   return prompt.replace(/\{\{(\w+)\}\}/g, (_, key) => (values && values[key]) || '');
+
+The export generateCharacterVideo was not found in module [project]/packages/studio/src/muapi.js [app-ssr] (ecmascript).
+Did you mean to import generateVideo?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./packages/studio/src/lib/promptRecipes.js [Client Component Browser]
+    ./packages/studio/src/components/AiInfluencerStudio.jsx [Client Component Browser]
+    ./packages/studio/src/index.js [Client Component Browser]
+    ./components/StandaloneShell.js [Client Component Browser]
+    ./components/landing/LandingPage.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./packages/studio/src/lib/promptRecipes.js [Client Component SSR]
+    ./packages/studio/src/components/AiInfluencerStudio.jsx [Client Component SSR]
+    ./packages/studio/src/index.js [Client Component SSR]
+    ./components/StandaloneShell.js [Client Component SSR]
+    ./components/landing/LandingPage.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_5b402162._.js:1747
+[   35992ms] [ERROR] ./packages/studio/src/components/ImageStudio.jsx:4:1
+Export generateImageEditGrok doesn't exist in target module
+  2 |
+  3 | import { useState, useEffect, useRef, useCallback } from "react";
+> 4 | import { generateImage, generateI2I, uploadFile, generateImageEditGrok } from "../muapi.js";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 | import { setCharacterSheet } from "../lib/characterStore";
+  6 | import DrawModal from "./DrawModal.jsx";
+  7 | import { PublishStep } from "../../../../components/SocialPublishProvider";
+
+The export generateImageEditGrok was not found in module [project]/packages/studio/src/muapi.js [app-client] (ecmascript).
+Did you mean to import generateImage?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./packages/studio/src/components/ImageStudio.jsx [Client Component Browser]
+    ./packages/studio/src/index.js [Client Component Browser]
+    ./components/StandaloneShell.js [Client Component Browser]
+    ./components/landing/LandingPage.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./packages/studio/src/components/ImageStudio.jsx [Client Component SSR]
+    ./packages/studio/src/index.js [Client Component SSR]
+    ./components/StandaloneShell.js [Client Component SSR]
+    ./components/landing/LandingPage.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_5b402162._.js:1747
+[   35993ms] [ERROR] ./packages/studio/src/components/ImageStudio.jsx:4:1
+Export generateImageEditGrok doesn't exist in target module
+  2 |
+  3 | import { useState, useEffect, useRef, useCallback } from "react";
+> 4 | import { generateImage, generateI2I, uploadFile, generateImageEditGrok } from "../muapi.js";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 | import { setCharacterSheet } from "../lib/characterStore";
+  6 | import DrawModal from "./DrawModal.jsx";
+  7 | import { PublishStep } from "../../../../components/SocialPublishProvider";
+
+The export generateImageEditGrok was not found in module [project]/packages/studio/src/muapi.js [app-ssr] (ecmascript).
+Did you mean to import generateImage?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./packages/studio/src/components/ImageStudio.jsx [Client Component Browser]
+    ./packages/studio/src/index.js [Client Component Browser]
+    ./components/StandaloneShell.js [Client Component Browser]
+    ./components/landing/LandingPage.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./packages/studio/src/components/ImageStudio.jsx [Client Component SSR]
+    ./packages/studio/src/index.js [Client Component SSR]
+    ./components/StandaloneShell.js [Client Component SSR]
+    ./components/landing/LandingPage.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_5b402162._.js:1747
+[   35993ms] [ERROR] ./packages/studio/src/components/VideoStudio.jsx:10:1
+Export getModesForModel doesn't exist in target module
+   8 | import { fillTemplate } from "../lib/promptRecipes";
+   9 | import registry from "../skills/registry.json";
+> 10 | import {
+     | ^^^^^^^^
+> 11 |   t2vModels,
+     | ^^^^^^^^^^^^
+> 12 |   i2vModels,
+     | ^^^^^^^^^^^^
+> 13 |   v2vModels,
+     | ^^^^^^^^^^^^
+> 14 |   getAspectRatiosForVideoModel,
+     | ^^^^^^^^^^^^
+> 15 |   getDurationsForModel,
+     | ^^^^^^^^^^^^
+> 16 |   getResolutionsForVideoModel,
+     | ^^^^^^^^^^^^
+> 17 |   getAspectRatiosForI2VModel,
+     | ^^^^^^^^^^^^
+> 18 |   getDurationsForI2VModel,
+     | ^^^^^^^^^^^^
+> 19 |   getResolutionsForI2VModel,
+     | ^^^^^^^^^^^^
+> 20 |   getEffectsForI2VModel,
+     | ^^^^^^^^^^^^
+> 21 |   getDefaultEffectForI2VModel,
+     | ^^^^^^^^^^^^
+> 22 |   getModesForModel,
+     | ^^^^^^^^^^^^
+> 23 |   getMaxImagesForI2VModel,
+     | ^^^^^^^^^^^^
+> 24 | } from "../models.js";
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+  25 | import { getAdvancedControlsForModel, buildAdvancedPayload } from "../videoAdvancedControls.js";
+  26 | import { PublishStep } from "../../../../components/SocialPublishProvider";
+  27 | import { AssistStep } from "../../../../components/AiAssistantProvider";
+
+The export getModesForModel was not found in module [project]/packages/studio/src/models.js [app-client] (ecmascript).
+Did you mean to import getAspectRatiosForModel?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./packages/studio/src/components/VideoStudio.jsx [Client Component Browser]
+    ./packages/studio/src/index.js [Client Component Browser]
+    ./components/StandaloneShell.js [Client Component Browser]
+    ./components/landing/LandingPage.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./packages/studio/src/components/VideoStudio.jsx [Client Component SSR]
+    ./packages/studio/src/index.js [Client Component SSR]
+    ./components/StandaloneShell.js [Client Component SSR]
+    ./components/landing/LandingPage.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_5b402162._.js:1747
+[   35994ms] [ERROR] ./packages/studio/src/components/VideoStudio.jsx:10:1
+Export getModesForModel doesn't exist in target module
+   8 | import { fillTemplate } from "../lib/promptRecipes";
+   9 | import registry from "../skills/registry.json";
+> 10 | import {
+     | ^^^^^^^^
+> 11 |   t2vModels,
+     | ^^^^^^^^^^^^
+> 12 |   i2vModels,
+     | ^^^^^^^^^^^^
+> 13 |   v2vModels,
+     | ^^^^^^^^^^^^
+> 14 |   getAspectRatiosForVideoModel,
+     | ^^^^^^^^^^^^
+> 15 |   getDurationsForModel,
+     | ^^^^^^^^^^^^
+> 16 |   getResolutionsForVideoModel,
+     | ^^^^^^^^^^^^
+> 17 |   getAspectRatiosForI2VModel,
+     | ^^^^^^^^^^^^
+> 18 |   getDurationsForI2VModel,
+     | ^^^^^^^^^^^^
+> 19 |   getResolutionsForI2VModel,
+     | ^^^^^^^^^^^^
+> 20 |   getEffectsForI2VModel,
+     | ^^^^^^^^^^^^
+> 21 |   getDefaultEffectForI2VModel,
+     | ^^^^^^^^^^^^
+> 22 |   getModesForModel,
+     | ^^^^^^^^^^^^
+> 23 |   getMaxImagesForI2VModel,
+     | ^^^^^^^^^^^^
+> 24 | } from "../models.js";
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+  25 | import { getAdvancedControlsForModel, buildAdvancedPayload } from "../videoAdvancedControls.js";
+  26 | import { PublishStep } from "../../../../components/SocialPublishProvider";
+  27 | import { AssistStep } from "../../../../components/AiAssistantProvider";
+
+The export getModesForModel was not found in module [project]/packages/studio/src/models.js [app-ssr] (ecmascript).
+Did you mean to import getAspectRatiosForModel?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./packages/studio/src/components/VideoStudio.jsx [Client Component Browser]
+    ./packages/studio/src/index.js [Client Component Browser]
+    ./components/StandaloneShell.js [Client Component Browser]
+    ./components/landing/LandingPage.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Client Component Browser]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./packages/studio/src/components/VideoStudio.jsx [Client Component SSR]
+    ./packages/studio/src/index.js [Client Component SSR]
+    ./components/StandaloneShell.js [Client Component SSR]
+    ./components/landing/LandingPage.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Client Component SSR]
+    ./components/landing/LandingPageClient.js [Server Component]
+    ./app/page.js [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_5b402162._.js:1747

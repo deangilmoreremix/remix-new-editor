@@ -1,0 +1,54 @@
+[      97ms] [LOG] [App] Starting initialization... @ http://localhost:3100/src/main.js?t=1787523865681:19
+[     110ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:41
+[     112ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[     114ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[     114ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[     115ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[     115ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[     115ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[     115ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[     116ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[     116ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[     117ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[     117ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[     117ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[     117ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[     202ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=708fd709:20096
+[     206ms] [LOG] [App] Initialized in 108.40ms @ http://localhost:3100/src/main.js?t=1787523865681:164
+[     206ms] [LOG] [App] Navigating to initial page: timeline @ http://localhost:3100/src/main.js?t=1787523865681:165
+[     206ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://localhost:3100/src/main.js?t=1787523865681:176
+[     955ms] [LOG] [popcorn-init] OK: plugin-image @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[     968ms] [WARNING] GoTrueClient@sb-bzxohkrxcwodllketcpz-auth-token:1 (2.110.1) 2026-08-23T22:28:06.728Z Multiple GoTrueClient instances detected in the same browser context. It is not an error, but this should be avoided as it may produce undefined behavior when used concurrently under the same storage key. @ http://localhost:3100/node_modules/.vite/deps/@supabase_supabase-js.js?v=708fd709:14288
+[     977ms] [LOG] [CircuitBreaker] Added service: openai-whisper @ http://localhost:3100/src/lib/services/CircuitBreaker.js:304
+[     977ms] [LOG] [CircuitBreaker] Added service: muapi @ http://localhost:3100/src/lib/services/CircuitBreaker.js:304
+[     977ms] [LOG] [CircuitBreaker] Added service: local-whisper @ http://localhost:3100/src/lib/services/CircuitBreaker.js:304
+[     977ms] [LOG] [WhisperService] Initialized - OpenAI: false, MuAPI: false, Local: http://localhost:8080 @ http://localhost:3100/src/services/whisper-client.js:46
+[     978ms] [LOG] [MonitoringService] Skipping WebSocket connection (development mode) @ http://localhost:3100/src/lib/services/MonitoringService.js:19
+[     978ms] [LOG] [MonitoringService] Skipping WebSocket connection (development mode) @ http://localhost:3100/src/lib/services/MonitoringService.js:19
+[     997ms] [WARNING] [Timeline] Optional elements not present, binding rest: [generateBtn, backBtn] @ http://localhost:3100/src/components/TimelineEditorPage.jsx?t=1787523865681:4977
+[    1012ms] [LOG] [TimelineAgentIntegration] CineGen workflows registered @ http://localhost:3100/src/timelineAgentIntegration.js:102
+[    1209ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://via.placeholder.com/200x120/cc6600/ffffff?text=Video+2:0
+[    1209ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://via.placeholder.com/200x120/0066cc/ffffff?text=Video+1:0
+[    1389ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1411ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[    1416ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1432ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1438ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1443ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1447ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1456ms] [LOG] [popcorn-init] OK: plugin-form @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1468ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1472ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1478ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1483ms] [LOG] [popcorn-init] OK: plugin-skip @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1493ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[    1503ms] [LOG] [popcorn-init] OK: plugin-text @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1535ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1547ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1581ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1586ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1591ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1597ms] [LOG] [popcorn-init] OK: plugin-combined @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1602ms] [LOG] [popcorn-init] OK: plugin-background @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:48
+[    1602ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://localhost:3100/src/lib/popcornInit.js?t=1787523865681:60
+[    1602ms] [LOG] [popcorn] function 19 @ http://localhost:3100/src/main.js?t=1787523865681:4

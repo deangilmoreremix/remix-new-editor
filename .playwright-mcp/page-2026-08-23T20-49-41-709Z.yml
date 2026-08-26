@@ -1,0 +1,625 @@
+- generic [ref=f56e2]:
+  - banner [ref=f56e3]:
+    - generic [ref=f56e4]:
+      - generic [ref=f56e5]:
+        - generic [ref=f56e6] [cursor=pointer]
+        - navigation [ref=f56e12]:
+          - generic [ref=f56e13] [cursor=pointer]: Explore
+          - generic [ref=f56e14] [cursor=pointer]: Image
+          - generic [ref=f56e15] [cursor=pointer]: Video
+          - generic [ref=f56e16] [cursor=pointer]: Tools
+          - generic [ref=f56e17] [cursor=pointer]: Storyboard
+          - generic [ref=f56e18] [cursor=pointer]: Edit
+          - generic [ref=f56e19] [cursor=pointer]: Character
+          - generic [ref=f56e20] [cursor=pointer]: Vibe Motion
+          - generic [ref=f56e21] [cursor=pointer]: Cinema Studio
+          - generic [ref=f56e22] [cursor=pointer]: Cinema Template Studio
+          - generic [ref=f56e23] [cursor=pointer]: AI Influencer
+          - generic [ref=f56e24] [cursor=pointer]: Smart Video Viral
+          - generic [ref=f56e25] [cursor=pointer]: Apps
+          - generic [ref=f56e26] [cursor=pointer]: Templates
+          - generic [ref=f56e27] [cursor=pointer]: Assist
+          - generic [ref=f56e28] [cursor=pointer]: Community
+          - generic [ref=f56e29] [cursor=pointer]: Content Library
+      - button "Update API Key" [ref=f56e31]
+  - generic [ref=f56e34]:
+    - complementary [ref=f56e35]:
+      - generic:
+        - generic [ref=f56e36] [cursor=pointer]:
+          - button [ref=f56e37]
+          - generic [ref=f56e43]: Apps
+        - generic [ref=f56e44] [cursor=pointer]:
+          - button [ref=f56e45]
+          - generic [ref=f56e50]: Image
+        - generic [ref=f56e51] [cursor=pointer]:
+          - button [ref=f56e52]
+          - generic [ref=f56e56]: Video
+        - generic [ref=f56e57] [cursor=pointer]:
+          - button [ref=f56e58]
+          - generic [ref=f56e61]: Cinema Studio
+        - generic [ref=f56e62] [cursor=pointer]:
+          - button [ref=f56e63]
+          - generic [ref=f56e66]: Cinema Template Studio
+        - generic [ref=f56e67] [cursor=pointer]:
+          - button [ref=f56e68]
+          - generic [ref=f56e76]: Storyboard
+        - generic [ref=f56e77] [cursor=pointer]:
+          - button [ref=f56e78]
+          - generic [ref=f56e81]: Effects
+        - generic [ref=f56e82] [cursor=pointer]:
+          - button [ref=f56e83]
+          - generic [ref=f56e87]: Edit
+        - generic [ref=f56e88] [cursor=pointer]:
+          - button [ref=f56e89]
+          - generic [ref=f56e95]: Upscale
+        - generic [ref=f56e96] [cursor=pointer]:
+          - button [ref=f56e97]
+          - generic [ref=f56e102]: Audio
+        - generic [ref=f56e103] [cursor=pointer]:
+          - button [ref=f56e104]
+          - generic [ref=f56e109]: Avatar
+        - generic [ref=f56e110] [cursor=pointer]:
+          - button [ref=f56e111]
+          - generic [ref=f56e116]: Training
+        - generic [ref=f56e117] [cursor=pointer]:
+          - button [ref=f56e118]
+          - generic [ref=f56e122]: Smart Video Academy
+        - generic [ref=f56e123] [cursor=pointer]:
+          - button [ref=f56e124]
+          - generic [ref=f56e129]: Smart Video Viral
+        - generic [ref=f56e130] [cursor=pointer]:
+          - button [ref=f56e131]
+          - generic [ref=f56e135]: Video Tools
+        - generic [ref=f56e136] [cursor=pointer]:
+          - button [ref=f56e137]
+          - generic [ref=f56e140]: Render
+        - generic [ref=f56e141] [cursor=pointer]:
+          - button [ref=f56e142]
+          - generic [ref=f56e146]: Director
+        - generic [ref=f56e147] [cursor=pointer]:
+          - button [ref=f56e148]
+          - generic [ref=f56e154]: Timeline
+        - generic [ref=f56e155] [cursor=pointer]:
+          - button [ref=f56e156]
+          - generic [ref=f56e159]: Chat
+        - generic [ref=f56e160] [cursor=pointer]:
+          - button [ref=f56e161]
+          - generic [ref=f56e165]: Commercial
+        - generic [ref=f56e166] [cursor=pointer]:
+          - button [ref=f56e167]
+          - generic [ref=f56e170]: Templates
+        - generic [ref=f56e171] [cursor=pointer]:
+          - button [ref=f56e172]
+          - generic [ref=f56e176]: Explore
+        - generic [ref=f56e177] [cursor=pointer]:
+          - button [ref=f56e178]
+          - generic [ref=f56e182]: Library
+        - generic [ref=f56e183] [cursor=pointer]:
+          - button [ref=f56e184]
+          - generic [ref=f56e187]: Content
+        - generic [ref=f56e188] [cursor=pointer]:
+          - button [ref=f56e189]
+          - generic [ref=f56e195]: Community
+        - generic [ref=f56e196] [cursor=pointer]:
+          - button [ref=f56e197]
+          - generic [ref=f56e202]: Assist
+        - generic [ref=f56e203] [cursor=pointer]:
+          - button [ref=f56e204]
+          - generic [ref=f56e208]: Commits (0)
+        - generic [ref=f56e209] [cursor=pointer]:
+          - button [ref=f56e210]
+          - generic [ref=f56e214]: AI VFX
+        - generic [ref=f56e215] [cursor=pointer]:
+          - button [ref=f56e216]
+          - generic [ref=f56e220]: Stock Media
+      - generic [ref=f56e221] [cursor=pointer]:
+        - button [ref=f56e222]
+        - generic [ref=f56e226]: Settings
+    - main [ref=f56e227]:
+      - generic [ref=f56e228]:
+        - generic [ref=f56e229]:
+          - button "All studios" [ref=f56e230]
+          - button "Back" [ref=f56e236]
+        - generic [ref=f56e240]:
+          - img "image studio" [ref=f56e241]
+          - generic [ref=f56e243]:
+            - heading "Image Studio" [level=1] [ref=f56e244]
+            - paragraph [ref=f56e245]: Transform images with AI — upscale, stylize, animate and more
+        - generic [ref=f56e247]:
+          - generic [ref=f56e248]:
+            - button "Reference media" [ref=f56e249]
+            - button "Browse stock photos from Pexels" [ref=f56e254]
+            - textbox "Image prompt" [ref=f56e258]:
+              - /placeholder: Describe the image you want to create
+            - generic [ref=f56e259]:
+              - button "GTM Boost prompt enhancer" [ref=f56e260] [cursor=pointer]: 🎯 GTM Boost
+              - button "Open recipe engine" [ref=f56e261] [cursor=pointer]: 📋 Recipes
+              - button "Open Smart Video AI Monetization Hub" [ref=f56e262] [cursor=pointer]: 💼 Monetize
+              - button "Open prompt gallery" [ref=f56e263] [cursor=pointer]: 📚 Prompts
+          - generic [ref=f56e264]:
+            - generic [ref=f56e265]:
+              - button "Nano Banana Select AI generation model" [ref=f56e266]:
+                - generic [ref=f56e268]: Nano Banana
+                - text: Select AI generation model
+              - button "1:1 Change aspect ratio" [ref=f56e271]:
+                - generic [ref=f56e274]: 1:1
+                - text: Change aspect ratio
+              - text: Set output quality
+              - button "🖼 Thumbnail" [ref=f56e277] [cursor=pointer]
+              - button "Advanced Show advanced options" [ref=f56e278]:
+                - generic [ref=f56e282]: Advanced
+                - text: Show advanced options
+              - button "Open model picker" [ref=f56e285]: AI Pick
+              - button "Tools Quick starters & prompt enhancer" [ref=f56e286]:
+                - generic [ref=f56e289]: Tools
+                - text: Quick starters & prompt enhancer
+              - button "Personalize Personalize with a discovered contact" [ref=f56e292]:
+                - generic [ref=f56e296]: Personalize
+                - text: Personalize with a discovered contact
+            - button "Generate image" [ref=f56e299] [cursor=pointer]: Generate ✨ Generate AI image from prompt
+        - generic [ref=f56e300]:
+          - generic [ref=f56e301]:
+            - generic [ref=f56e302]:
+              - generic [ref=f56e303]: "1"
+              - generic [ref=f56e305]:
+                - generic [ref=f56e306]: Choose a model
+                - generic [ref=f56e307]: Select from 20+ AI models in the sidebar. Each model has different strengths for portraits, landscapes, or abstract art.
+            - generic [ref=f56e308]:
+              - generic [ref=f56e309]: "2"
+              - generic [ref=f56e311]:
+                - generic [ref=f56e312]: Write your prompt
+                - generic [ref=f56e313]: Describe what you want to create. Be specific about style, lighting, composition, and mood for better results.
+            - generic [ref=f56e314]:
+              - generic [ref=f56e315]: "3"
+              - generic [ref=f56e317]:
+                - generic [ref=f56e318]: Set parameters
+                - generic [ref=f56e319]: Adjust aspect ratio, resolution, and other settings. Use negative prompts to exclude unwanted elements.
+            - generic [ref=f56e320]:
+              - generic [ref=f56e321]: "4"
+              - generic [ref=f56e323]:
+                - generic [ref=f56e324]: Generate and refine
+                - generic [ref=f56e325]: Click Generate to create your image. Use the result as a starting point and iterate on your prompt for improvements.
+          - generic [ref=f56e326]:
+            - button [ref=f56e327]
+            - generic [ref=f56e331]:
+              - generic [ref=f56e332]:
+                - generic [ref=f56e333]: ●
+                - generic [ref=f56e334]: Add "4K, detailed, professional" to improve quality
+              - generic [ref=f56e335]:
+                - generic [ref=f56e336]: ●
+                - generic [ref=f56e337]: Specify camera angles like "shot from below" or "bird's eye view"
+              - generic [ref=f56e338]:
+                - generic [ref=f56e339]: ●
+                - generic [ref=f56e340]: "Reference art styles: \"in the style of watercolor painting\""
+        - generic [ref=f56e341]: History
+        - status:
+          - generic:
+            - button "↻ Regenerate"
+            - button "↓ Download"
+            - button "+ New"
+            - button "Publish to Social"
+        - generic [ref=f56e343]:
+          - generic [ref=f56e344]:
+            - generic [ref=f56e345]:
+              - generic [ref=f56e346]: Example Gallery
+              - generic [ref=f56e347]: Click any card to view the prompt or create in this style
+            - generic [ref=f56e348]: 28 examples
+          - generic [ref=f56e349]:
+            - text: "Sort by:"
+            - combobox [ref=f56e350]:
+              - option "Default" [selected]
+              - option "Title A-Z"
+              - option "Title Z-A"
+              - option "Duration (shortest)"
+              - option "Duration (longest)"
+              - option "Source"
+          - generic [ref=f56e351]:
+            - button "All" [ref=f56e352] [cursor=pointer]
+            - button "product-marketing" [ref=f56e353] [cursor=pointer]
+            - button "3d" [ref=f56e354] [cursor=pointer]
+            - button "product" [ref=f56e355] [cursor=pointer]
+            - button "food" [ref=f56e356] [cursor=pointer]
+            - button "landscape" [ref=f56e357] [cursor=pointer]
+            - button "infographic-/-edu" [ref=f56e358] [cursor=pointer]
+            - button "watercolor" [ref=f56e359] [cursor=pointer]
+            - button "infographic" [ref=f56e360] [cursor=pointer]
+            - button "app-/-web-design" [ref=f56e361] [cursor=pointer]
+            - button "social-media" [ref=f56e362] [cursor=pointer]
+            - button "character" [ref=f56e363] [cursor=pointer]
+            - button "poster" [ref=f56e364] [cursor=pointer]
+            - button "profile-/-avatar" [ref=f56e365] [cursor=pointer]
+            - button "portrait" [ref=f56e366] [cursor=pointer]
+            - button "photorealistic" [ref=f56e367] [cursor=pointer]
+            - button "cinematic" [ref=f56e368] [cursor=pointer]
+            - button "interior" [ref=f56e369] [cursor=pointer]
+            - button "selfie" [ref=f56e370] [cursor=pointer]
+            - button "minimalist" [ref=f56e371] [cursor=pointer]
+            - button "render" [ref=f56e372] [cursor=pointer]
+            - button "fashion" [ref=f56e373] [cursor=pointer]
+            - button "social" [ref=f56e374] [cursor=pointer]
+          - generic [ref=f56e375]:
+            - generic [ref=f56e376] [cursor=pointer]:
+              - generic [ref=f56e377]:
+                - generic [ref=f56e378]: PRODUCT MARKETING
+                - img "Premium liquid glass Bento grid product infographic with 8 modules" [ref=f56e379]
+              - generic [ref=f56e380]:
+                - generic [ref=f56e381]: Premium liquid glass Bento grid product infographic with 8 modules
+                - generic [ref=f56e382]: Mansi Sanghani
+                - generic [ref=f56e384]:
+                  - generic [ref=f56e385]: product-marketing
+                  - generic [ref=f56e386]: 3d
+                  - generic [ref=f56e387]: product
+                - generic [ref=f56e388]:
+                  - button "View Prompt" [ref=f56e389]
+                  - button "Create This Style" [ref=f56e390]
+            - generic [ref=f56e391] [cursor=pointer]:
+              - generic [ref=f56e392]:
+                - generic [ref=f56e393]: INFOGRAPHIC / EDU
+                - img "Watercolor map of Germany with labeled states" [ref=f56e394]
+              - generic [ref=f56e395]:
+                - generic [ref=f56e396]: Watercolor map of Germany with labeled states
+                - generic [ref=f56e397]: Florian Gallwitz
+                - generic [ref=f56e399]:
+                  - generic [ref=f56e400]: infographic-/-edu
+                  - generic [ref=f56e401]: watercolor
+                  - generic [ref=f56e402]: infographic
+                - generic [ref=f56e403]:
+                  - button "View Prompt" [ref=f56e404]
+                  - button "Create This Style" [ref=f56e405]
+            - generic [ref=f56e406] [cursor=pointer]:
+              - generic [ref=f56e407]:
+                - generic [ref=f56e408]: APP / WEB DESIGN
+                - img "Vintage Patent Document for an Invention" [ref=f56e409]
+              - generic [ref=f56e410]:
+                - generic [ref=f56e411]: Vintage Patent Document for an Invention
+                - generic [ref=f56e412]: Alexandra Aisling
+                - generic [ref=f56e414]: app-/-web-design
+                - generic [ref=f56e416]:
+                  - button "View Prompt" [ref=f56e417]
+                  - button "Create This Style" [ref=f56e418]
+            - generic [ref=f56e419] [cursor=pointer]:
+              - generic [ref=f56e420]:
+                - generic [ref=f56e421]: SOCIAL MEDIA
+                - img "Edo-period Ukiyo-e reinterpretation of a modern scene" [ref=f56e422]
+              - generic [ref=f56e423]:
+                - generic [ref=f56e424]: Edo-period Ukiyo-e reinterpretation of a modern scene
+                - generic [ref=f56e425]: VoxcatAI
+                - generic [ref=f56e427]:
+                  - generic [ref=f56e428]: social-media
+                  - generic [ref=f56e429]: character
+                  - generic [ref=f56e430]: poster
+                - generic [ref=f56e431]:
+                  - button "View Prompt" [ref=f56e432]
+                  - button "Create This Style" [ref=f56e433]
+            - generic [ref=f56e434] [cursor=pointer]:
+              - generic [ref=f56e435]:
+                - generic [ref=f56e436]: PROFILE / AVATAR
+                - img "Profile / Avatar - Copper-Red Hair Window Portrait" [ref=f56e437]
+              - generic [ref=f56e438]:
+                - generic [ref=f56e439]: Profile / Avatar - Copper-Red Hair Window Portrait
+                - generic [ref=f56e440]: J⭕DIE
+                - generic [ref=f56e442]:
+                  - generic [ref=f56e443]: profile-/-avatar
+                  - generic [ref=f56e444]: portrait
+                  - generic [ref=f56e445]: photorealistic
+                - generic [ref=f56e446]:
+                  - button "View Prompt" [ref=f56e447]
+                  - button "Create This Style" [ref=f56e448]
+            - generic [ref=f56e449] [cursor=pointer]:
+              - generic [ref=f56e450]:
+                - generic [ref=f56e451]: PROFILE / AVATAR
+                - img "Profile / Avatar - Cinematic Summer Garden Portrait" [ref=f56e452]
+              - generic [ref=f56e453]:
+                - generic [ref=f56e454]: Profile / Avatar - Cinematic Summer Garden Portrait
+                - generic [ref=f56e455]: dreamy digital arts
+                - generic [ref=f56e457]:
+                  - generic [ref=f56e458]: profile-/-avatar
+                  - generic [ref=f56e459]: portrait
+                  - generic [ref=f56e460]: cinematic
+                - generic [ref=f56e461]:
+                  - button "View Prompt" [ref=f56e462]
+                  - button "Create This Style" [ref=f56e463]
+            - generic [ref=f56e464] [cursor=pointer]:
+              - generic [ref=f56e465]:
+                - generic [ref=f56e466]: PROFILE / AVATAR
+                - img "Profile / Avatar - Casual Hijab Selfie Portrait" [ref=f56e467]
+              - generic [ref=f56e468]:
+                - generic [ref=f56e469]: Profile / Avatar - Casual Hijab Selfie Portrait
+                - generic [ref=f56e470]: Feyber | AI Creator
+                - generic [ref=f56e472]:
+                  - generic [ref=f56e473]: profile-/-avatar
+                  - generic [ref=f56e474]: portrait
+                  - generic [ref=f56e475]: selfie
+                - generic [ref=f56e476]:
+                  - button "View Prompt" [ref=f56e477]
+                  - button "Create This Style" [ref=f56e478]
+            - generic [ref=f56e479] [cursor=pointer]:
+              - generic [ref=f56e480]:
+                - generic [ref=f56e481]: PROFILE / AVATAR
+                - img "Profile / Avatar - Madison Beer Boa Hancock Cosplay" [ref=f56e482]
+              - generic [ref=f56e483]:
+                - generic [ref=f56e484]: Profile / Avatar - Madison Beer Boa Hancock Cosplay
+                - generic [ref=f56e485]: KeorUnreal
+                - generic [ref=f56e487]:
+                  - generic [ref=f56e488]: profile-/-avatar
+                  - generic [ref=f56e489]: portrait
+                  - generic [ref=f56e490]: selfie
+                - generic [ref=f56e491]:
+                  - button "View Prompt" [ref=f56e492]
+                  - button "Create This Style" [ref=f56e493]
+            - generic [ref=f56e494] [cursor=pointer]:
+              - generic [ref=f56e495]:
+                - generic [ref=f56e496]: PROFILE / AVATAR
+                - img "Profile / Avatar - Ultra-Detailed Cinematic Spring Portrait" [ref=f56e497]
+              - generic [ref=f56e498]:
+                - generic [ref=f56e499]: Profile / Avatar - Ultra-Detailed Cinematic Spring Portrait
+                - generic [ref=f56e500]: dreamy digital arts
+                - generic [ref=f56e502]:
+                  - generic [ref=f56e503]: profile-/-avatar
+                  - generic [ref=f56e504]: portrait
+                  - generic [ref=f56e505]: cinematic
+                - generic [ref=f56e506]:
+                  - button "View Prompt" [ref=f56e507]
+                  - button "Create This Style" [ref=f56e508]
+            - generic [ref=f56e509] [cursor=pointer]:
+              - generic [ref=f56e510]:
+                - generic [ref=f56e511]: PROFILE / AVATAR
+                - img "Profile / Avatar - Cinematic Tropical Forest Survival Portrait" [ref=f56e512]
+              - generic [ref=f56e513]:
+                - generic [ref=f56e514]: Profile / Avatar - Cinematic Tropical Forest Survival Portrait
+                - generic [ref=f56e515]: Ayla | AI & Tech
+                - generic [ref=f56e517]:
+                  - generic [ref=f56e518]: profile-/-avatar
+                  - generic [ref=f56e519]: portrait
+                  - generic [ref=f56e520]: photorealistic
+                - generic [ref=f56e521]:
+                  - button "View Prompt" [ref=f56e522]
+                  - button "Create This Style" [ref=f56e523]
+            - generic [ref=f56e524] [cursor=pointer]:
+              - generic [ref=f56e525]:
+                - generic [ref=f56e526]: PROFILE / AVATAR
+                - img "Profile / Avatar - Royal Blue Satin Dress Mirror Portrait" [ref=f56e527]
+              - generic [ref=f56e528]:
+                - generic [ref=f56e529]: Profile / Avatar - Royal Blue Satin Dress Mirror Portrait
+                - generic [ref=f56e530]: J⭕DIE
+                - generic [ref=f56e532]:
+                  - generic [ref=f56e533]: profile-/-avatar
+                  - generic [ref=f56e534]: portrait
+                  - generic [ref=f56e535]: photorealistic
+                - generic [ref=f56e536]:
+                  - button "View Prompt" [ref=f56e537]
+                  - button "Create This Style" [ref=f56e538]
+            - generic [ref=f56e539] [cursor=pointer]:
+              - generic [ref=f56e540]:
+                - generic [ref=f56e541]: PROFILE / AVATAR
+                - img "Profile / Avatar - Fisheye Convenience Store Portrait" [ref=f56e542]
+              - generic [ref=f56e543]:
+                - generic [ref=f56e544]: Profile / Avatar - Fisheye Convenience Store Portrait
+                - generic [ref=f56e545]: Feyber | AI Creator
+                - generic [ref=f56e547]:
+                  - generic [ref=f56e548]: profile-/-avatar
+                  - generic [ref=f56e549]: portrait
+                  - generic [ref=f56e550]: photorealistic
+                - generic [ref=f56e551]:
+                  - button "View Prompt" [ref=f56e552]
+                  - button "Create This Style" [ref=f56e553]
+            - generic [ref=f56e554] [cursor=pointer]:
+              - generic [ref=f56e555]:
+                - generic [ref=f56e556]: PROFILE / AVATAR
+                - img "Profile / Avatar - Cinematic Rural Village Portrait" [ref=f56e557]
+              - generic [ref=f56e558]:
+                - generic [ref=f56e559]: Profile / Avatar - Cinematic Rural Village Portrait
+                - generic [ref=f56e560]: Ayla | AI & Tech
+                - generic [ref=f56e562]:
+                  - generic [ref=f56e563]: profile-/-avatar
+                  - generic [ref=f56e564]: portrait
+                  - generic [ref=f56e565]: photorealistic
+                - generic [ref=f56e566]:
+                  - button "View Prompt" [ref=f56e567]
+                  - button "Create This Style" [ref=f56e568]
+            - generic [ref=f56e569] [cursor=pointer]:
+              - generic [ref=f56e570]:
+                - generic [ref=f56e571]: PROFILE / AVATAR
+                - img "Profile / Avatar - Facial Identity Preservation Portrait" [ref=f56e572]
+              - generic [ref=f56e573]:
+                - generic [ref=f56e574]: Profile / Avatar - Facial Identity Preservation Portrait
+                - generic [ref=f56e575]: Dilshad Hussain
+                - generic [ref=f56e577]:
+                  - generic [ref=f56e578]: profile-/-avatar
+                  - generic [ref=f56e579]: portrait
+                - generic [ref=f56e580]:
+                  - button "View Prompt" [ref=f56e581]
+                  - button "Create This Style" [ref=f56e582]
+            - generic [ref=f56e583] [cursor=pointer]:
+              - generic [ref=f56e584]:
+                - generic [ref=f56e585]: PROFILE / AVATAR
+                - img "Profile / Avatar - Asian Woman in Striped Sweater" [ref=f56e586]
+              - generic [ref=f56e587]:
+                - generic [ref=f56e588]: Profile / Avatar - Asian Woman in Striped Sweater
+                - generic [ref=f56e589]: Feyber | AI Creator
+                - generic [ref=f56e591]:
+                  - generic [ref=f56e592]: profile-/-avatar
+                  - generic [ref=f56e593]: portrait
+                  - generic [ref=f56e594]: photorealistic
+                - generic [ref=f56e595]:
+                  - button "View Prompt" [ref=f56e596]
+                  - button "Create This Style" [ref=f56e597]
+            - generic [ref=f56e598] [cursor=pointer]:
+              - generic [ref=f56e599]:
+                - generic [ref=f56e600]: PROFILE / AVATAR
+                - img "Profile / Avatar - Sadie Sink Grassy Field Portrait" [ref=f56e601]
+              - generic [ref=f56e602]:
+                - generic [ref=f56e603]: Profile / Avatar - Sadie Sink Grassy Field Portrait
+                - generic [ref=f56e604]: Vireon
+                - generic [ref=f56e606]:
+                  - generic [ref=f56e607]: profile-/-avatar
+                  - generic [ref=f56e608]: portrait
+                - generic [ref=f56e609]:
+                  - button "View Prompt" [ref=f56e610]
+                  - button "Create This Style" [ref=f56e611]
+            - generic [ref=f56e612] [cursor=pointer]:
+              - generic [ref=f56e613]:
+                - generic [ref=f56e614]: PROFILE / AVATAR
+                - img "Profile / Avatar - Professional Female Portrait Headshot" [ref=f56e615]
+              - generic [ref=f56e616]:
+                - generic [ref=f56e617]: Profile / Avatar - Professional Female Portrait Headshot
+                - generic [ref=f56e618]: M@un
+                - generic [ref=f56e620]:
+                  - generic [ref=f56e621]: profile-/-avatar
+                  - generic [ref=f56e622]: portrait
+                - generic [ref=f56e623]:
+                  - button "View Prompt" [ref=f56e624]
+                  - button "Create This Style" [ref=f56e625]
+            - generic [ref=f56e626] [cursor=pointer]:
+              - generic [ref=f56e627]:
+                - generic [ref=f56e628]: PROFILE / AVATAR
+                - img "Profile / Avatar - Jenna Ortega Indoor Lifestyle Portrait" [ref=f56e629]
+              - generic [ref=f56e630]:
+                - generic [ref=f56e631]: Profile / Avatar - Jenna Ortega Indoor Lifestyle Portrait
+                - generic [ref=f56e632]: Vireon
+                - generic [ref=f56e634]:
+                  - generic [ref=f56e635]: profile-/-avatar
+                  - generic [ref=f56e636]: portrait
+                  - generic [ref=f56e637]: photorealistic
+                - generic [ref=f56e638]:
+                  - button "View Prompt" [ref=f56e639]
+                  - button "Create This Style" [ref=f56e640]
+            - generic [ref=f56e641] [cursor=pointer]:
+              - generic [ref=f56e642]:
+                - generic [ref=f56e643]: PROFILE / AVATAR
+                - img "Profile / Avatar - Noir Punk Street Portrait" [ref=f56e644]
+              - generic [ref=f56e645]:
+                - generic [ref=f56e646]: Profile / Avatar - Noir Punk Street Portrait
+                - generic [ref=f56e647]: Alex Prompts
+                - generic [ref=f56e649]:
+                  - generic [ref=f56e650]: profile-/-avatar
+                  - generic [ref=f56e651]: portrait
+                - generic [ref=f56e652]:
+                  - button "View Prompt" [ref=f56e653]
+                  - button "Create This Style" [ref=f56e654]
+            - generic [ref=f56e655] [cursor=pointer]:
+              - generic [ref=f56e656]:
+                - generic [ref=f56e657]: PROFILE / AVATAR
+                - img "Profile / Avatar - Fuchsia Rose Bouquet Selfie" [ref=f56e658]
+              - generic [ref=f56e659]:
+                - generic [ref=f56e660]: Profile / Avatar - Fuchsia Rose Bouquet Selfie
+                - generic [ref=f56e661]: Ayushi Srivastava
+                - generic [ref=f56e663]:
+                  - generic [ref=f56e664]: profile-/-avatar
+                  - generic [ref=f56e665]: portrait
+                  - generic [ref=f56e666]: selfie
+                - generic [ref=f56e667]:
+                  - button "View Prompt" [ref=f56e668]
+                  - button "Create This Style" [ref=f56e669]
+            - generic [ref=f56e670] [cursor=pointer]:
+              - generic [ref=f56e671]:
+                - generic [ref=f56e672]: PROFILE / AVATAR
+                - img "Profile / Avatar - Rustic Kitchen Lifestyle Portrait" [ref=f56e673]
+              - generic [ref=f56e674]:
+                - generic [ref=f56e675]: Profile / Avatar - Rustic Kitchen Lifestyle Portrait
+                - generic [ref=f56e676]: J⭕DIE
+                - generic [ref=f56e678]:
+                  - generic [ref=f56e679]: profile-/-avatar
+                  - generic [ref=f56e680]: portrait
+                  - generic [ref=f56e681]: cinematic
+                - generic [ref=f56e682]:
+                  - button "View Prompt" [ref=f56e683]
+                  - button "Create This Style" [ref=f56e684]
+            - generic [ref=f56e685] [cursor=pointer]:
+              - generic [ref=f56e686]:
+                - generic [ref=f56e687]: PROFILE / AVATAR
+                - img "Profile / Avatar - Elegant Young Woman Portrait" [ref=f56e688]
+              - generic [ref=f56e689]:
+                - generic [ref=f56e690]: Profile / Avatar - Elegant Young Woman Portrait
+                - generic [ref=f56e691]: Ayla | AI & Tech
+                - generic [ref=f56e693]:
+                  - generic [ref=f56e694]: profile-/-avatar
+                  - generic [ref=f56e695]: portrait
+                  - generic [ref=f56e696]: photorealistic
+                - generic [ref=f56e697]:
+                  - button "View Prompt" [ref=f56e698]
+                  - button "Create This Style" [ref=f56e699]
+            - generic [ref=f56e700] [cursor=pointer]:
+              - generic [ref=f56e701]:
+                - generic [ref=f56e702]: PROFILE / AVATAR
+                - img "Profile / Avatar - Indoor Friendship Fashion Portrait" [ref=f56e703]
+              - generic [ref=f56e704]:
+                - generic [ref=f56e705]: Profile / Avatar - Indoor Friendship Fashion Portrait
+                - generic [ref=f56e706]: J⭕DIE
+                - generic [ref=f56e708]:
+                  - generic [ref=f56e709]: profile-/-avatar
+                  - generic [ref=f56e710]: portrait
+                  - generic [ref=f56e711]: photorealistic
+                - generic [ref=f56e712]:
+                  - button "View Prompt" [ref=f56e713]
+                  - button "Create This Style" [ref=f56e714]
+            - generic [ref=f56e715] [cursor=pointer]:
+              - generic [ref=f56e716]:
+                - generic [ref=f56e717]: SOCIAL MEDIA
+                - img "Social Media Post - Train-ad style book advertisement image" [ref=f56e718]
+              - generic [ref=f56e719]:
+                - generic [ref=f56e720]: Social Media Post - Train-ad style book advertisement image
+                - generic [ref=f56e721]: KAWAI
+                - generic [ref=f56e723]:
+                  - generic [ref=f56e724]: social-media
+                  - generic [ref=f56e725]: product
+                  - generic [ref=f56e726]: social
+                - generic [ref=f56e727]:
+                  - button "View Prompt" [ref=f56e728]
+                  - button "Create This Style" [ref=f56e729]
+            - generic [ref=f56e730] [cursor=pointer]:
+              - generic [ref=f56e731]:
+                - generic [ref=f56e732]: PROFILE / AVATAR
+                - img "Social Media Post - Whimsical Donkey Face Painting" [ref=f56e733]
+              - generic [ref=f56e734]:
+                - generic [ref=f56e735]: Social Media Post - Whimsical Donkey Face Painting
+                - generic [ref=f56e736]: Heather Green
+                - generic [ref=f56e738]:
+                  - generic [ref=f56e739]: profile-/-avatar
+                  - generic [ref=f56e740]: portrait
+                  - generic [ref=f56e741]: social
+                - generic [ref=f56e742]:
+                  - button "View Prompt" [ref=f56e743]
+                  - button "Create This Style" [ref=f56e744]
+            - generic [ref=f56e745] [cursor=pointer]:
+              - generic [ref=f56e746]:
+                - generic [ref=f56e747]: PROFILE / AVATAR
+                - img "Social Media Post - Moody Hotel Bedroom Fashion Portrait" [ref=f56e748]
+              - generic [ref=f56e749]:
+                - generic [ref=f56e750]: Social Media Post - Moody Hotel Bedroom Fashion Portrait
+                - generic [ref=f56e751]: Jan | AI Image Alchemist
+                - generic [ref=f56e753]:
+                  - generic [ref=f56e754]: profile-/-avatar
+                  - generic [ref=f56e755]: portrait
+                  - generic [ref=f56e756]: cinematic
+                - generic [ref=f56e757]:
+                  - button "View Prompt" [ref=f56e758]
+                  - button "Create This Style" [ref=f56e759]
+            - generic [ref=f56e760] [cursor=pointer]:
+              - generic [ref=f56e761]:
+                - generic [ref=f56e762]: SOCIAL MEDIA
+                - img "Social Media Post - Romantic Solar Eclipse Shoreline Silhouette" [ref=f56e763]
+              - generic [ref=f56e764]:
+                - generic [ref=f56e765]: Social Media Post - Romantic Solar Eclipse Shoreline Silhouette
+                - generic [ref=f56e766]: Viki
+                - generic [ref=f56e768]:
+                  - generic [ref=f56e769]: social-media
+                  - generic [ref=f56e770]: social
+                - generic [ref=f56e771]:
+                  - button "View Prompt" [ref=f56e772]
+                  - button "Create This Style" [ref=f56e773]
+            - generic [ref=f56e774] [cursor=pointer]:
+              - generic [ref=f56e775]:
+                - generic [ref=f56e776]: PROFILE / AVATAR
+                - img "Social Media Post - Luxury LED Architectural Portrait" [ref=f56e777]
+              - generic [ref=f56e778]:
+                - generic [ref=f56e779]: Social Media Post - Luxury LED Architectural Portrait
+                - generic [ref=f56e780]: Alex Prompts
+                - generic [ref=f56e782]:
+                  - generic [ref=f56e783]: profile-/-avatar
+                  - generic [ref=f56e784]: portrait
+                  - generic [ref=f56e785]: cinematic
+                - generic [ref=f56e786]:
+                  - button "View Prompt" [ref=f56e787]
+                  - button "Create This Style" [ref=f56e788]
+        - button "Show all 272 image prompts" [ref=f56e789]

@@ -55,7 +55,7 @@ export default class ErrorBoundary extends Component<Props, State> {
             </h1>
             <p className={styles.message}>
               {isChunk
-                ? 'OpenThorn was updated. Refresh the page to load the latest version.'
+                ? 'SmartVideo was updated. Refresh the page to load the latest version.'
                 : (this.state.error?.message || 'An unexpected error occurred. We\'ve logged it and will investigate.')}
             </p>
             <button

@@ -1,0 +1,334 @@
+[     726ms] [LOG] [App] Starting initialization... @ http://localhost:3104/src/main.js?t=1787324643542:19
+[     760ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:41
+[     763ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[     767ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[     770ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[     800ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[     801ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[     823ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[     827ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[     837ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[     839ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[     840ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[     841ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[     842ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[     843ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[     917ms] [LOG] [LandingPage] Header.jsx loaded @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:168
+[    1019ms] [LOG] [LandingPage] CinematicVideoHero.jsx loaded @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:179
+[    1272ms] [LOG] [LandingPage] HeroSection.jsx loaded @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:190
+[    1275ms] [LOG] [LandingPage] Observer created for: scrolling placeholder id: section-scrolling @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:154
+[    1275ms] [LOG] [LandingPage] Observer created for: hook placeholder id: section-hook @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:154
+[    1275ms] [LOG] [LandingPage] Observer created for: engines placeholder id: section-engines @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:154
+[    1275ms] [LOG] [LandingPage] Observer created for: apps placeholder id: section-apps @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:154
+[    1275ms] [LOG] [LandingPage] Observer created for: features placeholder id: section-features @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:154
+[    1275ms] [LOG] [LandingPage] Observer created for: problem placeholder id: section-problem @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:154
+[    1275ms] [LOG] [LandingPage] Observer created for: workflow placeholder id: section-workflow @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:154
+[    1275ms] [LOG] [LandingPage] Observer created for: comparison placeholder id: section-comparison @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:154
+[    1275ms] [LOG] [LandingPage] Observer created for: value placeholder id: section-value @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:154
+[    1276ms] [LOG] [LandingPage] Observer created for: agency placeholder id: section-agency @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:154
+[    1276ms] [LOG] [LandingPage] Observer created for: offer placeholder id: section-offer @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:154
+[    1276ms] [LOG] [LandingPage] Observer created for: cta placeholder id: section-cta @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:154
+[    1276ms] [LOG] [LandingPage] Observer created for: ai-workflow placeholder id: section-ai-workflow @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:154
+[    1276ms] [LOG] [LandingPage] Observer created for: made-with placeholder id: section-made-with @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:154
+[    1276ms] [LOG] [LandingPage] Observer created for: ugc placeholder id: section-ugc @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:154
+[    1276ms] [LOG] [LandingPage] Observer created for: gallery placeholder id: section-gallery @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:154
+[    1276ms] [LOG] [LandingPage] Observer created for: academy placeholder id: section-academy @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:154
+[    1276ms] [LOG] [LandingPage] Observer created for: repo-cinema placeholder id: section-repo-cinema @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:154
+[    1277ms] [LOG] [LandingPage] Observer created for: repo-commercial placeholder id: section-repo-commercial @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:154
+[    1277ms] [LOG] [LandingPage] Observer created for: repo-social-ads placeholder id: section-repo-social-ads @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:154
+[    1277ms] [LOG] [LandingPage] Observer created for: repo-narrative placeholder id: section-repo-narrative @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:154
+[    1277ms] [LOG] [LandingPage] Observer created for: repo-vertical placeholder id: section-repo-vertical @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:154
+[    1277ms] [LOG] [LandingPage] Observer created for: repo-ecommerce placeholder id: section-repo-ecommerce @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:154
+[    1277ms] [LOG] [LandingPage] Observer created for: repo-kinetic placeholder id: section-repo-kinetic @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:154
+[    1277ms] [LOG] [LandingPage] Observer created for: repo-animated placeholder id: section-repo-animated @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:154
+[    1277ms] [LOG] [LandingPage] Observer created for: repo-animation placeholder id: section-repo-animation @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:154
+[    1277ms] [LOG] [LandingPage] Observer created for: repo-reference placeholder id: section-repo-reference @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:154
+[    1278ms] [LOG] [LandingPage] Observer created for: repo-vfx placeholder id: section-repo-vfx @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:154
+[    1278ms] [LOG] [LandingPage] Observer created for: repo-fashion placeholder id: section-repo-fashion @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:154
+[    1278ms] [LOG] [LandingPage] Observer created for: repos placeholder id: section-repos @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:154
+[    1278ms] [LOG] [LandingPage] Observer created for: gtm-boost placeholder id: section-gtm-boost @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:154
+[    1279ms] [LOG] [App] Landing page rendered @ http://localhost:3104/src/main.js?t=1787324643542:88
+[    1301ms] [LOG] [LandingPage] IntersectionObserver fired for gallery [Object] @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:119
+[    1302ms] [LOG] [LandingPage] Loading section: gallery @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:122
+[    1302ms] [LOG] [LandingPage] IntersectionObserver fired for academy [Object] @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:119
+[    1302ms] [LOG] [LandingPage] Loading section: academy @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:122
+[    1303ms] [LOG] [LandingPage] IntersectionObserver fired for repo-animation [Object] @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:119
+[    1303ms] [LOG] [LandingPage] Loading section: repo-animation @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:122
+[    1303ms] [LOG] [LandingPage] IntersectionObserver fired for repo-vertical [Object] @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:119
+[    1306ms] [LOG] [LandingPage] Loading section: repo-vertical @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:122
+[    1306ms] [LOG] [LandingPage] IntersectionObserver fired for repo-animated [Object] @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:119
+[    1307ms] [LOG] [LandingPage] Loading section: repo-animated @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:122
+[    1307ms] [LOG] [LandingPage] IntersectionObserver fired for scrolling [Object] @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:119
+[    1307ms] [LOG] [LandingPage] Loading section: scrolling @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:122
+[    1308ms] [LOG] [LandingPage] IntersectionObserver fired for ai-workflow [Object] @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:119
+[    1308ms] [LOG] [LandingPage] Loading section: ai-workflow @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:122
+[    1309ms] [LOG] [LandingPage] IntersectionObserver fired for value [Object] @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:119
+[    1309ms] [LOG] [LandingPage] Loading section: value @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:122
+[    1311ms] [LOG] [LandingPage] IntersectionObserver fired for made-with [Object] @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:119
+[    1311ms] [LOG] [LandingPage] Loading section: made-with @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:122
+[    1311ms] [LOG] [LandingPage] IntersectionObserver fired for repo-narrative [Object] @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:119
+[    1312ms] [LOG] [LandingPage] Loading section: repo-narrative @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:122
+[    1312ms] [LOG] [LandingPage] IntersectionObserver fired for repo-kinetic [Object] @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:119
+[    1312ms] [LOG] [LandingPage] Loading section: repo-kinetic @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:122
+[    1313ms] [LOG] [LandingPage] IntersectionObserver fired for repo-ecommerce [Object] @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:119
+[    1313ms] [LOG] [LandingPage] Loading section: repo-ecommerce @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:122
+[    1313ms] [LOG] [LandingPage] IntersectionObserver fired for cta [Object] @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:119
+[    1314ms] [LOG] [LandingPage] Loading section: cta @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:122
+[    1314ms] [LOG] [LandingPage] IntersectionObserver fired for workflow [Object] @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:119
+[    1316ms] [LOG] [LandingPage] Loading section: workflow @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:122
+[    1317ms] [LOG] [LandingPage] IntersectionObserver fired for repo-reference [Object] @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:119
+[    1318ms] [LOG] [LandingPage] Loading section: repo-reference @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:122
+[    1318ms] [LOG] [LandingPage] IntersectionObserver fired for ugc [Object] @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:119
+[    1318ms] [LOG] [LandingPage] Loading section: ugc @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:122
+[    1318ms] [LOG] [LandingPage] IntersectionObserver fired for agency [Object] @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:119
+[    1319ms] [LOG] [LandingPage] Loading section: agency @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:122
+[    1319ms] [LOG] [LandingPage] IntersectionObserver fired for repo-cinema [Object] @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:119
+[    1319ms] [LOG] [LandingPage] Loading section: repo-cinema @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:122
+[    1319ms] [LOG] [LandingPage] IntersectionObserver fired for problem [Object] @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:119
+[    1319ms] [LOG] [LandingPage] Loading section: problem @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:122
+[    1319ms] [LOG] [LandingPage] IntersectionObserver fired for repo-commercial [Object] @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:119
+[    1320ms] [LOG] [LandingPage] Loading section: repo-commercial @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:122
+[    1320ms] [LOG] [LandingPage] IntersectionObserver fired for repo-social-ads [Object] @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:119
+[    1320ms] [LOG] [LandingPage] Loading section: repo-social-ads @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:122
+[    1320ms] [LOG] [LandingPage] IntersectionObserver fired for hook [Object] @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:119
+[    1320ms] [LOG] [LandingPage] Loading section: hook @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:122
+[    1321ms] [LOG] [LandingPage] IntersectionObserver fired for repo-vfx [Object] @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:119
+[    1321ms] [LOG] [LandingPage] Loading section: repo-vfx @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:122
+[    1321ms] [LOG] [LandingPage] IntersectionObserver fired for offer [Object] @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:119
+[    1321ms] [LOG] [LandingPage] Loading section: offer @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:122
+[    1322ms] [LOG] [LandingPage] IntersectionObserver fired for repos [Object] @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:119
+[    1322ms] [LOG] [LandingPage] Loading section: repos @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:122
+[    1322ms] [LOG] [LandingPage] IntersectionObserver fired for engines [Object] @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:119
+[    1322ms] [LOG] [LandingPage] Loading section: engines @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:122
+[    1323ms] [LOG] [LandingPage] IntersectionObserver fired for apps [Object] @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:119
+[    1323ms] [LOG] [LandingPage] Loading section: apps @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:122
+[    1323ms] [LOG] [LandingPage] IntersectionObserver fired for repo-fashion [Object] @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:119
+[    1324ms] [LOG] [LandingPage] Loading section: repo-fashion @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:122
+[    1324ms] [LOG] [LandingPage] IntersectionObserver fired for features [Object] @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:119
+[    1324ms] [LOG] [LandingPage] Loading section: features @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:122
+[    1325ms] [LOG] [LandingPage] IntersectionObserver fired for comparison [Object] @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:119
+[    1325ms] [LOG] [LandingPage] Loading section: comparison @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:122
+[    1325ms] [LOG] [LandingPage] IntersectionObserver fired for gtm-boost [Object] @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:119
+[    1325ms] [LOG] [LandingPage] Loading section: gtm-boost @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:122
+[    2000ms] [LOG] [LandingPage] Section loaded: scrolling @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:141
+[    2009ms] [LOG] [LandingPage] Section loaded: cta @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:141
+[    2382ms] [LOG] [LandingPage] Section loaded: ai-workflow @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:141
+[    2390ms] [LOG] [LandingPage] Section loaded: gallery @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:141
+[    2464ms] [LOG] [LandingPage] Section loaded: academy @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:141
+[    2688ms] [LOG] [LandingPage] Section loaded: repo-reference @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:141
+[    2696ms] [LOG] [LandingPage] Section loaded: repo-social-ads @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:141
+[    2705ms] [LOG] [LandingPage] Section loaded: repo-vfx @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:141
+[    2713ms] [LOG] [LandingPage] Section loaded: repo-vertical @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:141
+[    2722ms] [LOG] [LandingPage] Section loaded: repo-narrative @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:141
+[    2730ms] [LOG] [LandingPage] Section loaded: repo-cinema @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:141
+[    2739ms] [LOG] [LandingPage] Section loaded: repo-kinetic @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:141
+[    2746ms] [LOG] [LandingPage] Section loaded: repo-commercial @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:141
+[    2752ms] [LOG] [LandingPage] Section loaded: repo-fashion @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:141
+[    2758ms] [LOG] [LandingPage] Section loaded: repo-animation @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:141
+[    2857ms] [LOG] [LandingPage] Section loaded: repo-animated @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:141
+[    2866ms] [LOG] [LandingPage] Section loaded: repo-ecommerce @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:141
+[    2869ms] [LOG] [LandingPage] Section loaded: value @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:141
+[    2873ms] [LOG] [LandingPage] Section loaded: workflow @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:141
+[    2873ms] [LOG] [LandingPage] Section loaded: problem @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:141
+[    2874ms] [LOG] [LandingPage] Section loaded: hook @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:141
+[    2877ms] [LOG] [LandingPage] Section loaded: offer @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:141
+[    2886ms] [LOG] [LandingPage] Section loaded: agency @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:141
+[    2889ms] [LOG] [LandingPage] Section loaded: engines @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:141
+[    2895ms] [LOG] [LandingPage] Section loaded: features @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:141
+[    2896ms] [LOG] [LandingPage] Section loaded: comparison @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:141
+[    2903ms] [LOG] [LandingPage] Section loaded: apps @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:141
+[    3059ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://localhost:3104/:0
+[    3095ms] [LOG] [LandingPage] Section loaded: made-with @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:141
+[    3098ms] [LOG] [LandingPage] Section loaded: ugc @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:141
+[    3099ms] [LOG] [LandingPage] Section loaded: repos @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:141
+[    3101ms] [LOG] [LandingPage] Section loaded: gtm-boost @ http://localhost:3104/src/components/landing/LandingPage.jsx?t=1787324643542:141
+[    3184ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3104/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=614e0d00:20096
+[    3191ms] [ERROR] [ModalSystem] mount failed TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787324098102:26:22 @ http://localhost:3104/src/main.js?t=1787324643542:310
+[    3193ms] [ERROR] [popcorn-init] FAILED at: plugin-image TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787324098102:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:55
+[    3212ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonTransition TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787324098102:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:55
+[    3222ms] [ERROR] [popcorn-init] FAILED at: plugin-lottie-json TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787324098102:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:55
+[    3232ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[    3241ms] [ERROR] [popcorn-init] FAILED at: plugin-personalizedImage TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787324098102:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:55
+[    3255ms] [ERROR] [popcorn-init] FAILED at: plugin-loopPlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787324098102:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:55
+[    3263ms] [ERROR] [popcorn-init] FAILED at: plugin-pausePlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787324098102:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:55
+[    3292ms] [ERROR] [popcorn-init] FAILED at: plugin-form TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787324098102:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:55
+[    3342ms] [ERROR] [popcorn-init] FAILED at: plugin-retarget TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787324098102:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:55
+[    3353ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[    3371ms] [ERROR] [popcorn-init] FAILED at: plugin-sequencer TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787324098102:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:55
+[    3386ms] [ERROR] [popcorn-init] FAILED at: plugin-skip TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787324098102:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:55
+[    3423ms] [ERROR] [popcorn-init] FAILED at: plugin-text TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787324098102:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:55
+[    3436ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[    3442ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonAnimation TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787324098102:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:55
+[    3473ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[    3480ms] [ERROR] [popcorn-init] FAILED at: plugin-seethroughtext TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787324098102:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:55
+[    3486ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[    3491ms] [ERROR] [popcorn-init] FAILED at: plugin-combined TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787324098102:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:55
+[    3502ms] [ERROR] [popcorn-init] FAILED at: plugin-background TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787324098102:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:55
+[    3502ms] [LOG] [popcorn-init] SUMMARY: 5/20 plugins registered; FAILED: plugin-image, plugin-jsonTransition, plugin-lottie-json, plugin-personalizedImage, plugin-loopPlugin, plugin-pausePlugin, plugin-form, plugin-retarget, plugin-sequencer, plugin-skip, plugin-text, plugin-jsonAnimation, plugin-seethroughtext, plugin-combined, plugin-background @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:60
+[    3503ms] [LOG] [popcorn] function 5 @ http://localhost:3104/src/main.js?t=1787324643542:4
+[   24220ms] [LOG] [App] Starting initialization... @ http://localhost:3104/src/main.js?t=1787324643542:19
+[   24252ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:41
+[   24256ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[   24258ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[   24258ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[   24259ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[   24259ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[   24260ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[   24261ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[   24262ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[   24262ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[   24264ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[   24264ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[   24265ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[   24265ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[   24484ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3104/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=614e0d00:20096
+[   24503ms] [LOG] [App] Initialized in 282.90ms @ http://localhost:3104/src/main.js?t=1787324643542:145
+[   24503ms] [LOG] [App] Navigating to initial page: viral @ http://localhost:3104/src/main.js?t=1787324643542:146
+[   24504ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://localhost:3104/src/main.js?t=1787324643542:157
+[   25095ms] [ERROR] [ModalSystem] mount failed TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787324098102:26:22 @ http://localhost:3104/src/main.js?t=1787324643542:310
+[   25097ms] [ERROR] [popcorn-init] FAILED at: plugin-image TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787324098102:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:55
+[   25119ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonTransition TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787324098102:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:55
+[   25127ms] [ERROR] [popcorn-init] FAILED at: plugin-lottie-json TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787324098102:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:55
+[   25551ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[   25632ms] [ERROR] [popcorn-init] FAILED at: plugin-personalizedImage TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787324098102:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:55
+[   25903ms] [ERROR] [popcorn-init] FAILED at: plugin-loopPlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787324098102:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:55
+[   25952ms] [ERROR] [popcorn-init] FAILED at: plugin-pausePlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787324098102:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:55
+[   26008ms] [ERROR] [popcorn-init] FAILED at: plugin-form TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787324098102:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:55
+[   26023ms] [ERROR] [popcorn-init] FAILED at: plugin-retarget TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787324098102:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:55
+[   26043ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[   26057ms] [ERROR] [popcorn-init] FAILED at: plugin-sequencer TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787324098102:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:55
+[   26069ms] [ERROR] [popcorn-init] FAILED at: plugin-skip TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787324098102:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:55
+[   26099ms] [ERROR] [popcorn-init] FAILED at: plugin-text TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787324098102:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:55
+[   26112ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[   26119ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonAnimation TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787324098102:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:55
+[   26140ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[   26152ms] [ERROR] [popcorn-init] FAILED at: plugin-seethroughtext TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787324098102:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:55
+[   26158ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:48
+[   26185ms] [ERROR] [popcorn-init] FAILED at: plugin-combined TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787324098102:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:55
+[   26197ms] [ERROR] [popcorn-init] FAILED at: plugin-background TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787324098102:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:55
+[   26198ms] [LOG] [popcorn-init] SUMMARY: 5/20 plugins registered; FAILED: plugin-image, plugin-jsonTransition, plugin-lottie-json, plugin-personalizedImage, plugin-loopPlugin, plugin-pausePlugin, plugin-form, plugin-retarget, plugin-sequencer, plugin-skip, plugin-text, plugin-jsonAnimation, plugin-seethroughtext, plugin-combined, plugin-background @ http://localhost:3104/src/lib/popcornInit.js?t=1787324098102:60
+[   26198ms] [LOG] [popcorn] function 5 @ http://localhost:3104/src/main.js?t=1787324643542:4
+[  553440ms] [LOG] [App] Starting initialization... @ http://localhost:3104/src/main.js?t=1787325202902:19
+[  553924ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:41
+[  553941ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:48
+[  553960ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:48
+[  553973ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:48
+[  553976ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:48
+[  553980ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:48
+[  553994ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:48
+[  553999ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:48
+[  554004ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:48
+[  554011ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:48
+[  554016ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:48
+[  554023ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:48
+[  554026ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:48
+[  554027ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:48
+[  555812ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3104/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=614e0d00:20096
+[  555839ms] [LOG] [App] Initialized in 2397.20ms @ http://localhost:3104/src/main.js?t=1787325202902:145
+[  555839ms] [LOG] [App] Navigating to initial page: viral @ http://localhost:3104/src/main.js?t=1787325202902:146
+[  555840ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://localhost:3104/src/main.js?t=1787325202902:157
+[  558551ms] [ERROR] [ModalSystem] mount failed TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787325202902:26:22 @ http://localhost:3104/src/main.js?t=1787325202902:310
+[  558583ms] [ERROR] [popcorn-init] FAILED at: plugin-image TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787325202902:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:55
+[  558807ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonTransition TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787325202902:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:55
+[  558972ms] [ERROR] [popcorn-init] FAILED at: plugin-lottie-json TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787325202902:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:55
+[  560671ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:48
+[  561739ms] [ERROR] [popcorn-init] FAILED at: plugin-personalizedImage TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787325202902:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:55
+[  561921ms] [ERROR] [popcorn-init] FAILED at: plugin-loopPlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787325202902:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:55
+[  562040ms] [ERROR] [popcorn-init] FAILED at: plugin-pausePlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787325202902:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:55
+[  563477ms] [ERROR] [popcorn-init] FAILED at: plugin-form TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787325202902:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:55
+[  563577ms] [ERROR] [popcorn-init] FAILED at: plugin-retarget TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787325202902:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:55
+[  563589ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:48
+[  563606ms] [ERROR] [popcorn-init] FAILED at: plugin-sequencer TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787325202902:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:55
+[  563612ms] [ERROR] [popcorn-init] FAILED at: plugin-skip TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787325202902:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:55
+[  563658ms] [ERROR] [popcorn-init] FAILED at: plugin-text TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787325202902:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:55
+[  563896ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:48
+[  563953ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonAnimation TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787325202902:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:55
+[  563998ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:48
+[  564010ms] [ERROR] [popcorn-init] FAILED at: plugin-seethroughtext TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787325202902:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:55
+[  564016ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:48
+[  564024ms] [ERROR] [popcorn-init] FAILED at: plugin-combined TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787325202902:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:55
+[  564037ms] [ERROR] [popcorn-init] FAILED at: plugin-background TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787325202902:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:55
+[  564037ms] [LOG] [popcorn-init] SUMMARY: 5/20 plugins registered; FAILED: plugin-image, plugin-jsonTransition, plugin-lottie-json, plugin-personalizedImage, plugin-loopPlugin, plugin-pausePlugin, plugin-form, plugin-retarget, plugin-sequencer, plugin-skip, plugin-text, plugin-jsonAnimation, plugin-seethroughtext, plugin-combined, plugin-background @ http://localhost:3104/src/lib/popcornInit.js?t=1787325202902:60
+[  564038ms] [LOG] [popcorn] function 5 @ http://localhost:3104/src/main.js?t=1787325202902:4
+[  596791ms] [LOG] [App] Starting initialization... @ http://localhost:3104/src/main.js?t=1787325248413:19
+[  596851ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3104/src/lib/popcornInit.js?t=1787325248413:41
+[  596857ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3104/src/lib/popcornInit.js?t=1787325248413:48
+[  596861ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3104/src/lib/popcornInit.js?t=1787325248413:48
+[  596863ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3104/src/lib/popcornInit.js?t=1787325248413:48
+[  596865ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3104/src/lib/popcornInit.js?t=1787325248413:48
+[  596873ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3104/src/lib/popcornInit.js?t=1787325248413:48
+[  596874ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3104/src/lib/popcornInit.js?t=1787325248413:48
+[  596874ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3104/src/lib/popcornInit.js?t=1787325248413:48
+[  596875ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3104/src/lib/popcornInit.js?t=1787325248413:48
+[  596878ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3104/src/lib/popcornInit.js?t=1787325248413:48
+[  596879ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3104/src/lib/popcornInit.js?t=1787325248413:48
+[  596879ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3104/src/lib/popcornInit.js?t=1787325248413:48
+[  596880ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3104/src/lib/popcornInit.js?t=1787325248413:48
+[  596881ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3104/src/lib/popcornInit.js?t=1787325248413:48
+[  598170ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3104/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=614e0d00:20096
+[  598177ms] [LOG] [App] Initialized in 1385.80ms @ http://localhost:3104/src/main.js?t=1787325248413:145
+[  598177ms] [LOG] [App] Navigating to initial page: viral @ http://localhost:3104/src/main.js?t=1787325248413:146
+[  598178ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://localhost:3104/src/main.js?t=1787325248413:157
+[  603891ms] [ERROR] [ModalSystem] mount failed TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787325248413:26:22 @ http://localhost:3104/src/main.js?t=1787325248413:310
+[  603973ms] [ERROR] [popcorn-init] FAILED at: plugin-image TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787325248413:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787325248413:55
+[  604905ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonTransition TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787325248413:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787325248413:55
+[  605694ms] [ERROR] [popcorn-init] FAILED at: plugin-lottie-json TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787325248413:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787325248413:55
+[  606084ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3104/src/lib/popcornInit.js?t=1787325248413:48
+[  606443ms] [ERROR] [popcorn-init] FAILED at: plugin-personalizedImage TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787325248413:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787325248413:55
+[  606582ms] [ERROR] [popcorn-init] FAILED at: plugin-loopPlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787325248413:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787325248413:55
+[  606677ms] [ERROR] [popcorn-init] FAILED at: plugin-pausePlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3104/components/modals/RetargetOptInModal.jsx?t=1787325248413:26:22 @ http://localhost:3104/src/lib/popcornInit.js?t=1787325248413:55

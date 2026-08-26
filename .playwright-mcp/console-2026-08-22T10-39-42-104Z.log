@@ -1,0 +1,183 @@
+[     323ms] [LOG] [App] Starting initialization... @ http://localhost:3100/src/main.js:19
+[     339ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3100/src/lib/popcornInit.js:41
+[     342ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3100/src/lib/popcornInit.js:48
+[     343ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3100/src/lib/popcornInit.js:48
+[     346ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3100/src/lib/popcornInit.js:48
+[     349ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3100/src/lib/popcornInit.js:48
+[     351ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3100/src/lib/popcornInit.js:48
+[     352ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3100/src/lib/popcornInit.js:48
+[     352ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3100/src/lib/popcornInit.js:48
+[     353ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3100/src/lib/popcornInit.js:48
+[     355ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3100/src/lib/popcornInit.js:48
+[     357ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3100/src/lib/popcornInit.js:48
+[     362ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3100/src/lib/popcornInit.js:48
+[     365ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3100/src/lib/popcornInit.js:48
+[     367ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3100/src/lib/popcornInit.js:48
+[     368ms] [LOG] [LandingPage] Header.jsx loaded @ http://localhost:3100/src/components/landing/LandingPage.jsx:170
+[     815ms] [LOG] [LandingPage] CinematicVideoHero.jsx loaded @ http://localhost:3100/src/components/landing/LandingPage.jsx:183
+[    1295ms] [LOG] [LandingPage] HeroSection.jsx loaded @ http://localhost:3100/src/components/landing/LandingPage.jsx:196
+[    1295ms] [LOG] [LandingPage] Observer created for: scrolling placeholder id: section-scrolling @ http://localhost:3100/src/components/landing/LandingPage.jsx:154
+[    1296ms] [LOG] [LandingPage] Observer created for: hook placeholder id: section-hook @ http://localhost:3100/src/components/landing/LandingPage.jsx:154
+[    1296ms] [LOG] [LandingPage] Observer created for: engines placeholder id: section-engines @ http://localhost:3100/src/components/landing/LandingPage.jsx:154
+[    1296ms] [LOG] [LandingPage] Observer created for: apps placeholder id: section-apps @ http://localhost:3100/src/components/landing/LandingPage.jsx:154
+[    1296ms] [LOG] [LandingPage] Observer created for: features placeholder id: section-features @ http://localhost:3100/src/components/landing/LandingPage.jsx:154
+[    1296ms] [LOG] [LandingPage] Observer created for: problem placeholder id: section-problem @ http://localhost:3100/src/components/landing/LandingPage.jsx:154
+[    1296ms] [LOG] [LandingPage] Observer created for: workflow placeholder id: section-workflow @ http://localhost:3100/src/components/landing/LandingPage.jsx:154
+[    1296ms] [LOG] [LandingPage] Observer created for: comparison placeholder id: section-comparison @ http://localhost:3100/src/components/landing/LandingPage.jsx:154
+[    1296ms] [LOG] [LandingPage] Observer created for: value placeholder id: section-value @ http://localhost:3100/src/components/landing/LandingPage.jsx:154
+[    1296ms] [LOG] [LandingPage] Observer created for: agency placeholder id: section-agency @ http://localhost:3100/src/components/landing/LandingPage.jsx:154
+[    1296ms] [LOG] [LandingPage] Observer created for: offer placeholder id: section-offer @ http://localhost:3100/src/components/landing/LandingPage.jsx:154
+[    1296ms] [LOG] [LandingPage] Observer created for: cta placeholder id: section-cta @ http://localhost:3100/src/components/landing/LandingPage.jsx:154
+[    1296ms] [LOG] [LandingPage] Observer created for: ai-workflow placeholder id: section-ai-workflow @ http://localhost:3100/src/components/landing/LandingPage.jsx:154
+[    1296ms] [LOG] [LandingPage] Observer created for: made-with placeholder id: section-made-with @ http://localhost:3100/src/components/landing/LandingPage.jsx:154
+[    1296ms] [LOG] [LandingPage] Observer created for: ugc placeholder id: section-ugc @ http://localhost:3100/src/components/landing/LandingPage.jsx:154
+[    1296ms] [LOG] [LandingPage] Observer created for: gallery placeholder id: section-gallery @ http://localhost:3100/src/components/landing/LandingPage.jsx:154
+[    1296ms] [LOG] [LandingPage] Observer created for: academy placeholder id: section-academy @ http://localhost:3100/src/components/landing/LandingPage.jsx:154
+[    1296ms] [LOG] [LandingPage] Observer created for: repo-cinema placeholder id: section-repo-cinema @ http://localhost:3100/src/components/landing/LandingPage.jsx:154
+[    1296ms] [LOG] [LandingPage] Observer created for: repo-commercial placeholder id: section-repo-commercial @ http://localhost:3100/src/components/landing/LandingPage.jsx:154
+[    1296ms] [LOG] [LandingPage] Observer created for: repo-social-ads placeholder id: section-repo-social-ads @ http://localhost:3100/src/components/landing/LandingPage.jsx:154
+[    1296ms] [LOG] [LandingPage] Observer created for: repo-narrative placeholder id: section-repo-narrative @ http://localhost:3100/src/components/landing/LandingPage.jsx:154
+[    1297ms] [LOG] [LandingPage] Observer created for: repo-vertical placeholder id: section-repo-vertical @ http://localhost:3100/src/components/landing/LandingPage.jsx:154
+[    1297ms] [LOG] [LandingPage] Observer created for: repo-ecommerce placeholder id: section-repo-ecommerce @ http://localhost:3100/src/components/landing/LandingPage.jsx:154
+[    1297ms] [LOG] [LandingPage] Observer created for: repo-kinetic placeholder id: section-repo-kinetic @ http://localhost:3100/src/components/landing/LandingPage.jsx:154
+[    1297ms] [LOG] [LandingPage] Observer created for: repo-animated placeholder id: section-repo-animated @ http://localhost:3100/src/components/landing/LandingPage.jsx:154
+[    1297ms] [LOG] [LandingPage] Observer created for: repo-animation placeholder id: section-repo-animation @ http://localhost:3100/src/components/landing/LandingPage.jsx:154
+[    1297ms] [LOG] [LandingPage] Observer created for: repo-reference placeholder id: section-repo-reference @ http://localhost:3100/src/components/landing/LandingPage.jsx:154
+[    1297ms] [LOG] [LandingPage] Observer created for: repo-vfx placeholder id: section-repo-vfx @ http://localhost:3100/src/components/landing/LandingPage.jsx:154
+[    1297ms] [LOG] [LandingPage] Observer created for: repo-fashion placeholder id: section-repo-fashion @ http://localhost:3100/src/components/landing/LandingPage.jsx:154
+[    1297ms] [LOG] [LandingPage] Observer created for: repos placeholder id: section-repos @ http://localhost:3100/src/components/landing/LandingPage.jsx:154
+[    1297ms] [LOG] [LandingPage] Observer created for: gtm-boost placeholder id: section-gtm-boost @ http://localhost:3100/src/components/landing/LandingPage.jsx:154
+[    1298ms] [LOG] [App] Landing page rendered @ http://localhost:3100/src/main.js:88
+[    1316ms] [LOG] [LandingPage] IntersectionObserver fired for repo-animated [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:119
+[    1317ms] [LOG] [LandingPage] Loading section: repo-animated @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1317ms] [LOG] [LandingPage] IntersectionObserver fired for workflow [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:119
+[    1317ms] [LOG] [LandingPage] Loading section: workflow @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1317ms] [LOG] [LandingPage] IntersectionObserver fired for engines [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:119
+[    1317ms] [LOG] [LandingPage] Loading section: engines @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1318ms] [LOG] [LandingPage] IntersectionObserver fired for repo-fashion [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:119
+[    1318ms] [LOG] [LandingPage] Loading section: repo-fashion @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1318ms] [LOG] [LandingPage] IntersectionObserver fired for hook [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:119
+[    1318ms] [LOG] [LandingPage] Loading section: hook @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1318ms] [LOG] [LandingPage] IntersectionObserver fired for repos [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:119
+[    1318ms] [LOG] [LandingPage] Loading section: repos @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1319ms] [LOG] [LandingPage] IntersectionObserver fired for repo-ecommerce [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:119
+[    1319ms] [LOG] [LandingPage] Loading section: repo-ecommerce @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1319ms] [LOG] [LandingPage] IntersectionObserver fired for cta [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:119
+[    1319ms] [LOG] [LandingPage] Loading section: cta @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1319ms] [LOG] [LandingPage] IntersectionObserver fired for problem [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:119
+[    1319ms] [LOG] [LandingPage] Loading section: problem @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1320ms] [LOG] [LandingPage] IntersectionObserver fired for repo-reference [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:119
+[    1320ms] [LOG] [LandingPage] Loading section: repo-reference @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1320ms] [LOG] [LandingPage] IntersectionObserver fired for features [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:119
+[    1320ms] [LOG] [LandingPage] Loading section: features @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1320ms] [LOG] [LandingPage] IntersectionObserver fired for comparison [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:119
+[    1320ms] [LOG] [LandingPage] Loading section: comparison @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1321ms] [LOG] [LandingPage] IntersectionObserver fired for gtm-boost [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:119
+[    1321ms] [LOG] [LandingPage] Loading section: gtm-boost @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1321ms] [LOG] [LandingPage] IntersectionObserver fired for offer [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:119
+[    1321ms] [LOG] [LandingPage] Loading section: offer @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1321ms] [LOG] [LandingPage] IntersectionObserver fired for ugc [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:119
+[    1321ms] [LOG] [LandingPage] Loading section: ugc @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1322ms] [LOG] [LandingPage] IntersectionObserver fired for value [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:119
+[    1322ms] [LOG] [LandingPage] Loading section: value @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1322ms] [LOG] [LandingPage] IntersectionObserver fired for repo-social-ads [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:119
+[    1322ms] [LOG] [LandingPage] Loading section: repo-social-ads @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1322ms] [LOG] [LandingPage] IntersectionObserver fired for repo-vfx [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:119
+[    1323ms] [LOG] [LandingPage] Loading section: repo-vfx @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1323ms] [LOG] [LandingPage] IntersectionObserver fired for agency [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:119
+[    1323ms] [LOG] [LandingPage] Loading section: agency @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1323ms] [LOG] [LandingPage] IntersectionObserver fired for apps [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:119
+[    1324ms] [LOG] [LandingPage] Loading section: apps @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1324ms] [LOG] [LandingPage] IntersectionObserver fired for repo-animation [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:119
+[    1324ms] [LOG] [LandingPage] Loading section: repo-animation @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1325ms] [LOG] [LandingPage] IntersectionObserver fired for made-with [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:119
+[    1325ms] [LOG] [LandingPage] Loading section: made-with @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1325ms] [LOG] [LandingPage] IntersectionObserver fired for repo-vertical [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:119
+[    1325ms] [LOG] [LandingPage] Loading section: repo-vertical @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1325ms] [LOG] [LandingPage] IntersectionObserver fired for ai-workflow [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:119
+[    1326ms] [LOG] [LandingPage] Loading section: ai-workflow @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1326ms] [LOG] [LandingPage] IntersectionObserver fired for academy [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:119
+[    1326ms] [LOG] [LandingPage] Loading section: academy @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1326ms] [LOG] [LandingPage] IntersectionObserver fired for repo-narrative [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:119
+[    1326ms] [LOG] [LandingPage] Loading section: repo-narrative @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1326ms] [LOG] [LandingPage] IntersectionObserver fired for repo-kinetic [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:119
+[    1327ms] [LOG] [LandingPage] Loading section: repo-kinetic @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1327ms] [LOG] [LandingPage] IntersectionObserver fired for repo-commercial [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:119
+[    1327ms] [LOG] [LandingPage] Loading section: repo-commercial @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1327ms] [LOG] [LandingPage] IntersectionObserver fired for gallery [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:119
+[    1327ms] [LOG] [LandingPage] Loading section: gallery @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1327ms] [LOG] [LandingPage] IntersectionObserver fired for repo-cinema [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:119
+[    1328ms] [LOG] [LandingPage] Loading section: repo-cinema @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1328ms] [LOG] [LandingPage] IntersectionObserver fired for scrolling [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:119
+[    1328ms] [LOG] [LandingPage] Loading section: scrolling @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    2031ms] [LOG] [LandingPage] Section loaded: workflow @ http://localhost:3100/src/components/landing/LandingPage.jsx:141
+[    2064ms] [LOG] [LandingPage] Section loaded: hook @ http://localhost:3100/src/components/landing/LandingPage.jsx:141
+[    2068ms] [LOG] [LandingPage] Section loaded: engines @ http://localhost:3100/src/components/landing/LandingPage.jsx:141
+[    2069ms] [LOG] [LandingPage] Section loaded: problem @ http://localhost:3100/src/components/landing/LandingPage.jsx:141
+[    2069ms] [LOG] [LandingPage] Section loaded: cta @ http://localhost:3100/src/components/landing/LandingPage.jsx:141
+[    2070ms] [LOG] [LandingPage] Section loaded: features @ http://localhost:3100/src/components/landing/LandingPage.jsx:141
+[    2071ms] [LOG] [LandingPage] Section loaded: comparison @ http://localhost:3100/src/components/landing/LandingPage.jsx:141
+[    2072ms] [LOG] [LandingPage] Section loaded: offer @ http://localhost:3100/src/components/landing/LandingPage.jsx:141
+[    2073ms] [LOG] [LandingPage] Section loaded: value @ http://localhost:3100/src/components/landing/LandingPage.jsx:141
+[    2073ms] [LOG] [LandingPage] Section loaded: agency @ http://localhost:3100/src/components/landing/LandingPage.jsx:141
+[    2079ms] [LOG] [LandingPage] Section loaded: scrolling @ http://localhost:3100/src/components/landing/LandingPage.jsx:141
+[    2231ms] [LOG] [LandingPage] Section loaded: repos @ http://localhost:3100/src/components/landing/LandingPage.jsx:141
+[    2454ms] [LOG] [LandingPage] Section loaded: ugc @ http://localhost:3100/src/components/landing/LandingPage.jsx:141
+[    2469ms] [LOG] [LandingPage] Section loaded: made-with @ http://localhost:3100/src/components/landing/LandingPage.jsx:141
+[    2479ms] [LOG] [LandingPage] Section loaded: gallery @ http://localhost:3100/src/components/landing/LandingPage.jsx:141
+[    2484ms] [LOG] [LandingPage] Section loaded: gtm-boost @ http://localhost:3100/src/components/landing/LandingPage.jsx:141
+[    2563ms] [LOG] [LandingPage] Section loaded: apps @ http://localhost:3100/src/components/landing/LandingPage.jsx:141
+[    2677ms] [LOG] [LandingPage] Section loaded: academy @ http://localhost:3100/src/components/landing/LandingPage.jsx:141
+[    4067ms] [LOG] [LandingPage] Section loaded: repo-kinetic @ http://localhost:3100/src/components/landing/LandingPage.jsx:141
+[    4071ms] [LOG] [LandingPage] Section loaded: repo-animated @ http://localhost:3100/src/components/landing/LandingPage.jsx:141
+[    4076ms] [LOG] [LandingPage] Section loaded: repo-animation @ http://localhost:3100/src/components/landing/LandingPage.jsx:141
+[    4087ms] [LOG] [LandingPage] Section loaded: repo-vertical @ http://localhost:3100/src/components/landing/LandingPage.jsx:141
+[    4107ms] [LOG] [LandingPage] Section loaded: repo-social-ads @ http://localhost:3100/src/components/landing/LandingPage.jsx:141
+[    4112ms] [LOG] [LandingPage] Section loaded: repo-commercial @ http://localhost:3100/src/components/landing/LandingPage.jsx:141
+[    4118ms] [LOG] [LandingPage] Section loaded: repo-fashion @ http://localhost:3100/src/components/landing/LandingPage.jsx:141
+[    4128ms] [LOG] [LandingPage] Section loaded: repo-cinema @ http://localhost:3100/src/components/landing/LandingPage.jsx:141
+[    4142ms] [LOG] [LandingPage] Section loaded: repo-reference @ http://localhost:3100/src/components/landing/LandingPage.jsx:141
+[    4150ms] [LOG] [LandingPage] Section loaded: repo-vfx @ http://localhost:3100/src/components/landing/LandingPage.jsx:141
+[    4470ms] [LOG] [LandingPage] Section loaded: repo-ecommerce @ http://localhost:3100/src/components/landing/LandingPage.jsx:141
+[    4540ms] [LOG] [LandingPage] Section loaded: ai-workflow @ http://localhost:3100/src/components/landing/LandingPage.jsx:141
+[    4546ms] [LOG] [LandingPage] Section loaded: repo-narrative @ http://localhost:3100/src/components/landing/LandingPage.jsx:141
+[    5570ms] [ERROR] [popcorn-init] FAILED at: plugin-image TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3100/src/lib/popcornInit.js:55
+[    5583ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=dcd14595:20096
+[    5583ms] [ERROR] [ModalSystem] mount failed TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3100/src/main.js:322
+[    6121ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonTransition TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3100/src/lib/popcornInit.js:55
+[    6205ms] [ERROR] [popcorn-init] FAILED at: plugin-lottie-json TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3100/src/lib/popcornInit.js:55
+[    6246ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3100/src/lib/popcornInit.js:48
+[    6292ms] [ERROR] [popcorn-init] FAILED at: plugin-personalizedImage TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3100/src/lib/popcornInit.js:55
+[    6343ms] [ERROR] [popcorn-init] FAILED at: plugin-loopPlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3100/src/lib/popcornInit.js:55
+[    6381ms] [ERROR] [popcorn-init] FAILED at: plugin-pausePlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3100/src/lib/popcornInit.js:55
+[    6421ms] [ERROR] [popcorn-init] FAILED at: plugin-form TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3100/src/lib/popcornInit.js:55
+[    6473ms] [ERROR] [popcorn-init] FAILED at: plugin-retarget TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3100/src/lib/popcornInit.js:55
+[    6498ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:3100/src/lib/popcornInit.js:48
+[    6522ms] [ERROR] [popcorn-init] FAILED at: plugin-sequencer TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3100/src/lib/popcornInit.js:55
+[    6550ms] [ERROR] [popcorn-init] FAILED at: plugin-skip TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3100/src/lib/popcornInit.js:55
+[    6677ms] [ERROR] [popcorn-init] FAILED at: plugin-text TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3100/src/lib/popcornInit.js:55
+[    6719ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:3100/src/lib/popcornInit.js:48
+[    6733ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonAnimation TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3100/src/lib/popcornInit.js:55
+[    6764ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:3100/src/lib/popcornInit.js:48
+[    6775ms] [ERROR] [popcorn-init] FAILED at: plugin-seethroughtext TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3100/src/lib/popcornInit.js:55
+[    6784ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:3100/src/lib/popcornInit.js:48
+[    6791ms] [ERROR] [popcorn-init] FAILED at: plugin-combined TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3100/src/lib/popcornInit.js:55
+[    6799ms] [ERROR] [popcorn-init] FAILED at: plugin-background TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3100/src/lib/popcornInit.js:55
+[    6799ms] [LOG] [popcorn-init] SUMMARY: 5/20 plugins registered; FAILED: plugin-image, plugin-jsonTransition, plugin-lottie-json, plugin-personalizedImage, plugin-loopPlugin, plugin-pausePlugin, plugin-form, plugin-retarget, plugin-sequencer, plugin-skip, plugin-text, plugin-jsonAnimation, plugin-seethroughtext, plugin-combined, plugin-background @ http://localhost:3100/src/lib/popcornInit.js:60
+[    6799ms] [LOG] [popcorn] function 5 @ http://localhost:3100/src/main.js:4

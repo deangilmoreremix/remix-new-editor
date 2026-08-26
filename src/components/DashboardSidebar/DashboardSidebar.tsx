@@ -210,7 +210,7 @@ export default function DashboardSidebar({ projects = [], activeFilter = 'all', 
       {/* Logo */}
       <div className={styles.logoRow}>
         <a href="/dashboard" className={styles.logo}>
-          <img src="/assets/logo.png" alt="OpenThorn" className={styles.logoImg} />
+          <img src="/assets/logo.png" alt="SmartVideo" className={styles.logoImg} />
         </a>
         <button
           className={`${styles.bellBtn} ${notificationsOpen ? styles.bellBtnActive : ''}`}

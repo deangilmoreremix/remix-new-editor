@@ -1,0 +1,150 @@
+- generic [ref=f19e3]:
+  - banner [ref=f19e4]:
+    - generic [ref=f19e5]:
+      - link "SmartVideo by" [ref=f19e6] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f19e7]:
+          - generic [ref=f19e8]: SmartVideo
+          - generic [ref=f19e9]: by
+      - navigation [ref=f19e16]:
+        - button "Solutions" [ref=f19e17] [cursor=pointer]
+        - button "Use Cases" [ref=f19e21] [cursor=pointer]
+        - link "Pricing" [ref=f19e25] [cursor=pointer]:
+          - /url: /pricing
+        - button "Resources" [ref=f19e27] [cursor=pointer]
+      - generic [ref=f19e30]:
+        - button "Sign in" [ref=f19e31] [cursor=pointer]
+        - button "Start free" [ref=f19e32] [cursor=pointer]
+  - generic [ref=f19e37]:
+    - button "Close menu" [ref=f19e38] [cursor=pointer]
+    - navigation [ref=f19e41]:
+      - generic [ref=f19e42]:
+        - button "Solutions" [ref=f19e43] [cursor=pointer]
+        - generic:
+          - link "Founders" [ref=f19e46] [cursor=pointer]:
+            - /url: /blog/introducing-smartvideo
+          - link "Developers" [ref=f19e47] [cursor=pointer]:
+            - /url: /faq
+          - link "Product Managers" [ref=f19e48] [cursor=pointer]:
+            - /url: /pricing
+          - link "Designers" [ref=f19e49] [cursor=pointer]:
+            - /url: /templates
+          - link "Marketers" [ref=f19e50] [cursor=pointer]:
+            - /url: /templates
+          - link "Agencies" [ref=f19e51] [cursor=pointer]:
+            - /url: /pricing
+          - link "Ops" [ref=f19e52] [cursor=pointer]:
+            - /url: /faq
+      - generic [ref=f19e53]:
+        - button "Use Cases" [ref=f19e54] [cursor=pointer]
+        - generic:
+          - link "Productivity" [ref=f19e57] [cursor=pointer]:
+            - /url: /templates
+          - link "E-Commerce" [ref=f19e58] [cursor=pointer]:
+            - /url: /templates
+          - link "Marketing & Sales" [ref=f19e59] [cursor=pointer]:
+            - /url: /templates
+          - link "SaaS & Startups" [ref=f19e60] [cursor=pointer]:
+            - /url: /templates
+          - link "HR & Recruitment" [ref=f19e61] [cursor=pointer]:
+            - /url: /templates
+          - link "Education" [ref=f19e62] [cursor=pointer]:
+            - /url: /templates
+          - link "Community platforms" [ref=f19e63] [cursor=pointer]:
+            - /url: /community
+      - generic [ref=f19e64]:
+        - button "Resources" [ref=f19e65] [cursor=pointer]
+        - generic:
+          - link "Blog" [ref=f19e68] [cursor=pointer]:
+            - /url: /blog
+          - link "Comparisons" [ref=f19e69] [cursor=pointer]:
+            - /url: /compare
+          - link "Provider Guides" [ref=f19e70] [cursor=pointer]:
+            - /url: /build-with
+          - link "Glossary" [ref=f19e71] [cursor=pointer]:
+            - /url: /glossary
+          - link "Changelog" [ref=f19e72] [cursor=pointer]:
+            - /url: /changelog
+          - link "Templates" [ref=f19e73] [cursor=pointer]:
+            - /url: /templates
+          - link "Docs & FAQs" [ref=f19e74] [cursor=pointer]:
+            - /url: /faq
+      - link "Pricing" [ref=f19e75] [cursor=pointer]:
+        - /url: /pricing
+    - generic [ref=f19e76]:
+      - button "Sign in" [ref=f19e77] [cursor=pointer]
+      - button "Start free" [ref=f19e78] [cursor=pointer]
+  - main
+  - contentinfo [ref=f19e79]:
+    - generic [ref=f19e80]:
+      - generic [ref=f19e81]:
+        - generic [ref=f19e82]:
+          - link "SmartVideo" [ref=f19e83] [cursor=pointer]:
+            - /url: /
+          - paragraph [ref=f19e85]: Turn a description into a deployed website â€” with your own API keys and your own infrastructure.
+        - generic [ref=f19e86]:
+          - generic [ref=f19e87]: Solutions
+          - generic [ref=f19e88]:
+            - link "Founders" [ref=f19e89] [cursor=pointer]:
+              - /url: /blog/introducing-smartvideo
+            - link "Developers" [ref=f19e90] [cursor=pointer]:
+              - /url: /faq
+            - link "Product Managers" [ref=f19e91] [cursor=pointer]:
+              - /url: /pricing
+            - link "Designers" [ref=f19e92] [cursor=pointer]:
+              - /url: /templates
+            - link "Marketers" [ref=f19e93] [cursor=pointer]:
+              - /url: /templates
+            - link "Agencies" [ref=f19e94] [cursor=pointer]:
+              - /url: /pricing
+            - link "Ops" [ref=f19e95] [cursor=pointer]:
+              - /url: /faq
+        - generic [ref=f19e96]:
+          - generic [ref=f19e97]: Use Cases
+          - generic [ref=f19e98]:
+            - link "Productivity" [ref=f19e99] [cursor=pointer]:
+              - /url: /templates
+            - link "E-Commerce" [ref=f19e100] [cursor=pointer]:
+              - /url: /templates
+            - link "Marketing & Sales" [ref=f19e101] [cursor=pointer]:
+              - /url: /templates
+            - link "SaaS & Startups" [ref=f19e102] [cursor=pointer]:
+              - /url: /templates
+            - link "Education" [ref=f19e103] [cursor=pointer]:
+              - /url: /templates
+            - link "Community platforms" [ref=f19e104] [cursor=pointer]:
+              - /url: /community
+        - generic [ref=f19e105]:
+          - generic [ref=f19e106]: Resources
+          - generic [ref=f19e107]:
+            - link "Blog" [ref=f19e108] [cursor=pointer]:
+              - /url: /blog
+            - link "Changelog" [ref=f19e109] [cursor=pointer]:
+              - /url: /changelog
+            - link "Templates" [ref=f19e110] [cursor=pointer]:
+              - /url: /templates
+            - link "Docs & FAQs" [ref=f19e111] [cursor=pointer]:
+              - /url: /faq
+            - link "Comparisons" [ref=f19e112] [cursor=pointer]:
+              - /url: /compare
+            - link "Provider Guides" [ref=f19e113] [cursor=pointer]:
+              - /url: /build-with
+            - link "Glossary" [ref=f19e114] [cursor=pointer]:
+              - /url: /glossary
+        - generic [ref=f19e115]:
+          - generic [ref=f19e116]: Legal
+          - generic [ref=f19e117]:
+            - link "Privacy Policy" [ref=f19e118] [cursor=pointer]:
+              - /url: /privacy
+            - link "Terms of Service" [ref=f19e119] [cursor=pointer]:
+              - /url: /terms
+            - link "Cookie Policy" [ref=f19e120] [cursor=pointer]:
+              - /url: /cookies
+            - link "Moderation & DSA" [ref=f19e121] [cursor=pointer]:
+              - /url: /moderation
+            - link "Imprint" [ref=f19e122] [cursor=pointer]:
+              - /url: /imprint
+      - generic [ref=f19e123]:
+        - generic [ref=f19e124]: © 2026 SmartVideo. All rights reserved.
+        - link "X" [ref=f19e126] [cursor=pointer]:
+          - /url: https://x.com

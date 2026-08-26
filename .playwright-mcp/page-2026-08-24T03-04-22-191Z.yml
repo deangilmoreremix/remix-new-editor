@@ -1,0 +1,42 @@
+- generic [ref=f2e1]:
+  - button "Test Exit Intent" [ref=f2e2] [cursor=pointer]
+  - button "Close" [active] [ref=f2e6] [cursor=pointer]: ×
+  - generic [ref=f2e82]:
+    - generic [ref=f2e83]: Bonus 1 · New
+    - generic [ref=f2e84]: AI Social Publishing
+    - generic [ref=f2e85]: AI thumbnail creation built in — auto-generate scroll-stopping thumbnails and publish straight to social.
+    - generic [ref=f2e86]: $499
+  - generic [ref=f2e87]:
+    - generic [ref=f2e88]: Bonus 2 · New
+    - generic [ref=f2e89]: AI Cinema Studio
+    - generic [ref=f2e90]: 46 AI cinema templates — drop in your footage and go.
+    - generic [ref=f2e91]: $399
+  - generic [ref=f2e92]:
+    - generic [ref=f2e93]: Bonus 3 · New
+    - generic [ref=f2e94]: Smart Video Academy
+    - generic [ref=f2e95]: The complete learning hub for monetizing AI video creation.
+    - generic [ref=f2e96]: $999
+  - generic [ref=f2e97]:
+    - generic [ref=f2e98]: Bonus 4 · New
+    - generic [ref=f2e99]: Thumbnail Model AI
+    - generic [ref=f2e100]: Generate AI thumbnail images and GIFs in seconds.
+    - generic [ref=f2e101]: $299
+  - generic [ref=f2e102]:
+    - generic [ref=f2e103]: Bonus 5 · New
+    - generic [ref=f2e104]: Brand Kit
+    - generic [ref=f2e105]: Lock in your colors, fonts, and logo across every video you create.
+    - generic [ref=f2e106]: $199
+  - generic [ref=f2e107]:
+    - generic [ref=f2e108]: Bonus 6 · New
+    - generic [ref=f2e109]: AI Video Thumbnails
+    - generic [ref=f2e110]: AI-generated thumbnails optimized for maximum click-through.
+    - generic [ref=f2e111]: $299
+  - generic [ref=f2e112]:
+    - generic [ref=f2e113]: Bonus 7 · New
+    - generic [ref=f2e114]: Tonalities & Content Writer
+    - generic [ref=f2e115]: Dial in the exact tone and voice for every piece of content you write.
+    - generic [ref=f2e116]: $199
+  - link "CLAIM MY $2,893 IN BONUSES →" [ref=f2e138] [cursor=pointer]:
+    - /url: https://attendee.gotowebinar.com/register/1359437732792203616
+    - text: CLAIM MY $2,893 IN BONUSES
+    - generic [ref=f2e139]: →

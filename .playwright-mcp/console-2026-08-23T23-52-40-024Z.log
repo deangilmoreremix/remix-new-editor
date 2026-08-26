@@ -1,0 +1,311 @@
+[     375ms] [LOG] [App] Starting initialization... @ http://localhost:3100/src/main.js:19
+[     399ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3100/src/lib/popcornInit.js:41
+[     401ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3100/src/lib/popcornInit.js:48
+[     403ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3100/src/lib/popcornInit.js:48
+[     405ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3100/src/lib/popcornInit.js:48
+[     406ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3100/src/lib/popcornInit.js:48
+[     407ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3100/src/lib/popcornInit.js:48
+[     408ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3100/src/lib/popcornInit.js:48
+[     408ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3100/src/lib/popcornInit.js:48
+[     409ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3100/src/lib/popcornInit.js:48
+[     409ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3100/src/lib/popcornInit.js:48
+[     410ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3100/src/lib/popcornInit.js:48
+[     410ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3100/src/lib/popcornInit.js:48
+[     411ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3100/src/lib/popcornInit.js:48
+[     411ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3100/src/lib/popcornInit.js:48
+[    1751ms] [ERROR] [2026-08-23T23:52:41.775Z] [ERROR] Uncaught error | {"filename":"http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js","lineno":79,"colno":72} @ http://localhost:3100/src/lib/logger.js:84
+[    1752ms] [ERROR] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at kick (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:211:7) @ http://localhost:3100/src/lib/logger.js:85
+[    1753ms] [ERROR] [Global Error] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at kick (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:211:7) @ http://localhost:3100/src/main.js:22
+[    1753ms] [LOG] [Analytics] error {errorType: uncaught_exception, message: Uncaught ReferenceError: objectFit is not defined, filename: http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js, lineno: 79} @ http://localhost:3100/src/lib/analytics.js:36
+[    1841ms] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at kick (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:211:7)
+[    1815ms] [LOG] [App] Landing page rendered @ http://localhost:3100/src/main.js:88
+[    1849ms] [ERROR] [2026-08-23T23:52:41.873Z] [ERROR] Uncaught error | {"filename":"http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js","lineno":79,"colno":72} @ http://localhost:3100/src/lib/logger.js:84
+[    1849ms] [ERROR] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/lib/logger.js:85
+[    1850ms] [ERROR] [Global Error] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/main.js:22
+[    1850ms] [LOG] [Analytics] error {errorType: uncaught_exception, message: Uncaught ReferenceError: objectFit is not defined, filename: http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js, lineno: 79} @ http://localhost:3100/src/lib/analytics.js:36
+[    1869ms] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15)
+[    2025ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=708fd709:20096
+[    2125ms] [LOG] [popcorn-init] OK: plugin-image @ http://localhost:3100/src/lib/popcornInit.js:48
+[    3096ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://localhost:3100/src/lib/popcornInit.js:48
+[    3108ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://localhost:3100/src/lib/popcornInit.js:48
+[    3125ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3100/src/lib/popcornInit.js:48
+[    3135ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://localhost:3100/src/lib/popcornInit.js:48
+[    3142ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://localhost:3100/src/lib/popcornInit.js:48
+[    3149ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://localhost:3100/src/lib/popcornInit.js:48
+[    3166ms] [LOG] [popcorn-init] OK: plugin-form @ http://localhost:3100/src/lib/popcornInit.js:48
+[    3184ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://localhost:3100/src/lib/popcornInit.js:48
+[    3190ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:3100/src/lib/popcornInit.js:48
+[    3199ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://localhost:3100/src/lib/popcornInit.js:48
+[    3223ms] [LOG] [popcorn-init] OK: plugin-skip @ http://localhost:3100/src/lib/popcornInit.js:48
+[    3270ms] [LOG] [popcorn-init] OK: plugin-text @ http://localhost:3100/src/lib/popcornInit.js:48
+[    3291ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:3100/src/lib/popcornInit.js:48
+[    3301ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://localhost:3100/src/lib/popcornInit.js:48
+[    3332ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:3100/src/lib/popcornInit.js:48
+[    3344ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://localhost:3100/src/lib/popcornInit.js:48
+[    3352ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:3100/src/lib/popcornInit.js:48
+[    3361ms] [LOG] [popcorn-init] OK: plugin-combined @ http://localhost:3100/src/lib/popcornInit.js:48
+[    3369ms] [LOG] [popcorn-init] OK: plugin-background @ http://localhost:3100/src/lib/popcornInit.js:48
+[    3369ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://localhost:3100/src/lib/popcornInit.js:60
+[    3369ms] [LOG] [popcorn] function 19 @ http://localhost:3100/src/main.js:4
+[   31255ms] [ERROR] [2026-08-23T23:53:11.279Z] [ERROR] Uncaught error | {"filename":"http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js","lineno":79,"colno":72} @ http://localhost:3100/src/lib/logger.js:84
+[   31256ms] [ERROR] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/lib/logger.js:85
+[   31258ms] [ERROR] [Global Error] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/main.js:22
+[   31258ms] [LOG] [Analytics] error {errorType: uncaught_exception, message: Uncaught ReferenceError: objectFit is not defined, filename: http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js, lineno: 79} @ http://localhost:3100/src/lib/analytics.js:36
+[   31295ms] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15)
+[   31286ms] [ERROR] [2026-08-23T23:53:11.310Z] [ERROR] Uncaught error | {"filename":"http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js","lineno":79,"colno":72} @ http://localhost:3100/src/lib/logger.js:84
+[   31287ms] [ERROR] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/lib/logger.js:85
+[   31289ms] [ERROR] [Global Error] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/main.js:22
+[   31289ms] [LOG] [Analytics] error {errorType: uncaught_exception, message: Uncaught ReferenceError: objectFit is not defined, filename: http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js, lineno: 79} @ http://localhost:3100/src/lib/analytics.js:36
+[   31300ms] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15)
+[   31343ms] [LOG] [Landing] section loaded: hook keys: [HookSection] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[   31344ms] [LOG] [Landing] section created: hook type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[   31347ms] [LOG] [Landing] section loaded: scrolling keys: [ScrollingAppStrip] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[   31355ms] [LOG] [Landing] section created: scrolling type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[   31451ms] [LOG] [Landing] section loaded: engines keys: [SixEnginesSection] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[   31453ms] [LOG] [Landing] section created: engines type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[   31454ms] [LOG] [Landing] section loaded: apps keys: [AppsGridSection] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[   31457ms] [LOG] [Landing] section created: apps type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[   31528ms] [LOG] [Landing] section loaded: ai-workflow keys: [MinimaxWorkflowSection, default] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[   31529ms] [LOG] [Landing] section created: ai-workflow type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[   31679ms] [LOG] [Landing] section loaded: made-with keys: [MadeWithSmartVideo, default] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[   31698ms] [LOG] [Landing] section created: made-with type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[  150033ms] [ERROR] [2026-08-23T23:55:10.056Z] [ERROR] Uncaught error | {"filename":"http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js","lineno":79,"colno":72} @ http://localhost:3100/src/lib/logger.js:84
+[  150033ms] [ERROR] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/lib/logger.js:85
+[  150035ms] [ERROR] [Global Error] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/main.js:22
+[  150036ms] [LOG] [Analytics] error {errorType: uncaught_exception, message: Uncaught ReferenceError: objectFit is not defined, filename: http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js, lineno: 79} @ http://localhost:3100/src/lib/analytics.js:36
+[  150327ms] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15)
+[  172538ms] [ERROR] [2026-08-23T23:55:32.561Z] [ERROR] Uncaught error | {"filename":"http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js","lineno":79,"colno":72} @ http://localhost:3100/src/lib/logger.js:84
+[  172538ms] [ERROR] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at HTMLDivElement.start (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:191:7) @ http://localhost:3100/src/lib/logger.js:85
+[  172539ms] [ERROR] [Global Error] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at HTMLDivElement.start (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:191:7) @ http://localhost:3100/src/main.js:22
+[  172540ms] [LOG] [Analytics] error {errorType: uncaught_exception, message: Uncaught ReferenceError: objectFit is not defined, filename: http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js, lineno: 79} @ http://localhost:3100/src/lib/analytics.js:36
+[  172546ms] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at HTMLDivElement.start (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:191:7)
+[  207953ms] [ERROR] [2026-08-23T23:56:07.977Z] [ERROR] Uncaught error | {"filename":"http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js","lineno":79,"colno":72} @ http://localhost:3100/src/lib/logger.js:84
+[  207954ms] [ERROR] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/lib/logger.js:85
+[  207957ms] [ERROR] [Global Error] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/main.js:22
+[  207957ms] [LOG] [Analytics] error {errorType: uncaught_exception, message: Uncaught ReferenceError: objectFit is not defined, filename: http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js, lineno: 79} @ http://localhost:3100/src/lib/analytics.js:36
+[  207967ms] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15)
+[  208018ms] [ERROR] [2026-08-23T23:56:08.041Z] [ERROR] Uncaught error | {"filename":"http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js","lineno":79,"colno":72} @ http://localhost:3100/src/lib/logger.js:84
+[  208018ms] [ERROR] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/lib/logger.js:85
+[  208019ms] [ERROR] [Global Error] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/main.js:22
+[  208020ms] [LOG] [Analytics] error {errorType: uncaught_exception, message: Uncaught ReferenceError: objectFit is not defined, filename: http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js, lineno: 79} @ http://localhost:3100/src/lib/analytics.js:36
+[  208031ms] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15)
+[  208036ms] [ERROR] [2026-08-23T23:56:08.059Z] [ERROR] Uncaught error | {"filename":"http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js","lineno":79,"colno":72} @ http://localhost:3100/src/lib/logger.js:84
+[  208036ms] [ERROR] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/lib/logger.js:85
+[  208037ms] [ERROR] [Global Error] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/main.js:22
+[  208038ms] [LOG] [Analytics] error {errorType: uncaught_exception, message: Uncaught ReferenceError: objectFit is not defined, filename: http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js, lineno: 79} @ http://localhost:3100/src/lib/analytics.js:36
+[  208048ms] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15)
+[  208057ms] [ERROR] [2026-08-23T23:56:08.080Z] [ERROR] Uncaught error | {"filename":"http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js","lineno":79,"colno":72} @ http://localhost:3100/src/lib/logger.js:84
+[  208057ms] [ERROR] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/lib/logger.js:85
+[  208061ms] [ERROR] [Global Error] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/main.js:22
+[  208061ms] [LOG] [Analytics] error {errorType: uncaught_exception, message: Uncaught ReferenceError: objectFit is not defined, filename: http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js, lineno: 79} @ http://localhost:3100/src/lib/analytics.js:36
+[  208073ms] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15)
+[  208124ms] [ERROR] [2026-08-23T23:56:08.148Z] [ERROR] Uncaught error | {"filename":"http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js","lineno":79,"colno":72} @ http://localhost:3100/src/lib/logger.js:84
+[  208124ms] [ERROR] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/lib/logger.js:85
+[  208126ms] [ERROR] [Global Error] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/main.js:22
+[  208126ms] [LOG] [Analytics] error {errorType: uncaught_exception, message: Uncaught ReferenceError: objectFit is not defined, filename: http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js, lineno: 79} @ http://localhost:3100/src/lib/analytics.js:36
+[  208198ms] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15)
+[  208145ms] [ERROR] [2026-08-23T23:56:08.168Z] [ERROR] Uncaught error | {"filename":"http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js","lineno":79,"colno":72} @ http://localhost:3100/src/lib/logger.js:84
+[  208145ms] [ERROR] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/lib/logger.js:85
+[  208147ms] [ERROR] [Global Error] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/main.js:22
+[  208148ms] [LOG] [Analytics] error {errorType: uncaught_exception, message: Uncaught ReferenceError: objectFit is not defined, filename: http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js, lineno: 79} @ http://localhost:3100/src/lib/analytics.js:36
+[  208204ms] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15)
+[  208171ms] [ERROR] [2026-08-23T23:56:08.195Z] [ERROR] Uncaught error | {"filename":"http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js","lineno":79,"colno":72} @ http://localhost:3100/src/lib/logger.js:84
+[  208172ms] [ERROR] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/lib/logger.js:85
+[  208173ms] [ERROR] [Global Error] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/main.js:22
+[  208173ms] [LOG] [Analytics] error {errorType: uncaught_exception, message: Uncaught ReferenceError: objectFit is not defined, filename: http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js, lineno: 79} @ http://localhost:3100/src/lib/analytics.js:36
+[  208206ms] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15)
+[  208740ms] [ERROR] [2026-08-23T23:56:08.763Z] [ERROR] Uncaught error | {"filename":"http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js","lineno":79,"colno":72} @ http://localhost:3100/src/lib/logger.js:84
+[  208740ms] [ERROR] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/lib/logger.js:85
+[  208745ms] [ERROR] [Global Error] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/main.js:22
+[  208745ms] [LOG] [Analytics] error {errorType: uncaught_exception, message: Uncaught ReferenceError: objectFit is not defined, filename: http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js, lineno: 79} @ http://localhost:3100/src/lib/analytics.js:36
+[  208750ms] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15)
+[  208788ms] [ERROR] [2026-08-23T23:56:08.811Z] [ERROR] Uncaught error | {"filename":"http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js","lineno":79,"colno":72} @ http://localhost:3100/src/lib/logger.js:84
+[  208788ms] [ERROR] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/lib/logger.js:85
+[  208796ms] [ERROR] [Global Error] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/main.js:22
+[  208796ms] [LOG] [Analytics] error {errorType: uncaught_exception, message: Uncaught ReferenceError: objectFit is not defined, filename: http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js, lineno: 79} @ http://localhost:3100/src/lib/analytics.js:36
+[  208798ms] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15)
+[  208922ms] [ERROR] [2026-08-23T23:56:08.946Z] [ERROR] Uncaught error | {"filename":"http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js","lineno":79,"colno":72} @ http://localhost:3100/src/lib/logger.js:84
+[  208923ms] [ERROR] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/lib/logger.js:85
+[  208924ms] [ERROR] [Global Error] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/main.js:22
+[  208924ms] [LOG] [Analytics] error {errorType: uncaught_exception, message: Uncaught ReferenceError: objectFit is not defined, filename: http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js, lineno: 79} @ http://localhost:3100/src/lib/analytics.js:36
+[  208961ms] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15)

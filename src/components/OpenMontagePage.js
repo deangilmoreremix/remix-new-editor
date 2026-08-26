@@ -1,0 +1,772 @@
+import { navigate } from '../lib/router.js';
+import { mountStudioChrome } from '../lib/studioChrome.js';
+import { showToast } from '../lib/loading.js';
+import { createHeroSection } from '../lib/thumbnails.js';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
+
+// OpenMontage backend is accessed via our Express proxy at /openmontage
+const getOpenMontageBase = () => {
+  if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_BACKEND_URL) {
+    return import.meta.env.VITE_BACKEND_URL.replace(/\/$/, '') + '/openmontage';
+  }
+  if (typeof window !== 'undefined' && window.__BACKEND_URL__) {
+    return window.__BACKEND_URL__.replace(/\/$/, '') + '/openmontage';
+  }
+  return '/openmontage';
+};
+
+const OPENMONTAGE_BACKEND = getOpenMontageBase();
+
+const STAGES = [
+  { id: 'brief', label: 'Brief', short: 'BRIEF' },
+  { id: 'research', label: 'Research', short: 'RESEARCH' },
+  { id: 'script', label: 'Script', short: 'SCRIPT' },
+  { id: 'scene_plan', label: 'Scene Plan', short: 'SCENE PLAN' },
+  { id: 'gate', label: 'The Gate', short: 'THE GATE' },
+  { id: 'narration', label: 'Narration', short: 'NARRATION' },
+  { id: 'music', label: 'Music', short: 'MUSIC' },
+  { id: 'compose', label: 'Compose', short: 'COMPOSE' },
+  { id: 'render', label: 'Render', short: 'RENDER' },
+];
+
+const PIPELINES = [
+  { id: 'animated-explainer', name: 'Animated Explainer', description: 'AI-generated explainer with research, narration, visuals, music' },
+  { id: 'documentary-montage', name: 'Documentary Montage', description: 'Thematic montage from free stock footage and open archives' },
+  { id: 'cinematic', name: 'Cinematic', description: 'Trailer, teaser, and mood-driven edits' },
+  { id: 'animation', name: 'Animation', description: 'Motion graphics, kinetic typography, animated sequences' },
+  { id: 'avatar-spokesperson', name: 'Avatar Spokesperson', description: 'Avatar-driven presenter videos' },
+  { id: 'hybrid', name: 'Hybrid', description: 'Source footage + AI-generated support visuals' },
+  { id: 'localization-dub', name: 'Localization & Dub', description: 'Subtitle, dub, and translate existing video' },
+  { id: 'podcast-repurpose', name: 'Podcast Repurpose', description: 'Podcast highlights to video' },
+  { id: 'screen-demo', name: 'Screen Demo', description: 'Polished software screen recordings and walkthroughs' },
+  { id: 'talking-head', name: 'Talking Head', description: 'Footage-led speaker videos' },
+];
+
+const OUTPUT_PROFILES = [
+  { id: 'youtube-landscape', name: 'YouTube Landscape', resolution: '1920x1080', aspect: '16:9' },
+  { id: 'youtube-shorts', name: 'YouTube Shorts', resolution: '1080x1920', aspect: '9:16' },
+  { id: 'instagram-reels', name: 'Instagram Reels', resolution: '1080x1920', aspect: '9:16' },
+  { id: 'tiktok', name: 'TikTok', resolution: '1080x1920', aspect: '9:16' },
+  { id: 'cinematic', name: 'Cinematic', resolution: '2560x1080', aspect: '21:9' },
+];
+
+export function OpenMontagePage() {
+  const container = document.createElement('div');
+  container.className = 'w-full h-full flex flex-col items-center justify-center bg-app-bg relative overflow-x-hidden';
+  mountStudioChrome(container, { currentRoute: 'video-agent' });
+
+  const state = {
+    stageIndex: 0,
+    isProcessing: false,
+    currentJobId: null,
+    currentProjectId: null,
+    prompt: '',
+    audience: 'developers & platform teams',
+    duration: '60s',
+    tone: 'confident, plain-spoken',
+    messages: [
+      'Detect before your users do',
+      'Explain the why, not just the what',
+      'One-click resolve from the alert',
+    ],
+    scenes: [],
+    chatMessages: [
+      { from: 'user', text: 'Make the opening more dramatic' },
+      { from: 'agent', text: 'Done — SC 01 now opens on a black slate with a hard music hit, narration delayed 1.5s. Want the grade darker too?' },
+      { from: 'user', text: 'Replace scene 3 with the product screenshots I uploaded' },
+      { from: 'agent', text: 'Swapped SC 03 to dashboard-walkthrough.mp4 — trimmed 0:12 from the 2:14 capture. Cost unchanged.' },
+    ],
+    decisionLog: [
+      { label: 'Voice', choice: 'Warm male tenor — "Calder"', alternatives: 'also considered: female alto · neutral narrator', confidence: 3 },
+      { label: 'Music — "Minimal Pulse", licensed', choice: '', alternatives: '', confidence: 0 },
+      { label: 'Grade', choice: 'warm high-contrast', alternatives: '', confidence: 0 },
+    ],
+    credits: {
+      images: 64,
+      narration: 5,
+      music: 15,
+      generatedClip: 125,
+      captions: 0,
+      render: 0,
+      total: 209,
+    },
+    renders: [
+      { label: '16:9 · LAUNCH', status: 'ready', url: '' },
+      { label: '1:1 · FEED', status: 'ready', url: '' },
+      { label: '9:16 · SHORTS', status: 'ready', url: '' },
+    ],
+    showBacklot: false,
+    backlotUrl: '',
+  };
+
+  const hero = document.createElement('div');
+  hero.className = 'w-full flex flex-col items-center pt-6 pb-4 px-4 md:px-8';
+  const heroBanner = createHeroSection('videoagent', 'h-28 md:h-36 mb-4');
+  if (heroBanner) {
+    const heroContent = document.createElement('div');
+    heroContent.className = 'absolute bottom-0 left-0 right-0 p-6 z-10';
+    heroContent.innerHTML = `
+      <h1 class="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight mb-1">OpenMontage Studio</h1>
+      <p class="text-white/60 text-sm font-medium">Agentic video production — describe your video and we'll build it</p>
+    `;
+    heroBanner.appendChild(heroContent);
+    hero.appendChild(heroBanner);
+  }
+  container.appendChild(hero);
+
+  const contentWrapper = document.createElement('div');
+  contentWrapper.className = 'w-full max-w-7xl relative z-40 px-4 md:px-8 pb-10';
+
+  // Back + service status
+  const topBar = document.createElement('div');
+  topBar.className = 'mb-6 flex items-center gap-2';
+  topBar.innerHTML = `
+    <button id="back-btn" class="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all text-white/70 hover:text-white">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+      Back
+    </button>
+    <span id="service-status" class="text-xs text-muted ml-2"></span>
+    <span id="project-id" class="text-xs text-muted ml-2 hidden"></span>
+  `;
+  contentWrapper.appendChild(topBar);
+
+  // Stage tracker
+  const stageTrack = document.createElement('div');
+  stageTrack.className = 'mb-6 overflow-x-auto';
+  stageTrack.innerHTML = `
+    <div class="flex items-center gap-1 min-w-max">
+      ${STAGES.map((s, i) => `
+        <button data-stage="${s.id}" class="om-stage-btn flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all border ${i === state.stageIndex ? 'bg-white/10 border-white/20 text-white' : 'bg-white/5 border-white/5 text-white/60 hover:text-white'}">
+          <span class="text-[10px] font-black tracking-wider">${s.short}</span>
+        </button>
+        ${i < STAGES.length - 1 ? `<div class="w-6 h-px bg-white/10"></div>` : ''}
+      `).join('')}
+    </div>
+  `;
+  contentWrapper.appendChild(stageTrack);
+
+  // Main layout
+  const main = document.createElement('div');
+  main.className = 'grid grid-cols-1 lg:grid-cols-12 gap-6';
+
+  // Left column
+  const left = document.createElement('div');
+  left.className = 'lg:col-span-8 flex flex-col gap-6';
+
+  // Brief card
+  const briefCard = document.createElement('div');
+  briefCard.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-5 md:p-6 shadow-3xl';
+  briefCard.innerHTML = `
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xs font-black text-white/80 tracking-wide">BRIEF</h2>
+      <span class="text-[10px] text-muted">${state.duration} · ${state.tone}</span>
+    </div>
+    <textarea id="om-prompt" rows="3" placeholder="Make a 60-second launch video for our monitoring tool — use the brand kit and the dashboard recording. Developer audience." class="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-primary/50 resize-none mb-3">${state.prompt}</textarea>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+      <div>
+        <label class="block text-[10px] font-bold text-white/60 mb-1 tracking-wide">AUDIENCE</label>
+        <input id="om-audience" value="${state.audience}" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary/50" />
+      </div>
+      <div>
+        <label class="block text-[10px] font-bold text-white/60 mb-1 tracking-wide">DURATION</label>
+        <input id="om-duration" value="${state.duration}" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary/50" />
+      </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+      <div>
+        <label class="block text-[10px] font-bold text-white/60 mb-1 tracking-wide">VIDEO MODEL</label>
+        <select id="om-video-model" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary/50 appearance-none cursor-pointer">
+          <option value="kling-v2">Kling v2 (Recommended)</option>
+          <option value="kling-v1-5">Kling v1.5</option>
+          <option value="veo-3">Veo 3 (Google)</option>
+          <option value="veo-4">Veo 4 (Google)</option>
+          <option value="hunyuan-video">Hunyuan (Tencent)</option>
+          <option value="wan-2.2">Wan 2.2 (Alibaba)</option>
+          <option value="wan-3.0">Wan 3.0 (Alibaba)</option>
+          <option value="seedance-2">Seedance 2 (ByteDance)</option>
+          <option value="seedance-2.5">Seedance 2.5 (ByteDance)</option>
+          <option value="minimax-h3">MiniMax H3</option>
+          <option value="runway-gen4">Runway Gen-4</option>
+          <option value="pixverse-v5">Pixverse v5</option>
+          <option value="vidu-2.0">Vidu 2.0</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-[10px] font-bold text-white/60 mb-1 tracking-wide">IMAGE MODEL</label>
+        <select id="om-image-model" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary/50 appearance-none cursor-pointer">
+          <option value="flux-1-dev">Flux 1 Dev (Recommended)</option>
+          <option value="flux-1-schnell">Flux 1 Schnell (Fast)</option>
+          <option value="flux-kontext">Flux Kontext</option>
+          <option value="seedream-5.0">Seedream 5.0</option>
+          <option value="midjourney-v7">Midjourney V7</option>
+          <option value="reve-image">Reve Image</option>
+          <option value="recraft-v3">Recraft v3</option>
+          <option value="imagen-4">Imagen 4 (Google)</option>
+          <option value="gpt-image-2">GPT Image 2 (OpenAI)</option>
+          <option value="qwen-image">Qwen Image</option>
+        </select>
+      </div>
+    </div>
+    <div class="flex flex-wrap items-center gap-2 mb-4">
+      <span class="text-[10px] font-bold text-white/60 tracking-wide">KEY MESSAGES</span>
+      ${state.messages.map((m, i) => `
+        <span class="px-2 py-1 bg-white/5 border border-white/10 rounded-lg text-[11px] text-white/80">${i + 1} · ${m}</span>
+      `).join('')}
+    </div>
+    <div class="flex flex-wrap items-center gap-3">
+      <button id="om-attach" class="px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-white/70 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+        Add asset
+      </button>
+      <button id="om-generate" class="flex-1 py-2.5 btn-primary-modern font-black rounded-xl hover:scale-[1.01] transition-transform flex items-center justify-center gap-2 text-sm">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Generate Video
+      </button>
+    </div>
+    <p id="om-key-status" class="text-[11px] text-muted mt-2"></p>
+  `;
+  left.appendChild(briefCard);
+
+  // Gate card
+  const gateCard = document.createElement('div');
+  gateCard.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-5 md:p-6 shadow-3xl';
+  gateCard.innerHTML = `
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xs font-black text-white/80 tracking-wide">THE GATE</h2>
+      <span class="text-[10px] text-muted">Nothing spends until you approve</span>
+    </div>
+    <div class="space-y-2 mb-4">
+      ${Object.entries(state.credits).filter(([k]) => k !== 'total').map(([key, value]) => {
+        const labels = { images: '8 standard images', narration: 'narration · 60s', music: 'music · "Focused Build"', generatedClip: '1 generated clip · 5s', captions: 'captions', render: 'stock · render' };
+        const label = labels[key] || key;
+        return `
+          <div class="flex items-center justify-between py-2 border-b border-white/5">
+            <span class="text-xs text-white/70">${label}</span>
+            <span class="text-xs font-black text-white">${value} CR</span>
+          </div>
+        `;
+      }).join('')}
+    </div>
+    <div class="flex items-center justify-between mb-4">
+      <span class="text-xs font-bold text-white">EST. TOTAL</span>
+      <span class="text-sm font-black text-white">${state.credits.total} CR ≈ $${(state.credits.total / 100).toFixed(2)}</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <button id="om-approve" class="flex-1 py-2.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-black rounded-xl hover:bg-emerald-500/20 transition-all text-sm">Approve — go produce</button>
+      <button id="om-revise" class="px-4 py-2.5 bg-white/5 border border-white/10 text-white/70 font-bold rounded-xl hover:bg-white/10 transition-all text-sm">Revise</button>
+    </div>
+  `;
+  left.appendChild(gateCard);
+
+  // Scene board
+  const sceneBoard = document.createElement('div');
+  sceneBoard.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-5 md:p-6 shadow-3xl';
+  sceneBoard.innerHTML = `
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xs font-black text-white/80 tracking-wide">STORYBOARD — 6 SCENES · 1:24 TOTAL</h2>
+      <button id="om-add-scene" class="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[11px] font-bold text-white/70 hover:text-white hover:bg-white/10 transition-all">⊕ Add scene</button>
+    </div>
+    <div id="om-scenes" class="space-y-3">
+      ${buildSceneCards()}
+    </div>
+  `;
+  left.appendChild(sceneBoard);
+
+  // Renders
+  const rendersCard = document.createElement('div');
+  rendersCard.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-5 md:p-6 shadow-3xl';
+  rendersCard.innerHTML = `
+    <h2 class="text-xs font-black text-white/80 tracking-wide mb-3">RENDERS</h2>
+    <div class="flex flex-wrap gap-2">
+      ${state.renders.map(r => `
+        <span class="px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-white/80">${r.label} <span class="text-emerald-400 ml-1">${r.status}</span></span>
+      `).join('')}
+    </div>
+  `;
+  left.appendChild(rendersCard);
+
+  // Right column
+  const right = document.createElement('div');
+  right.className = 'lg:col-span-4 flex flex-col gap-6';
+
+  // Chat card
+  const chatCard = document.createElement('div');
+  chatCard.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] overflow-hidden shadow-3xl flex flex-col';
+  chatCard.innerHTML = `
+    <div class="px-5 py-4 border-b border-white/10 flex items-center justify-between">
+      <div>
+        <h3 class="text-xs font-black text-white/80 tracking-wide">PRODUCTION CHAT</h3>
+        <p class="text-[10px] text-emerald-400 font-bold mt-0.5">● AGENT ACTIVE</p>
+      </div>
+      <span class="text-[10px] text-muted">Claude · Opus 4.8 · Effort · High</span>
+    </div>
+    <div id="om-chat" class="flex-1 p-4 space-y-3 max-h-80 overflow-y-auto custom-scrollbar">
+      ${state.chatMessages.map(m => `
+        <div class="flex flex-col ${m.from === 'user' ? 'items-end' : 'items-start'}">
+          <div class="px-3 py-2 rounded-2xl text-xs max-w-[85%] ${m.from === 'user' ? 'bg-white/10 text-white' : 'bg-white/5 text-white/80'}">${m.text}</div>
+          <span class="text-[10px] text-muted mt-1">${m.from === 'user' ? 'YOU' : 'MONTAGE'}</span>
+        </div>
+      `).join('')}
+    </div>
+    <div class="p-3 border-t border-white/10">
+      <div class="flex gap-2">
+        <input id="om-chat-input" placeholder="Direct the agent…" class="flex-1 bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-white/30 focus:outline-none focus:border-primary/50" />
+        <button id="om-chat-send" class="px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-white hover:bg-white/10 transition-all">Send</button>
+      </div>
+    </div>
+  `;
+  right.appendChild(chatCard);
+
+  // Decision log card
+  const decisionCard = document.createElement('div');
+  decisionCard.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-5 md:p-6 shadow-3xl';
+  decisionCard.innerHTML = `
+    <h3 class="text-xs font-black text-white/80 tracking-wide mb-3">DECISION LOG</h3>
+    <div class="space-y-3">
+      ${state.decisionLog.map(d => `
+        <div class="border-b border-white/5 pb-3 last:border-0 last:pb-0">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs font-bold text-white">${d.label}</span>
+            <span class="text-[10px] text-muted">${d.confidence || 0}▴</span>
+          </div>
+          <p class="text-[11px] text-white/70">${d.choice || '—'}</p>
+          ${d.alternatives ? `<p class="text-[10px] text-muted mt-1">${d.alternatives}</p>` : ''}
+        </div>
+      `).join('')}
+    </div>
+  `;
+  right.appendChild(decisionCard);
+
+  main.appendChild(left);
+  main.appendChild(right);
+  contentWrapper.appendChild(main);
+
+  // Backlot iframe (hidden by default)
+  const backlotSection = document.createElement('div');
+  backlotSection.id = 'om-backlot-section';
+  backlotSection.className = 'hidden mt-6';
+  backlotSection.innerHTML = `
+    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] overflow-hidden shadow-3xl">
+      <div class="flex items-center justify-between px-5 py-3 border-b border-white/10">
+        <h3 class="text-xs font-black text-white/80 tracking-wide">BACKLOT — LIVE STORYBOARD</h3>
+        <button id="om-close-backlot" class="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[11px] font-bold text-white/70 hover:text-white hover:bg-white/10 transition-all">Close</button>
+      </div>
+      <div class="w-full" style="height: 70vh;">
+        <iframe id="om-backlot-iframe" class="w-full h-full border-0" src="about:blank" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+      </div>
+    </div>
+  `;
+  contentWrapper.appendChild(backlotSection);
+
+  container.appendChild(contentWrapper);
+
+  // Helpers
+  function buildSceneCards() {
+    const scenes = [
+      { label: 'BLACK SLATE — TITLE SET', status: 'DONE', time: '0:06', type: 'MOTION GFX', cost: '$0.00' },
+      { label: 'SC 01Cold open', status: 'DONE', time: '0:16', type: 'OFFICE B-ROLL, QUICK CUTS', cost: '$0.00' },
+      { label: 'SC 02The problem', status: 'DONE', time: '0:14', type: 'STOCK', cost: '$0.00' },
+      { label: 'SC 03The reveal', status: 'DONE', time: '0:18', type: 'USER ASSET', cost: '$0.00' },
+      { label: 'SC 04Playbooks', status: 'RENDERING', time: '0:20', type: 'GENERATED', cost: '$0.16' },
+      { label: 'SC 05Health scores', status: 'QUEUED', time: '0:10', type: 'MOTION GFX', cost: '$0.00' },
+    ];
+    const statusStyles = {
+      DONE: 'text-emerald-400 border-emerald-400/30 bg-emerald-400/5',
+      RENDERING: 'text-primary border-primary/30 bg-primary/5',
+      QUEUED: 'text-white/60 border-white/10 bg-white/5',
+      UNLOCKED: 'text-white/80 border-white/20 bg-white/5',
+    };
+    return scenes.map((s, i) => `
+      <div class="border border-white/10 rounded-2xl p-3 md:p-4 bg-white/[0.02] hover:bg-white/[0.04] transition-all">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] font-black text-white/60">SC ${String(i).padStart(2, '0')}</span>
+            <span class="text-xs font-bold text-white">${s.label}</span>
+          </div>
+          <span class="text-[10px] font-black px-2 py-0.5 rounded-lg border ${statusStyles[s.status] || statusStyles.QUEUED}">${s.status}</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="text-[11px] text-white/60">${s.type}</span>
+            <span class="text-[11px] text-muted">${s.time}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-[11px] font-black text-white">${s.cost}</span>
+            <button data-scene-index="${i}" class="om-regenerate-scene px-2 py-1 bg-white/5 border border-white/10 rounded-lg text-[10px] font-bold text-white/70 hover:text-white hover:bg-white/10 transition-all">↻ Regenerate</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Element refs
+  const promptEl = container.querySelector('#om-prompt');
+  const generateBtn = container.querySelector('#om-generate');
+  const backBtn = container.querySelector('#back-btn');
+  const approveBtn = container.querySelector('#om-approve');
+  const reviseBtn = container.querySelector('#om-revise');
+  const chatInput = container.querySelector('#om-chat-input');
+  const chatSend = container.querySelector('#om-chat-send');
+  const chatBox = container.querySelector('#om-chat');
+  const serviceStatus = container.querySelector('#service-status');
+  const keyStatus = container.querySelector('#om-key-status');
+  const projectIdEl = container.querySelector('#project-id');
+  const backlotIframe = container.querySelector('#om-backlot-iframe');
+  const closeBacklotBtn = container.querySelector('#om-close-backlot');
+
+  function updateServiceStatus() {
+    if (!serviceStatus) return;
+    if (!OPENMONTAGE_BACKEND) {
+      serviceStatus.textContent = 'OpenMontage service not configured — set VITE_BACKEND_URL';
+      serviceStatus.className = 'text-xs text-red-400 ml-2';
+    } else {
+      serviceStatus.textContent = `OpenMontage: ${OPENMONTAGE_BACKEND}`;
+      serviceStatus.className = 'text-xs text-emerald-400 ml-2';
+    }
+  }
+
+  function updateKeyStatus() {
+    if (!keyStatus) return;
+    const hasOpenAI = !!((typeof window !== 'undefined' && window.__OPENAI_KEY__) || (typeof import.meta !== 'undefined' && import.meta.env?.VITE_OPENAI_KEY));
+    keyStatus.textContent = hasOpenAI ? 'OpenAI key detected ✓' : 'No OpenAI key — some agents will use local fallbacks';
+  }
+
+  function appendChat(from, text) {
+    if (!chatBox) return;
+    const row = document.createElement('div');
+    row.className = 'flex flex-col ' + (from === 'user' ? 'items-end' : 'items-start');
+    row.innerHTML = `
+      <div class="px-3 py-2 rounded-2xl text-xs max-w-[85%] ${from === 'user' ? 'bg-white/10 text-white' : 'bg-white/5 text-white/80'}">${text}</div>
+      <span class="text-[10px] text-muted mt-1">${from === 'user' ? 'YOU' : 'MONTAGE'}</span>
+    `;
+    chatBox.appendChild(row);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  function setStage(index) {
+    state.stageIndex = Math.max(0, Math.min(STAGES.length - 1, index));
+    const buttons = container.querySelectorAll('.om-stage-btn');
+    buttons.forEach((btn, i) => {
+      if (i === state.stageIndex) {
+        btn.classList.add('bg-white/10', 'border-white/20', 'text-white');
+        btn.classList.remove('bg-white/5', 'border-white/5', 'text-white/60');
+      } else {
+        btn.classList.remove('bg-white/10', 'border-white/20', 'text-white');
+        btn.classList.add('bg-white/5', 'border-white/5', 'text-white/60');
+      }
+    });
+  }
+
+  function openBacklot(projectId) {
+    if (!OPENMONTAGE_BACKEND) {
+      showToast('OpenMontage service not configured', 'error');
+      return;
+    }
+    const url = `${OPENMONTAGE_BACKEND}/backlot`;
+    if (backlotIframe) {
+      backlotIframe.src = url;
+    }
+    if (backlotSection) {
+      backlotSection.classList.remove('hidden');
+    }
+    state.showBacklot = true;
+    state.backlotUrl = url;
+  }
+
+  function closeBacklot() {
+    if (backlotIframe) {
+      backlotIframe.src = 'about:blank';
+    }
+    if (backlotSection) {
+      backlotSection.classList.add('hidden');
+    }
+    state.showBacklot = false;
+    state.backlotUrl = '';
+  }
+
+  async function submitProduction() {
+    const prompt = (promptEl && promptEl.value || '').trim();
+    if (!prompt) {
+      showToast('Please enter a production brief', 'error');
+      return;
+    }
+    if (!(await requireEntitlement())) return;
+    if (!OPENMONTAGE_BACKEND) {
+      showToast('OpenMontage service not configured', 'error');
+      return;
+    }
+
+    // Collect user API keys from apiKeyManager
+    const apiKeys = {};
+    let hasKeys = false;
+    try {
+      const muapiKey = typeof apiKeyManager !== 'undefined' && apiKeyManager.getMuapiKey?.();
+      const openaiKey = typeof apiKeyManager !== 'undefined' && apiKeyManager.getOpenAIKey?.();
+      if (muapiKey) { apiKeys.MUAPI_API_KEY = muapiKey; hasKeys = true; }
+      if (openaiKey) { apiKeys.OPENAI_API_KEY = openaiKey; hasKeys = true; }
+    } catch (e) {
+      console.warn('[OpenMontagePage] Could not read API keys:', e);
+    }
+
+    // Collect selected models
+    const videoModelEl = container.querySelector('#om-video-model');
+    const imageModelEl = container.querySelector('#om-image-model');
+    const selectedVideoModel = videoModelEl ? videoModelEl.value : 'kling-v2';
+    const selectedImageModel = imageModelEl ? imageModelEl.value : 'flux-1-dev';
+
+    if (!hasKeys) {
+      showToast('Please set your API keys in Settings first', 'warning');
+    }
+
+    state.prompt = prompt;
+    state.isProcessing = true;
+    if (generateBtn) generateBtn.disabled = true;
+
+    try {
+      const res = await fetch(`${OPENMONTAGE_BACKEND}/api/productions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt,
+          pipeline: 'animated-explainer',
+          profile: 'youtube-landscape',
+          api_keys: Object.keys(apiKeys).length > 0 ? apiKeys : undefined,
+          models: {
+            video: selectedVideoModel,
+            image: selectedImageModel,
+          },
+        }),
+      });
+      if (!res.ok) throw new Error(`OpenMontage backend returned ${res.status}`);
+      const data = await res.json();
+      state.currentJobId = data.jobId || data.id || null;
+      state.currentProjectId = data.projectId || data.project_id || null;
+      if (projectIdEl) {
+        projectIdEl.textContent = state.currentProjectId ? `Project: ${state.currentProjectId}` : '';
+        projectIdEl.classList.remove('hidden');
+      }
+      showToast('Production started', 'success');
+      setStage(1);
+
+      // Start polling for status updates
+      startPolling();
+
+      // Auto-open Backlot when a project starts
+      if (state.currentProjectId) {
+        openBacklot(state.currentProjectId);
+      }
+    } catch (err) {
+      console.error('[OpenMontagePage] production failed:', err);
+      showToast('Production failed: ' + err.message, 'error');
+      state.isProcessing = false;
+      if (generateBtn) generateBtn.disabled = false;
+    }
+  }
+
+  async function regenerateScene(index) {
+    if (!state.currentJobId) {
+      showToast('Start a production first', 'error');
+      return;
+    }
+    if (!(await requireEntitlement())) return;
+    try {
+      const res = await fetch(`${OPENMONTAGE_BACKEND}/api/productions/${encodeURIComponent(state.currentJobId)}/scenes/${index}/regenerate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sceneIndex: index }),
+      });
+      if (!res.ok) throw new Error(`Regenerate failed: ${res.status}`);
+      const data = await res.json();
+      showToast(`Scene ${index + 1} regenerating...`, 'info');
+      appendChat('agent', `Regenerating SC ${String(index).padStart(2, '0')} — estimated cost $${data.estimatedCost || '0.00'}.`);
+    } catch (err) {
+      showToast('Regenerate failed: ' + err.message, 'error');
+    }
+  }
+
+  async function sendChatMessage(text) {
+    if (!text.trim()) return;
+    if (!state.currentJobId) {
+      showToast('Start a production first', 'error');
+      return;
+    }
+    appendChat('user', text);
+    chatInput.value = '';
+
+    try {
+      const res = await fetch(`${OPENMONTAGE_BACKEND}/api/productions/${encodeURIComponent(state.currentJobId)}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text }),
+      });
+      if (!res.ok) throw new Error(`Chat failed: ${res.status}`);
+      const data = await res.json();
+      if (data.reply) {
+        appendChat('agent', data.reply);
+      } else {
+        appendChat('agent', 'Acknowledged — updating the production plan.');
+      }
+    } catch (err) {
+      appendChat('agent', "Sorry, I couldn't reach the agent right now.");
+      console.error('[OpenMontagePage] chat failed:', err);
+    }
+  }
+
+  async function approveGate() {
+    if (!state.currentJobId) {
+      showToast('Start a production first', 'error');
+      return;
+    }
+    try {
+      const res = await fetch(`${OPENMONTAGE_BACKEND}/api/productions/${encodeURIComponent(state.currentJobId)}/approve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stage: 'gate' }),
+      });
+      if (!res.ok) throw new Error(`Approve failed: ${res.status}`);
+      showToast('Approved — production continuing', 'success');
+      appendChat('agent', 'Gate approved. Continuing to narration and music.');
+      setStage(5); // narration
+    } catch (err) {
+      showToast('Approval failed: ' + err.message, 'error');
+    }
+  }
+
+  // Polling for real-time job status
+  let pollTimer = null;
+  const MAX_POLL_INTERVAL = 10000;
+  const BACKOFF_FACTOR = 1.5;
+  let pollInterval = 2000;
+
+  async function pollJobStatus() {
+    if (!state.currentJobId) return;
+    try {
+      const res = await fetch(`${OPENMONTAGE_BACKEND}/api/productions/${encodeURIComponent(state.currentJobId)}`, {
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+
+      // Update stage tracker
+      const stageMap = { queued: 0, research: 1, proposal: 2, script: 3, scene_plan: 4, assets: 5, compose: 6, publish: 7, complete: 8 };
+      const stageIdx = stageMap[data.stage] ?? state.stageIndex;
+      setStage(stageIdx);
+
+      // Update scenes from result
+      if (data.result?.scenes && data.result.scenes.length > 0) {
+        state.scenes = data.result.scenes;
+        const scenesContainer = container.querySelector('#om-scenes');
+        if (scenesContainer) {
+          renderSceneCards(scenesContainer, state.scenes, (idx) => regenerateScene(idx));
+        }
+      }
+
+      // Update decision log
+      if (data.result?.decisionLog && data.result.decisionLog.length > 0) {
+        state.decisionLog = data.result.decisionLog;
+      }
+
+      // Update renders
+      if (data.result?.renders && data.result.renders.length > 0) {
+        state.renders = data.result.renders;
+      }
+
+      // Stop polling on terminal states
+      if (['completed', 'failed', 'cancelled'].includes(data.status)) {
+        stopPolling();
+        if (data.status === 'completed') {
+          showToast('Production completed!', 'success');
+          appendChat('agent', 'Your video is ready! Check the Renders section below.');
+        } else if (data.status === 'failed') {
+          showToast('Production failed', 'error');
+          appendChat('agent', `Production failed: ${data.error || 'Unknown error'}`);
+        }
+        return;
+      }
+
+      // Backoff during long stages
+      if (['assets', 'compose'].includes(data.stage)) {
+        pollInterval = Math.min(pollInterval * BACKOFF_FACTOR, MAX_POLL_INTERVAL);
+      } else {
+        pollInterval = 2000;
+      }
+
+      pollTimer = setTimeout(pollJobStatus, pollInterval);
+    } catch (err) {
+      console.error('[OpenMontagePage] poll failed:', err);
+      pollInterval = Math.min(pollInterval * 2, MAX_POLL_INTERVAL);
+      pollTimer = setTimeout(pollJobStatus, pollInterval);
+    }
+  }
+
+  function startPolling() {
+    if (pollTimer) return;
+    pollInterval = 2000;
+    pollJobStatus();
+  }
+
+  function stopPolling() {
+    if (pollTimer) {
+      clearTimeout(pollTimer);
+      pollTimer = null;
+    }
+  }
+
+  // Event bindings
+  if (backBtn) backBtn.onclick = () => navigate('render');
+  if (generateBtn) generateBtn.onclick = () => submitProduction();
+  if (approveBtn) {
+    approveBtn.onclick = () => approveGate();
+  }
+  if (reviseBtn) {
+    reviseBtn.onclick = () => {
+      showToast('Revise requested — prompt the agent in chat', 'info');
+      if (chatInput) chatInput.focus();
+    };
+  }
+  if (closeBacklotBtn) {
+    closeBacklotBtn.onclick = () => closeBacklot();
+  }
+
+  // Stage tracker clicks
+  stageTrack.querySelectorAll('.om-stage-btn').forEach(btn => {
+    btn.onclick = () => {
+      const stageId = btn.dataset.stage;
+      const index = STAGES.findIndex(s => s.id === stageId);
+      if (index >= 0) setStage(index);
+    };
+  });
+
+  // Scene regenerate buttons
+  const scenesContainer = container.querySelector('#om-scenes');
+  if (scenesContainer) {
+    scenesContainer.addEventListener('click', (e) => {
+      const btn = e.target.closest('.om-regenerate-scene');
+      if (!btn) return;
+      const index = parseInt(btn.dataset.sceneIndex || '0', 10);
+      regenerateScene(index);
+    });
+  }
+
+  // Chat
+  if (chatSend && chatInput) {
+    chatSend.onclick = () => sendChatMessage(chatInput.value);
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendChatMessage(chatInput.value);
+      }
+    });
+  }
+
+  updateServiceStatus();
+  updateKeyStatus();
+  setStage(0);
+
+  return container;
+}
+
+export default OpenMontagePage;

@@ -1,0 +1,67 @@
+[    9446ms] [LOG] [App] Starting initialization... @ http://localhost:3100/src/main.js:19
+[    9488ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3100/src/lib/popcornInit.js:41
+[    9490ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3100/src/lib/popcornInit.js:48
+[    9492ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3100/src/lib/popcornInit.js:48
+[    9494ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3100/src/lib/popcornInit.js:48
+[    9495ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3100/src/lib/popcornInit.js:48
+[    9497ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3100/src/lib/popcornInit.js:48
+[    9497ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3100/src/lib/popcornInit.js:48
+[    9498ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3100/src/lib/popcornInit.js:48
+[    9499ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3100/src/lib/popcornInit.js:48
+[    9499ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3100/src/lib/popcornInit.js:48
+[    9500ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3100/src/lib/popcornInit.js:48
+[    9500ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3100/src/lib/popcornInit.js:48
+[    9501ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3100/src/lib/popcornInit.js:48
+[    9502ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3100/src/lib/popcornInit.js:48
+[   16426ms] [ERROR] [2026-08-23T23:50:28.681Z] [ERROR] Uncaught error | {"filename":"http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js","lineno":79,"colno":72} @ http://localhost:3100/src/lib/logger.js:84
+[   16426ms] [ERROR] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at kick (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:211:7) @ http://localhost:3100/src/lib/logger.js:85
+[   16431ms] [ERROR] [Global Error] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at kick (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:211:7) @ http://localhost:3100/src/main.js:22
+[   16432ms] [LOG] [Analytics] error {errorType: uncaught_exception, message: Uncaught ReferenceError: objectFit is not defined, filename: http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js, lineno: 79} @ http://localhost:3100/src/lib/analytics.js:36
+[   16454ms] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at kick (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:211:7)
+[   17989ms] [LOG] [App] Landing page rendered @ http://localhost:3100/src/main.js:88
+[   18066ms] [ERROR] [2026-08-23T23:50:30.321Z] [ERROR] Uncaught error | {"filename":"http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js","lineno":79,"colno":72} @ http://localhost:3100/src/lib/logger.js:84
+[   18066ms] [ERROR] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/lib/logger.js:85
+[   18067ms] [ERROR] [Global Error] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/main.js:22
+[   18067ms] [LOG] [Analytics] error {errorType: uncaught_exception, message: Uncaught ReferenceError: objectFit is not defined, filename: http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js, lineno: 79} @ http://localhost:3100/src/lib/analytics.js:36
+[   18076ms] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15)
+[   18914ms] [LOG] [popcorn-init] OK: plugin-image @ http://localhost:3100/src/lib/popcornInit.js:48
+[   18919ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=708fd709:20096
+[   19474ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://localhost:3100/src/lib/popcornInit.js:48
+[   19600ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://localhost:3100/src/lib/popcornInit.js:48
+[   19653ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3100/src/lib/popcornInit.js:48
+[   19800ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://localhost:3100/src/lib/popcornInit.js:48
+[   19823ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://localhost:3100/src/lib/popcornInit.js:48
+[   19845ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://localhost:3100/src/lib/popcornInit.js:48
+[   19946ms] [LOG] [popcorn-init] OK: plugin-form @ http://localhost:3100/src/lib/popcornInit.js:48
+[   20071ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://localhost:3100/src/lib/popcornInit.js:48
+[   20520ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:3100/src/lib/popcornInit.js:48
+[   20830ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://localhost:3100/src/lib/popcornInit.js:48
+[   20959ms] [LOG] [popcorn-init] OK: plugin-skip @ http://localhost:3100/src/lib/popcornInit.js:48
+[   21251ms] [LOG] [popcorn-init] OK: plugin-text @ http://localhost:3100/src/lib/popcornInit.js:48
+[   21375ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:3100/src/lib/popcornInit.js:48
+[   21418ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://localhost:3100/src/lib/popcornInit.js:48
+[   21554ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:3100/src/lib/popcornInit.js:48
+[   21613ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://localhost:3100/src/lib/popcornInit.js:48
+[   21666ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:3100/src/lib/popcornInit.js:48
+[   21708ms] [LOG] [popcorn-init] OK: plugin-combined @ http://localhost:3100/src/lib/popcornInit.js:48
+[   21755ms] [LOG] [popcorn-init] OK: plugin-background @ http://localhost:3100/src/lib/popcornInit.js:48
+[   21756ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://localhost:3100/src/lib/popcornInit.js:60
+[   21756ms] [LOG] [popcorn] function 19 @ http://localhost:3100/src/main.js:4

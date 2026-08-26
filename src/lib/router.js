@@ -73,6 +73,10 @@ const pageLoaders = {
   smartvideo: () => import('../components/SmartVideoStudio.js').then(m => m.SmartVideoStudio()),
 };
 
+const GATED_PAGES = {
+  smartvideo: { feature: 'Smart Video Viral', pricePage: '/?upgrade=smartvideo#/' },
+};
+
 let currentPage = null;
 let currentPageEl = null;
 let contentArea = null;
@@ -117,6 +121,20 @@ export async function navigate(page, params = {}) {
       const templateId = page.replace('template/', '');
       const mod = await import('../components/TemplateStudio.js');
       element = mod.TemplateStudio(templateId);
+    } else if (GATED_PAGES[page]) {
+      const userStore = typeof window !== 'undefined' ? window.__stores?.userStore : null;
+      let hasAccess = false;
+      if (userStore) {
+        hasAccess = await userStore.checkOneTimeSubscription();
+      }
+      if (!hasAccess) {
+        const gate = GATED_PAGES[page];
+        contentArea.innerHTML = '';
+        const mod = await import('../components/GatedPage.js');
+        element = mod.GatedPage(gate.feature, gate.pricePage);
+      } else {
+        element = await pageLoaders[page]();
+      }
     } else if (pageLoaders[page]) {
       element = await pageLoaders[page]();
     } else {

@@ -1,0 +1,90 @@
+[    4747ms] [LOG] [App] Starting initialization... @ http://localhost:3100/src/main.js?t=1787510488579:19
+[    5109ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:41
+[    5114ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:48
+[    5138ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:48
+[    5158ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:48
+[    5165ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:48
+[    5168ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:48
+[    5173ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:48
+[    5178ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:48
+[    5182ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:48
+[    5187ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:48
+[    5192ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:48
+[    5198ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:48
+[    5205ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:48
+[    5209ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:48
+[    8618ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=5e86737a:20096
+[    8659ms] [LOG] [App] Initialized in 3911.60ms @ http://localhost:3100/src/main.js?t=1787510488579:164
+[    8659ms] [LOG] [App] Navigating to initial page: image @ http://localhost:3100/src/main.js?t=1787510488579:165
+[    8660ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://localhost:3100/src/main.js?t=1787510488579:176
+[    9416ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[    9941ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[   25546ms] [LOG] [popcorn-init] OK: plugin-image @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:48
+[   28966ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:48
+[   29091ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:48
+[   29194ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:48
+[   29223ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:48
+[   29354ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:48
+[   29392ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:48
+[   29433ms] [LOG] [popcorn-init] OK: plugin-form @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:48
+[   29564ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:48
+[   29575ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:48
+[   29589ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:48
+[   29724ms] [LOG] [popcorn-init] OK: plugin-skip @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:48
+[   29905ms] [LOG] [popcorn-init] OK: plugin-text @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:48
+[   29916ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:48
+[   29927ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:48
+[   29949ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:48
+[   29963ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:48
+[   29969ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:48
+[   29978ms] [LOG] [popcorn-init] OK: plugin-combined @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:48
+[   29990ms] [LOG] [popcorn-init] OK: plugin-background @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:48
+[   29990ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://localhost:3100/src/lib/popcornInit.js?t=1787510488579:60
+[   29990ms] [LOG] [popcorn] function 19 @ http://localhost:3100/src/main.js?t=1787510488579:4
+[   52735ms] [INFO] [hmr] /components/modals/PreRemixVoiceModal.jsx failed to apply HMR as it's within a circular import. Reloading page to reset the execution order. To debug and break the circular import, you can run `vite --debug hmr` to log the circular dependency path if a file change triggered it. @ http://localhost:3100/@vite/client:605
+[   52736ms] [ERROR] ReferenceError: Cannot access 'PreRemixVoiceModal' before initialization
+    at http://localhost:3100/lib/constants/modals.js?t=1787510544431:267:15 @ http://localhost:3100/@vite/client:173
+[   52743ms] [ERROR] [hmr] Failed to reload /components/modals/PreRemixVoiceModal.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:3100/@vite/client:175
+[   52745ms] [INFO] [hmr] /components/modals/TemplateGenerator/Media.jsx failed to apply HMR as it's within a circular import. Reloading page to reset the execution order. To debug and break the circular import, you can run `vite --debug hmr` to log the circular dependency path if a file change triggered it. @ http://localhost:3100/@vite/client:605
+[   52745ms] [ERROR] ReferenceError: Cannot access 'PreRemixVoiceModal' before initialization
+    at http://localhost:3100/lib/constants/modals.js?t=1787510544431:267:15 @ http://localhost:3100/@vite/client:173
+[   52745ms] [ERROR] [hmr] Failed to reload /components/modals/TemplateGenerator/Media.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:3100/@vite/client:175
+[   52745ms] [INFO] [hmr] /components/modals/AiArtGenerator.jsx failed to apply HMR as it's within a circular import. Reloading page to reset the execution order. To debug and break the circular import, you can run `vite --debug hmr` to log the circular dependency path if a file change triggered it. @ http://localhost:3100/@vite/client:605
+[   52745ms] [ERROR] ReferenceError: Cannot access 'PreRemixVoiceModal' before initialization
+    at http://localhost:3100/lib/constants/modals.js?t=1787510544431:267:15 @ http://localhost:3100/@vite/client:173
+[   52746ms] [ERROR] [hmr] Failed to reload /components/modals/AiArtGenerator.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:3100/@vite/client:175
+[   52746ms] [INFO] [hmr] /components/modals/CreativeGeneratorModal.jsx failed to apply HMR as it's within a circular import. Reloading page to reset the execution order. To debug and break the circular import, you can run `vite --debug hmr` to log the circular dependency path if a file change triggered it. @ http://localhost:3100/@vite/client:605
+[   52746ms] [ERROR] ReferenceError: Cannot access 'PreRemixVoiceModal' before initialization
+    at http://localhost:3100/lib/constants/modals.js?t=1787510544431:267:15 @ http://localhost:3100/@vite/client:173
+[   52746ms] [ERROR] [hmr] Failed to reload /components/modals/CreativeGeneratorModal.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:3100/@vite/client:175
+[   52746ms] [INFO] [hmr] /components/modals/BackgroundDiffusion.jsx failed to apply HMR as it's within a circular import. Reloading page to reset the execution order. To debug and break the circular import, you can run `vite --debug hmr` to log the circular dependency path if a file change triggered it. @ http://localhost:3100/@vite/client:605
+[   52746ms] [ERROR] ReferenceError: Cannot access 'PreRemixVoiceModal' before initialization
+    at http://localhost:3100/lib/constants/modals.js?t=1787510544431:267:15 @ http://localhost:3100/@vite/client:173
+[   52746ms] [ERROR] [hmr] Failed to reload /components/modals/BackgroundDiffusion.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:3100/@vite/client:175
+[   52746ms] [INFO] [hmr] /components/common/library/ProviderList.jsx failed to apply HMR as it's within a circular import. Reloading page to reset the execution order. To debug and break the circular import, you can run `vite --debug hmr` to log the circular dependency path if a file change triggered it. @ http://localhost:3100/@vite/client:605
+[   52746ms] [ERROR] ReferenceError: Cannot access 'PreRemixVoiceModal' before initialization
+    at http://localhost:3100/lib/constants/modals.js?t=1787510544431:267:15 @ http://localhost:3100/@vite/client:173
+[   52746ms] [ERROR] [hmr] Failed to reload /components/common/library/ProviderList.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:3100/@vite/client:175
+[   52746ms] [INFO] [hmr] /src/providers/StoreProvider.jsx failed to apply HMR as it's within a circular import. Reloading page to reset the execution order. To debug and break the circular import, you can run `vite --debug hmr` to log the circular dependency path if a file change triggered it. @ http://localhost:3100/@vite/client:605
+[   52746ms] [ERROR] ReferenceError: Cannot access 'PreRemixVoiceModal' before initialization
+    at http://localhost:3100/lib/constants/modals.js?t=1787510544431:267:15 @ http://localhost:3100/@vite/client:173
+[   52746ms] [ERROR] [hmr] Failed to reload /src/providers/StoreProvider.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:3100/@vite/client:175
+[   52747ms] [ERROR] ReferenceError: Cannot access 'PreRemixVoiceModal' before initialization
+    at http://localhost:3100/lib/constants/modals.js?t=1787510544431:267:15 @ http://localhost:3100/@vite/client:173
+[   52747ms] [ERROR] [hmr] Failed to reload /src/components/ModalContainer.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:3100/@vite/client:175
+[   52747ms] [INFO] [hmr] /components/modals/TemplateGenerator/NicheScript.jsx failed to apply HMR as it's within a circular import. Reloading page to reset the execution order. To debug and break the circular import, you can run `vite --debug hmr` to log the circular dependency path if a file change triggered it. @ http://localhost:3100/@vite/client:605
+[   52747ms] [ERROR] ReferenceError: Cannot access 'PreRemixVoiceModal' before initialization
+    at http://localhost:3100/lib/constants/modals.js?t=1787510544431:267:15 @ http://localhost:3100/@vite/client:173
+[   52747ms] [ERROR] [hmr] Failed to reload /components/modals/TemplateGenerator/NicheScript.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:3100/@vite/client:175
+[   53860ms] [LOG] [App] Starting initialization... @ http://localhost:3100/src/main.js?t=1787510544431:19
+[   54253ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3100/src/lib/popcornInit.js?t=1787510544431:41
+[   54256ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3100/src/lib/popcornInit.js?t=1787510544431:48
+[   54263ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3100/src/lib/popcornInit.js?t=1787510544431:48
+[   54269ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3100/src/lib/popcornInit.js?t=1787510544431:48
+[   54271ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3100/src/lib/popcornInit.js?t=1787510544431:48
+[   54273ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3100/src/lib/popcornInit.js?t=1787510544431:48
+[   54276ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3100/src/lib/popcornInit.js?t=1787510544431:48
+[   54279ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3100/src/lib/popcornInit.js?t=1787510544431:48
+[   54301ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3100/src/lib/popcornInit.js?t=1787510544431:48
+[   54309ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3100/src/lib/popcornInit.js?t=1787510544431:48
+[   54339ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3100/src/lib/popcornInit.js?t=1787510544431:48

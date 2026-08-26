@@ -1,0 +1,64 @@
+[     457ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3103/src/main.js:19
+[     514ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3103/src/lib/popcornInit.js:41
+[     550ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[     656ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[     738ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    1016ms] [LOG] [popcorn-init] OK: wrapper-common @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    1094ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3103/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=d550000b:20096
+[    1121ms] [LOG] [App] Initialized in 664.40ms @ http://127.0.0.1:3103/src/main.js:164
+[    1121ms] [LOG] [App] Navigating to initial page: image @ http://127.0.0.1:3103/src/main.js:165
+[    1122ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://127.0.0.1:3103/src/main.js:176
+[    1341ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    1567ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    1779ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    1931ms] [LOG] [popcorn-init] OK: wrapper-null @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    2028ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    2233ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    2321ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    2390ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    2419ms] [LOG] [popcorn-init] OK: player-module @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    2474ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[    2481ms] [LOG] [popcorn-init] OK: plugin-image @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    2499ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    2507ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    2516ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    2523ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    2528ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    2533ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    2541ms] [LOG] [popcorn-init] OK: plugin-form @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    2559ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[    2580ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    2581ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/client?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2:0
+[    2584ms] [ERROR] e: The Request HTTP Origin header must be equal to or a subdomain of the requesting URL.
+    at il._baseFetch (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:171)
+    at async io.execute (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:6812)
+    at async rA._baseGet (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:497)
+    at async Promise.all (index 1)
+    at async #eY (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:236310)
+    at async s7.load (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:193944)
+    at async _a15.getEntryChunks (http://127.0.0.1:3103/node_modules/.vite/deps/@clerk_react.js?v=d550000b:8043:9) @ http://127.0.0.1:3103/node_modules/.vite/deps/@clerk_react.js?v=d550000b:8054
+[    2587ms] [LOG] [popcorn-init] OK: plugin-popup @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    2593ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    2598ms] [LOG] [popcorn-init] OK: plugin-skip @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    2619ms] [LOG] [popcorn-init] OK: plugin-text @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    2626ms] [LOG] [popcorn-init] OK: plugin-social @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    2633ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    2643ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    2650ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    2654ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    2660ms] [LOG] [popcorn-init] OK: plugin-combined @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    2667ms] [LOG] [popcorn-init] OK: plugin-background @ http://127.0.0.1:3103/src/lib/popcornInit.js:48
+[    2667ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://127.0.0.1:3103/src/lib/popcornInit.js:60
+[    2667ms] [LOG] [popcorn] function 19 @ http://127.0.0.1:3103/src/main.js:4
+[   36620ms] [ERROR] [2026-08-23T17:18:27.081Z] [ERROR] Uncaught error | {"filename":"http://127.0.0.1:3103/src/components/ImageStudio.js","lineno":820,"colno":7} @ http://127.0.0.1:3103/src/lib/logger.js:84
+[   36620ms] [ERROR] ReferenceError: _imageStudioOutsideClickHandler is not defined
+    at ImageStudio.modelBtn.onclick (http://127.0.0.1:3103/src/components/ImageStudio.js:820:7) @ http://127.0.0.1:3103/src/lib/logger.js:85
+[   36620ms] [ERROR] [Global Error] ReferenceError: _imageStudioOutsideClickHandler is not defined
+    at ImageStudio.modelBtn.onclick (http://127.0.0.1:3103/src/components/ImageStudio.js:820:7) @ http://127.0.0.1:3103/src/main.js:22
+[   36621ms] [LOG] [Analytics] error {errorType: uncaught_exception, message: Uncaught ReferenceError: _imageStudioOutsideClickHandler is not defined, filename: http://127.0.0.1:3103/src/components/ImageStudio.js, lineno: 820} @ http://127.0.0.1:3103/src/lib/analytics.js:36
+[   36624ms] ReferenceError: _imageStudioOutsideClickHandler is not defined
+    at ImageStudio.modelBtn.onclick (http://127.0.0.1:3103/src/components/ImageStudio.js:820:7)
+[   36831ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3103/#/image:0
+[   36831ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3103/#/image:0
+[   36831ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3103/#/image:0
+[   36831ms] [ERROR] Executing inline event handler violates the following Content Security Policy directive 'script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk=' https://clerk.smartvid.app https://clerk.smartvid.app https://challenges.cloudflare.com blob:'. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked. @ http://127.0.0.1:3103/#/image:0

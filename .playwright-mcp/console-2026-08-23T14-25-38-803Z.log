@@ -1,0 +1,71 @@
+[     999ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3102/src/main.js:19
+[    1207ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3102/src/lib/popcornInit.js:41
+[    1226ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3102/src/lib/popcornInit.js:48
+[    1536ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3102/src/lib/popcornInit.js:48
+[    2056ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3102/src/lib/popcornInit.js:48
+[    2188ms] [LOG] [App] Landing page rendered @ http://127.0.0.1:3102/src/main.js:88
+[    2898ms] [LOG] [popcorn-init] OK: wrapper-common @ http://127.0.0.1:3102/src/lib/popcornInit.js:48
+[    3997ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://127.0.0.1:3102/src/lib/popcornInit.js:48
+[    4595ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://127.0.0.1:3102/src/lib/popcornInit.js:48
+[    4622ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://127.0.0.1:3102/src/lib/popcornInit.js:48
+[    4629ms] [LOG] [popcorn-init] OK: wrapper-null @ http://127.0.0.1:3102/src/lib/popcornInit.js:48
+[    4639ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://127.0.0.1:3102/src/lib/popcornInit.js:48
+[    4647ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://127.0.0.1:3102/src/lib/popcornInit.js:48
+[    4658ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://127.0.0.1:3102/src/lib/popcornInit.js:48
+[    4820ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3102/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=1c84a565:20096
+[    5216ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://127.0.0.1:3102/src/lib/popcornInit.js:48
+[    5327ms] [LOG] [popcorn-init] OK: player-module @ http://127.0.0.1:3102/src/lib/popcornInit.js:48
+[    5628ms] [LOG] [vite] server connection lost. Polling for restart... @ http://127.0.0.1:3102/@vite/client:559
+[    5809ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[    5816ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/lib/constants/animations.js:0
+[    5821ms] [ERROR] [popcorn-init] FAILED at: plugin-image TypeError: Failed to fetch dynamically imported module: http://127.0.0.1:3102/lib/popcorn/plugins/image/popcorn.image.js @ http://127.0.0.1:3102/src/lib/popcornInit.js:55
+[    5832ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/lib/popcorn/plugins/jsonTransition/popcorn.jsonTransition.js:0
+[    5867ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonTransition TypeError: Failed to fetch dynamically imported module: http://127.0.0.1:3102/lib/popcorn/plugins/jsonTransition/popcorn.jsonTransition.js @ http://127.0.0.1:3102/src/lib/popcornInit.js:55
+[    5889ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/lib/popcorn/plugins/lottie-json/popcorn.lottie-json.js:0
+[    5941ms] [ERROR] [popcorn-init] FAILED at: plugin-lottie-json TypeError: Failed to fetch dynamically imported module: http://127.0.0.1:3102/lib/popcorn/plugins/lottie-json/popcorn.lottie-json.js @ http://127.0.0.1:3102/src/lib/popcornInit.js:55
+[    6060ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/lib/popcorn/plugins/json-button/popcorn.json-button.js:0
+[    6062ms] [ERROR] [popcorn-init] FAILED at: plugin-json-button TypeError: Failed to fetch dynamically imported module: http://127.0.0.1:3102/lib/popcorn/plugins/json-button/popcorn.json-button.js @ http://127.0.0.1:3102/src/lib/popcornInit.js:55
+[    6065ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/lib/popcorn/plugins/personalizedImage/popcorn.personalizedImage.js:0
+[    6066ms] [ERROR] [popcorn-init] FAILED at: plugin-personalizedImage TypeError: Failed to fetch dynamically imported module: http://127.0.0.1:3102/lib/popcorn/plugins/personalizedImage/popcorn.personalizedImage.js @ http://127.0.0.1:3102/src/lib/popcornInit.js:55
+[    6070ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/lib/popcorn/plugins/loopPlugin/popcorn.loopPlugin.js:0
+[    6070ms] [ERROR] [popcorn-init] FAILED at: plugin-loopPlugin TypeError: Failed to fetch dynamically imported module: http://127.0.0.1:3102/lib/popcorn/plugins/loopPlugin/popcorn.loopPlugin.js @ http://127.0.0.1:3102/src/lib/popcornInit.js:55
+[    6072ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/lib/popcorn/plugins/pausePlugin/popcorn.pausePlugin.js:0
+[    6072ms] [ERROR] [popcorn-init] FAILED at: plugin-pausePlugin TypeError: Failed to fetch dynamically imported module: http://127.0.0.1:3102/lib/popcorn/plugins/pausePlugin/popcorn.pausePlugin.js @ http://127.0.0.1:3102/src/lib/popcornInit.js:55
+[    6075ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/lib/popcorn/plugins/form/popcorn.form.js:0
+[    6075ms] [ERROR] [popcorn-init] FAILED at: plugin-form TypeError: Failed to fetch dynamically imported module: http://127.0.0.1:3102/lib/popcorn/plugins/form/popcorn.form.js @ http://127.0.0.1:3102/src/lib/popcornInit.js:55
+[    6078ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/lib/popcorn/plugins/retarget/popcorn.retarget.js:0
+[    6078ms] [ERROR] [popcorn-init] FAILED at: plugin-retarget TypeError: Failed to fetch dynamically imported module: http://127.0.0.1:3102/lib/popcorn/plugins/retarget/popcorn.retarget.js @ http://127.0.0.1:3102/src/lib/popcornInit.js:55
+[    6081ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/lib/popcorn/plugins/popup/popcorn.popup.js:0
+[    6081ms] [ERROR] [popcorn-init] FAILED at: plugin-popup TypeError: Failed to fetch dynamically imported module: http://127.0.0.1:3102/lib/popcorn/plugins/popup/popcorn.popup.js @ http://127.0.0.1:3102/src/lib/popcornInit.js:55
+[    6085ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/lib/popcorn/plugins/sequencer/popcorn.sequencer.js:0
+[    6086ms] [ERROR] [popcorn-init] FAILED at: plugin-sequencer TypeError: Failed to fetch dynamically imported module: http://127.0.0.1:3102/lib/popcorn/plugins/sequencer/popcorn.sequencer.js @ http://127.0.0.1:3102/src/lib/popcornInit.js:55
+[    6093ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/lib/popcorn/plugins/skip/popcorn.skip.js:0
+[    6093ms] [ERROR] [popcorn-init] FAILED at: plugin-skip TypeError: Failed to fetch dynamically imported module: http://127.0.0.1:3102/lib/popcorn/plugins/skip/popcorn.skip.js @ http://127.0.0.1:3102/src/lib/popcornInit.js:55
+[    6098ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/lib/popcorn/plugins/text/popcorn.text.js:0
+[    6099ms] [ERROR] [popcorn-init] FAILED at: plugin-text TypeError: Failed to fetch dynamically imported module: http://127.0.0.1:3102/lib/popcorn/plugins/text/popcorn.text.js @ http://127.0.0.1:3102/src/lib/popcornInit.js:55
+[    6108ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/lib/popcorn/plugins/social/popcorn.social.js:0
+[    6109ms] [ERROR] [popcorn-init] FAILED at: plugin-social TypeError: Failed to fetch dynamically imported module: http://127.0.0.1:3102/lib/popcorn/plugins/social/popcorn.social.js @ http://127.0.0.1:3102/src/lib/popcornInit.js:55
+[    6111ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/lib/popcorn/plugins/jsonAnimation/popcorn.jsonAnimation.js:0
+[    6112ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonAnimation TypeError: Failed to fetch dynamically imported module: http://127.0.0.1:3102/lib/popcorn/plugins/jsonAnimation/popcorn.jsonAnimation.js @ http://127.0.0.1:3102/src/lib/popcornInit.js:55
+[    6115ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/lib/popcorn/plugins/videoTransition/popcorn.videoTransition.js:0
+[    6115ms] [ERROR] [popcorn-init] FAILED at: plugin-videoTransition TypeError: Failed to fetch dynamically imported module: http://127.0.0.1:3102/lib/popcorn/plugins/videoTransition/popcorn.videoTransition.js @ http://127.0.0.1:3102/src/lib/popcornInit.js:55
+[    6118ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/lib/popcorn/plugins/seethroughtext/popcorn.seethroughtext.js:0
+[    6118ms] [ERROR] [popcorn-init] FAILED at: plugin-seethroughtext TypeError: Failed to fetch dynamically imported module: http://127.0.0.1:3102/lib/popcorn/plugins/seethroughtext/popcorn.seethroughtext.js @ http://127.0.0.1:3102/src/lib/popcornInit.js:55
+[    6122ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/lib/popcorn/plugins/wikipedia/popcorn.wikipedia.js:0
+[    6122ms] [ERROR] [popcorn-init] FAILED at: plugin-wikipedia TypeError: Failed to fetch dynamically imported module: http://127.0.0.1:3102/lib/popcorn/plugins/wikipedia/popcorn.wikipedia.js @ http://127.0.0.1:3102/src/lib/popcornInit.js:55
+[    6124ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/lib/popcorn/plugins/combined/popcorn.combined.js:0
+[    6124ms] [ERROR] [popcorn-init] FAILED at: plugin-combined TypeError: Failed to fetch dynamically imported module: http://127.0.0.1:3102/lib/popcorn/plugins/combined/popcorn.combined.js @ http://127.0.0.1:3102/src/lib/popcornInit.js:55
+[    6127ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/lib/popcorn/plugins/background/popcorn.background.js:0
+[    6127ms] [ERROR] [popcorn-init] FAILED at: plugin-background TypeError: Failed to fetch dynamically imported module: http://127.0.0.1:3102/lib/popcorn/plugins/background/popcorn.background.js @ http://127.0.0.1:3102/src/lib/popcornInit.js:55
+[    6127ms] [LOG] [popcorn-init] SUMMARY: 0/20 plugins registered; FAILED: plugin-image, plugin-jsonTransition, plugin-lottie-json, plugin-json-button, plugin-personalizedImage, plugin-loopPlugin, plugin-pausePlugin, plugin-form, plugin-retarget, plugin-popup, plugin-sequencer, plugin-skip, plugin-text, plugin-social, plugin-jsonAnimation, plugin-videoTransition, plugin-seethroughtext, plugin-wikipedia, plugin-combined, plugin-background @ http://127.0.0.1:3102/src/lib/popcornInit.js:60
+[    6127ms] [LOG] [popcorn] function 0 @ http://127.0.0.1:3102/src/main.js:4
+[    6812ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[    7822ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[    8827ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[    9832ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[   10837ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[   11842ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[   12845ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[   13848ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[   14856ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[   15872ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0

@@ -82,7 +82,7 @@ function extractModelList(payload: unknown, providerId: string): ProviderModel[]
 
 export default function ProvidersPage() {
   usePageTitle('API Providers', {
-    description: 'Connect and test the AI provider API keys OpenThorn uses to build your projects.',
+    description: 'Connect and test the AI provider API keys SmartVideo uses to build your projects.',
   })
   const { user, loading: authLoading } = useAuth()
   const [savedKeys, setSavedKeys] = useState<ProviderKey[]>([])
@@ -346,15 +346,15 @@ export default function ProvidersPage() {
           </svg>
         </button>
         <a href="/dashboard" className={styles.mobileLogo}>
-          <img src="/assets/logo.png" alt="OpenThorn" className={styles.mobileLogoImg} />
+          <img src="/assets/logo.png" alt="SmartVideo" className={styles.mobileLogoImg} />
         </a>
       </div>
 
       <main className={styles.main}>
         <div className={styles.content}>
-          {/* OpenThorn logo */}
+          {/* SmartVideo logo */}
           <div className={styles.brandRow}>
-            <img src="/assets/logo.png" alt="OpenThorn" className={styles.brandLogo} />
+            <img src="/assets/logo.png" alt="SmartVideo" className={styles.brandLogo} />
           </div>
 
           {/* Empty state */}
@@ -367,7 +367,7 @@ export default function ProvidersPage() {
               </div>
               <h2 className={styles.emptyTitle}>No providers configured</h2>
               <p className={styles.emptyText}>
-                Connect your LLM providers to start building with OpenThorn.
+                Connect your LLM providers to start building with SmartVideo.
                 Your API keys are stored securely in your account.
               </p>
               <button className={styles.recommendedBtn} onClick={() => openEditor('google')} type="button">

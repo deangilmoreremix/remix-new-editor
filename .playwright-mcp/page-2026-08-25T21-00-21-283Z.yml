@@ -1,0 +1,7 @@
+- generic [ref=f18e5]:
+  - img "SmartVideo" [ref=f18e7]
+  - heading "Sign in to continue" [level=1] [ref=f18e8]
+  - paragraph [ref=f18e9]: You need an account to access Templates.
+  - generic [ref=f18e10]:
+    - button "Create account" [ref=f18e11] [cursor=pointer]
+    - button "Sign in" [ref=f18e12] [cursor=pointer]

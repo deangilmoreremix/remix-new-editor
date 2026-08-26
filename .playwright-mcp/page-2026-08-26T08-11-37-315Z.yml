@@ -1,0 +1,12 @@
+- generic [ref=f2e3]:
+  - generic [ref=f2e4]: "[plugin:vite:esbuild] Transform failed with 1 error: /Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/node_modules/esbuild/lib/main.js:253:29: ERROR: \"loader\" must be a string"
+  - generic [ref=f2e5]: /Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/node_modules/esbuild/lib/main.js:253:29
+  - generic [ref=f2e6]: at failureErrorWithLog (/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/node_modules/esbuild/lib/main.js:1467:15) at /Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/node_modules/esbuild/lib/main.js:770:20 at responseCallbacks.<computed> (/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/node_modules/esbuild/lib/main.js:603:9) at handleIncomingPacket (/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/node_modules/esbuild/lib/main.js:658:12) at Socket.readFromStdout (/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/node_modules/esbuild/lib/main.js:581:7) at Socket.emit (node:events:524:28) at addChunk (node:internal/streams/readable:561:12) at readableAddChunkPushByteMode (node:internal/streams/readable:512:3) at Readable.push (node:internal/streams/readable:392:5) at Pipe.onStreamRead (node:internal/stream_base_commons:191:23
+  - generic [ref=f2e7]:
+    - text: Click outside, press Esc key, or fix the code to dismiss.You can also disable this overlay by setting
+    - code [ref=f2e8]: server.hmr.overlay
+    - text: to
+    - code [ref=f2e9]: "false"
+    - text: in
+    - code [ref=f2e10]: vite.config.ts
+    - text: .

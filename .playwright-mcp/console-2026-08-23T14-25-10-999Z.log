@@ -1,0 +1,25 @@
+[    8082ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3102/src/main.js:19
+[    8166ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3102/src/lib/popcornInit.js:41
+[    8220ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3102/src/lib/popcornInit.js:48
+[    8230ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3102/src/lib/popcornInit.js:48
+[    8245ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3102/src/lib/popcornInit.js:48
+[    8251ms] [LOG] [popcorn-init] OK: wrapper-common @ http://127.0.0.1:3102/src/lib/popcornInit.js:48
+[    8257ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://127.0.0.1:3102/src/lib/popcornInit.js:48
+[    8263ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://127.0.0.1:3102/src/lib/popcornInit.js:48
+[    8270ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://127.0.0.1:3102/src/lib/popcornInit.js:48
+[    8281ms] [LOG] [popcorn-init] OK: wrapper-null @ http://127.0.0.1:3102/src/lib/popcornInit.js:48
+[    8285ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://127.0.0.1:3102/src/lib/popcornInit.js:48
+[    8289ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://127.0.0.1:3102/src/lib/popcornInit.js:48
+[    8294ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://127.0.0.1:3102/src/lib/popcornInit.js:48
+[    8299ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://127.0.0.1:3102/src/lib/popcornInit.js:48
+[    8305ms] [LOG] [popcorn-init] OK: player-module @ http://127.0.0.1:3102/src/lib/popcornInit.js:48
+[   14100ms] [LOG] [App] Landing page rendered @ http://127.0.0.1:3102/src/main.js:88
+[   14833ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3102/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=1c84a565:20096
+[   15042ms] [LOG] [popcorn-init] OK: plugin-image @ http://127.0.0.1:3102/src/lib/popcornInit.js:48
+[   15398ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://127.0.0.1:3102/src/lib/popcornInit.js:48
+[   15434ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://127.0.0.1:3102/src/lib/popcornInit.js:48
+[   15512ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://127.0.0.1:3102/src/lib/popcornInit.js:48
+[   15564ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://127.0.0.1:3102/src/lib/popcornInit.js:48
+[   15594ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://127.0.0.1:3102/src/lib/popcornInit.js:48
+[   15619ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://127.0.0.1:3102/src/lib/popcornInit.js:48
+[   15730ms] [LOG] [popcorn-init] OK: plugin-form @ http://127.0.0.1:3102/src/lib/popcornInit.js:48

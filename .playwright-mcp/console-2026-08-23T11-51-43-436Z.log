@@ -1,0 +1,985 @@
+[  204720ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3102/src/main.js?t=1787486103034:19
+[  204763ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:41
+[  204764ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  204766ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  204769ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  204770ms] [LOG] [popcorn-init] OK: wrapper-common @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  204771ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  204773ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  204773ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  204774ms] [LOG] [popcorn-init] OK: wrapper-null @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  204774ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  204776ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  204776ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  204777ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  204778ms] [LOG] [popcorn-init] OK: player-module @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  205313ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3102/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=1c84a565:20096
+[  205320ms] [LOG] [App] Initialized in 600.00ms @ http://127.0.0.1:3102/src/main.js?t=1787486103034:164
+[  205320ms] [LOG] [App] Navigating to initial page: template/anime-converter @ http://127.0.0.1:3102/src/main.js?t=1787486103034:165
+[  205321ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://127.0.0.1:3102/src/main.js?t=1787486103034:176
+[  207166ms] [LOG] [popcorn-init] OK: plugin-image @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  207223ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[  207435ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[  207437ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/client?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2:0
+[  207724ms] [ERROR] e: The Request HTTP Origin header must be equal to or a subdomain of the requesting URL.
+    at il._baseFetch (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:171)
+    at async io.execute (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:6812)
+    at async rA._baseGet (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:497)
+    at async Promise.all (index 1)
+    at async #eY (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:236310)
+    at async s7.load (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:193944)
+    at async _a15.getEntryChunks (http://127.0.0.1:3102/node_modules/.vite/deps/@clerk_react.js?v=1c84a565:8043:9) @ http://127.0.0.1:3102/node_modules/.vite/deps/@clerk_react.js?v=1c84a565:8054
+[  208267ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208472ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208496ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208516ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208528ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208550ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208585ms] [LOG] [popcorn-init] OK: plugin-form @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208732ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208762ms] [LOG] [popcorn-init] OK: plugin-popup @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208830ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208843ms] [LOG] [popcorn-init] OK: plugin-skip @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208882ms] [LOG] [popcorn-init] OK: plugin-text @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208892ms] [LOG] [popcorn-init] OK: plugin-social @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208901ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208933ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208947ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208952ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208959ms] [LOG] [popcorn-init] OK: plugin-combined @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208967ms] [LOG] [popcorn-init] OK: plugin-background @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208967ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:60
+[  208967ms] [LOG] [popcorn] function 19 @ http://127.0.0.1:3102/src/main.js?t=1787486103034:4
+[  204720ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3102/src/main.js?t=1787486103034:19
+[  204763ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:41
+[  204764ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  204766ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  204769ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  204770ms] [LOG] [popcorn-init] OK: wrapper-common @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  204771ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  204773ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  204773ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  204774ms] [LOG] [popcorn-init] OK: wrapper-null @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  204774ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  204776ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  204776ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  204777ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  204778ms] [LOG] [popcorn-init] OK: player-module @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  205313ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3102/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=1c84a565:20096
+[  205320ms] [LOG] [App] Initialized in 600.00ms @ http://127.0.0.1:3102/src/main.js?t=1787486103034:164
+[  205320ms] [LOG] [App] Navigating to initial page: template/anime-converter @ http://127.0.0.1:3102/src/main.js?t=1787486103034:165
+[  205321ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://127.0.0.1:3102/src/main.js?t=1787486103034:176
+[  207166ms] [LOG] [popcorn-init] OK: plugin-image @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  207223ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[  207724ms] [ERROR] e: The Request HTTP Origin header must be equal to or a subdomain of the requesting URL.
+    at il._baseFetch (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:171)
+    at async io.execute (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:6812)
+    at async rA._baseGet (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:497)
+    at async Promise.all (index 1)
+    at async #eY (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:236310)
+    at async s7.load (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:193944)
+    at async _a15.getEntryChunks (http://127.0.0.1:3102/node_modules/.vite/deps/@clerk_react.js?v=1c84a565:8043:9) @ http://127.0.0.1:3102/node_modules/.vite/deps/@clerk_react.js?v=1c84a565:8054
+[  208267ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208472ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208496ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208516ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208528ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208550ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208585ms] [LOG] [popcorn-init] OK: plugin-form @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208732ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208762ms] [LOG] [popcorn-init] OK: plugin-popup @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208830ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208843ms] [LOG] [popcorn-init] OK: plugin-skip @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208882ms] [LOG] [popcorn-init] OK: plugin-text @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208892ms] [LOG] [popcorn-init] OK: plugin-social @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208901ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208933ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208947ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208952ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208959ms] [LOG] [popcorn-init] OK: plugin-combined @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208967ms] [LOG] [popcorn-init] OK: plugin-background @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:48
+[  208967ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486103034:60
+[  208967ms] [LOG] [popcorn] function 19 @ http://127.0.0.1:3102/src/main.js?t=1787486103034:4
+[  207435ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[  207437ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/client?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2:0
+[  223423ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3102/src/main.js?t=1787486122856:19
+[  223470ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:41
+[  223473ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:48
+[  223476ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:48
+[  223477ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:48
+[  223478ms] [LOG] [popcorn-init] OK: wrapper-common @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:48
+[  223481ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:48
+[  223482ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:48
+[  223483ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:48
+[  223483ms] [LOG] [popcorn-init] OK: wrapper-null @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:48
+[  223485ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:48
+[  223485ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:48
+[  223486ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:48
+[  223487ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:48
+[  223488ms] [LOG] [popcorn-init] OK: player-module @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:48
+[  224903ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3102/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=1c84a565:20096
+[  224913ms] [LOG] [App] Initialized in 1489.50ms @ http://127.0.0.1:3102/src/main.js?t=1787486122856:164
+[  224913ms] [LOG] [App] Navigating to initial page: template/anime-converter @ http://127.0.0.1:3102/src/main.js?t=1787486122856:165
+[  224914ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://127.0.0.1:3102/src/main.js?t=1787486122856:176
+[  225439ms] [LOG] [popcorn-init] OK: plugin-image @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:48
+[  225547ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[  225667ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[  225671ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/client?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2:0
+[  225769ms] [ERROR] e: The Request HTTP Origin header must be equal to or a subdomain of the requesting URL.
+    at il._baseFetch (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:171)
+    at async io.execute (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:6812)
+    at async rA._baseGet (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:497)
+    at async Promise.all (index 1)
+    at async #eY (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:236310)
+    at async s7.load (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:193944)
+    at async _a15.getEntryChunks (http://127.0.0.1:3102/node_modules/.vite/deps/@clerk_react.js?v=1c84a565:8043:9) @ http://127.0.0.1:3102/node_modules/.vite/deps/@clerk_react.js?v=1c84a565:8054
+[  225900ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:48
+[  225913ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:48
+[  225946ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:48
+[  225966ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:48
+[  225975ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:48
+[  225993ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:48
+[  226017ms] [LOG] [popcorn-init] OK: plugin-form @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:48
+[  226038ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:48
+[  226046ms] [LOG] [popcorn-init] OK: plugin-popup @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:48
+[  226060ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:48
+[  226067ms] [LOG] [popcorn-init] OK: plugin-skip @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:48
+[  226102ms] [LOG] [popcorn-init] OK: plugin-text @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:48
+[  226158ms] [LOG] [popcorn-init] OK: plugin-social @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:48
+[  226189ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:48
+[  226222ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:48
+[  226229ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:48
+[  226238ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:48
+[  226246ms] [LOG] [popcorn-init] OK: plugin-combined @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:48
+[  226256ms] [LOG] [popcorn-init] OK: plugin-background @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:48
+[  226256ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486122856:60
+[  226256ms] [LOG] [popcorn] function 19 @ http://127.0.0.1:3102/src/main.js?t=1787486122856:4
+[  250148ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3102/src/main.js?t=1787486150794:19
+[  250175ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:41
+[  250175ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:48
+[  250177ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:48
+[  250177ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:48
+[  250178ms] [LOG] [popcorn-init] OK: wrapper-common @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:48
+[  250180ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:48
+[  250181ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:48
+[  250183ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:48
+[  250183ms] [LOG] [popcorn-init] OK: wrapper-null @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:48
+[  250184ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:48
+[  250184ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:48
+[  250185ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:48
+[  250186ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:48
+[  250186ms] [LOG] [popcorn-init] OK: player-module @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:48
+[  250681ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3102/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=1c84a565:20096
+[  250685ms] [LOG] [App] Initialized in 536.90ms @ http://127.0.0.1:3102/src/main.js?t=1787486150794:164
+[  250685ms] [LOG] [App] Navigating to initial page: template/anime-converter @ http://127.0.0.1:3102/src/main.js?t=1787486150794:165
+[  250686ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://127.0.0.1:3102/src/main.js?t=1787486150794:176
+[  251118ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[  251292ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[  251293ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/client?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2:0
+[  251294ms] [ERROR] e: The Request HTTP Origin header must be equal to or a subdomain of the requesting URL.
+    at il._baseFetch (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:171)
+    at async io.execute (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:6812)
+    at async rA._baseGet (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:497)
+    at async Promise.all (index 1)
+    at async #eY (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:236310)
+    at async s7.load (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:193944)
+    at async _a15.getEntryChunks (http://127.0.0.1:3102/node_modules/.vite/deps/@clerk_react.js?v=1c84a565:8043:9) @ http://127.0.0.1:3102/node_modules/.vite/deps/@clerk_react.js?v=1c84a565:8054
+[  251434ms] [LOG] [popcorn-init] OK: plugin-image @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:48
+[  251695ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:48
+[  251705ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:48
+[  251718ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:48
+[  251727ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:48
+[  251733ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:48
+[  251741ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:48
+[  251757ms] [LOG] [popcorn-init] OK: plugin-form @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:48
+[  251776ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:48
+[  251791ms] [LOG] [popcorn-init] OK: plugin-popup @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:48
+[  251801ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:48
+[  251810ms] [LOG] [popcorn-init] OK: plugin-skip @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:48
+[  251842ms] [LOG] [popcorn-init] OK: plugin-text @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:48
+[  251860ms] [LOG] [popcorn-init] OK: plugin-social @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:48
+[  251868ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:48
+[  251884ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:48
+[  251891ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:48
+[  251896ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:48
+[  251902ms] [LOG] [popcorn-init] OK: plugin-combined @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:48
+[  251915ms] [LOG] [popcorn-init] OK: plugin-background @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:48
+[  251916ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486150697:60
+[  251916ms] [LOG] [popcorn] function 19 @ http://127.0.0.1:3102/src/main.js?t=1787486150794:4
+[  266979ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3102/src/main.js?t=1787486168497:19
+[  266992ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:41
+[  266993ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  266994ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  266994ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  266995ms] [LOG] [popcorn-init] OK: wrapper-common @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  266996ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  266996ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  266997ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  266997ms] [LOG] [popcorn-init] OK: wrapper-null @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  266998ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  266999ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  266999ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  267000ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  267000ms] [LOG] [popcorn-init] OK: player-module @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  267560ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3102/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=1c84a565:20096
+[  267563ms] [LOG] [App] Initialized in 583.10ms @ http://127.0.0.1:3102/src/main.js?t=1787486168497:164
+[  267563ms] [LOG] [App] Navigating to initial page: template/anime-converter @ http://127.0.0.1:3102/src/main.js?t=1787486168497:165
+[  267563ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://127.0.0.1:3102/src/main.js?t=1787486168497:176
+[  267838ms] [LOG] [popcorn-init] OK: plugin-image @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  268154ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  268169ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  268197ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[  268221ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  268241ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  268250ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  268258ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  268273ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[  268277ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/client?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2:0
+[  268279ms] [ERROR] e: The Request HTTP Origin header must be equal to or a subdomain of the requesting URL.
+    at il._baseFetch (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:171)
+    at async io.execute (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:6812)
+    at async rA._baseGet (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:497)
+    at async Promise.all (index 1)
+    at async #eY (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:236310)
+    at async s7.load (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:193944)
+    at async _a15.getEntryChunks (http://127.0.0.1:3102/node_modules/.vite/deps/@clerk_react.js?v=1c84a565:8043:9) @ http://127.0.0.1:3102/node_modules/.vite/deps/@clerk_react.js?v=1c84a565:8054
+[  268280ms] [LOG] [popcorn-init] OK: plugin-form @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  268297ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  268306ms] [LOG] [popcorn-init] OK: plugin-popup @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  268313ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  268317ms] [LOG] [popcorn-init] OK: plugin-skip @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  268342ms] [LOG] [popcorn-init] OK: plugin-text @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  268348ms] [LOG] [popcorn-init] OK: plugin-social @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  268354ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  268366ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  268373ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  268377ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  268387ms] [LOG] [popcorn-init] OK: plugin-combined @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  268393ms] [LOG] [popcorn-init] OK: plugin-background @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  268393ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:60
+[  268393ms] [LOG] [popcorn] function 19 @ http://127.0.0.1:3102/src/main.js?t=1787486168497:4
+[  292549ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3102/src/main.js?t=1787486193914:19
+[  292573ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:41
+[  292577ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  292580ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  292580ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  292581ms] [LOG] [popcorn-init] OK: wrapper-common @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  292581ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  292581ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  292582ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  292582ms] [LOG] [popcorn-init] OK: wrapper-null @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  292583ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  292583ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  292584ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  292584ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  292585ms] [LOG] [popcorn-init] OK: player-module @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  292868ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3102/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=1c84a565:20096
+[  292874ms] [LOG] [App] Initialized in 325.30ms @ http://127.0.0.1:3102/src/main.js?t=1787486193914:164
+[  292874ms] [LOG] [App] Navigating to initial page: template/anime-converter @ http://127.0.0.1:3102/src/main.js?t=1787486193914:165
+[  292874ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://127.0.0.1:3102/src/main.js?t=1787486193914:176
+[  293371ms] [LOG] [popcorn-init] OK: plugin-image @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  293397ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[  293486ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[  293490ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/client?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2:0
+[  293533ms] [ERROR] e: The Request HTTP Origin header must be equal to or a subdomain of the requesting URL.
+    at il._baseFetch (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:171)
+    at async io.execute (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:6812)
+    at async rA._baseGet (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:497)
+    at async Promise.all (index 1)
+    at async #eY (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:236310)
+    at async s7.load (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:193944)
+    at async _a15.getEntryChunks (http://127.0.0.1:3102/node_modules/.vite/deps/@clerk_react.js?v=1c84a565:8043:9) @ http://127.0.0.1:3102/node_modules/.vite/deps/@clerk_react.js?v=1c84a565:8054
+[  293608ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  293687ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  293722ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  293730ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  293736ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  293741ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  293754ms] [LOG] [popcorn-init] OK: plugin-form @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  293785ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  293797ms] [LOG] [popcorn-init] OK: plugin-popup @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  293804ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  293810ms] [LOG] [popcorn-init] OK: plugin-skip @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  293843ms] [LOG] [popcorn-init] OK: plugin-text @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  293858ms] [LOG] [popcorn-init] OK: plugin-social @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  293865ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  293881ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  293887ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  293892ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  293897ms] [LOG] [popcorn-init] OK: plugin-combined @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  293904ms] [LOG] [popcorn-init] OK: plugin-background @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:48
+[  293904ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486168497:60
+[  293904ms] [LOG] [popcorn] function 19 @ http://127.0.0.1:3102/src/main.js?t=1787486193914:4
+[  303857ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3102/src/main.js?t=1787486203429:19
+[  303900ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:41
+[  303902ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:48
+[  303904ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:48
+[  303906ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:48
+[  303908ms] [LOG] [popcorn-init] OK: wrapper-common @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:48
+[  303909ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:48
+[  303910ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:48
+[  303911ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:48
+[  303911ms] [LOG] [popcorn-init] OK: wrapper-null @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:48
+[  303912ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:48
+[  303917ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:48
+[  303918ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:48
+[  303919ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:48
+[  303921ms] [LOG] [popcorn-init] OK: player-module @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:48
+[  304508ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3102/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=1c84a565:20096
+[  304512ms] [LOG] [App] Initialized in 655.10ms @ http://127.0.0.1:3102/src/main.js?t=1787486203429:164
+[  304512ms] [LOG] [App] Navigating to initial page: template/anime-converter @ http://127.0.0.1:3102/src/main.js?t=1787486203429:165
+[  304514ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://127.0.0.1:3102/src/main.js?t=1787486203429:176
+[  305255ms] [LOG] [popcorn-init] OK: plugin-image @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:48
+[  305356ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[  305459ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/client?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2:0
+[  305460ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[  305501ms] [ERROR] e: The Request HTTP Origin header must be equal to or a subdomain of the requesting URL.
+    at il._baseFetch (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:171)
+    at async io.execute (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:6812)
+    at async rA._baseGet (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:497)
+    at async Promise.all (index 1)
+    at async #eY (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:236310)
+    at async s7.load (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:193944)
+    at async _a15.getEntryChunks (http://127.0.0.1:3102/node_modules/.vite/deps/@clerk_react.js?v=1c84a565:8043:9) @ http://127.0.0.1:3102/node_modules/.vite/deps/@clerk_react.js?v=1c84a565:8054
+[  305583ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:48
+[  305598ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:48
+[  305615ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:48
+[  305623ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:48
+[  305628ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:48
+[  305635ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:48
+[  305653ms] [LOG] [popcorn-init] OK: plugin-form @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:48
+[  305676ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:48
+[  305682ms] [LOG] [popcorn-init] OK: plugin-popup @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:48
+[  305691ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:48
+[  305696ms] [LOG] [popcorn-init] OK: plugin-skip @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:48
+[  305721ms] [LOG] [popcorn-init] OK: plugin-text @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:48
+[  305730ms] [LOG] [popcorn-init] OK: plugin-social @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:48
+[  305737ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:48
+[  305756ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:48
+[  305763ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:48
+[  305768ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:48
+[  305774ms] [LOG] [popcorn-init] OK: plugin-combined @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:48
+[  305780ms] [LOG] [popcorn-init] OK: plugin-background @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:48
+[  305781ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486203429:60
+[  305781ms] [LOG] [popcorn] function 19 @ http://127.0.0.1:3102/src/main.js?t=1787486203429:4
+[  340139ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3102/src/main.js?t=1787486240696:19
+[  340162ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:41
+[  340163ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:48
+[  340163ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:48
+[  340164ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:48
+[  340165ms] [LOG] [popcorn-init] OK: wrapper-common @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:48
+[  340165ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:48
+[  340167ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:48
+[  340169ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:48
+[  340169ms] [LOG] [popcorn-init] OK: wrapper-null @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:48
+[  340170ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:48
+[  340170ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:48
+[  340171ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:48
+[  340172ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:48
+[  340174ms] [LOG] [popcorn-init] OK: player-module @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:48
+[  340907ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3102/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=1c84a565:20096
+[  340916ms] [LOG] [App] Initialized in 776.10ms @ http://127.0.0.1:3102/src/main.js?t=1787486240696:164
+[  340916ms] [LOG] [App] Navigating to initial page: template/anime-converter @ http://127.0.0.1:3102/src/main.js?t=1787486240696:165
+[  340916ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://127.0.0.1:3102/src/main.js?t=1787486240696:176
+[  341490ms] [LOG] [popcorn-init] OK: plugin-image @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:48
+[  341640ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[  341730ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/client?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2:0
+[  341732ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[  341741ms] [ERROR] e: The Request HTTP Origin header must be equal to or a subdomain of the requesting URL.
+    at il._baseFetch (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:171)
+    at async io.execute (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:6812)
+    at async rA._baseGet (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:497)
+    at async Promise.all (index 1)
+    at async #eY (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:236310)
+    at async s7.load (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:193944)
+    at async _a15.getEntryChunks (http://127.0.0.1:3102/node_modules/.vite/deps/@clerk_react.js?v=1c84a565:8043:9) @ http://127.0.0.1:3102/node_modules/.vite/deps/@clerk_react.js?v=1c84a565:8054
+[  341774ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:48
+[  341889ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:48
+[  341908ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:48
+[  341933ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:48
+[  341941ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:48
+[  341950ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:48
+[  341969ms] [LOG] [popcorn-init] OK: plugin-form @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:48
+[  341996ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:48
+[  342005ms] [LOG] [popcorn-init] OK: plugin-popup @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:48
+[  342014ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:48
+[  342020ms] [LOG] [popcorn-init] OK: plugin-skip @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:48
+[  342060ms] [LOG] [popcorn-init] OK: plugin-text @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:48
+[  342081ms] [LOG] [popcorn-init] OK: plugin-social @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:48
+[  342096ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:48
+[  342169ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:48
+[  342176ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:48
+[  342181ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:48
+[  342187ms] [LOG] [popcorn-init] OK: plugin-combined @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:48
+[  342194ms] [LOG] [popcorn-init] OK: plugin-background @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:48
+[  342194ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486240696:60
+[  342194ms] [LOG] [popcorn] function 19 @ http://127.0.0.1:3102/src/main.js?t=1787486240696:4
+[  357680ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3102/src/main.js?t=1787486257966:19
+[  357719ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:41
+[  357721ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:48
+[  357722ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:48
+[  357723ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:48
+[  357724ms] [LOG] [popcorn-init] OK: wrapper-common @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:48
+[  357725ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:48
+[  357726ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:48
+[  357727ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:48
+[  357728ms] [LOG] [popcorn-init] OK: wrapper-null @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:48
+[  357728ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:48
+[  357729ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:48
+[  357729ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:48
+[  357731ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:48
+[  357731ms] [LOG] [popcorn-init] OK: player-module @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:48
+[  358459ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3102/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=1c84a565:20096
+[  358464ms] [LOG] [App] Initialized in 783.20ms @ http://127.0.0.1:3102/src/main.js?t=1787486257966:164
+[  358464ms] [LOG] [App] Navigating to initial page: template/anime-converter @ http://127.0.0.1:3102/src/main.js?t=1787486257966:165
+[  358464ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://127.0.0.1:3102/src/main.js?t=1787486257966:176
+[  359475ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[  359615ms] [LOG] [popcorn-init] OK: plugin-image @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:48
+[  359652ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[  359654ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/client?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2:0
+[  359674ms] [ERROR] e: The Request HTTP Origin header must be equal to or a subdomain of the requesting URL.
+    at il._baseFetch (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:171)
+    at async io.execute (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:6812)
+    at async rA._baseGet (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:497)
+    at async Promise.all (index 1)
+    at async #eY (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:236310)
+    at async s7.load (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:193944)
+    at async _a15.getEntryChunks (http://127.0.0.1:3102/node_modules/.vite/deps/@clerk_react.js?v=1c84a565:8043:9) @ http://127.0.0.1:3102/node_modules/.vite/deps/@clerk_react.js?v=1c84a565:8054
+[  360201ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:48
+[  360211ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:48
+[  360225ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:48
+[  360232ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:48
+[  360239ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:48
+[  360248ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:48
+[  360263ms] [LOG] [popcorn-init] OK: plugin-form @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:48
+[  360279ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:48
+[  360293ms] [LOG] [popcorn-init] OK: plugin-popup @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:48
+[  360301ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:48
+[  360307ms] [LOG] [popcorn-init] OK: plugin-skip @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:48
+[  360368ms] [LOG] [popcorn-init] OK: plugin-text @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:48
+[  360389ms] [LOG] [popcorn-init] OK: plugin-social @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:48
+[  360396ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:48
+[  360422ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:48
+[  360435ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:48
+[  360446ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:48
+[  360455ms] [LOG] [popcorn-init] OK: plugin-combined @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:48
+[  360463ms] [LOG] [popcorn-init] OK: plugin-background @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:48
+[  360463ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486257966:60
+[  360463ms] [LOG] [popcorn] function 19 @ http://127.0.0.1:3102/src/main.js?t=1787486257966:4
+[  370270ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3102/src/main.js?t=1787486269301:19
+[  370311ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:41
+[  370312ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  370313ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  370313ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  370314ms] [LOG] [popcorn-init] OK: wrapper-common @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  370317ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  370318ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  370320ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  370321ms] [LOG] [popcorn-init] OK: wrapper-null @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  370321ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  370322ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  370322ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  370323ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  370323ms] [LOG] [popcorn-init] OK: player-module @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  371163ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3102/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=1c84a565:20096
+[  371168ms] [LOG] [App] Initialized in 898.20ms @ http://127.0.0.1:3102/src/main.js?t=1787486269301:164
+[  371168ms] [LOG] [App] Navigating to initial page: template/anime-converter @ http://127.0.0.1:3102/src/main.js?t=1787486269301:165
+[  371170ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://127.0.0.1:3102/src/main.js?t=1787486269301:176
+[  372031ms] [LOG] [popcorn-init] OK: plugin-image @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  372119ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[  372279ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[  372279ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/client?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2:0
+[  372315ms] [ERROR] e: The Request HTTP Origin header must be equal to or a subdomain of the requesting URL.
+    at il._baseFetch (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:171)
+    at async io.execute (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:6812)
+    at async rA._baseGet (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:497)
+    at async Promise.all (index 1)
+    at async #eY (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:236310)
+    at async s7.load (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:193944)
+    at async _a15.getEntryChunks (http://127.0.0.1:3102/node_modules/.vite/deps/@clerk_react.js?v=1c84a565:8043:9) @ http://127.0.0.1:3102/node_modules/.vite/deps/@clerk_react.js?v=1c84a565:8054
+[  372373ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  372469ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  372498ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  372527ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  372535ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  372544ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  372566ms] [LOG] [popcorn-init] OK: plugin-form @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  372583ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  372593ms] [LOG] [popcorn-init] OK: plugin-popup @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  372600ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  372606ms] [LOG] [popcorn-init] OK: plugin-skip @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  372631ms] [LOG] [popcorn-init] OK: plugin-text @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  372639ms] [LOG] [popcorn-init] OK: plugin-social @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  372646ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  372657ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  372664ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  372670ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  372677ms] [LOG] [popcorn-init] OK: plugin-combined @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  372682ms] [LOG] [popcorn-init] OK: plugin-background @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  372683ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:60
+[  372683ms] [LOG] [popcorn] function 19 @ http://127.0.0.1:3102/src/main.js?t=1787486269301:4
+[  381752ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3102/src/main.js?t=1787486283095:19
+[  381766ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:41
+[  381769ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  381770ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  381771ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  381771ms] [LOG] [popcorn-init] OK: wrapper-common @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  381771ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  381772ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  381772ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  381772ms] [LOG] [popcorn-init] OK: wrapper-null @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  381773ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  381773ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  381773ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  381774ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  381774ms] [LOG] [popcorn-init] OK: player-module @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  382283ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3102/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=1c84a565:20096
+[  382286ms] [LOG] [App] Initialized in 533.90ms @ http://127.0.0.1:3102/src/main.js?t=1787486283095:164
+[  382286ms] [LOG] [App] Navigating to initial page: template/anime-converter @ http://127.0.0.1:3102/src/main.js?t=1787486283095:165
+[  382286ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://127.0.0.1:3102/src/main.js?t=1787486283095:176
+[  382610ms] [LOG] [popcorn-init] OK: plugin-image @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  382731ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[  382822ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[  382822ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  382823ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/client?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2:0
+[  382825ms] [ERROR] e: The Request HTTP Origin header must be equal to or a subdomain of the requesting URL.
+    at il._baseFetch (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:171)
+    at async io.execute (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:6812)
+    at async rA._baseGet (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:497)
+    at async Promise.all (index 1)
+    at async #eY (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:236310)
+    at async s7.load (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:193944)
+    at async _a15.getEntryChunks (http://127.0.0.1:3102/node_modules/.vite/deps/@clerk_react.js?v=1c84a565:8043:9) @ http://127.0.0.1:3102/node_modules/.vite/deps/@clerk_react.js?v=1c84a565:8054
+[  382855ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  382870ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  382877ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  382883ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  382889ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  382897ms] [LOG] [popcorn-init] OK: plugin-form @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  382908ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  382913ms] [LOG] [popcorn-init] OK: plugin-popup @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  382921ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  382925ms] [LOG] [popcorn-init] OK: plugin-skip @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  382944ms] [LOG] [popcorn-init] OK: plugin-text @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  382953ms] [LOG] [popcorn-init] OK: plugin-social @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  382958ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  382969ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  382973ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  382977ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  382981ms] [LOG] [popcorn-init] OK: plugin-combined @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  382986ms] [LOG] [popcorn-init] OK: plugin-background @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:48
+[  382986ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486269301:60
+[  382986ms] [LOG] [popcorn] function 19 @ http://127.0.0.1:3102/src/main.js?t=1787486283095:4
+[  411449ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3102/src/main.js?t=1787486312751:19
+[  411468ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:41
+[  411469ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:48
+[  411470ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:48
+[  411471ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:48
+[  411472ms] [LOG] [popcorn-init] OK: wrapper-common @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:48
+[  411472ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:48
+[  411473ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:48
+[  411473ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:48
+[  411474ms] [LOG] [popcorn-init] OK: wrapper-null @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:48
+[  411474ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:48
+[  411475ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:48
+[  411476ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:48
+[  411476ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:48
+[  411477ms] [LOG] [popcorn-init] OK: player-module @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:48
+[  411826ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3102/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=1c84a565:20096
+[  411830ms] [LOG] [App] Initialized in 380.80ms @ http://127.0.0.1:3102/src/main.js?t=1787486312751:164
+[  411830ms] [LOG] [App] Navigating to initial page: template/anime-converter @ http://127.0.0.1:3102/src/main.js?t=1787486312751:165
+[  411831ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://127.0.0.1:3102/src/main.js?t=1787486312751:176
+[  412537ms] [LOG] [popcorn-init] OK: plugin-image @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:48
+[  412656ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[  412768ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/client?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2:0
+[  412774ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:48
+[  412783ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[  412784ms] [ERROR] e: The Request HTTP Origin header must be equal to or a subdomain of the requesting URL.
+    at il._baseFetch (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:171)
+    at async io.execute (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:6812)
+    at async rA._baseGet (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:497)
+    at async Promise.all (index 1)
+    at async #eY (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:236310)
+    at async s7.load (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:193944)
+    at async _a15.getEntryChunks (http://127.0.0.1:3102/node_modules/.vite/deps/@clerk_react.js?v=1c84a565:8043:9) @ http://127.0.0.1:3102/node_modules/.vite/deps/@clerk_react.js?v=1c84a565:8054
+[  412807ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:48
+[  412817ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:48
+[  412824ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:48
+[  412829ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:48
+[  412836ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:48
+[  412859ms] [LOG] [popcorn-init] OK: plugin-form @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:48
+[  412878ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:48
+[  412885ms] [LOG] [popcorn-init] OK: plugin-popup @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:48
+[  412895ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:48
+[  412903ms] [LOG] [popcorn-init] OK: plugin-skip @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:48
+[  412929ms] [LOG] [popcorn-init] OK: plugin-text @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:48
+[  412943ms] [LOG] [popcorn-init] OK: plugin-social @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:48
+[  412949ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:48
+[  412966ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:48
+[  412973ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:48
+[  412978ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:48
+[  412984ms] [LOG] [popcorn-init] OK: plugin-combined @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:48
+[  412990ms] [LOG] [popcorn-init] OK: plugin-background @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:48
+[  412990ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486312751:60
+[  412990ms] [LOG] [popcorn] function 19 @ http://127.0.0.1:3102/src/main.js?t=1787486312751:4
+[  418316ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3102/src/main.js?t=1787486320432:19
+[  418331ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:41
+[  418332ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  418333ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  418334ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  418334ms] [LOG] [popcorn-init] OK: wrapper-common @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  418335ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  418335ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  418336ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  418337ms] [LOG] [popcorn-init] OK: wrapper-null @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  418338ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  418338ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  418339ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  418339ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  418340ms] [LOG] [popcorn-init] OK: player-module @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  418901ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3102/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=1c84a565:20096
+[  418905ms] [LOG] [App] Initialized in 588.20ms @ http://127.0.0.1:3102/src/main.js?t=1787486320432:164
+[  418905ms] [LOG] [App] Navigating to initial page: template/anime-converter @ http://127.0.0.1:3102/src/main.js?t=1787486320432:165
+[  418905ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://127.0.0.1:3102/src/main.js?t=1787486320432:176
+[  419461ms] [LOG] [popcorn-init] OK: plugin-image @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  419527ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[  419626ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/client?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2:0
+[  419628ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[  419632ms] [ERROR] e: The Request HTTP Origin header must be equal to or a subdomain of the requesting URL.
+    at il._baseFetch (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:171)
+    at async io.execute (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:6812)
+    at async rA._baseGet (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:497)
+    at async Promise.all (index 1)
+    at async #eY (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:236310)
+    at async s7.load (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:193944)
+    at async _a15.getEntryChunks (http://127.0.0.1:3102/node_modules/.vite/deps/@clerk_react.js?v=1c84a565:8043:9) @ http://127.0.0.1:3102/node_modules/.vite/deps/@clerk_react.js?v=1c84a565:8054
+[  419633ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  419641ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  419652ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  419662ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  419669ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  419675ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  419687ms] [LOG] [popcorn-init] OK: plugin-form @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  419703ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  419707ms] [LOG] [popcorn-init] OK: plugin-popup @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  419716ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  419726ms] [LOG] [popcorn-init] OK: plugin-skip @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  419750ms] [LOG] [popcorn-init] OK: plugin-text @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  419756ms] [LOG] [popcorn-init] OK: plugin-social @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  419762ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  419772ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  419778ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  419781ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  419785ms] [LOG] [popcorn-init] OK: plugin-combined @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  419791ms] [LOG] [popcorn-init] OK: plugin-background @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  419791ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:60
+[  419791ms] [LOG] [popcorn] function 19 @ http://127.0.0.1:3102/src/main.js?t=1787486320432:4
+[  421870ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3102/src/main.js?t=1787486323395:19
+[  421888ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:41
+[  421889ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  421891ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  421891ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  421892ms] [LOG] [popcorn-init] OK: wrapper-common @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  421892ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  421892ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  421893ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  421893ms] [LOG] [popcorn-init] OK: wrapper-null @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  421893ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  421894ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  421894ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  421895ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  421895ms] [LOG] [popcorn-init] OK: player-module @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  422068ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3102/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=1c84a565:20096
+[  422071ms] [LOG] [App] Initialized in 200.60ms @ http://127.0.0.1:3102/src/main.js?t=1787486323395:164
+[  422071ms] [LOG] [App] Navigating to initial page: template/anime-converter @ http://127.0.0.1:3102/src/main.js?t=1787486323395:165
+[  422071ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://127.0.0.1:3102/src/main.js?t=1787486323395:176
+[  422837ms] [LOG] [popcorn-init] OK: plugin-image @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  422989ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[  423108ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/client?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2:0
+[  423119ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[  423144ms] [ERROR] e: The Request HTTP Origin header must be equal to or a subdomain of the requesting URL.
+    at il._baseFetch (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:171)
+    at async io.execute (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:6812)
+    at async rA._baseGet (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:497)
+    at async Promise.all (index 1)
+    at async #eY (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:236310)
+    at async s7.load (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:193944)
+    at async _a15.getEntryChunks (http://127.0.0.1:3102/node_modules/.vite/deps/@clerk_react.js?v=1c84a565:8043:9) @ http://127.0.0.1:3102/node_modules/.vite/deps/@clerk_react.js?v=1c84a565:8054
+[  423180ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  423192ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  423200ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  423207ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  423213ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  423218ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  423226ms] [LOG] [popcorn-init] OK: plugin-form @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  423235ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  423239ms] [LOG] [popcorn-init] OK: plugin-popup @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  423243ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  423248ms] [LOG] [popcorn-init] OK: plugin-skip @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  423274ms] [LOG] [popcorn-init] OK: plugin-text @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  423282ms] [LOG] [popcorn-init] OK: plugin-social @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  423287ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  423296ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  423301ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  423304ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  423309ms] [LOG] [popcorn-init] OK: plugin-combined @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  423313ms] [LOG] [popcorn-init] OK: plugin-background @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:48
+[  423313ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486320432:60
+[  423313ms] [LOG] [popcorn] function 19 @ http://127.0.0.1:3102/src/main.js?t=1787486323395:4
+[  428778ms] [LOG] [App] Starting initialization... @ http://127.0.0.1:3102/src/main.js?t=1787486331011:19
+[  428794ms] [LOG] [popcorn-init] OK: jquery @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:41
+[  428795ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:48
+[  428797ms] [LOG] [popcorn-init] OK: popcorn-core @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:48
+[  428798ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:48
+[  428798ms] [LOG] [popcorn-init] OK: wrapper-common @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:48
+[  428799ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:48
+[  428800ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:48
+[  428800ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:48
+[  428801ms] [LOG] [popcorn-init] OK: wrapper-null @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:48
+[  428802ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:48
+[  428802ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:48
+[  428803ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:48
+[  428804ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:48
+[  428804ms] [LOG] [popcorn-init] OK: player-module @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:48
+[  429013ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3102/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=1c84a565:20096
+[  429021ms] [LOG] [App] Initialized in 242.70ms @ http://127.0.0.1:3102/src/main.js?t=1787486331011:164
+[  429022ms] [LOG] [App] Navigating to initial page: template/anime-converter @ http://127.0.0.1:3102/src/main.js?t=1787486331011:165
+[  429022ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://127.0.0.1:3102/src/main.js?t=1787486331011:176
+[  430178ms] [LOG] [popcorn-init] OK: plugin-image @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:48
+[  430261ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[  430354ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[  430355ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/client?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2:0
+[  430361ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:48
+[  430362ms] [ERROR] e: The Request HTTP Origin header must be equal to or a subdomain of the requesting URL.
+    at il._baseFetch (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:171)
+    at async io.execute (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:6812)
+    at async rA._baseGet (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:497)
+    at async Promise.all (index 1)
+    at async #eY (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:236310)
+    at async s7.load (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:193944)
+    at async _a15.getEntryChunks (http://127.0.0.1:3102/node_modules/.vite/deps/@clerk_react.js?v=1c84a565:8043:9) @ http://127.0.0.1:3102/node_modules/.vite/deps/@clerk_react.js?v=1c84a565:8054
+[  430368ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:48
+[  430373ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:48
+[  430379ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:48
+[  430388ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:48
+[  430394ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:48
+[  430416ms] [LOG] [popcorn-init] OK: plugin-form @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:48
+[  430427ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:48
+[  430437ms] [LOG] [popcorn-init] OK: plugin-popup @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:48
+[  430444ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:48
+[  430450ms] [LOG] [popcorn-init] OK: plugin-skip @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:48
+[  430472ms] [LOG] [popcorn-init] OK: plugin-text @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:48
+[  430479ms] [LOG] [popcorn-init] OK: plugin-social @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:48
+[  430485ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:48
+[  430493ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:48
+[  430500ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:48
+[  430503ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:48
+[  430509ms] [LOG] [popcorn-init] OK: plugin-combined @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:48
+[  430515ms] [LOG] [popcorn-init] OK: plugin-background @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:48
+[  430515ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://127.0.0.1:3102/src/lib/popcornInit.js?t=1787486331011:60
+[  430515ms] [LOG] [popcorn] function 19 @ http://127.0.0.1:3102/src/main.js?t=1787486331011:4
+[  439553ms] [LOG] [vite] server connection lost. Polling for restart... @ http://127.0.0.1:3102/@vite/client:559
+[  439565ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  440622ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  441625ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  442635ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  443647ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  444662ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  445669ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  446671ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  447843ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  448854ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  449857ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  450859ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  451861ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  452866ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  453885ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  454897ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  455902ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  456906ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  457909ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  458913ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  459916ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  460919ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  461924ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  462928ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  463933ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  464939ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  465943ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  466946ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  467952ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  468955ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  469964ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  470967ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  471972ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  472979ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  474038ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  475043ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  476054ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  477060ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  478068ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  479071ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  480092ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  481096ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  482100ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  483105ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  484110ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  485114ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  486121ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  487125ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  488133ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  489138ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  490173ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  491178ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  492183ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  493538ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  494561ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  495565ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  496577ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  497601ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  498635ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  499639ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  500644ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  501649ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  502653ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  503659ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  504663ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  505678ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  506691ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  507697ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  508702ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  509709ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  510753ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  511756ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  512763ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  513795ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  514798ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  515802ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  516809ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  517814ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  518819ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  519827ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  520832ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  521836ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  522840ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  523846ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  524855ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  525858ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  526868ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  527903ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  528924ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  529931ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  530935ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  531938ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  532944ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  533949ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  534952ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  535956ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  536960ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  537967ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  538972ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  539976ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  540983ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  541987ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  543001ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  544006ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  545021ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  546026ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  547030ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  548036ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  549039ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  550051ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  551072ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  552075ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  553080ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  554084ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  555086ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  556090ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  557095ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  558105ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  559114ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  560129ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  561139ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  562142ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  563148ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  564151ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  565171ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  566176ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  567178ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  568184ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  569201ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  570209ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  571213ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  572218ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  573229ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  574234ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  575238ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  576242ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  577246ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  578249ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  579255ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  580261ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  581264ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  582267ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  583281ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  584294ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  585298ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  586301ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  587305ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  588355ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  589360ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  590371ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  591392ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  592398ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  593403ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  594409ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  595415ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  596434ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  597439ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  598472ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  599477ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  600482ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  601495ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  602499ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  603516ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  604521ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  605526ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  606529ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  607535ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  608540ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  609551ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  610620ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  611625ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  612628ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  613632ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  614639ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  615644ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  616653ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  617700ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  618713ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  619719ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  620723ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  621729ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  622752ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  623766ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  624773ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  625796ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  626805ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  627817ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  628821ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  629881ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  630887ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  631906ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  632910ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  633917ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  634942ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  635950ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  636954ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  637961ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  638966ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  639971ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  640983ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  641987ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  642991ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  643995ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0
+[  645002ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3102/:0

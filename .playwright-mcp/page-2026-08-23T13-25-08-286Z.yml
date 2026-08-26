@@ -1,0 +1,138 @@
+- generic [ref=f12e2]:
+  - banner [ref=f12e3]:
+    - generic [ref=f12e4]:
+      - generic [ref=f12e5]:
+        - generic [ref=f12e6] [cursor=pointer]
+        - navigation [ref=f12e12]:
+          - generic [ref=f12e13] [cursor=pointer]: Explore
+          - generic [ref=f12e14] [cursor=pointer]: Image
+          - generic [ref=f12e15] [cursor=pointer]: Video
+          - generic [ref=f12e16] [cursor=pointer]: Tools
+          - generic [ref=f12e17] [cursor=pointer]: Storyboard
+          - generic [ref=f12e18] [cursor=pointer]: Edit
+          - generic [ref=f12e19] [cursor=pointer]: Character
+          - generic [ref=f12e20] [cursor=pointer]: Vibe Motion
+          - generic [ref=f12e21] [cursor=pointer]: Cinema Studio
+          - generic [ref=f12e22] [cursor=pointer]: Cinema Template Studio
+          - generic [ref=f12e23] [cursor=pointer]: AI Influencer
+          - generic [ref=f12e24] [cursor=pointer]: Smart Video Viral
+          - generic [ref=f12e25] [cursor=pointer]: Apps
+          - generic [ref=f12e26] [cursor=pointer]: Templates
+          - generic [ref=f12e27] [cursor=pointer]: Assist
+          - generic [ref=f12e28] [cursor=pointer]: Community
+          - generic [ref=f12e29] [cursor=pointer]: Content Library
+      - generic [ref=f12e30]:
+        - button "Update API Key" [ref=f12e31]
+        - link "Sign In" [ref=f12e240] [cursor=pointer]:
+          - /url: /signin
+  - generic [ref=f12e34]:
+    - complementary [ref=f12e35]:
+      - generic [ref=f12e36]:
+        - generic [ref=f12e37] [cursor=pointer]:
+          - button [ref=f12e38]
+          - generic [ref=f12e44]: Apps
+        - generic [ref=f12e45] [cursor=pointer]:
+          - button [ref=f12e46]
+          - generic [ref=f12e51]: Image
+        - generic [ref=f12e52] [cursor=pointer]:
+          - button [ref=f12e53]
+          - generic [ref=f12e57]: Video
+        - generic [ref=f12e58] [cursor=pointer]:
+          - button [ref=f12e59]
+          - generic [ref=f12e62]: Cinema Studio
+        - generic [ref=f12e63] [cursor=pointer]:
+          - button [ref=f12e64]
+          - generic [ref=f12e67]: Cinema Template Studio
+        - generic [ref=f12e68] [cursor=pointer]:
+          - button [ref=f12e69]
+          - generic [ref=f12e77]: Storyboard
+        - generic [ref=f12e78] [cursor=pointer]:
+          - button [ref=f12e79]
+          - generic [ref=f12e82]: Effects
+        - generic [ref=f12e83] [cursor=pointer]:
+          - button [ref=f12e84]
+          - generic [ref=f12e88]: Edit
+        - generic [ref=f12e89] [cursor=pointer]:
+          - button [ref=f12e90]
+          - generic [ref=f12e96]: Upscale
+        - generic [ref=f12e97] [cursor=pointer]:
+          - button [ref=f12e98]
+          - generic [ref=f12e103]: Audio
+        - generic [ref=f12e104] [cursor=pointer]:
+          - button [ref=f12e105]
+          - generic [ref=f12e110]: Avatar
+        - generic [ref=f12e111] [cursor=pointer]:
+          - button [ref=f12e112]
+          - generic [ref=f12e117]: Training
+        - generic [ref=f12e118] [cursor=pointer]:
+          - button [ref=f12e119]
+          - generic [ref=f12e123]: Smart Video Academy
+        - generic [ref=f12e124] [cursor=pointer]:
+          - button [ref=f12e125]
+          - generic [ref=f12e130]: Smart Video Viral
+        - generic [ref=f12e131] [cursor=pointer]:
+          - button [ref=f12e132]
+          - generic [ref=f12e136]: Video Tools
+        - generic [ref=f12e137] [cursor=pointer]:
+          - button [ref=f12e138]
+          - generic [ref=f12e141]: Render
+        - generic [ref=f12e142] [cursor=pointer]:
+          - button [ref=f12e143]
+          - generic [ref=f12e148]: Video Agent
+        - generic [ref=f12e149] [cursor=pointer]:
+          - button [ref=f12e150]
+          - generic [ref=f12e154]: Director
+        - generic [ref=f12e155] [cursor=pointer]:
+          - button [ref=f12e156]
+          - generic [ref=f12e162]: Timeline
+        - generic [ref=f12e163] [cursor=pointer]:
+          - button [ref=f12e164]
+          - generic [ref=f12e167]: Chat
+        - generic [ref=f12e168] [cursor=pointer]:
+          - button [ref=f12e169]
+          - generic [ref=f12e173]: Commercial
+        - generic [ref=f12e174] [cursor=pointer]:
+          - button [ref=f12e175]
+          - generic [ref=f12e178]: Templates
+        - generic [ref=f12e179] [cursor=pointer]:
+          - button [ref=f12e180]
+          - generic [ref=f12e184]: Explore
+        - generic [ref=f12e185] [cursor=pointer]:
+          - button [ref=f12e186]
+          - generic [ref=f12e190]: Library
+        - generic [ref=f12e191] [cursor=pointer]:
+          - button [ref=f12e192]
+          - generic [ref=f12e195]: Content
+        - generic [ref=f12e196] [cursor=pointer]:
+          - button [ref=f12e197]
+          - generic [ref=f12e203]: Community
+        - generic [ref=f12e204] [cursor=pointer]:
+          - button [ref=f12e205]
+          - generic [ref=f12e210]: Assist
+        - generic [ref=f12e211] [cursor=pointer]:
+          - button [ref=f12e212]
+          - generic [ref=f12e216]: Commits (0)
+        - generic [ref=f12e217] [cursor=pointer]:
+          - button [ref=f12e218]
+          - generic [ref=f12e222]: AI VFX
+        - generic [ref=f12e223] [cursor=pointer]:
+          - button [ref=f12e224]
+          - generic [ref=f12e228]: Stock Media
+      - generic [ref=f12e230] [cursor=pointer]:
+        - button [ref=f12e231]
+        - generic [ref=f12e235]: Settings
+    - main [ref=f12e236]:
+      - generic [ref=f12e242]:
+        - generic [ref=f12e243]:
+          - generic [ref=f12e244]:
+            - heading "Chat Studio" [level=2] [ref=f12e245]
+            - button "+ New Chat" [ref=f12e246] [cursor=pointer]
+          - generic [ref=f12e247]: No conversations yet
+          - combobox [ref=f12e251]:
+            - option "GPT-5 Mini" [selected]
+            - option "GPT-5"
+            - option "Claude 4 Sonnet"
+        - generic [ref=f12e254]:
+          - paragraph [ref=f12e255]: Welcome to Chat Studio
+          - paragraph [ref=f12e256]: Create a new conversation to get started
+          - button "New Conversation" [ref=f12e257] [cursor=pointer]

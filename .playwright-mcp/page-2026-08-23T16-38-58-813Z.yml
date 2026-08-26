@@ -1,0 +1,107 @@
+- generic [ref=f10e3]:
+  - banner [ref=f10e4]:
+    - navigation [ref=f10e5]:
+      - link "Timeline Editor" [ref=f10e6] [cursor=pointer]:
+        - /url: "#/apps"
+      - generic [ref=f10e12]:
+        - link "Explore" [ref=f10e13] [cursor=pointer]:
+          - /url: "#/explore"
+        - link "Image" [ref=f10e14] [cursor=pointer]:
+          - /url: "#/image"
+        - link "Video" [ref=f10e15] [cursor=pointer]:
+          - /url: "#/video"
+        - link "Cinema" [ref=f10e16] [cursor=pointer]:
+          - /url: "#/cinema"
+        - link "Character" [ref=f10e17] [cursor=pointer]:
+          - /url: "#/character"
+        - link "Influencer" [ref=f10e18] [cursor=pointer]:
+          - /url: "#/influencer"
+        - link "Storyboard" [ref=f10e19] [cursor=pointer]:
+          - /url: "#/storyboard"
+        - link "Effects" [ref=f10e20] [cursor=pointer]:
+          - /url: "#/effects"
+        - link "Edit" [ref=f10e21] [cursor=pointer]:
+          - /url: "#/edit"
+        - link "Upscale" [ref=f10e22] [cursor=pointer]:
+          - /url: "#/upscale"
+        - link "Audio" [ref=f10e23] [cursor=pointer]:
+          - /url: "#/audio"
+        - link "Avatar" [ref=f10e24] [cursor=pointer]:
+          - /url: "#/avatar"
+        - link "Training" [ref=f10e25] [cursor=pointer]:
+          - /url: "#/training"
+        - link "Video Tools" [ref=f10e26] [cursor=pointer]:
+          - /url: "#/videotools"
+        - link "Render" [ref=f10e27] [cursor=pointer]:
+          - /url: "#/render"
+        - link "Director" [ref=f10e28] [cursor=pointer]:
+          - /url: "#/director"
+        - link "Timeline" [ref=f10e29] [cursor=pointer]:
+          - /url: "#/timeline"
+        - link "Chat" [ref=f10e30] [cursor=pointer]:
+          - /url: "#/chat"
+        - link "Commercial" [ref=f10e31] [cursor=pointer]:
+          - /url: "#/commercial"
+        - link "Templates" [ref=f10e32] [cursor=pointer]:
+          - /url: "#/templates"
+        - link "Library" [ref=f10e33] [cursor=pointer]:
+          - /url: "#/library"
+        - link "Community" [ref=f10e34] [cursor=pointer]:
+          - /url: "#/community"
+        - link "Assist" [ref=f10e35] [cursor=pointer]:
+          - /url: "#/assist"
+        - link "AI VFX" [ref=f10e36] [cursor=pointer]:
+          - /url: "#/ai-vfx"
+        - link "AppsNew" [ref=f10e37] [cursor=pointer]:
+          - /url: "#/apps"
+      - generic [ref=f10e38]:
+        - link "Sign In" [ref=f10e39] [cursor=pointer]:
+          - /url: /signin
+        - link "Get Started" [ref=f10e40] [cursor=pointer]:
+          - /url: /signup
+  - banner [ref=f10e41]:
+    - generic [ref=f10e47]:
+      - generic [ref=f10e48]: AI Creative Platform
+      - heading "Create Anything. Sell Everything." [level=1] [ref=f10e51]
+      - paragraph [ref=f10e52]: Create professional images, videos, ads, characters, commercials and social content with AI.
+      - generic [ref=f10e53]:
+        - button "Start Creating" [ref=f10e54]
+        - button "Watch What You Can Make" [ref=f10e57]
+      - generic [ref=f10e61]:
+        - generic [ref=f10e62]:
+          - term [ref=f10e63]: AI models available
+          - definition [ref=f10e64]:
+            - generic [ref=f10e65]: 200+
+            - generic [ref=f10e66]: AI Models
+        - generic [ref=f10e68]:
+          - term [ref=f10e69]: Professional studios included
+          - definition [ref=f10e70]:
+            - generic [ref=f10e71]: "33"
+            - generic [ref=f10e72]: Professional Studios
+  - region [ref=f10e73]:
+    - generic [ref=f10e84]:
+      - generic [ref=f10e85]: Trusted by 10,000+ Creators & Agencies
+      - heading "Create Cinematic AI Videos, Images, VFX, Commercials, Characters, Agents & Client-Ready Content From One Powerful AI Studio" [level=2] [ref=f10e88]:
+        - generic [ref=f10e89]: Create Cinematic AI Videos,
+        - generic [ref=f10e90]: Images, VFX, Commercials,
+        - generic [ref=f10e91]: Characters, Agents &
+        - generic [ref=f10e92]: Client-Ready Content
+        - generic [ref=f10e93]: From One Powerful AI Studio
+      - paragraph [ref=f10e94]: AI Video Agency Studio gives you a complete creative command center with 60+ AI-powered tools for generating videos, images, characters, commercials, cinematic effects, avatars, lip sync, dubbing, storyboards, edits, workflows, agents, and client-ready content packages — all from one organized platform.
+      - generic [ref=f10e95]:
+        - button "Start Building My AI Video Agency" [ref=f10e96]
+        - button "Watch The Demo Video" [ref=f10e100]
+      - region [ref=f10e104]:
+        - heading "Platform Statistics" [level=2] [ref=f10e105]
+        - generic [ref=f10e106]:
+          - generic [ref=f10e107]: "33"
+          - generic [ref=f10e108]: AI Creative Apps
+        - generic [ref=f10e109]:
+          - generic [ref=f10e110]: 60+
+          - generic [ref=f10e111]: AI Features
+        - generic [ref=f10e112]:
+          - generic [ref=f10e113]: 200+
+          - generic [ref=f10e114]: AI Models
+        - generic [ref=f10e115]:
+          - generic [ref=f10e116]: Lifetime
+          - generic [ref=f10e117]: Access

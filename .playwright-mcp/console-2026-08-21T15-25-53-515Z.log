@@ -1,0 +1,458 @@
+[   12504ms] [LOG] [App] Starting initialization... @ http://localhost:3101/src/main.js:19
+[   13345ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3101/src/lib/popcornInit.js:41
+[   15284ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3101/src/lib/popcornInit.js:48
+[   19489ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3101/src/lib/popcornInit.js:48
+[   24202ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3101/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=614e0d00:20096
+[   24250ms] [LOG] [App] Initialized in 11745.00ms @ http://localhost:3101/src/main.js:145
+[   24250ms] [LOG] [App] Navigating to initial page: viral @ http://localhost:3101/src/main.js:146
+[   24250ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://localhost:3101/src/main.js:157
+[   24905ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/client?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2:0
+[   24958ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2:0
+[   24962ms] [ERROR] e: Clerk: Production Keys are only allowed for domain "smartvid.app". 
+API Error: The Request HTTP Origin header must be equal to or a subdomain of the requesting URL.
+    at https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:8984
+    at il._baseFetch (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:38)
+    at async io.execute (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:6812)
+    at async rA._baseGet (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:497)
+    at async Promise.all (index 1)
+    at async #eY (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:236310)
+    at async s7.load (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:193944)
+    at async _a15.getEntryChunks (http://localhost:3101/node_modules/.vite/deps/@clerk_react.js?v=614e0d00:8043:9) @ http://localhost:3101/node_modules/.vite/deps/@clerk_react.js?v=614e0d00:8054
+[   25081ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3101/src/lib/popcornInit.js:48
+[   27110ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3101/src/lib/popcornInit.js:48
+[   27194ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3101/src/lib/popcornInit.js:48
+[   27366ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3101/src/lib/popcornInit.js:48
+[   29431ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3101/src/lib/popcornInit.js:48
+[   29461ms] [ERROR] [ModalSystem] mount failed TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/main.js:310
+[   29519ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3101/src/lib/popcornInit.js:48
+[   30992ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3101/src/lib/popcornInit.js:48
+[   31040ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3101/src/lib/popcornInit.js:48
+[   31714ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3101/src/lib/popcornInit.js:48
+[   32015ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3101/src/lib/popcornInit.js:48
+[   32719ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3101/src/lib/popcornInit.js:48
+[   34794ms] [ERROR] [popcorn-init] FAILED at: plugin-image TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   38081ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonTransition TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   38176ms] [ERROR] [popcorn-init] FAILED at: plugin-lottie-json TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   38304ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3101/src/lib/popcornInit.js:48
+[   38503ms] [ERROR] [popcorn-init] FAILED at: plugin-personalizedImage TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   38575ms] [ERROR] [popcorn-init] FAILED at: plugin-loopPlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   38635ms] [ERROR] [popcorn-init] FAILED at: plugin-pausePlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   38900ms] [ERROR] [popcorn-init] FAILED at: plugin-form TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   39538ms] [ERROR] [popcorn-init] FAILED at: plugin-retarget TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   39681ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:3101/src/lib/popcornInit.js:48
+[   40131ms] [ERROR] [popcorn-init] FAILED at: plugin-sequencer TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   40177ms] [ERROR] [popcorn-init] FAILED at: plugin-skip TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   40719ms] [ERROR] [popcorn-init] FAILED at: plugin-text TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   40827ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:3101/src/lib/popcornInit.js:48
+[   40908ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonAnimation TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   41090ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:3101/src/lib/popcornInit.js:48
+[   41205ms] [ERROR] [popcorn-init] FAILED at: plugin-seethroughtext TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   41303ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:3101/src/lib/popcornInit.js:48
+[   41362ms] [ERROR] [popcorn-init] FAILED at: plugin-combined TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   41415ms] [ERROR] [popcorn-init] FAILED at: plugin-background TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   41415ms] [LOG] [popcorn-init] SUMMARY: 5/20 plugins registered; FAILED: plugin-image, plugin-jsonTransition, plugin-lottie-json, plugin-personalizedImage, plugin-loopPlugin, plugin-pausePlugin, plugin-form, plugin-retarget, plugin-sequencer, plugin-skip, plugin-text, plugin-jsonAnimation, plugin-seethroughtext, plugin-combined, plugin-background @ http://localhost:3101/src/lib/popcornInit.js:60
+[   41416ms] [LOG] [popcorn] function 5 @ http://localhost:3101/src/main.js:4
+[   84582ms] [LOG] [App] Starting initialization... @ http://localhost:3101/src/main.js:19
+[   84928ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3101/src/lib/popcornInit.js:41
+[   85083ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3101/src/lib/popcornInit.js:48
+[   85117ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3101/src/lib/popcornInit.js:48
+[   85158ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3101/src/lib/popcornInit.js:48
+[   85164ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3101/src/lib/popcornInit.js:48
+[   85167ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3101/src/lib/popcornInit.js:48
+[   85169ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3101/src/lib/popcornInit.js:48
+[   85175ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3101/src/lib/popcornInit.js:48
+[   85185ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3101/src/lib/popcornInit.js:48
+[   85187ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3101/src/lib/popcornInit.js:48
+[   85189ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3101/src/lib/popcornInit.js:48
+[   85191ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3101/src/lib/popcornInit.js:48
+[   85194ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3101/src/lib/popcornInit.js:48
+[   85198ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3101/src/lib/popcornInit.js:48
+[   86609ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3101/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=614e0d00:20096
+[   86621ms] [LOG] [App] Initialized in 2039.40ms @ http://localhost:3101/src/main.js:145
+[   86622ms] [LOG] [App] Navigating to initial page: template @ http://localhost:3101/src/main.js:146
+[   86622ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://localhost:3101/src/main.js:157
+[   89373ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/client?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2:0
+[   89414ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2:0
+[   89415ms] [ERROR] e: Clerk: Production Keys are only allowed for domain "smartvid.app". 
+API Error: The Request HTTP Origin header must be equal to or a subdomain of the requesting URL.
+    at https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:8984
+    at il._baseFetch (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:38)
+    at async io.execute (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:6812)
+    at async rA._baseGet (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:497)
+    at async Promise.all (index 1)
+    at async #eY (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:236310)
+    at async s7.load (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:193944)
+    at async _a15.getEntryChunks (http://localhost:3101/node_modules/.vite/deps/@clerk_react.js?v=614e0d00:8043:9) @ http://localhost:3101/node_modules/.vite/deps/@clerk_react.js?v=614e0d00:8054
+[   89961ms] [ERROR] [popcorn-init] FAILED at: plugin-image TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   89962ms] [ERROR] [ModalSystem] mount failed TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/main.js:310
+[   90580ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonTransition TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   90644ms] [ERROR] [popcorn-init] FAILED at: plugin-lottie-json TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   90676ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3101/src/lib/popcornInit.js:48
+[   90690ms] [ERROR] [popcorn-init] FAILED at: plugin-personalizedImage TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   90700ms] [ERROR] [popcorn-init] FAILED at: plugin-loopPlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   90710ms] [ERROR] [popcorn-init] FAILED at: plugin-pausePlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   90751ms] [ERROR] [popcorn-init] FAILED at: plugin-form TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   90798ms] [ERROR] [popcorn-init] FAILED at: plugin-retarget TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   90832ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:3101/src/lib/popcornInit.js:48
+[   90850ms] [ERROR] [popcorn-init] FAILED at: plugin-sequencer TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   90870ms] [ERROR] [popcorn-init] FAILED at: plugin-skip TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   90913ms] [ERROR] [popcorn-init] FAILED at: plugin-text TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   90937ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:3101/src/lib/popcornInit.js:48
+[   90949ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonAnimation TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   91034ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:3101/src/lib/popcornInit.js:48
+[   91085ms] [ERROR] [popcorn-init] FAILED at: plugin-seethroughtext TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   91113ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:3101/src/lib/popcornInit.js:48
+[   91143ms] [ERROR] [popcorn-init] FAILED at: plugin-combined TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   91158ms] [ERROR] [popcorn-init] FAILED at: plugin-background TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[   91159ms] [LOG] [popcorn-init] SUMMARY: 5/20 plugins registered; FAILED: plugin-image, plugin-jsonTransition, plugin-lottie-json, plugin-personalizedImage, plugin-loopPlugin, plugin-pausePlugin, plugin-form, plugin-retarget, plugin-sequencer, plugin-skip, plugin-text, plugin-jsonAnimation, plugin-seethroughtext, plugin-combined, plugin-background @ http://localhost:3101/src/lib/popcornInit.js:60
+[   91159ms] [LOG] [popcorn] function 5 @ http://localhost:3101/src/main.js:4
+[  696964ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3101/@vite/client:559
+[  697046ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  698061ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  699066ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  700070ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  701075ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  702078ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  703086ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  704109ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  705147ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  706151ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  707154ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  708158ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  709161ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  710170ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  711175ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  712182ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  713191ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  714195ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  715202ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  716209ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  717213ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  718216ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  719270ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  720273ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  721277ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  722281ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  723285ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  724288ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  725290ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  726293ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  727295ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  728307ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  729313ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  730320ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  731323ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  732326ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  733329ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  734335ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  735339ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  736342ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  737346ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  738349ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  739354ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  740360ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  741366ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  742370ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  743374ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  744376ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  745382ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  746385ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  747389ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  748456ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  749460ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  750463ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  751467ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  752471ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  753475ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  754480ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  755482ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  756486ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  757490ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  758493ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  759495ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  760501ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  761505ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  762508ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  763512ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  764515ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  765517ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  766521ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  767524ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  768528ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  769531ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  770535ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  771601ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  772606ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  773615ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  774618ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  775621ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  776625ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  777635ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  778638ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  779726ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  780729ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  781745ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  782789ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  783836ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  784840ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  785848ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  786852ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  787865ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  788869ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  789872ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  790876ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  791879ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  792882ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  793901ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  794906ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  795911ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  796914ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  797919ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  798923ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  799926ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  800930ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  801935ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  802937ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  803943ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  804946ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  805949ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  806952ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  807955ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  808960ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  809962ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  810966ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  811970ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  812975ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  813978ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  814982ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  815986ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  816991ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  817994ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  818998ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  820002ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  821006ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  822008ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  823011ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  824014ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  825017ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  826021ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  827103ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  828135ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  829139ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  830144ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  831147ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  832150ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  833184ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  834187ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  835192ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  836195ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  837199ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  838201ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  839206ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  840209ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  841211ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  842217ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  843228ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  844233ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  845236ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  846239ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  847242ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  848244ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  849248ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  850252ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  851256ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  852260ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  853263ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  854266ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  855268ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  856273ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  857284ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  858289ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  859291ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  860295ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  861300ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  862304ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  863308ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  864338ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  865358ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  866362ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  867379ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  868383ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  869551ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  870556ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  871558ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  872562ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  873565ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  874569ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  875572ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  876578ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  877581ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  878588ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  879591ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  880594ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  881599ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  882603ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  883605ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  884609ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  885614ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  886620ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  887623ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  888626ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  889631ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  890781ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  891786ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  892789ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  893792ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  894796ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  895799ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  896805ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  897808ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  898813ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  899817ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  900821ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  901825ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  902828ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  903834ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  904838ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  905842ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  906847ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  907850ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  908853ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  909857ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  910864ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  911868ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  912870ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  913876ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  914887ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  915890ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  916894ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  917899ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  918902ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  919905ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  920908ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  921912ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  922914ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  923920ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  924924ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  925927ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  926933ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  927935ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  928939ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  929942ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  930975ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  931978ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  932980ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  933984ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  934988ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  935991ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  936994ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  937996ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  939000ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  940006ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  941008ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  942010ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  943015ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  944019ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  945041ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  946045ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3101/:0
+[  952102ms] [LOG] [App] Starting initialization... @ http://localhost:3101/src/main.js:19
+[  952136ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3101/src/lib/popcornInit.js:41
+[  952139ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3101/src/lib/popcornInit.js:48
+[  952142ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3101/src/lib/popcornInit.js:48
+[  952145ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3101/src/lib/popcornInit.js:48
+[  952147ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3101/src/lib/popcornInit.js:48
+[  952148ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3101/src/lib/popcornInit.js:48
+[  952148ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3101/src/lib/popcornInit.js:48
+[  952149ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3101/src/lib/popcornInit.js:48
+[  952151ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3101/src/lib/popcornInit.js:48
+[  952152ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3101/src/lib/popcornInit.js:48
+[  952153ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3101/src/lib/popcornInit.js:48
+[  952153ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3101/src/lib/popcornInit.js:48
+[  952154ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3101/src/lib/popcornInit.js:48
+[  952155ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3101/src/lib/popcornInit.js:48
+[  956098ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3101/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=614e0d00:20096
+[  956119ms] [LOG] [App] Initialized in 4016.70ms @ http://localhost:3101/src/main.js:145
+[  956119ms] [LOG] [App] Navigating to initial page: template @ http://localhost:3101/src/main.js:146
+[  956120ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://localhost:3101/src/main.js:157
+[  956580ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/client?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2:0
+[  956582ms] [ERROR] e: Clerk: Production Keys are only allowed for domain "smartvid.app". 
+API Error: The Request HTTP Origin header must be equal to or a subdomain of the requesting URL.
+    at https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:8984
+    at il._baseFetch (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:38)
+    at async io.execute (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:17:6812)
+    at async rA._baseGet (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:497)
+    at async Promise.all (index 1)
+    at async #eY (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:236310)
+    at async s7.load (https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:18:193944)
+    at async _a15.getEntryChunks (http://localhost:3101/node_modules/.vite/deps/@clerk_react.js?v=614e0d00:8043:9) @ http://localhost:3101/node_modules/.vite/deps/@clerk_react.js?v=614e0d00:8054
+[  957202ms] [ERROR] [popcorn-init] FAILED at: plugin-image TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[  957205ms] [ERROR] [ModalSystem] mount failed TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/main.js:310
+[  957244ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonTransition TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[  957368ms] [ERROR] [popcorn-init] FAILED at: plugin-lottie-json TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[  957466ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3101/src/lib/popcornInit.js:48
+[  957512ms] [ERROR] [popcorn-init] FAILED at: plugin-personalizedImage TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[  957538ms] [ERROR] [popcorn-init] FAILED at: plugin-loopPlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[  957556ms] [ERROR] [popcorn-init] FAILED at: plugin-pausePlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[  957633ms] [ERROR] [popcorn-init] FAILED at: plugin-form TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[  957735ms] [ERROR] [popcorn-init] FAILED at: plugin-retarget TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[  957777ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:3101/src/lib/popcornInit.js:48
+[  957837ms] [ERROR] [popcorn-init] FAILED at: plugin-sequencer TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[  957850ms] [ERROR] [popcorn-init] FAILED at: plugin-skip TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[  957938ms] [ERROR] [popcorn-init] FAILED at: plugin-text TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[  957986ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:3101/src/lib/popcornInit.js:48
+[  958018ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonAnimation TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[  958059ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:3101/src/lib/popcornInit.js:48
+[  958094ms] [ERROR] [popcorn-init] FAILED at: plugin-seethroughtext TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[  958131ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:3101/src/lib/popcornInit.js:48
+[  958155ms] [ERROR] [popcorn-init] FAILED at: plugin-combined TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[  958180ms] [ERROR] [popcorn-init] FAILED at: plugin-background TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3101/components/modals/RetargetOptInModal.jsx:26:22 @ http://localhost:3101/src/lib/popcornInit.js:55
+[  958180ms] [LOG] [popcorn-init] SUMMARY: 5/20 plugins registered; FAILED: plugin-image, plugin-jsonTransition, plugin-lottie-json, plugin-personalizedImage, plugin-loopPlugin, plugin-pausePlugin, plugin-form, plugin-retarget, plugin-sequencer, plugin-skip, plugin-text, plugin-jsonAnimation, plugin-seethroughtext, plugin-combined, plugin-background @ http://localhost:3101/src/lib/popcornInit.js:60
+[  958180ms] [LOG] [popcorn] function 5 @ http://localhost:3101/src/main.js:4

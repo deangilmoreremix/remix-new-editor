@@ -1,0 +1,13 @@
+- generic [ref=f5e3]:
+  - generic [ref=f5e4]: "[plugin:vite:import-analysis] Failed to parse source for import analysis because the content contains invalid JS syntax. If you use tsconfig.json, make sure to not set jsx to preserve."
+  - generic [ref=f5e5]: /Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/src/main.tsx:31:30
+  - generic [ref=f5e6]: 29 | <SupabaseAuthProvider> 30 | <App /> 31 | </SupabaseAuthProvider> | ^ 32 | </BrowserRouter> 33 | </ErrorBoundary>
+  - generic [ref=f5e7]: at TransformPluginContext._formatLog (file:///Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:42553:41) at TransformPluginContext.error (file:///Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:42550:16) at TransformPluginContext.transform (file:///Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:40480:14) at async EnvironmentPluginContainer.transform (file:///Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:42348:18) at async loadAndTransform (file:///Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:35740:27
+  - generic [ref=f5e8]:
+    - text: Click outside, press Esc key, or fix the code to dismiss.You can also disable this overlay by setting
+    - code [ref=f5e9]: server.hmr.overlay
+    - text: to
+    - code [ref=f5e10]: "false"
+    - text: in
+    - code [ref=f5e11]: vite.config.js
+    - text: .

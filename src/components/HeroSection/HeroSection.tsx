@@ -47,7 +47,7 @@ export default function HeroSection() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: [0.19, 1, 0.22, 1], delay: 0.15 }}
         >
-          Build with OpenThorn
+          Build with SmartVideo
           <span className={styles.byline}>
             by
             <BtaMark className={styles.bylineMark} />
@@ -61,7 +61,7 @@ export default function HeroSection() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.19, 1, 0.22, 1], delay: 0.4 }}
         >
-          Describe what you want to build — OpenThorn generates the code,
+          Describe what you want to build — SmartVideo generates the code,
           wires up a database and auth, and deploys it anywhere. Frontend or full-stack.
         </motion.p>
 
@@ -93,27 +93,7 @@ export default function HeroSection() {
           ))}
         </motion.div>
 
-        {/* Product Hunt badge */}
-        <motion.div
-          className={styles.phBadge}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.8 }}
-        >
-          <a
-            href="https://www.producthunt.com/products/openthorn?utm_source=badge-follow&utm_medium=badge&utm_source=badge-openthorn"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <img
-              src="https://api.producthunt.com/widgets/embed-image/v1/follow.svg?product_id=1244819&theme=dark"
-              alt="OpenThorn on Product Hunt"
-              width={250}
-              height={54}
-              style={{ width: 250, height: 54 }}
-            />
-          </a>
-        </motion.div>
+
       </div>
 
       {/* Scroll hint */}

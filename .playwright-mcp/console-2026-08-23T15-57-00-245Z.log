@@ -1,0 +1,77 @@
+[     466ms] [LOG] [App] Starting initialization... @ http://localhost:3100/src/main.js?t=1787500578574:19
+[     533ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:41
+[     571ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:48
+[     733ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:48
+[    1069ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:48
+[    1668ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:48
+[    1948ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:20096
+[    1973ms] [LOG] [App] Initialized in 1507.30ms @ http://localhost:3100/src/main.js?t=1787500578574:164
+[    1973ms] [LOG] [App] Navigating to initial page: cinema-template @ http://localhost:3100/src/main.js?t=1787500578574:165
+[    1974ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://localhost:3100/src/main.js?t=1787500578574:176
+[    2091ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:48
+[    2230ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:48
+[    2234ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:48
+[    2239ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:48
+[    2244ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:48
+[    2250ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:48
+[    2254ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:48
+[    2260ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:48
+[    2266ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:48
+[    2497ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[    2744ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[    2874ms] [LOG] [popcorn-init] OK: plugin-image @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:48
+[    3252ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:48
+[    3296ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:48
+[    3751ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:48
+[    4215ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:48
+[    4249ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:48
+[    4260ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:48
+[    4285ms] [LOG] [popcorn-init] OK: plugin-form @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:48
+[    4357ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:48
+[    4364ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:48
+[    4371ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:48
+[    4378ms] [LOG] [popcorn-init] OK: plugin-skip @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:48
+[    4403ms] [LOG] [popcorn-init] OK: plugin-text @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:48
+[    4416ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:48
+[    4422ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:48
+[    4438ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:48
+[    4445ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:48
+[    4451ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:48
+[    4457ms] [LOG] [popcorn-init] OK: plugin-combined @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:48
+[    4463ms] [LOG] [popcorn-init] OK: plugin-background @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:48
+[    4463ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://localhost:3100/src/lib/popcornInit.js?t=1787500578571:60
+[    4463ms] [LOG] [popcorn] function 19 @ http://localhost:3100/src/main.js?t=1787500578574:4
+[   78957ms] [ERROR] [2026-08-23T15:58:19.201Z] [ERROR] Uncaught error | {"filename":"http://localhost:3100/src/components/CinemaTemplateStudio.js?t=1787500578571","lineno":2069,"colno":44} @ http://localhost:3100/src/lib/logger.js:84
+[   78957ms] [ERROR] ReferenceError: resultImg is not defined
+    at captionBtn.onclick (http://localhost:3100/src/components/CinemaTemplateStudio.js?t=1787500578571:2069:44)
+    at eval (eval at evaluate (:311:30), <anonymous>:1:142)
+    at UtilityScript.evaluate (<anonymous>:313:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44) @ http://localhost:3100/src/lib/logger.js:85
+[   78963ms] [ERROR] [Global Error] ReferenceError: resultImg is not defined
+    at captionBtn.onclick (http://localhost:3100/src/components/CinemaTemplateStudio.js?t=1787500578571:2069:44)
+    at eval (eval at evaluate (:311:30), <anonymous>:1:142)
+    at UtilityScript.evaluate (<anonymous>:313:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44) @ http://localhost:3100/src/main.js?t=1787500578574:22
+[   78963ms] [LOG] [Analytics] error {errorType: uncaught_exception, message: Uncaught ReferenceError: resultImg is not defined, filename: http://localhost:3100/src/components/CinemaTemplateStudio.js?t=1787500578571, lineno: 2069} @ http://localhost:3100/src/lib/analytics.js:36
+[   78966ms] ReferenceError: resultImg is not defined
+    at captionBtn.onclick (http://localhost:3100/src/components/CinemaTemplateStudio.js?t=1787500578571:2069:44)
+    at eval (eval at evaluate (:311:30), <anonymous>:1:142)
+    at UtilityScript.evaluate (<anonymous>:313:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+[  103208ms] [ERROR] [2026-08-23T15:58:43.452Z] [ERROR] Uncaught error | {"filename":"http://localhost:3100/src/components/CinemaTemplateStudio.js?t=1787500578571","lineno":2069,"colno":44} @ http://localhost:3100/src/lib/logger.js:84
+[  103208ms] [ERROR] ReferenceError: resultImg is not defined
+    at captionBtn.onclick (http://localhost:3100/src/components/CinemaTemplateStudio.js?t=1787500578571:2069:44)
+    at eval (eval at evaluate (:311:30), <anonymous>:1:140)
+    at UtilityScript.evaluate (<anonymous>:313:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44) @ http://localhost:3100/src/lib/logger.js:85
+[  103210ms] [ERROR] [Global Error] ReferenceError: resultImg is not defined
+    at captionBtn.onclick (http://localhost:3100/src/components/CinemaTemplateStudio.js?t=1787500578571:2069:44)
+    at eval (eval at evaluate (:311:30), <anonymous>:1:140)
+    at UtilityScript.evaluate (<anonymous>:313:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44) @ http://localhost:3100/src/main.js?t=1787500578574:22
+[  103210ms] [LOG] [Analytics] error {errorType: uncaught_exception, message: Uncaught ReferenceError: resultImg is not defined, filename: http://localhost:3100/src/components/CinemaTemplateStudio.js?t=1787500578571, lineno: 2069} @ http://localhost:3100/src/lib/analytics.js:36
+[  103212ms] ReferenceError: resultImg is not defined
+    at captionBtn.onclick (http://localhost:3100/src/components/CinemaTemplateStudio.js?t=1787500578571:2069:44)
+    at eval (eval at evaluate (:311:30), <anonymous>:1:140)
+    at UtilityScript.evaluate (<anonymous>:313:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)

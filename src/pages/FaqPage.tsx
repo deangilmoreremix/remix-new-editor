@@ -31,12 +31,12 @@ const RICH_ANSWERS: Record<string, React.ReactNode> = {
         console.anthropic.com
       </a>{' '}
       for Anthropic. Create an account there, generate an API key, and paste it into
-      OpenThorn&rsquo;s Providers page.
+      SmartVideo&rsquo;s Providers page.
     </>
   ),
   'Which AI providers are supported?': (
     <>
-      OpenThorn supports 12 AI providers: OpenAI, Anthropic, Google Gemini, DeepSeek, Mistral AI,
+      SmartVideo supports 12 AI providers: OpenAI, Anthropic, Google Gemini, DeepSeek, Mistral AI,
       Groq, xAI, Perplexity, OpenRouter, Ollama, Cerebras, and NVIDIA NIM. See the{' '}
       <Link to="/providers">Providers page</Link>{' '}
       inside the app for the current list and per-model pricing data.
@@ -51,7 +51,7 @@ const RICH_ANSWERS: Record<string, React.ReactNode> = {
   'How much does building a website cost?': (
     <>
       It depends on the model you choose: generating a typical website costs cents to a few dollars
-      in provider API usage. OpenThorn itself charges nothing — there is no subscription and no
+      in provider API usage. SmartVideo itself charges nothing — there is no subscription and no
       platform fee. Compare models on the <Link to="/pricing">Pricing page</Link>.
     </>
   ),
@@ -97,7 +97,7 @@ function AccordionItem({ question, answer }: FaqItem) {
 
 export default function FaqPage() {
   usePageTitle('FAQ', {
-    description: 'Answers to common questions about OpenThorn — how bring-your-own-key works, supported AI providers, costs, and deploying your generated site.',
+    description: 'Answers to common questions about SmartVideo — how bring-your-own-key works, supported AI providers, costs, and deploying your generated site.',
   })
 
   return (
@@ -109,7 +109,7 @@ export default function FaqPage() {
             Questions, <span className={styles.titleAccent}>answered</span>
           </h1>
           <p className={styles.subtitle}>
-            Everything you need to know about OpenThorn. Can&rsquo;t find your answer?{' '}
+            Everything you need to know about SmartVideo. Can&rsquo;t find your answer?{' '}
             <a href="mailto:btalabs.contact@gmail.com">Drop us a line.</a>
           </p>
           <p className={styles.lastUpdated}>

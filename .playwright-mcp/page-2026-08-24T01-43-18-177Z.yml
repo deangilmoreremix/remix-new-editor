@@ -1,0 +1,148 @@
+- generic [ref=f4e3]:
+  - generic [ref=f4e5]:
+    - generic [ref=f4e6]: V
+    - generic [ref=f4e8]: vadoo AI
+  - generic [ref=f4e9]:
+    - button "⭐ AI Effects" [ref=f4e10] [cursor=pointer]:
+      - generic [ref=f4e11]: ⭐
+      - generic [ref=f4e12]: AI Effects
+    - button "🎬 Motion Controls" [ref=f4e13] [cursor=pointer]:
+      - generic [ref=f4e14]: 🎬
+      - generic [ref=f4e15]: Motion Controls
+    - button "⭐ VFX" [ref=f4e16] [cursor=pointer]:
+      - generic [ref=f4e17]: ⭐
+      - generic [ref=f4e18]: VFX
+  - generic [ref=f4e19]:
+    - generic [ref=f4e20]:
+      - generic [ref=f4e21]: ⭐
+      - heading "AI Effects" [level=2] [ref=f4e22]
+    - generic [ref=f4e23]:
+      - generic [ref=f4e24] [cursor=pointer]:
+        - img "Kiss Me AI" [ref=f4e26]
+        - paragraph [ref=f4e31]: Kiss Me AI
+      - generic [ref=f4e32] [cursor=pointer]:
+        - img "Kiss" [ref=f4e34]
+        - paragraph [ref=f4e39]: Kiss
+      - generic [ref=f4e40] [cursor=pointer]:
+        - img "Venom" [ref=f4e42]
+        - paragraph [ref=f4e47]: Venom
+      - generic [ref=f4e48] [cursor=pointer]:
+        - img "Hulk" [ref=f4e50]
+        - paragraph [ref=f4e55]: Hulk
+      - generic [ref=f4e56] [cursor=pointer]:
+        - img "Muscle Surge" [ref=f4e58]
+        - paragraph [ref=f4e63]: Muscle Surge
+      - generic [ref=f4e64] [cursor=pointer]:
+        - img "The Tiger Touch" [ref=f4e66]
+        - paragraph [ref=f4e71]: The Tiger Touch
+      - generic [ref=f4e72] [cursor=pointer]:
+        - img "Anything, Robot" [ref=f4e74]
+        - paragraph [ref=f4e79]: Anything, Robot
+      - generic [ref=f4e80] [cursor=pointer]:
+        - img "Warmth of Jesus" [ref=f4e82]
+        - paragraph [ref=f4e87]: Warmth of Jesus
+      - generic [ref=f4e88] [cursor=pointer]:
+        - img "Holy Wings" [ref=f4e90]
+        - paragraph [ref=f4e95]: Holy Wings
+      - generic [ref=f4e96] [cursor=pointer]:
+        - img "Microwave" [ref=f4e98]
+        - paragraph [ref=f4e103]: Microwave
+  - generic [ref=f4e104]:
+    - generic [ref=f4e105]:
+      - generic [ref=f4e106]: 🎬
+      - heading "Motion Controls" [level=2] [ref=f4e107]
+    - generic [ref=f4e108]:
+      - generic [ref=f4e109] [cursor=pointer]:
+        - img "360 Orbit" [ref=f4e111]
+        - paragraph [ref=f4e112]: 360 Orbit
+      - generic [ref=f4e113] [cursor=pointer]:
+        - img "Hero Run" [ref=f4e115]
+        - paragraph [ref=f4e116]: Hero Run
+      - generic [ref=f4e117] [cursor=pointer]:
+        - img "Arc Shot" [ref=f4e119]
+        - paragraph [ref=f4e120]: Arc Shot
+      - generic [ref=f4e121] [cursor=pointer]:
+        - img "Matrix Shot" [ref=f4e123]
+        - paragraph [ref=f4e124]: Matrix Shot
+      - generic [ref=f4e125] [cursor=pointer]:
+        - img "Car Chase" [ref=f4e127]
+        - paragraph [ref=f4e128]: Car Chase
+      - generic [ref=f4e129] [cursor=pointer]:
+        - img "Crane Down" [ref=f4e131]
+        - paragraph [ref=f4e132]: Crane Down
+      - generic [ref=f4e133] [cursor=pointer]:
+        - img "Crane Overhead" [ref=f4e135]
+        - paragraph [ref=f4e136]: Crane Overhead
+      - generic [ref=f4e137] [cursor=pointer]:
+        - img "Crane Up" [ref=f4e139]
+        - paragraph [ref=f4e140]: Crane Up
+      - generic [ref=f4e141] [cursor=pointer]:
+        - img "Crash Zoom In" [ref=f4e143]
+        - paragraph [ref=f4e144]: Crash Zoom In
+      - generic [ref=f4e145] [cursor=pointer]:
+        - img "Crash Zoom Out" [ref=f4e147]
+        - paragraph [ref=f4e148]: Crash Zoom Out
+  - generic [ref=f4e149]:
+    - generic [ref=f4e150]:
+      - generic [ref=f4e151]: ⭐
+      - heading "VFX Controls" [level=2] [ref=f4e152]
+    - generic [ref=f4e153]:
+      - generic [ref=f4e154] [cursor=pointer]:
+        - img "Levitate" [ref=f4e156]
+        - paragraph [ref=f4e157]: Levitate
+      - generic [ref=f4e158] [cursor=pointer]:
+        - img "Disintegration" [ref=f4e160]
+        - paragraph [ref=f4e161]: Disintegration
+      - generic [ref=f4e162] [cursor=pointer]:
+        - img "Flying" [ref=f4e164]
+        - paragraph [ref=f4e165]: Flying
+      - generic [ref=f4e166] [cursor=pointer]:
+        - img "Car Explosion" [ref=f4e168]
+        - paragraph [ref=f4e169]: Car Explosion
+      - generic [ref=f4e170] [cursor=pointer]:
+        - img "Tornado" [ref=f4e172]
+        - paragraph [ref=f4e173]: Tornado
+      - generic [ref=f4e174] [cursor=pointer]:
+        - img "Electricity" [ref=f4e176]
+        - paragraph [ref=f4e177]: Electricity
+      - generic [ref=f4e178] [cursor=pointer]:
+        - img "Huge Explosion" [ref=f4e180]
+        - paragraph [ref=f4e181]: Huge Explosion
+      - generic [ref=f4e182] [cursor=pointer]:
+        - img "Decay Time-Lapse" [ref=f4e184]
+        - paragraph [ref=f4e185]: Decay Time-Lapse
+      - generic [ref=f4e186] [cursor=pointer]:
+        - img "Tsunami" [ref=f4e188]
+        - paragraph [ref=f4e189]: Tsunami
+      - generic [ref=f4e190] [cursor=pointer]:
+        - img "Fire" [ref=f4e192]
+        - paragraph [ref=f4e193]: Fire
+      - generic [ref=f4e194] [cursor=pointer]:
+        - img "Robotic Face Reveal" [ref=f4e196]
+        - paragraph [ref=f4e197]: Robotic Face Reveal
+      - generic [ref=f4e198] [cursor=pointer]:
+        - img "Building Explosion" [ref=f4e200]
+        - paragraph [ref=f4e201]: Building Explosion
+  - generic [ref=f4e202]:
+    - button "Close" [ref=f4e203] [cursor=pointer]
+    - generic [ref=f4e206]:
+      - generic [ref=f4e207]:
+        - button "Image URL" [ref=f4e208] [cursor=pointer]
+        - button "Upload Image" [ref=f4e214] [cursor=pointer]
+        - button "✦" [ref=f4e218] [cursor=pointer]
+      - generic [ref=f4e220]:
+        - textbox "Enter your prompt here" [ref=f4e221]
+        - button [ref=f4e222] [cursor=pointer]
+      - generic [ref=f4e225]:
+        - generic [ref=f4e226]:
+          - generic [ref=f4e227]: Aspect Ratio
+          - button "Select" [ref=f4e229] [cursor=pointer]
+        - generic [ref=f4e230]:
+          - generic [ref=f4e231]: Duration
+          - button "Select" [ref=f4e233] [cursor=pointer]
+        - generic [ref=f4e234]:
+          - generic [ref=f4e235]: Resolution
+          - button "Select" [ref=f4e237] [cursor=pointer]
+        - generic [ref=f4e238]:
+          - generic [ref=f4e239]: Quality
+          - button "Select" [ref=f4e241] [cursor=pointer]

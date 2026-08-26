@@ -31,3 +31,5 @@ export class PersonalizeButton extends Component {
     return element;
   }
 }
+
+export default PersonalizeButton;

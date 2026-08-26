@@ -1,0 +1,352 @@
+- generic [ref=f12e2]:
+  - banner [ref=f12e3]:
+    - generic [ref=f12e4]:
+      - generic [ref=f12e5]:
+        - generic [ref=f12e6] [cursor=pointer]
+        - navigation [ref=f12e12]:
+          - generic [ref=f12e13] [cursor=pointer]: Explore
+          - generic [ref=f12e14] [cursor=pointer]: Image
+          - generic [ref=f12e15] [cursor=pointer]: Video
+          - generic [ref=f12e16] [cursor=pointer]: Tools
+          - generic [ref=f12e17] [cursor=pointer]: Storyboard
+          - generic [ref=f12e18] [cursor=pointer]: Edit
+          - generic [ref=f12e19] [cursor=pointer]: Character
+          - generic [ref=f12e20] [cursor=pointer]: Vibe Motion
+          - generic [ref=f12e21] [cursor=pointer]: Cinema Studio
+          - generic [ref=f12e22] [cursor=pointer]: Cinema Template Studio
+          - generic [ref=f12e23] [cursor=pointer]: AI Influencer
+          - generic [ref=f12e24] [cursor=pointer]: Smart Video Viral
+          - generic [ref=f12e25] [cursor=pointer]: Apps
+          - generic [ref=f12e26] [cursor=pointer]: Templates
+          - generic [ref=f12e27] [cursor=pointer]: Assist
+          - generic [ref=f12e28] [cursor=pointer]: Community
+          - generic [ref=f12e29] [cursor=pointer]: Content Library
+      - button "Update API Key" [ref=f12e31]
+  - generic [ref=f12e34]:
+    - complementary [ref=f12e35]:
+      - generic [ref=f12e36]:
+        - generic [ref=f12e37] [cursor=pointer]:
+          - button [ref=f12e38]
+          - generic [ref=f12e44]: Apps
+        - generic [ref=f12e45] [cursor=pointer]:
+          - button [ref=f12e46]
+          - generic [ref=f12e51]: Image
+        - generic [ref=f12e52] [cursor=pointer]:
+          - button [ref=f12e53]
+          - generic [ref=f12e57]: Video
+        - generic [ref=f12e58] [cursor=pointer]:
+          - button [ref=f12e59]
+          - generic [ref=f12e62]: Cinema Studio
+        - generic [ref=f12e63] [cursor=pointer]:
+          - button [ref=f12e64]
+          - generic [ref=f12e67]: Cinema Template Studio
+        - generic [ref=f12e68] [cursor=pointer]:
+          - button [ref=f12e69]
+          - generic [ref=f12e77]: Storyboard
+        - generic [ref=f12e78] [cursor=pointer]:
+          - button [ref=f12e79]
+          - generic [ref=f12e82]: Effects
+        - generic [ref=f12e83] [cursor=pointer]:
+          - button [ref=f12e84]
+          - generic [ref=f12e88]: Edit
+        - generic [ref=f12e89] [cursor=pointer]:
+          - button [ref=f12e90]
+          - generic [ref=f12e96]: Upscale
+        - generic [ref=f12e97] [cursor=pointer]:
+          - button [ref=f12e98]
+          - generic [ref=f12e103]: Audio
+        - generic [ref=f12e104] [cursor=pointer]:
+          - button [ref=f12e105]
+          - generic [ref=f12e110]: Avatar
+        - generic [ref=f12e111] [cursor=pointer]:
+          - button [ref=f12e112]
+          - generic [ref=f12e117]: Training
+        - generic [ref=f12e118] [cursor=pointer]:
+          - button [ref=f12e119]
+          - generic [ref=f12e123]: Smart Video Academy
+        - generic [ref=f12e124] [cursor=pointer]:
+          - button [ref=f12e125]
+          - generic [ref=f12e130]: Smart Video Viral
+        - generic [ref=f12e131] [cursor=pointer]:
+          - button [ref=f12e132]
+          - generic [ref=f12e136]: Video Tools
+        - generic [ref=f12e137] [cursor=pointer]:
+          - button [ref=f12e138]
+          - generic [ref=f12e141]: Render
+        - generic [ref=f12e142] [cursor=pointer]:
+          - button [ref=f12e143]
+          - generic [ref=f12e148]: Video Agent
+        - generic [ref=f12e149] [cursor=pointer]:
+          - button [ref=f12e150]
+          - generic [ref=f12e154]: Director
+        - generic [ref=f12e155] [cursor=pointer]:
+          - button [ref=f12e156]
+          - generic [ref=f12e162]: Timeline
+        - generic [ref=f12e163] [cursor=pointer]:
+          - button [ref=f12e164]
+          - generic [ref=f12e167]: Chat
+        - generic [ref=f12e168] [cursor=pointer]:
+          - button [ref=f12e169]
+          - generic [ref=f12e173]: Commercial
+        - generic [ref=f12e174] [cursor=pointer]:
+          - button [ref=f12e175]
+          - generic [ref=f12e178]: Templates
+        - generic [ref=f12e179] [cursor=pointer]:
+          - button [ref=f12e180]
+          - generic [ref=f12e184]: Explore
+        - generic [ref=f12e185] [cursor=pointer]:
+          - button [ref=f12e186]
+          - generic [ref=f12e190]: Library
+        - generic [ref=f12e191] [cursor=pointer]:
+          - button [ref=f12e192]
+          - generic [ref=f12e195]: Content
+        - generic [ref=f12e196] [cursor=pointer]:
+          - button [ref=f12e197]
+          - generic [ref=f12e203]: Community
+        - generic [ref=f12e204] [cursor=pointer]:
+          - button [ref=f12e205]
+          - generic [ref=f12e210]: Assist
+        - generic [ref=f12e211] [cursor=pointer]:
+          - button [ref=f12e212]
+          - generic [ref=f12e216]: Commits (0)
+        - generic [ref=f12e217] [cursor=pointer]:
+          - button [ref=f12e218]
+          - generic [ref=f12e222]: AI VFX
+        - generic [ref=f12e223] [cursor=pointer]:
+          - button [ref=f12e224]
+          - generic [ref=f12e228]: Stock Media
+      - generic [ref=f12e230] [cursor=pointer]:
+        - button [ref=f12e231]
+        - generic [ref=f12e235]: Settings
+    - main [ref=f12e236]:
+      - generic [ref=f12e237]:
+        - generic [ref=f12e635]:
+          - generic [ref=f12e636]:
+            - button "All studios" [ref=f12e637]
+            - button [ref=f12e643]
+            - generic [ref=f12e646]:
+              - generic [ref=f12e647]: 🎬
+              - generic [ref=f12e648]:
+                - heading "Cinematic Short Film" [level=1] [ref=f12e649]
+                - paragraph [ref=f12e650]: Create your cinematic films video
+          - generic [ref=f12e651]:
+            - generic [ref=f12e652]: API key set
+            - generic [ref=f12e655]:
+              - button "Quick Mode" [ref=f12e656]
+              - button "Advanced" [ref=f12e657]
+            - button "💾 Save" [ref=f12e658]:
+              - generic [ref=f12e659]: 💾
+              - text: Save
+        - generic [ref=f12e660]:
+          - generic [ref=f12e661]:
+            - generic [ref=f12e662]:
+              - img "Cinematic Short Film" [ref=f12e664]
+              - button "🖼 Thumbnail" [ref=f12e665]
+              - heading "Cinematic Short Film" [level=1] [ref=f12e666]
+              - paragraph [ref=f12e667]: Professional short film with narrative arc
+              - generic [ref=f12e668]:
+                - generic [ref=f12e669]: Video
+                - generic [ref=f12e670]: Cinematic Films
+            - generic [ref=f12e671]:
+              - generic [ref=f12e673]:
+                - generic [ref=f12e674]:
+                  - generic [ref=f12e675]:
+                    - heading "Video Intent" [level=2] [ref=f12e676]
+                    - paragraph [ref=f12e677]: Describe the video you want to create
+                  - button "🎨 Storyboard" [ref=f12e678]
+                - generic [ref=f12e679]:
+                  - generic [ref=f12e680]:
+                    - generic [ref=f12e681]: Video Type
+                    - combobox [ref=f12e682]:
+                      - option "commercial" [selected]
+                      - option "brand film"
+                      - option "trailer"
+                      - option "social reel"
+                      - option "testimonial"
+                      - option "documentary"
+                      - option "short film"
+                      - option "explainer"
+                  - generic [ref=f12e683]:
+                    - generic [ref=f12e684]: Duration (seconds)
+                    - spinbutton [ref=f12e685]: "60"
+                  - generic [ref=f12e686]:
+                    - generic [ref=f12e687]: Aspect Ratio
+                    - combobox [ref=f12e688]:
+                      - option "16:9" [selected]
+                      - option "9:16"
+                      - option "1:1"
+                      - option "4:5"
+                  - generic [ref=f12e689]:
+                    - generic [ref=f12e690]: Tone
+                    - combobox [ref=f12e691]:
+                      - option "dramatic"
+                      - option "cinematic" [selected]
+                      - option "upbeat"
+                      - option "luxury"
+                      - option "gritty"
+                      - option "minimal"
+                      - option "emotional"
+                      - option "humorous"
+                  - generic [ref=f12e692]:
+                    - generic [ref=f12e693]: Style Preset
+                    - combobox [ref=f12e694]:
+                      - option "None"
+                      - option "Photorealistic"
+                      - option "Cinematic" [selected]
+                      - option "Noir"
+                      - option "Anime"
+                      - option "Watercolor"
+                      - option "Oil Painting"
+                      - option "Cyberpunk"
+                      - option "Fantasy"
+                      - option "Documentary"
+                  - generic [ref=f12e695]:
+                    - generic [ref=f12e696]: Lighting Preset
+                    - combobox [ref=f12e697]:
+                      - option "None"
+                      - option "Golden Hour" [selected]
+                      - option "Neon"
+                      - option "Studio"
+                      - option "Dramatic"
+                      - option "Soft"
+                      - option "Volumetric"
+                      - option "High Key"
+                      - option "Low Key"
+                  - generic [ref=f12e698]:
+                    - generic [ref=f12e699]: Color Grade
+                    - combobox [ref=f12e700]:
+                      - option "None"
+                      - option "Warm"
+                      - option "Cool"
+                      - option "Desaturated"
+                      - option "Vibrant"
+                      - option "Monochrome"
+                      - option "Sepia"
+                      - option "Teal & Orange" [selected]
+                  - generic [ref=f12e701]:
+                    - generic [ref=f12e702]: Target Audience
+                    - textbox "e.g. Gen Z, professionals" [ref=f12e703]
+                  - generic [ref=f12e704]:
+                    - generic [ref=f12e705]: Call to Action (optional)
+                    - textbox "e.g. Buy now, Sign up" [ref=f12e706]
+                  - generic [ref=f12e707]:
+                    - generic [ref=f12e708]: Subject
+                    - textbox "What is the video about?" [ref=f12e709]
+                  - generic [ref=f12e710]:
+                    - generic [ref=f12e711]: Premise
+                    - textbox "Core narrative or value prop..." [ref=f12e712]
+                - generic [ref=f12e713]:
+                  - button "Reset" [ref=f12e714]
+                  - generic [ref=f12e715]: Video intent is saved automatically
+              - generic [ref=f12e716]:
+                - heading "Basic Information" [level=2] [ref=f12e717]
+                - paragraph [ref=f12e718]: Enter the key details for your video
+              - generic [ref=f12e719]:
+                - generic [ref=f12e720]:
+                  - generic [ref=f12e721]: Genre *
+                  - combobox [ref=f12e723] [cursor=pointer]:
+                    - option "action" [selected]
+                    - option "drama"
+                    - option "comedy"
+                    - option "horror"
+                    - option "sci-fi"
+                    - option "romance"
+                    - option "thriller"
+                - generic [ref=f12e724]:
+                  - generic [ref=f12e725]:
+                    - generic [ref=f12e726]: Story Premise *
+                    - generic [ref=f12e727]:
+                      - button "Enhance" [ref=f12e728]
+                      - button "GTM Boost prompt enhancer" [ref=f12e729] [cursor=pointer]: 🎯 GTM Boost
+                  - textbox "What happens in your story?" [ref=f12e730]
+                - generic [ref=f12e731]:
+                  - generic [ref=f12e732]: Tone
+                  - combobox [ref=f12e734] [cursor=pointer]:
+                    - option "dramatic" [selected]
+                    - option "lighthearted"
+                    - option "mysterious"
+                    - option "uplifting"
+              - generic [ref=f12e735]:
+                - generic [ref=f12e736]:
+                  - generic [ref=f12e737]:
+                    - heading "Scene Timeline" [level=2] [ref=f12e738]
+                    - paragraph [ref=f12e739]: Auto-selected scenes for your video
+                  - button "🔄 Refresh" [ref=f12e740]
+                - generic [ref=f12e742]:
+                  - generic [ref=f12e743]: 🎬
+                  - paragraph [ref=f12e744]: Scenes will be auto-selected when you generate
+              - generic [ref=f12e745]:
+                - generic [ref=f12e746]:
+                  - generic [ref=f12e747]:
+                    - heading "Scene Builder" [level=2] [ref=f12e748]
+                    - paragraph [ref=f12e749]: Structure your video into scenes
+                  - generic [ref=f12e750]:
+                    - button "+ Add Scene" [ref=f12e751]
+                    - button "🎨 Storyboard" [ref=f12e752]
+                - paragraph [ref=f12e755]: No scenes yet. Add a scene or generate from the timeline.
+            - generic [ref=f12e757]:
+              - generic [ref=f12e758]: Model
+              - button "AI Video Effects" [ref=f12e759]
+            - generic [ref=f12e765]:
+              - generic [ref=f12e766]: Video Source (V2V)
+              - button "Upload video" [ref=f12e767]
+            - generic [ref=f12e768]:
+              - generic [ref=f12e769]:
+                - generic [ref=f12e770]:
+                  - generic [ref=f12e771]: AI Enhancer
+                  - generic [ref=f12e772]: Keeps the simple template flow, but auto-detects niche, applies cinematic prompt expansion, scene logic, and cleanup in the background.
+                - button [ref=f12e773]
+              - button "Show Advanced Controls" [ref=f12e775]
+            - button "GTM Boost prompt enhancer" [ref=f12e776] [cursor=pointer]: 🎯 GTM Boost
+            - button "Generate template" [ref=f12e777]: Generate
+            - button "Personalize Personalize with a discovered contact" [ref=f12e779]:
+              - generic [ref=f12e783]: Personalize
+              - text: Personalize with a discovered contact
+            - generic [ref=f12e786]:
+              - heading "Creative Intelligence" [level=2] [ref=f12e787]
+              - paragraph [ref=f12e788]: These tiles show the cinematic structure, creative direction, and visual strategy this template will use to build your final video.
+              - generic [ref=f12e789]:
+                - generic [ref=f12e790] [cursor=pointer]:
+                  - generic [ref=f12e791]: 🏷️
+                  - heading "Auto-Detected Niche" [level=3] [ref=f12e792]
+                  - textbox [ref=f12e793]: general-business
+                - generic [ref=f12e794] [cursor=pointer]:
+                  - generic [ref=f12e795]: 🎬
+                  - heading "Scene Structure" [level=3] [ref=f12e796]
+                  - textbox [ref=f12e797]: Establish world → Introduce protagonist → Inciting incident → Rising action → Midpoint shift → Complications → Climax → Falling action → Final reveal
+                - generic [ref=f12e798] [cursor=pointer]:
+                  - generic [ref=f12e799]: 🎥
+                  - heading "Cinematic Enrichment" [level=3] [ref=f12e800]
+                  - textbox [ref=f12e801]: Dynamic camera movement, shallow depth of field, professional lighting
+                - generic [ref=f12e802] [cursor=pointer]:
+                  - generic [ref=f12e803]: ⚙️
+                  - heading "Visual Style" [level=3] [ref=f12e804]
+                  - textbox [ref=f12e805]: Polished, cinematic, high-contrast, premium aesthetic
+                - generic [ref=f12e806] [cursor=pointer]:
+                  - generic [ref=f12e807]: ✨
+                  - heading "Enhancer Keywords" [level=3] [ref=f12e808]
+                  - textbox [ref=f12e809]: cinematic, professional, 4K, high quality, premium
+          - generic [ref=f12e810]:
+            - generic [ref=f12e811]:
+              - heading "Output" [level=3] [ref=f12e812]
+              - generic [ref=f12e813]:
+                - generic [ref=f12e814]:
+                  - generic [ref=f12e815]: Video
+                  - generic [ref=f12e816]: Cinematic Films
+                  - generic [ref=f12e817]: 16:9
+                - generic [ref=f12e820]:
+                  - generic [ref=f12e821]:
+                    - generic [ref=f12e822]: Preview / Output Panel
+                    - generic [ref=f12e823]: Standby State
+                  - generic [ref=f12e824]: Upload an image and click Generate to see results
+            - generic [ref=f12e825]:
+              - generic [ref=f12e826]:
+                - button "Enhanced Prompt" [ref=f12e827]
+                - button "Scene Beats" [ref=f12e828]
+                - button "Voiceover" [ref=f12e829]
+                - button "Negative Prompt" [ref=f12e830]
+              - generic [ref=f12e831]:
+                - generic [ref=f12e832]:
+                  - generic [ref=f12e833]: Editable Output
+                  - button "✨" [ref=f12e834]
+                - textbox [ref=f12e835]: Click Generate to create an enhanced prompt...

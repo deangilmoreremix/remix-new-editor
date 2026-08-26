@@ -3,7 +3,7 @@ import { usePageTitle } from '../lib/usePageTitle'
 
 export default function ImprintPage() {
   usePageTitle('Imprint', {
-    description: 'Legal disclosure and operator information for OpenThorn, the bring-your-own-key AI website builder.',
+    description: 'Legal disclosure and operator information for SmartVideo, the bring-your-own-key AI website builder.',
   })
   return (
     <LegalPage title="Imprint" lastUpdated="June 8, 2026">

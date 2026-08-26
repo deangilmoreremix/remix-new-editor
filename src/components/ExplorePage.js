@@ -1,5 +1,5 @@
 import { navigate } from '../lib/router.js';
-import { templates, TEMPLATE_CATEGORIES } from '../lib/templates.js';
+import { templates, TEMPLATE_CATEGORIES } from '../lib/videoTemplates.js';
 import { getTemplateThumbnail, getCategoryThumbnail, createThumbnailImg } from '../lib/thumbnails.js';
 
 const CURATED_PROMPTS = [

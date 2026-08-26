@@ -14,6 +14,28 @@
   status = 200
   force = true
 
+# Stripe functions (friendly URLs)
+[[redirects]]
+  from = "/api/stripe-webhook"
+  to = "/.netlify/functions/stripe-webhook"
+  status = 200
+
+[[redirects]]
+  from = "/api/stripe-checkout"
+  to = "/.netlify/functions/stripe-checkout"
+  status = 200
+
+[[redirects]]
+  from = "/api/stripe-products"
+  to = "/.netlify/functions/stripe-products"
+  status = 200
+
+# Subscription check (gating)
+[[redirects]]
+  from = "/api/check-subscription"
+  to = "/.netlify/functions/check-subscription"
+  status = 200
+
 # Security headers
 [[headers]]
   for = "/*"

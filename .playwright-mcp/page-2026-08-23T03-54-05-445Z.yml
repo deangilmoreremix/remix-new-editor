@@ -1,0 +1,681 @@
+- generic [ref=f271e2]:
+  - banner [ref=f271e3]:
+    - generic [ref=f271e4]:
+      - generic [ref=f271e5]:
+        - generic [ref=f271e6] [cursor=pointer]
+        - navigation [ref=f271e12]:
+          - generic [ref=f271e13] [cursor=pointer]: Explore
+          - generic [ref=f271e14] [cursor=pointer]: Image
+          - generic [ref=f271e15] [cursor=pointer]: Video
+          - generic [ref=f271e16] [cursor=pointer]: Tools
+          - generic [ref=f271e17] [cursor=pointer]: Storyboard
+          - generic [ref=f271e18] [cursor=pointer]: Edit
+          - generic [ref=f271e19] [cursor=pointer]: Character
+          - generic [ref=f271e20] [cursor=pointer]: Vibe Motion
+          - generic [ref=f271e21] [cursor=pointer]: Cinema Studio
+          - generic [ref=f271e22] [cursor=pointer]: Cinema Template Studio
+          - generic [ref=f271e23] [cursor=pointer]: AI Influencer
+          - generic [ref=f271e24] [cursor=pointer]: Smart Video Viral
+          - generic [ref=f271e25] [cursor=pointer]: Apps
+          - generic [ref=f271e26] [cursor=pointer]: Templates
+          - generic [ref=f271e27] [cursor=pointer]: Assist
+          - generic [ref=f271e28] [cursor=pointer]: Community
+          - generic [ref=f271e29] [cursor=pointer]: Content Library
+      - generic [ref=f271e30]:
+        - button "Update API Key" [ref=f271e31]
+        - link "Sign In" [ref=f271e35] [cursor=pointer]:
+          - /url: /signin
+  - generic [ref=f271e36]:
+    - complementary [ref=f271e37]:
+      - generic [ref=f271e38]:
+        - generic [ref=f271e39] [cursor=pointer]:
+          - button [ref=f271e40]
+          - generic [ref=f271e46]: Apps
+        - generic [ref=f271e47] [cursor=pointer]:
+          - button [ref=f271e48]
+          - generic [ref=f271e53]: Image
+        - generic [ref=f271e54] [cursor=pointer]:
+          - button [ref=f271e55]
+          - generic [ref=f271e59]: Video
+        - generic [ref=f271e60] [cursor=pointer]:
+          - button [ref=f271e61]
+          - generic [ref=f271e64]: Cinema Studio
+        - generic [ref=f271e65] [cursor=pointer]:
+          - button [ref=f271e66]
+          - generic [ref=f271e69]: Cinema Template Studio
+        - generic [ref=f271e70] [cursor=pointer]:
+          - button [ref=f271e71]
+          - generic [ref=f271e79]: Storyboard
+        - generic [ref=f271e80] [cursor=pointer]:
+          - button [ref=f271e81]
+          - generic [ref=f271e84]: Effects
+        - generic [ref=f271e85] [cursor=pointer]:
+          - button [ref=f271e86]
+          - generic [ref=f271e90]: Edit
+        - generic [ref=f271e91] [cursor=pointer]:
+          - button [ref=f271e92]
+          - generic [ref=f271e98]: Upscale
+        - generic [ref=f271e99] [cursor=pointer]:
+          - button [ref=f271e100]
+          - generic [ref=f271e105]: Audio
+        - generic [ref=f271e106] [cursor=pointer]:
+          - button [ref=f271e107]
+          - generic [ref=f271e112]: Avatar
+        - generic [ref=f271e113] [cursor=pointer]:
+          - button [ref=f271e114]
+          - generic [ref=f271e119]: Training
+        - generic [ref=f271e120] [cursor=pointer]:
+          - button [ref=f271e121]
+          - generic [ref=f271e125]: Smart Video Academy
+        - generic [ref=f271e126] [cursor=pointer]:
+          - button [ref=f271e127]
+          - generic [ref=f271e132]: Smart Video Viral
+        - generic [ref=f271e133] [cursor=pointer]:
+          - button [ref=f271e134]
+          - generic [ref=f271e138]: Video Tools
+        - generic [ref=f271e139] [cursor=pointer]:
+          - button [ref=f271e140]
+          - generic [ref=f271e143]: Render
+        - generic [ref=f271e144] [cursor=pointer]:
+          - button [ref=f271e145]
+          - generic [ref=f271e150]: Video Agent
+        - generic [ref=f271e151] [cursor=pointer]:
+          - button [ref=f271e152]
+          - generic [ref=f271e156]: Director
+        - generic [ref=f271e157] [cursor=pointer]:
+          - button [ref=f271e158]
+          - generic [ref=f271e164]: Timeline
+        - generic [ref=f271e165] [cursor=pointer]:
+          - button [ref=f271e166]
+          - generic [ref=f271e169]: Chat
+        - generic [ref=f271e170] [cursor=pointer]:
+          - button [ref=f271e171]
+          - generic [ref=f271e175]: Commercial
+        - generic [ref=f271e176] [cursor=pointer]:
+          - button [ref=f271e177]
+          - generic [ref=f271e180]: Templates
+        - generic [ref=f271e181] [cursor=pointer]:
+          - button [ref=f271e182]
+          - generic [ref=f271e186]: Explore
+        - generic [ref=f271e187] [cursor=pointer]:
+          - button [ref=f271e188]
+          - generic [ref=f271e192]: Library
+        - generic [ref=f271e193] [cursor=pointer]:
+          - button [ref=f271e194]
+          - generic [ref=f271e197]: Content
+        - generic [ref=f271e198] [cursor=pointer]:
+          - button [ref=f271e199]
+          - generic [ref=f271e205]: Community
+        - generic [ref=f271e206] [cursor=pointer]:
+          - button [ref=f271e207]
+          - generic [ref=f271e212]: Assist
+        - generic [ref=f271e213] [cursor=pointer]:
+          - button [ref=f271e214]
+          - generic [ref=f271e218]: Commits (0)
+        - generic [ref=f271e219] [cursor=pointer]:
+          - button [ref=f271e220]
+          - generic [ref=f271e224]: AI VFX
+        - generic [ref=f271e225] [cursor=pointer]:
+          - button [ref=f271e226]
+          - generic [ref=f271e230]: Stock Media
+      - generic [ref=f271e232] [cursor=pointer]:
+        - button [ref=f271e233]
+        - generic [ref=f271e237]: Settings
+    - main [ref=f271e238]:
+      - generic [ref=f271e239]:
+        - generic [ref=f271e240]:
+          - button "All studios" [ref=f271e241]
+          - button "Back" [ref=f271e247]
+        - generic [ref=f271e251]:
+          - img "cinema studio" [ref=f271e252]
+          - generic [ref=f271e254]:
+            - generic [ref=f271e255]: Cinema Studio 2.0
+            - heading "What would you shoot with infinite budget?" [level=1] [ref=f271e256]: What would you shootwith infinite budget?
+        - generic [ref=f271e258]:
+          - generic [ref=f271e259]:
+            - generic [ref=f271e260]:
+              - textbox "Cinema prompt" [ref=f271e261]:
+                - /placeholder: Describe your scene - use @ to add characters & props
+              - button "GTM Boost prompt enhancer" [ref=f271e262] [cursor=pointer]: 🎯 GTM Boost
+            - button "Reference media" [ref=f271e264]
+            - generic [ref=f271e269]: Reference scene loaded — used as the seed for your cinematic shot.
+            - generic [ref=f271e271]:
+              - button "V Seedance Lite" [ref=f271e272]:
+                - generic [ref=f271e273]: V
+                - text: Seedance Lite
+              - button "Open model picker" [ref=f271e275]: AI Pick
+              - button "16:9" [ref=f271e276]
+              - button "2K" [ref=f271e279]
+              - button "Builder Quick camera builder" [ref=f271e282]
+              - generic [ref=f271e286]:
+                - generic [ref=f271e287]: Character Lock
+                - button [ref=f271e288]
+              - button "Personalize Personalize with a discovered contact" [ref=f271e290]:
+                - generic [ref=f271e294]: Personalize
+                - text: Personalize with a discovered contact
+          - generic [ref=f271e297]:
+            - button "Modular 8K Digital Static • Natural Open camera settings" [ref=f271e298]:
+              - generic [ref=f271e300]: Modular 8K Digital
+              - generic [ref=f271e301]: Static • Natural
+              - text: Open camera settings
+            - button "Generate cinema shot" [ref=f271e302] [cursor=pointer]: GENERATE ✨ Generate cinema shot
+            - button "Create custom thumbnail" [ref=f271e303]:
+              - generic [ref=f271e304]: 🖼
+              - text: Thumbnail Create custom thumbnail for Cinema Studio
+        - generic [ref=f271e305]:
+          - generic [ref=f271e306]:
+            - generic [ref=f271e307]:
+              - generic [ref=f271e308]: "1"
+              - generic [ref=f271e310]:
+                - generic [ref=f271e311]: Upload your scene
+                - generic [ref=f271e312]: Start with a still image that will serve as the base for your cinematic shot.
+            - generic [ref=f271e313]:
+              - generic [ref=f271e314]: "2"
+              - generic [ref=f271e316]:
+                - generic [ref=f271e317]: Select camera movement
+                - generic [ref=f271e318]: Choose from dolly, crane, orbit, FPV drone, and other professional camera movements.
+            - generic [ref=f271e319]:
+              - generic [ref=f271e320]: "3"
+              - generic [ref=f271e322]:
+                - generic [ref=f271e323]: Choose lens and look
+                - generic [ref=f271e324]: Pick a camera lens profile (anamorphic, 70mm, macro) and film look to set the cinematic mood.
+            - generic [ref=f271e325]:
+              - generic [ref=f271e326]: "4"
+              - generic [ref=f271e328]:
+                - generic [ref=f271e329]: Render the shot
+                - generic [ref=f271e330]: Generate your cinematic video. Each camera + lens combination produces a unique look.
+          - generic [ref=f271e331]:
+            - button [ref=f271e332]
+            - generic [ref=f271e336]:
+              - generic [ref=f271e337]:
+                - generic [ref=f271e338]: ●
+                - generic [ref=f271e339]: Anamorphic lenses create the classic widescreen movie look
+              - generic [ref=f271e340]:
+                - generic [ref=f271e341]: ●
+                - generic [ref=f271e342]: Dolly zoom creates the famous Hitchcock vertigo effect
+              - generic [ref=f271e343]:
+                - generic [ref=f271e344]: ●
+                - generic [ref=f271e345]: Combine FPV drone with wide-angle for immersive shots
+        - button "Cinema Prompt Builder Build cinematic prompts with camera & lens metadata" [ref=f271e347]:
+          - generic [ref=f271e352]:
+            - generic [ref=f271e353]: Cinema Prompt Builder
+            - generic [ref=f271e354]: Build cinematic prompts with camera & lens metadata
+        - generic:
+          - generic:
+            - generic:
+              - generic:
+                - button "All"
+              - button
+            - generic:
+              - generic:
+                - generic: Camera
+                - generic:
+                  - generic:
+                    - generic: Modular 8K Digital
+                    - generic: Full-Frame Cine Digital
+                    - generic: Grand Format 70mm Film
+                    - generic: Studio Digital S35
+                    - generic: Classic 16mm Film
+                    - generic: Premium Large Format Digital
+              - generic:
+                - generic: Lens
+                - generic:
+                  - generic:
+                    - generic: Creative Tilt Lens
+                    - generic: Compact Anamorphic
+                    - generic: Extreme Macro
+                    - generic: 70s Cinema Prime
+                    - generic: Classic Anamorphic
+                    - generic: Premium Modern Prime
+                    - generic: Warm Cinema Prime
+                    - generic: Swirl Bokeh Portrait
+                    - generic: Vintage Prime
+                    - generic: Halation Diffusion
+                    - generic: Clinical Sharp Prime
+              - generic:
+                - generic: Focal Length
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: "8"
+                      - generic: "8"
+                    - generic:
+                      - generic: "14"
+                      - generic: "14"
+                    - generic:
+                      - generic: "24"
+                      - generic: "24"
+                    - generic:
+                      - generic: "35"
+                      - generic: "35"
+                    - generic:
+                      - generic: "50"
+                      - generic: "50"
+                    - generic:
+                      - generic: "85"
+                      - generic: "85"
+              - generic:
+                - generic: Aperture
+                - generic:
+                  - generic:
+                    - generic: f/1.4
+                    - generic: f/4
+                    - generic: f/11
+        - generic [ref=f271e357]: History
+        - status:
+          - generic:
+            - button "↻ Regenerate"
+            - button "↓ Download"
+            - button "+ New Shot"
+            - button "Publish to Social"
+        - generic [ref=f271e359]:
+          - generic [ref=f271e360]:
+            - generic [ref=f271e361]:
+              - generic [ref=f271e362]: Example Gallery
+              - generic [ref=f271e363]: Click any card to view the prompt or create in this style
+            - generic [ref=f271e364]: 28 examples
+          - generic [ref=f271e365]:
+            - button "All" [ref=f271e366] [cursor=pointer]
+            - button "gameplay" [ref=f271e367] [cursor=pointer]
+            - button "fps" [ref=f271e368] [cursor=pointer]
+            - button "trailer" [ref=f271e369] [cursor=pointer]
+            - button "action" [ref=f271e370] [cursor=pointer]
+            - button "story" [ref=f271e371] [cursor=pointer]
+            - button "drama" [ref=f271e372] [cursor=pointer]
+            - button "period" [ref=f271e373] [cursor=pointer]
+            - button "cinematic" [ref=f271e374] [cursor=pointer]
+            - button "cinema" [ref=f271e375] [cursor=pointer]
+            - button "anime" [ref=f271e376] [cursor=pointer]
+          - generic [ref=f271e377]:
+            - generic [ref=f271e378] [cursor=pointer]:
+              - generic [ref=f271e379]:
+                - generic [ref=f271e380]: ACTION
+                - img "Modern warfare FPS gameplay" [ref=f271e381]
+              - generic [ref=f271e382]:
+                - generic [ref=f271e383]: Modern warfare FPS gameplay
+                - generic [ref=f271e384]: minimax
+                - generic [ref=f271e386]:
+                  - generic [ref=f271e387]: gameplay
+                  - generic [ref=f271e388]: fps
+                  - generic [ref=f271e389]: trailer
+                - generic [ref=f271e390]:
+                  - button "View Prompt" [ref=f271e391]
+                  - button "Create This Style" [ref=f271e392]
+            - generic [ref=f271e393] [cursor=pointer]:
+              - generic [ref=f271e394]:
+                - generic [ref=f271e395]: CINEMA
+                - img "Radio operator evacuation bridge" [ref=f271e396]
+              - generic [ref=f271e397]:
+                - generic [ref=f271e398]: Radio operator evacuation bridge
+                - generic [ref=f271e399]: minimax
+                - generic [ref=f271e401]:
+                  - generic [ref=f271e402]: story
+                  - generic [ref=f271e403]: drama
+                  - generic [ref=f271e404]: period
+                - generic [ref=f271e405]:
+                  - button "View Prompt" [ref=f271e406]
+                  - button "Create This Style" [ref=f271e407]
+            - generic [ref=f271e408] [cursor=pointer]:
+              - generic [ref=f271e409]:
+                - generic [ref=f271e410]: ANIMATION
+                - img "Greenhouse tea isekai anime" [ref=f271e411]
+              - generic [ref=f271e412]:
+                - generic [ref=f271e413]: Greenhouse tea isekai anime
+                - generic [ref=f271e414]: minimax
+                - generic [ref=f271e416]:
+                  - generic [ref=f271e417]: anime
+                  - generic [ref=f271e418]: isekai
+                  - generic [ref=f271e419]: stylized
+                - generic [ref=f271e420]:
+                  - button "View Prompt" [ref=f271e421]
+                  - button "Create This Style" [ref=f271e422]
+            - generic [ref=f271e423] [cursor=pointer]:
+              - generic [ref=f271e424]:
+                - generic [ref=f271e425]: ANIMATION
+                - img "Stormy Claymation Whale Breach" [ref=f271e426]
+              - generic [ref=f271e427]:
+                - generic [ref=f271e428]: Stormy Claymation Whale Breach
+                - generic [ref=f271e429]: minimax
+                - generic [ref=f271e431]:
+                  - generic [ref=f271e432]: claymation
+                  - generic [ref=f271e433]: stop-motion
+                  - generic [ref=f271e434]: texture
+                - generic [ref=f271e435]:
+                  - button "View Prompt" [ref=f271e436]
+                  - button "Create This Style" [ref=f271e437]
+            - generic [ref=f271e438] [cursor=pointer]:
+              - generic [ref=f271e439]:
+                - generic [ref=f271e440]: CINEMA
+                - img "Cinematic Story Study" [ref=f271e441]
+              - generic [ref=f271e442]:
+                - generic [ref=f271e443]: Cinematic Story Study
+                - generic [ref=f271e444]: minimax
+                - generic [ref=f271e446]:
+                  - generic [ref=f271e447]: cinematic-story
+                  - generic [ref=f271e448]: text-to-video
+                  - generic [ref=f271e449]: text-prompt
+                - generic [ref=f271e450]:
+                  - button "View Prompt" [ref=f271e451]
+                  - button "Create This Style" [ref=f271e452]
+            - generic [ref=f271e453] [cursor=pointer]:
+              - generic [ref=f271e454]:
+                - generic [ref=f271e455]: CINEMA
+                - img "Luminous Creature in a Dusk Kitchen" [ref=f271e456]
+              - generic [ref=f271e457]:
+                - generic [ref=f271e458]: Luminous Creature in a Dusk Kitchen
+                - generic [ref=f271e459]: minimax
+                - generic [ref=f271e461]:
+                  - generic [ref=f271e462]: horror
+                  - generic [ref=f271e463]: text-to-video
+                  - generic [ref=f271e464]: camera-direction
+                - generic [ref=f271e465]:
+                  - button "View Prompt" [ref=f271e466]
+                  - button "Create This Style" [ref=f271e467]
+            - generic [ref=f271e468] [cursor=pointer]:
+              - generic [ref=f271e469]:
+                - generic [ref=f271e470]: CINEMA
+                - img "1998 Seoul rainy bus stop archival home video" [ref=f271e471]
+              - generic [ref=f271e472]:
+                - generic [ref=f271e473]: 1998 Seoul rainy bus stop archival home video
+                - generic [ref=f271e474]: minimax
+                - generic [ref=f271e476]:
+                  - generic [ref=f271e477]: cinematic-story
+                  - generic [ref=f271e478]: text-to-video
+                  - generic [ref=f271e479]: 1998-seoul-street
+                - generic [ref=f271e480]:
+                  - button "View Prompt" [ref=f271e481]
+                  - button "Create This Style" [ref=f271e482]
+            - generic [ref=f271e483] [cursor=pointer]:
+              - generic [ref=f271e484]:
+                - generic [ref=f271e485]: ANIMATION
+                - img "Giant Kitchen Spider Comedy Short" [ref=f271e486]
+              - generic [ref=f271e487]:
+                - generic [ref=f271e488]: Giant Kitchen Spider Comedy Short
+                - generic [ref=f271e489]: minimax
+                - generic [ref=f271e491]:
+                  - generic [ref=f271e492]: anime
+                  - generic [ref=f271e493]: text-to-video
+                  - generic [ref=f271e494]: camera-direction
+                - generic [ref=f271e495]:
+                  - button "View Prompt" [ref=f271e496]
+                  - button "Create This Style" [ref=f271e497]
+            - generic [ref=f271e498] [cursor=pointer]:
+              - generic [ref=f271e499]:
+                - generic [ref=f271e500]: CINEMA
+                - img "Ultra-realistic documentary realism" [ref=f271e501]
+              - generic [ref=f271e502]:
+                - generic [ref=f271e503]: Ultra-realistic documentary realism
+                - generic [ref=f271e504]: minimax
+                - generic [ref=f271e506]:
+                  - generic [ref=f271e507]: cinematic-story
+                  - generic [ref=f271e508]: text-to-video
+                  - generic [ref=f271e509]: text-prompt
+                - generic [ref=f271e510]:
+                  - button "View Prompt" [ref=f271e511]
+                  - button "Create This Style" [ref=f271e512]
+            - generic [ref=f271e513] [cursor=pointer]:
+              - generic [ref=f271e514]:
+                - generic [ref=f271e515]: CINEMA
+                - img "AI can’t replace you Joey" [ref=f271e516]
+              - generic [ref=f271e517]:
+                - generic [ref=f271e518]: AI can’t replace you Joey
+                - generic [ref=f271e519]: minimax
+                - generic [ref=f271e521]:
+                  - generic [ref=f271e522]: cinematic-story
+                  - generic [ref=f271e523]: text-to-video
+                  - generic [ref=f271e524]: text-prompt
+                - generic [ref=f271e525]:
+                  - button "View Prompt" [ref=f271e526]
+                  - button "Create This Style" [ref=f271e527]
+            - generic [ref=f271e528] [cursor=pointer]:
+              - generic [ref=f271e529]:
+                - generic [ref=f271e530]: CINEMA
+                - img "also has an impressive understanding of different cultures" [ref=f271e531]
+              - generic [ref=f271e532]:
+                - generic [ref=f271e533]: also has an impressive understanding of different cultures
+                - generic [ref=f271e534]: minimax
+                - generic [ref=f271e536]:
+                  - generic [ref=f271e537]: cinematic-story
+                  - generic [ref=f271e538]: text-to-video
+                  - generic [ref=f271e539]: text-prompt
+                - generic [ref=f271e540]:
+                  - button "View Prompt" [ref=f271e541]
+                  - button "Create This Style" [ref=f271e542]
+            - generic [ref=f271e543] [cursor=pointer]:
+              - generic [ref=f271e544]:
+                - generic [ref=f271e545]: ANIMATION
+                - img "Bond-style spy-thriller op-art anime title sequence" [ref=f271e546]
+              - generic [ref=f271e547]:
+                - generic [ref=f271e548]: Bond-style spy-thriller op-art anime title sequence
+                - generic [ref=f271e549]: minimax
+                - generic [ref=f271e551]:
+                  - generic [ref=f271e552]: anime
+                  - generic [ref=f271e553]: text-to-video
+                  - generic [ref=f271e554]: text-prompt
+                - generic [ref=f271e555]:
+                  - button "View Prompt" [ref=f271e556]
+                  - button "Create This Style" [ref=f271e557]
+            - generic [ref=f271e558] [cursor=pointer]:
+              - generic [ref=f271e559]:
+                - generic [ref=f271e560]: CINEMA
+                - img "Lightning God at a Shaolin Monastery" [ref=f271e561]
+              - generic [ref=f271e562]:
+                - generic [ref=f271e563]: Lightning God at a Shaolin Monastery
+                - generic [ref=f271e564]: minimax
+                - generic [ref=f271e566]:
+                  - generic [ref=f271e567]: cinematic-story
+                  - generic [ref=f271e568]: text-to-video
+                  - generic [ref=f271e569]: camera-direction
+                - generic [ref=f271e570]:
+                  - button "View Prompt" [ref=f271e571]
+                  - button "Create This Style" [ref=f271e572]
+            - generic [ref=f271e573] [cursor=pointer]:
+              - generic [ref=f271e574]:
+                - generic [ref=f271e575]: CINEMA
+                - img "Can reason? -- I wanted to see if reasoning could" [ref=f271e576]
+              - generic [ref=f271e577]:
+                - generic [ref=f271e578]: Can reason? -- I wanted to see if reasoning could
+                - generic [ref=f271e579]: minimax
+                - generic [ref=f271e581]:
+                  - generic [ref=f271e582]: cinematic-story
+                  - generic [ref=f271e583]: text-to-video
+                  - generic [ref=f271e584]: text-prompt
+                - generic [ref=f271e585]:
+                  - button "View Prompt" [ref=f271e586]
+                  - button "Create This Style" [ref=f271e587]
+            - generic [ref=f271e588] [cursor=pointer]:
+              - generic [ref=f271e589]:
+                - generic [ref=f271e590]: ANIMATION
+                - img "Anime Film Study" [ref=f271e591]
+              - generic [ref=f271e592]:
+                - generic [ref=f271e593]: Anime Film Study
+                - generic [ref=f271e594]: minimax
+                - generic [ref=f271e596]:
+                  - generic [ref=f271e597]: anime
+                  - generic [ref=f271e598]: text-to-video
+                  - generic [ref=f271e599]: text-prompt
+                - generic [ref=f271e600]:
+                  - button "View Prompt" [ref=f271e601]
+                  - button "Create This Style" [ref=f271e602]
+            - generic [ref=f271e603] [cursor=pointer]:
+              - generic [ref=f271e604]:
+                - generic [ref=f271e605]: CINEMA
+                - img "cinematic sci-fi suspense video. A realistic spaceship crew in full futuristic" [ref=f271e606]
+              - generic [ref=f271e607]:
+                - generic [ref=f271e608]: cinematic sci-fi suspense video. A realistic spaceship crew in full futuristic
+                - generic [ref=f271e609]: minimax
+                - generic [ref=f271e611]:
+                  - generic [ref=f271e612]: cinematic-story
+                  - generic [ref=f271e613]: text-to-video
+                  - generic [ref=f271e614]: text-prompt
+                - generic [ref=f271e615]:
+                  - button "View Prompt" [ref=f271e616]
+                  - button "Create This Style" [ref=f271e617]
+            - generic [ref=f271e618] [cursor=pointer]:
+              - generic [ref=f271e619]:
+                - generic [ref=f271e620]: CINEMA
+                - img "Circle, Square, Triangle, and Star" [ref=f271e621]
+              - generic [ref=f271e622]:
+                - generic [ref=f271e623]: Circle, Square, Triangle, and Star
+                - generic [ref=f271e624]: minimax
+                - generic [ref=f271e626]:
+                  - generic [ref=f271e627]: cinematic-travel
+                  - generic [ref=f271e628]: text-to-video
+                  - generic [ref=f271e629]: text-prompt
+                - generic [ref=f271e630]:
+                  - button "View Prompt" [ref=f271e631]
+                  - button "Create This Style" [ref=f271e632]
+            - generic [ref=f271e633] [cursor=pointer]:
+              - generic [ref=f271e634]:
+                - generic [ref=f271e635]: CINEMA
+                - img "Cloaked Avenger vs. Cyborg Executioner" [ref=f271e636]
+              - generic [ref=f271e637]:
+                - generic [ref=f271e638]: Cloaked Avenger vs. Cyborg Executioner
+                - generic [ref=f271e639]: minimax
+                - generic [ref=f271e641]:
+                  - generic [ref=f271e642]: cinematic-story
+                  - generic [ref=f271e643]: reference-to-video
+                  - generic [ref=f271e644]: reference-image
+                - generic [ref=f271e645]:
+                  - button "View Prompt" [ref=f271e646]
+                  - button "Create This Style" [ref=f271e647]
+            - generic [ref=f271e648] [cursor=pointer]:
+              - generic [ref=f271e649]:
+                - generic [ref=f271e650]: CINEMA
+                - img "Dramatic performances ✅" [ref=f271e651]
+              - generic [ref=f271e652]:
+                - generic [ref=f271e653]: Dramatic performances ✅
+                - generic [ref=f271e654]: minimax
+                - generic [ref=f271e656]:
+                  - generic [ref=f271e657]: cinematic-story
+                  - generic [ref=f271e658]: text-to-video
+                  - generic [ref=f271e659]: text-prompt
+                - generic [ref=f271e660]:
+                  - button "View Prompt" [ref=f271e661]
+                  - button "Create This Style" [ref=f271e662]
+            - generic [ref=f271e663] [cursor=pointer]:
+              - generic [ref=f271e664]:
+                - generic [ref=f271e665]: CINEMA
+                - img "\"Drowning deep down the ocean\" created with MiniMax H3" [ref=f271e666]
+              - generic [ref=f271e667]:
+                - generic [ref=f271e668]: "\"Drowning deep down the ocean\" created with MiniMax H3"
+                - generic [ref=f271e669]: minimax
+                - generic [ref=f271e671]:
+                  - generic [ref=f271e672]: cinematic-travel
+                  - generic [ref=f271e673]: text-to-video
+                  - generic [ref=f271e674]: text-prompt
+                - generic [ref=f271e675]:
+                  - button "View Prompt" [ref=f271e676]
+                  - button "Create This Style" [ref=f271e677]
+            - generic [ref=f271e678] [cursor=pointer]:
+              - generic [ref=f271e679]:
+                - generic [ref=f271e680]: CINEMA
+                - img "Empty Suit Stop-Motion Assembly" [ref=f271e681]
+              - generic [ref=f271e682]:
+                - generic [ref=f271e683]: Empty Suit Stop-Motion Assembly
+                - generic [ref=f271e684]: minimax
+                - generic [ref=f271e686]:
+                  - generic [ref=f271e687]: cinematic-story
+                  - generic [ref=f271e688]: text-to-video
+                  - generic [ref=f271e689]: camera-direction
+                - generic [ref=f271e690]:
+                  - button "View Prompt" [ref=f271e691]
+                  - button "Create This Style" [ref=f271e692]
+            - generic [ref=f271e693] [cursor=pointer]:
+              - generic [ref=f271e694]:
+                - generic [ref=f271e695]: ANIMATION
+                - img "Anime Film Study" [ref=f271e696]
+              - generic [ref=f271e697]:
+                - generic [ref=f271e698]: Anime Film Study
+                - generic [ref=f271e699]: minimax
+                - generic [ref=f271e701]:
+                  - generic [ref=f271e702]: anime
+                  - generic [ref=f271e703]: text-to-video
+                  - generic [ref=f271e704]: text-prompt
+                - generic [ref=f271e705]:
+                  - button "View Prompt" [ref=f271e706]
+                  - button "Create This Style" [ref=f271e707]
+            - generic [ref=f271e708] [cursor=pointer]:
+              - generic [ref=f271e709]:
+                - generic [ref=f271e710]: CINEMA
+                - img "Fire-breathing dragon in broken palace" [ref=f271e711]
+              - generic [ref=f271e712]:
+                - generic [ref=f271e713]: Fire-breathing dragon in broken palace
+                - generic [ref=f271e714]: minimax
+                - generic [ref=f271e716]:
+                  - generic [ref=f271e717]: cinematic-story
+                  - generic [ref=f271e718]: text-to-video
+                  - generic [ref=f271e719]: fire-breathing-dragon
+                - generic [ref=f271e720]:
+                  - button "View Prompt" [ref=f271e721]
+                  - button "Create This Style" [ref=f271e722]
+            - generic [ref=f271e723] [cursor=pointer]:
+              - generic [ref=f271e724]:
+                - generic [ref=f271e725]: CINEMA
+                - img "fire dragon and his rider of living flame," [ref=f271e726]
+              - generic [ref=f271e727]:
+                - generic [ref=f271e728]: fire dragon and his rider of living flame,
+                - generic [ref=f271e729]: minimax
+                - generic [ref=f271e731]:
+                  - generic [ref=f271e732]: cinematic-story
+                  - generic [ref=f271e733]: text-to-video
+                  - generic [ref=f271e734]: fire-dragon
+                - generic [ref=f271e735]:
+                  - button "View Prompt" [ref=f271e736]
+                  - button "Create This Style" [ref=f271e737]
+            - generic [ref=f271e738] [cursor=pointer]:
+              - generic [ref=f271e739]:
+                - generic [ref=f271e740]: CINEMA
+                - img "Five cinematic dialogue set-piece scenes" [ref=f271e741]
+              - generic [ref=f271e742]:
+                - generic [ref=f271e743]: Five cinematic dialogue set-piece scenes
+                - generic [ref=f271e744]: minimax
+                - generic [ref=f271e746]:
+                  - generic [ref=f271e747]: cinematic-story
+                  - generic [ref=f271e748]: reference-to-video
+                  - generic [ref=f271e749]: desert-standoff-man
+                - generic [ref=f271e750]:
+                  - button "View Prompt" [ref=f271e751]
+                  - button "Create This Style" [ref=f271e752]
+            - generic [ref=f271e753] [cursor=pointer]:
+              - generic [ref=f271e754]:
+                - generic [ref=f271e755]: CINEMA
+                - img "Horror Film Study" [ref=f271e756]
+              - generic [ref=f271e757]:
+                - generic [ref=f271e758]: Horror Film Study
+                - generic [ref=f271e759]: minimax
+                - generic [ref=f271e761]:
+                  - generic [ref=f271e762]: horror
+                  - generic [ref=f271e763]: text-to-video
+                  - generic [ref=f271e764]: text-prompt
+                - generic [ref=f271e765]:
+                  - button "View Prompt" [ref=f271e766]
+                  - button "Create This Style" [ref=f271e767]
+            - generic [ref=f271e768] [cursor=pointer]:
+              - generic [ref=f271e769]:
+                - generic [ref=f271e770]: CINEMA
+                - img "Generated a french bulldog with MiniMax H3" [ref=f271e771]
+              - generic [ref=f271e772]:
+                - generic [ref=f271e773]: Generated a french bulldog with MiniMax H3
+                - generic [ref=f271e774]: minimax
+                - generic [ref=f271e776]:
+                  - generic [ref=f271e777]: cinematic-story
+                  - generic [ref=f271e778]: text-to-video
+                  - generic [ref=f271e779]: text-prompt
+                - generic [ref=f271e780]:
+                  - button "View Prompt" [ref=f271e781]
+                  - button "Create This Style" [ref=f271e782]
+            - generic [ref=f271e783] [cursor=pointer]:
+              - generic [ref=f271e784]:
+                - generic [ref=f271e785]: CINEMA
+                - 'img "Continuous 15-second cinematic shot, extreme slow-motion: a futuristic cyberpunk" [ref=f271e786]'
+              - generic [ref=f271e787]:
+                - generic [ref=f271e788]: "Continuous 15-second cinematic shot, extreme slow-motion: a futuristic cyberpunk"
+                - generic [ref=f271e789]: minimax
+                - generic [ref=f271e791]:
+                  - generic [ref=f271e792]: cinematic-story
+                  - generic [ref=f271e793]: text-to-video
+                  - generic [ref=f271e794]: text-prompt
+                - generic [ref=f271e795]:
+                  - button "View Prompt" [ref=f271e796]
+                  - button "Create This Style" [ref=f271e797]

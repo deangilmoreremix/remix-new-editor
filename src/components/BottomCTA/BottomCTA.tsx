@@ -22,7 +22,7 @@ export default function BottomCTA() {
           <p className={styles.subtitle}>
             Skip the platform tax and keep momentum: bring your model keys, generate real code — frontend or full-stack — and ship from your own repo.
           </p>
-          <div className={styles.proofRow} aria-label="OpenThorn advantages">
+          <div className={styles.proofRow} aria-label="SmartVideo advantages">
             <span>BYOK pricing</span>
             <span>GitHub export</span>
             <span>Supabase backend</span>

@@ -1,0 +1,18 @@
+- generic [active] [ref=f276e1]:
+  - generic [ref=f276e5]:
+    - heading "AI Video Agency Studio" [level=1] [ref=f276e6]
+    - paragraph [ref=f276e7]: Something went wrong loading the page.
+    - button "Try Again" [ref=f276e8]
+  - generic [ref=f276e11]:
+    - generic [ref=f276e12]: "[plugin:vite:import-analysis] Failed to resolve import \"../lib/studioPrefill.js\" from \"src/data/minimaxH3Demos.js\". Does the file exist?"
+    - generic [ref=f276e13]: /Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/src/data/minimaxH3Demos.js:653:16
+    - generic [ref=f276e14]: "527| } 528| export function openDemoInStudio(demo) { 529| return import(\"../lib/studioPrefill.js\").then(({ | ^ 530| stageStudioPrefill 531| }) => import(\"../lib/router.js\").then(({"
+    - generic [ref=f276e15]: at TransformPluginContext._formatError (file:///Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49258:41) at TransformPluginContext.error (file:///Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49253:16) at normalizeUrl (file:///Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64307:23) at process.processTicksAndRejections (node:internal/process/task_queues:95:5) at async file:///Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64439:39 at async Promise.all (index 1) at async TransformPluginContext.transform (file:///Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64366:7) at async PluginContainer.transform (file:///Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49099:18) at async loadAndTransform (file:///Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51978:27
+    - generic [ref=f276e16]:
+      - text: Click outside, press Esc key, or fix the code to dismiss.You can also disable this overlay by setting
+      - code [ref=f276e17]: server.hmr.overlay
+      - text: to
+      - code [ref=f276e18]: "false"
+      - text: in
+      - code [ref=f276e19]: vite.config.js
+      - text: .

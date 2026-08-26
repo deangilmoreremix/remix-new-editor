@@ -1,0 +1,200 @@
+- generic [ref=f291e2]:
+  - banner [ref=f291e3]:
+    - generic [ref=f291e4]:
+      - generic [ref=f291e5]:
+        - generic [ref=f291e6] [cursor=pointer]
+        - navigation [ref=f291e12]:
+          - generic [ref=f291e13] [cursor=pointer]: Explore
+          - generic [ref=f291e14] [cursor=pointer]: Image
+          - generic [ref=f291e15] [cursor=pointer]: Video
+          - generic [ref=f291e16] [cursor=pointer]: Tools
+          - generic [ref=f291e17] [cursor=pointer]: Storyboard
+          - generic [ref=f291e18] [cursor=pointer]: Edit
+          - generic [ref=f291e19] [cursor=pointer]: Character
+          - generic [ref=f291e20] [cursor=pointer]: Vibe Motion
+          - generic [ref=f291e21] [cursor=pointer]: Cinema Studio
+          - generic [ref=f291e22] [cursor=pointer]: Cinema Template Studio
+          - generic [ref=f291e23] [cursor=pointer]: AI Influencer
+          - generic [ref=f291e24] [cursor=pointer]: Smart Video Viral
+          - generic [ref=f291e25] [cursor=pointer]: Apps
+          - generic [ref=f291e26] [cursor=pointer]: Templates
+          - generic [ref=f291e27] [cursor=pointer]: Assist
+          - generic [ref=f291e28] [cursor=pointer]: Community
+          - generic [ref=f291e29] [cursor=pointer]: Content Library
+      - generic [ref=f291e30]:
+        - button "Update API Key" [ref=f291e31]
+        - link "Sign In" [ref=f291e35] [cursor=pointer]:
+          - /url: /signin
+  - generic [ref=f291e36]:
+    - complementary [ref=f291e37]:
+      - generic [ref=f291e38]:
+        - generic [ref=f291e39] [cursor=pointer]:
+          - button [ref=f291e40]
+          - generic [ref=f291e46]: Apps
+        - generic [ref=f291e47] [cursor=pointer]:
+          - button [ref=f291e48]
+          - generic [ref=f291e53]: Image
+        - generic [ref=f291e54] [cursor=pointer]:
+          - button [ref=f291e55]
+          - generic [ref=f291e59]: Video
+        - generic [ref=f291e60] [cursor=pointer]:
+          - button [ref=f291e61]
+          - generic [ref=f291e64]: Cinema Studio
+        - generic [ref=f291e65] [cursor=pointer]:
+          - button [ref=f291e66]
+          - generic [ref=f291e69]: Cinema Template Studio
+        - generic [ref=f291e70] [cursor=pointer]:
+          - button [ref=f291e71]
+          - generic [ref=f291e79]: Storyboard
+        - generic [ref=f291e80] [cursor=pointer]:
+          - button [ref=f291e81]
+          - generic [ref=f291e84]: Effects
+        - generic [ref=f291e85] [cursor=pointer]:
+          - button [ref=f291e86]
+          - generic [ref=f291e90]: Edit
+        - generic [ref=f291e91] [cursor=pointer]:
+          - button [ref=f291e92]
+          - generic [ref=f291e98]: Upscale
+        - generic [ref=f291e99] [cursor=pointer]:
+          - button [ref=f291e100]
+          - generic [ref=f291e105]: Audio
+        - generic [ref=f291e106] [cursor=pointer]:
+          - button [ref=f291e107]
+          - generic [ref=f291e112]: Avatar
+        - generic [ref=f291e113] [cursor=pointer]:
+          - button [ref=f291e114]
+          - generic [ref=f291e119]: Training
+        - generic [ref=f291e120] [cursor=pointer]:
+          - button [ref=f291e121]
+          - generic [ref=f291e125]: Smart Video Academy
+        - generic [ref=f291e126] [cursor=pointer]:
+          - button [ref=f291e127]
+          - generic [ref=f291e132]: Smart Video Viral
+        - generic [ref=f291e133] [cursor=pointer]:
+          - button [ref=f291e134]
+          - generic [ref=f291e138]: Video Tools
+        - generic [ref=f291e139] [cursor=pointer]:
+          - button [ref=f291e140]
+          - generic [ref=f291e143]: Render
+        - generic [ref=f291e144] [cursor=pointer]:
+          - button [ref=f291e145]
+          - generic [ref=f291e150]: Video Agent
+        - generic [ref=f291e151] [cursor=pointer]:
+          - button [ref=f291e152]
+          - generic [ref=f291e156]: Director
+        - generic [ref=f291e157] [cursor=pointer]:
+          - button [ref=f291e158]
+          - generic [ref=f291e164]: Timeline
+        - generic [ref=f291e165] [cursor=pointer]:
+          - button [ref=f291e166]
+          - generic [ref=f291e169]: Chat
+        - generic [ref=f291e170] [cursor=pointer]:
+          - button [ref=f291e171]
+          - generic [ref=f291e175]: Commercial
+        - generic [ref=f291e176] [cursor=pointer]:
+          - button [ref=f291e177]
+          - generic [ref=f291e180]: Templates
+        - generic [ref=f291e181] [cursor=pointer]:
+          - button [ref=f291e182]
+          - generic [ref=f291e186]: Explore
+        - generic [ref=f291e187] [cursor=pointer]:
+          - button [ref=f291e188]
+          - generic [ref=f291e192]: Library
+        - generic [ref=f291e193] [cursor=pointer]:
+          - button [ref=f291e194]
+          - generic [ref=f291e197]: Content
+        - generic [ref=f291e198] [cursor=pointer]:
+          - button [ref=f291e199]
+          - generic [ref=f291e205]: Community
+        - generic [ref=f291e206] [cursor=pointer]:
+          - button [ref=f291e207]
+          - generic [ref=f291e212]: Assist
+        - generic [ref=f291e213] [cursor=pointer]:
+          - button [ref=f291e214]
+          - generic [ref=f291e218]: Commits (0)
+        - generic [ref=f291e219] [cursor=pointer]:
+          - button [ref=f291e220]
+          - generic [ref=f291e224]: AI VFX
+        - generic [ref=f291e225] [cursor=pointer]:
+          - button [ref=f291e226]
+          - generic [ref=f291e230]: Stock Media
+      - generic [ref=f291e232] [cursor=pointer]:
+        - button [ref=f291e233]
+        - generic [ref=f291e237]: Settings
+    - main [ref=f291e238]:
+      - generic [ref=f291e239]:
+        - generic [ref=f291e240]:
+          - button "All studios" [ref=f291e241]
+          - button "Back" [ref=f291e247]
+        - generic [ref=f291e251]:
+          - img "image studio" [ref=f291e252]
+          - generic [ref=f291e254]:
+            - heading "Image Studio" [level=1] [ref=f291e255]
+            - paragraph [ref=f291e256]: Transform images with AI — upscale, stylize, animate and more
+        - generic [ref=f291e258]:
+          - generic [ref=f291e259]:
+            - button "Reference media" [ref=f291e260]
+            - button "Browse stock photos from Pexels" [ref=f291e265]
+            - textbox "Image prompt" [ref=f291e269]:
+              - /placeholder: Describe the image you want to create
+            - button "GTM Boost prompt enhancer" [ref=f291e270] [cursor=pointer]: 🎯 GTM Boost
+          - generic [ref=f291e271]:
+            - generic [ref=f291e272]:
+              - button "Nano Banana Select AI generation model" [ref=f291e273]:
+                - generic [ref=f291e275]: Nano Banana
+                - text: Select AI generation model
+              - button "1:1 Change aspect ratio" [ref=f291e278]:
+                - generic [ref=f291e281]: 1:1
+                - text: Change aspect ratio
+              - text: Set output quality
+              - button "🖼 Thumbnail" [ref=f291e284] [cursor=pointer]
+              - button "Advanced Show advanced options" [ref=f291e285]:
+                - generic [ref=f291e289]: Advanced
+                - text: Show advanced options
+              - button "Tools Quick starters & prompt enhancer" [ref=f291e292]:
+                - generic [ref=f291e295]: Tools
+                - text: Quick starters & prompt enhancer
+              - button "Personalize Personalize with a discovered contact" [ref=f291e298]:
+                - generic [ref=f291e302]: Personalize
+                - text: Personalize with a discovered contact
+            - button "Generate image" [ref=f291e305]: Generate ✨ Generate AI image from prompt
+        - generic [ref=f291e306]:
+          - generic [ref=f291e307]:
+            - generic [ref=f291e308]:
+              - generic [ref=f291e309]: "1"
+              - generic [ref=f291e311]:
+                - generic [ref=f291e312]: Choose a model
+                - generic [ref=f291e313]: Select from 20+ AI models in the sidebar. Each model has different strengths for portraits, landscapes, or abstract art.
+            - generic [ref=f291e314]:
+              - generic [ref=f291e315]: "2"
+              - generic [ref=f291e317]:
+                - generic [ref=f291e318]: Write your prompt
+                - generic [ref=f291e319]: Describe what you want to create. Be specific about style, lighting, composition, and mood for better results.
+            - generic [ref=f291e320]:
+              - generic [ref=f291e321]: "3"
+              - generic [ref=f291e323]:
+                - generic [ref=f291e324]: Set parameters
+                - generic [ref=f291e325]: Adjust aspect ratio, resolution, and other settings. Use negative prompts to exclude unwanted elements.
+            - generic [ref=f291e326]:
+              - generic [ref=f291e327]: "4"
+              - generic [ref=f291e329]:
+                - generic [ref=f291e330]: Generate and refine
+                - generic [ref=f291e331]: Click Generate to create your image. Use the result as a starting point and iterate on your prompt for improvements.
+          - generic [ref=f291e332]:
+            - button [ref=f291e333]
+            - generic [ref=f291e337]:
+              - generic [ref=f291e338]:
+                - generic [ref=f291e339]: ●
+                - generic [ref=f291e340]: Add "4K, detailed, professional" to improve quality
+              - generic [ref=f291e341]:
+                - generic [ref=f291e342]: ●
+                - generic [ref=f291e343]: Specify camera angles like "shot from below" or "bird's eye view"
+              - generic [ref=f291e344]:
+                - generic [ref=f291e345]: ●
+                - generic [ref=f291e346]: "Reference art styles: \"in the style of watercolor painting\""
+        - generic [ref=f291e347]: History
+        - status:
+          - generic:
+            - button "↻ Regenerate"
+            - button "↓ Download"
+            - button "+ New"

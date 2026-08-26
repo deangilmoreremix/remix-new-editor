@@ -1,0 +1,483 @@
+- generic [ref=f5e1]:
+  - generic [ref=f5e2]:
+    - banner [ref=f5e3]:
+      - generic [ref=f5e4]:
+        - generic [ref=f5e5]:
+          - generic [ref=f5e6] [cursor=pointer]
+          - navigation [ref=f5e12]:
+            - generic [ref=f5e13] [cursor=pointer]: Explore
+            - generic [ref=f5e14] [cursor=pointer]: Image
+            - generic [ref=f5e15] [cursor=pointer]: Video
+            - generic [ref=f5e16] [cursor=pointer]: Tools
+            - generic [ref=f5e17] [cursor=pointer]: Storyboard
+            - generic [ref=f5e18] [cursor=pointer]: Edit
+            - generic [ref=f5e19] [cursor=pointer]: Character
+            - generic [ref=f5e20] [cursor=pointer]: Vibe Motion
+            - generic [ref=f5e21] [cursor=pointer]: Cinema Studio
+            - generic [ref=f5e22] [cursor=pointer]: Cinema Template Studio
+            - generic [ref=f5e23] [cursor=pointer]: AI Influencer
+            - generic [ref=f5e24] [cursor=pointer]: Smart Video Viral
+            - generic [ref=f5e25] [cursor=pointer]: Apps
+            - generic [ref=f5e26] [cursor=pointer]: Templates
+            - generic [ref=f5e27] [cursor=pointer]: Assist
+            - generic [ref=f5e28] [cursor=pointer]: Community
+            - generic [ref=f5e29] [cursor=pointer]: Content Library
+        - generic [ref=f5e30]:
+          - button "Update API Key" [ref=f5e31]
+          - link "Sign In" [ref=f5e240] [cursor=pointer]:
+            - /url: /signin
+    - generic [ref=f5e34]:
+      - complementary [ref=f5e35]:
+        - generic [ref=f5e36]:
+          - generic [ref=f5e37] [cursor=pointer]:
+            - button [ref=f5e38]
+            - generic [ref=f5e44]: Apps
+          - generic [ref=f5e45] [cursor=pointer]:
+            - button [ref=f5e46]
+            - generic [ref=f5e51]: Image
+          - generic [ref=f5e52] [cursor=pointer]:
+            - button [ref=f5e53]
+            - generic [ref=f5e57]: Video
+          - generic [ref=f5e58] [cursor=pointer]:
+            - button [ref=f5e59]
+            - generic [ref=f5e62]: Cinema Studio
+          - generic [ref=f5e63] [cursor=pointer]:
+            - button [ref=f5e64]
+            - generic [ref=f5e67]: Cinema Template Studio
+          - generic [ref=f5e68] [cursor=pointer]:
+            - button [ref=f5e69]
+            - generic [ref=f5e77]: Storyboard
+          - generic [ref=f5e78] [cursor=pointer]:
+            - button [ref=f5e79]
+            - generic [ref=f5e82]: Effects
+          - generic [ref=f5e83] [cursor=pointer]:
+            - button [ref=f5e84]
+            - generic [ref=f5e88]: Edit
+          - generic [ref=f5e89] [cursor=pointer]:
+            - button [ref=f5e90]
+            - generic [ref=f5e96]: Upscale
+          - generic [ref=f5e97] [cursor=pointer]:
+            - button [ref=f5e98]
+            - generic [ref=f5e103]: Audio
+          - generic [ref=f5e104] [cursor=pointer]:
+            - button [ref=f5e105]
+            - generic [ref=f5e110]: Avatar
+          - generic [ref=f5e111] [cursor=pointer]:
+            - button [ref=f5e112]
+            - generic [ref=f5e117]: Training
+          - generic [ref=f5e118] [cursor=pointer]:
+            - button [ref=f5e119]
+            - generic [ref=f5e123]: Smart Video Academy
+          - generic [ref=f5e124] [cursor=pointer]:
+            - button [ref=f5e125]
+            - generic [ref=f5e130]: Smart Video Viral
+          - generic [ref=f5e131] [cursor=pointer]:
+            - button [ref=f5e132]
+            - generic [ref=f5e136]: Video Tools
+          - generic [ref=f5e137] [cursor=pointer]:
+            - button [ref=f5e138]
+            - generic [ref=f5e141]: Render
+          - generic [ref=f5e142] [cursor=pointer]:
+            - button [ref=f5e143]
+            - generic [ref=f5e148]: Video Agent
+          - generic [ref=f5e149] [cursor=pointer]:
+            - button [ref=f5e150]
+            - generic [ref=f5e154]: Director
+          - generic [ref=f5e155] [cursor=pointer]:
+            - button [ref=f5e156]
+            - generic [ref=f5e162]: Timeline
+          - generic [ref=f5e163] [cursor=pointer]:
+            - button [ref=f5e164]
+            - generic [ref=f5e167]: Chat
+          - generic [ref=f5e168] [cursor=pointer]:
+            - button [ref=f5e169]
+            - generic [ref=f5e173]: Commercial
+          - generic [ref=f5e174] [cursor=pointer]:
+            - button [ref=f5e175]
+            - generic [ref=f5e178]: Templates
+          - generic [ref=f5e179] [cursor=pointer]:
+            - button [ref=f5e180]
+            - generic [ref=f5e184]: Explore
+          - generic [ref=f5e185] [cursor=pointer]:
+            - button [ref=f5e186]
+            - generic [ref=f5e190]: Library
+          - generic [ref=f5e191] [cursor=pointer]:
+            - button [ref=f5e192]
+            - generic [ref=f5e195]: Content
+          - generic [ref=f5e196] [cursor=pointer]:
+            - button [ref=f5e197]
+            - generic [ref=f5e203]: Community
+          - generic [ref=f5e204] [cursor=pointer]:
+            - button [ref=f5e205]
+            - generic [ref=f5e210]: Assist
+          - generic [ref=f5e211] [cursor=pointer]:
+            - button [ref=f5e212]
+            - generic [ref=f5e216]: Commits (0)
+          - generic [ref=f5e217] [cursor=pointer]:
+            - button [ref=f5e218]
+            - generic [ref=f5e222]: AI VFX
+          - generic [ref=f5e223] [cursor=pointer]:
+            - button [ref=f5e224]
+            - generic [ref=f5e228]: Stock Media
+        - generic [ref=f5e230] [cursor=pointer]:
+          - button [ref=f5e231]
+          - generic [ref=f5e235]: Settings
+      - main [ref=f5e236]:
+        - generic [ref=f5e241]:
+          - generic [ref=f5e242]:
+            - generic [ref=f5e243]:
+              - generic [ref=f5e244]:
+                - generic [ref=f5e245]: 🎬
+                - generic [ref=f5e246]:
+                  - generic [ref=f5e247]: SmartVideo AI
+                  - generic [ref=f5e248]: Timeline Editor
+              - generic [ref=f5e249]:
+                - generic [ref=f5e250]: Untitled Sequence
+                - generic [ref=f5e251]: 1080 × 1920 · 30 fps
+              - generic [ref=f5e252]:
+                - button "Undo" [ref=f5e253] [cursor=pointer]: ↶
+                - button "Redo" [ref=f5e254] [cursor=pointer]: ↷
+                - button "Timeline view" [pressed] [ref=f5e255] [cursor=pointer]: ▦
+                - button "Settings" [ref=f5e256] [cursor=pointer]: ⚙
+                - button "Connections" [ref=f5e257] [cursor=pointer]: 🔗
+                - button "AI Agents" [ref=f5e258] [cursor=pointer]: 🤖
+                - button "Save project" [ref=f5e259] [cursor=pointer]: 💾
+                - generic [ref=f5e260]: Render Ready
+            - navigation "All editor features" [ref=f5e262]:
+              - generic [ref=f5e263]: "All features:"
+              - button "Media Preview" [ref=f5e264] [cursor=pointer]
+              - button "Video Player" [ref=f5e265] [cursor=pointer]
+              - button "Recorder" [ref=f5e266] [cursor=pointer]
+              - button "URL Video" [ref=f5e267] [cursor=pointer]
+              - button "Templates" [ref=f5e268] [cursor=pointer]
+              - button "AI Video" [ref=f5e269] [cursor=pointer]
+              - button "Personalization" [ref=f5e270] [cursor=pointer]
+              - button "Landing Builder" [ref=f5e271] [cursor=pointer]
+              - button "Social Publish" [ref=f5e272] [cursor=pointer]
+              - button "Email Campaign" [ref=f5e273] [cursor=pointer]
+              - button "Lead Gen" [ref=f5e274] [cursor=pointer]
+              - button "Contacts" [ref=f5e275] [cursor=pointer]
+              - button "End Screen" [ref=f5e276] [cursor=pointer]
+              - button "Import Timeline" [ref=f5e277] [cursor=pointer]
+              - button "CutAI Storyboard" [ref=f5e278] [cursor=pointer]
+              - button "Subtitle Editor" [ref=f5e279] [cursor=pointer]
+              - button "Image Cropper" [ref=f5e280] [cursor=pointer]
+              - button "Image Editor" [ref=f5e281] [cursor=pointer]
+              - button "Voice" [ref=f5e282] [cursor=pointer]
+            - generic [ref=f5e284]:
+              - generic [ref=f5e288]:
+                - generic [ref=f5e289]:
+                  - generic [ref=f5e290]: Your story starts here.
+                  - generic [ref=f5e293]:
+                    - button "Rewind the playhead by 10%" [ref=f5e294] [cursor=pointer]: ⏮ Rewind - Move the playhead back by 10% (←)
+                    - button "Play or pause timeline preview" [ref=f5e295] [cursor=pointer]: ▶ Play or pause timeline preview (Spacebar)
+                    - button "Stop playback and return to the beginning" [ref=f5e296] [cursor=pointer]: ⏹ Stop - Stop playback and return to beginning
+                    - generic [ref=f5e299]: 00:15.3 / 00:45.0
+                - generic "Clip thumbnails" [ref=f5e300]
+              - generic [ref=f5e301]:
+                - generic [ref=f5e302]:
+                  - generic [ref=f5e303]:
+                    - group "Playback" [ref=f5e304]:
+                      - button "Jump to start" [ref=f5e305] [cursor=pointer]: ⏮ Jump to start
+                      - button "Play or pause timeline preview" [pressed] [ref=f5e306] [cursor=pointer]: ▶ Play or pause timeline preview (Spacebar)
+                      - button "Jump to end" [ref=f5e307] [cursor=pointer]: ⏭ Jump to end
+                    - generic [ref=f5e308]:
+                      - generic [ref=f5e309]: 00:15.3
+                      - generic [ref=f5e310]: / 00:45.0
+                    - group "Edit tools" [ref=f5e311]:
+                      - button "Split clip at playhead" [ref=f5e312] [cursor=pointer]: ✂ Split selected clip at playhead
+                      - button "Delete selected clip" [ref=f5e313] [cursor=pointer]: ⌫ Delete selected clip
+                      - button "Add a video track" [ref=f5e314] [cursor=pointer]: ＋ Add a video track
+                      - button "Merge clips" [ref=f5e315] [cursor=pointer]: ⤡ Merge selected clip with its touching neighbor
+                      - button "Insert mode" [pressed] [ref=f5e316] [cursor=pointer]: "Insert Insert mode: push downstream when dropping"
+                      - button "Overwrite mode" [ref=f5e317] [cursor=pointer]: "Overwrite Overwrite mode: replace existing media"
+                      - button "Snap toggled" [ref=f5e318] [cursor=pointer]: Snap Snap clips to grid / edges / playhead
+                  - group "Zoom" [ref=f5e319]:
+                    - button "Zoom out on the timeline" [ref=f5e320] [cursor=pointer]: − Zoom out - See more of the timeline (Mouse wheel)
+                    - generic [ref=f5e321] [cursor=pointer]
+                    - button "Zoom in on the timeline" [ref=f5e324] [cursor=pointer]: ＋ Zoom in - See timeline in more detail (Mouse wheel)
+                    - button "Fit to window" [ref=f5e325] [cursor=pointer]: ⤢ Fit timeline to window
+                  - text: Select tool - Click to select and inspect clips on the timeline (V) Blade tool - Cut clips at the playhead position (B) Ripple tool - Trim clips and automatically close gaps (R) Roll tool - Adjust the edit point between two adjacent clips Slip tool - Change clip contents without moving its position Slide tool - Move a clip while adjusting nearby clips to compensate Zoom tool - Click to zoom in, Alt+click to zoom out (Z) Hand tool - Click and drag to pan across the timeline (H) Generate video from text descriptions using AI Animate still images into video clips Regenerate with different parameters Extend clip duration by generating additional footage Add supplementary footage and cutaway shots Generate background music from video context Automatically sync audio with video timing AI generates footage to bridge gaps between clips Browse reusable media elements library Import an existing timeline from JSON or EDL Apply character consistency across clips
+                - generic [ref=f5e327]:
+                  - generic [ref=f5e328]:
+                    - generic [ref=f5e329]: Tracks
+                    - generic [ref=f5e330]: drag • snap
+                  - generic:
+                    - generic: 00:00
+                    - generic: 00:05
+                    - generic: 00:10
+                    - generic: 00:15
+                    - generic: 00:20
+                    - generic: 00:25
+                    - generic: 00:30
+                    - generic: 00:35
+                - generic [ref=f5e333]:
+                  - slider "Playhead position" [ref=f5e334]
+                  - generic [ref=f5e335]:
+                    - generic [ref=f5e336]:
+                      - generic [ref=f5e337]:
+                        - generic [ref=f5e338]: Main Video
+                        - generic [ref=f5e341]:
+                          - button "Mute Main Video" [pressed] [ref=f5e342] [cursor=pointer]: 🔊
+                          - button "Solo Main Video" [ref=f5e343] [cursor=pointer]: S
+                          - button "Lock Main Video" [ref=f5e344] [cursor=pointer]: 🔓
+                        - generic [ref=f5e345]: 4 clips
+                      - generic [ref=f5e346]:
+                        - 'button "Clip: Hero Wide, 9.9s" [ref=f5e347]':
+                          - generic [ref=f5e350]:
+                            - generic [ref=f5e351]: 🎥
+                            - text: Hero Wide
+                          - generic [ref=f5e352]: 9.9s
+                        - 'button "Clip: Product Spin, 7.2s" [ref=f5e355]':
+                          - generic [ref=f5e358]:
+                            - generic [ref=f5e359]: 🎥
+                            - text: Product Spin
+                          - generic [ref=f5e360]: 7.2s
+                        - 'button "Clip: Lifestyle B, 9.0s" [ref=f5e363]':
+                          - generic [ref=f5e366]:
+                            - generic [ref=f5e367]: 🎥
+                            - text: Lifestyle B
+                          - generic [ref=f5e368]: 9.0s
+                        - button "Crossfade transition, 0.5s" [ref=f5e371]:
+                          - generic [ref=f5e372]: ⮂
+                          - generic [ref=f5e373]: 0.5s
+                    - generic [ref=f5e374]:
+                      - generic [ref=f5e375]:
+                        - generic [ref=f5e376]: Voiceover
+                        - generic [ref=f5e379]:
+                          - button "Mute Voiceover" [pressed] [ref=f5e380] [cursor=pointer]: 🔊
+                          - button "Solo Voiceover" [ref=f5e381] [cursor=pointer]: S
+                          - button "Unlock Voiceover" [pressed] [ref=f5e382] [cursor=pointer]: 🔒
+                        - generic [ref=f5e383]: 2 clips
+                      - generic [ref=f5e384]:
+                        - 'button "Clip: VO Take 1, 18.0s" [ref=f5e385]':
+                          - generic [ref=f5e447]:
+                            - generic [ref=f5e448]: 🎙️
+                            - text: VO Take 1
+                          - generic [ref=f5e449]: 18.0s
+                        - 'button "Clip: VO Take 2, 13.5s" [ref=f5e452]':
+                          - generic [ref=f5e514]:
+                            - generic [ref=f5e515]: 🎙️
+                            - text: VO Take 2
+                          - generic [ref=f5e516]: 13.5s
+                    - generic [ref=f5e519]:
+                      - generic [ref=f5e520]:
+                        - generic [ref=f5e521]: Titles
+                        - generic [ref=f5e524]:
+                          - button "Mute Titles" [pressed] [ref=f5e525] [cursor=pointer]: 🔊
+                          - button "Solo Titles" [ref=f5e526] [cursor=pointer]: S
+                          - button "Lock Titles" [ref=f5e527] [cursor=pointer]: 🔓
+                        - generic [ref=f5e528]: 3 clips
+                      - generic [ref=f5e529]:
+                        - 'button "Clip: Lower Third, 6.3s" [ref=f5e530]':
+                          - generic [ref=f5e531]:
+                            - generic [ref=f5e532]: 🅣
+                            - text: Lower Third
+                          - generic [ref=f5e533]: 6.3s
+                        - 'button "Clip: Title Card, 9.0s" [ref=f5e534]':
+                          - generic [ref=f5e535]:
+                            - generic [ref=f5e536]: 🅣
+                            - text: Title Card
+                          - generic [ref=f5e537]: 9.0s
+                        - 'button "Clip: End Card, 5.4s" [ref=f5e538]':
+                          - generic [ref=f5e539]:
+                            - generic [ref=f5e540]: 🅣
+                            - text: End Card
+                          - generic [ref=f5e541]: 5.4s
+                        - button "Scene marker at 23.4s" [ref=f5e542] [cursor=pointer]: 🎬
+                    - generic [ref=f5e543]:
+                      - generic [ref=f5e544]:
+                        - generic [ref=f5e545]: Effects
+                        - generic [ref=f5e548]:
+                          - button "Mute Effects" [pressed] [ref=f5e549] [cursor=pointer]: 🔊
+                          - button "Solo Effects" [ref=f5e550] [cursor=pointer]: S
+                          - button "Lock Effects" [ref=f5e551] [cursor=pointer]: 🔓
+                        - generic [ref=f5e552]: 1 clip
+                      - 'button "Clip: Color Grade, 27.0s" [ref=f5e554]':
+                        - generic [ref=f5e557]:
+                          - generic [ref=f5e558]: ✨
+                          - text: Color Grade
+                        - generic [ref=f5e559]: 27.0s
+            - generic [ref=f5e562]:
+              - complementary [ref=f5e563]:
+                - heading "AI Assistant" [level=3] [ref=f5e564]
+                - generic [ref=f5e565]:
+                  - generic [ref=f5e566]: Trim the intro to 3s
+                  - generic [ref=f5e567]: Done — trimmed first clip, kept audio in sync.
+                  - generic [ref=f5e568]: Add a crossfade here
+                  - generic [ref=f5e569]: Added 0.5s crossfade between clips 2 & 3.
+                - generic [ref=f5e570]:
+                  - textbox "Message AI assistant" [ref=f5e571]:
+                    - /placeholder: Ask the editor to do anything…
+                  - button "Send" [ref=f5e572] [cursor=pointer]: ↑
+              - complementary [ref=f5e573]:
+                - heading "Media Library" [level=3] [ref=f5e574]
+                - generic [ref=f5e575]:
+                  - button "🎥 Clip 010:14 · 1080p" [ref=f5e576] [cursor=pointer]:
+                    - generic [ref=f5e577]: 🎥
+                    - generic [ref=f5e578]: Clip 010:14 · 1080p
+                  - button "🎙️ VO Raw0:48 · WAV" [ref=f5e579] [cursor=pointer]:
+                    - generic [ref=f5e580]: 🎙️
+                    - generic [ref=f5e581]: VO Raw0:48 · WAV
+                  - button "🖼️ LogoPNG · 512" [ref=f5e582] [cursor=pointer]:
+                    - generic [ref=f5e583]: 🖼️
+                    - generic [ref=f5e584]: LogoPNG · 512
+                  - button "🎵 Track2:10 · MP3" [ref=f5e585] [cursor=pointer]:
+                    - generic [ref=f5e586]: 🎵
+                    - generic [ref=f5e587]: Track2:10 · MP3
+                - button "Upload media…" [ref=f5e588] [cursor=pointer]
+                - button "🎬 Browse Stock Media" [ref=f5e589] [cursor=pointer]
+              - complementary [ref=f5e590]:
+                - heading "Generate" [level=3] [ref=f5e591]
+                - generic [ref=f5e592]:
+                  - button "✂️ Auto CutSilence detect" [ref=f5e593] [cursor=pointer]:
+                    - generic [ref=f5e594]: ✂️
+                    - generic [ref=f5e595]: Auto CutSilence detect
+                  - button "🌐 SubtitlesTranscribe" [ref=f5e596] [cursor=pointer]:
+                    - generic [ref=f5e597]: 🌐
+                    - generic [ref=f5e598]: SubtitlesTranscribe
+                  - button "🤖 AI VideoGenerate" [ref=f5e599] [cursor=pointer]:
+                    - generic [ref=f5e600]: 🤖
+                    - generic [ref=f5e601]: AI VideoGenerate
+                  - button "🎞️ CutAI BoardStoryboard" [ref=f5e602] [cursor=pointer]:
+                    - generic [ref=f5e603]: 🎞️
+                    - generic [ref=f5e604]: CutAI BoardStoryboard
+              - text: "CineGen AI Tools Results Rendiv animation demonstrations Clip editor - Edit selected clip properties Preview - Play the transition animation to see how it looks Stop - Stop the currently playing transition preview Reset - Reset the transition preview to the beginning Preview Canvas - Shows a live preview of the selected transition effect Timeline - Shows the progress of the transition animation All - Show all available transitions from every category Fade - Show fade transitions that gradually blend between clips Wipe - Show wipe transitions that slide one clip over another Push - Show push transitions that push the outgoing clip away Zoom - Show zoom transitions that scale clips in or out Iris - Show iris transitions that open or close in a circular pattern Shape - Show shape-based transitions using geometric patterns Dissolve - Crossfade between clips with customizable softness Wipe Left - Horizontal wipe from right to left Wipe Right - Horizontal wipe from left to right Wipe Up - Vertical wipe from bottom to top Wipe Down - Vertical wipe from top to bottom Wipe Diagonal - Diagonal wipe across the frame Push Left - Push outgoing clip left while bringing in new clip Push Right - Push outgoing clip right while bringing in new clip Push Up - Push outgoing clip up while bringing in new clip Push Down - Push outgoing clip down while bringing in new clip Zoom In - Scale incoming clip from small to full size Zoom Out - Scale outgoing clip from full size to small Zoom & Pan - Combined zoom and pan transition Iris Circle - Circular iris reveal transition Iris Diamond - Diamond-shaped iris reveal Iris Square - Square iris reveal Star Wipe - Star-shaped wipe transition Heart Wipe - Heart-shaped wipe transition Custom Shape - Custom SVG path-based transition Preset Selector - Choose a pre-configured transition preset to quickly apply settings Duration Slider - Adjust how long the transition takes from 0.5 to 10 seconds Audio-synced Timing - Synchronize the transition timing with audio beats Keyframe Mode - Enable keyframe animation for custom transition timing Multi-layer Transition - Apply the transition across multiple video layers Save as Preset - Save the current transition settings as a reusable preset Export - Download the transition configuration as a JSON file Apply Transition - Apply the selected transition to your clips in the timeline Transitions - Add effects between clips Multi-Camera Mode: Toggle multi-camera editing to work with multiple camera angles simultaneously Multi-camera editing, PIP, and split screen Color correction Color scopes Canvas editor Token editor Batch generator Workflow automation Personalization Personalization editor"
+          - generic [ref=f5e605]:
+            - button "Media action" [ref=f5e606] [cursor=pointer]:
+              - generic [ref=f5e607]: ＋
+              - generic [ref=f5e608]: Media
+              - text: Media action
+            - button "Generate action" [ref=f5e609] [cursor=pointer]:
+              - generic [ref=f5e610]: ✨
+              - generic [ref=f5e611]: Generate
+              - text: Generate new AI content - Create video, images, or audio from prompts
+            - button "Export action" [ref=f5e612] [cursor=pointer]:
+              - generic [ref=f5e613]: ⬆
+              - generic [ref=f5e614]: Export
+              - text: Export action
+            - button "Scene Detector action" [ref=f5e615] [cursor=pointer]:
+              - generic [ref=f5e616]: 🎬
+              - generic [ref=f5e617]: Scene Detector
+              - text: Scene detection - Identify scene changes in footage
+            - button "Camera FX action" [ref=f5e618] [cursor=pointer]:
+              - generic [ref=f5e619]: 🎥
+              - generic [ref=f5e620]: Camera FX
+              - text: Camera effects - Shake, orbit, hitchcock, pan, tilt
+            - button "Color Scopes action" [ref=f5e621] [cursor=pointer]:
+              - generic [ref=f5e622]: 📊
+              - generic [ref=f5e623]: Color Scopes
+              - text: Color scopes - Waveform, vectorscope, histogram
+            - button "Multi-Cam action" [ref=f5e624] [cursor=pointer]:
+              - generic [ref=f5e625]: 🎞️
+              - generic [ref=f5e626]: Multi-Cam
+              - text: Multi-camera editing, PIP, and split screen
+            - button "Clip Editor action" [ref=f5e627] [cursor=pointer]:
+              - generic [ref=f5e628]: ✂️
+              - generic [ref=f5e629]: Clip Editor
+              - text: Clip editor - Edit selected clip properties
+            - button "Transitions Panel action" [ref=f5e630] [cursor=pointer]:
+              - generic [ref=f5e631]: 🔄
+              - generic [ref=f5e632]: Transitions Panel
+              - text: Transitions - Add effects between clips
+            - button "CineGen Results action" [ref=f5e633] [cursor=pointer]:
+              - generic [ref=f5e634]: 🎨
+              - generic [ref=f5e635]: CineGen Results
+              - text: CineGen AI Tools results history
+            - button "Anim Demo action" [ref=f5e636] [cursor=pointer]:
+              - generic [ref=f5e637]: 🎭
+              - generic [ref=f5e638]: Anim Demo
+              - text: Rendiv animation demonstrations
+            - button "Canvas action" [ref=f5e639] [cursor=pointer]:
+              - generic [ref=f5e640]: 🎨
+              - generic [ref=f5e641]: Canvas
+              - text: Canvas editor - Open the visual canvas composition editor
+            - button "Token Editor action" [ref=f5e642] [cursor=pointer]:
+              - generic [ref=f5e643]: 🏷️
+              - generic [ref=f5e644]: Token Editor
+              - text: Token editor - Create and manage personalization tokens
+            - button "Batch Generator action" [ref=f5e645] [cursor=pointer]:
+              - generic [ref=f5e646]: 📦
+              - generic [ref=f5e647]: Batch Generator
+              - text: Batch generation - Generate multiple videos at once
+            - button "Workflow action" [ref=f5e648] [cursor=pointer]:
+              - generic [ref=f5e649]: 🔄
+              - generic [ref=f5e650]: Workflow
+              - text: Workflow automation - Create automated video production pipelines
+            - button "Personalization action" [ref=f5e651] [cursor=pointer]:
+              - generic [ref=f5e652]: 👤
+              - generic [ref=f5e653]: Personalization
+              - text: Personalization - Add dynamic content for different viewers
+            - button "Personalization Editor action" [ref=f5e654] [cursor=pointer]:
+              - generic [ref=f5e655]: ✏️
+              - generic [ref=f5e656]: Personalization Editor
+              - text: Personalization editor - Advanced personalization settings
+          - generic [ref=f5e657]: Playhead at 00:15.3
+          - text: Close modal
+  - dialog [ref=f5e658]:
+    - document [ref=f5e659]:
+      - generic [ref=f5e660]:
+        - heading "Media Preview" [level=2] [ref=f5e661]
+        - button "Close modal" [active] [ref=f5e662] [cursor=pointer]
+      - generic [ref=f5e665]:
+        - generic [ref=f5e666]:
+          - generic [ref=f5e667]:
+            - generic [ref=f5e668]: VIDEO No file selected
+            - generic [ref=f5e669]:
+              - button "Toggle loop" [ref=f5e670]:
+                - generic [ref=f5e671]: 🔁
+                - text: Enable loop playback
+              - button "Picture in picture" [ref=f5e672]:
+                - generic [ref=f5e673]: ⊟
+                - text: Open in picture-in-picture mode
+              - button "Toggle fullscreen" [ref=f5e674]:
+                - generic [ref=f5e675]: ⛶
+                - text: Toggle fullscreen view
+          - generic [ref=f5e676]: No media loaded
+          - generic [ref=f5e679]:
+            - generic [ref=f5e680]:
+              - generic: Click or drag to seek through the media
+              - generic [ref=f5e681]: 0:00 / 0:00
+            - generic [ref=f5e682]:
+              - generic [ref=f5e683]:
+                - button "Skip back 10s" [ref=f5e684]:
+                  - generic [ref=f5e685]: ⏪
+                  - text: Skip back 10 seconds
+                - button "Play" [ref=f5e686]:
+                  - generic [ref=f5e687]: ▶
+                  - text: Play media
+                - button "Skip forward 10s" [ref=f5e688]:
+                  - generic [ref=f5e689]: ⏩
+                  - text: Skip forward 10 seconds
+              - generic [ref=f5e690]:
+                - button "Mute" [ref=f5e691]:
+                  - generic [ref=f5e692]: 🔊
+                  - text: Mute audio
+                - slider [ref=f5e694]: 100 Adjust volume level
+                - generic [ref=f5e695]: 100%
+              - generic [ref=f5e697]:
+                - button "1x Change playback speed" [ref=f5e698]
+                - generic [ref=f5e699]:
+                  - button "0.25x Set playback speed to 0.25x" [ref=f5e700]
+                  - button "0.5x Set playback speed to 0.5x" [ref=f5e701]
+                  - button "0.75x Set playback speed to 0.75x" [ref=f5e702]
+                  - button "1x Set playback speed to 1x" [ref=f5e703]
+                  - button "1.25x Set playback speed to 1.25x" [ref=f5e704]
+                  - button "1.5x Set playback speed to 1.5x" [ref=f5e705]
+                  - button "2x Set playback speed to 2x" [ref=f5e706]
+              - generic [ref=f5e707]:
+                - button "Toggle waveform" [ref=f5e708]:
+                  - generic [ref=f5e709]: ∿
+                  - text: Show audio waveform
+                - button "16:9 Change aspect ratio" [ref=f5e711] [cursor=pointer]
+          - generic [ref=f5e712]:
+            - generic [ref=f5e713]: Duration 0:00
+            - generic [ref=f5e714]: Resolution 1920 × 1080
+            - generic [ref=f5e715]: Frame Rate 30 fps
+        - generic [ref=f5e716]:
+          - button "Add to Timeline Add this media to the timeline" [ref=f5e718] [cursor=pointer]:
+            - generic [ref=f5e719]: Add to Timeline
+            - text: Add this media to the timeline
+          - generic [ref=f5e720]:
+            - button "Close Close preview" [ref=f5e721] [cursor=pointer]
+            - button "Use Media Use this media in your project" [ref=f5e722] [cursor=pointer]

@@ -1,0 +1,1637 @@
+- generic [ref=f50e2]:
+  - banner [ref=f50e3]:
+    - generic [ref=f50e4]:
+      - generic [ref=f50e5]:
+        - generic [ref=f50e6] [cursor=pointer]
+        - navigation [ref=f50e12]:
+          - generic [ref=f50e13] [cursor=pointer]: Explore
+          - generic [ref=f50e14] [cursor=pointer]: Image
+          - generic [ref=f50e15] [cursor=pointer]: Video
+          - generic [ref=f50e16] [cursor=pointer]: Tools
+          - generic [ref=f50e17] [cursor=pointer]: Storyboard
+          - generic [ref=f50e18] [cursor=pointer]: Edit
+          - generic [ref=f50e19] [cursor=pointer]: Character
+          - generic [ref=f50e20] [cursor=pointer]: Vibe Motion
+          - generic [ref=f50e21] [cursor=pointer]: Cinema Studio
+          - generic [ref=f50e22] [cursor=pointer]: Cinema Template Studio
+          - generic [ref=f50e23] [cursor=pointer]: AI Influencer
+          - generic [ref=f50e24] [cursor=pointer]: Smart Video Viral
+          - generic [ref=f50e25] [cursor=pointer]: Apps
+          - generic [ref=f50e26] [cursor=pointer]: Templates
+          - generic [ref=f50e27] [cursor=pointer]: Assist
+          - generic [ref=f50e28] [cursor=pointer]: Community
+          - generic [ref=f50e29] [cursor=pointer]: Content Library
+      - button "Update API Key" [ref=f50e31]
+  - generic [ref=f50e34]:
+    - complementary [ref=f50e35]:
+      - generic:
+        - generic [ref=f50e36] [cursor=pointer]:
+          - button [ref=f50e37]
+          - generic [ref=f50e43]: Apps
+        - generic [ref=f50e44] [cursor=pointer]:
+          - button [ref=f50e45]
+          - generic [ref=f50e50]: Image
+        - generic [ref=f50e51] [cursor=pointer]:
+          - button [ref=f50e52]
+          - generic [ref=f50e56]: Video
+        - generic [ref=f50e57] [cursor=pointer]:
+          - button [ref=f50e58]
+          - generic [ref=f50e61]: Cinema Studio
+        - generic [ref=f50e62] [cursor=pointer]:
+          - button [ref=f50e63]
+          - generic [ref=f50e66]: Cinema Template Studio
+        - generic [ref=f50e67] [cursor=pointer]:
+          - button [ref=f50e68]
+          - generic [ref=f50e76]: Storyboard
+        - generic [ref=f50e77] [cursor=pointer]:
+          - button [ref=f50e78]
+          - generic [ref=f50e81]: Effects
+        - generic [ref=f50e82] [cursor=pointer]:
+          - button [ref=f50e83]
+          - generic [ref=f50e87]: Edit
+        - generic [ref=f50e88] [cursor=pointer]:
+          - button [ref=f50e89]
+          - generic [ref=f50e95]: Upscale
+        - generic [ref=f50e96] [cursor=pointer]:
+          - button [ref=f50e97]
+          - generic [ref=f50e102]: Audio
+        - generic [ref=f50e103] [cursor=pointer]:
+          - button [ref=f50e104]
+          - generic [ref=f50e109]: Avatar
+        - generic [ref=f50e110] [cursor=pointer]:
+          - button [ref=f50e111]
+          - generic [ref=f50e116]: Training
+        - generic [ref=f50e117] [cursor=pointer]:
+          - button [ref=f50e118]
+          - generic [ref=f50e122]: Smart Video Academy
+        - generic [ref=f50e123] [cursor=pointer]:
+          - button [ref=f50e124]
+          - generic [ref=f50e129]: Smart Video Viral
+        - generic [ref=f50e130] [cursor=pointer]:
+          - button [ref=f50e131]
+          - generic [ref=f50e135]: Video Tools
+        - generic [ref=f50e136] [cursor=pointer]:
+          - button [ref=f50e137]
+          - generic [ref=f50e140]: Render
+        - generic [ref=f50e141] [cursor=pointer]:
+          - button [ref=f50e142]
+          - generic [ref=f50e147]: Video Agent
+        - generic [ref=f50e148] [cursor=pointer]:
+          - button [ref=f50e149]
+          - generic [ref=f50e153]: Director
+        - generic [ref=f50e154] [cursor=pointer]:
+          - button [ref=f50e155]
+          - generic [ref=f50e161]: Timeline
+        - generic [ref=f50e162] [cursor=pointer]:
+          - button [ref=f50e163]
+          - generic [ref=f50e166]: Chat
+        - generic [ref=f50e167] [cursor=pointer]:
+          - button [ref=f50e168]
+          - generic [ref=f50e172]: Commercial
+        - generic [ref=f50e173] [cursor=pointer]:
+          - button [ref=f50e174]
+          - generic [ref=f50e177]: Templates
+        - generic [ref=f50e178] [cursor=pointer]:
+          - button [ref=f50e179]
+          - generic [ref=f50e183]: Explore
+        - generic [ref=f50e184] [cursor=pointer]:
+          - button [ref=f50e185]
+          - generic [ref=f50e189]: Library
+        - generic [ref=f50e190] [cursor=pointer]:
+          - button [ref=f50e191]
+          - generic [ref=f50e194]: Content
+        - generic [ref=f50e195] [cursor=pointer]:
+          - button [ref=f50e196]
+          - generic [ref=f50e202]: Community
+        - generic [ref=f50e203] [cursor=pointer]:
+          - button [ref=f50e204]
+          - generic [ref=f50e209]: Assist
+        - generic [ref=f50e210] [cursor=pointer]:
+          - button [ref=f50e211]
+          - generic [ref=f50e215]: Commits (0)
+        - generic [ref=f50e216] [cursor=pointer]:
+          - button [ref=f50e217]
+          - generic [ref=f50e221]: AI VFX
+        - generic [ref=f50e222] [cursor=pointer]:
+          - button [ref=f50e223]
+          - generic [ref=f50e227]: Stock Media
+      - generic [ref=f50e228] [cursor=pointer]:
+        - button [ref=f50e229]
+        - generic [ref=f50e233]: Settings
+    - main [ref=f50e234]:
+      - generic [ref=f50e235]:
+        - generic [ref=f50e236]:
+          - button "All studios" [ref=f50e237]
+          - button "Back" [ref=f50e243]
+        - generic [ref=f50e247]:
+          - img "video studio" [ref=f50e248]
+          - generic [ref=f50e250]:
+            - heading "Video Studio" [level=1] [ref=f50e251]
+            - paragraph [ref=f50e252]: Animate images into stunning AI videos with motion effects
+        - generic [ref=f50e254]:
+          - generic [ref=f50e255]:
+            - button "Reference media" [ref=f50e256]
+            - button "Browse stock photos for i2v reference" [ref=f50e261]
+            - button "Use last frame of a video as I2V source" [ref=f50e265]:
+              - img [ref=f50e266]:
+                - generic [ref=f50e270]: ⏱
+            - button "Upload video to remove watermark" [ref=f50e271]
+            - button "Browse stock videos for v2v input" [ref=f50e276]
+            - textbox "Video prompt" [ref=f50e280]:
+              - /placeholder: Describe the video you want to create
+            - generic [ref=f50e281]:
+              - button "GTM Boost prompt enhancer" [ref=f50e282] [cursor=pointer]: 🎯 GTM Boost
+              - button "Open recipe engine" [ref=f50e283] [cursor=pointer]: 📋 Recipes
+              - button "Open Smart Video AI Monetization Hub" [ref=f50e284] [cursor=pointer]: 💼 Monetize
+              - button "Open prompt gallery" [ref=f50e285] [cursor=pointer]: 📚 Prompts
+          - generic [ref=f50e286]:
+            - generic [ref=f50e287]:
+              - button "Seedance Lite Select AI video model" [active] [ref=f50e288]:
+                - generic [ref=f50e290]: Seedance Lite
+                - text: Select AI video model
+              - button "16:9 Change aspect ratio" [ref=f50e293]:
+                - generic [ref=f50e296]: 16:9
+                - text: Change aspect ratio
+              - button "5s Set video duration" [ref=f50e299]:
+                - generic [ref=f50e303]: 5s
+                - text: Set video duration
+              - button "480p Set output resolution" [ref=f50e306]:
+                - generic [ref=f50e309]: 480p
+                - text: Set output resolution
+              - text: Set output quality
+              - button "Advanced Show advanced options" [ref=f50e312]:
+                - generic [ref=f50e316]: Advanced
+                - text: Show advanced options
+              - button "Motion & Style Camera movement, motion strength & style presets" [ref=f50e319]:
+                - generic [ref=f50e322]: Motion & Style
+                - text: Camera movement, motion strength & style presets
+              - button "Personalize Personalize with a discovered contact" [ref=f50e325]:
+                - generic [ref=f50e329]: Personalize
+                - text: Personalize with a discovered contact
+              - button "🖼 Thumbnail" [ref=f50e332] [cursor=pointer]
+            - button "Generate video" [ref=f50e333] [cursor=pointer]: Generate ✨ Generate AI video from prompt
+        - generic [ref=f50e334]:
+          - generic [ref=f50e335]:
+            - generic [ref=f50e336]:
+              - generic [ref=f50e337]: "1"
+              - generic [ref=f50e339]:
+                - generic [ref=f50e340]: Select generation mode
+                - generic [ref=f50e341]: Choose between text-to-video or image-to-video. Image-to-video uses your photo as the first frame.
+            - generic [ref=f50e342]:
+              - generic [ref=f50e343]: "2"
+              - generic [ref=f50e345]:
+                - generic [ref=f50e346]: Upload or describe
+                - generic [ref=f50e347]: For image-to-video, upload a clear photo. For text-to-video, write a detailed description of the scene and motion.
+            - generic [ref=f50e348]:
+              - generic [ref=f50e349]: "3"
+              - generic [ref=f50e351]:
+                - generic [ref=f50e352]: Configure output
+                - generic [ref=f50e353]: Set resolution (480p to 1080p), duration (3-10 seconds), and aspect ratio for your video.
+            - generic [ref=f50e354]:
+              - generic [ref=f50e355]: "4"
+              - generic [ref=f50e357]:
+                - generic [ref=f50e358]: Generate video
+                - generic [ref=f50e359]: Video generation takes 1-3 minutes. The result will appear in your library when ready.
+          - generic [ref=f50e360]:
+            - button [ref=f50e361]
+            - generic [ref=f50e365]:
+              - generic [ref=f50e366]:
+                - generic [ref=f50e367]: ●
+                - generic [ref=f50e368]: Start with image-to-video for more predictable results
+              - generic [ref=f50e369]:
+                - generic [ref=f50e370]: ●
+                - generic [ref=f50e371]: Keep prompts focused on a single action or movement
+              - generic [ref=f50e372]:
+                - generic [ref=f50e373]: ●
+                - generic [ref=f50e374]: Use 720p for a good balance of quality and speed
+        - generic [ref=f50e376]:
+          - generic [ref=f50e377]:
+            - generic [ref=f50e378]:
+              - button "All Providers" [ref=f50e379] [cursor=pointer]
+              - button [ref=f50e382] [cursor=pointer]:
+                - img "ByteDance" [ref=f50e383]
+                - text: BD
+            - text: "'\" />"
+            - button [ref=f50e384] [cursor=pointer]:
+              - img "Kling" [ref=f50e385]
+              - text: KL'" />
+            - button [ref=f50e386] [cursor=pointer]:
+              - img "MuAPI" [ref=f50e387]
+              - text: MU'" />
+            - button [ref=f50e388] [cursor=pointer]:
+              - img "Runway" [ref=f50e389]
+              - text: RU'" />
+            - button [ref=f50e390] [cursor=pointer]:
+              - img "Wan" [ref=f50e391]
+              - text: WA'" />
+            - button [ref=f50e392] [cursor=pointer]:
+              - img "Hunyuan" [ref=f50e393]
+              - text: HY'" />
+            - button [ref=f50e394] [cursor=pointer]:
+              - img "Pixverse" [ref=f50e395]
+              - text: PX'" />
+            - button [ref=f50e396] [cursor=pointer]:
+              - img "MiniMax" [ref=f50e397]
+              - text: MX'" />
+            - button [ref=f50e398] [cursor=pointer]:
+              - img "OpenAI" [ref=f50e399]
+              - text: O'" />
+            - button [ref=f50e400] [cursor=pointer]:
+              - img "Vidu" [ref=f50e401]
+              - text: VD'" />
+            - button [ref=f50e402] [cursor=pointer]:
+              - img "OVI" [ref=f50e403]
+              - text: OV'" />
+            - button [ref=f50e404] [cursor=pointer]:
+              - img "Grok" [ref=f50e405]
+              - text: xI'" />
+            - button [ref=f50e406] [cursor=pointer]:
+              - img "LTX" [ref=f50e407]
+              - text: LT'" />
+            - button [ref=f50e408] [cursor=pointer]:
+              - img "Midjourney" [ref=f50e409]
+              - text: MJ'" />
+            - button [ref=f50e410] [cursor=pointer]:
+              - img "Leonardo AI" [ref=f50e411]
+              - text: LE'" />
+          - generic [ref=f50e412]:
+            - textbox "Search models..." [ref=f50e418]
+            - generic [ref=f50e419]: Available models
+            - generic [ref=f50e421]:
+              - generic [ref=f50e423] [cursor=pointer]:
+                - generic [ref=f50e424]:
+                  - generic [ref=f50e425]:
+                    - img "ByteDance" [ref=f50e426]
+                    - text: BD
+                  - text: "'\" />"
+                - generic [ref=f50e427]:
+                  - generic [ref=f50e428]: Seedance Lite
+                  - generic [ref=f50e429]: ByteDance
+              - generic [ref=f50e432] [cursor=pointer]:
+                - generic [ref=f50e433]:
+                  - generic [ref=f50e434]:
+                    - img "ByteDance" [ref=f50e435]
+                    - text: BD
+                  - text: "'\" />"
+                - generic [ref=f50e436]:
+                  - generic [ref=f50e437]: Seedance Pro
+                  - generic [ref=f50e438]: ByteDance
+              - generic [ref=f50e439] [cursor=pointer]:
+                - generic [ref=f50e440]:
+                  - generic [ref=f50e441]:
+                    - img "ByteDance" [ref=f50e442]
+                    - text: BD
+                  - text: "'\" />"
+                - generic [ref=f50e443]:
+                  - generic [ref=f50e444]: Seedance Pro Fast
+                  - generic [ref=f50e445]: ByteDance
+              - generic [ref=f50e446] [cursor=pointer]:
+                - generic [ref=f50e447]:
+                  - generic [ref=f50e448]:
+                    - img "ByteDance" [ref=f50e449]
+                    - text: BD
+                  - text: "'\" />"
+                - generic [ref=f50e450]:
+                  - generic [ref=f50e451]: Seedance v1.5 Pro
+                  - generic [ref=f50e452]: ByteDance
+              - generic [ref=f50e453] [cursor=pointer]:
+                - generic [ref=f50e454]:
+                  - generic [ref=f50e455]:
+                    - img "ByteDance" [ref=f50e456]
+                    - text: BD
+                  - text: "'\" />"
+                - generic [ref=f50e457]:
+                  - generic [ref=f50e458]: Seedance v1.5 Pro Fast
+                  - generic [ref=f50e459]: ByteDance
+              - generic [ref=f50e460] [cursor=pointer]:
+                - generic [ref=f50e461]:
+                  - generic [ref=f50e462]:
+                    - img "ByteDance" [ref=f50e463]
+                    - text: BD
+                  - text: "'\" />"
+                - generic [ref=f50e464]:
+                  - generic [ref=f50e465]: Seedance 2.0
+                  - generic [ref=f50e466]: ByteDance
+              - generic [ref=f50e467] [cursor=pointer]:
+                - generic [ref=f50e468]:
+                  - generic [ref=f50e469]:
+                    - img "ByteDance" [ref=f50e470]
+                    - text: BD
+                  - text: "'\" />"
+                - generic [ref=f50e471]:
+                  - generic [ref=f50e472]: Seedance 2.0 Extend
+                  - generic [ref=f50e473]: ByteDance
+              - generic [ref=f50e474] [cursor=pointer]:
+                - generic [ref=f50e475]:
+                  - generic [ref=f50e476]:
+                    - img "Kling" [ref=f50e477]
+                    - text: KL
+                  - text: "'\" />"
+                - generic [ref=f50e478]:
+                  - generic [ref=f50e479]: Kling v2.1 Master
+                  - generic [ref=f50e480]: Kling
+              - generic [ref=f50e481] [cursor=pointer]:
+                - generic [ref=f50e482]:
+                  - generic [ref=f50e483]:
+                    - img "Kling" [ref=f50e484]
+                    - text: KL
+                  - text: "'\" />"
+                - generic [ref=f50e485]:
+                  - generic [ref=f50e486]: Kling v2.5 Turbo Pro
+                  - generic [ref=f50e487]: Kling
+              - generic [ref=f50e488] [cursor=pointer]:
+                - generic [ref=f50e489]:
+                  - generic [ref=f50e490]:
+                    - img "Kling" [ref=f50e491]
+                    - text: KL
+                  - text: "'\" />"
+                - generic [ref=f50e492]:
+                  - generic [ref=f50e493]: Kling v2.6 Pro
+                  - generic [ref=f50e494]: Kling
+              - generic [ref=f50e495] [cursor=pointer]:
+                - generic [ref=f50e496]:
+                  - generic [ref=f50e497]:
+                    - img "Kling" [ref=f50e498]
+                    - text: KL
+                  - text: "'\" />"
+                - generic [ref=f50e499]:
+                  - generic [ref=f50e500]: Kling O1 Pro
+                  - generic [ref=f50e501]: Kling
+              - generic [ref=f50e502] [cursor=pointer]:
+                - generic [ref=f50e503]:
+                  - generic [ref=f50e504]:
+                    - img "Kling" [ref=f50e505]
+                    - text: KL
+                  - text: "'\" />"
+                - generic [ref=f50e506]:
+                  - generic [ref=f50e507]: Kling v3.0 Pro
+                  - generic [ref=f50e508]: Kling
+              - generic [ref=f50e509] [cursor=pointer]:
+                - generic [ref=f50e510]:
+                  - generic [ref=f50e511]:
+                    - img "Kling" [ref=f50e512]
+                    - text: KL
+                  - text: "'\" />"
+                - generic [ref=f50e513]:
+                  - generic [ref=f50e514]: Kling v3.0 Standard
+                  - generic [ref=f50e515]: Kling
+              - generic [ref=f50e516] [cursor=pointer]:
+                - generic [ref=f50e517]:
+                  - generic [ref=f50e518]:
+                    - img "MuAPI" [ref=f50e519]
+                    - text: MU
+                  - text: "'\" />"
+                - generic [ref=f50e520]:
+                  - generic [ref=f50e521]: Veo 3
+                  - generic [ref=f50e522]: MuAPI
+              - generic [ref=f50e523] [cursor=pointer]:
+                - generic [ref=f50e524]:
+                  - generic [ref=f50e525]:
+                    - img "MuAPI" [ref=f50e526]
+                    - text: MU
+                  - text: "'\" />"
+                - generic [ref=f50e527]:
+                  - generic [ref=f50e528]: Veo 3 Fast
+                  - generic [ref=f50e529]: MuAPI
+              - generic [ref=f50e530] [cursor=pointer]:
+                - generic [ref=f50e531]:
+                  - generic [ref=f50e532]:
+                    - img "MuAPI" [ref=f50e533]
+                    - text: MU
+                  - text: "'\" />"
+                - generic [ref=f50e534]:
+                  - generic [ref=f50e535]: Veo 3.1
+                  - generic [ref=f50e536]: MuAPI
+              - generic [ref=f50e537] [cursor=pointer]:
+                - generic [ref=f50e538]:
+                  - generic [ref=f50e539]:
+                    - img "MuAPI" [ref=f50e540]
+                    - text: MU
+                  - text: "'\" />"
+                - generic [ref=f50e541]:
+                  - generic [ref=f50e542]: Veo 3.1 Fast
+                  - generic [ref=f50e543]: MuAPI
+              - generic [ref=f50e544] [cursor=pointer]:
+                - generic [ref=f50e545]:
+                  - generic [ref=f50e546]:
+                    - img "Runway" [ref=f50e547]
+                    - text: RU
+                  - text: "'\" />"
+                - generic [ref=f50e548]:
+                  - generic [ref=f50e549]: Runway Gen-3
+                  - generic [ref=f50e550]: Runway
+              - generic [ref=f50e551] [cursor=pointer]:
+                - generic [ref=f50e552]:
+                  - generic [ref=f50e553]:
+                    - img "Wan" [ref=f50e554]
+                    - text: WA
+                  - text: "'\" />"
+                - generic [ref=f50e555]:
+                  - generic [ref=f50e556]: Wan 2.1
+                  - generic [ref=f50e557]: Wan
+              - generic [ref=f50e558] [cursor=pointer]:
+                - generic [ref=f50e559]:
+                  - generic [ref=f50e560]:
+                    - img "Wan" [ref=f50e561]
+                    - text: WA
+                  - text: "'\" />"
+                - generic [ref=f50e562]:
+                  - generic [ref=f50e563]: Wan 2.2
+                  - generic [ref=f50e564]: Wan
+              - generic [ref=f50e565] [cursor=pointer]:
+                - generic [ref=f50e566]:
+                  - generic [ref=f50e567]:
+                    - img "Wan" [ref=f50e568]
+                    - text: WA
+                  - text: "'\" />"
+                - generic [ref=f50e569]:
+                  - generic [ref=f50e570]: Wan 2.2 Fast
+                  - generic [ref=f50e571]: Wan
+              - generic [ref=f50e572] [cursor=pointer]:
+                - generic [ref=f50e573]:
+                  - generic [ref=f50e574]:
+                    - img "Wan" [ref=f50e575]
+                    - text: WA
+                  - text: "'\" />"
+                - generic [ref=f50e576]:
+                  - generic [ref=f50e577]: Wan 2.5
+                  - generic [ref=f50e578]: Wan
+              - generic [ref=f50e579] [cursor=pointer]:
+                - generic [ref=f50e580]:
+                  - generic [ref=f50e581]:
+                    - img "Wan" [ref=f50e582]
+                    - text: WA
+                  - text: "'\" />"
+                - generic [ref=f50e583]:
+                  - generic [ref=f50e584]: Wan 2.5 Fast
+                  - generic [ref=f50e585]: Wan
+              - generic [ref=f50e586] [cursor=pointer]:
+                - generic [ref=f50e587]:
+                  - generic [ref=f50e588]:
+                    - img "Wan" [ref=f50e589]
+                    - text: WA
+                  - text: "'\" />"
+                - generic [ref=f50e590]:
+                  - generic [ref=f50e591]: Wan 2.6
+                  - generic [ref=f50e592]: Wan
+              - generic [ref=f50e593] [cursor=pointer]:
+                - generic [ref=f50e594]:
+                  - generic [ref=f50e595]:
+                    - img "Hunyuan" [ref=f50e596]
+                    - text: HY
+                  - text: "'\" />"
+                - generic [ref=f50e597]:
+                  - generic [ref=f50e598]: Hunyuan
+                  - generic [ref=f50e599]: Hunyuan
+              - generic [ref=f50e600] [cursor=pointer]:
+                - generic [ref=f50e601]:
+                  - generic [ref=f50e602]:
+                    - img "Hunyuan" [ref=f50e603]
+                    - text: HY
+                  - text: "'\" />"
+                - generic [ref=f50e604]:
+                  - generic [ref=f50e605]: Hunyuan Fast
+                  - generic [ref=f50e606]: Hunyuan
+              - generic [ref=f50e607] [cursor=pointer]:
+                - generic [ref=f50e608]:
+                  - generic [ref=f50e609]:
+                    - img "Pixverse" [ref=f50e610]
+                    - text: PX
+                  - text: "'\" />"
+                - generic [ref=f50e611]:
+                  - generic [ref=f50e612]: Pixverse v4.5
+                  - generic [ref=f50e613]: Pixverse
+              - generic [ref=f50e614] [cursor=pointer]:
+                - generic [ref=f50e615]:
+                  - generic [ref=f50e616]:
+                    - img "Pixverse" [ref=f50e617]
+                    - text: PX
+                  - text: "'\" />"
+                - generic [ref=f50e618]:
+                  - generic [ref=f50e619]: Pixverse v5
+                  - generic [ref=f50e620]: Pixverse
+              - generic [ref=f50e621] [cursor=pointer]:
+                - generic [ref=f50e622]:
+                  - generic [ref=f50e623]:
+                    - img "Pixverse" [ref=f50e624]
+                    - text: PX
+                  - text: "'\" />"
+                - generic [ref=f50e625]:
+                  - generic [ref=f50e626]: Pixverse v5.5
+                  - generic [ref=f50e627]: Pixverse
+              - generic [ref=f50e628] [cursor=pointer]:
+                - generic [ref=f50e629]:
+                  - generic [ref=f50e630]:
+                    - img "MiniMax" [ref=f50e631]
+                    - text: MX
+                  - text: "'\" />"
+                - generic [ref=f50e632]:
+                  - generic [ref=f50e633]: Hailuo 02 Standard
+                  - generic [ref=f50e634]: MiniMax
+              - generic [ref=f50e635] [cursor=pointer]:
+                - generic [ref=f50e636]:
+                  - generic [ref=f50e637]:
+                    - img "MiniMax" [ref=f50e638]
+                    - text: MX
+                  - text: "'\" />"
+                - generic [ref=f50e639]:
+                  - generic [ref=f50e640]: Hailuo 02 Pro
+                  - generic [ref=f50e641]: MiniMax
+              - generic [ref=f50e642] [cursor=pointer]:
+                - generic [ref=f50e643]:
+                  - generic [ref=f50e644]:
+                    - img "MiniMax" [ref=f50e645]
+                    - text: MX
+                  - text: "'\" />"
+                - generic [ref=f50e646]:
+                  - generic [ref=f50e647]: Hailuo 2.3 Pro
+                  - generic [ref=f50e648]: MiniMax
+              - generic [ref=f50e649] [cursor=pointer]:
+                - generic [ref=f50e650]:
+                  - generic [ref=f50e651]:
+                    - img "MiniMax" [ref=f50e652]
+                    - text: MX
+                  - text: "'\" />"
+                - generic [ref=f50e653]:
+                  - generic [ref=f50e654]: Hailuo 2.3 Standard
+                  - generic [ref=f50e655]: MiniMax
+              - generic [ref=f50e656] [cursor=pointer]:
+                - generic [ref=f50e657]:
+                  - generic [ref=f50e658]:
+                    - img "OpenAI" [ref=f50e659]
+                    - text: O
+                  - text: "'\" />"
+                - generic [ref=f50e660]:
+                  - generic [ref=f50e661]: Sora
+                  - generic [ref=f50e662]: OpenAI
+              - generic [ref=f50e663] [cursor=pointer]:
+                - generic [ref=f50e664]:
+                  - generic [ref=f50e665]:
+                    - img "OpenAI" [ref=f50e666]
+                    - text: O
+                  - text: "'\" />"
+                - generic [ref=f50e667]:
+                  - generic [ref=f50e668]: Sora 2
+                  - generic [ref=f50e669]: OpenAI
+              - generic [ref=f50e670] [cursor=pointer]:
+                - generic [ref=f50e671]:
+                  - generic [ref=f50e672]:
+                    - img "OpenAI" [ref=f50e673]
+                    - text: O
+                  - text: "'\" />"
+                - generic [ref=f50e674]:
+                  - generic [ref=f50e675]: Sora 2 Pro
+                  - generic [ref=f50e676]: OpenAI
+              - generic [ref=f50e677] [cursor=pointer]:
+                - generic [ref=f50e678]:
+                  - generic [ref=f50e679]:
+                    - img "Vidu" [ref=f50e680]
+                    - text: VD
+                  - text: "'\" />"
+                - generic [ref=f50e681]:
+                  - generic [ref=f50e682]: Vidu v2.0
+                  - generic [ref=f50e683]: Vidu
+              - generic [ref=f50e684] [cursor=pointer]:
+                - generic [ref=f50e685]:
+                  - generic [ref=f50e686]:
+                    - img "OVI" [ref=f50e687]
+                    - text: OV
+                  - text: "'\" />"
+                - generic [ref=f50e688]:
+                  - generic [ref=f50e689]: OVI
+                  - generic [ref=f50e690]: OVI
+              - generic [ref=f50e691] [cursor=pointer]:
+                - generic [ref=f50e692]:
+                  - generic [ref=f50e693]:
+                    - img "Grok" [ref=f50e694]
+                    - text: xI
+                  - text: "'\" />"
+                - generic [ref=f50e695]:
+                  - generic [ref=f50e696]: Grok Imagine
+                  - generic [ref=f50e697]: Grok
+              - generic [ref=f50e698] [cursor=pointer]:
+                - generic [ref=f50e699]:
+                  - generic [ref=f50e700]:
+                    - img "LTX" [ref=f50e701]
+                    - text: LT
+                  - text: "'\" />"
+                - generic [ref=f50e702]:
+                  - generic [ref=f50e703]: LTX 2 Pro
+                  - generic [ref=f50e704]: LTX
+              - generic [ref=f50e705] [cursor=pointer]:
+                - generic [ref=f50e706]:
+                  - generic [ref=f50e707]:
+                    - img "LTX" [ref=f50e708]
+                    - text: LT
+                  - text: "'\" />"
+                - generic [ref=f50e709]:
+                  - generic [ref=f50e710]: LTX 2 Fast
+                  - generic [ref=f50e711]: LTX
+              - generic [ref=f50e712] [cursor=pointer]:
+                - generic [ref=f50e713]:
+                  - generic [ref=f50e714]:
+                    - img "LTX" [ref=f50e715]
+                    - text: LT
+                  - text: "'\" />"
+                - generic [ref=f50e716]:
+                  - generic [ref=f50e717]: LTX 2 19B
+                  - generic [ref=f50e718]: LTX
+              - generic [ref=f50e720] [cursor=pointer]:
+                - generic [ref=f50e721]: M
+                - generic [ref=f50e722]: MiniMax H3 Text-to-Video
+              - generic [ref=f50e725] [cursor=pointer]:
+                - generic [ref=f50e726]: W
+                - generic [ref=f50e727]: Wan 3.0 Text-to-Video
+              - generic [ref=f50e730] [cursor=pointer]:
+                - generic [ref=f50e731]: F
+                - generic [ref=f50e732]: FLUX 3 Text-to-Video
+              - generic [ref=f50e735] [cursor=pointer]:
+                - generic [ref=f50e736]: S
+                - generic [ref=f50e737]: Seedance 2.5 Text-to-Video
+              - generic [ref=f50e739] [cursor=pointer]:
+                - generic [ref=f50e740]:
+                  - generic [ref=f50e741]:
+                    - img "MuAPI" [ref=f50e742]
+                    - text: MU
+                  - text: "'\" />"
+                - generic [ref=f50e743]:
+                  - generic [ref=f50e744]: AI Video Effects
+                  - generic [ref=f50e745]: MuAPI
+              - generic [ref=f50e746] [cursor=pointer]:
+                - generic [ref=f50e747]:
+                  - generic [ref=f50e748]:
+                    - img "MuAPI" [ref=f50e749]
+                    - text: MU
+                  - text: "'\" />"
+                - generic [ref=f50e750]:
+                  - generic [ref=f50e751]: Motion Controls
+                  - generic [ref=f50e752]: MuAPI
+              - generic [ref=f50e753] [cursor=pointer]:
+                - generic [ref=f50e754]:
+                  - generic [ref=f50e755]:
+                    - img "MuAPI" [ref=f50e756]
+                    - text: MU
+                  - text: "'\" />"
+                - generic [ref=f50e757]:
+                  - generic [ref=f50e758]: VFX
+                  - generic [ref=f50e759]: MuAPI
+              - generic [ref=f50e760] [cursor=pointer]:
+                - generic [ref=f50e761]:
+                  - generic [ref=f50e762]:
+                    - img "MuAPI" [ref=f50e763]
+                    - text: MU
+                  - text: "'\" />"
+                - generic [ref=f50e764]:
+                  - generic [ref=f50e765]: Veo3 Image To Video
+                  - generic [ref=f50e766]: MuAPI
+              - generic [ref=f50e767] [cursor=pointer]:
+                - generic [ref=f50e768]:
+                  - generic [ref=f50e769]:
+                    - img "MuAPI" [ref=f50e770]
+                    - text: MU
+                  - text: "'\" />"
+                - generic [ref=f50e771]:
+                  - generic [ref=f50e772]: Veo3 Fast Image To Video
+                  - generic [ref=f50e773]: MuAPI
+              - generic [ref=f50e774] [cursor=pointer]:
+                - generic [ref=f50e775]:
+                  - generic [ref=f50e776]:
+                    - img "Runway" [ref=f50e777]
+                    - text: RU
+                  - text: "'\" />"
+                - generic [ref=f50e778]:
+                  - generic [ref=f50e779]: Runway Image To Video
+                  - generic [ref=f50e780]: Runway
+              - generic [ref=f50e781] [cursor=pointer]:
+                - generic [ref=f50e782]:
+                  - generic [ref=f50e783]:
+                    - img "Wan" [ref=f50e784]
+                    - text: WA
+                  - text: "'\" />"
+                - generic [ref=f50e785]:
+                  - generic [ref=f50e786]: Wan2.1 Image To Video
+                  - generic [ref=f50e787]: Wan
+              - generic [ref=f50e788] [cursor=pointer]:
+                - generic [ref=f50e789]:
+                  - generic [ref=f50e790]:
+                    - img "Midjourney" [ref=f50e791]
+                    - text: MJ
+                  - text: "'\" />"
+                - generic [ref=f50e792]:
+                  - generic [ref=f50e793]: Midjourney v7 Image To Video
+                  - generic [ref=f50e794]: Midjourney
+              - generic [ref=f50e795] [cursor=pointer]:
+                - generic [ref=f50e796]:
+                  - generic [ref=f50e797]:
+                    - img "Hunyuan" [ref=f50e798]
+                    - text: HY
+                  - text: "'\" />"
+                - generic [ref=f50e799]:
+                  - generic [ref=f50e800]: Hunyuan Image To Video
+                  - generic [ref=f50e801]: Hunyuan
+              - generic [ref=f50e802] [cursor=pointer]:
+                - generic [ref=f50e803]:
+                  - generic [ref=f50e804]:
+                    - img "Kling" [ref=f50e805]
+                    - text: KL
+                  - text: "'\" />"
+                - generic [ref=f50e806]:
+                  - generic [ref=f50e807]: Kling v2.1 Master I2V
+                  - generic [ref=f50e808]: Kling
+              - generic [ref=f50e809] [cursor=pointer]:
+                - generic [ref=f50e810]:
+                  - generic [ref=f50e811]:
+                    - img "Kling" [ref=f50e812]
+                    - text: KL
+                  - text: "'\" />"
+                - generic [ref=f50e813]:
+                  - generic [ref=f50e814]: Kling v2.1 Standard I2V
+                  - generic [ref=f50e815]: Kling
+              - generic [ref=f50e816] [cursor=pointer]:
+                - generic [ref=f50e817]:
+                  - generic [ref=f50e818]:
+                    - img "Kling" [ref=f50e819]
+                    - text: KL
+                  - text: "'\" />"
+                - generic [ref=f50e820]:
+                  - generic [ref=f50e821]: Kling v2.1 Pro I2V
+                  - generic [ref=f50e822]: Kling
+              - generic [ref=f50e823] [cursor=pointer]:
+                - generic [ref=f50e824]:
+                  - generic [ref=f50e825]:
+                    - img "Wan" [ref=f50e826]
+                    - text: WA
+                  - text: "'\" />"
+                - generic [ref=f50e827]:
+                  - generic [ref=f50e828]: Wan2.2 Image To Video
+                  - generic [ref=f50e829]: Wan
+              - generic [ref=f50e830] [cursor=pointer]:
+                - generic [ref=f50e831]:
+                  - generic [ref=f50e832]:
+                    - img "Runway" [ref=f50e833]
+                    - text: RU
+                  - text: "'\" />"
+                - generic [ref=f50e834]:
+                  - generic [ref=f50e835]: Runway Act Two I2V
+                  - generic [ref=f50e836]: Runway
+              - generic [ref=f50e837] [cursor=pointer]:
+                - generic [ref=f50e838]:
+                  - generic [ref=f50e839]:
+                    - img "Pixverse" [ref=f50e840]
+                    - text: PX
+                  - text: "'\" />"
+                - generic [ref=f50e841]:
+                  - generic [ref=f50e842]: Pixverse v4.5 I2V
+                  - generic [ref=f50e843]: Pixverse
+              - generic [ref=f50e844] [cursor=pointer]:
+                - generic [ref=f50e845]:
+                  - generic [ref=f50e846]:
+                    - img "Vidu" [ref=f50e847]
+                    - text: VD
+                  - text: "'\" />"
+                - generic [ref=f50e848]:
+                  - generic [ref=f50e849]: Vidu v2.0 I2V
+                  - generic [ref=f50e850]: Vidu
+              - generic [ref=f50e851] [cursor=pointer]:
+                - generic [ref=f50e852]:
+                  - generic [ref=f50e853]:
+                    - img "Vidu" [ref=f50e854]
+                    - text: VD
+                  - text: "'\" />"
+                - generic [ref=f50e855]:
+                  - generic [ref=f50e856]: Vidu Q1 Reference
+                  - generic [ref=f50e857]: Vidu
+              - generic [ref=f50e858] [cursor=pointer]:
+                - generic [ref=f50e859]:
+                  - generic [ref=f50e860]:
+                    - img "MiniMax" [ref=f50e861]
+                    - text: MX
+                  - text: "'\" />"
+                - generic [ref=f50e862]:
+                  - generic [ref=f50e863]: Minimax Hailuo 02 Standard I2V
+                  - generic [ref=f50e864]: MiniMax
+              - generic [ref=f50e865] [cursor=pointer]:
+                - generic [ref=f50e866]:
+                  - generic [ref=f50e867]:
+                    - img "MiniMax" [ref=f50e868]
+                    - text: MX
+                  - text: "'\" />"
+                - generic [ref=f50e869]:
+                  - generic [ref=f50e870]: Minimax Hailuo 02 Pro I2V
+                  - generic [ref=f50e871]: MiniMax
+              - generic [ref=f50e872] [cursor=pointer]:
+                - generic [ref=f50e873]:
+                  - generic [ref=f50e874]:
+                    - img "MuAPI" [ref=f50e875]
+                    - text: MU
+                  - text: "'\" />"
+                - generic [ref=f50e876]:
+                  - generic [ref=f50e877]: Video Effects
+                  - generic [ref=f50e878]: MuAPI
+              - generic [ref=f50e879] [cursor=pointer]:
+                - generic [ref=f50e880]:
+                  - generic [ref=f50e881]:
+                    - img "ByteDance" [ref=f50e882]
+                    - text: BD
+                  - text: "'\" />"
+                - generic [ref=f50e883]:
+                  - generic [ref=f50e884]: Seedance Lite I2V
+                  - generic [ref=f50e885]: ByteDance
+              - generic [ref=f50e886] [cursor=pointer]:
+                - generic [ref=f50e887]:
+                  - generic [ref=f50e888]:
+                    - img "ByteDance" [ref=f50e889]
+                    - text: BD
+                  - text: "'\" />"
+                - generic [ref=f50e890]:
+                  - generic [ref=f50e891]: Seedance Pro I2V
+                  - generic [ref=f50e892]: ByteDance
+              - generic [ref=f50e893] [cursor=pointer]:
+                - generic [ref=f50e894]:
+                  - generic [ref=f50e895]:
+                    - img "Pixverse" [ref=f50e896]
+                    - text: PX
+                  - text: "'\" />"
+                - generic [ref=f50e897]:
+                  - generic [ref=f50e898]: Pixverse v5 I2V
+                  - generic [ref=f50e899]: Pixverse
+              - generic [ref=f50e900] [cursor=pointer]:
+                - generic [ref=f50e901]:
+                  - generic [ref=f50e902]:
+                    - img "ByteDance" [ref=f50e903]
+                    - text: BD
+                  - text: "'\" />"
+                - generic [ref=f50e904]:
+                  - generic [ref=f50e905]: Seedance Lite Reference Video
+                  - generic [ref=f50e906]: ByteDance
+              - generic [ref=f50e907] [cursor=pointer]:
+                - generic [ref=f50e908]:
+                  - generic [ref=f50e909]:
+                    - img "Wan" [ref=f50e910]
+                    - text: WA
+                  - text: "'\" />"
+                - generic [ref=f50e911]:
+                  - generic [ref=f50e912]: Wan2.1 Reference Video
+                  - generic [ref=f50e913]: Wan
+              - generic [ref=f50e914] [cursor=pointer]:
+                - generic [ref=f50e915]:
+                  - generic [ref=f50e916]:
+                    - img "Kling" [ref=f50e917]
+                    - text: KL
+                  - text: "'\" />"
+                - generic [ref=f50e918]:
+                  - generic [ref=f50e919]: Kling v2.5 Turbo Pro I2V
+                  - generic [ref=f50e920]: Kling
+              - generic [ref=f50e921] [cursor=pointer]:
+                - generic [ref=f50e922]:
+                  - generic [ref=f50e923]:
+                    - img "Wan" [ref=f50e924]
+                    - text: WA
+                  - text: "'\" />"
+                - generic [ref=f50e925]:
+                  - generic [ref=f50e926]: Wan2.5 Image To Video
+                  - generic [ref=f50e927]: Wan
+              - generic [ref=f50e928] [cursor=pointer]:
+                - generic [ref=f50e929]:
+                  - generic [ref=f50e930]:
+                    - img "Wan" [ref=f50e931]
+                    - text: WA
+                  - text: "'\" />"
+                - generic [ref=f50e932]:
+                  - generic [ref=f50e933]: Wan2.5 Image To Video Fast
+                  - generic [ref=f50e934]: Wan
+              - generic [ref=f50e935] [cursor=pointer]:
+                - generic [ref=f50e936]:
+                  - generic [ref=f50e937]:
+                    - img "OpenAI" [ref=f50e938]
+                    - text: O
+                  - text: "'\" />"
+                - generic [ref=f50e939]:
+                  - generic [ref=f50e940]: Openai Sora 2 Image To Video
+                  - generic [ref=f50e941]: OpenAI
+              - generic [ref=f50e942] [cursor=pointer]:
+                - generic [ref=f50e943]:
+                  - generic [ref=f50e944]:
+                    - img "OVI" [ref=f50e945]
+                    - text: OV
+                  - text: "'\" />"
+                - generic [ref=f50e946]:
+                  - generic [ref=f50e947]: Ovi Image To Video
+                  - generic [ref=f50e948]: OVI
+              - generic [ref=f50e949] [cursor=pointer]:
+                - generic [ref=f50e950]:
+                  - generic [ref=f50e951]:
+                    - img "OpenAI" [ref=f50e952]
+                    - text: O
+                  - text: "'\" />"
+                - generic [ref=f50e953]:
+                  - generic [ref=f50e954]: Openai Sora 2 Pro Image To Video
+                  - generic [ref=f50e955]: OpenAI
+              - generic [ref=f50e956] [cursor=pointer]:
+                - generic [ref=f50e957]:
+                  - generic [ref=f50e958]:
+                    - img "Leonardo AI" [ref=f50e959]
+                    - text: LE
+                  - text: "'\" />"
+                - generic [ref=f50e960]:
+                  - generic [ref=f50e961]: Leonardoai Motion 2.0
+                  - generic [ref=f50e962]: Leonardo AI
+              - generic [ref=f50e963] [cursor=pointer]:
+                - generic [ref=f50e964]:
+                  - generic [ref=f50e965]:
+                    - img "MuAPI" [ref=f50e966]
+                    - text: MU
+                  - text: "'\" />"
+                - generic [ref=f50e967]:
+                  - generic [ref=f50e968]: Veo3.1 Image To Video
+                  - generic [ref=f50e969]: MuAPI
+              - generic [ref=f50e970] [cursor=pointer]:
+                - generic [ref=f50e971]:
+                  - generic [ref=f50e972]:
+                    - img "MuAPI" [ref=f50e973]
+                    - text: MU
+                  - text: "'\" />"
+                - generic [ref=f50e974]:
+                  - generic [ref=f50e975]: Veo3.1 Fast Image To Video
+                  - generic [ref=f50e976]: MuAPI
+              - generic [ref=f50e977] [cursor=pointer]:
+                - generic [ref=f50e978]:
+                  - generic [ref=f50e979]:
+                    - img "MuAPI" [ref=f50e980]
+                    - text: MU
+                  - text: "'\" />"
+                - generic [ref=f50e981]:
+                  - generic [ref=f50e982]: Veo3.1 Reference To Video
+                  - generic [ref=f50e983]: MuAPI
+              - generic [ref=f50e984] [cursor=pointer]:
+                - generic [ref=f50e985]:
+                  - generic [ref=f50e986]:
+                    - img "ByteDance" [ref=f50e987]
+                    - text: BD
+                  - text: "'\" />"
+                - generic [ref=f50e988]:
+                  - generic [ref=f50e989]: Seedance Pro I2V Fast
+                  - generic [ref=f50e990]: ByteDance
+              - generic [ref=f50e991] [cursor=pointer]:
+                - generic [ref=f50e992]:
+                  - generic [ref=f50e993]:
+                    - img "LTX" [ref=f50e994]
+                    - text: LT
+                  - text: "'\" />"
+                - generic [ref=f50e995]:
+                  - generic [ref=f50e996]: Ltx 2 Pro Image To Video
+                  - generic [ref=f50e997]: LTX
+              - generic [ref=f50e998] [cursor=pointer]:
+                - generic [ref=f50e999]:
+                  - generic [ref=f50e1000]:
+                    - img "LTX" [ref=f50e1001]
+                    - text: LT
+                  - text: "'\" />"
+                - generic [ref=f50e1002]:
+                  - generic [ref=f50e1003]: Ltx 2 Fast Image To Video
+                  - generic [ref=f50e1004]: LTX
+              - generic [ref=f50e1005] [cursor=pointer]:
+                - generic [ref=f50e1006]:
+                  - generic [ref=f50e1007]:
+                    - img "Vidu" [ref=f50e1008]
+                    - text: VD
+                  - text: "'\" />"
+                - generic [ref=f50e1009]:
+                  - generic [ref=f50e1010]: Vidu Q2 Reference
+                  - generic [ref=f50e1011]: Vidu
+              - generic [ref=f50e1012] [cursor=pointer]:
+                - generic [ref=f50e1013]:
+                  - generic [ref=f50e1014]:
+                    - img "Vidu" [ref=f50e1015]
+                    - text: VD
+                  - text: "'\" />"
+                - generic [ref=f50e1016]:
+                  - generic [ref=f50e1017]: Vidu Q2 Turbo Start End Video
+                  - generic [ref=f50e1018]: Vidu
+              - generic [ref=f50e1019] [cursor=pointer]:
+                - generic [ref=f50e1020]:
+                  - generic [ref=f50e1021]:
+                    - img "Vidu" [ref=f50e1022]
+                    - text: VD
+                  - text: "'\" />"
+                - generic [ref=f50e1023]:
+                  - generic [ref=f50e1024]: Vidu Q2 Pro Start End Video
+                  - generic [ref=f50e1025]: Vidu
+              - generic [ref=f50e1026] [cursor=pointer]:
+                - generic [ref=f50e1027]:
+                  - generic [ref=f50e1028]:
+                    - img "MiniMax" [ref=f50e1029]
+                    - text: MX
+                  - text: "'\" />"
+                - generic [ref=f50e1030]:
+                  - generic [ref=f50e1031]: Minimax Hailuo 2.3 Pro I2V
+                  - generic [ref=f50e1032]: MiniMax
+              - generic [ref=f50e1033] [cursor=pointer]:
+                - generic [ref=f50e1034]:
+                  - generic [ref=f50e1035]:
+                    - img "MiniMax" [ref=f50e1036]
+                    - text: MX
+                  - text: "'\" />"
+                - generic [ref=f50e1037]:
+                  - generic [ref=f50e1038]: Minimax Hailuo 2.3 Standard I2V
+                  - generic [ref=f50e1039]: MiniMax
+              - generic [ref=f50e1040] [cursor=pointer]:
+                - generic [ref=f50e1041]:
+                  - generic [ref=f50e1042]:
+                    - img "MiniMax" [ref=f50e1043]
+                    - text: MX
+                  - text: "'\" />"
+                - generic [ref=f50e1044]:
+                  - generic [ref=f50e1045]: Minimax Hailuo 2.3 Fast
+                  - generic [ref=f50e1046]: MiniMax
+              - generic [ref=f50e1047] [cursor=pointer]:
+                - generic [ref=f50e1048]:
+                  - generic [ref=f50e1049]:
+                    - img "Kling" [ref=f50e1050]
+                    - text: KL
+                  - text: "'\" />"
+                - generic [ref=f50e1051]:
+                  - generic [ref=f50e1052]: Kling v2.5 Turbo Std I2V
+                  - generic [ref=f50e1053]: Kling
+              - generic [ref=f50e1054] [cursor=pointer]:
+                - generic [ref=f50e1055]:
+                  - generic [ref=f50e1056]:
+                    - img "Grok" [ref=f50e1057]
+                    - text: xI
+                  - text: "'\" />"
+                - generic [ref=f50e1058]:
+                  - generic [ref=f50e1059]: Grok Imagine Image To Video
+                  - generic [ref=f50e1060]: Grok
+              - generic [ref=f50e1061] [cursor=pointer]:
+                - generic [ref=f50e1062]:
+                  - generic [ref=f50e1063]:
+                    - img "Kling" [ref=f50e1064]
+                    - text: KL
+                  - text: "'\" />"
+                - generic [ref=f50e1065]:
+                  - generic [ref=f50e1066]: Kling O1 Image To Video
+                  - generic [ref=f50e1067]: Kling
+              - generic [ref=f50e1068] [cursor=pointer]:
+                - generic [ref=f50e1069]:
+                  - generic [ref=f50e1070]:
+                    - img "Kling" [ref=f50e1071]
+                    - text: KL
+                  - text: "'\" />"
+                - generic [ref=f50e1072]:
+                  - generic [ref=f50e1073]: Kling O1 Reference To Video
+                  - generic [ref=f50e1074]: Kling
+              - generic [ref=f50e1075] [cursor=pointer]:
+                - generic [ref=f50e1076]:
+                  - generic [ref=f50e1077]:
+                    - img "Kling" [ref=f50e1078]
+                    - text: KL
+                  - text: "'\" />"
+                - generic [ref=f50e1079]:
+                  - generic [ref=f50e1080]: Kling v2.6 Pro I2V
+                  - generic [ref=f50e1081]: Kling
+              - generic [ref=f50e1082] [cursor=pointer]:
+                - generic [ref=f50e1083]:
+                  - generic [ref=f50e1084]:
+                    - img "Pixverse" [ref=f50e1085]
+                    - text: PX
+                  - text: "'\" />"
+                - generic [ref=f50e1086]:
+                  - generic [ref=f50e1087]: Pixverse v5.5 I2V
+                  - generic [ref=f50e1088]: Pixverse
+              - generic [ref=f50e1089] [cursor=pointer]:
+                - generic [ref=f50e1090]:
+                  - generic [ref=f50e1091]:
+                    - img "Wan" [ref=f50e1092]
+                    - text: WA
+                  - text: "'\" />"
+                - generic [ref=f50e1093]:
+                  - generic [ref=f50e1094]: Wan2.2 Spicy Image To Video
+                  - generic [ref=f50e1095]: Wan
+              - generic [ref=f50e1096] [cursor=pointer]:
+                - generic [ref=f50e1097]:
+                  - generic [ref=f50e1098]:
+                    - img "Wan" [ref=f50e1099]
+                    - text: WA
+                  - text: "'\" />"
+                - generic [ref=f50e1100]:
+                  - generic [ref=f50e1101]: Wan2.6 Image To Video
+                  - generic [ref=f50e1102]: Wan
+              - generic [ref=f50e1103] [cursor=pointer]:
+                - generic [ref=f50e1104]:
+                  - generic [ref=f50e1105]:
+                    - img "Kling" [ref=f50e1106]
+                    - text: KL
+                  - text: "'\" />"
+                - generic [ref=f50e1107]:
+                  - generic [ref=f50e1108]: Kling O1 Standard Image To Video
+                  - generic [ref=f50e1109]: Kling
+              - generic [ref=f50e1110] [cursor=pointer]:
+                - generic [ref=f50e1111]:
+                  - generic [ref=f50e1112]:
+                    - img "Kling" [ref=f50e1113]
+                    - text: KL
+                  - text: "'\" />"
+                - generic [ref=f50e1114]:
+                  - generic [ref=f50e1115]: Kling O1 Standard Reference To Video
+                  - generic [ref=f50e1116]: Kling
+              - generic [ref=f50e1117] [cursor=pointer]:
+                - generic [ref=f50e1118]:
+                  - generic [ref=f50e1119]:
+                    - img "ByteDance" [ref=f50e1120]
+                    - text: BD
+                  - text: "'\" />"
+                - generic [ref=f50e1121]:
+                  - generic [ref=f50e1122]: Seedance v1.5 Pro I2V
+                  - generic [ref=f50e1123]: ByteDance
+              - generic [ref=f50e1124] [cursor=pointer]:
+                - generic [ref=f50e1125]:
+                  - generic [ref=f50e1126]:
+                    - img "ByteDance" [ref=f50e1127]
+                    - text: BD
+                  - text: "'\" />"
+                - generic [ref=f50e1128]:
+                  - generic [ref=f50e1129]: Seedance v1.5 Pro I2V Fast
+                  - generic [ref=f50e1130]: ByteDance
+              - generic [ref=f50e1131] [cursor=pointer]:
+                - generic [ref=f50e1132]:
+                  - generic [ref=f50e1133]:
+                    - img "LTX" [ref=f50e1134]
+                    - text: LT
+                  - text: "'\" />"
+                - generic [ref=f50e1135]:
+                  - generic [ref=f50e1136]: Ltx 2 19b Image To Video
+                  - generic [ref=f50e1137]: LTX
+              - generic [ref=f50e1138] [cursor=pointer]:
+                - generic [ref=f50e1139]:
+                  - generic [ref=f50e1140]:
+                    - img "Kling" [ref=f50e1141]
+                    - text: KL
+                  - text: "'\" />"
+                - generic [ref=f50e1142]:
+                  - generic [ref=f50e1143]: Kling v3.0 Pro Image To Video
+                  - generic [ref=f50e1144]: Kling
+              - generic [ref=f50e1145] [cursor=pointer]:
+                - generic [ref=f50e1146]:
+                  - generic [ref=f50e1147]:
+                    - img "Kling" [ref=f50e1148]
+                    - text: KL
+                  - text: "'\" />"
+                - generic [ref=f50e1149]:
+                  - generic [ref=f50e1150]: Kling v3.0 Standard Image To Video
+                  - generic [ref=f50e1151]: Kling
+              - generic [ref=f50e1152] [cursor=pointer]:
+                - generic [ref=f50e1153]:
+                  - generic [ref=f50e1154]:
+                    - img "ByteDance" [ref=f50e1155]
+                    - text: BD
+                  - text: "'\" />"
+                - generic [ref=f50e1156]:
+                  - generic [ref=f50e1157]: Seedance 2.0 I2V
+                  - generic [ref=f50e1158]: ByteDance
+              - generic [ref=f50e1160] [cursor=pointer]:
+                - generic [ref=f50e1161]: M
+                - generic [ref=f50e1162]: MiniMax H3 Image-to-Video
+              - generic [ref=f50e1165] [cursor=pointer]:
+                - generic [ref=f50e1166]: W
+                - generic [ref=f50e1167]: Wan 3.0 Image-to-Video
+              - generic [ref=f50e1170] [cursor=pointer]:
+                - generic [ref=f50e1171]: F
+                - generic [ref=f50e1172]: FLUX 3 Image-to-Video
+              - generic [ref=f50e1175] [cursor=pointer]:
+                - generic [ref=f50e1176]: S
+                - generic [ref=f50e1177]: Seedance 2.5 Image-to-Video
+              - generic [ref=f50e1179]: Video Tools
+              - generic [ref=f50e1180] [cursor=pointer]:
+                - generic [ref=f50e1181]:
+                  - generic [ref=f50e1182]:
+                    - img "MuAPI" [ref=f50e1183]
+                    - text: MU
+                  - text: "'\" />"
+                - generic [ref=f50e1184]:
+                  - generic [ref=f50e1185]: AI Video Watermark Remover
+                  - generic [ref=f50e1186]: MuAPI
+                  - generic [ref=f50e1187]: Upload a video to use
+        - generic [ref=f50e1188]: History
+        - status:
+          - generic:
+            - generic:
+              - generic: Frame
+              - slider "Video frame scrubber": "0"
+              - generic: 0:00
+          - generic:
+            - button "↻ Regenerate"
+            - button "↓ Download"
+            - button "🎬 Open in Render"
+            - button "+ New"
+            - button "Publish to Social"
+        - generic [ref=f50e1190]:
+          - generic [ref=f50e1191]:
+            - generic [ref=f50e1192]:
+              - generic [ref=f50e1193]: Example Gallery
+              - generic [ref=f50e1194]: Click any card to view the prompt or create in this style
+            - generic [ref=f50e1195]: 28 examples
+          - generic [ref=f50e1196]:
+            - button "All" [ref=f50e1197] [cursor=pointer]
+            - button "comedy" [ref=f50e1198] [cursor=pointer]
+            - button "retro" [ref=f50e1199] [cursor=pointer]
+            - button "skit" [ref=f50e1200] [cursor=pointer]
+            - button "social" [ref=f50e1201] [cursor=pointer]
+            - button "music-video" [ref=f50e1202] [cursor=pointer]
+            - button "y2k" [ref=f50e1203] [cursor=pointer]
+            - button "typography" [ref=f50e1204] [cursor=pointer]
+            - button "gameplay" [ref=f50e1205] [cursor=pointer]
+            - button "image-to-video" [ref=f50e1206] [cursor=pointer]
+            - button "opening-frame-reference" [ref=f50e1207] [cursor=pointer]
+          - generic [ref=f50e1208]:
+            - generic [ref=f50e1209] [cursor=pointer]:
+              - generic [ref=f50e1210]:
+                - generic [ref=f50e1211]: SOCIAL
+                - img "1980s open-source family comedy" [ref=f50e1212]
+              - generic [ref=f50e1213]:
+                - generic [ref=f50e1214]: 1980s open-source family comedy
+                - generic [ref=f50e1215]: minimax
+                - generic [ref=f50e1217]:
+                  - generic [ref=f50e1218]: comedy
+                  - generic [ref=f50e1219]: retro
+                  - generic [ref=f50e1220]: skit
+                - generic [ref=f50e1221]:
+                  - button "View Prompt" [ref=f50e1222]
+                  - button "Create This Style" [ref=f50e1223]
+            - generic [ref=f50e1224] [cursor=pointer]:
+              - generic [ref=f50e1225]:
+                - generic [ref=f50e1226]: SOCIAL
+                - img "Y2K K-Pop Candy Typography Music Video" [ref=f50e1227]
+              - generic [ref=f50e1228]:
+                - generic [ref=f50e1229]: Y2K K-Pop Candy Typography Music Video
+                - generic [ref=f50e1230]: minimax
+                - generic [ref=f50e1232]:
+                  - generic [ref=f50e1233]: music-video
+                  - generic [ref=f50e1234]: y2k
+                  - generic [ref=f50e1235]: typography
+                - generic [ref=f50e1236]:
+                  - button "View Prompt" [ref=f50e1237]
+                  - button "Create This Style" [ref=f50e1238]
+            - generic [ref=f50e1239] [cursor=pointer]:
+              - generic [ref=f50e1240]:
+                - generic [ref=f50e1241]: SOCIAL
+                - img "1980s open-source family comedy" [ref=f50e1242]
+              - generic [ref=f50e1243]:
+                - generic [ref=f50e1244]: 1980s open-source family comedy
+                - generic [ref=f50e1245]: minimax
+                - generic [ref=f50e1247]:
+                  - generic [ref=f50e1248]: comedy
+                  - generic [ref=f50e1249]: image-to-video
+                  - generic [ref=f50e1250]: opening-frame-reference
+                - generic [ref=f50e1251]:
+                  - button "View Prompt" [ref=f50e1252]
+                  - button "Create This Style" [ref=f50e1253]
+            - generic [ref=f50e1254] [cursor=pointer]:
+              - generic [ref=f50e1255]:
+                - generic [ref=f50e1256]: SOCIAL
+                - img "7-second video. The Office (US) mockumentary style, inside the Dunder Mifflin" [ref=f50e1257]
+              - generic [ref=f50e1258]:
+                - generic [ref=f50e1259]: 7-second video. The Office (US) mockumentary style, inside the Dunder Mifflin
+                - generic [ref=f50e1260]: minimax
+                - generic [ref=f50e1262]:
+                  - generic [ref=f50e1263]: music-video
+                  - generic [ref=f50e1264]: text-to-video
+                  - generic [ref=f50e1265]: text-prompt
+                - generic [ref=f50e1266]:
+                  - button "View Prompt" [ref=f50e1267]
+                  - button "Create This Style" [ref=f50e1268]
+            - generic [ref=f50e1269] [cursor=pointer]:
+              - generic [ref=f50e1270]:
+                - generic [ref=f50e1271]: SOCIAL
+                - img "\"A hyper-realistic handheld phone video of a quiet suburban backyard on a bright" [ref=f50e1272]
+              - generic [ref=f50e1273]:
+                - generic [ref=f50e1274]: "\"A hyper-realistic handheld phone video of a quiet suburban backyard on a bright"
+                - generic [ref=f50e1275]: minimax
+                - generic [ref=f50e1277]:
+                  - generic [ref=f50e1278]: music-video
+                  - generic [ref=f50e1279]: text-to-video
+                  - generic [ref=f50e1280]: text-prompt
+                - generic [ref=f50e1281]:
+                  - button "View Prompt" [ref=f50e1282]
+                  - button "Create This Style" [ref=f50e1283]
+            - generic [ref=f50e1284] [cursor=pointer]:
+              - generic [ref=f50e1285]:
+                - generic [ref=f50e1286]: SOCIAL
+                - img "An 1890s field guide plate, drawing itself" [ref=f50e1287]
+              - generic [ref=f50e1288]:
+                - generic [ref=f50e1289]: An 1890s field guide plate, drawing itself
+                - generic [ref=f50e1290]: minimax
+                - generic [ref=f50e1292]:
+                  - generic [ref=f50e1293]: music-video
+                  - generic [ref=f50e1294]: text-to-video
+                  - generic [ref=f50e1295]: text-prompt
+                - generic [ref=f50e1296]:
+                  - button "View Prompt" [ref=f50e1297]
+                  - button "Create This Style" [ref=f50e1298]
+            - generic [ref=f50e1299] [cursor=pointer]:
+              - generic [ref=f50e1300]:
+                - generic [ref=f50e1301]: SOCIAL
+                - img "Create a 15-second ultra-photorealistic live-action war sequence set in the" [ref=f50e1302]
+              - generic [ref=f50e1303]:
+                - generic [ref=f50e1304]: Create a 15-second ultra-photorealistic live-action war sequence set in the
+                - generic [ref=f50e1305]: minimax
+                - generic [ref=f50e1307]:
+                  - generic [ref=f50e1308]: music-video
+                  - generic [ref=f50e1309]: text-to-video
+                  - generic [ref=f50e1310]: text-prompt
+                - generic [ref=f50e1311]:
+                  - button "View Prompt" [ref=f50e1312]
+                  - button "Create This Style" [ref=f50e1313]
+            - generic [ref=f50e1314] [cursor=pointer]:
+              - generic [ref=f50e1315]:
+                - generic [ref=f50e1316]: SOCIAL
+                - img "Created using MiniMax H3 on ." [ref=f50e1317]
+              - generic [ref=f50e1318]:
+                - generic [ref=f50e1319]: Created using MiniMax H3 on .
+                - generic [ref=f50e1320]: minimax
+                - generic [ref=f50e1322]:
+                  - generic [ref=f50e1323]: music-video
+                  - generic [ref=f50e1324]: text-to-video
+                  - generic [ref=f50e1325]: text-prompt
+                - generic [ref=f50e1326]:
+                  - button "View Prompt" [ref=f50e1327]
+                  - button "Create This Style" [ref=f50e1328]
+            - generic [ref=f50e1329] [cursor=pointer]:
+              - generic [ref=f50e1330]:
+                - generic [ref=f50e1331]: SOCIAL
+                - img "Animate the uploaded CHUNG LEE movie poster as a 10-second cinematic martial-art" [ref=f50e1332]
+              - generic [ref=f50e1333]:
+                - generic [ref=f50e1334]: Animate the uploaded CHUNG LEE movie poster as a 10-second cinematic martial-art
+                - generic [ref=f50e1335]: minimax
+                - generic [ref=f50e1337]:
+                  - generic [ref=f50e1338]: music-video
+                  - generic [ref=f50e1339]: text-to-video
+                  - generic [ref=f50e1340]: text-prompt
+                - generic [ref=f50e1341]:
+                  - button "View Prompt" [ref=f50e1342]
+                  - button "Create This Style" [ref=f50e1343]
+            - generic [ref=f50e1344] [cursor=pointer]:
+              - generic [ref=f50e1345]:
+                - generic [ref=f50e1346]: SOCIAL
+                - img "Creating a sleek, professional ad for using itself. ⚡" [ref=f50e1347]
+              - generic [ref=f50e1348]:
+                - generic [ref=f50e1349]: Creating a sleek, professional ad for using itself. ⚡
+                - generic [ref=f50e1350]: minimax
+                - generic [ref=f50e1352]:
+                  - generic [ref=f50e1353]: music-video
+                  - generic [ref=f50e1354]: text-to-video
+                  - generic [ref=f50e1355]: text-prompt
+                - generic [ref=f50e1356]:
+                  - button "View Prompt" [ref=f50e1357]
+                  - button "Create This Style" [ref=f50e1358]
+            - generic [ref=f50e1359] [cursor=pointer]:
+              - generic [ref=f50e1360]:
+                - generic [ref=f50e1361]: SOCIAL
+                - img "Dark-pop cyber-grunge rap music video style" [ref=f50e1362]
+              - generic [ref=f50e1363]:
+                - generic [ref=f50e1364]: Dark-pop cyber-grunge rap music video style
+                - generic [ref=f50e1365]: minimax
+                - generic [ref=f50e1367]:
+                  - generic [ref=f50e1368]: music-video
+                  - generic [ref=f50e1369]: reference-to-video
+                  - generic [ref=f50e1370]: style-reference-images
+                - generic [ref=f50e1371]:
+                  - button "View Prompt" [ref=f50e1372]
+                  - button "Create This Style" [ref=f50e1373]
+            - generic [ref=f50e1374] [cursor=pointer]:
+              - generic [ref=f50e1375]:
+                - generic [ref=f50e1376]: SOCIAL
+                - img "The World's Unluckiest Superhero" [ref=f50e1377]
+              - generic [ref=f50e1378]:
+                - generic [ref=f50e1379]: The World's Unluckiest Superhero
+                - generic [ref=f50e1380]: minimax
+                - generic [ref=f50e1382]:
+                  - generic [ref=f50e1383]: comedy
+                  - generic [ref=f50e1384]: text-to-video
+                  - generic [ref=f50e1385]: dialogue
+                - generic [ref=f50e1386]:
+                  - button "View Prompt" [ref=f50e1387]
+                  - button "Create This Style" [ref=f50e1388]
+            - generic [ref=f50e1389] [cursor=pointer]:
+              - generic [ref=f50e1390]:
+                - generic [ref=f50e1391]: SOCIAL
+                - img "First try with Minimax H3 and is full cinematic 📽️ 🤩" [ref=f50e1392]
+              - generic [ref=f50e1393]:
+                - generic [ref=f50e1394]: First try with Minimax H3 and is full cinematic 📽️ 🤩
+                - generic [ref=f50e1395]: minimax
+                - generic [ref=f50e1397]:
+                  - generic [ref=f50e1398]: music-video
+                  - generic [ref=f50e1399]: text-to-video
+                  - generic [ref=f50e1400]: text-prompt
+                - generic [ref=f50e1401]:
+                  - button "View Prompt" [ref=f50e1402]
+                  - button "Create This Style" [ref=f50e1403]
+            - generic [ref=f50e1404] [cursor=pointer]:
+              - generic [ref=f50e1405]:
+                - generic [ref=f50e1406]: SOCIAL
+                - img "hyper-realistic" [ref=f50e1407]
+              - generic [ref=f50e1408]:
+                - generic [ref=f50e1409]: hyper-realistic
+                - generic [ref=f50e1410]: minimax
+                - generic [ref=f50e1412]:
+                  - generic [ref=f50e1413]: music-video
+                  - generic [ref=f50e1414]: text-to-video
+                  - generic [ref=f50e1415]: text-prompt
+                - generic [ref=f50e1416]:
+                  - button "View Prompt" [ref=f50e1417]
+                  - button "Create This Style" [ref=f50e1418]
+            - generic [ref=f50e1419] [cursor=pointer]:
+              - generic [ref=f50e1420]:
+                - generic [ref=f50e1421]: SOCIAL
+                - img "15-second, 16:9 vertical, continuous single-take video that looks like authentic" [ref=f50e1422]
+              - generic [ref=f50e1423]:
+                - generic [ref=f50e1424]: 15-second, 16:9 vertical, continuous single-take video that looks like authentic
+                - generic [ref=f50e1425]: minimax
+                - generic [ref=f50e1427]:
+                  - generic [ref=f50e1428]: viral-short
+                  - generic [ref=f50e1429]: text-to-video
+                  - generic [ref=f50e1430]: text-prompt
+                - generic [ref=f50e1431]:
+                  - button "View Prompt" [ref=f50e1432]
+                  - button "Create This Style" [ref=f50e1433]
+            - generic [ref=f50e1434] [cursor=pointer]:
+              - generic [ref=f50e1435]:
+                - generic [ref=f50e1436]: SOCIAL
+                - img "Music Video Study" [ref=f50e1437]
+              - generic [ref=f50e1438]:
+                - generic [ref=f50e1439]: Music Video Study
+                - generic [ref=f50e1440]: minimax
+                - generic [ref=f50e1442]:
+                  - generic [ref=f50e1443]: music-video
+                  - generic [ref=f50e1444]: text-to-video
+                  - generic [ref=f50e1445]: text-prompt
+                - generic [ref=f50e1446]:
+                  - button "View Prompt" [ref=f50e1447]
+                  - button "Create This Style" [ref=f50e1448]
+            - generic [ref=f50e1449] [cursor=pointer]:
+              - generic [ref=f50e1450]:
+                - generic [ref=f50e1451]: SOCIAL
+                - img "Handcrafted paper-cut stop-motion short" [ref=f50e1452]
+              - generic [ref=f50e1453]:
+                - generic [ref=f50e1454]: Handcrafted paper-cut stop-motion short
+                - generic [ref=f50e1455]: minimax
+                - generic [ref=f50e1457]:
+                  - generic [ref=f50e1458]: viral-short
+                  - generic [ref=f50e1459]: text-to-video
+                  - generic [ref=f50e1460]: paper-cut-underwater-cave
+                - generic [ref=f50e1461]:
+                  - button "View Prompt" [ref=f50e1462]
+                  - button "Create This Style" [ref=f50e1463]
+            - generic [ref=f50e1464] [cursor=pointer]:
+              - generic [ref=f50e1465]:
+                - generic [ref=f50e1466]: SOCIAL
+                - 'img "Setting: A bright sunny beach" [ref=f50e1467]'
+              - generic [ref=f50e1468]:
+                - generic [ref=f50e1469]: "Setting: A bright sunny beach"
+                - generic [ref=f50e1470]: minimax
+                - generic [ref=f50e1472]:
+                  - generic [ref=f50e1473]: music-video
+                  - generic [ref=f50e1474]: text-to-video
+                  - generic [ref=f50e1475]: text-prompt
+                - generic [ref=f50e1476]:
+                  - button "View Prompt" [ref=f50e1477]
+                  - button "Create This Style" [ref=f50e1478]
+            - generic [ref=f50e1479] [cursor=pointer]:
+              - generic [ref=f50e1480]:
+                - generic [ref=f50e1481]: SOCIAL
+                - img "🤯 is seriously good at this kind of K-pop lyric" [ref=f50e1482]
+              - generic [ref=f50e1483]:
+                - generic [ref=f50e1484]: 🤯 is seriously good at this kind of K-pop lyric
+                - generic [ref=f50e1485]: minimax
+                - generic [ref=f50e1487]:
+                  - generic [ref=f50e1488]: music-video
+                  - generic [ref=f50e1489]: reference-to-video
+                  - generic [ref=f50e1490]: text-prompt
+                - generic [ref=f50e1491]:
+                  - button "View Prompt" [ref=f50e1492]
+                  - button "Create This Style" [ref=f50e1493]
+            - generic [ref=f50e1494] [cursor=pointer]:
+              - generic [ref=f50e1495]:
+                - generic [ref=f50e1496]: SOCIAL
+                - img "Krea 2 Turbo + Minimax H3 in Comfyui = ..." [ref=f50e1497]
+              - generic [ref=f50e1498]:
+                - generic [ref=f50e1499]: Krea 2 Turbo + Minimax H3 in Comfyui = ...
+                - generic [ref=f50e1500]: minimax
+                - generic [ref=f50e1502]:
+                  - generic [ref=f50e1503]: music-video
+                  - generic [ref=f50e1504]: text-to-video
+                  - generic [ref=f50e1505]: text-prompt
+                - generic [ref=f50e1506]:
+                  - button "View Prompt" [ref=f50e1507]
+                  - button "Create This Style" [ref=f50e1508]
+            - generic [ref=f50e1509] [cursor=pointer]:
+              - generic [ref=f50e1510]:
+                - generic [ref=f50e1511]: SOCIAL
+                - img "Cinematic comedy sequence, 15 seconds" [ref=f50e1512]
+              - generic [ref=f50e1513]:
+                - generic [ref=f50e1514]: Cinematic comedy sequence, 15 seconds
+                - generic [ref=f50e1515]: minimax
+                - generic [ref=f50e1517]:
+                  - generic [ref=f50e1518]: music-video
+                  - generic [ref=f50e1519]: text-to-video
+                  - generic [ref=f50e1520]: text-prompt
+                - generic [ref=f50e1521]:
+                  - button "View Prompt" [ref=f50e1522]
+                  - button "Create This Style" [ref=f50e1523]
+            - generic [ref=f50e1524] [cursor=pointer]:
+              - generic [ref=f50e1525]:
+                - generic [ref=f50e1526]: SOCIAL
+                - img "15 second cinematic sports video in 16:9 inside a real indoor strength competiti" [ref=f50e1527]
+              - generic [ref=f50e1528]:
+                - generic [ref=f50e1529]: 15 second cinematic sports video in 16:9 inside a real indoor strength competiti
+                - generic [ref=f50e1530]: minimax
+                - generic [ref=f50e1532]:
+                  - generic [ref=f50e1533]: music-video
+                  - generic [ref=f50e1534]: text-to-video
+                  - generic [ref=f50e1535]: text-prompt
+                - generic [ref=f50e1536]:
+                  - button "View Prompt" [ref=f50e1537]
+                  - button "Create This Style" [ref=f50e1538]
+            - generic [ref=f50e1539] [cursor=pointer]:
+              - generic [ref=f50e1540]:
+                - generic [ref=f50e1541]: SOCIAL
+                - img "A young heroic warrior wearing beautifully crafted silver armor, a dark blue cap" [ref=f50e1542]
+              - generic [ref=f50e1543]:
+                - generic [ref=f50e1544]: A young heroic warrior wearing beautifully crafted silver armor, a dark blue cap
+                - generic [ref=f50e1545]: minimax
+                - generic [ref=f50e1547]:
+                  - generic [ref=f50e1548]: music-video
+                  - generic [ref=f50e1549]: text-to-video
+                  - generic [ref=f50e1550]: text-prompt
+                - generic [ref=f50e1551]:
+                  - button "View Prompt" [ref=f50e1552]
+                  - button "Create This Style" [ref=f50e1553]
+            - generic [ref=f50e1554] [cursor=pointer]:
+              - generic [ref=f50e1555]:
+                - generic [ref=f50e1556]: SOCIAL
+                - img "<image_1> (don't reproduce the image" [ref=f50e1557]
+              - generic [ref=f50e1558]:
+                - generic [ref=f50e1559]: <image_1> (don't reproduce the image
+                - generic [ref=f50e1560]: minimax
+                - generic [ref=f50e1562]:
+                  - generic [ref=f50e1563]: comedy
+                  - generic [ref=f50e1564]: text-to-video
+                  - generic [ref=f50e1565]: camera-direction
+                - generic [ref=f50e1566]:
+                  - button "View Prompt" [ref=f50e1567]
+                  - button "Create This Style" [ref=f50e1568]
+            - generic [ref=f50e1569] [cursor=pointer]:
+              - generic [ref=f50e1570]:
+                - generic [ref=f50e1571]: SOCIAL
+                - 'img "PROSE & IN-LINE SPATIAL & GLOBAL LOCK]: At 0" [ref=f50e1572]'
+              - generic [ref=f50e1573]:
+                - generic [ref=f50e1574]: "PROSE & IN-LINE SPATIAL & GLOBAL LOCK]: At 0"
+                - generic [ref=f50e1575]: minimax
+                - generic [ref=f50e1577]:
+                  - generic [ref=f50e1578]: music-video
+                  - generic [ref=f50e1579]: text-to-video
+                  - generic [ref=f50e1580]: text-prompt
+                - generic [ref=f50e1581]:
+                  - button "View Prompt" [ref=f50e1582]
+                  - button "Create This Style" [ref=f50e1583]
+            - generic [ref=f50e1584] [cursor=pointer]:
+              - generic [ref=f50e1585]:
+                - generic [ref=f50e1586]: SOCIAL
+                - img "What if Cleopatra ordered pizza? 😂" [ref=f50e1587]
+              - generic [ref=f50e1588]:
+                - generic [ref=f50e1589]: What if Cleopatra ordered pizza? 😂
+                - generic [ref=f50e1590]: minimax
+                - generic [ref=f50e1592]:
+                  - generic [ref=f50e1593]: music-video
+                  - generic [ref=f50e1594]: text-to-video
+                  - generic [ref=f50e1595]: text-prompt
+                - generic [ref=f50e1596]:
+                  - button "View Prompt" [ref=f50e1597]
+                  - button "Create This Style" [ref=f50e1598]
+            - generic [ref=f50e1599] [cursor=pointer]:
+              - generic [ref=f50e1600]:
+                - generic [ref=f50e1601]: SOCIAL
+                - img "What if Superman had to do his own laundry? 😂" [ref=f50e1602]
+              - generic [ref=f50e1603]:
+                - generic [ref=f50e1604]: What if Superman had to do his own laundry? 😂
+                - generic [ref=f50e1605]: minimax
+                - generic [ref=f50e1607]:
+                  - generic [ref=f50e1608]: music-video
+                  - generic [ref=f50e1609]: text-to-video
+                  - generic [ref=f50e1610]: text-prompt
+                - generic [ref=f50e1611]:
+                  - button "View Prompt" [ref=f50e1612]
+                  - button "Create This Style" [ref=f50e1613]
+            - generic [ref=f50e1614] [cursor=pointer]:
+              - generic [ref=f50e1615]:
+                - generic [ref=f50e1616]: SOCIAL
+                - img "Would you like to dance?" [ref=f50e1617]
+              - generic [ref=f50e1618]:
+                - generic [ref=f50e1619]: Would you like to dance?
+                - generic [ref=f50e1620]: minimax
+                - generic [ref=f50e1622]:
+                  - generic [ref=f50e1623]: music-video
+                  - generic [ref=f50e1624]: text-to-video
+                  - generic [ref=f50e1625]: dance-invitation
+                - generic [ref=f50e1626]:
+                  - button "View Prompt" [ref=f50e1627]
+                  - button "Create This Style" [ref=f50e1628]

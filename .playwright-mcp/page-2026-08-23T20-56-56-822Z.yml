@@ -1,0 +1,1116 @@
+- generic [ref=f59e2]:
+  - banner [ref=f59e3]:
+    - generic [ref=f59e4]:
+      - generic [ref=f59e5]:
+        - generic [ref=f59e6] [cursor=pointer]
+        - navigation [ref=f59e12]:
+          - generic [ref=f59e13] [cursor=pointer]: Explore
+          - generic [ref=f59e14] [cursor=pointer]: Image
+          - generic [ref=f59e15] [cursor=pointer]: Video
+          - generic [ref=f59e16] [cursor=pointer]: Tools
+          - generic [ref=f59e17] [cursor=pointer]: Storyboard
+          - generic [ref=f59e18] [cursor=pointer]: Edit
+          - generic [ref=f59e19] [cursor=pointer]: Character
+          - generic [ref=f59e20] [cursor=pointer]: Vibe Motion
+          - generic [ref=f59e21] [cursor=pointer]: Cinema Studio
+          - generic [ref=f59e22] [cursor=pointer]: Cinema Template Studio
+          - generic [ref=f59e23] [cursor=pointer]: AI Influencer
+          - generic [ref=f59e24] [cursor=pointer]: Smart Video Viral
+          - generic [ref=f59e25] [cursor=pointer]: Apps
+          - generic [ref=f59e26] [cursor=pointer]: Templates
+          - generic [ref=f59e27] [cursor=pointer]: Assist
+          - generic [ref=f59e28] [cursor=pointer]: Community
+          - generic [ref=f59e29] [cursor=pointer]: Content Library
+      - button "Update API Key" [ref=f59e31]
+  - generic [ref=f59e34]:
+    - complementary [ref=f59e35]:
+      - generic:
+        - generic [ref=f59e36] [cursor=pointer]:
+          - button [ref=f59e37]
+          - generic [ref=f59e43]: Apps
+        - generic [ref=f59e44] [cursor=pointer]:
+          - button [ref=f59e45]
+          - generic [ref=f59e50]: Image
+        - generic [ref=f59e51] [cursor=pointer]:
+          - button [ref=f59e52]
+          - generic [ref=f59e56]: Video
+        - generic [ref=f59e57] [cursor=pointer]:
+          - button [ref=f59e58]
+          - generic [ref=f59e61]: Cinema Studio
+        - generic [ref=f59e62] [cursor=pointer]:
+          - button [ref=f59e63]
+          - generic [ref=f59e66]: Cinema Template Studio
+        - generic [ref=f59e67] [cursor=pointer]:
+          - button [ref=f59e68]
+          - generic [ref=f59e76]: Storyboard
+        - generic [ref=f59e77] [cursor=pointer]:
+          - button [ref=f59e78]
+          - generic [ref=f59e81]: Effects
+        - generic [ref=f59e82] [cursor=pointer]:
+          - button [ref=f59e83]
+          - generic [ref=f59e87]: Edit
+        - generic [ref=f59e88] [cursor=pointer]:
+          - button [ref=f59e89]
+          - generic [ref=f59e95]: Upscale
+        - generic [ref=f59e96] [cursor=pointer]:
+          - button [ref=f59e97]
+          - generic [ref=f59e102]: Audio
+        - generic [ref=f59e103] [cursor=pointer]:
+          - button [ref=f59e104]
+          - generic [ref=f59e109]: Avatar
+        - generic [ref=f59e110] [cursor=pointer]:
+          - button [ref=f59e111]
+          - generic [ref=f59e116]: Training
+        - generic [ref=f59e117] [cursor=pointer]:
+          - button [ref=f59e118]
+          - generic [ref=f59e122]: Smart Video Academy
+        - generic [ref=f59e123] [cursor=pointer]:
+          - button [ref=f59e124]
+          - generic [ref=f59e129]: Smart Video Viral
+        - generic [ref=f59e130] [cursor=pointer]:
+          - button [ref=f59e131]
+          - generic [ref=f59e135]: Video Tools
+        - generic [ref=f59e136] [cursor=pointer]:
+          - button [ref=f59e137]
+          - generic [ref=f59e140]: Render
+        - generic [ref=f59e141] [cursor=pointer]:
+          - button [ref=f59e142]
+          - generic [ref=f59e146]: Director
+        - generic [ref=f59e147] [cursor=pointer]:
+          - button [ref=f59e148]
+          - generic [ref=f59e154]: Timeline
+        - generic [ref=f59e155] [cursor=pointer]:
+          - button [ref=f59e156]
+          - generic [ref=f59e159]: Chat
+        - generic [ref=f59e160] [cursor=pointer]:
+          - button [ref=f59e161]
+          - generic [ref=f59e165]: Commercial
+        - generic [ref=f59e166] [cursor=pointer]:
+          - button [ref=f59e167]
+          - generic [ref=f59e170]: Templates
+        - generic [ref=f59e171] [cursor=pointer]:
+          - button [ref=f59e172]
+          - generic [ref=f59e176]: Explore
+        - generic [ref=f59e177] [cursor=pointer]:
+          - button [ref=f59e178]
+          - generic [ref=f59e182]: Library
+        - generic [ref=f59e183] [cursor=pointer]:
+          - button [ref=f59e184]
+          - generic [ref=f59e187]: Content
+        - generic [ref=f59e188] [cursor=pointer]:
+          - button [ref=f59e189]
+          - generic [ref=f59e195]: Community
+        - generic [ref=f59e196] [cursor=pointer]:
+          - button [ref=f59e197]
+          - generic [ref=f59e202]: Assist
+        - generic [ref=f59e203] [cursor=pointer]:
+          - button [ref=f59e204]
+          - generic [ref=f59e208]: Commits (0)
+        - generic [ref=f59e209] [cursor=pointer]:
+          - button [ref=f59e210]
+          - generic [ref=f59e214]: AI VFX
+        - generic [ref=f59e215] [cursor=pointer]:
+          - button [ref=f59e216]
+          - generic [ref=f59e220]: Stock Media
+      - generic [ref=f59e221] [cursor=pointer]:
+        - button [ref=f59e222]
+        - generic [ref=f59e226]: Settings
+    - main [ref=f59e227]:
+      - generic [ref=f59e228]:
+        - generic [ref=f59e229]:
+          - button "All studios" [ref=f59e230]
+          - button "Back" [ref=f59e236]
+        - generic [ref=f59e240]:
+          - img "image studio" [ref=f59e241]
+          - generic [ref=f59e243]:
+            - heading "Image Studio" [level=1] [ref=f59e244]
+            - paragraph [ref=f59e245]: Transform images with AI — upscale, stylize, animate and more
+        - generic [ref=f59e247]:
+          - generic [ref=f59e248]:
+            - button "Reference media" [ref=f59e249]
+            - button "Browse stock photos from Pexels" [ref=f59e254]
+            - textbox "Image prompt" [ref=f59e258]:
+              - /placeholder: Describe the image you want to create
+            - generic [ref=f59e259]:
+              - button "GTM Boost prompt enhancer" [ref=f59e260] [cursor=pointer]: 🎯 GTM Boost
+              - button "Open recipe engine" [ref=f59e261] [cursor=pointer]: 📋 Recipes
+              - button "Open Smart Video AI Monetization Hub" [ref=f59e262] [cursor=pointer]: 💼 Monetize
+              - button "Open prompt gallery" [ref=f59e263] [cursor=pointer]: 📚 Prompts
+          - generic [ref=f59e264]:
+            - generic [ref=f59e265]:
+              - button "Nano Banana Select AI generation model" [active] [ref=f59e266]:
+                - generic [ref=f59e268]: Nano Banana
+                - text: Select AI generation model
+              - button "1:1 Change aspect ratio" [ref=f59e271]:
+                - generic [ref=f59e274]: 1:1
+                - text: Change aspect ratio
+              - text: Set output quality
+              - button "🖼 Thumbnail" [ref=f59e277] [cursor=pointer]
+              - button "Advanced Show advanced options" [ref=f59e278]:
+                - generic [ref=f59e282]: Advanced
+                - text: Show advanced options
+              - button "Open model picker" [ref=f59e285]: AI Pick
+              - button "Tools Quick starters & prompt enhancer" [ref=f59e286]:
+                - generic [ref=f59e289]: Tools
+                - text: Quick starters & prompt enhancer
+              - button "Personalize Personalize with a discovered contact" [ref=f59e292]:
+                - generic [ref=f59e296]: Personalize
+                - text: Personalize with a discovered contact
+            - button "Generate image" [ref=f59e299] [cursor=pointer]: Generate ✨ Generate AI image from prompt
+        - generic [ref=f59e300]:
+          - generic [ref=f59e301]:
+            - generic [ref=f59e302]:
+              - generic [ref=f59e303]: "1"
+              - generic [ref=f59e305]:
+                - generic [ref=f59e306]: Choose a model
+                - generic [ref=f59e307]: Select from 20+ AI models in the sidebar. Each model has different strengths for portraits, landscapes, or abstract art.
+            - generic [ref=f59e308]:
+              - generic [ref=f59e309]: "2"
+              - generic [ref=f59e311]:
+                - generic [ref=f59e312]: Write your prompt
+                - generic [ref=f59e313]: Describe what you want to create. Be specific about style, lighting, composition, and mood for better results.
+            - generic [ref=f59e314]:
+              - generic [ref=f59e315]: "3"
+              - generic [ref=f59e317]:
+                - generic [ref=f59e318]: Set parameters
+                - generic [ref=f59e319]: Adjust aspect ratio, resolution, and other settings. Use negative prompts to exclude unwanted elements.
+            - generic [ref=f59e320]:
+              - generic [ref=f59e321]: "4"
+              - generic [ref=f59e323]:
+                - generic [ref=f59e324]: Generate and refine
+                - generic [ref=f59e325]: Click Generate to create your image. Use the result as a starting point and iterate on your prompt for improvements.
+          - generic [ref=f59e326]:
+            - button [ref=f59e327]
+            - generic [ref=f59e331]:
+              - generic [ref=f59e332]:
+                - generic [ref=f59e333]: ●
+                - generic [ref=f59e334]: Add "4K, detailed, professional" to improve quality
+              - generic [ref=f59e335]:
+                - generic [ref=f59e336]: ●
+                - generic [ref=f59e337]: Specify camera angles like "shot from below" or "bird's eye view"
+              - generic [ref=f59e338]:
+                - generic [ref=f59e339]: ●
+                - generic [ref=f59e340]: "Reference art styles: \"in the style of watercolor painting\""
+        - generic [ref=f59e791]:
+          - generic [ref=f59e792]:
+            - button "All Providers" [ref=f59e793] [cursor=pointer]
+            - button [ref=f59e796] [cursor=pointer]:
+              - img "Google" [ref=f59e797]
+              - text: G" />
+            - button [ref=f59e798] [cursor=pointer]:
+              - img "Black Forest Labs" [ref=f59e799]
+              - text: BF" />
+            - button [ref=f59e800] [cursor=pointer]:
+              - img "MuAPI" [ref=f59e801]
+              - text: MU" />
+            - button [ref=f59e802] [cursor=pointer]:
+              - img "Wan" [ref=f59e803]
+              - text: WA" />
+            - button [ref=f59e804] [cursor=pointer]:
+              - img "OpenAI" [ref=f59e805]
+              - text: O" />
+            - button [ref=f59e806] [cursor=pointer]:
+              - img "Midjourney" [ref=f59e807]
+              - text: MJ" />
+            - button [ref=f59e808] [cursor=pointer]:
+              - img "Alibaba" [ref=f59e809]
+              - text: AL" />
+            - button [ref=f59e810] [cursor=pointer]:
+              - img "Ideogram" [ref=f59e811]
+              - text: ID" />
+            - button [ref=f59e812] [cursor=pointer]:
+              - img "Stability AI" [ref=f59e813]
+              - text: SD" />
+            - button [ref=f59e814] [cursor=pointer]:
+              - img "ByteDance" [ref=f59e815]
+              - text: BD" />
+            - button [ref=f59e816] [cursor=pointer]:
+              - img "Hunyuan" [ref=f59e817]
+              - text: HY" />
+            - button [ref=f59e818] [cursor=pointer]:
+              - img "Leonardo AI" [ref=f59e819]
+              - text: LE" />
+            - button [ref=f59e820] [cursor=pointer]:
+              - img "Reve" [ref=f59e821]
+              - text: RE" />
+            - button [ref=f59e822] [cursor=pointer]:
+              - img "Grok" [ref=f59e823]
+              - text: xI" />
+            - button [ref=f59e824] [cursor=pointer]:
+              - img "Kling" [ref=f59e825]
+              - text: KL" />
+            - button [ref=f59e826] [cursor=pointer]:
+              - img "Vidu" [ref=f59e827]
+              - text: VD" />
+          - generic [ref=f59e828]:
+            - generic [ref=f59e829]:
+              - generic [ref=f59e830]:
+                - button "Text to Image" [ref=f59e831]
+                - button "Image to Image" [ref=f59e832]
+              - textbox "Search models..." [ref=f59e837]
+            - generic [ref=f59e838]: Text to Image models
+            - generic [ref=f59e839]:
+              - generic [ref=f59e840] [cursor=pointer]:
+                - generic [ref=f59e841]:
+                  - generic [ref=f59e842]:
+                    - img "Google" [ref=f59e843]
+                    - text: G
+                  - text: "'\" />"
+                - generic [ref=f59e844]:
+                  - generic [ref=f59e845]: Nano Banana
+                  - generic [ref=f59e846]: Google
+              - generic [ref=f59e848] [cursor=pointer]:
+                - generic [ref=f59e849]:
+                  - generic [ref=f59e850]:
+                    - img "Black Forest Labs" [ref=f59e851]
+                    - text: BF
+                  - text: "'\" />"
+                - generic [ref=f59e852]:
+                  - generic [ref=f59e853]: Flux Dev
+                  - generic [ref=f59e854]: Black Forest Labs
+              - generic [ref=f59e855] [cursor=pointer]:
+                - generic [ref=f59e856]:
+                  - generic [ref=f59e857]:
+                    - img "Black Forest Labs" [ref=f59e858]
+                    - text: BF
+                  - text: "'\" />"
+                - generic [ref=f59e859]:
+                  - generic [ref=f59e860]: Flux Kontext Dev T2I
+                  - generic [ref=f59e861]: Black Forest Labs
+              - generic [ref=f59e862] [cursor=pointer]:
+                - generic [ref=f59e863]:
+                  - generic [ref=f59e864]:
+                    - img "MuAPI" [ref=f59e865]
+                    - text: MU
+                  - text: "'\" />"
+                - generic [ref=f59e866]:
+                  - generic [ref=f59e867]: Ai Anime Generator
+                  - generic [ref=f59e868]: MuAPI
+              - generic [ref=f59e869] [cursor=pointer]:
+                - generic [ref=f59e870]:
+                  - generic [ref=f59e871]:
+                    - img "Wan" [ref=f59e872]
+                    - text: WA
+                  - text: "'\" />"
+                - generic [ref=f59e873]:
+                  - generic [ref=f59e874]: Wan2.1 Text To Image
+                  - generic [ref=f59e875]: Wan
+              - generic [ref=f59e876] [cursor=pointer]:
+                - generic [ref=f59e877]:
+                  - generic [ref=f59e878]:
+                    - img "Black Forest Labs" [ref=f59e879]
+                    - text: BF
+                  - text: "'\" />"
+                - generic [ref=f59e880]:
+                  - generic [ref=f59e881]: Flux Kontext Pro T2I
+                  - generic [ref=f59e882]: Black Forest Labs
+              - generic [ref=f59e883] [cursor=pointer]:
+                - generic [ref=f59e884]:
+                  - generic [ref=f59e885]:
+                    - img "Black Forest Labs" [ref=f59e886]
+                    - text: BF
+                  - text: "'\" />"
+                - generic [ref=f59e887]:
+                  - generic [ref=f59e888]: Flux Kontext Max T2I
+                  - generic [ref=f59e889]: Black Forest Labs
+              - generic [ref=f59e890] [cursor=pointer]:
+                - generic [ref=f59e891]:
+                  - generic [ref=f59e892]:
+                    - img "OpenAI" [ref=f59e893]
+                    - text: O
+                  - text: "'\" />"
+                - generic [ref=f59e894]:
+                  - generic [ref=f59e895]: Gpt4o Text To Image
+                  - generic [ref=f59e896]: OpenAI
+              - generic [ref=f59e897] [cursor=pointer]:
+                - generic [ref=f59e898]:
+                  - generic [ref=f59e899]:
+                    - img "Midjourney" [ref=f59e900]
+                    - text: MJ
+                  - text: "'\" />"
+                - generic [ref=f59e901]:
+                  - generic [ref=f59e902]: Midjourney v7 Text To Image
+                  - generic [ref=f59e903]: Midjourney
+              - generic [ref=f59e904] [cursor=pointer]:
+                - generic [ref=f59e905]:
+                  - generic [ref=f59e906]:
+                    - img "Black Forest Labs" [ref=f59e907]
+                    - text: BF
+                  - text: "'\" />"
+                - generic [ref=f59e908]:
+                  - generic [ref=f59e909]: Flux Schnell
+                  - generic [ref=f59e910]: Black Forest Labs
+              - generic [ref=f59e911] [cursor=pointer]:
+                - generic [ref=f59e912]:
+                  - generic [ref=f59e913]:
+                    - img "Alibaba" [ref=f59e914]
+                    - text: AL
+                  - text: "'\" />"
+                - generic [ref=f59e915]:
+                  - generic [ref=f59e916]: Qwen Image
+                  - generic [ref=f59e917]: Alibaba
+              - generic [ref=f59e918] [cursor=pointer]:
+                - generic [ref=f59e919]:
+                  - generic [ref=f59e920]:
+                    - img "Black Forest Labs" [ref=f59e921]
+                    - text: BF
+                  - text: "'\" />"
+                - generic [ref=f59e922]:
+                  - generic [ref=f59e923]: Flux Pulid
+                  - generic [ref=f59e924]: Black Forest Labs
+              - generic [ref=f59e925] [cursor=pointer]:
+                - generic [ref=f59e926]:
+                  - generic [ref=f59e927]:
+                    - img "Ideogram" [ref=f59e928]
+                    - text: ID
+                  - text: "'\" />"
+                - generic [ref=f59e929]:
+                  - generic [ref=f59e930]: Ideogram v3 T2I
+                  - generic [ref=f59e931]: Ideogram
+              - generic [ref=f59e932] [cursor=pointer]:
+                - generic [ref=f59e933]:
+                  - generic [ref=f59e934]:
+                    - img "Google" [ref=f59e935]
+                    - text: G
+                  - text: "'\" />"
+                - generic [ref=f59e936]:
+                  - generic [ref=f59e937]: Google Imagen4
+                  - generic [ref=f59e938]: Google
+              - generic [ref=f59e939] [cursor=pointer]:
+                - generic [ref=f59e940]:
+                  - generic [ref=f59e941]:
+                    - img "Google" [ref=f59e942]
+                    - text: G
+                  - text: "'\" />"
+                - generic [ref=f59e943]:
+                  - generic [ref=f59e944]: Google Imagen4 Fast
+                  - generic [ref=f59e945]: Google
+              - generic [ref=f59e946] [cursor=pointer]:
+                - generic [ref=f59e947]:
+                  - generic [ref=f59e948]:
+                    - img "Google" [ref=f59e949]
+                    - text: G
+                  - text: "'\" />"
+                - generic [ref=f59e950]:
+                  - generic [ref=f59e951]: Google Imagen4 Ultra
+                  - generic [ref=f59e952]: Google
+              - generic [ref=f59e953] [cursor=pointer]:
+                - generic [ref=f59e954]:
+                  - generic [ref=f59e955]:
+                    - img "Stability AI" [ref=f59e956]
+                    - text: SD
+                  - text: "'\" />"
+                - generic [ref=f59e957]:
+                  - generic [ref=f59e958]: Sdxl Image
+                  - generic [ref=f59e959]: Stability AI
+              - generic [ref=f59e960] [cursor=pointer]:
+                - generic [ref=f59e961]:
+                  - generic [ref=f59e962]:
+                    - img "ByteDance" [ref=f59e963]
+                    - text: BD
+                  - text: "'\" />"
+                - generic [ref=f59e964]:
+                  - generic [ref=f59e965]: Bytedance Seedream v4
+                  - generic [ref=f59e966]: ByteDance
+              - generic [ref=f59e967] [cursor=pointer]:
+                - generic [ref=f59e968]:
+                  - generic [ref=f59e969]:
+                    - img "Hunyuan" [ref=f59e970]
+                    - text: HY
+                  - text: "'\" />"
+                - generic [ref=f59e971]:
+                  - generic [ref=f59e972]: Hunyuan Image 2.1
+                  - generic [ref=f59e973]: Hunyuan
+              - generic [ref=f59e974] [cursor=pointer]:
+                - generic [ref=f59e975]:
+                  - generic [ref=f59e976]:
+                    - img "MuAPI" [ref=f59e977]
+                    - text: MU
+                  - text: "'\" />"
+                - generic [ref=f59e978]:
+                  - generic [ref=f59e979]: Chroma Image
+                  - generic [ref=f59e980]: MuAPI
+              - generic [ref=f59e981] [cursor=pointer]:
+                - generic [ref=f59e982]:
+                  - generic [ref=f59e983]:
+                    - img "Black Forest Labs" [ref=f59e984]
+                    - text: BF
+                  - text: "'\" />"
+                - generic [ref=f59e985]:
+                  - generic [ref=f59e986]: Flux Redux
+                  - generic [ref=f59e987]: Black Forest Labs
+              - generic [ref=f59e988] [cursor=pointer]:
+                - generic [ref=f59e989]:
+                  - generic [ref=f59e990]:
+                    - img "Black Forest Labs" [ref=f59e991]
+                    - text: BF
+                  - text: "'\" />"
+                - generic [ref=f59e992]:
+                  - generic [ref=f59e993]: Flux Krea Dev
+                  - generic [ref=f59e994]: Black Forest Labs
+              - generic [ref=f59e995] [cursor=pointer]:
+                - generic [ref=f59e996]:
+                  - generic [ref=f59e997]:
+                    - img "MuAPI" [ref=f59e998]
+                    - text: MU
+                  - text: "'\" />"
+                - generic [ref=f59e999]:
+                  - generic [ref=f59e1000]: Perfect Pony Xl
+                  - generic [ref=f59e1001]: MuAPI
+              - generic [ref=f59e1002] [cursor=pointer]:
+                - generic [ref=f59e1003]:
+                  - generic [ref=f59e1004]:
+                    - img "MuAPI" [ref=f59e1005]
+                    - text: MU
+                  - text: "'\" />"
+                - generic [ref=f59e1006]:
+                  - generic [ref=f59e1007]: Neta Lumina
+                  - generic [ref=f59e1008]: MuAPI
+              - generic [ref=f59e1009] [cursor=pointer]:
+                - generic [ref=f59e1010]:
+                  - generic [ref=f59e1011]:
+                    - img "Wan" [ref=f59e1012]
+                    - text: WA
+                  - text: "'\" />"
+                - generic [ref=f59e1013]:
+                  - generic [ref=f59e1014]: Wan2.5 Text To Image
+                  - generic [ref=f59e1015]: Wan
+              - generic [ref=f59e1016] [cursor=pointer]:
+                - generic [ref=f59e1017]:
+                  - generic [ref=f59e1018]:
+                    - img "Hunyuan" [ref=f59e1019]
+                    - text: HY
+                  - text: "'\" />"
+                - generic [ref=f59e1020]:
+                  - generic [ref=f59e1021]: Hunyuan Image 3.0
+                  - generic [ref=f59e1022]: Hunyuan
+              - generic [ref=f59e1023] [cursor=pointer]:
+                - generic [ref=f59e1024]:
+                  - generic [ref=f59e1025]:
+                    - img "Leonardo AI" [ref=f59e1026]
+                    - text: LE
+                  - text: "'\" />"
+                - generic [ref=f59e1027]:
+                  - generic [ref=f59e1028]: Leonardoai Phoenix 1.0
+                  - generic [ref=f59e1029]: Leonardo AI
+              - generic [ref=f59e1030] [cursor=pointer]:
+                - generic [ref=f59e1031]:
+                  - generic [ref=f59e1032]:
+                    - img "Leonardo AI" [ref=f59e1033]
+                    - text: LE
+                  - text: "'\" />"
+                - generic [ref=f59e1034]:
+                  - generic [ref=f59e1035]: Leonardoai Lucid Origin
+                  - generic [ref=f59e1036]: Leonardo AI
+              - generic [ref=f59e1037] [cursor=pointer]:
+                - generic [ref=f59e1038]:
+                  - generic [ref=f59e1039]:
+                    - img "Reve" [ref=f59e1040]
+                    - text: RE
+                  - text: "'\" />"
+                - generic [ref=f59e1041]:
+                  - generic [ref=f59e1042]: Reve Text To Image
+                  - generic [ref=f59e1043]: Reve
+              - generic [ref=f59e1044] [cursor=pointer]:
+                - generic [ref=f59e1045]:
+                  - generic [ref=f59e1046]:
+                    - img "Grok" [ref=f59e1047]
+                    - text: xI
+                  - text: "'\" />"
+                - generic [ref=f59e1048]:
+                  - generic [ref=f59e1049]: Grok Imagine Text To Image
+                  - generic [ref=f59e1050]: Grok
+              - generic [ref=f59e1051] [cursor=pointer]:
+                - generic [ref=f59e1052]:
+                  - generic [ref=f59e1053]:
+                    - img "Google" [ref=f59e1054]
+                    - text: G
+                  - text: "'\" />"
+                - generic [ref=f59e1055]:
+                  - generic [ref=f59e1056]: Nano Banana Pro
+                  - generic [ref=f59e1057]: Google
+              - generic [ref=f59e1058] [cursor=pointer]:
+                - generic [ref=f59e1059]:
+                  - generic [ref=f59e1060]:
+                    - img "Kling" [ref=f59e1061]
+                    - text: KL
+                  - text: "'\" />"
+                - generic [ref=f59e1062]:
+                  - generic [ref=f59e1063]: Kling O1 Text To Image
+                  - generic [ref=f59e1064]: Kling
+              - generic [ref=f59e1065] [cursor=pointer]:
+                - generic [ref=f59e1066]:
+                  - generic [ref=f59e1067]:
+                    - img "MuAPI" [ref=f59e1068]
+                    - text: MU
+                  - text: "'\" />"
+                - generic [ref=f59e1069]:
+                  - generic [ref=f59e1070]: Z Image Turbo
+                  - generic [ref=f59e1071]: MuAPI
+              - generic [ref=f59e1072] [cursor=pointer]:
+                - generic [ref=f59e1073]:
+                  - generic [ref=f59e1074]:
+                    - img "Black Forest Labs" [ref=f59e1075]
+                    - text: BF
+                  - text: "'\" />"
+                - generic [ref=f59e1076]:
+                  - generic [ref=f59e1077]: Flux 2 Dev
+                  - generic [ref=f59e1078]: Black Forest Labs
+              - generic [ref=f59e1079] [cursor=pointer]:
+                - generic [ref=f59e1080]:
+                  - generic [ref=f59e1081]:
+                    - img "Black Forest Labs" [ref=f59e1082]
+                    - text: BF
+                  - text: "'\" />"
+                - generic [ref=f59e1083]:
+                  - generic [ref=f59e1084]: Flux 2 Flex
+                  - generic [ref=f59e1085]: Black Forest Labs
+              - generic [ref=f59e1086] [cursor=pointer]:
+                - generic [ref=f59e1087]:
+                  - generic [ref=f59e1088]:
+                    - img "Black Forest Labs" [ref=f59e1089]
+                    - text: BF
+                  - text: "'\" />"
+                - generic [ref=f59e1090]:
+                  - generic [ref=f59e1091]: Flux 2 Pro
+                  - generic [ref=f59e1092]: Black Forest Labs
+              - generic [ref=f59e1093] [cursor=pointer]:
+                - generic [ref=f59e1094]:
+                  - generic [ref=f59e1095]:
+                    - img "Vidu" [ref=f59e1096]
+                    - text: VD
+                  - text: "'\" />"
+                - generic [ref=f59e1097]:
+                  - generic [ref=f59e1098]: Vidu Q2 Text To Image
+                  - generic [ref=f59e1099]: Vidu
+              - generic [ref=f59e1100] [cursor=pointer]:
+                - generic [ref=f59e1101]:
+                  - generic [ref=f59e1102]:
+                    - img "ByteDance" [ref=f59e1103]
+                    - text: BD
+                  - text: "'\" />"
+                - generic [ref=f59e1104]:
+                  - generic [ref=f59e1105]: Bytedance Seedream V4.5
+                  - generic [ref=f59e1106]: ByteDance
+              - generic [ref=f59e1107] [cursor=pointer]:
+                - generic [ref=f59e1108]:
+                  - generic [ref=f59e1109]:
+                    - img "OpenAI" [ref=f59e1110]
+                    - text: O
+                  - text: "'\" />"
+                - generic [ref=f59e1111]:
+                  - generic [ref=f59e1112]: Gpt Image 1.5
+                  - generic [ref=f59e1113]: OpenAI
+              - generic [ref=f59e1114] [cursor=pointer]:
+                - generic [ref=f59e1115]:
+                  - generic [ref=f59e1116]:
+                    - img "Wan" [ref=f59e1117]
+                    - text: WA
+                  - text: "'\" />"
+                - generic [ref=f59e1118]:
+                  - generic [ref=f59e1119]: Wan2.6 Text To Image
+                  - generic [ref=f59e1120]: Wan
+              - generic [ref=f59e1121] [cursor=pointer]:
+                - generic [ref=f59e1122]:
+                  - generic [ref=f59e1123]:
+                    - img "Alibaba" [ref=f59e1124]
+                    - text: AL
+                  - text: "'\" />"
+                - generic [ref=f59e1125]:
+                  - generic [ref=f59e1126]: Qwen Text To Image 2512
+                  - generic [ref=f59e1127]: Alibaba
+              - generic [ref=f59e1128] [cursor=pointer]:
+                - generic [ref=f59e1129]:
+                  - generic [ref=f59e1130]:
+                    - img "Black Forest Labs" [ref=f59e1131]
+                    - text: BF
+                  - text: "'\" />"
+                - generic [ref=f59e1132]:
+                  - generic [ref=f59e1133]: Flux 2 Klein 4b
+                  - generic [ref=f59e1134]: Black Forest Labs
+              - generic [ref=f59e1135] [cursor=pointer]:
+                - generic [ref=f59e1136]:
+                  - generic [ref=f59e1137]:
+                    - img "Black Forest Labs" [ref=f59e1138]
+                    - text: BF
+                  - text: "'\" />"
+                - generic [ref=f59e1139]:
+                  - generic [ref=f59e1140]: Flux 2 Klein 9b
+                  - generic [ref=f59e1141]: Black Forest Labs
+              - generic [ref=f59e1142] [cursor=pointer]:
+                - generic [ref=f59e1143]:
+                  - generic [ref=f59e1144]:
+                    - img "MuAPI" [ref=f59e1145]
+                    - text: MU
+                  - text: "'\" />"
+                - generic [ref=f59e1146]:
+                  - generic [ref=f59e1147]: Z Image Base
+                  - generic [ref=f59e1148]: MuAPI
+              - generic [ref=f59e1149] [cursor=pointer]:
+                - generic [ref=f59e1150]:
+                  - generic [ref=f59e1151]:
+                    - img "Google" [ref=f59e1152]
+                    - text: G
+                  - text: "'\" />"
+                - generic [ref=f59e1153]:
+                  - generic [ref=f59e1154]: Nano Banana 2
+                  - generic [ref=f59e1155]: Google
+              - generic [ref=f59e1156] [cursor=pointer]:
+                - generic [ref=f59e1157]:
+                  - generic [ref=f59e1158]:
+                    - img "ByteDance" [ref=f59e1159]
+                    - text: BD
+                  - text: "'\" />"
+                - generic [ref=f59e1160]:
+                  - generic [ref=f59e1161]: Seedream 5.0
+                  - generic [ref=f59e1162]: ByteDance
+              - generic [ref=f59e1163] [cursor=pointer]:
+                - generic [ref=f59e1164]:
+                  - generic [ref=f59e1165]:
+                    - img "MuAPI" [ref=f59e1166]
+                    - text: MU
+                  - text: "'\" />"
+                - generic [ref=f59e1167]:
+                  - generic [ref=f59e1168]: GPT Image 2 (Text to Image)
+                  - generic [ref=f59e1169]: MuAPI
+              - generic [ref=f59e1170] [cursor=pointer]:
+                - generic [ref=f59e1171]:
+                  - generic [ref=f59e1172]:
+                    - img "MuAPI" [ref=f59e1173]
+                    - text: MU
+                  - text: "'\" />"
+                - generic [ref=f59e1174]:
+                  - generic [ref=f59e1175]: Seedream 5.0 Pro (Text to Image)
+                  - generic [ref=f59e1176]: MuAPI
+        - generic [ref=f59e341]: History
+        - status:
+          - generic:
+            - button "↻ Regenerate"
+            - button "↓ Download"
+            - button "+ New"
+            - button "Publish to Social"
+        - generic [ref=f59e343]:
+          - generic [ref=f59e344]:
+            - generic [ref=f59e345]:
+              - generic [ref=f59e346]: Example Gallery
+              - generic [ref=f59e347]: Click any card to view the prompt or create in this style
+            - generic [ref=f59e348]: 28 examples
+          - generic [ref=f59e349]:
+            - text: "Sort by:"
+            - combobox [ref=f59e350]:
+              - option "Default" [selected]
+              - option "Title A-Z"
+              - option "Title Z-A"
+              - option "Duration (shortest)"
+              - option "Duration (longest)"
+              - option "Source"
+          - generic [ref=f59e351]:
+            - button "All" [ref=f59e352] [cursor=pointer]
+            - button "product-marketing" [ref=f59e353] [cursor=pointer]
+            - button "3d" [ref=f59e354] [cursor=pointer]
+            - button "product" [ref=f59e355] [cursor=pointer]
+            - button "food" [ref=f59e356] [cursor=pointer]
+            - button "landscape" [ref=f59e357] [cursor=pointer]
+            - button "infographic-/-edu" [ref=f59e358] [cursor=pointer]
+            - button "watercolor" [ref=f59e359] [cursor=pointer]
+            - button "infographic" [ref=f59e360] [cursor=pointer]
+            - button "app-/-web-design" [ref=f59e361] [cursor=pointer]
+            - button "social-media" [ref=f59e362] [cursor=pointer]
+            - button "character" [ref=f59e363] [cursor=pointer]
+            - button "poster" [ref=f59e364] [cursor=pointer]
+            - button "profile-/-avatar" [ref=f59e365] [cursor=pointer]
+            - button "portrait" [ref=f59e366] [cursor=pointer]
+            - button "photorealistic" [ref=f59e367] [cursor=pointer]
+            - button "cinematic" [ref=f59e368] [cursor=pointer]
+            - button "interior" [ref=f59e369] [cursor=pointer]
+            - button "selfie" [ref=f59e370] [cursor=pointer]
+            - button "minimalist" [ref=f59e371] [cursor=pointer]
+            - button "render" [ref=f59e372] [cursor=pointer]
+            - button "fashion" [ref=f59e373] [cursor=pointer]
+            - button "social" [ref=f59e374] [cursor=pointer]
+          - generic [ref=f59e375]:
+            - generic [ref=f59e376] [cursor=pointer]:
+              - generic [ref=f59e377]:
+                - generic [ref=f59e378]: PRODUCT MARKETING
+                - img "Premium liquid glass Bento grid product infographic with 8 modules" [ref=f59e379]
+              - generic [ref=f59e380]:
+                - generic [ref=f59e381]: Premium liquid glass Bento grid product infographic with 8 modules
+                - generic [ref=f59e382]: Mansi Sanghani
+                - generic [ref=f59e384]:
+                  - generic [ref=f59e385]: product-marketing
+                  - generic [ref=f59e386]: 3d
+                  - generic [ref=f59e387]: product
+                - generic [ref=f59e388]:
+                  - button "View Prompt" [ref=f59e389]
+                  - button "Create This Style" [ref=f59e390]
+            - generic [ref=f59e391] [cursor=pointer]:
+              - generic [ref=f59e392]:
+                - generic [ref=f59e393]: INFOGRAPHIC / EDU
+                - img "Watercolor map of Germany with labeled states" [ref=f59e394]
+              - generic [ref=f59e395]:
+                - generic [ref=f59e396]: Watercolor map of Germany with labeled states
+                - generic [ref=f59e397]: Florian Gallwitz
+                - generic [ref=f59e399]:
+                  - generic [ref=f59e400]: infographic-/-edu
+                  - generic [ref=f59e401]: watercolor
+                  - generic [ref=f59e402]: infographic
+                - generic [ref=f59e403]:
+                  - button "View Prompt" [ref=f59e404]
+                  - button "Create This Style" [ref=f59e405]
+            - generic [ref=f59e406] [cursor=pointer]:
+              - generic [ref=f59e407]:
+                - generic [ref=f59e408]: APP / WEB DESIGN
+                - img "Vintage Patent Document for an Invention" [ref=f59e409]
+              - generic [ref=f59e410]:
+                - generic [ref=f59e411]: Vintage Patent Document for an Invention
+                - generic [ref=f59e412]: Alexandra Aisling
+                - generic [ref=f59e414]: app-/-web-design
+                - generic [ref=f59e416]:
+                  - button "View Prompt" [ref=f59e417]
+                  - button "Create This Style" [ref=f59e418]
+            - generic [ref=f59e419] [cursor=pointer]:
+              - generic [ref=f59e420]:
+                - generic [ref=f59e421]: SOCIAL MEDIA
+                - img "Edo-period Ukiyo-e reinterpretation of a modern scene" [ref=f59e422]
+              - generic [ref=f59e423]:
+                - generic [ref=f59e424]: Edo-period Ukiyo-e reinterpretation of a modern scene
+                - generic [ref=f59e425]: VoxcatAI
+                - generic [ref=f59e427]:
+                  - generic [ref=f59e428]: social-media
+                  - generic [ref=f59e429]: character
+                  - generic [ref=f59e430]: poster
+                - generic [ref=f59e431]:
+                  - button "View Prompt" [ref=f59e432]
+                  - button "Create This Style" [ref=f59e433]
+            - generic [ref=f59e434] [cursor=pointer]:
+              - generic [ref=f59e435]:
+                - generic [ref=f59e436]: PROFILE / AVATAR
+                - img "Profile / Avatar - Copper-Red Hair Window Portrait" [ref=f59e437]
+              - generic [ref=f59e438]:
+                - generic [ref=f59e439]: Profile / Avatar - Copper-Red Hair Window Portrait
+                - generic [ref=f59e440]: J⭕DIE
+                - generic [ref=f59e442]:
+                  - generic [ref=f59e443]: profile-/-avatar
+                  - generic [ref=f59e444]: portrait
+                  - generic [ref=f59e445]: photorealistic
+                - generic [ref=f59e446]:
+                  - button "View Prompt" [ref=f59e447]
+                  - button "Create This Style" [ref=f59e448]
+            - generic [ref=f59e449] [cursor=pointer]:
+              - generic [ref=f59e450]:
+                - generic [ref=f59e451]: PROFILE / AVATAR
+                - img "Profile / Avatar - Cinematic Summer Garden Portrait" [ref=f59e452]
+              - generic [ref=f59e453]:
+                - generic [ref=f59e454]: Profile / Avatar - Cinematic Summer Garden Portrait
+                - generic [ref=f59e455]: dreamy digital arts
+                - generic [ref=f59e457]:
+                  - generic [ref=f59e458]: profile-/-avatar
+                  - generic [ref=f59e459]: portrait
+                  - generic [ref=f59e460]: cinematic
+                - generic [ref=f59e461]:
+                  - button "View Prompt" [ref=f59e462]
+                  - button "Create This Style" [ref=f59e463]
+            - generic [ref=f59e464] [cursor=pointer]:
+              - generic [ref=f59e465]:
+                - generic [ref=f59e466]: PROFILE / AVATAR
+                - img "Profile / Avatar - Casual Hijab Selfie Portrait" [ref=f59e467]
+              - generic [ref=f59e468]:
+                - generic [ref=f59e469]: Profile / Avatar - Casual Hijab Selfie Portrait
+                - generic [ref=f59e470]: Feyber | AI Creator
+                - generic [ref=f59e472]:
+                  - generic [ref=f59e473]: profile-/-avatar
+                  - generic [ref=f59e474]: portrait
+                  - generic [ref=f59e475]: selfie
+                - generic [ref=f59e476]:
+                  - button "View Prompt" [ref=f59e477]
+                  - button "Create This Style" [ref=f59e478]
+            - generic [ref=f59e479] [cursor=pointer]:
+              - generic [ref=f59e480]:
+                - generic [ref=f59e481]: PROFILE / AVATAR
+                - img "Profile / Avatar - Madison Beer Boa Hancock Cosplay" [ref=f59e482]
+              - generic [ref=f59e483]:
+                - generic [ref=f59e484]: Profile / Avatar - Madison Beer Boa Hancock Cosplay
+                - generic [ref=f59e485]: KeorUnreal
+                - generic [ref=f59e487]:
+                  - generic [ref=f59e488]: profile-/-avatar
+                  - generic [ref=f59e489]: portrait
+                  - generic [ref=f59e490]: selfie
+                - generic [ref=f59e491]:
+                  - button "View Prompt" [ref=f59e492]
+                  - button "Create This Style" [ref=f59e493]
+            - generic [ref=f59e494] [cursor=pointer]:
+              - generic [ref=f59e495]:
+                - generic [ref=f59e496]: PROFILE / AVATAR
+                - img "Profile / Avatar - Ultra-Detailed Cinematic Spring Portrait" [ref=f59e497]
+              - generic [ref=f59e498]:
+                - generic [ref=f59e499]: Profile / Avatar - Ultra-Detailed Cinematic Spring Portrait
+                - generic [ref=f59e500]: dreamy digital arts
+                - generic [ref=f59e502]:
+                  - generic [ref=f59e503]: profile-/-avatar
+                  - generic [ref=f59e504]: portrait
+                  - generic [ref=f59e505]: cinematic
+                - generic [ref=f59e506]:
+                  - button "View Prompt" [ref=f59e507]
+                  - button "Create This Style" [ref=f59e508]
+            - generic [ref=f59e509] [cursor=pointer]:
+              - generic [ref=f59e510]:
+                - generic [ref=f59e511]: PROFILE / AVATAR
+                - img "Profile / Avatar - Cinematic Tropical Forest Survival Portrait" [ref=f59e512]
+              - generic [ref=f59e513]:
+                - generic [ref=f59e514]: Profile / Avatar - Cinematic Tropical Forest Survival Portrait
+                - generic [ref=f59e515]: Ayla | AI & Tech
+                - generic [ref=f59e517]:
+                  - generic [ref=f59e518]: profile-/-avatar
+                  - generic [ref=f59e519]: portrait
+                  - generic [ref=f59e520]: photorealistic
+                - generic [ref=f59e521]:
+                  - button "View Prompt" [ref=f59e522]
+                  - button "Create This Style" [ref=f59e523]
+            - generic [ref=f59e524] [cursor=pointer]:
+              - generic [ref=f59e525]:
+                - generic [ref=f59e526]: PROFILE / AVATAR
+                - img "Profile / Avatar - Royal Blue Satin Dress Mirror Portrait" [ref=f59e527]
+              - generic [ref=f59e528]:
+                - generic [ref=f59e529]: Profile / Avatar - Royal Blue Satin Dress Mirror Portrait
+                - generic [ref=f59e530]: J⭕DIE
+                - generic [ref=f59e532]:
+                  - generic [ref=f59e533]: profile-/-avatar
+                  - generic [ref=f59e534]: portrait
+                  - generic [ref=f59e535]: photorealistic
+                - generic [ref=f59e536]:
+                  - button "View Prompt" [ref=f59e537]
+                  - button "Create This Style" [ref=f59e538]
+            - generic [ref=f59e539] [cursor=pointer]:
+              - generic [ref=f59e540]:
+                - generic [ref=f59e541]: PROFILE / AVATAR
+                - img "Profile / Avatar - Fisheye Convenience Store Portrait" [ref=f59e542]
+              - generic [ref=f59e543]:
+                - generic [ref=f59e544]: Profile / Avatar - Fisheye Convenience Store Portrait
+                - generic [ref=f59e545]: Feyber | AI Creator
+                - generic [ref=f59e547]:
+                  - generic [ref=f59e548]: profile-/-avatar
+                  - generic [ref=f59e549]: portrait
+                  - generic [ref=f59e550]: photorealistic
+                - generic [ref=f59e551]:
+                  - button "View Prompt" [ref=f59e552]
+                  - button "Create This Style" [ref=f59e553]
+            - generic [ref=f59e554] [cursor=pointer]:
+              - generic [ref=f59e555]:
+                - generic [ref=f59e556]: PROFILE / AVATAR
+                - img "Profile / Avatar - Cinematic Rural Village Portrait" [ref=f59e557]
+              - generic [ref=f59e558]:
+                - generic [ref=f59e559]: Profile / Avatar - Cinematic Rural Village Portrait
+                - generic [ref=f59e560]: Ayla | AI & Tech
+                - generic [ref=f59e562]:
+                  - generic [ref=f59e563]: profile-/-avatar
+                  - generic [ref=f59e564]: portrait
+                  - generic [ref=f59e565]: photorealistic
+                - generic [ref=f59e566]:
+                  - button "View Prompt" [ref=f59e567]
+                  - button "Create This Style" [ref=f59e568]
+            - generic [ref=f59e569] [cursor=pointer]:
+              - generic [ref=f59e570]:
+                - generic [ref=f59e571]: PROFILE / AVATAR
+                - img "Profile / Avatar - Facial Identity Preservation Portrait" [ref=f59e572]
+              - generic [ref=f59e573]:
+                - generic [ref=f59e574]: Profile / Avatar - Facial Identity Preservation Portrait
+                - generic [ref=f59e575]: Dilshad Hussain
+                - generic [ref=f59e577]:
+                  - generic [ref=f59e578]: profile-/-avatar
+                  - generic [ref=f59e579]: portrait
+                - generic [ref=f59e580]:
+                  - button "View Prompt" [ref=f59e581]
+                  - button "Create This Style" [ref=f59e582]
+            - generic [ref=f59e583] [cursor=pointer]:
+              - generic [ref=f59e584]:
+                - generic [ref=f59e585]: PROFILE / AVATAR
+                - img "Profile / Avatar - Asian Woman in Striped Sweater" [ref=f59e586]
+              - generic [ref=f59e587]:
+                - generic [ref=f59e588]: Profile / Avatar - Asian Woman in Striped Sweater
+                - generic [ref=f59e589]: Feyber | AI Creator
+                - generic [ref=f59e591]:
+                  - generic [ref=f59e592]: profile-/-avatar
+                  - generic [ref=f59e593]: portrait
+                  - generic [ref=f59e594]: photorealistic
+                - generic [ref=f59e595]:
+                  - button "View Prompt" [ref=f59e596]
+                  - button "Create This Style" [ref=f59e597]
+            - generic [ref=f59e598] [cursor=pointer]:
+              - generic [ref=f59e599]:
+                - generic [ref=f59e600]: PROFILE / AVATAR
+                - img "Profile / Avatar - Sadie Sink Grassy Field Portrait" [ref=f59e601]
+              - generic [ref=f59e602]:
+                - generic [ref=f59e603]: Profile / Avatar - Sadie Sink Grassy Field Portrait
+                - generic [ref=f59e604]: Vireon
+                - generic [ref=f59e606]:
+                  - generic [ref=f59e607]: profile-/-avatar
+                  - generic [ref=f59e608]: portrait
+                - generic [ref=f59e609]:
+                  - button "View Prompt" [ref=f59e610]
+                  - button "Create This Style" [ref=f59e611]
+            - generic [ref=f59e612] [cursor=pointer]:
+              - generic [ref=f59e613]:
+                - generic [ref=f59e614]: PROFILE / AVATAR
+                - img "Profile / Avatar - Professional Female Portrait Headshot" [ref=f59e615]
+              - generic [ref=f59e616]:
+                - generic [ref=f59e617]: Profile / Avatar - Professional Female Portrait Headshot
+                - generic [ref=f59e618]: M@un
+                - generic [ref=f59e620]:
+                  - generic [ref=f59e621]: profile-/-avatar
+                  - generic [ref=f59e622]: portrait
+                - generic [ref=f59e623]:
+                  - button "View Prompt" [ref=f59e624]
+                  - button "Create This Style" [ref=f59e625]
+            - generic [ref=f59e626] [cursor=pointer]:
+              - generic [ref=f59e627]:
+                - generic [ref=f59e628]: PROFILE / AVATAR
+                - img "Profile / Avatar - Jenna Ortega Indoor Lifestyle Portrait" [ref=f59e629]
+              - generic [ref=f59e630]:
+                - generic [ref=f59e631]: Profile / Avatar - Jenna Ortega Indoor Lifestyle Portrait
+                - generic [ref=f59e632]: Vireon
+                - generic [ref=f59e634]:
+                  - generic [ref=f59e635]: profile-/-avatar
+                  - generic [ref=f59e636]: portrait
+                  - generic [ref=f59e637]: photorealistic
+                - generic [ref=f59e638]:
+                  - button "View Prompt" [ref=f59e639]
+                  - button "Create This Style" [ref=f59e640]
+            - generic [ref=f59e641] [cursor=pointer]:
+              - generic [ref=f59e642]:
+                - generic [ref=f59e643]: PROFILE / AVATAR
+                - img "Profile / Avatar - Noir Punk Street Portrait" [ref=f59e644]
+              - generic [ref=f59e645]:
+                - generic [ref=f59e646]: Profile / Avatar - Noir Punk Street Portrait
+                - generic [ref=f59e647]: Alex Prompts
+                - generic [ref=f59e649]:
+                  - generic [ref=f59e650]: profile-/-avatar
+                  - generic [ref=f59e651]: portrait
+                - generic [ref=f59e652]:
+                  - button "View Prompt" [ref=f59e653]
+                  - button "Create This Style" [ref=f59e654]
+            - generic [ref=f59e655] [cursor=pointer]:
+              - generic [ref=f59e656]:
+                - generic [ref=f59e657]: PROFILE / AVATAR
+                - img "Profile / Avatar - Fuchsia Rose Bouquet Selfie" [ref=f59e658]
+              - generic [ref=f59e659]:
+                - generic [ref=f59e660]: Profile / Avatar - Fuchsia Rose Bouquet Selfie
+                - generic [ref=f59e661]: Ayushi Srivastava
+                - generic [ref=f59e663]:
+                  - generic [ref=f59e664]: profile-/-avatar
+                  - generic [ref=f59e665]: portrait
+                  - generic [ref=f59e666]: selfie
+                - generic [ref=f59e667]:
+                  - button "View Prompt" [ref=f59e668]
+                  - button "Create This Style" [ref=f59e669]
+            - generic [ref=f59e670] [cursor=pointer]:
+              - generic [ref=f59e671]:
+                - generic [ref=f59e672]: PROFILE / AVATAR
+                - img "Profile / Avatar - Rustic Kitchen Lifestyle Portrait" [ref=f59e673]
+              - generic [ref=f59e674]:
+                - generic [ref=f59e675]: Profile / Avatar - Rustic Kitchen Lifestyle Portrait
+                - generic [ref=f59e676]: J⭕DIE
+                - generic [ref=f59e678]:
+                  - generic [ref=f59e679]: profile-/-avatar
+                  - generic [ref=f59e680]: portrait
+                  - generic [ref=f59e681]: cinematic
+                - generic [ref=f59e682]:
+                  - button "View Prompt" [ref=f59e683]
+                  - button "Create This Style" [ref=f59e684]
+            - generic [ref=f59e685] [cursor=pointer]:
+              - generic [ref=f59e686]:
+                - generic [ref=f59e687]: PROFILE / AVATAR
+                - img "Profile / Avatar - Elegant Young Woman Portrait" [ref=f59e688]
+              - generic [ref=f59e689]:
+                - generic [ref=f59e690]: Profile / Avatar - Elegant Young Woman Portrait
+                - generic [ref=f59e691]: Ayla | AI & Tech
+                - generic [ref=f59e693]:
+                  - generic [ref=f59e694]: profile-/-avatar
+                  - generic [ref=f59e695]: portrait
+                  - generic [ref=f59e696]: photorealistic
+                - generic [ref=f59e697]:
+                  - button "View Prompt" [ref=f59e698]
+                  - button "Create This Style" [ref=f59e699]
+            - generic [ref=f59e700] [cursor=pointer]:
+              - generic [ref=f59e701]:
+                - generic [ref=f59e702]: PROFILE / AVATAR
+                - img "Profile / Avatar - Indoor Friendship Fashion Portrait" [ref=f59e703]
+              - generic [ref=f59e704]:
+                - generic [ref=f59e705]: Profile / Avatar - Indoor Friendship Fashion Portrait
+                - generic [ref=f59e706]: J⭕DIE
+                - generic [ref=f59e708]:
+                  - generic [ref=f59e709]: profile-/-avatar
+                  - generic [ref=f59e710]: portrait
+                  - generic [ref=f59e711]: photorealistic
+                - generic [ref=f59e712]:
+                  - button "View Prompt" [ref=f59e713]
+                  - button "Create This Style" [ref=f59e714]
+            - generic [ref=f59e715] [cursor=pointer]:
+              - generic [ref=f59e716]:
+                - generic [ref=f59e717]: SOCIAL MEDIA
+                - img "Social Media Post - Train-ad style book advertisement image" [ref=f59e718]
+              - generic [ref=f59e719]:
+                - generic [ref=f59e720]: Social Media Post - Train-ad style book advertisement image
+                - generic [ref=f59e721]: KAWAI
+                - generic [ref=f59e723]:
+                  - generic [ref=f59e724]: social-media
+                  - generic [ref=f59e725]: product
+                  - generic [ref=f59e726]: social
+                - generic [ref=f59e727]:
+                  - button "View Prompt" [ref=f59e728]
+                  - button "Create This Style" [ref=f59e729]
+            - generic [ref=f59e730] [cursor=pointer]:
+              - generic [ref=f59e731]:
+                - generic [ref=f59e732]: PROFILE / AVATAR
+                - img "Social Media Post - Whimsical Donkey Face Painting" [ref=f59e733]
+              - generic [ref=f59e734]:
+                - generic [ref=f59e735]: Social Media Post - Whimsical Donkey Face Painting
+                - generic [ref=f59e736]: Heather Green
+                - generic [ref=f59e738]:
+                  - generic [ref=f59e739]: profile-/-avatar
+                  - generic [ref=f59e740]: portrait
+                  - generic [ref=f59e741]: social
+                - generic [ref=f59e742]:
+                  - button "View Prompt" [ref=f59e743]
+                  - button "Create This Style" [ref=f59e744]
+            - generic [ref=f59e745] [cursor=pointer]:
+              - generic [ref=f59e746]:
+                - generic [ref=f59e747]: PROFILE / AVATAR
+                - img "Social Media Post - Moody Hotel Bedroom Fashion Portrait" [ref=f59e748]
+              - generic [ref=f59e749]:
+                - generic [ref=f59e750]: Social Media Post - Moody Hotel Bedroom Fashion Portrait
+                - generic [ref=f59e751]: Jan | AI Image Alchemist
+                - generic [ref=f59e753]:
+                  - generic [ref=f59e754]: profile-/-avatar
+                  - generic [ref=f59e755]: portrait
+                  - generic [ref=f59e756]: cinematic
+                - generic [ref=f59e757]:
+                  - button "View Prompt" [ref=f59e758]
+                  - button "Create This Style" [ref=f59e759]
+            - generic [ref=f59e760] [cursor=pointer]:
+              - generic [ref=f59e761]:
+                - generic [ref=f59e762]: SOCIAL MEDIA
+                - img "Social Media Post - Romantic Solar Eclipse Shoreline Silhouette" [ref=f59e763]
+              - generic [ref=f59e764]:
+                - generic [ref=f59e765]: Social Media Post - Romantic Solar Eclipse Shoreline Silhouette
+                - generic [ref=f59e766]: Viki
+                - generic [ref=f59e768]:
+                  - generic [ref=f59e769]: social-media
+                  - generic [ref=f59e770]: social
+                - generic [ref=f59e771]:
+                  - button "View Prompt" [ref=f59e772]
+                  - button "Create This Style" [ref=f59e773]
+            - generic [ref=f59e774] [cursor=pointer]:
+              - generic [ref=f59e775]:
+                - generic [ref=f59e776]: PROFILE / AVATAR
+                - img "Social Media Post - Luxury LED Architectural Portrait" [ref=f59e777]
+              - generic [ref=f59e778]:
+                - generic [ref=f59e779]: Social Media Post - Luxury LED Architectural Portrait
+                - generic [ref=f59e780]: Alex Prompts
+                - generic [ref=f59e782]:
+                  - generic [ref=f59e783]: profile-/-avatar
+                  - generic [ref=f59e784]: portrait
+                  - generic [ref=f59e785]: cinematic
+                - generic [ref=f59e786]:
+                  - button "View Prompt" [ref=f59e787]
+                  - button "Create This Style" [ref=f59e788]
+        - button "Show all 272 image prompts" [ref=f59e789]

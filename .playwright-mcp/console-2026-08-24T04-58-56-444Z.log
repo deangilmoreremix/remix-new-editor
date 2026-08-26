@@ -1,0 +1,84 @@
+[   13709ms] [LOG] [App] Starting initialization... @ http://localhost:3100/src/main.js:19
+[   13732ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3100/src/lib/popcornInit.js:41
+[   13733ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3100/src/lib/popcornInit.js:48
+[   13735ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3100/src/lib/popcornInit.js:48
+[   13736ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3100/src/lib/popcornInit.js:48
+[   13737ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3100/src/lib/popcornInit.js:48
+[   13738ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3100/src/lib/popcornInit.js:48
+[   13739ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3100/src/lib/popcornInit.js:48
+[   13739ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3100/src/lib/popcornInit.js:48
+[   13740ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3100/src/lib/popcornInit.js:48
+[   13741ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3100/src/lib/popcornInit.js:48
+[   13742ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3100/src/lib/popcornInit.js:48
+[   13743ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3100/src/lib/popcornInit.js:48
+[   13743ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3100/src/lib/popcornInit.js:48
+[   13744ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3100/src/lib/popcornInit.js:48
+[   18824ms] [LOG] [App] Landing page rendered @ http://localhost:3100/src/main.js:88
+[   19484ms] [LOG] [popcorn-init] OK: plugin-image @ http://localhost:3100/src/lib/popcornInit.js:48
+[   19572ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=708fd709:20096
+[   19877ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://localhost:3100/src/lib/popcornInit.js:48
+[   20021ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://localhost:3100/src/lib/popcornInit.js:48
+[   20123ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3100/src/lib/popcornInit.js:48
+[   20223ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://localhost:3100/src/lib/popcornInit.js:48
+[   20254ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://localhost:3100/src/lib/popcornInit.js:48
+[   20279ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://localhost:3100/src/lib/popcornInit.js:48
+[   20742ms] [LOG] [popcorn-init] OK: plugin-form @ http://localhost:3100/src/lib/popcornInit.js:48
+[   20907ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://localhost:3100/src/lib/popcornInit.js:48
+[   21118ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:3100/src/lib/popcornInit.js:48
+[   21412ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://localhost:3100/src/lib/popcornInit.js:48
+[   21432ms] [LOG] [popcorn-init] OK: plugin-skip @ http://localhost:3100/src/lib/popcornInit.js:48
+[   21514ms] [LOG] [popcorn-init] OK: plugin-text @ http://localhost:3100/src/lib/popcornInit.js:48
+[   21556ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:3100/src/lib/popcornInit.js:48
+[   21588ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://localhost:3100/src/lib/popcornInit.js:48
+[   21628ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:3100/src/lib/popcornInit.js:48
+[   21661ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://localhost:3100/src/lib/popcornInit.js:48
+[   21805ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:3100/src/lib/popcornInit.js:48
+[   21834ms] [LOG] [popcorn-init] OK: plugin-combined @ http://localhost:3100/src/lib/popcornInit.js:48
+[   21855ms] [LOG] [popcorn-init] OK: plugin-background @ http://localhost:3100/src/lib/popcornInit.js:48
+[   21855ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://localhost:3100/src/lib/popcornInit.js:60
+[   21856ms] [LOG] [popcorn] function 19 @ http://localhost:3100/src/main.js:4
+[   33815ms] [LOG] [Landing] section loaded: scrolling keys: [ScrollingAppStrip] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[   33822ms] [LOG] [Landing] section created: scrolling type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[   33823ms] [LOG] [Landing] section loaded: hook keys: [HookSection] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[   33824ms] [LOG] [Landing] section created: hook type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[   33906ms] [LOG] [Landing] section loaded: engines keys: [SixEnginesSection] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[   33908ms] [LOG] [Landing] section created: engines type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[   34148ms] [LOG] [Landing] section loaded: apps keys: [AppsGridSection] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[   34151ms] [LOG] [Landing] section created: apps type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[   34217ms] [LOG] [Landing] section loaded: features keys: [FeaturesSection] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[   34218ms] [LOG] [Landing] section created: features type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[   34423ms] [LOG] [Landing] section loaded: ai-workflow keys: [MinimaxWorkflowSection, default] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[   34424ms] [LOG] [Landing] section created: ai-workflow type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[   34514ms] [LOG] [Landing] section loaded: gallery keys: [AIVideoGallery, default] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[   34526ms] [LOG] [Landing] section created: gallery type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[   34530ms] [LOG] [Landing] section loaded: ugc keys: [UGCDemoShowcase, default] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[   34547ms] [LOG] [Landing] section created: ugc type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[   34620ms] [LOG] [Landing] section loaded: made-with keys: [MadeWithSmartVideo, default] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[   34628ms] [LOG] [Landing] section created: made-with type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[   87871ms] [LOG] [Landing] section loaded: value keys: [ValueStackSection] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[   87891ms] [LOG] [Landing] section created: value type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[   87917ms] [LOG] [Landing] section loaded: problem keys: [ProblemSection] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[   87918ms] [LOG] [Landing] section created: problem type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[   87918ms] [LOG] [Landing] section loaded: comparison keys: [ComparisonSection] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[   87921ms] [LOG] [Landing] section created: comparison type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[   87969ms] [LOG] [Landing] section loaded: repo-video keys: [MmxActionVfxSection, MmxAnimationSection, MmxCinemaSection, MmxCommercialSection, MmxFashionSection, MmxSocialSection, SdActionSection, SdAnimationSection, SdCinemaSection, SdCommercialSection, SdSocialSection, ShowcaseRepoVideo, default] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[   88044ms] [LOG] [Landing] section created: repo-video type: HTMLDivElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[   89055ms] [LOG] [Landing] section loaded: workflow keys: [WorkflowSection] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[   89060ms] [LOG] [Landing] section created: workflow type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[   89126ms] [LOG] [Landing] section loaded: offer keys: [OfferSection] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[   89133ms] [LOG] [Landing] section created: offer type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[   89136ms] [LOG] [Landing] section loaded: agency keys: [AgencySection] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[   89138ms] [LOG] [Landing] section created: agency type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[   89139ms] [LOG] [Landing] section loaded: cta keys: [FinalCTASection] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[   89273ms] [LOG] [Landing] section created: cta type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[   89551ms] [LOG] [Landing] section loaded: academy keys: [AcademyVideoShowcase, default] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[   89560ms] [LOG] [Landing] section created: academy type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[ 4123188ms] [ERROR] WebSocket connection to 'ws://localhost:3100/?token=TRBUjnyRrlNa' failed:  @ http://localhost:3100/@vite/client:535
+[ 4123188ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3100/@vite/client:559
+[ 4124223ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3100/:0
+[ 4125225ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3100/:0
+[ 4126227ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3100/:0
+[ 4127231ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3100/:0
+[ 4128236ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3100/:0
+[ 4129240ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3100/:0
+[ 4130244ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3100/:0

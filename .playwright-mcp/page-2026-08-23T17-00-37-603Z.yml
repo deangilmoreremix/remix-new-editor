@@ -1,0 +1,420 @@
+- generic [active] [ref=f21e1]:
+  - main [ref=f21e2]:
+    - generic [ref=f21e4]:
+      - link "YouMind" [ref=f21e5] [cursor=pointer]:
+        - /url: /root
+      - generic [ref=f21e17]:
+        - link [ref=f21e18] [cursor=pointer]:
+          - /url: /overview
+          - button "Overview" [ref=f21e19]
+        - link [ref=f21e20] [cursor=pointer]:
+          - /url: /use-cases
+          - button "Use cases" [ref=f21e21]
+        - link [ref=f21e22] [cursor=pointer]:
+          - /url: /skills
+          - button "Skills" [ref=f21e23]
+        - link [ref=f21e24] [cursor=pointer]:
+          - /url: /prompts
+          - button "Prompts" [ref=f21e25]
+        - link [ref=f21e26] [cursor=pointer]:
+          - /url: /pricing
+          - button "Pricing" [ref=f21e27]
+        - link [ref=f21e28] [cursor=pointer]:
+          - /url: /download
+          - button "Download" [ref=f21e29]
+        - link [ref=f21e30] [cursor=pointer]:
+          - /url: /blog
+          - button "Blog" [ref=f21e31]
+        - link [ref=f21e32] [cursor=pointer]:
+          - /url: /updates
+          - button "Updates" [ref=f21e33]
+      - generic [ref=f21e34]:
+        - link "Discord" [ref=f21e35] [cursor=pointer]:
+          - /url: https://discord.gg/kKvXrB2r7x
+        - link "X" [ref=f21e38] [cursor=pointer]:
+          - /url: https://x.com/YouMind_AI
+    - main [ref=f21e45]:
+      - navigation "Breadcrumb" [ref=f21e48]:
+        - list [ref=f21e49]:
+          - listitem [ref=f21e50]:
+            - link "Prompts" [ref=f21e51] [cursor=pointer]:
+              - /url: /prompts
+          - generic [ref=f21e52]: ›
+          - listitem [ref=f21e53]:
+            - link "Video Prompt" [ref=f21e54] [cursor=pointer]:
+              - /url: /prompts/video
+          - generic [ref=f21e55]: ›
+          - listitem [ref=f21e56]:
+            - link "Seedance 2.0" [ref=f21e57] [cursor=pointer]:
+              - /url: /seedance-2-0-prompts
+      - generic [ref=f21e58]:
+        - generic [ref=f21e59]:
+          - heading "Jewelry Boutique Martial Arts Action" [level=1] [ref=f21e60]
+          - paragraph [ref=f21e68]: A dynamic cinematic action sequence featuring a female hero in an emerald silk gown defeating thieves in a luxury boutique, complete with slow-motion glass shattering and precise martial arts choreography.
+          - generic [ref=f21e69]:
+            - generic [ref=f21e70]:
+              - generic [ref=f21e71]: Prompt
+              - generic [ref=f21e72]:
+                - button "Generate Video with Prompt" [ref=f21e74] [cursor=pointer]
+                - button "Copy prompt" [ref=f21e78] [cursor=pointer]
+            - generic [ref=f21e82]: A dynamic, cinematic action sequence inside a luxury jewelry boutique at night. A confident young woman with long dark hair, olive skin, and sharp green eyes is the hero. She wears an elegant emerald silk evening gown and gold earrings. Three masked thieves in black tactical gear attempt a robbery, and she single-handedly defeats them with fast, precise martial arts choreography. She vaults over glass display cases, shattering them in dramatic slow motion as diamonds, pearls, and glass shards scatter and sparkle through the air like rain, catching warm spotlight beams. She slides across a marble counter, throws one attacker into a shelf of watches, and disarms the last with a spinning kick. At the end, she stands calm amid the glittering wreckage, picks up a single diamond ring, examines it in the light, and looks directly into the camera with a faint smile. Dynamic handheld camera, whip pans, slow-motion inserts, moody warm lighting with deep shadows, realistic physics, high production value, cinematic style, 4K.
+        - complementary [ref=f21e83]:
+          - generic [ref=f21e84]:
+            - generic [ref=f21e86]:
+              - generic [ref=f21e87]: M
+              - generic [ref=f21e89]:
+                - link "@Mimu | AI Tools & News" [ref=f21e90] [cursor=pointer]:
+                  - /url: https://x.com/mimu_ai1
+                - link "View original" [ref=f21e91] [cursor=pointer]:
+                  - /url: https://x.com/mimu_ai1/status/2091215411341930633
+            - generic [ref=f21e95]:
+              - generic [ref=f21e96]:
+                - term [ref=f21e97]: Published
+                - definition [ref=f21e98]: Aug 22, 2026
+              - generic [ref=f21e99]:
+                - term [ref=f21e100]: Original language
+                - definition [ref=f21e101]: EN
+              - generic [ref=f21e102]:
+                - term [ref=f21e103]: Categories
+                - definition [ref=f21e104]:
+                  - link "Short Film" [ref=f21e105] [cursor=pointer]:
+                    - /url: /seedance-2-0-prompts?categories=short-film
+                  - link "Cinematic Realistic" [ref=f21e106] [cursor=pointer]:
+                    - /url: /seedance-2-0-prompts?categories=cinematic-realistic
+                  - link "Person / Character" [ref=f21e107] [cursor=pointer]:
+                    - /url: /seedance-2-0-prompts?categories=person-character
+                  - link "Sports / Action" [ref=f21e108] [cursor=pointer]:
+                    - /url: /seedance-2-0-prompts?categories=sports-action
+            - generic [ref=f21e109]:
+              - generic [ref=f21e110]:
+                - generic [ref=f21e111]: Likes
+                - generic [ref=f21e115]: "168"
+              - generic [ref=f21e116]:
+                - generic [ref=f21e117]: Views
+                - generic [ref=f21e122]: 36.7K
+              - generic [ref=f21e123]:
+                - generic [ref=f21e124]: Shares
+                - generic [ref=f21e131]: "55"
+              - generic [ref=f21e132]:
+                - generic [ref=f21e133]: Comments
+                - generic [ref=f21e137]: "27"
+              - generic [ref=f21e138]:
+                - generic [ref=f21e139]: Bookmarks
+                - generic [ref=f21e143]: "54"
+              - generic [ref=f21e144]:
+                - generic [ref=f21e145]: Quotes
+                - generic [ref=f21e150]: "0"
+            - generic [ref=f21e151]:
+              - generic [ref=f21e152]: Share
+              - generic [ref=f21e153]:
+                - button "Copy link" [ref=f21e154] [cursor=pointer]
+                - button "Share on X" [ref=f21e158] [cursor=pointer]:
+                  - img "X" [ref=f21e159]
+                - button "Share on LinkedIn" [ref=f21e161] [cursor=pointer]
+                - button "Share on Threads" [ref=f21e166] [cursor=pointer]:
+                  - img "Threads" [ref=f21e167]
+                - button "Share on WhatsApp" [ref=f21e169] [cursor=pointer]:
+                  - img "WhatsApp" [ref=f21e170]
+            - generic [ref=f21e172]:
+              - heading "Go beyond generating video" [level=2] [ref=f21e174]
+              - paragraph [ref=f21e175]: Collect materials, process them, generate finished work, and distribute it from one AI workspace.
+              - generic [ref=f21e176]:
+                - iframe [ref=f21e177]:
+                  
+                - button "Go beyond generating video" [ref=f21e178] [cursor=pointer]
+              - link "Explore YouMind" [ref=f21e184] [cursor=pointer]:
+                - /url: /overview
+      - region [ref=f21e187]:
+        - generic [ref=f21e189]:
+          - heading "How to use this prompt" [level=2] [ref=f21e190]
+          - list [ref=f21e191]:
+            - listitem [ref=f21e192]:
+              - generic [ref=f21e193]: "1"
+              - paragraph [ref=f21e194]: Copy the full prompt above.
+            - listitem [ref=f21e195]:
+              - generic [ref=f21e196]: "2"
+              - paragraph [ref=f21e197]: Open a platform that supports Seedance 2.0, such as YouMind, and paste the prompt in.
+            - listitem [ref=f21e198]:
+              - generic [ref=f21e199]: "3"
+              - paragraph [ref=f21e200]: Swap the subject, style, or details to fit your idea, then generate.
+          - generic [ref=f21e201]:
+            - paragraph [ref=f21e202]: This is a free AI prompt from YouMind's prompt library. Explore thousands more video prompts, all free to copy and adapt.
+            - link "Explore more video prompts" [ref=f21e203] [cursor=pointer]:
+              - /url: /prompts/video
+      - generic [ref=f21e207]:
+        - heading "More from Seedance 2.0" [level=2] [ref=f21e208]
+        - generic [ref=f21e209]:
+          - link "Apocalypse Korean Rooftop Horror @WasifAI" [ref=f21e210] [cursor=pointer]:
+            - /url: /video-prompts/apocalypse-korean-rooftop-horror-9517
+            - generic [ref=f21e213]:
+              - heading "Apocalypse Korean Rooftop Horror" [level=3] [ref=f21e214]
+              - generic [ref=f21e215]: "@WasifAI"
+          - link "Korean City Bus Stop Encounter @𝗦𝗮𝗻𝗶𝗮" [ref=f21e217] [cursor=pointer]:
+            - /url: /video-prompts/korean-city-bus-stop-encounter-9637
+            - generic [ref=f21e220]:
+              - heading "Korean City Bus Stop Encounter" [level=3] [ref=f21e221]
+              - generic [ref=f21e222]: "@𝗦𝗮𝗻𝗶𝗮"
+          - link "Retro Japanese Water Obstacle TV Show @李岳" [ref=f21e224] [cursor=pointer]:
+            - /url: /video-prompts/water-obstacle-course-live-show-9352
+            - generic [ref=f21e227]:
+              - heading "Retro Japanese Water Obstacle TV Show" [level=3] [ref=f21e228]
+              - generic [ref=f21e229]: "@李岳"
+          - link "Reality TV Water Obstacle Competition @李岳" [ref=f21e231] [cursor=pointer]:
+            - /url: /video-prompts/japanese-sports-water-obstacle-challenge-9356
+            - generic [ref=f21e234]:
+              - heading "Reality TV Water Obstacle Competition" [level=3] [ref=f21e235]
+              - generic [ref=f21e236]: "@李岳"
+          - link "Seedance 2.5 Time Travel Lovers Film Prompt @李岳" [ref=f21e238] [cursor=pointer]:
+            - /url: /video-prompts/time-travel-lovers-cinematic-video-9652
+            - generic [ref=f21e241]:
+              - heading "Seedance 2.5 Time Travel Lovers Film Prompt" [level=3] [ref=f21e242]
+              - generic [ref=f21e243]: "@李岳"
+          - link "Cinematic Airport Farewell Script @李岳" [ref=f21e245] [cursor=pointer]:
+            - /url: /video-prompts/airport-departure-cinematic-script-9595
+            - generic [ref=f21e248]:
+              - heading "Cinematic Airport Farewell Script" [level=3] [ref=f21e249]
+              - generic [ref=f21e250]: "@李岳"
+      - generic [ref=f21e253]:
+        - heading "All Video Categories" [level=2] [ref=f21e254]
+        - generic [ref=f21e255]:
+          - generic [ref=f21e256]:
+            - generic [ref=f21e257]: "01"
+            - heading "Use Cases" [level=3] [ref=f21e258]
+            - generic [ref=f21e259]:
+              - link "Cinematic Scene Showcase" [ref=f21e260] [cursor=pointer]:
+                - /url: /prompts/video/cinematic-showcase
+              - link "Vlog / Social Lifestyle" [ref=f21e264] [cursor=pointer]:
+                - /url: /prompts/video/social-lifestyle
+              - link "Short Film" [ref=f21e268] [cursor=pointer]:
+                - /url: /prompts/video/short-film
+              - link "Music Video" [ref=f21e272] [cursor=pointer]:
+                - /url: /prompts/video/music-video
+              - link "Brand / Product Commercial" [ref=f21e276] [cursor=pointer]:
+                - /url: /prompts/video/brand-commercial
+              - link "View more" [ref=f21e280] [cursor=pointer]:
+                - /url: /prompts/video/use-cases
+          - generic [ref=f21e284]:
+            - generic [ref=f21e285]: "02"
+            - heading "Styles" [level=3] [ref=f21e286]
+            - generic [ref=f21e287]:
+              - link "Cinematic Realistic" [ref=f21e288] [cursor=pointer]:
+                - /url: /prompts/video/cinematic-realistic
+              - link "Fantasy / Magical" [ref=f21e292] [cursor=pointer]:
+                - /url: /prompts/video/fantasy-magical
+              - link "Cyberpunk / Sci-Fi" [ref=f21e296] [cursor=pointer]:
+                - /url: /prompts/video/cyberpunk-scifi
+              - link "Anime" [ref=f21e300] [cursor=pointer]:
+                - /url: /prompts/video/anime
+              - link "Vintage / Retro Film" [ref=f21e304] [cursor=pointer]:
+                - /url: /prompts/video/vintage-retro
+              - link "View more" [ref=f21e308] [cursor=pointer]:
+                - /url: /prompts/video/styles
+          - generic [ref=f21e312]:
+            - generic [ref=f21e313]: "03"
+            - heading "Subjects" [level=3] [ref=f21e314]
+            - generic [ref=f21e315]:
+              - link "Person / Character" [ref=f21e316] [cursor=pointer]:
+                - /url: /prompts/video/person-character
+              - link "Sports / Action" [ref=f21e320] [cursor=pointer]:
+                - /url: /prompts/video/sports-action
+              - link "Nature / Landscape" [ref=f21e324] [cursor=pointer]:
+                - /url: /prompts/video/nature-landscape
+              - link "Architecture / Interior" [ref=f21e328] [cursor=pointer]:
+                - /url: /prompts/video/architecture-interior
+              - link "Abstract / VFX" [ref=f21e332] [cursor=pointer]:
+                - /url: /prompts/video/abstract-vfx-v
+              - link "View more" [ref=f21e336] [cursor=pointer]:
+                - /url: /prompts/video/subjects
+      - generic [ref=f21e341]:
+        - heading "More Prompt Features" [level=2] [ref=f21e342]
+        - generic [ref=f21e343]:
+          - generic [ref=f21e349]:
+            - generic [ref=f21e350]: AI Library
+            - heading "AI prompt search" [level=3] [ref=f21e351]
+            - paragraph [ref=f21e352]: Let AI search through tens of thousands of prompts. Filter by model, time range, keywords, and sort by engagement — views, bookmarks, reposts and more.
+            - link "Try free" [ref=f21e354] [cursor=pointer]:
+              - /url: /transit/defaultBoard?tab=chat&prompt=First+ask+me+what+kind+of+AI+prompt+I+want+to+find.+Guide+me+to+add+the+style%2C+subject%2C+media+type+%28Image+%2F+Video+%2F+Webpage%29%2C+time+range%2C+or+sorting+preference.+Do+not+search+yet%3B+wait+for+my+answer.&auto-send=true
+          - generic [ref=f21e358]:
+            - generic [ref=f21e359]: "/imagine prompt: cinematic, cyberpunk sunset, neon colors, 8k --v 6.0"
+            - generic [ref=f21e375]:
+              - generic [ref=f21e376]: Vision Tools
+              - heading "Image to Prompt" [level=3] [ref=f21e377]
+              - paragraph [ref=f21e378]: Turn any photo into a detailed AI image prompt. The free image to prompt converter analyzes composition, style, and lighting so you can recreate any look in seconds.
+              - link "Convert Image to Prompt" [ref=f21e380] [cursor=pointer]:
+                - /url: /landing/image-to-prompt
+          - generic [ref=f21e385]:
+            - heading "Other Prompt Features" [level=3] [ref=f21e387]
+            - generic [ref=f21e388]:
+              - generic [ref=f21e389]:
+                - paragraph [ref=f21e390]: Browse by Model
+                - generic [ref=f21e391]:
+                  - link "GPT Image 2 Prompts" [ref=f21e392] [cursor=pointer]:
+                    - /url: /gpt-image-2-prompts
+                  - link "Nano Banana Pro Prompts" [ref=f21e395] [cursor=pointer]:
+                    - /url: /nano-banana-pro-prompts
+                  - link "Seedream 4.5 Prompts" [ref=f21e398] [cursor=pointer]:
+                    - /url: /seedream-4-dot-5-prompts
+                  - link "GPT Image 1.5 Prompts" [ref=f21e401] [cursor=pointer]:
+                    - /url: /gpt-image-1-5-prompts
+                  - link "Seedance 2.0 Prompts" [ref=f21e404] [cursor=pointer]:
+                    - /url: /seedance-2-0-prompts
+                  - link "Grok Imagine Prompts" [ref=f21e407] [cursor=pointer]:
+                    - /url: /grok-imagine-prompts
+                  - link "Gemini 3 Pro Prompts" [ref=f21e410] [cursor=pointer]:
+                    - /url: /gemini-3-prompts
+              - generic [ref=f21e413]:
+                - paragraph [ref=f21e414]: Browse by Media
+                - generic [ref=f21e415]:
+                  - link "Image Prompts" [ref=f21e416] [cursor=pointer]:
+                    - /url: /prompts/image
+                  - link "Video Prompts" [ref=f21e419] [cursor=pointer]:
+                    - /url: /prompts/video
+                  - link "Webpage Prompts" [ref=f21e422] [cursor=pointer]:
+                    - /url: /prompts/webpage
+              - generic [ref=f21e425]:
+                - paragraph [ref=f21e426]: AI Tools
+                - generic [ref=f21e427]:
+                  - link "Image to Prompt" [ref=f21e428] [cursor=pointer]:
+                    - /url: /landing/image-to-prompt
+                  - link "Photo Prompts" [ref=f21e431] [cursor=pointer]:
+                    - /url: /landing/photo-prompt
+                  - link "GPT Image 2 Slides" [ref=f21e434] [cursor=pointer]:
+                    - /url: /landing/gpt-image-2-slides
+      - generic [ref=f21e438]:
+        - heading "Built for creators. Free forever." [level=2] [ref=f21e439]
+        - paragraph [ref=f21e440]: YouMind is the AI creative copilot trusted by millions of creators worldwide. Every prompt here is curated to help you create better, faster.
+        - generic [ref=f21e441]:
+          - button "Generate Video with Prompt" [ref=f21e442] [cursor=pointer]
+          - link "Explore more prompts" [ref=f21e445] [cursor=pointer]:
+            - /url: /prompts
+    - generic [ref=f21e448]:
+      - generic [ref=f21e461]:
+        - generic [ref=f21e462]:
+          - generic [ref=f21e463]: Prompts
+          - generic [ref=f21e464]:
+            - link "Nano Banana Pro Prompts" [ref=f21e465] [cursor=pointer]:
+              - /url: /nano-banana-pro-prompts
+            - link "GPT Image 2 Prompts" [ref=f21e467] [cursor=pointer]:
+              - /url: /gpt-image-2-prompts
+            - link "Seedance 2.5 Prompts" [ref=f21e469] [cursor=pointer]:
+              - /url: /seedance-2-5-prompts
+            - link "Seedance 2.0 Prompts" [ref=f21e471] [cursor=pointer]:
+              - /url: /seedance-2-0-prompts
+            - link "GPT Image 1.5 Prompts" [ref=f21e473] [cursor=pointer]:
+              - /url: /gpt-image-1-5-prompts
+            - link "Seedream 4.5 Prompts" [ref=f21e475] [cursor=pointer]:
+              - /url: /seedream-4-dot-5-prompts
+            - link "Gemini 3 Pro Prompts" [ref=f21e477] [cursor=pointer]:
+              - /url: /gemini-3-prompts
+        - generic [ref=f21e479]:
+          - generic [ref=f21e480]: Resources
+          - generic [ref=f21e481]:
+            - link "For agents" [ref=f21e482] [cursor=pointer]:
+              - /url: /for-agents?utm_source=footer
+            - link "NotebookLM Alternatives" [ref=f21e484] [cursor=pointer]:
+              - /url: /blog/best-notebooklm-alternatives
+            - link "GPT Image 2 Slides" [ref=f21e486] [cursor=pointer]:
+              - /url: /landing/gpt-image-2-slides
+            - link "Markdown to 𝕏 Article" [ref=f21e488] [cursor=pointer]:
+              - /url: /landing/markdown-to-x-article
+            - link "Nano Banana 2 VS Pro" [ref=f21e490] [cursor=pointer]:
+              - /url: /model-arena/nano-banana-2-vs-nano-banana-pro
+            - link "AI Photo Editor" [ref=f21e492] [cursor=pointer]:
+              - /url: /landing/ai-photo-editor
+            - link "Photo Prompts" [ref=f21e494] [cursor=pointer]:
+              - /url: /landing/photo-prompt
+            - link "Image to Prompt" [ref=f21e496] [cursor=pointer]:
+              - /url: /landing/image-to-prompt
+            - link "Lenny Career Coach" [ref=f21e498] [cursor=pointer]:
+              - /url: /landing/lenny-career-coach
+            - link "ABTI Personality Test" [ref=f21e500] [cursor=pointer]:
+              - /url: /abti
+        - generic [ref=f21e502]:
+          - generic [ref=f21e503]: Tools
+          - generic [ref=f21e504]:
+            - link "𝕏 Post Generator" [ref=f21e505] [cursor=pointer]:
+              - /url: /tools/x-post-generator
+            - link "LinkedIn Post Generator" [ref=f21e507] [cursor=pointer]:
+              - /url: /tools/linkedin-post-generator
+            - link "Instagram Caption Generator" [ref=f21e509] [cursor=pointer]:
+              - /url: /tools/instagram-caption-generator
+            - link "Threads Post Generator" [ref=f21e511] [cursor=pointer]:
+              - /url: /tools/threads-post-generator
+            - link "Reddit Post Generator" [ref=f21e513] [cursor=pointer]:
+              - /url: /tools/reddit-post-generator
+            - link "Facebook Post Generator" [ref=f21e515] [cursor=pointer]:
+              - /url: /tools/facebook-post-generator
+            - link "Bluesky Post Generator" [ref=f21e517] [cursor=pointer]:
+              - /url: /tools/bluesky-post-generator
+            - link "TikTok Caption Generator" [ref=f21e519] [cursor=pointer]:
+              - /url: /tools/tiktok-caption-generator
+        - generic [ref=f21e521]:
+          - generic [ref=f21e522]: Product
+          - generic [ref=f21e523]:
+            - link "Skills" [ref=f21e524] [cursor=pointer]:
+              - /url: /skills
+            - link "Extension" [ref=f21e526] [cursor=pointer]:
+              - /url: /#download
+            - link "App" [ref=f21e528] [cursor=pointer]:
+              - /url: /#download
+            - link "Pricing" [ref=f21e530] [cursor=pointer]:
+              - /url: /pricing
+            - link "Blogs" [ref=f21e532] [cursor=pointer]:
+              - /url: /blog
+            - link "Updates" [ref=f21e534] [cursor=pointer]:
+              - /url: /updates
+        - generic [ref=f21e536]:
+          - generic [ref=f21e537]: Compare
+          - generic [ref=f21e538]:
+            - link "Notion" [ref=f21e539] [cursor=pointer]:
+              - /url: /compare/notion
+            - link "NotebookLM" [ref=f21e541] [cursor=pointer]:
+              - /url: /compare/notebooklm
+            - link "ChatGPT" [ref=f21e543] [cursor=pointer]:
+              - /url: /compare/chatgpt
+            - link "Codex" [ref=f21e545] [cursor=pointer]:
+              - /url: /compare/codex
+            - link "GenSpark" [ref=f21e547] [cursor=pointer]:
+              - /url: /compare/genspark
+            - link "Gamma" [ref=f21e549] [cursor=pointer]:
+              - /url: /compare/gamma
+            - link "Lovart" [ref=f21e551] [cursor=pointer]:
+              - /url: /compare/lovart
+            - link "Manus" [ref=f21e553] [cursor=pointer]:
+              - /url: /compare/manus
+            - link "MyMind" [ref=f21e555] [cursor=pointer]:
+              - /url: /compare/mymind
+            - link "Perplexity" [ref=f21e557] [cursor=pointer]:
+              - /url: /compare/perplexity
+        - generic [ref=f21e559]:
+          - generic [ref=f21e560]: Company
+          - generic [ref=f21e561]:
+            - generic [ref=f21e562] [cursor=pointer]: Contact us
+            - link "Privacy" [ref=f21e563] [cursor=pointer]:
+              - /url: /privacy
+            - link "Terms" [ref=f21e564] [cursor=pointer]:
+              - /url: /terms
+            - link "Cookie Policy" [ref=f21e565] [cursor=pointer]:
+              - /url: /privacy/cookies
+            - button "Cookie settings" [ref=f21e566] [cursor=pointer]
+      - generic [ref=f21e567]:
+        - paragraph [ref=f21e568]: © 2026 MIND MOTOR PTE. LTD.
+        - generic [ref=f21e569]:
+          - generic [ref=f21e570]: AI Summary
+          - navigation "Ask an AI about YouMind" [ref=f21e571]:
+            - link "Ask ChatGPT about YouMind" [ref=f21e572] [cursor=pointer]:
+              - /url: https://chatgpt.com/?q=As%20a%20potential%20YouMind%20user%2C%20I%20want%20to%20understand%20how%20YouMind%20helps%20me%20learn%2C%20think%2C%20and%20create%E2%80%94and%20how%20it%20fits%20into%20my%20everyday%20work.%0A%0AExplain%20the%20experience%20step%20by%20step%2C%20from%20my%20first%20question%2C%20source%2C%20or%20idea%20to%20a%20finished%2C%20shareable%20result.%20Clarify%20what%20I%20add%20and%20control%2C%20what%20YouMind%20automates%20with%20AI%2C%20and%20how%20my%20sources%2C%20thoughts%2C%20and%20outputs%20develop%20together.%0A%0ADescribe%20what%20I%20see%20and%20do%20inside%20YouMind%3A%20Board%2C%20Tasks%2C%20Files%2C%20Skills%2C%20and%20Sprite%3B%20how%20I%20capture%20webpages%2C%20X%20posts%2C%20YouTube%20videos%2C%20podcasts%2C%20PDFs%2C%20documents%2C%20images%2C%20slides%2C%20and%20audio%3B%20and%20how%20I%20read%2C%20organize%2C%20search%2C%20discuss%2C%20and%20reuse%20these%20sources.%0A%0AExplain%20how%20AI%20helps%20me%20research%20topics%2C%20understand%20and%20summarize%20sources%2C%20discover%20connections%2C%20answer%20questions%2C%20develop%20ideas%2C%20and%20create%20drafts.%20Clarify%20how%20I%20control%20the%20context%2C%20model%2C%20instructions%2C%20style%2C%20edits%2C%20and%20final%20result.%0A%0ACover%20practical%20scenarios%20such%20as%20research%2C%20studying%2C%20knowledge%20organization%2C%20brainstorming%2C%20writing%2C%20social%20content%2C%20presentations%2C%20and%20multimedia%20creation.%20Explain%20the%20outputs%20I%20can%20create%E2%80%94including%20reports%2C%20articles%2C%20images%2C%20slides%2C%20webpages%2C%20audio%2C%20video%2C%20and%20diagrams%E2%80%94and%20how%20I%20edit%2C%20share%2C%20publish%2C%20export%2C%20or%20repurpose%20them.%0A%0AFinally%2C%20briefly%20compare%20YouMind%20with%20Google%20NotebookLM.%20Explain%20where%20they%20overlap%2C%20how%20their%20workflows%20differ%2C%20and%20when%20I%20should%20choose%20YouMind%2C%20NotebookLM%2C%20or%20both.%0A%0AUse%20current%20official%20information%2C%20clearly%20identify%20plan-%20or%20device-dependent%20features%2C%20and%20include%20source%20links.%20Explain%20everything%20simply%20through%20one%20realistic%20example%2C%20without%20writing%20marketing%20copy.
+            - link "Ask Gemini about YouMind" [ref=f21e575] [cursor=pointer]:
+              - /url: https://gemini.google.com/app?q=As%20a%20potential%20YouMind%20user%2C%20I%20want%20to%20understand%20how%20YouMind%20helps%20me%20learn%2C%20think%2C%20and%20create%E2%80%94and%20how%20it%20fits%20into%20my%20everyday%20work.%0A%0AExplain%20the%20experience%20step%20by%20step%2C%20from%20my%20first%20question%2C%20source%2C%20or%20idea%20to%20a%20finished%2C%20shareable%20result.%20Clarify%20what%20I%20add%20and%20control%2C%20what%20YouMind%20automates%20with%20AI%2C%20and%20how%20my%20sources%2C%20thoughts%2C%20and%20outputs%20develop%20together.%0A%0ADescribe%20what%20I%20see%20and%20do%20inside%20YouMind%3A%20Board%2C%20Tasks%2C%20Files%2C%20Skills%2C%20and%20Sprite%3B%20how%20I%20capture%20webpages%2C%20X%20posts%2C%20YouTube%20videos%2C%20podcasts%2C%20PDFs%2C%20documents%2C%20images%2C%20slides%2C%20and%20audio%3B%20and%20how%20I%20read%2C%20organize%2C%20search%2C%20discuss%2C%20and%20reuse%20these%20sources.%0A%0AExplain%20how%20AI%20helps%20me%20research%20topics%2C%20understand%20and%20summarize%20sources%2C%20discover%20connections%2C%20answer%20questions%2C%20develop%20ideas%2C%20and%20create%20drafts.%20Clarify%20how%20I%20control%20the%20context%2C%20model%2C%20instructions%2C%20style%2C%20edits%2C%20and%20final%20result.%0A%0ACover%20practical%20scenarios%20such%20as%20research%2C%20studying%2C%20knowledge%20organization%2C%20brainstorming%2C%20writing%2C%20social%20content%2C%20presentations%2C%20and%20multimedia%20creation.%20Explain%20the%20outputs%20I%20can%20create%E2%80%94including%20reports%2C%20articles%2C%20images%2C%20slides%2C%20webpages%2C%20audio%2C%20video%2C%20and%20diagrams%E2%80%94and%20how%20I%20edit%2C%20share%2C%20publish%2C%20export%2C%20or%20repurpose%20them.%0A%0AFinally%2C%20briefly%20compare%20YouMind%20with%20Google%20NotebookLM.%20Explain%20where%20they%20overlap%2C%20how%20their%20workflows%20differ%2C%20and%20when%20I%20should%20choose%20YouMind%2C%20NotebookLM%2C%20or%20both.%0A%0AUse%20current%20official%20information%2C%20clearly%20identify%20plan-%20or%20device-dependent%20features%2C%20and%20include%20source%20links.%20Explain%20everything%20simply%20through%20one%20realistic%20example%2C%20without%20writing%20marketing%20copy.
+            - link "Ask Perplexity about YouMind" [ref=f21e578] [cursor=pointer]:
+              - /url: https://www.perplexity.ai/search/new?q=As%20a%20potential%20YouMind%20user%2C%20I%20want%20to%20understand%20how%20YouMind%20helps%20me%20learn%2C%20think%2C%20and%20create%E2%80%94and%20how%20it%20fits%20into%20my%20everyday%20work.%0A%0AExplain%20the%20experience%20step%20by%20step%2C%20from%20my%20first%20question%2C%20source%2C%20or%20idea%20to%20a%20finished%2C%20shareable%20result.%20Clarify%20what%20I%20add%20and%20control%2C%20what%20YouMind%20automates%20with%20AI%2C%20and%20how%20my%20sources%2C%20thoughts%2C%20and%20outputs%20develop%20together.%0A%0ADescribe%20what%20I%20see%20and%20do%20inside%20YouMind%3A%20Board%2C%20Tasks%2C%20Files%2C%20Skills%2C%20and%20Sprite%3B%20how%20I%20capture%20webpages%2C%20X%20posts%2C%20YouTube%20videos%2C%20podcasts%2C%20PDFs%2C%20documents%2C%20images%2C%20slides%2C%20and%20audio%3B%20and%20how%20I%20read%2C%20organize%2C%20search%2C%20discuss%2C%20and%20reuse%20these%20sources.%0A%0AExplain%20how%20AI%20helps%20me%20research%20topics%2C%20understand%20and%20summarize%20sources%2C%20discover%20connections%2C%20answer%20questions%2C%20develop%20ideas%2C%20and%20create%20drafts.%20Clarify%20how%20I%20control%20the%20context%2C%20model%2C%20instructions%2C%20style%2C%20edits%2C%20and%20final%20result.%0A%0ACover%20practical%20scenarios%20such%20as%20research%2C%20studying%2C%20knowledge%20organization%2C%20brainstorming%2C%20writing%2C%20social%20content%2C%20presentations%2C%20and%20multimedia%20creation.%20Explain%20the%20outputs%20I%20can%20create%E2%80%94including%20reports%2C%20articles%2C%20images%2C%20slides%2C%20webpages%2C%20audio%2C%20video%2C%20and%20diagrams%E2%80%94and%20how%20I%20edit%2C%20share%2C%20publish%2C%20export%2C%20or%20repurpose%20them.%0A%0AFinally%2C%20briefly%20compare%20YouMind%20with%20Google%20NotebookLM.%20Explain%20where%20they%20overlap%2C%20how%20their%20workflows%20differ%2C%20and%20when%20I%20should%20choose%20YouMind%2C%20NotebookLM%2C%20or%20both.%0A%0AUse%20current%20official%20information%2C%20clearly%20identify%20plan-%20or%20device-dependent%20features%2C%20and%20include%20source%20links.%20Explain%20everything%20simply%20through%20one%20realistic%20example%2C%20without%20writing%20marketing%20copy.
+            - link "Ask Grok about YouMind" [ref=f21e581] [cursor=pointer]:
+              - /url: https://grok.com/?q=As%20a%20potential%20YouMind%20user%2C%20I%20want%20to%20understand%20how%20YouMind%20helps%20me%20learn%2C%20think%2C%20and%20create%E2%80%94and%20how%20it%20fits%20into%20my%20everyday%20work.%0A%0AExplain%20the%20experience%20step%20by%20step%2C%20from%20my%20first%20question%2C%20source%2C%20or%20idea%20to%20a%20finished%2C%20shareable%20result.%20Clarify%20what%20I%20add%20and%20control%2C%20what%20YouMind%20automates%20with%20AI%2C%20and%20how%20my%20sources%2C%20thoughts%2C%20and%20outputs%20develop%20together.%0A%0ADescribe%20what%20I%20see%20and%20do%20inside%20YouMind%3A%20Board%2C%20Tasks%2C%20Files%2C%20Skills%2C%20and%20Sprite%3B%20how%20I%20capture%20webpages%2C%20X%20posts%2C%20YouTube%20videos%2C%20podcasts%2C%20PDFs%2C%20documents%2C%20images%2C%20slides%2C%20and%20audio%3B%20and%20how%20I%20read%2C%20organize%2C%20search%2C%20discuss%2C%20and%20reuse%20these%20sources.%0A%0AExplain%20how%20AI%20helps%20me%20research%20topics%2C%20understand%20and%20summarize%20sources%2C%20discover%20connections%2C%20answer%20questions%2C%20develop%20ideas%2C%20and%20create%20drafts.%20Clarify%20how%20I%20control%20the%20context%2C%20model%2C%20instructions%2C%20style%2C%20edits%2C%20and%20final%20result.%0A%0ACover%20practical%20scenarios%20such%20as%20research%2C%20studying%2C%20knowledge%20organization%2C%20brainstorming%2C%20writing%2C%20social%20content%2C%20presentations%2C%20and%20multimedia%20creation.%20Explain%20the%20outputs%20I%20can%20create%E2%80%94including%20reports%2C%20articles%2C%20images%2C%20slides%2C%20webpages%2C%20audio%2C%20video%2C%20and%20diagrams%E2%80%94and%20how%20I%20edit%2C%20share%2C%20publish%2C%20export%2C%20or%20repurpose%20them.%0A%0AFinally%2C%20briefly%20compare%20YouMind%20with%20Google%20NotebookLM.%20Explain%20where%20they%20overlap%2C%20how%20their%20workflows%20differ%2C%20and%20when%20I%20should%20choose%20YouMind%2C%20NotebookLM%2C%20or%20both.%0A%0AUse%20current%20official%20information%2C%20clearly%20identify%20plan-%20or%20device-dependent%20features%2C%20and%20include%20source%20links.%20Explain%20everything%20simply%20through%20one%20realistic%20example%2C%20without%20writing%20marketing%20copy.
+        - generic [ref=f21e584]:
+          - combobox [ref=f21e585] [cursor=pointer]
+          - combobox [ref=f21e588]
+          - link "Follow YouMind on X" [ref=f21e589] [cursor=pointer]:
+            - /url: https://x.com/YouMind_AI
+          - link "Join the YouMind Discord" [ref=f21e592] [cursor=pointer]:
+            - /url: https://discord.gg/kKvXrB2r7x
+  - region "Notifications alt+T"

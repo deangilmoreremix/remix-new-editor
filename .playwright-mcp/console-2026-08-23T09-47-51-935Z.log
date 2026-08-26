@@ -1,0 +1,63 @@
+[     383ms] [LOG] [App] Starting initialization... @ http://localhost:3100/src/main.js:19
+[     500ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3100/src/lib/popcornInit.js:41
+[     507ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3100/src/lib/popcornInit.js:48
+[     508ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3100/src/lib/popcornInit.js:48
+[     509ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3100/src/lib/popcornInit.js:48
+[     610ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3100/src/lib/popcornInit.js:48
+[     837ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3100/src/lib/popcornInit.js:48
+[    1194ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3100/src/lib/popcornInit.js:48
+[    1561ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3100/src/lib/popcornInit.js:48
+[    1865ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3100/src/lib/popcornInit.js:48
+[    1945ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=a8580c7e:20096
+[    1968ms] [LOG] [App] Initialized in 1584.50ms @ http://localhost:3100/src/main.js:164
+[    1968ms] [LOG] [App] Navigating to initial page: image @ http://localhost:3100/src/main.js:165
+[    1969ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://localhost:3100/src/main.js:176
+[    2098ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3100/src/lib/popcornInit.js:48
+[    2895ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://clerk.smartvid.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js:11
+[    3047ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://clerk.smartvid.app/v1/environment?__clerk_api_version=2026-05-12&_clerk_js_version=6.29.2&_method=PATCH:0
+[    3653ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3100/src/lib/popcornInit.js:48
+[    4319ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3100/src/lib/popcornInit.js:48
+[    4358ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3100/src/lib/popcornInit.js:48
+[    4410ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3100/src/lib/popcornInit.js:48
+[    4651ms] [LOG] [popcorn-init] OK: plugin-image @ http://localhost:3100/src/lib/popcornInit.js:48
+[    4714ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://localhost:3100/src/lib/popcornInit.js:48
+[    4770ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://localhost:3100/src/lib/popcornInit.js:48
+[    4814ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3100/src/lib/popcornInit.js:48
+[    4888ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://localhost:3100/src/lib/popcornInit.js:48
+[    4913ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://localhost:3100/src/lib/popcornInit.js:48
+[    4930ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://localhost:3100/src/lib/popcornInit.js:48
+[    5087ms] [LOG] [popcorn-init] OK: plugin-form @ http://localhost:3100/src/lib/popcornInit.js:48
+[    5366ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://localhost:3100/src/lib/popcornInit.js:48
+[    5442ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:3100/src/lib/popcornInit.js:48
+[    5535ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://localhost:3100/src/lib/popcornInit.js:48
+[    5556ms] [LOG] [popcorn-init] OK: plugin-skip @ http://localhost:3100/src/lib/popcornInit.js:48
+[    5658ms] [LOG] [popcorn-init] OK: plugin-text @ http://localhost:3100/src/lib/popcornInit.js:48
+[    5710ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:3100/src/lib/popcornInit.js:48
+[    5746ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://localhost:3100/src/lib/popcornInit.js:48
+[    5817ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:3100/src/lib/popcornInit.js:48
+[    5856ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://localhost:3100/src/lib/popcornInit.js:48
+[    5891ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:3100/src/lib/popcornInit.js:48
+[    5910ms] [LOG] [popcorn-init] OK: plugin-combined @ http://localhost:3100/src/lib/popcornInit.js:48
+[    5931ms] [LOG] [popcorn-init] OK: plugin-background @ http://localhost:3100/src/lib/popcornInit.js:48
+[    5931ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://localhost:3100/src/lib/popcornInit.js:60
+[    5931ms] [LOG] [popcorn] function 19 @ http://localhost:3100/src/main.js:4
+[   48250ms] [ERROR] [2026-08-23T09:48:40.184Z] [ERROR] Uncaught error | {"filename":"http://localhost:3100/src/components/modals/ImageGalleryModal.jsx","lineno":33,"colno":32} @ http://localhost:3100/src/lib/logger.js:84
+[   48250ms] [ERROR] TypeError: youmindImagePrompts.filter is not a function
+    at ImageGalleryModal._filterPrompts (http://localhost:3100/src/components/modals/ImageGalleryModal.jsx:33:32)
+    at ImageGalleryModal.renderBody (http://localhost:3100/src/components/modals/ImageGalleryModal.jsx:107:26)
+    at ImageGalleryModal.render (http://localhost:3100/src/components/modals/BaseModal.jsx:533:98)
+    at ImageGalleryModal.open (http://localhost:3100/src/components/modals/BaseModal.jsx:500:10)
+    at HTMLButtonElement.<anonymous> (http://localhost:3100/src/components/ImageStudio.js:1081:13) @ http://localhost:3100/src/lib/logger.js:85
+[   48262ms] [ERROR] [Global Error] TypeError: youmindImagePrompts.filter is not a function
+    at ImageGalleryModal._filterPrompts (http://localhost:3100/src/components/modals/ImageGalleryModal.jsx:33:32)
+    at ImageGalleryModal.renderBody (http://localhost:3100/src/components/modals/ImageGalleryModal.jsx:107:26)
+    at ImageGalleryModal.render (http://localhost:3100/src/components/modals/BaseModal.jsx:533:98)
+    at ImageGalleryModal.open (http://localhost:3100/src/components/modals/BaseModal.jsx:500:10)
+    at HTMLButtonElement.<anonymous> (http://localhost:3100/src/components/ImageStudio.js:1081:13) @ http://localhost:3100/src/main.js:22
+[   48263ms] [LOG] [Analytics] error {errorType: uncaught_exception, message: Uncaught TypeError: youmindImagePrompts.filter is not a function, filename: http://localhost:3100/src/components/modals/ImageGalleryModal.jsx, lineno: 33} @ http://localhost:3100/src/lib/analytics.js:36
+[   48286ms] TypeError: youmindImagePrompts.filter is not a function
+    at ImageGalleryModal._filterPrompts (http://localhost:3100/src/components/modals/ImageGalleryModal.jsx:33:32)
+    at ImageGalleryModal.renderBody (http://localhost:3100/src/components/modals/ImageGalleryModal.jsx:107:26)
+    at ImageGalleryModal.render (http://localhost:3100/src/components/modals/BaseModal.jsx:533:98)
+    at ImageGalleryModal.open (http://localhost:3100/src/components/modals/BaseModal.jsx:500:10)
+    at HTMLButtonElement.<anonymous> (http://localhost:3100/src/components/ImageStudio.js:1081:13)

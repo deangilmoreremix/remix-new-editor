@@ -189,7 +189,7 @@ export default function PromptInput({
     }
 
     if (!user) {
-      window.dispatchEvent(new CustomEvent('openthorn:require-auth'))
+      window.dispatchEvent(new CustomEvent('smartvid:require-auth'))
     } else {
       navigate('/dashboard')
     }

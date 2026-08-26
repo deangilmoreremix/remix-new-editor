@@ -3,7 +3,7 @@ import { usePageTitle } from '../lib/usePageTitle'
 
 export default function CookiesPage() {
   usePageTitle('Cookie Policy', {
-    description: 'How OpenThorn uses cookies and local storage. We use only essential cookies for authentication — no tracking or advertising cookies.',
+    description: 'How SmartVideo uses cookies and local storage. We use only essential cookies for authentication — no tracking or advertising cookies.',
   })
   return (
     <LegalPage title="Cookie and Storage Policy" lastUpdated="June 10, 2026">
@@ -11,13 +11,13 @@ export default function CookiesPage() {
       <p>
         Cookies are small text files stored in your browser by a website. Modern web apps
         also use browser storage such as <strong>localStorage</strong> and{' '}
-        <strong>sessionStorage</strong>. This page explains what OpenThorn stores in your
+        <strong>sessionStorage</strong>. This page explains what SmartVideo stores in your
         browser and why.
       </p>
 
       <h2>2. Essential Authentication Storage</h2>
       <p>
-        OpenThorn uses Supabase Auth to keep you signed in and protect account-only pages.
+        SmartVideo uses Supabase Auth to keep you signed in and protect account-only pages.
         Depending on browser and Supabase behavior, session information may be stored in
         browser storage and related authentication cookies. This storage is necessary for
         login, logout, account security, and session restoration.
@@ -25,7 +25,7 @@ export default function CookiesPage() {
 
       <h2>3. Essential App Storage</h2>
       <p>
-        OpenThorn also uses localStorage for product features that need to survive page
+        SmartVideo also uses localStorage for product features that need to survive page
         reloads on the same browser:
       </p>
       <ul>
@@ -39,7 +39,7 @@ export default function CookiesPage() {
           repository name, and auto-sync preference for the browser you are using.
         </li>
         <li>
-          <strong>openthorn.memory.*</strong> - stores local user-memory entries such as
+          <strong>smartvideo.memory.*</strong> - stores local user-memory entries such as
           inferred design preferences, recurring fixes, and useful facts across projects.
         </li>
         <li>
@@ -51,7 +51,7 @@ export default function CookiesPage() {
 
       <h2>4. Cookieless Analytics and Performance Monitoring</h2>
       <p>
-        OpenThorn uses <strong>Vercel Web Analytics</strong> to count anonymous page
+        SmartVideo uses <strong>Vercel Web Analytics</strong> to count anonymous page
         views and <strong>Vercel Speed Insights</strong> to measure anonymous web
         performance metrics (such as page load and responsiveness timings). Both
         services are cookieless: they do not set cookies, do not store identifiers in
@@ -63,7 +63,7 @@ export default function CookiesPage() {
 
       <h2>5. Consent Banner</h2>
       <p>
-        OpenThorn does not use analytics cookies, advertising cookies, retargeting
+        SmartVideo does not use analytics cookies, advertising cookies, retargeting
         pixels, or third-party social media tracking pixels. Because the current browser
         storage is used for authentication, security, and requested app functionality —
         and our analytics stores nothing on your device — we do not show a cookie
@@ -73,11 +73,11 @@ export default function CookiesPage() {
 
       <h2>6. External Resource Requests</h2>
       <p>
-        OpenThorn's fonts are self-hosted and served from our own infrastructure — no
+        SmartVideo's fonts are self-hosted and served from our own infrastructure — no
         font requests are made to Google or other third parties. Generated project
         previews may load runtime packages, type definitions, or WebAssembly resources
         from third-party CDNs. These requests are not used by
-        OpenThorn for advertising or behavioural tracking, but the third-party provider
+        SmartVideo for advertising or behavioural tracking, but the third-party provider
         may receive technical request data such as your IP address, browser information,
         requested URL, referrer, and request time.
       </p>

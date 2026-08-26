@@ -247,6 +247,22 @@ export default class UserStore {
   };
 
   @action
+  checkOneTimeSubscription = async () => {
+    try {
+      const response = await this.request('/api/check-subscription', {
+        method: 'GET',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
+      return response.hasAccess === true;
+    } catch (e) {
+      console.log(e);
+      return false;
+    }
+  };
+
+  @action
   getTextSpeechSymbols = async () => {
     let user;
     try {

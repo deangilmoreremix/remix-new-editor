@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { getAnnouncement, type Announcement } from '../../lib/app-config'
 import styles from './AnnouncementBanner.module.css'
 
-const DISMISS_KEY = 'openthorn:announcement-dismissed'
+const DISMISS_KEY = 'smartvid:announcement-dismissed'
 const ANNOUNCEMENT_OFFSET_VAR = '--announcement-offset'
 
 /** Stable id so a changed announcement re-appears after a dismissal. */

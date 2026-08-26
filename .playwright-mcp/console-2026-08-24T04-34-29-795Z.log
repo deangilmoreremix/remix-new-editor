@@ -1,0 +1,107 @@
+[     410ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2JL7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     410ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa0ZL7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     411ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2ZL7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     411ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1pL7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     411ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2pL7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     412ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa25L7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     412ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     412ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2JL7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     412ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa0ZL7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     412ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2ZL7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     413ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1pL7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     413ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2pL7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     413ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa25L7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     413ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     413ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2JL7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     413ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa0ZL7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     413ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2ZL7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     414ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1pL7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     414ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2pL7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     414ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa25L7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     414ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     414ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2JL7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     414ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa0ZL7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     415ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2ZL7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     415ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1pL7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     415ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2pL7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     415ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa25L7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     415ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     415ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2JL7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     415ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa0ZL7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     416ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2ZL7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     416ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1pL7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     416ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2pL7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     416ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa25L7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     416ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     416ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2JL7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     416ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa0ZL7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     416ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2ZL7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     416ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1pL7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     417ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2pL7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     417ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa25L7W0Q5n-wU.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     417ms] [ERROR] Loading the font 'https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2' violates the following Content Security Policy directive: "font-src 'self' data: https://clerk.smartvid.app". The action has been blocked. @ http://localhost:3100/:0
+[     740ms] [LOG] [App] Starting initialization... @ http://localhost:3100/src/main.js?t=1787545999718:19
+[     822ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3100/src/lib/popcornInit.js:41
+[     923ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3100/src/lib/popcornInit.js:48
+[    1036ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3100/src/lib/popcornInit.js:48
+[    1220ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3100/src/lib/popcornInit.js:48
+[    1290ms] [LOG] [App] Landing page rendered @ http://localhost:3100/src/main.js?t=1787545999718:88
+[    1678ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3100/src/lib/popcornInit.js:48
+[    1839ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3100/src/lib/popcornInit.js:48
+[    1910ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3100/src/lib/popcornInit.js:48
+[    1920ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3100/src/lib/popcornInit.js:48
+[    1928ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3100/src/lib/popcornInit.js:48
+[    1958ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3100/src/lib/popcornInit.js:48
+[    1974ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3100/src/lib/popcornInit.js:48
+[    1982ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3100/src/lib/popcornInit.js:48
+[    1989ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3100/src/lib/popcornInit.js:48
+[    2049ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=708fd709:20096
+[    2159ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3100/src/lib/popcornInit.js:48
+[    2391ms] [LOG] [popcorn-init] OK: plugin-image @ http://localhost:3100/src/lib/popcornInit.js:48
+[    2407ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://localhost:3100/src/lib/popcornInit.js:48
+[    2417ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://localhost:3100/src/lib/popcornInit.js:48
+[    2425ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3100/src/lib/popcornInit.js:48
+[    2432ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://localhost:3100/src/lib/popcornInit.js:48
+[    2437ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://localhost:3100/src/lib/popcornInit.js:48
+[    2442ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://localhost:3100/src/lib/popcornInit.js:48
+[    2453ms] [LOG] [popcorn-init] OK: plugin-form @ http://localhost:3100/src/lib/popcornInit.js:48
+[    2493ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://localhost:3100/src/lib/popcornInit.js:48
+[    2501ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:3100/src/lib/popcornInit.js:48
+[    2510ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://localhost:3100/src/lib/popcornInit.js:48
+[    2516ms] [LOG] [popcorn-init] OK: plugin-skip @ http://localhost:3100/src/lib/popcornInit.js:48
+[    2540ms] [LOG] [popcorn-init] OK: plugin-text @ http://localhost:3100/src/lib/popcornInit.js:48
+[    2556ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:3100/src/lib/popcornInit.js:48
+[    2566ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://localhost:3100/src/lib/popcornInit.js:48
+[    2585ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:3100/src/lib/popcornInit.js:48
+[    2591ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://localhost:3100/src/lib/popcornInit.js:48
+[    2596ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:3100/src/lib/popcornInit.js:48
+[    2603ms] [LOG] [popcorn-init] OK: plugin-combined @ http://localhost:3100/src/lib/popcornInit.js:48
+[    2608ms] [LOG] [popcorn-init] OK: plugin-background @ http://localhost:3100/src/lib/popcornInit.js:48
+[    2608ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://localhost:3100/src/lib/popcornInit.js:60
+[    2608ms] [LOG] [popcorn] function 19 @ http://localhost:3100/src/main.js?t=1787545999718:4
+[   29912ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3100/@vite/client:559
+[   29916ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3100/:0
+[   38905ms] [ERROR] WebSocket connection to 'ws://localhost:3100/?token=SRf2YikqcAau' failed:  @ http://localhost:3100/@vite/client:535
+[   38909ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3100/@vite/client:559
+[   39120ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3100/favicon.webp:0
+[   39121ms] [WARNING] Error while trying to use the following icon from the Manifest: http://localhost:3100/favicon.webp (Download error or resource isn't a valid image) @ http://localhost:3100/:0
+[   39936ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3100/:0
+[   40939ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3100/:0
+[   41943ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3100/:0
+[   42947ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3100/:0
+[   43950ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3100/:0
+[   60840ms] [LOG] [App] Starting initialization... @ http://localhost:3100/src/main.js:19
+[   60852ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3100/src/lib/popcornInit.js:41
+[   60853ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3100/src/lib/popcornInit.js:48
+[   60855ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3100/src/lib/popcornInit.js:48
+[   60856ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3100/src/lib/popcornInit.js:48
+[   60857ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3100/src/lib/popcornInit.js:48
+[   60857ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3100/src/lib/popcornInit.js:48
+[   60858ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3100/src/lib/popcornInit.js:48
+[   60859ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3100/src/lib/popcornInit.js:48
+[   60859ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3100/src/lib/popcornInit.js:48
+[   60859ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3100/src/lib/popcornInit.js:48
+[   60860ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3100/src/lib/popcornInit.js:48
+[   60861ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3100/src/lib/popcornInit.js:48
+[   60869ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3100/src/lib/popcornInit.js:48
+[   60870ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3100/src/lib/popcornInit.js:48

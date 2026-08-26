@@ -8,7 +8,7 @@ interface SubItem {
 }
 
 const solutionsSub: SubItem[] = [
-  { label: 'Founders', href: '/blog/introducing-openthorn' },
+  { label: 'Founders', href: '/blog/introducing-smartvideo' },
   { label: 'Developers', href: '/faq' },
   { label: 'Product Managers', href: '/pricing' },
   { label: 'Designers', href: '/templates' },
@@ -116,9 +116,7 @@ export default function MobileMenu({ isOpen, onClose, onSignIn, onSignUp }: Mobi
           <a href="/pricing" className={styles.mobileNavItem} onClick={onClose}>
             Pricing
           </a>
-          <a href="https://github.com/BuildingTechAlternatives/OpenThorn" className={styles.mobileNavItem} target="_blank" rel="noopener noreferrer" onClick={onClose}>
-            GitHub
-          </a>
+
         </nav>
 
         {!loading && (

@@ -1,0 +1,50 @@
+- generic [ref=f16e4]:
+  - banner [ref=f16e5]:
+    - navigation [ref=f16e6]:
+      - link "Timeline Editor" [ref=f16e7] [cursor=pointer]:
+        - /url: /
+      - generic [ref=f16e13]:
+        - link "Explore" [ref=f16e14] [cursor=pointer]:
+          - /url: "#/explore"
+        - link "Image" [ref=f16e15] [cursor=pointer]:
+          - /url: "#/image"
+        - link "Video" [ref=f16e16] [cursor=pointer]:
+          - /url: "#/video"
+        - link "Timeline" [ref=f16e17] [cursor=pointer]:
+          - /url: "#/timeline"
+      - generic [ref=f16e18]:
+        - link "Sign In" [ref=f16e19] [cursor=pointer]:
+          - /url: /signin
+        - link "Home" [ref=f16e20] [cursor=pointer]:
+          - /url: /
+  - main [ref=f16e21]:
+    - generic [ref=f16e23]:
+      - generic [ref=f16e24]:
+        - heading "Set New Password" [level=1] [ref=f16e25]
+        - paragraph [ref=f16e26]: Enter the code from your email
+      - generic [ref=f16e27]:
+        - generic [ref=f16e28]:
+          - generic [ref=f16e29]: Email Address
+          - textbox "Email Address" [ref=f16e30]:
+            - /placeholder: you@example.com
+        - generic [ref=f16e31]:
+          - generic [ref=f16e32]: Verification Code
+          - textbox "Verification Code" [ref=f16e33]:
+            - /placeholder: "123456"
+        - generic [ref=f16e34]:
+          - generic [ref=f16e35]: New Password
+          - generic [ref=f16e36]:
+            - textbox "New Password" [ref=f16e37]:
+              - /placeholder: Enter a new password
+            - button "Show password" [ref=f16e38]
+        - generic [ref=f16e42]:
+          - generic [ref=f16e43]: Confirm New Password
+          - generic [ref=f16e44]:
+            - textbox "Confirm New Password" [ref=f16e45]:
+              - /placeholder: Re-enter your new password
+            - button "Show password" [ref=f16e46]
+        - button "Update Password" [ref=f16e50]
+      - paragraph [ref=f16e52]:
+        - text: Didn't get a code?
+        - link "Request again" [ref=f16e53] [cursor=pointer]:
+          - /url: /forgot-password

@@ -1,0 +1,232 @@
+- generic [ref=f12e2]:
+  - banner [ref=f12e3]:
+    - generic [ref=f12e4]:
+      - generic [ref=f12e5]:
+        - generic [ref=f12e6] [cursor=pointer]
+        - navigation [ref=f12e12]:
+          - generic [ref=f12e13] [cursor=pointer]: Explore
+          - generic [ref=f12e14] [cursor=pointer]: Image
+          - generic [ref=f12e15] [cursor=pointer]: Video
+          - generic [ref=f12e16] [cursor=pointer]: Tools
+          - generic [ref=f12e17] [cursor=pointer]: Storyboard
+          - generic [ref=f12e18] [cursor=pointer]: Edit
+          - generic [ref=f12e19] [cursor=pointer]: Character
+          - generic [ref=f12e20] [cursor=pointer]: Vibe Motion
+          - generic [ref=f12e21] [cursor=pointer]: Cinema Studio
+          - generic [ref=f12e22] [cursor=pointer]: Cinema Template Studio
+          - generic [ref=f12e23] [cursor=pointer]: AI Influencer
+          - generic [ref=f12e24] [cursor=pointer]: Smart Video Viral
+          - generic [ref=f12e25] [cursor=pointer]: Apps
+          - generic [ref=f12e26] [cursor=pointer]: Templates
+          - generic [ref=f12e27] [cursor=pointer]: Assist
+          - generic [ref=f12e28] [cursor=pointer]: Community
+          - generic [ref=f12e29] [cursor=pointer]: Content Library
+      - button "Update API Key" [ref=f12e31]
+  - generic [ref=f12e34]:
+    - complementary [ref=f12e35]:
+      - generic [ref=f12e36]:
+        - generic [ref=f12e37] [cursor=pointer]:
+          - button [ref=f12e38]
+          - generic [ref=f12e44]: Apps
+        - generic [ref=f12e45] [cursor=pointer]:
+          - button [ref=f12e46]
+          - generic [ref=f12e51]: Image
+        - generic [ref=f12e52] [cursor=pointer]:
+          - button [ref=f12e53]
+          - generic [ref=f12e57]: Video
+        - generic [ref=f12e58] [cursor=pointer]:
+          - button [ref=f12e59]
+          - generic [ref=f12e62]: Cinema Studio
+        - generic [ref=f12e63] [cursor=pointer]:
+          - button [ref=f12e64]
+          - generic [ref=f12e67]: Cinema Template Studio
+        - generic [ref=f12e68] [cursor=pointer]:
+          - button [ref=f12e69]
+          - generic [ref=f12e77]: Storyboard
+        - generic [ref=f12e78] [cursor=pointer]:
+          - button [ref=f12e79]
+          - generic [ref=f12e82]: Effects
+        - generic [ref=f12e83] [cursor=pointer]:
+          - button [ref=f12e84]
+          - generic [ref=f12e88]: Edit
+        - generic [ref=f12e89] [cursor=pointer]:
+          - button [ref=f12e90]
+          - generic [ref=f12e96]: Upscale
+        - generic [ref=f12e97] [cursor=pointer]:
+          - button [ref=f12e98]
+          - generic [ref=f12e103]: Audio
+        - generic [ref=f12e104] [cursor=pointer]:
+          - button [ref=f12e105]
+          - generic [ref=f12e110]: Avatar
+        - generic [ref=f12e111] [cursor=pointer]:
+          - button [ref=f12e112]
+          - generic [ref=f12e117]: Training
+        - generic [ref=f12e118] [cursor=pointer]:
+          - button [ref=f12e119]
+          - generic [ref=f12e123]: Smart Video Academy
+        - generic [ref=f12e124] [cursor=pointer]:
+          - button [ref=f12e125]
+          - generic [ref=f12e130]: Smart Video Viral
+        - generic [ref=f12e131] [cursor=pointer]:
+          - button [ref=f12e132]
+          - generic [ref=f12e136]: Video Tools
+        - generic [ref=f12e137] [cursor=pointer]:
+          - button [ref=f12e138]
+          - generic [ref=f12e141]: Render
+        - generic [ref=f12e142] [cursor=pointer]:
+          - button [ref=f12e143]
+          - generic [ref=f12e148]: Video Agent
+        - generic [ref=f12e149] [cursor=pointer]:
+          - button [ref=f12e150]
+          - generic [ref=f12e154]: Director
+        - generic [ref=f12e155] [cursor=pointer]:
+          - button [ref=f12e156]
+          - generic [ref=f12e162]: Timeline
+        - generic [ref=f12e163] [cursor=pointer]:
+          - button [ref=f12e164]
+          - generic [ref=f12e167]: Chat
+        - generic [ref=f12e168] [cursor=pointer]:
+          - button [ref=f12e169]
+          - generic [ref=f12e173]: Commercial
+        - generic [ref=f12e174] [cursor=pointer]:
+          - button [ref=f12e175]
+          - generic [ref=f12e178]: Templates
+        - generic [ref=f12e179] [cursor=pointer]:
+          - button [ref=f12e180]
+          - generic [ref=f12e184]: Explore
+        - generic [ref=f12e185] [cursor=pointer]:
+          - button [ref=f12e186]
+          - generic [ref=f12e190]: Library
+        - generic [ref=f12e191] [cursor=pointer]:
+          - button [ref=f12e192]
+          - generic [ref=f12e195]: Content
+        - generic [ref=f12e196] [cursor=pointer]:
+          - button [ref=f12e197]
+          - generic [ref=f12e203]: Community
+        - generic [ref=f12e204] [cursor=pointer]:
+          - button [ref=f12e205]
+          - generic [ref=f12e210]: Assist
+        - generic [ref=f12e211] [cursor=pointer]:
+          - button [ref=f12e212]
+          - generic [ref=f12e216]: Commits (0)
+        - generic [ref=f12e217] [cursor=pointer]:
+          - button [ref=f12e218]
+          - generic [ref=f12e222]: AI VFX
+        - generic [ref=f12e223] [cursor=pointer]:
+          - button [ref=f12e224]
+          - generic [ref=f12e228]: Stock Media
+      - generic [ref=f12e230] [cursor=pointer]:
+        - button [ref=f12e231]
+        - generic [ref=f12e235]: Settings
+    - main [ref=f12e236]:
+      - generic [ref=f12e843]:
+        - complementary [ref=f12e844]
+        - main [ref=f12e845]:
+          - generic [ref=f12e847]:
+            - button "All studios" [ref=f12e849]
+            - generic [ref=f12e855]:
+              - button "Explore" [ref=f12e856]
+              - button "Image" [ref=f12e857]
+              - button "Video" [ref=f12e858]
+              - button "Storyboard" [ref=f12e859]
+              - button "Edit" [ref=f12e860]
+              - button "Character" [ref=f12e861]
+              - button "Vibe Motion" [ref=f12e862]
+              - button "Cinema Studio" [ref=f12e863]
+              - button "AI Influencer" [ref=f12e864]
+              - button "Apps" [ref=f12e865]
+              - button "Templates" [ref=f12e866]
+              - button "Assist" [ref=f12e867]
+              - button "Community" [ref=f12e868]
+          - generic [ref=f12e869]:
+            - button "← Back to Apps" [ref=f12e870]
+            - generic [ref=f12e871]:
+              - generic [ref=f12e872]:
+                - img "Anime Converter" [ref=f12e874]
+                - button "🖼 Thumbnail" [ref=f12e875]
+                - heading "Anime Converter" [level=1] [ref=f12e876]
+                - paragraph [ref=f12e877]: Transform any photo into beautiful anime-style art with vivid colors and expressive features.
+                - generic [ref=f12e878]:
+                  - generic [ref=f12e879]: Image
+                  - generic [ref=f12e880]: Style Transfer
+                  - generic [ref=f12e881]: Anime transformations
+              - generic [ref=f12e882]:
+                - generic [ref=f12e883]:
+                  - generic [ref=f12e884]:
+                    - generic [ref=f12e885]: Upload your photo
+                    - generic [ref=f12e887] [cursor=pointer]:
+                      - generic [ref=f12e888]: ↑
+                      - generic [ref=f12e889]: Click to upload an image
+                  - generic [ref=f12e890]:
+                    - generic [ref=f12e891]:
+                      - generic [ref=f12e892]: Description
+                      - generic [ref=f12e893]:
+                        - button "Enhance" [ref=f12e894]
+                        - button "GTM Boost prompt enhancer" [ref=f12e895] [cursor=pointer]: 🎯 GTM Boost
+                    - textbox "e.g. dramatic anime scene with action" [ref=f12e896]
+                  - generic [ref=f12e897]:
+                    - generic [ref=f12e898]:
+                      - generic [ref=f12e899]: Model
+                      - button "Select model" [ref=f12e900]: AI Ghibli Style
+                    - listbox "Available models"
+                  - generic [ref=f12e904]:
+                    - generic [ref=f12e905]:
+                      - generic [ref=f12e906]:
+                        - generic [ref=f12e907]: AI Enhancer
+                        - generic [ref=f12e908]: Keeps the simple template flow, but auto-detects niche, applies cinematic prompt expansion, scene logic, and cleanup in the background.
+                      - button [ref=f12e909]
+                    - button "Show Advanced Controls" [ref=f12e911]
+                  - button "GTM Boost prompt enhancer" [ref=f12e912] [cursor=pointer]: 🎯 GTM Boost
+                  - button "Generate template" [ref=f12e913]: Generate
+                  - button "Personalize Personalize with a discovered contact" [ref=f12e914]:
+                    - generic [ref=f12e918]: Personalize
+                    - text: Personalize with a discovered contact
+                  - button "Open recipe engine" [ref=f12e921] [cursor=pointer]: 📋 Recipes
+                  - button "Open Smart Video AI Monetization Hub" [ref=f12e922] [cursor=pointer]: 💼 Smart Video AI Monetize
+                  - button "Open prompt gallery" [ref=f12e923] [cursor=pointer]: 📚 Prompts
+                  - generic [ref=f12e924]:
+                    - heading "Creative Intelligence" [level=2] [ref=f12e925]
+                    - paragraph [ref=f12e926]: These tiles show the cinematic structure, creative direction, and visual strategy this template will use to build your final video.
+                    - generic [ref=f12e927]:
+                      - generic [ref=f12e928] [cursor=pointer]:
+                        - generic [ref=f12e929]: 🏷️
+                        - heading "Auto-Detected Niche" [level=3] [ref=f12e930]
+                        - textbox [ref=f12e931]: general-business
+                      - generic [ref=f12e932] [cursor=pointer]:
+                        - generic [ref=f12e933]: 🎬
+                        - heading "Scene Structure" [level=3] [ref=f12e934]
+                        - textbox [ref=f12e935]: Character focus → anime background → expressive features → vibrant color palette
+                      - generic [ref=f12e936] [cursor=pointer]:
+                        - generic [ref=f12e937]: 🎥
+                        - heading "Cinematic Enrichment" [level=3] [ref=f12e938]
+                        - textbox [ref=f12e939]: Anime-style framing with dramatic angles and expressive character focus
+                      - generic [ref=f12e940] [cursor=pointer]:
+                        - generic [ref=f12e941]: ⚙️
+                        - heading "Visual Style" [level=3] [ref=f12e942]
+                        - textbox [ref=f12e943]: Vibrant, expressive, hand-drawn aesthetic, Japanese animation
+                      - generic [ref=f12e944] [cursor=pointer]:
+                        - generic [ref=f12e945]: ✨
+                        - heading "Enhancer Keywords" [level=3] [ref=f12e946]
+                        - textbox [ref=f12e947]: anime style, Japanese animation, Studio Ghibli inspired, vibrant colors, expressive
+                - generic [ref=f12e948]:
+                  - generic [ref=f12e949]:
+                    - generic [ref=f12e950]:
+                      - generic [ref=f12e951]: Image
+                      - generic [ref=f12e952]: Style Transfer
+                      - generic [ref=f12e953]: 16:9
+                    - generic [ref=f12e956]:
+                      - generic [ref=f12e957]:
+                        - generic [ref=f12e958]: Preview / Output Panel
+                        - generic [ref=f12e959]: Standby State
+                      - generic [ref=f12e960]: Upload an image and click Generate to see results
+                  - generic [ref=f12e961]:
+                    - generic [ref=f12e962]:
+                      - button "Enhanced Prompt" [ref=f12e963]
+                      - button "Scene Beats" [ref=f12e964]
+                      - button "Voiceover" [ref=f12e965]
+                      - button "Negative Prompt" [ref=f12e966]
+                    - generic [ref=f12e967]:
+                      - generic [ref=f12e968]:
+                        - generic [ref=f12e969]: Editable Output
+                        - button "✨" [ref=f12e970]
+                      - textbox [ref=f12e971]: anime style, Japanese animation, Studio Ghibli inspired, vibrant colors, expressive

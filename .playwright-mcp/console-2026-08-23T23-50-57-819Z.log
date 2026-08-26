@@ -1,0 +1,58 @@
+[     862ms] [ERROR] [2026-08-23T23:50:58.680Z] [ERROR] Uncaught error | {"filename":"http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js","lineno":79,"colno":72} @ http://localhost:3100/src/lib/logger.js:84
+[     862ms] [ERROR] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/lib/logger.js:85
+[     863ms] [ERROR] [Global Error] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/main.js:22
+[     864ms] [LOG] [Analytics] error {errorType: uncaught_exception, message: Uncaught ReferenceError: objectFit is not defined, filename: http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js, lineno: 79} @ http://localhost:3100/src/lib/analytics.js:36
+[     886ms] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15)
+[     895ms] [ERROR] [2026-08-23T23:50:58.713Z] [ERROR] Uncaught error | {"filename":"http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js","lineno":79,"colno":72} @ http://localhost:3100/src/lib/logger.js:84
+[     895ms] [ERROR] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/lib/logger.js:85
+[     896ms] [ERROR] [Global Error] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15) @ http://localhost:3100/src/main.js:22
+[     897ms] [LOG] [Analytics] error {errorType: uncaught_exception, message: Uncaught ReferenceError: objectFit is not defined, filename: http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js, lineno: 79} @ http://localhost:3100/src/lib/analytics.js:36
+[     903ms] ReferenceError: objectFit is not defined
+    at ensureVideo (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:79:72)
+    at http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:55:11
+    at Array.forEach (<anonymous>)
+    at IntersectionObserver.rootMargin (http://localhost:3100/src/components/landing/sections/minimax/mediaFrame.js:51:15)
+[     943ms] [LOG] [Landing] section loaded: scrolling keys: [ScrollingAppStrip] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[     951ms] [LOG] [Landing] section created: scrolling type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[    1007ms] [LOG] [Landing] section loaded: hook keys: [HookSection] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1008ms] [LOG] [Landing] section created: hook type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[    1251ms] [LOG] [Landing] section loaded: apps keys: [AppsGridSection] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1254ms] [LOG] [Landing] section created: apps type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[    1331ms] [LOG] [Landing] section loaded: ai-workflow keys: [MinimaxWorkflowSection, default] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1331ms] [LOG] [Landing] section created: ai-workflow type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[    1573ms] [LOG] [Landing] section loaded: engines keys: [SixEnginesSection] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1575ms] [LOG] [Landing] section created: engines type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[    1704ms] [LOG] [Landing] section loaded: features keys: [FeaturesSection] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1704ms] [LOG] [Landing] section created: features type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[    1819ms] [LOG] [Landing] section loaded: gallery keys: [AIVideoGallery, default] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1833ms] [LOG] [Landing] section created: gallery type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[    1834ms] [LOG] [Landing] section loaded: made-with keys: [MadeWithSmartVideo, default] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1843ms] [LOG] [Landing] section created: made-with type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[    1845ms] [LOG] [Landing] section loaded: ugc keys: [UGCDemoShowcase, default] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    1848ms] [LOG] [Landing] section created: ugc type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[    2382ms] [LOG] [Landing] section loaded: academy keys: [AcademyVideoShowcase, default] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    2425ms] [LOG] [Landing] section created: academy type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[    2427ms] [LOG] [Landing] section loaded: repo-video keys: [MmxActionVfxSection, MmxAnimationSection, MmxCinemaSection, MmxCommercialSection, MmxFashionSection, MmxSocialSection, SdActionSection, SdAnimationSection, SdCinemaSection, SdCommercialSection, SdSocialSection, ShowcaseRepoVideo, ZlCinemaSection, default] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    2625ms] [LOG] [Landing] section created: repo-video type: HTMLDivElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132
+[    3033ms] [LOG] [Landing] section loaded: repos keys: [RepoShowcase, default] @ http://localhost:3100/src/components/landing/LandingPage.jsx:122
+[    3052ms] [LOG] [Landing] section created: repos type: HTMLElement @ http://localhost:3100/src/components/landing/LandingPage.jsx:132

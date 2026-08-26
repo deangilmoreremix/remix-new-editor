@@ -1,0 +1,153 @@
+- generic [ref=f4e1]:
+  - generic [ref=f4e5]:
+    - navigation [ref=f4e6]:
+      - generic [ref=f4e7]:
+        - link "Go to the dashboard" [ref=f4e8] [cursor=pointer]:
+          - /url: https://www.zight.com
+        - list [ref=f4e20]:
+          - listitem [ref=f4e21]:
+            - link "All Files" [ref=f4e22] [cursor=pointer]:
+              - /url: ""
+          - listitem [ref=f4e30]:
+            - link "Collections" [ref=f4e31] [cursor=pointer]:
+              - /url: ""
+          - listitem [ref=f4e39]:
+            - link "Request links" [ref=f4e40] [cursor=pointer]:
+              - /url: ""
+          - listitem [ref=f4e48]:
+            - link "Favorites" [ref=f4e49] [cursor=pointer]:
+              - /url: ""
+          - listitem [ref=f4e57]:
+            - link "Integrations" [ref=f4e58] [cursor=pointer]:
+              - /url: https://www.zight.com/integrations/
+          - listitem [ref=f4e66]:
+            - link "Agents" [ref=f4e67] [cursor=pointer]:
+              - /url: ""
+          - listitem [ref=f4e75]:
+            - link "Zight AI" [ref=f4e76] [cursor=pointer]:
+              - /url: https://www.zight.com/ai/
+          - listitem [ref=f4e84]:
+            - link "History" [ref=f4e85] [cursor=pointer]:
+              - /url: ""
+        - generic [ref=f4e94]:
+          - separator [ref=f4e95]
+          - list [ref=f4e96]:
+            - listitem [ref=f4e97]:
+              - link "Why Zight" [ref=f4e98] [cursor=pointer]:
+                - /url: https://support.zight.com/hc/en-us/articles/5818788110103-What-is-Zight
+            - listitem [ref=f4e105]:
+              - link "Use cases" [ref=f4e106] [cursor=pointer]:
+                - /url: https://www.zight.com/customers/
+            - listitem [ref=f4e113]:
+              - link "Pricing" [ref=f4e114] [cursor=pointer]:
+                - /url: https://share.zight.com/pricing
+      - generic [ref=f4e121]:
+        - generic [ref=f4e123]:
+          - button "Get Zight for Free" [ref=f4e125] [cursor=pointer]
+          - generic [ref=f4e129]:
+            - link "Contact Sales" [ref=f4e130] [cursor=pointer]:
+              - /url: https://www.zight.com/contact?utm_source=viewer_sidebar
+            - link "Help" [ref=f4e131] [cursor=pointer]:
+              - /url: https://support.zight.com/
+        - button [ref=f4e135] [cursor=pointer]
+    - generic [ref=f4e143]:
+      - generic [ref=f4e144]:
+        - 'heading "Image file with a title: Zight 2026-8-24 at 10.39.46" [level=1] [ref=f4e146]':
+          - generic [ref=f4e147]: "Image file with a title:"
+          - generic [ref=f4e148]: Zight 2026-8-24 at 10.39.46
+        - generic [ref=f4e149]:
+          - button "Copy link" [ref=f4e152] [cursor=pointer]
+          - button "Share" [ref=f4e156] [cursor=pointer]
+          - generic [ref=f4e161] [cursor=pointer]: Get Zight for Free
+      - generic [ref=f4e167]:
+        - img "Zight 2026-8-24 at 10.39.46" [ref=f4e168] [cursor=pointer]
+        - generic: Click to expand
+      - generic [ref=f4e171]:
+        - generic [ref=f4e172]:
+          - generic [ref=f4e173]: Reactions
+          - generic [ref=f4e174]:
+            - generic [ref=f4e175] [cursor=pointer]:
+              - generic [ref=f4e176]: 👍
+              - generic [ref=f4e177]: "0"
+            - generic [ref=f4e178] [cursor=pointer]:
+              - generic [ref=f4e179]: 👎
+              - generic [ref=f4e180]: "0"
+            - generic [ref=f4e181] [cursor=pointer]:
+              - generic [ref=f4e182]: 🔥
+              - generic [ref=f4e183]: "0"
+            - generic [ref=f4e184] [cursor=pointer]:
+              - generic [ref=f4e185]: ❤️
+              - generic [ref=f4e186]: "0"
+        - button "0 Comments" [ref=f4e187] [cursor=pointer]
+      - generic [ref=f4e194]:
+        - tablist [ref=f4e195]:
+          - tab "Comments" [selected] [ref=f4e196] [cursor=pointer]
+        - tabpanel [ref=f4e198]:
+          - generic [ref=f4e199]:
+            - heading "Comments" [level=2] [ref=f4e200]
+            - textbox "Add a comment..." [ref=f4e206]
+  - dialog [ref=f4e207]:
+    - generic [ref=f4e209]:
+      - button [ref=f4e210] [cursor=pointer]
+      - generic [ref=f4e215]:
+        - region "Sign up for Zight" [ref=f4e216]:
+          - generic [ref=f4e228]: Sign up with
+          - list [ref=f4e230]:
+            - listitem [ref=f4e231]:
+              - link "Sign in with Google" [ref=f4e232] [cursor=pointer]:
+                - /url: "#"
+              - generic [ref=f4e240]: Google
+            - listitem [ref=f4e241]:
+              - link "Sign in with Apple" [ref=f4e242] [cursor=pointer]:
+                - /url: "#"
+              - generic [ref=f4e247]: Apple
+            - listitem [ref=f4e248]:
+              - link "Sign in with Slack" [ref=f4e249] [cursor=pointer]:
+                - /url: "#"
+              - generic [ref=f4e257]: Slack
+            - listitem [ref=f4e258]:
+              - link "Sign in with SSO" [ref=f4e259] [cursor=pointer]:
+                - /url: "#"
+              - generic [ref=f4e264]: SSO
+          - generic [ref=f4e265]: Or
+          - group [ref=f4e268]:
+            - generic [ref=f4e269]:
+              - generic [ref=f4e270]: Work email
+              - textbox "Work email" [ref=f4e271]
+            - generic [ref=f4e272]:
+              - generic [ref=f4e273]: Password
+              - textbox "Password" [ref=f4e274]
+              - paragraph [ref=f4e275]: Must be at least 8 characters long, contain uppercase and lowercase letters and a number.
+            - button "Sign up" [ref=f4e276] [cursor=pointer]
+          - paragraph [ref=f4e278]:
+            - text: Have an account?
+            - link "Sign in" [ref=f4e279] [cursor=pointer]:
+              - /url: "#"
+          - generic [ref=f4e280]:
+            - paragraph [ref=f4e281]: Trusted by thousands of teams
+            - list [ref=f4e282]:
+              - listitem [ref=f4e283]:
+                - img "Adobe" [ref=f4e284]
+              - listitem [ref=f4e285]:
+                - img "Notion" [ref=f4e286]
+              - listitem [ref=f4e287]:
+                - img "Gainsight" [ref=f4e288]
+              - listitem [ref=f4e289]:
+                - img "Basecamp" [ref=f4e290]
+        - complementary "Zight Agents benefits" [ref=f4e291]:
+          - heading "Record it once. Let the agent do it forever." [level=2] [ref=f4e292]: Record it once.Let the agent do it forever.
+          - paragraph [ref=f4e293]: "With Zight Agents, you can:"
+          - list [ref=f4e294]:
+            - listitem [ref=f4e295]:
+              - generic [ref=f4e299]: Turn any recording into a reusable AI agent
+            - listitem [ref=f4e300]:
+              - generic [ref=f4e304]: Automate repetitive workflows without code
+            - listitem [ref=f4e305]:
+              - generic [ref=f4e309]: Share one link—no more repeat explanations
+            - listitem [ref=f4e310]:
+              - generic [ref=f4e314]: Onboard teammates faster with step-by-step agents
+            - listitem [ref=f4e315]:
+              - generic [ref=f4e319]: Works instantly in your browser—no setup required
+          - link "See how it works" [ref=f4e320] [cursor=pointer]:
+            - /url: https://zight.com/agent/?utm_source=product&utm_medium=web&utm_campaign=signup_login_agent_promo&utm_content=see_how_it_works
+          - button "Skip sign up for now →" [ref=f4e321] [cursor=pointer]

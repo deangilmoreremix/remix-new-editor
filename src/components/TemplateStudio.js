@@ -1,4 +1,4 @@
-import { getTemplateById } from '../lib/templates.js';
+import { getTemplateById } from '../lib/videoTemplates.js';
 import { getTemplateThumbnailCandidates, saveCustomThumbnailToCache, clearCustomThumbnailCache, getCustomThumbnailFromCache } from '../lib/thumbnails.js';
 import { getTemplateSpecs, hasEnhancedSpecs } from '../lib/templateSpecs.js';
 import { muapi } from '../lib/muapi.js';

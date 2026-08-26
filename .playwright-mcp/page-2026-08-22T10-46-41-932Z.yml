@@ -1,0 +1,125 @@
+- generic [ref=f10e2]:
+  - banner [ref=f10e3]:
+    - generic [ref=f10e4]:
+      - generic [ref=f10e5]:
+        - generic [ref=f10e6] [cursor=pointer]
+        - navigation [ref=f10e12]:
+          - generic [ref=f10e13] [cursor=pointer]: Explore
+          - generic [ref=f10e14] [cursor=pointer]: Image
+          - generic [ref=f10e15] [cursor=pointer]: Video
+          - generic [ref=f10e16] [cursor=pointer]: Tools
+          - generic [ref=f10e17] [cursor=pointer]: Storyboard
+          - generic [ref=f10e18] [cursor=pointer]: Edit
+          - generic [ref=f10e19] [cursor=pointer]: Character
+          - generic [ref=f10e20] [cursor=pointer]: Vibe Motion
+          - generic [ref=f10e21] [cursor=pointer]: Cinema Studio
+          - generic [ref=f10e22] [cursor=pointer]: Cinema Template Studio
+          - generic [ref=f10e23] [cursor=pointer]: AI Influencer
+          - generic [ref=f10e24] [cursor=pointer]: Smart Video Viral
+          - generic [ref=f10e25] [cursor=pointer]: Apps
+          - generic [ref=f10e26] [cursor=pointer]: Templates
+          - generic [ref=f10e27] [cursor=pointer]: Assist
+          - generic [ref=f10e28] [cursor=pointer]: Community
+          - generic [ref=f10e29] [cursor=pointer]: Content Library
+      - generic [ref=f10e30]:
+        - button "Update API Key" [ref=f10e31]
+        - link "Sign In" [ref=f10e35] [cursor=pointer]:
+          - /url: /signin
+  - generic [ref=f10e36]:
+    - complementary [ref=f10e37]:
+      - generic [ref=f10e38]:
+        - generic [ref=f10e39] [cursor=pointer]:
+          - button [ref=f10e40]
+          - generic [ref=f10e46]: Apps
+        - generic [ref=f10e47] [cursor=pointer]:
+          - button [ref=f10e48]
+          - generic [ref=f10e53]: Image
+        - generic [ref=f10e54] [cursor=pointer]:
+          - button [ref=f10e55]
+          - generic [ref=f10e59]: Video
+        - generic [ref=f10e60] [cursor=pointer]:
+          - button [ref=f10e61]
+          - generic [ref=f10e64]: Cinema Studio
+        - generic [ref=f10e65] [cursor=pointer]:
+          - button [ref=f10e66]
+          - generic [ref=f10e69]: Cinema Template Studio
+        - generic [ref=f10e70] [cursor=pointer]:
+          - button [ref=f10e71]
+          - generic [ref=f10e79]: Storyboard
+        - generic [ref=f10e80] [cursor=pointer]:
+          - button [ref=f10e81]
+          - generic [ref=f10e84]: Effects
+        - generic [ref=f10e85] [cursor=pointer]:
+          - button [ref=f10e86]
+          - generic [ref=f10e90]: Edit
+        - generic [ref=f10e91] [cursor=pointer]:
+          - button [ref=f10e92]
+          - generic [ref=f10e98]: Upscale
+        - generic [ref=f10e99] [cursor=pointer]:
+          - button [ref=f10e100]
+          - generic [ref=f10e105]: Audio
+        - generic [ref=f10e106] [cursor=pointer]:
+          - button [ref=f10e107]
+          - generic [ref=f10e112]: Avatar
+        - generic [ref=f10e113] [cursor=pointer]:
+          - button [ref=f10e114]
+          - generic [ref=f10e119]: Training
+        - generic [ref=f10e120] [cursor=pointer]:
+          - button [ref=f10e121]
+          - generic [ref=f10e125]: Smart Video Academy
+        - generic [ref=f10e126] [cursor=pointer]:
+          - button [ref=f10e127]
+          - generic [ref=f10e132]: Smart Video Viral
+        - generic [ref=f10e133] [cursor=pointer]:
+          - button [ref=f10e134]
+          - generic [ref=f10e138]: Video Tools
+        - generic [ref=f10e139] [cursor=pointer]:
+          - button [ref=f10e140]
+          - generic [ref=f10e143]: Render
+        - generic [ref=f10e144] [cursor=pointer]:
+          - button [ref=f10e145]
+          - generic [ref=f10e150]: Video Agent
+        - generic [ref=f10e151] [cursor=pointer]:
+          - button [ref=f10e152]
+          - generic [ref=f10e156]: Director
+        - generic [ref=f10e157] [cursor=pointer]:
+          - button [ref=f10e158]
+          - generic [ref=f10e164]: Timeline
+        - generic [ref=f10e165] [cursor=pointer]:
+          - button [ref=f10e166]
+          - generic [ref=f10e169]: Chat
+        - generic [ref=f10e170] [cursor=pointer]:
+          - button [ref=f10e171]
+          - generic [ref=f10e175]: Commercial
+        - generic [ref=f10e176] [cursor=pointer]:
+          - button [ref=f10e177]
+          - generic [ref=f10e180]: Templates
+        - generic [ref=f10e181] [cursor=pointer]:
+          - button [ref=f10e182]
+          - generic [ref=f10e186]: Explore
+        - generic [ref=f10e187] [cursor=pointer]:
+          - button [ref=f10e188]
+          - generic [ref=f10e192]: Library
+        - generic [ref=f10e193] [cursor=pointer]:
+          - button [ref=f10e194]
+          - generic [ref=f10e197]: Content
+        - generic [ref=f10e198] [cursor=pointer]:
+          - button [ref=f10e199]
+          - generic [ref=f10e205]: Community
+        - generic [ref=f10e206] [cursor=pointer]:
+          - button [ref=f10e207]
+          - generic [ref=f10e212]: Assist
+        - generic [ref=f10e213] [cursor=pointer]:
+          - button [ref=f10e214]
+          - generic [ref=f10e218]: Commits (0)
+        - generic [ref=f10e219] [cursor=pointer]:
+          - button [ref=f10e220]
+          - generic [ref=f10e224]: AI VFX
+        - generic [ref=f10e225] [cursor=pointer]:
+          - button [ref=f10e226]
+          - generic [ref=f10e230]: Stock Media
+      - generic [ref=f10e232] [cursor=pointer]:
+        - button [ref=f10e233]
+        - generic [ref=f10e237]: Settings
+    - main [ref=f10e238]:
+      - generic [ref=f10e239]: "Failed to load video: vCameraSpeed is not defined"

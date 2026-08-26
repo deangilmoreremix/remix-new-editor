@@ -20,7 +20,7 @@ export default class LandingPage {
             neural text-to-speech, and perfect lip-sync technology.
           </p>
           <p class="hero-description">
-            The complete Sendspark alternative with open-source flexibility,
+            The complete Sendspark alternative with AI-powered flexibility,
             200+ AI models, and enterprise-grade features.
           </p>
 
@@ -150,7 +150,7 @@ export default class LandingPage {
 
       <!-- Footer -->
       <footer class="landing-footer">
-        <p>© 2024 Video Personalization Platform. Open-source alternative to Sendspark.</p>
+        <p>© 2024 Video Personalization Platform. SmartVideo alternative to Sendspark.</p>
         <div class="footer-links">
           <a href="/personalize">Personalizer</a>
             <a href="/smartvideo-demo">Demo</a>

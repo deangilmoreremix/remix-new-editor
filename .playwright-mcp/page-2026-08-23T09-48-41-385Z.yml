@@ -1,0 +1,618 @@
+- generic [ref=f1e2]:
+  - banner [ref=f1e3]:
+    - generic [ref=f1e4]:
+      - generic [ref=f1e5]:
+        - generic [ref=f1e6] [cursor=pointer]
+        - navigation [ref=f1e12]:
+          - generic [ref=f1e13] [cursor=pointer]: Explore
+          - generic [ref=f1e14] [cursor=pointer]: Image
+          - generic [ref=f1e15] [cursor=pointer]: Video
+          - generic [ref=f1e16] [cursor=pointer]: Tools
+          - generic [ref=f1e17] [cursor=pointer]: Storyboard
+          - generic [ref=f1e18] [cursor=pointer]: Edit
+          - generic [ref=f1e19] [cursor=pointer]: Character
+          - generic [ref=f1e20] [cursor=pointer]: Vibe Motion
+          - generic [ref=f1e21] [cursor=pointer]: Cinema Studio
+          - generic [ref=f1e22] [cursor=pointer]: Cinema Template Studio
+          - generic [ref=f1e23] [cursor=pointer]: AI Influencer
+          - generic [ref=f1e24] [cursor=pointer]: Smart Video Viral
+          - generic [ref=f1e25] [cursor=pointer]: Apps
+          - generic [ref=f1e26] [cursor=pointer]: Templates
+          - generic [ref=f1e27] [cursor=pointer]: Assist
+          - generic [ref=f1e28] [cursor=pointer]: Community
+          - generic [ref=f1e29] [cursor=pointer]: Content Library
+      - generic [ref=f1e30]:
+        - button "Update API Key" [ref=f1e31]
+        - link "Sign In" [ref=f1e238] [cursor=pointer]:
+          - /url: /signin
+  - generic [ref=f1e34]:
+    - complementary [ref=f1e35]:
+      - generic [ref=f1e36]:
+        - generic [ref=f1e37] [cursor=pointer]:
+          - button [ref=f1e38]
+          - generic [ref=f1e44]: Apps
+        - generic [ref=f1e45] [cursor=pointer]:
+          - button [ref=f1e46]
+          - generic [ref=f1e51]: Image
+        - generic [ref=f1e52] [cursor=pointer]:
+          - button [ref=f1e53]
+          - generic [ref=f1e57]: Video
+        - generic [ref=f1e58] [cursor=pointer]:
+          - button [ref=f1e59]
+          - generic [ref=f1e62]: Cinema Studio
+        - generic [ref=f1e63] [cursor=pointer]:
+          - button [ref=f1e64]
+          - generic [ref=f1e67]: Cinema Template Studio
+        - generic [ref=f1e68] [cursor=pointer]:
+          - button [ref=f1e69]
+          - generic [ref=f1e77]: Storyboard
+        - generic [ref=f1e78] [cursor=pointer]:
+          - button [ref=f1e79]
+          - generic [ref=f1e82]: Effects
+        - generic [ref=f1e83] [cursor=pointer]:
+          - button [ref=f1e84]
+          - generic [ref=f1e88]: Edit
+        - generic [ref=f1e89] [cursor=pointer]:
+          - button [ref=f1e90]
+          - generic [ref=f1e96]: Upscale
+        - generic [ref=f1e97] [cursor=pointer]:
+          - button [ref=f1e98]
+          - generic [ref=f1e103]: Audio
+        - generic [ref=f1e104] [cursor=pointer]:
+          - button [ref=f1e105]
+          - generic [ref=f1e110]: Avatar
+        - generic [ref=f1e111] [cursor=pointer]:
+          - button [ref=f1e112]
+          - generic [ref=f1e117]: Training
+        - generic [ref=f1e118] [cursor=pointer]:
+          - button [ref=f1e119]
+          - generic [ref=f1e123]: Smart Video Academy
+        - generic [ref=f1e124] [cursor=pointer]:
+          - button [ref=f1e125]
+          - generic [ref=f1e130]: Smart Video Viral
+        - generic [ref=f1e131] [cursor=pointer]:
+          - button [ref=f1e132]
+          - generic [ref=f1e136]: Video Tools
+        - generic [ref=f1e137] [cursor=pointer]:
+          - button [ref=f1e138]
+          - generic [ref=f1e141]: Render
+        - generic [ref=f1e142] [cursor=pointer]:
+          - button [ref=f1e143]
+          - generic [ref=f1e148]: Video Agent
+        - generic [ref=f1e149] [cursor=pointer]:
+          - button [ref=f1e150]
+          - generic [ref=f1e154]: Director
+        - generic [ref=f1e155] [cursor=pointer]:
+          - button [ref=f1e156]
+          - generic [ref=f1e162]: Timeline
+        - generic [ref=f1e163] [cursor=pointer]:
+          - button [ref=f1e164]
+          - generic [ref=f1e167]: Chat
+        - generic [ref=f1e168] [cursor=pointer]:
+          - button [ref=f1e169]
+          - generic [ref=f1e173]: Commercial
+        - generic [ref=f1e174] [cursor=pointer]:
+          - button [ref=f1e175]
+          - generic [ref=f1e178]: Templates
+        - generic [ref=f1e179] [cursor=pointer]:
+          - button [ref=f1e180]
+          - generic [ref=f1e184]: Explore
+        - generic [ref=f1e185] [cursor=pointer]:
+          - button [ref=f1e186]
+          - generic [ref=f1e190]: Library
+        - generic [ref=f1e191] [cursor=pointer]:
+          - button [ref=f1e192]
+          - generic [ref=f1e195]: Content
+        - generic [ref=f1e196] [cursor=pointer]:
+          - button [ref=f1e197]
+          - generic [ref=f1e203]: Community
+        - generic [ref=f1e204] [cursor=pointer]:
+          - button [ref=f1e205]
+          - generic [ref=f1e210]: Assist
+        - generic [ref=f1e211] [cursor=pointer]:
+          - button [ref=f1e212]
+          - generic [ref=f1e216]: Commits (0)
+        - generic [ref=f1e217] [cursor=pointer]:
+          - button [ref=f1e218]
+          - generic [ref=f1e222]: AI VFX
+        - generic [ref=f1e223] [cursor=pointer]:
+          - button [ref=f1e224]
+          - generic [ref=f1e228]: Stock Media
+      - generic [ref=f1e230] [cursor=pointer]:
+        - button [ref=f1e231]
+        - generic [ref=f1e235]: Settings
+    - main [ref=f1e236]:
+      - generic [ref=f1e239]:
+        - generic [ref=f1e240]:
+          - button "All studios" [ref=f1e241]
+          - button "Back" [ref=f1e247]
+        - generic [ref=f1e251]:
+          - img "image studio" [ref=f1e252]
+          - generic [ref=f1e254]:
+            - heading "Image Studio" [level=1] [ref=f1e255]
+            - paragraph [ref=f1e256]: Transform images with AI — upscale, stylize, animate and more
+        - generic [ref=f1e258]:
+          - generic [ref=f1e259]:
+            - button "Reference media" [ref=f1e260]
+            - button "Browse stock photos from Pexels" [ref=f1e265]
+            - textbox "Image prompt" [ref=f1e269]:
+              - /placeholder: Describe the image you want to create
+            - generic [ref=f1e270]:
+              - button "GTM Boost prompt enhancer" [ref=f1e271] [cursor=pointer]: 🎯 GTM Boost
+              - button "Open recipe engine" [ref=f1e272] [cursor=pointer]: 📋 Recipes
+              - button "Open Smart Video AI Monetization Hub" [ref=f1e273] [cursor=pointer]: 💼 Monetize
+              - button "Open prompt gallery" [ref=f1e274] [cursor=pointer]: 📚 Prompts
+          - generic [ref=f1e275]:
+            - generic [ref=f1e276]:
+              - button "Nano Banana Select AI generation model" [ref=f1e277]:
+                - generic [ref=f1e279]: Nano Banana
+                - text: Select AI generation model
+              - button "1:1 Change aspect ratio" [ref=f1e282]:
+                - generic [ref=f1e285]: 1:1
+                - text: Change aspect ratio
+              - text: Set output quality
+              - button "🖼 Thumbnail" [ref=f1e288] [cursor=pointer]
+              - button "Advanced Show advanced options" [ref=f1e289]:
+                - generic [ref=f1e293]: Advanced
+                - text: Show advanced options
+              - button "Open model picker" [ref=f1e296]: AI Pick
+              - button "Tools Quick starters & prompt enhancer" [ref=f1e297]:
+                - generic [ref=f1e300]: Tools
+                - text: Quick starters & prompt enhancer
+              - button "Personalize Personalize with a discovered contact" [ref=f1e303]:
+                - generic [ref=f1e307]: Personalize
+                - text: Personalize with a discovered contact
+            - button "Generate image" [ref=f1e310] [cursor=pointer]: Generate ✨ Generate AI image from prompt
+        - generic [ref=f1e311]:
+          - generic [ref=f1e312]:
+            - generic [ref=f1e313]:
+              - generic [ref=f1e314]: "1"
+              - generic [ref=f1e316]:
+                - generic [ref=f1e317]: Choose a model
+                - generic [ref=f1e318]: Select from 20+ AI models in the sidebar. Each model has different strengths for portraits, landscapes, or abstract art.
+            - generic [ref=f1e319]:
+              - generic [ref=f1e320]: "2"
+              - generic [ref=f1e322]:
+                - generic [ref=f1e323]: Write your prompt
+                - generic [ref=f1e324]: Describe what you want to create. Be specific about style, lighting, composition, and mood for better results.
+            - generic [ref=f1e325]:
+              - generic [ref=f1e326]: "3"
+              - generic [ref=f1e328]:
+                - generic [ref=f1e329]: Set parameters
+                - generic [ref=f1e330]: Adjust aspect ratio, resolution, and other settings. Use negative prompts to exclude unwanted elements.
+            - generic [ref=f1e331]:
+              - generic [ref=f1e332]: "4"
+              - generic [ref=f1e334]:
+                - generic [ref=f1e335]: Generate and refine
+                - generic [ref=f1e336]: Click Generate to create your image. Use the result as a starting point and iterate on your prompt for improvements.
+          - generic [ref=f1e337]:
+            - button [ref=f1e338]
+            - generic [ref=f1e342]:
+              - generic [ref=f1e343]:
+                - generic [ref=f1e344]: ●
+                - generic [ref=f1e345]: Add "4K, detailed, professional" to improve quality
+              - generic [ref=f1e346]:
+                - generic [ref=f1e347]: ●
+                - generic [ref=f1e348]: Specify camera angles like "shot from below" or "bird's eye view"
+              - generic [ref=f1e349]:
+                - generic [ref=f1e350]: ●
+                - generic [ref=f1e351]: "Reference art styles: \"in the style of watercolor painting\""
+        - generic [ref=f1e352]: History
+        - status:
+          - generic:
+            - button "↻ Regenerate"
+            - button "↓ Download"
+            - button "+ New"
+            - button "Publish to Social"
+        - generic [ref=f1e354]:
+          - generic [ref=f1e355]:
+            - generic [ref=f1e356]:
+              - generic [ref=f1e357]: Example Gallery
+              - generic [ref=f1e358]: Click any card to view the prompt or create in this style
+            - generic [ref=f1e359]: 28 examples
+          - generic [ref=f1e360]:
+            - button "All" [ref=f1e361] [cursor=pointer]
+            - button "product" [ref=f1e362] [cursor=pointer]
+            - button "luxury" [ref=f1e363] [cursor=pointer]
+            - button "perfume" [ref=f1e364] [cursor=pointer]
+            - button "commercial" [ref=f1e365] [cursor=pointer]
+            - button "fashion" [ref=f1e366] [cursor=pointer]
+            - button "tracking" [ref=f1e367] [cursor=pointer]
+            - button "editorial" [ref=f1e368] [cursor=pointer]
+            - button "ugc" [ref=f1e369] [cursor=pointer]
+            - button "food" [ref=f1e370] [cursor=pointer]
+            - button "restaurant" [ref=f1e371] [cursor=pointer]
+          - generic [ref=f1e372]:
+            - generic [ref=f1e373] [cursor=pointer]:
+              - generic [ref=f1e374]:
+                - generic [ref=f1e375]: COMMERCIAL
+                - img "Luxury perfume commercial" [ref=f1e376]
+              - generic [ref=f1e377]:
+                - generic [ref=f1e378]: Luxury perfume commercial
+                - generic [ref=f1e379]: minimax
+                - generic [ref=f1e381]:
+                  - generic [ref=f1e382]: product
+                  - generic [ref=f1e383]: luxury
+                  - generic [ref=f1e384]: perfume
+                - generic [ref=f1e385]:
+                  - button "View Prompt" [ref=f1e386]
+                  - button "Create This Style" [ref=f1e387]
+            - generic [ref=f1e388] [cursor=pointer]:
+              - generic [ref=f1e389]:
+                - generic [ref=f1e390]: FASHION
+                - img "Low-Angle Fashion Tracking Film" [ref=f1e391]
+              - generic [ref=f1e392]:
+                - generic [ref=f1e393]: Low-Angle Fashion Tracking Film
+                - generic [ref=f1e394]: minimax
+                - generic [ref=f1e396]:
+                  - generic [ref=f1e397]: fashion
+                  - generic [ref=f1e398]: tracking
+                  - generic [ref=f1e399]: editorial
+                - generic [ref=f1e400]:
+                  - button "View Prompt" [ref=f1e401]
+                  - button "Create This Style" [ref=f1e402]
+            - generic [ref=f1e403] [cursor=pointer]:
+              - generic [ref=f1e404]:
+                - generic [ref=f1e405]: UGC
+                - img "Ramen Bowl UGC Taste Test" [ref=f1e406]
+              - generic [ref=f1e407]:
+                - generic [ref=f1e408]: Ramen Bowl UGC Taste Test
+                - generic [ref=f1e409]: minimax
+                - generic [ref=f1e411]:
+                  - generic [ref=f1e412]: ugc
+                  - generic [ref=f1e413]: food
+                  - generic [ref=f1e414]: restaurant
+                - generic [ref=f1e415]:
+                  - button "View Prompt" [ref=f1e416]
+                  - button "Create This Style" [ref=f1e417]
+            - generic [ref=f1e418] [cursor=pointer]:
+              - generic [ref=f1e419]:
+                - generic [ref=f1e420]: UGC
+                - img "Gourmet Burger UGC Taste Test" [ref=f1e421]
+              - generic [ref=f1e422]:
+                - generic [ref=f1e423]: Gourmet Burger UGC Taste Test
+                - generic [ref=f1e424]: minimax
+                - generic [ref=f1e426]:
+                  - generic [ref=f1e427]: ugc
+                  - generic [ref=f1e428]: food
+                  - generic [ref=f1e429]: local-business
+                - generic [ref=f1e430]:
+                  - button "View Prompt" [ref=f1e431]
+                  - button "Create This Style" [ref=f1e432]
+            - generic [ref=f1e433] [cursor=pointer]:
+              - generic [ref=f1e434]:
+                - generic [ref=f1e435]: BEAUTY
+                - img "Luxury Skincare Storyboard Commercial" [ref=f1e436]
+              - generic [ref=f1e437]:
+                - generic [ref=f1e438]: Luxury Skincare Storyboard Commercial
+                - generic [ref=f1e439]: minimax
+                - generic [ref=f1e441]:
+                  - generic [ref=f1e442]: beauty
+                  - generic [ref=f1e443]: skincare
+                  - generic [ref=f1e444]: storyboard
+                - generic [ref=f1e445]:
+                  - button "View Prompt" [ref=f1e446]
+                  - button "Create This Style" [ref=f1e447]
+            - generic [ref=f1e448] [cursor=pointer]:
+              - generic [ref=f1e449]:
+                - generic [ref=f1e450]: COMMERCIAL
+                - img "Yellow Sunglasses in a Black Studio" [ref=f1e451]
+              - generic [ref=f1e452]:
+                - generic [ref=f1e453]: Yellow Sunglasses in a Black Studio
+                - generic [ref=f1e454]: minimax
+                - generic [ref=f1e456]:
+                  - generic [ref=f1e457]: product
+                  - generic [ref=f1e458]: studio
+                  - generic [ref=f1e459]: eyewear
+                - generic [ref=f1e460]:
+                  - button "View Prompt" [ref=f1e461]
+                  - button "Create This Style" [ref=f1e462]
+            - generic [ref=f1e463] [cursor=pointer]:
+              - generic [ref=f1e464]:
+                - generic [ref=f1e465]: COMMERCIAL
+                - img "Strawberry Drink Transformation Commercial" [ref=f1e466]
+              - generic [ref=f1e467]:
+                - generic [ref=f1e468]: Strawberry Drink Transformation Commercial
+                - generic [ref=f1e469]: minimax
+                - generic [ref=f1e471]:
+                  - generic [ref=f1e472]: product
+                  - generic [ref=f1e473]: beverage
+                  - generic [ref=f1e474]: transformation
+                - generic [ref=f1e475]:
+                  - button "View Prompt" [ref=f1e476]
+                  - button "Create This Style" [ref=f1e477]
+            - generic [ref=f1e478] [cursor=pointer]:
+              - generic [ref=f1e479]:
+                - generic [ref=f1e480]: UGC
+                - img "Blackberry Vanilla Soda UGC Vlog" [ref=f1e481]
+              - generic [ref=f1e482]:
+                - generic [ref=f1e483]: Blackberry Vanilla Soda UGC Vlog
+                - generic [ref=f1e484]: minimax
+                - generic [ref=f1e486]:
+                  - generic [ref=f1e487]: ugc
+                  - generic [ref=f1e488]: beverage
+                  - generic [ref=f1e489]: vlog
+                - generic [ref=f1e490]:
+                  - button "View Prompt" [ref=f1e491]
+                  - button "Create This Style" [ref=f1e492]
+            - generic [ref=f1e493] [cursor=pointer]:
+              - generic [ref=f1e494]:
+                - generic [ref=f1e495]: CINEMA
+                - img "Bamboo Forest Wuxia Mystery" [ref=f1e496]
+              - generic [ref=f1e497]:
+                - generic [ref=f1e498]: Bamboo Forest Wuxia Mystery
+                - generic [ref=f1e499]: minimax
+                - generic [ref=f1e501]:
+                  - generic [ref=f1e502]: wuxia
+                  - generic [ref=f1e503]: atmosphere
+                  - generic [ref=f1e504]: mystery
+                - generic [ref=f1e505]:
+                  - button "View Prompt" [ref=f1e506]
+                  - button "Create This Style" [ref=f1e507]
+            - generic [ref=f1e508] [cursor=pointer]:
+              - generic [ref=f1e509]:
+                - generic [ref=f1e510]: BEAUTY
+                - img "Emerald Bio-Serum Product Film" [ref=f1e511]
+              - generic [ref=f1e512]:
+                - generic [ref=f1e513]: Emerald Bio-Serum Product Film
+                - generic [ref=f1e514]: minimax
+                - generic [ref=f1e516]:
+                  - generic [ref=f1e517]: beauty
+                  - generic [ref=f1e518]: serum
+                  - generic [ref=f1e519]: vertical
+                - generic [ref=f1e520]:
+                  - button "View Prompt" [ref=f1e521]
+                  - button "Create This Style" [ref=f1e522]
+            - generic [ref=f1e523] [cursor=pointer]:
+              - generic [ref=f1e524]:
+                - generic [ref=f1e525]: COMMERCIAL
+                - img "Black-and-Gold Perfume Commercial" [ref=f1e526]
+              - generic [ref=f1e527]:
+                - generic [ref=f1e528]: Black-and-Gold Perfume Commercial
+                - generic [ref=f1e529]: minimax
+                - generic [ref=f1e531]:
+                  - generic [ref=f1e532]: product
+                  - generic [ref=f1e533]: luxury
+                  - generic [ref=f1e534]: perfume
+                - generic [ref=f1e535]:
+                  - button "View Prompt" [ref=f1e536]
+                  - button "Create This Style" [ref=f1e537]
+            - generic [ref=f1e538] [cursor=pointer]:
+              - generic [ref=f1e539]:
+                - generic [ref=f1e540]: UGC
+                - img "Morning Lip Oil UGC Testimonial" [ref=f1e541]
+              - generic [ref=f1e542]:
+                - generic [ref=f1e543]: Morning Lip Oil UGC Testimonial
+                - generic [ref=f1e544]: minimax
+                - generic [ref=f1e546]:
+                  - generic [ref=f1e547]: ugc
+                  - generic [ref=f1e548]: beauty
+                  - generic [ref=f1e549]: testimonial
+                - generic [ref=f1e550]:
+                  - button "View Prompt" [ref=f1e551]
+                  - button "Create This Style" [ref=f1e552]
+            - generic [ref=f1e553] [cursor=pointer]:
+              - generic [ref=f1e554]:
+                - generic [ref=f1e555]: ANIMATION
+                - img "An other example of poster animation and honestly I can't" [ref=f1e556]
+              - generic [ref=f1e557]:
+                - generic [ref=f1e558]: An other example of poster animation and honestly I can't
+                - generic [ref=f1e559]: minimax
+                - generic [ref=f1e561]:
+                  - generic [ref=f1e562]: anime
+                  - generic [ref=f1e563]: text-to-video
+                  - generic [ref=f1e564]: text-prompt
+                - generic [ref=f1e565]:
+                  - button "View Prompt" [ref=f1e566]
+                  - button "Create This Style" [ref=f1e567]
+            - generic [ref=f1e568] [cursor=pointer]:
+              - generic [ref=f1e569]:
+                - generic [ref=f1e570]: COMMERCIAL
+                - img "Emerald Bio-Serum Product Film" [ref=f1e571]
+              - generic [ref=f1e572]:
+                - generic [ref=f1e573]: Emerald Bio-Serum Product Film
+                - generic [ref=f1e574]: minimax
+                - generic [ref=f1e576]:
+                  - generic [ref=f1e577]: product-commercial
+                  - generic [ref=f1e578]: text-to-video
+                  - generic [ref=f1e579]: camera-direction
+                - generic [ref=f1e580]:
+                  - button "View Prompt" [ref=f1e581]
+                  - button "Create This Style" [ref=f1e582]
+            - generic [ref=f1e583] [cursor=pointer]:
+              - generic [ref=f1e584]:
+                - generic [ref=f1e585]: SOCIAL
+                - 'img "\"duration\": \"15s\"" [ref=f1e586]'
+              - generic [ref=f1e587]:
+                - generic [ref=f1e588]: "\"duration\": \"15s\""
+                - generic [ref=f1e589]: minimax
+                - generic [ref=f1e591]:
+                  - generic [ref=f1e592]: music-video
+                  - generic [ref=f1e593]: text-to-video
+                  - generic [ref=f1e594]: text-prompt
+                - generic [ref=f1e595]:
+                  - button "View Prompt" [ref=f1e596]
+                  - button "Create This Style" [ref=f1e597]
+            - generic [ref=f1e598] [cursor=pointer]:
+              - generic [ref=f1e599]:
+                - generic [ref=f1e600]: SOCIAL
+                - img "Emotional performance lip-sync to reference audio" [ref=f1e601]
+              - generic [ref=f1e602]:
+                - generic [ref=f1e603]: Emotional performance lip-sync to reference audio
+                - generic [ref=f1e604]: minimax
+                - generic [ref=f1e606]:
+                  - generic [ref=f1e607]: music-video
+                  - generic [ref=f1e608]: text-to-video
+                  - generic [ref=f1e609]: male-singer
+                - generic [ref=f1e610]:
+                  - button "View Prompt" [ref=f1e611]
+                  - button "Create This Style" [ref=f1e612]
+            - generic [ref=f1e613] [cursor=pointer]:
+              - generic [ref=f1e614]:
+                - generic [ref=f1e615]: COMMERCIAL
+                - img "Hailuo Minimax H3 is super good for product videos🤩" [ref=f1e616]
+              - generic [ref=f1e617]:
+                - generic [ref=f1e618]: Hailuo Minimax H3 is super good for product videos🤩
+                - generic [ref=f1e619]: minimax
+                - generic [ref=f1e621]:
+                  - generic [ref=f1e622]: product-commercial
+                  - generic [ref=f1e623]: text-to-video
+                  - generic [ref=f1e624]: text-prompt
+                - generic [ref=f1e625]:
+                  - button "View Prompt" [ref=f1e626]
+                  - button "Create This Style" [ref=f1e627]
+            - generic [ref=f1e628] [cursor=pointer]:
+              - generic [ref=f1e629]:
+                - generic [ref=f1e630]: SOCIAL
+                - img "Hailuo MiniMax H3 vs. Seedance 2.0" [ref=f1e631]
+              - generic [ref=f1e632]:
+                - generic [ref=f1e633]: Hailuo MiniMax H3 vs. Seedance 2.0
+                - generic [ref=f1e634]: minimax
+                - generic [ref=f1e636]:
+                  - generic [ref=f1e637]: music-video
+                  - generic [ref=f1e638]: text-to-video
+                  - generic [ref=f1e639]: text-prompt
+                - generic [ref=f1e640]:
+                  - button "View Prompt" [ref=f1e641]
+                  - button "Create This Style" [ref=f1e642]
+            - generic [ref=f1e643] [cursor=pointer]:
+              - generic [ref=f1e644]:
+                - generic [ref=f1e645]: CINEMA
+                - img "15-second hyper-real cinematic FPV drone video over Mumbai in heavy monsoon weat" [ref=f1e646]
+              - generic [ref=f1e647]:
+                - generic [ref=f1e648]: 15-second hyper-real cinematic FPV drone video over Mumbai in heavy monsoon weat
+                - generic [ref=f1e649]: minimax
+                - generic [ref=f1e651]:
+                  - generic [ref=f1e652]: cinematic-travel
+                  - generic [ref=f1e653]: image-to-video
+                  - generic [ref=f1e654]: first-frame-cityscape
+                - generic [ref=f1e655]:
+                  - button "View Prompt" [ref=f1e656]
+                  - button "Create This Style" [ref=f1e657]
+            - generic [ref=f1e658] [cursor=pointer]:
+              - generic [ref=f1e659]:
+                - generic [ref=f1e660]: ANIMATION
+                - img "Anime Film Study" [ref=f1e661]
+              - generic [ref=f1e662]:
+                - generic [ref=f1e663]: Anime Film Study
+                - generic [ref=f1e664]: minimax
+                - generic [ref=f1e666]:
+                  - generic [ref=f1e667]: anime
+                  - generic [ref=f1e668]: text-to-video
+                  - generic [ref=f1e669]: text-prompt
+                - generic [ref=f1e670]:
+                  - button "View Prompt" [ref=f1e671]
+                  - button "Create This Style" [ref=f1e672]
+            - generic [ref=f1e673] [cursor=pointer]:
+              - generic [ref=f1e674]:
+                - generic [ref=f1e675]: COMMERCIAL
+                - img "White-Cyclorama Luxury Eyewear Campaign" [ref=f1e676]
+              - generic [ref=f1e677]:
+                - generic [ref=f1e678]: White-Cyclorama Luxury Eyewear Campaign
+                - generic [ref=f1e679]: minimax
+                - generic [ref=f1e681]:
+                  - generic [ref=f1e682]: product-commercial
+                  - generic [ref=f1e683]: reference-to-video
+                  - generic [ref=f1e684]: reference-image
+                - generic [ref=f1e685]:
+                  - button "View Prompt" [ref=f1e686]
+                  - button "Create This Style" [ref=f1e687]
+            - generic [ref=f1e688] [cursor=pointer]:
+              - generic [ref=f1e689]:
+                - generic [ref=f1e690]: COMMERCIAL
+                - img "luxury fashion commercial" [ref=f1e691]
+              - generic [ref=f1e692]:
+                - generic [ref=f1e693]: luxury fashion commercial
+                - generic [ref=f1e694]: minimax
+                - generic [ref=f1e696]:
+                  - generic [ref=f1e697]: brand-film
+                  - generic [ref=f1e698]: reference-to-video
+                  - generic [ref=f1e699]: five-apparel-images
+                - generic [ref=f1e700]:
+                  - button "View Prompt" [ref=f1e701]
+                  - button "Create This Style" [ref=f1e702]
+            - generic [ref=f1e703] [cursor=pointer]:
+              - generic [ref=f1e704]:
+                - generic [ref=f1e705]: SOCIAL
+                - img "— A young Caucasian woman, 177 cm tall, with long, straight, silky light-blond" [ref=f1e706]
+              - generic [ref=f1e707]:
+                - generic [ref=f1e708]: — A young Caucasian woman, 177 cm tall, with long, straight, silky light-blond
+                - generic [ref=f1e709]: minimax
+                - generic [ref=f1e711]:
+                  - generic [ref=f1e712]: music-video
+                  - generic [ref=f1e713]: text-to-video
+                  - generic [ref=f1e714]: text-prompt
+                - generic [ref=f1e715]:
+                  - button "View Prompt" [ref=f1e716]
+                  - button "Create This Style" [ref=f1e717]
+            - generic [ref=f1e718] [cursor=pointer]:
+              - generic [ref=f1e719]:
+                - generic [ref=f1e720]: SOCIAL
+                - img "Music Video Study" [ref=f1e721]
+              - generic [ref=f1e722]:
+                - generic [ref=f1e723]: Music Video Study
+                - generic [ref=f1e724]: minimax
+                - generic [ref=f1e726]:
+                  - generic [ref=f1e727]: music-video
+                  - generic [ref=f1e728]: text-to-video
+                  - generic [ref=f1e729]: text-prompt
+                - generic [ref=f1e730]:
+                  - button "View Prompt" [ref=f1e731]
+                  - button "Create This Style" [ref=f1e732]
+            - generic [ref=f1e733] [cursor=pointer]:
+              - generic [ref=f1e734]:
+                - generic [ref=f1e735]: CINEMA
+                - img "Cinematic Travel Study" [ref=f1e736]
+              - generic [ref=f1e737]:
+                - generic [ref=f1e738]: Cinematic Travel Study
+                - generic [ref=f1e739]: minimax
+                - generic [ref=f1e741]:
+                  - generic [ref=f1e742]: cinematic-travel
+                  - generic [ref=f1e743]: text-to-video
+                  - generic [ref=f1e744]: text-prompt
+                - generic [ref=f1e745]:
+                  - button "View Prompt" [ref=f1e746]
+                  - button "Create This Style" [ref=f1e747]
+            - generic [ref=f1e748] [cursor=pointer]:
+              - generic [ref=f1e749]:
+                - generic [ref=f1e750]: SOCIAL
+                - 'img "integrated_multimodal_description: [Shot 1] Live-action, cinematic, photorealist" [ref=f1e751]'
+              - generic [ref=f1e752]:
+                - generic [ref=f1e753]: "integrated_multimodal_description: [Shot 1] Live-action, cinematic, photorealist"
+                - generic [ref=f1e754]: minimax
+                - generic [ref=f1e756]:
+                  - generic [ref=f1e757]: music-video
+                  - generic [ref=f1e758]: text-to-video
+                  - generic [ref=f1e759]: text-prompt
+                - generic [ref=f1e760]:
+                  - button "View Prompt" [ref=f1e761]
+                  - button "Create This Style" [ref=f1e762]
+            - generic [ref=f1e763] [cursor=pointer]:
+              - generic [ref=f1e764]:
+                - generic [ref=f1e765]: COMMERCIAL
+                - img "Luxury Emerald Necklace Storyboard" [ref=f1e766]
+              - generic [ref=f1e767]:
+                - generic [ref=f1e768]: Luxury Emerald Necklace Storyboard
+                - generic [ref=f1e769]: minimax
+                - generic [ref=f1e771]:
+                  - generic [ref=f1e772]: product-commercial
+                  - generic [ref=f1e773]: text-to-video
+                  - generic [ref=f1e774]: camera-direction
+                - generic [ref=f1e775]:
+                  - button "View Prompt" [ref=f1e776]
+                  - button "Create This Style" [ref=f1e777]
+            - generic [ref=f1e778] [cursor=pointer]:
+              - generic [ref=f1e779]:
+                - generic [ref=f1e780]: ANIMATION
+                - img "\"A cute little girl walks through a sunny forest when a small, friendly dinosaur" [ref=f1e781]
+              - generic [ref=f1e782]:
+                - generic [ref=f1e783]: "\"A cute little girl walks through a sunny forest when a small, friendly dinosaur"
+                - generic [ref=f1e784]: minimax
+                - generic [ref=f1e786]:
+                  - generic [ref=f1e787]: animation
+                  - generic [ref=f1e788]: text-to-video
+                  - generic [ref=f1e789]: text-prompt
+                - generic [ref=f1e790]:
+                  - button "View Prompt" [ref=f1e791]
+                  - button "Create This Style" [ref=f1e792]
+        - button "Browse all 367 image prompts →" [active] [ref=f1e793]

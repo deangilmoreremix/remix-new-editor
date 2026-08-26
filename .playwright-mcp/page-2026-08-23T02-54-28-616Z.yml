@@ -1,0 +1,302 @@
+- generic [ref=f165e3]:
+  - banner [ref=f165e4]:
+    - navigation [ref=f165e5]:
+      - link "Timeline Editor" [ref=f165e6] [cursor=pointer]:
+        - /url: "#/apps"
+      - generic [ref=f165e12]:
+        - link "Explore" [ref=f165e13] [cursor=pointer]:
+          - /url: "#/explore"
+        - link "Image" [ref=f165e14] [cursor=pointer]:
+          - /url: "#/image"
+        - link "Video" [ref=f165e15] [cursor=pointer]:
+          - /url: "#/video"
+        - link "Cinema" [ref=f165e16] [cursor=pointer]:
+          - /url: "#/cinema"
+        - link "Character" [ref=f165e17] [cursor=pointer]:
+          - /url: "#/character"
+        - link "Influencer" [ref=f165e18] [cursor=pointer]:
+          - /url: "#/influencer"
+        - link "Storyboard" [ref=f165e19] [cursor=pointer]:
+          - /url: "#/storyboard"
+        - link "Effects" [ref=f165e20] [cursor=pointer]:
+          - /url: "#/effects"
+        - link "Edit" [ref=f165e21] [cursor=pointer]:
+          - /url: "#/edit"
+        - link "Upscale" [ref=f165e22] [cursor=pointer]:
+          - /url: "#/upscale"
+        - link "Audio" [ref=f165e23] [cursor=pointer]:
+          - /url: "#/audio"
+        - link "Avatar" [ref=f165e24] [cursor=pointer]:
+          - /url: "#/avatar"
+        - link "Training" [ref=f165e25] [cursor=pointer]:
+          - /url: "#/training"
+        - link "Video Tools" [ref=f165e26] [cursor=pointer]:
+          - /url: "#/videotools"
+        - link "Render" [ref=f165e27] [cursor=pointer]:
+          - /url: "#/render"
+        - link "Video Agent" [ref=f165e28] [cursor=pointer]:
+          - /url: "#/video-agent"
+        - link "Director" [ref=f165e29] [cursor=pointer]:
+          - /url: "#/director"
+        - link "Timeline" [ref=f165e30] [cursor=pointer]:
+          - /url: "#/timeline"
+        - link "Chat" [ref=f165e31] [cursor=pointer]:
+          - /url: "#/chat"
+        - link "Commercial" [ref=f165e32] [cursor=pointer]:
+          - /url: "#/commercial"
+        - link "Templates" [ref=f165e33] [cursor=pointer]:
+          - /url: "#/templates"
+        - link "Library" [ref=f165e34] [cursor=pointer]:
+          - /url: "#/library"
+        - link "Community" [ref=f165e35] [cursor=pointer]:
+          - /url: "#/community"
+        - link "Assist" [ref=f165e36] [cursor=pointer]:
+          - /url: "#/assist"
+        - link "AI VFX" [ref=f165e37] [cursor=pointer]:
+          - /url: "#/ai-vfx"
+        - link "AppsNew" [ref=f165e38] [cursor=pointer]:
+          - /url: "#/apps"
+      - generic [ref=f165e39]:
+        - link "Sign In" [ref=f165e40] [cursor=pointer]:
+          - /url: /signin
+        - link "Get Started" [ref=f165e41] [cursor=pointer]:
+          - /url: /signup
+  - banner [ref=f165e42]:
+    - generic [ref=f165e48]:
+      - generic [ref=f165e49]: AI Creative Platform
+      - heading "Create Anything. Sell Everything." [level=1] [ref=f165e52]
+      - paragraph [ref=f165e53]: Create professional images, videos, ads, characters, commercials and social content with AI.
+      - generic [ref=f165e54]:
+        - button "Start Creating" [ref=f165e55]
+        - button "Watch What You Can Make" [ref=f165e58]
+      - generic [ref=f165e62]:
+        - generic [ref=f165e63]:
+          - term [ref=f165e64]: AI models available
+          - definition [ref=f165e65]:
+            - generic [ref=f165e66]: 200+
+            - generic [ref=f165e67]: AI Models
+        - generic [ref=f165e69]:
+          - term [ref=f165e70]: Professional studios included
+          - definition [ref=f165e71]:
+            - generic [ref=f165e72]: "33"
+            - generic [ref=f165e73]: Professional Studios
+  - region [ref=f165e74]:
+    - generic [ref=f165e85]:
+      - generic [ref=f165e86]: Trusted by 10,000+ Creators & Agencies
+      - heading "Create Cinematic AI Videos, Images, VFX, Commercials, Characters, Agents & Client-Ready Content From One Powerful AI Studio" [level=2] [ref=f165e89]:
+        - generic [ref=f165e90]: Create Cinematic AI Videos,
+        - generic [ref=f165e91]: Images, VFX, Commercials,
+        - generic [ref=f165e92]: Characters, Agents &
+        - generic [ref=f165e93]: Client-Ready Content
+        - generic [ref=f165e94]: From One Powerful AI Studio
+      - paragraph [ref=f165e95]: AI Video Agency Studio gives you a complete creative command center with 60+ AI-powered tools for generating videos, images, characters, commercials, cinematic effects, avatars, lip sync, dubbing, storyboards, edits, workflows, agents, and client-ready content packages — all from one organized platform.
+      - generic [ref=f165e96]:
+        - button "Start Building My AI Video Agency" [ref=f165e97]
+        - button "Watch The Demo Video" [ref=f165e101]
+      - region [ref=f165e105]:
+        - heading "Platform Statistics" [level=2] [ref=f165e106]
+        - generic [ref=f165e107]:
+          - generic [ref=f165e108]: "33"
+          - generic [ref=f165e109]: AI Creative Apps
+        - generic [ref=f165e110]:
+          - generic [ref=f165e111]: 60+
+          - generic [ref=f165e112]: AI Features
+        - generic [ref=f165e113]:
+          - generic [ref=f165e114]: 200+
+          - generic [ref=f165e115]: AI Models
+        - generic [ref=f165e116]:
+          - generic [ref=f165e117]: Lifetime
+          - generic [ref=f165e118]: Access
+  - button "💼 Smart Video AI Monetize" [ref=f165e123]:
+    - generic [ref=f165e124]: 💼
+    - generic [ref=f165e125]: Smart Video AI Monetize
+  - region [ref=f165e132]:
+    - generic [ref=f165e133]:
+      - generic [ref=f165e134]:
+        - heading "Inside The AI Video Agency Studio Platform" [level=2] [ref=f165e135]
+        - paragraph [ref=f165e136]: Six powerful creative engines working together. Generate, enhance, produce, localize, automate, and scale — all from one unified command center.
+      - generic [ref=f165e137]:
+        - generic [ref=f165e140] [cursor=pointer]:
+          - generic [ref=f165e141]: 🎨
+          - heading "Create" [level=3] [ref=f165e143]
+          - paragraph [ref=f165e144]: Start from scratch with AI-powered generation
+          - generic [ref=f165e145]:
+            - generic [ref=f165e146]: Image
+            - generic [ref=f165e147]: Video
+            - generic [ref=f165e148]: Cinema Studio
+            - generic [ref=f165e149]: Character
+            - generic [ref=f165e150]: Influencer
+            - generic [ref=f165e151]: Commercial
+        - generic [ref=f165e156] [cursor=pointer]:
+          - generic [ref=f165e157]: ✨
+          - heading "Enhance" [level=3] [ref=f165e159]
+          - paragraph [ref=f165e160]: Transform and improve existing content
+          - generic [ref=f165e161]:
+            - generic [ref=f165e162]: Effects
+            - generic [ref=f165e163]: VFX
+            - generic [ref=f165e164]: AI-VFX
+            - generic [ref=f165e165]: Motion
+            - generic [ref=f165e166]: Upscale
+            - generic [ref=f165e167]: Edit
+        - generic [ref=f165e172] [cursor=pointer]:
+          - generic [ref=f165e173]: 🎬
+          - heading "Produce" [level=3] [ref=f165e175]
+          - paragraph [ref=f165e176]: Plan, structure, and assemble projects
+          - generic [ref=f165e177]:
+            - generic [ref=f165e178]: Storyboard
+            - generic [ref=f165e179]: Director
+            - generic [ref=f165e180]: Timeline
+            - generic [ref=f165e181]: Render
+            - generic [ref=f165e182]: Video Tools
+            - generic [ref=f165e183]: Audio
+        - generic [ref=f165e188] [cursor=pointer]:
+          - generic [ref=f165e189]: 🌍
+          - heading "Localize" [level=3] [ref=f165e191]
+          - paragraph [ref=f165e192]: Adapt content for global audiences
+          - generic [ref=f165e193]:
+            - generic [ref=f165e194]: Dubbing
+            - generic [ref=f165e195]: Lip Sync
+            - generic [ref=f165e196]: Avatar
+            - generic [ref=f165e197]: TikTok
+            - generic [ref=f165e198]: Social Content
+        - generic [ref=f165e203] [cursor=pointer]:
+          - generic [ref=f165e204]: 🤖
+          - heading "Automate" [level=3] [ref=f165e206]
+          - paragraph [ref=f165e207]: Streamline workflows with AI assistance
+          - generic [ref=f165e208]:
+            - generic [ref=f165e209]: Agents
+            - generic [ref=f165e210]: Assist
+            - generic [ref=f165e211]: Chat
+        - generic [ref=f165e216] [cursor=pointer]:
+          - generic [ref=f165e217]: 📊
+          - heading "Scale" [level=3] [ref=f165e219]
+          - paragraph [ref=f165e220]: Manage, reuse, and grow your creative assets
+          - generic [ref=f165e221]:
+            - generic [ref=f165e222]: Templates
+            - generic [ref=f165e223]: Explore
+            - generic [ref=f165e224]: Library
+            - generic [ref=f165e225]: Community
+            - generic [ref=f165e226]: Training
+      - generic [ref=f165e230]:
+        - generic [ref=f165e231]:
+          - generic [ref=f165e232]: "0"
+          - generic [ref=f165e234]: AI Creative Apps
+        - generic [ref=f165e235]:
+          - generic [ref=f165e236]: 0+
+          - generic [ref=f165e238]: AI Features
+        - generic [ref=f165e239]:
+          - generic [ref=f165e240]: 0+
+          - generic [ref=f165e242]: AI Models
+        - generic [ref=f165e243]:
+          - generic [ref=f165e244]: $297
+          - generic [ref=f165e246]: Lifetime Access
+  - region [ref=f165e297]:
+    - generic [ref=f165e298]:
+      - generic [ref=f165e299]:
+        - generic [ref=f165e300]: 💎 Lifetime Access Pricing
+        - heading "Get Lifetime Access Today" [level=2] [ref=f165e301]
+        - paragraph [ref=f165e302]: Choose the plan that fits your needs. Pay once, own forever. No subscriptions, no hidden fees.
+      - generic [ref=f165e303]:
+        - generic [ref=f165e305]:
+          - generic [ref=f165e306]:
+            - heading "Lifetime Access" [level=3] [ref=f165e307]
+            - generic [ref=f165e308]: $297
+            - generic [ref=f165e309]: One-time payment • Forever yours
+          - generic [ref=f165e310]:
+            - generic [ref=f165e311]: "Everything Included:"
+            - list [ref=f165e312]:
+              - listitem [ref=f165e313]:
+                - generic [ref=f165e314]: ✓
+                - generic [ref=f165e316]: Full access to all 33 AI Creative Apps
+              - listitem [ref=f165e317]:
+                - generic [ref=f165e318]: ✓
+                - generic [ref=f165e320]: All 60+ AI Features & Capabilities
+              - listitem [ref=f165e321]:
+                - generic [ref=f165e322]: ✓
+                - generic [ref=f165e324]: 200+ AI Models Library
+              - listitem [ref=f165e325]:
+                - generic [ref=f165e326]: ✓
+                - generic [ref=f165e328]: Commercial Usage Rights
+              - listitem [ref=f165e329]:
+                - generic [ref=f165e330]: ✓
+                - generic [ref=f165e332]: Priority Support Access
+              - listitem [ref=f165e333]:
+                - generic [ref=f165e334]: ✓
+                - generic [ref=f165e336]: Lifetime Updates
+          - button "Get Lifetime Access — $297" [ref=f165e337]
+          - paragraph [ref=f165e339]: 30-day money-back guarantee
+        - generic [ref=f165e340]:
+          - generic [ref=f165e341]: ⚡ Most Popular
+          - generic [ref=f165e345]:
+            - generic [ref=f165e346]:
+              - heading "Whitelabel Pro" [level=3] [ref=f165e347]
+              - generic [ref=f165e348]: $997
+              - generic [ref=f165e349]: One-time payment • Full ownership
+            - generic [ref=f165e350]:
+              - generic [ref=f165e351]: "Everything in Lifetime, plus:"
+              - list [ref=f165e352]:
+                - listitem [ref=f165e353]:
+                  - generic [ref=f165e354]: ✓
+                  - generic [ref=f165e356]:
+                    - strong [ref=f165e357]: Your Own Branding
+                    - text: — Remove all watermarks & use custom logos
+                - listitem [ref=f165e358]:
+                  - generic [ref=f165e359]: ✓
+                  - generic [ref=f165e361]:
+                    - strong [ref=f165e362]: Resell Rights
+                    - text: — Package & sell AI services to your clients
+                - listitem [ref=f165e363]:
+                  - generic [ref=f165e364]: ✓
+                  - generic [ref=f165e366]:
+                    - strong [ref=f165e367]: Whitelabel Domain
+                    - text: — Deploy on your own domain name
+                - listitem [ref=f165e368]:
+                  - generic [ref=f165e369]: ✓
+                  - generic [ref=f165e371]:
+                    - strong [ref=f165e372]: Priority GPU+
+                    - text: — 10x faster rendering speeds
+                - listitem [ref=f165e373]:
+                  - generic [ref=f165e374]: ✓
+                  - generic [ref=f165e376]:
+                    - strong [ref=f165e377]: Unlimited Clients
+                    - text: — Build unlimited client accounts
+                - listitem [ref=f165e378]:
+                  - generic [ref=f165e379]: ✓
+                  - generic [ref=f165e381]:
+                    - strong [ref=f165e382]: API Access
+                    - text: — Integrate into your own products
+                - listitem [ref=f165e383]:
+                  - generic [ref=f165e384]: ✓
+                  - generic [ref=f165e386]:
+                    - strong [ref=f165e387]: Custom Workflows
+                    - text: — Build & sell workflow templates
+                - listitem [ref=f165e388]:
+                  - generic [ref=f165e389]: ✓
+                  - generic [ref=f165e391]:
+                    - strong [ref=f165e392]: Dedicated Support
+                    - text: — 24/7 priority assistance
+            - button "Get Whitelabel Pro — $997" [ref=f165e393]
+            - paragraph [ref=f165e395]: 30-day money-back guarantee • Instant delivery
+      - generic [ref=f165e396]:
+        - generic [ref=f165e397]:
+          - heading "Compare All Features" [level=3] [ref=f165e398]
+          - paragraph [ref=f165e399]: Click each category to explore all available features
+        - generic [ref=f165e400]:
+          - button "Core Platform" [ref=f165e401]
+          - button "Generation Tools" [ref=f165e402]
+          - button "Cinema & Visual" [ref=f165e403]
+          - button "Character & Avatar" [ref=f165e404]
+          - button "VFX & Effects" [ref=f165e405]
+          - button "Editing & Export" [ref=f165e406]
+          - button "Business & Agency" [ref=f165e407]
+          - button "Automation & AI" [ref=f165e408]
+      - generic [ref=f165e410]:
+        - generic [ref=f165e411]:
+          - generic [ref=f165e412]: 2,847
+          - generic [ref=f165e413]: Lifetime Members
+        - generic [ref=f165e414]:
+          - generic [ref=f165e415]: $4.2M+
+          - generic [ref=f165e416]: Earned by Members
+        - generic [ref=f165e417]:
+          - generic [ref=f165e418]: 4.9/5
+          - generic [ref=f165e419]: Average Rating

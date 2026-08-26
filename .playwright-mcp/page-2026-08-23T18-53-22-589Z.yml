@@ -1,0 +1,531 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - img "OpenMontage" [ref=e5]
+    - generic [ref=e13]:
+      - link "THE PIPELINE" [ref=e14] [cursor=pointer]:
+        - /url: "#pipeline"
+      - link "AGENTS" [ref=e15] [cursor=pointer]:
+        - /url: "#agents"
+      - link "STUDIO" [ref=e16] [cursor=pointer]:
+        - /url: "#studio"
+      - link "OPEN SOURCE" [ref=e17] [cursor=pointer]:
+        - /url: "#open"
+    - generic [ref=e18]:
+      - link "GITHUB ↗" [ref=e19] [cursor=pointer]:
+        - /url: https://github.com/calesthio/OpenMontage
+      - link "Join the waitlist" [ref=e20] [cursor=pointer]:
+        - /url: "#waitlist"
+  - generic [ref=e21]:
+    - generic [ref=e22]: OPEN-SOURCE AGENTIC VIDEO PRODUCTION
+    - generic [ref=e23]: Make video the way you now make software.
+    - generic [ref=e24]:
+      - text: Give it a brief and your materials. The agent plans the story, generates paid images and clips when needed, and creates animation and sources B-roll at no cost. It then narrates, captions, renders, and reviews the finished,
+      - emphasis [ref=e25]: editable
+      - text: video before presenting it to you—every step yours to direct.
+    - generic [ref=e28]:
+      - generic [ref=e29]: Make a 60-second launch video for our mon
+      - generic [ref=e31]:
+        - generic [ref=e32]:
+          - generic [ref=e33]: ⌁ brand-kit/
+          - generic [ref=e34]: ▤ dashboard.mp4
+        - generic [ref=e35]:
+          - generic [ref=e36]: EST. SHOWN BEFORE ANY SPEND
+          - generic [ref=e37] [cursor=pointer]: Produce ▸
+    - generic [ref=e38]:
+      - generic [ref=e39]: Runs on
+      - strong [ref=e40]: OpenMontage Studio
+      - generic [ref=e41]: · Claude Code · ChatGPT Codex · OpenCode.
+      - generic [ref=e42]: Anywhere you vibe. ↓
+  - region "OpenMontage Studio demonstration" [ref=e43]:
+    - generic "OpenMontage Studio producing the AirNothing launch video"
+  - generic [ref=e45]:
+    - generic [ref=e46]:
+      - generic [ref=e47]: BRIEF
+      - generic [ref=e48]: ✦
+      - generic [ref=e49]: RESEARCH
+      - generic [ref=e50]: ✦
+      - generic [ref=e51]: SCRIPT
+      - generic [ref=e52]: ✦
+      - generic [ref=e53]: SCENE PLAN
+      - generic [ref=e54]: ✦
+      - generic [ref=e55]: THE GATE
+      - generic [ref=e56]: ✦
+      - generic [ref=e57]: NARRATION
+      - generic [ref=e58]: ✦
+      - generic [ref=e59]: MUSIC
+      - generic [ref=e60]: ✦
+      - generic [ref=e61]: COMPOSE
+      - generic [ref=e62]: ✦
+      - generic [ref=e63]: RENDER
+      - generic [ref=e64]: ✦
+    - generic [ref=e65]:
+      - generic [ref=e66]: BRIEF
+      - generic [ref=e67]: ✦
+      - generic [ref=e68]: RESEARCH
+      - generic [ref=e69]: ✦
+      - generic [ref=e70]: SCRIPT
+      - generic [ref=e71]: ✦
+      - generic [ref=e72]: SCENE PLAN
+      - generic [ref=e73]: ✦
+      - generic [ref=e74]: THE GATE
+      - generic [ref=e75]: ✦
+      - generic [ref=e76]: NARRATION
+      - generic [ref=e77]: ✦
+      - generic [ref=e78]: MUSIC
+      - generic [ref=e79]: ✦
+      - generic [ref=e80]: COMPOSE
+      - generic [ref=e81]: ✦
+      - generic [ref=e82]: RENDER
+      - generic [ref=e83]: ✦
+  - generic [ref=e88]:
+    - generic [ref=e89]:
+      - generic [ref=e90]: Every stage, in the open.
+      - generic [ref=e91]: SCROLL · 8 STAGES + 1 GATE ⟶
+    - generic [ref=e94]:
+      - generic [ref=e95]:
+        - generic [ref=e96]: STAGE 01 · BRIEF
+        - generic [ref=e97]: 0 CR
+      - generic [ref=e98]: Give the context that shapes the brief.
+      - generic [ref=e99]:
+        - generic [ref=e100]: AUDIENCE
+        - generic [ref=e101]: developers & platform teams
+      - generic [ref=e102]:
+        - generic [ref=e103]: DURATION
+        - generic [ref=e104]: 60s ± 10%
+      - generic [ref=e105]:
+        - generic [ref=e106]: TONE
+        - generic [ref=e107]: confident, plain-spoken
+      - generic [ref=e108]: KEY MESSAGES
+      - generic [ref=e109]: 1 · Detect before your users do2 · Explain the why, not just the what3 · One-click resolve from the alert
+    - generic [ref=e113]:
+      - generic [ref=e114]:
+        - generic [ref=e115]: STAGE 02 · RESEARCH
+        - generic [ref=e116]: 0 CR
+      - generic [ref=e117]: It does its homework first.
+      - generic [ref=e118]:
+        - generic [ref=e119]:
+          - generic [ref=e120]: ◈
+          - generic [ref=e121]: 12 product surfaces captured for screen scenes
+        - generic [ref=e122]:
+          - generic [ref=e123]: ◈
+          - generic [ref=e124]: 4 reference launch films — pacing & cut lengths analyzed
+        - generic [ref=e125]:
+          - generic [ref=e126]: ◈
+          - generic [ref=e127]: Competitor messaging matrix — what everyone else claims
+        - generic [ref=e128]:
+          - generic [ref=e129]: ◈
+          - generic [ref=e130]:
+            - text: "Positioning draft:"
+            - emphasis [ref=e131]: “the dashboard that pages you first”
+      - generic [ref=e132]: FINDINGS RECORDED IN THE DECISION LOG
+    - generic [ref=e136]:
+      - generic [ref=e137]:
+        - generic [ref=e138]: STAGE 03 · SCRIPT
+        - generic [ref=e139]: 0 CR
+      - generic [ref=e140]: A screenplay, not a caption.
+      - generic [ref=e141]:
+        - generic [ref=e142]: SC 3 · INT. THE DASHBOARD
+        - generic [ref=e143]: V.O. — Your dashboard shouldn’t be the last to know.
+        - generic [ref=e144]: "[B-ROLL — latency graph spikes; cursor hovers]"
+        - generic [ref=e145]: V.O. — Trellis watches every endpoint. So you don’t have to.
+      - generic [ref=e146]:
+        - generic [ref=e147]: 14 VO LINES · READ TIME 58S
+        - generic [ref=e148]: B-ROLL NOTED PER LINE
+    - generic [ref=e152]:
+      - generic [ref=e153]:
+        - generic [ref=e154]: STAGE 04 · SCENE PLAN
+        - generic [ref=e155]: MIXED
+      - generic [ref=e156]: A medium chosen for each scene.
+      - generic [ref=e157]:
+        - generic [ref=e158]: SC 1–6 · SCREEN CAP0 CR
+        - generic [ref=e161]: SC 7–8 · MOTION GFX0 CR
+        - generic [ref=e164]: SC 9 · GEN CLIP125 CR
+      - generic [ref=e167]: Your own assets, your library, stock, or generated — proposed scene by scene, and yours to change.
+      - generic [ref=e168]: DRAFT SKETCHES BEFORE ANY PREMIUM SPEND
+    - generic [ref=e172]:
+      - generic [ref=e173]:
+        - generic [ref=e174]: STAGE 05 · THE GATE
+        - generic [ref=e175]: ■
+      - generic [ref=e176]: Nothing spends until you approve.
+      - generic [ref=e177]: AWAITING APPROVAL
+      - generic [ref=e178]:
+        - generic [ref=e179]:
+          - generic [ref=e180]: 8 standard images
+          - generic [ref=e181]: 64 CR
+        - generic [ref=e182]:
+          - generic [ref=e183]: narration · 60s
+          - generic [ref=e184]: 5 CR
+        - generic [ref=e185]:
+          - generic [ref=e186]: music · “Focused Build”
+          - generic [ref=e187]: 15 CR
+        - generic [ref=e188]:
+          - generic [ref=e189]: 1 generated clip · 5s
+          - generic [ref=e190]: 125 CR
+        - generic [ref=e191]:
+          - generic [ref=e192]: captions · stock · render
+          - generic [ref=e193]: 0 CR
+        - generic [ref=e194]:
+          - generic [ref=e195]: EST. TOTAL
+          - generic [ref=e196]: 209 CR ≈ $2.09
+      - generic [ref=e197]:
+        - generic [ref=e198] [cursor=pointer]: Approve — go produce
+        - generic [ref=e199] [cursor=pointer]: Revise
+    - generic [ref=e203]:
+      - generic [ref=e204]:
+        - generic [ref=e205]: STAGE 06 · NARRATION
+        - generic [ref=e206]: 5 CR
+      - generic [ref=e207]: A voice you can give notes to.
+      - generic [ref=e208]: CALDER — WARM TENOR · EN
+      - generic [ref=e245]: …detect the spike, Trellis watches every endpoint, so you don’t have to…
+      - generic [ref=e246]: SELECT A SENTENCE → NOTES ATTACH TO THAT SPAN
+    - generic [ref=e250]:
+      - generic [ref=e251]:
+        - generic [ref=e252]: STAGE 07 · MUSIC
+        - generic [ref=e253]: 15 CR
+      - generic [ref=e254]: Music chosen for the cut.
+      - generic [ref=e255]:
+        - generic [ref=e256]:
+          - generic [ref=e257]: ♫ “Focused Build”
+          - generic [ref=e258]: 1:04
+        - generic [ref=e259]: 92 BPM · RISING · CC-BY, AUTO-CREDITED
+        - generic [ref=e268]: BEAT MARKERS YOU CAN CUT AGAINST
+      - generic [ref=e269]: Picked from a curated free catalog by mood, BPM and energy. Catalog miss? Generate a full track — 15 credits.
+    - generic [ref=e273]:
+      - generic [ref=e274]:
+        - generic [ref=e275]: STAGE 08 · COMPOSE
+        - generic [ref=e276]: 0 CR
+      - generic [ref=e277]: Assembled to brand rules.
+      - generic [ref=e278]:
+        - generic [ref=e279]:
+          - generic [ref=e280]: Captions — embedded, per-word timing
+          - generic [ref=e281]: 0 CR
+        - generic [ref=e282]:
+          - generic [ref=e283]: Brand — palette & type applied
+          - generic [ref=e284]: KIT
+        - generic [ref=e285]:
+          - generic [ref=e286]: Checks — media · license · duration
+          - generic [ref=e287]: REVIEWED
+      - generic [ref=e288]: COMPOSED LOCALLY, ON YOUR MACHINE — WATCH A DRAFT BEFORE RENDER
+    - generic [ref=e292]:
+      - generic [ref=e293]:
+        - generic [ref=e294]: STAGE 09 · RENDER
+        - generic [ref=e295]: 0 CR
+      - generic [ref=e296]: The formats you need. Yours to keep.
+      - generic [ref=e297]:
+        - generic [ref=e298]: 16:9 · LAUNCH
+        - generic [ref=e301]: 1:1 · FEED
+        - generic [ref=e304]: 9:16 · SHORTS
+      - generic [ref=e307]: Rendered on your machine, no watermark, commercial use on every tier — including free.
+      - generic [ref=e308]: PROVENANCE REPORT — SOURCE · LICENSE · MODEL
+  - generic [ref=e311]:
+    - generic [ref=e312]:
+      - figure "FILM TRAILER" [ref=e313]:
+        - generic [ref=e314] [cursor=pointer]
+      - figure "BUSINESS NEWS" [ref=e316]:
+        - generic [ref=e317] [cursor=pointer]
+      - figure "DOCUMENTARY" [ref=e319]:
+        - generic [ref=e320] [cursor=pointer]
+      - figure "ANIMATION" [ref=e322]:
+        - generic [ref=e323] [cursor=pointer]
+      - figure "TECH EXPLAINER" [ref=e325]:
+        - generic [ref=e326] [cursor=pointer]
+      - figure "FINANCE EXPLAINER" [ref=e328]:
+        - generic [ref=e329] [cursor=pointer]
+      - figure "SPORTS RECAP" [ref=e331]:
+        - generic [ref=e332] [cursor=pointer]
+      - figure "PRODUCT AD" [ref=e334]:
+        - generic [ref=e335] [cursor=pointer]
+      - figure [ref=e337]:
+        - generic [ref=e338] [cursor=pointer]
+        - generic [ref=e339]: FILM TRAILER
+      - figure [ref=e340]:
+        - generic [ref=e341] [cursor=pointer]
+        - generic [ref=e342]: BUSINESS NEWS
+      - figure [ref=e343]:
+        - generic [ref=e344] [cursor=pointer]
+        - generic [ref=e345]: DOCUMENTARY
+      - figure [ref=e346]:
+        - generic [ref=e347] [cursor=pointer]
+        - generic [ref=e348]: ANIMATION
+      - figure [ref=e349]:
+        - generic [ref=e350] [cursor=pointer]
+        - generic [ref=e351]: TECH EXPLAINER
+      - figure [ref=e352]:
+        - generic [ref=e353] [cursor=pointer]
+        - generic [ref=e354]: FINANCE EXPLAINER
+      - figure [ref=e355]:
+        - generic [ref=e356] [cursor=pointer]
+        - generic [ref=e357]: SPORTS RECAP
+      - figure [ref=e358]:
+        - generic [ref=e359] [cursor=pointer]
+        - generic [ref=e360]: PRODUCT AD
+    - button "Previous" [ref=e361] [cursor=pointer]: ‹
+    - button "Next" [ref=e362] [cursor=pointer]: ›
+  - generic [ref=e365]:
+    - generic [ref=e367]:
+      - tab "CLAUDE CODE" [selected] [ref=e368] [cursor=pointer]
+      - tab "CODEX" [ref=e369] [cursor=pointer]
+      - tab "OPENCODE" [ref=e370] [cursor=pointer]
+    - generic [ref=e373]:
+      - generic [ref=e378]: Claude Code — openmontage plugin
+      - generic [ref=e379]: MCP
+    - generic [ref=e381]: SAME TOOLS · SAME SKILLS · YOUR CHOICE OF HARNESS
+  - generic [ref=e386]:
+    - generic [ref=e388]:
+      - generic [ref=e389]:
+        - generic [ref=e390]: M
+        - generic [ref=e391]: OPENMONTAGE
+      - generic [ref=e392]:
+        - generic [ref=e393]: Trellis 2.0 — Launch Film
+        - generic [ref=e394]: PROD Nº 0042 · V3
+      - generic [ref=e395]:
+        - generic [ref=e396]:
+          - generic [ref=e397]: GEN SPEND
+          - generic [ref=e398]: $0.16
+        - generic [ref=e399]: AK
+    - generic [ref=e400]:
+      - generic [ref=e401]:
+        - generic [ref=e402]:
+          - generic [ref=e403]: LIBRARY
+          - generic [ref=e404] [cursor=pointer]: ⟨
+        - generic [ref=e405]:
+          - generic [ref=e406]:
+            - generic [ref=e407]: Trellis 2.0 Launch
+            - generic [ref=e408]: ● IN PRODUCTION
+          - generic [ref=e409] [cursor=pointer]:
+            - generic [ref=e410]: Q3 Sales Enablement
+            - generic [ref=e411]: DRAFT
+          - generic [ref=e412] [cursor=pointer]:
+            - generic [ref=e413]: API Quickstart Tutorial
+            - generic [ref=e414]: DELIVERED · JUN 30
+        - generic [ref=e415]: ASSETS
+        - generic [ref=e416]:
+          - generic [ref=e417] [cursor=pointer]: Trellis Brand Kit
+          - generic [ref=e423] [cursor=pointer]:
+            - generic [ref=e424]: launch-brief.pdf
+            - generic [ref=e425]: DOC
+          - generic [ref=e426] [cursor=pointer]:
+            - generic [ref=e427]: dashboard-walkthrough.mp4
+            - generic [ref=e428]: 2:14
+          - generic [ref=e429] [cursor=pointer]:
+            - generic [ref=e430]: team-photos/
+            - generic [ref=e431]: 12 IMG
+          - generic [ref=e432] [cursor=pointer]:
+            - generic [ref=e433]: trellis-logo.svg
+            - generic [ref=e434]: SVG
+        - generic [ref=e435]: STOCK PICKS
+        - generic [ref=e436]:
+          - generic [ref=e437] [cursor=pointer]:
+            - generic [ref=e438]: Aerial city timelapse
+            - generic [ref=e439]: CC0
+          - generic [ref=e440] [cursor=pointer]:
+            - generic [ref=e441]: Office b-roll pack
+            - generic [ref=e442]: LICENSED
+        - generic [ref=e443] [cursor=pointer]: ⊕ ADD ASSETS
+      - generic [ref=e444]:
+        - generic [ref=e446]:
+          - generic [ref=e448]:
+            - generic [ref=e449]: ✓
+            - generic [ref=e450]: Research
+            - generic [ref=e451]: 10:02
+          - generic [ref=e454]:
+            - generic [ref=e455]: ✓
+            - generic [ref=e456]: Proposal
+            - generic [ref=e457]: 10:04
+          - generic [ref=e460]:
+            - generic [ref=e461]: ✓
+            - generic [ref=e462]: Script
+            - generic [ref=e463]: 10:11
+          - generic [ref=e466]:
+            - generic [ref=e467]: ✓
+            - generic [ref=e468]: Scene plan
+            - generic [ref=e469]: 10:13
+          - generic [ref=e472]:
+            - generic [ref=e473]: ●
+            - generic [ref=e474]: Assets
+            - generic [ref=e475]: RUNNING
+          - generic [ref=e478]:
+            - generic [ref=e480]: Edit
+            - generic [ref=e481]: —
+          - generic [ref=e484]:
+            - generic [ref=e486]: Compose
+            - generic [ref=e487]: —
+          - generic [ref=e490]:
+            - generic [ref=e492]: Publish
+            - generic [ref=e493]: —
+        - generic [ref=e494]:
+          - generic [ref=e495] [cursor=pointer]: Brief
+          - generic [ref=e496] [cursor=pointer]: Script
+          - generic [ref=e497] [cursor=pointer]: Storyboard
+          - generic [ref=e498] [cursor=pointer]: Timeline
+          - generic [ref=e499] [cursor=pointer]: Renders
+        - generic [ref=e500]:
+          - generic [ref=e501]:
+            - generic [ref=e502]: STORYBOARD — 6 SCENES · 1:24 TOTAL
+            - generic [ref=e503]:
+              - generic [ref=e504] [cursor=pointer]: ⊕ Add scene
+              - generic [ref=e505] [cursor=pointer]: ↻ Regenerate unlocked
+          - generic [ref=e508]:
+            - generic [ref=e509]:
+              - generic [ref=e510]:
+                - generic [ref=e511]: BLACK SLATE — TITLE SET
+                - generic [ref=e512]: DONE
+                - generic [ref=e513]: 0:06
+              - generic [ref=e514]:
+                - generic [ref=e515]:
+                  - generic [ref=e516]: SC 01
+                  - generic [ref=e517]: Cold open
+                - generic [ref=e518]: “Onboarding shouldn’t take a village.”
+                - generic [ref=e519]:
+                  - generic [ref=e520]: MOTION GFX
+                  - generic [ref=e521]: $0.00
+                - generic [ref=e522]:
+                  - generic [ref=e523] [cursor=pointer]: ⚿ LOCKED
+                  - generic [ref=e524] [cursor=pointer]: ↻ Regenerate
+            - generic [ref=e525]:
+              - generic [ref=e526]:
+                - generic [ref=e527]: OFFICE B-ROLL, QUICK CUTS
+                - generic [ref=e528]: DONE
+                - generic [ref=e529]: 0:16
+              - generic [ref=e530]:
+                - generic [ref=e531]:
+                  - generic [ref=e532]: SC 02
+                  - generic [ref=e533]: The problem
+                - generic [ref=e534]: “Your team stitches together docs, calls and spreadsheets…”
+                - generic [ref=e535]:
+                  - generic [ref=e536]: STOCK
+                  - generic [ref=e537]: $0.00
+                - generic [ref=e538]:
+                  - generic [ref=e539] [cursor=pointer]: UNLOCKED
+                  - generic [ref=e540] [cursor=pointer]: ↻ Regenerate
+            - generic [ref=e541]:
+              - generic [ref=e542]:
+                - generic [ref=e543]: DASHBOARD-WALKTHROUGH.MP4
+                - generic [ref=e544]: DONE
+                - generic [ref=e545]: 0:14
+              - generic [ref=e546]:
+                - generic [ref=e547]:
+                  - generic [ref=e548]: SC 03
+                  - generic [ref=e549]: The reveal
+                - generic [ref=e550]: “Meet Trellis 2.0 — one workspace for every customer’s first ninety days.”
+                - generic [ref=e551]:
+                  - generic [ref=e552]: USER ASSET
+                  - generic [ref=e553]: $0.00
+                - generic [ref=e554]:
+                  - generic [ref=e555] [cursor=pointer]: UNLOCKED
+                  - generic [ref=e556] [cursor=pointer]: ↻ Regenerate
+            - generic [ref=e557]:
+              - generic [ref=e558]:
+                - generic [ref=e559]: GENERATED STILLS ×2 + OVERLAY
+                - generic [ref=e560]: RENDERING
+                - generic [ref=e561]: 0:18
+              - generic [ref=e562]:
+                - generic [ref=e563]:
+                  - generic [ref=e564]: SC 04
+                  - generic [ref=e565]: Playbooks
+                - generic [ref=e566]: “Launch a proven playbook in one click…”
+                - generic [ref=e567]:
+                  - generic [ref=e568]: GENERATED
+                  - generic [ref=e569]: $0.16
+                - generic [ref=e570]:
+                  - generic [ref=e571] [cursor=pointer]: UNLOCKED
+                  - generic [ref=e572] [cursor=pointer]: ↻ Regenerate
+            - generic [ref=e573]:
+              - generic [ref=e574]:
+                - generic [ref=e575]: ANIMATED CHART SEQUENCE
+                - generic [ref=e576]: QUEUED
+                - generic [ref=e577]: 0:20
+              - generic [ref=e578]:
+                - generic [ref=e579]:
+                  - generic [ref=e580]: SC 05
+                  - generic [ref=e581]: Health scores
+                - generic [ref=e582]: “See risk before it becomes churn…”
+                - generic [ref=e583]:
+                  - generic [ref=e584]: MOTION GFX
+                  - generic [ref=e585]: $0.00
+                - generic [ref=e586]:
+                  - generic [ref=e587] [cursor=pointer]: UNLOCKED
+                  - generic [ref=e588] [cursor=pointer]: ↻ Regenerate
+            - generic [ref=e589]:
+              - generic [ref=e590]:
+                - generic [ref=e591]: LOGO + TAGLINE ON GREEN
+                - generic [ref=e592]: QUEUED
+                - generic [ref=e593]: 0:10
+              - generic [ref=e594]:
+                - generic [ref=e595]:
+                  - generic [ref=e596]: SC 06
+                  - generic [ref=e597]: CTA end card
+                - generic [ref=e598]: “Trellis 2.0 — start every customer strong.”
+                - generic [ref=e599]:
+                  - generic [ref=e600]: MOTION GFX
+                  - generic [ref=e601]: $0.00
+                - generic [ref=e602]:
+                  - generic [ref=e603] [cursor=pointer]: UNLOCKED
+                  - generic [ref=e604] [cursor=pointer]: ↻ Regenerate
+          - generic [ref=e606]:
+            - generic [ref=e607]: DRAG TO REORDER · CLICK ANY CARD TO EDIT DIRECTLY — OR JUST TELL THE AGENT
+            - generic [ref=e608]: ◂ SCROLL FOR SC 05–06 ▸
+      - generic [ref=e609]:
+        - generic [ref=e610]:
+          - generic [ref=e611]: PRODUCTION CHAT
+          - generic [ref=e612]: ● AGENT ACTIVE
+        - generic [ref=e613]:
+          - generic [ref=e614]:
+            - generic [ref=e615]: YOU · 10:18
+            - generic [ref=e616]: Make the opening more dramatic
+          - generic [ref=e617]:
+            - generic [ref=e618]: MONTAGE · 10:18
+            - generic [ref=e619]: Done — SC 01 now opens on a black slate with a hard music hit, narration delayed 1.5s. Want the grade darker too?
+            - generic [ref=e620]:
+              - generic [ref=e621] [cursor=pointer]: Undo
+              - generic [ref=e622] [cursor=pointer]: View SC 01
+          - generic [ref=e623]:
+            - generic [ref=e624]: YOU · 10:21
+            - generic [ref=e625]: Replace scene 3 with the product screenshots I uploaded
+          - generic [ref=e626]:
+            - generic [ref=e627]: MONTAGE · 10:21
+            - generic [ref=e628]: Swapped SC 03 to dashboard-walkthrough.mp4 — trimmed 0:12 from the 2:14 capture. Cost unchanged.
+        - generic [ref=e630]:
+          - generic [ref=e631]:
+            - generic [ref=e632]: Direct the agent…
+            - generic [ref=e633] [cursor=pointer]: ▸
+          - generic [ref=e634]:
+            - generic [ref=e635] [cursor=pointer]: ◆ CLAUDE ▾
+            - generic [ref=e636] [cursor=pointer]: OPUS 4.8 ▾
+            - generic [ref=e637] [cursor=pointer]: EFFORT · HIGH ▾
+        - generic [ref=e638]:
+          - generic [ref=e639] [cursor=pointer]:
+            - generic [ref=e640]: DECISION LOG
+            - generic [ref=e641]:
+              - generic [ref=e642]: "3"
+              - generic [ref=e643]: ▴
+          - generic [ref=e644]:
+            - generic [ref=e645]:
+              - generic [ref=e646]: VOICE
+              - generic [ref=e647]: Warm male tenor — “Calder”
+              - generic [ref=e648]: "also considered: female alto · neutral narrator"
+              - generic [ref=e649]:
+                - generic [ref=e650] [cursor=pointer]: ✓ Approve
+                - generic [ref=e651] [cursor=pointer]: Override…
+            - generic [ref=e652]:
+              - generic [ref=e653]: MUSIC — “Minimal Pulse”, licensed
+              - generic [ref=e654]: ▾
+            - generic [ref=e655]:
+              - generic [ref=e656]: GRADE — warm high-contrast
+              - generic [ref=e657]: ▾
+  - generic [ref=e663]:
+    - generic [ref=e664]: OPENMONTAGE · © 2026
+    - generic [ref=e672]:
+      - link "PRIVACY" [ref=e673] [cursor=pointer]:
+        - /url: /privacy.html
+      - link "TERMS" [ref=e674] [cursor=pointer]:
+        - /url: /terms.html
+      - link "CONTACT" [ref=e675] [cursor=pointer]:
+        - /url: mailto:hello@openmontage.video
+    - generic [ref=e676]:
+      - link "GITHUB" [ref=e677] [cursor=pointer]:
+        - /url: https://github.com/calesthio/OpenMontage
+      - link "X" [ref=e678] [cursor=pointer]:
+        - /url: https://x.com/openmontage
+      - link "OPENMONTAGE.VIDEO" [ref=e679] [cursor=pointer]:
+        - /url: https://openmontage.video

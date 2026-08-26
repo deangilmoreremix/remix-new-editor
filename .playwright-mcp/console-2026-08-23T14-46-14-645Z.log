@@ -1,0 +1,10 @@
+[    1393ms] [LOG] [App] Starting initialization... @ http://localhost:3100/src/main.js?t=1787496308735:19
+[    1634ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3100/src/lib/popcornInit.js?t=1787496297739:41
+[    1642ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3100/src/lib/popcornInit.js?t=1787496297739:48
+[    1920ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3100/src/lib/popcornInit.js?t=1787496297739:48
+[    2271ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3100/src/lib/popcornInit.js?t=1787496297739:48
+[    2886ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3100/src/lib/popcornInit.js?t=1787496297739:48
+[    3168ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=e467764e:20096
+[    3195ms] [LOG] [App] Initialized in 1801.60ms @ http://localhost:3100/src/main.js?t=1787496308735:164
+[    3195ms] [LOG] [App] Navigating to initial page: cinema-template @ http://localhost:3100/src/main.js?t=1787496308735:165
+[    3198ms] [INFO] [App] Dev auth bypass active — skipping setup popup. @ http://localhost:3100/src/main.js?t=1787496308735:176

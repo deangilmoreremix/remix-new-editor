@@ -1,0 +1,55 @@
+[   36467ms] [LOG] [App] Starting initialization... @ http://localhost:3101/src/main.js?t=1787502887576:19
+[   36623ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3101/src/lib/popcornInit.js:41
+[   36703ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3101/src/lib/popcornInit.js:48
+[   36806ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3101/src/lib/popcornInit.js:48
+[   37162ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3101/src/lib/popcornInit.js:48
+[   37294ms] [LOG] [App] Landing page rendered @ http://localhost:3101/src/main.js?t=1787502887576:88
+[   37761ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3101/src/lib/popcornInit.js:48
+[   37975ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3101/src/lib/popcornInit.js:48
+[   37999ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3101/src/lib/popcornInit.js:48
+[   38004ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3101/src/lib/popcornInit.js:48
+[   38010ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3101/src/lib/popcornInit.js:48
+[   38014ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3101/src/lib/popcornInit.js:48
+[   38019ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3101/src/lib/popcornInit.js:48
+[   38028ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3101/src/lib/popcornInit.js:48
+[   38034ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3101/src/lib/popcornInit.js:48
+[   38040ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3101/src/lib/popcornInit.js:48
+[   41579ms] [LOG] [App] Starting initialization... @ http://localhost:3101/src/main.js?t=1787502943973:19
+[   41590ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3101/src/lib/popcornInit.js:41
+[   41591ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3101/src/lib/popcornInit.js:48
+[   41592ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3101/src/lib/popcornInit.js:48
+[   41594ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3101/src/lib/popcornInit.js:48
+[   41596ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3101/src/lib/popcornInit.js:48
+[   41596ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3101/src/lib/popcornInit.js:48
+[   41598ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3101/src/lib/popcornInit.js:48
+[   41598ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3101/src/lib/popcornInit.js:48
+[   41599ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3101/src/lib/popcornInit.js:48
+[   41599ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3101/src/lib/popcornInit.js:48
+[   41618ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3101/src/lib/popcornInit.js:48
+[   41620ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3101/src/lib/popcornInit.js:48
+[   41623ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3101/src/lib/popcornInit.js:48
+[   41625ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3101/src/lib/popcornInit.js:48
+[   42283ms] [LOG] [App] Landing page rendered @ http://localhost:3101/src/main.js?t=1787502943973:88
+[   43068ms] [LOG] [popcorn-init] OK: plugin-image @ http://localhost:3101/src/lib/popcornInit.js:48
+[   43176ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3101/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=432bfed7:20096
+[   44090ms] [LOG] [popcorn-init] OK: plugin-jsonTransition @ http://localhost:3101/src/lib/popcornInit.js:48
+[   44124ms] [LOG] [popcorn-init] OK: plugin-lottie-json @ http://localhost:3101/src/lib/popcornInit.js:48
+[   44140ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3101/src/lib/popcornInit.js:48
+[   44149ms] [LOG] [popcorn-init] OK: plugin-personalizedImage @ http://localhost:3101/src/lib/popcornInit.js:48
+[   44160ms] [LOG] [popcorn-init] OK: plugin-loopPlugin @ http://localhost:3101/src/lib/popcornInit.js:48
+[   44210ms] [LOG] [popcorn-init] OK: plugin-pausePlugin @ http://localhost:3101/src/lib/popcornInit.js:48
+[   44337ms] [LOG] [popcorn-init] OK: plugin-form @ http://localhost:3101/src/lib/popcornInit.js:48
+[   44473ms] [LOG] [popcorn-init] OK: plugin-retarget @ http://localhost:3101/src/lib/popcornInit.js:48
+[   44502ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:3101/src/lib/popcornInit.js:48
+[   44511ms] [LOG] [popcorn-init] OK: plugin-sequencer @ http://localhost:3101/src/lib/popcornInit.js:48
+[   44519ms] [LOG] [popcorn-init] OK: plugin-skip @ http://localhost:3101/src/lib/popcornInit.js:48
+[   44555ms] [LOG] [popcorn-init] OK: plugin-text @ http://localhost:3101/src/lib/popcornInit.js:48
+[   44567ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:3101/src/lib/popcornInit.js:48
+[   44574ms] [LOG] [popcorn-init] OK: plugin-jsonAnimation @ http://localhost:3101/src/lib/popcornInit.js:48
+[   44604ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:3101/src/lib/popcornInit.js:48
+[   44617ms] [LOG] [popcorn-init] OK: plugin-seethroughtext @ http://localhost:3101/src/lib/popcornInit.js:48
+[   44624ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:3101/src/lib/popcornInit.js:48
+[   44639ms] [LOG] [popcorn-init] OK: plugin-combined @ http://localhost:3101/src/lib/popcornInit.js:48
+[   44646ms] [LOG] [popcorn-init] OK: plugin-background @ http://localhost:3101/src/lib/popcornInit.js:48
+[   44646ms] [LOG] [popcorn-init] SUMMARY: 20/20 plugins registered; all plugins registered @ http://localhost:3101/src/lib/popcornInit.js:60
+[   44646ms] [LOG] [popcorn] function 19 @ http://localhost:3101/src/main.js?t=1787502943973:4

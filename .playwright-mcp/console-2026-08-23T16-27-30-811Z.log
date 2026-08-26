@@ -1,0 +1,5 @@
+[   32724ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://localhost:3100/api/pexels/videos/popular?min_duration=undefined&max_duration=undefined&min_width=undefined&min_height=undefined&page=1&per_page=20:0
+[   32727ms] [ERROR] Pexels browser error: Error: Pexels GET /videos/popular failed (500): Internal Server Error
+    at pexelsFetch (http://localhost:3100/src/lib/pexelsApi.js:47:17)
+    at async getPopularVideos (http://localhost:3100/src/lib/pexelsApi.js:177:16)
+    at async loadContent (http://localhost:3100/src/components/PexelsBrowser.js:574:22) @ http://localhost:3100/src/components/PexelsBrowser.js:622

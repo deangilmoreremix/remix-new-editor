@@ -1,0 +1,246 @@
+[   54591ms] [ERROR] WebSocket connection to 'ws://localhost:3100/?token=OSsybMDxsHMu' failed:  @ http://localhost:3100/@vite/client:535
+[   54593ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3100/@vite/client:559
+[   54864ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://localhost:3100/:0
+[   56454ms] [ERROR] WebSocket connection to 'ws://localhost:3100/?token=OSsybMDxsHMu' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3100/@vite/client:535
+[   56464ms] [ERROR] WebSocket connection to 'ws://localhost:3100/?token=OSsybMDxsHMu' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3100/@vite/client:535
+[   56464ms] [ERROR] [vite] failed to connect to websocket.
+your current setup:
+  (browser) localhost:3100/ <--[HTTP]--> localhost:3100/ (server)
+  (browser) localhost:3100/ <--[WebSocket (failing)]--> localhost:3100/ (server)
+Check out your Vite / network configuration and https://vite.dev/config/server-options.html#server-hmr . @ http://localhost:3100/@vite/client:511
+[   56481ms] [LOG] [App] Starting initialization... @ http://localhost:3100/src/main.js?t=1787210694558:19
+[   56664ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3100/src/lib/popcornInit.js:41
+[   56682ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3100/src/lib/popcornInit.js:48
+[   56710ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3100/src/lib/popcornInit.js:48
+[   56827ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3100/src/lib/popcornInit.js:48
+[   56939ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3100/src/lib/popcornInit.js:48
+[   57219ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3100/src/lib/popcornInit.js:48
+[   57236ms] [LOG] [LandingPage] Header.jsx loaded @ http://localhost:3100/src/components/landing/LandingPage.jsx:167
+[   57431ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3100/src/lib/popcornInit.js:48
+[   57671ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3100/src/lib/popcornInit.js:48
+[   57869ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3100/src/lib/popcornInit.js:48
+[   57936ms] [LOG] [LandingPage] CinematicVideoHero.jsx loaded @ http://localhost:3100/src/components/landing/LandingPage.jsx:178
+[   58029ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3100/src/lib/popcornInit.js:48
+[   58032ms] [LOG] [LandingPage] HeroSection.jsx loaded @ http://localhost:3100/src/components/landing/LandingPage.jsx:189
+[   58033ms] [LOG] [LandingPage] Observer created for: scrolling placeholder id: section-scrolling @ http://localhost:3100/src/components/landing/LandingPage.jsx:153
+[   58033ms] [LOG] [LandingPage] Observer created for: hook placeholder id: section-hook @ http://localhost:3100/src/components/landing/LandingPage.jsx:153
+[   58033ms] [LOG] [LandingPage] Observer created for: engines placeholder id: section-engines @ http://localhost:3100/src/components/landing/LandingPage.jsx:153
+[   58033ms] [LOG] [LandingPage] Observer created for: apps placeholder id: section-apps @ http://localhost:3100/src/components/landing/LandingPage.jsx:153
+[   58033ms] [LOG] [LandingPage] Observer created for: features placeholder id: section-features @ http://localhost:3100/src/components/landing/LandingPage.jsx:153
+[   58033ms] [LOG] [LandingPage] Observer created for: problem placeholder id: section-problem @ http://localhost:3100/src/components/landing/LandingPage.jsx:153
+[   58033ms] [LOG] [LandingPage] Observer created for: workflow placeholder id: section-workflow @ http://localhost:3100/src/components/landing/LandingPage.jsx:153
+[   58034ms] [LOG] [LandingPage] Observer created for: comparison placeholder id: section-comparison @ http://localhost:3100/src/components/landing/LandingPage.jsx:153
+[   58034ms] [LOG] [LandingPage] Observer created for: value placeholder id: section-value @ http://localhost:3100/src/components/landing/LandingPage.jsx:153
+[   58034ms] [LOG] [LandingPage] Observer created for: agency placeholder id: section-agency @ http://localhost:3100/src/components/landing/LandingPage.jsx:153
+[   58034ms] [LOG] [LandingPage] Observer created for: offer placeholder id: section-offer @ http://localhost:3100/src/components/landing/LandingPage.jsx:153
+[   58034ms] [LOG] [LandingPage] Observer created for: cta placeholder id: section-cta @ http://localhost:3100/src/components/landing/LandingPage.jsx:153
+[   58034ms] [LOG] [LandingPage] Observer created for: ai-workflow placeholder id: section-ai-workflow @ http://localhost:3100/src/components/landing/LandingPage.jsx:153
+[   58034ms] [LOG] [LandingPage] Observer created for: made-with placeholder id: section-made-with @ http://localhost:3100/src/components/landing/LandingPage.jsx:153
+[   58034ms] [LOG] [LandingPage] Observer created for: ugc placeholder id: section-ugc @ http://localhost:3100/src/components/landing/LandingPage.jsx:153
+[   58034ms] [LOG] [LandingPage] Observer created for: gallery placeholder id: section-gallery @ http://localhost:3100/src/components/landing/LandingPage.jsx:153
+[   58034ms] [LOG] [LandingPage] Observer created for: academy placeholder id: section-academy @ http://localhost:3100/src/components/landing/LandingPage.jsx:153
+[   58034ms] [LOG] [LandingPage] Observer created for: repo-cinema placeholder id: section-repo-cinema @ http://localhost:3100/src/components/landing/LandingPage.jsx:153
+[   58034ms] [LOG] [LandingPage] Observer created for: repo-commercial placeholder id: section-repo-commercial @ http://localhost:3100/src/components/landing/LandingPage.jsx:153
+[   58034ms] [LOG] [LandingPage] Observer created for: repo-social-ads placeholder id: section-repo-social-ads @ http://localhost:3100/src/components/landing/LandingPage.jsx:153
+[   58034ms] [LOG] [LandingPage] Observer created for: repo-narrative placeholder id: section-repo-narrative @ http://localhost:3100/src/components/landing/LandingPage.jsx:153
+[   58034ms] [LOG] [LandingPage] Observer created for: repo-vertical placeholder id: section-repo-vertical @ http://localhost:3100/src/components/landing/LandingPage.jsx:153
+[   58034ms] [LOG] [LandingPage] Observer created for: repo-ecommerce placeholder id: section-repo-ecommerce @ http://localhost:3100/src/components/landing/LandingPage.jsx:153
+[   58034ms] [LOG] [LandingPage] Observer created for: repo-kinetic placeholder id: section-repo-kinetic @ http://localhost:3100/src/components/landing/LandingPage.jsx:153
+[   58035ms] [LOG] [LandingPage] Observer created for: repo-animated placeholder id: section-repo-animated @ http://localhost:3100/src/components/landing/LandingPage.jsx:153
+[   58035ms] [LOG] [LandingPage] Observer created for: repo-animation placeholder id: section-repo-animation @ http://localhost:3100/src/components/landing/LandingPage.jsx:153
+[   58035ms] [LOG] [LandingPage] Observer created for: repo-reference placeholder id: section-repo-reference @ http://localhost:3100/src/components/landing/LandingPage.jsx:153
+[   58035ms] [LOG] [LandingPage] Observer created for: repo-vfx placeholder id: section-repo-vfx @ http://localhost:3100/src/components/landing/LandingPage.jsx:153
+[   58035ms] [LOG] [LandingPage] Observer created for: repo-fashion placeholder id: section-repo-fashion @ http://localhost:3100/src/components/landing/LandingPage.jsx:153
+[   58035ms] [LOG] [LandingPage] Observer created for: repos placeholder id: section-repos @ http://localhost:3100/src/components/landing/LandingPage.jsx:153
+[   58035ms] [LOG] [LandingPage] Observer created for: gtm-boost placeholder id: section-gtm-boost @ http://localhost:3100/src/components/landing/LandingPage.jsx:153
+[   58035ms] [LOG] [App] Landing page rendered @ http://localhost:3100/src/main.js?t=1787210694558:88
+[   58049ms] [LOG] [LandingPage] IntersectionObserver fired for problem [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:118
+[   58050ms] [LOG] [LandingPage] Loading section: problem @ http://localhost:3100/src/components/landing/LandingPage.jsx:121
+[   58050ms] [LOG] [LandingPage] IntersectionObserver fired for comparison [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:118
+[   58050ms] [LOG] [LandingPage] Loading section: comparison @ http://localhost:3100/src/components/landing/LandingPage.jsx:121
+[   58050ms] [LOG] [LandingPage] IntersectionObserver fired for academy [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:118
+[   58051ms] [LOG] [LandingPage] Loading section: academy @ http://localhost:3100/src/components/landing/LandingPage.jsx:121
+[   58051ms] [LOG] [LandingPage] IntersectionObserver fired for features [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:118
+[   58051ms] [LOG] [LandingPage] Loading section: features @ http://localhost:3100/src/components/landing/LandingPage.jsx:121
+[   58051ms] [LOG] [LandingPage] IntersectionObserver fired for repo-reference [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:118
+[   58051ms] [LOG] [LandingPage] Loading section: repo-reference @ http://localhost:3100/src/components/landing/LandingPage.jsx:121
+[   58051ms] [LOG] [LandingPage] IntersectionObserver fired for made-with [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:118
+[   58052ms] [LOG] [LandingPage] Loading section: made-with @ http://localhost:3100/src/components/landing/LandingPage.jsx:121
+[   58052ms] [LOG] [LandingPage] IntersectionObserver fired for apps [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:118
+[   58052ms] [LOG] [LandingPage] Loading section: apps @ http://localhost:3100/src/components/landing/LandingPage.jsx:121
+[   58052ms] [LOG] [LandingPage] IntersectionObserver fired for cta [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:118
+[   58052ms] [LOG] [LandingPage] Loading section: cta @ http://localhost:3100/src/components/landing/LandingPage.jsx:121
+[   58053ms] [LOG] [LandingPage] IntersectionObserver fired for repo-animation [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:118
+[   58053ms] [LOG] [LandingPage] Loading section: repo-animation @ http://localhost:3100/src/components/landing/LandingPage.jsx:121
+[   58053ms] [LOG] [LandingPage] IntersectionObserver fired for repo-vfx [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:118
+[   58053ms] [LOG] [LandingPage] Loading section: repo-vfx @ http://localhost:3100/src/components/landing/LandingPage.jsx:121
+[   58053ms] [LOG] [LandingPage] IntersectionObserver fired for agency [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:118
+[   58053ms] [LOG] [LandingPage] Loading section: agency @ http://localhost:3100/src/components/landing/LandingPage.jsx:121
+[   58054ms] [LOG] [LandingPage] IntersectionObserver fired for repo-ecommerce [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:118
+[   58054ms] [LOG] [LandingPage] Loading section: repo-ecommerce @ http://localhost:3100/src/components/landing/LandingPage.jsx:121
+[   58054ms] [LOG] [LandingPage] IntersectionObserver fired for gtm-boost [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:118
+[   58054ms] [LOG] [LandingPage] Loading section: gtm-boost @ http://localhost:3100/src/components/landing/LandingPage.jsx:121
+[   58054ms] [LOG] [LandingPage] IntersectionObserver fired for engines [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:118
+[   58054ms] [LOG] [LandingPage] Loading section: engines @ http://localhost:3100/src/components/landing/LandingPage.jsx:121
+[   58055ms] [LOG] [LandingPage] IntersectionObserver fired for workflow [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:118
+[   58055ms] [LOG] [LandingPage] Loading section: workflow @ http://localhost:3100/src/components/landing/LandingPage.jsx:121
+[   58055ms] [LOG] [LandingPage] IntersectionObserver fired for repo-animated [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:118
+[   58055ms] [LOG] [LandingPage] Loading section: repo-animated @ http://localhost:3100/src/components/landing/LandingPage.jsx:121
+[   58055ms] [LOG] [LandingPage] IntersectionObserver fired for repo-cinema [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:118
+[   58055ms] [LOG] [LandingPage] Loading section: repo-cinema @ http://localhost:3100/src/components/landing/LandingPage.jsx:121
+[   58055ms] [LOG] [LandingPage] IntersectionObserver fired for gallery [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:118
+[   58055ms] [LOG] [LandingPage] Loading section: gallery @ http://localhost:3100/src/components/landing/LandingPage.jsx:121
+[   58056ms] [LOG] [LandingPage] IntersectionObserver fired for repo-narrative [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:118
+[   58056ms] [LOG] [LandingPage] Loading section: repo-narrative @ http://localhost:3100/src/components/landing/LandingPage.jsx:121
+[   58056ms] [LOG] [LandingPage] IntersectionObserver fired for repos [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:118
+[   58056ms] [LOG] [LandingPage] Loading section: repos @ http://localhost:3100/src/components/landing/LandingPage.jsx:121
+[   58056ms] [LOG] [LandingPage] IntersectionObserver fired for value [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:118
+[   58057ms] [LOG] [LandingPage] Loading section: value @ http://localhost:3100/src/components/landing/LandingPage.jsx:121
+[   58057ms] [LOG] [LandingPage] IntersectionObserver fired for repo-vertical [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:118
+[   58057ms] [LOG] [LandingPage] Loading section: repo-vertical @ http://localhost:3100/src/components/landing/LandingPage.jsx:121
+[   58057ms] [LOG] [LandingPage] IntersectionObserver fired for ugc [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:118
+[   58057ms] [LOG] [LandingPage] Loading section: ugc @ http://localhost:3100/src/components/landing/LandingPage.jsx:121
+[   58058ms] [LOG] [LandingPage] IntersectionObserver fired for repo-kinetic [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:118
+[   58058ms] [LOG] [LandingPage] Loading section: repo-kinetic @ http://localhost:3100/src/components/landing/LandingPage.jsx:121
+[   58058ms] [LOG] [LandingPage] IntersectionObserver fired for offer [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:118
+[   58058ms] [LOG] [LandingPage] Loading section: offer @ http://localhost:3100/src/components/landing/LandingPage.jsx:121
+[   58058ms] [LOG] [LandingPage] IntersectionObserver fired for repo-commercial [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:118
+[   58059ms] [LOG] [LandingPage] Loading section: repo-commercial @ http://localhost:3100/src/components/landing/LandingPage.jsx:121
+[   58059ms] [LOG] [LandingPage] IntersectionObserver fired for ai-workflow [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:118
+[   58059ms] [LOG] [LandingPage] Loading section: ai-workflow @ http://localhost:3100/src/components/landing/LandingPage.jsx:121
+[   58059ms] [LOG] [LandingPage] IntersectionObserver fired for scrolling [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:118
+[   58059ms] [LOG] [LandingPage] Loading section: scrolling @ http://localhost:3100/src/components/landing/LandingPage.jsx:121
+[   58059ms] [LOG] [LandingPage] IntersectionObserver fired for hook [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:118
+[   58060ms] [LOG] [LandingPage] Loading section: hook @ http://localhost:3100/src/components/landing/LandingPage.jsx:121
+[   58060ms] [LOG] [LandingPage] IntersectionObserver fired for repo-fashion [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:118
+[   58060ms] [LOG] [LandingPage] Loading section: repo-fashion @ http://localhost:3100/src/components/landing/LandingPage.jsx:121
+[   58060ms] [LOG] [LandingPage] IntersectionObserver fired for repo-social-ads [Object] @ http://localhost:3100/src/components/landing/LandingPage.jsx:118
+[   58060ms] [LOG] [LandingPage] Loading section: repo-social-ads @ http://localhost:3100/src/components/landing/LandingPage.jsx:121
+[   58086ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/media/minimax-h3/videos/nighttime-motorcycle-chase-synced-to-music.webm:0
+[   58115ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3100/src/lib/popcornInit.js:48
+[   58164ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/media/minimax-h3/videos/nighttime-motorcycle-chase-synced-to-music.mp4:0
+[   58199ms] [LOG] [LandingPage] Section loaded: comparison @ http://localhost:3100/src/components/landing/LandingPage.jsx:140
+[   58200ms] [LOG] [LandingPage] Section loaded: cta @ http://localhost:3100/src/components/landing/LandingPage.jsx:140
+[   58200ms] [LOG] [LandingPage] Section loaded: agency @ http://localhost:3100/src/components/landing/LandingPage.jsx:140
+[   58202ms] [LOG] [LandingPage] Section loaded: repos @ http://localhost:3100/src/components/landing/LandingPage.jsx:140
+[   58203ms] [LOG] [LandingPage] Section loaded: problem @ http://localhost:3100/src/components/landing/LandingPage.jsx:140
+[   58245ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3100/src/lib/popcornInit.js:48
+[   58269ms] [LOG] [LandingPage] Section loaded: features @ http://localhost:3100/src/components/landing/LandingPage.jsx:140
+[   58272ms] [LOG] [LandingPage] Section loaded: apps @ http://localhost:3100/src/components/landing/LandingPage.jsx:140
+[   58274ms] [LOG] [LandingPage] Section loaded: engines @ http://localhost:3100/src/components/landing/LandingPage.jsx:140
+[   58275ms] [LOG] [LandingPage] Section loaded: workflow @ http://localhost:3100/src/components/landing/LandingPage.jsx:140
+[   58276ms] [LOG] [LandingPage] Section loaded: value @ http://localhost:3100/src/components/landing/LandingPage.jsx:140
+[   58387ms] [LOG] [LandingPage] Section loaded: ugc @ http://localhost:3100/src/components/landing/LandingPage.jsx:140
+[   58395ms] [LOG] [LandingPage] Section loaded: gtm-boost @ http://localhost:3100/src/components/landing/LandingPage.jsx:140
+[   58401ms] [LOG] [LandingPage] Section loaded: gallery @ http://localhost:3100/src/components/landing/LandingPage.jsx:140
+[   58405ms] [LOG] [LandingPage] Section loaded: made-with @ http://localhost:3100/src/components/landing/LandingPage.jsx:140
+[   58405ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3100/src/lib/popcornInit.js:48
+[   58438ms] [LOG] [LandingPage] Section loaded: offer @ http://localhost:3100/src/components/landing/LandingPage.jsx:140
+[   58443ms] [LOG] [LandingPage] Section loaded: ai-workflow @ http://localhost:3100/src/components/landing/LandingPage.jsx:140
+[   58448ms] [LOG] [LandingPage] Section loaded: scrolling @ http://localhost:3100/src/components/landing/LandingPage.jsx:140
+[   58449ms] [LOG] [LandingPage] Section loaded: hook @ http://localhost:3100/src/components/landing/LandingPage.jsx:140
+[   58538ms] [LOG] [LandingPage] Section loaded: academy @ http://localhost:3100/src/components/landing/LandingPage.jsx:140
+[   58553ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/academy/01-ai-video-ads-ugc/gifs/gripmount-ad2-problem-first.gif:0
+[   58655ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/academy/03-faceless-ai-channels/gifs/faceless-niche-intro.gif:0
+[   58655ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/academy/04-ai-content-factories/gifs/agency-pitch-clip.gif:0
+[   58655ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/academy/04-ai-content-factories/gifs/batch-suite-clip.gif:0
+[   58655ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/academy/04-ai-content-factories/gifs/fitness-reel-clip.gif:0
+[   58656ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/academy/04-ai-content-factories/gifs/focus-loop-clip.gif:0
+[   58656ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/academy/04-ai-content-factories/gifs/thumbnail-motion-clip.gif:0
+[   58656ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/academy/05-ai-avatars-and-influencers/gifs/avatar-agency-suite-clip.gif:0
+[   58656ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/academy/05-ai-avatars-and-influencers/gifs/avatar-sponsor-clip.gif:0
+[   58656ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/academy/05-ai-avatars-and-influencers/gifs/avatar-studio-clip.gif:0
+[   58656ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/academy/05-ai-avatars-and-influencers/gifs/emma-cafe-motion.gif:0
+[   58656ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/academy/05-ai-avatars-and-influencers/gifs/emma-clip.gif:0
+[   58660ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/academy/06-ai-audio-and-music/gifs/dubbing-studio-clip.gif:0
+[   58660ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/academy/06-ai-audio-and-music/gifs/ai-music-workstation-clip.gif:0
+[   58660ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/academy/06-ai-audio-and-music/gifs/podcast-console-clip.gif:0
+[   58660ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/academy/06-ai-audio-and-music/gifs/singing-vocal-studio-clip.gif:0
+[   58661ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/academy/06-ai-audio-and-music/gifs/voice-studio-clip.gif:0
+[   58663ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/academy/07-ai-product-photography/gifs/batch-skincare-grid-clip.gif:0
+[   58663ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/academy/07-ai-product-photography/gifs/perfume-motion.gif:0
+[   58663ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/academy/07-ai-product-photography/gifs/product-agency-studio-clip.gif:0
+[   58663ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/academy/08-ai-fashion-and-virtual-tryon/gifs/denim-model-clip.gif:0
+[   58666ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/academy/08-ai-fashion-and-virtual-tryon/gifs/fashion-lookbook-loop.gif:0
+[   58666ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/academy/08-ai-fashion-and-virtual-tryon/gifs/linen-shirt-motion.gif:0
+[   58666ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/academy/08-ai-fashion-and-virtual-tryon/gifs/mannequin-grid-clip.gif:0
+[   58666ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/academy/09-ai-real-estate-staging/gifs/bedroom-staging-motion.gif:0
+[   59133ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3100/src/lib/popcornInit.js:48
+[   59165ms] [LOG] [LandingPage] Section loaded: repo-commercial @ http://localhost:3100/src/components/landing/LandingPage.jsx:140
+[   59172ms] [LOG] [LandingPage] Section loaded: repo-narrative @ http://localhost:3100/src/components/landing/LandingPage.jsx:140
+[   59181ms] [LOG] [LandingPage] Section loaded: repo-vertical @ http://localhost:3100/src/components/landing/LandingPage.jsx:140
+[   59188ms] [LOG] [LandingPage] Section loaded: repo-animated @ http://localhost:3100/src/components/landing/LandingPage.jsx:140
+[   59197ms] [LOG] [LandingPage] Section loaded: repo-animation @ http://localhost:3100/src/components/landing/LandingPage.jsx:140
+[   59204ms] [LOG] [LandingPage] Section loaded: repo-cinema @ http://localhost:3100/src/components/landing/LandingPage.jsx:140
+[   59210ms] [LOG] [LandingPage] Section loaded: repo-fashion @ http://localhost:3100/src/components/landing/LandingPage.jsx:140
+[   59217ms] [LOG] [LandingPage] Section loaded: repo-social-ads @ http://localhost:3100/src/components/landing/LandingPage.jsx:140
+[   59230ms] [LOG] [LandingPage] Section loaded: repo-ecommerce @ http://localhost:3100/src/components/landing/LandingPage.jsx:140
+[   59238ms] [LOG] [LandingPage] Section loaded: repo-kinetic @ http://localhost:3100/src/components/landing/LandingPage.jsx:140
+[   59248ms] [LOG] [LandingPage] Section loaded: repo-vfx @ http://localhost:3100/src/components/landing/LandingPage.jsx:140
+[   59256ms] [LOG] [LandingPage] Section loaded: repo-reference @ http://localhost:3100/src/components/landing/LandingPage.jsx:140
+[   59555ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/media/minimax-h3/previews/an-other-great-use-for-product-showcase-096175.webp:0
+[   59555ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/media/minimax-h3/previews/blackberry-vanilla-soda-ugc-vlog-998714.webp:0
+[   59555ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/media/minimax-h3/previews/a-hyper-realistic-handheld-phone-video-of-a-quiet-suburban-495564.webp:0
+[   59555ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/media/minimax-h3/previews/7-second-video-the-office-us-mockumentary-style-inside-the-709123.webp:0
+[   59555ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/media/minimax-h3/previews/a-handheld-found-footage-shot-from-behind-a-person-playing-800047.webp:0
+[   59555ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/media/seedance-2.5/previews/who-else-is-cooking-superhero-cats-with-seedance-2-5-562528.webp:0
+[   59556ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/media/seedance-2.5/previews/try-it-now-on-336575.webp:0
+[   59558ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/media/seedance-2.5/previews/created-with-seedance-2-5-141060.webp:0
+[   59558ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/media/minimax-h3/previews/bond-style-spy-thriller-op-art-anime-title-seque-295024.webp:0
+[   59558ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/media/minimax-h3/previews/7-grok-imagine-1-5-649179.webp:0
+[   59558ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/media/minimax-h3/previews/ai-cant-replace-you-joey-113820.webp:0
+[   59558ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/media/minimax-h3/previews/also-has-an-impressive-understanding-of-differen-911311.webp:0
+[   59558ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/media/seedance-2.5/previews/created-with-seedance-2-5-721493.webp:0
+[   59559ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/media/seedance-2.5/previews/seedance-2-5-in-451524.webp:0
+[   59559ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/media/seedance-2.5/previews/seedance-2-5-emotion-control-is-insane-made-with-828740.webp:0
+[   59559ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/media/seedance-2.5/previews/seedance-2-5-312407.webp:0
+[   59559ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/media/awesome-seedance/previews/adam.webp:0
+[   59559ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/media/awesome-seedance/previews/bootoshi.webp:0
+[   59559ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/media/awesome-seedance/previews/guizang.webp:0
+[   59560ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/media/awesome-seedance/previews/john1.webp:0
+[   59560ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/media/awesome-seedance/previews/john10.webp:0
+[   59560ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/media/awesome-seedance/previews/john2.webp:0
+[   59560ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/media/awesome-seedance/previews/john3.webp:0
+[   59560ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/media/awesome-seedance/previews/john5.webp:0
+[   59560ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/media/awesome-seedance/previews/john4.webp:0
+[   59560ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ http://localhost:3100/media/awesome-seedance/previews/john6.webp:0
+[   59682ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3100/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=c10e392d:20096
+[   59706ms] [ERROR] [ModalSystem] mount failed TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787282468113:26:22 @ http://localhost:3100/src/main.js?t=1787210694558:320
+[   59980ms] [ERROR] [popcorn-init] FAILED at: plugin-image TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787282468113:26:22 @ http://localhost:3100/src/lib/popcornInit.js:55
+[   60120ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonTransition TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787282468113:26:22 @ http://localhost:3100/src/lib/popcornInit.js:55
+[   60170ms] [ERROR] [popcorn-init] FAILED at: plugin-lottie-json TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787282468113:26:22 @ http://localhost:3100/src/lib/popcornInit.js:55
+[   60185ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3100/src/lib/popcornInit.js:48
+[   60194ms] [ERROR] [popcorn-init] FAILED at: plugin-personalizedImage TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787282468113:26:22 @ http://localhost:3100/src/lib/popcornInit.js:55
+[   60209ms] [ERROR] [popcorn-init] FAILED at: plugin-loopPlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787282468113:26:22 @ http://localhost:3100/src/lib/popcornInit.js:55
+[   60220ms] [ERROR] [popcorn-init] FAILED at: plugin-pausePlugin TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787282468113:26:22 @ http://localhost:3100/src/lib/popcornInit.js:55
+[   60243ms] [ERROR] [popcorn-init] FAILED at: plugin-form TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787282468113:26:22 @ http://localhost:3100/src/lib/popcornInit.js:55
+[   60297ms] [ERROR] [popcorn-init] FAILED at: plugin-retarget TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787282468113:26:22 @ http://localhost:3100/src/lib/popcornInit.js:55
+[   60305ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:3100/src/lib/popcornInit.js:48
+[   60315ms] [ERROR] [popcorn-init] FAILED at: plugin-sequencer TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787282468113:26:22 @ http://localhost:3100/src/lib/popcornInit.js:55
+[   60329ms] [ERROR] [popcorn-init] FAILED at: plugin-skip TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787282468113:26:22 @ http://localhost:3100/src/lib/popcornInit.js:55
+[   60354ms] [ERROR] [popcorn-init] FAILED at: plugin-text TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787282468113:26:22 @ http://localhost:3100/src/lib/popcornInit.js:55
+[   60371ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:3100/src/lib/popcornInit.js:48
+[   60383ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonAnimation TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787282468113:26:22 @ http://localhost:3100/src/lib/popcornInit.js:55
+[   60402ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:3100/src/lib/popcornInit.js:48
+[   60417ms] [ERROR] [popcorn-init] FAILED at: plugin-seethroughtext TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787282468113:26:22 @ http://localhost:3100/src/lib/popcornInit.js:55
+[   60423ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:3100/src/lib/popcornInit.js:48
+[   60434ms] [ERROR] [popcorn-init] FAILED at: plugin-combined TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787282468113:26:22 @ http://localhost:3100/src/lib/popcornInit.js:55
+[   60448ms] [ERROR] [popcorn-init] FAILED at: plugin-background TypeError: Class constructor SortableElement cannot be invoked without 'new'
+    at http://localhost:3100/components/modals/RetargetOptInModal.jsx?t=1787282468113:26:22 @ http://localhost:3100/src/lib/popcornInit.js:55
+[   60448ms] [LOG] [popcorn-init] SUMMARY: 5/20 plugins registered; FAILED: plugin-image, plugin-jsonTransition, plugin-lottie-json, plugin-personalizedImage, plugin-loopPlugin, plugin-pausePlugin, plugin-form, plugin-retarget, plugin-sequencer, plugin-skip, plugin-text, plugin-jsonAnimation, plugin-seethroughtext, plugin-combined, plugin-background @ http://localhost:3100/src/lib/popcornInit.js:60
+[   60448ms] [LOG] [popcorn] function 5 @ http://localhost:3100/src/main.js?t=1787210694558:4

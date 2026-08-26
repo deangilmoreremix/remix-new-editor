@@ -1,4 +1,4 @@
-import { defineConfig, loadEnv } from 'vite'
+import { defineConfig, loadEnv, transformWithEsbuild } from 'vite'
 import react from '@vitejs/plugin-react'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import {
@@ -70,7 +70,25 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 
   return {
     plugins: [
-      react(),
+      {
+        name: 'tsx-pre-transform',
+        enforce: 'pre',
+        async transform(code, id) {
+          if (!id.endsWith('.tsx') && !id.endsWith('.jsx') && !id.endsWith('.js')) return
+          return transformWithEsbuild(code, id, {
+            loader: id.endsWith('.js') ? 'jsx' : 'tsx',
+            jsx: 'automatic',
+          })
+        },
+      },
+      react({
+        babel: {
+          plugins: [
+            ['@babel/plugin-proposal-decorators', { legacy: true }],
+            ['@babel/plugin-proposal-class-properties', { loose: true }],
+          ],
+        },
+      }),
       {
         name: 'bloom-api-dev-endpoints',
         configureServer(server) {
@@ -262,17 +280,66 @@ export default defineConfig(({ mode, isSsrBuild }) => {
           // these packages, and Rollup rejects external ids in manualChunks.
           manualChunks: isSsrBuild
             ? undefined
-            : {
-                'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-                'vendor-motion': ['framer-motion'],
-                'vendor-esbuild': ['esbuild-wasm'],
-                'vendor-export': ['jszip', 'html2canvas'],
-              },
+                : {
+                    'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+                    'vendor-motion': ['framer-motion'],
+                    'vendor-esbuild': ['esbuild-wasm'],
+                    'vendor-export': ['jszip', 'html2canvas'],
+                  },
         },
       },
       sourcemap: false,
       minify: 'esbuild',
       cssMinify: 'esbuild',
+    },
+    resolve: {
+      alias: {
+        '@higgsfield/layout': '/packages/layout/src',
+        '@higgsfield/tokens': '/packages/tokens/src',
+        '@higgsfield/navigation': '/packages/navigation/src',
+        '@higgsfield/timeline-editor': '/packages/timeline-editor/src',
+        '@higgsfield/color-grading': '/packages/color-grading/src',
+        '@higgsfield/audio-mixer': '/packages/audio-mixer/src',
+        '@higgsfield/transitions': '/packages/transitions/src',
+        '@higgsfield/subtitles': '/packages/subtitles/src',
+        '@higgsfield/style-templates': '/packages/style-templates/src',
+        '@higgsfield/video-compiler': '/packages/video-compiler/src',
+        '@higgsfield/ai-chat': '/packages/ai-chat/src',
+      },
+    },
+    // Legacy components are authored as .js files that contain JSX.
+    // The dependency scanner needs the jsx loader to parse these files.
+    esbuild: {
+      jsx: 'automatic',
+    },
+    // Pre-transform .tsx/.jsx files before vite:import-analysis runs.
+    // The built-in import-analysis plugin uses es-module-lexer which can't
+    // handle JSX. This ensures JSX is compiled to JS before analysis.
+    optimizeDeps: {
+      esbuildOptions: {
+        loader: { '.js': 'jsx' } as Record<string, string>,
+        jsx: 'automatic',
+      },
+      // Exclude legacy packages that don't exist in npm registry or are
+      // loaded dynamically at runtime via @vite-ignore
+      exclude: [
+        'popcorn-js',
+        'popcorn-js/popcorn',
+        'popcorn-js/ie8/popcorn.ie8',
+        'popcorn-js/wrappers/common/popcorn._MediaElementProto',
+        'popcorn-js/wrappers/html5/popcorn.HTMLMediaElement',
+        'popcorn-js/wrappers/vrview/popcorn.HTMLVRViewVideoElement',
+        'popcorn-js/wrappers/adaptive/popcorn.HTMLAdaptiveMediaElement',
+        'popcorn-js/wrappers/null/popcorn.HTMLNullVideoElement',
+        'popcorn-js/wrappers/soundcloud/popcorn.HTMLSoundCloudAudioElement',
+        'popcorn-js/wrappers/vimeo/popcorn.HTMLVimeoVideoElement',
+        'popcorn-js/wrappers/youtube/popcorn.HTMLYouTubeVideoElement',
+        'popcorn-js/wrappers/jwplayer/popcorn.HTMLJWPlayerVideoElement',
+        'popcorn-js/modules/player/popcorn.player',
+        'videojs-wavesurfer-dealiased',
+        'videojs-record-dealiased',
+        'wavesurfer.js/dist/plugin/wavesurfer.microphone',
+      ],
     },
   }
 })

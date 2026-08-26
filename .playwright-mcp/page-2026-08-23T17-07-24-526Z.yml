@@ -1,0 +1,121 @@
+- generic [ref=f35e2]:
+  - banner [ref=f35e3]:
+    - generic [ref=f35e4]:
+      - generic [ref=f35e5]:
+        - generic [ref=f35e6] [cursor=pointer]
+        - navigation [ref=f35e12]:
+          - generic [ref=f35e13] [cursor=pointer]: Explore
+          - generic [ref=f35e14] [cursor=pointer]: Image
+          - generic [ref=f35e15] [cursor=pointer]: Video
+          - generic [ref=f35e16] [cursor=pointer]: Tools
+          - generic [ref=f35e17] [cursor=pointer]: Storyboard
+          - generic [ref=f35e18] [cursor=pointer]: Edit
+          - generic [ref=f35e19] [cursor=pointer]: Character
+          - generic [ref=f35e20] [cursor=pointer]: Vibe Motion
+          - generic [ref=f35e21] [cursor=pointer]: Cinema Studio
+          - generic [ref=f35e22] [cursor=pointer]: Cinema Template Studio
+          - generic [ref=f35e23] [cursor=pointer]: AI Influencer
+          - generic [ref=f35e24] [cursor=pointer]: Smart Video Viral
+          - generic [ref=f35e25] [cursor=pointer]: Apps
+          - generic [ref=f35e26] [cursor=pointer]: Templates
+          - generic [ref=f35e27] [cursor=pointer]: Assist
+          - generic [ref=f35e28] [cursor=pointer]: Community
+          - generic [ref=f35e29] [cursor=pointer]: Content Library
+      - generic [ref=f35e30]:
+        - button "Update API Key" [ref=f35e31]
+        - link "Sign In" [ref=f35e35] [cursor=pointer]:
+          - /url: /signin
+  - generic [ref=f35e36]:
+    - complementary [ref=f35e37]:
+      - generic [ref=f35e38]:
+        - generic [ref=f35e39] [cursor=pointer]:
+          - button [ref=f35e40]
+          - generic [ref=f35e46]: Apps
+        - generic [ref=f35e47] [cursor=pointer]:
+          - button [ref=f35e48]
+          - generic [ref=f35e53]: Image
+        - generic [ref=f35e54] [cursor=pointer]:
+          - button [ref=f35e55]
+          - generic [ref=f35e59]: Video
+        - generic [ref=f35e60] [cursor=pointer]:
+          - button [ref=f35e61]
+          - generic [ref=f35e64]: Cinema Studio
+        - generic [ref=f35e65] [cursor=pointer]:
+          - button [ref=f35e66]
+          - generic [ref=f35e69]: Cinema Template Studio
+        - generic [ref=f35e70] [cursor=pointer]:
+          - button [ref=f35e71]
+          - generic [ref=f35e79]: Storyboard
+        - generic [ref=f35e80] [cursor=pointer]:
+          - button [ref=f35e81]
+          - generic [ref=f35e84]: Effects
+        - generic [ref=f35e85] [cursor=pointer]:
+          - button [ref=f35e86]
+          - generic [ref=f35e90]: Edit
+        - generic [ref=f35e91] [cursor=pointer]:
+          - button [ref=f35e92]
+          - generic [ref=f35e98]: Upscale
+        - generic [ref=f35e99] [cursor=pointer]:
+          - button [ref=f35e100]
+          - generic [ref=f35e105]: Audio
+        - generic [ref=f35e106] [cursor=pointer]:
+          - button [ref=f35e107]
+          - generic [ref=f35e112]: Avatar
+        - generic [ref=f35e113] [cursor=pointer]:
+          - button [ref=f35e114]
+          - generic [ref=f35e119]: Training
+        - generic [ref=f35e120] [cursor=pointer]:
+          - button [ref=f35e121]
+          - generic [ref=f35e125]: Smart Video Academy
+        - generic [ref=f35e126] [cursor=pointer]:
+          - button [ref=f35e127]
+          - generic [ref=f35e132]: Smart Video Viral
+        - generic [ref=f35e133] [cursor=pointer]:
+          - button [ref=f35e134]
+          - generic [ref=f35e138]: Video Tools
+        - generic [ref=f35e139] [cursor=pointer]:
+          - button [ref=f35e140]
+          - generic [ref=f35e143]: Render
+        - generic [ref=f35e144] [cursor=pointer]:
+          - button [ref=f35e145]
+          - generic [ref=f35e149]: Director
+        - generic [ref=f35e150] [cursor=pointer]:
+          - button [ref=f35e151]
+          - generic [ref=f35e157]: Timeline
+        - generic [ref=f35e158] [cursor=pointer]:
+          - button [ref=f35e159]
+          - generic [ref=f35e162]: Chat
+        - generic [ref=f35e163] [cursor=pointer]:
+          - button [ref=f35e164]
+          - generic [ref=f35e168]: Commercial
+        - generic [ref=f35e169] [cursor=pointer]:
+          - button [ref=f35e170]
+          - generic [ref=f35e173]: Templates
+        - generic [ref=f35e174] [cursor=pointer]:
+          - button [ref=f35e175]
+          - generic [ref=f35e179]: Explore
+        - generic [ref=f35e180] [cursor=pointer]:
+          - button [ref=f35e181]
+          - generic [ref=f35e185]: Library
+        - generic [ref=f35e186] [cursor=pointer]:
+          - button [ref=f35e187]
+          - generic [ref=f35e190]: Content
+        - generic [ref=f35e191] [cursor=pointer]:
+          - button [ref=f35e192]
+          - generic [ref=f35e198]: Community
+        - generic [ref=f35e199] [cursor=pointer]:
+          - button [ref=f35e200]
+          - generic [ref=f35e205]: Assist
+        - generic [ref=f35e206] [cursor=pointer]:
+          - button [ref=f35e207]
+          - generic [ref=f35e211]: Commits (0)
+        - generic [ref=f35e212] [cursor=pointer]:
+          - button [ref=f35e213]
+          - generic [ref=f35e217]: AI VFX
+        - generic [ref=f35e218] [cursor=pointer]:
+          - button [ref=f35e219]
+          - generic [ref=f35e223]: Stock Media
+      - generic [ref=f35e225] [cursor=pointer]:
+        - button [ref=f35e226]
+        - generic [ref=f35e230]: Settings
+    - main [ref=f35e231]

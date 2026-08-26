@@ -1,0 +1,220 @@
+[    4349ms] [LOG] [App] Starting initialization... @ http://localhost:3000/src/main.js?t=1787399857363:19
+[    4944ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/src/components/landing/LandingPage.jsx:0
+[    4946ms] [ERROR] [App] Fatal initialization error: TypeError: Failed to fetch dynamically imported module: http://localhost:3000/src/components/landing/LandingPage.jsx @ http://localhost:3000/src/main.js?t=1787399857363:181
+[    4949ms] [LOG] [Analytics] error {errorType: fatal_init, message: Failed to fetch dynamically imported module: http:…lhost:3000/src/components/landing/LandingPage.jsx} @ http://localhost:3000/src/lib/analytics.js:36
+[    5509ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3000/src/lib/popcornInit.js:41
+[    5996ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/@id/components/modals/CreativeGeneratorModal::/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/lib/constants/modals.js:0
+[    5997ms] [ERROR] [ModalSystem] mount failed TypeError: Failed to fetch dynamically imported module: http://localhost:3000/src/mountModalSystem.jsx @ http://localhost:3000/src/main.js?t=1787399857363:329
+[    6601ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/@id/components/modals/AiArtGenerator::/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/lib/constants/modals.js:0
+[    6609ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/@id/components/modals/BackgroundDiffusion::/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/lib/constants/modals.js:0
+[    7284ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/@id/public/static/images/toolbar/CTA.svg::/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/lib/constants/modals.js:0
+[    7290ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/@id/public/static/images/toolbar/template_pack.svg::/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/lib/constants/modals.js:0
+[    7325ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/@id/components/modals/Creatives/CreativeModalContent::/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/lib/constants/modals.js:0
+[    9976ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3000/src/lib/popcornInit.js:48
+[   24732ms] [LOG] [App] Starting initialization... @ http://localhost:3000/src/main.js?t=1787399879362:16
+[   24803ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3000/src/lib/popcornInit.js?t=1787399869264:41
+[   24815ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3000/src/lib/popcornInit.js?t=1787399869264:48
+[   24843ms] [ERROR] Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep) @ http://localhost:3000/node_modules/.vite/deps/popcorn-js_popcorn.js?v=2e021b4e:0
+[   24844ms] [ERROR] [popcorn-init] FAILED at: popcorn-core TypeError: Failed to fetch dynamically imported module: http://localhost:3000/node_modules/.vite/deps/popcorn-js_popcorn.js?v=2e021b4e @ http://localhost:3000/src/lib/popcornInit.js?t=1787399869264:52
+[   24844ms] [ERROR] [popcorn] init failed TypeError: Failed to fetch dynamically imported module: http://localhost:3000/node_modules/.vite/deps/popcorn-js_popcorn.js?v=2e021b4e @ http://localhost:3000/src/main.js?t=1787399879362:6
+[   25317ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/@id/components/form/FormSelect::/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/lib/constants/forms.js:0
+[   25317ms] [ERROR] [ModalSystem] mount failed TypeError: Failed to fetch dynamically imported module: http://localhost:3000/src/mountModalSystem.jsx?t=1787399869669 @ http://localhost:3000/src/main.js?t=1787399879362:335
+[   25321ms] [LOG] [App] Landing page rendered @ http://localhost:3000/src/main.js?t=1787399879362:85
+[   25593ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3000/@vite/client:559
+[   25597ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/node_modules/.vite/deps/moment.js?v=1a56cf49:0
+[   25598ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@id/__x00__legacy-stub:react-number-format::/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/components/form/TimeInput.jsx:0
+[   25599ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/lib/constants/keyCodes.js:0
+[   25599ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/lib/constants/formats.js:0
+[   25599ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@id/__x00__legacy-stub:@material-ui/core/TextField::/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/components/form/FormTextArea.jsx:0
+[   25599ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@id/__x00__legacy-stub:@material-ui/core/FormGroup::/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/components/form/FormColor.jsx:0
+[   25600ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@id/__x00__legacy-stub:@material-ui/core/FormLabel::/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/components/form/FormColor.jsx:0
+[   25601ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@id/__x00__legacy-stub:@material-ui/core/Box::/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/components/form/FormColor.jsx:0
+[   25601ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@id/__x00__legacy-stub:@material-ui/core/Popover::/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/components/form/FormColor.jsx:0
+[   25602ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@id/__x00__legacy-stub:react-color::/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/components/form/FormColor.jsx:0
+[   25603ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@id/__x00__legacy-stub:@material-ui/core/RadioGroup::/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/components/form/FormRadioButton.jsx:0
+[   25603ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/lib/lottie/utils.js:0
+[   25604ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/lib/utils/color.js:0
+[   25604ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@id/__x00__legacy-stub:@material-ui/core/FormControlLabel::/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/components/form/FormRadioButton.jsx:0
+[   25605ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@id/__x00__legacy-stub:@material-ui/core/Radio::/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/components/form/FormRadioButton.jsx:0
+[   25605ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@id/__x00__legacy-stub:@material-ui/core/FormControl::/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/components/form/FormRadioButton.jsx:0
+[   25606ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/src/lib/react-svg-inline.jsx:0
+[   25606ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/components/base/Component.js:0
+[   25606ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/lib/validators.js:0
+[   25607ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/node_modules/.vite/deps/classnames.js?v=68c7dc21:0
+[   25607ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/node_modules/.vite/deps/@supabase_supabase-js.js?v=761249a3:0
+[   25608ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/components/form/AutoCompleteSelect.jsx?t=1787399857347:0
+[   25608ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/components/form/FormTokensTextArea.jsx:0
+[   25612ms] [ERROR] [Unhandled Promise Rejection] TypeError: Failed to fetch dynamically imported module: http://localhost:3000/src/lib/devAuth.js?t=1787399868935 @ http://localhost:3000/src/main.js?t=1787399879362:30
+[   25613ms] [LOG] [Analytics] error {errorType: unhandled_rejection, message: Failed to fetch dynamically imported module: http:…localhost:3000/src/lib/devAuth.js?t=1787399868935} @ http://localhost:3000/src/lib/analytics.js?t=1787399869681:35
+[   25665ms] Failed to fetch dynamically imported module: http://localhost:3000/src/lib/devAuth.js?t=1787399868935
+[   25615ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/components/form/FormEnterBlurField.jsx:0
+[   25616ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/node_modules/.vite/deps/prop-types.js?v=50b68e8f:0
+[   25617ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   26623ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   27626ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   28629ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   29636ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   30640ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   31643ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   32646ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   33656ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   34661ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   35667ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   36670ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   37673ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   38676ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   39679ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   40682ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   41694ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   42697ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   43705ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   44709ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   45712ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   46715ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   47718ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   48721ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   49724ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   50730ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   51733ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   52738ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   53742ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   54746ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   55751ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   56754ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   57757ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   58761ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   59765ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   60769ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   61773ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   62779ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   63781ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   64784ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   65786ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   66793ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   67796ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   68801ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   69804ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   70806ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   71810ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   72814ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   73816ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   74819ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   75821ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   76828ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   77831ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   78837ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   79840ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   80842ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   81848ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   82852ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   83855ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   84858ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   85861ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   86865ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   87869ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   88872ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   89935ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   90939ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[   91943ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[  119776ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/src/lib/clerkInit.js?t=1787399969943:0
+[  133015ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3000/@vite/client:559
+[  133023ms] [ERROR] Failed to load resource: net::ERR_EMPTY_RESPONSE @ http://localhost:3000/src/components/Header.js?t=1787399989368:0
+[  133024ms] [ERROR] Failed to load resource: net::ERR_EMPTY_RESPONSE @ http://localhost:3000/src/components/Sidebar.js?t=1787399988956:0
+[  133024ms] [ERROR] Failed to load resource: net::ERR_EMPTY_RESPONSE @ http://localhost:3000/src/lib/router.js?t=1787399989368:0
+[  133026ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:3000/src/lib/apiKeyManager.js?t=1787399989158:0
+[  133026ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:3000/src/lib/security.js:0
+[  133027ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:3000/src/style.css?t=1787399989424:0
+[  133027ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:3000/:0
+[  133028ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:3000/src/lib/analytics.js?t=1787399989158:0
+[  133028ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:3000/src/lib/loading.js?t=1787399989351:0
+[  133032ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/favicon.webp:0
+[  133038ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/favicon.webp:0
+[  133039ms] [WARNING] Error while trying to use the following icon from the Manifest: http://localhost:3000/favicon.webp (Download error or resource isn't a valid image) @ http://localhost:3000/:0
+[  134030ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[  135034ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[  136037ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[  137041ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[  138043ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/:0
+[  149125ms] [LOG] [App] Starting initialization... @ http://localhost:3000/src/main.js:16
+[  149821ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3000/src/lib/popcornInit.js:41
+[  151010ms] [LOG] [App] Landing page rendered @ http://localhost:3000/src/main.js:85
+[  151117ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3000/src/lib/popcornInit.js:48
+[  152009ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3000/src/lib/popcornInit.js:48
+[  153221ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/@id/components/form/FormSelect::/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/lib/constants/forms.js:0
+[  153222ms] [ERROR] [ModalSystem] mount failed TypeError: Failed to fetch dynamically imported module: http://localhost:3000/src/mountModalSystem.jsx @ http://localhost:3000/src/main.js:335
+[  153769ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3000/src/lib/popcornInit.js:48
+[  153906ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3000/src/lib/popcornInit.js:48
+[  154023ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3000/src/lib/popcornInit.js:48
+[  154066ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3000/src/lib/popcornInit.js:48
+[  154113ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3000/src/lib/popcornInit.js:48
+[  154126ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3000/src/lib/popcornInit.js:48
+[  154138ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3000/src/lib/popcornInit.js:48
+[  154177ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3000/src/lib/popcornInit.js:48
+[  154208ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3000/src/lib/popcornInit.js:48
+[  154235ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3000/src/lib/popcornInit.js:48
+[  154446ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3000/src/lib/popcornInit.js:48
+[  154563ms] [ERROR] [popcorn-init] FAILED at: plugin-image TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/image/popcorn.image.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[  155216ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonTransition TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/jsonTransition/popcorn.jsonTransition.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[  156356ms] [ERROR] [popcorn-init] FAILED at: plugin-lottie-json TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/lottie-json/popcorn.lottie-json.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[  156734ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3000/src/lib/popcornInit.js:48
+[  156825ms] [ERROR] [popcorn-init] FAILED at: plugin-personalizedImage TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/personalizedImage/popcorn.personalizedImage.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[  156938ms] [ERROR] [popcorn-init] FAILED at: plugin-loopPlugin TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/loopPlugin/popcorn.loopPlugin.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[  156958ms] [ERROR] [popcorn-init] FAILED at: plugin-pausePlugin TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/pausePlugin/popcorn.pausePlugin.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[  157059ms] [ERROR] [popcorn-init] FAILED at: plugin-form TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/form/popcorn.form.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[  157358ms] [ERROR] [popcorn-init] FAILED at: plugin-retarget TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/retarget/popcorn.retarget.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[  164441ms] [LOG] [App] Starting initialization... @ http://localhost:3000/src/main.js?t=1787400021185:16
+[  164684ms] [LOG] [popcorn-init] OK: jquery @ http://localhost:3000/src/lib/popcornInit.js:41
+[  164846ms] [LOG] [App] Landing page rendered @ http://localhost:3000/src/main.js?t=1787400021185:85
+[  164893ms] [LOG] [popcorn-init] OK: jquery-textfill @ http://localhost:3000/src/lib/popcornInit.js:48
+[  165473ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/@id/components/form/FormSelect::/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/lib/constants/forms.js:0
+[  165473ms] [ERROR] [ModalSystem] mount failed TypeError: Failed to fetch dynamically imported module: http://localhost:3000/src/mountModalSystem.jsx @ http://localhost:3000/src/main.js?t=1787400021185:335
+[  165787ms] [LOG] [popcorn-init] OK: popcorn-core @ http://localhost:3000/src/lib/popcornInit.js:48
+[  166013ms] [LOG] [popcorn-init] OK: popcorn-ie8 @ http://localhost:3000/src/lib/popcornInit.js:48
+[  166071ms] [LOG] [popcorn-init] OK: wrapper-common @ http://localhost:3000/src/lib/popcornInit.js:48
+[  166082ms] [LOG] [popcorn-init] OK: wrapper-html5 @ http://localhost:3000/src/lib/popcornInit.js:48
+[  166104ms] [LOG] [popcorn-init] OK: wrapper-vrview @ http://localhost:3000/src/lib/popcornInit.js:48
+[  166131ms] [LOG] [popcorn-init] OK: wrapper-adaptive @ http://localhost:3000/src/lib/popcornInit.js:48
+[  166157ms] [LOG] [popcorn-init] OK: wrapper-null @ http://localhost:3000/src/lib/popcornInit.js:48
+[  166168ms] [LOG] [popcorn-init] OK: wrapper-soundcloud @ http://localhost:3000/src/lib/popcornInit.js:48
+[  166177ms] [LOG] [popcorn-init] OK: wrapper-vimeo @ http://localhost:3000/src/lib/popcornInit.js:48
+[  166187ms] [LOG] [popcorn-init] OK: wrapper-youtube @ http://localhost:3000/src/lib/popcornInit.js:48
+[  166196ms] [LOG] [popcorn-init] OK: wrapper-jwplayer @ http://localhost:3000/src/lib/popcornInit.js:48
+[  166204ms] [LOG] [popcorn-init] OK: player-module @ http://localhost:3000/src/lib/popcornInit.js:48
+[  166272ms] [ERROR] [popcorn-init] FAILED at: plugin-image TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/image/popcorn.image.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[  166458ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonTransition TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/jsonTransition/popcorn.jsonTransition.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[  166542ms] [ERROR] [popcorn-init] FAILED at: plugin-lottie-json TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/lottie-json/popcorn.lottie-json.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[  166700ms] [LOG] [popcorn-init] OK: plugin-json-button @ http://localhost:3000/src/lib/popcornInit.js:48
+[  166758ms] [ERROR] [popcorn-init] FAILED at: plugin-personalizedImage TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/personalizedImage/popcorn.personalizedImage.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[  166775ms] [ERROR] [popcorn-init] FAILED at: plugin-loopPlugin TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/loopPlugin/popcorn.loopPlugin.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[  166792ms] [ERROR] [popcorn-init] FAILED at: plugin-pausePlugin TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/pausePlugin/popcorn.pausePlugin.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[  166895ms] [ERROR] [popcorn-init] FAILED at: plugin-form TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/form/popcorn.form.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[  167002ms] [ERROR] [popcorn-init] FAILED at: plugin-retarget TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/retarget/popcorn.retarget.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[  167020ms] [LOG] [popcorn-init] OK: plugin-popup @ http://localhost:3000/src/lib/popcornInit.js:48
+[  167143ms] [ERROR] [popcorn-init] FAILED at: plugin-sequencer TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/sequencer/popcorn.sequencer.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[  167208ms] [ERROR] [popcorn-init] FAILED at: plugin-skip TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/skip/popcorn.skip.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[  167362ms] [ERROR] [popcorn-init] FAILED at: plugin-text TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/text/popcorn.text.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[  167471ms] [LOG] [popcorn-init] OK: plugin-social @ http://localhost:3000/src/lib/popcornInit.js:48
+[  167574ms] [ERROR] [popcorn-init] FAILED at: plugin-jsonAnimation TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/jsonAnimation/popcorn.jsonAnimation.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[  167663ms] [LOG] [popcorn-init] OK: plugin-videoTransition @ http://localhost:3000/src/lib/popcornInit.js:48
+[  167722ms] [ERROR] [popcorn-init] FAILED at: plugin-seethroughtext TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/seethroughtext/popcorn.seethroughtext.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[  167747ms] [LOG] [popcorn-init] OK: plugin-wikipedia @ http://localhost:3000/src/lib/popcornInit.js:48
+[  167772ms] [ERROR] [popcorn-init] FAILED at: plugin-combined TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/combined/popcorn.combined.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[  167814ms] [ERROR] [popcorn-init] FAILED at: plugin-background TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/background/popcorn.background.js @ http://localhost:3000/src/lib/popcornInit.js:55
+[  167814ms] [LOG] [popcorn-init] SUMMARY: 5/20 plugins registered; FAILED: plugin-image, plugin-jsonTransition, plugin-lottie-json, plugin-personalizedImage, plugin-loopPlugin, plugin-pausePlugin, plugin-form, plugin-retarget, plugin-sequencer, plugin-skip, plugin-text, plugin-jsonAnimation, plugin-seethroughtext, plugin-combined, plugin-background @ http://localhost:3000/src/lib/popcornInit.js:60
+[  167814ms] [LOG] [popcorn] function 5 @ http://localhost:3000/src/main.js?t=1787400021185:4
+[  176890ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:3000/manifest.json:0
+[  176890ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:3000/@react-refresh:0
+[  176890ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:3000/@vite/client:0
+[  176890ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:3000/src/components/modals/modal-styles.css:0
+[  176891ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:3000/src/components/Header.js?t=1787400033071:0
+[  176891ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:3000/src/lib/popcornInit.js:0
+[  176892ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/src/components/Sidebar.js:0
+[  176893ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/src/lib/router.js?t=1787400033071:0
+[  176893ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/src/lib/performance.js:0
+[  176894ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/src/lib/analytics.js:0
+[  176894ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/src/lib/loading.js:0
+[  176894ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/src/lib/security.js:0
+[  176895ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/src/lib/apiKeyManager.js:0
+[  176895ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/src/style.css?t=1787400033071:0
+[  176896ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/manifest.json:0
+[  176898ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/favicon.webp:0
