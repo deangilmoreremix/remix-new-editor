@@ -588,7 +588,12 @@ export default function DashboardPage() {
 
   if (authLoading) return null
 
-  // PERFORMANCE: Debounce search input to avoid filtering on every keystroke
+  // UX: Handle broken project preview images
+  const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set())
+
+  const handleImageError = useCallback((projectId: string) => {
+    setBrokenImages((prev) => new Set(prev).add(projectId))
+  }, [])
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -884,12 +889,13 @@ export default function DashboardPage() {
                   >
                     <div className={styles.projectAccentBar} />
                     <div className={styles.projectPreview}>
-                      {project.preview_url ? (
+                      {project.preview_url && !brokenImages.has(project.id) ? (
                         <img
                           src={project.preview_url}
                           alt={project.title}
                           className={styles.projectPreviewImg}
                           draggable={false}
+                          onError={() => handleImageError(project.id)}
                         />
                       ) : (
                         <div className={styles.projectPlaceholder}>

@@ -118,6 +118,17 @@ export default function Header() {
     closeTimer.current = setTimeout(() => setOpenDropdown(null), 150)
   }
 
+  // ACCESSIBILITY: Keyboard navigation for dropdowns
+  const handleKeyDown = (key: DropdownKey) => (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      setOpenDropdown(openDropdown === key ? null : key)
+    } else if (e.key === 'Escape') {
+      e.preventDefault()
+      setOpenDropdown(null)
+    }
+  }
+
   return (
     <>
       <header className={`${styles.header} ${scrolled ? styles.headerScrolled : ''}`}>
@@ -140,9 +151,11 @@ export default function Header() {
             className={styles.navItem}
             onMouseEnter={() => handleEnter('solutions')}
             onMouseLeave={handleLeave}
+            onKeyDown={handleKeyDown('solutions')}
             role="button"
             tabIndex={0}
             aria-expanded={openDropdown === 'solutions'}
+            aria-haspopup="true"
           >
             Solutions
             <svg className={`${styles.chevron} ${openDropdown === 'solutions' ? styles.chevronOpen : ''}`} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2">
@@ -159,9 +172,11 @@ export default function Header() {
             className={styles.navItem}
             onMouseEnter={() => handleEnter('useCases')}
             onMouseLeave={handleLeave}
+            onKeyDown={handleKeyDown('useCases')}
             role="button"
             tabIndex={0}
             aria-expanded={openDropdown === 'useCases'}
+            aria-haspopup="true"
           >
             Use Cases
             <svg className={`${styles.chevron} ${openDropdown === 'useCases' ? styles.chevronOpen : ''}`} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2">
@@ -192,9 +207,11 @@ export default function Header() {
             className={styles.navItem}
             onMouseEnter={() => handleEnter('resources')}
             onMouseLeave={handleLeave}
+            onKeyDown={handleKeyDown('resources')}
             role="button"
             tabIndex={0}
             aria-expanded={openDropdown === 'resources'}
+            aria-haspopup="true"
           >
             Resources
             <svg className={`${styles.chevron} ${openDropdown === 'resources' ? styles.chevronOpen : ''}`} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2">
