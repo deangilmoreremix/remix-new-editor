@@ -279,6 +279,7 @@ export default function App() {
             <Route path="/glossary" element={<Layout><GlossaryPage /></Layout>} />
             <Route path="/dashboard" element={<Layout><DashboardPage /></Layout>} />
             <Route path="/website-builder" element={<Layout><StudioWrapper studioPath="smartvideo" /></Layout>} />
+            <Route path="/openthorn" element={<Layout><StudioWrapper studioPath="openthorn" /></Layout>} />
             <Route path="/projects/:projectId" element={<Layout><ProjectBuilderPage /></Layout>} />
             <Route path="/templates" element={<Layout><TemplatesPage /></Layout>} />
             <Route path="/community" element={<Layout><CommunityPage /></Layout>} />

@@ -93,6 +93,14 @@ force = false
 # `<a href="/route">` instead of the in-app hash router.
 # `force = false` so existing files (assets/, favicon, manifest, etc.)
 # are still served directly without a redirect.
+
+# OpenThorn studio: serve static files from /openthorn/ without SPA fallback.
+[[redirects]]
+  from = "/openthorn/:splat"
+  to = "/openthorn/:splat"
+  status = 200
+  force = false
+
 [[redirects]]
 from = "/*"
 to = "/index.html"

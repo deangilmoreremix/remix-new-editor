@@ -7,7 +7,7 @@ const checks = [
   ['dist/index.html', 'SoftwareApplication', 'home: SoftwareApplication JSON-LD'],
   ['dist/index.html', 'Build with OpenThorn', 'home: hero SSR body'],
   ['dist/index.html', 'deploys it anywhere', 'home: hero subtitle SSR body'],
-  ['dist/index.html', 'rel="canonical" href="https://www.openthorn.app/"', 'home: canonical'],
+  ['dist/index.html', 'rel="canonical" href="https://www.smartvid.app/"', 'home: canonical'],
   ['dist/index.html', '/og/home.png', 'home: generated og card'],
   ['dist/faq/index.html', 'FAQPage', 'faq: FAQPage JSON-LD'],
   ['dist/faq/index.html', 'data-prerendered', 'faq: JSON-LD marked for boot removal'],

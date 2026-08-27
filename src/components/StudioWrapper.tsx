@@ -39,7 +39,8 @@ const STUDIO_LOADERS = {
   'upscale-page': () => import('./UpscalePage.js').then(m => m.UpscalePage()),
   assist: () => import('./AssistPage.js').then(m => m.AssistPage()),
    smartvideo: () => import('./SmartVideoStudio.js').then(m => m.SmartVideoStudio()),
-}
+   openthorn: () => import('./OpenThornStudio.js').then(m => m.OpenThornStudio()),
+ }
 
 export default function StudioWrapper({ studioPath }: { studioPath: string }) {
   const containerRef = useRef<HTMLDivElement>(null)

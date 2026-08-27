@@ -1,4 +1,4 @@
-// Builds llms-full.txt: the complete public content of openthorn.app in one
+// Builds llms-full.txt: the complete public content of smartvid.app in one
 // markdown file, for AI assistants and answer engines that prefer a single
 // fetch over crawling. Linked from llms.txt per the llms.txt convention.
 import { readFileSync } from 'fs'

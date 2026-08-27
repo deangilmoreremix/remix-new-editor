@@ -27,7 +27,7 @@ import { loadFonts, renderOgCard } from './og-cards.mjs'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const rootDir = join(__dirname, '..')
 const distDir = join(rootDir, 'dist')
-const SITE_URL = 'https://www.openthorn.app'
+const SITE_URL = 'https://www.smartvid.app'
 const DEFAULT_OG_IMAGE = `${SITE_URL}/og-card.png`
 const LOGO_URL = `${SITE_URL}/logo.png`
 

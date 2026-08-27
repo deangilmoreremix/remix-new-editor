@@ -12,7 +12,7 @@ import { readFileSync, existsSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
-const SITE_URL = 'https://www.openthorn.app'
+const SITE_URL = 'https://www.smartvid.app'
 const KEY = '7f3a9c2e5b8d4f6a1c0e9b7d3a5f8c2e'
 
 // `npm run indexnow` is a deliberate manual submission (strict exit codes).
@@ -42,7 +42,7 @@ try {
     method: 'POST',
     headers: { 'Content-Type': 'application/json; charset=utf-8' },
     body: JSON.stringify({
-      host: 'www.openthorn.app',
+      host: 'www.smartvid.app',
       key: KEY,
       keyLocation: `${SITE_URL}/${KEY}.txt`,
       urlList: urls,

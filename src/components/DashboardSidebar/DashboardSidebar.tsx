@@ -59,6 +59,17 @@ const mainNavItems: NavItem[] = [
     ),
   },
   {
+    label: 'OpenThorn',
+    tourId: 'openthorn',
+    icon: (
+      <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+        <path d="M2 17l10 5 10-5"/>
+        <path d="M2 12l10 5 10-5"/>
+      </svg>
+    ),
+  },
+  {
     label: 'Templates',
     tourId: 'templates',
     icon: (
@@ -153,6 +164,7 @@ export default function DashboardSidebar({ projects = [], activeFilter = 'all', 
     if (location.pathname === '/templates') return 'Templates'
     if (location.pathname === '/community') return 'Community'
     if (location.pathname.startsWith('/projects/') || location.pathname === '/website-builder') return 'Website Builder'
+    if (location.pathname === '/openthorn') return 'OpenThorn'
     return 'Home'
   })
   const [notificationsOpen, setNotificationsOpen] = useState(false)
@@ -166,6 +178,7 @@ export default function DashboardSidebar({ projects = [], activeFilter = 'all', 
     else if (location.pathname === '/templates') setActiveNav('Templates')
     else if (location.pathname === '/community') setActiveNav('Community')
     else if (location.pathname.startsWith('/projects/') || location.pathname === '/website-builder') setActiveNav('Website Builder')
+    else if (location.pathname === '/openthorn') setActiveNav('OpenThorn')
   }, [location.pathname])
 
   useEffect(() => {
@@ -186,6 +199,7 @@ export default function DashboardSidebar({ projects = [], activeFilter = 'all', 
     if (label === 'Home') navigate('/dashboard')
     if (label === 'Templates') navigate('/templates')
     if (label === 'Community') navigate('/community')
+    if (label === 'OpenThorn') navigate('/openthorn')
     if (label === 'Website Builder') navigate('/website-builder')
   }
 

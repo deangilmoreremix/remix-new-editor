@@ -71,6 +71,7 @@ const pageLoaders = {
   'ai-vfx': () => import('../components/AIVFXPage.js').then(m => m.AIVFXPage()),
   'timeline-iframe-warning': () => Promise.resolve(document.createElement('div')),
   smartvideo: () => import('../components/SmartVideoStudio.js').then(m => m.SmartVideoStudio()),
+  openthorn: () => import('../components/OpenThornStudio.js').then(m => m.OpenThornStudio()),
 };
 
 const GATED_PAGES = {

@@ -68,7 +68,7 @@ export async function renderOgCard({ title, eyebrow }, fonts) {
               style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 32 },
               children: [
                 { type: 'div', props: { style: { fontFamily: 'Fraunces', fontWeight: 600, display: 'flex' }, children: 'OpenThorn' } },
-                { type: 'div', props: { style: { color: '#A78BFA', display: 'flex' }, children: 'openthorn.app' } },
+                { type: 'div', props: { style: { color: '#A78BFA', display: 'flex' }, children: 'smartvid.app' } },
               ],
             },
           },
