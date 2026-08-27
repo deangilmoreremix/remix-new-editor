@@ -10,9 +10,7 @@ const STUDIO_PAGES = new Set([
   'text-to-image','image-to-image','text-to-video','image-to-video',
   'video-to-video','video-watermark','storyboard-page','character-page',
   'effects-page','cinema-page','influencer-page','commercial-page',
-  'upscale-page','ai-vfx','viral',
-  'video-agent',
-  'openthorn',
+  'upscale-page','ai-vfx','viral','smart-video-scheduler',
 ]);
 
 // Ensure the shared Clerk instance is created + loaded before any studio
@@ -140,6 +138,7 @@ const pageLoaders = {
   video: () => import('../components/VideoStudio.js').then(m => m.VideoStudio()),
   cinema: () => import('../components/CinemaStudio.js').then(m => m.CinemaStudio()),
   'cinema-template': () => import('../components/CinemaTemplateStudio.js').then(m => m.CinemaTemplateStudio()),
+  'smart-video-scheduler': () => import('../components/SmartVideoScheduler.js').then(m => m.SmartVideoScheduler()),
   apps: () => import('../components/AppsHub.js').then(m => m.AppsHub()),
   academy: () => import('../components/academy/AcademyPage.jsx').then(m => m.AcademyPage()),
   templates: () => import('../components/TemplatesPage.js').then(m => m.TemplatesPage()),
@@ -187,6 +186,7 @@ const pageLoaders = {
    'timeline-iframe-warning': () => Promise.resolve(document.createElement('div')),
    'video-agent': () => import('../components/OpenMontagePage.js').then(m => m.OpenMontagePage()),
    openthorn: () => import('../components/OpenThornStudio.js').then(m => m.OpenThornStudio()),
+   leadfinder: () => import('../components/LeadFinderStudio.js').then(m => m.LeadFinderStudio()),
 };
 
 let currentPage = null;
