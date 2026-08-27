@@ -1,10 +1,10 @@
 # Netlify build configuration
 [build]
-  command = "npm ci --include=optional && npm run build"
+  command = "npm ci --include=optional --legacy-peer-deps && npm run build"
   publish = "dist"
 
 [build.environment]
-  NPM_FLAGS = "--include=optional"
+  NPM_FLAGS = "--include=optional --legacy-peer-deps"
   NODE_VERSION = "22"
 
 # Model catalog alias
