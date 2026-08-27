@@ -44,6 +44,7 @@ const pageLoaders = {
   explore: () => import('../components/ExplorePage.js').then(m => m.ExplorePage()),
   avatar: () => import('../components/AvatarStudio.js').then(m => m.AvatarStudio()),
   'smart-video-scheduler': () => import('../components/SmartVideoScheduler.js').then(m => m.SmartVideoScheduler()),
+  brightbean: () => import('../components/SmartVideoScheduler.js').then(m => m.SmartVideoScheduler()),
   audio: () => import('../components/AudioStudio.js').then(m => m.AudioStudio()),
   training: () => import('../components/TrainingStudio.js').then(m => m.TrainingStudio()),
   videotools: () => import('../components/VideoToolsStudio.js').then(m => m.VideoToolsStudio()),
