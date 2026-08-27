@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import ws from 'ws'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
@@ -11,7 +12,9 @@ let _supabase: SupabaseClient | null = null
 
 function getClient(): SupabaseClient {
   if (!_supabase) {
-    _supabase = createClient(supabaseUrl, supabaseAnonKey)
+    _supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      realtime: { transport: ws as unknown as typeof WebSocket },
+    })
   }
   return _supabase
 }

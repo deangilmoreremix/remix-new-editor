@@ -68,7 +68,7 @@ async function mountAIVFXApp(mount, attempt = 0) {
 
   try {
     const React = await import('react');
-    const AppMod = await import('../../apps/ai-vfx/src/App.jsx');
+    const AppMod = await import(/* @vite-ignore */ '../../apps/ai-vfx/app/page.js');
     const App = AppMod.default;
     if (!App) {
       throw new Error('apps/ai-vfx/src/App.jsx did not export a default component');

@@ -1,0 +1,215 @@
+functionsDirectory = "/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/netlify/functions"
+functionsDirectoryOrigin = "default"
+headersOrigin = "config"
+redirectsOrigin = "config"
+
+[build]
+publish = "/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/dist"
+publishOrigin = "config"
+commandOrigin = "config"
+command = "npm ci --include=optional --legacy-peer-deps && npm run build"
+functions = "/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/netlify/functions"
+
+[build.environment]
+NPM_FLAGS = "--include=optional --legacy-peer-deps"
+NODE_VERSION = "22"
+
+[build.processing]
+
+[build.processing.css]
+
+[build.processing.html]
+
+[build.processing.images]
+
+[build.processing.js]
+
+[build.services]
+
+[functions]
+
+[functions."*"]
+
+[[plugins]]
+origin = "default"
+package = "@netlify/plugin-nextjs"
+
+[plugins.inputs]
+
+[[headers]]
+for = "/*"
+
+[headers.values]
+X-Frame-Options = "DENY"
+X-Content-Type-Options = "nosniff"
+X-XSS-Protection = "1; mode=block"
+Referrer-Policy = "strict-origin-when-cross-origin"
+Permissions-Policy = "camera=(), microphone=()"
+
+[[redirects]]
+from = "/api/intelligence/*"
+to = "/.netlify/functions/intelligence-api/:splat"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/api/personalizer/*"
+to = "/.netlify/functions/personalizer-api/:splat"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/api/model-catalog"
+to = "/api/model-catalog.json"
+status = 200.0
+force = true
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/api/stripe-webhook"
+to = "/.netlify/functions/stripe-webhook"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/api/stripe-checkout"
+to = "/.netlify/functions/stripe-checkout"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/api/stripe-products"
+to = "/.netlify/functions/stripe-products"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/api/check-subscription"
+to = "/.netlify/functions/check-subscription"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/signin"
+to = "/index.html"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/signup"
+to = "/index.html"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/forgot-password"
+to = "/index.html"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/reset-password"
+to = "/index.html"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/account"
+to = "/index.html"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/profile"
+to = "/index.html"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]

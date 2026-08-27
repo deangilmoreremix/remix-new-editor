@@ -147,6 +147,17 @@ export async function navigate(page, params = {}) {
       return;
     }
 
+    if (!element || typeof element.appendChild !== 'function') {
+      console.error(`[Router] Refusing to append invalid page element for "${page}":`, element);
+      const errEl = document.createElement('div');
+      errEl.className = 'w-full h-full flex items-center justify-center text-red-400 text-sm';
+      errEl.textContent = `Failed to load ${page}: invalid page element`;
+      contentArea.appendChild(errEl);
+      isNavigating = false;
+      if (onNavigateCallback) onNavigateCallback(page);
+      return;
+    }
+
     contentArea.innerHTML = '';
     contentArea.appendChild(element);
     currentPageEl = element;

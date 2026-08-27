@@ -1,11 +1,11 @@
 import { useEffect } from 'react'
 
-const SITE_NAME = 'Smart Video'
-const DEFAULT_TITLE = 'Smart Video — AI Website Builder'
+const SITE_NAME = 'SmartVideo'
+const DEFAULT_TITLE = 'SmartVideo — AI Video Generation Studio'
 const DEFAULT_DESCRIPTION =
-  'Smart Video is the AI website builder — describe what you want, get a complete, deployable website. No subscription, no lock-in.'
-const SITE_URL = 'https://www.smartvid.app'
-const DEFAULT_OG_IMAGE = 'https://www.smartvid.app/og-card.png'
+  'Free, open-source AI image and video generation studio with 20+ models. Create professional images, videos, ads, characters, commercials and social content with AI.'
+const SITE_URL = 'https://smartvid.app'
+const DEFAULT_OG_IMAGE = 'https://smartvid.app/thumbnails/heroes/image.webp'
 
 interface PageMeta {
   /** Meta description for this page. Falls back to the site default when omitted. */

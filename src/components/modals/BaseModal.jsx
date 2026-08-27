@@ -559,6 +559,11 @@ export class BaseModal {
       </div>
     `);
 
+    if (!this.overlay || typeof this.overlay.appendChild !== 'function') {
+      console.error('[BaseModal] Refusing to append invalid overlay:', this.overlay);
+      return;
+    }
+
     document.body.appendChild(this.overlay);
     this.content = this.overlay.querySelector('.modal-content');
   }
