@@ -36,10 +36,6 @@ CREATE TABLE IF NOT EXISTS public.osm_leads (
   phone_e164 text NOT NULL DEFAULT '',
   activity integer NOT NULL DEFAULT 0,
   segment text NOT NULL DEFAULT '',
-  foundry_slug text NOT NULL DEFAULT '',
-  foundry_token text NOT NULL DEFAULT '',
-  foundry_demo text NOT NULL DEFAULT '',
-  foundry_app text NOT NULL DEFAULT '',
   maps_verify text NOT NULL DEFAULT '',
   maps_pin text NOT NULL DEFAULT '',
   maps_street text NOT NULL DEFAULT '',
@@ -81,12 +77,6 @@ CREATE POLICY "Authenticated users can delete their own leads"
   ON public.osm_leads FOR DELETE
   TO authenticated
   USING (user_id = auth.uid()::text OR user_id IS NULL);
-
-CREATE POLICY "Allow anon full access to leads"
-  ON public.osm_leads FOR ALL
-  TO anon, authenticated
-  USING (true)
-  WITH CHECK (true);
 
 -- Integration table linking leads to created sites
 CREATE TABLE IF NOT EXISTS public.site_leads (

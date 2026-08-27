@@ -11,7 +11,6 @@ export async function updateLead(id, fields) { const res = await fetch(`${API_BA
 export async function deleteLead(id) { const res = await fetch(`${API_BASE}/${id}`, { method: 'DELETE' }); if (!res.ok) throw new Error('Failed to delete lead'); return res.json(); }
 export async function exportCSV() { const res = await fetch(`${API_BASE}/export.csv`); if (!res.ok) throw new Error('Export failed'); const blob = await res.blob(); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'leads.csv'; a.click(); URL.revokeObjectURL(url); return { ok: true }; }
 export async function getCities(countryCode) { const res = await fetch(`${API_BASE}/cities`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ country: countryCode }) }); if (!res.ok) throw new Error('Failed to load cities'); return res.json(); }
-export async function buildFoundryLinks({ niche, business, city, phone }) { const res = await fetch('/api/leads/foundry-links', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ niche, business, city, phone }) }); if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.error || 'Failed'); } return res.json(); }
 export async function checkInstagram(urls) { const res = await fetch('/api/leads/instagram-check', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ urls }) }); if (!res.ok) throw new Error('Instagram check failed'); return res.json(); }
 
 // ── NEW: Personalization functions ──────────────────────────────────────────
@@ -25,12 +24,6 @@ export async function generateBrief(id, { use_ai = false, scrape_site = true }) 
   if (!res.ok) throw new Error('Failed to generate brief');
   return res.json();
 }
-export async function getFoundryLinks(id) {
-  const res = await fetch(`${API_BASE}/${id}/foundry-links`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
-  if (!res.ok) throw new Error('Failed to get Foundry links');
-  return res.json();
-}
-
 // ── Local message templates (fallback) ──────────────────────────────────────
 const PRICE_BY_COUNTRY = { 'United Kingdom': '£199', 'Ireland': '€230', 'Germany': '€230', 'France': '€230', 'Spain': '€230', 'Italy': '€230', 'Netherlands': '€230', 'Portugal': '€230', 'Australia': 'A$380', 'New Zealand': 'NZ$400', 'Canada': 'C$340', 'United States': '$250' };
 function priceFor(lead) { return PRICE_BY_COUNTRY[lead.country] || '$250'; }

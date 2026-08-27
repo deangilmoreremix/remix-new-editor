@@ -170,14 +170,6 @@ async function callAI(prompt, provider, key) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// FOUNDRY LINK GENERATOR
-// ═══════════════════════════════════════════════════════════════════════════
-
-const FOUNDRY_SLUGS = {'Barber Shop':'barber','Hair Salon':'beauty-salon','Beauty Salon':'beauty-salon','Nail Salon':'nail-salon','Spa':'spa','Tattoo Studio':'tattoo','Gym / Fitness':'gym','Dentist':'dentist','Doctor / GP':'medical-clinic','Restaurant':'restaurant','Cafe':'cafe','Bakery':'bakery','Bar':'bar','Pub':'pub','Hotel':'hotel','Guest House / B&B':'guest-house','Plumber':'plumber','Electrician':'electrician','Carpenter':'carpenter','Gardener / Landscaper':'landscaping','Cleaning Service':'cleaning','Auto Repair Garage':'auto-repair','Car Wash':'car-wash','Real Estate Agency':'real-estate','Law Firm':'law-firm','Accountant':'accounting','Marketing Agency':'marketing-agency','Photography Studio':'photography','School':'school','Driving School':'driving-school','Pet Grooming':'pet-grooming','Florist':'florist'};
-const FOUNDRY_BASE = 'https://foundry.smartvid.app';
-function encPayload(business,phone,city,slug,agency) { const cl = v => (v||'').replace(/\|/,'/').replace(/\s+/g,' ').trim(); return Buffer.from([cl(business),cl(phone),cl(city),cl(slug),cl(agency)].join('|').replace(/\|+$/,''),'utf-8').toString('base64url'); }
-
-// ═══════════════════════════════════════════════════════════════════════════
 // INSTAGRAM CHECKER
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -292,16 +284,6 @@ router.post('/:id/brief', wrap(async (req, res) => {
   
   const prompt = `Write a detailed business brief for this local business, ending with a ready-to-paste prompt for an AI website builder.\n\nKnown facts (do not invent):\n${JSON.stringify(lead,null,2)}\n\n${siteText ? `Current website content:\n${siteText.substring(0,2000)}` : 'No current website.'}\n\nStructure:\n1. WHO THEY ARE — 3-4 sentences on the business, its trade and locality.\n2. HOW TO REACH THEM — every contact channel known.\n3. ONLINE PRESENCE GAP — why they need a site, concretely.\n4. LIKELY SERVICES & CUSTOMERS — inferred from the trade, clearly marked as inference.\n5. WEBSITE BUILD PROMPT — a complete paste-ready prompt for an AI website builder.\nPlain text only.`;
   try { const brief = await callAI(prompt, provider, key); return { ok: true, brief, source: `ai:${provider}`, site_scraped, site_content_length: siteText.length }; } catch { return { ok: true, brief: briefTemplate(lead, siteText), source: 'fallback', site_scraped, site_content_length: siteText.length }; }
-}));
-
-// POST /api/leads/:id/foundry-links — Generate Foundry demo links
-router.post('/:id/foundry-links', wrap(async (req, res) => {
-  if (!supabase) { const e = new Error('Supabase not configured'); e.status = 503; throw e; }
-  const { data: lead } = await supabase.from('osm_leads').select('*').eq('id', req.params.id).single();
-  if (!lead) { const e = new Error('Lead not found'); e.status = 404; throw e; }
-  const slug = FOUNDRY_SLUGS[lead.niche] || lead.niche.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
-  const token = encPayload(lead.name, lead.phone, lead.city, slug, 'Smart Video');
-  return { ok: true, slug, token, demo: `${FOUNDRY_BASE}/demo/${slug}/?d=${token}`, app: `${FOUNDRY_BASE}/app/${slug}/?d=${token}` };
 }));
 
 // POST /api/leads/instagram-check

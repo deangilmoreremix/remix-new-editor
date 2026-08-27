@@ -17,114 +17,20 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
+// AUTHENTICATION REMOVED: App is now fully public. Auth functions are kept
+// as no-op stubs for components that reference them but are no longer called.
 export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [session, setSession] = useState<Session | null>(null)
-  const [loading, setLoading] = useState(true)
-  // RACE CONDITION FIX: Track whether initial session load is complete
-  // to prevent onAuthStateChange from overwriting the initial session
-  const initialSessionLoaded = useRef(false)
+  const [user] = useState<User | null>(null)
+  const [session] = useState<Session | null>(null)
+  const [loading] = useState(false)
 
-  useEffect(() => {
-    // Restore session on mount
-    supabase.auth.getSession()
-      .then(({ data: { session }, error }) => {
-        if (error) {
-          logError('AuthSession', error)
-        }
-        setSession(session)
-        setUser(session?.user ?? null)
-      })
-      .catch((error) => {
-        logError('AuthSession', error)
-        setSession(null)
-        setUser(null)
-      })
-      .finally(() => {
-        setLoading(false)
-        initialSessionLoaded.current = true
-      })
-
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      // RACE CONDITION FIX: Only update state after initial session is loaded
-      // to prevent flash of wrong auth state
-      if (!initialSessionLoaded.current) return
-      setSession(newSession)
-      setUser(newSession?.user ?? null)
-      setLoading(false)
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
-
-  const signIn = async (email: string, password: string): Promise<{ error?: string }> => {
-    try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) return { error: error.message }
-      return {}
-    } catch (error) {
-      logError('AuthSignIn', error)
-      return { error: getErrorMessage(error, 'Could not sign in. Please try again.') }
-    }
-  }
-
-  const signUp = async (email: string, password: string, name: string): Promise<{ error?: string; needsConfirmation?: boolean }> => {
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { full_name: name },
-          emailRedirectTo: `${window.location.origin}/dashboard`,
-        },
-      })
-      if (error) return { error: error.message }
-      // If no session returned, email confirmation is required
-      if (!data.session) return { needsConfirmation: true }
-      return {}
-    } catch (error) {
-      logError('AuthSignUp', error)
-      return { error: getErrorMessage(error, 'Could not create your account. Please try again.') }
-    }
-  }
-
-  const resetPassword = async (email: string): Promise<{ error?: string }> => {
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/dashboard`,
-      })
-      if (error) return { error: error.message }
-      return {}
-    } catch (error) {
-      logError('AuthPasswordReset', error)
-      return { error: getErrorMessage(error, 'Could not send a reset link. Please try again.') }
-    }
-  }
-
-  const signInWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/dashboard` },
-    })
-    if (error) throw error
-  }
-
-  const signInWithGitHub = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'github',
-      options: { redirectTo: `${window.location.origin}/dashboard` },
-    })
-    if (error) throw error
-  }
-
-  const signOut = async () => {
-    const { error } = await supabase.auth.signOut()
-    if (error) {
-      logError('AuthSignOut', error)
-      throw error
-    }
-  }
+  // No-op auth functions for backward compatibility
+  const signIn = async (): Promise<{ error?: string }> => ({})
+  const signUp = async (): Promise<{ error?: string; needsConfirmation?: boolean }> => ({})
+  const signInWithGoogle = async (): Promise<void> => {}
+  const signInWithGitHub = async (): Promise<void> => {}
+  const resetPassword = async (): Promise<{ error?: string }> => ({})
+  const signOut = async (): Promise<void> => {}
 
   return (
     <AuthContext.Provider
