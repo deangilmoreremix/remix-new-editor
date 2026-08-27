@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Smart Video Foundry</title>
+<style>
+:root{--bg:#f7f5f1;--card:#fffdf9;--line:#e7e2d8;--ink:#23221e;--ink2:#5d5b53;--mut:#8f8c81;--acc:#c96a4a;--acc-dark:#b25a3c;--ok:#3c6845;--font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Inter","Segoe UI",sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);line-height:1.6}
+.wrap{max-width:1200px;margin:0 auto;padding:40px 24px}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}
+.topbar .logo{font-weight:700;font-size:18px;letter-spacing:-.02em}
+.topbar .badge{font-size:11px;padding:4px 10px;background:var(--acc-soft);color:var(--acc);border-radius:20px;font-weight:600}
+.hero{padding:80px 24px;text-align:center;background:linear-gradient(135deg,#fbf1ec 0%,#f7f5f1 100%)}
+.hero h1{font-size:42px;font-weight:700;letter-spacing:-.03em;margin-bottom:12px}
+.hero p{font-size:18px;color:var(--ink2);max-width:600px;margin:0 auto 24px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;background:var(--acc);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;text-decoration:none;transition:background .15s}
+.btn:hover{background:var(--acc-dark)}
+.btn-outline{background:transparent;color:var(--acc);border:1px solid var(--acc)}
+.btn-outline:hover{background:var(--acc-soft)}
+.section{padding:60px 24px}
+.section h2{font-size:28px;font-weight:700;letter-spacing:-.02em;margin-bottom:32px;text-align:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px;transition:transform .15s,box-shadow .15s}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.06)}
+.card h3{font-size:18px;font-weight:600;margin-bottom:8px}
+.card p{color:var(--ink2);font-size:14px;margin-bottom:16px}
+.card .price{font-size:24px;font-weight:700;color:var(--acc)}
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:40px}
+.feature{text-align:center;padding:20px}
+.feature .icon{width:48px;height:48px;background:var(--acc-soft);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:20px}
+.feature h4{font-size:14px;font-weight:600;margin-bottom:4px}
+.feature p{font-size:12px;color:var(--mut)}
+.contact{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:40px;margin:40px 24px;text-align:center}
+.contact h3{font-size:24px;font-weight:700;margin-bottom:8px}
+.contact p{color:var(--ink2);margin-bottom:24px}
+.contact-info{display:flex;flex-wrap:wrap;gap:24px;justify-content:center;font-size:14px;color:var(--ink2)}
+.contact-info span{display:flex;align-items:center;gap:6px}
+.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:32px 0}
+.gallery .img{aspect-ratio:4/3;background:linear-gradient(135deg,#e7e2d8,#ddd6c8);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--mut);font-size:13px}
+.footer{text-align:center;padding:40px 24px;color:var(--mut);font-size:12px;border-top:1px solid var(--line);margin-top:40px}
+.footer a{color:var(--acc);text-decoration:none}
+.nav-tabs{display:flex;gap:8px;justify-content:center;margin-bottom:32px}
+.nav-tab{padding:10px 20px;border:1px solid var(--line);border-radius:8px;background:var(--card);cursor:pointer;font-size:14px;font-weight:500}
+.nav-tab.active{background:var(--acc);color:#fff;border-color:var(--acc)}
+.app-preview{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:32px;margin:32px 0}
+.app-preview h4{font-size:16px;font-weight:600;margin-bottom:16px}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px}
+.stat{background:var(--bg);border-radius:10px;padding:16px;text-align:center}
+.stat .val{font-size:24px;font-weight:700;color:var(--acc)}
+.stat .lbl{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;margin-top:4px}
+</style>
+</head>
+<body>
+
+<div class="app"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// SMART VIDEO FOUNDRY — Static demo generator
+// Reads ?d=token from URL, decodes business info, renders trade-specific demo
+// Token format: BusinessName|Phone|City|TradeSlug|Agency
+// ═══════════════════════════════════════════════════════════════════════════
+
+const TOKEN_PARAM = 'd';
+const TRADE_SLUGS = {
+  'barber': {name:'Barber Shop',icon:'💈',color:'#3c6845'},
+  'beauty-salon': {name:'Beauty Salon',icon:'💅',color:'#9c4d84'},
+  'nail-salon': {name:'Nail Salon',icon:'💅',color:'#9c4d84'},
+  'spa': {name:'Spa & Wellness',icon:'🧖',color:'#4a7c8c'},
+  'tattoo': {name:'Tattoo Studio',icon:'🎨',color:'#5c4d84'},
+  'gym': {name:'Gym & Fitness',icon:'💪',color:'#8c6d3c'},
+  'dentist': {name:'Dental Clinic',icon:'🦷',color:'#3c6876'},
+  'medical-clinic': {name:'Medical Clinic',icon:'🏥',color:'#3c6876'},
+  'restaurant': {name:'Restaurant',icon:'🍽️',color:'#9c5434'},
+  'cafe': {name:'Café',icon:'☕',color:'#7c5a3c'},
+  'bakery': {name:'Bakery',icon:'🥐',color:'#9c7c4c'},
+  'bar': {name:'Bar',icon:'🍸',color:'#5c4d6c'},
+  'pub': {name:'Pub',icon:'🍺',color:'#6c5c4c'},
+  'hotel': {name:'Hotel',icon:'🏨',color:'#4c687c'},
+  'guest-house': {name:'Guest House',icon:'🏠',color:'#6c7c5c'},
+  'plumber': {name:'Plumber',icon:'🔧',color:'#5c6c7c'},
+  'electrician': {name:'Electrician',icon:'⚡',color:'#6c6c3c'},
+  'carpenter': {name:'Carpenter',icon:'🪚',color:'#7c5c4c'},
+  'landscaping': {name:'Landscaping',icon:'🌿',color:'#4c7c4c'},
+  'cleaning': {name:'Cleaning Service',icon:'✨',color:'#4c6c6c'},
+  'auto-repair': {name:'Auto Repair',icon:'🚗',color:'#5c5c6c'},
+  'car-wash': {name:'Car Wash',icon:'🚙',color:'#4c5c7c'},
+  'real-estate': {name:'Real Estate',icon:'🏘️',color:'#6c5c7c'},
+  'law-firm': {name:'Law Firm',icon:'⚖️',color:'#4c4c5c'},
+  'accounting': {name:'Accounting',icon:'📊',color:'#5c6c5c'},
+  'marketing-agency': {name:'Marketing Agency',icon:'📣',color:'#7c4c5c'},
+  'photography': {name:'Photography',icon:'📷',color:'#6c4c7c'},
+  'school': {name:'School',icon:'📚',color:'#4c7c6c'},
+  'driving-school': {name:'Driving School',icon:'🚦',color:'#7c6c4c'},
+  'pet-grooming': {name:'Pet Grooming',icon:'🐾',color:'#7c5c6c'},
+  'florist': {name:'Florist',icon:'💐',color:'#9c4d6c'},
+  'steel-manufacturer': {name:'Steel Manufacturer',icon:'🏭',color:'#4c5c6c'}
+};
+
+const DEFAULT_TRADE = {name:'Business',icon:'🏢',color:'#5d5b53'};
+
+function getTokenFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get(TOKEN_PARAM);
+}
+
+function decodeToken(token) {
+  if (!token) return null;
+  try {
+    // base64url decode
+    const base64 = token.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64 + '='.repeat((4 - base64.length % 4) % 4);
+    const decoded = atob(padded);
+    const parts = decoded.split('|');
+    return {
+      name: parts[0] || 'Your Business',
+      phone: parts[1] || '',
+      city: parts[2] || '',
+      slug: parts[3] || 'business',
+      agency: parts[4] || 'Smart Video'
+    };
+  } catch(e) {
+    return null;
+  }
+}
+
+function getMode() {
+  const path = window.location.pathname;
+  if (path.includes('/app/')) return 'app';
+  return 'demo';
+}
+
+function getTrade(slug) {
+  return TRADE_SLUGS[slug] || {...DEFAULT_TRADE, name: slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())};
+}
+
+function renderHero(business, trade, mode) {
+  const isApp = mode === 'app';
+  return `
+    <div class="topbar">
+      <div class="logo">${business.name}</div>
+      <div class="badge">${isApp ? 'Dashboard Preview' : 'Website Preview'}</div>
+    </div>
+    <div class="hero">
+      <h1>${trade.icon} Welcome to ${business.name}</h1>
+      <p>${trade.name} in ${business.city || 'your area'} — ${isApp ? 'Manage your business dashboard' : 'Professional services, now online'}</p>
+      ${!isApp ? `<a href="javascript:scrollToSection('contact')" class="btn">Get a Free Quote</a>
+      <a href="javascript:scrollToSection('services')" class="btn btn-outline" style="margin-left:12px">Our Services</a>`
+      : `<a href="javascript:scrollToSection('stats')" class="btn">View Analytics</a>`}
+    </div>`;
+}
+
+function renderServices(business, trade) {
+  const services = getServicesForTrade(trade.slug || business.slug);
+  return `
+    <div class="section" id="services">
+      <h2>Our Services</h2>
+      <div class="grid">
+        ${services.map(s => `
+          <div class="card">
+            <h3>${s.icon} ${s.name}</h3>
+            <p>${s.desc}</p>
+            <div class="price">${s.price}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function getServicesForTrade(slug) {
+  const defaults = [
+    {icon:'⭐',name:'Premium Service',desc:'Top-quality professional service tailored to your needs.',price:'From £49'},
+    {icon:'🔧',name:'Standard Service',desc:'Reliable and affordable service you can count on.',price:'From £29'},
+    {icon:'✨',name:'Express Service',desc:'Fast turnaround when you need it done quickly.',price:'From £19'}
+  ];
+  const tradeServices = {
+    'cafe':[{icon:'☕',name:'Fresh Coffee',desc:'Locally sourced beans, roasted daily.',price:'From £3'},{icon:'🥐',name:'Fresh Pastries',desc:'Baked fresh every morning.',price:'From £2'},{icon:'🥗',name:'Light Lunches',desc:'Healthy options for breakfast & lunch.',price:'From £6'},{icon:'📶',name:'Free WiFi',desc:'Fast, reliable internet for customers.',price:'Free'}],
+    'barber':[{icon:'💈',name:'Classic Cut',desc:'Traditional scissor cut with hot towel finish.',price:'From £15'},{icon:'🪒',name:'Beard Trim',desc:'Precision shaping and styling.',price:'From £10'},{icon:'✨',name:'Hair + Beard',desc:'Combined package for the full experience.',price:'From £22'}],
+    'beauty-salon':[{icon:'💅',name:'Manicure',desc:'Classic, gel, or acrylic options.',price:'From £25'},{icon:'💆',name:'Facial',desc:'Deep cleansing and rejuvenation.',price:'From £35'},{icon:'👁️',name:'Lash Extensions',desc:'Natural and volume styles.',price:'From £45'}],
+    'restaurant':[{icon:'🍽️',name:'Starters',desc:'Fresh seasonal appetizers.',price:'From £6'},{icon:'🥩',name:'Mains',desc:'Locally sourced ingredients.',price:'From £14'},{icon:'🍰',name:'Desserts',desc:'House-made daily.',price:'From £5'}],
+    'gym':[{icon:'💪',name:'Day Pass',desc:'Full access to all equipment.',price:'£10'},{icon:'🏋️',name:'Monthly Membership',desc:'Unlimited access + classes.',price:'From £29/mo'},{icon:'👤',name:'Personal Training',desc:'1-on-1 sessions with certified trainers.',price:'From £35'}]
+  };
+  return tradeServices[slug] || defaults;
+}
+
+function renderGallery(business) {
+  return `
+    <div class="section">
+      <h2>Gallery</h2>
+      <div class="gallery">
+        ${[1,2,3,4,5,6].map(i => `<div class="img">${business.name} — Photo ${i}</div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function renderContact(business) {
+  return `
+    <div class="contact" id="contact">
+      <h3>Get In Touch</h3>
+      <p>Ready to book or have questions? Contact us today.</p>
+      <div class="contact-info">
+        ${business.phone ? `<span>📞 ${business.phone}</span>` : ''}
+        ${business.city ? `<span>📍 ${business.city}</span>` : ''}
+        <span>🌐 ${business.name.toLowerCase().replace(/\s+/g,'')}.co.uk</span>
+      </div>
+      <a href="javascript:void(0)" class="btn" style="margin-top:24px">Book Appointment</a>
+    </div>`;
+}
+
+function renderAppDashboard(business, trade) {
+  return `
+    <div class="section" id="stats">
+      <h2>Business Dashboard</h2>
+      <div class="app-preview">
+        <h4>📊 Overview — ${business.name}</h4>
+        <div class="stat-grid">
+          <div class="stat"><div class="val">142</div><div class="lbl">Visitors Today</div></div>
+          <div class="stat"><div class="val">£1,240</div><div class="lbl">Revenue This Week</div></div>
+          <div class="stat"><div class="val">28</div><div class="lbl">New Bookings</div></div>
+          <div class="stat"><div class="val">4.8★</div><div class="lbl">Average Rating</div></div>
+        </div>
+      </div>
+      <div class="app-preview">
+        <h4>📅 Recent Bookings</h4>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          ${['John Smith — Today 2:00 PM','Sarah Jones — Tomorrow 10:30 AM','Mike Brown — Fri 3:00 PM'].map(b => `
+            <div style="display:flex;justify-content:space-between;padding:12px;background:var(--bg);border-radius:8px;font-size:14px">
+              <span>${b}</span><span style="color:var(--ok);font-weight:600">Confirmed</span>
+            </div>`).join('')}
+        </div>
+      </div>
+      <div class="app-preview">
+        <h4>💬 Recent Reviews</h4>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          ${['"Great service, highly recommend!" — A.M.','"Professional and friendly." — K.T.','"Will definitely be back." — R.S.'].map(r => `
+            <div style="padding:12px;background:var(--bg);border-radius:8px;font-size:14px">
+              <div>★★★★★</div><div style="margin-top:4px">${r}</div>
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderFooter(business, agency) {
+  return `
+    <div class="footer">
+      <p>© 2026 ${business.name}. All rights reserved.</p>
+      <p>Website preview by <a href="https://smartvid.app">${agency}</a></p>
+    </div>`;
+}
+
+function scrollToSection(id) {
+  document.getElementById(id)?.scrollIntoView({behavior:'smooth'});
+}
+
+function render(business, mode) {
+  const trade = getTrade(business.slug);
+  const app = document.querySelector('.app');
+  
+  if (mode === 'app') {
+    app.innerHTML = `
+      ${renderHero(business, trade, mode)}
+      ${renderAppDashboard(business, trade)}
+      ${renderFooter(business, business.agency)}
+    `;
+  } else {
+    app.innerHTML = `
+      ${renderHero(business, trade, mode)}
+      ${renderServices(business, trade)}
+      ${renderGallery(business)}
+      ${renderContact(business)}
+      ${renderFooter(business, business.agency)}
+    `;
+  }
+}
+
+function renderError() {
+  document.querySelector('.app').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:16px;padding:24px;text-align:center">
+      <div style="font-size:48px">🔗</div>
+      <h1>Invalid Link</h1>
+      <p style="color:var(--ink2);max-width:400px">This preview link is invalid or has expired. Please generate a new one from Smart Video Lead Finder.</p>
+      <a href="https://smartvid.app" class="btn" style="margin-top:16px">Go to Smart Video</a>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Initialize
+// ═══════════════════════════════════════════════════════════════════════════
+
+const token = getTokenFromURL();
+const business = decodeToken(token);
+const mode = getMode();
+
+if (business) {
+  render(business, mode);
+} else {
+  renderError();
+}
+</script>
+</body>
+</html>

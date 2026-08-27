@@ -1,16 +1,79 @@
+import { useState } from 'react'
+import { useAuth } from '../../lib/AuthContext'
 import styles from './MobileMenu.module.css'
 
-// ... (keep all the SubItem arrays and sections the same)
+interface SubItem {
+  label: string
+  href: string
+}
+
+const solutionsSub: SubItem[] = [
+  { label: 'Founders', href: '/blog/introducing-openthorn' },
+  { label: 'Developers', href: '/faq' },
+  { label: 'Product Managers', href: '/pricing' },
+  { label: 'Designers', href: '/templates' },
+  { label: 'Marketers', href: '/templates' },
+  { label: 'Agencies', href: '/pricing' },
+  { label: 'Ops', href: '/faq' },
+]
+
+const useCasesSub: SubItem[] = [
+  { label: 'Productivity', href: '/templates' },
+  { label: 'E-Commerce', href: '/templates' },
+  { label: 'Marketing & Sales', href: '/templates' },
+  { label: 'SaaS & Startups', href: '/templates' },
+  { label: 'HR & Recruitment', href: '/templates' },
+  { label: 'Education', href: '/templates' },
+  { label: 'Community platforms', href: '/community' },
+]
+
+const resourcesSub: SubItem[] = [
+  { label: 'Blog', href: '/blog' },
+  { label: 'Comparisons', href: '/compare' },
+  { label: 'Provider Guides', href: '/build-with' },
+  { label: 'Glossary', href: '/glossary' },
+  { label: 'Changelog', href: '/changelog' },
+  { label: 'Templates', href: '/templates' },
+  { label: 'Docs & FAQs', href: '/faq' },
+]
 
 interface MobileMenuProps {
   isOpen: boolean
   onClose: () => void
+  onSignIn: () => void
+  onSignUp: () => void
 }
 
-export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
+export default function MobileMenu({ isOpen, onClose, onSignIn, onSignUp }: MobileMenuProps) {
+  const { user, loading } = useAuth()
   const [openSection, setOpenSection] = useState<string | null>(null)
 
-  // ... (keep toggle, subItems, sections the same)
+  const toggle = (section: string) => {
+    setOpenSection((prev) => (prev === section ? null : section))
+  }
+
+  const subItems = (section: string): SubItem[] => {
+    if (section === 'solutions') return solutionsSub
+    if (section === 'useCases') return useCasesSub
+    if (section === 'resources') return resourcesSub
+    return []
+  }
+
+  const sections = [
+    { key: 'solutions', label: 'Solutions' },
+    { key: 'useCases', label: 'Use Cases' },
+    { key: 'resources', label: 'Resources' },
+  ]
+
+  const handleSignIn = () => {
+    onClose()
+    onSignIn()
+  }
+
+  const handleSignUp = () => {
+    onClose()
+    onSignUp()
+  }
 
   return (
     <>
@@ -58,9 +121,18 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
           </a>
         </nav>
 
-        <div className={styles.actions}>
-          <a className={styles.ctaMobile} href="/dashboard" onClick={onClose}>Dashboard</a>
-        </div>
+        {!loading && (
+          <div className={styles.actions}>
+            {user ? (
+              <a className={styles.ctaMobile} href="/dashboard" onClick={onClose}>Dashboard</a>
+            ) : (
+              <>
+                <button className={styles.loginMobile} onClick={handleSignIn} type="button">Sign in</button>
+                <button className={styles.ctaMobile} onClick={handleSignUp} type="button">Start free</button>
+              </>
+            )}
+          </div>
+        )}
       </div>
     </>
   )

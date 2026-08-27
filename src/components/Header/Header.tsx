@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
+import { useAuth } from '../../lib/AuthContext'
 import SlideInButton from '../SlideInButton/SlideInButton'
+import NeumorphButton from '../NeumorphButton/NeumorphButton'
 import MobileMenu from '../MobileMenu/MobileMenu'
 import BtaMark from '../BtaMark/BtaMark'
 import styles from './Header.module.css'
@@ -82,7 +84,8 @@ function DropdownMenu({ items, isOpen, cols = 2 }: { items: DropdownItem[]; isOp
   )
 }
 
-export default function Header() {
+export default function Header({ onSignIn, onSignUp }: HeaderProps) {
+  const { user, loading } = useAuth()
   const [scrolled, setScrolled] = useState(false)
   const [openDropdown, setOpenDropdown] = useState<DropdownKey | null>(null)
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -222,7 +225,21 @@ export default function Header() {
         </nav>
 
         <div className={styles.actions}>
-          <SlideInButton href="/dashboard">Dashboard</SlideInButton>
+          {loading ? null : user ? (
+            <>
+              <div className={styles.avatar} title={user.email}>
+                {user.user_metadata?.full_name
+                  ? user.user_metadata.full_name.charAt(0).toUpperCase()
+                  : user.email?.charAt(0).toUpperCase()}
+              </div>
+              <SlideInButton href="/dashboard">Dashboard</SlideInButton>
+            </>
+          ) : (
+            <>
+              <NeumorphButton onClick={onSignIn}>Sign in</NeumorphButton>
+              <SlideInButton onClick={onSignUp}>Start free</SlideInButton>
+            </>
+          )}
           <button className={styles.mobileMenuBtn} aria-label="Menu" onClick={() => setMobileOpen(true)}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M3 12h18M3 6h18M3 18h18" />
@@ -231,7 +248,7 @@ export default function Header() {
         </div>
       </div>
     </header>
-      <MobileMenu isOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
+      <MobileMenu isOpen={mobileOpen} onClose={() => setMobileOpen(false)} onSignIn={onSignIn} onSignUp={onSignUp} />
     </>
   )
 }

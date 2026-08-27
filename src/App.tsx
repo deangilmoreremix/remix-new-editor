@@ -11,6 +11,7 @@ import HeroSection from './components/HeroSection/HeroSection'
 import BYOKSection from './components/BYOKSection/BYOKSection'
 import BottomCTA from './components/BottomCTA/BottomCTA'
 import Footer from './components/Footer/Footer'
+import AuthModal from './components/AuthModal/AuthModal'
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute'
 import AdminGuard from './components/AdminGuard/AdminGuard'
 import StudioWrapper from './components/StudioWrapper'
@@ -123,12 +124,33 @@ function ScrollToTop() {
 }
 
 function Layout({ children }: { children: React.ReactNode }) {
+  const [authModalOpen, setAuthModalOpen] = useState(false)
+  const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signin')
+
+  const openSignIn = () => { setAuthModalMode('signin'); setAuthModalOpen(true) }
+  const openSignUp = () => { setAuthModalMode('signup'); setAuthModalOpen(true) }
+
+  useEffect(() => {
+    const handleRequireAuth = (e: Event) => {
+      const mode = (e as CustomEvent<{ mode?: 'signin' | 'signup' }>).detail?.mode
+      if (mode === 'signup') openSignUp()
+      else openSignIn()
+    }
+    window.addEventListener('smartvid:require-auth', handleRequireAuth)
+    return () => window.removeEventListener('smartvid:require-auth', handleRequireAuth)
+  }, [])
+
   return (
     <>
       <ScrollToTop />
-      <Header />
+      <Header onSignIn={openSignIn} onSignUp={openSignUp} />
       <main>{children}</main>
       <Footer />
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        initialMode={authModalMode}
+      />
     </>
   )
 }

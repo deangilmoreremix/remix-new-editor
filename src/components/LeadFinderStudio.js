@@ -1,5 +1,5 @@
 import { mountStudioChrome } from '../lib/studioChrome.js';
-import { saveLeads, loadLeads, deleteLead, exportCSV, getCities, buildMessage, checkInstagram, generateMessage, generateBrief } from '../lib/leadFinderApi.js';
+import { saveLeads, loadLeads, deleteLead, exportCSV, getCities, buildMessage, buildFoundryLinks, checkInstagram, generateMessage, generateBrief, getFoundryLinks } from '../lib/leadFinderApi.js';
 import { NICHES, getGroupedNiches } from '../lib/leadFinderCategories.js';
 
 const ACCENT = '#c96a4a', ACCENT_DARK = '#b25a3c', BG = '#f7f5f1', BORDER = '#e7e2d8', BORDER2 = '#ddd6c8', INK2 = '#5d5b53', MUTED = '#8f8c81';
@@ -44,9 +44,10 @@ export function LeadFinderStudio() {
   for (const [v,l] of [['no_website','No website'],['bad_website','Bad website'],['all','Both']]) { const o = document.createElement('option'); o.value = v; o.textContent = l; modeSelect.appendChild(o); }
   modeField.append(modeLabel, modeSelect);
   const searchBtn = document.createElement('button'); searchBtn.className = 'px-5 py-1.5 rounded-lg text-sm font-semibold text-white'; searchBtn.style.background = ACCENT; searchBtn.textContent = 'Find Businesses';
+  const manualLinkBtn = document.createElement('button'); manualLinkBtn.className = 'px-3 py-1.5 rounded-lg text-sm font-medium border bg-white'; manualLinkBtn.style.borderColor = BORDER2; manualLinkBtn.style.color = INK2; manualLinkBtn.textContent = '🔗 Manual link';
   const settingsBtn = document.createElement('button'); settingsBtn.className = 'px-3 py-1.5 rounded-lg text-sm font-medium border bg-white'; settingsBtn.style.borderColor = BORDER2; settingsBtn.style.color = INK2; settingsBtn.textContent = '⚙ Settings';
   const statusLine = document.createElement('div'); statusLine.className = 'w-full text-xs mt-1'; statusLine.style.color = INK2; statusLine.textContent = 'Pick a trade, country, and city, then hit Find Businesses.';
-  searchBar.append(nicheField, countryField, cityField, modeField, searchBtn, settingsBtn, statusLine); content.appendChild(searchBar);
+  searchBar.append(nicheField, countryField, cityField, modeField, searchBtn, manualLinkBtn, settingsBtn, statusLine); content.appendChild(searchBar);
 
   // Main area
   const mainArea = document.createElement('div'); mainArea.className = 'flex-1 flex overflow-hidden'; content.appendChild(mainArea);
@@ -86,6 +87,31 @@ export function LeadFinderStudio() {
   saveBtn2.onclick = () => { settings = { name:nameF.i.value.trim(), portfolio:portF.i.value.trim(), turnaround:turnF.i.value.trim()||'5 days', lang:langF.i.value, ai_provider:aiF.i.value, openai_api_key:openaiF.i.value.trim(), anthropic_api_key:anthropicF.i.value.trim() }; saveSettings(settings); settingsOverlay.style.display = 'none'; };
   sbr.append(cancelBtn, saveBtn2); settingsModal.appendChild(sbr); container.appendChild(settingsOverlay);
   settingsBtn.onclick = () => { nameF.i.value=settings.name||''; portF.i.value=settings.portfolio||''; turnF.i.value=settings.turnaround||'5 days'; langF.i.value=settings.lang||'en'; aiF.i.value=settings.ai_provider||'none'; openaiF.i.value=settings.openai_api_key||''; anthropicF.i.value=settings.anthropic_api_key||''; settingsOverlay.style.display = 'flex'; };
+
+  // Manual link modal
+  const mlOverlay = document.createElement('div'); mlOverlay.className = 'fixed inset-0 z-[200] flex items-center justify-center'; mlOverlay.style.background = 'rgba(0,0,0,0.4)'; mlOverlay.style.display = 'none';
+  const mlModal = document.createElement('div'); mlModal.className = 'bg-white rounded-2xl p-6 w-[500px] max-h-[85vh] overflow-y-auto'; mlModal.style.boxShadow = '0 20px 60px rgba(0,0,0,0.2)'; mlOverlay.appendChild(mlModal);
+  mlModal.innerHTML = '<div class="text-lg font-bold mb-4">Manual Link Builder</div>';
+  const mlBiz = document.createElement('input'); mlBiz.type = 'text'; mlBiz.placeholder = 'Business name *'; mlBiz.className = 'w-full px-2.5 py-1.5 border rounded-lg text-sm mb-3'; mlBiz.style.borderColor = BORDER2;
+  const mlTrade = document.createElement('select'); mlTrade.className = 'w-full px-2.5 py-1.5 border rounded-lg text-sm mb-3'; mlTrade.style.borderColor = BORDER2;
+  const tradeNames = Object.keys(NICHES).sort(); mlTrade.innerHTML = '<option value="">Select trade...</option>' + tradeNames.map(n=>`<option value="${n}">${n}</option>`).join('');
+  const mlCity = document.createElement('input'); mlCity.type = 'text'; mlCity.placeholder = 'City (optional)'; mlCity.className = 'w-full px-2.5 py-1.5 border rounded-lg text-sm mb-3'; mlCity.style.borderColor = BORDER2;
+  const mlPhone = document.createElement('input'); mlPhone.type = 'text'; mlPhone.placeholder = 'Phone (optional)'; mlPhone.className = 'w-full px-2.5 py-1.5 border rounded-lg text-sm mb-3'; mlPhone.style.borderColor = BORDER2;
+  const mlDemoPrev = document.createElement('div'); mlDemoPrev.className = 'text-xs px-2.5 py-2 border rounded-lg bg-gray-50 break-all mb-2'; mlDemoPrev.style.borderColor = BORDER2; mlDemoPrev.style.minHeight = '36px'; mlDemoPrev.textContent = 'Fill in business name and trade to generate link.';
+  const mlAppPrev = document.createElement('div'); mlAppPrev.className = 'text-xs px-2.5 py-2 border rounded-lg bg-gray-50 break-all mb-2'; mlAppPrev.style.borderColor = BORDER2; mlAppPrev.style.minHeight = '36px'; mlAppPrev.textContent = 'Fill in business name and trade to generate link.';
+  let mlDemoUrl = '', mlAppUrl = '';
+  const mlBtnRow = document.createElement('div'); mlBtnRow.className = 'flex gap-2 mb-4';
+  const mlCopyDemo = document.createElement('button'); mlCopyDemo.className = 'text-xs font-semibold px-3 py-1.5 rounded-lg text-white'; mlCopyDemo.style.background = ACCENT; mlCopyDemo.textContent = 'Copy website'; mlCopyDemo.onclick = () => { navigator.clipboard.writeText(mlDemoUrl); mlCopyDemo.textContent = 'Copied!'; setTimeout(()=>mlCopyDemo.textContent='Copy website',1500); };
+  const mlCopyApp = document.createElement('button'); mlCopyApp.className = 'text-xs font-semibold px-3 py-1.5 rounded-lg border'; mlCopyApp.style.borderColor = BORDER2; mlCopyApp.textContent = 'Copy dashboard'; mlCopyApp.onclick = () => { navigator.clipboard.writeText(mlAppUrl); mlCopyApp.textContent = 'Copied!'; setTimeout(()=>mlCopyApp.textContent='Copy dashboard',1500); };
+  const mlCopyBoth = document.createElement('button'); mlCopyBoth.className = 'text-xs font-semibold px-3 py-1.5 rounded-lg border'; mlCopyBoth.style.borderColor = BORDER2; mlCopyBoth.textContent = 'Copy both'; mlCopyBoth.onclick = () => { navigator.clipboard.writeText(mlDemoUrl+'\n'+mlAppUrl); mlCopyBoth.textContent = 'Copied!'; setTimeout(()=>mlCopyBoth.textContent='Copy both',1500); };
+  mlBtnRow.append(mlCopyDemo, mlCopyApp, mlCopyBoth);
+  const mlCloseRow = document.createElement('div'); mlCloseRow.className = 'flex justify-end';
+  const mlClose = document.createElement('button'); mlClose.className = 'text-sm font-medium px-4 py-1.5 rounded-lg border'; mlClose.style.borderColor = BORDER2; mlClose.textContent = 'Close'; mlClose.onclick = () => { mlOverlay.style.display = 'none'; };
+  mlCloseRow.appendChild(mlClose);
+  mlModal.append(mlBiz, mlTrade, mlCity, mlPhone, mlDemoPrev, mlBtnRow, mlAppPrev, mlCloseRow); container.appendChild(mlOverlay);
+  const buildManual = async () => { const niche = mlTrade.value, business = mlBiz.value.trim(); if (!niche || !business) { mlDemoPrev.textContent = 'Fill in business name and trade to generate link.'; return; } try { const r = await buildFoundryLinks({ niche, business, city: mlCity.value.trim(), phone: mlPhone.value.trim() }); mlDemoUrl = r.demo; mlAppUrl = r.app; mlDemoPrev.textContent = r.demo; mlAppPrev.textContent = r.app; } catch(e) { mlDemoPrev.textContent = 'Error: '+e.message; } };
+  mlBiz.oninput = debounce(buildManual, 500); mlTrade.onchange = buildManual; mlCity.oninput = debounce(buildManual, 500); mlPhone.oninput = debounce(buildManual, 500);
+  manualLinkBtn.onclick = () => { mlBiz.value=''; mlTrade.value=''; mlCity.value=''; mlPhone.value=''; mlDemoPrev.textContent='Fill in business name and trade...'; mlAppPrev.textContent='Fill in business name and trade...'; mlDemoUrl=''; mlAppUrl=''; mlOverlay.style.display = 'flex'; };
 
   // Brief modal
   const briefOverlay = document.createElement('div'); briefOverlay.className = 'fixed inset-0 z-[200] flex items-center justify-center'; briefOverlay.style.background = 'rgba(0,0,0,0.4)'; briefOverlay.style.display = 'none';
