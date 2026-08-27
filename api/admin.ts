@@ -8,6 +8,8 @@ import {
   adminDeleteUser,
   adminCreateNotification,
   triggerDeploy,
+  setCorsHeaders,
+  handlePreflight,
 } from './_shared.js'
 
 interface VercelReq {
@@ -18,6 +20,7 @@ interface VercelReq {
 interface VercelRes {
   status: (code: number) => VercelRes
   json: (body: unknown) => void
+  setHeader: (name: string, value: string | string[]) => void
 }
 
 function header(req: VercelReq, name: string): string | undefined {
@@ -37,10 +40,15 @@ function parseBody(body: unknown): { action?: string; userId?: string; text?: st
 }
 
 export default async function handler(req: VercelReq, res: VercelRes): Promise<void> {
+  // SECURITY: Handle CORS preflight before any auth checks
+  if (handlePreflight(req, res)) return
+
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' })
     return
   }
+
+  setCorsHeaders(req, res)
 
   if (!hasServiceRoleKey()) {
     res.status(503).json({ error: 'Admin operations not configured' })

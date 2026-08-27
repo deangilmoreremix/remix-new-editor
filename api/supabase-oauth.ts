@@ -4,7 +4,7 @@ import {
   listOrgProjects, getProjectConnectionInfo, saveProjectBackend, deleteConnection,
   deleteProjectBackend, createSupabaseProject, configureProjectAuth,
 } from './_supabase.js'
-import { verifyUser, rateLimit } from './_shared.js'
+import { verifyUser, rateLimit, setCorsHeaders, handlePreflight } from './_shared.js'
 
 interface Req {
   method?: string
@@ -36,6 +36,9 @@ function projectUrl(req: Req, projectId: string, params: Record<string, string>)
 }
 
 export default async function handler(req: Req, res: Res): Promise<void> {
+  // SECURITY: Handle CORS preflight for POST requests
+  if (handlePreflight(req, res as unknown as { status: (code: number) => { json: (body: unknown) => void }; setHeader: (name: string, value: string | string[]) => void })) return
+
   if (!hasOAuthClient()) { res.status(503).json({ error: 'Supabase OAuth not configured' }); return }
   const url = new URL(req.url || '', 'http://localhost')
   const action = url.searchParams.get('action')
@@ -74,6 +77,9 @@ export default async function handler(req: Req, res: Res): Promise<void> {
 
   // --- POST actions (authenticated fetch from the UI) ---
   if (req.method !== 'POST') { res.status(405).json({ error: 'Method not allowed' }); return }
+
+  // SECURITY: Apply CORS headers to POST responses
+  setCorsHeaders(req, res)
   const user = await verifyUser(header(req, 'authorization'))
   if (!user) { res.status(401).json({ error: 'Unauthorized' }); return }
   if (!(await rateLimit(`sboauth:${user.id}`, 30, 60_000))) { res.status(429).json({ error: 'Too many requests' }); return }

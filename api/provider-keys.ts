@@ -1,4 +1,4 @@
-import { verifyUser, rateLimit, encryptForUser, decryptForUser, hasEncryptionSecret } from './_shared.js'
+import { verifyUser, rateLimit, encryptForUser, decryptForUser, hasEncryptionSecret, setCorsHeaders, handlePreflight } from './_shared.js'
 
 interface VercelReq {
   method?: string
@@ -8,6 +8,7 @@ interface VercelReq {
 interface VercelRes {
   status: (code: number) => VercelRes
   json: (body: unknown) => void
+  setHeader: (name: string, value: string | string[]) => void
 }
 
 function header(req: VercelReq, name: string): string | undefined {
@@ -24,10 +25,15 @@ function parseBody(body: unknown): { action?: string; value?: string } {
 }
 
 export default async function handler(req: VercelReq, res: VercelRes): Promise<void> {
+  // SECURITY: Handle CORS preflight before any auth checks
+  if (handlePreflight(req, res)) return
+
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' })
     return
   }
+
+  setCorsHeaders(req, res)
 
   if (!hasEncryptionSecret()) {
     // Signal the client to fall back to client-side encryption.

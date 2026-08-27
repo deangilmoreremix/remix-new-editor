@@ -139,7 +139,32 @@ export async function persistProjectSiteId(
 
 const buckets = new Map<string, number[]>()
 
+// SECURITY: Periodically clean up expired entries to prevent unbounded memory growth.
+// Runs every 5 minutes and removes entries older than the max window we track.
+const BUCKET_CLEANUP_INTERVAL_MS = 5 * 60_000
+const BUCKET_MAX_WINDOW_MS = 60_000 // max window used by any rate limit
+
+let cleanupTimer: ReturnType<typeof setInterval> | null = null
+
+function ensureCleanupTimer(): void {
+  if (cleanupTimer) return
+  cleanupTimer = setInterval(() => {
+    const now = Date.now()
+    for (const [key, hits] of buckets.entries()) {
+      const fresh = hits.filter((t) => now - t < BUCKET_MAX_WINDOW_MS)
+      if (fresh.length === 0) {
+        buckets.delete(key)
+      } else {
+        buckets.set(key, fresh)
+      }
+    }
+  }, BUCKET_CLEANUP_INTERVAL_MS)
+  // Don't keep the process alive just for cleanup
+  if (cleanupTimer.unref) cleanupTimer.unref()
+}
+
 function inMemoryRateLimit(key: string, max: number, windowMs: number): boolean {
+  ensureCleanupTimer()
   const now = Date.now()
   const hits = (buckets.get(key) || []).filter((t) => now - t < windowMs)
   if (hits.length >= max) {
@@ -565,4 +590,58 @@ export async function adminDeleteUser(userId: string): Promise<void> {
     headers: serviceHeaders(key),
   })
   if (!res.ok) throw new Error(`Auth admin error ${res.status}`)
+}
+
+// ---------------------------------------------------------------------------
+// CORS helpers — shared across all API endpoints
+// ---------------------------------------------------------------------------
+
+/** Allowed origins for CORS requests. */
+export const ALLOWED_ORIGINS = [
+  'https://www.smartvid.app',
+  'https://smartvid.app',
+  'https://openthorn.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+]
+
+/** CSRF header name — must match what csrf.ts exports. */
+export const CSRF_HEADER = 'x-csrf-token'
+
+/**
+ * Apply CORS headers to a response. Only sets Access-Control-Allow-Origin
+ * if the request origin is in the allowlist — never reflects arbitrary origins.
+ */
+export function setCorsHeaders(
+  req: { headers: Record<string, string | string[] | undefined> },
+  res: { setHeader: (name: string, value: string | string[]) => void },
+  methods = 'POST, OPTIONS',
+): void {
+  const origin = headerValue(req.headers, 'origin')
+  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin)
+  }
+  res.setHeader('Access-Control-Allow-Methods', methods)
+  res.setHeader('Access-Control-Allow-Headers', `Authorization, Content-Type, ${CSRF_HEADER}`)
+  res.setHeader('Access-Control-Allow-Credentials', 'true')
+  res.setHeader('Access-Control-Max-Age', '86400')
+}
+
+function headerValue(headers: Record<string, string | string[] | undefined>, name: string): string | undefined {
+  const v = headers[name] ?? headers[name.toLowerCase()]
+  return Array.isArray(v) ? v[0] : v
+}
+
+/**
+ * Handle an OPTIONS preflight request. Returns true if the request was a
+ * preflight (and the response was sent), false if the caller should continue.
+ */
+export function handlePreflight(
+  req: { method?: string },
+  res: { status: (code: number) => { json: (body: unknown) => void }; setHeader: (name: string, value: string | string[]) => void },
+): boolean {
+  if (req.method !== 'OPTIONS') return false
+  setCorsHeaders(req, res)
+  res.status(204).json({})
+  return true
 }

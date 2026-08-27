@@ -3730,7 +3730,9 @@ async function resolveProviderWithFallback(
     }))
   )
 
-  // Lazily migrate enc: keys to senc: in the background
+  // Lazily migrate enc: keys to senc: in the background.
+  // SECURITY: Use atomic compare-and-swap to prevent race conditions when
+  // multiple concurrent agent runs attempt to migrate the same key.
   for (const k of allKeys as ProviderKeyRow[]) {
     if (k.api_key.startsWith('enc:')) {
       const plaintext = keys.find((d) => d.id === k.id)?.api_key
@@ -3738,10 +3740,23 @@ async function resolveProviderWithFallback(
         encryptApiKey(plaintext, userId)
           .then(async (sencKey) => {
             if (sencKey.startsWith('senc:')) {
-              await supabase.from('provider_keys').update({ api_key: sencKey }).eq('id', k.id).eq('user_id', userId)
+              // Atomic update: only update if still in old format (enc:)
+              // This prevents one run's update from overwriting another's
+              const { error } = await supabase
+                .from('provider_keys')
+                .update({ api_key: sencKey })
+                .eq('id', k.id)
+                .eq('user_id', userId)
+                .eq('api_key', k.api_key) // Only update if still old format
+              if (error) {
+                console.error(`[migrateKey] failed for key ${k.id}:`, error.message)
+              }
             }
           })
-          .catch(() => {})
+          .catch((err) => {
+            // SECURITY: Log migration errors instead of silently swallowing
+            console.error(`[migrateKey] encryption failed for key ${k.id}:`, err instanceof Error ? err.message : String(err))
+          })
       }
     }
   }
