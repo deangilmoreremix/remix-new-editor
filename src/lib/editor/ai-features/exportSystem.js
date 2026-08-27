@@ -199,7 +199,9 @@ export class ExportSystem {
       <span>Export complete!</span>
       <a href="${result.outputUrl}" download>Download Video</a>
     `;
-    this.
+    toast.style.cssText = 'position:fixed;bottom:20px;right:20px;padding:12px 20px;border-radius:8px;background:rgba(0,0,0,0.9);color:white;z-index:10000;';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 5000);
     this.closeModal();
   }
 
@@ -207,18 +209,7 @@ export class ExportSystem {
     const toast = document.createElement('div');
     toast.className = 'export-toast error';
     toast.textContent = `Export failed: ${message}`;
-    this.
-  }
-
-  // DISABLED:   console.log(toast) {
-    toast.style.position = 'fixed';
-    toast.style.bottom = '20px';
-    toast.style.right = '20px';
-    toast.style.padding = '12px 20px';
-    toast.style.borderRadius = '8px';
-    toast.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
-    toast.style.color = 'white';
-    toast.style.zIndex = '10000';
+    toast.style.cssText = 'position:fixed;bottom:20px;right:20px;padding:12px 20px;border-radius:8px;background:rgba(0,0,0,0.9);color:white;z-index:10000;';
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 5000);
   }

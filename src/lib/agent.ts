@@ -1641,9 +1641,10 @@ export async function runOpenThornAgent(input: AgentRunInput): Promise<AgentRunR
 /**
  * Load lessons and changelog from the virtual project files.
  * Returns a combined <system-reminder> string or empty string.
+ * @param _userId - Reserved for future per-user memory storage
  */
 async function loadMemoryContext(
-  userId: string,
+  _userId: string,
   files: AgentCodeFile[],
 ): Promise<string> {
   const parts: string[] = []
@@ -1663,8 +1664,6 @@ async function loadMemoryContext(
     const reminder = changelogToSystemReminder(entries)
     if (reminder) parts.push(reminder)
   }
-
-  void userId // Keep for future use (per-user memory storage)
 
   return parts.join('\n\n')
 }

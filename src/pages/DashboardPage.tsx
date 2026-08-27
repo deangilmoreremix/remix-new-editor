@@ -46,6 +46,7 @@ function formatRelativeTime(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
+// Dashboard constants
 const ACCENT_COLORS = [
   '#7c6af7', // violet
   '#4f9cf9', // blue
@@ -56,6 +57,12 @@ const ACCENT_COLORS = [
   '#5ec7f7', // sky
   '#a78bfa', // lavender
 ]
+
+// Number of example prompts initially visible before "show all"
+const INITIAL_VISIBLE = 4
+
+// Debounce delay for search input (ms)
+const SEARCH_DEBOUNCE_MS = 300
 
 function projectAccentColor(title: string): string {
   let hash = 0

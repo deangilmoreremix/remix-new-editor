@@ -362,7 +362,9 @@ export class AIEditingTools {
     const toast = document.createElement('div');
     toast.className = 'ai-tool-toast success';
     toast.textContent = result.success ? 'Successfully generated!' : 'Operation completed';
-    this.
+    toast.style.cssText = 'position:fixed;bottom:20px;right:20px;padding:12px 20px;border-radius:8px;background:#10b981;color:white;z-index:10000;font-size:14px;';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
     this.closeModal();
   }
 
@@ -370,16 +372,7 @@ export class AIEditingTools {
     const toast = document.createElement('div');
     toast.className = 'ai-tool-toast error';
     toast.textContent = message;
-    this.
-  }
-
-  // DISABLED:   console.log(toast) {
-    toast.style.position = 'fixed';
-    toast.style.bottom = '20px';
-    toast.style.right = '20px';
-    toast.style.padding = '12px 20px';
-    toast.style.borderRadius = '8px';
-    toast.style.zIndex = '10000';
+    toast.style.cssText = 'position:fixed;bottom:20px;right:20px;padding:12px 20px;border-radius:8px;background:#ef4444;color:white;z-index:10000;font-size:14px;';
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 4000);
   }

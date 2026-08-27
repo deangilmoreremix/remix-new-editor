@@ -1,80 +1,75 @@
-// Basic functionality tests for vanilla JS video personalization platform
-import { describe, test, expect } from '@jest/globals';
+// Core application tests — verify critical functionality works correctly
+import { describe, test, expect } from 'vitest'
 
-describe('Core Functionality Tests', () => {
-  test('basic math works', () => {
-    expect(2 + 2).toBe(4);
-  });
+// Test the actual utility functions used in the application
+import { getErrorMessage, logError } from '../src/lib/errors'
 
-  test('string operations work', () => {
-    expect('hello world').toContain('hello');
-  });
+describe('Error Handling', () => {
+  test('getErrorMessage extracts message from Error objects', () => {
+    const error = new Error('Something failed')
+    const result = getErrorMessage(error, 'Fallback message')
+    expect(result).toBe('Something failed')
+  })
 
-  test('array operations work', () => {
-    const arr = [1, 2, 3, 4, 5];
-    expect(arr).toHaveLength(5);
-    expect(arr.includes(3)).toBe(true);
-  });
-});
+  test('getErrorMessage returns fallback for non-Error values', () => {
+    const result = getErrorMessage('string error', 'Fallback message')
+    expect(result).toBe('Fallback message')
+  })
 
-// Test token replacement utility
+  test('getErrorMessage returns fallback for null/undefined', () => {
+    expect(getErrorMessage(null, 'Fallback')).toBe('Fallback')
+    expect(getErrorMessage(undefined, 'Fallback')).toBe('Fallback')
+  })
+})
+
 describe('Token Replacement', () => {
   test('replaces tokens correctly', () => {
-    const template = 'Hello {{firstName}} from {{company}}!';
+    const template = 'Hello {{firstName}} from {{company}}!'
     const contact = {
       firstName: 'John',
-      company: 'Acme Inc'
-    };
+      company: 'Acme Inc',
+    }
 
-    let result = template;
-    result = result.replace(/\{\{firstName\}\}/g, contact.firstName);
-    result = result.replace(/\{\{company\}\}/g, contact.company);
+    let result = template
+    result = result.replace(/\{\{firstName\}\}/g, contact.firstName)
+    result = result.replace(/\{\{company\}\}/g, contact.company)
 
-    expect(result).toBe('Hello John from Acme Inc!');
-  });
+    expect(result).toBe('Hello John from Acme Inc!')
+  })
 
   test('handles missing tokens gracefully', () => {
-    const template = 'Hello {{firstName}}!';
-    const contact = {}; // No firstName
+    const template = 'Hello {{firstName}}!'
+    const contact = {} // No firstName
 
-    let result = template;
-    result = result.replace(/\{\{firstName\}\}/g, contact.firstName || 'there');
+    let result = template
+    result = result.replace(/\{\{firstName\}\}/g, contact.firstName || 'there')
 
-    expect(result).toBe('Hello there!');
-  });
-});
+    expect(result).toBe('Hello there!')
+  })
+})
 
-// Test basic object structures
 describe('Data Structures', () => {
   test('contact object has required fields', () => {
     const contact = {
       email: 'john@example.com',
       firstName: 'John',
       lastName: 'Doe',
-      company: 'Acme Inc'
-    };
+      company: 'Acme Inc',
+    }
 
-    expect(contact).toHaveProperty('email');
-    expect(contact).toHaveProperty('firstName');
-    expect(contact.company).toBe('Acme Inc');
-  });
+    expect(contact).toHaveProperty('email')
+    expect(contact).toHaveProperty('firstName')
+    expect(contact.company).toBe('Acme Inc')
+  })
 
   test('video object structure', () => {
     const video = {
       url: 'https://example.com/video.mp4',
       duration: 45,
-      thumbnail: 'https://example.com/thumb.jpg'
-    };
+      thumbnail: 'https://example.com/thumb.jpg',
+    }
 
-    expect(video.url).toMatch(/\.mp4$/);
-    expect(video.duration).toBeGreaterThan(0);
-  });
-});
-
-// Test router functionality
-describe('Router', () => {
-  test('router can be imported', () => {
-    // This will test that our ES modules work
-    expect(typeof describe).toBe('function');
-  });
-});
+    expect(video.url).toMatch(/\.mp4$/)
+    expect(video.duration).toBeGreaterThan(0)
+  })
+})

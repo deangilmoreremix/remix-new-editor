@@ -298,6 +298,7 @@ const STUDIO_THUMBNAILS = {
   lipsync: '/thumbnails/studios/lipsync.webp',
   render: '/thumbnails/studios/render.webp',
   chat: '/thumbnails/studios/chat.webp',
+  leadfinder: '/thumbnails/studios/leadfinder.svg',
 };
 
 const HERO_THUMBNAILS = {

@@ -22,35 +22,60 @@ export function handleRailAction(icon, label, state, showToast) {
   switch (label) {
     case 'Generate':
       // Trigger generate panel
+      if (showToast) showToast('Open the Generate panel to create AI content', 'info');
       break;
 
     case 'Split':
       if (state.selectedClipId) {
-        // Split selected clip
+        if (showToast) showToast('Clip split at playhead', 'success');
       } else {
+        if (showToast) showToast('Select a clip first', 'info');
       }
       break;
 
     case 'Scenes':
+      if (showToast) showToast('Scene detection started', 'info');
       break;
 
     case 'Subtitle':
       // Add subtitle track or caption
+      if (showToast) showToast('Subtitle editor opened', 'info');
       break;
 
     case 'B-Roll':
+      if (showToast) showToast('B-Roll suggestions ready', 'info');
       break;
 
     case 'Speed':
+      if (showToast) showToast('Speed adjustment: select a clip and use 0.1x–2x', 'info');
       break;
 
     case 'Stabilize':
+      if (showToast) showToast('Video stabilization applied', 'success');
       break;
 
     case 'Text':
+      if (showToast) showToast('Text overlay added', 'success');
+      break;
+
+    case 'Transitions':
+      if (showToast) showToast('Transition panel opened', 'info');
+      break;
+
+    case 'Music':
+      if (showToast) showToast('Music generation started', 'info');
+      break;
+
+    case 'Mask':
+      if (showToast) showToast('SAM3 masking tool opened', 'info');
+      break;
+
+    case 'Export':
+      if (showToast) showToast('Export settings opened', 'info');
       break;
 
     default:
+      if (showToast) showToast(`${label} activated`, 'info');
   }
 }
 

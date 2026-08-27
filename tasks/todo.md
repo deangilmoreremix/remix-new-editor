@@ -1,32 +1,230 @@
-# TODO: Merge PersonalizeModal + maigretGraph (Connection Graph) — STATUS
+# Todo: Brightbean Studio Integration
 
-Branch: `cleanup/remove-orphans` (worktree `coral-cemetery`). Plan: `tasks/plan.md`.
+## Task 1: Create `src/lib/brightbean.js` API client
+**Description:** Create the missing API client that the existing Brightbean modals already import. It should wrap calls to the deployed Brightbean backend (`https://brightbean-web.onrender.com`) and expose `listAccounts`, `uploadMedia`, `createScheduledPost`, and `getPostAnalytics`.
 
-## Phase 1–2 (UI, done)
-- [x] T1 `maigretGraph.js` — force-directed canvas renderer + zoom/pan/relayout + legend + `downloadGraph` (JSON/CSV/Neo4j/HTML).
-- [x] T2 `maigretSim.js` — `generateScan()` + `ensureGraph()` client fallback.
-- [x] T3 PersonalizeModal "Connection graph" section mounts `maigretGraph` after Discover.
-- [x] T4 Richer Maigret controls (scope/tags/keywords/proxy/recursion/permute/parsing/CF/AI).
-- [x] T5 `graph` + `scanOptions` persisted to `localStorage` profile.
-- [x] T6 Render real `scanData.graph` or simulator fallback; legend + zoom/pan + Download wired.
-- [x] BUG FIX: added missing `MaigretGraph.zoom()`.
+**Acceptance criteria:**
+- [ ] File `src/lib/brightbean.js` exists
+- [ ] Exports `listAccounts`, `uploadMedia`, `createScheduledPost`, `getPostAnalytics`
+- [ ] Uses existing API key (`bb_studio_AdSkqw6CI_LMZoehdY2XSLcNggOhcYeAwT1NqGvvun8_4986c14b`) or reads from env
+- [ ] Handles errors and returns parsed JSON
 
-## Phase 3 (backend real graph, DONE)
-- [x] T7 `scanner.py` `build_graph()` derives `graph` from real `platforms` (seed→claimed, alias_of, same_identity). Added to `ScanResult`.
-- [x] `main.py` `ScanResponse` includes `graph`; `/scan` returns it.
-- [x] T8 `personalizer-api.js` `/scan` passes worker `scanData` (incl. `graph`) to modal.
-- [x] T9 `/export/:scanId` supports JSON/CSV/MD/HTML; client `downloadGraph` adds Neo4j.
-- [x] `render.yaml` blueprint now also deploys `maigret-worker` (docker, oregon).
+**Verification:**
+- [ ] `npm run build` succeeds
+- [ ] Existing modals can import without error
 
-## Verification (all green)
-- `test-graph-render.mjs` → ALL CHECKS PASSED (13)
-- `test-personalize-functional.mjs` → ALL FUNCTIONAL CHECKS PASSED (20)
-- `test-personalize-trigger.mjs` → ALL TRIGGER CHECKS PASSED (4) — studio mount path
-- `modal-integration-test` (vitest) → 21 passed, 10 skipped
-- `pytest tests/test_scanner.py` → 5 passed, 1 skipped
-- Live worker: `GET /health` ok; `POST /scan` returns `graph`; no-key → 401
-- `ensureGraph(realScan)` keeps worker graph (simulator only when absent)
+**Dependencies:** None
 
-## Open (deploy-side, not code)
-- Set `MAIGRET_WORKER_URL` + `MAIGRET_WORKER_SECRET` in Netlify dashboard (from the Render maigret-worker service) so production Discover uses real graph data.
-- `public/maigret-graph-modal.html` retained as visual reference.
+**Files likely touched:**
+- `src/lib/brightbean.js` (new)
+
+**Estimated scope:** Small
+
+---
+
+## Task 2: Create `src/components/BrightbeanStudio.js` studio shell
+**Description:** Create the studio component following the vanilla DOM pattern used by `CharacterStudio.js` and `ImageStudio.js`. It should call `mountStudioChrome(container, { currentRoute: 'brightbean', title: 'Brightbean' })` and build a tabbed UI inside the container.
+
+**Acceptance criteria:**
+- [ ] Exports `BrightbeanStudio()` factory function
+- [ ] Calls `mountStudioChrome` with correct route and title
+- [ ] Returns a DOM element
+- [ ] Includes basic cleanup (`container.cleanup`)
+
+**Verification:**
+- [ ] `npm run build` succeeds
+- [ ] Navigating to `/#/brightbean` shows studio chrome
+
+**Dependencies:** Task 1
+
+**Files likely touched:**
+- `src/components/BrightbeanStudio.js` (new)
+
+**Estimated scope:** Small
+
+---
+
+## Task 3: Register `brightbean` in `src/lib/studioRoutes.js`
+**Description:** Add `brightbean` to `STUDIO_ROUTES` and add an icon to `ICONS`.
+
+**Acceptance criteria:**
+- [ ] `STUDIO_ROUTES.brightbean = { label: 'Brightbean', category: 'Tools' }`
+- [ ] `ICONS.brightbean` contains a relevant SVG string
+- [ ] `getGroupedStudioRoutes()` includes Brightbean under Tools
+
+**Verification:**
+- [ ] `npm run build` succeeds
+- [ ] In-studio drawer lists Brightbean
+
+**Dependencies:** None
+
+**Files likely touched:**
+- `src/lib/studioRoutes.js`
+
+**Estimated scope:** XS
+
+---
+
+## Task 4: Register `brightbean` loader in `src/lib/router.js`
+**Description:** Add `brightbean` to `pageLoaders` so the router knows how to load the studio.
+
+**Acceptance criteria:**
+- [ ] `pageLoaders.brightbean` maps to `import('../components/BrightbeanStudio.js').then(m => m.BrightbeanStudio())`
+
+**Verification:**
+- [ ] `npm run build` succeeds
+- [ ] `navigate('brightbean')` loads the component
+
+**Dependencies:** Task 2
+
+**Files likely touched:**
+- `src/lib/router.js`
+
+**Estimated scope:** XS
+
+---
+
+## Task 5: Add `brightbean` to `src/components/Sidebar.js` nav items
+**Description:** Add a `{ id: 'brightbean', icon: ..., label: 'Brightbean' }` entry to `navItems` in `Sidebar.js`, using the same SVG icon from `studioRoutes.js`.
+
+**Acceptance criteria:**
+- [ ] Brightbean appears in desktop sidebar
+- [ ] Clicking it calls `navigate('brightbean')`
+- [ ] Active state highlighting works via `route-changed` event
+
+**Verification:**
+- [ ] `npm run build` succeeds
+- [ ] Sidebar shows Brightbean icon and label
+
+**Dependencies:** Task 3
+
+**Files likely touched:**
+- `src/components/Sidebar.js`
+
+**Estimated scope:** XS
+
+---
+
+## Task 6: Add `brightbean` to `src/components/AppsHub.js`
+**Description:** Add a `{ id: 'brightbean', name: 'Brightbean', ... }` entry to `TOOL_STUDIOS` (or `AI_APPS`) in `AppsHub.js`.
+
+**Acceptance criteria:**
+- [ ] Brightbean appears as a card in the Apps Hub
+- [ ] Card has name, description, icon, badge, and color styling
+- [ ] Clicking card navigates to `brightbean`
+
+**Verification:**
+- [ ] `npm run build` succeeds
+- [ ] Apps Hub shows Brightbean card
+
+**Dependencies:** Task 3
+
+**Files likely touched:**
+- `src/components/AppsHub.js`
+
+**Estimated scope:** XS
+
+---
+
+## Task 7: Implement BrightbeanStudio tabs (Schedule / Analytics / Accounts)
+**Description:** Build the tabbed UI inside `BrightbeanStudio.js`. Use the existing `BrightbeanScheduleModal.jsx` and `BrightbeanAnalyticsDrawer.jsx` if feasible, or create inline vanilla DOM tabs that call the API client directly.
+
+**Acceptance criteria:**
+- [ ] Studio shows at least 3 tabs: Schedule, Analytics, Accounts
+- [ ] Each tab renders its content area
+- [ ] Tab switching works without page reload
+
+**Verification:**
+- [ ] `npm run build` succeeds
+- [ ] Tabs render and switch correctly
+
+**Dependencies:** Task 2
+
+**Files likely touched:**
+- `src/components/BrightbeanStudio.js`
+
+**Estimated scope:** Medium
+
+---
+
+## Task 8: Wire API client methods to studio UI
+**Description:** Connect the studio tabs to the API client. Schedule tab should list accounts and allow scheduling. Analytics tab should show post analytics. Accounts tab should list connected accounts.
+
+**Acceptance criteria:**
+- [ ] Schedule tab loads accounts via `listAccounts()`
+- [ ] Analytics tab can fetch analytics by post ID
+- [ ] Accounts tab shows connected accounts
+- [ ] Error states are displayed
+
+**Verification:**
+- [ ] API calls succeed against `https://brightbean-web.onrender.com`
+- [ ] Data renders in each tab
+
+**Dependencies:** Task 1, Task 7
+
+**Files likely touched:**
+- `src/components/BrightbeanStudio.js`
+- `src/lib/brightbean.js`
+
+**Estimated scope:** Medium
+
+---
+
+## Task 9: Add cleanup/teardown for the studio component
+**Description:** Ensure the studio properly cleans up timers, listeners, and React roots (if any) when navigated away from.
+
+**Acceptance criteria:**
+- [ ] `container.cleanup` is defined
+- [ ] No console warnings about memory leaks on navigation
+
+**Verification:**
+- [ ] Navigate away from Brightbean and back — no duplicate listeners
+- [ ] `npm run build` succeeds
+
+**Dependencies:** Task 2, Task 7
+
+**Files likely touched:**
+- `src/components/BrightbeanStudio.js`
+
+**Estimated scope:** XS
+
+---
+
+## Task 10: Verify responsive behavior and overflow handling
+**Description:** Test the studio on different screen sizes and ensure it handles overflow correctly (scroll within tabs, not the whole page).
+
+**Acceptance criteria:**
+- [ ] Studio content scrolls within tab panels
+- [ ] No horizontal overflow
+- [ ] Works on mobile viewport
+
+**Verification:**
+- [ ] Manual browser check at common widths
+
+**Dependencies:** Task 7
+
+**Files likely touched:**
+- `src/components/BrightbeanStudio.js`
+
+**Estimated scope:** S
+
+---
+
+## Task 11: Add loading/error states consistent with other studios
+**Description:** Add skeleton loaders or spinners while API data loads, and show friendly error messages on failure.
+
+**Acceptance criteria:**
+- [ ] Each tab shows loading state while fetching
+- [ ] Errors are shown inline, not via `alert()`
+- [ ] Styling matches existing studio patterns
+
+**Verification:**
+- [ ] Simulate API failure — error message displays
+- [ ] `npm run build` succeeds
+
+**Dependencies:** Task 8
+
+**Files likely touched:**
+- `src/components/BrightbeanStudio.js`
+
+**Estimated scope:** S

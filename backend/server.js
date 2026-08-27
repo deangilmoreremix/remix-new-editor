@@ -15,6 +15,7 @@ import modelCatalogService from './services/modelCatalogService.js';
 import videodbProxy from './services/videodbProxy.js';
 import directorProxy from './services/directorProxy.js';
 import gtmBoostService from './services/gtmBoostService.js';
+import leadFinderService from './services/leadFinderService.js';
 
 const app = express();
 const server = http.createServer(app);
@@ -32,6 +33,7 @@ app.use('/api/speech-transcription', speechTranscriptionService);
 app.use('/api/agents', agentActionsService);
 app.use('/api/model-catalog', modelCatalogService);
 app.use('/api/gtm-boost', gtmBoostService);
+app.use('/api/leads', leadFinderService);
 app.use('/api/videodb', videodbProxy);
 app.use('/api/director', directorProxy);
 app.use('/videoagent', videoAgentService);
