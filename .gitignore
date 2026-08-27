@@ -17,3 +17,6 @@ remotion/studio*.log
 remotion/.*/
 remotion/skills/
 .vercel
+
+# Local Netlify folder
+.netlify
