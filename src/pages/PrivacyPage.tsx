@@ -66,13 +66,9 @@ export default function PrivacyPage() {
         </li>
         <li>
           <strong>Aggregated usage data</strong> - anonymous page views and visit
-          statistics collected via Vercel Web Analytics, and anonymous performance
-          metrics (such as page load and responsiveness timings, route, device type, and
-          connection speed) collected via Vercel Speed Insights. Both services are
-          cookieless: they store no cookies or identifiers in your browser and do not
-          track you across sites or sessions. Visitors are counted using a temporary hash
-          derived from the incoming request that is discarded and cannot be used to
-          identify you across days or websites.
+          statistics, plus technical performance data, are collected only when
+          explicitly enabled by deployed analytics. No tracking identifiers are
+          stored in your browser.
         </li>
       </ul>
 
@@ -109,14 +105,6 @@ export default function PrivacyPage() {
       <h2>4. Third-Party Services and Recipients</h2>
       <p>We use service providers and integrations that may process personal data:</p>
       <ul>
-        <li>
-          <strong>Vercel Inc.</strong> (hosting, infrastructure, web analytics, and
-          performance monitoring) - request data, including IP addresses and technical
-          logs, may be processed by Vercel. We also use Vercel Web Analytics and Vercel
-          Speed Insights, cookieless services that record anonymous, aggregated page
-          views and web performance metrics without storing cookies or persistent
-          identifiers in your browser.
-        </li>
         <li>
           <strong>Supabase, Inc.</strong> (authentication, database, realtime) - account,
           profile, session, project, collaboration, community, encrypted provider-key,

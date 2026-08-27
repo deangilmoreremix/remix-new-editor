@@ -22,8 +22,6 @@
     "@material-ui/icons": "^4.11.3",
     "@material-ui/lab": "^4.0.0-alpha.61",
     "@supabase/supabase-js": "^2.106.2",
-    "@vercel/analytics": "^2.0.1",
-    "@vercel/speed-insights": "^2.0.0",
     "@videodb/chat-vue": "^0.0.41",
     "array-move": "^4.0.0",
     "bluebird": "^3.7.2",

@@ -49,16 +49,13 @@ export default function CookiesPage() {
         </li>
       </ul>
 
-      <h2>4. Cookieless Analytics and Performance Monitoring</h2>
+      <h2>4. Analytics and Performance Monitoring</h2>
       <p>
-        Smart Video uses <strong>Vercel Web Analytics</strong> to count anonymous page
-        views and <strong>Vercel Speed Insights</strong> to measure anonymous web
-        performance metrics (such as page load and responsiveness timings). Both
-        services are cookieless: they do not set cookies, do not store identifiers in
-        localStorage or sessionStorage, and do not track you across sites or sessions.
-        Because nothing is stored on your device for analytics or performance-measurement
-        purposes, this does not require cookie consent under the ePrivacy rules. See the
-        Privacy Policy for details on how this data is processed.
+        Smart Video may use deploy-time analytics and performance monitoring when
+        enabled by the hosting configuration. Any such collection is configured
+        server-side; this site does not embed third-party analytics scripts by
+        default. Where analytics are active, they are limited to aggregated,
+        anonymous data and do not rely on cookies or persistent browser identifiers.
       </p>
 
       <h2>5. Consent Banner</h2>
