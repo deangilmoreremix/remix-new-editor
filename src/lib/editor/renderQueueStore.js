@@ -45,6 +45,18 @@ function notify(queue) {
   listeners.forEach((fn) => fn(queue));
 }
 
+// Supabase-backed queue operations (with localStorage fallback)
+import { supabase } from '../supabase.js';
+
+async function getCurrentUserId() {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.user?.id ?? null;
+  } catch {
+    return null;
+  }
+}
+
 function updateQueue(updated) {
   localStorage.setItem(STORE_KEY, JSON.stringify(updated));
   notify(updated);
@@ -52,7 +64,30 @@ function updateQueue(updated) {
 
 // Persist a status/field change for a single job, re-reading the queue so we
 // never clobber concurrent updates (e.g. removal) with a stale snapshot.
-function patchJob(id, patch) {
+async function patchJob(id, patch) {
+  // Update Supabase if authenticated
+  const userId = await getCurrentUserId();
+  if (userId) {
+    const { error } = await supabase
+      .from('render_queue')
+      .update({ ...patch, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .eq('user_id', userId);
+    if (error) {
+      // Fall through to localStorage on error
+    } else {
+      // Also update localStorage for immediate UI consistency
+      const queue = listRenderQueue();
+      const idx = queue.findIndex((entry) => entry && entry.id === id);
+      if (idx !== -1) {
+        queue[idx] = { ...queue[idx], ...patch };
+        updateQueue(queue);
+      }
+      return queue[idx];
+    }
+  }
+
+  // localStorage fallback
   const queue = listRenderQueue();
   const idx = queue.findIndex((entry) => entry && entry.id === id);
   if (idx === -1) return null;
@@ -61,7 +96,33 @@ function patchJob(id, patch) {
   return queue[idx];
 }
 
-export function listRenderQueue() {
+export async function listRenderQueue() {
+  const userId = await getCurrentUserId();
+
+  if (userId) {
+    const { data, error } = await supabase
+      .from('render_queue')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (!error && data) {
+      return data.map((q) => ({
+        id: q.id,
+        videoUrl: q.video_url,
+        videoId: q.video_id,
+        action: q.action,
+        status: q.status,
+        progress: q.progress || 0,
+        result: q.result_url ? { url: q.result_url } : null,
+        error: q.error_message,
+        timestamp: q.created_at,
+        completedAt: q.completed_at,
+      }));
+    }
+  }
+
+  // Fallback: localStorage
   try {
     migrate();
     return JSON.parse(localStorage.getItem(STORE_KEY) || '[]');
@@ -70,7 +131,41 @@ export function listRenderQueue() {
   }
 }
 
-export function enqueueRender(job) {
+export async function enqueueRender(job) {
+  const userId = await getCurrentUserId();
+  const now = new Date().toISOString();
+
+  if (userId) {
+    const { data, error } = await supabase
+      .from('render_queue')
+      .insert({
+        user_id: userId,
+        video_url: job.videoUrl || '',
+        video_id: job.videoId || null,
+        action: job.action || 'render',
+        status: 'pending',
+      })
+      .select()
+      .single();
+
+    if (!error && data) {
+      // Also add to localStorage for immediate UI consistency
+      const queue = listRenderQueue();
+      queue.push({
+        id: data.id,
+        videoUrl: data.video_url,
+        videoId: data.video_id,
+        action: data.action,
+        status: data.status,
+        progress: 0,
+        timestamp: data.created_at,
+      });
+      updateQueue(queue);
+      return { id: data.id, status: 'queued', progress: 0, ...job };
+    }
+  }
+
+  // Fallback: localStorage
   const queue = listRenderQueue();
   const entry = {
     id: crypto.randomUUID(),
@@ -84,7 +179,18 @@ export function enqueueRender(job) {
   return entry;
 }
 
-export function removeFromRenderQueue(id) {
+export async function removeFromRenderQueue(id) {
+  const userId = await getCurrentUserId();
+
+  if (userId) {
+    await supabase
+      .from('render_queue')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId);
+  }
+
+  // Also remove from localStorage
   const queue = listRenderQueue().filter((entry) => entry.id !== id);
   updateQueue(queue);
 }
