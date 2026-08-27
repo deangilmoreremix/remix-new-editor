@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, useRef, type ReactNode } from 'react'
 import type { User, Session } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 import { getErrorMessage, logError } from './errors'
@@ -21,6 +21,9 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  // RACE CONDITION FIX: Track whether initial session load is complete
+  // to prevent onAuthStateChange from overwriting the initial session
+  const initialSessionLoaded = useRef(false)
 
   useEffect(() => {
     // Restore session on mount
@@ -37,14 +40,19 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
         setSession(null)
         setUser(null)
       })
-      .finally(() => setLoading(false))
+      .finally(() => {
+        setLoading(false)
+        initialSessionLoaded.current = true
+      })
 
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-      setUser(session?.user ?? null)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      // RACE CONDITION FIX: Only update state after initial session is loaded
+      // to prevent flash of wrong auth state
+      if (!initialSessionLoaded.current) return
+      setSession(newSession)
+      setUser(newSession?.user ?? null)
       setLoading(false)
-
     })
 
     return () => subscription.unsubscribe()

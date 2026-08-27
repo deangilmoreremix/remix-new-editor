@@ -840,6 +840,28 @@ export function shouldRejectWholeFileRewrite(params: {
 // ─── Context Compaction ─────────────────────────────────────────────────────
 
 /**
+ * Hard cap on message history length to prevent unbounded memory growth.
+ * When messages exceed this count, aggressive compaction is triggered
+ * regardless of token budget. This prevents long-running sessions from
+ * consuming excessive memory or exceeding context limits.
+ */
+const MAX_MESSAGES = 100
+
+/**
+ * Enforce the hard message cap by keeping only the most recent messages
+ * plus essential context (system prompt, initial user message).
+ * Returns a new array; does not mutate the input.
+ */
+function enforceMessageCap(messages: LlmMessage[]): LlmMessage[] {
+  if (messages.length <= MAX_MESSAGES) return messages
+  // Keep the first 2 messages (system context + initial user prompt) and
+  // the most recent MAX_MESSAGES - 2 messages
+  const head = messages.slice(0, 2)
+  const tail = messages.slice(-(MAX_MESSAGES - 2))
+  return [...head, ...tail]
+}
+
+/**
  * Rough token estimate for the whole prompt (~4 chars/token). Counts text,
  * tool inputs, tool results and thinking across every message block — enough to
  * decide when the conversation is approaching the model's context window.
@@ -1275,6 +1297,14 @@ export async function runOpenThornAgent(input: AgentRunInput): Promise<AgentRunR
         lastSummaryTurn = turnCount
       }
       input.onProgress?.({ type: 'compaction', message: 'Context compacted to save tokens.' })
+    }
+
+    // MEMORY LEAK FIX: Enforce hard cap on message history length.
+    // If messages exceed MAX_MESSAGES, slice to keep only essential context
+    // and the most recent messages.
+    if (messages.length > MAX_MESSAGES) {
+      const capped = enforceMessageCap(messages)
+      messages.splice(0, messages.length, ...capped)
     }
 
     // ── Phase-gated thinking budget ─────────────────────────────

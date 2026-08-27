@@ -218,6 +218,10 @@ export default function DashboardPage() {
 
     fetchProjects()
 
+    // MEMORY LEAK FIX: Track the user ID we subscribed for to avoid re-subscribing
+    // on every user object reference change (e.g., token refresh)
+    const subscribedUserIdRef = useRef<string | null>(null)
+
     // Watch owned project changes
     const ownedChannel = supabase
       .channel('projects_owned')
@@ -242,9 +246,12 @@ export default function DashboardPage() {
       })
       .subscribe()
 
+    subscribedUserIdRef.current = user.id
+
     return () => {
       supabase.removeChannel(ownedChannel)
       supabase.removeChannel(sharedChannel)
+      subscribedUserIdRef.current = null
     }
   }, [user])
 

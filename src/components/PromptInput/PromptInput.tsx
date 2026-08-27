@@ -47,6 +47,8 @@ function useTypingAnimation(active: boolean) {
     isDeleting: false,
     active: false,
   })
+  // MEMORY LEAK FIX: Track all timeout IDs so we can clear them on unmount
+  const timeoutsRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set())
 
   stateRef.current.active = active
 
@@ -58,6 +60,19 @@ function useTypingAnimation(active: boolean) {
 
     let timeout: ReturnType<typeof setTimeout>
 
+    const scheduleTick = (fn: () => void, delay: number) => {
+      const id = setTimeout(fn, delay)
+      timeoutsRef.current.add(id)
+      return id
+    }
+
+    const clearAllTimeouts = () => {
+      for (const id of timeoutsRef.current) {
+        clearTimeout(id)
+      }
+      timeoutsRef.current.clear()
+    }
+
     const tick = () => {
       if (!stateRef.current.active) return
 
@@ -68,9 +83,9 @@ function useTypingAnimation(active: boolean) {
         if (s.charIndex < currentPrompt.length) {
           s.charIndex++
           setDisplayText(currentPrompt.slice(0, s.charIndex))
-          timeout = setTimeout(tick, 40 + Math.random() * 30)
+          timeout = scheduleTick(tick, 40 + Math.random() * 30)
         } else {
-          timeout = setTimeout(() => {
+          timeout = scheduleTick(() => {
             if (!stateRef.current.active) return
             stateRef.current.isDeleting = true
             tick()
@@ -80,18 +95,21 @@ function useTypingAnimation(active: boolean) {
         if (s.charIndex > 0) {
           s.charIndex--
           setDisplayText(currentPrompt.slice(0, s.charIndex))
-          timeout = setTimeout(tick, 20 + Math.random() * 15)
+          timeout = scheduleTick(tick, 20 + Math.random() * 15)
         } else {
           stateRef.current.isDeleting = false
           stateRef.current.promptIndex = (s.promptIndex + 1) % typingPrompts.length
           stateRef.current.charIndex = 0
-          timeout = setTimeout(tick, 300)
+          timeout = scheduleTick(tick, 300)
         }
       }
     }
 
-    timeout = setTimeout(tick, 300)
-    return () => clearTimeout(timeout)
+    timeout = scheduleTick(tick, 300)
+    // MEMORY LEAK FIX: Clear ALL timeouts on unmount or when active changes
+    return () => {
+      clearAllTimeouts()
+    }
   }, [active])
 
   return displayText

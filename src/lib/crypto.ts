@@ -11,7 +11,23 @@ import { supabase } from './supabase'
 
 const SALT = 'openthorn-v1-key-encryption'
 const serverKeyOps = new Map<string, Promise<string | null>>()
+
+// MEMORY LEAK FIX: Bounded LRU cache for decrypt results to prevent unbounded growth.
+// When the cache exceeds MAX_CACHE_SIZE, the oldest entries are evicted.
+const MAX_CACHE_SIZE = 1000
 const serverDecryptResults = new Map<string, string>()
+
+// MEMORY LEAK FIX: Evict oldest entries when cache exceeds max size
+function setDecryptCache(key: string, value: string): void {
+  if (serverDecryptResults.size >= MAX_CACHE_SIZE) {
+    // Evict oldest entry (Map preserves insertion order)
+    const oldestKey = serverDecryptResults.keys().next().value
+    if (oldestKey !== undefined) {
+      serverDecryptResults.delete(oldestKey)
+    }
+  }
+  serverDecryptResults.set(key, value)
+}
 
 async function deriveKey(userId: string): Promise<CryptoKey> {
   const enc = new TextEncoder()
@@ -75,7 +91,7 @@ async function serverKeyOp(action: 'encrypt' | 'decrypt', value: string): Promis
   serverKeyOps.set(cacheKey, op)
   if (action === 'decrypt') {
     op.then((result) => {
-      if (result) serverDecryptResults.set(value, result)
+      if (result) setDecryptCache(value, result)
     })
   }
   op.finally(() => serverKeyOps.delete(cacheKey))

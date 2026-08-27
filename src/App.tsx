@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react'
+import { useState, useEffect, lazy, Suspense, Component, type ReactNode, type ErrorInfo } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
@@ -17,6 +17,40 @@ import AdminGuard from './components/AdminGuard/AdminGuard'
 import StudioWrapper from './components/StudioWrapper'
 import AnnouncementBanner from './components/AnnouncementBanner/AnnouncementBanner'
 import styles from './App.module.css'
+
+// Lightweight error boundary for individual routes — prevents one studio crash
+// from bringing down the entire app
+class RouteErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode }) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('[RouteErrorBoundary]', error, info.componentStack)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className={styles.routeError} role="alert">
+          <p>This section encountered an error.</p>
+          <button
+            onClick={() => this.setState({ hasError: false })}
+            className={styles.routeErrorButton}
+          >
+            Try again
+          </button>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
 
 // Route pages are code-split so the heavy builder/preview stack (esbuild-wasm,
 // jszip, html2canvas, the agent) isn't pulled into the initial landing bundle.
@@ -180,44 +214,44 @@ export default function App() {
               <Route path="blog" element={<AdminBlogPage />} />
               <Route path="templates" element={<AdminTemplatesPage />} />
             </Route>
-            <Route path="/image" element={<Layout><StudioWrapper studioPath="image" /></Layout>} />
-            <Route path="/video" element={<Layout><StudioWrapper studioPath="video" /></Layout>} />
-            <Route path="/cinema" element={<Layout><StudioWrapper studioPath="cinema" /></Layout>} />
-            <Route path="/character" element={<Layout><StudioWrapper studioPath="character" /></Layout>} />
-            <Route path="/effects" element={<Layout><StudioWrapper studioPath="effects" /></Layout>} />
-            <Route path="/edit" element={<Layout><StudioWrapper studioPath="edit" /></Layout>} />
-            <Route path="/upscale" element={<Layout><StudioWrapper studioPath="upscale" /></Layout>} />
-            <Route path="/audio" element={<Layout><StudioWrapper studioPath="audio" /></Layout>} />
-            <Route path="/avatar" element={<Layout><StudioWrapper studioPath="avatar" /></Layout>} />
-            <Route path="/influencer" element={<Layout><StudioWrapper studioPath="influencer" /></Layout>} />
-            <Route path="/commercial" element={<Layout><StudioWrapper studioPath="commercial" /></Layout>} />
-            <Route path="/storyboard" element={<Layout><StudioWrapper studioPath="storyboard" /></Layout>} />
-            <Route path="/training" element={<Layout><StudioWrapper studioPath="training" /></Layout>} />
-            <Route path="/videotools" element={<Layout><StudioWrapper studioPath="videotools" /></Layout>} />
-            <Route path="/chat" element={<Layout><StudioWrapper studioPath="chat" /></Layout>} />
-            <Route path="/lipsync" element={<Layout><StudioWrapper studioPath="lipsync" /></Layout>} />
-            <Route path="/apps" element={<Layout><StudioWrapper studioPath="apps" /></Layout>} />
-            <Route path="/explore" element={<Layout><StudioWrapper studioPath="explore" /></Layout>} />
-            <Route path="/render" element={<Layout><StudioWrapper studioPath="render" /></Layout>} />
-            <Route path="/video-agent" element={<Layout><StudioWrapper studioPath="video-agent" /></Layout>} />
-            <Route path="/director" element={<Layout><StudioWrapper studioPath="director" /></Layout>} />
-            <Route path="/timeline" element={<Layout><StudioWrapper studioPath="timeline" /></Layout>} />
-            <Route path="/ai-vfx" element={<Layout><StudioWrapper studioPath="ai-vfx" /></Layout>} />
-            <Route path="/assist" element={<Layout><StudioWrapper studioPath="assist" /></Layout>} />
-            <Route path="/text-to-image" element={<Layout><StudioWrapper studioPath="text-to-image" /></Layout>} />
-            <Route path="/image-to-image" element={<Layout><StudioWrapper studioPath="image-to-image" /></Layout>} />
-            <Route path="/text-to-video" element={<Layout><StudioWrapper studioPath="text-to-video" /></Layout>} />
-            <Route path="/image-to-video" element={<Layout><StudioWrapper studioPath="image-to-video" /></Layout>} />
-            <Route path="/video-to-video" element={<Layout><StudioWrapper studioPath="video-to-video" /></Layout>} />
-            <Route path="/video-watermark" element={<Layout><StudioWrapper studioPath="video-watermark" /></Layout>} />
-            <Route path="/storyboard-page" element={<Layout><StudioWrapper studioPath="storyboard-page" /></Layout>} />
-            <Route path="/character-page" element={<Layout><StudioWrapper studioPath="character-page" /></Layout>} />
-            <Route path="/effects-page" element={<Layout><StudioWrapper studioPath="effects-page" /></Layout>} />
-            <Route path="/cinema-page" element={<Layout><StudioWrapper studioPath="cinema-page" /></Layout>} />
-            <Route path="/influencer-page" element={<Layout><StudioWrapper studioPath="influencer-page" /></Layout>} />
-            <Route path="/commercial-page" element={<Layout><StudioWrapper studioPath="commercial-page" /></Layout>} />
-            <Route path="/upscale-page" element={<Layout><StudioWrapper studioPath="upscale-page" /></Layout>} />
-            <Route path="/openthorn" element={<Layout><StudioWrapper studioPath="openthorn" /></Layout>} />
+            <Route path="/image" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="image" /></RouteErrorBoundary></Layout>} />
+            <Route path="/video" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="video" /></RouteErrorBoundary></Layout>} />
+            <Route path="/cinema" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="cinema" /></RouteErrorBoundary></Layout>} />
+            <Route path="/character" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="character" /></RouteErrorBoundary></Layout>} />
+            <Route path="/effects" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="effects" /></RouteErrorBoundary></Layout>} />
+            <Route path="/edit" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="edit" /></RouteErrorBoundary></Layout>} />
+            <Route path="/upscale" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="upscale" /></RouteErrorBoundary></Layout>} />
+            <Route path="/audio" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="audio" /></RouteErrorBoundary></Layout>} />
+            <Route path="/avatar" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="avatar" /></RouteErrorBoundary></Layout>} />
+            <Route path="/influencer" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="influencer" /></RouteErrorBoundary></Layout>} />
+            <Route path="/commercial" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="commercial" /></RouteErrorBoundary></Layout>} />
+            <Route path="/storyboard" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="storyboard" /></RouteErrorBoundary></Layout>} />
+            <Route path="/training" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="training" /></RouteErrorBoundary></Layout>} />
+            <Route path="/videotools" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="videotools" /></RouteErrorBoundary></Layout>} />
+            <Route path="/chat" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="chat" /></RouteErrorBoundary></Layout>} />
+            <Route path="/lipsync" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="lipsync" /></RouteErrorBoundary></Layout>} />
+            <Route path="/apps" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="apps" /></RouteErrorBoundary></Layout>} />
+            <Route path="/explore" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="explore" /></RouteErrorBoundary></Layout>} />
+            <Route path="/render" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="render" /></RouteErrorBoundary></Layout>} />
+            <Route path="/video-agent" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="video-agent" /></RouteErrorBoundary></Layout>} />
+            <Route path="/director" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="director" /></RouteErrorBoundary></Layout>} />
+            <Route path="/timeline" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="timeline" /></RouteErrorBoundary></Layout>} />
+            <Route path="/ai-vfx" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="ai-vfx" /></RouteErrorBoundary></Layout>} />
+            <Route path="/assist" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="assist" /></RouteErrorBoundary></Layout>} />
+            <Route path="/text-to-image" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="text-to-image" /></RouteErrorBoundary></Layout>} />
+            <Route path="/image-to-image" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="image-to-image" /></RouteErrorBoundary></Layout>} />
+            <Route path="/text-to-video" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="text-to-video" /></RouteErrorBoundary></Layout>} />
+            <Route path="/image-to-video" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="image-to-video" /></RouteErrorBoundary></Layout>} />
+            <Route path="/video-to-video" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="video-to-video" /></RouteErrorBoundary></Layout>} />
+            <Route path="/video-watermark" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="video-watermark" /></RouteErrorBoundary></Layout>} />
+            <Route path="/storyboard-page" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="storyboard-page" /></RouteErrorBoundary></Layout>} />
+            <Route path="/character-page" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="character-page" /></RouteErrorBoundary></Layout>} />
+            <Route path="/effects-page" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="effects-page" /></RouteErrorBoundary></Layout>} />
+            <Route path="/cinema-page" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="cinema-page" /></RouteErrorBoundary></Layout>} />
+            <Route path="/influencer-page" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="influencer-page" /></RouteErrorBoundary></Layout>} />
+            <Route path="/commercial-page" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="commercial-page" /></RouteErrorBoundary></Layout>} />
+            <Route path="/upscale-page" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="upscale-page" /></RouteErrorBoundary></Layout>} />
+            <Route path="/openthorn" element={<Layout><RouteErrorBoundary><StudioWrapper studioPath="openthorn" /></RouteErrorBoundary></Layout>} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Suspense>

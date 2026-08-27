@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState, createElement } from 'react'
+import { createPortal } from 'react-dom'
 
 const STUDIO_LOADERS = {
   image: () => import('./ImageStudio.js').then(m => m.ImageStudio()),
@@ -41,13 +42,46 @@ const STUDIO_LOADERS = {
   smartvideo: () => import('./SmartVideoStudio.js').then(m => m.SmartVideoStudio()),
 }
 
+// Error boundary for studio loading failures
+class StudioErrorBoundary extends React.Component<
+  { children: React.ReactNode; studioPath: string },
+  { hasError: boolean; error: Error | null }
+> {
+  constructor(props: { children: React.ReactNode; studioPath: string }) {
+    super(props)
+    this.state = { hasError: false, error: null }
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error(`[StudioErrorBoundary] ${this.props.studioPath}:`, error, errorInfo)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return createElement('div', {
+        className: 'w-full h-full flex flex-col items-center justify-center text-red-400 text-sm p-8 text-center',
+      }, 'Failed to load studio. Please refresh the page or try again.')
+    }
+    return this.props.children
+  }
+}
+
+// Need React for error boundary
+import React from 'react'
+
 export default function StudioWrapper({ studioPath }: { studioPath: string }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const studioRef = useRef<HTMLElement | null>(null)
+  const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
     if (!containerRef.current) return
 
+    // Cleanup previous studio
     if (studioRef.current?.cleanup) {
       studioRef.current.cleanup()
     }
@@ -56,24 +90,24 @@ export default function StudioWrapper({ studioPath }: { studioPath: string }) {
     const loader = STUDIO_LOADERS[studioPath]
     if (!loader) return
 
-    containerRef.current.innerHTML = ''
-    const loading = document.createElement('div')
-    loading.className = 'w-full h-full flex items-center justify-center'
-    loading.innerHTML = '<div class="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full"></div>'
-    containerRef.current.appendChild(loading)
+    // Clear container safely
+    while (containerRef.current.firstChild) {
+      containerRef.current.removeChild(containerRef.current.firstChild)
+    }
 
     loader()
       .then(element => {
         if (!containerRef.current) return
-        containerRef.current.innerHTML = ''
+        // Clear loading indicator
+        while (containerRef.current.firstChild) {
+          containerRef.current.removeChild(containerRef.current.firstChild)
+        }
         containerRef.current.appendChild(element as HTMLElement)
         studioRef.current = element as HTMLElement
       })
       .catch(err => {
         console.error(`[StudioWrapper] Failed to load studio: ${studioPath}`, err)
-        if (containerRef.current) {
-          containerRef.current.innerHTML = `<div class="w-full h-full flex items-center justify-center text-red-400 text-sm">Failed to load studio: ${err.message}</div>`
-        }
+        setError(err instanceof Error ? err : new Error(String(err)))
       })
 
     return () => {
@@ -83,5 +117,27 @@ export default function StudioWrapper({ studioPath }: { studioPath: string }) {
     }
   }, [studioPath])
 
-  return <div ref={containerRef} className="w-full h-full" />
+  if (error) {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center text-red-400 text-sm p-8 text-center">
+        Failed to load studio: {error.message}
+        <button
+          className="mt-4 px-4 py-2 bg-red-500/20 rounded-lg hover:bg-red-500/30 transition-colors"
+          onClick={() => {
+            setError(null)
+            // Force re-render by navigating away and back
+            window.location.reload()
+          }}
+        >
+          Retry
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <StudioErrorBoundary studioPath={studioPath}>
+      <div ref={containerRef} className="w-full h-full" />
+    </StudioErrorBoundary>
+  )
 }
