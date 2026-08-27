@@ -1,6 +1,6 @@
 # Netlify build configuration
 [build]
-  command = "npm ci --include=optional && npm run build"
+  command = "npm ci --include=optional && node scripts/sync-blog.mjs && node scripts/generate-changelog.mjs && vite build && vite build --ssr src/entry-ssr.tsx --outDir dist-ssr && node scripts/prerender.mjs && node scripts/indexnow.mjs"
   publish = "dist"
 
 [build.environment]
