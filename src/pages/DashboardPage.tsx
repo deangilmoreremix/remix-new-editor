@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo, memo } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
 import { supabase } from '../lib/supabase'
@@ -563,19 +563,22 @@ export default function DashboardPage() {
     return () => clearTimeout(timer)
   }, [showQuickstart, authLoading, projectsLoading, markQuickstartSeen])
 
-  const filteredProjects = projects
-    .filter((p) => {
-      if (activeFilter === 'starred') return p.starred
-      if (activeFilter === 'mine') return p.user_id === user?.id
-      if (activeFilter === 'shared') return p.isShared === true
-      return true
-    })
-    .filter((p) => !searchQuery || p.title.toLowerCase().includes(searchQuery.toLowerCase()))
-    .sort((a, b) => {
-      if (sortBy === 'name') return a.title.localeCompare(b.title)
-      if (sortBy === 'starred') return Number(b.starred) - Number(a.starred)
-      return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-    })
+  // PERFORMANCE: Memoize filtered/sorted projects to avoid recalculation on every render
+  const filteredProjects = useMemo(() => {
+    return projects
+      .filter((p) => {
+        if (activeFilter === 'starred') return p.starred
+        if (activeFilter === 'mine') return p.user_id === user?.id
+        if (activeFilter === 'shared') return p.isShared === true
+        return true
+      })
+      .filter((p) => !debouncedSearchQuery || p.title.toLowerCase().includes(debouncedSearchQuery.toLowerCase()))
+      .sort((a, b) => {
+        if (sortBy === 'name') return a.title.localeCompare(b.title)
+        if (sortBy === 'starred') return Number(b.starred) - Number(a.starred)
+        return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+      })
+  }, [projects, activeFilter, debouncedSearchQuery, sortBy, user?.id])
 
   const filterLabel =
     activeFilter === 'starred' ? 'Starred projects'
@@ -585,7 +588,23 @@ export default function DashboardPage() {
 
   if (authLoading) return null
 
-  const hasProjects = !projectsLoading && projects.length > 0
+  // PERFORMANCE: Debounce search input to avoid filtering on every keystroke
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchQuery(value)
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
+    searchDebounceRef.current = setTimeout(() => {
+      setDebouncedSearchQuery(value)
+    }, SEARCH_DEBOUNCE_MS)
+  }, [])
+
+  const clearSearch = useCallback(() => {
+    setSearchQuery('')
+    setDebouncedSearchQuery('')
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
+  }, [])
   const deployedProject = projects.find((p) => p.cf_pages_project_name)
   const firstProject = projects[0]
   const focusPrompt = () => {
@@ -779,10 +798,10 @@ export default function DashboardPage() {
                     type="text"
                     placeholder="Search projects…"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => handleSearchChange(e.target.value)}
                   />
                   {searchQuery && (
-                    <button className={styles.searchClear} type="button" onClick={() => setSearchQuery('')} aria-label="Clear search">
+                    <button className={styles.searchClear} type="button" onClick={clearSearch} aria-label="Clear search">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                     </button>
                   )}

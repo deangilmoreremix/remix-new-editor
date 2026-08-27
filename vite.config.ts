@@ -270,7 +270,7 @@ export default defineConfig(({ mode, isSsrBuild }) => {
               },
         },
       },
-      sourcemap: false,
+      sourcemap: true,
       minify: 'esbuild',
       cssMinify: 'esbuild',
     },
