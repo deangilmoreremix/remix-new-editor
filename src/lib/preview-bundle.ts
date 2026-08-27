@@ -3,9 +3,9 @@ import { initCompiler } from './compiler'
 import { createVirtualFsPlugin, type VirtualFile } from './virtualFsPlugin'
 // Import the custom hash router source — injected into previews to replace
 // react-router-dom which doesn't work in srcdoc/sandboxed iframes.
-import bloomRouterSource from '../../public/smartvideo-router.js?raw'
-import smartvideoJsxDevSource from '../../public/smartvideo-jsx-dev.js?raw'
-import smartvideoDbSource from '../../public/smartvideo-db.js?raw'
+import bloomRouterSource from '../../public/openthorn-router.js?raw'
+import smartvideoJsxDevSource from '../../public/openthorn-jsx-dev.js?raw'
+import smartvideoDbSource from '../../public/openthorn-db.js?raw'
 import { ALLOWED_PACKAGES } from './allowed-packages'
 import { buildSelectModeScript } from './preview-edit'
 
