@@ -21,7 +21,8 @@ document
   .querySelectorAll('script[type="application/ld+json"][data-prerendered]')
   .forEach((el) => el.remove())
 
-const container = document.getElementById('root')!
+const container = document.getElementById('root')
+if (!container) throw new Error('Missing #root')
 const app = (
   <StrictMode>
     <ErrorBoundary>
