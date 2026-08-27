@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, createElement } from 'react'
 import { createPortal } from 'react-dom'
+import React from 'react'
 
 const STUDIO_LOADERS = {
   image: () => import('./ImageStudio.js').then(m => m.ImageStudio()),
@@ -40,6 +41,7 @@ const STUDIO_LOADERS = {
   'upscale-page': () => import('./UpscalePage.js').then(m => m.UpscalePage()),
   assist: () => import('./AssistPage.js').then(m => m.AssistPage()),
   smartvideo: () => import('./SmartVideoStudio.js').then(m => m.SmartVideoStudio()),
+  brightbean: () => import('./SmartVideoScheduler.js').then(m => m.SmartVideoScheduler()),
 }
 
 // Error boundary for studio loading failures
@@ -69,9 +71,6 @@ class StudioErrorBoundary extends React.Component<
     return this.props.children
   }
 }
-
-// Need React for error boundary
-import React from 'react'
 
 export default function StudioWrapper({ studioPath }: { studioPath: string }) {
   const containerRef = useRef<HTMLDivElement>(null)
