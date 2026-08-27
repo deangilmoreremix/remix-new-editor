@@ -1,5 +1,5 @@
 import { defineConfig, loadEnv } from 'vite';
-import tailwindcss from '@tailwindcss/vite';
+// import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import fs from 'fs';
@@ -861,7 +861,7 @@ export default defineConfig({
         },
     },
     plugins: [
-        tailwindcss(),
+        // tailwindcss(),
         // Legacy components (e.g. SocialPublisherModal.jsx) use MobX
         // @inject/@observer decorators. @vitejs/plugin-react transforms .jsx
         // via Babel, which does not enable decorators by default — enable the
