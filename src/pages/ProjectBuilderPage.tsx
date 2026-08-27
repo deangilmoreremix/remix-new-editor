@@ -20,7 +20,7 @@ import {
   resolveOeidPath,
   type EditSelection,
 } from '../lib/preview-edit'
-import { runSmart VideoAgent, type AgentCodeFile, type LlmMessage, type SelectedAgentModel } from '../lib/agent'
+import { runSmartVideoAgent, type AgentCodeFile, type LlmMessage, type SelectedAgentModel } from '../lib/agent'
 import {
   normalizeThinkingLevel,
   type AgentThinkingLevel,
@@ -1132,7 +1132,7 @@ export default function ProjectBuilderPage() {
     return new URL(`/projects/${projectId}`, window.location.origin).toString()
   }, [projectId])
 
-  const findSmart VideoAccount = useCallback(async (email: string) => {
+  const findSmartVideoAccount = useCallback(async (email: string) => {
     const normalizedEmail = email.trim().toLowerCase()
     // profiles is locked to self-only via RLS; use the SECURITY DEFINER lookup
     // so we can resolve an invitee's account without exposing the table.
@@ -1171,9 +1171,9 @@ export default function ProjectBuilderPage() {
     }
 
     setInviteLoading(true)
-    let account: Awaited<ReturnType<typeof findSmart VideoAccount>>
+    let account: Awaited<ReturnType<typeof findSmartVideoAccount>>
     try {
-      account = await findSmart VideoAccount(normalizedEmail)
+      account = await findSmartVideoAccount(normalizedEmail)
     } catch (error) {
       logError('ProjectFindCollaborator', error)
       setInviteLoading(false)
@@ -1225,7 +1225,7 @@ export default function ProjectBuilderPage() {
         setInviteError(getErrorMessage(error, 'Could not invite this collaborator.'))
       }
     }
-  }, [buildInviteLink, collaborators, findSmart VideoAccount, inviteEmail, invitePermission, projectId, user])
+  }, [buildInviteLink, collaborators, findSmartVideoAccount, inviteEmail, invitePermission, projectId, user])
 
   const handlePermissionChange = useCallback((collaboratorId: string, permission: SharePermission) => {
     const previousCollaborators = collaborators
@@ -1473,7 +1473,7 @@ export default function ProjectBuilderPage() {
         ? `<system-reminder>\nTEMPLATE MODE: This project was started from the "${templateNameRef.current || 'template'}" template. The existing files are the template foundation — build upon them. Preserve the color system, component structure, and design language. Do not delete template files unless the user explicitly requests it.\n</system-reminder>\n\n${request}`
         : request
 
-      const result = await runSmart VideoAgent({
+      const result = await runSmartVideoAgent({
         userId: user.id,
         prompt: effectivePrompt,
         title,

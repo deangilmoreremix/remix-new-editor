@@ -1053,7 +1053,7 @@ class LoopDetector {
 
 // ─── Main Agent Loop ────────────────────────────────────────────────────────
 
-export async function runSmart VideoAgent(input: AgentRunInput): Promise<AgentRunResult> {
+export async function runSmartVideoAgent(input: AgentRunInput): Promise<AgentRunResult> {
   const sessionId = generateSessionId()
 
   // ── Resolve provider with fallback ────────────────────────────
