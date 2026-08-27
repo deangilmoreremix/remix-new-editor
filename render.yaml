@@ -119,7 +119,7 @@ services:
       - key: MAIGRET_SCAN_TIMEOUT
         value: "90"
       - key: ALLOWED_ORIGINS
-        value: "*"
+        value: "https://www.smartvid.app,https://smartvid.app"
       - key: PYTHONUNBUFFERED
         value: "1"
 

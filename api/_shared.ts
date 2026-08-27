@@ -121,8 +121,10 @@ export async function persistProjectSiteId(
       },
       body: JSON.stringify({ cf_pages_project_name: siteId }),
     })
-  } catch {
-    /* non-fatal — the client also persists this after a successful deploy */
+  } catch (err) {
+    // SECURITY: Log non-fatal errors for observability. The client also persists
+    // this after a successful deploy, so this is best-effort.
+    console.error('[persistProjectSiteId] failed:', err instanceof Error ? err.message : String(err))
   }
 }
 

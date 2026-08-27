@@ -180,10 +180,14 @@ export async function getValidAccessToken(userId: string): Promise<string | null
 
 export async function deleteConnection(userId: string): Promise<void> {
   const { url, serviceKey } = ownEnv()
-  await fetch(`${url}/rest/v1/supabase_connections?user_id=eq.${userId}`, {
+  const res = await fetch(`${url}/rest/v1/supabase_connections?user_id=eq.${userId}`, {
     method: 'DELETE',
     headers: { ...svcHeaders(serviceKey), Prefer: 'return=minimal' },
   })
+  // SECURITY: Check response status to detect failed deletions
+  if (!res.ok) {
+    console.error('[deleteConnection] failed:', res.status, await res.text().catch(() => ''))
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -315,6 +319,24 @@ const MIGRATIONS_DDL =
   `version bigserial primary key, name text not null, checksum text not null unique, ` +
   `applied_at timestamptz not null default now());`
 
+// SECURITY: Validate values before SQL interpolation. These patterns match
+// the expected formats (hex checksum, digit-only name) and reject anything
+// that doesn't conform, preventing SQL injection if upstream generation changes.
+const CHECKSUM_RE = /^[0-9a-f]{16}$/
+const NAME_RE = /^[a-z][a-z0-9_]*$/
+
+function assertSafeChecksum(checksum: string): void {
+  if (!CHECKSUM_RE.test(checksum)) {
+    throw new Error(`Invalid checksum format: expected 16-char hex string`)
+  }
+}
+
+function assertSafeName(name: string): void {
+  if (!NAME_RE.test(name)) {
+    throw new Error(`Invalid migration name format: expected lowercase alphanumeric with underscores`)
+  }
+}
+
 export interface ApplySchemaResult {
   applied: boolean
   alreadyApplied: boolean
@@ -331,6 +353,9 @@ export async function applySchema(userId: string, projectId: string, spec: Schem
 
   const { statements, checksum } = compileSchema(spec)
   const types = schemaToTypes(spec)
+
+  // SECURITY: Validate checksum format before SQL interpolation
+  assertSafeChecksum(checksum)
 
   // Ensure the ledger exists, then skip if this exact schema already applied.
   await runUserSql(accessToken, ref, MIGRATIONS_DDL)
@@ -350,6 +375,8 @@ export async function applySchema(userId: string, projectId: string, spec: Schem
   // Apply the DDL as one batch, then record it in both ledgers.
   await runUserSql(accessToken, ref, statements.join('\n'))
   const name = `schema_${new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14)}`
+  // SECURITY: Validate name format before SQL interpolation
+  assertSafeName(name)
   await runUserSql(
     accessToken, ref,
     `insert into public._openthorn_migrations (name, checksum) values ('${name}', '${checksum}');`,
