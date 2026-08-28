@@ -65,7 +65,7 @@ export class ModelSelectorDropdown {
     popover.className = 'model-selector-dropdown';
     popover.style.cssText = `
       display: flex;
-      width: min(520px, calc(100vw - 16px));
+      width: min(600px, calc(100vw - 16px));
       max-height: 70vh;
       background: #0a0a0b;
       border: 1px solid rgba(255,255,255,0.08);
@@ -96,15 +96,41 @@ export class ModelSelectorDropdown {
   _positionPopover() {
     if (!this._popover || !this.anchorBtn) return;
     const rect = this.anchorBtn.getBoundingClientRect();
-    const popoverHeight = this._popover.offsetHeight || 360;
-    let top = rect.top + window.scrollY - popoverHeight - 8;
-    let left = rect.left + window.scrollX;
+    const popoverWidth = Math.min(600, window.innerWidth - 16);
+    const popoverHeight = this._popover.offsetHeight || 400;
+    const gap = 8;
+    const viewportTop = 8;
+    const viewportBottom = window.innerHeight - 8;
 
-    if (top < 8) {
-      top = rect.bottom + window.scrollY + 8;
+    // Calculate available space above and below the anchor
+    const spaceAbove = rect.top;
+    const spaceBelow = window.innerHeight - rect.bottom;
+
+    let top;
+    // Prefer opening above if there's enough space, otherwise below
+    if (spaceAbove >= popoverHeight + gap) {
+      // Position above the anchor
+      top = rect.top + window.scrollY - popoverHeight - gap;
+    } else {
+      // Position below the anchor
+      top = rect.bottom + window.scrollY + gap;
     }
 
-    const popoverWidth = 520;
+    // Clamp top to ensure it doesn't go above viewport (behind top bar)
+    const scrollTop = window.scrollY || window.pageYOffset;
+    if (top < scrollTop + viewportTop) {
+      top = scrollTop + viewportTop;
+    }
+
+    // Ensure the bottom of the popover doesn't extend past viewport
+    if (top + popoverHeight > scrollTop + viewportBottom) {
+      top = scrollTop + viewportBottom - popoverHeight;
+    }
+
+    // Horizontal positioning: align with anchor left edge
+    let left = rect.left + window.scrollX;
+
+    // Clamp left to ensure it doesn't go off the right side
     left = Math.max(8, Math.min(left, window.innerWidth - popoverWidth - 8));
 
     this._popover.style.position = 'absolute';

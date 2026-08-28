@@ -181,8 +181,8 @@ export function renderProviderSidebar(availableProviders, selectedProvider, onSe
     ? 'bg-white/10 text-yellow-400 border-yellow-500/30 shadow-md scale-105'
     : 'bg-white/[0.02] text-white/50 border-white/[0.03] hover:bg-white/5 hover:text-white';
 
-  let html = `<div class="flex flex-col gap-2.5 items-center pr-2 border-r border-white/5 shrink-0 select-none overflow-y-auto custom-scrollbar w-14 pt-0.5">`;
-  html += `<button type="button" data-provider="all" class="w-8 h-8 rounded-full flex items-center justify-center border transition-all flex-shrink-0 cursor-pointer ${allClasses}" title="All Providers"><svg width="15" height="15" viewBox="0 0 24 24" fill="${allSelected ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg></button>`;
+  let html = `<div class="flex flex-col gap-2.5 items-center pr-2.5 border-r border-white/5 shrink-0 select-none overflow-y-auto custom-scrollbar w-18 pt-0.5">`;
+  html += `<button type="button" data-provider="all" class="w-10 h-10 rounded-lg flex items-center justify-center border transition-all flex-shrink-0 cursor-pointer ${allClasses}" title="All Providers"><svg width="18" height="18" viewBox="0 0 24 24" fill="${allSelected ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg></button>`;
 
   for (const p of availableProviders) {
     const style = getProviderStyle(p.id);
@@ -193,7 +193,7 @@ export function renderProviderSidebar(availableProviders, selectedProvider, onSe
       ? `${style.bg} border-white/25 scale-105 shadow-md`
       : 'bg-white/[0.02] text-white/40 border-white/[0.02] hover:bg-white/5 hover:text-white/80';
 
-    html += `<button type="button" data-provider="${p.id}" class="w-8 h-8 flex-shrink-0 rounded-full flex items-center justify-center font-black text-[10px] border transition-all flex-shrink-0 cursor-pointer overflow-hidden ${itemClasses}" title="${p.name}">`;
+    html += `<button type="button" data-provider="${p.id}" class="w-10 h-10 flex-shrink-0 rounded-lg flex items-center justify-center font-black text-[11px] border transition-all flex-shrink-0 cursor-pointer overflow-hidden ${itemClasses}" title="${p.name}">`;
     if (hasLogo) {
       const invertClass = invertLogos.includes(p.id) ? 'invert' : '';
       const sidebarBadge = LOGO_FALLBACK_HTML(p.id, getProviderStyle(p.id).text).replace(/'/g, "&#39;");
@@ -242,8 +242,8 @@ export function renderModelRow(model, opts = {}) {
   const hasLogo = Boolean(logoUrl);
   const modelBadge = LOGO_FALLBACK_HTML(model.provider, getProviderStyle(model.provider).text).replace(/'/g, "&#39;");
   const iconHtml = hasLogo
-    ? `<div class="w-8 h-8 rounded-full border border-white/5 overflow-hidden shrink-0 flex items-center justify-center bg-white/[0.02]"><img src="${logoUrl}" alt="${model.provider_name || ''}" class="w-full h-full object-contain p-1 ${invertLogos.includes(model.provider) ? 'invert' : ''}" onerror="this.outerHTML='${modelBadge}'" /></div>`
-    : `<div class="w-8 h-8 rounded-full border border-white/5 flex items-center justify-center font-bold text-xs shadow-inner uppercase ${(model.family === 'kontext' ? 'bg-blue-500/10 text-blue-400 border-blue-500/10' : model.family === 'effects' ? 'bg-purple-500/10 text-purple-400 border-purple-500/10' : 'bg-primary/10 text-primary border-primary/10')}">${(model.name || model.id).charAt(0)}</div>`;
+    ? `<div class="w-10 h-10 rounded-lg border border-white/5 overflow-hidden shrink-0 flex items-center justify-center bg-white/[0.02]"><img src="${logoUrl}" alt="${model.provider_name || ''}" class="w-full h-full object-contain p-1.5 ${invertLogos.includes(model.provider) ? 'invert' : ''}" onerror="this.outerHTML='${modelBadge}'" /></div>`
+    : `<div class="w-10 h-10 rounded-lg border border-white/5 flex items-center justify-center font-bold text-xs shadow-inner uppercase ${(model.family === 'kontext' ? 'bg-blue-500/10 text-blue-400 border-blue-500/10' : model.family === 'effects' ? 'bg-purple-500/10 text-purple-400 border-purple-500/10' : 'bg-primary/10 text-primary border-primary/10')}">${(model.name || model.id).charAt(0)}</div>`;
 
   const providerLabel = showProviderName && model.provider_name
     ? `<span class="text-[9px] text-white/40">${model.provider_name}</span>`
@@ -282,7 +282,7 @@ export function renderModelList(models, selectedModelId, showProviderName, onSel
 // Keeping this in one place guarantees the Image Studio / Video Studio /
 // Audio Studio / Influencer Studio pickers all render identically.
 export const MODEL_SELECTOR_PANEL_CLASS =
-  'flex gap-4 h-full max-h-[70vh] min-h-[350px] overflow-hidden';
+  'flex gap-5 h-full max-h-[70vh] min-h-[350px] overflow-hidden';
 
 // Build the split-pane panel and wire its interactions. Returns an object with
 // the `root` element and a `refresh()` method so callers can re-render without

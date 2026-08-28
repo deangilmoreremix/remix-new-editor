@@ -13,6 +13,7 @@
  */
 
 import { fileTypeFromBlob } from 'file-type';
+import { UPLOAD_LIMITS, UPLOAD_MIME_TYPES, UPLOAD_EXTENSIONS, categoryFromMimeType, getUploadLimit } from './uploadLimits.js';
 
 const COMMON_MIME_TYPES = {
   // images
@@ -48,81 +49,55 @@ function lookupMimeType(ext) {
 
 // ============================================================================
 // FILE TYPE CONFIGURATIONS (max sizes, icons, colors)
+// Sizes sourced from uploadLimits.js — single source of truth
 // ============================================================================
 
 export const FILE_TYPE_CONFIG = {
   video: {
     label: 'Video',
-    extensions: ['mp4', 'mov', 'avi', 'mkv', 'webm', 'm4v', 'flv', 'wmv', '3gp', 'ogv'],
-    mimeTypes: [
-      'video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/x-matroska',
-      'video/webm', 'video/x-flv', 'video/x-ms-wmv', 'video/3gpp', 'video/ogg',
-      'video/x-m4v'
-    ],
-    maxSize: 50 * 1024 * 1024, // MuAPI 50MB video limit
+    extensions: UPLOAD_EXTENSIONS.video,
+    mimeTypes: UPLOAD_MIME_TYPES.video,
+    maxSize: UPLOAD_LIMITS.video,
     icon: '🎥',
     color: '#ff6b6b'
   },
   audio: {
     label: 'Audio',
-    extensions: ['mp3', 'wav', 'aac', 'ogg', 'flac', 'm4a', 'opus', 'wma', 'aiff', 'aif'],
-    mimeTypes: [
-      'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/wave', 'audio/aac',
-      'audio/ogg', 'audio/flac', 'audio/mp4', 'audio/x-m4a', 'audio/opus',
-      'audio/x-ms-wma', 'audio/aiff', 'audio/x-aiff'
-    ],
-    maxSize: 10 * 1024 * 1024, // MuAPI "Others" 10MB limit
+    extensions: UPLOAD_EXTENSIONS.audio,
+    mimeTypes: UPLOAD_MIME_TYPES.audio,
+    maxSize: UPLOAD_LIMITS.audio,
     icon: '🎵',
     color: '#4ecdc4'
   },
   image: {
     label: 'Image',
-    extensions: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'tiff', 'heic', 'avif'],
-    mimeTypes: [
-      'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
-      'image/bmp', 'image/tiff', 'image/heic', 'image/heif', 'image/avif',
-      'image/x-icon'
-    ],
-    maxSize: 10 * 1024 * 1024, // MuAPI 10MB image limit
+    extensions: UPLOAD_EXTENSIONS.image,
+    mimeTypes: UPLOAD_MIME_TYPES.image,
+    maxSize: UPLOAD_LIMITS.image,
     icon: '🖼️',
     color: '#45b7d1'
   },
   text: {
     label: 'Text',
-    extensions: ['txt', 'md', 'json', 'csv', 'xml', 'html', 'htm', 'srt', 'vtt', 'ass'],
-    mimeTypes: [
-      'text/plain', 'text/markdown', 'application/json', 'text/csv',
-      'application/xml', 'text/xml', 'text/html', 'application/x-subrip',
-      'text/vtt', 'text/srt'
-    ],
-    maxSize: 10 * 1024 * 1024, // 10MB
+    extensions: UPLOAD_EXTENSIONS.text,
+    mimeTypes: UPLOAD_MIME_TYPES.text,
+    maxSize: UPLOAD_LIMITS.text,
     icon: '📄',
     color: '#96ceb4'
   },
   document: {
     label: 'Document',
-    extensions: ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'],
-    mimeTypes: [
-      'application/pdf', 'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'application/vnd.ms-powerpoint',
-      'application/vnd.openxmlformats-officedocument.presentationml.presentation'
-    ],
-    maxSize: 10 * 1024 * 1024, // MuAPI "Others" 10MB limit
+    extensions: UPLOAD_EXTENSIONS.document,
+    mimeTypes: UPLOAD_MIME_TYPES.document,
+    maxSize: UPLOAD_LIMITS.document,
     icon: '📑',
     color: '#f7b731'
   },
   archive: {
     label: 'Archive',
-    extensions: ['zip', 'rar', '7z', 'tar', 'gz', 'bz2'],
-    mimeTypes: [
-      'application/zip', 'application/x-zip-compressed', 'application/x-rar-compressed',
-      'application/x-7z-compressed', 'application/gzip', 'application/x-tar',
-      'application/x-bzip2'
-    ],
-    maxSize: 10 * 1024 * 1024, // MuAPI "Others" limit
+    extensions: UPLOAD_EXTENSIONS.archive,
+    mimeTypes: UPLOAD_MIME_TYPES.archive,
+    maxSize: UPLOAD_LIMITS.archive,
     icon: '🗜️',
     color: '#a78bfa'
   }
