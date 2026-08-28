@@ -106,7 +106,7 @@ export async function listRenderQueue() {
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
-    if (!error && data) {
+    if (!error && Array.isArray(data)) {
       return data.map((q) => ({
         id: q.id,
         videoUrl: q.video_url,
@@ -125,7 +125,8 @@ export async function listRenderQueue() {
   // Fallback: localStorage
   try {
     migrate();
-    return JSON.parse(localStorage.getItem(STORE_KEY) || '[]');
+    const raw = JSON.parse(localStorage.getItem(STORE_KEY) || '[]');
+    return Array.isArray(raw) ? raw : [];
   } catch {
     return [];
   }
@@ -150,7 +151,7 @@ export async function enqueueRender(job) {
 
     if (!error && data) {
       // Also add to localStorage for immediate UI consistency
-      const queue = listRenderQueue();
+      const queue = Array.isArray(await listRenderQueue()) ? await listRenderQueue() : [];
       queue.push({
         id: data.id,
         videoUrl: data.video_url,
@@ -166,7 +167,7 @@ export async function enqueueRender(job) {
   }
 
   // Fallback: localStorage
-  const queue = listRenderQueue();
+  const queue = Array.isArray(await listRenderQueue()) ? await listRenderQueue() : [];
   const entry = {
     id: crypto.randomUUID(),
     timestamp: Date.now(),
@@ -191,8 +192,9 @@ export async function removeFromRenderQueue(id) {
   }
 
   // Also remove from localStorage
-  const queue = listRenderQueue().filter((entry) => entry.id !== id);
-  updateQueue(queue);
+  const queue = Array.isArray(await listRenderQueue()) ? await listRenderQueue() : [];
+  const filtered = queue.filter((entry) => entry.id !== id);
+  updateQueue(filtered);
 }
 
 export function clearRenderQueue() {
