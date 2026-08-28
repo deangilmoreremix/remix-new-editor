@@ -7,6 +7,7 @@ import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCa
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { createStudioButton } from '../lib/studioButton.js';
 
 export function AudioStudio() {
   const container = document.createElement('div');
@@ -139,9 +140,7 @@ export function AudioStudio() {
   formCard.appendChild(durationGroup);
 
   // Generate button
-  const genBtn = document.createElement('button');
-  genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all';
-  genBtn.textContent = 'Generate Audio';
+  const genBtn = createStudioButton({ text: 'Generate Audio', emoji: '🎵', variant: 'primary' });
 
   // Thumbnail studio button — next to creation controls, GTM Boost styling
   const thumbBtn = document.createElement('button');
@@ -247,7 +246,7 @@ export function AudioStudio() {
               <source src="${result.url}" type="audio/mpeg">
               Your browser does not support the audio element.
             </audio>
-            <a href="${result.url}" download class="block w-full bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download Audio</a>
+             <a href="${result.url}" download class="btn-primary-sm block w-full text-center">📥 Download Audio</a>
           </div>
         `;
       }

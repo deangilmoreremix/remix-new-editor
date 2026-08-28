@@ -7,6 +7,7 @@ import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/pe
 import { openaiService } from '../lib/openaiService.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { createStudioButton } from '../lib/studioButton.js';
 
 const SHOT_TYPES = ['Wide Shot', 'Medium Shot', 'Close-Up', 'Extreme Close-Up', 'POV', 'Overhead', 'Low Angle'];
 const LAYOUTS = ['Horizontal', 'Grid', 'Story'];
@@ -71,9 +72,7 @@ export function StoryboardStudio() {
   };
   controlBar.appendChild(addFrameBtn);
 
-  const genAllBtn = document.createElement('button');
-  genAllBtn.className = 'px-4 py-2 bg-primary text-black rounded-xl text-xs font-bold hover:shadow-glow transition-all';
-  genAllBtn.textContent = 'Generate All Frames';
+  const genAllBtn = createStudioButton({ text: 'Generate All Frames', emoji: '🎞️', variant: 'primary', className: 'px-4 py-2 w-auto' });
   controlBar.appendChild(genAllBtn);
 
   // Premium GTM Boost entry point — opens the cinematic prompt enhancer.

@@ -41,6 +41,7 @@ const STUDIO_LOADERS = {
   'upscale-page': () => import('./UpscalePage.js').then(m => m.UpscalePage()),
   assist: () => import('./AssistPage.js').then(m => m.AssistPage()),
   smartvideo: () => import('./SmartVideoStudio.js').then(m => m.SmartVideoStudio()),
+  viral: () => import('./SmartVideoViral.js').then(m => m.SmartVideoViral()),
   brightbean: () => import('./SmartVideoScheduler.js').then(m => m.SmartVideoScheduler()),
 }
 

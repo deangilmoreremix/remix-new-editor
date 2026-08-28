@@ -6,6 +6,7 @@ import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { createStudioButton } from '../lib/studioButton.js';
 
 const UPSCALE_METHODS = [
   { id: 'ai-image-upscaler', name: 'AI Upscaler', description: 'General-purpose AI upscaling with 2x/4x factor', factors: ['2', '4'] },
@@ -105,9 +106,8 @@ export function UpscaleStudio() {
   });
   formCard.appendChild(thumbBtn);
 
-  const genBtn = document.createElement('button');
-  genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all';
-  genBtn.textContent = 'Upscale Image';
+  const genBtn = createStudioButton({ text: 'Upscale Image', emoji: '🔍', variant: 'primary' });
+  genBtn.className = genBtn.className.replace('w-full sm:w-auto', 'w-full');
   formCard.appendChild(genBtn);
   container.appendChild(formCard);
 
@@ -160,7 +160,7 @@ export function UpscaleStudio() {
         resultArea.innerHTML = `
           <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4">
             <img src="${result.url}" class="w-full rounded-xl mb-3">
-            <a href="${result.url}" download class="block w-full bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
+             <a href="${result.url}" download class="btn-primary-sm block w-full text-center">📥 Download</a>
           </div>
         `;
       }

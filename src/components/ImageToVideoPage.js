@@ -75,8 +75,8 @@ export function ImageToVideoPage() {
           <h2 class="text-xl font-black text-white">Animate Any Image</h2>
           <p class="text-sm text-muted">Transform still images into stunning animated videos</p>
         </div>
-        <button class="start-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all whitespace-nowrap">
-          Animate Your Images
+        <button class="start-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all btn-generate whitespace-nowrap">
+          🖼️ Animate Your Images
         </button>
       </div>
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -132,9 +132,9 @@ export function ImageToVideoPage() {
     <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-8 md:p-10 shadow-3xl text-center">
       <h2 class="text-2xl font-black text-white mb-2">Bring Images to Life</h2>
       <p class="text-muted mb-6 max-w-md mx-auto">Start animating your images with powerful AI models</p>
-      <button class="cta-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all">
-        Get Started Free
-      </button>
+<button class="cta-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all btn-generate">
+          ✨ Get Started Free
+        </button>
     </div>
   `;
 

@@ -72,7 +72,7 @@ export function ImageToImagePage() {
     <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl mb-6 text-center">
       <h2 class="text-2xl font-black text-white mb-2">Ready to Transform?</h2>
       <p class="text-white/60 text-sm mb-5">Start editing your images with powerful AI models</p>
-      <button class="cta-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all">Get Started Free</button>
+      <button class="cta-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all btn-generate">✨ Get Started Free</button>
     </div>
 
     <!-- Features Section -->
@@ -128,7 +128,7 @@ export function ImageToImagePage() {
     <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl text-center">
       <h2 class="text-xl font-black text-white mb-2">Start Editing Now</h2>
       <p class="text-sm text-white/60 mb-5">Upload an image and let AI transform it</p>
-      <button class="start-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all">Start Editing</button>
+      <button class="start-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all btn-generate">✨ Start Editing</button>
     </div>
   `;
 

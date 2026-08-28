@@ -6,6 +6,7 @@ import { createUploadPicker } from './UploadPicker.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { createStudioButton } from '../lib/studioButton.js';
 
 const STYLE_PRESETS = [
   'Realistic', 'DigitalCam', 'Quiet luxury', 'FashionShow', '90s Grain', 'Sunset beach',
@@ -171,9 +172,8 @@ export function InfluencerStudio() {
   });
   formCard.appendChild(thumbBtn);
 
-  const genBtn = document.createElement('button');
-  genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all mt-2';
-  genBtn.textContent = 'Generate Content';
+  const genBtn = createStudioButton({ text: 'Generate Content', emoji: '✨', variant: 'primary' });
+  genBtn.className = genBtn.className.replace('w-full sm:w-auto', 'w-full');
   formCard.appendChild(genBtn);
   container.appendChild(formCard);
 
@@ -207,8 +207,8 @@ export function InfluencerStudio() {
           <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4 animate-fade-in-up">
             <img src="${result.url}" class="w-full rounded-xl mb-3">
             <div class="flex gap-3">
-              <a href="${result.url}" download class="flex-1 bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
-              <button class="flex-1 bg-white/10 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-white/20 transition-all regen-btn">Generate Again</button>
+               <a href="${result.url}" download class="btn-primary-sm flex-1 text-center">📥 Download</a>
+               <button class="flex-1 bg-white/10 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-white/20 transition-all regen-btn">🔄 Generate Again</button>
             </div>
           </div>
         `;

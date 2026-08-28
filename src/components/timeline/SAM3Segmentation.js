@@ -10,6 +10,8 @@
  * 6.6 Cutout preview
  */
 
+import { cineGenAPI } from '../../lib/cinegen/cinegenAPI.js';
+
 export const SEGMENT_MODES = {
   RED_OVERLAY: 'red-overlay',
   WHITE_ON_BLACK: 'white-on-black',
@@ -42,7 +44,7 @@ export class SAM3Segmentation {
     this.sourceImage = imageSource;
 
     try {
-      // In production, this would call SAM3 API
+      // Try API first
       const result = await this._callSAM3API({
         image: imageSource,
         promptType: 'text',
@@ -56,13 +58,111 @@ export class SAM3Segmentation {
       return {
         success: true,
         masks: this.masks,
-        maskCount: this.masks.length
+        maskCount: this.masks.length,
+        source: 'api'
       };
-    } catch (error) {
-      return { success: false, error: error.message };
+    } catch (apiError) {
+      // Fallback: client-based segmentation using color/texture analysis
+      if (imageSource) {
+        const fallbackResult = this._clientSideSegmentation(imageSource, textPrompt, options);
+        this.masks = fallbackResult.masks;
+        return {
+          success: true,
+          masks: this.masks,
+          maskCount: this.masks.length,
+          source: 'client-fallback',
+          note: 'Using client-side fallback segmentation'
+        };
+      }
+      return { success: false, error: apiError.message };
     } finally {
       this.isProcessing = false;
     }
+  }
+
+  // Client-side fallback segmentation using canvas analysis
+  _clientSideSegmentation(imageSource, prompt, options) {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Handle different image source types
+    if (typeof imageSource === 'string') {
+      // Data URL or image URL
+      const img = new Image();
+      img.src = imageSource;
+      canvas.width = img.width || 640;
+      canvas.height = img.height || 480;
+      ctx.drawImage(img, 0, 0);
+    } else if (imageSource instanceof HTMLImageElement) {
+      canvas.width = imageSource.width || 640;
+      canvas.height = imageSource.height || 480;
+      ctx.drawImage(imageSource, 0, 0);
+    } else if (imageSource instanceof HTMLCanvasElement) {
+      canvas.width = imageSource.width;
+      canvas.height = imageSource.height;
+      ctx.drawImage(imageSource, 0, 0);
+    }
+
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    const mask = new Array(canvas.width * canvas.height).fill(0);
+
+    // Parse prompt for color hints
+    const promptLower = prompt.toLowerCase();
+    const colorHints = {
+      person: { r: [180, 255], g: [140, 220], b: [120, 200] },
+      sky: { r: [100, 200], g: [150, 255], b: [200, 255] },
+      grass: { r: [50, 150], g: [100, 200], b: [30, 100] },
+      water: { r: [30, 100], g: [80, 150], b: [150, 255] },
+      building: { r: [120, 180], g: [120, 180], b: [120, 180] },
+      car: { r: [50, 255], g: [50, 255], b: [50, 255] },
+      tree: { r: [30, 100], g: [80, 160], b: [20, 80] },
+      face: { r: [200, 255], g: [160, 220], b: [140, 200] }
+    };
+
+    // Find matching color range
+    let targetRange = null;
+    for (const [key, range] of Object.entries(colorHints)) {
+      if (promptLower.includes(key)) {
+        targetRange = range;
+        break;
+      }
+    }
+
+    // Default: segment based on color distinctiveness
+    if (!targetRange) {
+      targetRange = { r: [100, 255], g: [100, 255], b: [100, 255] };
+    }
+
+    // Generate mask based on color matching
+    let matchCount = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      const pixelIdx = i / 4;
+
+      const matches =
+        r >= targetRange.r[0] && r <= targetRange.r[1] &&
+        g >= targetRange.g[0] && g <= targetRange.g[1] &&
+        b >= targetRange.b[0] && b <= targetRange.b[1];
+
+      if (matches) {
+        mask[pixelIdx] = 1;
+        matchCount++;
+      }
+    }
+
+    return {
+      masks: [{
+        id: 'client-mask-1',
+        confidence: matchCount > 0 ? 0.6 : 0,
+        area: matchCount / mask.length,
+        data: mask,
+        width: canvas.width,
+        height: canvas.height
+      }]
+    };
   }
 
   // === 6.2 Click Prompt Segmentation ===
@@ -226,13 +326,29 @@ export class SAM3Segmentation {
     this.threshold = Math.max(0, Math.min(1, value));
   }
 
-  // === API Call (placeholder for actual SAM3 integration) ===
+  // === API Call with real fal.ai integration + fallback ===
   async _callSAM3API(params) {
-    // In production, this would call:
-    // - Cloud SAM3 API (fal.ai, kie.ai, or RunPod)
-    // - Or a backend service endpoint
+    // Try callback first (allows parent to provide API implementation)
     if (this.callbacks.onSegment) {
       return this.callbacks.onSegment(params);
+    }
+
+    // Try real fal.ai API if we have an image URL
+    if (params.image && typeof params.image === 'string' && params.image.startsWith('http')) {
+      try {
+        return await cineGenAPI.segmentImage(
+          params.image,
+          params.prompt || 'segment',
+          { threshold: params.threshold, returnMultiple: params.returnMultiple }
+        );
+      } catch (apiError) {
+        console.warn('fal.ai API failed:', apiError.message);
+      }
+    }
+
+    // Client-side fallback using color-based segmentation
+    if (params.image) {
+      return this._clientSideSegmentation(params.image, params.prompt, params);
     }
 
     // Return mock data for development

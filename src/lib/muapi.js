@@ -939,6 +939,57 @@ export class MuapiClient {
         }
     }
 
+    async generateAICaptions(params, signal) {
+        const endpoint = 'ai-captions';
+        const finalPayload = {};
+
+        if (params.video_url) finalPayload.video_url = params.video_url;
+        if (params.language) finalPayload.language = params.language;
+        if (params.theme) finalPayload.theme = params.theme;
+
+        try {
+            const response = await fetch(this.proxyUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    endpoint,
+                    params: finalPayload,
+                    generationType: 'ai-captions',
+                    studioType: 'video-tools'
+                }),
+                signal
+            });
+
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(`API Request Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
+            }
+
+            const submitData = await response.json();
+            this.validateResponse(submitData, 'submit');
+
+            const requestId = submitData.request_id || submitData.id;
+            if (!requestId) return submitData;
+
+            const result = await this.pollForResult(requestId, 120, 2000, signal);
+            const captionUrls = Array.isArray(result.outputs) ? result.outputs : [];
+            const captionUrl = captionUrls[0] || result.url || result.output?.url;
+            const status = result.status ? String(result.status).toLowerCase() : '';
+            if (status && ['failed', 'error'].includes(status)) {
+                const errMsg = result.error || 'AI captions generation failed';
+                const err = new Error(errMsg);
+                err.status = result.status;
+                err.requestId = requestId;
+                err.result = result;
+                throw err;
+            }
+            return { ...result, url: captionUrl, outputs: captionUrls, request_id: requestId };
+        } catch (error) {
+            if (error.name === 'AbortError') throw new Error('Request cancelled by user');
+            throw error;
+        }
+    }
+
     getDimensionsFromAR(ar) {
         switch (ar) {
             case '1:1': return [1024, 1024];

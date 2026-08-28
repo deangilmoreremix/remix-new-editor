@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Smart Video Lead Finder</title>
+<link rel="stylesheet" href="/src/style.css">
+</head>
+<body class="bg-app-bg">
+<div id="preview" class="w-screen h-screen"></div>
+<script type="module">
+import { LeadFinderStudio } from '/src/components/LeadFinderStudio.js';
+const el = LeadFinderStudio();
+document.getElementById('preview').appendChild(el);
+</script>
+</body>
+</html>

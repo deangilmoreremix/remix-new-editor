@@ -108,21 +108,117 @@ export class ExportRendering {
   _renderFrameAtTime(ctx, time, resolution) {
     // Composite visible clips at the given time
     const tracks = this.state.tracks || [];
-    for (const track of tracks) {
+    const totalDuration = this.state.timelineSeconds || 60;
+
+    // Sort tracks by z-order (video tracks first, then overlays)
+    const sortedTracks = [...tracks].sort((a, b) => {
+      const order = { video: 0, 'b-roll': 1, overlay: 2, text: 3, effects: 4, audio: 5 };
+      return (order[a.type] || 9) - (order[b.type] || 9);
+    });
+
+    for (const track of sortedTracks) {
       if (track.visible === false) continue;
+
       for (const clip of track.clips || []) {
-        const clipStart = (clip.left / 100) * (this.state.timelineSeconds || 60);
-        const clipEnd = clipStart + (clip.width / 100) * (this.state.timelineSeconds || 60);
+        const clipStart = (clip.left / 100) * totalDuration;
+        const clipDuration = (clip.width / 100) * totalDuration;
+        const clipEnd = clipStart + clipDuration;
+
         if (time >= clipStart && time <= clipEnd) {
-          // Draw clip representation
-          ctx.fillStyle = this._getTrackColor(track.type);
-          ctx.globalAlpha = (clip.opacity || 1) * 0.5;
-          const x = ((time - clipStart) / (clipEnd - clipStart)) * resolution.width;
-          ctx.fillRect(x - 2, 0, 4, resolution.height);
-          ctx.globalAlpha = 1;
+          this._drawClipFrame(ctx, clip, track, time, clipStart, clipDuration, resolution);
         }
       }
     }
+
+    // Draw timecode overlay
+    this._drawTimecode(ctx, time, resolution);
+  }
+
+  _drawClipFrame(ctx, clip, track, time, clipStart, clipDuration, resolution) {
+    const progress = (time - clipStart) / clipDuration;
+    const opacity = clip.opacity || 1;
+
+    ctx.globalAlpha = opacity;
+
+    if (track.type === 'video' || track.type === 'image') {
+      // Draw video/image clip with frame representation
+      const gradient = ctx.createLinearGradient(0, 0, resolution.width, resolution.height);
+      gradient.addColorStop(0, this._getTrackColor(track.type));
+      gradient.addColorStop(1, this._adjustColor(this._getTrackColor(track.type), -30));
+      ctx.fillStyle = gradient;
+
+      // Draw with slight border for clip boundaries
+      ctx.fillRect(0, 0, resolution.width, resolution.height);
+
+      // Draw clip name
+      ctx.fillStyle = 'rgba(255,255,255,0.8)';
+      ctx.font = 'bold 24px sans-serif';
+      ctx.fillText(clip.name || 'Untitled', 20, 40);
+
+      // Draw progress bar
+      ctx.fillStyle = 'rgba(255,255,255,0.3)';
+      ctx.fillRect(0, resolution.height - 4, resolution.width, 4);
+      ctx.fillStyle = '#3b82f6';
+      ctx.fillRect(0, resolution.height - 4, resolution.width * progress, 4);
+
+    } else if (track.type === 'text') {
+      // Draw text overlay
+      ctx.fillStyle = clip.color || '#ffffff';
+      ctx.font = `bold ${clip.fontSize || 32}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.fillText(clip.text || clip.name || '', resolution.width / 2, resolution.height / 2);
+      ctx.textAlign = 'left';
+
+    } else if (track.type === 'audio') {
+      // Draw audio waveform representation
+      this._drawAudioWaveform(ctx, clip, time, clipStart, clipDuration, resolution);
+
+    } else {
+      // Generic clip representation
+      ctx.fillStyle = this._getTrackColor(track.type);
+      ctx.globalAlpha = opacity * 0.3;
+      ctx.fillRect(0, 0, resolution.width, resolution.height);
+    }
+
+    ctx.globalAlpha = 1;
+  }
+
+  _drawAudioWaveform(ctx, clip, time, clipStart, clipDuration, resolution) {
+    const progress = (time - clipStart) / clipDuration;
+    const barCount = 50;
+    const barWidth = resolution.width / barCount;
+
+    ctx.fillStyle = '#10b981';
+    for (let i = 0; i < barCount; i++) {
+      const barProgress = i / barCount;
+      const height = Math.sin(barProgress * Math.PI * 4 + progress * Math.PI * 2) * 30 + 40;
+      const x = i * barWidth;
+      const y = (resolution.height - height) / 2;
+      ctx.globalAlpha = barProgress <= progress ? 0.8 : 0.3;
+      ctx.fillRect(x, y, barWidth - 2, height);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  _drawTimecode(ctx, time, resolution) {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    const frames = Math.floor((time % 1) * 30);
+    const tc = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}:${String(frames).padStart(2, '0')}`;
+
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillRect(resolution.width - 120, resolution.height - 35, 110, 28);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '14px monospace';
+    ctx.fillText(tc, resolution.width - 110, resolution.height - 15);
+  }
+
+  _adjustColor(hex, amount) {
+    const num = parseInt(hex.replace('#', ''), 16);
+    const r = Math.max(0, Math.min(255, ((num >> 16) & 0xff) + amount));
+    const g = Math.max(0, Math.min(255, ((num >> 8) & 0xff) + amount));
+    const b = Math.max(0, Math.min(255, (num & 0xff) + amount));
+    return `rgb(${r},${g},${b})`;
   }
 
   _getTrackColor(type) {

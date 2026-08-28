@@ -251,6 +251,50 @@ export default defineConfig(({ mode, isSsrBuild }) => {
               return sendJson(res, msg === 'BACKEND_NOT_CONNECTED' ? 400 : 500, { error: msg })
             }
           })
+
+          server.middlewares.use('/api/generate', async (req, res) => {
+            if (req.method !== 'POST') return sendJson(res, 405, { error: 'Method not allowed' })
+            const user = await verifyUser(req.headers.authorization)
+            if (!user) return sendJson(res, 401, { error: 'Unauthorized' })
+            if (!(await rateLimit(`generate:${user.id}`, 10, 60_000))) return sendJson(res, 429, { error: 'Too many generation requests' })
+            const body = await readJsonBody<{ provider?: string; model?: string; inputs?: Record<string, unknown> }>(req)
+            if (!body.provider || !body.model) return sendJson(res, 400, { error: 'Missing provider or model' })
+            try {
+              const { getModelRegistry } = await import('../src/lib/ai/ModelRegistry.ts')
+              const { getGenerationGateway } = await import('../src/lib/ai/GenerationGateway.ts')
+              const registry = getModelRegistry()
+              const gateway = getGenerationGateway()
+              const modelDef = await registry.getModel(body.provider, body.model)
+              if (!modelDef) return sendJson(res, 404, { error: `Model not found: ${body.model}` })
+              if (!modelDef.enabled) return sendJson(res, 403, { error: `Model is not enabled: ${body.model}` })
+              const inputs = (body.inputs && typeof body.inputs === 'object') ? body.inputs : {}
+              const result = await gateway.submitGeneration({ provider: body.provider, model: body.model, inputs }, { user } as any)
+              sendJson(res, 200, { requestId: result.requestId, status: result.status })
+            } catch (err) {
+              sendJson(res, 500, { error: err instanceof Error ? err.message : 'Generation failed' })
+            }
+          })
+
+          server.middlewares.use('/api/model-registry', async (req, res) => {
+            if (req.method !== 'GET') return sendJson(res, 405, { error: 'Method not allowed' })
+            const user = await verifyUser(req.headers.authorization)
+            if (!(await rateLimit(`model-registry:${user?.id || 'anon'}`, 100, 60_000))) return sendJson(res, 429, { error: 'Too many requests' })
+            try {
+              const url = new URL(req.url || '', 'http://localhost')
+              const studio = url.searchParams.get('studio') || undefined
+              const category = url.searchParams.get('category') || undefined
+              const enabled = url.searchParams.get('enabled') !== 'false'
+              const { getModelRegistry } = await import('../src/lib/ai/ModelRegistry.ts')
+              const registry = getModelRegistry()
+              const filters: Record<string, unknown> = { enabled }
+              if (studio) filters.studios = [studio]
+              if (category) filters.category = category
+              const models = await registry.listModels(filters)
+              sendJson(res, 200, { models })
+            } catch (err) {
+              sendJson(res, 500, { error: 'Failed to load model registry' })
+            }
+          })
         },
       },
     ],

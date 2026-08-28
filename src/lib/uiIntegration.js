@@ -755,3 +755,35 @@ async function openTextToSpeechFromSelection(state, showToast) {
   } catch (error) {
   }
 }
+
+/**
+ * Open the AI Captions Studio modal
+ * Shared utility for generating styled captioned videos via MuAPI.
+ * @param {string} appTheme - The app theme identifier for color customization
+ * @param {Object} [options] - Optional defaults
+ * @param {string} [options.videoUrl] - Pre-fill video URL
+ * @param {string} [options.language] - Pre-fill language
+ * @param {string} [options.theme] - Pre-fill caption theme
+ * @param {Function} [options.onCaptionsGenerated] - Callback with the result
+ * @returns {AICaptionsModal|null} The modal instance or null on error
+ */
+export async function openAICaptionsModal(appTheme = 'timeline-editor', options = {}) {
+  try {
+    const mod = await import('../components/modals/AICaptionsModal.jsx');
+    const { AICaptionsModal } = mod;
+
+    const modal = new AICaptionsModal({
+      appTheme,
+      videoUrl: options.videoUrl || '',
+      language: options.language || 'English',
+      theme: options.theme || 'Hormozi_1',
+      onCaptionsGenerated: options.onCaptionsGenerated || (() => {}),
+      onInsertIntoTimeline: options.onInsertIntoTimeline || null,
+    });
+    modal.open();
+    return modal;
+  } catch (error) {
+    console.error('AI Captions Modal error:', error);
+    return null;
+  }
+}

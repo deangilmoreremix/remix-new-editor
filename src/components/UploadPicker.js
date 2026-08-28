@@ -3,6 +3,7 @@ import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { AuthModal } from './AuthModal.js';
 import { getUploadHistory, saveUpload, removeUpload, generateThumbnail } from '../lib/uploadHistory.js';
 import { fetchUrlAsFile } from '../lib/editor/uploadPipeline.js';
+import { createStudioButton } from '../lib/studioButton.js';
 
 /**
  * Creates a self-contained upload picker: a trigger button + history panel.
@@ -215,10 +216,8 @@ export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImag
 
         // Done button (multi-select only)
         if (isMulti && selectedEntries.length > 0) {
-            const doneBtn = document.createElement('button');
+            const doneBtn = createStudioButton({ text: `✓ Done (${selectedEntries.length})`, variant: 'primary', className: 'text-xs py-1.5 px-3' });
             doneBtn.type = 'button';
-            doneBtn.className = 'flex items-center gap-1 px-3 py-1.5 bg-primary text-black rounded-xl text-xs font-black transition-all hover:scale-105';
-            doneBtn.innerHTML = `✓ Done (${selectedEntries.length})`;
             doneBtn.onclick = (e) => {
                 e.stopPropagation();
                 closePanel();
@@ -459,10 +458,7 @@ export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImag
             const bottomBar = document.createElement('div');
             bottomBar.className = 'mt-3 pt-3 border-t border-white/5 flex items-center justify-between';
             bottomBar.innerHTML = `<span class="text-xs text-secondary">${selectedEntries.length} of ${maxImages} selected</span>`;
-            const doneBtn2 = document.createElement('button');
-            doneBtn2.type = 'button';
-            doneBtn2.className = 'px-4 py-1.5 bg-primary text-black rounded-xl text-xs font-black transition-all hover:scale-105';
-            doneBtn2.textContent = 'Use Selected';
+            const doneBtn2 = createStudioButton({ text: 'Use Selected', variant: 'primary', className: 'text-xs py-1.5 px-4' });
             doneBtn2.onclick = (e) => {
                 e.stopPropagation();
                 closePanel();
@@ -511,10 +507,8 @@ export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImag
         input.className = 'upload-url-input flex-1 min-w-0 bg-black/30 border border-white/10 rounded-lg px-2.5 py-1.5 text-[12px] text-white placeholder:text-white/30 focus:outline-none focus:border-primary/50';
         row.appendChild(input);
 
-        const loadBtn = document.createElement('button');
+        const loadBtn = createStudioButton({ text: 'Load', emoji: '📥', variant: 'primary', className: 'text-[11px] py-1.5 px-3 rounded-lg hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed' });
         loadBtn.type = 'button';
-        loadBtn.className = 'px-3 py-1.5 bg-primary text-black rounded-lg text-[11px] font-black hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed';
-        loadBtn.textContent = 'Load';
         row.appendChild(loadBtn);
 
         const status = document.createElement('div');

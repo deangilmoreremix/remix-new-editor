@@ -59,9 +59,8 @@ export class EditPageFeatures {
     this.seekToFrame(Math.max(0, newTime));
   }
 
-  // === 4.3 Audio Sync ===
+  // === 4.3 Audio Sync (waveform-based) ===
   async syncAudioToVideo(audioClipId, videoClipId) {
-    // In production, this would analyze waveforms and align peaks
     const audioTrack = this.state.tracks?.find(t => t.type === 'audio');
     const videoTrack = this.state.tracks?.find(t => t.type === 'video');
 
@@ -76,9 +75,50 @@ export class EditPageFeatures {
       return { success: false, error: 'Clip not found' };
     }
 
-    // Align audio start to video start
+    // If audio buffer available, perform waveform analysis
+    if (audioClip.audioBuffer && videoClip.audioBuffer) {
+      const offset = this._calculateWaveformOffset(audioClip.audioBuffer, videoClip.audioBuffer);
+      audioClip.left = videoClip.left + (offset / (this.state.timelineSeconds || 60)) * 100;
+      audioClip.syncOffset = offset;
+      return { success: true, offset, method: 'waveform' };
+    }
+
+    // Fallback: align starts
     audioClip.left = videoClip.left;
-    return { success: true, offset: 0 };
+    return { success: true, offset: 0, method: 'align-start' };
+  }
+
+  _calculateWaveformOffset(audioBuffer, referenceBuffer) {
+    const audioData = audioBuffer.getChannelData(0);
+    const refData = referenceBuffer.getChannelData(0);
+
+    // Use cross-correlation to find best alignment
+    const maxLag = Math.min(audioData.length, refData.length, 44100); // Max 1 second lag
+    let bestOffset = 0;
+    let bestCorrelation = -Infinity;
+
+    // Sample at intervals for performance
+    const step = Math.floor(maxLag / 100);
+
+    for (let lag = -maxLag / 2; lag < maxLag / 2; lag += step) {
+      let correlation = 0;
+      const sampleSize = Math.min(44100, audioData.length, refData.length);
+
+      for (let i = 0; i < sampleSize; i++) {
+        const audioIdx = Math.floor(i + lag);
+        if (audioIdx >= 0 && audioIdx < audioData.length) {
+          correlation += audioData[audioIdx] * refData[i];
+        }
+      }
+
+      if (correlation > bestCorrelation) {
+        bestCorrelation = correlation;
+        bestOffset = lag;
+      }
+    }
+
+    // Convert sample offset to seconds
+    return bestOffset / audioBuffer.sampleRate;
   }
 
   // === 4.4 Batch Sync ===

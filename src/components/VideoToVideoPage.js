@@ -106,7 +106,7 @@ export function VideoToVideoPage() {
     <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl text-center">
       <h2 class="text-2xl md:text-3xl font-black text-white mb-2">Transform Your Videos</h2>
       <p class="text-sm text-muted mb-6 max-w-md mx-auto">Start editing your videos with powerful AI tools</p>
-      <button class="cta-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all">Get Started Free</button>
+      <button class="cta-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all btn-generate">🎬 Get Started Free</button>
     </div>
   `;
 

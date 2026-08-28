@@ -7,6 +7,7 @@ import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/Studio
 import { savePendingJob, removePendingJob, getPendingJobs } from '../lib/pendingJobs.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
+import { createStudioButton } from '../lib/studioButton.js';
 
 export function LipSyncStudio() {
     const container = document.createElement('div');
@@ -220,11 +221,10 @@ export function LipSyncStudio() {
     resolutionBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-primary"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg><span id="ls-resolution-btn-label">${selectedResolution}</span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted group-hover:text-white transition-colors"><polyline points="6 9 12 15 18 9"/></svg>`;
 
     // Generate button
-    const generateBtn = document.createElement('button');
+    const generateBtn = createStudioButton({ text: 'Generate', emoji: '✨', variant: 'primary' });
     generateBtn.id = 'ls-generate-btn';
     generateBtn.type = 'button';
-    generateBtn.className = 'ml-auto px-6 py-2.5 bg-primary text-black font-black text-sm rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-glow disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100';
-    generateBtn.textContent = 'Generate ✨';
+    generateBtn.setAttribute('data-tooltip', 'Generate lip-sync video');
 
     bottomRow.appendChild(modelBtn);
     bottomRow.appendChild(resolutionBtn);
@@ -612,17 +612,11 @@ export function LipSyncStudio() {
     const canvasControls = document.createElement('div');
     canvasControls.className = 'mt-6 flex gap-3 opacity-0 transition-opacity delay-500 duration-500 justify-center';
 
-    const regenerateBtn = document.createElement('button');
-    regenerateBtn.className = 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl text-xs font-bold transition-all border border-white/5 backdrop-blur-lg text-white';
-    regenerateBtn.textContent = '↻ Regenerate';
+    const regenerateBtn = createStudioButton({ text: 'Regenerate', emoji: '↻', variant: 'secondary' });
 
-    const downloadBtn = document.createElement('button');
-    downloadBtn.className = 'bg-primary text-black px-6 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-glow active:scale-95';
-    downloadBtn.textContent = '↓ Download';
+    const downloadBtn = createStudioButton({ text: 'Download', emoji: '↓', variant: 'primary' });
 
-    const newBtn = document.createElement('button');
-    newBtn.className = 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl text-xs font-bold transition-all border border-white/5 backdrop-blur-lg text-white';
-    newBtn.textContent = '+ New';
+    const newBtn = createStudioButton({ text: 'New', emoji: '＋', variant: 'secondary' });
 
     canvasControls.appendChild(regenerateBtn);
     canvasControls.appendChild(downloadBtn);

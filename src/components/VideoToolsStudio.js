@@ -8,6 +8,7 @@ import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCa
 import { createInlineInstructions } from './InlineInstructions.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { createStudioButton } from '../lib/studioButton.js';
 
 export function VideoToolsStudio() {
   const container = document.createElement('div');
@@ -139,9 +140,8 @@ export function VideoToolsStudio() {
   formCard.appendChild(thumbBtn);
 
   // Generate button
-  const genBtn = document.createElement('button');
-  genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all';
-  genBtn.textContent = 'Process Video';
+  const genBtn = createStudioButton({ text: 'Process Video', emoji: '🎬', variant: 'primary' });
+  genBtn.className = genBtn.className.replace('w-full sm:w-auto', 'w-full');
   formCard.appendChild(genBtn);
   container.appendChild(formCard);
 
@@ -205,7 +205,7 @@ export function VideoToolsStudio() {
         resultArea.innerHTML = `
           <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4">
             <video controls class="w-full rounded-xl mb-3" src="${result.url}"></video>
-            <a href="${result.url}" download class="block w-full bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download Video</a>
+             <a href="${result.url}" download class="btn-primary-sm block w-full text-center">📥 Download Video</a>
           </div>
         `;
       }

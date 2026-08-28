@@ -208,7 +208,7 @@ export function CinemaTemplateStudio() {
                 <h2 class="text-lg font-bold text-white">Scene Builder</h2>
                 <p class="text-sm text-secondary">Structure your video into scenes</p>
               </div>
-              <button id="open-storyboard-btn" class="px-4 py-2 bg-primary text-black text-xs font-bold rounded-lg hover:scale-105 transition-transform">
+              <button id="open-storyboard-btn" class="btn-primary-sm">
                 🎨 Storyboard
               </button>
             </div>
@@ -271,8 +271,8 @@ export function CinemaTemplateStudio() {
           </div>
         ` : ''}
 
-        <button id="generate-btn" class="w-full py-3 bg-primary text-black font-black text-sm rounded-xl hover:scale-[1.02] transition-transform flex items-center justify-center gap-2">
-          <span>✨</span> Generate Video
+        <button id="generate-btn" class="btn-generate">
+          ✨ Generate Video
         </button>
         <div id="personalize-trigger" class="mt-3"></div>
       </div>
@@ -575,7 +575,7 @@ export function CinemaTemplateStudio() {
         </div>
       </div>
       <div class="flex items-center gap-3">
-        <button id="auto-generate-btn" class="px-4 py-2 bg-primary text-black text-xs font-bold rounded-lg hover:scale-105 transition-transform">
+        <button id="auto-generate-btn" class="btn-primary-sm">
           ✨ Auto-Generate
         </button>
         <button id="export-btn" class="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-secondary text-sm rounded-lg transition-colors">
@@ -603,7 +603,7 @@ export function CinemaTemplateStudio() {
           <div class="text-6xl mb-4">🎨</div>
           <h3 class="text-xl font-bold text-white mb-2">Start Your Storyboard</h3>
           <p class="text-secondary mb-6">Add shots to create your visual story sequence</p>
-          <button id="auto-generate-empty-btn" class="px-6 py-3 bg-primary text-black font-bold rounded-xl hover:scale-105 transition-transform">
+          <button id="auto-generate-empty-btn" class="btn-generate">
             ✨ Auto-Generate from Template
           </button>
         </div>
@@ -764,8 +764,8 @@ export function CinemaTemplateStudio() {
       </div>
       
       <div class="mt-6 flex gap-3">
-        <button id="save-board-btn" class="flex-1 py-2.5 bg-primary text-black font-bold text-sm rounded-xl hover:scale-[1.02] transition-transform">
-          Save Changes
+        <button id="save-board-btn" class="btn-primary-sm flex-1">
+          💾 Save Changes
         </button>
         <button id="cancel-board-btn" class="px-6 py-2.5 bg-white/5 text-white font-bold text-sm rounded-xl hover:bg-white/10 transition-colors">
           Cancel
@@ -834,8 +834,8 @@ export function CinemaTemplateStudio() {
         <button id="edit-btn" class="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-secondary text-sm rounded-lg transition-colors">
           ✏️ Edit
         </button>
-        <button id="start-btn" class="px-6 py-2 bg-primary text-black font-bold text-sm rounded-xl hover:scale-105 transition-transform flex items-center gap-2">
-          <span>🎬</span> Start Generation
+        <button id="start-btn" class="btn-primary-sm">
+          🎬 Start Generation
         </button>
       </div>
     `;
@@ -938,8 +938,8 @@ export function CinemaTemplateStudio() {
           <div class="text-6xl mb-4">📋</div>
           <h3 class="text-xl font-bold text-white mb-2">No Project Data</h3>
           <p class="text-secondary mb-6">Go back and create a new project</p>
-          <button id="back-to-create-btn" class="px-6 py-3 bg-primary text-black font-bold rounded-xl hover:scale-105 transition-transform">
-            Create New Project
+          <button id="back-to-create-btn" class="btn-generate">
+            🆕 Create New Project
           </button>
         </div>
       `;

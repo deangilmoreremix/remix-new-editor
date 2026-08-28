@@ -7,6 +7,7 @@ import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { createStudioButton } from '../lib/studioButton.js';
 
 const CHARACTER_MODELS = [
   { id: 'flux-pulid', name: 'Flux PuLID', description: 'Face ID preservation with text prompt' },
@@ -150,9 +151,8 @@ export function CharacterStudio() {
   });
   formCard.appendChild(thumbBtn);
 
-  const genBtn = document.createElement('button');
-  genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all mt-2';
-  genBtn.textContent = 'Generate Character';
+  const genBtn = createStudioButton({ text: 'Generate Character', emoji: '🎭', variant: 'primary' });
+  genBtn.className = genBtn.className.replace('w-full sm:w-auto', 'w-full');
   formCard.appendChild(genBtn);
   container.appendChild(formCard);
 
@@ -265,7 +265,7 @@ export function CharacterStudio() {
           <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4 animate-fade-in-up">
             <img src="${result.url}" class="w-full rounded-xl mb-3">
             <div class="flex gap-3">
-              <a href="${result.url}" download class="flex-1 bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
+              <a href="${result.url}" download class="btn-primary-sm flex-1 text-center">📥 Download</a>
               <button class="flex-1 bg-white/10 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-white/20 transition-all" onclick="this.closest('.bg-\\\\[\\\\#111\\\\]').remove()">Generate Again</button>
             </div>
           </div>

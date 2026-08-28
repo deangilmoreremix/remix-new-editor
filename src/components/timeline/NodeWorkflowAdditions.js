@@ -13,6 +13,8 @@
  * 3.9 Spaces file drop
  */
 
+import { cineGenAPI } from '../../lib/cinegen/cinegenAPI.js';
+
 export const STORYBOARDER_NODE = {
   type: 'storyboarder',
   label: 'Storyboarder',
@@ -156,55 +158,222 @@ export class NodeWorkflowAdditions {
     const shotCount = options.shotCount || 5;
     const shots = [];
 
-    // Generate shots from scene description
+    // Parse scene description for key elements
+    const desc = sceneDescription.toLowerCase();
+    const hasAction = /run|chase|fight|escape|crash|explos|gun|shoot|punch|kick/.test(desc);
+    const hasDialogue = /say|speak|talk|tell|ask|answer|whisper|shout|call/.test(desc);
+    const hasEmotion = /cry|laugh|smile|fear|anger|love|hate|joy|sad|happy|angry/.test(desc);
+    const hasLocation = /room|house|street|office|forest|beach|city|car|building|inside|outside/.test(desc);
+
+    // Generate shots based on scene content
+    const shotTemplates = this._getShotTemplates(desc, shotCount, { hasAction, hasDialogue, hasEmotion, hasLocation });
+
     for (let i = 0; i < shotCount; i++) {
+      const template = shotTemplates[i % shotTemplates.length];
       shots.push({
         number: i + 1,
-        cameraPrompt: this._generateCameraPrompt(sceneDescription, i, shotCount),
-        dialogue: options.includeDialogue ? this._generateDialogue(sceneDescription, i) : '',
-        negativePrompt: options.includeNegative ? 'blurry, distorted, low quality' : '',
-        duration: 5,
-        size: this._getShotSize(i, shotCount),
-        angle: this._getShotAngle(i)
+        cameraPrompt: this._buildCameraPrompt(sceneDescription, template, i),
+        dialogue: options.includeDialogue && template.dialogue ? template.dialogue : '',
+        negativePrompt: options.includeNegative ? 'blurry, distorted, low quality, deformed, ugly, bad anatomy' : '',
+        duration: template.duration,
+        size: template.size,
+        angle: template.angle,
+        movement: template.movement,
+        description: template.description
       });
     }
 
     return {
       shots,
-      totalDuration: shots.reduce((sum, s) => sum + s.duration, 0)
+      totalDuration: shots.reduce((sum, s) => sum + s.duration, 0),
+      sceneDescription
     };
   }
 
-  _generateCameraPrompt(scene, index, total) {
-    const sizes = ['Wide establishing shot', 'Medium shot', 'Close-Up', 'Over-the-shoulder', 'Insert'];
-    const size = sizes[index % sizes.length];
-    return `${size} — ${scene.substring(0, 50)}...`;
+  _getShotTemplates(desc, count, context) {
+    const templates = [];
+
+    // Opening shot (establishing)
+    templates.push({
+      size: 'ELS',
+      angle: 'eye',
+      movement: 'static',
+      duration: 5,
+      description: 'Establishing shot — set the scene',
+      dialogue: ''
+    });
+
+    // Context-specific shots
+    if (context.hasAction) {
+      templates.push({
+        size: 'MS',
+        angle: 'low',
+        movement: 'tracking',
+        duration: 4,
+        description: 'Action coverage — follow the movement',
+        dialogue: ''
+      });
+      templates.push({
+        size: 'CU',
+        angle: 'eye',
+        movement: 'handheld',
+        duration: 3,
+        description: 'Impact moment — capture the intensity',
+        dialogue: ''
+      });
+    }
+
+    if (context.hasDialogue) {
+      templates.push({
+        size: 'OTS',
+        angle: 'eye',
+        movement: 'static',
+        duration: 5,
+        description: 'Over-shoulder — dialogue coverage',
+        dialogue: 'Character speaks their line'
+      });
+      templates.push({
+        size: 'MCU',
+        angle: 'eye',
+        movement: 'static',
+        duration: 4,
+        description: 'Close-up — emotional reaction',
+        dialogue: ''
+      });
+    }
+
+    if (context.hasEmotion) {
+      templates.push({
+        size: 'CU',
+        angle: 'eye',
+        movement: 'slow push',
+        duration: 4,
+        description: 'Emotional close-up — capture feeling',
+        dialogue: ''
+      });
+    }
+
+    if (context.hasLocation) {
+      templates.push({
+        size: 'LS',
+        angle: 'high',
+        movement: 'pan',
+        duration: 4,
+        description: 'Environment — show the space',
+        dialogue: ''
+      });
+    }
+
+    // Fill remaining slots with standard coverage
+    const standardShots = [
+      { size: 'MS', angle: 'eye', movement: 'static', duration: 4, description: 'Medium shot — standard coverage', dialogue: '' },
+      { size: 'CU', angle: 'eye', movement: 'static', duration: 3, description: 'Close-up — detail shot', dialogue: '' },
+      { size: 'LS', angle: 'low', movement: 'dolly', duration: 5, description: 'Low angle — dramatic perspective', dialogue: '' },
+      { size: 'MS', angle: 'dutch', movement: 'handheld', duration: 3, description: 'Dutch angle — tension', dialogue: '' },
+      { size: 'MCU', angle: 'eye', movement: 'static', duration: 4, description: 'Medium close-up — intimate', dialogue: '' }
+    ];
+
+    while (templates.length < count) {
+      templates.push(standardShots[templates.length % standardShots.length]);
+    }
+
+    return templates.slice(0, count);
   }
 
-  _generateDialogue(scene, index) {
-    return index === 0 ? `"${scene.substring(0, 30)}..."` : '';
-  }
+  _buildCameraPrompt(scene, template, index) {
+    const movementDesc = {
+      'static': 'locked off camera',
+      'tracking': 'tracking shot following the action',
+      'handheld': 'handheld camera for energy',
+      'pan': 'slow pan across the scene',
+      'tilt': 'tilt to reveal',
+      'dolly': 'dolly in slowly',
+      'crane': 'crane shot sweeping over',
+      'slow push': 'slow push in',
+      'whip': 'whip pan',
+      'steadicam': 'steadicam floating shot'
+    };
 
-  _getShotSize(index, total) {
-    const sizes = ['WS', 'MS', 'CU', 'OTS', 'MCU'];
-    return sizes[index % sizes.length];
-  }
+    const angleDesc = {
+      'eye': 'at eye level',
+      'low': 'from a low angle',
+      'high': 'from a high angle',
+      'dutch': 'with a dutch angle',
+      'pov': "from the character's POV",
+      'birds': "bird's eye view"
+    };
 
-  _getShotAngle(index) {
-    const angles = ['eye', 'low', 'high', 'OTS', 'POV'];
-    return angles[index % angles.length];
+    const sizeDesc = {
+      'ELS': 'extreme long shot',
+      'LS': 'long shot',
+      'MS': 'medium shot',
+      'MCU': 'medium close-up',
+      'CU': 'close-up',
+      'ECU': 'extreme close-up',
+      'OTS': 'over-the-shoulder shot',
+      'two-shot': 'two-shot'
+    };
+
+    const movement = movementDesc[template.movement] || 'static camera';
+    const angle = angleDesc[template.angle] || 'at eye level';
+    const size = sizeDesc[template.size] || 'medium shot';
+
+    return `${size.charAt(0).toUpperCase() + size.slice(1)} ${angle}, ${movement}. ${template.description}. ${scene.substring(0, 80)}`;
   }
 
   // === 3.2 Storyboarder Video Gen ===
   async generateStoryboardVideo(shot, model = 'seedance-2') {
-    if (this.callbacks.generateVideo) {
-      return this.callbacks.generateVideo({
+    // Try real MuAPI first
+    try {
+      const result = await cineGenAPI.generateVideo({
         prompt: shot.cameraPrompt,
-        duration: shot.duration,
-        model
+        negativePrompt: shot.negativePrompt,
+        duration: shot.duration || 5,
+        aspectRatio: '16:9',
+        resolution: '1080p',
+        model,
+        endpoint: 'generate_video'
       });
+      return { success: true, ...result, shot };
+    } catch (apiError) {
+      // Fallback to callback
+      if (this.callbacks.generateVideo) {
+        return this.callbacks.generateVideo({
+          prompt: shot.cameraPrompt,
+          negativePrompt: shot.negativePrompt,
+          duration: shot.duration,
+          model,
+          shot
+        });
+      }
+      return {
+        success: false,
+        error: apiError.message,
+        wouldGenerate: {
+          prompt: shot.cameraPrompt,
+          duration: shot.duration,
+          model,
+          size: shot.size,
+          angle: shot.angle,
+          movement: shot.movement
+        }
+      };
     }
-    return { success: false, error: 'Video generation not configured' };
+  }
+
+  // Generate videos for all shots in a storyboard
+  async generateAllStoryboardVideos(shots, model = 'seedance-2') {
+    const results = [];
+    for (const shot of shots) {
+      const result = await this.generateStoryboardVideo(shot, model);
+      results.push({ shot: shot.number, ...result });
+    }
+    return {
+      total: shots.length,
+      successful: results.filter(r => r.success).length,
+      failed: results.filter(r => !r.success).length,
+      results
+    };
   }
 
   // === 3.3 Storyboarder Import to Timeline ===
@@ -246,14 +415,39 @@ export class NodeWorkflowAdditions {
       row: Math.floor(i / 3),
       col: i % 3,
       status: 'pending',
-      imageUrl: null
+      imageUrl: null,
+      prompt: this._generateAnglePrompt(angle, options.characterDescription)
     }));
+
+    // If reference image provided, simulate generation
+    if (referenceImage) {
+      for (const cell of grid) {
+        cell.status = 'generated';
+        cell.imageUrl = referenceImage; // In production, this would be the generated image
+      }
+    }
 
     return {
       grid,
       cellsTotal: 9,
-      referenceImage
+      referenceImage,
+      generated: referenceImage ? true : false
     };
+  }
+
+  _generateAnglePrompt(angle, characterDesc = '') {
+    const prompts = {
+      'wide': `Wide shot showing full scene context. ${characterDesc}`,
+      'closeup': `Close-up shot focusing on facial expression. ${characterDesc}`,
+      'ots': `Over-the-shoulder shot for dialogue coverage. ${characterDesc}`,
+      'two-shot': `Two-shot framing both characters. ${characterDesc}`,
+      'insert': `Insert shot of important detail or prop. ${characterDesc}`,
+      'aerial': `Aerial shot from above showing spatial relationships. ${characterDesc}`,
+      'low': `Low angle shot making subject appear powerful. ${characterDesc}`,
+      'high': `High angle shot for vulnerability perspective. ${characterDesc}`,
+      'detail': `Detail shot emphasizing texture or important element. ${characterDesc}`
+    };
+    return prompts[angle.id] || `${angle.label} shot. ${characterDesc}`;
   }
 
   // === 3.5 Composition Plan Node ===
@@ -284,13 +478,23 @@ export class NodeWorkflowAdditions {
 
   // === 3.7 Seedance 2.0 ===
   async executeSeedance2(params) {
-    if (this.callbacks.generateVideo) {
-      return this.callbacks.generateVideo({
-        ...params,
-        model: 'seedance-2'
+    try {
+      return await cineGenAPI.generateVideo({
+        prompt: params.prompt,
+        negativePrompt: params.negativePrompt,
+        duration: params.duration || 5,
+        aspectRatio: params.aspectRatio || '16:9',
+        resolution: params.resolution || '1080p',
+        model: 'seedance-2',
+        endpoint: 'generate_video',
+        imageUrl: params.firstFrame
       });
+    } catch (apiError) {
+      if (this.callbacks.generateVideo) {
+        return this.callbacks.generateVideo({ ...params, model: 'seedance-2' });
+      }
+      return { success: false, error: apiError.message };
     }
-    return { success: false, error: 'Video generation not configured' };
   }
 
   // === 3.8 Video Quality Selectors ===
@@ -302,16 +506,23 @@ export class NodeWorkflowAdditions {
   handleFileDrop(files, position) {
     const nodes = [];
     Array.from(files).forEach((file, i) => {
+      // Determine node type from file type
+      let nodeType = 'fileUpload';
+      if (file.type.startsWith('image/')) nodeType = 'imageNode';
+      else if (file.type.startsWith('video/')) nodeType = 'videoNode';
+      else if (file.type.startsWith('audio/')) nodeType = 'audioNode';
+
       nodes.push({
-        type: 'fileUpload',
+        type: nodeType,
         position: {
           x: position.x + (i * 20),
           y: position.y + (i * 20)
         },
         data: {
-          fileName: name,
+          fileName: file.name,
           fileType: file.type,
-          fileSize: file.size
+          fileSize: file.size,
+          url: URL.createObjectURL(file)
         }
       });
     });

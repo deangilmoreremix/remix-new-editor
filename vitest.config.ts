@@ -16,7 +16,7 @@ export default defineConfig({
       '**/tests/e2e/**',
       '**/e2e/**',
     ],
-    environment: 'node',
+    environment: 'jsdom',
     setupFiles: ['src/test/setup.ts'],
     // Component tests that need DOM should specify it per-file with @vitest-environment jsdom
     coverage: {

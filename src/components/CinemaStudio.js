@@ -12,6 +12,7 @@ import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCa
 import { createUploadPicker } from './UploadPicker.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { createStudioButton } from '../lib/studioButton.js';
 
 // Camera movements promised by the Cinema Studio intro copy
 // ("Select camera movement … dolly, crane, orbit, FPV drone").
@@ -163,9 +164,7 @@ export function CinemaStudio() {
     cameraSelect.select.onchange = updateCine;
     lensSelect.select.onchange = updateCine;
 
-    const cineUseBtn = document.createElement('button');
-    cineUseBtn.className = 'px-5 py-2.5 bg-primary text-black rounded-xl text-xs font-bold hover:shadow-glow transition-all';
-    cineUseBtn.textContent = 'Use in Prompt';
+    const cineUseBtn = createStudioButton({ text: 'Use in Prompt', emoji: '🎥', variant: 'primary', className: 'w-auto' });
     cineUseBtn.onclick = () => {
         const prompt = cineOutput.textContent;
         if (prompt && prompt !== 'Cinematic prompt will appear here...') {
@@ -398,7 +397,8 @@ export function CinemaStudio() {
         const rect = trigger.getBoundingClientRect();
         const menu = document.createElement('div');
         menu.className = 'custom-dropdown fixed bg-[#1a1a1a] border border-white/10 rounded-xl py-1 shadow-2xl z-50 flex flex-col min-w-[100px] animate-fade-in';
-        menu.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
+        menu.style.bottom = '';
+        menu.style.top = (rect.bottom + 8) + 'px';
         menu.style.left = rect.left + 'px';
 
         items.forEach(item => {
@@ -439,7 +439,7 @@ export function CinemaStudio() {
     // Shared model dropdown (glass panel) — lists T2V models, or I2V models
     // when a reference image is loaded, with live search + per-model metadata.
     const modelDropdown = document.createElement('div');
-    modelDropdown.className = 'absolute bottom-[102%] left-2 z-50 transition-all opacity-0 pointer-events-none scale-95 origin-bottom-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
+    modelDropdown.className = 'absolute top-[102%] left-2 z-50 transition-all opacity-0 pointer-events-none scale-95 origin-top-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
     settingsToolbar.appendChild(modelDropdown);
 
     const closeModelDropdown = () => {
@@ -616,10 +616,8 @@ export function CinemaStudio() {
     }
 
     // Generate Button
-    const generateBtn = document.createElement('button');
-    generateBtn.className = 'h-[56px] px-8 bg-[#d9ff00] text-black rounded-xl font-black text-xs uppercase hover:bg-white transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed';
+    const generateBtn = createStudioButton({ text: 'GENERATE', emoji: '✨', variant: 'primary' });
     generateBtn.setAttribute('data-tooltip', 'Generate cinema shot');
-    generateBtn.innerHTML = `GENERATE ✨`;
 
     rightGroup.appendChild(summaryCard);
     rightGroup.appendChild(generateBtn);
@@ -699,8 +697,8 @@ export function CinemaStudio() {
         <div class="flex flex-col gap-2">
             <label class="text-[10px] font-bold text-muted uppercase">Preview</label>
             <div id="builder-preview" class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white text-xs min-h-[40px]"></div>
-            <button id="apply-builder-btn" class="px-4 py-2 bg-primary text-black rounded-lg text-xs font-bold hover:shadow-glow transition-all">
-                Use This Setup
+            <button id="apply-builder-btn" class="btn-primary-sm">
+                🎥 Use This Setup
             </button>
         </div>
     `;
@@ -812,18 +810,16 @@ export function CinemaStudio() {
     const canvasControls = document.createElement('div');
     canvasControls.className = 'mt-8 flex gap-3 opacity-0 transition-opacity delay-500 duration-500 justify-center';
 
-    const createActionBtn = (label, primary = false) => {
-        const btn = document.createElement('button');
-        btn.className = primary
-            ? 'bg-[#d9ff00] text-black px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wide hover:bg-white transition-colors shadow-glow-sm hover:scale-105 active:scale-95'
-            : 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wide transition-all border border-white/5 backdrop-blur-lg text-white hover:border-white/20';
-        btn.textContent = label;
+    const createActionBtn = (label, primary = false, emoji = '') => {
+        const variant = primary ? 'primary' : 'secondary';
+        const btn = createStudioButton({ text: label, emoji, variant });
+        btn.classList.remove('w-full', 'sm:w-auto');
         return btn;
     };
 
-    const regenerateBtn = createActionBtn('↻ Regenerate');
-    const downloadBtn = createActionBtn('↓ Download', true);
-    const newPromptBtn = createActionBtn('+ New Shot');
+    const regenerateBtn = createActionBtn('Regenerate', false, '↻');
+    const downloadBtn = createActionBtn('Download', true, '↓');
+    const newPromptBtn = createActionBtn('New Shot', false, '＋');
 
     canvasControls.appendChild(regenerateBtn);
     canvasControls.appendChild(downloadBtn);

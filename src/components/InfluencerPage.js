@@ -41,8 +41,8 @@ export function InfluencerPage() {
   contentWrapper.innerHTML = `
     <!-- Start Creating CTA -->
     <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
-      <button class="start-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all">
-        Create Content
+      <button class="start-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all btn-generate">
+        📱 Create Content
       </button>
     </div>
 
@@ -89,8 +89,8 @@ export function InfluencerPage() {
     <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl text-center mb-6">
       <h2 class="text-xl md:text-2xl font-black text-white mb-2">Go Viral</h2>
       <p class="text-sm text-muted mb-6">Create influencer content that stops the scroll</p>
-      <button class="cta-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all">
-        Get Started Free
+      <button class="cta-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all btn-generate">
+        ✨ Get Started Free
       </button>
     </div>
   `;

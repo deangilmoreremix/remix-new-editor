@@ -7,6 +7,7 @@ import { createUploadPicker } from './UploadPicker.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { createStudioButton } from '../lib/studioButton.js';
 
 export function TrainingStudio() {
   const container = document.createElement('div');
@@ -167,9 +168,8 @@ export function TrainingStudio() {
   formCard.appendChild(thumbBtn);
 
   // Train button
-  const trainBtn = document.createElement('button');
-  trainBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all';
-  trainBtn.textContent = 'Train LoRA';
+  const trainBtn = createStudioButton({ text: 'Train LoRA', emoji: '🧠', variant: 'primary' });
+  trainBtn.className = trainBtn.className.replace('w-full sm:w-auto', 'w-full');
   formCard.appendChild(trainBtn);
   container.appendChild(formCard);
 
@@ -244,7 +244,7 @@ export function TrainingStudio() {
           <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4">
             <div class="text-green-400 font-bold mb-3">Training Complete!</div>
             <p class="text-white/60 text-sm mb-3">Your LoRA model has been trained successfully.</p>
-            <a href="${result.lora_url}" download class="block w-full bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download LoRA</a>
+             <a href="${result.lora_url}" download class="btn-primary-sm block w-full text-center">📥 Download LoRA</a>
           </div>
         `;
       }

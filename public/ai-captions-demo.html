@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Captions Studio - Demo</title>
+  <style>
+    :root {
+      --text-primary: #e5e7eb;
+      --text-secondary: #9ca3af;
+      --text-muted: #6b7280;
+      --bg-panel: rgba(255,255,255,0.04);
+      --bg-card: rgba(255,255,255,0.03);
+      --bg-app: #0b0f17;
+      --border-color: rgba(255,255,255,0.12);
+      --border-light: rgba(255,255,255,0.08);
+      --border-radius-md: 10px;
+      --border-radius-lg: 14px;
+      --border-radius-full: 9999px;
+      --transition-fast: 150ms ease;
+      --color-success: #22c55e;
+      --app-primary: #3b82f6;
+      --app-accent: #06b6d4;
+      --app-soft: rgba(59, 130, 246, 0.12);
+      --font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--font-family);
+      background: radial-gradient(circle at top left, #111827, #0b0f17 60%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .modal-content {
+      position: relative;
+      width: 90%;
+      max-width: 760px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+      font-family: var(--font-family);
+      color: var(--text-primary);
+      overflow: hidden;
+      opacity: 1;
+      transform: none;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 20px 24px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      flex-shrink: 0;
+    }
+
+    .modal-title { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+
+    .modal-close {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.06);
+      color: #9ca3af;
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .modal-body {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+
+    .modal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+      padding: 16px 24px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04);
+      flex-shrink: 0;
+    }
+
+    .modal-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-family: var(--font-family);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      border: 1px solid transparent;
+    }
+
+    .modal-btn-primary {
+      background: linear-gradient(135deg, var(--app-primary), var(--app-accent));
+      color: #03131a;
+      border-color: transparent;
+    }
+
+    .modal-btn-secondary {
+      background: rgba(255,255,255,0.06);
+      color: var(--text-primary);
+      border-color: rgba(255,255,255,0.12);
+    }
+
+    .ai-captions-modal {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      color: var(--text-primary);
+      font-family: var(--font-family);
+      padding: 0;
+    }
+
+    .ai-captions-subtitle {
+      margin: -8px 0 0 0;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text-secondary);
+      max-width: 56ch;
+    }
+
+    .ai-captions-form { display: flex; flex-direction: column; gap: 16px; }
+
+    .form-section { display: flex; flex-direction: column; gap: 6px; }
+    .form-section > label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-secondary);
+    }
+
+    .form-section input[type="text"],
+    .form-section select {
+      width: 100%;
+      min-height: 40px;
+      padding: 10px 12px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius-md);
+      color: var(--text-primary);
+      font-size: 14px;
+      font-family: inherit;
+      line-height: 1.5;
+      outline: none;
+      transition: border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+    }
+
+    .form-section input[type="text"]::placeholder { color: var(--text-muted); }
+
+    .form-section select {
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23a1a1aa' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
+    }
+
+    .form-section select option { background: #0b0f17; color: var(--text-primary); }
+
+    .form-section input[type="text"]:focus,
+    .form-section select:focus {
+      border-color: var(--app-primary);
+      background: rgba(255,255,255,0.05);
+      box-shadow: 0 0 0 3px var(--app-soft);
+    }
+
+    .form-hint { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    .generation-progress {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 16px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius-lg);
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--app-primary), var(--app-accent));
+      border-radius: 9999px;
+      transition: width 0.4s ease;
+    }
+
+    .progress-text { font-size: 12px; color: var(--text-secondary); text-align: center; font-weight: 500; }
+
+    .progress-steps { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+
+    .progress-step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+      transition: color var(--transition-fast);
+    }
+
+    .progress-step.active { color: var(--text-primary); font-weight: 600; }
+    .progress-step.done { color: var(--color-success); }
+
+    .progress-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.12);
+      flex-shrink: 0;
+      transition: background var(--transition-fast);
+    }
+
+    .progress-step.active .progress-dot {
+      background: var(--app-primary);
+      box-shadow: 0 0 0 3px var(--app-soft);
+    }
+
+    .progress-step.done .progress-dot { background: var(--color-success); }
+
+    .generated-prompt-section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 16px;
+      background: rgba(34, 197, 94, 0.06);
+      border: 1px solid rgba(34, 197, 94, 0.25);
+      border-radius: var(--border-radius-lg);
+    }
+
+    .generated-prompt-section > label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-success);
+    }
+
+    .generated-prompt-container { display: flex; flex-direction: column; gap: 10px; }
+
+    .ai-captions-preview { border-radius: var(--border-radius-md); overflow: hidden; background: #000; }
+
+    .ai-captions-preview video {
+      display: block;
+      width: 100%;
+      max-height: 360px;
+      object-fit: contain;
+    }
+
+    .no-output { font-size: 13px; color: var(--text-muted); padding: 12px; background: var(--bg-panel); border-radius: var(--border-radius-md); }
+
+    .result-meta { font-size: 11px; color: var(--text-muted); margin: 0; word-break: break-all; }
+
+    .output-list { margin-top: 8px; }
+
+    .output-list-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .output-list ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .output-list li a {
+      font-size: 13px;
+      color: var(--app-primary);
+      word-break: break-all;
+    }
+
+    .generated-prompt-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .gtm-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 40px;
+      padding: 10px 16px;
+      border: 1px solid transparent;
+      border-radius: var(--border-radius-md);
+      font-family: var(--font-family);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      text-decoration: none;
+    }
+
+    .gtm-action:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 2px #0b0f17, 0 0 0 4px var(--app-primary);
+    }
+
+    .gtm-action:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .copy-prompt-btn {
+      background: var(--app-primary);
+      color: #ffffff;
+    }
+
+    .copy-prompt-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px var(--app-soft);
+    }
+
+    .copy-only-btn {
+      background: var(--bg-panel);
+      color: var(--text-primary);
+      border-color: var(--border-color);
+    }
+
+    .copy-only-btn:hover:not(:disabled) {
+      border-color: var(--app-primary);
+      background: var(--app-soft);
+      color: var(--text-primary);
+    }
+
+    .stop-btn {
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+      border-color: rgba(239, 68, 68, 0.3);
+      margin-top: 8px;
+    }
+
+    .stop-btn:hover:not(:disabled) {
+      background: rgba(239, 68, 68, 0.25);
+      color: #ffffff;
+      border-color: rgba(239, 68, 68, 0.4);
+    }
+
+    .error-message {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: var(--border-radius-md);
+      color: #fca5a5;
+      font-size: 13px;
+    }
+
+    .ai-captions-footnote { font-size: 12px; color: var(--text-muted); margin: 0; }
+
+    .ai-captions-history { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+
+    .toggle-advanced {
+      align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 36px;
+      padding: 8px 14px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-light);
+      border-radius: var(--border-radius-md);
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      font-family: inherit;
+    }
+
+    .toggle-advanced:hover {
+      background: var(--bg-card);
+      color: var(--text-primary);
+      border-color: var(--app-primary);
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 12px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius-lg);
+    }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: var(--border-radius-md);
+    }
+
+    .history-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .history-label { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+
+    .history-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .history-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+    .history-actions .gtm-action { min-height: 32px; padding: 6px 10px; font-size: 12px; }
+
+    @media (max-width: 640px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .generated-prompt-actions { flex-direction: column; align-items: stretch; }
+      .generated-prompt-actions .gtm-action { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">✨ AI Captions Studio</h2>
+        <button class="modal-close" aria-label="Close modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="ai-captions-modal">
+          <p class="ai-captions-subtitle">Generate styled captioned videos using MuAPI. Choose a theme and language, then preview the result.</p>
+          <div class="ai-captions-form">
+            <div class="form-section">
+              <label for="ai-captions-video-url">Video URL</label>
+              <input id="ai-captions-video-url" type="text" placeholder="https://example.com/video.mp4" value="https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/sample-video.mp4" />
+              <span class="form-hint">Public URL of the video to caption. Max 600MB or 10 minutes.</span>
+            </div>
+            <div class="form-grid">
+              <div class="form-section">
+                <label for="ai-captions-language">Language</label>
+                <select id="ai-captions-language">
+                  <option value="English" selected>English</option>
+                  <option value="English (USA)">English (USA)</option>
+                  <option value="Japanese">Japanese</option>
+                  <option value="Spanish">Spanish</option>
+                </select>
+              </div>
+              <div class="form-section">
+                <label for="ai-captions-theme">Caption Theme</label>
+                <select id="ai-captions-theme">
+                  <option value="Hormozi_1" selected>Hormozi_1</option>
+                  <option value="Hormozi_2">Hormozi_2</option>
+                  <option value="Beast">Beast</option>
+                  <option value="Ali">Ali</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="generation-progress">
+              <div class="progress-bar"><div class="progress-fill" style="width: 60%"></div></div>
+              <div class="progress-text">Generating captions...</div>
+              <div class="progress-steps">
+                <div class="progress-step done"><span class="progress-dot"></span>Submitting...</div>
+                <div class="progress-step done"><span class="progress-dot"></span>Transcribing audio...</div>
+                <div class="progress-step active"><span class="progress-dot"></span>Generating captions...</div>
+                <div class="progress-step"><span class="progress-dot"></span>Styling captions...</div>
+                <div class="progress-step"><span class="progress-dot"></span>Finalizing...</div>
+              </div>
+            </div>
+            <button class="gtm-action stop-btn">⏹ Stop</button>
+
+            <div class="generated-prompt-section">
+              <label>Captioned Video</label>
+              <div class="generated-prompt-container">
+                <div class="ai-captions-preview">
+                  <video controls src="https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/sample-video.mp4" style="width:100%;border-radius:10px;background:#000;"></video>
+                </div>
+                <div class="generated-prompt-actions">
+                  <a href="#" class="gtm-action copy-prompt-btn" target="_blank" rel="noopener">⬇ Download Video</a>
+                  <button class="gtm-action copy-prompt-btn">🎬 Insert into Timeline</button>
+                  <button class="gtm-action copy-only-btn">🔄 Retry with different theme</button>
+                  <button class="gtm-action copy-only-btn">📋 Copy URL</button>
+                  <button class="gtm-action">✨ New Caption</button>
+                </div>
+                <div class="result-meta">
+                  Request ID: req_123 · Status: completed · Created: 2026-08-28T05:00:00Z · Inference: 12.4s
+                </div>
+                <div class="output-list">
+                  <div class="output-list-label">All outputs</div>
+                  <ul>
+                    <li><a href="#" target="_blank" rel="noopener">Output 1</a></li>
+                    <li><a href="#" target="_blank" rel="noopener">Output 2</a></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="ai-captions-history">
+              <button class="toggle-advanced" aria-expanded="true">▼ History (2)</button>
+              <div class="history-list">
+                <div class="history-item">
+                  <div class="history-info">
+                    <span class="history-label">Hormozi_1 · English</span>
+                    <span class="history-meta">https://example.com/video.mp4</span>
+                  </div>
+                  <div class="history-actions">
+                    <button class="gtm-action copy-only-btn">↻ Replay</button>
+                    <a href="#" class="gtm-action copy-only-btn" target="_blank" rel="noopener">🔗 Open</a>
+                  </div>
+                </div>
+                <div class="history-item">
+                  <div class="history-info">
+                    <span class="history-label">Beast · English (USA)</span>
+                    <span class="history-meta">https://example.com/another-video.mp4</span>
+                  </div>
+                  <div class="history-actions">
+                    <button class="gtm-action copy-only-btn">↻ Replay</button>
+                    <a href="#" class="gtm-action copy-only-btn" target="_blank" rel="noopener">🔗 Open</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="ai-captions-footnote">Powered by MuAPI AI Captions. Pay per generation — no subscription needed.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn modal-btn-secondary">Cancel</button>
+        <button class="modal-btn modal-btn-primary">✨ Generate Captions</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

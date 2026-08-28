@@ -1,5 +1,6 @@
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { videoDb } from '../lib/videoDb.js';
+import { createStudioButton } from '../lib/studioButton.js';
 
 /**
  * Build a self-contained settings form for a single provider.
@@ -81,10 +82,8 @@ function buildProviderForm({ title, description, grabUrl, getKey, setKey, clearK
     const btnRow = document.createElement('div');
     btnRow.className = 'flex items-center gap-2';
 
-    const saveBtn = document.createElement('button');
+    const saveBtn = createStudioButton({ text: 'Save ' + title, emoji: '💾', variant: 'primary', className: 'text-xs py-2 px-4 hover:scale-[1.02] active:scale-[0.98]' });
     saveBtn.type = 'submit';
-    saveBtn.textContent = 'Save ' + title;
-    saveBtn.className = 'px-4 py-2 rounded-xl bg-primary text-black font-black text-xs hover:shadow-glow hover:scale-[1.02] active:scale-[0.98] transition-all';
 
     const clearBtn = document.createElement('button');
     clearBtn.type = 'button';
@@ -296,9 +295,7 @@ export function SettingsModal(onClose) {
     skipBtn.className = 'px-4 py-2.5 rounded-xl text-sm font-bold text-white/60 hover:text-white hover:bg-white/5 transition-all';
     skipBtn.onclick = removeModal;
 
-    const closeBtn = document.createElement('button');
-    closeBtn.textContent = 'Done';
-    closeBtn.className = 'px-6 py-2.5 rounded-xl text-sm font-bold bg-primary text-black hover:shadow-glow hover:scale-[1.02] active:scale-[0.98] transition-all';
+    const closeBtn = createStudioButton({ text: 'Done', emoji: '✓', variant: 'primary', className: 'text-sm py-2.5 px-6 hover:scale-[1.02] active:scale-[0.98]' });
     closeBtn.onclick = removeModal;
 
     closeRow.appendChild(skipBtn);

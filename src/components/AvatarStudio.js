@@ -8,6 +8,7 @@ import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCa
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { createStudioButton } from '../lib/studioButton.js';
 
 export function AvatarStudio() {
   const container = document.createElement('div');
@@ -133,9 +134,7 @@ export function AvatarStudio() {
   mountPersonalizeTrigger({ controlsContainer: formCard, getTextarea: () => promptInput, appId: 'avatar-studio' });
 
   // Generate button
-  const genBtn = document.createElement('button');
-  genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all';
-  genBtn.textContent = 'Generate Avatar Video';
+  const genBtn = createStudioButton({ text: 'Generate Avatar Video', emoji: '🎬', variant: 'primary' });
 
   // Thumbnail studio button — next to creation controls, GTM Boost styling
   const thumbBtn = document.createElement('button');
@@ -233,7 +232,7 @@ export function AvatarStudio() {
         resultArea.innerHTML = `
           <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4">
             <video controls class="w-full rounded-xl mb-3" src="${result.url}"></video>
-            <a href="${result.url}" download class="block w-full bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download Video</a>
+             <a href="${result.url}" download class="btn-primary-sm block w-full text-center">📥 Download Video</a>
           </div>
         `;
       }

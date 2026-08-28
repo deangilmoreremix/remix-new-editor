@@ -13,16 +13,20 @@ function jsonResponse(body: unknown, ok = true, status = 200) {
 interface FakeRes {
   statusCode: number
   body: unknown
+  headers: Record<string, string>
   status: (code: number) => FakeRes
   json: (body: unknown) => void
+  setHeader: (name: string, value: string) => void
 }
 
 function makeRes(): FakeRes {
   const res: FakeRes = {
     statusCode: 0,
     body: undefined,
+    headers: {},
     status(code: number) { res.statusCode = code; return res },
     json(body: unknown) { res.body = body },
+    setHeader(name: string, value: string) { res.headers[name] = value },
   }
   return res
 }

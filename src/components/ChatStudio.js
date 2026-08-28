@@ -5,6 +5,7 @@ import { AuthModal } from './AuthModal.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { createStudioButton } from '../lib/studioButton.js';
 
 export function ChatStudio() {
   const container = document.createElement('div');
@@ -94,9 +95,8 @@ export function ChatStudio() {
   textarea.rows = 2;
   inputRow.appendChild(textarea);
 
-  const sendBtn = document.createElement('button');
-  sendBtn.className = 'px-6 py-3 bg-primary text-black font-bold rounded-xl hover:bg-primary/90 transition-colors self-end';
-  sendBtn.innerHTML = '<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>';
+  const sendBtn = createStudioButton({ text: 'Send', emoji: '➤', variant: 'primary', className: 'self-end' });
+  sendBtn.setAttribute('data-tooltip', 'Send message');
   inputRow.appendChild(sendBtn);
 
   // Thumbnail studio button — next to creation controls, GTM Boost styling

@@ -97,8 +97,8 @@ export function TextToVideoPage() {
           <h2 class="text-lg font-black text-white mb-1">Ready to Create Videos?</h2>
           <p class="text-sm text-muted">Start generating amazing videos with 40+ AI models</p>
         </div>
-        <button class="cta-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all whitespace-nowrap">
-          Get Started Free
+        <button class="cta-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all btn-generate whitespace-nowrap">
+          🎬 Get Started Free
         </button>
       </div>
     </div>
@@ -144,8 +144,8 @@ export function TextToVideoPage() {
           <h2 class="text-lg font-black text-white mb-1">Start Creating Now</h2>
           <p class="text-sm text-muted">Pick a model or try an example prompt to begin</p>
         </div>
-        <button class="start-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all whitespace-nowrap">
-          Start Creating Videos
+        <button class="start-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all btn-generate whitespace-nowrap">
+          🎬 Start Creating Videos
         </button>
       </div>
     </div>

@@ -210,8 +210,8 @@ export function LibraryPage() {
     const dlBtn = document.createElement('a');
     dlBtn.href = item.url;
     dlBtn.download = `generation-${item.id || Date.now()}`;
-    dlBtn.className = 'mt-4 bg-primary text-black px-8 py-2.5 rounded-xl font-bold text-sm hover:shadow-glow transition-all';
-    dlBtn.textContent = 'Download';
+    dlBtn.className = 'mt-4 btn-primary-sm';
+    dlBtn.textContent = '📥 Download';
     wrapper.appendChild(dlBtn);
 
     previewOverlay.appendChild(wrapper);

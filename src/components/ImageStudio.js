@@ -3,6 +3,7 @@ import { saveGeneration } from '../lib/generationHistory.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { createSafeImage } from '../lib/security.js';
+import { createStudioButton } from '../lib/studioButton.js';
 import {
     t2iModels, getAspectRatiosForModel, getResolutionsForModel, getQualityFieldForModel,
     i2iModels, getAspectRatiosForI2IModel, getResolutionsForI2IModel, getQualityFieldForI2IModel,
@@ -184,7 +185,7 @@ export function ImageStudio() {
     const createControlBtn = (icon, label, id, tooltip) => {
         const btn = document.createElement('button');
         btn.id = id;
-        btn.className = 'flex items-center gap-1.5 md:gap-2.5 px-3 md:px-4 py-2 md:py-2.5 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl transition-all border border-white/5 group whitespace-nowrap';
+        btn.className = 'flex items-center gap-1.5 md:gap-2.5 px-3 md:px-4 py-2 md:py-2.5 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl transition-all border border-white/5 group whitespace-nowrap hover:border-primary/30 hover:shadow-glow hover:scale-[1.02] active:scale-[0.98]';
         if (tooltip) btn.setAttribute('data-tooltip', tooltip);
         btn.innerHTML = `
             ${icon}
@@ -267,10 +268,7 @@ export function ImageStudio() {
         if (qlabel) qlabel.textContent = _initResolutions[0];
     }
 
-    const generateBtn = document.createElement('button');
-    generateBtn.className = 'bg-primary text-black px-6 md:px-8 py-3 md:py-3.5 rounded-xl md:rounded-[1.5rem] font-black text-sm md:text-base hover:shadow-glow hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2.5 w-full sm:w-auto shadow-lg';
-    generateBtn.setAttribute('data-tooltip', 'Generate AI image from prompt');
-    generateBtn.innerHTML = `Generate ✨`;
+    const generateBtn = createStudioButton({ text: 'Generate', emoji: '✨', variant: 'primary', tooltip: 'Generate AI image from prompt' });
 
     bottomRow.appendChild(controlsLeft);
     bottomRow.appendChild(generateBtn);
@@ -696,7 +694,7 @@ export function ImageStudio() {
     // 3. DROPDOWNS (Professional implementation)
     // ==========================================
     const dropdown = document.createElement('div');
-    dropdown.className = 'absolute bottom-[102%] left-2 z-50 transition-all opacity-0 pointer-events-none scale-95 origin-bottom-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
+    dropdown.className = 'absolute top-[102%] left-2 z-50 transition-all opacity-0 pointer-events-none scale-95 origin-top-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
 
     const showDropdown = (type, anchorBtn) => {
         dropdown.innerHTML = '';
@@ -837,7 +835,8 @@ export function ImageStudio() {
         }
 
         // Vertical position (always above button)
-        dropdown.style.bottom = `${containerRect.bottom - btnRect.top + 8}px`;
+        dropdown.style.bottom = '';
+        dropdown.style.top = `${btnRect.bottom - containerRect.top + 8}px`;
     };
 
     const closeDropdown = () => {
@@ -912,17 +911,9 @@ export function ImageStudio() {
     const canvasControls = document.createElement('div');
     canvasControls.className = 'mt-6 flex gap-3 opacity-0 transition-opacity delay-500 duration-500 justify-center';
 
-    const regenerateBtn = document.createElement('button');
-    regenerateBtn.className = 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl text-xs font-bold transition-all border border-white/5 backdrop-blur-lg text-white';
-    regenerateBtn.textContent = '↻ Regenerate';
-
-    const downloadBtn = document.createElement('button');
-    downloadBtn.className = 'bg-primary text-black px-6 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-glow active:scale-95';
-    downloadBtn.textContent = '↓ Download';
-
-    const newPromptBtn = document.createElement('button');
-    newPromptBtn.className = 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl text-xs font-bold transition-all border border-white/5 backdrop-blur-lg text-white';
-    newPromptBtn.textContent = '+ New';
+    const regenerateBtn = createStudioButton({ text: 'Regenerate', emoji: '↻', variant: 'secondary' });
+    const downloadBtn = createStudioButton({ text: 'Download', emoji: '↓', variant: 'primary' });
+    const newPromptBtn = createStudioButton({ text: 'New Prompt', emoji: '＋', variant: 'secondary' });
 
     canvasControls.appendChild(regenerateBtn);
     canvasControls.appendChild(downloadBtn);

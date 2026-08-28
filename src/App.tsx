@@ -84,6 +84,8 @@ const AdminConfigPage = lazy(() => import('./pages/admin/AdminConfigPage'))
 const AdminBlogPage = lazy(() => import('./pages/admin/AdminBlogPage'))
 const AdminTemplatesPage = lazy(() => import('./pages/admin/AdminTemplatesPage'))
 const AdminNotificationsPage = lazy(() => import('./pages/admin/AdminNotificationsPage'))
+const AdminModelRegistryPage = lazy(() => import('./pages/admin/AdminModelRegistry'))
+const ControlCenterPage = lazy(() => import('./components/ControlCenterPage.js').then(m => m.ControlCenterPage()))
 
 function HomePage() {
   usePageTitle()
@@ -218,6 +220,7 @@ export default function App() {
               <Route path="notification" element={<AdminNotificationsPage />} />
               <Route path="blog" element={<AdminBlogPage />} />
               <Route path="templates" element={<AdminTemplatesPage />} />
+              <Route path="model-registry" element={<AdminModelRegistryPage />} />
             </Route>
             <Route path="/image" element={<StudioLayout><RouteErrorBoundary><StudioWrapper studioPath="image" /></RouteErrorBoundary></StudioLayout>} />
             <Route path="/video" element={<StudioLayout><RouteErrorBoundary><StudioWrapper studioPath="video" /></RouteErrorBoundary></StudioLayout>} />
@@ -258,6 +261,8 @@ export default function App() {
             <Route path="/upscale-page" element={<StudioLayout><RouteErrorBoundary><StudioWrapper studioPath="upscale-page" /></RouteErrorBoundary></StudioLayout>} />
             <Route path="/openthorn" element={<StudioLayout><RouteErrorBoundary><StudioWrapper studioPath="openthorn" /></RouteErrorBoundary></StudioLayout>} />
             <Route path="/brightbean" element={<StudioLayout><RouteErrorBoundary><StudioWrapper studioPath="brightbean" /></RouteErrorBoundary></StudioLayout>} />
+            <Route path="/leadfinder" element={<StudioLayout><RouteErrorBoundary><StudioWrapper studioPath="leadfinder" /></RouteErrorBoundary></StudioLayout>} />
+            <Route path="/control-center" element={<StudioLayout><RouteErrorBoundary><StudioWrapper studioPath="control-center" /></RouteErrorBoundary></StudioLayout>} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Suspense>

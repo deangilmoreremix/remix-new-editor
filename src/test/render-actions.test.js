@@ -41,34 +41,36 @@ describe('renderActions', () => {
   });
 
   describe('saveDraft', () => {
-    it('persists entry with id and timestamps', () => {
-      const entry = saveDraft({ label: 'my draft' });
+    it('persists entry with id and timestamps', async () => {
+      const entry = await saveDraft({ label: 'my draft' });
       expect(entry).toHaveProperty('id');
-      expect(entry).toHaveProperty('createdAt');
-      expect(entry).toHaveProperty('updatedAt');
+      expect(entry).toHaveProperty('created_at');
+      expect(entry).toHaveProperty('updated_at');
       expect(typeof entry.id).toBe('string');
-      expect(typeof entry.createdAt).toBe('number');
-      expect(typeof entry.updatedAt).toBe('number');
+      expect(typeof entry.created_at).toBe('string');
+      expect(typeof entry.updated_at).toBe('string');
     });
   });
 
   describe('saveTemplate', () => {
-    it('persists entry with id and timestamps', () => {
-      const entry = saveTemplate({ label: 'my template' });
+    it('persists entry with id and timestamps', async () => {
+      const entry = await saveTemplate({ label: 'my template' });
       expect(entry).toHaveProperty('id');
-      expect(entry).toHaveProperty('createdAt');
-      expect(entry).toHaveProperty('updatedAt');
+      expect(entry).toHaveProperty('created_at');
+      expect(entry).toHaveProperty('updated_at');
       expect(typeof entry.id).toBe('string');
+      expect(typeof entry.created_at).toBe('string');
+      expect(typeof entry.updated_at).toBe('string');
     });
   });
 
   describe('drafts/templates isolation', () => {
-    it('saves drafts and templates separately', () => {
-      saveDraft({ label: 'draft 1' });
-      saveTemplate({ label: 'template 1' });
+    it('saves drafts and templates separately', async () => {
+      await saveDraft({ label: 'draft 1' });
+      await saveTemplate({ label: 'template 1' });
 
-      const drafts = listDrafts();
-      const templates = listTemplates();
+      const drafts = await listDrafts();
+      const templates = await listTemplates();
 
       expect(drafts).toHaveLength(1);
       expect(drafts[0].label).toBe('draft 1');
@@ -78,9 +80,9 @@ describe('renderActions', () => {
   });
 
   describe('duplicateTemplate', () => {
-    it('returns copy with "(Copy)" suffix', () => {
-      const original = saveTemplate({ label: 'original' });
-      const copy = duplicateTemplate(original.id);
+    it('returns copy with "(Copy)" suffix', async () => {
+      const original = await saveTemplate({ label: 'original' });
+      const copy = await duplicateTemplate(original.id);
 
       expect(copy.label).toBe('original (Copy)');
       expect(copy.id).not.toBe(original.id);
@@ -88,18 +90,18 @@ describe('renderActions', () => {
   });
 
   describe('deleteDraft', () => {
-    it('removes draft by id', () => {
-      const entry = saveDraft({ label: 'to delete' });
-      deleteDraft(entry.id);
-      expect(listDrafts()).toHaveLength(0);
+    it('removes draft by id', async () => {
+      const entry = await saveDraft({ label: 'to delete' });
+      await deleteDraft(entry.id);
+      expect(await listDrafts()).toHaveLength(0);
     });
   });
 
   describe('deleteTemplate', () => {
-    it('removes template by id', () => {
-      const entry = saveTemplate({ label: 'to delete' });
-      deleteTemplate(entry.id);
-      expect(listTemplates()).toHaveLength(0);
+    it('removes template by id', async () => {
+      const entry = await saveTemplate({ label: 'to delete' });
+      await deleteTemplate(entry.id);
+      expect(await listTemplates()).toHaveLength(0);
     });
   });
 

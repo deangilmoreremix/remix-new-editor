@@ -29,6 +29,8 @@
  * 1.25 Reset to original
  */
 
+import { cineGenAPI } from '../../lib/cinegen/cinegenAPI.js';
+
 const CINEDANCE_TEMPLATE = {
   SCENE_CONTEXT: '',
   ACTIVE_REFERENCES: '',
@@ -84,6 +86,13 @@ export class DirectorTab {
     this.activeSceneId = null;
     this.selectedClipId = null;
     this.activeTab = 'script'; // script | breakdown | shotlist | lookbible | generate
+    // 1.25 Reset to original — snapshot of first shotlist compile
+    this._originalShotlistSnapshot = null;
+    this._originalClips = null;
+    // 1.13 Blocking maps — stored per scene
+    this.blockingMaps = {};
+    // 1.18 Acting tasks — stored per character per scene
+    this.actingTasks = {};
     this._render();
   }
 
@@ -287,7 +296,8 @@ A WOMAN (20s, red coat) enters, scanning the room."></textarea>
         <div class="shotlist-toolbar">
           <button class="dir-btn primary" id="compileShotlist">⚡ Compile Shotlist</button>
           <button class="dir-btn" id="perSceneShotlist">Per-Scene Shotlist</button>
-          <div class="shotlist-totals" id="shotlistTotals">0 clips · 0 shots · 0s</div>
+          <button class="dir-btn" id="resetShotlist" ${!this._originalShotlistSnapshot ? 'disabled' : ''}>↶ Reset to Original</button>
+          <div class="shotlist-totals" id="shotlistTotals">${this.clips.length} clips · ${this.clips.reduce((sum, c) => sum + (c.shots?.length || 0), 0)} shots · ${this.clips.reduce((sum, c) => sum + (c.duration || 0), 0)}s</div>
         </div>
         <div class="shotlist-asset-registry" id="assetRegistry"></div>
         <div class="shotlist-style-prefix">
@@ -303,9 +313,28 @@ A WOMAN (20s, red coat) enters, scanning the room."></textarea>
 
     container.querySelector('#compileShotlist')?.addEventListener('click', () => this._compileShotlist());
     container.querySelector('#perSceneShotlist')?.addEventListener('click', () => this._perSceneShotlist());
+    container.querySelector('#resetShotlist')?.addEventListener('click', () => this._resetToOriginal());
     container.querySelector('#copyStylePrefix')?.addEventListener('click', () => {
       const prefix = container.querySelector('#stylePrefix')?.value || '';
       navigator.clipboard.writeText(prefix).then(() => this._showCopiedFeedback());
+    });
+
+    // Wire blocking map buttons
+    container.querySelectorAll('[data-action="createBlocking"]').forEach(btn => {
+      btn.addEventListener('click', () => this._createBlockingMap(btn.dataset.scene));
+    });
+
+    // Wire acting tasks save buttons
+    container.querySelectorAll('[data-action="saveActing"]').forEach(btn => {
+      btn.addEventListener('click', () => this._saveActingTasks(btn.dataset.scene));
+    });
+
+    // Wire acting tasks input persistence
+    container.querySelectorAll('[data-char]').forEach(input => {
+      input.addEventListener('change', () => {
+        const sceneId = input.closest('.shotlist-scene')?.dataset.scene;
+        if (sceneId) this._saveActingTasks(sceneId);
+      });
     });
   }
 
@@ -326,6 +355,18 @@ A WOMAN (20s, red coat) enters, scanning the room."></textarea>
         <div class="shotlist-scene-notes">
           <textarea class="dir-textarea small" placeholder="Director's notes for this scene..."></textarea>
           <button class="dir-btn small" data-action="applyNotes">Apply Notes with LLM</button>
+        </div>
+        <!-- 1.13 Blocking Maps -->
+        <div class="shotlist-blocking">
+          <h5>Blocking Map</h5>
+          ${this._renderBlockingMap(scene.id)}
+          <button class="dir-btn small" data-action="createBlocking" data-scene="${scene.id}">+ Create Blocking Map</button>
+        </div>
+        <!-- 1.18 Acting Tasks -->
+        <div class="shotlist-acting">
+          <h5>Acting Tasks</h5>
+          ${this._renderActingTasks(scene.id)}
+          <button class="dir-btn small" data-action="saveActing" data-scene="${scene.id}">Save Acting Tasks</button>
         </div>
       </div>
     `;
@@ -609,7 +650,7 @@ A WOMAN (20s, red coat) enters, scanning the room."></textarea>
   }
 
   // === ACTIONS ===
-  _runBreakdown() {
+  async _runBreakdown() {
     const input = this.container.querySelector('#scriptInput');
     if (!input?.value) {
       this._updateStatus('Please enter a script first');
@@ -618,9 +659,75 @@ A WOMAN (20s, red coat) enters, scanning the room."></textarea>
     this.script = input.value;
     this._updateStatus('Running LLM breakdown...');
 
-    // Parse scenes from script
+    // Parse scenes from script (regex for structure)
     this.scenes = this._parseScenes(this.script);
-    this.elements = this._extractElements(this.script);
+
+    try {
+      // Use LLM to extract detailed elements
+      const prompt = `Analyze this screenplay and extract all production elements. Return JSON only:
+
+{
+  "characters": [{"name": "...", "description": "...", "age": "...", "gender": "..."}],
+  "locations": [{"name": "...", "interior_exterior": "...", "time_of_day": "...", "description": "..."}],
+  "props": [{"name": "...", "description": "...", "quantity": 1}],
+  "vehicles": [{"name": "...", "description": "..."}],
+  "costumes": [{"character": "...", "description": "..."}],
+  "sfx": [{"description": "...", "type": "practical|vfx|sound"}]
+}
+
+Screenplay:
+${this.script.substring(0, 8000)}`;
+
+      const result = await cineGenAPI.callLLM(prompt, { maxOutputTokens: 4000 });
+
+      if (result.text) {
+        try {
+          // Parse JSON from response
+          const jsonMatch = result.text.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            const data = JSON.parse(jsonMatch[0]);
+            this.elements = {
+              characters: data.characters?.map((c, i) => ({
+                id: `char-${i}`,
+                name: c.name || 'Unknown',
+                tag: (c.name || 'unknown').toLowerCase().replace(/\s+/g, '-'),
+                description: c.description || c.age || '',
+                refImage: ''
+              })) || [],
+              locations: data.locations?.map((l, i) => ({
+                id: `loc-${i}`,
+                name: l.name || 'Unknown',
+                tag: (l.name || 'unknown').toLowerCase().replace(/\s+/g, '-'),
+                description: l.description || '',
+                refImage: ''
+              })) || [],
+              props: data.props?.map((p, i) => ({
+                id: `prop-${i}`,
+                name: p.name || 'Unknown',
+                tag: (p.name || 'unknown').toLowerCase().replace(/\s+/g, '-'),
+                description: p.description || '',
+                refImage: ''
+              })) || [],
+              vehicles: data.vehicles?.map((v, i) => ({
+                id: `veh-${i}`,
+                name: v.name || 'Unknown',
+                tag: (v.name || 'unknown').toLowerCase().replace(/\s+/g, '-'),
+                description: v.description || '',
+                refImage: ''
+              })) || []
+            };
+          }
+        } catch (parseErr) {
+          // Fallback to regex extraction
+          this.elements = this._extractElements(this.script);
+        }
+      }
+    } catch (error) {
+      // Fallback to regex extraction on API error
+      console.warn('LLM breakdown failed, using regex fallback:', error.message);
+      this.elements = this._extractElements(this.script);
+      this._updateStatus(`Breakdown complete (regex fallback): ${this.scenes.length} scenes, ${this.elements.characters.length} characters`);
+    }
 
     this._updateStatus(`Found ${this.scenes.length} scenes, ${this.elements.characters.length} characters, ${this.elements.locations.length} locations`);
     this._renderTab('breakdown');
@@ -695,6 +802,9 @@ A WOMAN (20s, red coat) enters, scanning the room."></textarea>
       return;
     }
 
+    // 1.25 Save snapshot for reset
+    this._saveShotlistSnapshot();
+
     this.clips = [];
     this.scenes.forEach((scene, sceneIdx) => {
       const clipCount = Math.max(1, Math.ceil((scene.body.length || 200) / 200));
@@ -724,12 +834,42 @@ A WOMAN (20s, red coat) enters, scanning the room."></textarea>
     this._compileShotlist();
   }
 
-  _rewriteLookBible() {
+  async _rewriteLookBible() {
     const genre = this.lookBible.genre || 'cinematic';
-    const refs = this.lookBible.filmRefs.length ? ` influenced by ${this.lookBible.filmRefs.join(', ')}` : '';
-    this.lookBible.notes = `${genre} palette with controlled contrast. Warm highlights, cool shadows. Naturalistic lighting with motivated sources. Shallow depth of field for intimate coverage, deep focus for establishing. Camera movement is deliberate — dolly and tracking only, no handheld unless scene demands it.${refs}`;
-    const notesEl = this.container.querySelector('#lookNotes');
-    if (notesEl) notesEl.value = this.lookBible.notes;
+    const refs = this.lookBible.filmRefs.length ? this.lookBible.filmRefs.join(', ') : '';
+    const existing = this.lookBible.notes || '';
+
+    this._updateStatus('Generating look notes with LLM...');
+
+    try {
+      const prompt = `You are a cinematographer writing look notes for a ${genre} film. ${refs ? `Visual references: ${refs}.` : ''}
+
+${existing ? `Current notes to refine:\n${existing}` : ''}
+
+Write 2-3 paragraphs describing:
+1. Color palette and grading approach
+2. Lighting style and motivation
+3. Lens choices and depth of field
+4. Camera movement philosophy
+
+Be specific and actionable for a DP. Use cinematic terminology.`;
+
+      const result = await cineGenAPI.callLLM(prompt, { maxOutputTokens: 1000 });
+
+      if (result.text) {
+        this.lookBible.notes = result.text;
+        const notesEl = this.container.querySelector('#lookNotes');
+        if (notesEl) notesEl.value = result.text;
+        this._updateStatus('Look notes generated by LLM');
+      }
+    } catch (error) {
+      // Fallback to template
+      const refsText = refs ? ` influenced by ${refs}` : '';
+      this.lookBible.notes = `${genre} palette with controlled contrast. Warm highlights, cool shadows. Naturalistic lighting with motivated sources. Shallow depth of field for intimate coverage, deep focus for establishing. Camera movement is deliberate — dolly and tracking only, no handheld unless scene demands it.${refsText}`;
+      const notesEl = this.container.querySelector('#lookNotes');
+      if (notesEl) notesEl.value = this.lookBible.notes;
+      this._updateStatus('Look notes generated (template fallback)');
+    }
   }
 
   _updateNotesFromRefs() {
@@ -757,6 +897,151 @@ A WOMAN (20s, red coat) enters, scanning the room."></textarea>
   _showCopiedFeedback() {
     this._updateStatus('Copied to clipboard');
     setTimeout(() => this._updateStatus(''), 2000);
+  }
+
+  // === 1.13 Blocking Maps ===
+  _renderBlockingMap(sceneId) {
+    const scene = this.scenes.find(s => s.id === sceneId);
+    if (!scene) return '';
+    const map = this.blockingMaps[sceneId];
+    if (!map) return '<p class="empty-state">No blocking map for this scene. Create one from a set frame.</p>';
+
+    return `
+      <div class="blocking-map">
+        <div class="blocking-map-canvas">
+          <svg viewBox="0 0 400 300" class="blocking-svg">
+            <rect x="0" y="0" width="400" height="300" fill="#1a1a2e" />
+            ${map.actors?.map((actor, i) => {
+              const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6'];
+              const color = colors[i % colors.length];
+              return `
+                <circle cx="${actor.x}" cy="${actor.y}" r="12" fill="${color}" opacity="0.8" />
+                <text x="${actor.x}" y="${actor.y + 4}" text-anchor="middle" fill="white" font-size="10">${actor.name}</text>
+                ${actor.moveTo ? `<line x1="${actor.x}" y1="${actor.y}" x2="${actor.moveTo.x}" y2="${actor.moveTo.y}" stroke="${color}" stroke-width="2" stroke-dasharray="4" /><circle cx="${actor.moveTo.x}" cy="${actor.moveTo.y}" r="8" fill="none" stroke="${color}" stroke-width="2" />` : ''}
+              `;
+            }).join('') || ''}
+          </svg>
+        </div>
+        <div class="blocking-map-legend">
+          ${map.actors?.map((actor, i) => {
+            const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6'];
+            return `<span class="legend-item"><span class="legend-dot" style="background:${colors[i % colors.length]}"></span>${actor.name}</span>`;
+          }).join('') || ''}
+        </div>
+      </div>
+    `;
+  }
+
+  _createBlockingMap(sceneId) {
+    const scene = this.scenes.find(s => s.id === sceneId);
+    if (!scene) return;
+
+    // Extract characters from scene body
+    const chars = this.elements.characters.filter(c =>
+      scene.body.toUpperCase().includes(c.name.toUpperCase())
+    );
+
+    // Generate positions in a semi-circle (theater-style blocking)
+    const actors = chars.slice(0, 6).map((char, i) => {
+      const angle = (Math.PI / (chars.length + 1)) * (i + 1);
+      const x = 200 + Math.cos(angle) * 120;
+      const y = 200 + Math.sin(angle) * 80;
+      return {
+        name: char.name,
+        x: Math.round(x),
+        y: Math.round(y),
+        moveTo: null
+      };
+    });
+
+    this.blockingMaps[sceneId] = {
+      actors,
+      createdAt: Date.now()
+    };
+
+    this._updateStatus(`Blocking map created for ${scene.heading}`);
+    this._renderTab('shotlist');
+  }
+
+  // === 1.18 Acting Tasks ===
+  _renderActingTasks(sceneId) {
+    const scene = this.scenes.find(s => s.id === sceneId);
+    if (!scene) return '';
+
+    const chars = this.elements.characters.filter(c =>
+      scene.body.toUpperCase().includes(c.name.toUpperCase())
+    );
+
+    if (chars.length === 0) return '<p class="empty-state">No characters found in this scene.</p>';
+
+    return `
+      <div class="acting-tasks">
+        ${chars.map(char => {
+          const key = `${sceneId}-${char.id}`;
+          const tasks = this.actingTasks[key] || {};
+          return `
+            <div class="acting-task-card">
+              <h5>${char.name}</h5>
+                <div class="acting-field">
+                  <label>Scene Direction</label>
+                  <input type="text" class="dir-input" data-field="direction" data-char="${char.id}" value="${tasks.direction || ''}" placeholder="What is ${char.name} doing..." />
+                </div>
+                <div class="acting-fields-grid">
+                  <div class="acting-field">
+                    <label>Motive</label>
+                    <input type="text" class="dir-input small" data-field="motive" data-char="${char.id}" value="${tasks.motive || ''}" placeholder="Why..." />
+                  </div>
+                  <div class="acting-field">
+                    <label>Goal</label>
+                    <input type="text" class="dir-input small" data-field="goal" data-char="${char.id}" value="${tasks.goal || ''}" placeholder="What they want..." />
+                  </div>
+                  <div class="acting-field">
+                    <label>Obstacle</label>
+                    <input type="text" class="dir-input small" data-field="obstacle" data-char="${char.id}" value="${tasks.obstacle || ''}" placeholder="What blocks them..." />
+                  </div>
+                  <div class="acting-field">
+                    <label>Tactic</label>
+                    <input type="text" class="dir-input small" data-field="tactic" data-char="${char.id}" value="${tasks.tactic || ''}" placeholder="How they pursue it..." />
+                  </div>
+                </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+
+  _saveActingTasks(sceneId) {
+    const inputs = this.container.querySelectorAll(`[data-char]`);
+    inputs.forEach(input => {
+      const charId = input.dataset.char;
+      const field = input.dataset.field;
+      const key = `${sceneId}-${charId}`;
+      if (!this.actingTasks[key]) this.actingTasks[key] = {};
+      this.actingTasks[key][field] = input.value;
+    });
+    this._updateStatus('Acting tasks saved');
+  }
+
+  // === 1.25 Reset to Original ===
+  _saveShotlistSnapshot() {
+    if (!this._originalShotlistSnapshot) {
+      this._originalClips = JSON.parse(JSON.stringify(this.clips));
+      this._originalShotlistSnapshot = {
+        clips: JSON.parse(JSON.stringify(this.clips)),
+        timestamp: Date.now()
+      };
+    }
+  }
+
+  _resetToOriginal() {
+    if (!this._originalClips) {
+      this._updateStatus('No original snapshot to reset to');
+      return;
+    }
+    this.clips = JSON.parse(JSON.stringify(this._originalClips));
+    this._updateStatus('Reset to original shotlist');
+    this._renderTab('shotlist');
   }
 
   _updateStatus(msg) {

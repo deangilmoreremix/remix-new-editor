@@ -449,10 +449,10 @@ const SendsparkWorkflow = ({
                   onClick={handleGenerateVideos}
                   disabled={generationStatus === 'generating' || voiceCloneStatus !== 'completed'}
                 >
-                  {generationStatus === 'idle' && `Generate ${contacts.length} Videos`}
-                  {generationStatus === 'generating' && 'Generating Videos...'}
+                  {generationStatus === 'idle' && `✨ Generate ${contacts.length} Videos`}
+                  {generationStatus === 'generating' && '⏳ Generating Videos...'}
                   {generationStatus === 'completed' && '✓ All Videos Generated'}
-                  {generationStatus === 'failed' && 'Retry Generation'}
+                  {generationStatus === 'failed' && '🔄 Retry Generation'}
                 </button>
 
                 {generationStatus === 'completed' && (
@@ -1074,17 +1074,23 @@ const SendsparkWorkflow = ({
         .generate-btn {
           padding: 16px 48px;
           border: none;
-          border-radius: 8px;
+          border-radius: 1.25rem;
           font-size: 18px;
-          font-weight: 600;
+          font-weight: 900;
           cursor: pointer;
-          transition: all 0.2s;
-          background: #007bff;
-          color: white;
+          transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+          background: #d9ff00;
+          color: #000;
+          box-shadow: 0 0 20px rgba(217, 255, 0, 0.4);
         }
 
         .generate-btn:hover:not(:disabled) {
-          background: #0056b3;
+          transform: scale(1.05);
+          box-shadow: 0 0 30px rgba(217, 255, 0, 0.6);
+        }
+
+        .generate-btn:active:not(:disabled) {
+          transform: scale(0.95);
         }
 
         .generate-btn:disabled {
@@ -1093,7 +1099,7 @@ const SendsparkWorkflow = ({
         }
 
         .generate-btn.generating {
-          background: #ff9800;
+          background: #c4e600;
         }
 
         /* Share Step */

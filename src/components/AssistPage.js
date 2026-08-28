@@ -1,6 +1,7 @@
 import { navigate } from '../lib/router.js';
 import { buildNanoBananaPrompt, CAMERA_MAP, LENS_MAP, ENHANCE_TAGS, QUICK_PROMPTS } from '../lib/promptUtils.js';
 import { getPageThumbnail, createThumbnailImg } from '../lib/thumbnails.js';
+import { createStudioButton } from '../lib/studioButton.js';
 
 export function AssistPage() {
   const container = document.createElement('div');
@@ -94,9 +95,7 @@ export function AssistPage() {
     setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1500);
   };
 
-  const useBtn = document.createElement('button');
-  useBtn.className = 'px-5 py-2.5 bg-primary text-black rounded-xl text-xs font-bold hover:shadow-glow transition-all';
-  useBtn.textContent = 'Use in Image Studio';
+  const useBtn = createStudioButton({ text: 'Use in Image Studio', emoji: '🖼️', variant: 'primary', className: 'w-auto' });
   useBtn.onclick = () => {
     localStorage.setItem('prefill_prompt', outputArea.textContent);
     navigate('image');
@@ -182,9 +181,7 @@ export function AssistPage() {
   cameraSelect.select.onchange = updateCine;
   lensSelect.select.onchange = updateCine;
 
-  const cineUseBtn = document.createElement('button');
-  cineUseBtn.className = 'px-5 py-2.5 bg-primary text-black rounded-xl text-xs font-bold hover:shadow-glow transition-all';
-  cineUseBtn.textContent = 'Use in Cinema Studio';
+  const cineUseBtn = createStudioButton({ text: 'Use in Cinema Studio', emoji: '🎥', variant: 'primary', className: 'w-auto' });
   cineUseBtn.onclick = () => {
     localStorage.setItem('prefill_prompt', cineOutput.textContent);
     navigate('cinema');

@@ -7,6 +7,7 @@ import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getToolThumbnail, createThumbnailImg, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { createStudioButton } from '../lib/studioButton.js';
 
 const EDIT_TOOLS = [
   { id: 'ai-object-eraser', name: 'Remove Object', description: 'Erase unwanted objects from images', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 5H9l-7 7 7 7h11a2 2 0 002-2V7a2 2 0 00-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>', hasPrompt: true, promptPlaceholder: 'What to remove...' },
@@ -186,9 +187,8 @@ export function EditStudio() {
   });
   workCard.appendChild(thumbBtn);
 
-  const editBtn = document.createElement('button');
-  editBtn.className = 'w-full bg-primary text-black py-3 rounded-xl font-black text-sm hover:shadow-glow transition-all';
-  editBtn.textContent = 'Apply Edit';
+  const editBtn = createStudioButton({ text: 'Apply Edit', emoji: '✏️', variant: 'primary' });
+  editBtn.className = editBtn.className.replace('w-full sm:w-auto', 'w-full');
   workCard.appendChild(editBtn);
 
   const resultArea = document.createElement('div');
@@ -240,7 +240,7 @@ export function EditStudio() {
         resultArea.classList.remove('hidden');
         resultArea.innerHTML = `
           <img src="${result.url}" class="w-full rounded-xl border border-white/10 mb-3">
-          <a href="${result.url}" download class="block w-full bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
+           <a href="${result.url}" download class="btn-primary-sm block w-full text-center">📥 Download</a>
         `;
       }
     } catch (err) {

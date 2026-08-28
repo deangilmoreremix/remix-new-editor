@@ -50,10 +50,10 @@ export function VideoWatermarkPage() {
   contentWrapper.innerHTML = `
     <!-- CTA Button -->
     <div class="flex justify-center mb-8 md:mb-12">
-      <button class="start-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all">
-        Remove Watermarks Free
-        <svg class="w-4 h-4 inline-block ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
-      </button>
+<button class="start-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all btn-generate">
+         🧹 Remove Watermarks Free
+         <svg class="w-4 h-4 inline-block ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+       </button>
     </div>
 
     <!-- Features -->
@@ -107,8 +107,8 @@ export function VideoWatermarkPage() {
     <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl text-center">
       <h2 class="text-2xl font-black text-white mb-2">Clean Your Videos Today</h2>
       <p class="text-white/60 text-sm mb-6 max-w-md mx-auto">Remove watermarks and unwanted content with powerful AI</p>
-      <button class="cta-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all">
-        Get Started Free
+      <button class="cta-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all btn-generate">
+        ✨ Get Started Free
       </button>
     </div>
   `;

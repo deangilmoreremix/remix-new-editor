@@ -3,6 +3,7 @@ import { saveGeneration } from '../lib/generationHistory.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { createSafeVideo } from '../lib/security.js';
+import { createStudioButton } from '../lib/studioButton.js';
 import { t2vModels, getAspectRatiosForVideoModel, getDurationsForModel, getResolutionsForVideoModel, i2vModels, getAspectRatiosForI2VModel, getDurationsForI2VModel, getResolutionsForI2VModel, v2vModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
@@ -333,7 +334,7 @@ export function VideoStudio() {
     const createControlBtn = (icon, label, id, tooltip) => {
         const btn = document.createElement('button');
         btn.id = id;
-        btn.className = 'flex items-center gap-1.5 md:gap-2.5 px-3 md:px-4 py-2 md:py-2.5 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl transition-all border border-white/5 group whitespace-nowrap';
+        btn.className = 'flex items-center gap-1.5 md:gap-2.5 px-3 md:px-4 py-2 md:py-2.5 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl transition-all border border-white/5 group whitespace-nowrap hover:border-primary/30 hover:shadow-glow hover:scale-[1.02] active:scale-[0.98]';
         if (tooltip) btn.setAttribute('data-tooltip', tooltip);
         btn.innerHTML = `
             ${icon}
@@ -425,10 +426,7 @@ export function VideoStudio() {
     });
     controlsLeft.appendChild(thumbBtn);
 
-    const generateBtn = document.createElement('button');
-    generateBtn.className = 'bg-primary text-black px-6 md:px-8 py-3 md:py-3.5 rounded-xl md:rounded-[1.5rem] font-black text-sm md:text-base hover:shadow-glow hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2.5 w-full sm:w-auto shadow-lg';
-    generateBtn.setAttribute('data-tooltip', 'Generate AI video from prompt');
-    generateBtn.innerHTML = `Generate ✨`;
+    const generateBtn = createStudioButton({ text: 'Generate', emoji: '✨', variant: 'primary', tooltip: 'Generate AI video from prompt' });
 
     bottomRow.appendChild(controlsLeft);
     bottomRow.appendChild(generateBtn);
@@ -514,7 +512,7 @@ export function VideoStudio() {
     // 3. DROPDOWNS
     // ==========================================
     const dropdown = document.createElement('div');
-    dropdown.className = 'absolute bottom-[102%] left-2 z-50 transition-all opacity-0 pointer-events-none scale-95 origin-bottom-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
+    dropdown.className = 'absolute top-[102%] left-2 z-50 transition-all opacity-0 pointer-events-none scale-95 origin-top-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
 
     const updateControlsForModel = (modelId) => {
         const model = getCurrentModels().find(m => m.id === modelId);
@@ -783,7 +781,8 @@ export function VideoStudio() {
             dropdown.style.left = `${btnRect.left - containerRect.left}px`;
             dropdown.style.transform = 'translate(0, 8px)';
         }
-        dropdown.style.bottom = `${containerRect.bottom - btnRect.top + 8}px`;
+        dropdown.style.bottom = '';
+        dropdown.style.top = `${btnRect.bottom - containerRect.top + 8}px`;
     };
 
     const closeDropdown = () => {
@@ -846,26 +845,20 @@ export function VideoStudio() {
     const canvasControls = document.createElement('div');
     canvasControls.className = 'mt-6 flex gap-3 opacity-0 transition-opacity delay-500 duration-500 justify-center';
 
-    const regenerateBtn = document.createElement('button');
-    regenerateBtn.className = 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl text-xs font-bold transition-all border border-white/5 backdrop-blur-lg text-white';
-    regenerateBtn.textContent = '↻ Regenerate';
+    const regenerateBtn = createStudioButton({ text: 'Regenerate', emoji: '↻', variant: 'secondary' });
+    regenerateBtn.setAttribute('data-tooltip', 'Regenerate this video');
 
-    const downloadBtn = document.createElement('button');
-    downloadBtn.className = 'bg-primary text-black px-6 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-glow active:scale-95';
-    downloadBtn.textContent = '↓ Download';
+    const downloadBtn = createStudioButton({ text: 'Download', emoji: '↓', variant: 'primary' });
+    downloadBtn.setAttribute('data-tooltip', 'Download video');
 
-    const extendBtn = document.createElement('button');
-    extendBtn.className = 'hidden bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl text-xs font-bold transition-all border border-primary/30 text-primary backdrop-blur-lg';
-    extendBtn.textContent = '↗ Extend';
+    const extendBtn = createStudioButton({ text: 'Extend', emoji: '↗', variant: 'secondary' });
     extendBtn.title = 'Extend this video using Seedance 2.0 Extend';
 
-    const newPromptBtn = document.createElement('button');
-    newPromptBtn.className = 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl text-xs font-bold transition-all border border-white/5 backdrop-blur-lg text-white';
-    newPromptBtn.textContent = '+ New';
+    const newPromptBtn = createStudioButton({ text: 'New Prompt', emoji: '＋', variant: 'secondary' });
+    newPromptBtn.setAttribute('data-tooltip', 'Start a new prompt');
 
-    const renderBtn = document.createElement('button');
-    renderBtn.className = 'bg-emerald-500 text-black px-6 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-glow active:scale-95';
-    renderBtn.textContent = '🎬 Open in Render';
+    const renderBtn = createStudioButton({ text: 'Open in Render', emoji: '🎬', variant: 'primary' });
+    renderBtn.setAttribute('data-tooltip', 'Open in Render');
 
     canvasControls.appendChild(regenerateBtn);
     canvasControls.appendChild(extendBtn);

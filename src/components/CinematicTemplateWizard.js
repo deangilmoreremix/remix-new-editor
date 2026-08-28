@@ -102,8 +102,8 @@ export function CinematicTemplateWizard({ template, onCancel, onGenerate }) {
     <div id="wizard-body" class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-6 animate-fade-in-up"></div>
 
     <div class="flex items-center justify-between mt-6">
-      <button id="wizard-prev" class="px-5 py-3 bg-white/5 hover:bg-white/10 text-white font-bold rounded-2xl text-sm transition">Back</button>
-      <button id="wizard-next" class="px-5 py-3 bg-primary text-black font-black rounded-2xl text-sm hover:scale-[1.02] transition-transform">Next</button>
+      <button id="wizard-prev" class="btn-secondary">← Back</button>
+      <button id="wizard-next" class="btn-primary-sm">Next →</button>
     </div>
   `;
   container.appendChild(inner);
@@ -272,7 +272,7 @@ export function CinematicTemplateWizard({ template, onCancel, onGenerate }) {
           ${r.images && r.images[0] ? `<img src="${r.images[0]}" alt="" class="w-full rounded-xl" />` : ''}
         </div>
         <div class="flex gap-2">
-          ${r.url ? `<a href="${r.url}" download class="flex-1 px-5 py-3 bg-primary text-black font-black rounded-2xl text-sm text-center">Download</a>` : ''}
+          ${r.url ? `<a href="${r.url}" download class="btn-primary-sm flex-1 text-center">📥 Download</a>` : ''}
           <button id="wizard-restart" class="flex-1 px-5 py-3 bg-white/5 text-white font-bold rounded-2xl text-sm">Start over</button>
         </div>
       `;

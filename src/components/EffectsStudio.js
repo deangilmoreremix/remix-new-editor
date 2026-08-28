@@ -10,6 +10,7 @@ import { i2iModels, i2vModels } from '../lib/models.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { createStudioButton } from '../lib/studioButton.js';
 
 const EFFECT_TABS = [
   { id: 'image-effects', label: 'Image Effects', type: 'i2i', field: 'name' },
@@ -213,9 +214,8 @@ export function EffectsStudio() {
   });
   promptRow.appendChild(thumbBtn);
 
-  const generateBtn = document.createElement('button');
-  generateBtn.className = 'bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow transition-all whitespace-nowrap';
-  generateBtn.textContent = 'Apply Effect';
+  const generateBtn = createStudioButton({ text: 'Apply Effect', emoji: '✨', variant: 'primary' });
+  generateBtn.setAttribute('data-tooltip', 'Apply selected effect');
     promptRow.appendChild(generateBtn);
     mountPersonalizeTrigger({ controlsContainer: promptRow, getTextarea: () => promptInput, appId: 'effects-studio' });
     previewTop.appendChild(promptRow);
@@ -266,9 +266,7 @@ export function EffectsStudio() {
   mobileUploadRow.appendChild(mobilePrompt);
   mobileControls.appendChild(mobileUploadRow);
 
-  const mobileGenBtn = document.createElement('button');
-  mobileGenBtn.className = 'w-full bg-primary text-black py-3 rounded-xl font-black text-sm';
-  mobileGenBtn.textContent = 'Apply Effect';
+  const mobileGenBtn = createStudioButton({ text: 'Apply Effect', emoji: '✨', variant: 'primary', className: 'w-full' });
   mobileControls.appendChild(mobileGenBtn);
   container.appendChild(mobileControls);
 

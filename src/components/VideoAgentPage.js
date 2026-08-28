@@ -4,6 +4,7 @@ import { createHeroSection } from '../lib/thumbnails.js';
 import { getSupabaseUrl, isSupabaseConfigured, uploadFileToStorage } from '../lib/supabase.js';
 import { browserVideoProcessor } from '../lib/browserVideoProcessor.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
+import { createStudioButton } from '../lib/studioButton.js';
 
 const AI_TOOLS = [
     { id: 'scene-detection', name: 'Scene Detection', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 7h5M17 17h5"/></svg>', thumbnail: '/thumbnails/videoagent/scene-detection.png', color: 'blue', description: 'Identify scene boundaries', category: 'understanding' },
@@ -133,11 +134,11 @@ export function VideoAgentPage() {
                         `}
                     </div>
                     <div class="mt-3 flex items-center gap-3">
-                        <button id="load-video-btn" class="flex items-center gap-2 px-4 py-2.5 bg-primary text-black font-bold rounded-xl hover:scale-[1.02] transition-transform text-sm">
+                        <button id="load-video-btn" class="flex items-center gap-2 px-4 py-2.5 bg-primary text-black font-bold rounded-xl hover:shadow-glow hover:scale-[1.02] active:scale-[0.98] transition-transform text-sm">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
                             </svg>
-                            Load Video
+                            📹 Load Video
                         </button>
                         <span id="load-video-status" class="text-xs text-muted truncate"></span>
                         <input id="video-file-input" type="file" accept="video/*" class="hidden" />
@@ -241,11 +242,11 @@ export function VideoAgentPage() {
                     </div>
                     
                     <!-- Full Pipeline -->
-                    <button id="run-full-pipeline" class="w-full py-4 bg-primary text-black font-black rounded-2xl hover:scale-[1.02] transition-transform flex items-center justify-center gap-2 mb-4">
+                    <button id="run-full-pipeline" class="btn-generate w-full mb-4" style="border-radius: 1.25rem;">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
                         </svg>
-                        Run Full Pipeline
+                        ⚡ Run Full Pipeline
                     </button>
                     
                     <!-- Settings -->

@@ -17,6 +17,7 @@ import {
   QUICK_ACTIONS,
 } from '../lib/directorAgentRuntime.js';
 import { showToast } from '../lib/loading.js';
+import { createStudioButton } from '../lib/studioButton.js';
 
 // Inline frame visual: same gradient pattern used in the React reference.
 // Kept local to this panel so we don't introduce a new shared file.
@@ -79,7 +80,7 @@ export function StoryboardPanel({ appendTo } = {}) {
 
           <div class="flex gap-2">
             <button id="sb-add" class="flex-1 px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm text-white">+ Frame</button>
-            <button id="sb-generate" class="flex-1 px-3 py-2 bg-primary text-black font-black rounded-xl text-sm">Generate</button>
+            <button id="sb-generate" class="btn-generate flex-1">🎞️ Generate</button>
           </div>
 
           <div class="space-y-2 max-h-[420px] overflow-y-auto pr-1" id="sb-frame-list">
@@ -118,6 +119,12 @@ export function StoryboardPanel({ appendTo } = {}) {
         </div>
       </div>
     `;
+    const genBtn = createStudioButton({ text: 'Generate', emoji: '🎞️', variant: 'primary', className: 'flex-1 w-auto' });
+    genBtn.id = 'sb-generate';
+    const existingGenBtn = root.querySelector('#sb-generate');
+    if (existingGenBtn) {
+      existingGenBtn.replaceWith(genBtn);
+    }
     bind();
     // Render the large frame preview
     if (selected) {

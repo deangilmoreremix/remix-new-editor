@@ -77,7 +77,7 @@ async function patchJob(id, patch) {
       // Fall through to localStorage on error
     } else {
       // Also update localStorage for immediate UI consistency
-      const queue = listRenderQueue();
+      const queue = await listRenderQueue();
       const idx = queue.findIndex((entry) => entry && entry.id === id);
       if (idx !== -1) {
         queue[idx] = { ...queue[idx], ...patch };
@@ -88,7 +88,7 @@ async function patchJob(id, patch) {
   }
 
   // localStorage fallback
-  const queue = listRenderQueue();
+  const queue = await listRenderQueue();
   const idx = queue.findIndex((entry) => entry && entry.id === id);
   if (idx === -1) return null;
   queue[idx] = { ...queue[idx], ...patch };
@@ -213,15 +213,15 @@ export function subscribe(listener) {
  * to do. If no executor is registered, the job is marked "failed" with an
  * explicit error — it is NEVER marked "completed" without a real render result.
  */
-export function processNextJob() {
+export async function processNextJob() {
   if (processing) return null;
-  const queue = listRenderQueue();
+  const queue = await listRenderQueue();
   const next = queue.find((entry) => entry && entry.status === 'queued');
   if (!next) return null;
 
   if (!renderExecutor) {
     // Missing capability is a real, user-facing failure — not a fake success.
-    patchJob(next.id, {
+    await patchJob(next.id, {
       status: 'failed',
       error: 'No renderer available. Open the Render page to process this job.',
     });
@@ -229,7 +229,7 @@ export function processNextJob() {
   }
 
   processing = true;
-  const started = patchJob(next.id, { status: 'processing', progress: 0, error: null });
+  const started = await patchJob(next.id, { status: 'processing', progress: 0, error: null });
 
   const onProgress = (pct) => {
     const value = Math.max(0, Math.min(100, Math.round(pct)));
@@ -269,8 +269,8 @@ export function processNextJob() {
 
 export function startProcessor(intervalMs = 5000) {
   if (processorInterval) return () => stopProcessor();
-  processorInterval = setInterval(() => {
-    const queue = listRenderQueue();
+  processorInterval = setInterval(async () => {
+    const queue = await listRenderQueue();
     if (queue.some((entry) => entry && entry.status === 'queued')) {
       processNextJob();
     }
