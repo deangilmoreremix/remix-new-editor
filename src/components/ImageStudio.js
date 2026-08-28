@@ -330,7 +330,7 @@ export function ImageStudio() {
 
     // Attachment toolbar (Start frame / End frame / Image / Video / Audio)
     const attachmentToolbar = createAttachmentToolbar({
-      container: inputRow,
+      container: topRow,
       getTextarea: () => textarea,
       acceptVideo: false,
       acceptAudio: false,

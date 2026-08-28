@@ -23,11 +23,11 @@ export function createAttachmentToolbar({
   toolbar.setAttribute('aria-label', 'Attachment toolbar');
 
   const inputsSchema = model?.inputs || {};
-  const hasFirstFrame = 'first_frame_url' in inputsSchema;
-  const hasLastFrame = 'last_frame_url' in inputsSchema;
-  const hasReferenceImages = 'reference_images' in inputsSchema;
-  const hasReferenceVideos = 'reference_videos' in inputsSchema;
-  const hasReferenceAudios = 'reference_audios' in inputsSchema;
+  const hasFirstFrame = model ? 'first_frame_url' in inputsSchema : true;
+  const hasLastFrame = model ? 'last_frame_url' in inputsSchema : true;
+  const hasReferenceImages = model ? 'reference_images' in inputsSchema : true;
+  const hasReferenceVideos = model ? 'reference_videos' in inputsSchema : true;
+  const hasReferenceAudios = model ? 'reference_audios' in inputsSchema : true;
 
   const tools = [
     acceptStartFrame && hasFirstFrame && { key: 'startFrame', label: 'Start f...', title: 'Starting image for the video. Sets the opening scene.', accept: 'image/*', multiple: false },

@@ -507,7 +507,7 @@ export function VideoStudio() {
 
     // Attachment toolbar (Start frame / End frame / Image / Video / Audio)
     const attachmentToolbar = createAttachmentToolbar({
-      container: inputRow,
+      container: topRow,
       getTextarea: () => textarea,
       acceptAudio: false,
       onUpload: async (key, file) => {
