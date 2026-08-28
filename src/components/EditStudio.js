@@ -2,11 +2,13 @@ import { muapi } from '../lib/muapi.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
+import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getToolThumbnail, createThumbnailImg, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
 import { createMediaRemoveButton } from '../lib/studioHelpers.js';
+import { showToast } from '../lib/loading.js';
 
 const EDIT_TOOLS = [
   {
@@ -795,6 +797,29 @@ export function EditStudio() {
 
   // Insert prompt + controls above the action buttons
   workCard.appendChild(promptField);
+
+  // Attachment toolbar for edit references
+  const editAttachmentState = { images: [], videos: [], audios: [] };
+  const attachmentToolbar = createAttachmentToolbar({
+    container: workCard,
+    getTextarea: () => promptField,
+    acceptStartFrame: false,
+    acceptEndFrame: false,
+    acceptAudio: false,
+    onUpload: async (key, file) => {
+      try {
+        const { uploadFileToStorage } = await import('../lib/hybrid-supabase.js');
+        const url = await uploadFileToStorage(file);
+        editAttachmentState[key] = editAttachmentState[key] || [];
+        editAttachmentState[key].push(url);
+        showToast('Reference uploaded', 'success');
+      } catch (err) {
+        console.error('[EditStudio] attachment upload failed:', err);
+        showToast('Attachment upload failed: ' + err.message, 'error');
+      }
+    },
+  });
+
   workCard.appendChild(controlsContainer);
   workCard.appendChild(editBtn);
 

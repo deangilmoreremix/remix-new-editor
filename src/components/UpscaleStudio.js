@@ -4,6 +4,7 @@ import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
+import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
@@ -12,6 +13,7 @@ import { mountModelSelector, getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getP
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
+import { showToast } from '../lib/loading.js';
 
 const UPSCALE_METHODS = [
   { id: 'ai-image-upscaler', name: 'AI Upscaler', description: 'General-purpose AI upscaling with 2x/4x factor', factors: ['2', '4'], provider: 'muapi', provider_name: 'MuAPI' },
@@ -168,6 +170,33 @@ const triggerBtn = document.createElement('button');
   hint.textContent = 'Upload image or video to upscale';
   uploadRow.appendChild(hint);
   formCard.appendChild(uploadRow);
+
+  // Attachment toolbar for upscale references
+  const upscalePromptInput = document.createElement('textarea');
+  upscalePromptInput.className = 'hidden';
+  upscalePromptInput.rows = 1;
+  formCard.appendChild(upscalePromptInput);
+
+  const upscaleAttachmentState = { images: [], videos: [], audios: [] };
+  const attachmentToolbar = createAttachmentToolbar({
+    container: formCard,
+    getTextarea: () => upscalePromptInput,
+    acceptStartFrame: false,
+    acceptEndFrame: false,
+    acceptAudio: false,
+    onUpload: async (key, file) => {
+      try {
+        const { uploadFileToStorage } = await import('../lib/hybrid-supabase.js');
+        const url = await uploadFileToStorage(file);
+        upscaleAttachmentState[key] = upscaleAttachmentState[key] || [];
+        upscaleAttachmentState[key].push(url);
+        showToast('Reference uploaded', 'success');
+      } catch (err) {
+        console.error('[UpscaleStudio] attachment upload failed:', err);
+        showToast('Attachment upload failed: ' + err.message, 'error');
+      }
+    },
+  });
 
   const pexelsUpscaleAttr = document.createElement('div');
   pexelsUpscaleAttr.id = 'pexels-upscale-attribution';

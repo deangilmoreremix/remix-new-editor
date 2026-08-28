@@ -5,6 +5,7 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { videoToolsModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
+import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
@@ -18,6 +19,7 @@ import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
+import { showToast } from '../lib/loading.js';
 
 export function VideoToolsStudio() {
   const container = document.createElement('div');
@@ -196,9 +198,32 @@ const triggerBtn = document.createElement('button');
   promptInput.rows = 3;
   promptInput.placeholder = 'Describe the transformation you want...';
   promptInput.setAttribute('aria-label', 'Video processing prompt');
-  promptInput.oninput = (e) => { prompt = e.target.value; };
+   promptInput.oninput = (e) => { prompt = e.target.value; };
    promptGroup.appendChild(promptInput);
-    // GTM Boost entry point — opens the prompt enhancer themed for video tools
+
+   // Attachment toolbar for video tool references
+   const videoToolsAttachmentState = { images: [], videos: [], audios: [] };
+   const attachmentToolbar = createAttachmentToolbar({
+     container: promptGroup,
+     getTextarea: () => promptInput,
+     acceptStartFrame: false,
+     acceptEndFrame: false,
+     acceptAudio: false,
+     onUpload: async (key, file) => {
+       try {
+         const { uploadFileToStorage } = await import('../lib/hybrid-supabase.js');
+         const url = await uploadFileToStorage(file);
+         videoToolsAttachmentState[key] = videoToolsAttachmentState[key] || [];
+         videoToolsAttachmentState[key].push(url);
+         showToast('Reference uploaded', 'success');
+       } catch (err) {
+         console.error('[VideoToolsStudio] attachment upload failed:', err);
+         showToast('Attachment upload failed: ' + err.message, 'error');
+       }
+     },
+   });
+
+   // GTM Boost entry point — opens the prompt enhancer themed for video tools
     // and loads the result straight into this prompt.
     const gtmBtn = document.createElement('button');
     gtmBtn.type = 'button';
