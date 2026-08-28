@@ -4,6 +4,7 @@ import { getUploadHistory, saveUpload, removeUpload } from '../lib/uploadHistory
 import { fetchUrlAsFile, processFileUpload } from '../lib/editor/uploadPipeline.js';
 import { showToast } from '../lib/loading.js';
 import { formatErrorMessage } from '../lib/errorMessages.js';
+import { UPLOAD_LIMITS, SUPABASE_PROXY_BODY_LIMIT_BYTES, categoryFromMimeType } from '../lib/editor/uploadLimits.js';
 
 // ── Module-level: dedupe global listeners across all picker instances ──────────
 const _globalCleanups = new Set();
@@ -49,14 +50,8 @@ registerGlobalListeners();
 
 // ── MuAPI file-upload limits (per https://muapi.ai/docs/file-upload) ──────────
 // Images: 10MB (.jpg/.png/.webp/...) · Videos: 50MB (.mp4/.mov/...) · Others: 10MB
-const MUAPI_LIMITS = {
-    image: 10 * 1024 * 1024,
-    video: 50 * 1024 * 1024,
-    audio: 10 * 1024 * 1024,
-    document: 10 * 1024 * 1024,
-    text: 10 * 1024 * 1024,
-    archive: 10 * 1024 * 1024,
-};
+// Sourced from uploadLimits.js — single source of truth
+const MUAPI_LIMITS = UPLOAD_LIMITS;
 
 // Accept strings grouped by category. The picker builds the file-input `accept`
 // attribute from these so the OS dialog only offers MuAPI-supported types.
@@ -887,7 +882,7 @@ export function createUploadPicker({
             const urlAbort = new AbortController();
             const FETCH_TIMEOUT_MS = 30000;
             const FETCH_TIMEOUT_ID = setTimeout(() => urlAbort.abort(), FETCH_TIMEOUT_MS);
-            const URL_BYTE_CAP = acceptVideo ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
+            const URL_BYTE_CAP = acceptVideo ? UPLOAD_LIMITS.video : UPLOAD_LIMITS.image;
 
             try {
                 let contentLength = null;

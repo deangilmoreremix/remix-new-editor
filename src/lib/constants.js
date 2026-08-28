@@ -4,11 +4,13 @@
  */
 
 // File size limits (in bytes)
+// MuAPI limits: Images 10MB, Videos 50MB, Audio 10MB, Others 10MB
+// These are the authoritative limits — import from uploadLimits.js for upload-specific config
 export const FILE_LIMITS = {
-    MAX_IMAGE_SIZE: 10 * 1024 * 1024,      // 10MB
-    MAX_VIDEO_SIZE: 100 * 1024 * 1024,     // 100MB
-    MAX_AUDIO_SIZE: 50 * 1024 * 1024,      // 50MB
-    MAX_DOCUMENT_SIZE: 25 * 1024 * 1024,   // 25MB
+    MAX_IMAGE_SIZE: 10 * 1024 * 1024,      // 10MB (MuAPI image limit)
+    MAX_VIDEO_SIZE: 50 * 1024 * 1024,      // 50MB (MuAPI video limit)
+    MAX_AUDIO_SIZE: 10 * 1024 * 1024,      // 10MB (MuAPI audio/other limit)
+    MAX_DOCUMENT_SIZE: 10 * 1024 * 1024,   // 10MB (MuAPI other limit)
     CHUNK_SIZE: 1024 * 1024                 // 1MB for uploads
 };
 

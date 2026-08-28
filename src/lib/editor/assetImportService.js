@@ -4,11 +4,12 @@
  */
 
 import { openaiConfig } from '../config/openaiConfig.js';
+import { UPLOAD_LIMITS } from './uploadLimits.js';
 
 class AssetImportService {
   constructor() {
     this.supportedFormats = ['png', 'jpg', 'jpeg', 'webp'];
-    this.maxFileSize = 10 * 1024 * 1024; // 10MB limit
+    this.maxFileSize = UPLOAD_LIMITS.image; // 10MB limit
   }
 
   /**
@@ -380,7 +381,7 @@ class AssetImportService {
     });
 
     // Generate recommendations
-    if (stats.totalSize > 50 * 1024 * 1024) { // 50MB
+    if (stats.totalSize > UPLOAD_LIMITS.video) { // 50MB
       stats.recommendations.push('Consider compressing images to reduce total size');
     }
 

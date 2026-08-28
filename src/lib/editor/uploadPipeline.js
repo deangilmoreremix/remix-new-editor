@@ -192,7 +192,12 @@ function captureVideoFirstFrame(file) {
 // ============================================================================
 
 function newId(prefix) {
-  return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  // Use crypto.randomUUID() when available to prevent ID collisions in
+  // concurrent uploads. Falls back to Date.now() + random for older browsers.
+  const uuid = (typeof crypto !== 'undefined' && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : `${Date.now()}_${Math.random().toString(36).slice(2, 12)}`;
+  return `${prefix}_${uuid}`;
 }
 
 /**
@@ -420,6 +425,8 @@ export async function processFileUpload(file, options = {}) {
   // Step 2: Read metadata (full production extraction via metadataExtractor:
   // mediainfo.js for codec/fps/bitrate, exifr for orientation, mp4box for
   // MP4 boxes, music-metadata-browser for audio tags)
+  // NON-FATAL: metadata extraction failure must not block upload. If extraction
+  // fails, we continue with empty metadata so the file still uploads.
   let fullMeta;
   try {
     fullMeta = await extractMetadataImpl(file, type, {
@@ -427,11 +434,15 @@ export async function processFileUpload(file, options = {}) {
       waveform: opts.waveform !== false
     });
   } catch (e) {
-    if (typeof console !== 'undefined' && console.error) {
-      console.error('[UploadPipeline] metadata extraction failed:', e);
+    if (typeof console !== 'undefined' && console.warn) {
+      console.warn('[UploadPipeline] metadata extraction failed (continuing without metadata):', e);
     }
-    if (opts.showToast) opts.showToast(`Could not read metadata for ${fileName}`, 'error');
-    return { success: false, error: 'Metadata extraction failed: ' + e.message };
+    // Use empty metadata as fallback — upload proceeds
+    fullMeta = {
+      duration: 0, width: 0, height: 0, fps: 0, codec: '', bitrate: 0,
+      sampleRate: 0, channels: 0, container: '', rotation: 0, orientation: 1,
+      camera: null, gps: null, tags: {}, waveform: null, thumbnail: null
+    };
   }
   // Legacy shape for backwards compat with buildAsset
   const meta = {

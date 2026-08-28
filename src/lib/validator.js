@@ -3,6 +3,8 @@
  * Provides comprehensive validation for user inputs, API parameters, and file uploads
  */
 
+import { UPLOAD_LIMITS } from './editor/uploadLimits.js';
+
 // Validation error types
 export class ValidationError extends Error {
     constructor(message, field = null) {
@@ -21,11 +23,11 @@ const PATTERNS = {
     UUID: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
 };
 
-// File validation constants
+// File validation constants — sourced from uploadLimits.js (single source of truth)
 const FILE_LIMITS = {
-    MAX_IMAGE_SIZE: 10 * 1024 * 1024, // 10MB
-    MAX_VIDEO_SIZE: 100 * 1024 * 1024, // 100MB
-    MAX_AUDIO_SIZE: 50 * 1024 * 1024, // 50MB
+    MAX_IMAGE_SIZE: UPLOAD_LIMITS.image,    // 10MB
+    MAX_VIDEO_SIZE: UPLOAD_LIMITS.video,    // 50MB
+    MAX_AUDIO_SIZE: UPLOAD_LIMITS.audio,    // 10MB
     ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
     ALLOWED_VIDEO_TYPES: ['video/mp4', 'video/webm', 'video/quicktime'],
     ALLOWED_AUDIO_TYPES: ['audio/mpeg', 'audio/wav', 'audio/ogg'],

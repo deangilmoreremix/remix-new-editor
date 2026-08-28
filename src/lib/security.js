@@ -207,6 +207,8 @@ export function sanitizeUrl(url, options = {}) {
   }
 }
 
+import { UPLOAD_LIMITS } from './editor/uploadLimits.js';
+
 /**
  * Validate file upload for security
  * @param {File} file - File to validate
@@ -215,7 +217,7 @@ export function sanitizeUrl(url, options = {}) {
  */
 export function validateFileUpload(file, options = {}) {
   const {
-    maxSize = 10 * 1024 * 1024, // 10MB default
+    maxSize = UPLOAD_LIMITS.image, // 10MB default (MuAPI image limit)
     allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
     allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif']
   } = options;

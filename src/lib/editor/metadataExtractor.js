@@ -92,25 +92,36 @@ export async function extractVideoMetadata(file) {
       if (MP4Box && MP4Box.createFile) {
         const mp4 = MP4Box.createFile();
         const arrayBuffer = await file.arrayBuffer();
-        const buffer = arrayBuffer.slice(arrayBuffer.byteLength - 1024);  // last 1KB for moov
-        buffer.fileStart = arrayBuffer.byteLength - 1024;
-        mp4.appendBuffer(buffer);
-        mp4.flush();
-        if (mp4.info) {
-          if (!result.duration && mp4.info.duration) {
-            result.duration = mp4.info.duration / mp4.info.timescale;
-          }
-          if (mp4.info.tracks) {
-            for (const track of mp4.info.tracks) {
-              if (track.video) {
-                if (!result.width) result.width = track.video.width;
-                if (!result.height) result.height = track.video.height;
-                if (!result.fps && track.video.timescale) {
-                  result.fps = track.video.nb_samples / (track.video.samples_duration / track.video.timescale);
+        // Try last 1KB first (most MP4 files have moov at end),
+        // then try first 1KB (streaming-optimized files may have moov at start).
+        const tryBuffers = [
+          arrayBuffer.slice(arrayBuffer.byteLength - 1024),  // last 1KB for moov
+          arrayBuffer.slice(0, 1024),                        // first 1KB for fast-start
+        ];
+        for (const buffer of tryBuffers) {
+          if (buffer.byteLength === 0) continue;
+          const mp4Attempt = MP4Box.createFile();
+          buffer.fileStart = arrayBuffer.byteLength - buffer.byteLength;
+          mp4Attempt.appendBuffer(buffer);
+          mp4Attempt.flush();
+          if (mp4Attempt.info) {
+            if (!result.duration && mp4Attempt.info.duration) {
+              result.duration = mp4Attempt.info.duration / mp4Attempt.info.timescale;
+            }
+            if (mp4Attempt.info.tracks) {
+              for (const track of mp4Attempt.info.tracks) {
+                if (track.video) {
+                  if (!result.width) result.width = track.video.width;
+                  if (!result.height) result.height = track.video.height;
+                  if (!result.fps && track.video.timescale) {
+                    result.fps = track.video.nb_samples / (track.video.samples_duration / track.video.timescale);
+                  }
+                  if (!result.codec) result.codec = track.codec || 'avc1';
                 }
-                if (!result.codec) result.codec = track.codec || 'avc1';
               }
             }
+            // If we got what we need, stop trying
+            if (result.duration && result.width) break;
           }
         }
       }
@@ -427,6 +438,21 @@ function generateVideoThumbnail(file, maxWidth, maxHeight, quality) {
 // UNIFIED ENTRY
 // ============================================================================
 
+// Maximum time (ms) to wait for metadata extraction before giving up.
+// Prevents corrupt or unusual files from blocking the upload indefinitely.
+const METADATA_EXTRACTION_TIMEOUT_MS = 5000;
+
+/**
+ * Race a promise against a timeout. Returns the promise result if it resolves
+ * before the timeout, or the timeoutValue if it doesn't.
+ */
+function withTimeout(promise, timeoutMs, timeoutValue) {
+  return Promise.race([
+    promise,
+    new Promise((resolve) => setTimeout(() => resolve(timeoutValue), timeoutMs))
+  ]);
+}
+
 /**
  * Extract all available metadata for a file. Routes to the right
  * extractor based on file type.
@@ -459,30 +485,38 @@ export async function extractMetadata(file, type, options = {}) {
   if (!file) return result;
 
   try {
-    if (type === 'video') {
-      const v = await extractVideoMetadata(file);
-      Object.assign(result, v);
-    } else if (type === 'audio') {
-      const a = await extractAudioMetadata(file);
-      Object.assign(result, a);
-    } else if (type === 'image') {
-      const i = await extractImageMetadata(file);
-      Object.assign(result, i);
-    }
+    // Wrap extraction in a timeout to prevent hanging on corrupt files
+    const extractionPromise = (async () => {
+      if (type === 'video') {
+        const v = await extractVideoMetadata(file);
+        Object.assign(result, v);
+      } else if (type === 'audio') {
+        const a = await extractAudioMetadata(file);
+        Object.assign(result, a);
+      } else if (type === 'image') {
+        const i = await extractImageMetadata(file);
+        Object.assign(result, i);
+      }
 
-    if (type === 'audio' && options.waveform !== false) {
-      const w = await extractWaveform(file, { targetPoints: options.waveformPoints || 1000 });
-      result.waveform = w.peaks.length > 0 ? w : null;
-      if (w.sampleRate) result.sampleRate = w.sampleRate;
-      if (w.channels) result.channels = w.channels;
-      if (w.duration && !result.duration) result.duration = w.duration;
-    }
+      if (type === 'audio' && options.waveform !== false) {
+        const w = await extractWaveform(file, { targetPoints: options.waveformPoints || 1000 });
+        result.waveform = w.peaks.length > 0 ? w : null;
+        if (w.sampleRate) result.sampleRate = w.sampleRate;
+        if (w.channels) result.channels = w.channels;
+        if (w.duration && !result.duration) result.duration = w.duration;
+      }
 
-    if (options.thumbnail !== false && (type === 'video' || type === 'image')) {
-      result.thumbnail = await generateThumbnail(file, type, options);
-    }
+      if (options.thumbnail !== false && (type === 'video' || type === 'image')) {
+        result.thumbnail = await generateThumbnail(file, type, options);
+      }
+    })();
+
+    await withTimeout(extractionPromise, METADATA_EXTRACTION_TIMEOUT_MS, undefined);
   } catch (e) {
     // Best-effort; return whatever was extracted
+    if (typeof console !== 'undefined' && console.warn) {
+      console.warn('[MetadataExtractor] extraction error (returning partial metadata):', e);
+    }
   }
 
   return result;

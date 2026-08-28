@@ -55,7 +55,7 @@ export function getSupabaseAnonKey() {
 }
 
 export async function uploadFileToStorage(file) {
-  const ext = file.name.split('.').pop() || 'bin';
+  const ext = sanitizeFileExtension(file.name);
   const uniqueName = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}.${ext}`;
   const path = `${await getUserKey()}/${uniqueName}`;
 
@@ -70,11 +70,34 @@ export async function uploadFileToStorage(file) {
 
   const { error } = await Promise.race([uploadPromise, timeoutPromise]).catch(err => ({ error: err }));
 
-  if (error) throw new Error(`Upload failed: ${error.message || error}`);
+  if (error) {
+    // Preserve original error code for debugging
+    const enhanced = new Error(`Upload failed: ${error.message || error}`);
+    enhanced.code = error.code || error.statusCode;
+    enhanced.originalError = error;
+    throw enhanced;
+  }
 
   const { data: urlData } = supabase.storage
     .from('uploads')
     .getPublicUrl(path);
 
   return urlData.publicUrl;
+}
+
+/**
+ * Sanitize file extension to prevent path traversal.
+ * Extracts only the last extension, rejects paths with slashes.
+ */
+function sanitizeFileExtension(fileName) {
+  if (!fileName) return 'bin';
+  // Reject any path separators
+  if (fileName.includes('/') || fileName.includes('\\') || fileName.includes('..')) {
+    return 'bin';
+  }
+  const parts = fileName.split('.');
+  if (parts.length < 2) return 'bin';
+  // Only use the last extension, alphanumeric only
+  const ext = parts.pop().replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+  return ext || 'bin';
 }

@@ -14,6 +14,7 @@ import { uploadFileToStorage } from '../hybrid-supabase.js';
 import { mediaWorker } from '../media-worker-manager.js';
 import { processFileUpload } from './uploadPipeline.js';
 import { formatErrorMessage } from '../errorMessages.js';
+import { UPLOAD_LIMITS, UPLOAD_MIME_TYPES, UPLOAD_EXTENSIONS } from './uploadLimits.js';
 
 // Enhanced drag state management
 const dragState = {
@@ -36,32 +37,34 @@ const dragState = {
 };
 
 // Supported file types and their configurations
+// Size limits sourced from uploadLimits.js — single source of truth
+// MuAPI limits: Images 10MB · Videos: 50MB · Audio: 10MB · Others: 10MB
 const FILE_TYPES = {
   video: {
-    extensions: ['mp4', 'mov', 'avi', 'mkv', 'webm', 'm4v'],
-    mimeTypes: ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/x-matroska', 'video/webm'],
-    maxSize: 500 * 1024 * 1024, // 500MB
+    extensions: UPLOAD_EXTENSIONS.video,
+    mimeTypes: UPLOAD_MIME_TYPES.video,
+    maxSize: UPLOAD_LIMITS.video,
     icon: '🎥',
     color: '#ff6b6b'
   },
   audio: {
-    extensions: ['mp3', 'wav', 'aac', 'ogg', 'flac', 'm4a'],
-    mimeTypes: ['audio/mpeg', 'audio/wav', 'audio/aac', 'audio/ogg', 'audio/flac', 'audio/mp4'],
-    maxSize: 100 * 1024 * 1024, // 100MB
+    extensions: UPLOAD_EXTENSIONS.audio,
+    mimeTypes: UPLOAD_MIME_TYPES.audio,
+    maxSize: UPLOAD_LIMITS.audio,
     icon: '🎵',
     color: '#4ecdc4'
   },
   image: {
-    extensions: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'tiff'],
-    mimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'image/bmp', 'image/tiff'],
-    maxSize: 50 * 1024 * 1024, // 50MB
+    extensions: UPLOAD_EXTENSIONS.image,
+    mimeTypes: UPLOAD_MIME_TYPES.image,
+    maxSize: UPLOAD_LIMITS.image,
     icon: '🖼️',
     color: '#45b7d1'
   },
   text: {
-    extensions: ['txt', 'md', 'json', 'csv', 'xml', 'html'],
-    mimeTypes: ['text/plain', 'text/markdown', 'application/json', 'text/csv', 'application/xml', 'text/html'],
-    maxSize: 10 * 1024 * 1024, // 10MB
+    extensions: UPLOAD_EXTENSIONS.text,
+    mimeTypes: UPLOAD_MIME_TYPES.text,
+    maxSize: UPLOAD_LIMITS.text,
     icon: '📄',
     color: '#96ceb4'
   }

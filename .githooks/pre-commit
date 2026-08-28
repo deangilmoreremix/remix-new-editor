@@ -1,0 +1,15 @@
+#!/bin/bash
+# Pre-commit hook — runs all checks
+# Installed via: git config core.hooksPath .githooks (or symlinked)
+
+# Determine repo root — works both when called by git and directly
+REPO_ROOT="$(cd "$(dirname "$0")" && cd .. && pwd)"
+
+# Run upload system warning check
+if [ -f "$REPO_ROOT/scripts/pre-commit-upload-check.sh" ]; then
+  bash "$REPO_ROOT/scripts/pre-commit-upload-check.sh"
+fi
+
+# Add other pre-commit checks here as needed
+
+exit 0

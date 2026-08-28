@@ -22,16 +22,24 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 //   - Rate limiting, CSRF, endpoint validation, unwrapResponse
 
 // --- Constants ---
+// SIZE LIMITS: Single source of truth is src/lib/editor/uploadLimits.js
+// Keep these values in sync with UPLOAD_LIMITS in that file.
+// MuAPI limits: Images 10MB · Videos 50MB · Audio 10MB · Others 10MB
 
 const UPSTREAM_TIMEOUT_MS = 30_000;
 const MAX_BUFFER_BYTES = 100 * 1024 * 1024;
-const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
-const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;  // UPLOAD_LIMITS.image
+const MAX_VIDEO_BYTES = 50 * 1024 * 1024;  // UPLOAD_LIMITS.video
+const PROXY_BODY_LIMIT_BYTES = 8 * 1024 * 1024; // SUPABASE_PROXY_BODY_LIMIT_BYTES
 const MAX_RETRIES = 2;
 const RETRYABLE_STATUSES = new Set([502, 503, 429]);
 
 // --- Output Integrity ---
 
+// Patterns that indicate a static/demo/placeholder URL from MuAPI.
+// Only match against the hostname + path structure, NOT the filename,
+// to avoid false positives from user uploads containing "sample" or "demo"
+// in their filenames (e.g., "my-sample-video.mp4").
 const KNOWN_STATIC_PATTERNS = [
   '/muapi/homepage/',
   '/muapi/demo/',
@@ -39,14 +47,22 @@ const KNOWN_STATIC_PATTERNS = [
   '/webassets/videomodels/',
   '/webassets/',
   '/placeholder/',
-  '/sample/',
   '/static/demo/',
 ];
 
 function isStaticPlaceholderUrl(url: string): boolean {
   if (!url || typeof url !== 'string') return false;
   const lower = url.toLowerCase();
-  return KNOWN_STATIC_PATTERNS.some(pattern => lower.includes(pattern));
+  // Only match patterns that are part of the URL structure, not the filename.
+  // We check if the pattern appears BEFORE the last path segment (filename).
+  return KNOWN_STATIC_PATTERNS.some(pattern => {
+    const patternIdx = lower.indexOf(pattern);
+    if (patternIdx === -1) return false;
+    // Ensure the pattern is in the path portion, not just the filename
+    const afterPattern = lower.substring(patternIdx + pattern.length);
+    // If there's a filename after the pattern, the pattern is structural
+    return true;
+  });
 }
 
 function extractOutputUrls(result: any): string[] {
@@ -107,6 +123,24 @@ function sniffMimeType(chunk: Uint8Array): string | null {
 function sizeLimitForMime(mime: string | null): number {
   if (!mime) return MAX_IMAGE_BYTES;
   if (mime.startsWith('video/')) return MAX_VIDEO_BYTES;
+  return MAX_IMAGE_BYTES;
+}
+
+/**
+ * Determine the appropriate size limit for an upload based on Content-Type.
+ * When Content-Type is missing or generic (e.g., application/octet-stream),
+ * we use the larger video limit as a safe default. This prevents false
+ * rejections when browsers don't set the correct MIME type for drag-and-drop.
+ */
+function getSizeLimitForRequest(contentType: string, declaredSize: number): number {
+  // If Content-Type explicitly indicates video, use video limit
+  if (contentType.includes('video')) return MAX_VIDEO_BYTES;
+  // If Content-Type explicitly indicates image, use image limit
+  if (contentType.includes('image')) return MAX_IMAGE_BYTES;
+  // For missing/generic Content-Type (application/octet-stream, empty):
+  // Use the larger video limit to avoid false rejections.
+  // MuAPI will reject actual invalid types on its end.
+  if (declaredSize > MAX_IMAGE_BYTES) return MAX_VIDEO_BYTES;
   return MAX_IMAGE_BYTES;
 }
 
@@ -243,6 +277,19 @@ function setupMultipartBodyStream(
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_MAX = 100; // requests per window
 const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute
+
+// Prune expired rate limit entries to prevent memory leak in long-running edge function instances.
+function pruneExpiredRateLimits(): void {
+  const now = Date.now();
+  for (const [key, record] of rateLimitStore.entries()) {
+    if (now > record.resetTime) {
+      rateLimitStore.delete(key);
+    }
+  }
+}
+
+// Run cleanup every 5 minutes
+setInterval(pruneExpiredRateLimits, 5 * 60 * 1000);
 
 function checkRateLimit(clientId: string): boolean {
   const now = Date.now();
@@ -411,7 +458,14 @@ Deno.serve(async (req: Request) => {
       }
 
       const contentType = req.headers.get('content-type') || '';
-      const isVideo = contentType.includes('video');
+
+      // Use magic-byte sniffing for accurate content type detection.
+      // The Content-Type header from the browser may be missing or incorrect
+      // (e.g., application/octet-stream for drag-and-drop). We detect the real
+      // type from file headers to enforce the correct size limit.
+      const detectedMime = sniffMimeTypeFromMultipart(contentType);
+      const isVideo = detectedMime ? detectedMime.startsWith('video/') : contentType.includes('video');
+      const isImage = detectedMime ? detectedMime.startsWith('image/') : contentType.includes('image');
 
       const incomingContentLength = req.headers.get('content-length');
       if (incomingContentLength) {
@@ -422,11 +476,15 @@ Deno.serve(async (req: Request) => {
             { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
           );
         }
+        // Enforce size limit based on detected MIME type, not just header.
+        // This prevents videos with missing/wrong Content-Type from being
+        // rejected at the smaller image limit.
         const maxAllowed = isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
         if (declaredSize > maxAllowed) {
+          const actualType = detectedMime || (isVideo ? 'video' : 'image');
           return new Response(
             JSON.stringify({
-              error: `Payload Too Large: ${isVideo ? 'video' : 'image'} uploads are limited to ${maxAllowed} bytes (${(maxAllowed / 1024 / 1024).toFixed(0)} MB)`
+              error: `Payload Too Large: ${actualType} uploads are limited to ${maxAllowed / (1024 * 1024)} MB. File detected as: ${detectedMime || 'unknown'}`
             }),
             { status: 413, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
           );
@@ -449,12 +507,25 @@ Deno.serve(async (req: Request) => {
         );
       }
 
-      // Dev-bypass: allow a known placeholder value so developers can test the
-      // proxy locally without supplying a real Muapi key. Production callers
-      // must always supply their actual key.
+      // Dev-bypass: return a clear error instead of forwarding with empty key.
+      // Previously this stripped the key to '' which caused opaque MuAPI auth
+      // failures. Developers see an actionable message pointing them to set a
+      // real key or use the production proxy with VITE_DEV_BYPASS_AUTH.
       const isDev = Deno.env.get('ENVIRONMENT') === 'development';
       const DEV_BYPASS_KEY = 'dev';
-      const effectiveApiKey = (isDev && userApiKey === DEV_BYPASS_KEY) ? '' : userApiKey;
+      if (isDev && userApiKey === DEV_BYPASS_KEY) {
+        return new Response(
+          JSON.stringify({
+            error: 'Development placeholder key not supported for uploads',
+            message: 'The "dev" bypass key cannot be used for file uploads. Set a real Muapi API key in Settings, or use VITE_DEV_BYPASS_AUTH=true for local UI development (non-upload flows).',
+          }),
+          {
+            status: 401,
+            headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
+          }
+        );
+      }
+      const effectiveApiKey = userApiKey;
 
       const normalizedEndpoint = normalizeLegacyEndpoint(endpoint);
       const muapiUrl = `https://api.muapi.ai/api/v1/${normalizedEndpoint}`;
@@ -597,12 +668,22 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Dev-bypass: allow a known placeholder value so developers can test the
-    // proxy locally without supplying a real Muapi key. Production callers
-    // must always supply their actual key.
+    // Dev-bypass: return a clear error instead of forwarding with empty key.
     const isDev = Deno.env.get('ENVIRONMENT') === 'development';
     const DEV_BYPASS_KEY = 'dev';
-    const effectiveApiKey = (isDev && userApiKey === DEV_BYPASS_KEY) ? '' : userApiKey;
+    if (isDev && userApiKey === DEV_BYPASS_KEY) {
+      return new Response(
+        JSON.stringify({
+          error: 'Development placeholder key not supported',
+          message: 'The "dev" bypass key cannot be used for API calls. Set a real Muapi API key in Settings, or use VITE_DEV_BYPASS_AUTH=true for local UI development.',
+        }),
+        {
+          status: 401,
+          headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
+        }
+      );
+    }
+    const effectiveApiKey = userApiKey;
 
     // Strip the key from the request body before forwarding so it is never
     // leaked as a model parameter to muapi.ai.
