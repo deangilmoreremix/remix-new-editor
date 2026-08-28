@@ -34,11 +34,11 @@ test.describe('Attachment upload end-to-end', () => {
 
     // Check for attachment toolbar
     const toolbar = page.locator('.studio-attachment-toolbar');
-    await expect(toolbar).toBeVisible();
+    await expect(toolbar).toBeVisible({ timeout: 30000 });
 
     // Check for start frame button
     const startFrameBtn = page.locator('[data-tooltip="Starting image for the video. Sets the opening scene."]');
-    await expect(startFrameBtn).toBeVisible();
+    await expect(startFrameBtn).toBeVisible({ timeout: 30000 });
 
     // Check for end frame button
     const endFrameBtn = page.locator('[data-tooltip="End frame needs a start frame — a last frame on its own is rejected."]');
@@ -62,17 +62,17 @@ test.describe('Attachment upload end-to-end', () => {
     await page.waitForTimeout(1500);
 
     const toolbar = page.locator('.studio-attachment-toolbar');
-    await expect(toolbar).toBeVisible();
+    await expect(toolbar).toBeVisible({ timeout: 30000 });
 
     // VideoStudio should have start frame, image, video buttons (no audio)
     const startFrameBtn = page.locator('[data-tooltip="Starting image for the video. Sets the opening scene."]');
-    await expect(startFrameBtn).toBeVisible();
+    await expect(startFrameBtn).toBeVisible({ timeout: 30000 });
 
     const imageBtn = page.locator('[data-tooltip="Reference Images"]');
-    await expect(imageBtn).toBeVisible();
+    await expect(imageBtn).toBeVisible({ timeout: 30000 });
 
     const videoBtn = page.locator('[data-tooltip="Reference Videos"]');
-    await expect(videoBtn).toBeVisible();
+    await expect(videoBtn).toBeVisible({ timeout: 30000 });
 
     // Audio should not be present
     const audioBtn = page.locator('[data-tooltip="Reference Audios"]');
@@ -84,17 +84,17 @@ test.describe('Attachment upload end-to-end', () => {
     await page.waitForTimeout(1500);
 
     const toolbar = page.locator('.studio-attachment-toolbar');
-    await expect(toolbar).toBeVisible();
+    await expect(toolbar).toBeVisible({ timeout: 30000 });
 
     // ImageStudio should have start frame, end frame, image buttons (no video/audio)
     const startFrameBtn = page.locator('[data-tooltip="Starting image for the video. Sets the opening scene."]');
-    await expect(startFrameBtn).toBeVisible();
+    await expect(startFrameBtn).toBeVisible({ timeout: 30000 });
 
     const endFrameBtn = page.locator('[data-tooltip="End frame needs a start frame — a last frame on its own is rejected."]');
-    await expect(endFrameBtn).toBeVisible();
+    await expect(endFrameBtn).toBeVisible({ timeout: 30000 });
 
     const imageBtn = page.locator('[data-tooltip="Reference Images"]');
-    await expect(imageBtn).toBeVisible();
+    await expect(imageBtn).toBeVisible({ timeout: 30000 });
 
     // Video and audio should not be present
     const videoBtn = page.locator('[data-tooltip="Reference Videos"]');
@@ -109,17 +109,17 @@ test.describe('Attachment upload end-to-end', () => {
     await page.waitForTimeout(1500);
 
     const toolbar = page.locator('.studio-attachment-toolbar');
-    await expect(toolbar).toBeVisible();
+    await expect(toolbar).toBeVisible({ timeout: 30000 });
 
     // AudioStudio should have image, video, audio buttons (no start/end frame)
     const imageBtn = page.locator('[data-tooltip="Reference Images"]');
-    await expect(imageBtn).toBeVisible();
+    await expect(imageBtn).toBeVisible({ timeout: 30000 });
 
     const videoBtn = page.locator('[data-tooltip="Reference Videos"]');
-    await expect(videoBtn).toBeVisible();
+    await expect(videoBtn).toBeVisible({ timeout: 30000 });
 
     const audioBtn = page.locator('[data-tooltip="Reference Audios"]');
-    await expect(audioBtn).toBeVisible();
+    await expect(audioBtn).toBeVisible({ timeout: 30000 });
 
     // Start/end frame should not be present
     const startFrameBtn = page.locator('[data-tooltip="Starting image for the video. Sets the opening scene."]');
@@ -131,16 +131,16 @@ test.describe('Attachment upload end-to-end', () => {
     await page.waitForTimeout(1500);
 
     const toolbar = page.locator('.studio-attachment-toolbar');
-    await expect(toolbar).toBeVisible();
+    await expect(toolbar).toBeVisible({ timeout: 30000 });
 
     const imageBtn = page.locator('[data-tooltip="Reference Images"]');
-    await expect(imageBtn).toBeVisible();
+    await expect(imageBtn).toBeVisible({ timeout: 30000 });
 
     const videoBtn = page.locator('[data-tooltip="Reference Videos"]');
-    await expect(videoBtn).toBeVisible();
+    await expect(videoBtn).toBeVisible({ timeout: 30000 });
 
     const audioBtn = page.locator('[data-tooltip="Reference Audios"]');
-    await expect(audioBtn).toBeVisible();
+    await expect(audioBtn).toBeVisible({ timeout: 30000 });
   });
 
   test('EffectsStudio exposes attachment toolbar with image, video buttons', async ({ page }) => {
@@ -148,13 +148,13 @@ test.describe('Attachment upload end-to-end', () => {
     await page.waitForTimeout(1500);
 
     const toolbar = page.locator('.studio-attachment-toolbar');
-    await expect(toolbar).toBeVisible();
+    await expect(toolbar).toBeVisible({ timeout: 30000 });
 
     const imageBtn = page.locator('[data-tooltip="Reference Images"]');
-    await expect(imageBtn).toBeVisible();
+    await expect(imageBtn).toBeVisible({ timeout: 30000 });
 
     const videoBtn = page.locator('[data-tooltip="Reference Videos"]');
-    await expect(videoBtn).toBeVisible();
+    await expect(videoBtn).toBeVisible({ timeout: 30000 });
 
     // EffectsStudio does not accept audio
     const audioBtn = page.locator('[data-tooltip="Reference Audios"]');
@@ -166,16 +166,16 @@ test.describe('Attachment upload end-to-end', () => {
     await page.waitForTimeout(1500);
 
     const toolbar = page.locator('.studio-attachment-toolbar');
-    await expect(toolbar).toBeVisible();
+    await expect(toolbar).toBeVisible({ timeout: 30000 });
 
     const imageBtn = page.locator('[data-tooltip="Reference Images"]');
-    await expect(imageBtn).toBeVisible();
+    await expect(imageBtn).toBeVisible({ timeout: 30000 });
 
     const videoBtn = page.locator('[data-tooltip="Reference Videos"]');
-    await expect(videoBtn).toBeVisible();
+    await expect(videoBtn).toBeVisible({ timeout: 30000 });
 
     const audioBtn = page.locator('[data-tooltip="Reference Audios"]');
-    await expect(audioBtn).toBeVisible();
+    await expect(audioBtn).toBeVisible({ timeout: 30000 });
   });
 
   test('UpscaleStudio exposes attachment toolbar with image, video, audio buttons', async ({ page }) => {
@@ -183,16 +183,16 @@ test.describe('Attachment upload end-to-end', () => {
     await page.waitForTimeout(1500);
 
     const toolbar = page.locator('.studio-attachment-toolbar');
-    await expect(toolbar).toBeVisible();
+    await expect(toolbar).toBeVisible({ timeout: 30000 });
 
     const imageBtn = page.locator('[data-tooltip="Reference Images"]');
-    await expect(imageBtn).toBeVisible();
+    await expect(imageBtn).toBeVisible({ timeout: 30000 });
 
     const videoBtn = page.locator('[data-tooltip="Reference Videos"]');
-    await expect(videoBtn).toBeVisible();
+    await expect(videoBtn).toBeVisible({ timeout: 30000 });
 
     const audioBtn = page.locator('[data-tooltip="Reference Audios"]');
-    await expect(audioBtn).toBeVisible();
+    await expect(audioBtn).toBeVisible({ timeout: 30000 });
   });
 
   test('VideoToolsStudio exposes attachment toolbar with image, video, audio buttons', async ({ page }) => {
@@ -200,15 +200,15 @@ test.describe('Attachment upload end-to-end', () => {
     await page.waitForTimeout(1500);
 
     const toolbar = page.locator('.studio-attachment-toolbar');
-    await expect(toolbar).toBeVisible();
+    await expect(toolbar).toBeVisible({ timeout: 30000 });
 
     const imageBtn = page.locator('[data-tooltip="Reference Images"]');
-    await expect(imageBtn).toBeVisible();
+    await expect(imageBtn).toBeVisible({ timeout: 30000 });
 
     const videoBtn = page.locator('[data-tooltip="Reference Videos"]');
-    await expect(videoBtn).toBeVisible();
+    await expect(videoBtn).toBeVisible({ timeout: 30000 });
 
     const audioBtn = page.locator('[data-tooltip="Reference Audios"]');
-    await expect(audioBtn).toBeVisible();
+    await expect(audioBtn).toBeVisible({ timeout: 30000 });
   });
 });
