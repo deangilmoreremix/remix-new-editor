@@ -18,6 +18,7 @@ import { createAutosave, saveProject, loadProject } from '../lib/editor/persiste
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { createUploadPicker } from './UploadPicker.js';
+import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
@@ -344,6 +345,27 @@ export async function StoryboardStudio(options = {}) {
 
   container.appendChild(videoIntentSection);
 
+  // Attachment toolbar for storyboard references
+  const storyboardAttachments = { images: [], videos: [], audios: [] };
+  const attachmentToolbar = createAttachmentToolbar({
+    container: videoIntentSection,
+    getTextarea: () => videoIntentSection.querySelector('#vi-premise'),
+    acceptStartFrame: false,
+    acceptEndFrame: false,
+    onUpload: async (key, file) => {
+      try {
+        const { uploadFileToStorage } = await import('../lib/hybrid-supabase.js');
+        const url = await uploadFileToStorage(file);
+        storyboardAttachments[key] = storyboardAttachments[key] || [];
+        storyboardAttachments[key].push(url);
+        showToast('Reference uploaded', 'success');
+      } catch (err) {
+        console.error('[StoryboardStudio] attachment upload failed:', err);
+        showToast('Attachment upload failed: ' + err.message, 'error');
+      }
+    },
+  });
+
   const toggleBtn = videoIntentSection.querySelector('#video-intent-toggle');
   const formEl = videoIntentSection.querySelector('#video-intent-form');
   const chevron = videoIntentSection.querySelector('#video-intent-chevron');
@@ -386,6 +408,10 @@ export async function StoryboardStudio(options = {}) {
       ...getVideoIntent(),
       model: selectedModel,
       customThumbnailUrl: customThumbnailUrl || undefined,
+      // Merge attachment URLs from the unified toolbar.
+      reference_images: storyboardAttachments.images?.length ? storyboardAttachments.images : undefined,
+      reference_videos: storyboardAttachments.videos?.length ? storyboardAttachments.videos : undefined,
+      reference_audios: storyboardAttachments.audios?.length ? storyboardAttachments.audios : undefined,
     };
 
     generateBtn.disabled = true;

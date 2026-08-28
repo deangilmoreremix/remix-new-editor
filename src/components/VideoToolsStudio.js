@@ -425,7 +425,7 @@ genBtn.type = 'button';
       const params = { 
         model: selectedModel.id,
         [selectedModel.videoField]: uploadedVideoUrl,
-customThumbnailUrl: customThumbnailUrl || undefined,
+        customThumbnailUrl: customThumbnailUrl || undefined,
       };
 
       const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
@@ -434,6 +434,17 @@ customThumbnailUrl: customThumbnailUrl || undefined,
       }
       if (dynamicControls) {
         Object.assign(params, dynamicControls.getPayload({}));
+      }
+
+      // Merge attachment URLs from the unified toolbar.
+      if (videoToolsAttachmentState.images?.length) {
+        params.reference_images = videoToolsAttachmentState.images;
+      }
+      if (videoToolsAttachmentState.videos?.length) {
+        params.reference_videos = videoToolsAttachmentState.videos;
+      }
+      if (videoToolsAttachmentState.audios?.length) {
+        params.reference_audios = videoToolsAttachmentState.audios;
       }
 
        const result = await muapi.processVideoTool(params);

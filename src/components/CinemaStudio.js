@@ -350,6 +350,34 @@ let showAdvanced = false;
 
     inputRow.appendChild(textarea);
 
+    // Attachment toolbar (Start frame / End frame / Image / Video / Audio)
+    const attachmentToolbar = createAttachmentToolbar({
+      container: inputRow,
+      getTextarea: () => textarea,
+      onUpload: async (key, file) => {
+        try {
+          const { uploadFileToStorage } = await import('../lib/hybrid-supabase.js');
+          const url = await uploadFileToStorage(file);
+          if (key === 'startFrame' || key === 'endFrame') {
+            if (key === 'startFrame') currentSettings.referenceUrl = url;
+            if (key === 'endFrame') currentSettings.endFrameUrl = url;
+            showReferenceThumb(url);
+            if (url && !i2vModels.some(m => m.id === currentSettings.model)) {
+              currentSettings.model = (i2vModels[0] && i2vModels[0].id) || currentSettings.model;
+            }
+            updateModelBtn();
+            updateControlsForModel();
+          } else if (key === 'image' || key === 'video' || key === 'audio') {
+            if (!currentSettings.referenceUrls) currentSettings.referenceUrls = [];
+            currentSettings.referenceUrls.push({ type: key, url, file });
+          }
+        } catch (err) {
+          console.error('[CinemaStudio] attachment upload failed:', err);
+          showToast('Attachment upload failed: ' + err.message, 'error');
+        }
+      },
+    });
+
     // GTM Boost entry point — opens the cinematic prompt enhancer themed for
     // cinema creation and loads the result straight into this prompt.
     const gtmBtn = document.createElement('button');
@@ -1301,6 +1329,20 @@ let showAdvanced = false;
                 if (ref?.imageUrl) refImages = [ref.imageUrl];
             }
 
+            // Merge additional attachments from the unified toolbar.
+            const extraImages = (currentSettings.referenceUrls || [])
+              .filter(entry => entry.type === 'image')
+              .map(entry => entry.url);
+            const extraVideos = (currentSettings.referenceUrls || [])
+              .filter(entry => entry.type === 'video')
+              .map(entry => entry.url);
+            const extraAudios = (currentSettings.referenceUrls || [])
+              .filter(entry => entry.type === 'audio')
+              .map(entry => entry.url);
+            if (extraImages.length) {
+                refImages = refImages ? [...refImages, ...extraImages] : extraImages;
+            }
+
             let res;
             if (useFrameToFrame) {
                 // First/last-frame: pin both the start and end of the clip.
@@ -1313,6 +1355,8 @@ let showAdvanced = false;
                     duration,
                     resolution,
                     thumbnail_url: customThumbnailUrl || undefined,
+                    ...(extraVideos.length ? { reference_videos: extraVideos } : {}),
+                    ...(extraAudios.length ? { reference_audios: extraAudios } : {}),
                 });
             } else if (isRef) {
                 // Image-to-video: use the uploaded still as the seed.
@@ -1327,6 +1371,8 @@ let showAdvanced = false;
                 };
                 if (refImages) i2vParams.reference_images = refImages;
                 if (characterLock && refImages) i2vParams.character_consistency = true;
+                if (extraVideos.length) i2vParams.reference_videos = extraVideos;
+                if (extraAudios.length) i2vParams.reference_audios = extraAudios;
                 res = await muapi.generateI2V(i2vParams);
             } else {
                 const t2vParams = {
@@ -1339,6 +1385,8 @@ let showAdvanced = false;
                 };
                 if (refImages) t2vParams.reference_images = refImages;
                 if (characterLock && refImages) t2vParams.character_consistency = true;
+                if (extraVideos.length) t2vParams.reference_videos = extraVideos;
+                if (extraAudios.length) t2vParams.reference_audios = extraAudios;
                 res = await muapi.generateVideo(t2vParams);
             }
 

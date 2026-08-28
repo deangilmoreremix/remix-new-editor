@@ -253,3 +253,276 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
 }
+
+/* Attachment toolbar - chat pattern */
+.chat-attachment-toolbar {
+  display: flex;
+  gap: 8px;
+  padding: 4px 0;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.chat-attachment-btn {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #a1a1aa;
+  font-size: 10px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-width: 56px;
+  position: relative;
+}
+
+.chat-attachment-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #e4e4e7;
+}
+
+.chat-attachment-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.chat-attachment-btn[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) scale(0.95);
+  background: #27272a;
+  color: #e4e4e7;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 50;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.chat-attachment-btn[data-tooltip]:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
+.chat-attachment-icon {
+  font-size: 18px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-attachment-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.chat-attachment-label {
+  font-size: 9px;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* Attachment chips */
+.chat-attachment-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.attachment-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  font-size: 11px;
+  color: #e4e4e7;
+}
+
+.attachment-chip img,
+.attachment-chip video {
+  width: 24px;
+  height: 24px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.attachment-chip-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: #a1a1aa;
+}
+
+.attachment-chip-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.attachment-chip-label {
+  white-space: nowrap;
+}
+
+.attachment-chip-remove {
+  background: none;
+  border: none;
+  color: #a1a1aa;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+  margin-left: 4px;
+}
+
+.attachment-chip-remove:hover {
+  color: #ef4444;
+}
+
+/* Legacy studio attachment toolbar (Pattern B) */
+.studio-attachment-toolbar {
+  display: flex;
+  gap: 8px;
+  padding: 4px 0;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.studio-attachment-btn {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #a1a1aa;
+  font-size: 10px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-width: 56px;
+  position: relative;
+}
+
+.studio-attachment-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #e4e4e7;
+}
+
+.studio-attachment-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.studio-attachment-btn[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) scale(0.95);
+  background: #27272a;
+  color: #e4e4e7;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 50;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.studio-attachment-btn[data-tooltip]:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
+.studio-attachment-icon {
+  font-size: 18px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.studio-attachment-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.studio-attachment-label {
+  font-size: 9px;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.studio-attachment-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.chat-message-attachments {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.message-attachment {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+}
+
+.message-attachment img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+  display: block;
+}
+
+.message-attachment-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  color: #e4e4e7;
+  text-decoration: none;
+  font-size: 11px;
+}
+
+.message-attachment-link:hover {
+  color: #2563eb;
+}

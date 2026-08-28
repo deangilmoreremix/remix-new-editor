@@ -5,6 +5,7 @@ import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
+import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
 import { createMediaPreview } from './MediaPreview.js';
 import { MediaDetailView } from './MediaDetailView.js';
 import { createInlineInstructions } from './InlineInstructions.js';
@@ -439,6 +440,28 @@ export async function EffectsStudio() {
   promptInput.className = 'flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors';
   promptInput.setAttribute('aria-label', 'Effect prompt');
   promptRow.appendChild(promptInput);
+
+  // Attachment toolbar for effect references
+  const effectsAttachmentState = { images: [], videos: [], audios: [] };
+  const attachmentToolbar = createAttachmentToolbar({
+    container: promptRow,
+    getTextarea: () => promptInput,
+    acceptStartFrame: false,
+    acceptEndFrame: false,
+    acceptAudio: false,
+    onUpload: async (key, file) => {
+      try {
+        const { uploadFileToStorage } = await import('../lib/hybrid-supabase.js');
+        const url = await uploadFileToStorage(file);
+        effectsAttachmentState[key] = effectsAttachmentState[key] || [];
+        effectsAttachmentState[key].push(url);
+        showToast('Reference uploaded', 'success');
+      } catch (err) {
+        console.error('[EffectsStudio] attachment upload failed:', err);
+        showToast('Attachment upload failed: ' + err.message, 'error');
+      }
+    },
+  });
 
   // Thumbnail studio button — next to creation controls, GTM Boost styling
   const thumbBtn = document.createElement('button');
@@ -1185,6 +1208,17 @@ generateBtn.type = 'button';
     const activeProfile = profiles?.find((p) => p.id === selectedContactId) || null;
     const prompt = replaceTokensInPrompt(promptInput.value.trim() || mobilePrompt.value.trim(), activeProfile);
     if (prompt) params.prompt = prompt;
+
+    // Merge attachment URLs from the unified toolbar.
+    if (effectsAttachmentState.images?.length) {
+      params.reference_images = effectsAttachmentState.images;
+    }
+    if (effectsAttachmentState.videos?.length) {
+      params.reference_videos = effectsAttachmentState.videos;
+    }
+    if (effectsAttachmentState.audios?.length) {
+      params.reference_audios = effectsAttachmentState.audios;
+    }
 
     return params;
   }

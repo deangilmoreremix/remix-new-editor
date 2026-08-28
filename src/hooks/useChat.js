@@ -49,7 +49,7 @@ export function useChat() {
     }
   }, []);
 
-  const sendMessage = useCallback(async (content, model, systemPrompt, temperature, maxTokens) => {
+  const sendMessage = useCallback(async (content, model, attachments) => {
     if (!content.trim() || chatStore.isStreaming) return;
 
     const userMessage = {
@@ -58,6 +58,7 @@ export function useChat() {
       content,
       status: 'complete',
       createdAt: Date.now(),
+      attachments: attachments || null,
     };
     chatStore.addMessage(userMessage);
 
@@ -77,9 +78,10 @@ export function useChat() {
         conversationId: chatStore.activeConversationId,
         messages: [...chatStore.activeMessages],
         model,
-        systemPrompt,
-        temperature,
-        maxTokens,
+        systemPrompt: undefined,
+        temperature: undefined,
+        maxTokens: undefined,
+        attachments: attachments || null,
         onDelta: (delta) => {
           chatStore.updateMessage(assistantMessage.id, { content: assistantMessage.content + delta });
         },

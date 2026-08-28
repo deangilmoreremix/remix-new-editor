@@ -16,3 +16,11 @@ export const ConversationStatus = {
   ACTIVE: 'active',
   ARCHIVED: 'archived',
 };
+
+export const AttachmentType = {
+  IMAGE: 'image',
+  VIDEO: 'video',
+  AUDIO: 'audio',
+  START_FRAME: 'startFrame',
+  END_FRAME: 'endFrame',
+};

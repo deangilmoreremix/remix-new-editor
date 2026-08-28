@@ -328,6 +328,64 @@ export function ImageStudio() {
 
     topRow.appendChild(textarea);
 
+    // Attachment toolbar (Start frame / End frame / Image / Video / Audio)
+    const attachmentToolbar = createAttachmentToolbar({
+      container: inputRow,
+      getTextarea: () => textarea,
+      acceptVideo: false,
+      acceptAudio: false,
+      onUpload: async (key, file) => {
+        try {
+          const { uploadFileToStorage } = await import('../lib/hybrid-supabase.js');
+          const url = await uploadFileToStorage(file);
+          if (key === 'image') {
+            uploadedImageUrls = uploadedImageUrls || [];
+            uploadedImageUrls.push(url);
+            if (!imageMode) {
+              imageMode = true;
+              selectedModel = i2iModels[0]?.id || selectedModel;
+              selectedModelName = i2iModels[0]?.name || selectedModelName;
+              const modelLabel = document.getElementById('model-btn-label');
+              if (modelLabel) modelLabel.textContent = selectedModelName;
+              updateModelBtnIcon();
+              const validResolutions = getResolutionsForI2IModel(selectedModel);
+              const qualityBtn = document.getElementById('quality-btn');
+              if (qualityBtn) qualityBtn.style.display = validResolutions.length > 0 ? 'flex' : 'none';
+              const qualityLabel = document.getElementById('quality-btn-label');
+              if (qualityLabel && validResolutions.length > 0) qualityLabel.textContent = validResolutions[0];
+              picker.setMaxImages(getMaxImagesForI2IModel(selectedModel));
+            }
+            textarea.placeholder = uploadedImageUrls.length > 1
+              ? `${uploadedImageUrls.length} images selected — describe the transformation (optional)`
+              : 'Describe how to transform this image (optional)';
+          } else if (key === 'startFrame' || key === 'endFrame') {
+            if (!uploadedImageUrls) uploadedImageUrls = [];
+            if (!uploadedImageUrls.includes(url)) uploadedImageUrls.push(url);
+            if (!imageMode) {
+              imageMode = true;
+              selectedModel = i2iModels[0]?.id || selectedModel;
+              selectedModelName = i2iModels[0]?.name || selectedModelName;
+              const modelLabel = document.getElementById('model-btn-label');
+              if (modelLabel) modelLabel.textContent = selectedModelName;
+              updateModelBtnIcon();
+              const validResolutions = getResolutionsForI2IModel(selectedModel);
+              const qualityBtn = document.getElementById('quality-btn');
+              if (qualityBtn) qualityBtn.style.display = validResolutions.length > 0 ? 'flex' : 'none';
+              const qualityLabel = document.getElementById('quality-btn-label');
+              if (qualityLabel && validResolutions.length > 0) qualityLabel.textContent = validResolutions[0];
+              picker.setMaxImages(getMaxImagesForI2IModel(selectedModel));
+            }
+            textarea.placeholder = uploadedImageUrls.length > 1
+              ? `${uploadedImageUrls.length} images selected — describe the transformation (optional)`
+              : 'Describe how to transform this image (optional)';
+          }
+        } catch (err) {
+          console.error('[ImageStudio] attachment upload failed:', err);
+          showToast('Attachment upload failed: ' + err.message, 'error');
+        }
+      },
+    });
+
     // Premium GTM Boost entry point — opens the cinematic prompt enhancer
     // themed for image creation and loads the result straight into this prompt.
     const gtmBtn = document.createElement('button');

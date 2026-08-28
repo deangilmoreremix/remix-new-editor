@@ -328,6 +328,18 @@ genBtn.type = 'button';
     try {
       const params = { model: selectedMethod.id, image_url: uploadedUrl, customThumbnailUrl: customThumbnailUrl || undefined };
       if (selectedFactor) params.upscale_factor = parseInt(selectedFactor);
+
+      // Merge attachment URLs from the unified toolbar.
+      if (upscaleAttachmentState.images?.length && !params.images_list) {
+        params.reference_images = upscaleAttachmentState.images;
+      }
+      if (upscaleAttachmentState.videos?.length) {
+        params.reference_videos = upscaleAttachmentState.videos;
+      }
+      if (upscaleAttachmentState.audios?.length) {
+        params.reference_audios = upscaleAttachmentState.audios;
+      }
+
       const result = await muapi.generateI2I(params);
       if (result?.url) {
         lastOutputUrl = result.url;

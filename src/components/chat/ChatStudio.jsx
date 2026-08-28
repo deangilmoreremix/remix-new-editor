@@ -4,11 +4,13 @@ import ChatSidebar from './ChatSidebar.jsx';
 import ChatMessage from './ChatMessage.jsx';
 import ChatInput from './ChatInput.jsx';
 import { useChat } from '../../hooks/useChat.js';
+import { useAttachmentState } from '../../hooks/useAttachmentState.js';
 import './ChatStudio.css';
 
 function ChatStudioApp() {
   const chat = useChat();
   const [showSidebar, setShowSidebar] = useState(true);
+  const { attachments, handleUpload, handleRemove, reset, toPayload } = useAttachmentState();
 
   useEffect(() => {
     const handleKey = (e) => {
@@ -26,6 +28,12 @@ function ChatStudioApp() {
       ? `${chat.activeConversation.title} — Chat Studio`
       : 'Chat Studio';
   }, [chat.activeConversation?.title]);
+
+  const handleSend = (content, messageAttachments) => {
+    const payload = toPayload();
+    chat.sendMessage(content, chat.selectedModelId, payload);
+    reset();
+  };
 
   return (
     <div className="chat-studio">
@@ -46,9 +54,12 @@ function ChatStudioApp() {
             </div>
             {chat.error && <div className="chat-error">{chat.error}</div>}
             <ChatInput
-              onSend={(content) => chat.sendMessage(content, chat.selectedModelId)}
+              onSend={handleSend}
               onStop={chat.stopGeneration}
               isStreaming={chat.isStreaming}
+              attachments={attachments}
+              onUpload={handleUpload}
+              onRemoveAttachment={handleRemove}
             />
           </>
         ) : (

@@ -9,6 +9,7 @@ import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { t2vModels, getAspectRatiosForVideoModel, getDurationsForModel, getResolutionsForVideoModel, i2vModels, getAspectRatiosForI2VModel, getDurationsForI2VModel, getResolutionsForI2VModel, v2vModels, getModelById } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
+import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizePopover, replaceTokensInPrompt } from './personalize/personalizePopover.js';
@@ -503,6 +504,65 @@ export function VideoStudio() {
     }
 
     topRow.appendChild(textarea);
+
+    // Attachment toolbar (Start frame / End frame / Image / Video / Audio)
+    const attachmentToolbar = createAttachmentToolbar({
+      container: inputRow,
+      getTextarea: () => textarea,
+      acceptAudio: false,
+      onUpload: async (key, file) => {
+        try {
+          const url = await uploadMediaFile(file);
+          if (key === 'startFrame' || key === 'endFrame') {
+            uploadedImageUrl = url;
+            if (!imageMode) {
+              imageMode = true;
+              selectedModel = i2vModels[0]?.id || selectedModel;
+              selectedModelName = i2vModels[0]?.name || selectedModelName;
+              const modelLabel = document.getElementById('v-model-btn-label');
+              if (modelLabel) modelLabel.textContent = selectedModelName;
+              updateModelBtnIcon();
+              updateControlsForModel();
+            }
+            textarea.placeholder = 'Describe the motion or effect (optional)';
+            textarea.disabled = false;
+            showToast('Start frame loaded for I2V', 'success');
+          } else if (key === 'image') {
+            uploadedImageUrl = url;
+            if (!imageMode) {
+              imageMode = true;
+              selectedModel = i2vModels[0]?.id || selectedModel;
+              selectedModelName = i2vModels[0]?.name || selectedModelName;
+              const modelLabel = document.getElementById('v-model-btn-label');
+              if (modelLabel) modelLabel.textContent = selectedModelName;
+              updateModelBtnIcon();
+              updateControlsForModel();
+            }
+            textarea.placeholder = 'Describe the motion or effect (optional)';
+            textarea.disabled = false;
+          } else if (key === 'video') {
+            uploadedVideoUrl = url;
+            if (imageMode) {
+              picker.reset && picker.reset();
+              uploadedImageUrl = null;
+              imageMode = false;
+            }
+            v2vMode = true;
+            selectedModel = v2vModels[0]?.id || selectedModel;
+            selectedModelName = v2vModels[0]?.name || selectedModelName;
+            const modelLabel = document.getElementById('v-model-btn-label');
+            if (modelLabel) modelLabel.textContent = selectedModelName;
+            updateModelBtnIcon();
+            updateControlsForModel();
+            textarea.placeholder = 'Video ready — click Generate to remove watermark';
+            textarea.disabled = true;
+          }
+        } catch (err) {
+          console.error('[VideoStudio] attachment upload failed:', err);
+          showToast('Attachment upload failed: ' + err.message, 'error');
+        }
+      },
+    });
 
     // Premium GTM Boost entry point — opens the cinematic prompt enhancer
     // themed for video creation and loads the result straight into this prompt.

@@ -17,6 +17,7 @@ import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
+import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
 
 function scopedPersistKey(baseKey, apiKey) {
   if (!apiKey) return baseKey;
@@ -680,6 +681,38 @@ export function AudioStudio() {
   promptInput.value = prompt;
   promptInput.oninput = (e) => { prompt = e.target.value; schedulePersist(); };
   promptGroup.appendChild(promptInput);
+
+  // Attachment toolbar for audio references
+  const audioAttachmentState = { audio: null, images: [], videos: [] };
+  const attachmentToolbar = createAttachmentToolbar({
+    container: promptGroup,
+    getTextarea: () => promptInput,
+    acceptStartFrame: false,
+    acceptEndFrame: false,
+    onUpload: async (key, file) => {
+      try {
+        if (key === 'audio') {
+          const apiKey = apiKeyManager.getKey();
+          if (!apiKey) {
+            AuthModal(() => {});
+            return;
+          }
+          const url = await uploadAudioFile(file, null, apiKey);
+          audioAttachmentState.audio = url;
+        } else {
+          const { uploadFileToStorage } = await import('../lib/hybrid-supabase.js');
+          const url = await uploadFileToStorage(file);
+          audioAttachmentState[key] = audioAttachmentState[key] || [];
+          audioAttachmentState[key].push(url);
+        }
+        showToast('Reference uploaded', 'success');
+      } catch (err) {
+        console.error('[AudioStudio] attachment upload failed:', err);
+        showToast('Attachment upload failed: ' + err.message, 'error');
+      }
+    },
+  });
+
   const gtmBtn = document.createElement('button');
   gtmBtn.type = 'button';
   gtmBtn.textContent = 'GTM Boost';
@@ -1264,13 +1297,25 @@ export function AudioStudio() {
       let result;
       const modelType = selectedModel.type;
 
+      // Merge attachment URLs from the unified toolbar into schema params.
+      const mergedSchemaParams = { ...schemaParams };
+      if (audioAttachmentState.audio && !mergedSchemaParams.audio_url) {
+        mergedSchemaParams.audio_url = audioAttachmentState.audio;
+      }
+      if (audioAttachmentState.images?.length && !mergedSchemaParams.reference_images) {
+        mergedSchemaParams.reference_images = audioAttachmentState.images;
+      }
+      if (audioAttachmentState.videos?.length && !mergedSchemaParams.reference_videos) {
+        mergedSchemaParams.reference_videos = audioAttachmentState.videos;
+      }
+
       if (modelType === 'music') {
         result = await muapi.generateMusic({
           model: selectedModel.id,
           prompt: processedPrompt,
           style: style || undefined,
           duration: parseInt(duration),
-          ...schemaParams,
+          ...mergedSchemaParams,
         });
       } else if (modelType === 'tts') {
         result = await muapi.generateAudio({
@@ -1278,14 +1323,14 @@ export function AudioStudio() {
           text: processedPrompt,
           speed: speed,
           voice: selectedVoice,
-          ...schemaParams,
+          ...mergedSchemaParams,
         });
       } else {
         const params = {
           model: selectedModel.id,
           prompt: processedPrompt,
           duration: parseInt(duration),
-          ...schemaParams,
+          ...mergedSchemaParams,
         };
         if (style) params.style = style;
         result = await muapi.generateAudio(params);

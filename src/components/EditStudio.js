@@ -1166,6 +1166,17 @@ export function EditStudio() {
       if (swapUrl) params.swap_url = swapUrl;
       if (watermarkImageUrl) params.watermark_image_url = watermarkImageUrl;
 
+      // Merge attachment URLs from the unified toolbar.
+      if (editAttachmentState.images?.length && !params.images_list) {
+        params.reference_images = editAttachmentState.images;
+      }
+      if (editAttachmentState.videos?.length) {
+        params.reference_videos = editAttachmentState.videos;
+      }
+      if (editAttachmentState.audios?.length) {
+        params.reference_audios = editAttachmentState.audios;
+      }
+
       // Collect control values from DOM
       controlsContainer.querySelectorAll('select, input').forEach(el => {
         const key = el.dataset.controlKey;
