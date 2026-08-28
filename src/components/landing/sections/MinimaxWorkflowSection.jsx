@@ -150,7 +150,7 @@ export function MinimaxWorkflowSection() {
   const studioIconsHost = section.querySelector('[data-mmx-studio-icons]');
 
   primaryActions.appendChild(createViewPromptButton(demo, handleViewPrompt));
-  primaryActions.appendChild(createStyleLink(demo, { label: 'Create This Style' }));
+  primaryActions.appendChild(createStyleLink(demo, { label: 'Create This Style', loadPrompt: loadDemoPrompt }));
 
   const target = minimaxGetCreateTarget(demo);
   const templateId = target.params.template;

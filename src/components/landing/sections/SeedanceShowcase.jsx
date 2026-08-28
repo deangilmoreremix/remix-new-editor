@@ -78,7 +78,7 @@ function createGalleryCard(demo) {
     loadPrompt: loadDemoPrompt,
     model: SEEDANCE_MODEL,
   }));
-  primaryActions.appendChild(createStyleLink(demo, { label: 'Create This Style', getTarget }));
+  primaryActions.appendChild(createStyleLink(demo, { label: 'Create This Style', getTarget, loadPrompt: loadDemoPrompt, model: SEEDANCE_MODEL }));
 
   const target = getCreateTarget(demo);
   const templateId = target.params.template;

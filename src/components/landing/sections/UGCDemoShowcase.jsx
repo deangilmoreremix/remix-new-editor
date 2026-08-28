@@ -111,7 +111,7 @@ function createUGCCard(config) {
   const studioIconsHost = card.querySelector('[data-mmx-studio-icons]');
 
   primaryActions.appendChild(createViewPromptButton(demo, handleViewPrompt, { label: 'View Prompt', loadPrompt: loadDemoPrompt }));
-  primaryActions.appendChild(createStyleLink(demo, { label: 'Create This Type of Video' }));
+  primaryActions.appendChild(createStyleLink(demo, { label: 'Create This Type of Video', loadPrompt: loadDemoPrompt }));
 
   const target = getCreateTarget(demo);
   const templateId = target.params.template;

@@ -211,7 +211,7 @@ function createGtmResultCard(demo) {
   const studioIconsHost = card.querySelector('[data-gtm-studio-icons]');
 
   primaryActions.appendChild(createViewPromptButton(demo, handleViewPrompt, { label: 'View Prompt', loadPrompt: loadDemoPrompt }));
-  primaryActions.appendChild(createStyleLink(demo, { label: 'Create This Style' }));
+  primaryActions.appendChild(createStyleLink(demo, { label: 'Create This Style', loadPrompt: loadDemoPrompt }));
 
   const target = getCreateTarget(demo);
   const templateId = target.params.template;

@@ -12,8 +12,6 @@ import { navigate } from '../router.js';
 import { stageStudioPrefill, consumeStudioPrefill } from '../studioPrefill.js';
 import {
   getDemoBySlug,
-  minimaxH3Demos,
-  loadDemoPrompt,
   getMiniMaxDemosWithTargets,
   openDemoInStudio,
 } from '../data/minimaxH3Demos.js';
@@ -62,7 +60,8 @@ export function openStyleInStudio({ prompt, route, model, params = {}, ref = 'mi
     params,
     ref,
   });
-  navigate(route);
+  // Pass params to navigate so the studio can resolve the template from the URL
+  navigate(route, params);
 }
 
 /**
@@ -156,7 +155,6 @@ function renderCard(item, ref, onUse) {
   const media = document.createElement('div');
   media.className = 'relative aspect-video bg-black/40 overflow-hidden';
 
-  let playEl = null;
   if (item.video) {
     const vid = document.createElement('video');
     vid.src = item.video;
@@ -172,7 +170,6 @@ function renderCard(item, ref, onUse) {
       vid.pause();
       vid.currentTime = 0;
     });
-    playEl = vid;
   } else {
     const img = document.createElement('img');
     img.src = item.preview;

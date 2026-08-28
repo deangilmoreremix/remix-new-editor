@@ -78,7 +78,7 @@ function createGalleryCard(demo) {
   const studioIconsHost = card.querySelector('[data-mmx-studio-icons]');
 
   primaryActions.appendChild(createViewPromptButton(demo, handleViewPrompt, { label: 'View Prompt', loadPrompt: loadDemoPrompt }));
-  primaryActions.appendChild(createStyleLink(demo, { label: 'Create This Style', variant: 'ghost' }));
+  primaryActions.appendChild(createStyleLink(demo, { label: 'Create This Style', variant: 'ghost', loadPrompt: loadDemoPrompt }));
 
   const target = getCreateTarget(demo);
   const templateId = target.params.template;

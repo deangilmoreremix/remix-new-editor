@@ -181,7 +181,7 @@ export function goToRoute(route, params = {}) {
  * the SPA the studio only reads the prefill we stage here.
  */
 export function createStyleLink(demo, options = {}) {
-  const { label = 'Create This Style', variant = 'primary', block = false, getTarget } = options;
+  const { label = 'Create This Style', variant = 'primary', block = false, getTarget, loadPrompt, model } = options;
   const target = getTarget ? getTarget(demo) : getCreateTarget(demo);
 
   const link = document.createElement('a');
@@ -215,10 +215,26 @@ export function createStyleLink(demo, options = {}) {
       return;
     }
     event.preventDefault();
-    // Stage the prefill and route in-app. The destination studio loads the
-    // prompt text lazily from minimaxH3Prompts; we pass what we can now.
-    const { openDemoInStudio } = await import('../../../../data/minimaxH3Demos.js');
-    await openDemoInStudio(demo);
+    // Stage the prefill and route in-app with the full prompt text.
+    const { stageStudioPrefill } = await import('../../../../lib/studioPrefill.js');
+    const { navigate } = await import('../../../../lib/router.js');
+    const route = target.route;
+    // Load the prompt text if a loader was provided
+    let promptText = '';
+    if (loadPrompt && typeof loadPrompt === 'function') {
+      try {
+        promptText = await loadPrompt(demo.slug) || '';
+      } catch { /* ignore prompt load failure */ }
+    }
+    stageStudioPrefill({
+      route,
+      prompt: promptText,
+      model: model || '',
+      params: target.params || {},
+      ref: target.params?.ref || 'minimax-h3',
+    });
+    // Navigate with params so the studio can resolve the template from the URL
+    navigate(route, target.params || {});
   });
 
   return link;

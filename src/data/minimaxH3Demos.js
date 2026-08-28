@@ -277,22 +277,6 @@ export const minimaxH3Demos = [
     sourceUrl: "https://x.com/LeoCreaIA/status/2083240416166748313",
   },
   {
-    id: 18,
-    slug: "yellow-sunglasses-in-a-black-studio",
-    title: "Yellow Sunglasses in a Black Studio",
-    category: "Commercial",
-    useCase: "Studio product hero shots for ecommerce and ads",
-    duration: 15,
-    aspectRatio: "16:9",
-    videoSrc: "/media/minimax-h3/videos/yellow-sunglasses-in-a-black-studio.webm",
-    posterSrc: "/media/minimax-h3/previews/yellow-sunglasses-in-a-black-studio.webp",
-    featured: true,
-    tags: ["product", "studio", "eyewear", "commercial"],
-    upstreamCategory: "product commercial",
-    sourceAuthor: "@shikoba_86",
-    sourceUrl: "https://x.com/shikoba_86/status/2083225662316265763",
-  },
-  {
     id: 19,
     slug: "theme-park-memory-montage",
     title: "Theme Park Memory Montage",
@@ -657,14 +641,34 @@ export function openDemoInStudio(demo) {
       // aspect ratio -> one Hailuo supports
       const [w, h] = (demo.aspectRatio || '16:9').split(':').map(Number);
       const ratio = !w || !h ? '16:9' : w < h ? '9:16' : '16:9';
-      stageStudioPrefill({
-        route,
-        prompt: '', // filled by the consumer from loadDemoPrompt
-        model,
-        params: { aspect_ratio: ratio, _sourceSlug: demo.slug, _sourceTitle: demo.title },
+      // Build the template params so the studio can resolve the template
+      const params = {
+        template: `${TEMPLATE_PREFIX}${demo.slug}`,
         ref: 'minimax-h3',
-      });
-      navigate(route);
+      };
+      // Load the full prompt text so it can be passed to the studio prefill
+      return loadDemoPrompt(demo.slug)
+        .then((promptText) => {
+          stageStudioPrefill({
+            route,
+            prompt: promptText || '',
+            model,
+            params: { aspect_ratio: ratio, _sourceSlug: demo.slug, _sourceTitle: demo.title },
+            ref: 'minimax-h3',
+          });
+          navigate(route, params);
+        })
+        .catch(() => {
+          // If prompt load fails, still navigate but with empty prompt
+          stageStudioPrefill({
+            route,
+            prompt: '',
+            model,
+            params: { aspect_ratio: ratio, _sourceSlug: demo.slug, _sourceTitle: demo.title },
+            ref: 'minimax-h3',
+          });
+          navigate(route, params);
+        });
     })
   );
 }

@@ -4,8 +4,8 @@
 // Videos never all autoplay: cards use hover (desktop) / tap (mobile) playback,
 // and the shared governor in mediaFrame.js caps concurrent playback at two.
 
-import { minimaxH3Demos, formatDuration, getCreateTarget as getMinimaxCreateTarget } from '../../../data/minimaxH3Demos.js';
-import { seedance25Demos, getCreateTarget as getCreateTargetSeedance } from '../../../data/beatapiSeedance25Demos.js';
+import { minimaxH3Demos, formatDuration, getCreateTarget as getMinimaxCreateTarget, loadDemoPrompt as loadDemoPromptMinimax } from '../../../data/minimaxH3Demos.js';
+import { seedance25Demos, getCreateTarget as getCreateTargetSeedance, loadDemoPrompt as loadDemoPromptSeedance } from '../../../data/beatapiSeedance25Demos.js';
 import { createMediaFrame, cleanupFrames, revealOnScroll } from './minimax/mediaFrame.js';
 import {
   injectMinimaxStyles,
@@ -22,7 +22,6 @@ import { handleViewPrompt } from './minimax/DemoPromptModal.js';
 const REEL_SLUGS = [
   'luxury-perfume-commercial',
   'luxury-skincare-storyboard-commercial',
-  'yellow-sunglasses-in-a-black-studio',
   'strawberry-drink-transformation-commercial',
   'emerald-bio-serum-product-film',
   'black-and-gold-perfume-commercial',
@@ -80,10 +79,15 @@ function createReelCard(demo) {
     ? (d) => getCreateTargetSeedance(d)
     : undefined;
 
+  const loadPrompt = demo._source === 'seedance25'
+    ? loadDemoPromptSeedance
+    : loadDemoPromptMinimax;
+
   primaryActions.appendChild(createViewPromptButton(demo, handleViewPrompt));
   primaryActions.appendChild(createStyleLink(demo, {
     label: 'Create This Style',
-    getTarget
+    getTarget,
+    loadPrompt,
   }));
 
   const target = (getTarget || demo._getCreateTarget)(demo);
@@ -216,7 +220,10 @@ export function MadeWithSmartVideo() {
     }
   });
 
-  footerText.parentNode.insertBefore(showMoreButton, footerText);
+  const showMoreWrapper = document.createElement('div');
+  showMoreWrapper.className = 'mt-10 flex justify-center';
+  showMoreWrapper.appendChild(showMoreButton);
+  footerText.parentNode.insertBefore(showMoreWrapper, footerText);
 
   render();
 
