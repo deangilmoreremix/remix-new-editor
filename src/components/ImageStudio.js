@@ -101,13 +101,13 @@ export function ImageStudio() {
             if (tpl.model) selectedModel = tpl.model;
             if (tpl.aspectRatio) selectedAr = tpl.aspectRatio;
             if (tpl.basePrompt) {
-              const textarea = document.getElementById('prompt-textarea');
+              const textarea = document.getElementById('i-prompt-textarea');
               if (textarea) textarea.value = tpl.basePrompt;
             } else if (tpl.slug) {
               loadTemplatePrompt(templateParam)
                 .then((prompt) => {
                   if (prompt) {
-                    const textarea = document.getElementById('prompt-textarea');
+                    const textarea = document.getElementById('i-prompt-textarea');
                     if (textarea) textarea.value = prompt;
                   }
                 })
@@ -120,7 +120,7 @@ export function ImageStudio() {
           const target = academyParam ? getAcademyCreateTarget(academyParam) : null;
           const params = target?.params || {};
           if (params.prompt) {
-            const textarea = document.getElementById('prompt-textarea');
+            const textarea = document.getElementById('i-prompt-textarea');
             if (textarea) textarea.value = params.prompt;
           }
           if (params.style) selectedStyle = params.style;
@@ -288,10 +288,7 @@ export function ImageStudio() {
     recipeBtn.setAttribute('aria-label', 'Open recipe engine');
     recipeBtn.className = 'btn-ghost-modern';
     recipeBtn.addEventListener('click', () => {
-      openRecipeModal({
-        onRunRecipe: (url) => {
-        }
-      }).catch((err) => console.error('[Recipe] open failed:', err));
+      openRecipeModal().catch((err) => console.error('[Recipe] open failed:', err));
     });
 
 
@@ -456,7 +453,7 @@ export function ImageStudio() {
   modelPickerBtn.textContent = 'AI Pick';
   modelPickerBtn.title = 'Open intelligent model picker';
   modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-  modelPickerBtn.className = 'text-[11px] font-bold text-cyan-400 border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 rounded-lg hover:bg-cyan-400/20 transition-colors ml-2 whitespace-nowrap';
+  modelPickerBtn.className = 'text-[11px] font-bold text-primary border border-primary/30 bg-primary/10 px-2.5 py-1.5 rounded-lg hover:bg-primary/20 transition-colors ml-2 whitespace-nowrap';
   modelPickerBtn.addEventListener('click', () => {
     openModelPicker({
       currentModelId: selectedModel,
@@ -761,7 +758,7 @@ generateBtn.type = 'button';
     // 3. DROPDOWNS (Professional implementation)
     // ==========================================
     const dropdown = document.createElement('div');
-    dropdown.className = 'absolute bottom-[102%] left-2 z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-bottom-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
+    dropdown.className = 'absolute top-[102%] left-2 z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-top-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
 
     const showDropdown = (type, anchorBtn) => {
         dropdown.innerHTML = '';
@@ -910,7 +907,8 @@ generateBtn.type = 'button';
         }
 
         // Vertical position (always above button)
-        dropdown.style.bottom = `${containerRect.bottom - btnRect.top + 8}px`;
+        dropdown.style.bottom = '';
+        dropdown.style.top = `${btnRect.bottom - containerRect.top + 8}px`;
     };
 
     const closeDropdown = () => {

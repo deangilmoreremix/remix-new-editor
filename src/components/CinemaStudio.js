@@ -19,7 +19,6 @@ import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
-import { CINEMATIC_THEME, cx } from '../lib/cinematicTheme.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import ExampleGallery from './studios/ExampleGallery.js';
 import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
@@ -61,7 +60,7 @@ const FILM_LOOKS = {
 
 export function CinemaStudio() {
     const container = document.createElement('div');
-    container.className = 'w-full h-full flex flex-col items-center justify-start bg-black relative overflow-hidden';
+    container.className = 'w-full h-full flex flex-col items-center justify-start bg-app-bg relative overflow-hidden';
   mountStudioChrome(container, { currentRoute: 'cinema' });
 
     // --- State ---
@@ -139,7 +138,7 @@ let showAdvanced = false;
         bannerContent.className = 'absolute bottom-0 left-0 right-0 p-6 z-10 text-left';
         bannerContent.innerHTML = `
             <div class="mb-2 text-xs font-bold text-white/40 tracking-[0.2em] uppercase">Cinema Studio 2.0</div>
-            <h1 class="${CINEMATIC_THEME.text.titleLg} text-white leading-tight">
+            <h1 class="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight leading-tight">
                 What would you shoot<br>with infinite budget?
             </h1>
         `;
@@ -358,7 +357,7 @@ let showAdvanced = false;
     gtmBtn.textContent = '🎯 GTM Boost';
     gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
     gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
-    gtmBtn.className = 'gtm-boost-btn shrink-0';
+    gtmBtn.className = 'btn-ghost-modern shrink-0';
     gtmBtn.addEventListener('click', () => {
       import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
         openGTMPromptModal('cinema-studio', (prompt) => {
@@ -480,7 +479,8 @@ let showAdvanced = false;
         const rect = trigger.getBoundingClientRect();
         const menu = document.createElement('div');
         menu.className = 'custom-dropdown fixed bg-white/[0.04] border border-white/10 rounded-xl py-1 shadow-2xl z-50 flex flex-col min-w-[100px] animate-fade-in';
-        menu.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
+        menu.style.bottom = '';
+        menu.style.top = (rect.bottom + 8) + 'px';
         menu.style.left = rect.left + 'px';
 
         items.forEach(item => {
@@ -507,7 +507,7 @@ let showAdvanced = false;
 
     // Model picker — same catalog-driven dropdown used by Video Studio.
     const modelBtn = document.createElement('button');
-    modelBtn.className = 'flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-white/50 hover:text-white transition-colors bg-white/5 hover:bg-white/10 rounded-lg border border-white/5';
+    modelBtn.className = 'flex items-center gap-1.5 md:gap-2.5 px-3 md:px-4 py-2 md:py-2.5 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl transition-all border border-white/5 group whitespace-nowrap';
     const updateModelBtn = () => {
         const m = (currentSettings.referenceUrl ? i2vModels : t2vModels).find(x => x.id === currentSettings.model)
             || t2vModels.find(x => x.id === currentSettings.model)
@@ -524,7 +524,7 @@ let showAdvanced = false;
     modelPickerBtn.textContent = 'AI Pick';
     modelPickerBtn.title = 'Open intelligent model picker';
     modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-    modelPickerBtn.className = 'text-[11px] font-bold text-cyan-400 border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 rounded-lg hover:bg-cyan-400/20 transition-colors ml-2 whitespace-nowrap';
+    modelPickerBtn.className = 'text-[11px] font-bold text-primary border border-primary/30 bg-primary/10 px-2.5 py-1.5 rounded-lg hover:bg-primary/20 transition-colors ml-2 whitespace-nowrap';
     modelPickerBtn.addEventListener('click', () => {
       openModelPicker({
         currentModelId: currentSettings.model,
@@ -540,7 +540,7 @@ let showAdvanced = false;
     // Shared model dropdown (glass panel) — lists T2V models, or I2V models
     // when a reference image is loaded, with live search + per-model metadata.
     const modelDropdown = document.createElement('div');
-    modelDropdown.className = 'absolute bottom-[102%] left-2 z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-bottom-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-md shadow-4xl border border-white/10 flex flex-col';
+    modelDropdown.className = 'absolute top-[102%] left-2 z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-top-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-md shadow-4xl border border-white/10 flex flex-col';
     settingsToolbar.appendChild(modelDropdown);
 
     const closeModelDropdown = () => {
@@ -617,7 +617,7 @@ let showAdvanced = false;
 
     // Aspect Ratio
     const arBtn = document.createElement('button');
-    arBtn.className = 'flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-white/50 hover:text-white transition-colors bg-white/5 hover:bg-white/10 rounded-lg border border-white/5';
+    arBtn.className = 'flex items-center gap-1.5 md:gap-2.5 px-3 md:px-4 py-2 md:py-2.5 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl transition-all border border-white/5 group whitespace-nowrap';
     const updateArBtn = () => {
         arBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="10" rx="2" ry="2"/></svg> ${currentSettings.aspect_ratio}`;
     };
@@ -633,7 +633,7 @@ let showAdvanced = false;
 
     // Resolution
     const resBtn = document.createElement('button');
-    resBtn.className = 'flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-white/50 hover:text-white transition-colors bg-white/5 hover:bg-white/10 rounded-lg border border-white/5';
+    resBtn.className = 'flex items-center gap-1.5 md:gap-2.5 px-3 md:px-4 py-2 md:py-2.5 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl transition-all border border-white/5 group whitespace-nowrap';
     const updateResBtn = (val) => {
         resBtn.dataset.value = val || '2K';
         resBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg> ${resBtn.dataset.value}`;
@@ -646,7 +646,7 @@ let showAdvanced = false;
     
     // Camera Builder Toggle Button
     const cameraBuilderBtn = document.createElement('button');
-    cameraBuilderBtn.className = 'flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-white/50 hover:text-white transition-colors bg-white/5 hover:bg-white/10 rounded-lg border border-white/5';
+    cameraBuilderBtn.className = 'flex items-center gap-1.5 md:gap-2.5 px-3 md:px-4 py-2 md:py-2.5 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl transition-all border border-white/5 group whitespace-nowrap';
     cameraBuilderBtn.setAttribute('data-tooltip', 'Quick camera builder');
     cameraBuilderBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/></svg> Builder`;
     settingsToolbar.appendChild(cameraBuilderBtn);
@@ -722,8 +722,8 @@ let showAdvanced = false;
 
     // Generate Button
     const generateBtn = document.createElement('button');
-generateBtn.type = 'button';
-    generateBtn.className = 'btn-primary-modern px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed';
+     generateBtn.type = 'button';
+     generateBtn.className = 'btn-primary-modern px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:scale-105 active:scale-95 transition-all w-full sm:w-auto shadow-lg disabled:opacity-50 disabled:cursor-not-allowed';
     generateBtn.setAttribute('data-tooltip', 'Generate cinema shot');
     generateBtn.setAttribute('aria-label', 'Generate cinema shot');
     generateBtn.innerHTML = `GENERATE ✨`;
@@ -731,12 +731,13 @@ generateBtn.type = 'button';
      // Thumbnail Button — integrated into the creation workflow alongside
      // the Generate button so users can create a custom thumbnail during
      // the cinema generation process.
-     const thumbBtn = document.createElement('button');
-     thumbBtn.type = 'button';
-     thumbBtn.className = 'h-[56px] px-4 bg-gradient-to-r from-violet-500 to-indigo-500 text-white rounded-xl font-bold text-xs uppercase hover:from-violet-400 hover:to-indigo-400 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5';
-     thumbBtn.setAttribute('data-tooltip', 'Create custom thumbnail for Cinema Studio');
-     thumbBtn.setAttribute('aria-label', 'Create custom thumbnail');
-     thumbBtn.innerHTML = `<span>🖼</span> Thumbnail`;
+      const thumbBtn = document.createElement('button');
+      thumbBtn.type = 'button';
+      thumbBtn.textContent = '🖼 Thumbnail';
+      thumbBtn.title = 'Generate a custom thumbnail';
+      thumbBtn.setAttribute('data-tooltip', 'Create custom thumbnail for Cinema Studio');
+      thumbBtn.setAttribute('aria-label', 'Create custom thumbnail');
+      thumbBtn.className = 'btn-ghost-modern shrink-0';
      thumbBtn.onclick = () => {
        const modal = new TemplateThumbnailModal({
          appTheme: 'cinema-studio',
@@ -1325,6 +1326,7 @@ generateBtn.type = 'button';
                     thumbnail_url: customThumbnailUrl || undefined,
                 };
                 if (refImages) i2vParams.reference_images = refImages;
+                if (characterLock && refImages) i2vParams.character_consistency = true;
                 res = await muapi.generateI2V(i2vParams);
             } else {
                 const t2vParams = {
@@ -1336,6 +1338,7 @@ generateBtn.type = 'button';
                     thumbnail_url: customThumbnailUrl || undefined,
                 };
                 if (refImages) t2vParams.reference_images = refImages;
+                if (characterLock && refImages) t2vParams.character_consistency = true;
                 res = await muapi.generateVideo(t2vParams);
             }
 
@@ -1370,10 +1373,7 @@ generateBtn.type = 'button';
     recipeBtn.setAttribute('aria-label', 'Open recipe engine');
     recipeBtn.className = 'btn-ghost-modern shrink-0';
     recipeBtn.addEventListener('click', () => {
-      openRecipeModal({
-        onRunRecipe: (url) => {
-        }
-      }).catch((err) => console.error('[Recipe] open failed:', err));
+      openRecipeModal().catch((err) => console.error('[Recipe] open failed:', err));
     });
 
 

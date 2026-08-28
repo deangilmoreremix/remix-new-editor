@@ -32,6 +32,7 @@ import { openModelPicker } from '../lib/modelPickerIntegration.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
+import { getCharacterReference, saveCharacterReference } from '../lib/characterConsistency.js';
 
 export function VideoStudio() {
     const container = document.createElement('div');
@@ -103,13 +104,13 @@ export function VideoStudio() {
           if (tpl.aspectRatio) selectedAr = tpl.aspectRatio;
           if (tpl.duration) selectedDuration = tpl.duration;
           if (tpl.basePrompt) {
-            const textarea = document.getElementById('v-prompt-textarea');
+            const textarea = document.getElementById('v-v-prompt-textarea');
             if (textarea) textarea.value = tpl.basePrompt;
           } else if (tpl.slug) {
             loadTemplatePrompt(templateParam)
               .then((prompt) => {
                 if (prompt) {
-                  const textarea = document.getElementById('v-prompt-textarea');
+                  const textarea = document.getElementById('v-v-prompt-textarea');
                   if (textarea) textarea.value = prompt;
                 }
               })
@@ -123,7 +124,7 @@ export function VideoStudio() {
         const target = academyParam ? getAcademyCreateTarget(academyParam) : null;
         const params = target?.params || {};
         if (params.prompt) {
-          const textarea = document.getElementById('v-prompt-textarea');
+          const textarea = document.getElementById('v-v-prompt-textarea');
           if (textarea) textarea.value = params.prompt;
         }
         if (params.style) selectedStyle = params.style;
@@ -531,10 +532,7 @@ export function VideoStudio() {
     recipeBtn.setAttribute('aria-label', 'Open recipe engine');
     recipeBtn.className = 'btn-ghost-modern';
     recipeBtn.addEventListener('click', () => {
-      openRecipeModal({
-        onRunRecipe: (url) => {
-        }
-      }).catch((err) => console.error('[Recipe] open failed:', err));
+      openRecipeModal().catch((err) => console.error('[Recipe] open failed:', err));
     });
 
     // Monetization Hub button
@@ -697,7 +695,7 @@ export function VideoStudio() {
     modelPickerBtn.textContent = 'AI Pick';
     modelPickerBtn.title = 'Open intelligent model picker';
     modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-    modelPickerBtn.className = 'text-[11px] font-bold text-cyan-400 border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 rounded-lg hover:bg-cyan-400/20 transition-colors ml-2 whitespace-nowrap';
+    modelPickerBtn.className = 'text-[11px] font-bold text-primary border border-primary/30 bg-primary/10 px-2.5 py-1.5 rounded-lg hover:bg-primary/20 transition-colors ml-2 whitespace-nowrap';
     modelPickerBtn.addEventListener('click', () => {
       openModelPicker({
         currentModelId: selectedModel,
@@ -834,10 +832,52 @@ generateBtn.type = 'button';
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
                 </button>
             </div>
-<div id="v-advanced-controls-container" class="flex flex-col gap-4"></div>
+            <div id="v-native-audio-row" class="flex items-center justify-between px-2">
+                <label class="text-xs font-bold text-secondary uppercase tracking-wider">Native Audio</label>
+                <button id="v-native-audio-btn" class="relative h-7 w-12 rounded-full transition bg-white/10 border border-white/10" data-native-audio="false">
+                    <span class="absolute top-1 h-5 w-5 rounded-full bg-white transition left-1" id="v-native-audio-knob"></span>
+                </button>
+            </div>
+            <div id="v-character-lock-row" class="flex items-center justify-between px-2">
+                <label class="text-xs font-bold text-secondary uppercase tracking-wider">Character Lock</label>
+                <button id="v-character-lock-btn" class="relative h-7 w-12 rounded-full transition bg-white/10 border border-white/10" data-character-lock="false">
+                    <span class="absolute top-1 h-5 w-5 rounded-full bg-white transition left-1" id="v-character-lock-knob"></span>
+                </button>
+            </div>
+            <div id="v-advanced-controls-container" class="flex flex-col gap-4"></div>
         </div>
     `;
     container.appendChild(advancedPanel);
+
+    // Native audio toggle handler
+    const vNativeAudioBtn = advancedPanel.querySelector('#v-native-audio-btn');
+    const vNativeAudioKnob = advancedPanel.querySelector('#v-native-audio-knob');
+    if (vNativeAudioBtn && vNativeAudioKnob) {
+      vNativeAudioBtn.onclick = () => {
+        nativeAudio = !nativeAudio;
+        vNativeAudioBtn.setAttribute('data-native-audio', String(nativeAudio));
+        vNativeAudioBtn.style.background = nativeAudio ? 'var(--cyan)' : '';
+        vNativeAudioBtn.style.borderColor = nativeAudio ? 'var(--cyan)' : '';
+        vNativeAudioKnob.style.left = nativeAudio ? 'calc(100% - 22px)' : '4px';
+      };
+    }
+
+    // Character lock toggle handler
+    const vCharacterLockBtn = advancedPanel.querySelector('#v-character-lock-btn');
+    const vCharacterLockKnob = advancedPanel.querySelector('#v-character-lock-knob');
+    if (vCharacterLockBtn && vCharacterLockKnob) {
+      vCharacterLockBtn.onclick = async () => {
+        characterLock = !characterLock;
+        vCharacterLockBtn.setAttribute('data-character-lock', String(characterLock));
+        vCharacterLockBtn.style.background = characterLock ? 'var(--cyan)' : '';
+        vCharacterLockBtn.style.borderColor = characterLock ? 'var(--cyan)' : '';
+        vCharacterLockKnob.style.left = characterLock ? 'calc(100% - 22px)' : '4px';
+
+        if (characterLock && uploadedImageUrl) {
+          await saveCharacterReference({ id: 'studio-character-lock', imageUrl: uploadedImageUrl, modelId: selectedModel });
+        }
+      };
+    }
 
     let dynamicControls = null;
 
@@ -975,7 +1015,7 @@ generateBtn.type = 'button';
     // 3. DROPDOWNS
     // ==========================================
     const dropdown = document.createElement('div');
-    dropdown.className = 'absolute bottom-[102%] left-2 z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-bottom-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
+    dropdown.className = 'absolute top-[102%] left-2 z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-top-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
 
     const updateControlsForModel = (modelId) => {
         const model = getCurrentModels().find(m => m.id === modelId);
@@ -986,6 +1026,14 @@ generateBtn.type = 'button';
             const supportsNativeAudio = model?.inputs?.native_audio && !v2vMode;
             vNativeAudioRow.style.display = supportsNativeAudio ? 'flex' : 'none';
             if (!supportsNativeAudio) nativeAudio = false;
+        }
+
+        // Character lock toggle — show for models that support character consistency or reference images
+        const vCharacterLockRow = advancedPanel.querySelector('#v-character-lock-row');
+        if (vCharacterLockRow) {
+            const supportsCharacter = model?.inputs?.character_consistency || model?.inputs?.reference_images;
+            vCharacterLockRow.style.display = supportsCharacter ? 'flex' : 'none';
+            if (!supportsCharacter) characterLock = false;
         }
 
         // In v2v mode, hide all parameter controls — no prompt/AR/duration/etc needed
@@ -1244,7 +1292,8 @@ generateBtn.type = 'button';
             dropdown.style.left = `${btnRect.left - containerRect.left}px`;
             dropdown.style.transform = 'translate(0, 8px)';
         }
-        dropdown.style.bottom = `${containerRect.bottom - btnRect.top + 8}px`;
+        dropdown.style.bottom = '';
+        dropdown.style.top = `${btnRect.bottom - containerRect.top + 8}px`;
     };
 
     const closeDropdown = () => {
@@ -1820,8 +1869,9 @@ generateBtn.type = 'button';
 
         try {
             if (v2vMode) {
-const v2vParams = { model: selectedModel, video_url: uploadedVideoUrl, signal: abortController.signal };
+                const v2vParams = { model: selectedModel, video_url: uploadedVideoUrl, signal: abortController.signal };
                 if (customThumbnailUrl) v2vParams.thumbnail_url = customThumbnailUrl;
+                if (nativeAudio) v2vParams.native_audio = true;
                 const res = await muapi.processV2V(v2vParams);
                 console.log('[VideoStudio] V2V response:', res);
                 if (res && res.url) {
@@ -1849,6 +1899,14 @@ const v2vParams = { model: selectedModel, video_url: uploadedVideoUrl, signal: a
                 if (durations.length > 0) i2vParams.duration = selectedDuration;
                 const resolutions = getCurrentResolutions(selectedModel);
                 if (resolutions.length > 0) i2vParams.resolution = selectedResolution;
+                if (nativeAudio) i2vParams.native_audio = true;
+                if (characterLock) {
+                    const ref = await getCharacterReference('studio-character-lock');
+                    if (ref?.imageUrl) {
+                        i2vParams.reference_images = [ref.imageUrl];
+                        i2vParams.character_consistency = true;
+                    }
+                }
 
 
                 const res = await muapi.generateI2V(i2vParams);
@@ -1905,6 +1963,15 @@ const durations = getCurrentDurations(selectedModel);
                 if (resolutions.length > 0) params.resolution = selectedResolution;
 
                 if (selectedQuality) params.quality = selectedQuality;
+
+                if (nativeAudio) params.native_audio = true;
+                if (characterLock) {
+                    const ref = await getCharacterReference('studio-character-lock');
+                    if (ref?.imageUrl) {
+                        params.reference_images = [ref.imageUrl];
+                        params.character_consistency = true;
+                    }
+                }
 
                 const res = await muapi.generateVideo(params);
 
