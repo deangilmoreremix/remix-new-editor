@@ -17,7 +17,7 @@ services:
     region: oregon
     rootDir: backend
     plan: free
-    branch: develop
+    branch: production
     buildCommand: npm install
     startCommand: node server.js
     healthCheckPath: /health
@@ -40,6 +40,7 @@ services:
     region: singapore
     runtime: docker
     plan: starter
+    branch: production
     rootDir: apps/director/backend
     dockerfilePath: ./Dockerfile
     dockerContext: .
@@ -78,6 +79,7 @@ services:
     region: singapore
     runtime: docker
     plan: starter
+    branch: production
     rootDir: apps/director/frontend
     dockerfilePath: ./Dockerfile
     dockerContext: .
