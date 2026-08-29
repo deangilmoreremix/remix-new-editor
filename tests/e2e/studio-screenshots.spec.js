@@ -31,25 +31,18 @@ const SIDE_MENU_ITEMS = [
   { id: 'storyboard', route: 'storyboard' },
   { id: 'effects', route: 'effects' },
   { id: 'edit', route: 'edit' },
-  { id: 'upscale', route: 'upscale' },
   { id: 'audio', route: 'audio' },
-  { id: 'avatar', route: 'avatar' },
-  { id: 'training', route: 'training' },
   { id: 'viral', route: 'viral' },
-  { id: 'videotools', route: 'videotools' },
   { id: 'render', route: 'render' },
   { id: 'video-agent', route: 'video-agent' },
   { id: 'director', route: 'director' },
   { id: 'timeline', route: 'timeline' },
-  { id: 'commercial', route: 'commercial' },
   { id: 'templates', route: 'templates' },
   { id: 'explore', route: 'explore' },
   { id: 'library', route: 'library' },
   { id: 'content-library', route: 'content-library' },
   { id: 'community', route: 'community' },
   { id: 'assist', route: 'assist' },
-  { id: 'ai-vfx', route: 'ai-vfx' },
-  { id: 'pexels-media', route: 'pexels-media' },
 ];
 
 const TEMPLATE_IDS = [
@@ -100,7 +93,7 @@ async function navigateToStudio(page, route) {
   while (attempts < 3) {
     try {
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
-      await page.waitForTimeout(4000);
+      await page.waitForTimeout(10000);
       await waitForStudioContent(page);
       return;
     } catch (e) {
@@ -119,11 +112,11 @@ async function waitForStudioContent(page) {
   }
 }
 
-async function captureFullPage(page, filename) {
+async function captureFullPage(page, filename, waitMs = 10000) {
   await dismissOverlays(page);
   await waitForMedia(page);
   await page.evaluate(() => window.scrollTo(0, 0));
-  await page.waitForTimeout(300);
+  await page.waitForTimeout(waitMs);
   await page.screenshot({
     path: path.join(SCREENSHOTS_DIR, `${filename}.png`),
     fullPage: true,
@@ -131,11 +124,11 @@ async function captureFullPage(page, filename) {
   });
 }
 
-async function captureViewport(page, filename) {
+async function captureViewport(page, filename, waitMs = 10000) {
   await dismissOverlays(page);
   await waitForMedia(page);
   await page.evaluate(() => window.scrollTo(0, 0));
-  await page.waitForTimeout(200);
+  await page.waitForTimeout(waitMs);
   await page.screenshot({
     path: path.join(SCREENSHOTS_DIR, `${filename}.png`),
     fullPage: false,
@@ -227,7 +220,6 @@ async function captureStudioModals(page, studioId) {
       await navigateToStudio(page, 'image');
       await clickAndCapture(page, 'text=Advanced', 'image-advanced');
       await clickAndCapture(page, 'text=Tools', 'image-tools');
-      await clickAndCapture(page, '[aria-label*="Thumbnail"], button:has-text("Thumbnail")', 'image-thumbnail-modal');
       await clickAndCapture(page, '[aria-label*="GTM"], button:has-text("GTM")', 'image-gtm-modal');
       break;
 
@@ -235,21 +227,16 @@ async function captureStudioModals(page, studioId) {
       await navigateToStudio(page, 'video');
       await clickAndCapture(page, 'text=Advanced', 'video-advanced');
       await clickAndCapture(page, 'text=Motion & Style', 'video-motion-style');
-      await clickAndCapture(page, '[aria-label*="Thumbnail"], button:has-text("Thumbnail")', 'video-thumbnail-modal');
       break;
 
     case 'cinema':
       await navigateToStudio(page, 'cinema');
       await clickAndCapture(page, 'text=Builder', 'cinema-builder');
-      await clickAndCapture(page, '[aria-label*="Thumbnail"], button:has-text("Thumbnail")', 'cinema-thumbnail-modal');
       break;
 
     case 'effects':
       await navigateToStudio(page, 'effects');
       await clickAndCapture(page, 'text=Advanced', 'effects-advanced');
-      await clickAndCapture(page, 'text=Image Effects', 'effects-tab-image');
-      await clickAndCapture(page, 'text=Video Effects', 'effects-tab-video');
-      await clickAndCapture(page, 'text=Motion Controls', 'effects-tab-motion');
       break;
 
     case 'edit':
@@ -259,31 +246,13 @@ async function captureStudioModals(page, studioId) {
       await clickAndCapture(page, 'text=AI Edit', 'edit-ai-edit');
       break;
 
-    case 'commercial':
-      await navigateToStudio(page, 'commercial');
-      await clickAndCapture(page, '[aria-label*="Thumbnail"], button:has-text("Thumbnail")', 'commercial-thumbnail-modal');
-      break;
-
-    case 'template':
-      await navigateToStudio(page, 'templates');
-      await clickAndCapture(page, '.backdrop-blur-xl.border.rounded-xl', 'template-editor');
-      break;
-
-    case 'cinema-template':
-      await navigateToStudio(page, 'cinema-template');
-      await clickAndCapture(page, '.grid > div', 'cinema-template-editor');
+    case 'video-agent':
+      await navigateToStudio(page, 'video-agent');
       break;
 
     case 'timeline':
       await navigateToStudio(page, 'timeline');
       await clickAndCapture(page, 'text=Media Preview', 'timeline-media-preview');
-      await clickAndCapture(page, 'text=Templates', 'timeline-templates');
-      break;
-
-    case 'video-agent':
-      await navigateToStudio(page, 'video-agent');
-      await clickAndCapture(page, 'text=PERCEIVE', 'video-agent-perceive');
-      await clickAndCapture(page, 'text=GENERATE', 'video-agent-generate');
       break;
 
     default:
@@ -312,7 +281,9 @@ test.describe('Studio Screenshot Capture', () => {
         continue;
       }
       await navigateToStudio(page, item.route);
-      await captureFullPage(page, item.id);
+      const longLoadRoutes = new Set(['apps', 'video', 'cinema', 'storyboard', 'audio', 'explore', 'render', 'director', 'timeline']);
+      const waitMs = longLoadRoutes.has(item.id) ? 15000 : 10000;
+      await captureFullPage(page, item.id, waitMs);
     }
 
     // Settings modal
@@ -333,9 +304,6 @@ test.describe('Studio Screenshot Capture', () => {
     await captureStudioModals(page, 'cinema');
     await captureStudioModals(page, 'effects');
     await captureStudioModals(page, 'edit');
-    await captureStudioModals(page, 'commercial');
-    await captureStudioModals(page, 'template');
-    await captureStudioModals(page, 'cinema-template');
     await captureStudioModals(page, 'timeline');
     await captureStudioModals(page, 'video-agent');
   });

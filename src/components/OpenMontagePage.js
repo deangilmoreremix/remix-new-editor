@@ -18,15 +18,14 @@ const getOpenMontageBase = () => {
 const OPENMONTAGE_BACKEND = getOpenMontageBase();
 
 const STAGES = [
-  { id: 'brief', label: 'Brief', short: 'BRIEF' },
   { id: 'research', label: 'Research', short: 'RESEARCH' },
+  { id: 'proposal', label: 'Proposal', short: 'PROPOSAL' },
   { id: 'script', label: 'Script', short: 'SCRIPT' },
   { id: 'scene_plan', label: 'Scene Plan', short: 'SCENE PLAN' },
-  { id: 'gate', label: 'The Gate', short: 'THE GATE' },
-  { id: 'narration', label: 'Narration', short: 'NARRATION' },
-  { id: 'music', label: 'Music', short: 'MUSIC' },
+  { id: 'assets', label: 'Assets', short: 'ASSETS' },
+  { id: 'edit', label: 'Edit', short: 'EDIT' },
   { id: 'compose', label: 'Compose', short: 'COMPOSE' },
-  { id: 'render', label: 'Render', short: 'RENDER' },
+  { id: 'publish', label: 'Publish', short: 'PUBLISH' },
 ];
 
 const PIPELINES = [
@@ -71,6 +70,18 @@ function getStatusStyle(status) {
   return map[status] || map.QUEUED;
 }
 
+function getStageStatusText(stageId, s) {
+  if (stageId === 'script' && s.approvalStatus === 'pending') return 'awaiting your approval';
+  if (stageId === 'scene_plan' && s.approvalStatus === 'pending') return 'awaiting your approval';
+  if (stageId === 'assets') return `${s.scenes.filter(sc => sc.status === 'DONE').length || 0} scenes done`;
+  if (stageId === 'edit') return 'editing';
+  if (stageId === 'compose') return 'composing';
+  if (stageId === 'publish') return 'publishing';
+  if (stageId === 'research') return 'researching';
+  if (stageId === 'proposal') return 'proposing';
+  return '';
+}
+
 function formatCredits(total) {
   return `${total} CR ≈ $${(total / 100).toFixed(2)}`;
 }
@@ -96,6 +107,9 @@ export function OpenMontagePage() {
     ],
     pipeline: 'animated-explainer',
     profile: 'youtube-landscape',
+    projectTitle: 'SIGNAL IN THE STATIC',
+    pipelineLabel: 'cinematic pipeline',
+    styleLabel: 'clean-professional',
     scenes: [],
     chatMessages: [
       { from: 'user', text: 'Make the opening more dramatic' },
@@ -104,21 +118,35 @@ export function OpenMontagePage() {
       { from: 'agent', text: 'Swapped SC 03 to dashboard-walkthrough.mp4 — trimmed 0:12 from the 2:14 capture. Cost unchanged.' },
     ],
     decisionLog: [
-      { label: 'Voice', choice: 'Warm male tenor — "Calder"', alternatives: 'also considered: female alto · neutral narrator' },
-      { label: 'Music — "Minimal Pulse", licensed', choice: '', alternatives: '' },
-      { label: 'Grade', choice: 'warm high-contrast', alternatives: '' },
+      { label: 'RENDER_RUNTIME_SELECTION', choice: 'compose → remotion', alternatives: 'also considered: HyperFrames' },
+      { label: 'PROVIDER_SELECTION', choice: 'image generation — flux_image', alternatives: 'Strongest cinematic realism for night exteriors. also considered: get-image-1' },
+    ],
+    activityLog: [
+      { time: '07:17:35 AM', event: 'flux_image sc3', status: 'running', cost: '$0.84' },
+      { time: '07:17:35 AM', event: 'flux_image sc2', status: 'done', cost: '$0.84' },
+      { time: '07:17:35 AM', event: 'flux_image sc1', status: 'done', cost: '$0.84' },
     ],
     credits: { images: 64, narration: 5, music: 15, generatedClip: 125, captions: 0, render: 0, total: 209 },
+    generationSpend: 0.08,
     renders: [
-      { label: '16:9 · LAUNCH', status: 'ready' },
-      { label: '1:1 · FEED', status: 'ready' },
-      { label: '9:16 · SHORTS', status: 'ready' },
+      { label: 'final.mp4', status: 'ready', duration: '0:22', size: '0.0 MB' },
     ],
     approvalStatus: 'pending',
     jobStatus: 'idle',
     completedStages: [],
     research: null,
-    script: null,
+    script: {
+      title: 'SIGNAL IN THE STATIC',
+      duration: '0:22',
+      sections: 4,
+      pages: [
+        { heading: 'S1 — A RADIO TOWER AGAINST A VIOLET SKY', body: 'The signal arrived at 3:14 a.m.', time: '0:00 - 0:05' },
+        { heading: 'S2 — ROWS OF RECEIVERS, ONE GLOWING', body: 'Nobody was listening. Except her.', time: '0:05 - 0:10' },
+        { heading: 'S3 — STATIC RESOLVING INTO A PATTERN', body: 'Noise, she realized, was a language.', time: '0:10 - 0:16' },
+        { heading: 'S4 — THE PATTERN PROJECTED ON A WALL', body: 'And it was asking a question.', time: '0:16 - 0:22' },
+      ],
+      approved: false,
+    },
     scenePlan: null,
     narration: null,
     music: null,
@@ -128,206 +156,266 @@ export function OpenMontagePage() {
 
   let pollTimer = null;
 
-  // ── Hero ─────────────────────────────────────────────────────────────
-  const hero = document.createElement('div');
-  hero.className = 'w-full flex flex-col items-center pt-6 pb-4 px-4 md:px-8';
-  const heroBanner = createHeroSection('videoagent', 'h-28 md:h-36 mb-4');
-  if (heroBanner) {
-    const heroContent = document.createElement('div');
-    heroContent.className = 'absolute bottom-0 left-0 right-0 p-6 z-10';
-    heroContent.innerHTML = `
-      <h1 class="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight mb-1">OpenMontage Studio</h1>
-      <p class="text-white/60 text-sm font-medium">Agentic video production — describe your video and we'll build it</p>
-    `;
-    heroBanner.appendChild(heroContent);
-    hero.appendChild(heroBanner);
-  }
-  container.appendChild(hero);
+  // ── Backlot Header ────────────────────────────────────────────────────
+  const header = document.createElement('div');
+  header.className = 'w-full flex flex-col items-center pt-6 pb-4 px-4 md:px-8';
+  header.innerHTML = `
+    <div class="w-full max-w-7xl flex items-center justify-between mb-4">
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-white">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <path d="M9 3v18M3 9h18"/>
+          </svg>
+          <span class="text-[9px] font-black text-white/90 tracking-[0.2em] uppercase">Backlot</span>
+        </div>
+        <h1 class="text-base sm:text-lg font-black text-white tracking-tight">${escapeHtml(state.projectTitle)}</h1>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="px-2 py-1 bg-white/5 border border-white/10 rounded-md text-[10px] font-bold text-white/80">${escapeHtml(state.pipelineLabel)}</span>
+        <span class="px-2 py-1 bg-white/5 border border-white/10 rounded-md text-[10px] font-bold text-white/80">${escapeHtml(state.styleLabel)}</span>
+        <span class="text-[10px] text-white/40">${state.scenes.length || 0} scenes · ${escapeHtml(state.duration)}</span>
+        <span class="flex items-center gap-1.5 text-[10px] font-black text-amber-400">
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+          LIVE
+        </span>
+        <span class="text-[10px] text-white/50 font-bold">$${state.generationSpend.toFixed(2)} / $4.00</span>
+        <span class="text-[9px] text-white/30 font-medium tracking-wide">GENERATION SPEND</span>
+      </div>
+    </div>
+  `;
+  container.appendChild(header);
 
   // ── Content wrapper ──────────────────────────────────────────────────
   const contentWrapper = document.createElement('div');
   contentWrapper.className = 'w-full max-w-7xl relative z-40 px-4 md:px-8 pb-10';
 
-  // Back + service status
+  // Top controls row — Backlot exact style
   const topBar = document.createElement('div');
-  topBar.className = 'mb-6 flex items-center gap-2';
+  topBar.className = 'mb-5 flex items-center justify-between';
   topBar.innerHTML = `
     <button id="back-btn" class="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all text-white/70 hover:text-white">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
       Back
     </button>
-    <span id="service-status" class="text-xs text-muted ml-2"></span>
+    <div class="flex items-center gap-3">
+      <span class="text-[11px] text-white/40 font-medium tracking-wide">scrub the whole run</span>
+      <button id="om-replay" class="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all text-white/70 hover:text-white">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <span class="text-[11px] font-black tracking-wide">REPLAY RUN</span>
+      </button>
+    </div>
   `;
   contentWrapper.appendChild(topBar);
 
-  // Stage tracker
+  // Stage tracker — Backlot exact style
   const stageTrack = document.createElement('div');
-  stageTrack.className = 'mb-8 overflow-x-auto';
+  stageTrack.className = 'mb-5 overflow-x-auto';
   stageTrack.innerHTML = `
-    <div class="flex items-center gap-1 min-w-max">
+    <div class="flex items-center gap-0 min-w-max">
       ${STAGES.map((s, i) => {
         const isActive = i === state.stageIndex;
         const isCompleted = state.completedStages.includes(s.id);
+        const statusText = isActive ? getStageStatusText(s.id, state) : '';
         return `
-          <button data-stage="${s.id}" class="om-stage-btn flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all border ${isActive ? 'bg-white/10 border-white/20 text-white' : isCompleted ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-white/5 border-white/5 text-white/60 hover:text-white'}">
-            <span class="text-[10px] font-black tracking-wider">${isCompleted && !isActive ? '✓ ' : ''}${s.short}</span>
-          </button>
-        ` + (i < STAGES.length - 1 ? `<span class="text-white/20 text-xs">✦</span>` : '');
+          <div class="flex items-center gap-0">
+            <button data-stage="${s.id}" class="om-stage-btn flex flex-col items-center gap-1 px-3 py-2 transition-all ${isActive ? 'text-white' : isCompleted ? 'text-emerald-400' : 'text-white/25 hover:text-white/50'}">
+              <span class="text-[10px] font-black tracking-wider">${isCompleted && !isActive ? '✓ ' : ''}${s.short}</span>
+              ${statusText ? `<span class="text-[9px] font-medium ${isActive ? 'text-amber-400' : 'text-white/30'}">${statusText}</span>` : ''}
+            </button>
+            ${i < STAGES.length - 1 ? `<span class="text-white/10 text-[10px] px-0.5">·</span>` : ''}
+          </div>
+        `;
       }).join('')}
     </div>
   `;
   contentWrapper.appendChild(stageTrack);
 
-  // Main layout
+  // Creative gate banner
+  const gateBanner = document.createElement('div');
+  gateBanner.id = 'om-gate-banner';
+  gateBanner.className = 'hidden mb-6 px-4 py-3 bg-amber-500/10 border border-amber-500/20 rounded-xl';
+  gateBanner.innerHTML = `
+    <div class="flex items-center gap-3">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-amber-400 shrink-0">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <div class="flex-1">
+        <p class="text-[11px] font-bold text-amber-400/90">The script stage is waiting for your review. The agent is paused at this gate — reply <span class="underline decoration-amber-400/50">in chat</span> to approve or request changes.</p>
+      </div>
+    </div>
+  `;
+  contentWrapper.appendChild(gateBanner);
+
+  // Replay timeline scrubber — Backlot exact style
+  const replayTimeline = document.createElement('div');
+  replayTimeline.id = 'om-replay-timeline';
+  replayTimeline.className = 'hidden mb-5 p-3 bg-white/[0.02] border border-white/5 rounded-xl';
+  replayTimeline.innerHTML = `
+    <div class="flex items-center gap-3">
+      <button id="om-replay-play" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center transition-all">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      </button>
+      <div class="flex-1 relative h-6 bg-white/5 rounded-lg overflow-hidden cursor-pointer" id="om-timeline-track">
+        <div class="absolute inset-y-0 left-0 w-0 bg-white/10 rounded-lg"></div>
+        <div class="absolute inset-0 flex items-center px-2">
+          ${Array.from({ length: 24 }, (_, i) => `<span class="w-1 h-1 rounded-full ${i % 6 === 0 ? 'bg-white/20' : 'bg-white/5'}"></span>`).join('')}
+        </div>
+      </div>
+      <span class="text-[10px] text-white/40 font-mono w-10 text-right">0:00</span>
+    </div>
+  `;
+  contentWrapper.appendChild(replayTimeline);
+
+  // Main layout — Backlot 3-column board
   const main = document.createElement('div');
   main.className = 'grid grid-cols-1 lg:grid-cols-12 gap-6';
 
-  // Library sidebar
+  // Library sidebar — Backlot style
   const librarySidebar = document.createElement('div');
-  librarySidebar.className = 'lg:col-span-3 flex flex-col gap-4';
+  librarySidebar.className = 'lg:col-span-2 flex flex-col gap-4';
   librarySidebar.innerHTML = `
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 shadow-3xl">
-      <h3 class="text-[10px] font-black text-white/80 tracking-wide mb-3">LIBRARY</h3>
-      <div class="space-y-2">
-        <div class="border border-white/5 rounded-xl p-2 bg-white/[0.02]">
-          <div class="flex items-center justify-between mb-1">
-            <span class="text-[11px] font-bold text-white truncate">Trellis 2.0 Launch</span>
-            <span class="text-[9px] font-black text-emerald-400">● IN PRODUCTION</span>
-          </div>
-          <div class="text-[10px] text-muted">PROD Nº 0042 · V3</div>
-          <div class="text-[10px] text-muted">GEN SPEND $0.16</div>
-        </div>
-        <div class="border border-white/5 rounded-xl p-2 bg-white/[0.02]">
-          <div class="flex items-center justify-between mb-1">
-            <span class="text-[11px] font-bold text-white truncate">Q3 Sales Enablement</span>
-            <span class="text-[9px] font-black text-white/40">DRAFT</span>
-          </div>
-        </div>
-        <div class="border border-white/5 rounded-xl p-2 bg-white/[0.02]">
-          <div class="flex items-center justify-between mb-1">
-            <span class="text-[11px] font-bold text-white truncate">API Quickstart Tutorial</span>
-            <span class="text-[9px] font-black text-white/40">DELIVERED · JUN 30</span>
-          </div>
-        </div>
+    <div class="flex items-center justify-between mb-2">
+      <div class="flex items-center gap-2">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-white">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <path d="M9 3v18M3 9h18"/>
+        </svg>
+        <span class="text-[9px] font-black text-white/90 tracking-[0.2em] uppercase">Backlot</span>
       </div>
+      <span class="text-[10px] text-white/40">4 projects</span>
     </div>
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 shadow-3xl">
-      <h3 class="text-[10px] font-black text-white/80 tracking-wide mb-3">ASSETS</h3>
-      <div class="space-y-2">
-        <div class="flex items-center gap-2 py-1">
-          <span class="text-xs">📁</span>
-          <span class="text-[11px] text-white/80 truncate">Trellis Brand Kit</span>
+    <div class="space-y-3">
+      <div class="border border-white/5 rounded-2xl overflow-hidden bg-white/[0.02] hover:bg-white/[0.04] transition-all cursor-pointer">
+        <div class="aspect-video bg-gradient-to-br from-gray-800 to-gray-700 relative flex items-center justify-center">
+          <span class="text-[10px] font-black text-white/30 tracking-wide">NO MEDIA YET</span>
+          <span class="absolute top-2 left-2 px-2 py-0.5 bg-emerald-500/15 border border-emerald-500/25 rounded-md text-[9px] font-black text-emerald-400 tracking-wide">● LIVE · SCRIPT</span>
         </div>
-        <div class="flex items-center gap-2 py-1">
-          <span class="text-xs">🎬</span>
-          <span class="text-[11px] text-white/80 truncate">dashboard-walkthrough.mp4</span>
-          <span class="text-[10px] text-muted ml-auto">2:14</span>
-        </div>
-        <div class="flex items-center gap-2 py-1">
-          <span class="text-xs">📁</span>
-          <span class="text-[11px] text-white/80 truncate">team-photos/</span>
-          <span class="text-[10px] text-muted ml-auto">12 IMG</span>
-        </div>
-        <div class="flex items-center gap-2 py-1">
-          <span class="text-xs">🖼️</span>
-          <span class="text-[11px] text-white/80 truncate">trellis-logo.svg</span>
-          <span class="text-[10px] text-muted ml-auto">SVG</span>
+        <div class="p-3">
+          <div class="text-[11px] font-bold text-white mb-1">${escapeHtml(state.projectTitle)}</div>
+          <div class="flex items-center gap-2 mb-2">
+            <span class="px-2 py-0.5 bg-white/5 rounded text-[9px] font-bold text-white/60">${escapeHtml(state.pipelineLabel)}</span>
+            <span class="text-[9px] text-white/40">just now</span>
+          </div>
+          <div class="flex items-center gap-1">
+            ${Array.from({ length: 8 }, (_, i) => `<span class="w-1.5 h-1.5 rounded-full ${i < 3 ? 'bg-emerald-400' : i === 3 ? 'bg-amber-400' : 'bg-white/10'}"></span>`).join('')}
+          </div>
         </div>
       </div>
-      <button class="mt-3 w-full py-1.5 bg-white/5 border border-white/10 rounded-lg text-[10px] font-bold text-white/70 hover:text-white hover:bg-white/10 transition-all">⊕ ADD ASSETS</button>
+      <div class="border border-white/5 rounded-2xl overflow-hidden bg-white/[0.02] hover:bg-white/[0.04] transition-all cursor-pointer">
+        <div class="aspect-video bg-gradient-to-br from-gray-800 to-gray-700 relative flex items-center justify-center">
+          <span class="text-[10px] font-black text-white/30 tracking-wide">NO MEDIA YET</span>
+          <span class="absolute top-2 left-2 px-2 py-0.5 bg-amber-500/15 border border-amber-500/25 rounded-md text-[9px] font-black text-amber-400 tracking-wide">◆ AWAITING YOU</span>
+        </div>
+        <div class="p-3">
+          <div class="text-[11px] font-bold text-white mb-1">THE SLOW ORCHARD</div>
+          <div class="flex items-center gap-2 mb-2">
+            <span class="px-2 py-0.5 bg-white/5 rounded text-[9px] font-bold text-white/60">cinematic</span>
+            <span class="text-[9px] text-white/40">just now</span>
+          </div>
+          <div class="flex items-center gap-1">
+            ${Array.from({ length: 8 }, (_, i) => `<span class="w-1.5 h-1.5 rounded-full ${i < 2 ? 'bg-amber-400' : 'bg-white/10'}"></span>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="border border-white/5 rounded-2xl overflow-hidden bg-white/[0.02] hover:bg-white/[0.04] transition-all cursor-pointer">
+        <div class="aspect-video bg-gradient-to-br from-blue-900/40 to-purple-900/40 relative flex items-center justify-center">
+          <div class="flex items-end gap-0.5 h-8">
+            ${Array.from({ length: 12 }, () => `<div class="w-1 bg-white/20 rounded-t" style="height: ${20 + Math.random() * 60}%"></div>`).join('')}
+          </div>
+          <span class="absolute top-2 left-2 px-2 py-0.5 bg-emerald-500/15 border border-emerald-500/25 rounded-md text-[9px] font-black text-emerald-400 tracking-wide">● LIVE · ASSETS</span>
+        </div>
+        <div class="p-3">
+          <div class="text-[11px] font-bold text-white mb-1">SIGNAL IN THE STATIC</div>
+          <div class="flex items-center gap-2 mb-2">
+            <span class="px-2 py-0.5 bg-white/5 rounded text-[9px] font-bold text-white/60">cinematic</span>
+            <span class="px-2 py-0.5 bg-white/5 rounded text-[9px] font-bold text-white/60">4 scenes</span>
+            <span class="text-[9px] text-white/40">just now</span>
+          </div>
+          <div class="flex items-center gap-1">
+            ${Array.from({ length: 8 }, (_, i) => `<span class="w-1.5 h-1.5 rounded-full ${i < 5 ? 'bg-emerald-400' : 'bg-white/10'}"></span>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="border border-white/5 rounded-2xl overflow-hidden bg-white/[0.02] hover:bg-white/[0.04] transition-all cursor-pointer">
+        <div class="aspect-video bg-gradient-to-br from-amber-900/40 to-orange-900/40 relative flex items-center justify-center">
+          <div class="flex items-end gap-0.5 h-8">
+            ${Array.from({ length: 12 }, () => `<div class="w-1 bg-white/20 rounded-t" style="height: ${20 + Math.random() * 60}%"></div>`).join('')}
+          </div>
+          <span class="absolute top-2 right-2 px-2 py-0.5 bg-emerald-500/15 border border-emerald-500/25 rounded-md text-[9px] font-black text-emerald-400 tracking-wide">● LIVE</span>
+        </div>
+        <div class="p-3">
+          <div class="text-[11px] font-bold text-white mb-1">THE LAST LIGHTHOUSE</div>
+          <div class="flex items-center gap-2 mb-2">
+            <span class="px-2 py-0.5 bg-white/5 rounded text-[9px] font-bold text-white/60">cinematic</span>
+            <span class="px-2 py-0.5 bg-white/5 rounded text-[9px] font-bold text-white/60">5 scenes</span>
+            <span class="px-2 py-0.5 bg-white/5 rounded text-[9px] font-bold text-white/60">1 renders</span>
+            <span class="text-[9px] text-white/40">just now</span>
+          </div>
+          <div class="flex items-center gap-1">
+            ${Array.from({ length: 8 }, (_, i) => `<span class="w-1.5 h-1.5 rounded-full ${i < 6 ? 'bg-emerald-400' : 'bg-white/10'}"></span>`).join('')}
+          </div>
+        </div>
+      </div>
     </div>
   `;
 
-  // Main content column
+  // Main content column — stage content + storyboard + player
   const contentCol = document.createElement('div');
-  contentCol.className = 'lg:col-span-5 flex flex-col gap-6';
+  contentCol.className = 'lg:col-span-7 flex flex-col gap-6';
 
-  // Stage content card (dynamic)
+  // Stage content card (dynamic) — Backlot screenplay viewer when in script stage
   const stageContentCard = document.createElement('div');
   stageContentCard.id = 'om-stage-content';
   stageContentCard.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-5 md:p-6 shadow-3xl';
   stageContentCard.innerHTML = getStageContentHTML(state);
   contentCol.appendChild(stageContentCard);
 
-  // Scene board
-  const sceneBoard = document.createElement('div');
-  sceneBoard.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-5 md:p-6 shadow-3xl';
-  sceneBoard.innerHTML = `
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="text-xs font-black text-white/80 tracking-wide">STORYBOARD — ${state.scenes.length || 0} SCENES</h2>
-      <div class="flex items-center gap-2">
-        <button id="om-add-scene" class="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[11px] font-bold text-white/70 hover:text-white hover:bg-white/10 transition-all">⊕ Add scene</button>
-        <button id="om-regen-scene" class="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[11px] font-bold text-white/70 hover:text-white hover:bg-white/10 transition-all">↻ Regenerate unlocked</button>
-      </div>
-    </div>
-    <p class="text-[10px] text-muted mb-3">DRAG TO REORDER · CLICK ANY CARD TO EDIT DIRECTLY — OR JUST TELL THE AGENT</p>
-    <div id="om-scenes" class="space-y-3">
-      ${renderSceneCards(state.scenes)}
-    </div>
-  `;
-  contentCol.appendChild(sceneBoard);
+  // Storyboard filmstrip
+  const storyboardCard = document.createElement('div');
+  storyboardCard.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-5 md:p-6 shadow-3xl';
+  storyboardCard.innerHTML = renderStoryboardFilmstrip(state);
+  contentCol.appendChild(storyboardCard);
 
-  // Renders
+  // Renders / player
   const rendersCard = document.createElement('div');
   rendersCard.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-5 md:p-6 shadow-3xl';
-  rendersCard.innerHTML = `
-    <h2 class="text-xs font-black text-white/80 tracking-wide mb-3">RENDERS</h2>
-    <div id="om-renders" class="flex flex-wrap gap-2 mb-3">
-      ${renderRenders(state.renders)}
-    </div>
-    <div id="om-provenance" class="hidden pt-3 border-t border-white/5">
-      <div class="text-[10px] font-black text-white/60 mb-2">PROVENANCE REPORT</div>
-      <div class="text-[10px] text-muted space-y-1">
-        <div>SOURCE · <span id="om-prov-source">—</span></div>
-        <div>LICENSE · <span id="om-prov-license">—</span></div>
-        <div>MODEL · <span id="om-prov-model">—</span></div>
-      </div>
-    </div>
-  `;
+  rendersCard.innerHTML = renderPlayerCard(state);
   contentCol.appendChild(rendersCard);
 
-  // Right column
+  // Right column — Decisions + Activity
   const right = document.createElement('div');
-  right.className = 'lg:col-span-4 flex flex-col gap-6';
+  right.className = 'lg:col-span-3 flex flex-col gap-6';
 
-  // Chat card
-  const chatCard = document.createElement('div');
-  chatCard.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] overflow-hidden shadow-3xl flex flex-col';
-  chatCard.innerHTML = `
-    <div class="px-5 py-4 border-b border-white/10 flex items-center justify-between">
-      <div>
-        <h3 class="text-xs font-black text-white/80 tracking-wide">PRODUCTION CHAT</h3>
-        <p id="om-chat-status" class="text-[10px] text-emerald-400 font-bold mt-0.5">● AGENT ACTIVE</p>
-      </div>
-      <span class="text-[10px] text-muted">Claude · Opus 4.8 · Effort · High</span>
+  // Decisions panel
+  const decisionsPanel = document.createElement('div');
+  decisionsPanel.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-5 md:p-6 shadow-3xl';
+  decisionsPanel.innerHTML = `
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-[10px] font-black text-white/80 tracking-wide">DECISIONS</h3>
+      <span class="text-[10px] text-white/40 font-mono">decision_log.json</span>
     </div>
-    <div id="om-chat" class="flex-1 p-4 space-y-3 max-h-80 overflow-y-auto custom-scrollbar">
-      ${state.chatMessages.map(m => `
-        <div class="flex flex-col ${m.from === 'user' ? 'items-end' : 'items-start'}" data-from="${m.from}">
-          <div class="px-3 py-2 rounded-2xl text-xs max-w-[85%] ${m.from === 'user' ? 'bg-white/10 text-white' : 'bg-white/5 text-white/80'}">${escapeHtml(m.text)}</div>
-          <span class="text-[10px] text-muted mt-1">${m.from === 'user' ? 'YOU' : 'MONTAGE'}</span>
-        </div>
-      `).join('')}
-    </div>
-    <div class="p-3 border-t border-white/10">
-      <div class="flex gap-2">
-        <input id="om-chat-input" placeholder="Direct the agent…" class="flex-1 bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-white/30 focus:outline-none focus:border-primary/50" />
-        <button id="om-chat-send" class="px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-white hover:bg-white/10 transition-all">Send</button>
-      </div>
-    </div>
-  `;
-  right.appendChild(chatCard);
-
-  // Decision log card
-  const decisionCard = document.createElement('div');
-  decisionCard.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-5 md:p-6 shadow-3xl';
-  decisionCard.innerHTML = `
-    <h3 class="text-xs font-black text-white/80 tracking-wide mb-3">DECISION LOG</h3>
     <div id="om-decisions" class="space-y-3">
       ${renderDecisionLog(state.decisionLog)}
     </div>
   `;
-  right.appendChild(decisionCard);
+  right.appendChild(decisionsPanel);
+
+  // Activity panel
+  const activityPanel = document.createElement('div');
+  activityPanel.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-5 md:p-6 shadow-3xl';
+  activityPanel.innerHTML = `
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-[10px] font-black text-white/80 tracking-wide">ACTIVITY</h3>
+      <span class="text-[10px] text-white/40 font-mono">events.json</span>
+    </div>
+    <div id="om-activity" class="space-y-2">
+      ${renderActivityLog(state.activityLog)}
+    </div>
+  `;
+  right.appendChild(activityPanel);
 
   main.appendChild(librarySidebar);
   main.appendChild(contentCol);
@@ -351,6 +439,7 @@ export function OpenMontagePage() {
   const scenesEl = container.querySelector('#om-scenes');
   const rendersEl = container.querySelector('#om-renders');
   const decisionsEl = container.querySelector('#om-decisions');
+  const activityEl = container.querySelector('#om-activity');
   const chatStatusEl = container.querySelector('#om-chat-status');
 
   // ── API helpers ──────────────────────────────────────────────────────
@@ -379,6 +468,7 @@ export function OpenMontagePage() {
       if (data.scenes) state.scenes = data.scenes;
       if (data.chatMessages) state.chatMessages = data.chatMessages;
       if (data.decisionLog) state.decisionLog = data.decisionLog;
+      if (data.activityLog) state.activityLog = data.activityLog;
       if (data.credits) state.credits = data.credits;
       if (data.renders) state.renders = data.renders;
       if (data.approvalStatus) state.approvalStatus = data.approvalStatus;
@@ -433,24 +523,35 @@ export function OpenMontagePage() {
     buttons.forEach((btn, i) => {
       const isActive = i === state.stageIndex;
       const isCompleted = state.completedStages.includes(STAGES[i].id);
-      btn.className = 'om-stage-btn flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all border ' + (isActive ? 'bg-white/10 border-white/20 text-white' : isCompleted ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-white/5 border-white/5 text-white/60 hover:text-white');
-      btn.innerHTML = `<span class="text-[10px] font-black tracking-wider">${isCompleted && !isActive ? '✓ ' : ''}${STAGES[i].short}</span>`;
+      const statusText = isActive ? getStageStatusText(STAGES[i].id, state) : '';
+      btn.className = 'om-stage-btn flex flex-col items-center gap-1 px-2 py-2 transition-all ' + (isActive ? 'text-white' : isCompleted ? 'text-emerald-400' : 'text-white/40 hover:text-white/70');
+      btn.innerHTML = `
+        <span class="text-[10px] font-black tracking-wider">${isCompleted && !isActive ? '✓ ' : ''}${STAGES[i].short}</span>
+        ${statusText ? `<span class="text-[9px] font-medium ${isActive ? 'text-amber-400' : 'text-white/40'}">${statusText}</span>` : ''}
+      `;
     });
+
+    // Gate banner visibility
+    if (gateBanner) {
+      const showGate = state.stageIndex === STAGES.findIndex(s => s.id === 'script') && state.approvalStatus === 'pending';
+      gateBanner.classList.toggle('hidden', !showGate);
+    }
 
     if (stageContent) {
       stageContent.innerHTML = getStageContentHTML(state);
       wireStageContentEvents();
     }
 
-    if (scenesEl) scenesEl.innerHTML = renderSceneCards(state.scenes);
-    if (rendersEl) rendersEl.innerHTML = renderRenders(state.renders);
+    if (scenesEl) scenesEl.innerHTML = renderStoryboardFilmstrip(state);
+    if (rendersEl) rendersEl.innerHTML = renderPlayerCard(state);
     if (decisionsEl) decisionsEl.innerHTML = renderDecisionLog(state.decisionLog);
+    if (activityEl) activityEl.innerHTML = renderActivityLog(state.activityLog);
 
     if (chatBox) {
       chatBox.innerHTML = state.chatMessages.map(m => `
         <div class="flex flex-col ${m.from === 'user' ? 'items-end' : 'items-start'}" data-from="${m.from}">
           <div class="px-3 py-2 rounded-2xl text-xs max-w-[85%] ${m.from === 'user' ? 'bg-white/10 text-white' : 'bg-white/5 text-white/80'}">${escapeHtml(m.text)}</div>
-          <span class="text-[10px] text-muted mt-1">${m.from === 'user' ? 'YOU' : 'MONTAGE'}</span>
+          <span class="text-[10px] text-white/40 mt-1">${m.from === 'user' ? 'YOU' : 'MONTAGE'}</span>
         </div>
       `).join('');
       chatBox.scrollTop = chatBox.scrollHeight;
@@ -471,16 +572,63 @@ export function OpenMontagePage() {
     const idx = s.stageIndex;
     const stageId = STAGES[idx]?.id;
 
-    if (stageId === 'brief') return renderBriefContent(s);
     if (stageId === 'research') return renderResearchContent(s);
+    if (stageId === 'proposal') return renderProposalContent(s);
     if (stageId === 'script') return renderScriptContent(s);
     if (stageId === 'scene_plan') return renderScenePlanContent(s);
-    if (stageId === 'gate') return renderGateContent(s);
-    if (stageId === 'narration') return renderNarrationContent(s);
-    if (stageId === 'music') return renderMusicContent(s);
+    if (stageId === 'assets') return renderAssetsContent(s);
+    if (stageId === 'edit') return renderEditContent(s);
     if (stageId === 'compose') return renderComposeContent(s);
-    if (stageId === 'render') return renderRenderContent(s);
-    return renderBriefContent(s);
+    if (stageId === 'publish') return renderPublishContent(s);
+    return renderResearchContent(s);
+  }
+
+  function renderProposalContent(s) {
+    return `
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-[10px] font-black text-white/80 tracking-[0.15em] uppercase">PROPOSAL</h2>
+        <span class="text-[10px] text-white/40 font-medium tracking-wide">${s.jobStatus === 'running' ? 'Generating proposal…' : 'Waiting for research'}</span>
+      </div>
+      <div class="text-[11px] text-white/50 space-y-2">
+        <p>The agent synthesizes research into 2-3 differentiated concepts with honest tool paths, cost estimates, and sample previews.</p>
+      </div>
+    `;
+  }
+
+  function renderAssetsContent(s) {
+    return `
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-[10px] font-black text-white/80 tracking-[0.15em] uppercase">ASSETS</h2>
+        <span class="text-[10px] text-amber-400">${s.scenes.filter(sc => sc.status === 'DONE').length || 0} SCENES DONE</span>
+      </div>
+      <div class="text-[11px] text-white/50 space-y-2">
+        <p>Asset generation is scene-by-scene. Each scene gets a contact sheet with takes, prompts, per-asset cost, and quality scores for your approval.</p>
+      </div>
+    `;
+  }
+
+  function renderEditContent(s) {
+    return `
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-[10px] font-black text-white/80 tracking-[0.15em] uppercase">EDIT</h2>
+        <span class="text-[10px] text-amber-400">EDITING</span>
+      </div>
+      <div class="text-[11px] text-white/50 space-y-2">
+        <p>The agent assembles approved assets into a timeline, applies transitions, and prepares the composition.</p>
+      </div>
+    `;
+  }
+
+  function renderPublishContent(s) {
+    return `
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-[10px] font-black text-white/80 tracking-[0.15em] uppercase">PUBLISH</h2>
+        <span class="text-[10px] text-amber-400">PUBLISHING</span>
+      </div>
+      <div class="text-[11px] text-white/50 space-y-2">
+        <p>Final render, quality checks, and delivery. Your video is rendered on your machine, no watermark.</p>
+      </div>
+    `;
   }
 
   function wireStageContentEvents() {
@@ -508,97 +656,25 @@ export function OpenMontagePage() {
     }
   }
 
-  function renderBriefContent(s) {
-    const assets = [
-      { name: 'brand-kit/', type: 'folder', icon: '📁' },
-      { name: 'dashboard.mp4', type: 'video', icon: '🎬' },
-      { name: 'team-photos/', type: 'folder', icon: '📁' },
-      { name: 'trellis-logo.svg', type: 'image', icon: '🖼️' },
-    ];
-    return `
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xs font-black text-white/80 tracking-wide">BRIEF</h2>
-        <span class="text-[10px] text-muted">${s.duration} · ${s.tone}</span>
-      </div>
-      <div class="mb-4">
-        <label class="block text-[10px] font-bold text-white/60 mb-1 tracking-wide">REFERENCE VIDEO (OPTIONAL)</label>
-        <input id="om-reference-video" value="${escapeHtml(s.referenceVideo)}" placeholder="Paste a YouTube, Reel, or TikTok URL..." class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary/50" />
-      </div>
-      <textarea id="om-prompt" rows="3" placeholder="Make a 60-second launch video for our monitoring tool — use the brand kit and the dashboard recording. Developer audience." class="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-primary/50 resize-none mb-3">${escapeHtml(s.prompt)}</textarea>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-        <div>
-          <label class="block text-[10px] font-bold text-white/60 mb-1 tracking-wide">AUDIENCE</label>
-          <input id="om-audience" value="${escapeHtml(s.audience)}" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary/50" />
-        </div>
-        <div>
-          <label class="block text-[10px] font-bold text-white/60 mb-1 tracking-wide">DURATION</label>
-          <input id="om-duration" value="${escapeHtml(s.duration)}" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary/50" />
-        </div>
-      </div>
-      <div class="mb-4">
-        <label class="block text-[10px] font-bold text-white/60 mb-1 tracking-wide">PIPELINE</label>
-        <select id="om-pipeline" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary/50">
-          ${PIPELINES.map(p => `<option value="${p.id}" ${s.pipeline === p.id ? 'selected' : ''}>${p.name}</option>`).join('')}
-        </select>
-      </div>
-      <div class="mb-4">
-        <label class="block text-[10px] font-bold text-white/60 mb-1 tracking-wide">OUTPUT PROFILE</label>
-        <select id="om-profile" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary/50">
-          ${OUTPUT_PROFILES.map(p => `<option value="${p.id}" ${s.profile === p.id ? 'selected' : ''}>${p.name} (${p.aspect})</option>`).join('')}
-        </select>
-      </div>
-      <div class="mb-4">
-        <label class="block text-[10px] font-bold text-white/60 mb-1 tracking-wide">ASSETS</label>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-          ${assets.map(a => `
-            <div class="border border-white/5 rounded-xl p-2 bg-white/[0.02] flex items-center gap-2">
-              <span class="text-lg">${a.icon}</span>
-              <div class="min-w-0">
-                <div class="text-[11px] font-bold text-white truncate">${escapeHtml(a.name)}</div>
-                <div class="text-[10px] text-muted">${a.type}</div>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-      <div class="flex flex-wrap items-center gap-2 mb-4">
-        <span class="text-[10px] font-bold text-white/60 tracking-wide">KEY MESSAGES</span>
-        ${s.keyMessages.map((m, i) => `
-          <span class="px-2 py-1 bg-white/5 border border-white/10 rounded-lg text-[11px] text-white/80">${i + 1} · ${escapeHtml(m)}</span>
-        `).join('')}
-      </div>
-      <div class="flex flex-wrap items-center gap-3">
-        <button id="om-attach" class="px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-white/70 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
-          Add asset
-        </button>
-        <button id="om-generate" class="flex-1 py-2.5 btn-primary-modern font-black rounded-xl hover:scale-[1.01] transition-transform flex items-center justify-center gap-2 text-sm">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-          Generate Video
-        </button>
-      </div>
-      <p id="om-key-status" class="text-[11px] text-muted mt-2"></p>
-      <p id="om-production-status" class="text-[11px] text-muted mt-1 hidden"></p>
-    `;
-  }
+
 
   function renderResearchContent(s) {
     if (!s.research) {
       return `
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xs font-black text-white/80 tracking-wide">RESEARCH</h2>
-          <span class="text-[10px] text-muted">${s.jobStatus === 'running' ? 'Agent is researching…' : 'Waiting to start'}</span>
+          <h2 class="text-[10px] font-black text-white/80 tracking-[0.15em] uppercase">RESEARCH</h2>
+          <span class="text-[10px] text-white/40 font-medium tracking-wide">${s.jobStatus === 'running' ? 'Agent is researching…' : 'Waiting to start'}</span>
         </div>
-        <div class="text-xs text-muted space-y-2">
+        <div class="text-[11px] text-white/50 space-y-2">
           <p>Research runs live web search across YouTube, Reddit, news sites, and academic sources before writing a single word of script.</p>
-          ${s.jobStatus === 'running' ? '<p class="text-emerald-400">Gathering data points, audience questions, trending angles, and visual references…</p>' : ''}
+          ${s.jobStatus === 'running' ? '<p class="text-amber-400">Gathering data points, audience questions, trending angles, and visual references…</p>' : ''}
         </div>
       `;
     }
     return `
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xs font-black text-white/80 tracking-wide">RESEARCH</h2>
-        <span class="text-[10px] text-emerald-400">FINDINGS RECORDED IN THE DECISION LOG</span>
+        <h2 class="text-[10px] font-black text-white/80 tracking-[0.15em] uppercase">RESEARCH</h2>
+        <span class="text-[10px] text-emerald-400 font-medium tracking-wide">FINDINGS RECORDED IN THE DECISION LOG</span>
       </div>
       <div class="space-y-3">
         ${(s.research.findings || []).map(f => `
@@ -615,30 +691,40 @@ export function OpenMontagePage() {
     if (!s.script) {
       return `
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xs font-black text-white/80 tracking-wide">SCRIPT</h2>
-          <span class="text-[10px] text-muted">${s.jobStatus === 'running' ? 'Writing screenplay…' : 'Waiting for research'}</span>
+          <h2 class="text-[10px] font-black text-white/80 tracking-[0.15em] uppercase">SCRIPT</h2>
+          <span class="text-[10px] text-white/40 font-medium tracking-wide">${s.jobStatus === 'running' ? 'Writing screenplay…' : 'Waiting for research'}</span>
         </div>
-        <div class="text-xs text-muted">A screenplay, not a caption. The agent writes scene headings, action, V.O., and B-roll notes.</div>
+        <div class="text-[11px] text-white/50">A screenplay, not a caption. The agent writes scene headings, action, V.O., and B-roll notes.</div>
       `;
     }
     const pages = s.script.pages || [];
-    const voLines = pages.reduce((acc, p) => acc + (p.voLines || 0), 0);
+    const sections = s.script.sections || pages.length;
     return `
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xs font-black text-white/80 tracking-wide">SCRIPT</h2>
-        <span class="text-[10px] text-muted">${s.script.readTime || ''} READ TIME · ${voLines} VO LINES</span>
+        <h2 class="text-[10px] font-black text-white/80 tracking-[0.15em] uppercase">${escapeHtml(s.script.title || 'SCRIPT')}</h2>
+        <div class="flex items-center gap-3">
+          <span class="text-[10px] text-white/40 font-medium tracking-wide">script · ${s.script.duration || ''} · ${sections} sections</span>
+          ${s.script.approved ? '<span class="px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-[10px] font-black text-emerald-400 rotate-[-2deg]">APPROVED</span>' : ''}
+        </div>
       </div>
-      <div class="space-y-3 font-mono text-xs">
+      <div class="space-y-4 font-mono text-[11px]">
         ${pages.map((p, i) => `
-          <div class="border border-white/5 rounded-xl p-3 bg-white/[0.02]">
-            <div class="text-[10px] font-black text-white/60 mb-1">SC ${String(i + 1).padStart(2, '0')} · ${escapeHtml(p.heading || '')}</div>
-            ${p.body ? `<p class="text-[11px] text-white/80 whitespace-pre-wrap mb-1">${escapeHtml(p.body)}</p>` : ''}
-            ${p.bRoll ? `<p class="text-[10px] text-muted">[B-ROLL — ${escapeHtml(p.bRoll)}]</p>` : ''}
-            ${p.vo ? `<p class="text-[10px] text-emerald-400/80 mt-1">V.O. — ${escapeHtml(p.vo)}</p>` : ''}
+          <div class="flex items-start gap-4">
+            <span class="text-[10px] font-black text-white/40 pt-1 w-16 shrink-0">${escapeHtml(p.time || '')}</span>
+            <div class="flex-1 min-w-0">
+              <div class="text-[11px] font-black text-white mb-1">${escapeHtml(p.heading || `SC ${String(i + 1).padStart(2, '0')}`)}</div>
+              ${p.body ? `<p class="text-[11px] text-white/80 whitespace-pre-wrap">${escapeHtml(p.body)}</p>` : ''}
+            </div>
           </div>
         `).join('')}
       </div>
-      <p class="text-[10px] text-muted mt-2">B-ROLL NOTED PER LINE</p>
+      <div class="mt-4 pt-3 border-t border-white/5 flex items-center justify-between">
+        <span class="text-[10px] text-white/40 font-medium">${pages.length > 4 ? '— 1 MORE SECTIONS' : ''}</span>
+        <button id="om-expand-script" class="flex items-center gap-1 text-[10px] font-bold text-white/60 hover:text-white transition-all">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          EXPAND SCRIPT
+        </button>
+      </div>
     `;
   }
 
@@ -646,10 +732,10 @@ export function OpenMontagePage() {
     if (!s.scenePlan) {
       return `
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xs font-black text-white/80 tracking-wide">SCENE PLAN</h2>
-          <span class="text-[10px] text-muted">${s.jobStatus === 'running' ? 'Planning scenes…' : 'Waiting for script'}</span>
+          <h2 class="text-[10px] font-black text-white/80 tracking-[0.15em] uppercase">SCENE PLAN</h2>
+          <span class="text-[10px] text-white/40 font-medium tracking-wide">${s.jobStatus === 'running' ? 'Planning scenes…' : 'Waiting for script'}</span>
         </div>
-        <div class="text-xs text-muted">A medium chosen for each scene. Draft sketches before any premium spend.</div>
+        <div class="text-[11px] text-white/50">A medium chosen for each scene. Draft sketches before any premium spend.</div>
       `;
     }
     const scenes = s.scenePlan.scenes || [];
@@ -661,8 +747,8 @@ export function OpenMontagePage() {
     }, {});
     return `
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xs font-black text-white/80 tracking-wide">SCENE PLAN</h2>
-        <span class="text-[10px] text-muted">MIXED</span>
+        <h2 class="text-[10px] font-black text-white/80 tracking-[0.15em] uppercase">SCENE PLAN</h2>
+        <span class="text-[10px] text-white/40 font-medium tracking-wide">MIXED</span>
       </div>
       <div class="space-y-3">
         ${Object.entries(grouped).map(([type, group]) => {
@@ -679,238 +765,157 @@ export function OpenMontagePage() {
           `;
         }).join('')}
       </div>
-      <p class="text-[10px] text-muted mt-2">Your own assets, your library, stock, or generated — proposed scene by scene, and yours to change.</p>
+      <p class="text-[10px] text-white/40 font-medium mt-2">Your own assets, your library, stock, or generated — proposed scene by scene, and yours to change.</p>
     `;
   }
 
-  function renderGateContent(s) {
-    const credits = s.credits || {};
-    const total = credits.total || 0;
-    const labels = { images: '8 standard images', narration: 'narration · 60s', music: 'music · "Focused Build"', generatedClip: '1 generated clip · 5s', captions: 'captions', render: 'stock · render' };
-    const entries = Object.entries(credits).filter(([k]) => k !== 'total');
+
+
+
+
+
+
+
+
+
+
+  // Storyboard filmstrip — Backlot exact style
+  function renderStoryboardFilmstrip(s) {
+    const scenes = s.scenes || [];
     return `
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xs font-black text-white/80 tracking-wide">THE GATE</h2>
-        <span id="om-gate-status" class="text-[10px] ${s.approvalStatus === 'pending' ? 'text-amber-400' : 'text-emerald-400'} font-bold">${s.approvalStatus === 'pending' ? 'AWAITING APPROVAL' : s.approvalStatus === 'approved' ? 'APPROVED' : 'REVISION REQUESTED'}</span>
+        <h2 class="text-[10px] font-black text-white/80 tracking-[0.15em] uppercase">Storyboard</h2>
+        <span class="text-[10px] text-white/40 font-medium tracking-wide">${scenes.length || 0} SCENES · ${escapeHtml(s.duration)} · CARD WIDTH ∝ DURATION</span>
       </div>
-      <div class="space-y-2 mb-4">
-        ${entries.map(([key, value]) => {
-          const label = labels[key] || key;
-          return `
-            <div class="flex items-center justify-between py-2 border-b border-white/5">
-              <span class="text-xs text-white/70">${label}</span>
-              <span class="text-xs font-black text-white">${value} CR</span>
-            </div>
-          `;
-        }).join('')}
-      </div>
-      <div class="flex items-center justify-between mb-4">
-        <span class="text-xs font-bold text-white">EST. TOTAL</span>
-        <span class="text-sm font-black text-white">${formatCredits(total)}</span>
-      </div>
-      <div class="flex items-center gap-2">
-        <button id="om-approve" class="flex-1 py-2.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-black rounded-xl hover:bg-emerald-500/20 transition-all text-sm ${s.approvalStatus === 'approved' ? 'opacity-50 cursor-not-allowed' : ''}">${s.approvalStatus === 'approved' ? 'Approved ✓' : 'Approve — go produce'}</button>
-        <button id="om-revise" class="px-4 py-2.5 bg-white/5 border border-white/10 text-white/70 font-bold rounded-xl hover:bg-white/10 transition-all text-sm">Revise</button>
-      </div>
-    `;
-  }
-
-  function renderNarrationContent(s) {
-    if (!s.narration) {
-      return `
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xs font-black text-white/80 tracking-wide">NARRATION</h2>
-          <span class="text-[10px] text-muted">${s.jobStatus === 'running' ? 'Generating narration…' : 'Waiting for gate approval'}</span>
+      <div class="relative">
+        <div class="flex items-center gap-1 mb-4">
+          ${Array.from({ length: Math.max(scenes.length * 4, 16) }, (_, i) => `<span class="w-1.5 h-1.5 rounded-full ${i % 4 === 0 ? 'bg-white/20' : 'bg-white/5'}"></span>`).join('')}
         </div>
-        <div class="text-xs text-muted">A voice you can give notes to. Select a sentence and attach notes to that span.</div>
-      `;
-    }
-    const bars = Array.from({ length: 40 }, () => Math.random() * 100);
-    return `
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xs font-black text-white/80 tracking-wide">NARRATION</h2>
-        <span class="text-[10px] text-muted">${s.narration.duration || ''} · ${s.narration.credits || 0} CR</span>
-      </div>
-      <div class="space-y-3">
-        <div class="border border-white/5 rounded-xl p-3 bg-white/[0.02]">
-          <div class="text-[11px] font-bold text-white mb-1">${escapeHtml(s.narration.voice || 'Voice')} — ${escapeHtml(s.narration.gender || '')} · ${escapeHtml(s.narration.language || 'EN')}</div>
-          <p class="text-[11px] text-white/70 italic mb-2">"…${escapeHtml((s.narration.sample || '').slice(0, 120))}…"</p>
-          <div class="flex items-end gap-[2px] h-8">
-            ${bars.map(h => `<div class="flex-1 bg-primary/40 rounded-full" style="height: ${h}%"></div>`).join('')}
-          </div>
-        </div>
-        ${(s.narration.lines || []).map((line, i) => `
-          <div class="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
-            <span class="text-[11px] text-white/80">${i + 1}. ${escapeHtml(line.text)}</span>
-            <button class="px-2 py-1 bg-white/5 border border-white/10 rounded-lg text-[10px] font-bold text-white/70 hover:text-white hover:bg-white/10 transition-all">+ Note</button>
-          </div>
-        `).join('')}
-      </div>
-    `;
-  }
-
-  function renderMusicContent(s) {
-    if (!s.music) {
-      return `
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xs font-black text-white/80 tracking-wide">MUSIC</h2>
-          <span class="text-[10px] text-muted">${s.jobStatus === 'running' ? 'Choosing music…' : 'Waiting for gate approval'}</span>
-        </div>
-        <div class="text-xs text-muted">Music chosen for the cut. Beat markers you can cut against.</div>
-      `;
-    }
-    const beats = s.music.beats || [];
-    const totalBeats = Math.max(beats.length, 8);
-    return `
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xs font-black text-white/80 tracking-wide">MUSIC</h2>
-        <span class="text-[10px] text-muted">${s.music.credits || 0} CR</span>
-      </div>
-      <div class="space-y-3">
-        <div class="border border-white/5 rounded-xl p-3 bg-white/[0.02]">
-          <div class="flex items-center justify-between mb-1">
-            <span class="text-[11px] font-bold text-white">"${escapeHtml(s.music.title || 'Untitled')}"</span>
-            <span class="text-[10px] text-muted">${escapeHtml(s.music.license || '')}</span>
-          </div>
-          <div class="text-[10px] text-white/60">${s.music.bpm || ''} BPM · ${escapeHtml(s.music.energy || '')} · ${escapeHtml(s.music.duration || '')}</div>
-        </div>
-        <div class="relative h-8 bg-white/5 rounded-lg overflow-hidden">
-          <div class="absolute inset-0 flex items-end gap-[2px] px-1 pb-1">
-            ${beats.map(b => `
-              <div class="flex-1 bg-primary/60 rounded-t" style="height: ${b.intensity || 50}%"></div>
-            `).join('')}
-            ${Array.from({ length: totalBeats - beats.length }, () => `<div class="flex-1 bg-white/5 rounded-t" style="height: 10%"></div>`).join('')}
-          </div>
-          ${beats.map(b => `
-            <div class="absolute bottom-0 w-px bg-white/20" style="left: ${((beats.indexOf(b) + 1) / totalBeats) * 100}%; height: 100%"></div>
-          `).join('')}
-        </div>
-        <p class="text-[10px] text-muted">BEAT MARKERS YOU CAN CUT AGAINST</p>
-      </div>
-    `;
-  }
-
-  function renderComposeContent(s) {
-    if (!s.compose) {
-      return `
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xs font-black text-white/80 tracking-wide">COMPOSE</h2>
-          <span class="text-[10px] text-muted">${s.jobStatus === 'running' ? 'Assembling…' : 'Waiting for assets'}</span>
-        </div>
-        <div class="text-xs text-muted">Assembled to brand rules. Watch a draft before render.</div>
-      `;
-    }
-    const checks = s.compose.checks || [];
-    return `
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xs font-black text-white/80 tracking-wide">COMPOSE</h2>
-        <span class="text-[10px] text-emerald-400">REVIEWED</span>
-      </div>
-      <div class="space-y-2">
-        ${checks.map(c => `
-          <div class="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
-            <span class="text-xs text-white/70">${escapeHtml(c.label || c.name || 'Check')}</span>
-            <span class="text-[10px] font-black ${c.passed ? 'text-emerald-400' : 'text-red-400'}">${c.passed ? 'PASS' : 'FAIL'}</span>
-          </div>
-        `).join('')}
-      </div>
-    `;
-  }
-
-  function renderRenderContent(s) {
-    if (!s.renderOutputs) {
-      return `
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xs font-black text-white/80 tracking-wide">RENDER</h2>
-          <span class="text-[10px] text-muted">${s.jobStatus === 'running' ? 'Rendering…' : 'Waiting for compose'}</span>
-        </div>
-        <div class="text-xs text-muted">The formats you need. Yours to keep. Rendered on your machine, no watermark.</div>
-      `;
-    }
-    return `
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xs font-black text-white/80 tracking-wide">RENDER</h2>
-        <span class="text-[10px] text-emerald-400">COMPLETE</span>
-      </div>
-      <div class="space-y-3">
-        ${(s.renderOutputs.formats || []).map(f => `
-          <div class="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
-            <span class="text-xs font-bold text-white">${escapeHtml(f.label || f.aspect || 'Render')}</span>
-            <span class="text-[10px] text-emerald-400">${escapeHtml(f.status || 'ready')}</span>
-          </div>
-        `).join('')}
-        ${s.renderOutputs.provenance ? `
-          <div class="mt-3 pt-3 border-t border-white/5">
-            <div class="text-[10px] font-black text-white/60 mb-2">PROVENANCE REPORT</div>
-            <div class="text-[10px] text-muted space-y-1">
-              <div>SOURCE · ${escapeHtml(s.renderOutputs.provenance.source || '—')}</div>
-              <div>LICENSE · ${escapeHtml(s.renderOutputs.provenance.license || '—')}</div>
-              <div>MODEL · ${escapeHtml(s.renderOutputs.provenance.model || '—')}</div>
-            </div>
-          </div>
-        ` : ''}
-      </div>
-    `;
-  }
-
-  // ── Scene board renderer ─────────────────────────────────────────────
-  function renderSceneCards(scenes) {
-    if (!scenes || scenes.length === 0) {
-      return '<div class="text-xs text-muted">No scenes yet.</div>';
-    }
-    const thumbColors = ['from-gray-700 to-gray-600', 'from-blue-900 to-blue-800', 'from-purple-900 to-purple-800', 'from-emerald-900 to-emerald-800', 'from-amber-900 to-amber-800', 'from-rose-900 to-rose-800'];
-    return scenes.map((sc, i) => {
-      const status = sc.status || 'QUEUED';
-      const thumb = thumbColors[i % thumbColors.length];
-      return `
-        <div class="border border-white/10 rounded-2xl bg-white/[0.02] hover:bg-white/[0.04] transition-all overflow-hidden" data-scene-index="${i}" draggable="true">
-          <div class="flex items-start gap-3 p-3 md:p-4">
-            <div class="flex flex-col items-center gap-1 pt-1 cursor-grab active:cursor-grabbing">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-white/30"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg>
-              <span class="text-[10px] font-black text-white/60">${String(i + 1).padStart(2, '0')}</span>
-            </div>
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-bold text-white truncate">${escapeHtml(sc.label || sc.title || 'Untitled')}</span>
-                <span class="text-[10px] font-black px-2 py-0.5 rounded-lg border ${getStatusStyle(status)} ml-2">${status}</span>
+        <div class="flex gap-3 overflow-x-auto pb-2">
+          ${scenes.map((sc, i) => {
+            const status = sc.status || 'QUEUED';
+            const isGenerating = status === 'RENDERING';
+            const hasAsset = status === 'DONE' || sc.asset;
+            const model = sc.model || 'flux-1.1-pro';
+            const cost = sc.cost || '$0.84';
+            const quality = sc.quality || '0.84';
+            return `
+              <div class="flex flex-col gap-2 min-w-[140px] max-w-[180px] flex-1">
+                <div class="relative aspect-video bg-white/5 rounded-xl overflow-hidden border border-white/10 ${isGenerating ? 'animate-pulse' : ''}">
+                  ${hasAsset ? `
+                    <div class="absolute inset-0 bg-gradient-to-br ${['from-gray-700 to-gray-600', 'from-blue-900 to-blue-800', 'from-purple-900 to-purple-800', 'from-emerald-900 to-emerald-800', 'from-amber-900 to-amber-800', 'from-rose-900 to-rose-800'][i % 6]} opacity-80"></div>
+                  ` : isGenerating ? `
+                    <div class="absolute inset-0 flex items-center justify-center">
+                      <div class="text-[10px] font-black text-white/50 tracking-wide animate-pulse">GENERATING</div>
+                    </div>
+                  ` : `
+                    <div class="absolute inset-0 flex items-center justify-center border-2 border-dashed border-white/10 rounded-xl">
+                      <div class="text-center px-2">
+                        <div class="text-[10px] font-black text-white/30 tracking-wide mb-1">no asset yet</div>
+                        <div class="text-[9px] text-white/30">${escapeHtml(sc.label || sc.title || '')}</div>
+                      </div>
+                    </div>
+                  `}
+                  ${sc.hero ? '<span class="absolute top-2 right-2 text-[9px] font-black text-amber-400 bg-black/40 px-1.5 py-0.5 rounded tracking-wide">★ HERO</span>' : ''}
+                </div>
+                <div class="space-y-1">
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-black text-white/50 tracking-wide">SC ${String(i + 1).padStart(2, '0')}</span>
+                    <span class="text-[10px] text-white/40 font-mono">${escapeHtml(sc.duration || sc.time || '0:06')}</span>
+                  </div>
+                  <div class="text-[10px] text-white/40 font-medium tracking-wide">${escapeHtml(model)} · ${escapeHtml(cost)} · q ${escapeHtml(quality)}</div>
+                  <div class="flex flex-wrap gap-1">
+                    ${(sc.tags || []).map(t => `<span class="px-1.5 py-0.5 bg-white/5 rounded text-[9px] text-white/50 font-medium tracking-wide">${escapeHtml(t)}</span>`).join('')}
+                  </div>
+                  ${sc.notes ? `<p class="text-[9px] text-white/40 italic tracking-wide">${escapeHtml(sc.notes)}</p>` : ''}
+                </div>
               </div>
-              <div class="flex items-center gap-3 mb-3">
-                <span class="text-[11px] text-white/60">${escapeHtml(sc.type || '')}</span>
-                <span class="text-[11px] text-muted">${escapeHtml(sc.duration || sc.time || '')}</span>
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="text-[11px] font-black text-white">${escapeHtml(sc.cost || '$0.00')}</span>
-                <button class="px-2 py-1 bg-white/5 border border-white/10 rounded-lg text-[10px] font-bold text-white/70 hover:text-white hover:bg-white/10 transition-all">↻ Regenerate</button>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  // ── Player / renders card ─────────────────────────────────────────────
+  function renderPlayerCard(s) {
+    const render = s.renders && s.renders[0];
+    return `
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-[10px] font-black text-white/80 tracking-[0.15em] uppercase">Renders</h2>
+        <span class="text-[10px] text-white/40 font-medium tracking-wide">${s.renders && s.renders.length ? '1 VERSION' : 'NO VERSIONS'}</span>
+      </div>
+      <div class="bg-black/40 border border-white/10 rounded-2xl overflow-hidden">
+        <div class="aspect-video bg-white/5 flex items-center justify-center relative">
+          ${render ? `
+            <div class="absolute inset-0 flex items-center justify-center">
+              <button class="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              </button>
+            </div>
+            <div class="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+              <div class="flex items-center gap-3">
+                <span class="text-[10px] text-white/50 font-mono">0:00</span>
+                <div class="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
+                  <div class="h-full w-0 bg-white/60 rounded-full"></div>
+                </div>
+                <span class="text-[10px] text-white/50 font-mono">${render.duration || '0:22'}</span>
               </div>
             </div>
-            <div class="w-16 h-10 rounded-lg bg-gradient-to-br ${thumb} opacity-60 shrink-0"></div>
-          </div>
+            <div class="absolute top-3 right-3 flex items-center gap-2">
+              <button class="p-1.5 bg-white/10 hover:bg-white/20 rounded-lg transition-all">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+              </button>
+              <button class="p-1.5 bg-white/10 hover:bg-white/20 rounded-lg transition-all">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+              </button>
+              <button class="p-1.5 bg-white/10 hover:bg-white/20 rounded-lg transition-all">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+              </button>
+            </div>
+          ` : `
+            <div class="text-[10px] text-white/40 font-medium tracking-wide">No render yet</div>
+          `}
         </div>
-      `;
-    }).join('');
+        <div class="p-3 flex items-center justify-between">
+          <span class="text-[10px] text-white/50 font-bold tracking-wide">${render ? escapeHtml(render.label) : ''}</span>
+          <span class="text-[10px] text-white/40 font-mono">${render ? escapeHtml(render.size || '0.0 MB') : ''}</span>
+        </div>
+      </div>
+    `;
   }
 
-  function renderRenders(renders) {
-    if (!renders || renders.length === 0) {
-      return '<div class="text-xs text-muted">No renders yet.</div>';
+  // ── Activity log ──────────────────────────────────────────────────────
+  function renderActivityLog(activities) {
+    if (!activities || activities.length === 0) {
+      return '<div class="text-[11px] text-white/40">No activity yet.</div>';
     }
-    return renders.map(r => `
-      <span class="px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-white/80">${escapeHtml(r.label || r.aspect || 'Render')} <span class="text-emerald-400 ml-1">${escapeHtml(r.status || 'ready')}</span></span>
+    return activities.map(a => `
+      <div class="flex items-center gap-2 py-1.5 border-b border-white/5 last:border-0">
+        <span class="text-[10px] text-white/40 w-20 shrink-0 font-mono">${escapeHtml(a.time || '')}</span>
+        <span class="text-[10px] font-bold text-white/80 flex-1">${escapeHtml(a.event || '')}</span>
+        <span class="flex items-center gap-1 text-[10px] font-black ${a.status === 'done' ? 'text-emerald-400' : a.status === 'running' ? 'text-amber-400' : 'text-white/60'}">
+          ${a.status === 'running' ? '<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>' : a.status === 'done' ? '✓' : '○'}
+          ${escapeHtml(a.status || '')}
+        </span>
+        <span class="text-[10px] font-black text-white">${escapeHtml(a.cost || '')}</span>
+      </div>
     `).join('');
   }
 
+
   function renderDecisionLog(decisions) {
     if (!decisions || decisions.length === 0) {
-      return '<div class="text-xs text-muted">No decisions yet.</div>';
+      return '<div class="text-[11px] text-white/40">No decisions yet.</div>';
     }
     return decisions.map(d => `
       <div class="border-b border-white/5 pb-3 last:border-0 last:pb-0">
         <div class="flex items-center justify-between mb-1">
           <span class="text-xs font-bold text-white">${escapeHtml(d.label)}</span>
-          <span class="text-[10px] text-muted">${escapeHtml(d.version || '3▴')}</span>
+          <span class="text-[10px] text-white/40 font-mono">${escapeHtml(d.version || '3▴')}</span>
         </div>
         <p class="text-[11px] text-white/70">${escapeHtml(d.choice || '—')}</p>
-        ${d.alternatives ? `<p class="text-[10px] text-muted mt-1">${escapeHtml(d.alternatives)}</p>` : ''}
+        ${d.alternatives ? `<p class="text-[10px] text-white/40 font-medium mt-1">${escapeHtml(d.alternatives)}</p>` : ''}
       </div>
     `).join('');
   }
@@ -922,7 +927,7 @@ export function OpenMontagePage() {
     row.setAttribute('data-from', from);
     row.innerHTML = `
       <div class="px-3 py-2 rounded-2xl text-xs max-w-[85%] ${from === 'user' ? 'bg-white/10 text-white' : 'bg-white/5 text-white/80'}">${escapeHtml(text)}</div>
-      <span class="text-[10px] text-muted mt-1">${from === 'user' ? 'YOU' : 'MONTAGE'}</span>
+      <span class="text-[10px] text-white/40 mt-1">${from === 'user' ? 'YOU' : 'MONTAGE'}</span>
     `;
     chatBox.appendChild(row);
     chatBox.scrollTop = chatBox.scrollHeight;
@@ -1020,8 +1025,6 @@ export function OpenMontagePage() {
 
   // ── Event wiring ─────────────────────────────────────────────────────
   if (backBtn) backBtn.onclick = () => navigate('render');
-  if (approveBtn) approveBtn.onclick = () => approveProduction();
-  if (reviseBtn) reviseBtn.onclick = () => reviseProduction();
   if (chatSend && chatInput) {
     chatSend.onclick = () => sendChatMessage();
     chatInput.addEventListener('keydown', (e) => {
@@ -1105,6 +1108,78 @@ export function OpenMontagePage() {
     };
     container.appendChild(fileInput);
     attachBtn.onclick = () => fileInput.click();
+  }
+
+  // Replay button — toggle timeline scrubber visibility
+  const replayBtn = container.querySelector('#om-replay');
+  const replayTimelineEl = container.querySelector('#om-replay-timeline');
+  const timelineTrack = container.querySelector('#om-timeline-track');
+  const timelineFill = timelineTrack ? timelineTrack.querySelector('div') : null;
+  const timelineTime = replayTimelineEl ? replayTimelineEl.querySelector('span') : null;
+
+  let replayPlaying = false;
+  let replayProgress = 0;
+  let replayInterval = null;
+
+  function updateReplayUI(progress) {
+    if (timelineFill) timelineFill.style.width = `${progress}%`;
+    if (timelineTime) {
+      const totalSeconds = 22; // approximate total duration
+      const current = Math.floor((progress / 100) * totalSeconds);
+      const mins = Math.floor(current / 60);
+      const secs = current % 60;
+      timelineTime.textContent = `${mins}:${String(secs).padStart(2, '0')}`;
+    }
+  }
+
+  if (replayBtn && replayTimelineEl) {
+    replayBtn.onclick = () => {
+      const isHidden = replayTimelineEl.classList.contains('hidden');
+      replayTimelineEl.classList.toggle('hidden', !isHidden);
+      if (isHidden) {
+        replayProgress = 0;
+        updateReplayUI(0);
+      }
+      if (replayInterval) {
+        clearInterval(replayInterval);
+        replayInterval = null;
+        replayPlaying = false;
+      }
+    };
+  }
+
+  if (timelineTrack) {
+    timelineTrack.onclick = (e) => {
+      const rect = timelineTrack.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const progress = Math.max(0, Math.min(100, (x / rect.width) * 100));
+      replayProgress = progress;
+      updateReplayUI(progress);
+    };
+  }
+
+  const replayPlayBtn = container.querySelector('#om-replay-play');
+  if (replayPlayBtn) {
+    replayPlayBtn.onclick = () => {
+      if (replayPlaying) {
+        clearInterval(replayInterval);
+        replayInterval = null;
+        replayPlaying = false;
+        return;
+      }
+      replayPlaying = true;
+      if (replayProgress >= 100) replayProgress = 0;
+      replayInterval = setInterval(() => {
+        replayProgress += 1.5;
+        if (replayProgress >= 100) {
+          replayProgress = 100;
+          clearInterval(replayInterval);
+          replayInterval = null;
+          replayPlaying = false;
+        }
+        updateReplayUI(replayProgress);
+      }, 100);
+    };
   }
 
   // ── Status indicators ────────────────────────────────────────────────
