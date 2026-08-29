@@ -6,7 +6,7 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 // Next.js dev server at localhost:3000. In production, the Next.js app
 // is built as a static export and served from the same host under /ai-vfx/.
 
-const AI_VFX_URL = 'http://localhost:3000/';
+const AI_VFX_URL = import.meta.env.VITE_AI_VFX_URL || 'http://localhost:3000/';
 
 export function AIVFXPage() {
   const container = document.createElement('div');
@@ -45,7 +45,7 @@ export function AIVFXPage() {
   iframe.src = AI_VFX_URL;
   iframe.style.cssText = 'flex:1;min-height:0;border:none;width:100%;background:#0b0f19;position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;transition:opacity 0.3s ease-in;';
   iframe.setAttribute('allow', 'clipboard-write fullscreen');
-  iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-same-origin');
+  iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups');
   iframe.onload = () => {
     iframe.style.opacity = '1';
     loadingOverlay.remove();

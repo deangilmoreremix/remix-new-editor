@@ -3,6 +3,7 @@ import { showToast } from '../lib/loading.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { supabase } from '../lib/supabase.js';
 import { createIcons, icons } from 'lucide';
+import { escapeHtml } from '../lib/security.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  DIRECTOR AGENTS — 45 production-ready agents wired to the real backend.

@@ -2,6 +2,8 @@
   "$schema": "https://app.kilo.ai/config.json",
   "mcp": {
     "render": {
+      "type": "remote",
+      "enabled": true,
       "url": "https://mcp.render.com/mcp",
       "headers": {
         "Authorization": "Bearer rnd_b6GFdp2ymDIljZUqjI0F7NnVUGph"
