@@ -668,6 +668,35 @@ export function OpenMontagePage() {
     `;
   }
 
+  function renderComposeContent(s) {
+    if (!s.compose) {
+      return `
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-[10px] font-black text-white/80 tracking-[0.15em] uppercase">COMPOSE</h2>
+          <span class="text-[10px] text-white/40 font-medium tracking-wide">${s.jobStatus === 'running' ? 'Assembling…' : 'Waiting for assets'}</span>
+        </div>
+        <div class="text-[11px] text-white/50 space-y-2">
+          <p>Assembled to brand rules. Watch a draft before render.</p>
+        </div>
+      `;
+    }
+    const checks = s.compose.checks || [];
+    return `
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-[10px] font-black text-white/80 tracking-[0.15em] uppercase">COMPOSE</h2>
+        <span class="text-[10px] text-emerald-400 font-medium tracking-wide">REVIEWED</span>
+      </div>
+      <div class="space-y-2">
+        ${checks.map(c => `
+          <div class="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
+            <span class="text-[11px] text-white/70">${escapeHtml(c.label || c.name || 'Check')}</span>
+            <span class="text-[10px] font-black ${c.passed ? 'text-emerald-400' : 'text-red-400'}">${c.passed ? 'PASS' : 'FAIL'}</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
   function renderPublishContent(s) {
     return `
       <div class="flex items-center justify-between mb-4">
