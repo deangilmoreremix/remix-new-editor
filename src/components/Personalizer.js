@@ -1,5 +1,5 @@
 /**
- * DOM Personalization Studio
+ * Personalizer
  *
  * A visual canvas-based editor for building personalized web pages/domains.
  * Users drag DOM elements onto a canvas, personalize them with tokens,
@@ -875,7 +875,7 @@ export function Personalizer() {
       }
     }
   } catch (err) {
-    console.warn('[DomPersonalizationStudio] personalization bootstrap failed:', err);
+    console.warn('[Personalizer] personalization bootstrap failed:', err);
   }
 
   if (!personalizeReady && contactSelect) {
@@ -1392,7 +1392,7 @@ export function Personalizer() {
       },
     });
   } catch (err) {
-    console.warn('[DomPersonalizationStudio] personalize trigger failed:', err);
+    console.warn('[Personalizer] personalize trigger failed:', err);
   }
 
   // Initialize canvas
@@ -1402,4 +1402,4 @@ export function Personalizer() {
   return container;
 }
 
-export default DomPersonalizationStudio;
+export default Personalizer;

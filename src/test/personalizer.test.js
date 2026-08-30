@@ -47,11 +47,11 @@ vi.mock('../lib/contactStore.js', () => ({
   listProfiles: () => [],
 }));
 
-const { DomPersonalizationStudio } = await import('../components/DomPersonalizationStudio.js');
+const { Personalizer } = await import('../components/Personalizer.js');
 
 function mountStudio() {
   const container = document.createElement('div');
-  container.appendChild(DomPersonalizationStudio());
+  container.appendChild(Personalizer());
   document.body.appendChild(container);
   return container;
 }
@@ -60,7 +60,7 @@ function findPaletteButton(container, type) {
   return Array.from(container.querySelectorAll('button')).find((btn) => btn.dataset.type === type);
 }
 
-describe('DomPersonalizationStudio', () => {
+describe('Personalizer', () => {
   beforeEach(() => {
     localStorageStub.clear();
     toastCalls.length = 0;
@@ -69,7 +69,7 @@ describe('DomPersonalizationStudio', () => {
 
   it('renders the studio shell, sidebar, canvas and properties panel', () => {
     const container = mountStudio();
-    expect(container.querySelector('.dom-personalization-studio')).toBeTruthy();
+    expect(container.querySelector('.personalizer-studio')).toBeTruthy();
     expect(container.querySelector('.dom-sidebar')).toBeTruthy();
     expect(container.querySelector('.dom-canvas')).toBeTruthy();
     expect(container.querySelector('.dom-properties-panel')).toBeTruthy();
@@ -133,7 +133,7 @@ describe('DomPersonalizationStudio', () => {
     expect(saveBtn).toBeTruthy();
     saveBtn.click();
 
-    expect(localStorage.getItem('dom-personalization-canvas')).toBeTruthy();
+    expect(localStorage.getItem('personalizer-canvas')).toBeTruthy();
 
     const freshContainer = mountStudio();
     const loadBtn = Array.from(freshContainer.querySelectorAll('button')).find((btn) => (btn.innerText || '').includes('Load Canvas'));
