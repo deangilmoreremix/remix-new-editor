@@ -45,7 +45,6 @@ const pageLoaders = {
   explore: () => import('../components/ExplorePage.js').then(m => m.ExplorePage()),
   avatar: () => import('../components/AvatarStudio.js').then(m => m.AvatarStudio()),
   'smart-video-scheduler': () => import('../components/SmartVideoScheduler.js').then(m => m.SmartVideoScheduler()),
-  'smart-video-studio': () => import('../components/studios/SmartVideoStudio/studioLoader.jsx').then(m => m.SmartVideoStudioLoader()),
   brightbean: () => import('../components/SmartVideoScheduler.js').then(m => m.SmartVideoScheduler()),
   audio: () => import('../components/AudioStudio.js').then(m => m.AudioStudio()),
   training: () => import('../components/TrainingStudio.js').then(m => m.TrainingStudio()),
@@ -78,13 +77,13 @@ const pageLoaders = {
   viral: () => import('../components/SmartVideoViral.js').then(m => m.SmartVideoViral()),
   'timeline-iframe-warning': () => Promise.resolve(document.createElement('div')),
   brand: () => { console.log('[DEBUG] Loading BrandStudioIframe'); return import('../components/BrandStudioIframe.js').then(m => m.BrandStudioIframe()); },
-  'brand-dna': () => Promise.resolve(document.createElement('div')),
-  campaign: () => Promise.resolve(document.createElement('div')),
-  'campaign-page': () => Promise.resolve(document.createElement('div')),
-  'asset-edit': () => Promise.resolve(document.createElement('div')),
-  'photo-studio': () => Promise.resolve(document.createElement('div')),
-  'brand-photo-studio': () => Promise.resolve(document.createElement('div')),
-  animate: () => Promise.resolve(document.createElement('div'))
+  'brand-dna': () => import('../components/BrandDnaEditor.js').then(m => m.BrandDnaEditor()),
+  campaign: () => import('../components/CampaignWizard.js').then(m => m.CampaignWizard()),
+  'campaign-page': () => import('../components/CampaignPage.js').then(m => m.CampaignPage()),
+  'asset-edit': () => import('../components/AssetCanvasEditor.js').then(m => m.AssetCanvasEditor()),
+  'photo-studio': () => import('../components/PhotoStudioPage.js').then(m => m.PhotoStudioPage()),
+  'brand-photo-studio': () => import('../components/PhotoStudioPage.js').then(m => m.PhotoStudioPage()),
+  animate: () => import('../components/AnimatePage.js').then(m => m.AnimatePage())
 };
 
 let currentPage = null;
@@ -92,6 +91,12 @@ let currentPageEl = null;
 let contentArea = null;
 let onNavigateCallback = null;
 let isNavigating = false;
+
+export function getQueryParam(name) {
+  if (typeof window === 'undefined') return '';
+  const params = new URLSearchParams(window.location.search);
+  return params.get(name) || '';
+}
 
 export function initRouter(container, callback) {
   contentArea = container;
