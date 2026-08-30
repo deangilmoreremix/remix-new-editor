@@ -641,6 +641,7 @@ export function TimelineEditorPage() {
       generateType: 'Text',
       playing: false,
       playheadPercent: 34,
+      viewerMode: 'timeline',
       zoom: 1,
       timelineSeconds: 45,
       // Prototype seed (timeline-redesign-prototype.html): 4 tracks, demo clips,
@@ -674,10 +675,10 @@ export function TimelineEditorPage() {
       pills: ['Text to Video', 'Image to Video', 'Retake', 'Extend', 'B-Roll', 'Music Gen', 'Audio Sync', 'Fill Gap AI', 'Elements', 'Import Timeline', 'IC-LoRA'],
       topIcons: ['↶','↷','▦','⚙','🔗','🤖','💾'], // reference only — template is source of truth
       media: [
-        { icon: '🎬', label: 'Video Clip', desc: 'Insert a source shot or generated video clip.', tooltip: 'Video clip - Add video footage to the timeline' },
-        { icon: '🖼️', label: 'Image Frame', desc: 'Add still images, frames, or storyboard art.', tooltip: 'Image frame - Add still images or graphics' },
-        { icon: '🎵', label: 'Audio Track', desc: 'Place music, voiceover, or sound design assets.', tooltip: 'Audio track - Add music, voiceover, or sound effects' },
-        { icon: '🎞️', label: 'B-Roll Asset', desc: 'Drop in cutaways, overlays, or support footage.', tooltip: 'B-roll - Add supplementary footage and cutaways' }
+        { icon: '🎬', label: 'Clip 01', type: 'video', desc: '0:14 · 1080p', src: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4' },
+        { icon: '🎙️', label: 'VO Raw', type: 'audio', desc: '0:48 · WAV', src: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3' },
+        { icon: '🖼️', label: 'Logo', type: 'image', desc: 'PNG · 512', src: 'https://picsum.photos/seed/smartvideo/640/360' },
+        { icon: '🎵', label: 'Track', type: 'audio', desc: '2:10 · MP3', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' }
       ],
       generateTypes: [['✍️', 'Text'], ['🖼️', 'Image'], ['🔄', 'Retake'], ['➡️', 'Extend'], ['🎞️', 'B-Roll']],
       quickCommands: ['⚡Generate','Retake','Extend','B-Roll','🎬 Detect Scenes'],
@@ -714,7 +715,9 @@ export function TimelineEditorPage() {
       snapToGap: true,         // prefer dropping into empty gaps
       clipGroups: [],          // id bucket for grouped clips
       selectedClipIds: new Set(),
-      clipboard: null
+      clipboard: null,
+      timelines: [],
+      selectedTimelineId: null
     };
 
     const merged = { ...baseState, ...demoState };
@@ -741,6 +744,74 @@ export function TimelineEditorPage() {
     merged.timeline = legacyToTimeline(merged);
 
     return merged;
+  }
+
+  function getCurrentTimeline(state) {
+    if (!state.timelines || state.timelines.length === 0) {
+      return null;
+    }
+    return state.timelines.find(t => t.id === state.selectedTimelineId) || state.timelines[0];
+  }
+
+  function ensureCurrentTimeline(state) {
+    if (!state.timelines || state.timelines.length === 0) {
+      const firstTimeline = {
+        id: 'timeline-' + Date.now(),
+        projectTitle: state.projectTitle || 'Untitled Sequence',
+        tracks: state.tracks || createState().tracks,
+        playheadPercent: state.playheadPercent || 34,
+        timelineSeconds: state.timelineSeconds || 45,
+        zoom: state.zoom || 1
+      };
+      state.timelines = [firstTimeline];
+      state.selectedTimelineId = firstTimeline.id;
+    }
+    return getCurrentTimeline(state);
+  }
+
+  function syncCurrentTimelineFromState(state) {
+    const current = getCurrentTimeline(state);
+    if (current) {
+      current.projectTitle = state.projectTitle;
+      current.tracks = state.tracks;
+      current.playheadPercent = state.playheadPercent;
+      current.timelineSeconds = state.timelineSeconds;
+      current.zoom = state.zoom;
+    }
+  }
+
+  function switchToTimeline(state, timelineId) {
+    syncCurrentTimelineFromState(state);
+    const target = state.timelines.find(t => t.id === timelineId);
+    if (!target) return;
+    state.selectedTimelineId = timelineId;
+    state.projectTitle = target.projectTitle;
+    state.tracks = target.tracks;
+    state.playheadPercent = target.playheadPercent;
+    state.timelineSeconds = target.timelineSeconds;
+    state.zoom = target.zoom;
+    state.selectedClipId = null;
+  }
+
+  function addNewTimeline(state) {
+    syncCurrentTimelineFromState(state);
+    const newTimeline = {
+      id: 'timeline-' + Date.now(),
+      projectTitle: 'Timeline ' + (state.timelines.length + 1),
+      tracks: createState().tracks,
+      playheadPercent: 0,
+      timelineSeconds: 45,
+      zoom: 1
+    };
+    state.timelines = state.timelines || [];
+    state.timelines.push(newTimeline);
+    state.selectedTimelineId = newTimeline.id;
+    state.projectTitle = newTimeline.projectTitle;
+    state.tracks = newTimeline.tracks;
+    state.playheadPercent = newTimeline.playheadPercent;
+    state.timelineSeconds = newTimeline.timelineSeconds;
+    state.zoom = newTimeline.zoom;
+    state.selectedClipId = null;
   }
 
   // Ensure every track carries a `type` so the type-dot renderer can color
@@ -775,6 +846,20 @@ export function TimelineEditorPage() {
           state.tracks = createState().tracks;
         }
         state.tracks = normalizeTrackTypes(state.tracks);
+        
+        // Ensure timelines array exists
+        if (!state.timelines || !Array.isArray(state.timelines) || state.timelines.length === 0) {
+          state.timelines = [{
+            id: 'timeline-' + Date.now(),
+            projectTitle: state.projectTitle || 'Untitled Sequence',
+            tracks: state.tracks,
+            playheadPercent: state.playheadPercent || 34,
+            timelineSeconds: state.timelineSeconds || 45,
+            zoom: state.zoom || 1
+          }];
+        }
+        state.selectedTimelineId = state.selectedTimelineId || state.timelines[0].id;
+        
         // Mirror the legacy store into the new Timeline model so the
         // editor can start reading from it without waiting for every
         // mutation site to be migrated.
@@ -842,6 +927,7 @@ export function TimelineEditorPage() {
 
   function createTimelineEditorApp(root) {
     const state = loadProjectFromStorage();
+    ensureCurrentTimeline(state);
     let playbackTimer = null;
     let transitionEditor = null;
     let timelineTransitions = null;
@@ -949,6 +1035,7 @@ export function TimelineEditorPage() {
       if (saveTimer) clearTimeout(saveTimer);
       saveTimer = setTimeout(() => {
         try {
+          syncCurrentTimelineFromState(state);
           saveProjectToStorage(state);
         } catch (err) {
           // QuotaExceededError or serialization failure: surface to user

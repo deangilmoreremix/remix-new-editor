@@ -1,20 +1,18 @@
 /**
- * CineGen Integration Layer (v1.1)
- * Provides unified access to CineGen Elements, AI Edit Tools, and workflows
- * for use in Timeline Editor, Video Agent, and Render pipeline.
+ * Timeline AI Integration Layer
  *
- * Supported tools: gap_fill, extend, music_generation, mask_tool, element_create, llm_chat
+ * Provides typed access to Timeline AI tools through the Netlify function
+ * endpoint. Replaces the previous CineGen-branded integration with a
+ * production-ready client that preserves existing editor behavior.
  */
 
-export const CINEGEN_TOOLS = {
-  GAP_FILL: 'gap_fill',
+export const TIMELINE_AI_TOOLS = {
+  FILL_GAP: 'fill_gap',
   EXTEND: 'extend',
-  MUSIC: 'music_generation',
-  MASK: 'mask_tool',
+  MUSIC_GENERATION: 'music_generation',
+  MASK_TOOL: 'mask_tool',
   ELEMENT_CREATE: 'element_create',
   LLM_CHAT: 'llm_chat',
-  FILL_GAP: 'fill_gap',
-  EXTEND_CLIP: 'extend_clip',
   SAM3_SEGMENT: 'sam3_segment',
   AUDIO_SYNC: 'audio_sync',
   LAYER_DECOMPOSE: 'layer_decompose',
@@ -23,47 +21,60 @@ export const CINEGEN_TOOLS = {
   COMPOSITION_PLAN: 'composition_plan'
 };
 
-export async function runCineGenTool(tool, params = {}) {
-  console.log(`[CineGen] Running tool: ${tool}`, params);
+const ENDPOINT = '/.netlify/functions/cinegen';
+
+export async function runTimelineAITool(tool, params = {}) {
+  if (!tool || typeof tool !== 'string') {
+    return { success: false, error: 'Tool name is required' };
+  }
+
+  const payload = {
+    tool,
+    params: {
+      ...params,
+      tool
+    }
+  };
 
   try {
-    const res = await fetch('/.netlify/functions/cinegen', {
+    const res = await fetch(ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tool, params })
+      body: JSON.stringify(payload)
     });
 
+    const text = await res.text().catch(() => '');
+    let data = {};
+    try { data = JSON.parse(text); } catch { /* keep raw text for error reporting */ }
+
     if (!res.ok) {
-      const text = await res.text().catch(() => '');
-      throw new Error(`CineGen function error ${res.status}: ${text}`);
+      const error = new Error(`Timeline AI error ${res.status}: ${data.error || text || 'Request failed'}`);
+      return { success: false, error: error.message, status: res.status };
     }
 
-    const data = await res.json();
-    return data;
+    return { success: true, ...data };
   } catch (error) {
-    console.error(`[CineGen] Error in ${tool}:`, error);
+    console.error(`[TimelineAI] Error in ${tool}:`, error);
     return { success: false, error: error.message || 'Tool execution failed' };
   }
 }
 
-export function getCineGenTools() {
-  return Object.values(CINEGEN_TOOLS);
+export function getTimelineAITools() {
+  return Object.values(TIMELINE_AI_TOOLS);
 }
 
-export function getCineGenFeatureSummary() {
+export function getTimelineAIFeatureSummary() {
   return {
-    version: '1.1',
-    availableTools: Object.values(CINEGEN_TOOLS),
-    description: 'CineGen AI Edit Tools for Timeline Editor',
+    version: '1.0.0',
+    availableTools: Object.values(TIMELINE_AI_TOOLS),
+    description: 'SmartVideo Timeline Studio AI tools',
     tools: {
-      gap_fill: 'AI-powered gap filling between clips',
+      fill_gap: 'AI-powered gap filling between clips',
       extend: 'Extend clips forward or backward with AI',
       music_generation: 'Generate background music from scene context',
       mask_tool: 'AI object masking and removal',
       element_create: 'Create reusable elements from clips',
       llm_chat: 'Context-aware AI assistant',
-      fill_gap: 'Alias for gap_fill',
-      extend_clip: 'Alias for extend',
       sam3_segment: 'SAM3 object segmentation',
       audio_sync: 'Auto-sync audio to video',
       layer_decompose: 'Separate foreground/background layers',
@@ -73,3 +84,7 @@ export function getCineGenFeatureSummary() {
     }
   };
 }
+
+// Backwards compatibility aliases used by existing TimelineEditorPage.jsx code.
+export { runTimelineAITool as runCineGenTool };
+export { TIMELINE_AI_TOOLS as CINEGEN_TOOLS };
