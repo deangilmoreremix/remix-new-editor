@@ -1,7 +1,23 @@
 // netlify/functions/cinegen.js
 // Timeline Studio AI orchestration endpoint.
-// Replaces the missing /.netlify/functions/cinegen route with a typed
-// dispatcher that can delegate to provider adapters or local fallbacks.
+// Dispatches Timeline AI tool requests to real provider adapters when
+// configured, otherwise falls back to local stub responses so the editor
+// remains usable without provider keys.
+
+import {
+  providerFillGap,
+  providerExtend,
+  providerMusicGeneration,
+  providerElementCreate,
+  providerShotBoard,
+  providerCompositionPlan,
+  providerLLMChat,
+  providerMaskTool,
+  providerSAM3Segment,
+  providerAudioSync,
+  providerProxyPlayback,
+  providerLayerDecompose,
+} from './cinegenProviders.js';
 
 const ALLOWED_TOOLS = new Set([
   'gap_fill',
@@ -40,87 +56,32 @@ function corsHeaders() {
 }
 
 function localFallback(tool, params) {
-  // Local fallbacks keep the editor usable when no provider is configured.
-  // These do NOT call external AI providers.
-  switch (tool) {
-    case 'fill_gap':
-    case 'gap_fill': {
-      return {
-        success: true,
-        tool: 'fill_gap',
-        message: 'Local fallback: gap identified. Configure a provider for real generation.',
-        clip: {
-          id: 'local-gap-' + Date.now(),
-          name: 'Gap Fill (local)',
-          type: 'video',
-          start: params.beforeEnd || 0,
-          end: (params.afterStart || 10),
-          src: null,
-        },
-      };
-    }
-    case 'extend':
-    case 'extend_clip': {
-      const added = params.addedDuration || 5;
-      return {
-        success: true,
-        tool: 'extend',
-        message: 'Local fallback: extension planned.',
-        addedDuration: added,
-        clip: {
-          id: 'local-extend-' + Date.now(),
-          name: 'Extended (local)',
-          type: 'video',
-          start: params.start || 0,
-          end: (params.end || 5) + added,
-          src: null,
-        },
-      };
-    }
-    case 'music_generation': {
-      return {
-        success: true,
-        tool: 'music_generation',
-        message: 'Local fallback: music generation queued.',
-        genre: params.genre || 'ambient',
-        mood: params.mood || 'calm',
-        tempo: params.tempo || 120,
-        instrumental: params.instrumental !== false,
-        duration: params.duration || 30,
-        src: null,
-      };
-    }
-    case 'mask_tool': {
-      return {
-        success: true,
-        tool: 'mask_tool',
-        message: 'Local fallback: mask metadata returned.',
-        mask: params.mask || { type: 'rectangle', x: 0, y: 0, width: 100, height: 100 },
-      };
-    }
-    case 'element_create': {
-      return {
-        success: true,
-        tool: 'element_create',
-        message: 'Local fallback: element created.',
-        element: params.element || { name: 'Element', text: 'Element' },
-      };
-    }
-    case 'sam3_segment':
-    case 'audio_sync':
-    case 'layer_decompose':
-    case 'shot_board':
-    case 'proxy_playback':
-    case 'composition_plan':
-      return {
-        success: true,
-        tool,
-        message: `Local fallback: ${tool} acknowledged. Configure a provider for real results.`,
-      };
-    default:
-      return { success: false, error: 'Unknown tool: ' + tool };
-  }
+  // When no provider is configured, return a structured failure instead of
+  // fake success so the UI can explain the missing provider to the user.
+  return {
+    success: false,
+    code: 'PROVIDER_NOT_CONFIGURED',
+    message: 'This operation requires a configured provider.',
+    tool
+  };
 }
+
+const PROVIDER_MAP = {
+  fill_gap: providerFillGap,
+  gap_fill: providerFillGap,
+  extend: providerExtend,
+  extend_clip: providerExtend,
+  music_generation: providerMusicGeneration,
+  mask_tool: providerMaskTool,
+  element_create: providerElementCreate,
+  llm_chat: providerLLMChat,
+  sam3_segment: providerSAM3Segment,
+  audio_sync: providerAudioSync,
+  layer_decompose: providerLayerDecompose,
+  shot_board: providerShotBoard,
+  proxy_playback: providerProxyPlayback,
+  composition_plan: providerCompositionPlan,
+};
 
 export async function handler(event) {
   const headers = corsHeaders();
@@ -142,9 +103,17 @@ export async function handler(event) {
   }
 
   try {
-    // In production, route to provider adapters here.
-    // For now, return a typed local fallback so Timeline Studio behavior
-    // remains stable while the backend is completed incrementally.
+    const provider = PROVIDER_MAP[tool];
+    if (provider) {
+      try {
+        const result = await provider(params);
+        return { statusCode: 200, headers, body: JSON.stringify(result) };
+      } catch (providerError) {
+        console.error(`[cinegen] provider error for ${tool}:`, providerError);
+        // Fall through to local fallback on provider failure.
+      }
+    }
+
     const result = localFallback(tool, params);
     return { statusCode: 200, headers, body: JSON.stringify(result) };
   } catch (error) {
