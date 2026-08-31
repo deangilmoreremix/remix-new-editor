@@ -1,6 +1,6 @@
 import { supabase, uploadFileToStorage } from '../lib/hybrid-supabase.js';
 import { setupEnhancedTooltips } from '../lib/editor/dragDrop.js';
-// MARKER_TEST_ABC123import { processFileUpload } from '../lib/editor/uploadPipeline.js';
+import { processFileUpload } from '../lib/editor/uploadPipeline.js';
 import { setupUploadSources } from '../lib/editor/uploadSources.js';
 import { saveProjectToStorage } from '../lib/editor/persistence.js';
 import { renderMediaGrid, addMediaToTimeline } from '../lib/editor/mediaLibrary.js';
