@@ -302,3 +302,83 @@ describe('selected contact id', () => {
     expect(getSelectedContactId()).toBeNull();
   });
 });
+
+describe('dynamic social tokens', () => {
+  const profileWithSocial = {
+    id: 'c_social',
+    contact: { firstName: 'John' },
+    social: {
+      linkedin: 'https://linkedin.com/in/john',
+      twitter: 'https://x.com/john',
+      github: 'https://github.com/john',
+    },
+    socialProfiles: [
+      { platform: 'instagram', username: 'johnsmith', profileUrl: 'https://instagram.com/johnsmith', source: 'maigret' },
+      { platform: 'youtube', username: 'johnsmith', profileUrl: 'https://youtube.com/@johnsmith', source: 'maigret' },
+      { platform: 'tiktok', profileUrl: 'https://tiktok.com/@johnsmith', source: 'maigret' },
+    ],
+    variables: {},
+  };
+
+  it('resolves social.instagram.username from socialProfiles', () => {
+    const { resolved } = inspectPromptTokens('Follow {{social.instagram.username}}', profileWithSocial);
+    expect(resolved.map((r) => r.value)).toContain('johnsmith');
+  });
+
+  it('resolves social.instagram.url from socialProfiles', () => {
+    const { resolved } = inspectPromptTokens('Visit {{social.instagram.url}}', profileWithSocial);
+    expect(resolved.map((r) => r.value)).toContain('https://instagram.com/johnsmith');
+  });
+
+  it('resolves social.youtube.username and url', () => {
+    const { resolved } = inspectPromptTokens('{{social.youtube.username}} {{social.youtube.url}}', profileWithSocial);
+    const values = resolved.map((r) => r.value);
+    expect(values).toContain('johnsmith');
+    expect(values).toContain('https://youtube.com/@johnsmith');
+  });
+
+  it('resolves social.tiktok.url without username', () => {
+    const { resolved } = inspectPromptTokens('Watch {{social.tiktok.url}}', profileWithSocial);
+    expect(resolved.map((r) => r.value)).toContain('https://tiktok.com/@johnsmith');
+  });
+
+  it('resolves social.primary.username and url', () => {
+    const { resolved } = inspectPromptTokens('{{social.primary.username}} {{social.primary.url}}', profileWithSocial);
+    const values = resolved.map((r) => r.value);
+    expect(values).toContain('johnsmith');
+    expect(values).toContain('https://instagram.com/johnsmith');
+  });
+
+  it('resolves arbitrary platform tokens', () => {
+    const { resolved } = inspectPromptTokens('{{social.some-network.url}}', {
+      ...profileWithSocial,
+      socialProfiles: [...profileWithSocial.socialProfiles, { platform: 'some-network', profileUrl: 'https://some.example/john', source: 'maigret' }],
+    });
+    expect(resolved.map((r) => r.value)).toContain('https://some.example/john');
+  });
+
+  it('leaves unresolved social tokens intact', () => {
+    const { unresolved } = inspectPromptTokens('{{social.missing.url}}', profileWithSocial);
+    expect(unresolved).toContain('social.missing.url');
+  });
+
+  it('preserves legacy linkedin token resolution', () => {
+    const { resolved } = inspectPromptTokens('{{linkedin}}', profileWithSocial);
+    expect(resolved.map((r) => r.value)).toContain('https://linkedin.com/in/john');
+  });
+
+  it('preserves legacy twitter token resolution', () => {
+    const { resolved } = inspectPromptTokens('{{twitter}}', profileWithSocial);
+    expect(resolved.map((r) => r.value)).toContain('https://x.com/john');
+  });
+
+  it('preserves legacy github token resolution', () => {
+    const { resolved } = inspectPromptTokens('{{github}}', profileWithSocial);
+    expect(resolved.map((r) => r.value)).toContain('https://github.com/john');
+  });
+
+  it('returns null for missing platform', () => {
+    const { unresolved } = inspectPromptTokens('{{social.tiktok.username}}', profileWithSocial);
+    expect(unresolved).toContain('social.tiktok.username');
+  });
+});

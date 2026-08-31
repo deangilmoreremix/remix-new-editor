@@ -166,7 +166,7 @@ export function updateProfile(contactId, patch = {}) {
   const existing = getProfile(contactId);
   if (!existing) return null;
 
-  const MERGE_KEYS = ['contact', 'company', 'brand', 'social', 'website', 'assets', 'intelligence', 'campaign', 'history'];
+  const MERGE_KEYS = ['contact', 'company', 'brand', 'social', 'socialProfiles', 'website', 'assets', 'intelligence', 'campaign', 'history'];
   const next = { ...existing, ...patch };
   for (const key of MERGE_KEYS) {
     if (patch[key] && typeof patch[key] === 'object' && !Array.isArray(patch[key])) {

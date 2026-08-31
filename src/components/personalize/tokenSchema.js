@@ -26,6 +26,8 @@
 // prompts insert `{{firstName}}`; older prompts that already contain
 // `{{First Name}}` keep working because labels are registered as aliases.
 
+import { resolveSocialToken } from '../../lib/socialIdentity.js';
+
 /**
  * Canonical token definitions.
  *
@@ -182,6 +184,12 @@ export function resolveToken(profile, rawName) {
       if (isUsable(value)) return String(value);
     }
   }
+
+  // 4) Dynamic social tokens: social.<platform>.username / .url
+  //    These are not pre-registered in TOKEN_DEFS because platforms are
+  //    discovered at runtime from Maigret / socialProfiles.
+  const socialResolved = resolveSocialToken(profile, rawName);
+  if (socialResolved !== null) return String(socialResolved);
 
   return null;
 }

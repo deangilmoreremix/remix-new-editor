@@ -30,6 +30,7 @@ import {
   setSelectedContactId,
 } from '../personalize/personalizePopover.js';
 import { TOKEN_LABELS, buildVariables } from '../personalize/tokenSchema.js';
+import { normalizeSocialIdentities, buildLegacySocialMap } from '../../lib/socialIdentity.js';
 
 const CONTACTS_KEY = 'remix_contacts';
 const PROFILES_KEY = 'remix_contact_profiles';
@@ -3061,6 +3062,10 @@ export class PersonalizeModal extends BaseModal {
       // via the shared schema. This guarantees every token the chips can show
       // is actually resolvable, instead of the 11 hand-picked fields the modal
       // used to write (which left industry/product/service/etc. empty).
+      const rawSocialProfiles = scanData?.platforms || [];
+      const socialProfiles = normalizeSocialIdentities(rawSocialProfiles);
+      const legacySocialMap = buildLegacySocialMap(socialProfiles);
+
       const profile = {
         id: contactId,
         contact: {
@@ -3082,11 +3087,12 @@ export class PersonalizeModal extends BaseModal {
         },
         brand: { colors: intelligence.brand?.colors || intelligence.brandColors || {} },
         social: {
-          github: githubEntry?.url || socialFor('github'),
-          linkedin: socialFor('linkedin'),
-          twitter: socialFor('twitter') || socialFor('x'),
-          website: scanData?.website?.url || '',
+          github: githubEntry?.url || socialFor('github') || legacySocialMap.github || '',
+          linkedin: socialFor('linkedin') || legacySocialMap.linkedin || '',
+          twitter: socialFor('twitter') || socialFor('x') || legacySocialMap.twitter || legacySocialMap.x || '',
+          website: scanData?.website?.url || legacySocialMap.website || '',
         },
+        socialProfiles,
         website: scanData?.website || {},
         assets: {
           avatar: [...new Set(avatarUrls)],

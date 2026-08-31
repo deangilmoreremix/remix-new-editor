@@ -18,6 +18,7 @@ import { escapeHtml } from '../lib/security.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt, inspectPromptTokens, getSelectedContactId, setSelectedContactId } from './personalize/personalizePopover.js';
 import { TOKEN_KEYS, TOKEN_LABELS, buildVariables } from './personalize/tokenSchema.js';
 import { getActiveProfile, listProfiles } from '../lib/contactStore.js';
+import { getSocialProfiles } from '../lib/socialIdentity.js';
 
 // ─── Canvas / element types ────────────────────────────────────────────────
 
@@ -701,6 +702,40 @@ export function Personalizer() {
     });
     tokenList.appendChild(chip);
   });
+
+  // Dynamic social tokens from the active profile's socialProfiles.
+  const activeProfileForTokens = (() => { try { return getActiveProfile(); } catch { return null; } })();
+  const socialProfiles = getSocialProfiles(activeProfileForTokens);
+  if (socialProfiles.length > 0) {
+    const socialDivider = document.createElement('div');
+    socialDivider.style.cssText = 'width: 100%; height: 1px; background: rgba(255,255,255,0.08); margin: 4px 0;';
+    tokenList.appendChild(socialDivider);
+
+    socialProfiles.forEach((identity) => {
+      const platform = identity.platform || 'social';
+      ['username', 'url'].forEach((field) => {
+        const tokenKey = `social.${platform}.${field}`;
+        const chip = document.createElement('button');
+        chip.className = 'dom-token-chip';
+        chip.innerText = `{{${tokenKey}}}`;
+        chip.title = `${platform.charAt(0).toUpperCase() + platform.slice(1)} ${field}`;
+        chip.style.cssText = `
+          padding: 3px 8px;
+          border-radius: 999px;
+          border: 1px solid rgba(217,255,0,0.2);
+          background: rgba(217,255,0,0.06);
+          color: rgba(255,255,255,0.8);
+          font-size: 10px;
+          font-family: 'SF Mono', Monaco, Menlo, Consolas, monospace;
+          cursor: pointer;
+        `;
+        chip.addEventListener('click', () => {
+          insertTokenIntoSelectedElement(tokenKey);
+        });
+        tokenList.appendChild(chip);
+      });
+    });
+  }
   sidebar.appendChild(tokenList);
 
   // Sidebar: Actions
