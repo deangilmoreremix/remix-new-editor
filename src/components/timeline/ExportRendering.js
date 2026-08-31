@@ -59,8 +59,9 @@ export class ExportRendering {
 
       return {
         success: true,
-        blob: mp4,
-        size: mp4.size,
+        blob: mp4.blob || mp4,
+        mimeType: mp4.mimeType || 'video/mp4',
+        size: (mp4.blob || mp4).size,
         duration: this.state.timelineSeconds || 60,
         resolution: settings.resolution,
         frameRate: settings.frameRate
@@ -233,20 +234,83 @@ export class ExportRendering {
   }
 
   async _encodeMP4(frames, settings) {
-    // In production, use WebCodecs VideoEncoder or FFmpeg WASM
-    // For now, create a blob from frames as a placeholder
-    const chunks = [];
-    for (let i = 0; i < frames.length; i++) {
-      const response = await fetch(frames[i].data);
-      const blob = await response.blob();
-      chunks.push(blob);
+    // Use MediaRecorder API with canvas capture stream for real MP4/WebM output.
+    // This produces an actual playable video file instead of a JPEG blob.
+    const canvas = document.createElement('canvas');
+    const resolution = RESOLUTION_PRESETS.find(r => r.id === settings.resolution) || RESOLUTION_PRESETS[1];
+    canvas.width = resolution.width;
+    canvas.height = resolution.height;
+    const ctx = canvas.getContext('2d');
 
-      this.progress = 50 + Math.round((i / frames.length) * 50);
-      this.outputSize = chunks.reduce((sum, c) => sum + c.size, 0);
-      this._reportProgress();
+    const frameRate = settings.frameRate || 30;
+    const stream = canvas.captureStream(frameRate);
+
+    // Try to use MP4 codec if available, fall back to WebM
+    let mimeType = 'video/mp4; codecs=avc1';
+    if (!MediaRecorder.isTypeSupported(mimeType)) {
+      mimeType = 'video/webm; codecs=vp9';
+    }
+    if (!MediaRecorder.isTypeSupported(mimeType)) {
+      mimeType = 'video/webm';
     }
 
-    return new Blob(chunks, { type: 'video/mp4' });
+    const recorder = new MediaRecorder(stream, {
+      mimeType,
+      videoBitsPerSecond: settings.quality === 'draft' ? 2500000 : 8000000
+    });
+
+    const chunks = [];
+    recorder.ondataavailable = (e) => {
+      if (e.data.size > 0) chunks.push(e.data);
+    };
+
+    return new Promise((resolve, reject) => {
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: mimeType });
+        this.progress = 100;
+        this.outputSize = blob.size;
+        this._reportProgress();
+        resolve({ blob, mimeType });
+      };
+
+      recorder.onerror = (e) => {
+        reject(new Error(e.error || 'MediaRecorder error'));
+      };
+
+      recorder.start();
+
+      // Draw frames at the specified frame rate
+      const totalFrames = frames.length;
+      const frameInterval = 1000 / frameRate;
+
+      const drawNextFrame = (index) => {
+        if (index >= totalFrames || !this.isRendering) {
+          recorder.stop();
+          stream.getTracks().forEach(t => t.stop());
+          return;
+        }
+
+        const frame = frames[index];
+        const img = new Image();
+        img.onload = () => {
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          this.progress = 50 + Math.round((index / totalFrames) * 50);
+          this.outputSize = chunks.reduce((sum, c) => sum + c.size, 0);
+          this._reportProgress();
+
+          setTimeout(() => drawNextFrame(index + 1), frameInterval);
+        };
+        img.onerror = () => {
+          // Draw black frame on error
+          ctx.fillStyle = '#000';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          setTimeout(() => drawNextFrame(index + 1), frameInterval);
+        };
+        img.src = frame.data;
+      };
+
+      drawNextFrame(0);
+    });
   }
 
   // === 8.2 Resolution Presets ===
