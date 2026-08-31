@@ -150,7 +150,13 @@ function legacyClipToNew(clip, track, timelineSeconds) {
     volume: typeof clip.volume === 'number' ? clip.volume : 1,
     flipH: Boolean(clip.flipH),
     flipV: Boolean(clip.flipV),
+    muted: Boolean(clip.muted),
+    reversed: Boolean(clip.reversed),
     keyframes: Array.isArray(clip.keyframes) ? clip.keyframes : [],
+    transform: clip.transform && typeof clip.transform === 'object' ? clip.transform : undefined,
+    effects: Array.isArray(clip.effects) ? clip.effects : [],
+    colorCorrection: clip.colorCorrection && typeof clip.colorCorrection === 'object' ? clip.colorCorrection : undefined,
+    letterbox: clip.letterbox && typeof clip.letterbox === 'object' ? clip.letterbox : undefined,
     linkedClipIds: Array.isArray(clip.linkedClipIds) ? clip.linkedClipIds : undefined,
   };
 }
@@ -193,14 +199,18 @@ export function legacyToTimeline(state) {
     }
   }
 
+  const project = state && state.project ? state.project : {};
+  const legacyTransitions = Array.isArray(project.transitions) ? project.transitions : [];
+  const legacyMarkers = Array.isArray(project.markers) ? project.markers : [];
+
   return {
     id,
     name,
     tracks: newTracks,
     clips: newClips,
     duration: 0,
-    transitions: [],
-    markers: [],
+    transitions: legacyTransitions,
+    markers: legacyMarkers,
   };
 }
 
@@ -243,6 +253,8 @@ export function timelineToLegacy(timeline, meta = {}) {
   }
   return {
     tracks: tracksOut,
+    transitions: Array.isArray(timeline.transitions) ? timeline.transitions : [],
+    markers: Array.isArray(timeline.markers) ? timeline.markers : [],
     timelineSeconds: meta.timelineSeconds || timeline.duration || 0,
   };
 }
@@ -272,7 +284,13 @@ function newClipToLegacy(clip) {
     opacity: clip.opacity,
     flipH: clip.flipH,
     flipV: clip.flipV,
+    muted: clip.muted,
+    reversed: clip.reversed,
     keyframes: clip.keyframes || [],
+    transform: clip.transform || undefined,
+    effects: clip.effects || undefined,
+    colorCorrection: clip.colorCorrection || undefined,
+    letterbox: clip.letterbox || undefined,
     linkedClipIds: clip.linkedClipIds,
   };
 }
