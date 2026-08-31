@@ -31,6 +31,8 @@ import {
 } from '../personalize/personalizePopover.js';
 import { TOKEN_LABELS, buildVariables } from '../personalize/tokenSchema.js';
 import { normalizeSocialIdentities, buildLegacySocialMap } from '../../lib/socialIdentity.js';
+import { createPersonalizerHandoff, savePersonalizerHandoff } from '../../lib/personalizerHandoff.js';
+import { navigate } from '../../lib/router.js';
 
 const CONTACTS_KEY = 'remix_contacts';
 const PROFILES_KEY = 'remix_contact_profiles';
@@ -90,14 +92,23 @@ function hexToRgba(hex, alpha) {
 
 export class PersonalizeModal extends BaseModal {
   constructor(options = {}) {
+    const supportsHandoff = !!(options.studioId && (options.getAsset || options.getPersonalizableFields));
+    const footerContent = supportsHandoff
+      ? `
+        <button class="modal-btn modal-btn-secondary" data-personalize-action="close">Close</button>
+        <button class="modal-btn modal-btn-primary" data-personalize-action="apply" disabled>Apply personalization</button>
+        <button class="modal-btn modal-btn-primary" data-personalize-action="send-to-personalizer" style="margin-left:8px;">Open in Personalizer</button>
+      `
+      : `
+        <button class="modal-btn modal-btn-secondary" data-personalize-action="close">Close</button>
+        <button class="modal-btn modal-btn-primary" data-personalize-action="apply" disabled>Apply personalization</button>
+      `;
+
     super({
       title: '<span aria-hidden="true">🎯</span> Personalize for a contact',
       size: 'large',
       showFooter: true,
-      footerContent: `
-        <button class="modal-btn modal-btn-secondary" data-personalize-action="close">Close</button>
-        <button class="modal-btn modal-btn-primary" data-personalize-action="apply" disabled>Apply personalization</button>
-      `,
+      footerContent,
       closable: true,
       ...options,
     });
@@ -108,6 +119,16 @@ export class PersonalizeModal extends BaseModal {
     this.onClear = options.onClear || (() => {});
     this.appTheme = options.appTheme || 'cinema-template-studio';
     this.appColors = this._resolveAppColors(this.appTheme);
+
+    // Handoff / advanced personalizer options
+    this.studioId = options.studioId || '';
+    this.studioName = options.studioName || '';
+    this.returnRoute = options.returnRoute || '';
+    this.getAsset = options.getAsset || (() => null);
+    this.getProject = options.getProject || (() => null);
+    this.getPersonalizableFields = options.getPersonalizableFields || (() => null);
+    this.getPreview = options.getPreview || (() => null);
+    this.onSendToPersonalizer = options.onSendToPersonalizer || (() => {});
 
     // Discovery state
     this.isDiscovering = false;
@@ -2350,6 +2371,7 @@ export class PersonalizeModal extends BaseModal {
           const action = btn.dataset.personalizeAction;
           if (action === 'close') this.close();
           if (action === 'apply') this._handleApply();
+          if (action === 'send-to-personalizer') this._handleSendToPersonalizer();
         };
       });
     }
@@ -3164,6 +3186,71 @@ export class PersonalizeModal extends BaseModal {
       this.onApply({ contactId: id, profile });
     }
     this.close();
+  }
+
+  _handleSendToPersonalizer() {
+    const contactId = getSelectedContactId();
+    const profile = contactId ? _getProfile(contactId) : null;
+
+    let asset = null;
+    let project = null;
+    let personalizableFields = null;
+    let preview = null;
+
+    try {
+      asset = this.getAsset?.() || null;
+      project = this.getProject?.() || null;
+      personalizableFields = this.getPersonalizableFields?.() || null;
+      preview = this.getPreview?.() || null;
+    } catch {
+      // Adapter failure must not block handoff.
+    }
+
+    // If the studio did not supply a fully-formed asset via getAsset(),
+    // synthesize one from the personalizable fields plus the current textarea.
+    if (!asset && personalizableFields) {
+      const ta = this.getTextarea?.();
+      asset = {
+        id: 'studio-current',
+        type: 'prompt',
+        title: ta?.value?.trim()?.slice(0, 80) || 'Studio Content',
+        previewUrl: preview || undefined,
+        fields: personalizableFields,
+        metadata: { source: 'personalize-modal-fallback' },
+      };
+    }
+
+    if (!asset) {
+      this.errorMessage = 'This studio does not support sending content to Personalizer yet.';
+      this.refreshBody();
+      return;
+    }
+
+    const handoff = createPersonalizerHandoff({
+      studioId: this.studioId,
+      studioName: this.studioName,
+      route: window.location.hash.replace(/^#/, '') || undefined,
+      project,
+      asset,
+      selectedProfileId: contactId || undefined,
+      returnRoute: this.returnRoute || undefined,
+    });
+
+    const saved = savePersonalizerHandoff(handoff);
+    if (!saved) {
+      this.errorMessage = 'Failed to save handoff. Please try again.';
+      this.refreshBody();
+      return;
+    }
+
+    this.onSendToPersonalizer({ contactId, profile, handoff });
+    this.close();
+
+    try {
+      navigate('personalizer');
+    } catch {
+      window.location.hash = '#/personalizer';
+    }
   }
 
   async _handleAutoTimeline() {

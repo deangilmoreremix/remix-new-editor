@@ -19,6 +19,7 @@ import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
+import { getTemplateStudioAsset } from '../lib/personalizerAdapters.js';
 
 export function TemplateStudio(templateId) {
   let template = getTemplateById(templateId);
@@ -781,7 +782,35 @@ let fallbackList = [];
   genBtn.textContent = 'Generate';
   genBtn.setAttribute('aria-label', 'Generate template');
   leftPanel.appendChild(genBtn);
-  mountPersonalizeTrigger({ controlsContainer: leftPanel, appId: 'template-studio', getTextarea: () => document.getElementById('outputTextarea') || null });
+  mountPersonalizeTrigger({
+    controlsContainer: leftPanel,
+    appId: 'template-studio',
+    studioId: 'template',
+    studioName: 'Template Studio',
+    returnRoute: 'templates',
+    getTextarea: () => document.getElementById('outputTextarea') || null,
+    getAsset: () => {
+      const outputTextarea = document.getElementById('outputTextarea');
+      return getTemplateStudioAsset({
+        outputTextarea: outputTextarea || undefined,
+        template,
+        selectedModel,
+        lastGeneratedUrl,
+        customThumbnailUrl,
+      });
+    },
+    getProject: () => ({ id: template.id, title: template.name }),
+    getPersonalizableFields: () => {
+      const outputTextarea = document.getElementById('outputTextarea');
+      return [
+        { id: 'prompt', label: 'Prompt', type: 'text', value: outputTextarea?.value?.trim() || '', supportsPersonalization: true },
+        { id: 'templateId', label: 'Template ID', type: 'text', value: template?.id || '', supportsPersonalization: false, readonly: true },
+        { id: 'templateName', label: 'Template Name', type: 'text', value: template?.name || '', supportsPersonalization: false, readonly: true },
+        { id: 'outputType', label: 'Output Type', type: 'text', value: template?.outputType || 'video', supportsPersonalization: false, readonly: true },
+      ];
+    },
+    getPreview: () => customThumbnailUrl || lastGeneratedUrl || '',
+  });
 
   // AI Captions button — always visible in the studio controls for video templates
   if (template.outputType === 'video') {

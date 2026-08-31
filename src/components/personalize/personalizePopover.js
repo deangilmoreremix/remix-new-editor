@@ -138,36 +138,48 @@ export function inspectPromptTokens(prompt, profile) {
  * @param {string} [opts.label] - button label, default "Personalize"
  * @param {string} [opts.tooltip] - button tooltip
  * @param {() => HTMLTextAreaElement|null} opts.getTextarea - returns the prompt textarea (looked up lazily)
- * @param {string} [opts.appId] - app id passed to /api/personalizer/generate
- * @param {string} [opts.appTheme] - BaseModal theme key for the pop-up
- * @param {(detail: {contactId: string, profile: object}) => void} [opts.onApply] - called when the user applies personalization
- * @param {() => void} [opts.onClear] - called when the user clears the selected contact
+ * @param {string} [opts.studioId] - source studio id for handoff
+ * @param {string} [opts.studioName] - source studio display name
+ * @param {string} [opts.returnRoute] - route to return to from Personalizer
+ * @param {() => object} [opts.getAsset] - returns current personalizable asset
+ * @param {() => object} [opts.getProject] - returns current project metadata
+ * @param {() => Array<object>} [opts.getPersonalizableFields] - returns personalizable fields for the current asset
+ * @param {() => string} [opts.getPreview] - returns a preview URL or blob reference
+ * @param {(detail: {contactId: string, profile: object, handoff: object}) => void} [opts.onSendToPersonalizer] - called when the user clicks "Open in Personalizer"
  * @returns {{ button: HTMLButtonElement, open: () => Promise<void>, refresh: () => void, getActiveProfile: () => object|null, getModal: () => object|null, destroy: () => void }}
  */
-export function mountPersonalizeTrigger(opts) {
-  return _mountTrigger(opts);
-}
+  export function mountPersonalizeTrigger(opts) {
+    return _mountTrigger(opts);
+  }
 
-/**
- * Backward-compatible alias: the old name `mountPersonalizePopover` now mounts
- * a trigger button that opens the PersonalizeModal (no more inline popover).
- *
- * @deprecated Use `mountPersonalizeTrigger` instead.
- */
-export function mountPersonalizePopover(opts) {
-  return _mountTrigger(opts);
-}
+  /**
+   * Backward-compatible alias: the old name `mountPersonalizePopover` now mounts
+   * a trigger button that opens the PersonalizeModal (no more inline popover).
+   *
+   * @deprecated Use `mountPersonalizeTrigger` instead.
+   */
+  export function mountPersonalizePopover(opts) {
+    return _mountTrigger(opts);
+  }
 
-function _mountTrigger({
-  controlsContainer,
-  label = 'Personalize',
-  tooltip = 'Personalize with a discovered contact',
-  getTextarea,
-  appId = 'ai-video-agency',
-  appTheme,
-  onApply,
-  onClear,
-} = {}) {
+ function _mountTrigger({
+   controlsContainer,
+   label = 'Personalize',
+   tooltip = 'Personalize with a discovered contact',
+   getTextarea,
+   appId = 'ai-video-agency',
+   appTheme,
+   studioId,
+   studioName,
+   returnRoute,
+   getAsset,
+   getProject,
+   getPersonalizableFields,
+   getPreview,
+   onApply,
+   onClear,
+   onSendToPersonalizer,
+ } = {}) {
   if (!controlsContainer || typeof controlsContainer.appendChild !== 'function') {
     throw new Error('mountPersonalizeTrigger: controlsContainer must be a DOM element');
   }
@@ -196,6 +208,14 @@ function _mountTrigger({
           appId,
           appTheme,
           getTextarea,
+          studioId,
+          studioName,
+          returnRoute,
+          getAsset,
+          getProject,
+          getPersonalizableFields,
+          getPreview,
+          onSendToPersonalizer,
           onApply: (detail) => {
             refresh();
             if (typeof onApply === 'function') onApply(detail);

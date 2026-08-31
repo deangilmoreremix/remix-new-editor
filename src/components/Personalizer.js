@@ -19,6 +19,7 @@ import { mountPersonalizeTrigger, replaceTokensInPrompt, inspectPromptTokens, ge
 import { TOKEN_KEYS, TOKEN_LABELS, buildVariables } from './personalize/tokenSchema.js';
 import { getActiveProfile, listProfiles } from '../lib/contactStore.js';
 import { getSocialProfiles } from '../lib/socialIdentity.js';
+import { consumePersonalizerHandoff, clearPersonalizerHandoff } from '../lib/personalizerHandoff.js';
 
 // ─── Canvas / element types ────────────────────────────────────────────────
 
@@ -738,6 +739,155 @@ export function Personalizer() {
   }
   sidebar.appendChild(tokenList);
 
+  // Source content panel (shown when a handoff from a studio is present)
+  if (sourceHandoff) {
+    const sourceSection = document.createElement('div');
+    sourceSection.style.cssText = `
+      padding: 0 12px 12px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      margin-top: 4px;
+      padding-top: 12px;
+    `;
+
+    const sourceTitle = document.createElement('div');
+    sourceTitle.className = 'dom-sidebar-title';
+    sourceTitle.innerText = 'Source Content';
+    sourceTitle.style.cssText = `
+      padding: 0 0 8px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.5);
+    `;
+    sourceSection.appendChild(sourceTitle);
+
+    const sourceMeta = document.createElement('div');
+    sourceMeta.style.cssText = `
+      font-size: 11px;
+      color: rgba(255,255,255,0.7);
+      line-height: 1.5;
+    `;
+
+    const studioName = sourceHandoff.source.studioName || sourceHandoff.source.studioId;
+    const projectTitle = sourceHandoff.project?.title || '';
+    const assetType = sourceHandoff.asset?.type || 'other';
+    const fieldCount = Array.isArray(sourceHandoff.asset?.fields) ? sourceHandoff.asset.fields.length : 0;
+
+    let metaHtml = `<div><strong>Studio:</strong> ${escapeHtml(studioName)}</div>`;
+    if (projectTitle) {
+      metaHtml += `<div><strong>Project:</strong> ${escapeHtml(projectTitle)}</div>`;
+    }
+    metaHtml += `<div><strong>Type:</strong> ${escapeHtml(assetType)}</div>`;
+    metaHtml += `<div><strong>Fields:</strong> ${fieldCount}</div>`;
+
+    if (sourceHandoff.asset?.previewUrl) {
+      metaHtml += `<div style="margin-top:6px;"><img src="${escapeHtml(sourceHandoff.asset.previewUrl)}" style="max-width:100%;border-radius:6px;border:1px solid rgba(255,255,255,0.1);" /></div>`;
+    }
+
+    sourceMeta.innerHTML = metaHtml;
+    sourceSection.appendChild(sourceMeta);
+
+    // Personalizable fields list
+    if (fieldCount > 0) {
+      const fieldsTitle = document.createElement('div');
+      fieldsTitle.innerText = 'Personalizable Fields';
+      fieldsTitle.style.cssText = `
+        padding: 8px 0 4px;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: rgba(255,255,255,0.5);
+      `;
+      sourceSection.appendChild(fieldsTitle);
+
+      const fieldsList = document.createElement('div');
+      fieldsList.style.cssText = `
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        max-height: 180px;
+        overflow-y: auto;
+      `;
+
+      (sourceHandoff.asset.fields || []).forEach((f) => {
+        const row = document.createElement('div');
+        row.style.cssText = `
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 4px 6px;
+          border-radius: 4px;
+          background: rgba(255,255,255,0.03);
+          font-size: 11px;
+        `;
+        const label = document.createElement('span');
+        label.innerText = f.label || f.id;
+        label.style.cssText = 'color: rgba(255,255,255,0.8);';
+        const value = document.createElement('span');
+        value.innerText = f.value !== null && f.value !== undefined ? String(f.value).slice(0, 40) : '—';
+        value.style.cssText = 'color: rgba(255,255,255,0.5); font-size: 10px; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;';
+        row.append(label, value);
+        fieldsList.appendChild(row);
+      });
+
+      sourceSection.appendChild(fieldsList);
+    }
+
+    // Return to studio button
+    if (sourceHandoff.returnRoute) {
+      const returnBtn = document.createElement('button');
+      returnBtn.innerText = `← Return to ${escapeHtml(studioName)}`;
+      returnBtn.style.cssText = `
+        margin-top: 8px;
+        padding: 6px 10px;
+        border-radius: 6px;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: rgba(255,255,255,0.04);
+        color: #fff;
+        font-size: 11px;
+        cursor: pointer;
+        font-family: inherit;
+        width: 100%;
+      `;
+      returnBtn.addEventListener('click', () => {
+        try {
+          navigate(sourceHandoff.returnRoute);
+        } catch {
+          window.location.hash = `#/${sourceHandoff.returnRoute}`;
+        }
+      });
+      sourceSection.appendChild(returnBtn);
+    }
+
+    // Clear handoff button
+    const clearBtn = document.createElement('button');
+    clearBtn.innerText = 'Dismiss Source';
+    clearBtn.style.cssText = `
+      margin-top: 4px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: rgba(255,255,255,0.4);
+      font-size: 10px;
+      cursor: pointer;
+      font-family: inherit;
+      width: 100%;
+    `;
+    clearBtn.addEventListener('click', () => {
+      sourceHandoff = null;
+      clearPersonalizerHandoff();
+      renderCanvas();
+      renderPropertiesPanel();
+      showToast('Source content dismissed');
+    });
+    sourceSection.appendChild(clearBtn);
+
+    sidebar.appendChild(sourceSection);
+  }
+
   // Sidebar: Actions
   const actionsTitle = document.createElement('div');
   actionsTitle.className = 'dom-sidebar-title';
@@ -899,6 +1049,9 @@ export function Personalizer() {
   let canvasHeight = 720;
   let personalizeReady = false;
 
+  // Handoff state from source studio
+  let sourceHandoff = null;
+
   // Best-effort personalization bootstrap; the studio must remain usable even
   // if the shared personalization stack is unavailable in this runtime.
   try {
@@ -917,6 +1070,20 @@ export function Personalizer() {
   if (!personalizeReady && contactSelect) {
     contactSelect.disabled = true;
     contactSelect.value = '';
+  }
+
+  // Load handoff from source studio if present
+  try {
+    const handoff = consumePersonalizerHandoff();
+    if (handoff && handoff.asset) {
+      sourceHandoff = handoff;
+      if (handoff.selectedProfileId && contactSelect) {
+        contactSelect.value = handoff.selectedProfileId;
+        setSelectedContactId(handoff.selectedProfileId);
+      }
+    }
+  } catch {
+    // malformed handoff must not crash Personalizer
   }
 
   // ─── Element management ─────────────────────────────────────────────────

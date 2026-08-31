@@ -16,6 +16,7 @@ import { mountPersonalizePopover, replaceTokensInPrompt } from './personalize/pe
 import { navigate } from '../lib/router.js';
 import { consumeStudioPrefill } from '../lib/studioPrefill.js';
 import { saveGeneratedAsset } from '../lib/assets/assetActions.js';
+import { getVideoStudioAsset } from '../lib/personalizerAdapters.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
@@ -782,12 +783,42 @@ export function VideoStudio() {
     controlsLeft.appendChild(motionStyleBtn);
 
     // Personalize button + inline popover (shared module, reusable across AI apps)
-    const personalizeHandle = mountPersonalizePopover({
+    const personalizeHandle = mountPersonalizeTrigger({
       controlsContainer: controlsLeft,
       label: 'Personalize',
       tooltip: 'Personalize with a discovered contact',
       appId: 'ai-video-agency',
+      studioId: 'video',
+      studioName: 'Video Studio',
+      returnRoute: 'video',
       getTextarea: () => document.getElementById('v-v-prompt-textarea'),
+      getAsset: () => {
+        const textarea = document.getElementById('v-v-prompt-textarea');
+        return getVideoStudioAsset({
+          textarea: textarea || undefined,
+          selectedModel,
+          selectedAr,
+          selectedDuration,
+          uploadedImageUrl,
+          uploadedVideoUrl,
+          resultVideo: document.querySelector('#v-result-video'),
+          generationHistory,
+        });
+      },
+      getProject: () => ({}),
+      getPersonalizableFields: () => {
+        const textarea = document.getElementById('v-v-prompt-textarea');
+        return [
+          { id: 'prompt', label: 'Prompt', type: 'text', value: textarea?.value?.trim() || '', supportsPersonalization: true },
+          { id: 'model', label: 'Model', type: 'text', value: selectedModel || '', supportsPersonalization: false },
+          { id: 'aspectRatio', label: 'Aspect Ratio', type: 'text', value: selectedAr || '', supportsPersonalization: false },
+          { id: 'duration', label: 'Duration', type: 'number', value: selectedDuration ?? null, supportsPersonalization: false },
+        ];
+      },
+      getPreview: () => {
+        const vid = document.querySelector('#v-result-video');
+        return vid?.src || '';
+      },
     });
     // Refresh the personalized chip when the active contact changes
     window.addEventListener('remix:contact-changed', () => {

@@ -19,6 +19,7 @@ import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateTh
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
+import { getImageStudioAsset } from '../lib/personalizerAdapters.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
@@ -541,12 +542,41 @@ export function ImageStudio() {
     controlsLeft.appendChild(toolsBtn);
 
     // Personalize button + inline popover (shared module)
-    const personalizeHandle = mountPersonalizePopover({
+    const personalizeHandle = mountPersonalizeTrigger({
       controlsContainer: controlsLeft,
       label: 'Personalize',
       tooltip: 'Personalize with a discovered contact',
       appId: 'ai-image-studio',
+      studioId: 'image',
+      studioName: 'Image Studio',
+      returnRoute: 'image',
       getTextarea: () => document.getElementById('i-prompt-textarea'),
+      getAsset: () => {
+        const textarea = document.getElementById('i-prompt-textarea');
+        return getImageStudioAsset({
+          textarea: textarea || undefined,
+          selectedModel,
+          selectedAr,
+          negativePrompt,
+          uploadedImageUrls,
+          resultImg: document.querySelector('#i-result-img'),
+          generationHistory,
+        });
+      },
+      getProject: () => ({}),
+      getPersonalizableFields: () => {
+        const textarea = document.getElementById('i-prompt-textarea');
+        return [
+          { id: 'prompt', label: 'Prompt', type: 'text', value: textarea?.value?.trim() || '', supportsPersonalization: true },
+          { id: 'model', label: 'Model', type: 'text', value: selectedModel || '', supportsPersonalization: false },
+          { id: 'aspectRatio', label: 'Aspect Ratio', type: 'text', value: selectedAr || '', supportsPersonalization: false },
+          { id: 'negativePrompt', label: 'Negative Prompt', type: 'text', value: negativePrompt || '', supportsPersonalization: true },
+        ];
+      },
+      getPreview: () => {
+        const img = document.querySelector('#i-result-img');
+        return img?.src || (uploadedImageUrls && uploadedImageUrls[0]) || '';
+      },
     });
     // Show quality button if the default model has quality/resolution options
     const _initResolutions = getResolutionsForModel(defaultModel.id);
