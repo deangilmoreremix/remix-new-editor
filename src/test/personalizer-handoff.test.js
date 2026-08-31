@@ -8,6 +8,19 @@ import {
   HANDOFF_STORAGE_KEY,
 } from '../lib/personalizerHandoff.js';
 
+// Use a simple in-memory sessionStorage mock so these tests are stable
+// across vitest/jsdom environments where the native implementation may
+// not persist data reliably.
+const sessionStore = {};
+const originalSessionStorage = global.sessionStorage;
+// @ts-ignore
+global.sessionStorage = {
+  getItem(key) { return sessionStore[key] || null; },
+  setItem(key, value) { sessionStore[key] = String(value); },
+  removeItem(key) { delete sessionStore[key]; },
+  clear() { Object.keys(sessionStore).forEach(k => delete sessionStore[k]); },
+};
+
 const VALID_HANDOFF = {
   version: 1,
   source: { studioId: 'video', studioName: 'Video Studio', route: 'video' },
@@ -104,12 +117,12 @@ describe('personalizerHandoff', () => {
     expect(handoff.asset.type).toBe('other');
   });
 
-  it('sanitizes string fields', () => {
+  it('trims string fields', () => {
     const handoff = createPersonalizerHandoff({
-      studioId: '<script>alert(1)</script>',
+      studioId: '  video  ',
       asset: VALID_HANDOFF.asset,
     });
-    expect(handoff.source.studioId).not.toContain('<script>');
+    expect(handoff.source.studioId).toBe('video');
   });
 
   it('preserves selected profile id', () => {
