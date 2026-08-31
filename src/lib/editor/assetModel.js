@@ -246,7 +246,7 @@ export function createOverlayAsset({ kind = 'overlay', name, duration, config })
   });
 }
 
-export function createInteractiveAsset({ kind = 'interactive', name, duration, formConfig }) {
+export function createInteractiveAsset({ name, duration, formConfig }) {
   return normalizeAsset({
     type: 'interactive',
     name: name || 'Interactive Element',
