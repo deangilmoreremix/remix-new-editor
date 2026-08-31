@@ -150,4 +150,81 @@ describe('Personalizer', () => {
     expect(textBtn).toBeTruthy();
     expect(textBtn.getAttribute('draggable')).toBe('true');
   });
+
+  it('applies font family, font weight, and font size changes to text elements', () => {
+    const container = mountStudio();
+    const textBtn = findPaletteButton(container, 'text');
+    textBtn.click();
+
+    const wrapper = container.querySelector('.dom-element-wrapper');
+    wrapper.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+
+    const props = container.querySelector('.dom-properties-panel');
+    const inputs = Array.from(props.querySelectorAll('input'));
+
+    const fontFamilyInput = inputs.find((input) => input.value === 'Inter, sans-serif');
+    expect(fontFamilyInput, 'font family input should exist').toBeTruthy();
+
+    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+    nativeInputValueSetter.call(fontFamilyInput, 'Arial, sans-serif');
+    fontFamilyInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+    const contentEl = wrapper.firstElementChild;
+    expect(contentEl, 'text element should exist on canvas').toBeTruthy();
+    expect(contentEl.style.fontFamily).toBe('Arial, sans-serif');
+  });
+
+  it('inserts text token without breaking spacing', () => {
+    const container = mountStudio();
+    const textBtn = findPaletteButton(container, 'text');
+    textBtn.click();
+
+    const wrapper = container.querySelector('.dom-element-wrapper');
+    wrapper.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+
+    const tokenBtn = Array.from(container.querySelectorAll('button')).find((btn) => btn.innerText === '{{firstName}}');
+    expect(tokenBtn).toBeTruthy();
+    tokenBtn.click();
+
+    const expectedText = 'Double-click to edit text. Use {{token}} for personalization. {{firstName}}';
+    const textInput = Array.from(container.querySelectorAll('input')).find((input) => input.value === expectedText);
+    expect(textInput, 'text input should contain token with spacing').toBeTruthy();
+  });
+
+  it('inserts image src token without leading whitespace', () => {
+    const container = mountStudio();
+    const imageBtn = findPaletteButton(container, 'image');
+    imageBtn.click();
+
+    const wrapper = container.querySelector('.dom-element-wrapper');
+    wrapper.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+
+    const tokenBtn = Array.from(container.querySelectorAll('button')).find((btn) => btn.innerText === '{{logoUrl}}');
+    expect(tokenBtn).toBeTruthy();
+    tokenBtn.click();
+
+    const srcInput = Array.from(container.querySelectorAll('input')).find((input) => input.value === '{{logoUrl}}');
+    expect(srcInput, 'source url input should contain token without leading whitespace').toBeTruthy();
+    expect(srcInput.value.startsWith(' ')).toBe(false);
+  });
+
+  it('keeps preview non-destructive for text tokens', () => {
+    const container = mountStudio();
+    const textBtn = findPaletteButton(container, 'text');
+    textBtn.click();
+
+    const wrapper = container.querySelector('.dom-element-wrapper');
+    const contentEl = wrapper.firstElementChild;
+    expect(contentEl, 'text element should exist on canvas before preview').toBeTruthy();
+    const originalText = contentEl.innerText;
+
+    const previewBtn = Array.from(container.querySelectorAll('button')).find((btn) => btn.innerText === 'Preview Personalized');
+    previewBtn.click();
+
+    expect(contentEl.contentEditable).toBe('false');
+
+    wrapper.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    expect(contentEl.contentEditable).toBe('true');
+    expect(contentEl.innerText).toBe(originalText);
+  });
 });

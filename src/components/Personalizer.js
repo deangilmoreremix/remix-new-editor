@@ -207,6 +207,7 @@ function renderTextElement(options, onChange) {
     height: 100%;
     font-size: ${options.fontSize || 16}px;
     font-family: ${options.fontFamily || 'Inter, sans-serif'};
+    font-weight: ${options.fontWeight || 400};
     color: ${options.color || '#ffffff'};
     background-color: ${options.backgroundColor || 'transparent'};
     padding: ${options.padding || 8}px;
@@ -254,7 +255,7 @@ function renderButtonElement(options) {
     color: ${options.color || '#000000'};
     border-radius: ${options.borderRadius || 8}px;
     font-size: ${options.fontSize || 14}px;
-    font-weight: ${options.fontWeight || 600}px;
+    font-weight: ${options.fontWeight || 600};
     text-decoration: none;
     padding: 0 16px;
     box-sizing: border-box;
@@ -1039,15 +1040,14 @@ export function Personalizer() {
     if (!contentEl) return;
 
     if (el.type === ELEMENT_TYPES.TEXT || el.type === ELEMENT_TYPES.HEADING) {
-      if (contentEl.isContentEditable) {
-        if (contentEl.innerText !== el.text) contentEl.innerText = el.text || '';
-        contentEl.style.fontSize = `${el.fontSize || 16}px`;
-        contentEl.style.fontFamily = `${el.fontFamily || 'Inter, sans-serif'}`;
-        contentEl.style.color = `${el.color || '#ffffff'}`;
-        contentEl.style.backgroundColor = `${el.backgroundColor || 'transparent'}`;
-        contentEl.style.padding = `${el.padding || 8}px`;
-        contentEl.style.borderRadius = `${el.borderRadius || 0}px`;
-      }
+      if (contentEl.innerText !== el.text) contentEl.innerText = el.text || '';
+      contentEl.style.fontSize = `${el.fontSize || 16}px`;
+      contentEl.style.fontFamily = `${el.fontFamily || 'Inter, sans-serif'}`;
+      contentEl.style.fontWeight = `${el.fontWeight || 400}`;
+      contentEl.style.color = `${el.color || '#ffffff'}`;
+      contentEl.style.backgroundColor = `${el.backgroundColor || 'transparent'}`;
+      contentEl.style.padding = `${el.padding || 8}px`;
+      contentEl.style.borderRadius = `${el.borderRadius || 0}px`;
     } else if (el.type === ELEMENT_TYPES.IMAGE) {
       contentEl.src = el.src || '';
       contentEl.style.borderRadius = `${el.borderRadius || 0}px`;
@@ -1058,6 +1058,7 @@ export function Personalizer() {
       contentEl.style.color = el.color;
       contentEl.style.borderRadius = `${el.borderRadius || 8}px`;
       contentEl.style.fontSize = `${el.fontSize || 14}px`;
+      contentEl.style.fontWeight = `${el.fontWeight || 600}`;
     }
   }
 
@@ -1070,6 +1071,18 @@ export function Personalizer() {
     if (wrapper) {
       wrapper.style.outline = '2px solid rgba(217,255,0,0.6)';
       wrapper.style.zIndex = '100';
+      if (wrapper._previewOriginalText !== undefined) {
+        const contentEl = wrapper.firstElementChild;
+        if (contentEl) {
+          contentEl.contentEditable = 'true';
+          contentEl.innerText = wrapper._previewOriginalText;
+        }
+        const el = getElementById(id);
+        if (el) {
+          el.text = wrapper._previewOriginalText;
+        }
+        delete wrapper._previewOriginalText;
+      }
     }
     renderPropertiesPanel();
   }
@@ -1193,6 +1206,12 @@ export function Personalizer() {
     if (el.fontSize !== undefined) {
       addField('Font Size', el.fontSize, (v) => updateElement(el.id, { fontSize: v }), 'number');
     }
+    if (el.fontFamily !== undefined) {
+      addField('Font Family', el.fontFamily, (v) => updateElement(el.id, { fontFamily: String(v) }));
+    }
+    if (el.fontWeight !== undefined) {
+      addField('Font Weight', el.fontWeight, (v) => updateElement(el.id, { fontWeight: v }), 'number');
+    }
 
     // Personalization section
     const personalizeSection = document.createElement('div');
@@ -1242,7 +1261,7 @@ export function Personalizer() {
     } else if (el.href !== undefined) {
       updateElement(el.id, { href: `${el.href || ''}${token}` });
     } else if (el.src !== undefined) {
-      updateElement(el.id, { src: `${el.src || ''} ${token}` });
+      updateElement(el.id, { src: `${el.src || ''}${token}` });
     } else {
       showToast('This element type does not support tokens');
     }
@@ -1263,8 +1282,12 @@ export function Personalizer() {
       // Resolve text content
       if (el.text !== undefined) {
         const resolved = replaceTokensInPrompt(el.text, { variables });
-        const contentEl = wrapper.querySelector('[contenteditable]');
-        if (contentEl) contentEl.innerText = resolved;
+        const contentEl = wrapper.firstElementChild;
+        if (contentEl) {
+          wrapper._previewOriginalText = el.text || '';
+          contentEl.contentEditable = 'false';
+          contentEl.innerText = resolved;
+        }
       }
       // Resolve href
       if (el.href !== undefined) {
