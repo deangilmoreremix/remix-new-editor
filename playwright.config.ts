@@ -7,8 +7,9 @@ import { defineConfig, devices } from '@playwright/test';
  * Videos are stored per-test and can be automatically converted.
  */
 export default defineConfig({
-  testDir: './tests/studio-demo',
-  testMatch: '**/*.spec.ts',
+  testDir: './tests',
+  testMatch: ['**/*.spec.ts', '**/*.spec.js'],
+  testIgnore: '**/node_modules/**',
 
   // Run tests sequentially to avoid video corruption and resource contention
   fullyParallel: false,
