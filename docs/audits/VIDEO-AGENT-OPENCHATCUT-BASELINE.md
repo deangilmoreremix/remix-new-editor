@@ -33,20 +33,36 @@ or any Timeline Studio entry point has been modified, removed or downgraded.
 
 | Route key | Page module | Purpose |
 | --- | --- | --- |
-| `video-agent` | `src/components/VideoAgentPage.js` | **Target of this integration — becomes the new SmartVideo Video Agent Studio.** |
+| `video-agent` | `src/components/VideoAgentPage.js` | **Video Agent Studio 1 (the original). NOT touched by this work.** |
+| `video-agent-studio` | `src/components/VideoAgentStudioShell.js` (NEW) | **Video Agent Studio 2 — the new OpenChatCut-backed editor.** |
 | `timeline` | `src/components/TimelineEditorPage.jsx` | **Existing SmartVideo Timeline Studio — must remain untouched.** |
-| `image`, `video`, `cinema`, `apps`, `templates`, `effects`, `edit`, `upscale`, `library`, `character`, `influencer`, `commercial`, `explore`, `avatar`, `audio`, `training`, `videotools`, `chat`, `lipsync`, `leadfinder`, `personalizer`, `assist`, `community`, `storyboard`, `text-to-image`, `image-to-image`, `text-to-video`, `image-to-video`, `video-to-video`, `video-watermark`, `storyboard-page`, `character-page`, `effects-page`, `cinema-page`, `influencer-page`, `commercial-page`, `upscale-page`, `render`, `director`, `ai-vfx`, `viral`, `brand`, `brand-dna`, `campaign`, `campaign-page`, `asset-edit`, `photo-studio`, `brand-photo-studio`, `animate` | Various `src/components/*` modules | Unrelated SmartVideo studios, generators, and pages. **Must remain intact.** |
+
+Other studio routes (image, video, cinema, apps, templates, effects,
+edit, upscale, library, character, influencer, commercial, explore,
+avatar, audio, training, videotools, chat, lipsync, leadfinder,
+personalizer, assist, community, storyboard, text-to-image,
+image-to-image, text-to-video, image-to-video, video-to-video,
+video-watermark, storyboard-page, character-page, effects-page,
+cinema-page, influencer-page, commercial-page, upscale-page,
+render, director, ai-vfx, viral, brand, brand-dna, campaign,
+campaign-page, asset-edit, photo-studio, brand-photo-studio,
+animate) — all unchanged and **must remain intact**.
 
 Notes:
-* The `video-agent` route currently loads `VideoAgentPage.js` and is the only
-  route that this work will repoint into the new Video Agent Studio.
-* The `timeline` route is the existing SmartVideo Timeline Studio and is
-  explicitly protected. Its loader, module and any internal state are
-  out of scope for this work.
+* The `video-agent` route is the user-facing entry for the original
+  Video Agent Studio 1. It MUST continue to load
+  `src/components/VideoAgentPage.js` exactly as it does today.
+* The new `video-agent-studio` route is the user-facing entry for
+  Video Agent Studio 2 (the OpenChatCut-backed editor). It loads
+  the new shell, which embeds the upstream app from
+  `apps/video-agent-studio/`.
+* The two routes are **independent**. Each loads a different
+  implementation with its own state system. The two editors do not
+  share a mutable timeline store.
 
 ---
 
-## 3. Current `VideoAgentPage.js` (smart side)
+## 3. Current Video Agent Studio 1 (smart side)
 
 Located at `src/components/VideoAgentPage.js` (≈1.4k lines).
 High-level responsibilities:
