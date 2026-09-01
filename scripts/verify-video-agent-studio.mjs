@@ -99,8 +99,10 @@ async function step4ServerResponds() {
   if (!existsSync(SUBTREE_NODE_MODULES)) {
     return { step: '4. OpenChatCut server responds', status: 'BLOCKED', detail: 'subtree deps not installed' };
   }
-  // Start the dev server, wait until it responds, then kill it.
-  const child = spawn('npm', ['run', 'dev'], {
+  // Start the OpenChatCut dev server (vite via dev:shared so we
+  // do not require cmake for the whisper-cli prebuild). Wait
+  // until it responds, then kill it.
+  const child = spawn('npm', ['run', 'dev:shared', '--', '--port', '5199', '--host', '0.0.0.0'], {
     cwd: SUBTREE,
     stdio: ['ignore', 'pipe', 'pipe'],
     env: { ...process.env, CI: '1', BROWSER: 'none' },
@@ -184,15 +186,14 @@ record(step1SubtreePresent());
 record(step2DepsInstalled());
 if (process.argv.includes('--skip-build')) {
   record({ step: '3. OpenChatCut builds', status: 'BLOCKED', detail: 'skipped via --skip-build' });
-  record({ step: '4. OpenChatCut server responds', status: 'BLOCKED', detail: 'skipped via --skip-build' });
 } else {
   record(step3Build());
-  if (process.argv.includes('--with-server')) {
-    const r = await step4ServerResponds();
-    record(r);
-  } else {
-    record({ step: '4. OpenChatCut server responds', status: 'BLOCKED', detail: 'pass --with-server to start the dev server and probe it' });
-  }
+}
+if (process.argv.includes('--with-server')) {
+  const r = await step4ServerResponds();
+  record(r);
+} else {
+  record({ step: '4. OpenChatCut server responds', status: 'BLOCKED', detail: 'pass --with-server to start the dev server and probe it' });
 }
 record(step5RouteExists());
 record(step6IframeConfigured());
