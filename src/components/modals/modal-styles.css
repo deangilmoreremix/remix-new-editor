@@ -6281,6 +6281,188 @@
   color: var(--muted);
 }
 
+/* Preview player */
+.tg-preview-player-container {
+  margin: 16px 0;
+}
+
+.tg-preview-display {
+  position: relative;
+  width: 100%;
+  background: #000;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+.tg-preview-video {
+  width: 100%;
+  height: auto;
+  max-height: 320px;
+  object-fit: contain;
+}
+
+.tg-preview-image {
+  max-width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+}
+
+.tg-preview-placeholder {
+  font-size: 48px;
+  color: var(--muted);
+  padding: 40px;
+}
+
+.tg-preview-player-empty {
+  padding: 32px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.tg-preview-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 32px;
+  text-align: center;
+}
+
+.tg-error-icon {
+  font-size: 32px;
+}
+
+.tg-preview-controls {
+  margin: 12px 0;
+}
+
+.tg-preview-control-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tg-preview-progress-container {
+  flex: 1;
+}
+
+.tg-preview-progress {
+  position: relative;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.tg-preview-progress-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 0%;
+  background: var(--primary);
+  border-radius: 2px;
+}
+
+.tg-preview-progress-handle {
+  position: absolute;
+  top: -4px;
+  width: 10px;
+  height: 12px;
+  background: var(--primary);
+  border-radius: 3px;
+  cursor: grab;
+}
+
+.tg-preview-time {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.tg-preview-playlist {
+  margin-top: 8px;
+}
+
+.tg-playlist-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  font-size: 11px;
+  color: var(--muted);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.tg-playlist-item:hover {
+  background: var(--panel-soft);
+  color: var(--text);
+}
+
+.tg-playlist-item.active {
+  background: var(--primary-soft);
+  color: var(--text);
+  border-left: 2px solid var(--primary);
+}
+
+.tg-preview-timeline {
+  margin-top: 12px;
+}
+
+.tg-preview-timeline-track {
+  position: relative;
+  height: 60px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: visible;
+}
+
+.tg-preview-timeline-clip {
+  position: absolute;
+  top: 10px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+}
+
+.tg-preview-timeline-label {
+  font-size: 10px;
+  color: var(--on-primary);
+  white-space: nowrap;
+  text-shadow: 0 0 3px rgba(0,0,0,0.5);
+}
+
+.tg-preview-transition {
+  position: absolute;
+  top: 10px;
+  height: 40px;
+  background: rgba(217, 255, 0, 0.2);
+  border: 1px dashed var(--primary);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: var(--primary);
+}
+
+.tg-preview-nav {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0;
+  flex-wrap: wrap;
+}
+
 /* Overlays & transitions */
 .tg-section { margin-bottom: 24px; }
 .tg-section h4 { font-size: 14px; margin: 0 0 12px; }

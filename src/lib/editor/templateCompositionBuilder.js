@@ -94,6 +94,7 @@ function popcorProjectToTemplateSpec(popcornData) {
  * @returns {{
  *   name: string,
  *   tracks: Array<{ type: string, name: string, clips: Array }>,
+ *   transitions: Array<{ fromClip: string, toClip: string, type: string, duration: number }>,
  *   meta: { source: string, totalDuration: number, clipCount: number }
  * }}
  */
@@ -101,6 +102,7 @@ export function buildCompositionFromState(state) {
   const composition = {
     name: state.template?.selected?.name || state.script?.selectedNicheScript?.title || 'Template Composition',
     tracks: [],
+    transitions: [],
     meta: { source: 'template-generator', totalDuration: 0, clipCount: 0 },
   };
 
@@ -225,6 +227,7 @@ export function buildCompositionFromState(state) {
   }
 
   // 4. Insert transitions between consecutive user-media clips.
+  //    Store transitions at the composition level for TimelineFeatureApi to apply.
   if (state.transitions && state.transitions.length > 0 && baseTracks.length > 0) {
     // User/Scene Media track is at index 0
     const userMediaTrack = baseTracks[0];
@@ -234,13 +237,22 @@ export function buildCompositionFromState(state) {
           const transition = state.transitions.find(t => t.position === i)
             || state.transitions[Math.min(i, state.transitions.length - 1)];
           if (transition) {
-            clip.transition = {
+            const tr = {
               type: transition.type || 'dissolve',
               duration: transition.duration || 1,
-              direction: transition.direction,
-              easing: transition.easing,
-              parameters: transition.parameters,
+              ...(transition.direction ? { direction: transition.direction } : {}),
+              ...(transition.easing ? { easing: transition.easing } : {}),
+              ...(transition.parameters ? { parameters: transition.parameters } : {}),
             };
+            // Reference by clip index within this track (resolved later by applyTemplate)
+            composition.transitions.push({
+              fromClipIndex: i,
+              toClipIndex: i + 1,
+              inTrack: 0, // Scene Media / User Media track
+              ...tr,
+            });
+            // Also set on clip for backward compat / inline rendering
+            clip.transition = tr;
           }
         }
       });
@@ -338,7 +350,27 @@ export function buildPreviewFromState(state) {
         hasTransition: !!c.transition,
         hasOverlay: !!c._overlayConfig,
         hasVoiceMeta: !!c._voiceMeta,
+        sceneIndex: c.sceneIndex,
+        sceneName: c.sceneName,
+        asset: c.asset ? {
+          id: c.asset.id,
+          type: c.asset.type,
+          name: c.asset.name,
+          url: c.asset.url,
+          thumbnail: c.asset.thumbnail,
+          source: c.asset.source,
+          provider: c.asset.provider,
+        } : null,
       })),
+    })),
+    transitions: composition.transitions.map(tr => ({
+      fromClipIndex: tr.fromClipIndex,
+      toClipIndex: tr.toClipIndex,
+      inTrack: tr.inTrack,
+      type: tr.type,
+      duration: tr.duration,
+      direction: tr.direction,
+      easing: tr.easing,
     })),
     meta: composition.meta,
   };

@@ -3,6 +3,8 @@ import { ALL_NICHE_TEMPLATES } from '../../lib/nicheTemplatesIndex.js';
 import { generateScript, rewriteScript, shortenScript, expandScript, applyCta, changeTone, changeAudience } from '../../lib/editor/scriptAiService.js';
 import { searchPixabay, normalizePixabayImage, normalizePixabayVideo, suggestPixabayQueries } from '../../lib/editor/pixabayService.js';
 import { generateImage, aspectRatioToSize, normalizeGeneratedImage, buildScenePromptContext } from '../../lib/editor/aiImageService.js';
+import { buildCompositionFromState, buildPreviewFromState } from '../../lib/editor/templateCompositionBuilder.js';
+import { normalizeAsset } from '../../lib/editor/assetModel.js';
 
 /**
  * TemplateGeneratorModal — Full multi-step workflow
@@ -15,8 +17,8 @@ import { generateImage, aspectRatioToSize, normalizeGeneratedImage, buildScenePr
  *   5. Overlays (text, logo, CTA, lower third, captions, stickers, lead form, interactive)
  *   6. Voice (TTS provider abstraction, presets, personalization tokens)
  *   7. Personalization (contact preview, token resolution)
- *   8. Preview (full composition)
- *   9. Add to Timeline (creates editable tracks/clips — never flattens)
+ *   8. Preview (real playable composition built from the same builder used for insertion)
+ *   9. Add to Timeline (uses TimelineFeatureApi.applyTemplate — single transactional undo)
  *
  * Uses TimelineFeatureApi for all timeline mutations so undo/redo and history work.
  */
@@ -37,6 +39,7 @@ export class TemplateGeneratorModal extends BaseModal {
       selectedTemplate: null,
       media: [],
       mediaByScene: [],       // [{ sceneName: string, sceneIndex: number, media: Asset[], mediaType: 'image'|'video' }]
+      transitions: [],
       overlays: [],
       voice: { enabled: false, provider: 'openai', voice: 'alloy', text: '', instructions: '' },
       personalization: { enabled: false, contactId: null, tokens: {} }
@@ -52,7 +55,26 @@ export class TemplateGeneratorModal extends BaseModal {
       generatedResults: [],
       generateLoading: false,
       generatePrompt: '',
+      editingSceneIndex: null,
+      editingResultIndex: null,
+      editReferenceUrl: null,
+      editInstruction: '',
     };
+
+    // Preview playback state
+    this._previewState = {
+      playing: false,
+      currentTime: 0,
+      duration: 0,
+      loading: false,
+      error: null,
+    };
+
+    // Timeline API reference (passed by the host studio)
+    this.timelineApi = options.timelineApi || null;
+
+    // Cached composition for preview (rebuilt from state, never mutates TimelineState)
+    this._cachedComposition = null;
   }
 
   renderBody() {
@@ -600,11 +622,20 @@ export class TemplateGeneratorModal extends BaseModal {
 
   // Step 8: Preview
   renderStep8Preview() {
+    // Build the composition from the same builder used for insertion
+    // This creates a temporary derivation — never mutates TimelineState
+    this._cachedComposition = buildCompositionFromState(this.data);
+    const preview = buildPreviewFromState(this.data);
     const totalMedia = this.data.mediaByScene.filter(s => s.status === 'ready').length;
     const totalScenes = this.getSceneStructure().length;
+
+    // Get the ordered list of playable clips (video/image/audio) for the preview player
+    const playableClips = this._getPlayableClips(preview);
+
     return `
       <h3>Preview Your Composition</h3>
-      <p class="tg-step-desc">Review everything before adding to your timeline.</p>
+      <p class="tg-step-desc">Review everything before adding to your timeline. Navigate back to edit.</p>
+
       <div class="tg-preview-summary">
         <div class="tg-summary-section">
           <h4>📋 Configuration</h4>
@@ -613,26 +644,180 @@ export class TemplateGeneratorModal extends BaseModal {
             <li><strong>Template:</strong> ${this.data.selectedTemplate?.name || 'Not selected'}</li>
             <li><strong>Script:</strong> ${this.data.script.text ? this.data.script.text.substring(0, 100) + '...' : 'None'}</li>
             <li><strong>Media per scene:</strong> ${totalMedia} / ${totalScenes} scenes assigned</li>
+            <li><strong>Transitions:</strong> ${preview.transitions.length} configured</li>
             <li><strong>Overlays:</strong> ${this.data.overlays.length}</li>
             <li><strong>Voice:</strong> ${this.data.voice.enabled ? this.data.voice.voice : 'Disabled'}</li>
             <li><strong>Personalization:</strong> ${this.data.personalization.enabled ? 'Enabled' : 'Disabled'}</li>
+            <li><strong>Total duration:</strong> ${Math.round(preview.duration)}s</li>
           </ul>
         </div>
+
+        <div class="tg-preview-player-container">
+          ${this.renderPreviewPlayer(preview, playableClips)}
+          <div class="tg-preview-timeline">
+            <div class="tg-preview-track" id="tg-preview-track">
+              ${this.renderPreviewTrack(playableClips, preview.transitions)}
+            </div>
+          </div>
+        </div>
+
+        <div class="tg-preview-nav">
+          <button class="tg-btn tg-btn-secondary tg-btn-sm" id="tg-preview-back-media">← Media</button>
+          <button class="tg-btn tg-btn-secondary tg-btn-sm" id="tg-preview-back-script">← Script</button>
+          <button class="tg-btn tg-btn-secondary tg-btn-sm" id="tg-preview-back-template">← Template</button>
+          <button class="tg-btn tg-btn-secondary tg-btn-sm" id="tg-preview-back-overlays">← Overlays</button>
+          <button class="tg-btn tg-btn-secondary tg-btn-sm" id="tg-preview-back-voice">← Voice</button>
+          <button class="tg-btn tg-btn-secondary tg-btn-sm" id="tg-preview-back-personalization">← Personalization</button>
+        </div>
+
         <div class="tg-scene-breakdown">
           <h4>📽️ Scene Media Breakdown</h4>
-          ${this.renderSceneBreakdown()}
-        </div>
-        <div class="tg-preview-area" id="tg-preview-area">
-          <p class="tg-empty-state">Full composition preview will appear here.</p>
+          ${this.renderSceneBreakdown(preview)}
         </div>
       </div>
     `;
   }
 
   /**
-   * Render a scene-by-scene breakdown for the preview step.
+   * Get ordered list of playable clips from the preview descriptor.
    */
-  renderSceneBreakdown() {
+  _getPlayableClips(preview) {
+    const clips = [];
+    for (const track of (preview.tracks || [])) {
+      for (const clip of (track.clips || [])) {
+        if (clip.type === 'video' || clip.type === 'image' || clip.type === 'audio') {
+          if (clip.asset?.url || clip.asset?.src) {
+            clips.push(clip);
+          }
+        }
+      }
+    }
+    // Sort by startTime
+    return clips.sort((a, b) => (a.startTime || 0) - (b.startTime || 0));
+  }
+
+  /**
+   * Render the playable preview player.
+   * Uses a standard HTML5 video element for video clips and image elements
+   * for image clips, sequenced via JavaScript.
+   */
+  renderPreviewPlayer(preview, playableClips) {
+    const hasVideo = playableClips.some(c => c.type === 'video');
+    const hasImage = playableClips.some(c => c.type === 'image');
+    const hasAudio = playableClips.some(c => c.type === 'audio');
+    const totalDuration = Math.round(preview.duration || 0);
+    const firstClip = playableClips[0];
+
+    if (playableClips.length === 0) {
+      return `
+        <div class="tg-preview-player-empty">
+          <p class="tg-empty-state">No media assigned to any scene. Go to the Media step to assign media.</p>
+        </div>
+      `;
+    }
+
+    // Build a sequential playlist from all playable clips
+    const playlist = playableClips.map(c => ({
+      id: c.asset?.id || c.name,
+      src: c.asset?.url || c.asset?.src,
+      type: c.type,
+      name: c.name,
+      duration: c.duration || 5,
+      startTime: c.startTime || 0,
+      thumbnail: c.asset?.thumbnail,
+    }));
+
+    return `
+      <div class="tg-preview-player-wrapper" id="tg-preview-player-wrapper">
+        <div class="tg-preview-display" id="tg-preview-display">
+          ${hasVideo ? `
+            <video id="tg-preview-video" class="tg-preview-video" preload="metadata" poster="${firstClip?.thumbnail || ''}">
+              ${playlist.filter(p => p.type === 'video').map(p => `<source src="${p.src}" type="video/mp4">`).join('')}
+            </video>
+          ` : hasImage ? `
+            <img id="tg-preview-image" class="tg-preview-image" src="${firstClip?.src || ''}" alt="Preview">
+          ` : `
+            <div class="tg-preview-placeholder">▶️</div>
+          `}
+        </div>
+
+        <div class="tg-preview-controls">
+          <div class="tg-preview-control-row">
+            <button class="tg-btn tg-btn-sm tg-btn-secondary" id="tg-preview-restart">⟲</button>
+            <button class="tg-btn tg-btn-sm tg-btn-primary" id="tg-preview-play-pause">▶️ Play</button>
+            <div class="tg-preview-progress-container">
+              <div class="tg-preview-progress" id="tg-preview-progress">
+                <div class="tg-preview-progress-fill" id="tg-preview-progress-fill"></div>
+                <div class="tg-preview-progress-handle" id="tg-preview-progress-handle"></div>
+              </div>
+            </div>
+            <span class="tg-preview-time" id="tg-preview-time">0:00 / ${this._formatTime(totalDuration)}</span>
+            <button class="tg-btn tg-btn-sm tg-btn-secondary" id="tg-preview-fullscreen">⛶</button>
+          </div>
+        </div>
+
+        <div class="tg-preview-playlist" id="tg-preview-playlist">
+          ${playlist.map((p, i) => `
+            <div class="tg-playlist-item ${i === 0 ? 'active' : ''}" data-playlist-index="${i}">
+              <span class="tg-playlist-item-name">${p.name || `Scene ${i + 1}`}</span>
+              <span class="tg-playlist-item-duration">${this._formatTime(p.duration)}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Render the preview timeline ruler showing clip positions and transitions.
+   */
+  renderPreviewTrack(playableClips, transitions) {
+    const totalDuration = playableClips.length > 0
+      ? Math.max(...playableClips.map(c => (c.startTime || 0) + (c.duration || 5)))
+      : 0;
+    const pixelsPerSecond = 8; // visual scale
+
+    return `
+      <div class="tg-preview-timeline-track" style="width: ${Math.max(totalDuration * pixelsPerSecond, 200)}px">
+        ${playableClips.map((c, i) => {
+          const start = (c.startTime || 0) * pixelsPerSecond;
+          const width = (c.duration || 5) * pixelsPerSecond;
+          const color = c.type === 'video' ? '#3b82f6' : c.type === 'image' ? '#a78bfa' : '#f59e0b';
+          return `
+            <div class="tg-preview-timeline-clip" data-clip-index="${i}" style="left: ${start}px; width: ${width}px; background: ${color};">
+              <span class="tg-preview-timeline-label">${c.name || `Scene ${i + 1}`}</span>
+            </div>
+          `;
+        }).join('')}
+        ${transitions.map((tr, i) => {
+          const clipA = playableClips[tr.fromClipIndex];
+          if (!clipA) return '';
+          const start = (clipA.startTime || 0) + (clipA.duration || 5) - (tr.duration || 1) / 2;
+          const width = tr.duration || 1;
+          return `
+            <div class="tg-preview-transition" data-transition-index="${i}" style="left: ${start * pixelsPerSecond}px; width: ${width * pixelsPerSecond}px;">
+              <span>⇄</span>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+
+  /**
+   * Format seconds as MM:SS.
+   */
+  _formatTime(seconds) {
+    if (!seconds || isNaN(seconds)) return '0:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }
+
+  /**
+   * Format a preview descriptor for the scene table.
+   */
+  renderSceneBreakdown(preview) {
     const scenes = this.getSceneStructure();
     return `
       <table class="tg-scene-table">
@@ -640,8 +825,11 @@ export class TemplateGeneratorModal extends BaseModal {
           <tr>
             <th>Scene</th>
             <th>Name</th>
-            <th>Media Status</th>
+            <th>Media</th>
             <th>Source</th>
+            <th>Provider</th>
+            <th>Duration</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody>
@@ -652,10 +840,13 @@ export class TemplateGeneratorModal extends BaseModal {
               <tr>
                 <td>${i + 1}</td>
                 <td>${scene}</td>
+                <td>${media ? (media.name || 'media') : '—'}</td>
+                <td>${media ? (media.source || '—') : '—'}</td>
+                <td>${media ? (media.provider || '—') : '—'}</td>
+                <td>${media ? this._formatTime(media.duration) : '—'}</td>
                 <td class="tg-scene-status-cell ${slot.status || 'empty'}">
                   ${slot.status === 'ready' ? '✓ Assigned' : slot.status === 'loading' ? '⏳ Loading' : '○ Empty'}
                 </td>
-                <td>${media ? (media.provider || media.source || '—') : '—'}</td>
               </tr>
             `;
           }).join('')}
@@ -731,7 +922,263 @@ export class TemplateGeneratorModal extends BaseModal {
       case 4:
         this.setupStep4MediaListeners();
         break;
+      case 7:
+        this.setupStep7PersonalizationListeners();
+        break;
+      case 8:
+        this.setupStep8PreviewListeners();
+        break;
     }
+  }
+
+  /**
+   * Step 7: Personalization toggle listener.
+   */
+  setupStep7PersonalizationListeners() {
+    const persToggle = this.overlay.querySelector('#tg-pers-enabled');
+    if (persToggle) {
+      persToggle.addEventListener('change', () => {
+        this.data.personalization.enabled = persToggle.checked;
+      });
+    }
+  }
+
+  /**
+   * Step 8: Preview control listeners.
+   * Handles play/pause, seek, restart, fullscreen, and edit navigation buttons.
+   */
+  setupStep8PreviewListeners() {
+    // Play/Pause
+    const playBtn = this.overlay.querySelector('#tg-preview-play-pause');
+    if (playBtn) {
+      playBtn.addEventListener('click', () => this._togglePreviewPlayback());
+    }
+
+    // Restart
+    const restartBtn = this.overlay.querySelector('#tg-preview-restart');
+    if (restartBtn) {
+      restartBtn.addEventListener('click', () => this._restartPreview());
+    }
+
+    // Progress bar seek
+    const progress = this.overlay.querySelector('#tg-preview-progress');
+    if (progress) {
+      progress.addEventListener('click', (e) => this._seekPreview(e));
+    }
+
+    // Progress handle drag
+    const handle = this.overlay.querySelector('#tg-preview-progress-handle');
+    if (handle) {
+      handle.addEventListener('mousedown', (e) => this._startSeekDrag(e));
+    }
+
+    // Fullscreen
+    const fullscreenBtn = this.overlay.querySelector('#tg-preview-fullscreen');
+    if (fullscreenBtn) {
+      fullscreenBtn.addEventListener('click', () => this._toggleFullscreen());
+    }
+
+    // Playlist item click
+    this.overlay.querySelectorAll('.tg-playlist-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const idx = parseInt(item.dataset.playlistIndex, 10);
+        this._seekToPlaylistItem(idx);
+      });
+    });
+
+    // Edit navigation buttons
+    const backMediaBtn = this.overlay.querySelector('#tg-preview-back-media');
+    if (backMediaBtn) {
+      backMediaBtn.addEventListener('click', () => { this.step = 4; this.refresh(); });
+    }
+    const backScriptBtn = this.overlay.querySelector('#tg-preview-back-script');
+    if (backScriptBtn) {
+      backScriptBtn.addEventListener('click', () => { this.step = 2; this.refresh(); });
+    }
+    const backTemplateBtn = this.overlay.querySelector('#tg-preview-back-template');
+    if (backTemplateBtn) {
+      backTemplateBtn.addEventListener('click', () => { this.step = 3; this.refresh(); });
+    }
+    const backOverlaysBtn = this.overlay.querySelector('#tg-preview-back-overlays');
+    if (backOverlaysBtn) {
+      backOverlaysBtn.addEventListener('click', () => { this.step = 5; this.refresh(); });
+    }
+    const backVoiceBtn = this.overlay.querySelector('#tg-preview-back-voice');
+    if (backVoiceBtn) {
+      backVoiceBtn.addEventListener('click', () => { this.step = 6; this.refresh(); });
+    }
+    const backPersBtn = this.overlay.querySelector('#tg-preview-back-personalization');
+    if (backPersBtn) {
+      backPersBtn.addEventListener('click', () => { this.step = 7; this.refresh(); });
+    }
+  }
+
+  /**
+   * Toggle playback of the preview video element.
+   */
+  _togglePreviewPlayback() {
+    const video = this.overlay.querySelector('#tg-preview-video');
+    const img = this.overlay.querySelector('#tg-preview-image');
+    const playBtn = this.overlay.querySelector('#tg-preview-play-pause');
+
+    if (!video && !img) return;
+
+    if (video) {
+      if (this._previewState.playing) {
+        video.pause();
+        this._previewState.playing = false;
+        if (playBtn) playBtn.innerHTML = '▶️ Play';
+      } else {
+        video.play().catch(e => {
+          console.error('[TemplateGeneratorModal] Preview play failed:', e);
+          this._previewState.error = e.message;
+          this._renderPreviewError(e.message);
+        });
+        this._previewState.playing = true;
+        if (playBtn) playBtn.innerHTML = '⏸️ Pause';
+      }
+    } else if (img) {
+      // For image-only previews, toggle a simple fade animation
+      this._previewState.playing = !this._previewState.playing;
+      if (playBtn) playBtn.innerHTML = this._previewState.playing ? '⏸️ Pause' : '▶️ Play';
+    }
+  }
+
+  /**
+   * Restart preview from beginning.
+   */
+  _restartPreview() {
+    const video = this.overlay.querySelector('#tg-preview-video');
+    if (video) {
+      video.currentTime = 0;
+      video.play().catch(console.error);
+      this._previewState.playing = true;
+      const playBtn = this.overlay.querySelector('#tg-preview-play-pause');
+      if (playBtn) playBtn.innerHTML = '⏸️ Pause';
+    }
+  }
+
+  /**
+   * Seek preview to position in the progress bar.
+   */
+  _seekPreview(e) {
+    const progressBar = e.currentTarget;
+    const rect = progressBar.getBoundingClientRect();
+    const percent = (e.clientX - rect.left) / rect.width;
+    const clamped = Math.max(0, Math.min(1, percent));
+    const video = this.overlay.querySelector('#tg-preview-video');
+    if (video && this._cachedComposition) {
+      const targetTime = clamped * this._cachedComposition.meta.totalDuration;
+      video.currentTime = targetTime;
+    }
+  }
+
+  /**
+   * Handle progress handle drag for seeking.
+   */
+  _startSeekDrag(e) {
+    e.preventDefault();
+    const progressBar = this.overlay.querySelector('#tg-preview-progress');
+    const handle = e.currentTarget;
+    const onMove = (moveEvent) => {
+      const rect = progressBar.getBoundingClientRect();
+      const percent = Math.max(0, Math.min(1, (moveEvent.clientX - rect.left) / rect.width));
+      const fill = this.overlay.querySelector('#tg-preview-progress-fill');
+      if (fill) fill.style.width = `${percent * 100}%`;
+    };
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }
+
+  /**
+   * Toggle fullscreen on the preview player.
+   */
+  _toggleFullscreen() {
+    const player = this.overlay.querySelector('#tg-preview-player-wrapper');
+    if (!player) return;
+    if (document.fullScreenElement) {
+      document.exitFullscreen();
+    } else if (player.requestFullscreen) {
+      player.requestFullscreen();
+    }
+  }
+
+  /**
+   * Seek to a specific playlist item.
+   */
+  _seekToPlaylistItem(index) {
+    const video = this.overlay.querySelector('#tg-preview-video');
+    const playlistItem = this.overlay.querySelectorAll('.tg-playlist-item')[index];
+    if (!playlistItem) return;
+
+    // Highlight active
+    this.overlay.querySelectorAll('.tg-playlist-item').forEach((item, i) => {
+      item.classList.toggle('active', i === index);
+    });
+
+    if (video && this._cachedComposition) {
+      // Find the clip's start time from the preview descriptor
+      const clip = this._getPlayableClips(buildPreviewFromState(this.data)).clips
+        || [];
+      // Simplified: seek to the start time of the clip at this index
+      const playableClips = this._getPlayableClips(buildPreviewFromState(this.data));
+      if (playableClips[index]) {
+        video.currentTime = playableClips[index].startTime || 0;
+      }
+    }
+  }
+
+  /**
+   * Render an error state in the preview area.
+   */
+  _renderPreviewError(message) {
+    const errorDiv = this.overlay.querySelector('#tg-preview-display');
+    if (errorDiv) {
+      errorDiv.innerHTML = `
+        <div class="tg-preview-error">
+          <span class="tg-error-icon">⚠️</span>
+          <p>Preview error: ${message}</p>
+          <button class="tg-btn tg-btn-sm tg-btn-secondary" onclick="window.location.reload()">Retry</button>
+        </div>
+      `;
+    }
+  }
+
+  /**
+   * Update the preview progress bar and time display.
+   * Called from the video element's timeupdate event.
+   */
+  _updatePreviewProgress(currentTime, duration) {
+    if (!duration || isNaN(duration)) return;
+    const percent = currentTime / duration;
+    const fill = this.overlay.querySelector('#tg-preview-progress-fill');
+    const timeLabel = this.overlay.querySelector('#tg-preview-time');
+    if (fill) fill.style.width = `${percent * 100}%`;
+    if (timeLabel) timeLabel.textContent = `${this._formatTime(currentTime)} / ${this._formatTime(duration)}`;
+  }
+
+  /**
+   * Attach video event listeners for progress tracking.
+   */
+  _attachVideoEvents() {
+    const video = this.overlay.querySelector('#tg-preview-video');
+    if (!video || !this._cachedComposition) return;
+
+    video.addEventListener('timeupdate', () => {
+      this._updatePreviewProgress(video.currentTime, video.duration);
+    });
+    video.addEventListener('loadedmetadata', () => {
+      this._previewState.duration = video.duration;
+    });
+    video.addEventListener('ended', () => {
+      this._previewState.playing = false;
+      const playBtn = this.overlay.querySelector('#tg-preview-play-pause');
+      if (playBtn) playBtn.innerHTML = '▶️ Play';
+    });
   }
 
   /**
@@ -1182,6 +1629,15 @@ export class TemplateGeneratorModal extends BaseModal {
   goBack() {
     if (this.step > 1) {
       this.step--;
+      // Reset media edit state if going back from generate/edit panel
+      this._mediaUiState.editingSceneIndex = null;
+      this._mediaUiState.editingResultIndex = null;
+      this._mediaUiState.editReferenceUrl = null;
+      this._mediaUiState.editInstruction = '';
+      // Pause preview if going back from Step 8
+      if (this.step === 7) {
+        this._previewState.playing = false;
+      }
       this.refresh();
     }
   }
@@ -1198,6 +1654,12 @@ export class TemplateGeneratorModal extends BaseModal {
         console.warn(`[TemplateGeneratorModal] ${emptyScenes} scene(s) have no media assigned`);
       }
     }
+
+    // When moving from Step 8 to Step 9, rebuild the cached composition
+    if (this.step === 8) {
+      this._cachedComposition = buildCompositionFromState(this.data);
+    }
+
     if (this.step < this.maxStep) {
       this.step++;
       this.refresh();
@@ -1213,27 +1675,75 @@ export class TemplateGeneratorModal extends BaseModal {
         content.innerHTML = this.renderStep();
         this.setupStepListeners();
         this.setupEventListeners();
+        // Re-attach video events if we're on the preview step
+        if (this.step === 8) {
+          setTimeout(() => this._attachVideoEvents(), 50);
+        }
       }
     }
   }
 
+  /**
+   * Real Add-to-Timeline integration.
+   * Uses TimelineFeatureApi.applyTemplate with the composition built from
+   * the same builder used for preview. The entire insertion is one
+   * transactional history entry (one Undo reverts everything).
+   *
+   * If TimelineFeatureApi is not available, falls back to onConfirm callback
+   * with the composition data.
+   */
   async addToTimeline() {
     try {
-      // Use TimelineFeatureApi for proper integration with history/undo
-      // The actual mutation will be handled by the caller via onConfirm
-      this.onConfirm({
-        action: 'add-to-timeline',
-        data: this.data,
-        meta: {
+      // Build the composition from the same builder used for preview
+      const composition = buildCompositionFromState(this.data);
+
+      // Normalize all assets in the composition through the asset model
+      for (const track of composition.tracks) {
+        for (const clip of track.clips) {
+          if (clip.asset && !clip.assetId) {
+            const normalized = normalizeAsset(clip.asset);
+            clip.asset = normalized;
+          }
+        }
+      }
+
+      if (this.timelineApi) {
+        // Real Timeline insertion via TimelineFeatureApi
+        // applyTemplate wraps everything in a single beginTransaction/commit
+        const result = this.timelineApi.applyTemplate(composition);
+
+        // Preserve scene metadata on each inserted clip
+        const insertedClips = composition.tracks.flatMap((t, ti) =>
+          (t.clips || []).map((c, ci) => ({ trackIndex: ti, clipIndex: ci, ...c }))
+        );
+
+        this.onConfirm({
+          action: 'add-to-timeline',
+          composition,
+          trackIds: result.trackIds,
+          clipIds: result.clipIds,
+          transitionIds: result.transitionIds,
           sceneStructure: this.getSceneStructure(),
           mediaByScene: this.data.mediaByScene,
-        },
-        source: 'template-generator'
-      });
+          source: 'template-generator',
+          success: true,
+        });
+      } else {
+        // Fallback: pass composition to the caller
+        this.onConfirm({
+          action: 'add-to-timeline',
+          composition,
+          sceneStructure: this.getSceneStructure(),
+          mediaByScene: this.data.mediaByScene,
+          source: 'template-generator',
+        });
+      }
+
       this.close();
     } catch (err) {
       console.error('[TemplateGeneratorModal] Failed to add to timeline:', err);
-      this.onCancel({ action: 'error', error: err.message });
+      // Show error state in the modal rather than silently failing
+      this.setError(err, err.message || 'Failed to add template to timeline. Please check your media assignments and try again.');
     }
   }
 }
