@@ -1,6 +1,9 @@
 // netlify/functions/cinegenProviders.js
 // Real provider adapters for Timeline Studio AI tools.
-// Calls MuAPI directly from the Netlify function runtime.
+// - MuAPI for image/video/music/shotboard/composition/llm
+// - fal.ai SAM 3 Video for segmentation (provider/falSam3.js)
+
+import { segmentVideoWithSAM3, segmentVideoToRLE } from './providers/falSam3.js';
 
 const MUAPI_BASE_URL = 'https://api.muapi.ai/api/v1';
 
@@ -426,12 +429,30 @@ export async function providerMaskTool(params = {}) {
 }
 
 export async function providerSAM3Segment(params = {}) {
-  return {
-    success: false,
-    code: 'PROVIDER_NOT_CONFIGURED',
-    tool: 'sam3_segment',
-    error: 'SAM3 segmentation provider is not configured.',
-  };
+  // Map Timeline selection mode to fal prompt type.
+  const mode = params.mode || (params.prompt ? 'text' : (params.pointPrompts ? 'point' : (params.boxPrompts ? 'box' : 'text')));
+  return segmentVideoWithSAM3({
+    video_url: params.videoUrl || params.video_url,
+    prompt: params.prompt,
+    pointPrompts: params.pointPrompts,
+    boxPrompts: params.boxPrompts,
+    applyMask: params.applyMask,
+    outputType: params.outputType,
+    detectionThreshold: params.detectionThreshold,
+    _mode: mode,
+  });
+}
+
+export async function providerSAM3SegmentRLE(params = {}) {
+  return segmentVideoToRLE({
+    video_url: params.videoUrl || params.video_url,
+    prompt: params.prompt,
+    pointPrompts: params.pointPrompts,
+    boxPrompts: params.boxPrompts,
+    applyMask: params.applyMask,
+    outputType: params.outputType,
+    detectionThreshold: params.detectionThreshold,
+  });
 }
 
 export async function providerAudioSync(params = {}) {
