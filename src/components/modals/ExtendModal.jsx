@@ -1,4 +1,5 @@
 import { BaseModal } from './BaseModal.jsx';
+import { executeExtend } from '../../lib/editor/timelineAI.js';
 
 export class ExtendModal extends BaseModal {
   constructor(options = {}) {
@@ -62,13 +63,22 @@ export class ExtendModal extends BaseModal {
       this.onError(this.error);
       return;
     }
+
+    const duration = parseFloat(this.container.querySelector('#extendDuration')?.value || '5');
+    const style = this.container.querySelector('#extendStyle')?.value || 'seamless';
+
     this.status = 'running';
     this.error = null;
     this.refresh();
 
     try {
-      const { runCineGenTool, CINEGEN_TOOLS } = await import('../../lib/cinegenIntegration.js');
-      const result = await runCineGenTool(CINEGEN_TOOLS.EXTEND, { clipId: this.selectedClipId, duration: this.duration });
+      const result = await executeExtend(this.state, {
+        clipId: this.selectedClipId,
+        duration,
+        direction: 'after',
+        style,
+      }, this.showToast);
+
       this.result = result;
       this.status = result?.success ? 'done' : 'error';
       this.error = result?.error || null;
@@ -79,18 +89,10 @@ export class ExtendModal extends BaseModal {
         this.onError(this.error);
       }
     } catch (e) {
-      // Fallback: simulate a successful local extend so the UI/flow is usable
-      // even if the CineGen backend integration is not wired yet.
-      this.result = {
-        success: true,
-        clipId: this.selectedClipId,
-        addedDuration: this.duration,
-        source: 'local-fallback',
-        tool: 'extend'
-      };
-      this.status = 'done';
+      this.error = e.message || 'Extension failed';
+      this.status = 'error';
       this.refresh();
-      this.onComplete(this.result);
+      this.onError(this.error);
     }
   }
 }

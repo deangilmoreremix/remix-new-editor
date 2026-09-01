@@ -1,4 +1,5 @@
 import { BaseModal } from './BaseModal.jsx';
+import { executeFillGap } from '../../lib/editor/timelineAI.js';
 
 export class FillGapModal extends BaseModal {
   constructor(options = {}) {
@@ -63,13 +64,21 @@ export class FillGapModal extends BaseModal {
       this.onError(this.error);
       return;
     }
+
+    const duration = parseFloat(this.container.querySelector('#fillGapDuration')?.value || '5');
+    const style = this.container.querySelector('#fillGapStyle')?.value || 'cinematic';
+
     this.status = 'running';
     this.error = null;
     this.refresh();
 
     try {
-      const { runCineGenTool, CINEGEN_TOOLS } = await import('../../lib/cinegenIntegration.js');
-      const result = await runCineGenTool(CINEGEN_TOOLS.GAP_FILL, { clipId: this.selectedClipId });
+      const result = await executeFillGap(this.state, {
+        clipId: this.selectedClipId,
+        duration,
+        style,
+      }, this.showToast);
+
       this.result = result;
       this.status = result?.success ? 'done' : 'error';
       this.error = result?.error || null;
@@ -80,19 +89,10 @@ export class FillGapModal extends BaseModal {
         this.onError(this.error);
       }
     } catch (e) {
-      // Fallback: simulate a successful local fill so the UI/flow is usable
-      // even if the CineGen backend integration is not wired yet.
-      const simulatedDuration = parseFloat(this.container.querySelector('#fillGapDuration')?.value || '5');
-      this.result = {
-        success: true,
-        clipId: this.selectedClipId,
-        duration: simulatedDuration,
-        source: 'local-fallback',
-        tool: 'fill_gap'
-      };
-      this.status = 'done';
+      this.error = e.message || 'Generation failed';
+      this.status = 'error';
       this.refresh();
-      this.onComplete(this.result);
+      this.onError(this.error);
     }
   }
 }
