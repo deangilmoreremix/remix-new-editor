@@ -135,9 +135,49 @@ export function buildCompositionFromState(state) {
     composition.meta.source = 'template-generator:visual-template';
   }
 
-  // 2. If user-selected media exists, REPLACE any placeholder video clips
-  //    with the user's media in the order they were selected.
-  if (state.media && state.media.length > 0) {
+  // 2. If user-selected media exists (prioritizing scene-level media),
+  //    replace placeholder clips with media assigned per scene.
+  //    Falls back to flat media array for backward compatibility.
+  const hasSceneMedia = state.mediaByScene && state.mediaByScene.some(s => s.status === 'ready' && s.media);
+  if (hasSceneMedia) {
+    // Build clips from scene-level media in scene order
+    const sceneClips = state.mediaByScene
+      .filter(s => s.status === 'ready' && s.media)
+      .sort((a, b) => a.sceneIndex - b.sceneIndex)
+      .map(s => {
+        const m = s.media;
+        const duration = m.duration || DEFAULT_CLIP_DURATION;
+        return {
+          assetId: m.assetId || m.id,
+          asset: m.asset || (m.url ? {
+            id: m.id || generateId('asset'),
+            type: m.type || 'video',
+            name: m.name || s.sceneName,
+            url: m.url,
+            duration,
+            thumbnail: m.thumbnail,
+            source: m.source,
+            provider: m.provider,
+          } : null),
+          type: m.type || 'video',
+          name: m.name || s.sceneName,
+          duration,
+          startTime: undefined, // set sequentially below
+          sceneIndex: s.sceneIndex,
+          sceneName: s.sceneName,
+        };
+      })
+      .filter(c => c.asset);
+
+    if (sceneClips.length > 0) {
+      // Place scene-level media on a dedicated "Scene Media" track
+      baseTracks.unshift({
+        type: 'video',
+        name: 'Scene Media',
+        clips: sceneClips,
+      });
+    }
+  } else if (state.media && state.media.length > 0) {
     const userClips = state.media
       .filter(m => m && (m.url || m.id || m.assetId))
       .map((m, i) => {
@@ -186,7 +226,8 @@ export function buildCompositionFromState(state) {
 
   // 4. Insert transitions between consecutive user-media clips.
   if (state.transitions && state.transitions.length > 0 && baseTracks.length > 0) {
-    const userMediaTrack = baseTracks[0]; // User Media is at index 0
+    // User/Scene Media track is at index 0
+    const userMediaTrack = baseTracks[0];
     if (userMediaTrack && userMediaTrack.clips.length >= 2) {
       userMediaTrack.clips.forEach((clip, i) => {
         if (i < userMediaTrack.clips.length - 1) {

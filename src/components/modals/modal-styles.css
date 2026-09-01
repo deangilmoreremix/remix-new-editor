@@ -5935,6 +5935,352 @@
   color: var(--muted);
 }
 
+/* Scene-level media: scene tabs */
+.tg-scene-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border-soft);
+  padding-bottom: 4px;
+  overflow-x: auto;
+}
+
+.tg-scene-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 150ms ease;
+  white-space: nowrap;
+}
+
+.tg-scene-tab:hover {
+  color: var(--text);
+  border-bottom-color: var(--border);
+}
+
+.tg-scene-tab.active {
+  color: var(--text);
+  border-color: var(--border-soft) var(--border-soft) transparent var(--border-soft);
+  background: var(--panel);
+}
+
+.tg-scene-tab-name {
+  font-weight: 500;
+}
+
+.tg-scene-status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.tg-dot-ready {
+  background: var(--primary);
+  box-shadow: 0 0 6px var(--primary);
+}
+
+.tg-dot-empty {
+  background: var(--border);
+}
+
+/* Scene media panel */
+.tg-scene-media-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tg-scene-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tg-scene-header h4 {
+  font-size: 14px;
+  margin: 0;
+}
+
+.tg-scene-name {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.tg-scene-media-status {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--panel);
+  border: 1px solid var(--border-soft);
+}
+
+.tg-scene-media-status.ready {
+  color: var(--primary);
+  border-color: var(--primary-soft);
+}
+
+.tg-scene-media-status.loading {
+  color: var(--muted);
+}
+
+.tg-scene-media-status.editing {
+  color: var(--primary);
+  border-color: var(--primary-soft);
+}
+
+/* Scene media preview */
+.tg-scene-media-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  background: var(--panel);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+}
+
+.tg-preview-thumb {
+  width: 80px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.tg-preview-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.tg-preview-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.tg-preview-source {
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.tg-preview-actions {
+  display: flex;
+  gap: 4px;
+}
+
+/* Media tab overrides for scene-level */
+.tg-media-tabs {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.tg-media-tab {
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.tg-media-tab:hover {
+  color: var(--text);
+}
+
+.tg-media-tab.active {
+  color: var(--text);
+  background: var(--panel);
+  border-color: var(--border-soft) var(--border-soft) transparent var(--border-soft);
+}
+
+/* Stock search bar */
+.tg-stock-search-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.tg-stock-search-bar .tg-input {
+  flex: 1;
+}
+
+/* Suggestion chips */
+.tg-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.tg-suggestion-chip {
+  padding: 4px 10px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.tg-suggestion-chip:hover {
+  background: var(--panel-soft);
+  color: var(--text);
+  border-color: var(--border-soft);
+}
+
+/* Loading indicator */
+.tg-loading-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 24px;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.tg-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: tg-spin 0.8s linear infinite;
+}
+
+@keyframes tg-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Generated image card */
+.tg-generated-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.tg-generated-card-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.tg-btn-sm {
+  padding: 4px 8px;
+  font-size: 10px;
+  gap: 4px;
+}
+
+.tg-revised-prompt {
+  font-size: 10px;
+  color: var(--muted);
+  font-style: italic;
+  margin-top: 4px;
+}
+
+/* Edit image panel */
+.tg-edit-image-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tg-edit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tg-edit-header h5 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.tg-edit-scene-name {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.tg-edit-reference-preview {
+  display: flex;
+  justify-content: center;
+  padding: 8px;
+  background: var(--panel);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+}
+
+.tg-edit-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+/* Scene table for preview */
+.tg-scene-breakdown {
+  margin: 16px 0;
+}
+
+.tg-scene-breakdown h4 {
+  font-size: 14px;
+  margin: 0 0 8px;
+}
+
+.tg-scene-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.tg-scene-table th,
+.tg-scene-table td {
+  text-align: left;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.tg-scene-table th {
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+}
+
+.tg-scene-status-cell {
+  font-weight: 500;
+}
+
+.tg-scene-status-cell.ready {
+  color: var(--primary);
+}
+
+.tg-scene-status-cell.empty {
+  color: var(--muted);
+}
+
 /* Overlays & transitions */
 .tg-section { margin-bottom: 24px; }
 .tg-section h4 { font-size: 14px; margin: 0 0 12px; }
