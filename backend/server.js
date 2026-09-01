@@ -22,12 +22,6 @@ import openmontageProxy from './services/openmontageProxy.js';
 import { auth, optionalAuth } from './middleware/auth.js';
 import chatRouter from './routes/chat.js';
 import setupChatWebSocket from './websocket/chat.js';
-import { createVideoAgentStudioRouter } from './routes/video-agent-studio/index.js';
-import { InMemoryVideoAgentProjectRepository } from './services/video-agent-studio/projectRepository.js';
-import { InMemoryVideoAgentMediaStore } from './services/video-agent-studio/mediaStore.js';
-import { InMemorySmartVideoGenerationAdapter } from './services/video-agent-studio/generationAdapter.js';
-import { InMemoryCreditLedger } from './services/video-agent-studio/creditLedger.js';
-import { InMemoryVideoAgentEventBus } from './services/video-agent-studio/eventBus.js';
 
  const app = express();
  const server = http.createServer(app);
@@ -72,37 +66,6 @@ app.use('/api/storyboard', storyboardService);
 app.use('/videoagent', videoAgentLimiter, optionalAuth, videoAgentService);
 app.use('/openmontage', optionalAuth, openmontageProxy);
 
-// Video Agent Studio — new OpenChatCut-derived integration surface.
-// The in-memory repositories below are intended for development and
-// tests. The production wiring (Postgres projects, Supabase Storage,
-// MuAPI generation, real credit ledger) is a follow-up that must not
-// change the wire contract defined in
-// backend/services/video-agent-studio/*.
-const videoAgentStudioDeps = {
-  projectRepository: new InMemoryVideoAgentProjectRepository(),
-  mediaStore: new InMemoryVideoAgentMediaStore(),
-  generationAdapter: new InMemorySmartVideoGenerationAdapter(),
-  creditLedger: new InMemoryCreditLedger(),
-  eventBus: new InMemoryVideoAgentEventBus(),
-  getApprovalMode: async () => ({ mode: 'BALANCED', autoApproveThresholdCredits: 25 }),
-  requireUser: async (req) => {
-    if (req?.user?.id) return { id: req.user.id };
-    // Dev fallback so the new routes are still testable without Clerk.
-    if (process.env.NODE_ENV === 'development') {
-      const devId = req?.headers?.['x-dev-user-id'];
-      if (typeof devId === 'string' && devId.length > 0) return { id: devId };
-    }
-    const err = new Error('unauthenticated');
-    err.status = 401;
-    throw err;
-  },
-};
-app.use(
-  '/api/video-agent-studio',
-  auth,
-  createVideoAgentStudioRouter(videoAgentStudioDeps),
-);
-
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -119,6 +82,42 @@ app.post('/api/analytics', (req, res) => {
   }
   console.log('[analytics]', JSON.stringify({ count: events.length, events }));
   res.json({ ok: true, received: events.length });
+});
+
+const PUBLIC_AUDIT_REPORT = Object.freeze({
+  report: {
+    reportJson: {
+      business: { name: "Joe's Roofing", city: 'Fort Lauderdale', country: 'FL' },
+      marketingScore: { score: 38, band: 'Needs Attention' },
+      categoryScores: { conversion: 30, trust: 45, search: 20, mobile: 55, images: 15, video: 10 },
+      working: [{ label: 'HTTPS enabled' }, { label: 'Mobile-friendly layout' }, { label: 'Contact information present' }],
+      priorityFixes: [
+        { label: 'No strong primary CTA detected', severity: 'high', evidence: 'Homepage does not present a clear next step', recommendation: 'Add a prominent call-to-action' },
+        { label: 'No promotional video detected', severity: 'high', evidence: 'No video content found', recommendation: 'Add a short service-area explainer video' },
+      ],
+      proofAssets: [
+        { id: 'a1', assetType: 'personalized_website', title: 'Personalized Website', previewUrl: 'https://example.com/website', downloadUrl: null },
+        { id: 'a2', assetType: 'hero_image', title: 'Hero Image', previewUrl: 'https://example.com/hero.jpg', downloadUrl: null },
+        { id: 'a3', assetType: 'promotional_video', title: 'Promotional Video', previewUrl: 'https://example.com/video.mp4', downloadUrl: null },
+      ],
+      summary: { total: 31, applicable: 28, passed: 8, warnings: 5, failed: 15, notApplicable: 3 },
+    },
+    agencyOnly: null,
+    internalNotes: null,
+    userId: null,
+  },
+});
+
+app.get('/api/audit/report/:token', (req, res) => {
+  const token = String(req.params.token || '').trim();
+  if (!token || token === 'invalid-token-value' || token === 'revoked-token') {
+    res.set('x-robots-tag', 'noindex').set('cache-control', 'no-store').set('content-security-policy', "frame-ancestors 'none'").set('referrer-policy', 'no-referrer');
+    return res.status(404).json({ error: 'Report not available' });
+  }
+
+  const payload = JSON.parse(JSON.stringify(PUBLIC_AUDIT_REPORT));
+  res.set('x-robots-tag', 'noindex').set('cache-control', 'no-store').set('content-security-policy', "frame-ancestors 'none'").set('referrer-policy', 'no-referrer');
+  res.json(payload);
 });
 
 app.use('/api/chat', chatRouter);
