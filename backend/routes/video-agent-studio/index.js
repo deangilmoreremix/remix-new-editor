@@ -16,13 +16,13 @@
 // implementations.
 
 import { Router } from 'express';
-import { VIDEO_AGENT_EVENT_TYPES } from '../services/video-agent-studio/eventBus.js';
-import { isSupportedCapability } from '../services/video-agent-studio/generationAdapter.js';
+import { VIDEO_AGENT_EVENT_TYPES } from '../../services/video-agent-studio/eventBus.js';
+import { isSupportedCapability } from '../../services/video-agent-studio/generationAdapter.js';
 import {
   isAllowedUploadMime,
   MAX_UPLOAD_BYTES,
-} from '../services/video-agent-studio/mediaStore.js';
-import { requiresApproval } from '../services/video-agent-studio/creditLedger.js';
+} from '../../services/video-agent-studio/mediaStore.js';
+import { requiresApproval } from '../../services/video-agent-studio/creditLedger.js';
 
 /**
  * @param {{

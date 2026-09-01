@@ -46,13 +46,16 @@ export const APPROVAL_MODES = Object.freeze(['AUTO', 'BALANCED', 'MANUAL']);
  * @returns {boolean} true when the user must approve before the job
  *   is submitted.
  */
-export function requiresApproval(mode, creditsEstimated, opts = {}) {
+export function requiresApproval(modeOrObject, creditsEstimated, opts = {}) {
+  const mode = typeof modeOrObject === 'string' ? modeOrObject : modeOrObject?.mode;
+  const autoApproveThresholdCredits =
+    typeof modeOrObject === 'object' ? modeOrObject.autoApproveThresholdCredits : undefined;
   const expensive = opts.expensiveThresholdCredits ?? 25;
   if (mode === 'MANUAL') return true;
   if (mode === 'BALANCED') return creditsEstimated >= expensive;
   // AUTO: explicit per-user threshold wins; otherwise no approval.
-  if (typeof mode?.autoApproveThresholdCredits === 'number') {
-    return creditsEstimated > mode.autoApproveThresholdCredits;
+  if (typeof autoApproveThresholdCredits === 'number') {
+    return creditsEstimated > autoApproveThresholdCredits;
   }
   return false;
 }
