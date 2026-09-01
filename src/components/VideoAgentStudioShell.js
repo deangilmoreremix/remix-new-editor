@@ -40,16 +40,16 @@ export const VIDEO_AGENT_STUDIO_DEV_URL =
   (typeof window !== 'undefined' && window.__VIDEO_AGENT_STUDIO_URL__) ||
   'http://localhost:3200/';
 
-// Public-facing branding strings for the SmartVideo Video Agent Studio.
+// Public-facing branding strings for the SmartVideo Video Agent Studio 2.
 export const VIDEO_AGENT_STUDIO_BRAND = Object.freeze({
-  productName: 'SmartVideo Video Agent',
-  shortName: 'Video Agent Studio',
+  productName: 'SmartVideo Video Agent Studio 2',
+  shortName: 'Video Agent Studio 2',
   tagline: 'AI-native video editing with the OpenChatCut engine',
-  pageTitle: 'Video Agent Studio — SmartVideo',
+  pageTitle: 'Video Agent Studio 2 — SmartVideo',
   headerSubtitle: 'AI-native editor · powered by OpenChatCut',
-  splashLoadingText: 'Loading Video Agent Studio…',
+  splashLoadingText: 'Loading Video Agent Studio 2…',
   splashErrorText:
-    'Video Agent Studio is not running. Start it with `npm run dev:video-agent-studio` and reload.',
+    'Video Agent Studio 2 is not running. Start it with `npm run dev:video-agent-studio` and reload.',
 });
 
 // postMessage message types exchanged with the embedded Video Agent Studio.

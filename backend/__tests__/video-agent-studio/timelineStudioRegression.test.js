@@ -40,10 +40,17 @@ describe('Timeline Studio regression (Video Agent integration must not touch)', 
     );
   });
 
-  it("the 'video-agent' route in src/lib/router.js loads the new shell", () => {
+  it("the 'video-agent' route in src/lib/router.js still loads the original VideoAgentPage.js (Studio 1)", () => {
     const src = readFileSync(ROUTER, 'utf8');
     expect(src).toMatch(
-      /^\s*['"]?video-agent['"]?\s*:\s*\(\)\s*=>\s*import\(['"]\.\.\/components\/VideoAgentStudioShell\.js['"]\)/m,
+      /^\s*['"]?video-agent['"]?\s*:\s*\(\)\s*=>\s*import\(['"]\.\.\/components\/VideoAgentPage\.js['"]\)/m,
+    );
+  });
+
+  it("the new 'video-agent-studio' route in src/lib/router.js loads the new OpenChatCut-backed shell (Studio 2)", () => {
+    const src = readFileSync(ROUTER, 'utf8');
+    expect(src).toMatch(
+      /^\s*['"]?video-agent-studio['"]?\s*:\s*\(\)\s*=>\s*import\(['"]\.\.\/components\/VideoAgentStudioShell\.js['"]\)/m,
     );
   });
 
