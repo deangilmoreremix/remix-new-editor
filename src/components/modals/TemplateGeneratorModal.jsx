@@ -8,7 +8,8 @@ import {
   expandScript,
   applyCta,
 } from '../../lib/editor/scriptAiService.js';
-import { searchVideos as pexelsSearchVideos, searchPhotos as pexelsSearchPhotos } from '../../lib/pexelsApi.js';
+import { searchPixabay, normalizePixabayImage, normalizePixabayVideo, suggestPixabayQueries } from '../../lib/editor/pixabayService.js';
+import { generateImage as generateAiImage, aspectRatioToSize, buildScenePromptContext } from '../../lib/editor/aiImageService.js';
 import { TransitionsLibrary } from '../../lib/editor/transitionsLibrary.js';
 import { cineGenElements, searchMedia, filterMediaByType } from '../../lib/editor/mediaLibrary.js';
 import { templateSegments, entityKeys } from '../../lib/constants/templateGenerator.js';
@@ -20,7 +21,7 @@ import { templateSegments, entityKeys } from '../../lib/constants/templateGenera
  *   1. Niche        — industry filtering
  *   2. Script       — Niche Script library OR Custom/AI (generate/rewrite/shorten/expand)
  *   3. Template     — visual template selection (skipped if Niche Script provides base)
- *   4. Media        — Library + Upload + Stock (Pexels) + AI Generate (max 5)
+ *   4. Media        — Library + Upload + Stock (Pixabay) + AI Generate (max 5)
  *   5. Transitions & Overlays
  *                      - Transitions: real transition library (requires 2+ media)
  *                      - Content Overlays: text/logo/CTA/lower third/captions/sticker/lead form/interactive
@@ -296,9 +297,10 @@ export class TemplateGeneratorModal extends BaseModal {
       <h3 class="tg-step-title">Add Media</h3>
       <p class="tg-step-desc">Select up to <strong>5</strong> videos/images. They will be sequenced in the order shown. Drag to reorder.</p>
       <div class="tg-media-tabs" role="tablist">
-        <button class="tg-tab ${this._mediaTab === 'library' ? 'active' : ''}" data-action="set-media-tab" data-tab="library" role="tab">Library</button>
+        <button class="tg-tab ${this._mediaTab === 'library' ? 'active' : ''}" data-action="set-media-tab" data-tab="library" role="tab">My Media</button>
         <button class="tg-tab ${this._mediaTab === 'upload' ? 'active' : ''}" data-action="set-media-tab" data-tab="upload" role="tab">Upload</button>
-        <button class="tg-tab ${this._mediaTab === 'stock' ? 'active' : ''}" data-action="set-media-tab" data-tab="stock" role="tab">Stock (Pexels)</button>
+        <button class="tg-tab ${this._mediaTab === 'pixabay' ? 'active' : ''}" data-action="set-media-tab" data-tab="pixabay" role="tab">Pixabay</button>
+        <button class="tg-tab ${this._mediaTab === 'ai-generate' ? 'active' : ''}" data-action="set-media-tab" data-tab="ai-generate" role="tab">AI Generate</button>
       </div>
       <div class="tg-media-tab-panel" id="tg-media-tab-panel">
         ${this.renderMediaTabPanel()}
@@ -315,7 +317,8 @@ export class TemplateGeneratorModal extends BaseModal {
   renderMediaTabPanel() {
     if (this._mediaTab === 'library') return this.renderMediaLibrary();
     if (this._mediaTab === 'upload') return this.renderMediaUpload();
-    if (this._mediaTab === 'stock') return this.renderMediaStock();
+    if (this._mediaTab === 'pixabay') return this.renderMediaPixabay();
+    if (this._mediaTab === 'ai-generate') return this.renderMediaAiGenerate();
     return '';
   }
 
@@ -352,15 +355,20 @@ export class TemplateGeneratorModal extends BaseModal {
     `;
   }
 
-  renderMediaStock() {
+  renderMediaPixabay() {
+    const suggestions = suggestPixabayQueries({ niche: this.data.niche, script: this.data.script.text });
     return `
       <div class="tg-form-row">
-        <input type="search" class="tg-input" placeholder="Search Pexels..." value="${this._esc(this.stockQuery)}" data-field="stockQuery" data-on="input">
+        <input type="search" class="tg-input" placeholder="Search Pixabay..." value="${this._esc(this.stockQuery)}" data-field="stockQuery" data-on="input">
         <select class="tg-select" data-field="stockType" data-on="change">
           <option value="video" ${this.stockType === 'video' ? 'selected' : ''}>Videos</option>
-          <option value="photo" ${this.stockType === 'photo' ? 'selected' : ''}>Photos</option>
+          <option value="image" ${this.stockType === 'image' ? 'selected' : ''}>Images</option>
         </select>
         <button class="tg-btn tg-btn-primary" data-action="search-stock">Search</button>
+      </div>
+      <div class="tg-pixabay-suggestions">
+        <span class="tg-hint">Suggestions:</span>
+        ${suggestions.map(q => `<button class="tg-suggestion-chip" data-action="pixabay-suggestion" data-query="${this._esc(q)}">${this._esc(q)}</button>`).join('')}
       </div>
       <div class="tg-media-grid" id="tg-stock-grid">
         ${this._renderStockResults()}
@@ -376,7 +384,7 @@ export class TemplateGeneratorModal extends BaseModal {
       return `<p class="tg-error">${this._esc(this._stockError)}</p>`;
     }
     if (!this.stockResults || this.stockResults.length === 0) {
-      return '<p class="tg-empty-state">Search Pexels for videos or photos to use in your template.</p>';
+      return '<p class="tg-empty-state">Search Pixabay for images or videos to use in your template.</p>';
     }
     return this.stockResults.map(r => `
       <button class="tg-media-card tg-stock-card" data-action="add-stock-item" data-id="${this._esc(r.id)}" data-url="${this._esc(r.url || '')}" data-thumb="${this._esc(r.thumb || '')}" data-name="${this._esc(r.name || '')}" data-type="${this.stockType === 'video' ? 'video' : 'image'}">
@@ -386,7 +394,64 @@ export class TemplateGeneratorModal extends BaseModal {
     `).join('');
   }
 
-  renderSelectedMediaItem(m, i) {
+  renderMediaAiGenerate() {
+    const ai = this._aiImageState || { prompt: '', busy: false, error: '', results: [], aspectRatio: this.data.template?.selected?.aspectRatios?.[0] || '16:9' };
+    return `
+      <div class="tg-ai-generate-panel">
+        <p class="tg-step-desc">Generate a custom image using GPT-Image-2. The prompt is refined using your Template Generator context (niche, script, scene).</p>
+        <div class="tg-form-group">
+          <label for="tg-ai-img-prompt">Image Prompt</label>
+          <textarea id="tg-ai-img-prompt" class="tg-textarea" rows="3" placeholder="Describe the image you want to generate..." data-field="_aiImageState.prompt" data-on="input">${this._esc(ai.prompt)}</textarea>
+          <p class="tg-hint">Context: ${this._esc(buildScenePromptContext({ niche: this.data.niche, script: this.data.script.text, aspectRatio: ai.aspectRatio }))}</p>
+        </div>
+        <div class="tg-form-row">
+          <div class="tg-form-group">
+            <label for="tg-ai-img-aspect">Aspect Ratio</label>
+            <select id="tg-ai-img-aspect" class="tg-select" data-field="_aiImageState.aspectRatio" data-on="change">
+              <option value="16:9" ${ai.aspectRatio === '16:9' ? 'selected' : ''}>16:9 (Landscape)</option>
+              <option value="9:16" ${ai.aspectRatio === '9:16' ? 'selected' : ''}>9:16 (Portrait)</option>
+              <option value="1:1" ${ai.aspectRatio === '1:1' ? 'selected' : ''}>1:1 (Square)</option>
+            </select>
+          </div>
+          <div class="tg-form-group">
+            <label for="tg-ai-img-quality">Quality</label>
+            <select id="tg-ai-img-quality" class="tg-select" data-field="_aiImageState.quality" data-on="change">
+              <option value="auto" ${ai.quality === 'auto' || !ai.quality ? 'selected' : ''}>Auto</option>
+              <option value="low" ${ai.quality === 'low' ? 'selected' : ''}>Low</option>
+              <option value="medium" ${ai.quality === 'medium' ? 'selected' : ''}>Medium</option>
+              <option value="high" ${ai.quality === 'high' ? 'selected' : ''}>High</option>
+            </select>
+          </div>
+        </div>
+        <div class="tg-ai-tools">
+          <button class="tg-btn tg-btn-ai" data-action="ai-image-generate" ${ai.busy ? 'disabled' : ''} ${!ai.prompt?.trim() ? 'disabled' : ''}>✨ Generate</button>
+          <button class="tg-btn tg-btn-secondary" data-action="ai-image-suggest">Suggest Prompt</button>
+        </div>
+        ${ai.error ? `<div class="tg-error" role="alert">${this._esc(ai.error)}</div>` : ''}
+        <div class="tg-ai-results" id="tg-ai-results">
+          ${(ai.results || []).length === 0
+            ? '<p class="tg-empty-state">No images generated yet.</p>'
+            : (ai.results || []).map((r, i) => this.renderAiImageResult(r, i)).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  renderAiImageResult(asset, index) {
+    return `
+      <div class="tg-ai-result">
+        <img src="${this._esc(asset.url || asset.thumbnail)}" alt="${this._esc(asset.prompt || 'Generated image')}" class="tg-ai-thumb"/>
+        <div class="tg-ai-result-info">
+          <p class="tg-ai-result-prompt">${this._esc(asset.prompt || '').slice(0, 100)}</p>
+          <p class="tg-ai-result-meta">${asset.width || '?'}×${asset.height || '?'} · ${asset.model || 'gpt-image-2'}</p>
+          <div class="tg-ai-result-actions">
+            <button class="tg-btn tg-btn-primary tg-btn-sm" data-action="ai-image-use" data-index="${index}">Use in Template</button>
+            <button class="tg-btn tg-btn-secondary tg-btn-sm" data-action="ai-image-regenerate" data-index="${index}">Regenerate</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
     return `
       <div class="tg-media-list-item" data-index="${i}">
         <span class="tg-media-handle" aria-hidden="true">≡</span>
@@ -666,6 +731,11 @@ export class TemplateGeneratorModal extends BaseModal {
         break;
       case 'trigger-upload': this.overlay.querySelector('#tg-upload-input')?.click(); break;
       case 'search-stock': this._searchStock(); break;
+      case 'pixabay-suggestion': this._pixabaySuggestion(target.dataset.query); break;
+      case 'ai-image-generate': this._aiImageGenerate(); break;
+      case 'ai-image-suggest': this._aiImageSuggest(); break;
+      case 'ai-image-use': this._aiImageUse(Number(target.dataset.index)); break;
+      case 'ai-image-regenerate': this._aiImageRegenerate(Number(target.dataset.index)); break;
       case 'add-stock-item':
         this._addStockItem({
           id: target.dataset.id,
@@ -925,33 +995,34 @@ export class TemplateGeneratorModal extends BaseModal {
     this._stockError = '';
     this._renderMediaPanel();
     try {
-      let res;
-      if (this.stockType === 'video') {
-        res = await pexelsSearchVideos({ query: this.stockQuery || 'business', per_page: 12 });
-      } else {
-        res = await pexelsSearchPhotos({ query: this.stockQuery || 'business', per_page: 12 });
+      const res = await searchPixabay({
+        type: this.stockType === 'video' ? 'videos' : 'images',
+        query: this.stockQuery || 'business',
+        perPage: 15,
+      });
+      if (!res.ok) {
+        this._stockError = res.error || 'Pixabay search failed';
+        this.stockResults = [];
+        return;
       }
-      const items = this.stockType === 'video' ? (res?.videos || []) : (res?.photos || []);
-      this.stockResults = items.map(it => ({
-        id: String(it.id),
-        name: this.stockType === 'video'
-          ? (it.user?.name ? `${it.user.name} – ${it.width}×${it.height}` : `Pexels video ${it.id}`)
-          : (it.alt || `Pexels photo ${it.id}`),
-        url: this.stockType === 'video'
-          ? it.video_files?.[0]?.link || it.url
-          : it.src?.large || it.src?.original,
-        thumb: this.stockType === 'video'
-          ? it.image || it.video_pictures?.[0]?.picture
-          : it.src?.medium || it.src?.small,
-      }));
-      if (this.stockResults.length === 0) this._stockError = 'No results. Configure a Pexels key in env to enable stock search.';
+      this.stockResults = res.hits.map(hit =>
+        this.stockType === 'video' ? normalizePixabayVideo(hit) : normalizePixabayImage(hit)
+      );
+      if (this.stockResults.length === 0) {
+        this._stockError = 'No results. Configure PIXABAY_API_KEY in server env to enable stock search.';
+      }
     } catch (e) {
-      this._stockError = `Stock search failed: ${e.message}. Configure PEXELS_API_KEY in env.`;
+      this._stockError = `Pixabay search failed: ${e.message}. Configure PIXABAY_API_KEY in server env.`;
       this.stockResults = [];
     } finally {
       this._stockBusy = false;
       this._renderMediaPanel();
     }
+  }
+
+  _pixabaySuggestion(query) {
+    this.stockQuery = query;
+    return this._searchStock();
   }
 
   _addStockItem(m) {
@@ -960,14 +1031,95 @@ export class TemplateGeneratorModal extends BaseModal {
       return;
     }
     this.data.media.push({
-      id: `stock-${m.id}`,
-      stockId: m.id,
+      id: m.id,
       name: m.name,
       type: m.type,
       url: m.url,
-      thumbnail: m.thumb,
+      thumbnail: m.thumbnail,
+      source: m.source || 'pixabay',
+      provider: m.provider || 'pixabay',
+      metadata: m.metadata,
     });
     this._renderStep();
+  }
+
+  // AI Image generation (GPT-Image-2)
+  async _aiImageGenerate() {
+    if (!this._aiImageState) this._aiImageState = { prompt: '', busy: false, error: '', results: [], aspectRatio: '16:9' };
+    if (!this._aiImageState.prompt?.trim()) {
+      this._aiImageState.error = 'Enter a prompt first';
+      this._renderMediaPanel();
+      return;
+    }
+    this._aiImageState.busy = true;
+    this._aiImageState.error = '';
+    this._renderMediaPanel();
+    try {
+      const res = await generateAiImage({
+        prompt: this._aiImageState.prompt,
+        niche: this.data.niche,
+        scene: this.data.script.text,
+        aspectRatio: this._aiImageState.aspectRatio || '16:9',
+        quality: this._aiImageState.quality || 'auto',
+        n: 1,
+      });
+      if (!res.ok) {
+        this._aiImageState.error = res.error || 'Image generation failed';
+      } else {
+        // Replace previous results for this generation cycle.
+        this._aiImageState.results = res.assets || [];
+      }
+    } catch (e) {
+      this._aiImageState.error = `Image generation failed: ${e.message}`;
+    } finally {
+      this._aiImageState.busy = false;
+      this._renderMediaPanel();
+    }
+  }
+
+  _aiImageSuggest() {
+    // Build a scene-aware prompt suggestion from the current context.
+    const niche = this.data.niche || 'general business';
+    const scriptSnippet = this.data.script.text?.slice(0, 120) || '';
+    const aspectDesc = { '16:9': 'landscape', '9:16': 'portrait', '1:1': 'square' }[this._aiImageState?.aspectRatio || '16:9'];
+    const suggested = `Cinematic ${aspectDesc} photograph of ${niche.toLowerCase()} scene, ${scriptSnippet || 'professional setting'}, high quality, natural lighting, no text or logos.`;
+    if (!this._aiImageState) this._aiImageState = { prompt: '', busy: false, error: '', results: [], aspectRatio: '16:9' };
+    this._aiImageState.prompt = suggested;
+    this._renderMediaPanel();
+  }
+
+  _aiImageUse(index) {
+    if (!this._aiImageState?.results?.[index]) return;
+    if (this.data.media.length >= 5) {
+      this._setError('Maximum 5 media items allowed.');
+      return;
+    }
+    const asset = this._aiImageState.results[index];
+    this.data.media.push({
+      id: asset.id,
+      name: asset.name,
+      type: 'image',
+      url: asset.url,
+      thumbnail: asset.thumbnail || asset.url,
+      source: 'openai',
+      provider: 'openai',
+      model: asset.model || 'gpt-image-2',
+      prompt: asset.prompt,
+      width: asset.width,
+      height: asset.height,
+      metadata: asset.generationMetadata,
+    });
+    // Clear results after use to avoid re-adding
+    this._aiImageState.results = [];
+    this._renderStep();
+  }
+
+  async _aiImageRegenerate(index) {
+    // Use the same prompt as the original result, but call generate again.
+    if (!this._aiImageState?.results?.[index]) return;
+    const original = this._aiImageState.results[index];
+    this._aiImageState.prompt = original.prompt || this._aiImageState.prompt;
+    return this._aiImageGenerate();
   }
 
   _moveMedia(index, delta) {

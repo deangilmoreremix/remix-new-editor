@@ -1,98 +1,117 @@
 /**
  * Script AI Service
  *
- * Wraps OpenAI text generation for the Template Generator script step.
- * Exposes generate / rewrite / shorten / expand with a consistent contract.
+ * Frontend wrapper for the Template Generator script operations.
+ * Calls the secure Netlify function at /api/timeline-script which uses
+ * the OpenAI Responses API (NOT Chat Completions).
  *
- * Uses the existing openaiService for prompt construction; for the actual
- * chat completion call, it uses the /api/ai-script Netlify function when
- * available, otherwise falls back to a deterministic placeholder that is
- * explicitly marked unavailable (so the UI does not fake success).
+ * If the endpoint is unavailable, returns { ok:false, error } so the
+ * UI can surface the real failure rather than fake success.
  *
- * If the network is unreachable or no key is configured, returns
- * { ok:false, error:'...' } — callers MUST surface this to the user.
+ * Supports stateful chaining via previousResponseId when the server
+ * returns a responseId.
  */
 
-const SCRIPT_API_PATH = '/api/ai-script';
+const SCRIPT_API_PATH = '/api/timeline-script';
 
-/**
- * Build a system prompt describing the desired operation.
- */
-function buildSystemPrompt({ operation, tone, audience, cta }) {
-  const tonePart = tone ? `Tone: ${tone}.` : '';
-  const audPart = audience ? `Audience: ${audience}.` : '';
-  const ctaPart = cta ? `End with a clear call to action: "${cta}".` : '';
-  const base = 'You are an expert short-form video scriptwriter.';
-  const ops = {
-    generate: `${base} Write a concise, engaging video script (60-90 seconds when spoken at a natural pace). ${tonePart} ${audPart} ${ctaPart} Return only the script text.`,
-    rewrite:  `${base} Rewrite the provided script to improve clarity, flow, and engagement. Preserve the core message. ${tonePart} ${audPart} ${ctaPart} Return only the rewritten script text.`,
-    shorten:  `${base} Shorten the provided script to roughly half its length while preserving the key message and call to action. ${tonePart} ${audPart} ${ctaPart} Return only the shortened script.`,
-    expand:   `${base} Expand the provided script with richer detail, sensory language, and a stronger narrative arc. Keep it under 120 seconds. ${tonePart} ${audPart} ${ctaPart} Return only the expanded script.`,
-    cta:      `${base} Add or strengthen a call to action at the end of the provided script. Return the full script with the CTA integrated.`,
-  };
-  return ops[operation] || ops.generate;
-}
+// Stateful chain — kept per-browser-session so sequential refinements
+// (Generate → Rewrite → Shorten) can use previous_response_id.
+let lastResponseId = null;
 
-/**
- * Call the AI script endpoint.
- * Returns { ok:true, text } on success, { ok:false, error } on failure.
- */
-async function callScriptEndpoint({ operation, text, tone, audience, cta, niche }) {
-  const system = buildSystemPrompt({ operation, tone, audience, cta });
-  const userParts = [];
-  if (niche) userParts.push(`Niche: ${niche}`);
-  if (text) userParts.push(`Existing script:\n"""${text}"""`);
-  userParts.push('Produce the requested output.');
+export function getLastScriptResponseId() { return lastResponseId; }
+export function resetScriptResponseChain() { lastResponseId = null; }
 
-  const body = {
-    system,
-    messages: [{ role: 'user', content: userParts.join('\n\n') }],
-    maxTokens: 800,
-  };
-
+async function callScriptEndpoint(payload) {
   let res;
   try {
     res = await fetch(SCRIPT_API_PATH, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      body: JSON.stringify({ ...payload, previousResponseId: lastResponseId }),
     });
   } catch (e) {
     return { ok: false, error: `Network error: ${e.message}` };
   }
 
   if (!res.ok) {
-    return { ok: false, error: `AI script service returned ${res.status}` };
+    let detail = '';
+    try {
+      const err = await res.json();
+      detail = err?.error || '';
+    } catch {}
+    return { ok: false, error: `Script service returned ${res.status}${detail ? `: ${detail}` : ''}` };
   }
+
   let json;
   try {
     json = await res.json();
   } catch {
-    return { ok: false, error: 'AI script service returned invalid JSON' };
+    return { ok: false, error: 'Script service returned invalid JSON' };
   }
-  const out = (json?.text || json?.result || json?.output || '').trim();
-  if (!out) return { ok: false, error: 'AI script service returned empty result' };
-  return { ok: true, text: out };
+
+  if (!json.ok) {
+    return { ok: false, error: json.error || 'Script service error' };
+  }
+
+  if (json.responseId) {
+    lastResponseId = json.responseId;
+  }
+
+  return { ok: true, text: json.text, responseId: json.responseId || null, model: json.model || null };
 }
 
-export async function generateScript({ text, operation = 'generate', tone, audience, cta, niche } = {}) {
-  return callScriptEndpoint({ operation, text, tone, audience, cta, niche });
+export async function generateScript({
+  niche,
+  templateContext,
+  tone = 'conversational',
+  audience = 'general',
+  cta = '',
+  duration,
+  platform,
+  aspectRatio,
+  personalizationEnabled = false,
+} = {}) {
+  return callScriptEndpoint({
+    action: 'generate',
+    niche,
+    existingScript: '',
+    tone,
+    audience,
+    cta,
+    duration,
+    platform,
+    aspectRatio,
+    templateContext,
+    personalizationEnabled,
+  });
 }
 
-export async function rewriteScript({ text, tone, audience, cta, niche } = {}) {
-  return callScriptEndpoint({ operation: 'rewrite', text, tone, audience, cta, niche });
+export async function rewriteScript(params = {}) {
+  return callScriptEndpoint({ action: 'rewrite', ...params });
 }
 
-export async function shortenScript({ text, tone, audience, cta, niche } = {}) {
-  return callScriptEndpoint({ operation: 'shorten', text, tone, audience, cta, niche });
+export async function shortenScript(params = {}) {
+  return callScriptEndpoint({ action: 'shorten', ...params });
 }
 
-export async function expandScript({ text, tone, audience, cta, niche } = {}) {
-  return callScriptEndpoint({ operation: 'expand', text, tone, audience, cta, niche });
+export async function expandScript(params = {}) {
+  return callScriptEndpoint({ action: 'expand', ...params });
 }
 
-export async function applyCta({ text, cta, niche } = {}) {
-  return callScriptEndpoint({ operation: 'cta', text, cta, niche });
+export async function applyCta(params = {}) {
+  return callScriptEndpoint({ action: 'applyCta', ...params });
+}
+
+export async function changeTone(params = {}) {
+  return callScriptEndpoint({ action: 'changeTone', ...params });
+}
+
+export async function changeAudience(params = {}) {
+  return callScriptEndpoint({ action: 'changeAudience', ...params });
+}
+
+export async function optimizeForVoice(params = {}) {
+  return callScriptEndpoint({ action: 'optimizeForVoice', ...params });
 }
 
 export default {
@@ -101,4 +120,9 @@ export default {
   shortenScript,
   expandScript,
   applyCta,
+  changeTone,
+  changeAudience,
+  optimizeForVoice,
+  getLastScriptResponseId,
+  resetScriptResponseChain,
 };
