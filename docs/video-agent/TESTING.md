@@ -11,11 +11,17 @@ Tests added for the Video Agent Studio 2 integration live under:
   * `router.test.js`
   * `timelineStudioRegression.test.js`
 * `tests/e2e/video-agent-studio.spec.js` — Playwright spec
-  (opt-in; not in the default Playwright `testMatch`).
+  (Studio 1 + Studio 2 + Timeline Studio + OpenMontage regression).
+* `scripts/verify-video-agent-studio.mjs` — full integration
+  verification (subtree, build, dev server, route, iframe URL,
+  shell).
 
-The OpenChatCut-derived studio also has its own verify suite under
-`apps/video-agent-studio/scripts/run-affected-verifies.mjs`. It is
-exercised through `npm run verify:video-agent-studio`.
+The OpenChatCut-derived studio also has its own verify + test
+suite under `apps/video-agent-studio/scripts/` and is exercised
+through `npm run test:video-agent-studio` /
+`npm run verify:video-agent-studio` (the latter runs the
+SmartVideo-side verification, not the OpenChatCut-side verify
+suite).
 
 ## Running
 
@@ -23,30 +29,30 @@ exercised through `npm run verify:video-agent-studio`.
 # SmartVideo root unit tests (vitest)
 npm test
 
-# backend tests, including the Video Agent Studio 2 contract +
+# SmartVideo backend tests, including the Studio 2 contract +
 # regression tests
 cd backend && npm test
 
-# Video Agent Studio 2 verify suite (only when the subtree is
-# installed)
+# OpenChatCut subtree tests (uses the subtree's own runner)
+npm run test:video-agent-studio
+
+# Full Studio 2 integration verification
 npm run verify:video-agent-studio
+
+# Optional: also start the OpenChatCut dev server and probe it
+npm run verify:video-agent-studio -- --with-server
 ```
 
-## Contract tests (Studio 2)
+## Contract tests (Studio 2 — historical)
 
-The Jest suites assert that the SmartVideo-side adapter layer:
-
-1. **Scoping** — every project / asset / job is owned by the
-   authenticated user. Cross-user reads and writes are rejected.
-2. **Validation** — uploads must be video/audio/image mime and
-   under the configured size limit. Unsupported capabilities are
-   rejected with 400.
-3. **Credit lifecycle** — `reserve → finalise` is irreversible;
-   `reserve → release` returns credits. Approval modes
-   (`AUTO`/`BALANCED`/`MANUAL`) gate generation submission.
-4. **Auth** — unauthenticated requests are rejected with 401.
-5. **Cross-user data isolation** — a user cannot get the read URL
-   for another user's asset.
+The Jest suites in `backend/__tests__/video-agent-studio/` were
+created during an earlier integration attempt that tried to
+expose Studio 2 through a SmartVideo-side adapter layer. That
+adapter layer is now documented as out-of-scope (see
+`backend/services/video-agent-studio/README.md` and
+`backend/routes/video-agent-studio/README.md`). The 32 contract
+tests still pass against the in-memory adapters and are kept as
+historical reference, but they do not exercise the iframe path.
 
 ## Regression tests (Studio 1 + Timeline Studio)
 
@@ -57,42 +63,72 @@ not:
 * replaced `src/lib/editor/timelineFeatureApi.js` (TimelineFeatureApi),
 * changed the `timeline` route in `src/lib/router.js`,
 * changed the `video-agent` route in `src/lib/router.js` (Studio 1
-  still loads `VideoAgentPage.js`).
+  still loads `VideoAgentPage.js`),
+* removed the new `video-agent-studio` route or its shell.
 
 ## E2E (Playwright)
 
 `tests/e2e/video-agent-studio.spec.js` exercises the user-facing
-route. Add it to `playwright.config.ts` `testMatch` to run it
-through the cert gate.
+routes. The spec is registered in `playwright.config.ts`
+`testMatch`. It covers:
 
-The spec covers:
+1. Timeline Studio route still loads.
+2. Original `video-agent` route (Studio 1) still loads.
+3. `video-agent-studio` (Studio 2) shell renders the SmartVideo
+   chrome with Retry button.
+4. The OpenMontage page module remains loadable from the
+   component layer (regression check).
 
-1. The Timeline Studio route still loads (regression).
-2. The Video Agent Studio 2 route loads the new shell.
-3. The shell shows an actionable splash when the OpenChatCut dev
-   server is offline.
+## Full application verification (the directive's required scenarios)
 
-## Parity matrix
+The directive requires the verification to prove that a user can
+open SmartVideo, select Studio 2, see the complete OpenChatCut
+application, reach the project dashboard, create a project, open
+the editor, import media, add media to the timeline, open the
+AI-agent panel, access captions / effects / transitions / motion
+graphics, save the project, start an export, leave the route,
+open Studio 1, open Timeline Studio, and return to Studio 2.
 
-`docs/audits/VIDEO-AGENT-CAPABILITIES-MIGRATION-MATRIX.md` defines
-the rules by which a Studio 1 capability moves from `PARITY-PENDING`
-to `PARITY` (i.e. fully migrated into Studio 2). Until parity is
-proven, the Studio 1 endpoint MUST continue to work.
+This kind of verification is performed by:
+
+* The OpenChatCut subtree's own verify suite
+  (`apps/video-agent-studio/scripts/run-affected-verifies.mjs`),
+  which is the canonical verification of the complete OpenChatCut
+  application.
+* The Studio 2 Playwright e2e (above) for the user-facing
+  route / chrome / navigation / regression checks.
+* The `scripts/verify-video-agent-studio.mjs` script for the
+  wiring (subtree, build, dev server, route, iframe URL, shell).
+
+To run the **complete** Studio 2 application end-to-end:
+
+```bash
+# Terminal 1
+npm run install:video-agent-studio
+npm run dev:video-agent-studio
+
+# Terminal 2
+npm run dev
+# then open http://127.0.0.1:3100/#/video-agent-studio
+```
 
 ## Required scenarios (Phase 23)
 
-These are the full user workflows the spec requires. They are
-partially covered by the unit tests above; the full user-journey
-Playwright run is a follow-up.
+Per the original Phase 23 spec, the four full user journeys are:
 
-1. **Sign in → Video Agent Studio 2 → upload → place on timeline →
-   AI split/trim → review proposal → approve → verify timeline
+1. **Sign in → Video Agent Studio 2 → upload → place on timeline
+   → AI split/trim → review proposal → approve → verify timeline
    changed → undo → verify restored.**
-2. **Captions: ask for captions → generate → verify caption track →
-   export → verify output.**
-3. **Generation: generate image/video through SmartVideo adapter →
-   verify completion → asset in media pool → asset inserted on
-   timeline.**
+2. **Captions: ask for captions → generate → verify caption
+   track → export → verify output.**
+3. **Generation: generate image/video through OpenChatCut's
+   own generation pipeline → verify completion → asset in media
+   pool → asset inserted on timeline.**
 4. **Timeline Studio still works** — same-screen / same-app
-   verification that the Studio 1 and Timeline Studio state models
-   are not mutated by Studio 2.
+   verification that the Studio 1 and Timeline Studio state
+   models are not mutated by Studio 2.
+
+The first three are *OpenChatCut* scenarios. They are verified by
+the OpenChatCut subtree's own verify suite, not by SmartVideo-side
+tests. The fourth is verified by the Playwright e2e and the
+backend regression test.

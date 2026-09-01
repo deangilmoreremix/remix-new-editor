@@ -1,87 +1,69 @@
-# SmartVideo Integrations
+# SmartVideo Video Agent Studio 2 — SmartVideo integrations
 
-The OpenChatCut-derived Video Agent Studio is integrated with the
-existing SmartVideo infrastructure through narrow, well-defined
-adapters. The studio does NOT replace or duplicate those integrations.
+Video Agent Studio 2 is embedded as an iframe. **The OpenChatCut
+application does not integrate with SmartVideo's backend systems.**
+This is a deliberate architectural decision: OpenChatCut operates
+as the complete original application, and SmartVideo provides
+only the route, the chrome, the navigation entry, and the
+dev/build scripts.
 
-## Auth — SmartVideo Clerk
+This document therefore lists what Studio 2 does **not** consume
+from SmartVideo, and what Studio 2 provides for itself.
 
-* Source: `src/lib/clerkInit.js`, `src/lib/clerkEntitlements.js`,
-  `backend/middleware/auth.js`.
-* Adapter: `src/lib/videoAgentAuth.js`.
-* Contract: the shell resolves the current SmartVideo user from
-  `window.Clerk` and forwards only `{ id, email, isAuthenticated,
-  source }` to the iframe via postMessage.
-* The iframe NEVER receives a Clerk session token, an API key, or
-  any private profile data. It calls back into the SmartVideo
-  backend with its own authenticated session if it needs anything
-  more than the id.
+## What Studio 2 does NOT use from SmartVideo
 
-## Storage — Supabase / hybrid / R2
+* **Auth** — Studio 2 does not use SmartVideo Clerk. OpenChatCut
+  has its own auth surface (configured inside Studio 2's own
+  settings UI).
+* **Storage** — Studio 2 does not use SmartVideo's Supabase /
+  hybrid / R2 storage. OpenChatCut stores projects, media, and
+  models in its own data directory.
+* **Model registry + MuAPI** — Studio 2 does not use SmartVideo's
+  model registry or MuAPI. OpenChatCut has its own provider
+  model registry, configured inside Studio 2's settings.
+* **Credits** — Studio 2 does not use SmartVideo's credit
+  ledger. OpenChatCut has its own quota / approval surface.
+* **Publishing** — Studio 2 has its own export pipeline
+  (Remotion + FFmpeg + FCPXML + browser export). It does not
+  route through SmartVideo's Social Publisher.
+* **Realtime** — Studio 2 has its own SSE / event surface.
+* **Timeline Studio** — Studio 2 does not use TimelineFeatureApi
+  or any Timeline Studio state.
+* **Video Agent Studio 1** — Studio 2 does not reuse the
+  `VideoAgentPage.js` implementation or the Studio 1 backend.
+* **OpenMontage** — Studio 2 does not reuse the OpenMontage
+  reference source.
 
-* Sources: `src/lib/hybrid-supabase.js`, `src/lib/supabase.js`,
-  `src/lib/offline-storage.js`.
-* Adapter: `backend/services/video-agent-studio/mediaStore.js`.
-* Asset layout: `video-agent/{userId}/{projectId}/{assetId}/{filename}`.
-* Validation: server-side mime and size limits
-  (`isAllowedUploadMime`, `MAX_UPLOAD_BYTES`).
-* The concrete production implementation plugs the existing
-  `hybrid-supabase.js` helpers into the `VideoAgentMediaStore`
-  contract. The in-memory implementation is for tests.
+## What SmartVideo provides for Studio 2
 
-## Model registry + MuAPI
+* The `video-agent-studio` route in `src/lib/router.js` →
+  `src/components/VideoAgentStudioShell.js`.
+* A navigation entry in `src/lib/studioRoutes.js` (Tools
+  category) so Studio 2 shows up in the SmartVideo drawer,
+  dashboard, launcher, or catalog next to the other studios.
+* SmartVideo-branded chrome inside the shell (header, splash,
+  error splash with Retry button, back button).
+* CSP allowance for the iframe origin in `vite.config.js`.
+* Root npm scripts: `install:video-agent-studio`,
+  `dev:video-agent-studio`, `dev:all`,
+  `build:video-agent-studio`, `test:video-agent-studio`,
+  `verify:video-agent-studio`,
+  `update:video-agent-studio-subtree`.
+* A verification script (`scripts/verify-video-agent-studio.mjs`)
+  that asserts the full-application integration path is wired up.
 
-* Sources: `src/lib/modelCatalog.js`, `src/lib/models.js`,
-  `src/lib/muapi.js`, `src/lib/muapiKeyValidator.ts`,
-  `backend/services/modelCatalogService.js`,
-  `backend/services/agentActionsService.js`.
-* Adapter: `backend/services/video-agent-studio/generationAdapter.js`.
-* Capabilities (whitelisted): `video.generate`, `image.generate`,
-  `audio.tts`, `audio.music`, `audio.sfx`, `video.lipsync`,
-  `video.upscale`, `video.reframe`, `video.transcribe`,
-  `video.analyze`, `stock.video.search`, `stock.image.search`.
-* The studio NEVER holds a provider key. It asks for a capability;
-  SmartVideo resolves the model + provider, reserves credits, calls
-  MuAPI, persists the output as a SmartVideo asset, and returns the
-  asset to the studio's media pool.
+## Optional future cross-studio workflows (not part of this work)
 
-## Credits
-
-* Source: existing SmartVideo usage/billing tables under
-  `supabase/migrations/*`.
-* Adapter: `backend/services/video-agent-studio/creditLedger.js`.
-* Lifecycle: `estimate → reserve → execute → reconcile`.
-* Approval modes: `AUTO`, `BALANCED`, `MANUAL`. See
-  `requiresApproval()` for the gate.
-* No second credit system is introduced.
-
-## Publishing
-
-* The OpenChatCut-derived studio's final publish step will route
-  through the existing SmartVideo Social Publisher rather than a
-  duplicate. Wiring is deferred until the studio's export step is
-  reachable from the iframe; in the meantime, the export step
-  produces a downloadable file the user can hand off.
-
-## Realtime
-
-* Source: existing SmartVideo realtime channel.
-* Adapter: `backend/services/video-agent-studio/eventBus.js` and the
-  `/api/video-agent-studio/events` SSE endpoint.
-
-## Authenticated SmartVideo studios exposed as agent tools
-
-Phase 13. Existing SmartVideo studios that have a clean backend
-capability (e.g. image generation, lip sync, upscale, social
-publishing) are exposed to the agent as **SmartVideo agent tools**
-through the same `SmartVideoGenerationAdapter` lifecycle. The
-tool-layer additions will land in a follow-up; the wire contract
-(resolve capability → resolve model → reserve credits → call
-provider → return asset) is already in place.
+If a future strategy requires Studio 2 results to land in Timeline
+Studio, that hand-off would be a future feature implemented as a
+download/upload flow or a separate cross-studio adapter. It is
+**not part of this work**.
 
 ## See also
 
 * `docs/video-agent/ARCHITECTURE.md`
 * `docs/video-agent/TESTING.md`
+* `docs/video-agent/PRODUCTION-DEPLOYMENT.md`
+* `docs/audits/VIDEO-AGENT-OPENCHATCUT-BASELINE.md`
 * `docs/audits/VIDEO-AGENT-CAPABILITIES-MIGRATION-MATRIX.md`
 * `docs/audits/VIDEO-AGENT-OPENMONTAGE-MIGRATION-MATRIX.md`

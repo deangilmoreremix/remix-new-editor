@@ -1,10 +1,10 @@
-# OpenChatCut Migration
+# SmartVideo Video Agent Studio 2 — OpenChatCut migration
 
 The OpenChatCut codebase is imported into the SmartVideo repository
-as a `git subtree` at `apps/video-agent-studio/`. This document
-describes how that import is maintained, how the SmartVideo side
-adapts to the upstream app, and how the migration of capabilities is
-tracked.
+as a `git subtree` at `apps/video-agent-studio/`. Video Agent
+Studio 2 embeds OpenChatCut as an iframe. This document describes
+how that import is maintained and how the SmartVideo side keeps
+out of OpenChatCut's way.
 
 ## Subtree workflow
 
@@ -31,10 +31,8 @@ root `package.json` wraps the update command.
 * The subtree is materialized in the working tree like any other
   directory; the OpenChatCut dev server can read it without
   separate clone steps.
-* The SmartVideo-side adapter layer (see `ARCHITECTURE.md`) talks
-  to OpenChatCut through a stable HTTP surface, not through direct
-  imports, so most upstream changes will be transparent to
-  SmartVideo.
+* The SmartVideo-side surface (one iframe shell) is intentionally
+  tiny, so most upstream changes are transparent to SmartVideo.
 
 ## What the SmartVideo side does NOT do
 
@@ -45,38 +43,53 @@ root `package.json` wraps the update command.
 * It does NOT pin or downgrade SmartVideo's React, Vite,
   TypeScript, Node, or Remotion versions to match OpenChatCut.
 * It does NOT delete or replace `TimelineEditorPage.jsx`,
-  `TimelineFeatureApi`, or any other protected SmartVideo surface.
+  `TimelineFeatureApi`, the original `VideoAgentPage.js`, the
+  `video-agent` route, the `timeline` route, OpenMontage, or any
+  other protected SmartVideo surface.
+* It does NOT pass any timeline, media, project, generation, or
+  export command across the iframe boundary.
 
 ## What the SmartVideo side DOES
 
-* Owns the iframe shell, the postMessage handshake, and the
+* Owns the iframe shell, the optional readiness handshake, and the
   SmartVideo-branded chrome (`src/components/VideoAgentStudioShell.js`).
-* Owns the auth bridge (`src/lib/videoAgentAuth.js`).
-* Owns the adapter contracts and the in-memory implementations
-  (`backend/services/video-agent-studio/*`).
-* Owns the HTTP surface mounted at `/api/video-agent-studio`
-  (`backend/routes/video-agent-studio/index.js`).
-* Owns the regression test that protects the Timeline Studio
+* Owns the navigation entry (`src/lib/studioRoutes.js`).
+* Owns the route wiring (`src/lib/router.js`).
+* Owns the dev/build scripts (root `package.json`).
+* Owns the verification script
+  (`scripts/verify-video-agent-studio.mjs`).
+* Owns the regression test that protects the Timeline Studio +
+  Studio 1 invariants
   (`backend/__tests__/video-agent-studio/timelineStudioRegression.test.js`).
-* Owns the migration matrices
-  (`docs/audits/VIDEO-AGENT-CAPABILITIES-MIGRATION-MATRIX.md`,
-  `docs/audits/VIDEO-AGENT-OPENMONTAGE-MIGRATION-MATRIX.md`).
+
+## Historical / out-of-scope adapter layer
+
+The earlier integration attempt left a SmartVideo-side adapter
+layer at `backend/services/video-agent-studio/*` and
+`backend/routes/video-agent-studio/*`. The current Studio 2
+integration strategy does NOT use that layer. It is preserved
+(not deleted) and is explicitly documented as out-of-scope in
+`backend/services/video-agent-studio/README.md` and
+`backend/routes/video-agent-studio/README.md`.
 
 ## When the upstream message contract changes
 
 The single SmartVideo-side point of contact is
-`src/components/VideoAgentStudioShell.js` and the
-`BRIDGE_MESSAGE_TYPES` constants. If OpenChatCut renames or
-re-shapes its bridge messages, the shell is the only place that
-needs to adapt.
+`src/components/VideoAgentStudioShell.js`. The shell only
+recognises four optional postMessage types: `studio.ready`,
+`studio.error`, `health.ping`, `health.pong`. If OpenChatCut
+changes or removes these, the shell simply falls back to the
+iframe `load` event as the readiness signal. No other upstream
+message contract is observed.
 
-## Capability migration
+## Capability / migration matrices
 
-* Existing SmartVideo `video-agent` capabilities are tracked in
+* Existing SmartVideo `video-agent` (Studio 1) capabilities are
+  tracked in
   `docs/audits/VIDEO-AGENT-CAPABILITIES-MIGRATION-MATRIX.md`.
-  Each row has a status: `KEEP`, `MIGRATE`, `REPLACE`,
-  `PARITY`, or `PARITY-PENDING`. A row only moves to `PARITY` when
-  a parity test passes (see `docs/video-agent/TESTING.md`).
+  Because Studio 2 does not integrate with SmartVideo's backend,
+  the migration matrix is now a **status reference** rather
+  than an active migration plan.
 * OpenMontage features are tracked in
-  `docs/audits/VIDEO-AGENT-OPENMONTAGE-MIGRATION-MATRIX.md`. None
-  of the OpenMontage source is deleted.
+  `docs/audits/VIDEO-AGENT-OPENMONTAGE-MIGRATION-MATRIX.md`.
+  None of the OpenMontage source is deleted.

@@ -6,6 +6,25 @@ Studio or unrelated SmartVideo functionality immediately obvious.
 
 ---
 
+Strategy: Video Agent Studio 2 is the **complete OpenChatCut
+application** (from `deangilmoreremix/OpenChatCut`) imported as a
+`git subtree` at `apps/video-agent-studio/` and embedded as an
+**iframe** in the SmartVideo shell at the new
+`video-agent-studio` route. SmartVideo provides only the route, the
+SmartVideo-branded chrome, the navigation entry, and the
+dev/build scripts. OpenChatCut provides everything else — its own
+backend, project store, media processing, agent runtime, MCP,
+FFmpeg, Remotion, etc. No timeline, media, project, generation, or
+export command crosses the iframe boundary.
+
+The user-facing distinction is:
+
+```text
+Timeline Studio        — "I want to manually edit my video."
+Video Agent Studio 1   — existing /video-agent route, the original AI tools grid
+Video Agent Studio 2   — new /video-agent-studio route, the complete OpenChatCut app
+```
+
 ## 1. Repository & branch baseline
 
 | Field | Value |
