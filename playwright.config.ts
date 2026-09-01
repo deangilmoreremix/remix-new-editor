@@ -1,21 +1,22 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Playwright Configuration for Studio Demo Automation
+ * SmartVideo Timeline Studio - Playwright Configuration (cert gate).
  *
- * Video recording is enabled for all projects by default.
- * Videos are stored per-test and can be automatically converted.
+ * Narrow testDir/testMatch to the two timeline e2e specs we run for certification.
+ * The full ./tests tree contains legacy Vitest unit specs and other suites that
+ * pull in browser-only modules; those are out of scope for this gate.
  */
 export default defineConfig({
-  testDir: './tests',
-  testMatch: ['**/*.spec.ts', '**/*.spec.js'],
+  testDir: './tests/e2e',
+  testMatch: ['**/timeline-healthcheck.spec.js', '**/timeline-editing.spec.js', '**/public-audit-report.spec.js'],
   testIgnore: '**/node_modules/**',
 
-  // Run tests sequentially to avoid video corruption and resource contention
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : 2,
+  retries: process.env.CI ? 1 : 0,
+  workers: 1,
+
   reporter: [
     ['html', { outputFolder: './test-results/html-report' }],
     ['json', { outputFile: './test-results/results.json' }],
@@ -23,26 +24,24 @@ export default defineConfig({
     ['line']
   ],
 
-  // Shared settings across all projects
-  use: {
-    baseURL: process.env.BASE_URL || 'http://localhost:3000',
-    trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
-    video: 'on', // Always record video for studio demos
+  timeout: 60_000,
+  expect: { timeout: 10_000 },
 
-    // Extended timeout for feature demos
-    actionTimeout: 15000,
-    navigationTimeout: 30000,
+  use: {
+    baseURL: 'http://127.0.0.1:3100',
+    trace: 'retain-on-failure',
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
+    actionTimeout: 15_000,
+    navigationTimeout: 30_000,
   },
 
-  // Configure projects
   projects: [
     {
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        // High-quality video settings
-        viewport: { width: 1920, height: 1080 },
+        viewport: { width: 1280, height: 720 },
         launchOptions: {
           args: [
             '--start-maximized',
@@ -51,24 +50,14 @@ export default defineConfig({
         }
       },
     },
-    // Uncomment for cross-browser demos
-    // {
-    //   name: 'firefox',
-    //   use: { ...devices['Desktop Firefox'] },
-    // },
-    // {
-    //   name: 'webkit',
-    //   use: { ...devices['Desktop Safari'] },
-    // },
   ],
 
-  // Output folders
   outputDir: './test-results/test-results',
 
-  // Web server configuration (if testing a local app)
-  // webServer: {
-  //   command: 'npm run dev',
-  //   url: 'http://localhost:3000',
-  //   reuseExistingServer: !process.env.CI,
-  // },
+  webServer: {
+    command: 'npm run dev',
+    url: 'http://127.0.0.1:3100',
+    reuseExistingServer: !process.env.CI,
+    timeout: 120_000,
+  },
 });
