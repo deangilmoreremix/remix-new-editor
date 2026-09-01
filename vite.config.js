@@ -417,7 +417,7 @@ function securityHeaders() {
                   `img-src 'self' data: https: blob:${clerkHostSrc}`,
                   `font-src 'self' data:${clerkHostSrc}`,
                   "connect-src 'self' ws://localhost:3001 http://localhost:3001 ws://localhost:8000 http://localhost:8000 ws://localhost:8888 http://localhost:8888 https://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + " https://api.openai.com https://api.muapi.ai https://clerk.smartvid.app https://clerk-telemetry.com https://challenges.cloudflare.com https://raw.githubusercontent.com" + clerkHostSrc,
-                  `frame-src 'self'${clerkHostSrc} https://clerk.smartvid.app https://challenges.cloudflare.com http://localhost:5173 http://localhost:3000 https://ai-vfx.smartvid.app`,
+                  `frame-src 'self'${clerkHostSrc} https://clerk.smartvid.app https://challenges.cloudflare.com http://localhost:5173 http://localhost:3000 http://localhost:3200 https://ai-vfx.smartvid.app https://video-agent-studio.smartvid.app`,
                   "media-src 'self' https: blob:",
                 ].join('; ');
                 res.setHeader('Content-Security-Policy', csp);
