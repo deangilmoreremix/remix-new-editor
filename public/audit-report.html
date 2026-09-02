@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex,nofollow" />
+<meta name="referrer" content="no-referrer" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; media-src 'self' https:; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'none'; frame-ancestors 'none';" />
+<title>SmartVideo Marketing Audit — Client Report</title>
+<style>
+:root{--bg:#09070b;--panel:#0a0a0a;--border:rgba(255,255,255,0.1);--text:#fff;--muted:rgba(255,255,255,0.6);--dim:rgba(255,255,255,0.4);--accent:#d9ff00;--green:#4ade80;--yellow:#fbbf24;--red:#f87171;--blue:#60a5fa;}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text)}
+.container{max-width:768px;margin:0 auto;padding:16px}
+.header{border-bottom:1px solid var(--border);background:#0a0a0a;padding:16px;margin-bottom:16px}
+.header-inner{max-width:768px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
+.brand-title{font-size:18px;font-weight:700}
+.brand-sub{font-size:12px;color:var(--dim)}
+.powered{font-size:12px;color:var(--dim)}
+.section{margin-bottom:16px}
+.business-name{font-size:24px;font-weight:900;margin-bottom:4px}
+.section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px}
+.card{border:1px solid var(--border);background:var(--panel);padding:16px;border-radius:16px}
+.score{font-size:36px;font-weight:900}
+.score-label{font-size:14px;font-weight:700}
+.score-meta{font-size:10px;color:var(--dim);margin-top:8px}
+.item{display:flex;align-items:flex-start;gap:8px;font-size:14px;margin-bottom:6px}
+.item-icon{margin-top:2px}
+.fix-card{border:1px solid var(--border);background:var(--panel);padding:12px;border-radius:12px;margin-bottom:8px}
+.fix-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.fix-title{font-size:13px;font-weight:700}
+.badge{font-size:10px;font-weight:800;text-transform:uppercase;padding:2px 8px;border-radius:999px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.grid-item{border:1px solid var(--border);background:var(--panel);padding:10px;border-radius:12px;text-align:center}
+.grid-score{font-size:18px;font-weight:900}
+.grid-label{font-size:10px;color:var(--dim);margin-top:2px}
+.asset{border:1px solid var(--border);background:var(--panel);padding:12px;border-radius:12px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.asset-title{font-size:14px;font-weight:700}
+.asset-actions{display:flex;gap:12px}
+.link{font-size:11px;text-decoration:none;font-weight:700}
+.link:hover{text-decoration:underline}
+.footer{margin-top:24px;padding-top:16px;border-top:1px solid var(--border);text-align:center;font-size:12px;color:var(--dim)}
+.footer small{display:block;margin-top:4px;font-size:10px;color:rgba(255,255,255,0.3)}
+.error-state{display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:24px}
+.error-title{font-size:20px;font-weight:800;margin-bottom:8px}
+.error-sub{font-size:14px;color:var(--muted)}
+.loading{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:14px;color:var(--dim)}
+.noscript{display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:24px;color:var(--muted);font-size:14px}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<noscript><div class="noscript"><div><div class="error-title">Unable to load report</div><div class="error-sub">Please check the link or try again with JavaScript enabled.</div></div></div></noscript>
+<script>
+function escapeHtml(str){if(str==null)return '';return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;')}
+function sanitizePublicUrl(url){if(typeof url!=='string')return null;const trimmed=url.trim();if(!trimmed)return null;try{const parsed=new URL(trimmed);const scheme=parsed.protocol.toLowerCase();if(scheme!=='https:'&&scheme!=='http:')return null;return parsed.href}catch{return null}}
+function getTokenFromPath(){const searchParams=new URLSearchParams(window.location.search);const tokenFromQuery=searchParams.get('token');if(tokenFromQuery)return tokenFromQuery;const match=window.location.pathname.match(/\/audit\/report\/([^/]+)/);return match?match[1]:null}
+async function loadPublicReport(token){const res=await fetch(`/api/audit/report/${encodeURIComponent(token)}`);if(!res.ok){const err=await res.json().catch(()=>({}));if(res.status===404||/not (available|found)/i.test(err.error||'')){return{ok:false,report:null}}throw new Error(err.error||'Report not found')}return res.json()}
+function renderReport(container,data){const report=data.report?.reportJson||data.report||{};const business=report.business||{};const score=report.marketingScore?.score??'—';const band=report.marketingScore?.band??'';const categoryScores=report.categoryScores||{};const working=report.working||[];const priorityFixes=report.priorityFixes||[];const proofAssets=report.proofAssets||[];const summary=report.summary||{};const root=document.createElement('div');root.innerHTML=`<div class="header"><div class="header-inner"><div><div class="brand-title">SmartVideo Marketing Audit</div><div class="brand-sub">Client Report</div></div><div class="powered">Powered by SmartVideo</div></div></div><div class="container"><div class="section"><div class="business-name">${escapeHtml(business.name||'Business')}</div><div style="font-size:14px;color:var(--muted)">${escapeHtml([business.city,business.country].filter(Boolean).join(', ')||'Location unknown')}</div></div><div class="section"><div class="card"><div class="section-title" style="color:var(--muted);margin-bottom:8px">Marketing Score</div><div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px"><div class="score" style="color:${score>=60?'var(--green)':score>=40?'var(--yellow)':'var(--red)'}">${score}</div><div style="font-size:18px;font-weight:700;color:var(--muted)">/ 100</div></div><div class="score-label" style="color:${score>=60?'var(--green)':score>=40?'var(--yellow)':'var(--red)'}">${escapeHtml(band)}</div><div class="score-meta">${summary.applicable??0} applicable checks · ${summary.passed??0} passed · ${summary.warnings??0} warnings · ${summary.failed??0} needs attention · ${summary.notApplicable??0} not applicable</div></div></div></div>`;if(working.length>0){const section=document.createElement('div');section.className='section';section.innerHTML=`<div class="section-title" style="color:var(--green)">What's Already Working</div>`;const list=document.createElement('div');for(const item of working.slice(0,10)){const row=document.createElement('div');row.className='item';row.innerHTML=`<span class="item-icon" style="color:var(--green)">✓</span><span style="color:rgba(255,255,255,0.8)">${escapeHtml(item.label)}</span>`;list.appendChild(row)}section.appendChild(list);root.appendChild(section)}if(priorityFixes.length>0){const section=document.createElement('div');section.className='section';section.innerHTML=`<div class="section-title" style="color:var(--red)">What to Fix First</div>`;const list=document.createElement('div');for(const item of priorityFixes){const severityColor=item.severity==='high'?'var(--red)':item.severity==='medium'?'var(--yellow)':'var(--muted)';const row=document.createElement('div');row.className='fix-card';row.innerHTML=`<div class="fix-header"><div class="fix-title">${escapeHtml(item.label)}</div><div class="badge" style="background:${item.severity==='high'?'rgba(248,113,113,0.15)':item.severity==='medium'?'rgba(251,191,36,0.15)':'rgba(161,161,170,0.15)'};color:${severityColor}">${escapeHtml(item.severity||'medium')}</div></div>${item.evidence?`<div style="font-size:12px;color:var(--muted);margin-bottom:4px">${escapeHtml(item.evidence)}</div>`:''}${item.recommendation?`<div style="font-size:12px;color:rgba(255,255,255,0.8)">${escapeHtml(item.recommendation)}</div>`:''}`;list.appendChild(row)}section.appendChild(list);root.appendChild(section)}if(Object.keys(categoryScores).length>0){const section=document.createElement('div');section.className='section';section.innerHTML=`<div class="section-title" style="color:var(--muted)">31-Point SmartVideo Marketing Audit</div>`;const grid=document.createElement('div');grid.className='grid';const categoryLabels={conversion:'Conversion',trust:'Trust',search:'Search & Local',mobile:'Mobile & Technical',images:'Images & Creative',video:'Video Marketing'};for(const [cat,s]of Object.entries(categoryScores)){if(s==null)continue;const color=s>=60?'var(--green)':s>=40?'var(--yellow)':'var(--red)';const item=document.createElement('div');item.className='grid-item';item.innerHTML=`<div class="grid-score" style="color:${color}">${s}</div><div class="grid-label">${escapeHtml(categoryLabels[cat]||cat)}</div>`;grid.appendChild(item)}section.appendChild(grid);root.appendChild(section)}if(proofAssets.length>0){const section=document.createElement('div');section.className='section';section.innerHTML=`<div class="section-title" style="color:var(--muted)">Proof of What This Could Look Like</div>`;const list=document.createElement('div');for(const asset of proofAssets){const row=document.createElement('div');row.className='asset';const title=document.createElement('div');title.className='asset-title';title.textContent=asset.title||asset.assetType?.replace(/_/g,' ')||'Proof Asset';const actions=document.createElement('div');actions.className='asset-actions';const safePreview=sanitizePublicUrl(asset.previewUrl);const safeDownload=sanitizePublicUrl(asset.downloadUrl);if(safePreview){const a=document.createElement('a');a.href=safePreview;a.target='_blank';a.rel='noopener noreferrer';a.className='link';a.style.color='var(--accent)';a.textContent='VIEW';actions.appendChild(a)}if(safeDownload){const a=document.createElement('a');a.href=safeDownload;a.target='_blank';a.rel='noopener noreferrer';a.className='link';a.style.color='var(--blue)';a.style.marginLeft='12px';a.textContent='DOWNLOAD';actions.appendChild(a)}row.appendChild(title);row.appendChild(actions);list.appendChild(row)}section.appendChild(list);root.appendChild(section)}const footer=document.createElement('div');footer.className='footer';footer.innerHTML=`<div>Report generated by SmartVideo Marketing Audit</div><small>This report reflects the marketing presence at the time of audit.</small>`;root.appendChild(footer);container.appendChild(root)}
+async function init(){const root=document.getElementById('root');if(!root)return;const token=getTokenFromPath();if(!token){root.innerHTML=`<div class="error-state"><div><div class="error-title">Invalid Report Link</div><div class="error-sub">This report link is missing or malformed.</div></div></div>`;return}root.innerHTML='<div class="loading">Loading report...</div>';try{const data=await loadPublicReport(token);if(!data.ok||!data.report){root.innerHTML=`<div class="error-state"><div><div class="error-title">Report Not Available</div><div class="error-sub">This report may have been revoked or does not exist.</div></div></div>`;return}root.innerHTML='';renderReport(root,data)}catch(e){root.innerHTML=`<div class="error-state"><div><div class="error-title">Error Loading Report</div><div class="error-sub">${escapeHtml(e.message)}</div></div></div>`}}
+init();
+</script>
+</body>
+</html>

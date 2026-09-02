@@ -392,19 +392,25 @@ export class TimelineFeatureApi {
    * ---------------------------------------------------------------- */
 
   /**
-   * @param {Object} template - { name, tracks: [{ type, name, clips: [{ assetId|asset, type, name, startTime, duration, text? }] }] }
-   * @returns {{ trackIds: string[], clipIds: string[] }}
+   * @param {Object} template - Template composition object
+   * @returns {Object} Result with trackIds, clipIds, and transitionIds arrays
    */
   applyTemplate(template) {
     const trackIds = [];
     const clipIds = [];
+    const transitionIds = [];
+
+    // Build a 2D map: trackIndex -> [clipIds in order]
+    const trackClipIds = [];
     this.history.beginTransaction(`Apply Template: ${template.name || 'Template'}`);
     try {
-      for (const trackDef of template.tracks || []) {
+      for (let ti = 0; ti < (template.tracks || []).length; ti++) {
+        const trackDef = template.tracks[ti];
         const kind = trackDef.type === 'audio' ? 'audio' : 'video';
         const trackId = this.ensureTrack(kind, trackDef.name || (kind === 'audio' ? 'Audio' : 'Video'));
         trackIds.push(trackId);
         let cursor = 0;
+        const trackClips = [];
         for (const clipDef of trackDef.clips || []) {
           const startTime = typeof clipDef.startTime === 'number' ? clipDef.startTime : cursor;
           const id = this.addClip(trackId, {
@@ -416,14 +422,45 @@ export class TimelineFeatureApi {
             text: clipDef.text,
             startTime,
           });
-          if (id) clipIds.push(id);
+          if (id) {
+            clipIds.push(id);
+            trackClips.push(id);
+          }
           cursor = startTime + (clipDef.duration || 5);
+        }
+        trackClipIds.push(trackClips);
+      }
+
+      // Apply transitions using clip index references from the composition
+      if (template.transitions && template.transitions.length > 0) {
+        for (const tr of template.transitions) {
+          const inTrack = typeof tr.inTrack === 'number' ? tr.inTrack : tr.trackIndex;
+          const trackClipsForTr = trackClipIds[inTrack];
+          if (!trackClipsForTr) continue;
+
+          const clipAId = typeof tr.fromClipId === 'string'
+            ? tr.fromClipId
+            : trackClipsForTr[tr.fromClipIndex];
+          const clipBId = typeof tr.toClipId === 'string'
+            ? tr.toClipId
+            : trackClipsForTr[tr.toClipIndex];
+
+          if (clipAId && clipBId) {
+            const trId = this.addTransition(clipAId, clipBId, {
+              type: tr.type,
+              duration: tr.duration,
+              direction: tr.direction,
+              easing: tr.easing,
+              parameters: tr.parameters,
+            });
+            if (trId) transitionIds.push(trId);
+          }
         }
       }
     } finally {
       this.history.commit();
     }
-    return { trackIds, clipIds };
+    return { trackIds, clipIds, transitionIds };
   }
 
   /* ---------------------------------------------------------------- *

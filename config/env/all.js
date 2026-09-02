@@ -123,7 +123,7 @@ module.exports = {
     },
     PIXABAY: {
       apiUrl: process.env.PIXABAY_API_URL || 'https://pixabay.com/api',
-      apiKey: process.env.PIXABAY_API_KEY || '13298235-276e448db1c79d704ffc96bc3',
+      apiKey: process.env.PIXABAY_API_KEY || '15571833-24256f0863e4fcba626119f24',
       imagesApiPath: '',
       videosApiPath: '/videos',
     },
@@ -139,7 +139,7 @@ module.exports = {
       videosApiPath: 'api/v1/videos',
     },
     GIPHY: {
-      apiKey: process.env.GIPHY_API_KEY || 'sXpGFDGZs0Dv1mmNFvYaGUvYwKX0PWIh',
+      apiKey: process.env.GIPHY_API_KEY || 'M6YwVeM7Jftx8RtIKQrIu1WnCUqxaiCW',
     },
     TXTVIDEO: {
       apiUrl: process.env.TXTVIDEO_API_URL || 'https://app.txtvideo.com',

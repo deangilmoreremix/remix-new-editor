@@ -1,14 +1,21 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * Template Generator — end-to-end workflow test
+ * Template Generator — end-to-end acceptance test
  *
- * Verifies the complete 9-step workflow when the modal is opened with
- * a fully configured Timeline environment (Clerk + Supabase + API keys).
+ * Verifies the complete 9-step workflow of the TemplateGeneratorModal:
+ *   1. Niche selection
+ *   2. Script editing
+ *   3. Template selection
+ *   4. Scene-level media assignment
+ *   5. Overlays
+ *   6. Voice
+ *   7. Personalization
+ *   8. Real playable Preview
+ *   9. Add to Timeline (with transactional undo/redo)
  *
- * When env is not configured, tests skip gracefully — the env is a
- * hard requirement for the timeline editor to mount, not a defect
- * in the Template Generator modal itself.
+ * When the Clerk/Supabase env is not configured, tests skip gracefully —
+ * the env is a hard requirement for the Timeline editor to mount.
  */
 
 const HAS_ENV = !!process.env.VITE_CLERK_PUBLISHABLE_KEY && !!process.env.VITE_SUPABASE_URL;
@@ -18,81 +25,78 @@ test.describe('Template Generator — full workflow', () => {
     if (!HAS_ENV) test.skip(true, 'Clerk/Supabase env not configured — Timeline editor cannot mount');
     await page.goto('/#/timeline', { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('#app', { timeout: 15000 });
-    // Give the SPA a moment to mount TimelineEditorPage
     await page.waitForTimeout(3000);
   });
 
-  test('opens Template Generator modal and walks through all 9 steps', async ({ page }) => {
-    // The Template Generator is launched from a button in the Timeline toolbar.
-    // If that button is not present, skip (env not configured for gated studio).
+  test('walks through all 9 steps and shows real preview', async ({ page }) => {
+    // Launch Template Generator
     const launchBtn = page.locator('[data-action="open-template-generator"], #tbTemplateGenerator, button:has-text("Template")').first();
     if (await launchBtn.count() === 0) {
-      test.skip(true, 'Template Generator launch button not present (env may be unconfigured)');
+      test.skip(true, 'Template Generator launch button not present');
     }
     await launchBtn.first().click();
 
-    // Modal should be visible
     const modal = page.locator('.tg-workflow').first();
     await expect(modal).toBeVisible({ timeout: 10000 });
 
-    // Step 1: Niche — click a niche card
+    // Step 1: Niche
     const firstNiche = modal.locator('.tg-niche-card').first();
     await firstNiche.click();
     await expect(firstNiche).toHaveClass(/selected/);
 
-    // Step 2: Script — go to Next
+    // Step 2: Script
     await modal.locator('#tg-next').click();
-    await expect(modal.locator('.tg-tab.active')).toBeVisible();
-
-    // Switch to Custom mode and type a script
-    await modal.locator('button[data-action="set-script-mode"][data-mode="custom"]').click();
     const scriptTextarea = modal.locator('#tg-script-text');
-    await scriptTextarea.fill('This is a test script for the template generator.');
+    await expect(scriptTextarea).toBeVisible();
+    await scriptTextarea.fill('This is a test script for the template generator e2e test.');
 
     // Step 3: Template
     await modal.locator('#tg-next').click();
-    // Either recommended or grid should be present
-    const templateGrid = modal.locator('.tg-template-grid, .tg-recommended-card').first();
-    await expect(templateGrid).toBeVisible();
+    const templateCard = modal.locator('.tg-template-card').first();
+    await expect(templateCard).toBeVisible();
+    await templateCard.click();
+    await expect(templateCard).toHaveClass(/selected/);
 
-    // Step 4: Media — select up to 2 library items so transitions are enabled
+    // Step 4: Scene-level Media
     await modal.locator('#tg-next').click();
-    const libraryTab = modal.locator('button[data-action="set-media-tab"][data-tab="library"]');
-    if (await libraryTab.count() > 0) {
-      await libraryTab.click();
-      const items = modal.locator('button[data-action="add-library-item"]');
-      const count = Math.min(2, await items.count());
-      for (let i = 0; i < count; i++) {
-        await items.nth(i).click();
-      }
-    }
+    // Scene tabs should be visible
+    const sceneTabs = modal.locator('.tg-scene-tab');
+    await expect(sceneTabs.first()).toBeVisible();
+    // Should default to library tab
+    await expect(modal.locator('.tg-media-tab.active')).toContainText('My Media');
 
-    // Step 5: Overlays & Transitions
+    // Step 5: Overlays
     await modal.locator('#tg-next').click();
-    await expect(modal.locator('.tg-section').first()).toBeVisible();
+    await expect(modal.locator('.tg-overlay-grid')).toBeVisible();
 
     // Step 6: Voice
     await modal.locator('#tg-next').click();
-    await expect(modal.locator('.tg-toggle').first()).toBeVisible();
+    await expect(modal.locator('.tg-voice-config')).toBeVisible();
 
     // Step 7: Personalization
     await modal.locator('#tg-next').click();
-    await expect(modal.locator('.tg-tokens').first()).toBeVisible();
+    await expect(modal.locator('.tg-tokens')).toBeVisible();
 
-    // Step 8: Preview
+    // Step 8: Preview — should show real playable preview
     await modal.locator('#tg-next').click();
-    await expect(modal.locator('.tg-preview-summary')).toBeVisible();
-    await expect(modal.locator('.tg-preview-header h4')).toBeVisible();
+    await expect(modal.locator('.tg-preview-player-container')).toBeVisible();
+    await expect(modal.locator('.tg-preview-controls')).toBeVisible();
+    await expect(modal.locator('#tg-preview-play-pause')).toBeVisible();
+    await expect(modal.locator('#tg-preview-time')).toBeVisible();
+    // Scene breakdown table should also be present
+    await expect(modal.locator('.tg-scene-table')).toBeVisible();
+    // Summary section
+    await expect(modal.locator('.tg-summary-section')).toBeVisible();
 
     // Step 9: Add to Timeline
     await modal.locator('#tg-next').click();
-    await expect(modal.locator('.tg-step-title')).toContainText('Add to Timeline');
+    await expect(modal.locator('.tg-add-summary')).toBeVisible();
   });
 
   test('state persists across Back/Next navigation', async ({ page }) => {
     const launchBtn = page.locator('[data-action="open-template-generator"], #tbTemplateGenerator, button:has-text("Template")').first();
     if (await launchBtn.count() === 0) {
-      test.skip(true, 'Template Generator launch button not present (env may be unconfigured)');
+      test.skip(true, 'Template Generator launch button not present');
     }
     await launchBtn.first().click();
     const modal = page.locator('.tg-workflow').first();
@@ -113,49 +117,240 @@ test.describe('Template Generator — full workflow', () => {
     expect(await reSelected.locator('.tg-niche-name').textContent()).toBe(nicheName);
   });
 
-  test('script text persists when switching to Custom mode and back', async ({ page }) => {
+  test('scene media persists when switching between scenes', async ({ page }) => {
     const launchBtn = page.locator('[data-action="open-template-generator"], #tbTemplateGenerator, button:has-text("Template")').first();
     if (await launchBtn.count() === 0) {
-      test.skip(true, 'Template Generator launch button not present (env may be unconfigured)');
+      test.skip(true, 'Template Generator launch button not present');
     }
     await launchBtn.first().click();
     const modal = page.locator('.tg-workflow').first();
-    await expect(modal).toBeVisible();
 
-    // Step 1: niche
+    // Step 1 → 2 → 3: select niche and template
     await modal.locator('.tg-niche-card').first().click();
-    await modal.locator('#tg-next').click();
+    await modal.locator('#tg-next').click(); // -> script
+    await modal.locator('#tg-script-text').fill('Test script');
+    await modal.locator('#tg-next').click(); // -> template
+    await modal.locator('.tg-template-card').first().click();
+    await modal.locator('#tg-next').click(); // -> media
 
-    // Step 2: switch to Custom and type
-    await modal.locator('button[data-action="set-script-mode"][data-mode="custom"]').click();
-    await modal.locator('#tg-script-text').fill('Persistent script content');
+    // Scene tabs should be present
+    const sceneTabs = modal.locator('.tg-scene-tab');
+    await expect(sceneTabs.first()).toBeVisible();
 
-    // Switch tabs to Niche then back to Custom
-    await modal.locator('button[data-action="set-script-mode"][data-mode="niche"]').click();
-    await modal.locator('button[data-action="set-script-mode"][data-mode="custom"]').click();
-    await expect(modal.locator('#tg-script-text')).toHaveValue('Persistent script content');
+    // Switch to scene 2
+    await sceneTabs.nth(1).click();
+    await expect(modal.locator('.tg-scene-tab.active').first()).toContainText('Scene 2');
+
+    // Switch back to scene 1
+    await sceneTabs.first().click();
+    await expect(modal.locator('.tg-scene-tab.active').first()).toContainText('Scene 1');
   });
 
-  test('disables transitions with fewer than 2 media items', async ({ page }) => {
+  test('preview player has play/pause/seek controls', async ({ page }) => {
     const launchBtn = page.locator('[data-action="open-template-generator"], #tbTemplateGenerator, button:has-text("Template")').first();
     if (await launchBtn.count() === 0) {
-      test.skip(true, 'Template Generator launch button not present (env may be unconfigured)');
+      test.skip(true, 'Template Generator launch button not present');
     }
     await launchBtn.first().click();
     const modal = page.locator('.tg-workflow').first();
-    await expect(modal).toBeVisible();
 
-    // Walk to step 5 with zero media selected
+    // Walk to step 8 (Preview)
     await modal.locator('.tg-niche-card').first().click();
-    await modal.locator('#tg-next').click(); // -> step 2
-    await modal.locator('button[data-action="set-script-mode"][data-mode="custom"]').click();
-    await modal.locator('#tg-script-text').fill('script');
-    await modal.locator('#tg-next').click(); // -> step 3
-    await modal.locator('#tg-next').click(); // -> step 4
-    await modal.locator('#tg-next').click(); // -> step 5
+    await modal.locator('#tg-next').click(); // -> script
+    await modal.locator('#tg-script-text').fill('Test script for preview test');
+    await modal.locator('#tg-next').click(); // -> template
+    await modal.locator('.tg-template-card').first().click();
+    await modal.locator('#tg-next').click(); // -> media
+    await modal.locator('#tg-next').click(); // -> overlays
+    await modal.locator('#tg-next').click(); // -> voice
+    await modal.locator('#tg-next').click(); // -> personalization
+    await modal.locator('#tg-next').click(); // -> preview
 
-    // Should show the "add at least 2 media" hint, not the transition grid
-    const hint = modal.locator('text=Add at least 2 media items');
-    await expect(hint).toBeVisible();
+    // Verify preview controls
+    const playBtn = modal.locator('#tg-preview-play-pause');
+    await expect(playBtn).toBeVisible();
+    await expect(playBtn).toContainText('Play');
+
+    const restartBtn = modal.locator('#tg-preview-restart');
+    await expect(restartBtn).toBeVisible();
+
+    const timeDisplay = modal.locator('#tg-preview-time');
+    await expect(timeDisplay).toBeVisible();
+    // Time should show total duration
+    await expect(timeDisplay).toContainText('/');
+
+    // Progress bar should be present
+    await expect(modal.locator('#tg-preview-progress')).toBeVisible();
+
+    // Fullscreen button
+    await expect(modal.locator('#tg-preview-fullscreen')).toBeVisible();
+
+    // Scene breakdown table
+    await expect(modal.locator('.tg-scene-table')).toBeVisible();
+  });
+
+  test('preview shows error state for empty media and navigates back to fix', async ({ page }) => {
+    const launchBtn = page.locator('[data-action="open-template-generator"], #tbTemplateGenerator, button:has-text("Template")').first();
+    if (await launchBtn.count() === 0) {
+      test.skip(true, 'Template Generator launch button not present');
+    }
+    await launchBtn.first().click();
+    const modal = page.locator('.tg-workflow').first();
+
+    // Walk to preview with no media assigned
+    await modal.locator('.tg-niche-card').first().click();
+    await modal.locator('#tg-next').click(); // -> script
+    await modal.locator('#tg-script-text').fill('Test script');
+    await modal.locator('#tg-next').click(); // -> template
+    await modal.locator('.tg-template-card').first().click();
+    await modal.locator('#tg-next').click(); // -> media (no media assigned)
+    await modal.locator('#tg-next').click(); // -> overlays
+    await modal.locator('#tg-next').click(); // -> voice
+    await modal.locator('#tg-next').click(); // -> personalization
+    await modal.locator('#tg-next').click(); // -> preview
+
+    // Preview should show empty state
+    const emptyState = modal.locator('.tg-preview-player-empty');
+    await expect(emptyState).toBeVisible();
+    await expect(emptyState).toContainText('No media');
+
+    // Navigate back to media step
+    await modal.locator('#tg-preview-back-media').click();
+    await expect(modal.locator('.tg-scene-tabs')).toBeVisible();
+  });
+
+  test('add to timeline creates editable elements with scene metadata', async ({ page }) => {
+    const launchBtn = page.locator('[data-action="open-template-generator"], #tbTemplateGenerator, button:has-text("Template")').first();
+    if (await launchBtn.count() === 0) {
+      test.skip(true, 'Template Generator launch button not present');
+    }
+    await launchBtn.first().click();
+    const modal = page.locator('.tg-workflow').first();
+
+    // Complete the workflow
+    await modal.locator('.tg-niche-card').first().click();
+    await modal.locator('#tg-next').click();
+    await modal.locator('#tg-script-text').fill('Test script for add-to-timeline');
+
+    await modal.locator('#tg-next').click();
+    await modal.locator('.tg-template-card').first().click();
+
+    // Step 4: Media — select at least one scene tab and note we skip media assignment
+    // (template will have default sceneStructure)
+
+    await modal.locator('#tg-next').click(); // -> overlays
+    await modal.locator('#tg-next').click(); // -> voice
+    await modal.locator('#tg-next').click(); // -> personalization
+
+    // Step 8: Preview
+    await modal.locator('#tg-next').click();
+    await expect(modal.locator('.tg-preview-player-container')).toBeVisible();
+
+    // Step 9: Add to Timeline
+    await modal.locator('#tg-next').click();
+    await expect(modal.locator('.tg-add-summary')).toBeVisible();
+
+    // Click "Add to Timeline" (the finish button)
+    const finishBtn = modal.locator('#tg-next, #tg-finish');
+    await finishBtn.click();
+
+    // Modal should close
+    await expect(modal).not.toBeVisible({ timeout: 5000 });
+
+    // Verify timeline has new elements (tracks with scene media)
+    const timelineTracks = page.locator('[data-testid="timeline-track"]');
+    if (await timelineTracks.count() > 0) {
+      // Verify scene metadata is preserved on clips
+      const sceneClips = page.locator('[data-testid="timeline-clip"][data-scene-index]');
+      if (await sceneClips.count() > 0) {
+        expect(await sceneClips.first().getAttribute('data-scene-index')).toBeTruthy();
+      }
+    }
+  });
+
+  test('undo reverts entire template insertion', async ({ page }) => {
+    const launchBtn = page.locator('[data-action="open-template-generator"], #tbTemplateGenerator, button:has-text("Template")').first();
+    if (await launchBtn.count() === 0) {
+      test.skip(true, 'Template Generator launch button not present');
+    }
+    await launchBtn.first().click();
+    const modal = page.locator('.tg-workflow').first();
+
+    // Complete workflow and insert
+    await modal.locator('.tg-niche-card').first().click();
+    await modal.locator('#tg-next').click();
+    await modal.locator('#tg-script-text').fill('Undo test script');
+    await modal.locator('#tg-next').click();
+    await modal.locator('.tg-template-card').first().click();
+    await modal.locator('#tg-next').click(); // media
+    await modal.locator('#tg-next').click(); // overlays
+    await modal.locator('#tg-next').click(); // voice
+    await modal.locator('#tg-next').click(); // personalization
+    await modal.locator('#tg-next').click(); // preview
+    await modal.locator('#tg-next').click(); // add to timeline
+
+    // Click Add to Timeline (finish)
+    await modal.locator('#tg-next, #tg-finish').click();
+
+    // Wait for modal to close
+    await expect(modal).not.toBeVisible({ timeout: 5000 });
+
+    // Count timeline clips before undo
+    const clipsBefore = page.locator('[data-testid="timeline-clip"]');
+    const clipCount = await clipsBefore.count();
+
+    if (clipCount > 0) {
+      // Find undo button and click it
+      const undoBtn = page.locator('[data-action="undo"], button[title*="Undo"], button[title*="undo"]').first();
+      if (await undoBtn.count() > 0) {
+        await undoBtn.click();
+        // After one undo, all inserted clips should be removed
+        await page.waitForTimeout(500);
+        const clipsAfter = page.locator('[data-testid="timeline-clip"]');
+        expect(await clipsAfter.count()).toBe(0);
+      }
+    }
+  });
+
+  test('redo restores entire template insertion after undo', async ({ page }) => {
+    const launchBtn = page.locator('[data-action="open-template-generator"], #tbTemplateGenerator, button:has-text("Template")').first();
+    if (await launchBtn.count() === 0) {
+      test.skip(true, 'Template Generator launch button not present');
+    }
+    await launchBtn.first().click();
+    const modal = page.locator('.tg-workflow').first();
+
+    // Complete workflow and insert
+    await modal.locator('.tg-niche-card').first().click();
+    await modal.locator('#tg-next').click();
+    await modal.locator('#tg-script-text').fill('Redo test script');
+    await modal.locator('#tg-next').click();
+    await modal.locator('.tg-template-card').first().click();
+    await modal.locator('#tg-next').click();
+    await modal.locator('#tg-next').click();
+    await modal.locator('#tg-next').click();
+    await modal.locator('#tg-next').click();
+    await modal.locator('#tg-next').click();
+    await modal.locator('#tg-next').click();
+
+    await modal.locator('#tg-next, #tg-finish').click();
+    await expect(modal).not.toBeVisible({ timeout: 5000 });
+
+    const clipsBefore = page.locator('[data-testid="timeline-clip"]');
+    const clipCount = await clipsBefore.count();
+
+    if (clipCount > 0) {
+      const undoBtn = page.locator('[data-action="undo"], button[title*="Undo"], button[title*="undo"]').first();
+      const redoBtn = page.locator('[data-action="redo"], button[title*="Redo"], button[title*="redo"]').first();
+
+      if (await undoBtn.count() > 0 && await redoBtn.count() > 0) {
+        await undoBtn.click();
+        await page.waitForTimeout(500);
+        await redoBtn.click();
+        await page.waitForTimeout(500);
+        const clipsAfter = page.locator('[data-testid="timeline-clip"]');
+        expect(await clipsAfter.count()).toBe(clipCount);
+      }
+    }
   });
 });

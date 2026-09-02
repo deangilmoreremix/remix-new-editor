@@ -10,6 +10,7 @@ import { AIVideoCreator } from '../components/modals/AIVideoCreator.jsx';
 import { TemplateGeneratorModal } from '../components/modals/TemplateGeneratorModal.jsx';
 import { RecorderModal } from '../components/modals/RecorderModal.jsx';
 import VoiceModal from '../components/modals/VoiceModal.js';
+import { TimelineFeatureApi } from '../lib/editor/timelineFeatureApi.js';
 
 /**
  * Default GTM → Thumbnail bridge.
@@ -261,13 +262,44 @@ async function openAIVideoCreator(state, showToast) {
 
 async function openTemplateBrowser(clip, state, showToast) {
   try {
+    // Create TimelineFeatureApi from the live TimelineState
+    // state may be a TimelineState instance or a legacy state object
+    let timelineApi = null;
+    if (state && state.getRawState) {
+      // It's a TimelineState (or compatible) instance
+      timelineApi = new TimelineFeatureApi(state);
+    }
+
     const modal = new TemplateGeneratorModal({
-      onSelect: (template) => {
-        applyTemplateToClip(clip, template, state);
+      timelineApi,
+      onConfirm: (result) => {
+        if (result.success) {
+          if (showToast) {
+            showToast(`Template added to timeline (${result.clipIds?.length || 0} clips)`, 'success');
+          }
+        } else {
+          // Fallback path (no timelineApi)
+          const templateData = result.composition || result.data;
+          if (clip) {
+            applyTemplateToClip(clip, templateData, state);
+          }
+        }
+      },
+      onCancel: () => {
+        // User cancelled or error — no action needed
+      },
+      onError: (errorData) => {
+        if (showToast) {
+          showToast(`Template insertion failed: ${errorData.error || 'Unknown error'}`, 'error');
+        }
       }
     });
     modal.open();
   } catch (error) {
+    console.error('[openTemplateBrowser] Failed:', error);
+    if (showToast) {
+      showToast(`Failed to open Template Generator: ${error.message}`, 'error');
+    }
   }
 }
 

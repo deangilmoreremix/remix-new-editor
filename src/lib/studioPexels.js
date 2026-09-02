@@ -3,13 +3,17 @@
  *
  * Provides a simple API for any studio to open the Pexels browser
  * and receive a selected asset.
+ *
+ * Now backed by the unified StockMediaBrowser for consistency,
+ * but locked to Pexels-only for backward compatibility.
  */
 
+import { openStockMediaBrowser, PROVIDERS } from '../components/StockMediaBrowser.js';
+
 export async function browsePexels({ accept = ['image', 'video'], onSelect, onCancel, title, studioName, onDownload }) {
-  const { openPexelsBrowser } = await import('../components/PexelsBrowser.js');
-  
-  openPexelsBrowser({
+  openStockMediaBrowser({
     accept,
+    providers: [PROVIDERS.PEXELS],
     onSelect: (asset) => {
       if (onSelect) onSelect(asset);
     },
