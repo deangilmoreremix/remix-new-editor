@@ -12,7 +12,7 @@ export function WorkflowSection() {
           Go From Simple Idea To <span class="text-cyan-400 italic">Finished Client Asset</span> In Minutes
         </h2>
         <p class="text-xl text-gray-300 max-w-3xl mx-auto">
-          Stop juggling multiple tools and complex workflows. AI Video Agency Studio gives you a streamlined creative pipeline that turns concepts into polished deliverables.
+           Stop juggling multiple tools and complex workflows. Smart Video AI Studio gives you a streamlined creative pipeline that turns concepts into polished deliverables.
         </p>
       </div>
 

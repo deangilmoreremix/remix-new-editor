@@ -8,7 +8,7 @@ import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/pe
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
-import { mountModelSelector, getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
+import { mountModelSelector, getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { getModelById } from '../lib/models.js';
@@ -110,7 +110,7 @@ const dynamicControls = null;
     const provider = selectedModel.provider || 'muapi';
     const logoUrl = PROVIDER_LOGOS[provider];
     if (logoUrl) {
-      triggerBtn.innerHTML = `<div class="w-4 h-4 rounded flex items-center justify-center overflow-hidden bg-white/5 shrink-0"><img src="${logoUrl}" alt="" class="w-full h-full object-contain ${invertLogos.includes(provider) ? 'invert' : ''}" /></div><span class="truncate">${selectedModel.name}</span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted shrink-0"><polyline points="6 9 12 15 18 9"/></svg>`;
+      triggerBtn.innerHTML = `<div class="w-4 h-4 rounded flex items-center justify-center overflow-hidden bg-white/5 shrink-0">${renderProviderLogoImg(provider, '', 'w-full h-full object-contain', invertLogos.includes(provider) ? 'invert' : '')}</div><span class="truncate">${selectedModel.name}</span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted shrink-0"><polyline points="6 9 12 15 18 9"/></svg>`;
     } else {
       const style = getProviderStyle(provider);
       triggerBtn.innerHTML = `<div class="w-4 h-4 bg-primary rounded flex items-center justify-center shadow-lg shadow-primary/20 shrink-0"><span class="text-[8px] font-black text-black">${style.text}</span></div><span class="truncate">${selectedModel.name}</span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted shrink-0"><polyline points="6 9 12 15 18 9"/></svg>`;
@@ -138,9 +138,7 @@ const dynamicControls = null;
     dropdown.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
     dropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
 
-    const triggerRect = triggerBtn.getBoundingClientRect();
-    dropdown.style.top = `${triggerRect.bottom + 6}px`;
-    dropdown.style.left = `${triggerRect.left}px`;
+    positionModelSelectorDropdown(dropdown, triggerBtn, 6, container);
 
     if (!dropdown.dataset.populated) {
       dropdown.dataset.populated = 'true';
@@ -148,8 +146,8 @@ const dynamicControls = null;
         models: CHARACTER_MODELS,
         selectedModelId: selectedModel.id,
         showProviderName: true,
-        onSelectModel: (modelId) => {
-          selectedModel = CHARACTER_MODELS.find(x => x.id === modelId) || { id: modelId };
+        onSelectModel: (model) => {
+          selectedModel = model;
           updateTrigger();
           buildDynamicControls();
           closeDropdown();

@@ -216,8 +216,6 @@ export default async function LandingPage() {
     const videoGallery = createLazySection(() => import('./sections/AIVideoGallery.jsx'), 'gallery', {}, 6);
     const academyShowcase = createLazySection(() => import('./sections/AcademyVideoShowcase.jsx'), 'academy', {}, 7);
     const repoVideoShowcase = createLazySection(() => import('./sections/ShowcaseRepoVideo.jsx'), 'repo-video', {}, 8);
-    const repoShowcase = createLazySection(() => import('./sections/RepoShowcase.jsx'), 'repos', {}, 9);
-
     container.appendChild(scrollingStrip);
     container.appendChild(hookSection);
     container.appendChild(aiWorkflow);      // NEW
@@ -229,7 +227,6 @@ export default async function LandingPage() {
     container.appendChild(videoGallery);    // NEW
     container.appendChild(academyShowcase); // NEW
     container.appendChild(repoVideoShowcase); // NEW
-    container.appendChild(repoShowcase);    // NEW
     container.appendChild(problem);
     container.appendChild(workflow);
     container.appendChild(comparison);

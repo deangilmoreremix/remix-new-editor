@@ -1,0 +1,250 @@
+.section {
+  min-height: 70dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--header-height) + var(--space-lg)) var(--space-lg) var(--space-xl);
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+}
+
+/* Content — centered */
+.content {
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Ornament above headline */
+.ornament {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: var(--space-lg);
+}
+
+.ornamentLine {
+  width: 32px;
+  height: 1px;
+  background: var(--color-border-visible);
+}
+
+.ornamentDot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-secondary);
+  opacity: 0.75;
+}
+
+/* Headline */
+.headline {
+  font-family: var(--font-display);
+  font-size: 76px;
+  font-weight: 800;
+  line-height: 1;
+  color: #FFFFFF;
+  letter-spacing: 0;
+  margin-bottom: var(--space-md);
+}
+
+/* Byline — "by BTA" to the right of the headline */
+.byline {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 18px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: var(--color-text-secondary);
+}
+
+.bylineMark {
+  height: 22px;
+  width: auto;
+  display: block;
+  flex-shrink: 0;
+}
+
+/* Subtitle */
+.subtitle {
+  font-family: var(--font-body);
+  font-size: 19px;
+  color: var(--color-text-secondary);
+  max-width: 570px;
+  margin: 0 auto var(--space-lg);
+  line-height: 1.6;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+/* Input wrapper */
+.inputWrapper {
+  margin: 0 auto var(--space-md);
+  max-width: 640px;
+}
+
+/* Trust — subtle */
+/* Value props — editorial text strip */
+.valueProps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.valueItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 8px 14px 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.035)),
+    rgba(255, 255, 255, 0.04);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14);
+}
+
+/* Subtle dot between items (except last) */
+.valueItem + .valueItem::before {
+  display: none;
+}
+
+.valueItem:nth-child(2) {
+  background:
+    linear-gradient(180deg, rgba(94, 234, 212, 0.12), rgba(94, 234, 212, 0.045)),
+    rgba(255, 255, 255, 0.035);
+  border-color: rgba(94, 234, 212, 0.2);
+}
+
+.valueItem:nth-child(3) {
+  background:
+    linear-gradient(180deg, rgba(246, 193, 119, 0.13), rgba(246, 193, 119, 0.045)),
+    rgba(255, 255, 255, 0.035);
+  border-color: rgba(246, 193, 119, 0.2);
+}
+
+.valueIcon {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  color: var(--color-secondary);
+  background: rgba(94, 234, 212, 0.1);
+  flex-shrink: 0;
+}
+
+.valueLabel {
+  order: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  letter-spacing: 0;
+}
+
+.valueDetail {
+  order: 2;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+/* Product Hunt badge */
+.phBadge {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-xl);
+}
+
+@media (max-width: 600px) {
+  .valueProps {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .valueItem + .valueItem::before {
+    display: none;
+  }
+}
+
+/* Scroll hint */
+.scrollHint {
+  position: absolute;
+  bottom: var(--space-lg);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.scrollHintLine {
+  width: 1px;
+  height: 36px;
+  background: var(--color-border-visible);
+  position: relative;
+  overflow: hidden;
+}
+
+.scrollHintLine::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 35%;
+  background: var(--color-accent);
+  animation: scrollPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes scrollPulse {
+  0%, 100% { transform: translateY(0); opacity: 0; }
+  50% { transform: translateY(28px); opacity: 1; }
+  85% { transform: translateY(24px); opacity: 0.2; }
+}
+
+@media (max-width: 768px) {
+  .section {
+    padding: calc(var(--header-height) + var(--space-lg)) var(--space-lg) var(--space-2xl);
+    min-height: 72dvh;
+  }
+
+  .headline {
+    font-size: 44px;
+    line-height: 1.03;
+  }
+
+  .subtitle {
+    font-size: 17px;
+  }
+
+  .scrollHint { display: none; }
+  .trust { gap: var(--space-md); }
+}
+
+@media (min-width: 769px) and (max-width: 1100px) {
+  .headline {
+    font-size: 64px;
+  }
+}
+
+/* Wide screens: keep headline + byline on a single line (overflows the
+   800px content column slightly; section is centered so it stays balanced) */
+@media (min-width: 1101px) {
+  .headline {
+    white-space: nowrap;
+  }
+}

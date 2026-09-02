@@ -3,11 +3,12 @@ import { resolveTemplate } from '../lib/showcaseTemplateResolver.js';
 import { getTemplateThumbnailCandidates, saveCustomThumbnailToCache, clearCustomThumbnailCache, getCustomThumbnailFromCache } from '../lib/thumbnails.js';
 import { getTemplateSpecs, hasEnhancedSpecs } from '../lib/templateSpecs.js';
 import { muapi } from '../lib/muapi.js';
+import { saveGeneration } from '../lib/generationHistory.js';
 import { getNicheTerms, enrichPromptString, deriveEngineInputFromTemplate, composeNegativePrompt } from '../lib/templateEngine.js';
 import { NICHE_ENRICHMENT, FILM_FAMILIES } from '../lib/templateMatrix.js';
 import { t2iModels, i2iModels, i2vModels, t2vModels, v2vModels, getV2VModelById } from '../lib/models.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
-import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
+import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
 import { AuthModal } from './AuthModal.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { createUploadPicker } from './UploadPicker.js';
@@ -523,7 +524,7 @@ let fallbackList = [];
       const logoUrl = PROVIDER_LOGOS[provider];
       const name = model ? model.name : getModelName(selectedModel);
       if (logoUrl) {
-        triggerBtn.innerHTML = `<div class="w-5 h-5 rounded-md flex items-center justify-center overflow-hidden bg-white/5 shrink-0"><img src="${logoUrl}" alt="" class="w-full h-full object-contain ${invertLogos.includes(provider) ? 'invert' : ''}" /></div><span class="text-sm font-bold text-white truncate">${name}</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted shrink-0"><polyline points="6 9 12 15 18 9"/></svg>`;
+        triggerBtn.innerHTML = `<div class="w-5 h-5 rounded-md flex items-center justify-center overflow-hidden bg-white/5 shrink-0">${renderProviderLogoImg(provider, '', 'w-full h-full object-contain', invertLogos.includes(provider) ? 'invert' : '')}</div><span class="text-sm font-bold text-white truncate">${name}</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted shrink-0"><polyline points="6 9 12 15 18 9"/></svg>`;
       } else {
         const style = getProviderStyle(provider);
         triggerBtn.innerHTML = `<div class="w-5 h-5 bg-primary rounded-md flex items-center justify-center shadow-lg shadow-primary/20 shrink-0"><span class="text-[10px] font-black text-black">${style.text}</span></div><span class="text-sm font-bold text-white truncate">${name}</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted shrink-0"><polyline points="6 9 12 15 18 9"/></svg>`;
@@ -557,9 +558,7 @@ let fallbackList = [];
       dropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
       triggerBtn.setAttribute('aria-expanded', 'true');
 
-      const triggerRect = triggerBtn.getBoundingClientRect();
-      dropdown.style.top = `${triggerRect.bottom + 6}px`;
-      dropdown.style.left = `${triggerRect.left}px`;
+      positionModelSelectorDropdown(dropdown, triggerBtn, 6, container);
 
       if (_modelSelectorOutsideClickHandler) {
         document.removeEventListener('click', _modelSelectorOutsideClickHandler);
@@ -582,8 +581,8 @@ let fallbackList = [];
             selectedModelId: selectedModel,
             showProviderName: true,
             loadingMessage: 'Loading models...',
-            onSelectModel: (modelId) => {
-              selectedModel = modelId;
+            onSelectModel: (model) => {
+              selectedModel = model.id;
               updateTrigger();
               closeDropdown();
             },
@@ -1490,18 +1489,15 @@ let fallbackList = [];
   }
 
   function saveToHistory(url, prompt) {
-    try {
-      const history = JSON.parse(localStorage.getItem('muapi_history') || '[]');
-      history.unshift({
-        id: Date.now().toString(),
-        url,
-        prompt,
-        model: template.model,
-        template: template.id,
-        timestamp: new Date().toISOString(),
-      });
-      localStorage.setItem('muapi_history', JSON.stringify(history.slice(0, 100)));
-    } catch (e) { /* ignore */ }
+    saveGeneration({
+      studio: 'template',
+      type: 'image',
+      url,
+      prompt,
+      model: template.model,
+      parameters: { template_id: template.id },
+      timestamp: new Date().toISOString(),
+    });
   }
 
   return container;

@@ -17,7 +17,7 @@ const SUPABASE_SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE ||
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6eG9oa3J4Y3dvZGxsa2V0Y3B6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Mzg2NjM4NSwiZXhwIjoyMDg5NDQyMzg1fQ.S5HmTONnamT169WYF0riSphXij-Mwtk7D3pphfSrCFE';
 
 const MUAPI_KEY = process.env.MUAPI_KEY ||
-  '6d7f657494f7c0f5bd35abf6d7214be9b6fa7b1430301e9428a1c393528db0f4';
+  '4478523cfb92f4b82042e93502a2284c3e5ae7e5afb675504f0b31d3935eba21';
 
 const PROXY = `https://${SUPABASE_PROJECT}.supabase.co/functions/v1/muapi-proxy`;
 
@@ -55,9 +55,9 @@ function extractOutputUrls(result) {
   return urls.filter(Boolean);
 }
 
-async function poll(requestId, maxAttempts = 10) {
+async function poll(requestId, maxAttempts, intervalMs = 3000) {
   for (let i = 0; i < maxAttempts; i++) {
-    await new Promise(r => setTimeout(r, 2500));
+    await new Promise(r => setTimeout(r, intervalMs));
     try {
       const res = await fetch(PROXY, {
         method: 'POST',
@@ -67,7 +67,7 @@ async function poll(requestId, maxAttempts = 10) {
           params: {},
           generationType: 'poll',
         }),
-        signal: AbortSignal.timeout(15000),
+        signal: AbortSignal.timeout(20000),
       });
 
       const body = await res.json();
@@ -86,10 +86,10 @@ async function poll(requestId, maxAttempts = 10) {
 async function testStaticBlocking() {
   console.log('=== Test 1: Static/demo output blocking ===');
   const tests = [
-    { name: 'ImageStudio', endpoint: 'flux-dev-image', params: { prompt: 'a red apple', model: 'flux-dev', width: 256, height: 256, num_outputs: 1 } },
-    { name: 'ImageStudio', endpoint: 'flux-schnell-image', params: { prompt: 'a cat', model: 'flux-schnell', width: 256, height: 256, num_outputs: 1 } },
-    { name: 'AudioStudio', endpoint: 'suno-create-music', params: { prompt: 'ambient piano', model: 'V5', style: 'ambient' } },
-    { name: 'VideoStudio', endpoint: 'wan2.5-image-to-video', params: { prompt: 'a wave', model: 'wan2.5-image-to-video', image_url: 'https://placehold.co/512x512/png', duration: 5 } },
+    { name: 'ImageStudio', endpoint: 'flux-dev-image', params: { prompt: 'a red apple', model: 'flux-dev', width: 256, height: 256, num_outputs: 1 }, pollMax: 10, pollInterval: 3000 },
+    { name: 'ImageStudio', endpoint: 'flux-schnell-image', params: { prompt: 'a cat', model: 'flux-schnell', width: 256, height: 256, num_outputs: 1 }, pollMax: 10, pollInterval: 3000 },
+    { name: 'AudioStudio', endpoint: 'suno-create-music', params: { prompt: 'ambient piano', model: 'V5', style: 'ambient' }, pollMax: 80, pollInterval: 5000 },
+    { name: 'VideoStudio', endpoint: 'wan2.5-image-to-video', params: { prompt: 'a wave', model: 'wan2.5-image-to-video', image_url: 'https://placehold.co/512x512/png', duration: 5 }, pollMax: 80, pollInterval: 5000 },
   ];
 
   let blocked = 0;
@@ -119,7 +119,7 @@ async function testStaticBlocking() {
       continue;
     }
 
-    const result = await poll(requestId);
+    const result = await poll(requestId, t.pollMax, t.pollInterval);
 
     // 422 means proxy blocked static/demo content — this is correct behavior
     if (result._status === 422 || result.error === 'static_placeholder_detected') {
@@ -138,6 +138,9 @@ async function testStaticBlocking() {
     } else if (result.status === 'completed' || result.status === 'succeeded' || result.status === 'success') {
       passed++;
       console.log(`  [${t.name}] ${t.endpoint}: OK real content (${Date.now() - start}ms)`);
+    } else if (result.status === 'timeout') {
+      failed++;
+      console.log(`  [${t.name}] ${t.endpoint}: timeout after ${Date.now() - start}ms`);
     } else {
       failed++;
       console.log(`  [${t.name}] ${t.endpoint}: unexpected status ${result.status} (${Date.now() - start}ms)`);
@@ -175,7 +178,7 @@ async function testUniqueness() {
       continue;
     }
 
-    const result = await poll(requestId);
+    const result = await poll(requestId, 10, 3000);
 
     // 422 means proxy blocked static content — count as unique/non-static
     if (result._status === 422 || result.error === 'static_placeholder_detected') {
@@ -249,7 +252,7 @@ async function main() {
 
   console.log('\n=== Overall Acceptance ===');
   const acceptance = [
-    ['No static/demo outputs leaked to client', test1.blocked >= 0 && test1.failed === 0],
+    ['No static/demo outputs leaked to client', test1.failed === 0],
     ['All submissions return request_id', test1.failed === 0],
     ['No leaked static URLs in outputs', !test2.hasStatic],
     ['All valid dimensions accepted', test3.failed === 0],

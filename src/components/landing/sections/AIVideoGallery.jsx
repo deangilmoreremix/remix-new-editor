@@ -15,6 +15,7 @@ import {
   formatDuration,
   loadDemoPrompt,
   getCreateTarget,
+  ratioToNumber,
 } from '../../../data/minimaxH3Demos.js';
 import { createMediaFrame, cleanupFrames, pauseFramesIn, revealOnScroll } from './minimax/mediaFrame.js';
 import {
@@ -60,7 +61,7 @@ function createGalleryCard(demo) {
   const mediaHost = card.querySelector('[data-mmx-card-media]');
   const frame = createMediaFrame(demo, {
     mode: 'hover',
-    ratio: 16 / 9,
+    ratio: ratioToNumber(demo.aspectRatio),
     className: 'w-full',
     ariaLabel: `${demo.title} — ${demo.useCase}`,
   });

@@ -10,7 +10,7 @@
 // accent on #020205, white/8 glass surfaces, font-black headline with an
 // italic cyan accent clause, and the shared media frame + scroll reveal.
 
-import { getDemoBySlug, formatDuration, loadDemoPrompt, getCreateTarget } from '../../../data/minimaxH3Demos.js';
+import { getDemoBySlug, formatDuration, loadDemoPrompt, getCreateTarget, ratioToNumber } from '../../../data/minimaxH3Demos.js';
 import { createMediaFrame, cleanupFrames, revealOnScroll } from './minimax/mediaFrame.js';
 import {
   injectMinimaxStyles,
@@ -193,7 +193,7 @@ function createGtmResultCard(demo) {
   const mediaHost = card.querySelector('[data-gtm-card-media]');
   const frame = createMediaFrame(demo, {
     mode: 'hover',
-    ratio: 16 / 9,
+    ratio: ratioToNumber(demo.aspectRatio),
     className: 'w-full',
     ariaLabel: `${demo.title} — ${demo.useCase}`,
   });

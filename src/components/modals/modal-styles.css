@@ -2672,12 +2672,27 @@
   border-radius: 50%;
   border: 2px solid transparent;
   cursor: pointer;
-  transition: all 150ms ease;
+  transition: all 200ms ease;
+  flex-shrink: 0;
 }
 
-.color-btn:hover, .color-btn.active {
-  border-color: var(--text);
+.color-btn:hover {
   transform: scale(1.1);
+  border-color: rgba(255,255,255,0.6);
+}
+
+.color-btn:active {
+  transform: scale(0.95);
+}
+
+.color-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--primary);
+}
+
+.color-btn.active {
+  border-color: #ffffff;
+  box-shadow: 0 0 0 2px var(--primary);
 }
 
 .clear-btn {
@@ -5253,7 +5268,9 @@
 /* Grid containers — fixed 5-column layout for consistent rows */
 .thumbnail-template-grid,
 .explore-section-grid {
+  display: grid;
   grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
 }
 
 /* Individual template card */

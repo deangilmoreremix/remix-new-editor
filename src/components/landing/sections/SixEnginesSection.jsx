@@ -122,7 +122,7 @@ export function SixEnginesSection() {
       <!-- Section Header -->
       <div class="text-center mb-16 engine-header opacity-0">
         <h2 id="engines-heading" class="text-3xl md:text-4xl lg:text-5xl font-black text-white mb-4">
-          Inside The <span class="text-cyan-400 italic">AI Video Agency Studio</span> Platform
+           Inside The <span class="text-cyan-400 italic">Smart Video AI Studio</span> Platform
         </h2>
         <p class="text-lg text-gray-300 max-w-3xl mx-auto">
           Six powerful creative engines working together. Generate, enhance, produce, localize, automate, and scale — all from one unified command center.
@@ -172,7 +172,7 @@ export function SixEnginesSection() {
         <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           <div class="stat-item group">
             <div class="text-3xl md:text-4xl font-black text-cyan-400 mb-2 relative">
-              <span class="counter-number" data-target="30">0</span>
+               <span class="counter-number" data-target="34">0</span>
               <div class="absolute -inset-2 bg-cyan-400/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </div>
             <div class="text-gray-400 text-sm">AI Creative Apps</div>
@@ -193,7 +193,7 @@ export function SixEnginesSection() {
           </div>
           <div class="stat-item group">
             <div class="text-3xl md:text-4xl font-black text-emerald-400 mb-2 relative">
-              <span class="text-purple-400">$297</span>
+              <span class="text-purple-400">$199</span>
               <div class="absolute -inset-2 bg-emerald-400/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </div>
             <div class="text-gray-400 text-sm">Lifetime Access</div>

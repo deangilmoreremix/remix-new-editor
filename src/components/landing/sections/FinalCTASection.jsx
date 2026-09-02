@@ -1,5 +1,7 @@
 // Final CTA Section - Start Building Your AI Video Agency Today
 
+import CheckoutCTA from '../common/CheckoutCTA.jsx';
+
 export function FinalCTASection() {
   const section = document.createElement('section');
   section.className = 'py-20 px-4 bg-[#020205]';
@@ -8,24 +10,27 @@ export function FinalCTASection() {
   section.innerHTML = `
     <div class="container mx-auto max-w-4xl text-center final-cta-container opacity-0">
       <div class="bg-gradient-to-br from-cyan-400/10 via-emerald-400/10 to-purple-400/10 border border-cyan-400/30 rounded-3xl p-12 md:p-16 shadow-2xl hover:shadow-cyan-400/20 transition-shadow duration-500">
-        <h2 id="final-cta-heading" class="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-6">
+        <div class="inline-flex items-center justify-center gap-2.5 mb-6">
+        <div class="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-400/[0.08] px-4 py-1.5 backdrop-blur-sm">
+          <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+          <span class="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-300">Lifetime Offer</span>
+        </div>
+        <div class="inline-flex items-center gap-1 rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3 py-1 backdrop-blur-sm">
+          <span class="text-[9px] font-bold text-cyan-400">$199</span>
+        </div>
+      </div>
+
+      <h2 id="final-cta-heading" class="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-6">
           Start Building Your <span class="text-cyan-400 italic">AI Video Agency</span> Today
         </h2>
 
         <p class="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-          Join the creators and agencies who are already using AI Video Agency Studio to create stunning content, win more clients, and build sustainable businesses.
+           Join the creators and agencies who are already using Smart Video AI Studio to create stunning content, win more clients, and build sustainable businesses.
         </p>
 
         <!-- Final CTA Buttons -->
         <div class="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-          <button class="final-cta-primary px-8 md:px-12 py-4 bg-gradient-to-r from-cyan-400 to-cyan-300 text-[#020205] font-bold text-lg rounded-xl hover:from-cyan-300 hover:to-cyan-200 transition-all duration-300 shadow-2xl shadow-cyan-400/30 hover:shadow-cyan-300/50 transform hover:scale-105 group">
-            <span class="flex items-center justify-center gap-2">
-              🚀 Start My AI Video Agency
-              <svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-              </svg>
-            </span>
-          </button>
+          <div id="checkout-cta-final-host"></div>
           <button class="final-cta-secondary px-8 md:px-12 py-4 border-2 border-emerald-400/50 text-emerald-100 font-bold text-lg rounded-xl hover:border-emerald-400 hover:bg-emerald-400/10 transition-all duration-300 group">
             <span class="flex items-center justify-center gap-2">
               🎬 Watch Success Stories
@@ -60,7 +65,11 @@ export function FinalCTASection() {
             <a href="/terms" class="hover:text-cyan-400 hover:underline transition-colors duration-200">Terms of Service</a>
           </div>
           <div class="text-xs text-gray-500 mt-4">
-            © 2026 AI Video Agency Studio. Open source and community-driven.
+            © 2026 Smart Video AI Studio. <environment_details>
+Current time: 2026-08-23T20:35:15-04:00
+Working directory: /Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor
+Workspace root folder: /Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor
+</environment_details>
           </div>
         </div>
       </div>
@@ -98,6 +107,27 @@ export function FinalCTASection() {
       observer.observe(el);
     });
   }, 100);
+
+  // Checkout CTA
+  const checkoutHost = section.querySelector('#checkout-cta-final-host');
+  if (checkoutHost) {
+    const checkoutBtn = CheckoutCTA({
+      variant: 'primary',
+      offer: {
+        id: 'all-access',
+        headline: 'AI Video Agency',
+        description: 'Full access to all 34 AI apps, 200+ models, and commercial rights.',
+        cta: 'Start My AI Video Agency — {price}',
+        price: '$199',
+      },
+      providers: ['visa', 'mastercard', 'amex', 'discover', 'jcb', 'affirm', 'klarna', 'afterpay'],
+      subtext: 'Secure checkout • 30-day money-back guarantee',
+      onCheckout: () => {
+        window.location.href = 'https://buy.stripe.com/dRmbJ02OoeaAeKx8Mo5Rm07';
+      },
+    });
+    checkoutHost.appendChild(checkoutBtn);
+  }
 
   return section;
 }

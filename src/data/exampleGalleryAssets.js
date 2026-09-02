@@ -12,12 +12,16 @@ export const MAX_EXAMPLES_PER_STUDIO = 28;
 function hasProperTitle(demo) {
   const title = (demo.title || '').trim();
   if (!title) return false;
+  if (title.endsWith(' ')) return false;
   if (title.length > 80) return false;
-  if (title.startsWith('PROMPT')) return false;
-  if (title.startsWith('[') || title.startsWith('━') || title.startsWith('_')) return false;
-  if (title === title.toUpperCase() && title.length > 8) return false;
-  if (/^(PART\s*\d+|SOURCE\s+AND\s+CONTINUATION|LISTEN\s+UP|STYLE\s+\+|REFERENCE\s+LAYER)/i.test(title)) return false;
+  if (title.length < 15 && !/^(music video study|vlog study)$/i.test(title)) return false;
+  if (/^(PROMPT|PART\s*\d+|SOURCE\s+AND\s+CONTINUATION|LISTEN\s+UP|STYLE\s+|REFERENCE\s+LAYER|CAMERA:|@Image\s*\d|PROSE|duration:|integrated_multimodal_description|create\s+a|animate\s+the\s+uploaded|setting:|use\s+@image|created\s+using|made\s+with\s+seedance|made\s+with\s+minimax|generated\s+with\s+minimax)/i.test(title)) return false;
   if (/^(created\s+with|made\s+with|generated\s+with)\s+/i.test(title)) return false;
+  if (/^\*+/.test(title)) return false;
+  if (/^(music video study|vlog study|continuous|original\s+scene|vertical\s+phone\s+video|premium\s+cinematic\s+live\s+action|ultra-realistic\s+documentary\s+realism|natural\s+handheld\s+smartphone\s+footage|expression,\s*motion,\s*light|shot\s+like\s+real\s+action-camera\s+footage|polished\s+colorful\s+chibi\s+anime|extremely\s+strong\s+black\s+silhouette|hyper-realistic$)/i.test(title)) return false;
+  if (/^(exactly\s+\d+\s*(second|minute))/i.test(title)) return false;
+  if (/^\d+\s*(second|minute)\s+photorealistic/i.test(title)) return false;
+  if (/^(30-second\s+vertical\s+9:16|15\s+second\s+photorealistic\s+nightlife)/i.test(title)) return false;
   return true;
 }
 
@@ -53,7 +57,7 @@ const CHAR_KEYWORDS = [
   'character concept', 'character design', 'character illustration',
   '3d character', 'anime character', 'character introduction'
 ];
-const INFLUENCER_TAGS = new Set(['beauty', 'lifestyle', 'fashion', 'makeup', 'model', 'vlog', 'ugc']);
+const INFLUENCER_TAGS = new Set(['beauty', 'lifestyle', 'fashion', 'makeup', 'model', 'vlog']);
 const INFLUENCER_KEYWORDS = ['beauty', 'makeup', 'lifestyle', 'influencer', 'model'];
 const EFFECTS_TAGS = new Set(['vfx', 'visual-effects', 'motion-graphics', 'video-fx', 'video-effects', 'ai-video-effects', 'motion-controls']);
 const EFFECTS_KEYWORDS = ['vfx', 'visual effects', 'motion graphics', 'video effects', 'video fx', 'ai video effects', 'motion controls', 'motion-controls'];
@@ -62,7 +66,8 @@ function isAudio(demo) {
   return (demo.tags || []).some((t) => AUDIO_TAGS.has(t));
 }
 function isImage(demo) {
-  return (demo.tags || []).some((t) => IMAGE_TAGS.has(t)) || IMAGE_ASPECT_RATIOS.has(demo.aspectRatio);
+  if (demo.videoSrc) return false;
+  return (demo.tags || []).some((t) => IMAGE_TAGS.has(t));
 }
 function isAvatar(demo) {
   const text = ((demo.title || '') + ' ' + (demo.useCase || '')).toLowerCase();
@@ -76,6 +81,7 @@ function isCharacter(demo) {
     CHAR_KEYWORDS.some((k) => text.includes(k));
 }
 function isInfluencer(demo) {
+  if ((demo.tags || []).includes('ugc')) return false;
   const text = ((demo.title || '') + ' ' + (demo.useCase || '')).toLowerCase();
   return (demo.tags || []).some((t) => INFLUENCER_TAGS.has(t)) ||
     (INFLUENCER_KEYWORDS.some((k) => text.includes(k)) && !['model', 'models'].some((k) => text.includes(k)));

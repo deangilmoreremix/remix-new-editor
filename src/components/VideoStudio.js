@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { saveGeneration, deleteGeneration } from '../lib/generationHistory.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { uploadMediaFile } from '../lib/editor/upload.js';
@@ -22,7 +23,7 @@ import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
 import { VIDEO_QUICK_PROMPTS } from '../lib/promptUtils.js';
-import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
+import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
 import { categorizeGenerationError, createAbortAwareGenerate, startGenerationProgress, showInlineError, hideInlineError } from '../lib/studioHelpers.js';
 import { showToast, createLoadingOverlay, createProgressBar } from '../lib/loading.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
@@ -719,7 +720,7 @@ export function VideoStudio() {
         const provider = current?.provider || 'muapi';
         const logoUrl = PROVIDER_LOGOS[provider];
         if (logoUrl) {
-            iconEl.innerHTML = `<img src="${logoUrl}" alt="" class="w-full h-full object-contain ${invertLogos.includes(provider) ? 'invert' : ''}" />`;
+            iconEl.innerHTML = renderProviderLogoImg(provider, '', 'w-full h-full object-contain', invertLogos.includes(provider) ? 'invert' : '');
         } else {
             const style = getProviderStyle(provider);
             iconEl.innerHTML = `<span class="text-[10px] font-black text-black">${style.text}</span>`;
@@ -1239,10 +1240,9 @@ generateBtn.type = 'button';
                 }
                 updateModelBtnIcon();
               },
-              onSelectModel: (modelId) => {
-                const isV2V = v2vModels.some((m) => m.id === modelId);
-                const model = allCurrentModels.find((m) => m.id === modelId);
-                if (!model) return;
+              onSelectModel: (model, categoryId) => {
+                const isV2V = categoryId === 'v2v';
+                const newI2V = categoryId === 'i2v';
 
                 if (isV2V) {
                   v2vMode = true;
@@ -1263,11 +1263,12 @@ generateBtn.type = 'button';
                     showVideoIcon();
                     textarea.disabled = false;
                   }
+                  imageMode = newI2V;
                   selectedModel = model.id;
                   selectedModelName = model.name;
                   document.getElementById('v-model-btn-label').textContent = selectedModelName;
                   updateControlsForModel(selectedModel);
-                  textarea.placeholder = i2vModels.some((m) => m.id === modelId)
+                  textarea.placeholder = newI2V
                     ? 'Describe the motion or effect (optional)'
                     : 'Describe the video you want to create';
                 }
@@ -1373,15 +1374,11 @@ generateBtn.type = 'button';
             dropdown.appendChild(list);
         }
 
-        // Position dropdown
-        const btnRect = anchorBtn.getBoundingClientRect();
-        const containerRect = container.getBoundingClientRect();
+        // Position dropdown viewport-aware
+        positionModelSelectorDropdown(dropdown, anchorBtn, 8, container);
         if (window.innerWidth < 768) {
             dropdown.style.left = '50%';
-            dropdown.style.transform = 'translateX(-50%) translate(0, 8px)';
-        } else {
-            dropdown.style.left = `${btnRect.left - containerRect.left}px`;
-            dropdown.style.transform = 'translate(0, 8px)';
+            dropdown.style.transform = 'translateX(-50%)';
         }
         dropdown.style.bottom = '';
         dropdown.style.top = `${btnRect.bottom - containerRect.top + 8}px`;
@@ -1583,11 +1580,22 @@ generateBtn.type = 'button';
     // --- Helper: Add to history ---
     const addToHistory = (entry) => {
         generationHistory.unshift(entry);
-        try {
-            localStorage.setItem('video_history', JSON.stringify(generationHistory.slice(0, 30)));
-        } catch (e) {
-            // Ignore storage errors (private mode, quota exceeded, etc.)
-        }
+
+        // Persist to localStorage + Supabase (for Library Studio)
+        // saveGeneration handles localStorage; addToHistory only manages
+        // the in-memory sidebar array.
+        saveGeneration({
+            studio: 'video',
+            type: 'video',
+            url: entry.url,
+            prompt: entry.prompt,
+            model: entry.model,
+            parameters: { aspect_ratio: entry.aspect_ratio, duration: entry.duration },
+            timestamp: entry.timestamp,
+            id: entry.id,
+            request_id: entry.id,
+        });
+
         historySidebar.classList.remove('translate-x-full', 'opacity-0');
         historySidebar.classList.add('translate-x-0', 'opacity-100');
         renderHistory();
@@ -1622,6 +1630,7 @@ generateBtn.type = 'button';
               e.stopPropagation();
               generationHistory.splice(idx, 1);
               try { localStorage.setItem('video_history', JSON.stringify(generationHistory.slice(0, 100))); } catch {}
+              deleteGeneration(entry.url, 'video');
               renderHistory();
             };
             overlay.appendChild(deleteBtn);
