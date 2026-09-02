@@ -103,7 +103,8 @@ export function renderTracks(state, els, showToast) {
     }
     track.items.forEach((item) => {
       const itemEl = document.createElement('div');
-      itemEl.className = 'clip ' + (state.selectedClipId === item.id ? 'active' : '');
+      const isSelected = state.selectedClipId === item.id || (state.selectedClipIds instanceof Set ? state.selectedClipIds.has(item.id) : Array.isArray(state.selectedClipIds) && state.selectedClipIds.includes(item.id));
+      itemEl.className = 'clip ' + (isSelected ? 'active' : '');
       const leftPercent = (item.start / state.timelineSeconds) * 100;
       const widthPercent = ((item.end - item.start) / state.timelineSeconds) * 100;
       itemEl.style.left = leftPercent + '%';
@@ -118,11 +119,24 @@ export function renderTracks(state, els, showToast) {
       itemEl.innerHTML = innerHTML;
       itemEl.addEventListener('click', (e) => {
         e.stopPropagation();
-        state.selectedClipId = item.id;
+        if (e.ctrlKey || e.metaKey) {
+          if (!state.selectedClipIds) state.selectedClipIds = new Set();
+          if (state.selectedClipIds.has(item.id)) {
+            state.selectedClipIds.delete(item.id);
+          } else {
+            state.selectedClipIds.add(item.id);
+          }
+        } else if (e.shiftKey) {
+          if (!state.selectedClipIds) state.selectedClipIds = new Set();
+          state.selectedClipIds.add(item.id);
+        } else {
+          state.selectedClipId = item.id;
+          state.selectedClipIds = new Set([item.id]);
+        }
         updatePreview(state, els, item);
         renderTracks(state, els, showToast);
       });
-      itemEl.addEventListener('mousedown', (e) => handleItemMouseDown(e, state, els, showToast));
+      itemEl.addEventListener('mousedown', (e) => handleItemMouseDown(e, state, els, showToast, itemEl));
       if (item.type === 'caption') {
         itemEl.style.borderColor = 'rgba(255,165,0,0.5)';
         itemEl.style.background = 'rgba(255,165,0,0.2)';
@@ -172,6 +186,7 @@ export function renderMedia(state, els, showToast) {
         name: media.label + ' ' + (targetTrack.items.length + 1)
       });
       state.selectedClipId = newId;
+      state.selectedClipIds = new Set([newId]);
       renderTracks(state, els, showToast);
       updatePreview(state, els);
     });
@@ -226,7 +241,9 @@ export function renderRail(state, els, showToast) {
 }
 
 export function updatePreview(state, els, clip) {
-  const selected = clip || state.tracks.flatMap(t => t.items).find(c => c.id === state.selectedClipId);
+  const selected = clip || state.tracks.flatMap(t => t.items).find(c => c.id === state.selectedClipId) ||
+    (state.selectedClipIds instanceof Set ? state.tracks.flatMap(t => t.items).find(c => state.selectedClipIds.has(c.id)) :
+     Array.isArray(state.selectedClipIds) ? state.tracks.flatMap(t => t.items).find(c => state.selectedClipIds.includes(c.id)) : null);
   els.projectTitle.textContent = state.projectTitle;
   if (selected) {
     els.previewTitle.textContent = selected.name || selected.text || 'Item';

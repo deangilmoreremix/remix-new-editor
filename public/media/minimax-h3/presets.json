@@ -1,0 +1,1171 @@
+[
+  {
+    "slug": "modern-warfare-fps-gameplay",
+    "title": "Modern warfare FPS gameplay",
+    "author": "@Just_sharon7",
+    "sourceClipUrl": "/media/minimax-h3/videos/modern-warfare-fps-gameplay.webm",
+    "thumbnail": "/media/minimax-h3/previews/modern-warfare-fps-gameplay.webp",
+    "prompt": "A high-energy action piece in the style of \"Modern warfare FPS gameplay\". Game trailers and FPS-style action promos. Dynamic handheld camera, fast kinetic motion, dust and particle detail, punchy contrast.",
+    "negativePrompt": "blurry, low resolution, watermark, text, logo, deformed, extra limbs, jpeg artifacts",
+    "model": "minimax-hailuo-2.3-standard-t2v",
+    "aspectRatio": "16:9",
+    "durationMs": 15000,
+    "motionProfile": {
+      "camera": [
+        "handheld",
+        "whip pan"
+      ],
+      "motion": [
+        "fast",
+        "kinetic"
+      ],
+      "strength": 85
+    },
+    "styleTags": [
+      "gameplay",
+      "fps",
+      "trailer"
+    ],
+    "palette": [
+      "#2b2b2b",
+      "#8a8a8a"
+    ],
+    "audioProfile": {
+      "music": "",
+      "sfx": "",
+      "voiceover": false
+    },
+    "targetStudio": "VideoStudio",
+    "rightsNote": "Gallery media is third-party and NOT relicensed for redistribution; derive style only, do not redistribute the clip. Prompt text CC-BY-4.0. Credit: @Just_sharon7 (https://x.com/Just_sharon7/status/2083064417798025721)."
+  },
+  {
+    "slug": "luxury-perfume-commercial",
+    "title": "Luxury perfume commercial",
+    "author": "@CaliraVal",
+    "sourceClipUrl": "/media/minimax-h3/videos/luxury-perfume-commercial.webm",
+    "thumbnail": "/media/minimax-h3/previews/luxury-perfume-commercial.webp",
+    "prompt": "A premium product commercial in the style of \"Luxury perfume commercial\". Premium product launch films for fragrance and luxury goods. Clean studio lighting, shallow depth of field, macro hero shots, luxurious graded color, confident slow camera moves.",
+    "negativePrompt": "blurry, low resolution, watermark, text, logo, deformed, extra limbs, jpeg artifacts",
+    "model": "ai-product-shot",
+    "aspectRatio": "16:9",
+    "durationMs": 15000,
+    "motionProfile": {
+      "camera": [
+        "slow dolly in",
+        "static framing"
+      ],
+      "motion": [
+        "subtle"
+      ],
+      "strength": 35
+    },
+    "styleTags": [
+      "product",
+      "luxury",
+      "perfume",
+      "commercial"
+    ],
+    "palette": [
+      "#1a1a1a",
+      "#c9a24b"
+    ],
+    "audioProfile": {
+      "music": "",
+      "sfx": "",
+      "voiceover": false
+    },
+    "targetStudio": "TemplateStudio",
+    "rightsNote": "Gallery media is third-party and NOT relicensed for redistribution; derive style only, do not redistribute the clip. Prompt text CC-BY-4.0. Credit: @CaliraVal (https://x.com/CaliraVal/status/2083059583308751079)."
+  },
+  {
+    "slug": "1980s-open-source-family-comedy",
+    "title": "1980s open-source family comedy",
+    "author": "@BrentLynch",
+    "sourceClipUrl": "/media/minimax-h3/videos/1980s-open-source-family-comedy.webm",
+    "thumbnail": "/media/minimax-h3/previews/1980s-open-source-family-comedy.webp",
+    "prompt": "A social-first piece in the style of \"1980s open-source family comedy\". Retro-styled brand skits and comedic ad spots. Vertical-friendly composition, punchy pacing, on-trend editing rhythm.",
+    "negativePrompt": "blurry, low resolution, watermark, text, logo, deformed, extra limbs, jpeg artifacts",
+    "model": "minimax-hailuo-2.3-standard-t2v",
+    "aspectRatio": "16:9",
+    "durationMs": 12000,
+    "motionProfile": {
+      "camera": [
+        "static framing"
+      ],
+      "motion": [
+        "punchy"
+      ],
+      "strength": 55
+    },
+    "styleTags": [
+      "comedy",
+      "retro",
+      "skit"
+    ],
+    "palette": [
+      "#f4d35e",
+      "#ee6055"
+    ],
+    "audioProfile": {
+      "music": "",
+      "sfx": "",
+      "voiceover": false
+    },
+    "targetStudio": "CharacterStudio",
+    "rightsNote": "Gallery media is third-party and NOT relicensed for redistribution; derive style only, do not redistribute the clip. Prompt text CC-BY-4.0. Credit: @BrentLynch (https://x.com/BrentLynch/status/2083020024340693185)."
+  },
+  {
+    "slug": "radio-operator-evacuation-bridge",
+    "title": "Radio operator evacuation bridge",
+    "author": "@Diplomeme",
+    "sourceClipUrl": "/media/minimax-h3/videos/radio-operator-evacuation-bridge.webm",
+    "thumbnail": "/media/minimax-h3/previews/radio-operator-evacuation-bridge.webp",
+    "prompt": "A cinematic sequence in the style of \"Radio operator evacuation bridge\". Narrative short films and dramatic period scenes. Cinematic anamorphic framing, motivated practical and volumetric lighting, atmospheric depth, deliberate camera choreography.",
+    "negativePrompt": "blurry, low resolution, watermark, text, logo, deformed, extra limbs, jpeg artifacts",
+    "model": "minimax-hailuo-2.3-standard-t2v",
+    "aspectRatio": "16:9",
+    "durationMs": 15000,
+    "motionProfile": {
+      "camera": [
+        "slow push-in",
+        "static framing"
+      ],
+      "motion": [
+        "deliberate"
+      ],
+      "strength": 55
+    },
+    "styleTags": [
+      "story",
+      "drama",
+      "period",
+      "cinematic"
+    ],
+    "palette": [
+      "#1f2a44",
+      "#7c8aa0"
+    ],
+    "audioProfile": {
+      "music": "",
+      "sfx": "",
+      "voiceover": false
+    },
+    "targetStudio": "CinemaStudio",
+    "rightsNote": "Gallery media is third-party and NOT relicensed for redistribution; derive style only, do not redistribute the clip. Prompt text CC-BY-4.0. Credit: @Diplomeme (https://x.com/Diplomeme/status/2082770042630943156)."
+  },
+  {
+    "slug": "giant-koi-park-incident",
+    "title": "Giant koi park incident",
+    "author": "@underwoodxie96",
+    "sourceClipUrl": "/media/minimax-h3/videos/giant-koi-park-incident.webm",
+    "thumbnail": "/media/minimax-h3/previews/giant-koi-park-incident.webp",
+    "prompt": "A VFX-rich shot in the style of \"Giant koi park incident\". Viral creature VFX and scroll-stopping social moments. Grounded realism with seamless CG integration, detailed simulation, controlled camera.",
+    "negativePrompt": "blurry, low resolution, watermark, text, logo, deformed, extra limbs, jpeg artifacts",
+    "model": "minimax-hailuo-2.3-standard-t2v",
+    "aspectRatio": "16:9",
+    "durationMs": 15000,
+    "motionProfile": {
+      "camera": [
+        "static framing"
+      ],
+      "motion": [
+        "seamless"
+      ],
+      "strength": 65
+    },
+    "styleTags": [
+      "viral",
+      "creature",
+      "scale",
+      "short"
+    ],
+    "palette": [
+      "#e8e2d0",
+      "#d98c3f"
+    ],
+    "audioProfile": {
+      "music": "",
+      "sfx": "",
+      "voiceover": false
+    },
+    "targetStudio": "VideoStudio",
+    "rightsNote": "Gallery media is third-party and NOT relicensed for redistribution; derive style only, do not redistribute the clip. Prompt text CC-BY-4.0. Credit: @underwoodxie96 (https://x.com/underwoodxie96/status/2082747838782386563)."
+  },
+  {
+    "slug": "greenhouse-tea-isekai-anime",
+    "title": "Greenhouse tea isekai anime",
+    "author": "@haruuraeadss",
+    "sourceClipUrl": "/media/minimax-h3/videos/greenhouse-tea-isekai-anime.webm",
+    "thumbnail": "/media/minimax-h3/previews/greenhouse-tea-isekai-anime.webp",
+    "prompt": "A stylized animated scene in the style of \"Greenhouse tea isekai anime\". Anime-styled brand worlds and animated storytelling. Cohesive art-directed world, expressive character motion, rich textured shading.",
+    "negativePrompt": "blurry, low resolution, watermark, text, logo, deformed, extra limbs, jpeg artifacts",
+    "model": "minimax-hailuo-2.3-standard-t2v",
+    "aspectRatio": "16:9",
+    "durationMs": 15000,
+    "motionProfile": {
+      "camera": [
+        "static framing"
+      ],
+      "motion": [
+        "stylized"
+      ],
+      "strength": 60
+    },
+    "styleTags": [
+      "anime",
+      "isekai",
+      "stylized"
+    ],
+    "palette": [
+      "#cfe8d4",
+      "#6fae7f"
+    ],
+    "audioProfile": {
+      "music": "",
+      "sfx": "",
+      "voiceover": false
+    },
+    "targetStudio": "CinemaStudio",
+    "rightsNote": "Gallery media is third-party and NOT relicensed for redistribution; derive style only, do not redistribute the clip. Prompt text CC-BY-4.0. Credit: @haruuraeadss (https://x.com/haruuraeadss/status/2082798959014064531)."
+  },
+  {
+    "slug": "low-angle-fashion-tracking-film",
+    "title": "Low-Angle Fashion Tracking Film",
+    "author": "@Kiber_Alla",
+    "sourceClipUrl": "/media/minimax-h3/videos/low-angle-fashion-tracking-film.webm",
+    "thumbnail": "/media/minimax-h3/previews/low-angle-fashion-tracking-film.webp",
+    "prompt": "A fashion film in the style of \"Low-Angle Fashion Tracking Film\". Runway-grade fashion films and lookbook motion. Low-angle tracking shots, editorial styling, strong silhouettes, refined muted palette, graceful motion.",
+    "negativePrompt": "blurry, low resolution, watermark, text, logo, deformed, extra limbs, jpeg artifacts",
+    "model": "minimax-hailuo-2.3-standard-t2v",
+    "aspectRatio": "16:9",
+    "durationMs": 15000,
+    "motionProfile": {
+      "camera": [
+        "low-angle tracking",
+        "orbit"
+      ],
+      "motion": [
+        "graceful"
+      ],
+      "strength": 45
+    },
+    "styleTags": [
+      "fashion",
+      "tracking",
+      "editorial"
+    ],
+    "palette": [
+      "#2b2b2b",
+      "#b08d57"
+    ],
+    "audioProfile": {
+      "music": "",
+      "sfx": "",
+      "voiceover": false
+    },
+    "targetStudio": "ImageStudio",
+    "rightsNote": "Gallery media is third-party and NOT relicensed for redistribution; derive style only, do not redistribute the clip. Prompt text CC-BY-4.0. Credit: @Kiber_Alla (https://x.com/Kiber_Alla/status/2083583963512062019)."
+  },
+  {
+    "slug": "storm-lit-pirate-galleon-battle",
+    "title": "Storm-Lit Pirate Galleon Battle",
+    "author": "@seirdotmk",
+    "sourceClipUrl": "/media/minimax-h3/videos/storm-lit-pirate-galleon-battle.webm",
+    "thumbnail": "/media/minimax-h3/previews/storm-lit-pirate-galleon-battle.webp",
+    "prompt": "A high-energy action piece in the style of \"Storm-Lit Pirate Galleon Battle\". Epic action set pieces and trailer beats. Dynamic handheld camera, fast kinetic motion, dust and particle detail, punchy contrast.",
+    "negativePrompt": "blurry, low resolution, watermark, text, logo, deformed, extra limbs, jpeg artifacts",
+    "model": "minimax-hailuo-2.3-standard-t2v",
+    "aspectRatio": "16:9",
+    "durationMs": 10000,
+    "motionProfile": {
+      "camera": [
+        "handheld",
+        "whip pan"
+      ],
+      "motion": [
+        "fast",
+        "kinetic"
+      ],
+      "strength": 85
+    },
+    "styleTags": [
+      "action",
+      "battle",
+      "storm"
+    ],
+    "palette": [
+      "#1c2b33",
+      "#5b7c8d"
+    ],
+    "audioProfile": {
+      "music": "",
+      "sfx": "",
+      "voiceover": false
+    },
+    "targetStudio": "CinemaStudio",
+    "rightsNote": "Gallery media is third-party and NOT relicensed for redistribution; derive style only, do not redistribute the clip. Prompt text CC-BY-4.0. Credit: @seirdotmk (https://x.com/seirdotmk/status/2083582886280561048)."
+  },
+  {
+    "slug": "stormy-claymation-whale-breach",
+    "title": "Stormy Claymation Whale Breach",
+    "author": "@shikoba_86",
+    "sourceClipUrl": "/media/minimax-h3/videos/stormy-claymation-whale-breach.webm",
+    "thumbnail": "/media/minimax-h3/previews/stormy-claymation-whale-breach.webp",
+    "prompt": "A stylized animated scene in the style of \"Stormy Claymation Whale Breach\". Stop-motion and claymation styled brand stories. Cohesive art-directed world, expressive character motion, rich textured shading.",
+    "negativePrompt": "blurry, low resolution, watermark, text, logo, deformed, extra limbs, jpeg artifacts",
+    "model": "minimax-hailuo-2.3-standard-t2v",
+    "aspectRatio": "16:9",
+    "durationMs": 10000,
+    "motionProfile": {
+      "camera": [
+        "static framing"
+      ],
+      "motion": [
+        "stylized"
+      ],
+      "strength": 60
+    },
+    "styleTags": [
+      "claymation",
+      "stop-motion",
+      "texture",
+      "animation"
+    ],
+    "palette": [
+      "#9fb8c9",
+      "#3a4a55"
+    ],
+    "audioProfile": {
+      "music": "",
+      "sfx": "",
+      "voiceover": false
+    },
+    "targetStudio": "CinemaStudio",
+    "rightsNote": "Gallery media is third-party and NOT relicensed for redistribution; derive style only, do not redistribute the clip. Prompt text CC-BY-4.0. Credit: @shikoba_86 (https://x.com/shikoba_86/status/2083555537912729607)."
+  },
+  {
+    "slug": "blue-haired-hero-and-spirit-fox-escape",
+    "title": "Blue-Haired Hero and Spirit Fox Escape",
+    "author": "@HBCoop_",
+    "sourceClipUrl": "/media/minimax-h3/videos/blue-haired-hero-and-spirit-fox-escape.webm",
+    "thumbnail": "/media/minimax-h3/previews/blue-haired-hero-and-spirit-fox-escape.webp",
+    "prompt": "A character-driven scene in the style of \"Blue-Haired Hero and Spirit Fox Escape\". Consistent hero characters across a story sequence. Consistent hero design, expressive performance, cinematic framing that favors the subject.",
+    "negativePrompt": "blurry, low resolution, watermark, text, logo, deformed, extra limbs, jpeg artifacts",
+    "model": "minimax-hailuo-2.3-standard-t2v",
+    "aspectRatio": "16:9",
+    "durationMs": 15000,
+    "motionProfile": {
+      "camera": [
+        "slow push-in"
+      ],
+      "motion": [
+        "expressive"
+      ],
+      "strength": 50
+    },
+    "styleTags": [
+      "character",
+      "fantasy",
+      "duo",
+      "cinematic",
+      "story"
+    ],
+    "palette": [
+      "#2e6fb0",
+      "#f0a35e"
+    ],
+    "audioProfile": {
+      "music": "",
+      "sfx": "",
+      "voiceover": false
+    },
+    "targetStudio": "CharacterStudio",
+    "rightsNote": "Gallery media is third-party and NOT relicensed for redistribution; derive style only, do not redistribute the clip. Prompt text CC-BY-4.0. Credit: @HBCoop_ (https://x.com/HBCoop_/status/2083553619413209379)."
+  },
+  {
+    "slug": "kintsugi-sword-seamless-loop",
+    "title": "Kintsugi Sword Seamless Loop",
+    "author": "@Cia0_exe",
+    "sourceClipUrl": "/media/minimax-h3/videos/kintsugi-sword-seamless-loop.webm",
+    "thumbnail": "/media/minimax-h3/previews/kintsugi-sword-seamless-loop.webp",
+    "prompt": "A VFX-rich shot in the style of \"Kintsugi Sword Seamless Loop\". Seamless product loops and hero object reveals. Grounded realism with seamless CG integration, detailed simulation, controlled camera.",
+    "negativePrompt": "blurry, low resolution, watermark, text, logo, deformed, extra limbs, jpeg artifacts",
+    "model": "minimax-hailuo-2.3-standard-t2v",
+    "aspectRatio": "16:9",
+    "durationMs": 15000,
+    "motionProfile": {
+      "camera": [
+        "static framing"
+      ],
+      "motion": [
+        "seamless"
+      ],
+      "strength": 65
+    },
+    "styleTags": [
+      "loop",
+      "kintsugi",
+      "macro",
+      "fashion"
+    ],
+    "palette": [
+      "#1a1a1a",
+      "#d4af37"
+    ],
+    "audioProfile": {
+      "music": "",
+      "sfx": "",
+      "voiceover": false
+    },
+    "targetStudio": "EditStudio",
+    "rightsNote": "Gallery media is third-party and NOT relicensed for redistribution; derive style only, do not redistribute the clip. Prompt text CC-BY-4.0. Credit: @Cia0_exe (https://x.com/Cia0_exe/status/2083525563491524882)."
+  },
+  {
+    "slug": "ramen-bowl-ugc-taste-test",
+    "title": "Ramen Bowl UGC Taste Test",
+    "author": "@Taaruk_",
+    "sourceClipUrl": "/media/minimax-h3/videos/ramen-bowl-ugc-taste-test.webm",
+    "thumbnail": "/media/minimax-h3/previews/ramen-bowl-ugc-taste-test.webp",
+    "prompt": "A relatable first-person UGC testimonial in the style of \"Ramen Bowl UGC Taste Test\". Restaurant and food UGC taste-test ads. Handheld phone energy, authentic natural light, casual creator tone, real-life setting.",
+    "negativePrompt": "blurry, low resolution, watermark, text, logo, deformed, extra limbs, jpeg artifacts",
+    "model": "minimax-hailuo-2.3-standard-t2v",
+    "aspectRatio": "16:9",
+    "durationMs": 15000,
+    "motionProfile": {
+      "camera": [
+        "handheld",
+        "slight bob"
+      ],
+      "motion": [
+        "natural",
+        "casual"
+      ],
+      "strength": 40
+    },
+    "styleTags": [
+      "ugc",
+      "food",
+      "restaurant",
+      "taste-test",
+      "product",
+      "commercial"
+    ],
+    "palette": [
+      "#c1440e",
+      "#f2c14e"
+    ],
+    "audioProfile": {
+      "music": "",
+      "sfx": "",
+      "voiceover": false
+    },
+    "targetStudio": "AvatarStudio",
+    "rightsNote": "Gallery media is third-party and NOT relicensed for redistribution; derive style only, do not redistribute the clip. Prompt text CC-BY-4.0. Credit: @Taaruk_ (https://x.com/Taaruk_/status/2083461207919612348)."
+  },
+  {
+    "slug": "gourmet-burger-ugc-taste-test",
+    "title": "Gourmet Burger UGC Taste Test",
+    "author": "@oggii_0",
+    "sourceClipUrl": "/media/minimax-h3/videos/gourmet-burger-ugc-taste-test.webm",
+    "thumbnail": "/media/minimax-h3/previews/gourmet-burger-ugc-taste-test.webp",
+    "prompt": "A relatable first-person UGC testimonial in the style of \"Gourmet Burger UGC Taste Test\". Local business food promos in creator style. Handheld phone energy, authentic natural light, casual creator tone, real-life setting.",
+    "negativePrompt": "blurry, low resolution, watermark, text, logo, deformed, extra limbs, jpeg artifacts",
+    "model": "minimax-hailuo-2.3-standard-t2v",
+    "aspectRatio": "16:9",
+    "durationMs": 15000,
+    "motionProfile": {
+      "camera": [
+        "handheld",
+        "slight bob"
+      ],
+      "motion": [
+        "natural",
+        "casual"
+      ],
+      "strength": 40
+    },
+    "styleTags": [
+      "ugc",
+      "food",
+      "local-business",
+      "taste-test",
+      "product",
+      "commercial"
+    ],
+    "palette": [
+      "#b5532a",
+      "#f4d35e"
+    ],
+    "audioProfile": {
+      "music": "",
+      "sfx": "",
+      "voiceover": false
+    },
+    "targetStudio": "AvatarStudio",
+    "rightsNote": "Gallery media is third-party and NOT relicensed for redistribution; derive style only, do not redistribute the clip. Prompt text CC-BY-4.0. Credit: @oggii_0 (https://x.com/oggii_0/status/2083436822085165289)."
+  },
+  {
+    "slug": "luxury-skincare-storyboard-commercial",
+    "title": "Luxury Skincare Storyboard Commercial",
+    "author": "@Maercihh",
+    "sourceClipUrl": "/media/minimax-h3/videos/luxury-skincare-storyboard-commercial.webm",
+    "thumbnail": "/media/minimax-h3/previews/luxury-skincare-storyboard-commercial.webp",
+    "prompt": "A beauty product film in the style of \"Luxury Skincare Storyboard Commercial\". Multi-shot skincare commercials from a storyboard. Soft diffused light, flawless skin and material detail, elegant slow push-in, refined palette.",
+    "negativePrompt": "blurry, low resolution, watermark, text, logo, deformed, extra limbs, jpeg artifacts",
+    "model": "ai-product-shot",
+    "aspectRatio": "16:9",
+    "durationMs": 15000,
+    "motionProfile": {
+      "camera": [
+        "macro push-in"
+      ],
+      "motion": [
+        "soft"
+      ],
+      "strength": 30
+    },
+    "styleTags": [
+      "beauty",
+      "skincare",
+      "storyboard",
+      "product",
+      "commercial"
+    ],
+    "palette": [
+      "#f3e9e0",
+      "#c9a24b"
+    ],
+    "audioProfile": {
+      "music": "",
+      "sfx": "",
+      "voiceover": false
+    },
+    "targetStudio": "TemplateStudio",
+    "rightsNote": "Gallery media is third-party and NOT relicensed for redistribution; derive style only, do not redistribute the clip. Prompt text CC-BY-4.0. Credit: @Maercihh (https://x.com/Maercihh/status/2083407991114805571)."
+  },
+  {
+    "slug": "surreal-blue-studio-dance-with-a-horse",
+    "title": "Surreal Blue Studio Dance with a Horse",
+    "author": "@egeberkina",
+    "sourceClipUrl": "/media/minimax-h3/videos/surreal-blue-studio-dance-with-a-horse.webm",
+    "thumbnail": "/media/minimax-h3/previews/surreal-blue-studio-dance-with-a-horse.webp",
+    "prompt": "A fashion film in the style of \"Surreal Blue Studio Dance with a Horse\". Surreal editorial campaigns and art-directed motion. Low-angle tracking shots, editorial styling, strong silhouettes, refined muted palette, graceful motion.",
+    "negativePrompt": "blurry, low resolution, watermark, text, logo, deformed, extra limbs, jpeg artifacts",
+    "model": "minimax-hailuo-2.3-standard-t2v",
+    "aspectRatio": "16:9",
+    "durationMs": 15000,
+    "motionProfile": {
+      "camera": [
+        "low-angle tracking",
+        "orbit"
+      ],
+      "motion": [
+        "graceful"
+      ],
+      "strength": 45
+    },
+    "styleTags": [
+      "fashion",
+      "surreal",
+      "dance"
+    ],
+    "palette": [
+      "#1d3a5f",
+      "#7ec8e3"
+    ],
+    "audioProfile": {
+      "music": "",
+      "sfx": "",
+      "voiceover": false
+    },
+    "targetStudio": "ImageStudio",
+    "rightsNote": "Gallery media is third-party and NOT relicensed for redistribution; derive style only, do not redistribute the clip. Prompt text CC-BY-4.0. Credit: @egeberkina (https://x.com/egeberkina/status/2083301476206588086)."
+  },
+  {
+    "slug": "nighttime-motorcycle-chase-synced-to-music",
+    "title": "Nighttime Motorcycle Chase Synced to Music",
+    "author": "@HBCoop_",
+    "sourceClipUrl": "/media/minimax-h3/videos/nighttime-motorcycle-chase-synced-to-music.webm",
+    "thumbnail": "/media/minimax-h3/previews/nighttime-motorcycle-chase-synced-to-music.webp",
+    "prompt": "A cinematic sequence in the style of \"Nighttime Motorcycle Chase Synced to Music\". Music-synced cinematic chase sequences. Cinematic anamorphic framing, motivated practical and volumetric lighting, atmospheric depth, deliberate camera choreography.",
+    "negativePrompt": "blurry, low resolution, watermark, text, logo, deformed, extra limbs, jpeg artifacts",
+    "model": "minimax-hailuo-2.3-standard-t2v",
+    "aspectRatio": "16:9",
+    "durationMs": 15000,
+    "motionProfile": {
+      "camera": [
+        "slow push-in",
+        "static framing"
+      ],
+      "motion": [
+        "deliberate"
+      ],
+      "strength": 55
+    },
+    "styleTags": [
+      "chase",
+      "music-sync",
+      "night",
+      "cinematic",
+      "story"
+    ],
+    "palette": [
+      "#0d1b2a",
+      "#e63946"
+    ],
+    "audioProfile": {
+      "music": "",
+      "sfx": "",
+      "voiceover": false
+    },
+    "targetStudio": "CinemaStudio",
+    "rightsNote": "Gallery media is third-party and NOT relicensed for redistribution; derive style only, do not redistribute the clip. Prompt text CC-BY-4.0. Credit: @HBCoop_ (https://x.com/HBCoop_/status/2083282581450375367)."
+  },
+  {
+    "slug": "y2k-k-pop-candy-typography-music-video",
+    "title": "Y2K K-Pop Candy Typography Music Video",
+    "author": "@LeoCreaIA",
+    "sourceClipUrl": "/media/minimax-h3/videos/y2k-k-pop-candy-typography-music-video.webm",
+    "thumbnail": "/media/minimax-h3/previews/y2k-k-pop-candy-typography-music-video.webp",
+    "prompt": "A social-first piece in the style of \"Y2K K-Pop Candy Typography Music Video\". Music videos and kinetic typography social content. Vertical-friendly composition, punchy pacing, on-trend editing rhythm.",
+    "negativePrompt": "blurry, low resolution, watermark, text, logo, deformed, extra limbs, jpeg artifacts",
+    "model": "minimax-hailuo-2.3-standard-t2v",
+    "aspectRatio": "16:9",
+    "durationMs": 15000,
+    "motionProfile": {
+      "camera": [
+        "static framing"
+      ],
+      "motion": [
+        "punchy"
+      ],
+      "strength": 55
+    },
+    "styleTags": [
+      "music-video",
+      "y2k",
+      "typography",
+      "gameplay"
+    ],
+    "palette": [
+      "#ff6fb9",
+      "#9b5de5"
+    ],
+    "audioProfile": {
+      "music": "",
+      "sfx": "",
+      "voiceover": false
+    },
+    "targetStudio": "AudioStudio",
+    "rightsNote": "Gallery media is third-party and NOT relicensed for redistribution; derive style only, do not redistribute the clip. Prompt text CC-BY-4.0. Credit: @LeoCreaIA (https://x.com/LeoCreaIA/status/2083240416166748313)."
+  },
+  {
+    "slug": "yellow-sunglasses-in-a-black-studio",
+    "title": "Yellow Sunglasses in a Black Studio",
+    "author": "@shikoba_86",
+    "sourceClipUrl": "/media/minimax-h3/videos/yellow-sunglasses-in-a-black-studio.webm",
+    "thumbnail": "/media/minimax-h3/previews/yellow-sunglasses-in-a-black-studio.webp",
+    "prompt": "A premium product commercial in the style of \"Yellow Sunglasses in a Black Studio\". Studio product hero shots for ecommerce and ads. Clean studio lighting, shallow depth of field, macro hero shots, luxurious graded color, confident slow camera moves.",
+    "negativePrompt": "blurry, low resolution, watermark, text, logo, deformed, extra limbs, jpeg artifacts",
+    "model": "ai-product-shot",
+    "aspectRatio": "16:9",
+    "durationMs": 15000,
+    "motionProfile": {
+      "camera": [
+        "slow dolly in",
+        "static framing"
+      ],
+      "motion": [
+        "subtle"
+      ],
+      "strength": 35
+    },
+    "styleTags": [
+      "product",
+      "studio",
+      "eyewear",
+      "commercial"
+    ],
+    "palette": [
+      "#0a0a0a",
+      "#ffd23f"
+    ],
+    "audioProfile": {
+      "music": "",
+      "sfx": "",
+      "voiceover": false
+    },
+    "targetStudio": "TemplateStudio",
+    "rightsNote": "Gallery media is third-party and NOT relicensed for redistribution; derive style only, do not redistribute the clip. Prompt text CC-BY-4.0. Credit: @shikoba_86 (https://x.com/shikoba_86/status/2083225662316265763)."
+  },
+  {
+    "slug": "theme-park-memory-montage",
+    "title": "Theme Park Memory Montage",
+    "author": "@magnific",
+    "sourceClipUrl": "/media/minimax-h3/videos/theme-park-memory-montage.webm",
+    "thumbnail": "/media/minimax-h3/previews/theme-park-memory-montage.webp",
+    "prompt": "A social-first piece in the style of \"Theme Park Memory Montage\". Emotional brand montages and memory-style recaps. Vertical-friendly composition, punchy pacing, on-trend editing rhythm.",
+    "negativePrompt": "blurry, low resolution, watermark, text, logo, deformed, extra limbs, jpeg artifacts",
+    "model": "minimax-hailuo-2.3-standard-t2v",
+    "aspectRatio": "16:9",
+    "durationMs": 5000,
+    "motionProfile": {
+      "camera": [
+        "static framing"
+      ],
+      "motion": [
+        "punchy"
+      ],
+      "strength": 55
+    },
+    "styleTags": [
+      "montage",
+      "nostalgia",
+      "lifestyle",
+      "cinematic",
+      "story"
+    ],
+    "palette": [
+      "#ff9f1c",
+      "#ef476f"
+    ],
+    "audioProfile": {
+      "music": "",
+      "sfx": "",
+      "voiceover": false
+    },
+    "targetStudio": "EditStudio",
+    "rightsNote": "Gallery media is third-party and NOT relicensed for redistribution; derive style only, do not redistribute the clip. Prompt text CC-BY-4.0. Credit: @magnific (https://x.com/magnific/status/2083217899540586917)."
+  },
+  {
+    "slug": "cyber-warrior-vs-primordial-fighter",
+    "title": "Cyber Warrior vs. Primordial Fighter",
+    "author": "@alex_bagnuoli89",
+    "sourceClipUrl": "/media/minimax-h3/videos/cyber-warrior-vs-primordial-fighter.webm",
+    "thumbnail": "/media/minimax-h3/previews/cyber-warrior-vs-primordial-fighter.webp",
+    "prompt": "A character-driven scene in the style of \"Cyber Warrior vs. Primordial Fighter\". Character duels and franchise-style hero matchups. Consistent hero design, expressive performance, cinematic framing that favors the subject.",
+    "negativePrompt": "blurry, low resolution, watermark, text, logo, deformed, extra limbs, jpeg artifacts",
+    "model": "minimax-hailuo-2.3-standard-t2v",
+    "aspectRatio": "16:9",
+    "durationMs": 15000,
+    "motionProfile": {
+      "camera": [
+        "slow push-in"
+      ],
+      "motion": [
+        "expressive"
+      ],
+      "strength": 50
+    },
+    "styleTags": [
+      "character",
+      "fight",
+      "cyber",
+      "action"
+    ],
+    "palette": [
+      "#00f5d4",
+      "#f15bb5"
+    ],
+    "audioProfile": {
+      "music": "",
+      "sfx": "",
+      "voiceover": false
+    },
+    "targetStudio": "CharacterStudio",
+    "rightsNote": "Gallery media is third-party and NOT relicensed for redistribution; derive style only, do not redistribute the clip. Prompt text CC-BY-4.0. Credit: @alex_bagnuoli89 (https://x.com/alex_bagnuoli89/status/2083207597025354071)."
+  },
+  {
+    "slug": "strawberry-drink-transformation-commercial",
+    "title": "Strawberry Drink Transformation Commercial",
+    "author": "@GumVue",
+    "sourceClipUrl": "/media/minimax-h3/videos/strawberry-drink-transformation-commercial.webm",
+    "thumbnail": "/media/minimax-h3/previews/strawberry-drink-transformation-commercial.webp",
+    "prompt": "A premium product commercial in the style of \"Strawberry Drink Transformation Commercial\". Transformation-style beverage and CPG ads. Clean studio lighting, shallow depth of field, macro hero shots, luxurious graded color, confident slow camera moves.",
+    "negativePrompt": "blurry, low resolution, watermark, text, logo, deformed, extra limbs, jpeg artifacts",
+    "model": "ai-product-shot",
+    "aspectRatio": "16:9",
+    "durationMs": 7000,
+    "motionProfile": {
+      "camera": [
+        "slow dolly in",
+        "static framing"
+      ],
+      "motion": [
+        "subtle"
+      ],
+      "strength": 35
+    },
+    "styleTags": [
+      "product",
+      "beverage",
+      "transformation",
+      "commercial"
+    ],
+    "palette": [
+      "#ff4d6d",
+      "#ffd6e0"
+    ],
+    "audioProfile": {
+      "music": "",
+      "sfx": "",
+      "voiceover": false
+    },
+    "targetStudio": "TemplateStudio",
+    "rightsNote": "Gallery media is third-party and NOT relicensed for redistribution; derive style only, do not redistribute the clip. Prompt text CC-BY-4.0. Credit: @GumVue (https://x.com/GumVue/status/2083189719827878083)."
+  },
+  {
+    "slug": "ice-gunslinger-interactive-web-loop",
+    "title": "Ice Gunslinger Interactive Web Loop",
+    "author": "@Cia0_exe",
+    "sourceClipUrl": "/media/minimax-h3/videos/ice-gunslinger-interactive-web-loop.webm",
+    "thumbnail": "/media/minimax-h3/previews/ice-gunslinger-interactive-web-loop.webp",
+    "prompt": "A seamless looping web motion element in the style of \"Ice Gunslinger Interactive Web Loop\". Interactive web hero loops and UI motion states. Perfect loop, clean composition, subtle continuous motion suitable for a UI hero.",
+    "negativePrompt": "blurry, low resolution, watermark, text, logo, deformed, extra limbs, jpeg artifacts",
+    "model": "minimax-hailuo-2.3-standard-t2v",
+    "aspectRatio": "16:9",
+    "durationMs": 15000,
+    "motionProfile": {
+      "camera": [
+        "static framing"
+      ],
+      "motion": [
+        "continuous loop"
+      ],
+      "strength": 25
+    },
+    "styleTags": [
+      "web",
+      "ui",
+      "loop",
+      "interactive",
+      "fashion"
+    ],
+    "palette": [
+      "#bfe9ff",
+      "#4cc9f0"
+    ],
+    "audioProfile": {
+      "music": "",
+      "sfx": "",
+      "voiceover": false
+    },
+    "targetStudio": "TemplateStudio",
+    "rightsNote": "Gallery media is third-party and NOT relicensed for redistribution; derive style only, do not redistribute the clip. Prompt text CC-BY-4.0. Credit: @Cia0_exe (https://x.com/Cia0_exe/status/2083180088775045626)."
+  },
+  {
+    "slug": "porto-francesinha-comedy-recipe",
+    "title": "Porto Francesinha Comedy Recipe",
+    "author": "@imagineFERA",
+    "sourceClipUrl": "/media/minimax-h3/videos/porto-francesinha-comedy-recipe.webm",
+    "thumbnail": "/media/minimax-h3/previews/porto-francesinha-comedy-recipe.webp",
+    "prompt": "A cinematic sequence in the style of \"Porto Francesinha Comedy Recipe\". Recipe and food content with comedic hosting. Cinematic anamorphic framing, motivated practical and volumetric lighting, atmospheric depth, deliberate camera choreography.",
+    "negativePrompt": "blurry, low resolution, watermark, text, logo, deformed, extra limbs, jpeg artifacts",
+    "model": "minimax-hailuo-2.3-standard-t2v",
+    "aspectRatio": "16:9",
+    "durationMs": 15000,
+    "motionProfile": {
+      "camera": [
+        "static framing"
+      ],
+      "motion": [
+        "natural"
+      ],
+      "strength": 50
+    },
+    "styleTags": [
+      "food",
+      "recipe",
+      "comedy"
+    ],
+    "palette": [
+      "#b5532a",
+      "#e9c46a"
+    ],
+    "audioProfile": {
+      "music": "",
+      "sfx": "",
+      "voiceover": false
+    },
+    "targetStudio": "AudioStudio",
+    "rightsNote": "Gallery media is third-party and NOT relicensed for redistribution; derive style only, do not redistribute the clip. Prompt text CC-BY-4.0. Credit: @imagineFERA (https://x.com/imagineFERA/status/2083172752790282615)."
+  },
+  {
+    "slug": "macaw-scream-in-extreme-slow-motion",
+    "title": "Macaw Scream in Extreme Slow Motion",
+    "author": "@yuvalav",
+    "sourceClipUrl": "/media/minimax-h3/videos/macaw-scream-in-extreme-slow-motion.webm",
+    "thumbnail": "/media/minimax-h3/previews/macaw-scream-in-extreme-slow-motion.webp",
+    "prompt": "A VFX-rich shot in the style of \"Macaw Scream in Extreme Slow Motion\". Extreme slow-motion detail and nature spectacle. Grounded realism with seamless CG integration, detailed simulation, controlled camera.",
+    "negativePrompt": "blurry, low resolution, watermark, text, logo, deformed, extra limbs, jpeg artifacts",
+    "model": "minimax-hailuo-2.3-standard-t2v",
+    "aspectRatio": "16:9",
+    "durationMs": 15000,
+    "motionProfile": {
+      "camera": [
+        "static framing"
+      ],
+      "motion": [
+        "seamless"
+      ],
+      "strength": 65
+    },
+    "styleTags": [
+      "slow-motion",
+      "nature",
+      "macro",
+      "cinematic",
+      "story"
+    ],
+    "palette": [
+      "#ef476f",
+      "#ffd166"
+    ],
+    "audioProfile": {
+      "music": "",
+      "sfx": "",
+      "voiceover": false
+    },
+    "targetStudio": "VideoStudio",
+    "rightsNote": "Gallery media is third-party and NOT relicensed for redistribution; derive style only, do not redistribute the clip. Prompt text CC-BY-4.0. Credit: @yuvalav (https://x.com/yuvalav/status/2083143771508592938)."
+  },
+  {
+    "slug": "blackberry-vanilla-soda-ugc-vlog",
+    "title": "Blackberry Vanilla Soda UGC Vlog",
+    "author": "@AIwithJessica",
+    "sourceClipUrl": "/media/minimax-h3/videos/blackberry-vanilla-soda-ugc-vlog.webm",
+    "thumbnail": "/media/minimax-h3/previews/blackberry-vanilla-soda-ugc-vlog.webp",
+    "prompt": "A relatable first-person UGC testimonial in the style of \"Blackberry Vanilla Soda UGC Vlog\". Beverage UGC vlogs and creator-style reviews. Handheld phone energy, authentic natural light, casual creator tone, real-life setting.",
+    "negativePrompt": "blurry, low resolution, watermark, text, logo, deformed, extra limbs, jpeg artifacts",
+    "model": "minimax-hailuo-2.3-standard-t2v",
+    "aspectRatio": "16:9",
+    "durationMs": 15000,
+    "motionProfile": {
+      "camera": [
+        "handheld",
+        "slight bob"
+      ],
+      "motion": [
+        "natural",
+        "casual"
+      ],
+      "strength": 40
+    },
+    "styleTags": [
+      "ugc",
+      "beverage",
+      "vlog",
+      "product",
+      "commercial"
+    ],
+    "palette": [
+      "#6a4c93",
+      "#c8b6ff"
+    ],
+    "audioProfile": {
+      "music": "",
+      "sfx": "",
+      "voiceover": false
+    },
+    "targetStudio": "AvatarStudio",
+    "rightsNote": "Gallery media is third-party and NOT relicensed for redistribution; derive style only, do not redistribute the clip. Prompt text CC-BY-4.0. Credit: @AIwithJessica (https://x.com/AIwithJessica/status/2083136052638998714)."
+  },
+  {
+    "slug": "bamboo-forest-wuxia-mystery",
+    "title": "Bamboo Forest Wuxia Mystery",
+    "author": "@AIwithAliya",
+    "sourceClipUrl": "/media/minimax-h3/videos/bamboo-forest-wuxia-mystery.webm",
+    "thumbnail": "/media/minimax-h3/previews/bamboo-forest-wuxia-mystery.webp",
+    "prompt": "A cinematic sequence in the style of \"Bamboo Forest Wuxia Mystery\". Wuxia and atmospheric cinematic sequences. Cinematic anamorphic framing, motivated practical and volumetric lighting, atmospheric depth, deliberate camera choreography.",
+    "negativePrompt": "blurry, low resolution, watermark, text, logo, deformed, extra limbs, jpeg artifacts",
+    "model": "minimax-hailuo-2.3-standard-t2v",
+    "aspectRatio": "16:9",
+    "durationMs": 15000,
+    "motionProfile": {
+      "camera": [
+        "slow push-in",
+        "static framing"
+      ],
+      "motion": [
+        "deliberate"
+      ],
+      "strength": 55
+    },
+    "styleTags": [
+      "wuxia",
+      "atmosphere",
+      "mystery",
+      "product",
+      "commercial"
+    ],
+    "palette": [
+      "#2a4d3a",
+      "#a3c9a8"
+    ],
+    "audioProfile": {
+      "music": "",
+      "sfx": "",
+      "voiceover": false
+    },
+    "targetStudio": "CinemaStudio",
+    "rightsNote": "Gallery media is third-party and NOT relicensed for redistribution; derive style only, do not redistribute the clip. Prompt text CC-BY-4.0. Credit: @AIwithAliya (https://x.com/AIwithAliya/status/2083132770650571041)."
+  },
+  {
+    "slug": "golden-guardian-web-hero-loop",
+    "title": "Golden Guardian Web Hero Loop",
+    "author": "@Cia0_exe",
+    "sourceClipUrl": "/media/minimax-h3/videos/golden-guardian-web-hero-loop.webm",
+    "thumbnail": "/media/minimax-h3/previews/golden-guardian-web-hero-loop.webp",
+    "prompt": "A seamless looping web motion element in the style of \"Golden Guardian Web Hero Loop\". Cinematic website hero background loops. Perfect loop, clean composition, subtle continuous motion suitable for a UI hero.",
+    "negativePrompt": "blurry, low resolution, watermark, text, logo, deformed, extra limbs, jpeg artifacts",
+    "model": "minimax-hailuo-2.3-standard-t2v",
+    "aspectRatio": "16:9",
+    "durationMs": 30000,
+    "motionProfile": {
+      "camera": [
+        "static framing"
+      ],
+      "motion": [
+        "continuous loop"
+      ],
+      "strength": 25
+    },
+    "styleTags": [
+      "web",
+      "hero",
+      "loop",
+      "cinematic",
+      "fashion"
+    ],
+    "palette": [
+      "#1a1a1a",
+      "#f4c430"
+    ],
+    "audioProfile": {
+      "music": "",
+      "sfx": "",
+      "voiceover": false
+    },
+    "targetStudio": "TemplateStudio",
+    "rightsNote": "Gallery media is third-party and NOT relicensed for redistribution; derive style only, do not redistribute the clip. Prompt text CC-BY-4.0. Credit: @Cia0_exe (https://x.com/Cia0_exe/status/2083090068378616089)."
+  },
+  {
+    "slug": "emerald-bio-serum-product-film",
+    "title": "Emerald Bio-Serum Product Film",
+    "author": "@noorlewisx",
+    "sourceClipUrl": "/media/minimax-h3/videos/emerald-bio-serum-product-film.webm",
+    "thumbnail": "/media/minimax-h3/previews/emerald-bio-serum-product-film.webp",
+    "prompt": "A beauty product film in the style of \"Emerald Bio-Serum Product Film\". Vertical product films for serums and skincare. Soft diffused light, flawless skin and material detail, elegant slow push-in, refined palette.",
+    "negativePrompt": "blurry, low resolution, watermark, text, logo, deformed, extra limbs, jpeg artifacts",
+    "model": "ai-product-shot",
+    "aspectRatio": "9:16",
+    "durationMs": 15000,
+    "motionProfile": {
+      "camera": [
+        "macro push-in"
+      ],
+      "motion": [
+        "soft"
+      ],
+      "strength": 30
+    },
+    "styleTags": [
+      "beauty",
+      "serum",
+      "vertical",
+      "product",
+      "commercial"
+    ],
+    "palette": [
+      "#064e3b",
+      "#34d399"
+    ],
+    "audioProfile": {
+      "music": "",
+      "sfx": "",
+      "voiceover": false
+    },
+    "targetStudio": "TemplateStudio",
+    "rightsNote": "Gallery media is third-party and NOT relicensed for redistribution; derive style only, do not redistribute the clip. Prompt text CC-BY-4.0. Credit: @noorlewisx (https://x.com/noorlewisx/status/2083081579262591469)."
+  },
+  {
+    "slug": "black-and-gold-perfume-commercial",
+    "title": "Black-and-Gold Perfume Commercial",
+    "author": "@kingofdairyque",
+    "sourceClipUrl": "/media/minimax-h3/videos/black-and-gold-perfume-commercial.webm",
+    "thumbnail": "/media/minimax-h3/previews/black-and-gold-perfume-commercial.webp",
+    "prompt": "A premium product commercial in the style of \"Black-and-Gold Perfume Commercial\". High-contrast luxury fragrance commercials. Clean studio lighting, shallow depth of field, macro hero shots, luxurious graded color, confident slow camera moves.",
+    "negativePrompt": "blurry, low resolution, watermark, text, logo, deformed, extra limbs, jpeg artifacts",
+    "model": "ai-product-shot",
+    "aspectRatio": "16:9",
+    "durationMs": 15000,
+    "motionProfile": {
+      "camera": [
+        "slow dolly in",
+        "static framing"
+      ],
+      "motion": [
+        "subtle"
+      ],
+      "strength": 35
+    },
+    "styleTags": [
+      "product",
+      "luxury",
+      "perfume",
+      "commercial"
+    ],
+    "palette": [
+      "#0a0a0a",
+      "#d4af37"
+    ],
+    "audioProfile": {
+      "music": "",
+      "sfx": "",
+      "voiceover": false
+    },
+    "targetStudio": "TemplateStudio",
+    "rightsNote": "Gallery media is third-party and NOT relicensed for redistribution; derive style only, do not redistribute the clip. Prompt text CC-BY-4.0. Credit: @kingofdairyque (https://x.com/kingofdairyque/status/2083079304632520833)."
+  },
+  {
+    "slug": "morning-lip-oil-ugc-testimonial",
+    "title": "Morning Lip Oil UGC Testimonial",
+    "author": "@SimplyAnnisa",
+    "sourceClipUrl": "/media/minimax-h3/videos/morning-lip-oil-ugc-testimonial.webm",
+    "thumbnail": "/media/minimax-h3/previews/morning-lip-oil-ugc-testimonial.webp",
+    "prompt": "A relatable first-person UGC testimonial in the style of \"Morning Lip Oil UGC Testimonial\". Beauty UGC testimonials and routine ads. Handheld phone energy, authentic natural light, casual creator tone, real-life setting.",
+    "negativePrompt": "blurry, low resolution, watermark, text, logo, deformed, extra limbs, jpeg artifacts",
+    "model": "minimax-hailuo-2.3-standard-t2v",
+    "aspectRatio": "16:9",
+    "durationMs": 15000,
+    "motionProfile": {
+      "camera": [
+        "handheld",
+        "slight bob"
+      ],
+      "motion": [
+        "natural",
+        "casual"
+      ],
+      "strength": 40
+    },
+    "styleTags": [
+      "ugc",
+      "beauty",
+      "testimonial",
+      "product",
+      "commercial"
+    ],
+    "palette": [
+      "#f6c1d3",
+      "#e0a3b5"
+    ],
+    "audioProfile": {
+      "music": "",
+      "sfx": "",
+      "voiceover": false
+    },
+    "targetStudio": "AvatarStudio",
+    "rightsNote": "Gallery media is third-party and NOT relicensed for redistribution; derive style only, do not redistribute the clip. Prompt text CC-BY-4.0. Credit: @SimplyAnnisa (https://x.com/SimplyAnnisa/status/2083075282186256521)."
+  }
+]

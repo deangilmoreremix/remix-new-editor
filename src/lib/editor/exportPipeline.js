@@ -303,8 +303,14 @@ export class ExportPipeline {
   }
 
   async performExport(settings) {
-    // Initialize Web Worker for export processing
-    this.exportWorker = new Worker('/src/lib/editor/exportWorker.js');
+    const hasFFmpegWasm = typeof FFmpeg !== 'undefined';
+    const useServerPath = !hasFFmpegWasm;
+
+    if (useServerPath) {
+      return this.performServerExport(settings);
+    }
+
+    this.exportWorker = new Worker(new URL('../workers/exportWorker.js', import.meta.url));
 
     return new Promise((resolve, reject) => {
       this.exportWorker.onmessage = (e) => {
@@ -324,6 +330,48 @@ export class ExportPipeline {
         settings,
         timelineData: this.getTimelineData()
       });
+    });
+  }
+
+  async performServerExport(settings) {
+    const projectPayload = {
+      settings,
+      timeline: this.getTimelineData(),
+    };
+
+    let exportId;
+    try {
+      const startRes = await fetch('/api/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'start', payload: projectPayload }),
+      });
+      const startData = await startRes.json();
+      if (!startRes.ok) throw new Error(startData.error || 'Failed to start export');
+      exportId = startData.exportId;
+    } catch (err) {
+      console.error('Server export start failed:', err);
+      throw err;
+    }
+
+    return new Promise((resolve, reject) => {
+      const poll = async () => {
+        try {
+          const res = await fetch(`/api/export?id=${exportId}`);
+          const data = await res.json();
+          if (data.progress !== undefined) this.updateProgress(Math.round(data.progress));
+          if (data.status === 'complete') {
+            resolve({ success: true, url: data.url, message: 'Export complete' });
+          } else if (data.status === 'error') {
+            reject(new Error(data.error || 'Export failed'));
+          } else {
+            setTimeout(poll, 1000);
+          }
+        } catch (err) {
+          reject(err);
+        }
+      };
+      poll();
     });
   }
 

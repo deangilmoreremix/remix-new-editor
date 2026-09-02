@@ -284,13 +284,24 @@ export class AIEditingTools {
     const gapEnd = second.start ?? second.startTime ?? 0;
     const prompt = this.modal.querySelector('#fill-gap-prompt')?.value || `Generate footage to fill a ${duration} second gap`;
 
-    const result = await fillGap(this.timelineState.getState(), trackId, gapStart, gapEnd, {
-      duration,
-      prompt,
-      model,
-    });
+    const state = this.timelineState.getState();
+    const tracks = state.tracks || state.project?.tracks || [];
+    const track = tracks.find(t => t.id === trackId);
+    const beforeThumb = track?.clips?.find(c => (c.end ?? c.endTime ?? c.start + c.duration) <= gapStart + 0.01)?.thumbnail;
+    const afterThumb = track?.clips?.find(c => (c.start ?? c.startTime) >= gapEnd - 0.01)?.thumbnail;
 
-    return result;
+    try {
+      const result = await AiMuAPI.generateVideo(
+        prompt,
+        model,
+        { duration, firstFrameUrl: beforeThumb, lastFrameUrl: afterThumb }
+      );
+      const newClip = this.createClipFromResult(result, gapStart, duration);
+      this.timelineState.addClip(trackId, newClip);
+      return { success: true, clipId: newClip.id, clip: newClip };
+    } catch (err) {
+      return fillGap(state, trackId, gapStart, gapEnd, { duration, prompt, model });
+    }
   }
 
   async executeExtendClip() {
@@ -304,16 +315,36 @@ export class AIEditingTools {
     }
 
     const clipId = selectedClip.id;
+    const trackId = selectedClip.trackId || selectedClip.track;
     const prompt = this.modal.querySelector('#extend-prompt')?.value ||
       `Generate footage to extend clip ${direction}`;
 
-    const result = await extendClip(this.timelineState.getState(), clipId, direction, {
-      duration,
-      prompt,
-      model,
-    });
+    const state = this.timelineState.getState();
+    const tracks = state.tracks || state.project?.tracks || [];
+    const track = tracks.find(t => t.id === trackId);
+    const currentClip = track?.clips?.find(c => c.id === clipId);
+    const clipStart = currentClip?.start ?? currentClip?.startTime ?? 0;
+    const clipEnd = currentClip?.end ?? clipStart + (currentClip?.duration ?? 5);
+    const firstFrameUrl = direction === 'before'
+      ? track?.clips?.find(c => (c.end ?? c.endTime ?? c.start + c.duration) <= clipStart + 0.01)?.thumbnail || currentClip?.thumbnail
+      : currentClip?.thumbnail;
+    const lastFrameUrl = direction === 'after'
+      ? track?.clips?.find(c => (c.start ?? c.startTime) >= clipEnd - 0.01)?.thumbnail || currentClip?.thumbnail
+      : currentClip?.thumbnail;
+    const startTime = direction === 'before' ? clipStart - duration : clipEnd;
 
-    return result;
+    try {
+      const result = await AiMuAPI.generateVideo(
+        prompt,
+        model,
+        { duration, firstFrameUrl, lastFrameUrl }
+      );
+      const newClip = this.createClipFromResult(result, startTime, duration);
+      this.timelineState.addClip(trackId, newClip);
+      return { success: true, clipId: newClip.id, clip: newClip };
+    } catch (err) {
+      return extendClip(state, clipId, direction, { duration, prompt, model });
+    }
   }
 
   async executeGenerateMusic() {

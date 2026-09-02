@@ -291,6 +291,8 @@ export class TimelineState {
       splitScreenMode: false,
       cameraAngles: [],
       activeCameraAngle: null,
+      pipWindows: [],
+      splitScreenConfig: { type: 'horizontal', ratio: 0.5, transition: 'none' },
       compositingMode: 'normal'
       // Note: No top-level 'tracks' anymore; tracks live in project.tracks
     };

@@ -3,7 +3,7 @@
  * Renders subtitle tracks and handles synchronization with video playback
  */
 
-import { subtitleState } from './subtitleState.js';
+import { SubtitleState, subtitleState } from './subtitleState.js';
 
 class SubtitleTimeline {
   constructor(timelineContainer, videoPlayer, options = {}) {
@@ -100,6 +100,27 @@ class SubtitleTimeline {
       z-index: 1;
     `;
     this.subtitleTrack.appendChild(label);
+
+    // Add export buttons
+    const exportBtn = document.createElement('button');
+    exportBtn.textContent = 'SRT';
+    exportBtn.style.cssText = `
+      position: absolute; right: 4px; top: 4px; z-index: 11;
+      background: rgba(34,211,238,0.2); border: 1px solid rgba(34,211,238,0.4);
+      color: var(--cyan); border-radius: 4px; padding: 2px 8px; font-size: 10px; cursor: pointer;
+    `;
+    exportBtn.addEventListener('click', () => this._downloadSubtitles('srt'));
+    this.subtitleTrack.appendChild(exportBtn);
+
+    const exportVttBtn = document.createElement('button');
+    exportVttBtn.textContent = 'VTT';
+    exportVttBtn.style.cssText = `
+      position: absolute; right: 36px; top: 4px; z-index: 11;
+      background: rgba(34,211,238,0.2); border: 1px solid rgba(34,211,238,0.4);
+      color: var(--cyan); border-radius: 4px; padding: 2px 8px; font-size: 10px; cursor: pointer;
+    `;
+    exportVttBtn.addEventListener('click', () => this._downloadSubtitles('vtt'));
+    this.subtitleTrack.appendChild(exportVttBtn);
 
     // Add current time indicator
     this.currentTimeIndicator = document.createElement('div');
@@ -439,8 +460,26 @@ class SubtitleTimeline {
   }
 
   /**
-   * Destroy timeline integration
+   * Download subtitles as SRT or VTT file
    */
+  _downloadSubtitles(format) {
+    const content = format === 'vtt'
+      ? SubtitleState.exportSubtitleVTT(subtitleState.subtitles)
+      : SubtitleState.exportSubtitleSRT(subtitleState.subtitles);
+    const blob = new Blob([content], { type: format === 'vtt' ? 'text/vtt' : 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `subtitles.${format}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  /**
+    * Destroy timeline integration
+    */
   destroy() {
     if (this.subtitleTrack) {
       this.subtitleTrack.remove();

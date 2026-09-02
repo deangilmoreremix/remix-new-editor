@@ -1,0 +1,78 @@
+Prompt
+Asset Output
+Multi Prompt
+Multi Prompt
+Element
+Composition Plan
+Music Prompt
+File Upload
+Shot Ideas
+Storyboarder
+LLM (OpenRouter)(fal.ai)IMG
+FLUX Dev(fal.ai)IMG
+FLUX 2 Max(fal.ai)IMG
+Fast SDXL(fal.ai)IMG
+SD3 Medium(fal.ai)IMG
+Nano Banana Pro(fal.ai)IMG
+Nano Banana 2(fal.ai)IMG
+Flux 2 Pro(kie.ai)IMG
+4o Image(kie.ai)IMG
+Nano Banana Pro(kie.ai)IMG
+Nano Banana 2(kie.ai)IMG
+Stable Diffusion XL(runpod)IMG
+FLUX Dev(runpod)IMG
+Qwen Image(runpod)IMG
+SDXL (Pod)(pod)IMG
+FLUX Dev (Pod)(pod)IMG
+Flux Kontext(fal.ai)IMG
+Layer Decompose (Cloud)(fal.ai)IMG
+SAM 3 Segment (Cloud)(fal.ai)IMG
+Qwen Image Layered(fal.ai)IMG
+Qwen Image Edit (Cloud)(fal.ai)IMG
+Qwen Image Edit (Local)(local)IMG
+Layer Decompose (Local)(local)IMG
+SAM 3 Segment(local)IMG
+Qwen Image Edit(runpod)IMG
+Qwen Image Edit (Pod)(pod)IMG
+Veo 3.1(fal.ai)VID
+Kling 3(fal.ai)VID
+Kling 3 Image to Video(fal.ai)VID
+Kling Video(fal.ai)VID
+Kling Image to Video(fal.ai)VID
+Kling First & Last Frame(fal.ai)VID
+MiniMax Video(fal.ai)VID
+Wan 2.2(fal.ai)VID
+Seedance 2.0(fal.ai)VID
+Seedance 2.0 Reference(fal.ai)VID
+LTX 2 Video(fal.ai)VID
+LTX 2.3(fal.ai)VID
+LTX 2.3 Fast(fal.ai)VID
+LTX 2.3 Image to Video(fal.ai)VID
+LTX 2.3 Image to Video (Fast)(fal.ai)VID
+LTX 2.3 Audio to Video(fal.ai)VID
+LTX 2.3 Extend Video(fal.ai)VID
+LTX 2.3 Retake Video(fal.ai)VID
+Sora 2(fal.ai)VID
+SAM 3 Track (Cloud)(fal.ai)VID
+Runway Gen-4(kie.ai)VID
+Veo 3.1(kie.ai)VID
+Wan 2.6 Flash(kie.ai)VID
+Kling 3.0(kie.ai)VID
+Seedance 2(kie.ai)VID
+LTX 2.3 (Local)(local)VID
+LTX Video(runpod)VID
+Wan 2.1 T2V(runpod)VID
+Wan 2.1 I2V(runpod)VID
+LTX Video 2.3 (Pod)(pod)VID
+Wan 2.1 T2V (Pod)(pod)VID
+Wan 2.1 I2V (Pod)(pod)VID
+ElevenLabs Music(fal.ai)AUD
+ElevenLabs TTS(fal.ai)AUD
+ElevenLabs Voice Changer(fal.ai)AUD
+ElevenLabs Audio Isolation(fal.ai)AUD
+ElevenLabs Speech to Text(fal.ai)AUD
+Wizper (Cloud)(fal.ai)AUD
+Whisper (Cloud)(fal.ai)AUD
+ElevenLabs Dubbing(fal.ai)AUD
+Suno Music(kie.ai)AUD
+WhisperX (Local)(local)AUD

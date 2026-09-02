@@ -36,11 +36,14 @@ export class NodeWorkflow {
         <div class="node-category" data-category="utility">Utility Nodes</div>
       </div>
       <div class="node-workflow-canvas-area">
-        <div class="node-canvas" id="node-canvas"></div>
+        <div class="node-canvas" id="node-canvas">
+          <svg class="node-workflow-edges-svg" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;"></svg>
+        </div>
       </div>
     `;
     this.container.appendChild(this.canvas);
     this.setupEventListeners();
+    this.setupEdgeWiring();
     return this;
   }
 
@@ -240,6 +243,7 @@ export class NodeWorkflow {
 
     nodeEl.addEventListener('mousedown', (e) => {
       if (e.target.closest('.workflow-node__actions')) return;
+      if (e.target.closest('.workflow-node__input-port') || e.target.closest('.workflow-node__output-port')) return;
       isDragging = true;
       startX = e.clientX;
       startY = e.clientY;
@@ -254,6 +258,7 @@ export class NodeWorkflow {
       const dy = e.clientY - startY;
       nodeEl.style.left = `${nodeStartX + dx}px`;
       nodeEl.style.top = `${nodeStartY + dy}px`;
+      this.renderEdges();
     });
 
     document.addEventListener('mouseup', () => {
@@ -265,42 +270,86 @@ export class NodeWorkflow {
     });
   }
 
-  connectNodes(sourceId, targetId) {
-    this.edges.push({ source: sourceId, target: targetId });
-    this.renderEdge(sourceId, targetId);
+  setupEdgeWiring() {
+    const canvas = this.canvas.querySelector('.node-canvas');
+    let dragging = null;
+    let tempLine = null;
+
+    canvas.addEventListener('mousedown', (e) => {
+      const port = e.target.closest('.workflow-node__output-port');
+      if (!port) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const nodeEl = port.closest('.workflow-node');
+      if (!nodeEl) return;
+      const sourceId = nodeEl.id;
+      const portRect = port.getBoundingClientRect();
+      const canvasRect = canvas.getBoundingClientRect();
+      dragging = {
+        sourceId,
+        startX: portRect.left + portRect.width / 2 - canvasRect.left,
+        startY: portRect.top + portRect.height / 2 - canvasRect.top,
+      };
+      tempLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      tempLine.setAttribute('stroke', '#6366f1');
+      tempLine.setAttribute('stroke-width', '2');
+      tempLine.setAttribute('stroke-dasharray', '5,3');
+      tempLine.setAttribute('x1', dragging.startX);
+      tempLine.setAttribute('y1', dragging.startY);
+      tempLine.setAttribute('x2', dragging.startX);
+      tempLine.setAttribute('y2', dragging.startY);
+      const svg = canvas.querySelector('.node-workflow-edges-svg');
+      svg.appendChild(tempLine);
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (!dragging || !tempLine) return;
+      const canvasRect = canvas.getBoundingClientRect();
+      tempLine.setAttribute('x2', e.clientX - canvasRect.left);
+      tempLine.setAttribute('y2', e.clientY - canvasRect.top);
+    });
+
+    canvas.addEventListener('mouseup', (e) => {
+      if (!dragging) return;
+      if (tempLine) { tempLine.remove(); tempLine = null; }
+      const inputPort = e.target.closest('.workflow-node__input-port');
+      if (inputPort) {
+        const nodeEl = inputPort.closest('.workflow-node');
+        if (nodeEl && nodeEl.id !== dragging.sourceId) {
+          this.edges.push({ source: dragging.sourceId, target: nodeEl.id });
+          this.renderEdges();
+        }
+      }
+      dragging = null;
+    });
   }
 
-  renderEdge(sourceId, targetId) {
+  renderEdges() {
     const canvas = this.canvas.querySelector('.node-canvas');
-    const sourceEl = document.getElementById(sourceId);
-    const targetEl = document.getElementById(targetId);
-
-    if (!sourceEl || !targetEl) return;
-
-    const sourceRect = sourceEl.getBoundingClientRect();
-    const targetRect = targetEl.getBoundingClientRect();
+    const svg = canvas.querySelector('.node-workflow-edges-svg');
+    if (!svg) return;
+    svg.innerHTML = '';
     const canvasRect = canvas.getBoundingClientRect();
-
-    const line = document.createElement('div');
-    line.className = 'workflow-edge';
-    line.dataset.source = sourceId;
-    line.dataset.target = targetId;
-
-    const x1 = sourceRect.right - canvasRect.left;
-    const y1 = sourceRect.top + sourceRect.height / 2 - canvasRect.top;
-    const x2 = targetRect.left - canvasRect.left;
-    const y2 = targetRect.top + targetRect.height / 2 - canvasRect.top;
-
-    line.style.position = 'absolute';
-    line.style.left = `${x1}px`;
-    line.style.top = `${y1}px`;
-    line.style.width = `${Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2))}px`;
-    line.style.height = '2px';
-    line.style.backgroundColor = '#6366f1';
-    line.style.transformOrigin = 'left center';
-    line.style.transform = `rotate(${Math.atan2(y2 - y1, x2 - x1)}rad)`;
-
-    canvas.appendChild(line);
+    for (const edge of this.edges) {
+      const sourceEl = document.getElementById(edge.source);
+      const targetEl = document.getElementById(edge.target);
+      if (!sourceEl || !targetEl) continue;
+      const sPort = sourceEl.querySelector('.workflow-node__output-port');
+      const tPort = targetEl.querySelector('.workflow-node__input-port');
+      const sRect = sPort ? sPort.getBoundingClientRect() : sourceEl.getBoundingClientRect();
+      const tRect = tPort ? tPort.getBoundingClientRect() : targetEl.getBoundingClientRect();
+      const x1 = sRect.left + sRect.width / 2 - canvasRect.left;
+      const y1 = sRect.top + sRect.height / 2 - canvasRect.top;
+      const x2 = tRect.left + tRect.width / 2 - canvasRect.left;
+      const y2 = tRect.top + tRect.height / 2 - canvasRect.top;
+      const midX = (x1 + x2) / 2;
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', `M${x1},${y1} C${midX},${y1} ${midX},${y2} ${x2},${y2}`);
+      path.setAttribute('stroke', '#6366f1');
+      path.setAttribute('stroke-width', '2');
+      path.setAttribute('fill', 'none');
+      svg.appendChild(path);
+    }
   }
 
   async executeNode(nodeId) {

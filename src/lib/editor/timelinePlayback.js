@@ -6,6 +6,8 @@
 let playbackTimer = null;
 export const panState = { x: 0, startX: 0, dragging: false };
 let dragState = null;
+let rafId = null;
+let _snapThreshold = 0.5;
 
 // Import renderTracks dynamically
 let renderTracksModule = null;
@@ -14,6 +16,10 @@ async function getRenderTracks() {
     renderTracksModule = await import('./timelineRenderer.js');
   }
   return renderTracksModule.renderTracks;
+}
+
+export function setSnapThreshold(value) {
+  _snapThreshold = value;
 }
 
 export function updatePlaybackUI(state, els) {
@@ -61,7 +67,7 @@ export function handlePanUp(state, els) {
   document.removeEventListener('mouseup', handlePanUp);
 }
 
-export function getSnapTime(currentTime, state) {
+export function getSnapTime(currentTime, state, snapThreshold = _snapThreshold) {
   const snapTimes = [];
   state.tracks.forEach(track => {
     track.items.forEach(item => {
@@ -71,7 +77,6 @@ export function getSnapTime(currentTime, state) {
     });
   });
   snapTimes.push(0, state.timelineSeconds);
-  const snapThreshold = 0.5;
   const closeSnaps = snapTimes.filter(t => Math.abs(t - currentTime) < snapThreshold);
   if (closeSnaps.length > 0) {
     return closeSnaps.reduce((prev, curr) => Math.abs(curr - currentTime) < Math.abs(prev - currentTime) ? curr : prev);
@@ -109,12 +114,14 @@ export async function handleItemMouseDown(e, state, els, showToast) {
   dragState = {
     itemId,
     trackId,
+    itemEl,
     startX: e.clientX,
     startStart: item.start,
     startEnd: item.end,
     isResizeLeft,
     isResizeRight,
-    isDrag: !isResizeLeft && !isResizeRight
+    isDrag: !isResizeLeft && !isResizeRight,
+    snapThreshold: _snapThreshold,
   };
   document.addEventListener('mousemove', (e) => handleMouseMove(e, state, els, showToast));
   document.addEventListener('mouseup', (e) => handleMouseUp(state, els, showToast));
@@ -123,41 +130,54 @@ export async function handleItemMouseDown(e, state, els, showToast) {
 
 export async function handleMouseMove(e, state, els, showToast) {
   if (!dragState) return;
-  const deltaX = e.clientX - dragState.startX;
-  const pixelsPerSecond = (els.trackRows.querySelector('.track-lane').getBoundingClientRect().width / state.timelineSeconds);
-  const deltaTime = deltaX / pixelsPerSecond;
-  const track = state.tracks.find(t => t.id === dragState.trackId);
-  const item = track.items.find(i => i.id === dragState.itemId);
-  let newStart = dragState.startStart;
-  let newEnd = dragState.startEnd;
-  if (dragState.isDrag) {
-    newStart = Math.max(0, dragState.startStart + deltaTime);
-    newEnd = newStart + (dragState.startEnd - dragState.startStart);
-  } else if (dragState.isResizeLeft) {
-    newStart = Math.max(0, dragState.startStart + deltaTime);
-  } else if (dragState.isResizeRight) {
-    newEnd = Math.max(item.start + 0.1, dragState.startEnd + deltaTime);
-  }
-  // Snap
-  newStart = getSnapTime(newStart, state);
-  newEnd = getSnapTime(newEnd, state);
-  if (dragState.isDrag) {
-    item.start = newStart;
-    item.end = newEnd;
-  } else if (dragState.isResizeLeft) {
-    item.start = newStart;
-  } else if (dragState.isResizeRight) {
-    item.end = newEnd;
-  }
-  // Re-render tracks
-  const renderTracks = await getRenderTracks();
-  renderTracks(state, els, showToast);
+  if (rafId) cancelAnimationFrame(rafId);
+  rafId = requestAnimationFrame(() => {
+    if (!dragState) return;
+    const deltaX = e.clientX - dragState.startX;
+    const pixelsPerSecond = (els.trackRows.querySelector('.track-lane').getBoundingClientRect().width / state.timelineSeconds);
+    const deltaTime = deltaX / pixelsPerSecond;
+    const track = state.tracks.find(t => t.id === dragState.trackId);
+    const item = track.items.find(i => i.id === dragState.itemId);
+    let newStart = dragState.startStart;
+    let newEnd = dragState.startEnd;
+    if (dragState.isDrag) {
+      newStart = Math.max(0, dragState.startStart + deltaTime);
+      newEnd = newStart + (dragState.startEnd - dragState.startStart);
+    } else if (dragState.isResizeLeft) {
+      newStart = Math.max(0, dragState.startStart + deltaTime);
+    } else if (dragState.isResizeRight) {
+      newEnd = Math.max(item.start + 0.1, dragState.startEnd + deltaTime);
+    }
+    newStart = getSnapTime(newStart, state, dragState.snapThreshold);
+    newEnd = getSnapTime(newEnd, state, dragState.snapThreshold);
+    if (dragState.isDrag) {
+      item.start = newStart;
+      item.end = newEnd;
+    } else if (dragState.isResizeLeft) {
+      item.start = newStart;
+    } else if (dragState.isResizeRight) {
+      item.end = newEnd;
+    }
+    const itemEl = dragState.itemEl;
+    if (itemEl) {
+      const leftPercent = (newStart / state.timelineSeconds) * 100;
+      const widthPercent = ((newEnd - newStart) / state.timelineSeconds) * 100;
+      itemEl.style.left = leftPercent + '%';
+      itemEl.style.width = widthPercent + '%';
+    }
+    rafId = null;
+  });
 }
 
 export function handleMouseUp(state, els, showToast) {
+  if (rafId) {
+    cancelAnimationFrame(rafId);
+    rafId = null;
+  }
   dragState = null;
   document.removeEventListener('mousemove', (e) => handleMouseMove(e, state, els, showToast));
   document.removeEventListener('mouseup', (e) => handleMouseUp(state, els, showToast));
+  getRenderTracks().then((renderTracks) => renderTracks(state, els, showToast));
 }
 
 function formatTimeFromPercent(percent, totalSeconds) {

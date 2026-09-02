@@ -1,19 +1,26 @@
 import { drawVideoFrame, applyPresetFilter } from './renderFrameProcessor.js';
 
+const PIXELS_PER_FRAME = 10;
+
 function extractVideoFromTimeline(timelineData) {
   if (!timelineData || !Array.isArray(timelineData.tracks)) {
     return null;
   }
 
   for (const track of timelineData.tracks) {
-    if (!Array.isArray(track.clips)) continue;
-    for (const clip of track.clips) {
-      if (clip && clip.type === 'video' && clip.src) {
-        return clip.src;
+    if (!Array.isArray(track.clips) && !Array.isArray(track.items)) continue;
+    const clips = track.clips || track.items || [];
+    for (const clip of clips) {
+      if (clip && clip.type === 'video' && (clip.src || clip.source)) {
+        return clip.src || clip.source;
       }
     }
   }
   return null;
+}
+
+function postProgress(percent) {
+  self.postMessage({ type: 'progress', progress: Math.min(100, Math.max(0, Math.round(percent))) });
 }
 
 self.onmessage = async (event) => {
@@ -27,7 +34,8 @@ self.onmessage = async (event) => {
 
       const OffscreenCtor = typeof OffscreenCanvas !== 'undefined' ? OffscreenCanvas : null;
       if (!OffscreenCtor) {
-        throw new Error('OffscreenCanvas is not supported');
+        self.postMessage({ type: 'error', error: 'OffscreenCanvas is not supported in this environment' });
+        return;
       }
 
       const canvas = new OffscreenCtor(width, height);
@@ -47,7 +55,7 @@ self.onmessage = async (event) => {
       }
 
       const duration = timelineData?.duration || 5000;
-      const totalFrames = 10;
+      const totalFrames = PIXELS_PER_FRAME;
 
       for (let i = 0; i < totalFrames; i++) {
         ctx.fillStyle = '#1a1a1a';
@@ -65,19 +73,20 @@ self.onmessage = async (event) => {
           applyPresetFilter(ctx, settings.preset, width, height);
         }
 
-        const percent = Math.round(((i + 1) / totalFrames) * 100);
-        self.postMessage({ type: 'progress', progress: percent });
+        postProgress(((i + 1) / totalFrames) * 100);
+        await new Promise(r => setTimeout(r, 0));
       }
 
-      const blob = await canvas.convertToBlob();
+      const blob = await canvas.convertToBlob({ type: 'image/png' });
       const blobUrl = URL.createObjectURL(blob);
 
       self.postMessage({
         type: 'complete',
         result: {
           success: true,
-          message: 'Export complete',
-          url: blobUrl
+          message: 'Export complete (worker stub)',
+          url: blobUrl,
+          format: settings?.format || 'png',
         }
       });
       return;
@@ -85,7 +94,7 @@ self.onmessage = async (event) => {
 
     self.postMessage({
       type: 'error',
-      error: 'Export worker stub received unknown action: ' + action
+      error: 'Export worker received unknown action: ' + action
     });
   } catch (err) {
     self.postMessage({

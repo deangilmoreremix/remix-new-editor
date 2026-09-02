@@ -1,0 +1,357 @@
+[
+  {
+    "type": "debug",
+    "text": "[vite] connecting...",
+    "location": "{'url': 'http://localhost:3000/@vite/client', 'line': 494, 'column': 8, 'lineNumber': 494, 'columnNumber': 8}"
+  },
+  {
+    "type": "debug",
+    "text": "[vite] connected.",
+    "location": "{'url': 'http://localhost:3000/@vite/client', 'line': 617, 'column': 14, 'lineNumber': 617, 'columnNumber': 14}"
+  },
+  {
+    "type": "log",
+    "text": "[App] Starting initialization...",
+    "location": "{'url': 'http://localhost:3000/src/main.js', 'line': 19, 'column': 8, 'lineNumber': 19, 'columnNumber': 8}"
+  },
+  {
+    "type": "log",
+    "text": "[popcorn-init] OK: jquery",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 41, 'column': 10, 'lineNumber': 41, 'columnNumber': 10}"
+  },
+  {
+    "type": "log",
+    "text": "[popcorn-init] OK: jquery-textfill",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 48, 'column': 14, 'lineNumber': 48, 'columnNumber': 14}"
+  },
+  {
+    "type": "info",
+    "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+    "location": "{'url': 'http://localhost:3000/node_modules/.vite/deps/chunk-EEAUBQDT.js?v=bd80e18f', 'line': 20096, 'column': 53, 'lineNumber': 20096, 'columnNumber': 53}"
+  },
+  {
+    "type": "log",
+    "text": "[App] Initialized in 578.90ms",
+    "location": "{'url': 'http://localhost:3000/src/main.js', 'line': 141, 'column': 12, 'lineNumber': 141, 'columnNumber': 12}"
+  },
+  {
+    "type": "log",
+    "text": "[App] Navigating to initial page: spaces",
+    "location": "{'url': 'http://localhost:3000/src/main.js', 'line': 142, 'column': 12, 'lineNumber': 142, 'columnNumber': 12}"
+  },
+  {
+    "type": "log",
+    "text": "[popcorn-init] OK: popcorn-core",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 48, 'column': 14, 'lineNumber': 48, 'columnNumber': 14}"
+  },
+  {
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "location": "{'url': 'http://localhost:3000/@id/common/gallery/List::/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/.kilo/worktrees/coral-cemetery/components/modals/TemplateGenerator/NicheScriptsModalContent.jsx', 'line': 0, 'column': 0, 'lineNumber': 0, 'columnNumber': 0}"
+  },
+  {
+    "type": "error",
+    "text": "[ModalSystem] mount failed TypeError: Failed to fetch dynamically imported module: http://localhost:3000/src/mountModalSystem.jsx",
+    "location": "{'url': 'http://localhost:3000/src/main.js', 'line': 342, 'column': 49, 'lineNumber': 342, 'columnNumber': 49}"
+  },
+  {
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "location": "{'url': 'http://localhost:3000/@id/form/HorizontalStepper::/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/.kilo/worktrees/coral-cemetery/components/modals/TemplateGenerator/ModalContent.jsx', 'line': 0, 'column': 0, 'lineNumber': 0, 'columnNumber': 0}"
+  },
+  {
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "location": "{'url': 'http://localhost:3000/@id/common/gallery/List::/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/.kilo/worktrees/coral-cemetery/components/modals/Projects/ProjectSettingsModal.jsx', 'line': 0, 'column': 0, 'lineNumber': 0, 'columnNumber': 0}"
+  },
+  {
+    "type": "warning",
+    "text": "Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview",
+    "location": "{'url': 'https://wise-yeti-37.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js', 'line': 11, 'column': 6132, 'lineNumber': 11, 'columnNumber': 6132}"
+  },
+  {
+    "type": "log",
+    "text": "[popcorn-init] OK: popcorn-ie8",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 48, 'column': 14, 'lineNumber': 48, 'columnNumber': 14}"
+  },
+  {
+    "type": "log",
+    "text": "[popcorn-init] OK: wrapper-common",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 48, 'column': 14, 'lineNumber': 48, 'columnNumber': 14}"
+  },
+  {
+    "type": "log",
+    "text": "[popcorn-init] OK: wrapper-html5",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 48, 'column': 14, 'lineNumber': 48, 'columnNumber': 14}"
+  },
+  {
+    "type": "log",
+    "text": "[SpacesCanvas] module evaluating",
+    "location": "{'url': 'http://localhost:3000/src/components/SpacesCanvas.jsx', 'line': 17, 'column': 8, 'lineNumber': 17, 'columnNumber': 8}"
+  },
+  {
+    "type": "log",
+    "text": "[SpacesCanvas] createRoot called true",
+    "location": "{'url': 'http://localhost:3000/src/components/SpacesCanvas.jsx', 'line': 259, 'column': 10, 'lineNumber': 259, 'columnNumber': 10}"
+  },
+  {
+    "type": "log",
+    "text": "[SpacesCanvas] render called",
+    "location": "{'url': 'http://localhost:3000/src/components/SpacesCanvas.jsx', 'line': 272, 'column': 12, 'lineNumber': 272, 'columnNumber': 12}"
+  },
+  {
+    "type": "log",
+    "text": "[popcorn-init] OK: wrapper-vrview",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 48, 'column': 14, 'lineNumber': 48, 'columnNumber': 14}"
+  },
+  {
+    "type": "log",
+    "text": "[popcorn-init] OK: wrapper-adaptive",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 48, 'column': 14, 'lineNumber': 48, 'columnNumber': 14}"
+  },
+  {
+    "type": "log",
+    "text": "[popcorn-init] OK: wrapper-null",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 48, 'column': 14, 'lineNumber': 48, 'columnNumber': 14}"
+  },
+  {
+    "type": "log",
+    "text": "[popcorn-init] OK: wrapper-soundcloud",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 48, 'column': 14, 'lineNumber': 48, 'columnNumber': 14}"
+  },
+  {
+    "type": "log",
+    "text": "[popcorn-init] OK: wrapper-vimeo",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 48, 'column': 14, 'lineNumber': 48, 'columnNumber': 14}"
+  },
+  {
+    "type": "log",
+    "text": "[popcorn-init] OK: wrapper-youtube",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 48, 'column': 14, 'lineNumber': 48, 'columnNumber': 14}"
+  },
+  {
+    "type": "log",
+    "text": "[popcorn-init] OK: wrapper-jwplayer",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 48, 'column': 14, 'lineNumber': 48, 'columnNumber': 14}"
+  },
+  {
+    "type": "log",
+    "text": "[popcorn-init] OK: player-module",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 48, 'column': 14, 'lineNumber': 48, 'columnNumber': 14}"
+  },
+  {
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "location": "{'url': 'http://localhost:3000/@id/lib/utils/popcorn-animation::/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/.kilo/worktrees/coral-cemetery/lib/popcorn/plugins/image/popcorn.image.js', 'line': 0, 'column': 0, 'lineNumber': 0, 'columnNumber': 0}"
+  },
+  {
+    "type": "error",
+    "text": "[popcorn-init] FAILED at: plugin-image TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/image/popcorn.image.js",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 55, 'column': 14, 'lineNumber': 55, 'columnNumber': 14}"
+  },
+  {
+    "type": "error",
+    "text": "[popcorn-init] FAILED at: plugin-jsonTransition TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/jsonTransition/popcorn.jsonTransition.js",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 55, 'column': 14, 'lineNumber': 55, 'columnNumber': 14}"
+  },
+  {
+    "type": "error",
+    "text": "[popcorn-init] FAILED at: plugin-lottie-json TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/lottie-json/popcorn.lottie-json.js",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 55, 'column': 14, 'lineNumber': 55, 'columnNumber': 14}"
+  },
+  {
+    "type": "log",
+    "text": "[popcorn-init] OK: plugin-json-button",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 48, 'column': 14, 'lineNumber': 48, 'columnNumber': 14}"
+  },
+  {
+    "type": "error",
+    "text": "[popcorn-init] FAILED at: plugin-personalizedImage TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/personalizedImage/popcorn.personalizedImage.js",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 55, 'column': 14, 'lineNumber': 55, 'columnNumber': 14}"
+  },
+  {
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "location": "{'url': 'http://localhost:3000/@id/lib/utils/tokens-helper::/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/.kilo/worktrees/coral-cemetery/lib/popcorn/plugins/personalizedImage/popcorn.personalizedImage.js', 'line': 0, 'column': 0, 'lineNumber': 0, 'columnNumber': 0}"
+  },
+  {
+    "type": "error",
+    "text": "[popcorn-init] FAILED at: plugin-loopPlugin TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/loopPlugin/popcorn.loopPlugin.js",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 55, 'column': 14, 'lineNumber': 55, 'columnNumber': 14}"
+  },
+  {
+    "type": "error",
+    "text": "[popcorn-init] FAILED at: plugin-pausePlugin TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/pausePlugin/popcorn.pausePlugin.js",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 55, 'column': 14, 'lineNumber': 55, 'columnNumber': 14}"
+  },
+  {
+    "type": "error",
+    "text": "[popcorn-init] FAILED at: plugin-form TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/form/popcorn.form.js",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 55, 'column': 14, 'lineNumber': 55, 'columnNumber': 14}"
+  },
+  {
+    "type": "error",
+    "text": "[popcorn-init] FAILED at: plugin-retarget TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/retarget/popcorn.retarget.js",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 55, 'column': 14, 'lineNumber': 55, 'columnNumber': 14}"
+  },
+  {
+    "type": "log",
+    "text": "[popcorn-init] OK: plugin-popup",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 48, 'column': 14, 'lineNumber': 48, 'columnNumber': 14}"
+  },
+  {
+    "type": "error",
+    "text": "[popcorn-init] FAILED at: plugin-sequencer TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/sequencer/popcorn.sequencer.js",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 55, 'column': 14, 'lineNumber': 55, 'columnNumber': 14}"
+  },
+  {
+    "type": "error",
+    "text": "[popcorn-init] FAILED at: plugin-skip TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/skip/popcorn.skip.js",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 55, 'column': 14, 'lineNumber': 55, 'columnNumber': 14}"
+  },
+  {
+    "type": "error",
+    "text": "[popcorn-init] FAILED at: plugin-text TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/text/popcorn.text.js",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 55, 'column': 14, 'lineNumber': 55, 'columnNumber': 14}"
+  },
+  {
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "location": "{'url': 'http://localhost:3000/@id/lib/utils/popcorn-animation::/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/.kilo/worktrees/coral-cemetery/lib/popcorn/plugins/text/popcorn.text.js', 'line': 0, 'column': 0, 'lineNumber': 0, 'columnNumber': 0}"
+  },
+  {
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "location": "{'url': 'http://localhost:3000/@id/lib/utils/tokens-helper::/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/.kilo/worktrees/coral-cemetery/lib/popcorn/plugins/text/popcorn.text.js', 'line': 0, 'column': 0, 'lineNumber': 0, 'columnNumber': 0}"
+  },
+  {
+    "type": "log",
+    "text": "[popcorn-init] OK: plugin-social",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 48, 'column': 14, 'lineNumber': 48, 'columnNumber': 14}"
+  },
+  {
+    "type": "error",
+    "text": "[popcorn-init] FAILED at: plugin-jsonAnimation TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/jsonAnimation/popcorn.jsonAnimation.js",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 55, 'column': 14, 'lineNumber': 55, 'columnNumber': 14}"
+  },
+  {
+    "type": "log",
+    "text": "[popcorn-init] OK: plugin-videoTransition",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 48, 'column': 14, 'lineNumber': 48, 'columnNumber': 14}"
+  },
+  {
+    "type": "error",
+    "text": "[popcorn-init] FAILED at: plugin-seethroughtext TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/seethroughtext/popcorn.seethroughtext.js",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 55, 'column': 14, 'lineNumber': 55, 'columnNumber': 14}"
+  },
+  {
+    "type": "log",
+    "text": "[popcorn-init] OK: plugin-wikipedia",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 48, 'column': 14, 'lineNumber': 48, 'columnNumber': 14}"
+  },
+  {
+    "type": "error",
+    "text": "[popcorn-init] FAILED at: plugin-combined TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/combined/popcorn.combined.js",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 55, 'column': 14, 'lineNumber': 55, 'columnNumber': 14}"
+  },
+  {
+    "type": "error",
+    "text": "[popcorn-init] FAILED at: plugin-background TypeError: Failed to fetch dynamically imported module: http://localhost:3000/lib/popcorn/plugins/background/popcorn.background.js",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 55, 'column': 14, 'lineNumber': 55, 'columnNumber': 14}"
+  },
+  {
+    "type": "log",
+    "text": "[popcorn-init] SUMMARY: 5/20 plugins registered; FAILED: plugin-image, plugin-jsonTransition, plugin-lottie-json, plugin-personalizedImage, plugin-loopPlugin, plugin-pausePlugin, plugin-form, plugin-retarget, plugin-sequencer, plugin-skip, plugin-text, plugin-jsonAnimation, plugin-seethroughtext, plugin-combined, plugin-background",
+    "location": "{'url': 'http://localhost:3000/src/lib/popcornInit.js', 'line': 60, 'column': 10, 'lineNumber': 60, 'columnNumber': 10}"
+  },
+  {
+    "type": "log",
+    "text": "[popcorn] function 5",
+    "location": "{'url': 'http://localhost:3000/src/main.js', 'line': 4, 'column': 10, 'lineNumber': 4, 'columnNumber': 10}"
+  },
+  {
+    "type": "warning",
+    "text": "[React Flow]: The parent container needs a width and a height to render the graph. Help: https://reactflow.dev/error#004",
+    "location": "{'url': 'http://localhost:3000/node_modules/.vite/deps/@xyflow_react.js?v=bd80e18f', 'line': 3599, 'column': 12, 'lineNumber': 3599, 'columnNumber': 12}"
+  },
+  {
+    "type": "warning",
+    "text": "[React Flow]: The parent container needs a width and a height to render the graph. Help: https://reactflow.dev/error#004",
+    "location": "{'url': 'http://localhost:3000/node_modules/.vite/deps/@xyflow_react.js?v=bd80e18f', 'line': 3599, 'column': 12, 'lineNumber': 3599, 'columnNumber': 12}"
+  },
+  {
+    "type": "log",
+    "text": "[NodePalette] onSelect flux-dev",
+    "location": "{'url': 'http://localhost:3000/src/components/create/node-palette.jsx', 'line': 248, 'column': 28, 'lineNumber': 248, 'columnNumber': 28}"
+  },
+  {
+    "type": "log",
+    "text": "[SpacesCanvas] handlePaletteSelect called flux-dev",
+    "location": "{'url': 'http://localhost:3000/src/components/SpacesCanvas.jsx', 'line': 102, 'column': 14, 'lineNumber': 102, 'columnNumber': 14}"
+  },
+  {
+    "type": "warning",
+    "text": "[React Flow]: The parent container needs a width and a height to render the graph. Help: https://reactflow.dev/error#004",
+    "location": "{'url': 'http://localhost:3000/node_modules/.vite/deps/@xyflow_react.js?v=bd80e18f', 'line': 3599, 'column': 12, 'lineNumber': 3599, 'columnNumber': 12}"
+  },
+  {
+    "type": "warning",
+    "text": "[React Flow]: The parent container needs a width and a height to render the graph. Help: https://reactflow.dev/error#004",
+    "location": "{'url': 'http://localhost:3000/node_modules/.vite/deps/@xyflow_react.js?v=bd80e18f', 'line': 3599, 'column': 12, 'lineNumber': 3599, 'columnNumber': 12}"
+  },
+  {
+    "type": "warning",
+    "text": "[React Flow]: The parent container needs a width and a height to render the graph. Help: https://reactflow.dev/error#004",
+    "location": "{'url': 'http://localhost:3000/node_modules/.vite/deps/@xyflow_react.js?v=bd80e18f', 'line': 3599, 'column': 12, 'lineNumber': 3599, 'columnNumber': 12}"
+  },
+  {
+    "type": "warning",
+    "text": "[React Flow]: The parent container needs a width and a height to render the graph. Help: https://reactflow.dev/error#004",
+    "location": "{'url': 'http://localhost:3000/node_modules/.vite/deps/@xyflow_react.js?v=bd80e18f', 'line': 3599, 'column': 12, 'lineNumber': 3599, 'columnNumber': 12}"
+  },
+  {
+    "type": "warning",
+    "text": "[React Flow]: The parent container needs a width and a height to render the graph. Help: https://reactflow.dev/error#004",
+    "location": "{'url': 'http://localhost:3000/node_modules/.vite/deps/@xyflow_react.js?v=bd80e18f', 'line': 3599, 'column': 12, 'lineNumber': 3599, 'columnNumber': 12}"
+  },
+  {
+    "type": "warning",
+    "text": "[React Flow]: The parent container needs a width and a height to render the graph. Help: https://reactflow.dev/error#004",
+    "location": "{'url': 'http://localhost:3000/node_modules/.vite/deps/@xyflow_react.js?v=bd80e18f', 'line': 3599, 'column': 12, 'lineNumber': 3599, 'columnNumber': 12}"
+  },
+  {
+    "type": "warning",
+    "text": "[React Flow]: The parent container needs a width and a height to render the graph. Help: https://reactflow.dev/error#004",
+    "location": "{'url': 'http://localhost:3000/node_modules/.vite/deps/@xyflow_react.js?v=bd80e18f', 'line': 3599, 'column': 12, 'lineNumber': 3599, 'columnNumber': 12}"
+  },
+  {
+    "type": "warning",
+    "text": "[React Flow]: The parent container needs a width and a height to render the graph. Help: https://reactflow.dev/error#004",
+    "location": "{'url': 'http://localhost:3000/node_modules/.vite/deps/@xyflow_react.js?v=bd80e18f', 'line': 3599, 'column': 12, 'lineNumber': 3599, 'columnNumber': 12}"
+  },
+  {
+    "type": "log",
+    "text": "[workflow] Sending to model: fal-ai/flux/dev {\n  \"image_size\": \"landscape_4_3\",\n  \"num_images\": 1,\n  \"output_format\": \"jpeg\",\n  \"enable_safety_checker\": true,\n  \"acceleration\": \"none\",\n  \"guidance_scale\": 3.5,\n  \"num_inference_steps\": 28\n}",
+    "location": "{'url': 'http://localhost:3000/src/lib/workflows/execute.js', 'line': 242, 'column': 12, 'lineNumber': 242, 'columnNumber': 12}"
+  },
+  {
+    "type": "warning",
+    "text": "[React Flow]: The parent container needs a width and a height to render the graph. Help: https://reactflow.dev/error#004",
+    "location": "{'url': 'http://localhost:3000/node_modules/.vite/deps/@xyflow_react.js?v=bd80e18f', 'line': 3599, 'column': 12, 'lineNumber': 3599, 'columnNumber': 12}"
+  },
+  {
+    "type": "warning",
+    "text": "[React Flow]: The parent container needs a width and a height to render the graph. Help: https://reactflow.dev/error#004",
+    "location": "{'url': 'http://localhost:3000/node_modules/.vite/deps/@xyflow_react.js?v=bd80e18f', 'line': 3599, 'column': 12, 'lineNumber': 3599, 'columnNumber': 12}"
+  },
+  {
+    "type": "warning",
+    "text": "[React Flow]: The parent container needs a width and a height to render the graph. Help: https://reactflow.dev/error#004",
+    "location": "{'url': 'http://localhost:3000/node_modules/.vite/deps/@xyflow_react.js?v=bd80e18f', 'line': 3599, 'column': 12, 'lineNumber': 3599, 'columnNumber': 12}"
+  },
+  {
+    "type": "warning",
+    "text": "[React Flow]: The parent container needs a width and a height to render the graph. Help: https://reactflow.dev/error#004",
+    "location": "{'url': 'http://localhost:3000/node_modules/.vite/deps/@xyflow_react.js?v=bd80e18f', 'line': 3599, 'column': 12, 'lineNumber': 3599, 'columnNumber': 12}"
+  }
+]

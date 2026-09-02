@@ -202,43 +202,56 @@ export function renderSplitScreenControls(state, container) {
 }
 
 // Utility functions for event handlers
+function _persistTimelineState() {
+  if (typeof window !== 'undefined' && window.timelineState && typeof window.timelineState.persist === 'function') {
+    window.timelineState.persist();
+  }
+}
+
 window.switchToAngle = (angleId) => {
   const state = window.timelineState;
   state.switchToCameraAngle(angleId);
   renderCameraAnglesPanel(state);
+  _persistTimelineState();
 };
 
 window.removeAngle = (angleId) => {
   const state = window.timelineState;
   state.removeCameraAngle(angleId);
   renderCameraAnglesPanel(state);
+  _persistTimelineState();
 };
 
 window.removePip = (pipId) => {
   const state = window.timelineState;
   state.removePipWindow(pipId);
   renderPipControls(state, document.querySelector('.pip-controls-container'));
+  _persistTimelineState();
 };
 
 window.updatePipPosition = (pipId, position) => {
   const state = window.timelineState;
   state.updatePipWindow(pipId, { position });
+  _persistTimelineState();
 };
 
 window.updatePipOpacity = (pipId, opacity) => {
   const state = window.timelineState;
   state.updatePipWindow(pipId, { opacity: parseFloat(opacity) });
+  _persistTimelineState();
 };
 
 window.updateSplitType = (type) => {
   const state = window.timelineState;
   state.setSplitScreen(type, state.splitScreenConfig.ratio);
   renderSplitScreenControls(state, document.querySelector('.split-controls-container'));
+  _persistTimelineState();
 };
 
 window.updateSplitRatio = (ratio) => {
   const state = window.timelineState;
   state.setSplitScreen(state.splitScreenConfig.type, parseFloat(ratio));
+  _persistTimelineState();
 };
 
 // Helper functions

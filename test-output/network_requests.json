@@ -1,0 +1,7 @@
+[
+  {
+    "url": "http://localhost:3000/src/lib/muapi.js",
+    "method": "GET",
+    "resource_type": "script"
+  }
+]

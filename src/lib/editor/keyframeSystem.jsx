@@ -7,6 +7,7 @@ export class KeyframeSystem {
   constructor() {
     this.keyframes = new Map(); // clipId -> keyframes
     this.animations = new Map(); // clipId -> animation state
+    this.dispatchEvent = () => {}; // no-op; set externally to forward mutations to XState/undo-redo
     this.easingFunctions = {
       linear: t => t,
       'ease-in': t => t * t,
@@ -46,6 +47,8 @@ export class KeyframeSystem {
       propertyKeyframes.splice(insertIndex, 0, keyframe);
     }
 
+    this.dispatchEvent('ADD_KEYFRAME', { clipId, keyframe });
+
     return keyframe;
   }
 
@@ -63,6 +66,8 @@ export class KeyframeSystem {
     if (propertyKeyframes.length === 0) {
       clipKeyframes.delete(property);
     }
+
+    this.dispatchEvent('REMOVE_KEYFRAME', { clipId, keyframeId });
 
     return true;
   }
@@ -307,6 +312,7 @@ export class KeyframeSystem {
   moveSelectedKeyframes(clipId, selectedKeyframes, timeOffset) {
     selectedKeyframes.forEach(({ property, keyframe }) => {
       keyframe.time = Math.max(0, keyframe.time + timeOffset);
+      this.dispatchEvent('UPDATE_KEYFRAME', { clipId, keyframeId: keyframe.id, patch: { time: keyframe.time } });
     });
   }
 
