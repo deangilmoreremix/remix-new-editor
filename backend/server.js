@@ -17,6 +17,8 @@ import videoDbProxyService from './services/videoDbProxyService.js';
 import gtmBoostService from './services/gtmBoostService.js';
 import storyboardService from './services/storyboardService.js';
 import pexelsProxyService from './services/pexelsProxyService.js';
+import pixabayProxyService from './services/pixabayProxyService.js';
+import giphyProxyService from './services/giphyProxyService.js';
 import templateService from './services/templateService.js';
 import openmontageProxy from './services/openmontageProxy.js';
 import { auth, optionalAuth } from './middleware/auth.js';
@@ -36,6 +38,8 @@ const videoAgentLimiter = rateLimit({ windowMs: 60 * 1000, max: 10, standardHead
 const agentActionsLimiter = rateLimit({ windowMs: 60 * 1000, max: 20, standardHeaders: true, legacyHeaders: false });
 const videodbProxyLimiter = rateLimit({ windowMs: 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
 const pexelsSearchLimiter = rateLimit({ windowMs: 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
+const pixabaySearchLimiter = rateLimit({ windowMs: 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
+const giphySearchLimiter = rateLimit({ windowMs: 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
 
 // Authenticated API routes — every route below requires a valid Supabase
 // JWT in the `Authorization: Bearer <token>` header. The middleware attaches
@@ -60,6 +64,8 @@ app.use('/api/agents', agentActionsLimiter, optionalAuth, agentActionsService);
 app.use('/api/model-catalog', optionalAuth, modelCatalogService);
 app.use('/api/videodb', videodbProxyLimiter, optionalAuth, videoDbProxyService);
 app.use('/api/pexels', pexelsSearchLimiter, optionalAuth, pexelsProxyService);
+app.use('/api/pixabay', pixabaySearchLimiter, optionalAuth, pixabayProxyService);
+app.use('/api/giphy', giphySearchLimiter, optionalAuth, giphyProxyService);
 app.use('/api/templates', optionalAuth, templateService);
 app.use('/api/gtm-boost', optionalAuth, gtmBoostService);
 app.use('/api/storyboard', storyboardService);

@@ -41,6 +41,7 @@ const ICONS = {
   'studios/product-photo-studio': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
   'studios/fashion-studio': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
   'video-agent-studio': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l4 10 5-14 5 14 4-10"/></svg>',
+  'smart-video-studio': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
 };
 
 const FALLBACK_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>';
@@ -62,6 +63,7 @@ export const STUDIO_ROUTES = {
   commercial: { label: 'Commercial Studio', category: 'Create' },
   audio: { label: 'Audio Studio', category: 'Create' },
   avatar: { label: 'Avatar Studio', category: 'Create' },
+  'smart-video-studio': { label: 'SmartVideo AI Studio', category: 'Create' },
   training: { label: 'Training Studio', category: 'Create' },
   academy: { label: 'Smart Video Academy', category: 'Tools' },
   videotools: { label: 'Video Tools', category: 'Create' },
