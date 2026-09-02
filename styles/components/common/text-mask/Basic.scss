@@ -1,0 +1,33 @@
+.seethroughtext {
+  text-align: left;
+  font-size: $defaultFontSize;
+
+  .time-section {
+    display: flex;
+    justify-content: space-between;
+    width: 50%;
+  }
+
+  .input-time-position {
+    width: 45%;
+    display: flex;
+    flex-direction: column;
+
+    & > label {
+      line-height: $defaultLineHeight;
+    }
+  }
+
+  .text-section {
+    margin-top: 1rem;
+
+    .text-settings-label {
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+  }
+
+  .text-area-label {
+    margin-bottom: 0.5rem;
+  }
+}

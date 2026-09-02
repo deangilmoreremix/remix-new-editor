@@ -1,0 +1,10 @@
+# Repo-root .dockerignore for the director-frontend Docker build.
+# Build context is the repo root; these exclusions keep the build context small.
+
+**/node_modules
+**/dist
+**/build
+**/.git
+**/__pycache__
+**/*.log
+.DS_Store

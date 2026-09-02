@@ -1,0 +1,417 @@
+.text-settings-label {
+  font-size: $defaultFontSize;
+  line-height: $defaultLineHeight;
+}
+
+.text-container {
+  margin-bottom: 1em;
+  display: flex;
+  flex: 1;
+  justify-content: space-between;
+  align-items: flex-end;
+
+  &-time {
+    display: flex;
+    justify-content: space-between;
+    width: 40%;
+  }
+
+  &-position {
+    display: flex;
+  }
+
+  .input-time-position {
+    width: 45%;
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+
+    & label {
+      font-size: $defaultFontSize;
+      line-height: $defaultLineHeight;
+    }
+  }
+}
+
+.personalize-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 1em;
+}
+
+.text-form {
+  .MuiRadio-root {
+    .MuiIconButton-label {
+      width: 0.6em;
+      height: 0.6em;
+    }
+  }
+  .phone-code {
+    width: 100px;
+    margin-right: 20px;
+    margin-top: 1rem;
+  }
+
+  .link-url-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: 1em;
+    margin-right: 1rem;
+    flex: fit-content;
+
+    .input-url-position {
+      width: 100%;
+    }
+  }
+  .phone-area-code-container {
+    display: flex;
+  }
+  .link-url-container .input-url-position {
+    width: 100% !important;
+  }
+  .email-link-container {
+    margin-top: 2em;
+    margin-bottom: 2em;
+
+    .email-notify, .open-link {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      text-align: left;
+
+      &-label {
+        line-height: 1.4;
+        width: 40%;
+        margin: 0;
+      }
+
+      &-input {
+        width: 60%;
+      }
+    }
+  }
+
+  .text-transform-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+
+    &-rotation, &-transition {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      .btn-library {
+        margin-left: 0.5rem;
+      }
+    }
+
+    &-input {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      width: 100%;
+
+      .form-angle {
+        margin-left: 0.5rem;
+      }
+    }
+
+    &-font {
+      margin-top: 1em;
+      display: flex;
+      justify-content: flex-end;
+      width: 100%;
+
+      & > div {
+        display: flex;
+        width: 12.4em;
+        justify-content: space-between;
+        align-items: center;
+      }
+    }
+  }
+  .icon-edit-text {
+    .radio-button-icon {
+      min-width: 1.2rem;
+      & svg path {
+        fill: $border-color;
+      }
+    }
+  }
+}
+
+.open-link-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1em;
+
+  .MuiFormGroup-root {
+    width: 60%;
+  }
+
+  .MuiOutlinedInput-root:hover fieldset {
+    border-color: $secondary-color;
+  }
+
+  .open-link {
+    justify-content: flex-start;
+  }
+}
+
+.btn-personalize,
+.btn-library,
+.btn-upload,
+.btn-custom {
+  @include reset-button;
+  display: inline-block;
+  height: 2.174rem;
+  background: $secondary-color;
+  border-radius: 4px;
+  color: $white;
+  font-size: $defaultFontSize;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+  padding: 0 24px;
+}
+
+.btn-personalize-disabled {
+  opacity: 0.5;
+  cursor: auto;
+}
+
+.btn-custom-disabled {
+  opacity: 0.5;
+  cursor: auto;
+}
+
+.text-position-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  &-icons {
+    display: flex;
+    align-items: baseline;
+    margin-bottom: 0.5rem;
+
+    .MuiFormControl-root:last-child {
+      .MuiFormGroup-root {
+        .MuiFormControlLabel-root:last-child {
+          & > span:last-child {
+            margin-right: -9px;
+          }
+        }
+      }
+    }
+  }
+
+  .MuiFormGroup-root {
+    .MuiFormControlLabel-root:first-child > .MuiIconButton-root {
+      padding-left: 9px;
+    }
+  }
+}
+
+.text-buttons-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+
+  &-once {
+    justify-content: flex-end;
+  }
+}
+.text-cta-container {
+  margin-top: 15px;
+}
+.cta-radio-btn {
+  accent-color: #EB5054;
+}
+
+.open-text-to-speech {
+  @include reset-button;
+  flex: 1;
+  display: inline-block;
+  height: 2.174rem;
+  background: $secondary-color;
+  border-radius: 4px;
+  color: $white;
+  font-size: $defaultFontSize;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+  padding: 0 24px;
+  margin-top: 1rem;
+  margin-right: 1rem;
+}
+
+@media screen and (max-width: 1480px) {
+  .text-form {
+    .text-transform-container {
+      flex-direction: column;
+      align-items: normal;
+
+      .text-transform-container-transition {
+        margin-top: 1rem;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: $xxl) {
+  .text-form {
+    .MuiFormGroup-root {
+      width: 100%;
+    }
+
+    .text-container {
+      flex-direction: column;
+      align-items: flex-start;
+      margin-bottom: 0;
+
+      .text-settings-label {
+        margin-top: 1rem;
+      }
+    }
+
+    .text-container-time {
+      flex-direction: column;
+      width: 100%;
+      line-height: 1;
+
+      .input-time-position {
+        width: 100%;
+
+        & + .input-time-position {
+          margin-top: 1rem;
+        }
+      }
+    }
+
+    .text-position-container {
+      flex-direction: column-reverse;
+      align-items: flex-start;
+
+      .MuiFormControl-root:last-child {
+        .MuiFormGroup-root {
+          .MuiFormControlLabel-root:first-child {
+            & > span:first-child {
+              margin-left: 0;
+            }
+          }
+        }
+      }
+
+      .MuiFormGroup-root {
+        .MuiFormControlLabel-root {
+          & > span {
+          }
+        }
+      }
+    }
+
+    .personalize-container, .btn-personalize, .open-text-to-speech {
+      width: 100%;
+      margin-left: 0;
+      margin-right: 0;
+      flex: none;
+    }
+
+    
+
+    .link-url-container .input-url-position {
+      width: 100%;
+      margin-top: 1rem;
+
+      .text-area-label {
+        margin-bottom: 0.5rem;
+      }
+    }
+
+    .email-link-container {
+
+      .email-notify {
+        flex-direction: column;
+      }
+
+      .email-notify-label, .email-notify-input {
+        width: 100%;
+        margin-bottom: 0.5rem;
+      }
+    }
+
+    .open-link-container {
+      flex-direction: column;
+      text-align: left;
+
+      .text-settings-label {
+        width: 100%;
+      }
+    }
+
+    .text-transform-container-rotation {
+      width: 100%;
+    }
+
+    .text-transform-container-input {
+      flex-direction: column;
+      align-items: flex-start;
+
+      .form-angle {
+        width: 100%;
+        justify-content: space-between;
+        margin-left: 0;
+      }
+    }
+
+    .text-transform-container-transition {
+      width: 100%;
+      margin-top: 1rem;
+      flex-direction: column;
+      align-items: flex-start;
+
+      .btn-library {
+        width: 100%;
+        margin-left: 0;
+      }
+    }
+  }
+
+  .text-settings-label {
+    margin-bottom: 0.5rem;
+  }
+
+  .btn-personalize,
+  .btn-library,
+  .btn-upload,
+  .btn-custom {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: $lg) {
+  .text-form {
+    .text-position-container-icons {
+      flex-direction: column;
+
+      .MuiFormControl-root:last-child {
+        .MuiFormGroup-root {
+          .MuiFormControlLabel-root:first-child {
+            & > span:first-child {
+              margin-left: -9px;
+            }
+          }
+        }
+      }
+    }
+  }
+}

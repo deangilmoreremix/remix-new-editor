@@ -42,6 +42,7 @@ music_library/
 .env
 .env.local
 *.env
+.env.*.local
 .youtube-token.json
 # Google service-account / Vertex AI keys — never commit
 gcp-*.json
@@ -76,8 +77,49 @@ pixabay_music_*
 .DS_Store
 Thumbs.db
 
-# Node (for remotion-composer/)
+# Node
 node_modules/
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Netlify auto-generated state (contains absolute local paths)
+.netlify/
+
+# .npmrc contains a private registry auth token and is already tracked
+# in git history. Adding it here prevents future re-commits of the token.
+# The include=optional setting needed for builds is in netlify.toml instead.
+.npmrc
+
+# Audit / test scaffolding — contains the sandboxed muapi key; never commit.
+.audit/
+muapi-audit-results.json
+
+# Clerk auth test/debug scaffolding — never commit.
+.agents/
+clerk_e2e_test.cjs
+debug_signin.cjs
+.playwright-mcp/
+*.jpg
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
 # Remotion build output and copied project assets (regenerable at render time)
 remotion-composer/out/
@@ -104,3 +146,5 @@ venv/
 
 # Local Wan / diffusers GPU environment
 .venv-wan/
+
+package-lock.json

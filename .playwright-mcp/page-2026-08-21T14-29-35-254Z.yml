@@ -1,0 +1,438 @@
+- generic [ref=f6e1]:
+  - generic [ref=f6e2]:
+    - banner [ref=f6e3]:
+      - generic [ref=f6e4]:
+        - generic [ref=f6e5]:
+          - generic [ref=f6e6] [cursor=pointer]
+          - navigation [ref=f6e12]:
+            - generic [ref=f6e13] [cursor=pointer]: Explore
+            - generic [ref=f6e14] [cursor=pointer]: Image
+            - generic [ref=f6e15] [cursor=pointer]: Video
+            - generic [ref=f6e16] [cursor=pointer]: Tools
+            - generic [ref=f6e17] [cursor=pointer]: Storyboard
+            - generic [ref=f6e18] [cursor=pointer]: Edit
+            - generic [ref=f6e19] [cursor=pointer]: Character
+            - generic [ref=f6e20] [cursor=pointer]: Vibe Motion
+            - generic [ref=f6e21] [cursor=pointer]: Cinema Studio
+            - generic [ref=f6e22] [cursor=pointer]: Cinema Template Studio
+            - generic [ref=f6e23] [cursor=pointer]: AI Influencer
+            - generic [ref=f6e24] [cursor=pointer]: Apps
+            - generic [ref=f6e25] [cursor=pointer]: Templates
+            - generic [ref=f6e26] [cursor=pointer]: Assist
+            - generic [ref=f6e27] [cursor=pointer]: Community
+            - generic [ref=f6e28] [cursor=pointer]: Content Library
+        - generic [ref=f6e29]:
+          - button "Update API Key" [ref=f6e30]
+          - link "Sign In" [ref=f6e34] [cursor=pointer]:
+            - /url: /signin
+    - generic [ref=f6e35]:
+      - complementary [ref=f6e36]:
+        - generic:
+          - generic [ref=f6e37] [cursor=pointer]:
+            - button [ref=f6e38]
+            - generic [ref=f6e44]: Apps
+          - generic [ref=f6e45] [cursor=pointer]:
+            - button [ref=f6e46]
+            - generic [ref=f6e51]: Image
+          - generic [ref=f6e52] [cursor=pointer]:
+            - button [ref=f6e53]
+            - generic [ref=f6e57]: Video
+          - generic [ref=f6e58] [cursor=pointer]:
+            - button [ref=f6e59]
+            - generic [ref=f6e62]: Cinema Studio
+          - generic [ref=f6e63] [cursor=pointer]:
+            - button [ref=f6e64]
+            - generic [ref=f6e67]: Cinema Template Studio
+          - generic [ref=f6e68] [cursor=pointer]:
+            - button [ref=f6e69]
+            - generic [ref=f6e77]: Storyboard
+          - generic [ref=f6e78] [cursor=pointer]:
+            - button [ref=f6e79]
+            - generic [ref=f6e82]: Effects
+          - generic [ref=f6e83] [cursor=pointer]:
+            - button [ref=f6e84]
+            - generic [ref=f6e88]: Edit
+          - generic [ref=f6e89] [cursor=pointer]:
+            - button [ref=f6e90]
+            - generic [ref=f6e96]: Upscale
+          - generic [ref=f6e97] [cursor=pointer]:
+            - button [ref=f6e98]
+            - generic [ref=f6e103]: Audio
+          - generic [ref=f6e104] [cursor=pointer]:
+            - button [ref=f6e105]
+            - generic [ref=f6e110]: Avatar
+          - generic [ref=f6e111] [cursor=pointer]:
+            - button [ref=f6e112]
+            - generic [ref=f6e117]: Training
+          - generic [ref=f6e118] [cursor=pointer]:
+            - button [ref=f6e119]
+            - generic [ref=f6e123]: Smart Video Academy
+          - generic [ref=f6e124] [cursor=pointer]:
+            - button [ref=f6e125]
+            - generic [ref=f6e129]: Video Tools
+          - generic [ref=f6e130] [cursor=pointer]:
+            - button [ref=f6e131]
+            - generic [ref=f6e134]: Render
+          - generic [ref=f6e135] [cursor=pointer]:
+            - button [ref=f6e136]
+            - generic [ref=f6e141]: Video Agent
+          - generic [ref=f6e142] [cursor=pointer]:
+            - button [ref=f6e143]
+            - generic [ref=f6e147]: Director
+          - generic [ref=f6e148] [cursor=pointer]:
+            - button [ref=f6e149]
+            - generic [ref=f6e155]: Timeline
+          - generic [ref=f6e156] [cursor=pointer]:
+            - button [ref=f6e157]
+            - generic [ref=f6e160]: Chat
+          - generic [ref=f6e161] [cursor=pointer]:
+            - button [ref=f6e162]
+            - generic [ref=f6e166]: Commercial
+          - generic [ref=f6e167] [cursor=pointer]:
+            - button [ref=f6e168]
+            - generic [ref=f6e171]: Templates
+          - generic [ref=f6e172] [cursor=pointer]:
+            - button [ref=f6e173]
+            - generic [ref=f6e177]: Explore
+          - generic [ref=f6e178] [cursor=pointer]:
+            - button [ref=f6e179]
+            - generic [ref=f6e183]: Library
+          - generic [ref=f6e184] [cursor=pointer]:
+            - button [ref=f6e185]
+            - generic [ref=f6e188]: Content
+          - generic [ref=f6e189] [cursor=pointer]:
+            - button [ref=f6e190]
+            - generic [ref=f6e196]: Community
+          - generic [ref=f6e197] [cursor=pointer]:
+            - button [ref=f6e198]
+            - generic [ref=f6e203]: Assist
+          - generic [ref=f6e204] [cursor=pointer]:
+            - button [ref=f6e205]
+            - generic [ref=f6e209]: Commits (0)
+          - generic [ref=f6e210] [cursor=pointer]:
+            - button [ref=f6e211]
+            - generic [ref=f6e215]: AI VFX
+          - generic [ref=f6e216] [cursor=pointer]:
+            - button [ref=f6e217]
+            - generic [ref=f6e221]: Stock Media
+        - generic [ref=f6e222] [cursor=pointer]:
+          - button [ref=f6e223]
+          - generic [ref=f6e227]: Settings
+      - main [ref=f6e228]:
+        - generic [ref=f6e229]:
+          - generic [ref=f6e230]:
+            - button "All studios" [ref=f6e231]
+            - button "Back" [ref=f6e237]
+          - generic [ref=f6e241]:
+            - img "video studio" [ref=f6e242]
+            - generic [ref=f6e244]:
+              - heading "Video Studio" [level=1] [ref=f6e245]
+              - paragraph [ref=f6e246]: Animate images into stunning AI videos with motion effects
+          - generic [ref=f6e248]:
+            - generic [ref=f6e249]:
+              - button "Reference media" [ref=f6e250]
+              - button "Browse stock photos for i2v reference" [ref=f6e255]
+              - button "Use last frame of a video as I2V source" [ref=f6e259]:
+                - img [ref=f6e260]:
+                  - generic [ref=f6e264]: ⏱
+              - button "Upload video to remove watermark" [ref=f6e265]
+              - button "Browse stock videos for v2v input" [ref=f6e270]
+              - textbox "Video prompt" [ref=f6e274]:
+                - /placeholder: Describe the video you want to create
+                - text: A cinematic drone shot over a mountain range at sunset with golden light
+              - button "GTM Boost prompt enhancer" [ref=f6e275] [cursor=pointer]: 🎯 GTM Boost
+            - generic [ref=f6e276]:
+              - generic [ref=f6e277]:
+                - button "Seedance Lite Select AI video model" [ref=f6e278]:
+                  - generic [ref=f6e280]: Seedance Lite
+                  - text: Select AI video model
+                - button "16:9 Change aspect ratio" [ref=f6e283]:
+                  - generic [ref=f6e286]: 16:9
+                  - text: Change aspect ratio
+                - button "15s Set video duration" [ref=f6e289]:
+                  - generic [ref=f6e293]: 15s
+                  - text: Set video duration
+                - button "480p Set output resolution" [ref=f6e296]:
+                  - generic [ref=f6e299]: 480p
+                  - text: Set output resolution
+                - text: Set output quality
+                - button "Advanced Show advanced options" [ref=f6e302]:
+                  - generic [ref=f6e306]: Advanced
+                  - text: Show advanced options
+                - button "Motion & Style Camera movement, motion strength & style presets" [ref=f6e309]:
+                  - generic [ref=f6e312]: Motion & Style
+                  - text: Camera movement, motion strength & style presets
+                - button "Personalize Personalize with a discovered contact" [ref=f6e315]:
+                  - generic [ref=f6e319]: Personalize
+                  - text: Personalize with a discovered contact
+                - button "🖼 Thumbnail" [ref=f6e322] [cursor=pointer]
+                - button "Quick Starters Video quick prompt starters" [ref=f6e323]:
+                  - generic [ref=f6e326]: Quick Starters
+                  - text: Video quick prompt starters
+              - button "Generate video" [active] [ref=f6e329]: Generate ✨ Generate AI video from prompt
+          - generic [ref=f6e330]:
+            - generic [ref=f6e331]:
+              - generic [ref=f6e332]:
+                - generic [ref=f6e333]: "1"
+                - generic [ref=f6e335]:
+                  - generic [ref=f6e336]: Select generation mode
+                  - generic [ref=f6e337]: Choose between text-to-video or image-to-video. Image-to-video uses your photo as the first frame.
+              - generic [ref=f6e338]:
+                - generic [ref=f6e339]: "2"
+                - generic [ref=f6e341]:
+                  - generic [ref=f6e342]: Upload or describe
+                  - generic [ref=f6e343]: For image-to-video, upload a clear photo. For text-to-video, write a detailed description of the scene and motion.
+              - generic [ref=f6e344]:
+                - generic [ref=f6e345]: "3"
+                - generic [ref=f6e347]:
+                  - generic [ref=f6e348]: Configure output
+                  - generic [ref=f6e349]: Set resolution (480p to 1080p), duration (3-10 seconds), and aspect ratio for your video.
+              - generic [ref=f6e350]:
+                - generic [ref=f6e351]: "4"
+                - generic [ref=f6e353]:
+                  - generic [ref=f6e354]: Generate video
+                  - generic [ref=f6e355]: Video generation takes 1-3 minutes. The result will appear in your library when ready.
+            - generic [ref=f6e356]:
+              - button [ref=f6e357]
+              - generic [ref=f6e361]:
+                - generic [ref=f6e362]:
+                  - generic [ref=f6e363]: ●
+                  - generic [ref=f6e364]: Start with image-to-video for more predictable results
+                - generic [ref=f6e365]:
+                  - generic [ref=f6e366]: ●
+                  - generic [ref=f6e367]: Keep prompts focused on a single action or movement
+                - generic [ref=f6e368]:
+                  - generic [ref=f6e369]: ●
+                  - generic [ref=f6e370]: Use 720p for a good balance of quality and speed
+          - generic [ref=f6e371]: History
+          - status:
+            - generic:
+              - generic:
+                - generic: Frame
+                - slider "Video frame scrubber": "0"
+                - generic: 0:00
+            - generic:
+              - button "↻ Regenerate"
+              - button "↓ Download"
+              - button "🎬 Open in Render"
+              - button "+ New"
+              - button "Publish to Social"
+          - generic [ref=f6e373]:
+            - generic [ref=f6e374]:
+              - generic [ref=f6e375]:
+                - generic [ref=f6e376]: Example Gallery
+                - generic [ref=f6e377]: Click any card to view the prompt or create in this style
+              - generic [ref=f6e378]: 14 examples
+            - generic [ref=f6e379]:
+              - button "All" [ref=f6e380] [cursor=pointer]
+              - button "comedy" [ref=f6e381] [cursor=pointer]
+              - button "retro" [ref=f6e382] [cursor=pointer]
+              - button "skit" [ref=f6e383] [cursor=pointer]
+              - button "social" [ref=f6e384] [cursor=pointer]
+              - button "ugc" [ref=f6e385] [cursor=pointer]
+              - button "food" [ref=f6e386] [cursor=pointer]
+              - button "restaurant" [ref=f6e387] [cursor=pointer]
+              - button "taste-test" [ref=f6e388] [cursor=pointer]
+              - button "product" [ref=f6e389] [cursor=pointer]
+              - button "commercial" [ref=f6e390] [cursor=pointer]
+            - generic [ref=f6e391]:
+              - generic [ref=f6e392] [cursor=pointer]:
+                - generic [ref=f6e393]:
+                  - generic [ref=f6e394]: SOCIAL
+                  - img "1980s open-source family comedy" [ref=f6e395]
+                - generic [ref=f6e396]:
+                  - generic [ref=f6e397]: 1980s open-source family comedy
+                  - generic [ref=f6e398]: minimax
+                  - generic [ref=f6e400]:
+                    - generic [ref=f6e401]: comedy
+                    - generic [ref=f6e402]: retro
+                    - generic [ref=f6e403]: skit
+                  - generic [ref=f6e404]:
+                    - button "View Prompt" [ref=f6e405]
+                    - button "Create This Style" [ref=f6e406]
+              - generic [ref=f6e407] [cursor=pointer]:
+                - generic [ref=f6e408]:
+                  - generic [ref=f6e409]: UGC
+                  - img "Ramen Bowl UGC Taste Test" [ref=f6e410]
+                - generic [ref=f6e411]:
+                  - generic [ref=f6e412]: Ramen Bowl UGC Taste Test
+                  - generic [ref=f6e413]: minimax
+                  - generic [ref=f6e415]:
+                    - generic [ref=f6e416]: ugc
+                    - generic [ref=f6e417]: food
+                    - generic [ref=f6e418]: restaurant
+                  - generic [ref=f6e419]:
+                    - button "View Prompt" [ref=f6e420]
+                    - button "Create This Style" [ref=f6e421]
+              - generic [ref=f6e422] [cursor=pointer]:
+                - generic [ref=f6e423]:
+                  - generic [ref=f6e424]: UGC
+                  - img "Gourmet Burger UGC Taste Test" [ref=f6e425]
+                - generic [ref=f6e426]:
+                  - generic [ref=f6e427]: Gourmet Burger UGC Taste Test
+                  - generic [ref=f6e428]: minimax
+                  - generic [ref=f6e430]:
+                    - generic [ref=f6e431]: ugc
+                    - generic [ref=f6e432]: food
+                    - generic [ref=f6e433]: local-business
+                  - generic [ref=f6e434]:
+                    - button "View Prompt" [ref=f6e435]
+                    - button "Create This Style" [ref=f6e436]
+              - generic [ref=f6e437] [cursor=pointer]:
+                - generic [ref=f6e438]:
+                  - generic [ref=f6e439]: SOCIAL
+                  - img "Y2K K-Pop Candy Typography Music Video" [ref=f6e440]
+                - generic [ref=f6e441]:
+                  - generic [ref=f6e442]: Y2K K-Pop Candy Typography Music Video
+                  - generic [ref=f6e443]: minimax
+                  - generic [ref=f6e445]:
+                    - generic [ref=f6e446]: music-video
+                    - generic [ref=f6e447]: y2k
+                    - generic [ref=f6e448]: typography
+                  - generic [ref=f6e449]:
+                    - button "View Prompt" [ref=f6e450]
+                    - button "Create This Style" [ref=f6e451]
+              - generic [ref=f6e452] [cursor=pointer]:
+                - generic [ref=f6e453]:
+                  - generic [ref=f6e454]: SOCIAL
+                  - img "Theme Park Memory Montage" [ref=f6e455]
+                - generic [ref=f6e456]:
+                  - generic [ref=f6e457]: Theme Park Memory Montage
+                  - generic [ref=f6e458]: minimax
+                  - generic [ref=f6e460]:
+                    - generic [ref=f6e461]: montage
+                    - generic [ref=f6e462]: nostalgia
+                    - generic [ref=f6e463]: lifestyle
+                  - generic [ref=f6e464]:
+                    - button "View Prompt" [ref=f6e465]
+                    - button "Create This Style" [ref=f6e466]
+              - generic [ref=f6e467] [cursor=pointer]:
+                - generic [ref=f6e468]:
+                  - generic [ref=f6e469]: WEB / UI
+                  - img "Ice Gunslinger Interactive Web Loop" [ref=f6e470]
+                - generic [ref=f6e471]:
+                  - generic [ref=f6e472]: Ice Gunslinger Interactive Web Loop
+                  - generic [ref=f6e473]: minimax
+                  - generic [ref=f6e475]:
+                    - generic [ref=f6e476]: web
+                    - generic [ref=f6e477]: ui
+                    - generic [ref=f6e478]: loop
+                  - generic [ref=f6e479]:
+                    - button "View Prompt" [ref=f6e480]
+                    - button "Create This Style" [ref=f6e481]
+              - generic [ref=f6e482] [cursor=pointer]:
+                - generic [ref=f6e483]:
+                  - generic [ref=f6e484]: UGC
+                  - img "Blackberry Vanilla Soda UGC Vlog" [ref=f6e485]
+                - generic [ref=f6e486]:
+                  - generic [ref=f6e487]: Blackberry Vanilla Soda UGC Vlog
+                  - generic [ref=f6e488]: minimax
+                  - generic [ref=f6e490]:
+                    - generic [ref=f6e491]: ugc
+                    - generic [ref=f6e492]: beverage
+                    - generic [ref=f6e493]: vlog
+                  - generic [ref=f6e494]:
+                    - button "View Prompt" [ref=f6e495]
+                    - button "Create This Style" [ref=f6e496]
+              - generic [ref=f6e497] [cursor=pointer]:
+                - generic [ref=f6e498]:
+                  - generic [ref=f6e499]: WEB / UI
+                  - img "Golden Guardian Web Hero Loop" [ref=f6e500]
+                - generic [ref=f6e501]:
+                  - generic [ref=f6e502]: Golden Guardian Web Hero Loop
+                  - generic [ref=f6e503]: minimax
+                  - generic [ref=f6e505]:
+                    - generic [ref=f6e506]: web
+                    - generic [ref=f6e507]: hero
+                    - generic [ref=f6e508]: loop
+                  - generic [ref=f6e509]:
+                    - button "View Prompt" [ref=f6e510]
+                    - button "Create This Style" [ref=f6e511]
+              - generic [ref=f6e512] [cursor=pointer]:
+                - generic [ref=f6e513]:
+                  - generic [ref=f6e514]: UGC
+                  - img "Morning Lip Oil UGC Testimonial" [ref=f6e515]
+                - generic [ref=f6e516]:
+                  - generic [ref=f6e517]: Morning Lip Oil UGC Testimonial
+                  - generic [ref=f6e518]: minimax
+                  - generic [ref=f6e520]:
+                    - generic [ref=f6e521]: ugc
+                    - generic [ref=f6e522]: beauty
+                    - generic [ref=f6e523]: testimonial
+                  - generic [ref=f6e524]:
+                    - button "View Prompt" [ref=f6e525]
+                    - button "Create This Style" [ref=f6e526]
+              - generic [ref=f6e527] [cursor=pointer]:
+                - generic [ref=f6e528]:
+                  - generic [ref=f6e529]: FACELESS
+                  - img "Faceless Clip" [ref=f6e530]
+                - generic [ref=f6e531]:
+                  - generic [ref=f6e532]: Faceless Clip
+                  - generic [ref=f6e533]: academy
+                  - generic [ref=f6e535]:
+                    - generic [ref=f6e536]: faceless
+                    - generic [ref=f6e537]: youtube
+                    - generic [ref=f6e538]: educational
+                  - generic [ref=f6e539]:
+                    - button "View Prompt" [ref=f6e540]
+                    - button "Create This Style" [ref=f6e541]
+              - generic [ref=f6e542] [cursor=pointer]:
+                - generic [ref=f6e543]:
+                  - generic [ref=f6e544]: FACELESS
+                  - img "Faceless Finance Niche" [ref=f6e545]
+                - generic [ref=f6e546]:
+                  - generic [ref=f6e547]: Faceless Finance Niche
+                  - generic [ref=f6e548]: academy
+                  - generic [ref=f6e550]:
+                    - generic [ref=f6e551]: faceless
+                    - generic [ref=f6e552]: finance
+                    - generic [ref=f6e553]: educational
+                  - generic [ref=f6e554]:
+                    - button "View Prompt" [ref=f6e555]
+                    - button "Create This Style" [ref=f6e556]
+              - generic [ref=f6e557] [cursor=pointer]:
+                - generic [ref=f6e558]:
+                  - generic [ref=f6e559]: FACELESS
+                  - img "Faceless Workstation" [ref=f6e560]
+                - generic [ref=f6e561]:
+                  - generic [ref=f6e562]: Faceless Workstation
+                  - generic [ref=f6e563]: academy
+                  - generic [ref=f6e565]:
+                    - generic [ref=f6e566]: faceless
+                    - generic [ref=f6e567]: workstation
+                    - generic [ref=f6e568]: productivity
+                  - generic [ref=f6e569]:
+                    - button "View Prompt" [ref=f6e570]
+                    - button "Create This Style" [ref=f6e571]
+              - generic [ref=f6e572] [cursor=pointer]:
+                - generic [ref=f6e573]:
+                  - generic [ref=f6e574]: PRODUCT-PHOTOGRAPHY
+                  - img "Coffee Motion" [ref=f6e575]
+                - generic [ref=f6e576]:
+                  - generic [ref=f6e577]: Coffee Motion
+                  - generic [ref=f6e578]: academy
+                  - generic [ref=f6e580]:
+                    - generic [ref=f6e581]: product-photography
+                    - generic [ref=f6e582]: coffee
+                    - generic [ref=f6e583]: motion
+                  - generic [ref=f6e584]:
+                    - button "View Prompt" [ref=f6e585]
+                    - button "Create This Style" [ref=f6e586]
+              - generic [ref=f6e587] [cursor=pointer]:
+                - generic [ref=f6e588]:
+                  - generic [ref=f6e589]: REAL-ESTATE
+                  - img "Living Room Staging Motion" [ref=f6e590]
+                - generic [ref=f6e591]:
+                  - generic [ref=f6e592]: Living Room Staging Motion
+                  - generic [ref=f6e593]: academy
+                  - generic [ref=f6e595]:
+                    - generic [ref=f6e596]: real-estate
+                    - generic [ref=f6e597]: staging
+                    - generic [ref=f6e598]: motion
+                  - generic [ref=f6e599]:
+                    - button "View Prompt" [ref=f6e600]
+                    - button "Create This Style" [ref=f6e601]
+  - generic:
+    - generic:
+      - generic: ⚠️
+      - generic: Upgrade to access this feature

@@ -1,0 +1,81 @@
+.main {
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    padding-top: $menu-height;
+  }
+
+  .controls-block {
+    min-width: 105px;
+    z-index: 10;
+  }
+
+  .controls-block__sidebar {
+    display: flex;
+  }
+
+  .controls-block__toolbar {
+    max-width: 34.3rem;
+
+    &-produce {
+      max-width: 100%;
+      width: 100%;
+    }
+  }
+
+  .controls-block-library {
+    max-width: 100%;
+    flex-basis: 100%;
+  }
+
+  .controls__canvas {
+    flex: 1;
+  }
+}
+.home {
+  display: flex;
+  flex-direction: column;
+  background: $dark-twinlight;
+  min-height: 100vh;
+  padding-left: 0;
+  padding-right: 0;
+  color: $white;
+
+  .controls {
+    flex: 1;
+    flex-wrap: nowrap;
+    width: 96vw;
+  }
+
+  .hover-loading {
+    position: absolute;
+    opacity: 0.6;
+    background: $dark-twinlight;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+
+  .hidden {
+    display: none;
+  }
+}
+
+.disabled {
+  pointer-events: none;
+}
+
+.home__center {
+  width: 31.75rem;
+  position: relative;
+  padding: 1.3rem 0 0.5rem 1rem;
+  flex: 1 !important;
+  max-width: none !important;
+}
+
+@media screen and (max-width: 1365px) {
+  .home__center {
+    width: 25rem;
+  }
+}

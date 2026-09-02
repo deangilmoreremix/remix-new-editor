@@ -1,0 +1,253 @@
+// Smart Video AI Studio Landing Page
+// Optimized with lazy loading for sections
+
+const ALL_APPS = [
+  { id: 'image', title: 'Image', description: 'Generate high-quality AI images for ads, thumbnails, product visuals, social media, websites, and client campaigns.', link: '/image?public=1' },
+  { id: 'video', title: 'Video', description: 'Create text-to-video, image-to-video, video-to-video, and cinematic motion content for social, ads, and branded campaigns.', link: '/video?public=1' },
+  { id: 'cinema', title: 'Cinema Studio', description: 'Direct AI-generated scenes using cinematic camera language, lenses, moods, lighting, motion, shot types, and visual styles.', link: '/cinema?public=1' },
+  { id: 'character', title: 'Character', description: 'Create consistent AI characters, branded personas, story characters, spokespersons, creators, and campaign personalities.', link: '/character?public=1' },
+  { id: 'ai-vfx', title: 'AI-VFX', description: 'Generate advanced AI visual effects such as explosions, lightning, fire, energy effects, disintegration, destruction, and cinematic transformations.', link: '/ai-vfx?public=1' },
+  { id: 'influencer', title: 'Influencer', description: 'Create AI influencer visuals, social content concepts, creator-style campaigns, fashion shots, lifestyle scenes, and branded posts.', link: '/influencer?public=1' },
+  { id: 'storyboard', title: 'Storyboard', description: 'Plan campaigns, commercials, short films, social videos, and client projects using AI-assisted scene and shot planning.', link: '/storyboard?public=1' },
+  { id: 'effects', title: 'Effects', description: 'Apply creative effects, transformations, motion styles, cinematic treatments, and stylized visual looks.', link: '/effects?public=1' },
+  { id: 'vfx', title: 'VFX', description: 'Create high-impact visual effects for trailers, ads, social videos, fantasy scenes, action sequences, and cinematic content.', link: '/vfx?public=1' },
+  { id: 'edit', title: 'Edit', description: 'Edit, revise, enhance, repurpose, and improve visual assets so users can move from raw AI output to polished delivery.', link: '/edit?public=1' },
+  { id: 'upscale', title: 'Upscale', description: 'Improve image and video quality with AI upscaling for sharper, cleaner, more professional-looking assets.', link: '/upscale?public=1' },
+  { id: 'audio', title: 'Audio', description: 'Generate, enhance, transform, or prepare audio assets for videos, voiceovers, ads, explainers, and AI content.', link: '/audio?public=1' },
+  { id: 'avatar', title: 'Avatar', description: 'Create AI avatar-based content, virtual presenters, branded spokespersons, personality-driven videos, and talking visuals.', link: '/avatar?public=1' },
+  { id: 'training', title: 'Training', description: 'Teach users how to use the platform, create sellable assets, package services, and build an AI video agency.', link: '/training?public=1' },
+  { id: 'videotools', title: 'Video Tools', description: 'Access utility tools for enhancing, converting, modifying, preparing, and improving video assets.', link: '/videotools?public=1' },
+  { id: 'render', title: 'Render', description: 'Preview, organize, export, and prepare final outputs for download, editing, delivery, or client presentation.', link: '/render?public=1' },
+  { id: 'director', title: 'Director', description: 'Turn prompts, concepts, scripts, and creative ideas into directed cinematic scenes and structured video plans.', link: '/director?public=1' },
+  { id: 'timeline', title: 'Timeline', description: 'Arrange scenes, assets, clips, shots, captions, audio, and creative elements inside a structured video timeline.', link: '/timeline?public=1' },
+  { id: 'runway-motion', title: 'Motion', description: 'Generate camera movement, scene motion, product motion, character motion, and cinematic animation effects.', link: '/runway-motion?public=1' },
+  { id: 'tiktok-carousel', title: 'TikTok', description: 'Create TikTok-style videos, hooks, short-form content, viral concepts, creator clips, and social-ready vertical assets.', link: '/tiktok-carousel?public=1' },
+  { id: 'advanced-dubbing', title: 'Dubbing', description: 'Translate, localize, and dub video content for different languages, audiences, campaigns, and global delivery.', link: '/advanced-dubbing?public=1' },
+  { id: 'chat', title: 'Chat', description: 'Chat with AI to brainstorm creative ideas, refine prompts, plan campaigns, and get instant help with any creative task.', link: '/chat?public=1' },
+  { id: 'commercial', title: 'Commercial', description: 'Create product commercials, brand ads, local business promos, ecommerce videos, launch videos, and agency-ready ad concepts.', link: '/commercial?public=1' },
+  { id: 'templates', title: 'Templates', description: 'Start faster with prebuilt creative templates for ads, thumbnails, products, social posts, cinematic shots, VFX, and more.', link: '/templates?public=1' },
+  { id: 'explore', title: 'Explore', description: 'Browse creative ideas, examples, presets, templates, use cases, visual styles, and production inspiration.', link: '/explore?public=1' },
+  { id: 'library', title: 'Library', description: 'Store, organize, reuse, and manage generated assets, projects, videos, images, templates, and campaign materials.', link: '/library?public=1' },
+  { id: 'community', title: 'Community', description: 'Showcase examples, discover creative workflows, highlight user creations, and build a community around AI video creation.', link: '/community?public=1' },
+  { id: 'assist', title: 'Assist', description: 'Use guided AI help for prompts, workflows, studio selection, creative improvement, and project completion.', link: '/assist?public=1' },
+  { id: 'lip-sync', title: 'Lip Sync', description: 'Generate accurate lip sync for any video, character, or avatar in any language for natural-looking dubbed content.', link: '/lipsync?public=1' },
+  { id: 'agents', title: 'Agents', description: 'Use specialized AI agents for creative direction, editing, storyboarding, video creation, pitch improvement, and production planning.', link: '/agents?public=1' },
+];
+
+let globalStylesAdded = false;
+
+// MiniMax H3 cinematic showcase.
+//
+// Set to false to fall back to the original hero-first ordering. Nothing is
+// removed either way — the existing HeroSection and all 13 original sections
+// always render; the cinematic hero is added above them.
+const ENABLE_CINEMATIC_HERO = true;
+
+/**
+ * Keeps the document to a single <h1> and a single banner landmark once the
+ * cinematic hero is added above the original hero.
+ *
+ * The original hero keeps 100% of its markup, classes, ids, copy and behaviour
+ * (including the typewriter spans) — only the wrapper tag is swapped h1 -> h2
+ * and the duplicate role="banner" is dropped, both of which are pure
+ * accessibility fixes for having two heroes on one page.
+ */
+function demoteLegacyHero(heroEl) {
+  heroEl.removeAttribute('role');
+  heroEl.setAttribute('aria-labelledby', 'hero-headline');
+
+  const legacyHeadline = heroEl.querySelector('h1#hero-headline');
+  if (!legacyHeadline) return;
+
+  const replacement = document.createElement('h2');
+  for (const attribute of Array.from(legacyHeadline.attributes)) {
+    replacement.setAttribute(attribute.name, attribute.value);
+  }
+  while (legacyHeadline.firstChild) {
+    replacement.appendChild(legacyHeadline.firstChild);
+  }
+  legacyHeadline.replaceWith(replacement);
+}
+
+
+function addGlobalStyles() {
+  if (globalStylesAdded) return;
+  globalStylesAdded = true;
+
+  const style = document.createElement('style');
+  style.textContent = `
+    .animate-in {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .animate-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .animate-in.stagger-1 { transition-delay: 0.1s; }
+    .animate-in.stagger-2 { transition-delay: 0.2s; }
+    .animate-in.stagger-3 { transition-delay: 0.3s; }
+    .animate-in.stagger-4 { transition-delay: 0.4s; }
+    .animate-in.stagger-5 { transition-delay: 0.5s; }
+    .animate-in.stagger-6 { transition-delay: 0.6s; }
+    .animate-in.stagger-7 { transition-delay: 0.7s; }
+    .animate-in.stagger-8 { transition-delay: 0.8s; }
+    .animate-in.stagger-9 { transition-delay: 0.9s; }
+    .animate-in.stagger-10 { transition-delay: 1.0s; }
+    .btn-enhanced {
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    .btn-enhanced::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 60%);
+      transform: scale(0);
+      transition: transform 0.5s ease;
+    }
+    .btn-enhanced:hover::after {
+      transform: scale(1);
+    }
+    html {
+      scroll-behavior: smooth;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function createLazySection(importFn, sectionId, props = {}, index = 0) {
+  const placeholder = document.createElement('div');
+  placeholder.id = 'section-' + sectionId;
+  placeholder.className = 'min-h-[200px] flex items-center justify-center';
+  placeholder.innerHTML = '<div class="animate-spin w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full"></div>';
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        observer.unobserve(placeholder);
+        importFn().then((module) => {
+          console.log('[Landing] section loaded:', sectionId, 'keys:', Object.keys(module));
+          let section;
+          if (module.default) {
+            section = props.apps ? module.default({ apps: props.apps }) : module.default(props);
+          } else if (module.AppsGridSection) {
+            section = module.AppsGridSection({ apps: ALL_APPS });
+          } else {
+            const fnName = Object.keys(module).find((k) => k.includes('Section') || k.includes('Page'));
+            section = fnName ? module[fnName](props) : module[Object.keys(module)[0]](props);
+          }
+          console.log('[Landing] section created:', sectionId, 'type:', section?.constructor?.name || section?.tagName || typeof section);
+          if (!section || typeof section.appendChild !== 'function') {
+            throw new Error('Section ' + sectionId + ' returned invalid value: ' + typeof section);
+          }
+          section.classList.add('animate-in');
+          const staggerIndex = Math.min(index, 10);
+          if (staggerIndex > 0) section.classList.add('stagger-' + staggerIndex);
+          section.querySelectorAll('button').forEach((btn) => btn.classList.add('btn-enhanced'));
+          placeholder.replaceWith(section);
+          requestAnimationFrame(() => section.classList.add('visible'));
+        }).catch((err) => {
+          console.error('[Landing] Failed to load section:', sectionId, err);
+          console.error('[Landing] Error stack:', err?.stack || 'no stack');
+          placeholder.innerHTML = '<div class="text-red-400">Failed to load section</div>';
+        });
+      }
+    });
+  }, { rootMargin: '200px' });
+  observer.observe(placeholder);
+  return placeholder;
+}
+
+export default async function LandingPage() {
+  addGlobalStyles();
+
+  const container = document.createElement('div');
+  container.className = 'landing-page min-h-screen bg-[#020205]';
+  container.setAttribute('lang', document.documentElement.lang || 'en');
+  container.setAttribute('dir', document.documentElement.dir || 'ltr');
+
+  try {
+    const { LandingHeader } = await import('./common/Header.jsx');
+    const headerEl = LandingHeader();
+    container.appendChild(headerEl);
+
+    // NEW: cinematic MiniMax H3 video hero, added above the original hero.
+    if (ENABLE_CINEMATIC_HERO) {
+      const { CinematicVideoHero } = await import('./sections/CinematicVideoHero.jsx');
+      const cinematicHeroEl = CinematicVideoHero();
+      container.appendChild(cinematicHeroEl);
+    }
+
+    const { HeroSection } = await import('./sections/HeroSection.jsx');
+    const heroEl = HeroSection();
+    if (ENABLE_CINEMATIC_HERO) demoteLegacyHero(heroEl);
+    heroEl.classList.add('animate-in');
+    heroEl.classList.add('stagger-0');
+    container.appendChild(heroEl);
+
+    requestAnimationFrame(() => {
+      heroEl.classList.add('visible');
+    });
+
+    const scrollingStrip = createLazySection(() => import('./sections/ScrollingAppStrip.jsx'), 'scrolling', {}, 0);
+    const hookSection = createLazySection(() => import('./sections/HookSection.jsx'), 'hook', {}, 1);
+    const sixEngines = createLazySection(() => import('./sections/SixEnginesSection.jsx'), 'engines', {}, 2);
+    const appsGrid = createLazySection(() => import('./sections/AppsGridSection.jsx'), 'apps', { apps: ALL_APPS }, 3);
+    const features = createLazySection(() => import('./sections/FeaturesSection.jsx'), 'features', {}, 5);
+    const problem = createLazySection(() => import('./sections/ProblemSection.jsx'), 'problem', {}, 6);
+    const workflow = createLazySection(() => import('./sections/WorkflowSection.jsx'), 'workflow', {}, 7);
+    const comparison = createLazySection(() => import('./sections/ComparisonSection.jsx'), 'comparison', {}, 8);
+    const valueStack = createLazySection(() => import('./sections/ValueStackSection.jsx'), 'value', {}, 9);
+    const agency = createLazySection(() => import('./sections/AgencySection.jsx'), 'agency', {}, 10);
+    const offer = createLazySection(() => import('./sections/OfferSection.jsx'), 'offer', {}, 11);
+    const finalCTA = createLazySection(() => import('./sections/FinalCTASection.jsx'), 'cta', {}, 12);
+
+    // NEW: MiniMax H3 showcase sections, lazy-loaded with the same observer
+    // pattern as every other section on this page.
+    const aiWorkflow = createLazySection(() => import('./sections/MinimaxWorkflowSection.jsx'), 'ai-workflow', {}, 2);
+    const madeWith = createLazySection(() => import('./sections/MadeWithSmartVideo.jsx'), 'made-with', {}, 4);
+    const ugcShowcase = createLazySection(() => import('./sections/UGCDemoShowcase.jsx'), 'ugc', {}, 5);
+    const videoGallery = createLazySection(() => import('./sections/AIVideoGallery.jsx'), 'gallery', {}, 6);
+    const academyShowcase = createLazySection(() => import('./sections/AcademyVideoShowcase.jsx'), 'academy', {}, 7);
+    const repoVideoShowcase = createLazySection(() => import('./sections/ShowcaseRepoVideo.jsx'), 'repo-video', {}, 8);
+    const repoShowcase = createLazySection(() => import('./sections/RepoShowcase.jsx'), 'repos', {}, 9);
+
+    container.appendChild(scrollingStrip);
+    container.appendChild(hookSection);
+    container.appendChild(aiWorkflow);      // NEW
+    container.appendChild(sixEngines);
+    container.appendChild(appsGrid);
+    container.appendChild(madeWith);        // NEW
+    container.appendChild(ugcShowcase);     // NEW
+    container.appendChild(features);
+    container.appendChild(videoGallery);    // NEW
+    container.appendChild(academyShowcase); // NEW
+    container.appendChild(repoVideoShowcase); // NEW
+    container.appendChild(repoShowcase);    // NEW
+    container.appendChild(problem);
+    container.appendChild(workflow);
+    container.appendChild(comparison);
+    container.appendChild(valueStack);
+    container.appendChild(agency);
+    container.appendChild(offer);
+    container.appendChild(finalCTA);
+  } catch (error) {
+    console.error('Error rendering landing page:', error);
+    container.innerHTML = `
+      <section class="relative py-32 px-4 text-center bg-[#020205] min-h-screen flex items-center justify-center">
+        <div class="container mx-auto max-w-3xl">
+          <h1 class="text-4xl md:text-6xl text-white mb-6">Smart Video AI Studio</h1>
+          <p class="text-xl text-gray-400 mb-4">Something went wrong loading the page.</p>
+          <button onclick="window.location.reload()" class="px-6 py-3 bg-cyan-400 text-black font-semibold rounded hover:bg-cyan-300 transition">Try Again</button>
+        </div>
+      </section>
+    `;
+  }
+  return container;
+}

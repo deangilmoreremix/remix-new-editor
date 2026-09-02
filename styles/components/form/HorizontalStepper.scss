@@ -1,0 +1,97 @@
+$passed-color: #37B223;
+
+.stepper-container {
+  height: 0;
+  display: flex;
+  align-self: flex-end;
+  width: 60%;
+  justify-content: center;
+  flex-direction: column;
+  padding-bottom: 0.2em;
+
+  &:after {
+    content:'';
+    padding-bottom: 1.5em;
+  }
+
+  .active {
+    .MuiStepLabel-label {
+      color: $white !important;
+    }
+  }
+
+  .MuiStepLabel-root {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .MuiStepIcon-root {
+    color: $light-twinlight !important;
+    border: 1px solid $media-library-color;
+    border-radius: 100%;
+  }
+
+  .MuiStep-completed {
+    span {
+      .MuiStepLabel-iconContainer.MuiStepLabel-alternativeLabel {
+        background: $secondary-color;
+        border-radius: 100%;
+      }
+    }
+
+    .passed {
+      .MuiStepLabel-iconContainer.MuiStepLabel-alternativeLabel {
+        background: $passed-color;
+      }
+      .MuiStepIcon-completed {
+        border: 1px solid $passed-color;
+      }
+  }
+
+    .MuiStepLabel-label {
+      color: $white !important;
+    }
+  }
+
+  .MuiStepIcon-completed {
+    border: 1px solid $secondary-color;
+  }
+
+  .MuiStepIcon-active {
+    border: 1px solid $secondary-color;
+    text {
+      fill: $white;
+    }
+  }
+
+  .MuiStepLabel-iconContainer {
+    padding-right: 0 !important;
+  }
+
+  .MuiStepConnector-alternativeLabel {
+    span {
+      border-color: $media-library-color;
+    }
+  }
+
+  .MuiStepConnector-active {
+    span {
+      border-color: $secondary-color;
+    }
+  }
+
+  .MuiStepConnector-completed {
+    span {
+      border-color: $secondary-color;
+    }
+  }
+
+  .MuiStepIcon-text {
+    fill: $media-library-color;
+  }
+
+  .MuiStepLabel-label {
+    color: $media-library-color;
+    margin-top: 5px !important;
+  }
+}

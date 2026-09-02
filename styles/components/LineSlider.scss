@@ -1,0 +1,52 @@
+.line-slider {
+  width: 100%;
+  position: absolute;
+  top: 18px;
+  left: 0;
+  display: flex;
+  justify-content: space-between;
+
+  &-item {
+    position: relative;
+  }
+
+  &-block {
+    width: 1px;
+    height: 29px;
+    background: $border-color;
+  }
+
+  &-little-block {
+    width: 1px;
+    height: 11px;
+    background: $border-color;
+  }
+
+  &-number {
+    position: absolute;
+    left: 6px;
+    bottom: 0;
+    color: $border-color;
+    font-size: $smallFontSize;
+    line-height: 1;
+  }
+}
+
+.rct9k-id-timeline-line {
+  .rct9k-row {
+    border: none;
+  }
+
+  .rct9k-items-outer {
+    max-height: 29px;
+    border-radius: 0;
+    background: none;
+  }
+
+  .rct9k-items-inner {
+    display: flex;
+    justify-content: space-between;
+    border: none;
+    border-radius: 0;
+  }
+}

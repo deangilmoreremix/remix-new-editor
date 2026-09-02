@@ -1,0 +1,54 @@
+{
+  "generated": "2026-08-23T18:23:45.940Z",
+  "results": [
+    {
+      "id": "audio",
+      "success": true,
+      "path": "/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/public/thumbnails/studios/audio.webp",
+      "size": 3245936,
+      "imageUrl": "https://cdn.muapi.ai/outputs/generated/02713ed977eb4f038a85d56febf8afff.png"
+    },
+    {
+      "id": "avatar",
+      "success": true,
+      "path": "/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/public/thumbnails/studios/avatar.webp",
+      "size": 3245936,
+      "imageUrl": "https://cdn.muapi.ai/outputs/generated/1d86a8fa5f284f3ab07c086ea6a0c02c.png"
+    },
+    {
+      "id": "training",
+      "success": true,
+      "path": "/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/public/thumbnails/studios/training.webp",
+      "size": 3245936,
+      "imageUrl": "https://cdn.muapi.ai/outputs/generated/b77e2edf391f4f67a7ca1e010656df2d.png"
+    },
+    {
+      "id": "videotools",
+      "success": true,
+      "path": "/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/public/thumbnails/studios/videotools.webp",
+      "size": 3245936,
+      "imageUrl": "https://cdn.muapi.ai/outputs/generated/f22856628c7842efb4ad100a5cc52752.png"
+    },
+    {
+      "id": "chat",
+      "success": true,
+      "path": "/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/public/thumbnails/studios/chat.webp",
+      "size": 3245936,
+      "imageUrl": "https://cdn.muapi.ai/outputs/generated/a5c4da8654504ba7b7560c81a029a311.png"
+    },
+    {
+      "id": "lipsync",
+      "success": true,
+      "path": "/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/public/thumbnails/studios/lipsync.webp",
+      "size": 3245936,
+      "imageUrl": "https://cdn.muapi.ai/outputs/generated/b31458944f2045ad9290bea168d745df.png"
+    },
+    {
+      "id": "render",
+      "success": true,
+      "path": "/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/public/thumbnails/studios/render.webp",
+      "size": 3245936,
+      "imageUrl": "https://cdn.muapi.ai/outputs/generated/25a93bb749e548dd8cc1d702ab80c00a.png"
+    }
+  ]
+}

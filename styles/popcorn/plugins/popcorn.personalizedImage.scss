@@ -1,0 +1,110 @@
+.personalized-image {
+  position: absolute;
+  outline: none;
+
+  & .track-event-editing .clone-container {
+    display: inline-block;
+  }
+
+  .personalized-token {
+    white-space: nowrap;
+    border: 1px solid white;
+    color: black; border-radius: 3px;
+    background: white;
+    display: inline;
+    margin: 0 1px;
+
+    .parameter {
+      display: none;
+    }
+
+    .token-uppercase {
+      background: white;
+      margin: auto 2px -4px 0;
+    }
+
+    .token-default {
+      background:  white;
+      margin: auto 2px -4px 0;
+    }
+  }
+
+  .image-plugin-link {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+    text-decoration: none;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .image-plugin-img {
+    border-style: none;
+    background-position: center center;
+    background-size: contain;
+    background-repeat: no-repeat;
+    position: relative;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+  }
+
+  .url-container {
+    display: none;
+    overflow: hidden;
+    min-width: 1px;
+    font-size: 0.8rem;
+    padding: 3%;
+    border: 0.5px dashed;
+    text-align: center;
+    bottom: -32px;
+    position: absolute;
+    width: 100%;
+
+    span {
+      width: 100%;
+    }
+
+    .fa {
+      width: auto;
+      margin: 0 2px;
+    }
+  }
+
+  .image-plugin-hidden {
+    visibility: hidden;
+  }
+
+  .image-crop-clone {
+    opacity: 0.5;
+    border: 1px solid black;
+    margin: -1px;
+    background-color: white;
+  }
+
+  .clone-container {
+    display: none;
+    cursor: pointer;
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  &.active {
+    .url-container {
+      display: flex;
+    }
+
+    .resize-handle {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: $white;
+      border: $secondary-color solid 0.5px;
+    }
+  }
+}

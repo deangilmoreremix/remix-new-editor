@@ -1,0 +1,159 @@
+@import "variables";
+@import "reset";
+@import "~bootstrap/scss/bootstrap";
+@import "~animate.css/animate.min.css";
+@import "~videojs-wavesurfer-dealiased/dist/css/videojs.wavesurfer.css";
+@import "~video.js/dist/video-js.css";
+@import "~videojs-record-dealiased/dist/css/videojs.record.css";
+@import url('https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css');
+@import '~video-react/styles/scss/video-react';
+
+@import "mixins/index";
+@import "animations";
+
+@import "popcorn";
+
+@font-face {
+  font-family: "Proxima Nova";
+  src: url("../public/static/fonts/ProximaNova/Proxima-Nova-Regular.otf") format("opentype");
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Proxima Light";
+  src: url("../public/static/fonts/ProximaNova/Proxima-Nova-Light.otf") format("opentype");
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Proxima Bold";
+  src: url("../public/static/fonts/ProximaNova/Proxima-Nova-Bold.otf") format("opentype");
+  font-style: normal;
+}
+
+body {
+  font-family: "Proxima Nova", sans-serif;
+}
+
+@import "components/DropzoneArea";
+@import "components/Home";
+@import "components/Header";
+@import "components/form/FormSelect";
+@import "components/Timeline";
+@import "components/LineSlider";
+@import "components/Personalization";
+@import "components/Media";
+@import "components/MediaLibrary";
+@import "components/Overlay";
+@import "components/Layout";
+@import "components/Animation";
+@import "components/CloseButton";
+@import "components/Loader";
+@import "components/ProjectLoader";
+@import "components/Menu";
+@import "components/DropButton";
+@import "components/Stickers";
+@import "components/LowerThirds";
+@import "components/LineDuration";
+@import "components/CallToAction";
+@import "components/BlendModeLibrary";
+@import "components/Gif";
+@import "components/TextToSpeech";
+@import "components/Terms.scss";
+
+@import "components/modals/index";
+@import "components/modals/SocialCampaignModal";
+
+@import "components/settings/index";
+
+@import "components/common/Account";
+@import "components/common/Billing";
+@import "components/common/SettingsEditor";
+@import "components/common/SettingsHeader";
+@import "components/common/Library";
+@import "components/common/textToSpeech";
+@import "components/AiArtGenerator";
+@import "components/BgDiffusion";
+@import "components/common/vrtext/Advanced";
+@import "components/common/vrtext/Basic";
+@import "components/common/index";
+@import "components/common/Toolbar";
+@import "components/common/Library";
+@import "components/common/Templates";
+@import "components/common/Projects";
+@import "components/common/Loader";
+@import "components/common/ModalContainer";
+@import "components/common/UserBox";
+@import "components/common/timeline";
+@import "components/common/UnathorizedView";
+@import "components/common/Guidelines";
+@import "components/common/GuidelinesActivation";
+@import "components/common/PersonalizerActivation";
+@import "components/common/image-settings";
+@import "components/common/form-settings";
+@import "components/common/ThumbnailEditor";
+@import "components/common/thumbnails";
+@import "components/common/produce";
+@import "components/common/vrimage-settings";
+@import "components/common/Recorder";
+@import "components/common/ExpandButton";
+@import "components/common/json-button";
+@import "components/common/snack-bars";
+@import "components/common/list";
+@import "components/common/skip";
+@import "components/common/projectDataList";
+@import "components/common/pause";
+@import "components/common/background";
+@import "components/common/HelpIcon";
+@import "components/common/text-mask";
+@import "components/common/Folders";
+@import "components/common/ModalContent";
+@import "components/common/template-generator/MediaTemplate";
+
+@import "components/campaigns/index";
+
+@import "components/form/elements";
+@import "components/form/FormTextField";
+@import "components/form/FormCheckboxField";
+@import "components/form/FormColor";
+@import "components/form/FormSlider";
+@import "components/form/FormSliderVertical";
+@import "components/form/FormRadioButton";
+@import "components/form/AngleInput";
+@import "components/form/FormTextArea";
+@import "components/form/TagsFormInput";
+@import "components/form/TimeInput";
+@import "components/form/FormTokensTextArea";
+@import "components/form/AutoCompleteSelect";
+@import "components/form/HorizontalStepper";
+
+@import "components/canvas/Canvas";
+@import "components/canvas/SizeSelector";
+
+.flex-end {
+  width: 100%;
+  justify-content: flex-end;
+  padding-right: 0.5rem;
+}
+
+.first-title {
+  font-weight: 700;
+}
+
+.second-title {
+  font-weight: 400;
+}
+
+.small-text {
+  font-weight: 300;
+}
+
+.swal-overlay {
+  z-index: 10002;
+}
+
+.nothing-found {
+  color: $media-library-color;
+  font-size: 1rem;
+  margin: 0 auto;
+}

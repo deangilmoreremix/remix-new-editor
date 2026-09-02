@@ -1,0 +1,98 @@
+# Netlify build configuration
+[build]
+  command = "npm install --include=optional && npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+  SECRETS_SCAN_OMIT_KEYS = "CLERK_SECRET_KEY,MAIGRET_WORKER_SECRET,MAIGRET_WORKER_URL"
+
+# Serve the model catalog as a static file in production.
+# The vite build plugin emits dist/api/model-catalog.json containing all
+# three pools (t2i / i2i / i2v); the frontend filters by modelType client-side.
+# Proxy the Director (VideoDB) finishing backend in production.
+# In dev this is handled by the Vite proxy in vite.config.js; Netlify builds
+# need an explicit redirect proxy. Set DIRECTOR_API_URL as a build-time env var
+# (Netlify dashboard) to the live director-backend URL, e.g.
+# https://director-backend.onrender.com. If unset, requests fall through to the
+# SPA fallback (which will 404 the API call) rather than silently mocking.
+[[redirects]]
+  from = "/director-api/*"
+  to = "${DIRECTOR_API_URL}/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/model-catalog"
+  to = "/api/model-catalog.json"
+  status = 200
+  force = true
+
+# Security headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    # Allow the AI VFX Studio (deployed as a separate Next.js app on ai-vfx.smartvid.app)
+    # to be embedded in its parent shell via iframe. 'self' permits same-origin
+    # embedding (dev via Vite proxy); https://ai-vfx.smartvid.app is the production
+    # Next.js app. DENY blocked every embed and produced the browser
+    # "This content is blocked" page on every deploy.
+    Content-Security-Policy = "frame-ancestors 'self' https://smartvid.app https://www.smartvid.app https://ai-vfx.smartvid.app https://teal-puffpuff-ce9767.netlify.app"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=()"
+
+# Ensure the SPA fallback only fires when no file matches.
+# Netlify's default redirect behavior already skips existing files.
+# We list the auth routes explicitly to eliminate any ambiguity
+# about which paths need the SPA shell versus raw asset serving.
+[[redirects]]
+  from = "/signin"
+  to = "/index.html"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/signup"
+  to = "/index.html"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/forgot-password"
+  to = "/index.html"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/reset-password"
+  to = "/index.html"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/account"
+  to = "/index.html"
+  status = 200
+  force = false
+
+[[redirects]]
+from = "/profile"
+to = "/index.html"
+status = 200
+force = false
+
+# SPA fallback: any path that doesn't match a real file or one of the
+# explicit redirects above is served by the SPA shell (`/index.html`).
+# This is the standard pattern for client-side hash-routed SPAs and
+# prevents 404s for any menu link that incorrectly uses a real
+# `<a href="/route">` instead of the in-app hash router.
+# `force = false` so existing files (assets/, favicon, manifest, etc.)
+# are still served directly without a redirect.
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
+force = false

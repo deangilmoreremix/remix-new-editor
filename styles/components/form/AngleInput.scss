@@ -1,0 +1,69 @@
+.form-angle-label {
+  font-size: $defaultFontSize;
+  color: $white;
+  margin-bottom: 0.5rem;
+  line-height: $defaultLineHeight;
+}
+
+.form-angle {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.angle-circle {
+  width: 31px;
+  height: 31px;
+  border: 3px solid $red;
+  border-radius: 50%;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  margin-right: 0.7em;
+
+  &:before {
+    content: "";
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: $red;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  &__line {
+    content: "";
+    width: 4px;
+    height: 50%;
+    background: $red;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    border: none;
+    outline: none !important;
+    padding: 0;
+    margin: 0;
+  }
+}
+
+.form-angle__input {
+  width: 60px;
+  position: relative;
+
+  label {
+    display: none;
+  }
+
+  input {
+    font-size: $defaultFontSize;
+    height: auto;
+  }
+}
+
+.form-angle__degree {
+  position: absolute;
+  top: 0;
+}

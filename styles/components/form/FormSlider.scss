@@ -1,0 +1,58 @@
+.slider-element {
+  .MuiSlider-track, .MuiSlider-rail {
+    opacity: 1;
+    height: 5px;
+    border-radius: 15px;
+  }
+  .MuiSlider-track {
+    background-color: $backgroundSlider;
+  }
+  .MuiSlider-rail {
+    background-color: $backgroundSlider;
+    opacity: 0.4;
+  }
+
+  .MuiSlider-thumb {
+    color: $white;
+    border: 1px solid $red;
+    width: 15px;
+    height: 15px;
+
+    &.Mui-disabled {
+      background-color: $scrollbarColor;
+      width: 15px;
+      height: 15px;
+      margin-top: -5px;
+      margin-left: -6px;
+      border: none;
+
+      &:after {
+        content: none;
+      }
+    }
+
+    &:after {
+      background-color: $scrollbarColor;
+      top: 2px;
+      left: 2px;
+      width: 9px;
+      height: 9px;
+    }
+  }
+}
+
+.tooltip-box {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.slider-input {
+  & input {
+    color: $white;
+    border: 1px solid $border-color;
+    border-radius: 3px;
+    text-align: center;
+    min-width: 2rem;
+  }
+}

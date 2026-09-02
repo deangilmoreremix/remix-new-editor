@@ -1,0 +1,17 @@
+.social-campaign-modal {
+  @include tiny-scrollbar;
+  overflow-x: hidden;
+  .embed-grid {
+    .form-check-input {
+      margin-left: 0;
+    }
+    label {
+      padding-left: 1.25rem;
+    }
+  }
+
+  .row {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}

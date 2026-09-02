@@ -1,0 +1,37 @@
+.modal {
+  &-content {
+    background: $light-twinlight;
+    color: $white;
+  }
+
+  &-header {
+    background: $modal-header-bg;
+  }
+}
+
+@import "DetailsModal";
+@import "CancellationModal";
+@import "NicheScriptsPreviewModal";
+@import "CreateProjectModal";
+@import "TemplatePreviewModal";
+// @import "PinturaImageEditorModal";
+@import "VideoPlayerModal";
+@import "PreviewMediaModal";
+@import "SocialCampaignModal";
+@import "RetargetOptInModal";
+@import "SaveProjectModal";
+@import "RecorderModal";
+@import "ImageCropperModal";
+@import "TemplateGenerator";
+@import "TuiImageEditorModal";
+@import "ViewProjectWindow";
+@import "VoiceModal";
+@import "PreRemixVoiceModal";
+@import "UrlVideoModal";
+@import "ProjectSettingsModal";
+@import "AddFolderModal";
+
+@import "social/LinkedinPost";
+@import "social/Facebook";
+
+@import "AdvancedImageEditorModal";

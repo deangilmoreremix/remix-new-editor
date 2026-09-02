@@ -1,0 +1,91 @@
+# render.yaml — Blueprint for videoagent-backend, director-backend, and
+# director-frontend. Usage:
+#   render blueprint launch   # first time: creates the service from this file
+#   render deploy             # redeploy after changes
+#
+# Re-sync trigger: director-frontend now builds successfully (shared packages
+# vendored into apps/director/frontend/packages), so the Blueprint can sync.
+#
+# NOTE: set OPENAI_API_KEY in the Render dashboard (or `render env set`)
+# after the first launch — Render does NOT read .env.local.
+
+services:
+  - type: web
+    name: videoagent-backend
+    runtime: node
+    repo: https://github.com/deangilmoreremix/remix-new-editor.git
+    region: oregon
+    rootDir: backend
+    plan: free
+    branch: production
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "10000"      # Render injects the actual PORT; this is a safe default
+      - key: OPENAI_API_KEY
+        sync: false         # set manually in dashboard or via `render env set OPENAI_API_KEY ...`
+      - key: VIDEO_AGENT_BACKEND_URL
+        sync: false         # set to this service's URL after deploy, e.g. https://videoagent-backend.onrender.com
+
+  # Director (VideoDB) finishing backend — powers Render Studio subtitles,
+  # scenes, highlights, voiceover, dubbing. References the existing director-db
+  # (created in the workspace; not re-declared here to avoid the
+  # "cannot downgrade database" blueprint validation error).
+  - type: web
+    name: director-backend
+    region: singapore
+    runtime: docker
+    plan: starter
+    branch: production
+    rootDir: apps/director/backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    envVars:
+      - key: SERVER_ENV
+        value: production
+      - key: VIDEO_DB_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: DB_TYPE
+        value: postgres
+      - key: POSTGRES_DB
+        fromDatabase:
+          name: director-db
+          property: database
+      - key: POSTGRES_USER
+        fromDatabase:
+          name: director-db
+          property: user
+      - key: POSTGRES_PASSWORD
+        fromDatabase:
+          name: director-db
+          property: password
+      - key: POSTGRES_HOST
+        fromDatabase:
+          name: director-db
+          property: host
+      - key: POSTGRES_PORT
+        fromDatabase:
+          name: director-db
+          property: port
+
+  - type: web
+    name: director-frontend
+    region: singapore
+    runtime: docker
+    plan: starter
+    branch: production
+    rootDir: apps/director/frontend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    envVars:
+      - key: VITE_APP_BACKEND_URL
+        fromService:
+          name: director-backend
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL

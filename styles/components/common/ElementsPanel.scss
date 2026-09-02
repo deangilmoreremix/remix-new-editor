@@ -1,0 +1,127 @@
+.elements-panel {
+  &-container {
+    @include tiny-scrollbar;
+    height: 100%;
+    max-height: 100%;
+    width: 450px;
+    overflow-x: hidden;
+    padding-left: 0;
+    padding-bottom: 1px;
+    padding-right: 25px;
+    margin: 0;
+
+    .close-button {
+      top: 50%;
+      right: 15px;
+      transform: translateY(-50%);
+    }
+  }
+
+  &-inner-row {
+    margin: 0;
+  }
+
+  &-section__title {
+    width: 100%;
+    font-size: 14px;
+    text-align: center;
+    color: $media-library-color;
+    margin-bottom: 0.6rem;
+    margin-top: 0.6rem
+  }
+
+  &-button {
+    @include reset-button;
+    width: 7.81rem;
+    height: 2.1875rem;
+    justify-content: flex-start;
+    border: 1px solid $border-color;
+    overflow: hidden;
+    border-radius: 4px;
+    margin-bottom: 1.375rem;
+    margin-left: 0.725rem;
+    padding: 0 0.4rem;
+    color: $white;
+    font-size: $defaultFontSize;
+    line-height: 1;
+    text-align: left;
+    background: $dark-twinlight;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    &:hover {
+      background: $modal-header-bg;
+
+      path {
+        stroke: #9292B5;
+      }
+    }
+  }
+
+  &-icon {
+    width: 100%;
+    height: 100%;
+    max-width: 20px;
+    max-height: 15.6px;
+    margin-right: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    svg {
+      width: 100%;
+      height: 100%;
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    path, circle, line {
+      stroke: $border-color;
+    }
+
+    &-inline {
+      min-width: 1.3em;
+    }
+    &-settings-group {
+      min-width: 1em;
+    }
+  }
+}
+.element-container {
+  padding-top: 15px;
+  position: relative;
+}
+.pro-icon {
+  width: 32px;
+position: absolute;
+right: 0;
+top: 0px;
+margin-top: 10px;
+margin-right: -9px;
+z-index: 9999;
+}
+
+@media screen and (max-width: 1260px) {
+  .elements-panel-container {
+    max-width: 150px;
+    padding-right: 1.25rem;
+  }
+
+  .elements-panel-button, .elements-panel-section__title {
+    margin-left: 0.7rem;
+    margin-top: 0.7rem;
+    font-size: $smallFontSize;
+  }
+}
+
+
+// after
+@media screen and (max-width: 1365px) {
+  .elements-panel {
+    &-container {
+      width: 310px;
+    }
+  }
+}

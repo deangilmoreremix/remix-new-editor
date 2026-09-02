@@ -1,0 +1,64 @@
+# NOTE: director-db already exists in the Render workspace, so it is NOT
+# re-declared here. Re-declaring it causes a blueprint validation error
+# ("cannot downgrade database"). The web services reference the existing
+# DB via `fromDatabase` below. If you ever delete director-db, add the
+# databases block back.
+
+services:
+  - type: web
+    name: director-backend
+    region: singapore
+    runtime: docker
+    plan: starter
+    branch: backend-real-outputs
+    dockerfilePath: apps/director/backend/Dockerfile
+    dockerContext: .
+    envVars:
+      - key: SERVER_ENV
+        value: production
+      - key: SERVER_SECRET_KEY
+        sync: false
+      - key: VIDEO_DB_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: DB_TYPE
+        value: postgres
+      - key: POSTGRES_DB
+        fromDatabase:
+          name: director-db
+          property: database
+      - key: POSTGRES_USER
+        fromDatabase:
+          name: director-db
+          property: user
+      - key: POSTGRES_PASSWORD
+        fromDatabase:
+          name: director-db
+          property: password
+      - key: POSTGRES_HOST
+        fromDatabase:
+          name: director-db
+          property: host
+      - key: POSTGRES_PORT
+        fromDatabase:
+          name: director-db
+          property: port
+
+  - type: web
+    name: director-frontend
+    region: singapore
+    runtime: docker
+    plan: starter
+    # No rootDir: the build context is the repo root, so the shared workspace
+    # packages (packages/layout -> packages/tokens, packages/navigation)
+    # referenced via `file:` deps are present for `npm install` / `vite build`.
+    # dockerfilePath/dockerContext are relative to the repo root.
+    dockerfilePath: apps/director/frontend/Dockerfile
+    dockerContext: .
+    envVars:
+      - key: VITE_APP_BACKEND_URL
+        fromService:
+          name: director-backend
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL

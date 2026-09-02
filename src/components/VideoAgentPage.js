@@ -1,0 +1,1232 @@
+import { navigate } from '../lib/router.js';
+import { mountStudioChrome } from '../lib/studioChrome.js';
+import { showToast } from '../lib/loading.js';
+import { createHeroSection } from '../lib/thumbnails.js';
+import { getSupabaseUrl, isSupabaseConfigured } from '../lib/supabase.js';
+import { uploadMediaFile } from '../lib/editor/upload.js';
+import { browserVideoProcessor } from '../lib/browserVideoProcessor.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
+
+// Backend wiring
+function getBackendBase() {
+    if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_BACKEND_URL) {
+        return import.meta.env.VITE_BACKEND_URL.replace(/\/$/, '');
+    }
+    if (typeof window !== 'undefined' && window.__BACKEND_URL__) {
+        return window.__BACKEND_URL__.replace(/\/$/, '');
+    }
+    return '';
+}
+
+const AI_TOOLS = [
+    // ── Perceive (watch & understand the footage) ──
+    { id: 'scene-detection', name: 'Scene Detection', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 7h5M17 17h5"/></svg>', thumbnail: '/thumbnails/videoagent/scene-detection.png', color: 'blue', description: 'Identify scene boundaries', category: 'understanding', group: 'perceive' },
+    { id: 'highlight-detection', name: 'Highlight Detection', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>', thumbnail: '/thumbnails/videoagent/highlight-detection.png', color: 'orange', description: 'Find key moments', category: 'understanding', group: 'perceive' },
+    { id: 'visual-search', name: 'Visual Search', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>', thumbnail: '/thumbnails/videoagent/scene-detection.png', color: 'cyan', description: 'Find moments by what you see', category: 'understanding', group: 'perceive' },
+    { id: 'keyword-search', name: 'Keyword Search & Compilation', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>', thumbnail: '/thumbnails/videoagent/highlight-detection.png', color: 'teal', description: 'Search spoken words, compile clips', category: 'understanding', group: 'perceive' },
+    { id: 'imagebind', name: 'ImageBind', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>', thumbnail: '/thumbnails/videoagent/imagebind.png', color: 'indigo', description: 'Multimodal understanding', category: 'understanding', group: 'perceive' },
+    { id: 'subtitle', name: 'Subtitle Agent', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="14" rx="2"/><path d="M7 13h4M13 13h4M7 17h2M13 17h4"/></svg>', thumbnail: '/thumbnails/videoagent/whisper.png', color: 'green', description: 'Generate SRT subtitles', category: 'understanding', group: 'perceive' },
+    { id: 'profanity', name: 'Profanity Remover', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5-3 7-7 7-12V5l-7-3-7 3v5c0 5 2 9 7 12z"/></svg>', thumbnail: '/thumbnails/videoagent/whisper.png', color: 'red', description: 'Detect & clean unsafe language', category: 'understanding', group: 'perceive' },
+    { id: 'highlights', name: 'Automated Video Highlights', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>', thumbnail: '/thumbnails/videoagent/highlight-detection.png', color: 'orange', description: 'Find & rank highlight moments', category: 'understanding', group: 'perceive' },
+
+    // ── Storyboard (plan the narrative / shot list) ──
+    { id: 'storyboarding', name: 'Storyboarding Agent', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="14" rx="2"/><path d="M3 9h18M8 21h8M12 17v4"/></svg>', thumbnail: '/thumbnails/videoagent/scene-detection.png', color: 'blue', description: 'Shot-by-shot storyboard from video', category: 'understanding', group: 'storyboard' },
+    { id: 'text-to-movie', name: 'Text to Movie | GenAI', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M4 9h16M9 20V9"/></svg>', thumbnail: '/thumbnails/videoagent/clip-segmentation.png', color: 'purple', description: 'Generate a screenplay from a prompt', category: 'understanding', group: 'storyboard' },
+    { id: 'text-to-video', name: 'Text-to-Video', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M12 8v8M8 12h8"/></svg>', thumbnail: '/thumbnails/videoagent/t2v-runway.webp.png', color: 'fuchsia', description: 'Prompt → AI-generated video', category: 'understanding', group: 'storyboard' },
+    { id: 'kids-storyteller', name: 'Kids Storyteller', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15z"/></svg>', thumbnail: '/thumbnails/videoagent/scene-detection.png', color: 'pink', description: 'Animated educational story', category: 'understanding', group: 'storyboard' },
+
+    // ── Generate (create new video/audio assets) ──
+    { id: 'faceless-video', name: 'Faceless Video Creator', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M10 9l5 3-5 3z"/></svg>', thumbnail: '/thumbnails/videoagent/clip-segmentation.png', color: 'blue', description: 'Script → faceless video plan', category: 'editing', group: 'generate' },
+    { id: 'ai-ad-films', name: 'AI Ad Films', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l18-5v12L3 13z"/></svg>', thumbnail: '/thumbnails/videoagent/music-video.png', color: 'yellow', description: 'Generate product ad from text', category: 'editing', group: 'generate' },
+    { id: 'tiktok-lyric', name: 'TikTok Lyric Videos', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>', thumbnail: '/thumbnails/videoagent/music-video.png', color: 'rose', description: 'Lyric-sync video plan', category: 'editing', group: 'generate' },
+    { id: 'year-in-frames', name: 'Year in Frames', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M3 16h18"/></svg>', thumbnail: '/thumbnails/videoagent/clip-segmentation.png', color: 'emerald', description: 'Photo collection montage', category: 'editing', group: 'generate' },
+    { id: 'trailer-narration', name: 'Trailer Narration', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>', thumbnail: '/thumbnails/videoagent/fish-speech.png', color: 'cyan', description: 'Cinematic trailer voice', category: 'audio', group: 'generate' },
+
+    // ── Voice (the agent's speech layer) ──
+    { id: 'cosyvoice', name: 'CosyVoice', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>', thumbnail: '/thumbnails/videoagent/cosyvoice.png', color: 'pink', description: 'Voice cloning & TTS', category: 'audio', group: 'voice' },
+    { id: 'fish-speech', name: 'Fish Speech', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M2 10c1.5-1 3-1.5 4.5-1s3 1.5 4.5 1 3-1.5 4.5-1 3 1 4.5 1"/></svg>', thumbnail: '/thumbnails/videoagent/fish-speech.png', color: 'cyan', description: 'Voice synthesis', category: 'audio', group: 'voice' },
+    { id: 'seed-vc', name: 'Seed-VC', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M21 3l-7 7"/><path d="M3 3l7 7"/><path d="M3 21l7-7"/><path d="M21 21l-7-7"/></svg>', thumbnail: '/thumbnails/videoagent/seed-vc.png', color: 'teal', description: 'Voice conversion', category: 'audio', group: 'voice' },
+    { id: 'whisper', name: 'Whisper', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>', thumbnail: '/thumbnails/videoagent/whisper.png', color: 'green', description: 'Audio transcription', category: 'audio', group: 'voice' },
+    { id: 'voice-cloning', name: 'Voice Cloning Agent', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>', thumbnail: '/thumbnails/videoagent/cosyvoice.png', color: 'pink', description: 'Synthesize a cloned voice sample', category: 'audio', group: 'voice' },
+    { id: 'audio-overlay', name: 'Gen AI Audio Overlays', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>', thumbnail: '/thumbnails/videoagent/fish-speech.png', color: 'cyan', description: 'Generate & overlay AI narration', category: 'audio', group: 'voice' },
+    { id: 'ai-voiceovers', name: 'AI Voiceovers', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>', thumbnail: '/thumbnails/videoagent/audio-tts.webp.png', color: 'sky', description: 'Studio-quality AI voiceover', category: 'audio', group: 'voice' },
+
+    // ── Localize (translate & dub for global reach) ──
+    { id: 'dubbing', name: 'Dubbing Agent', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l6 6"/><path d="M4 14l6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="M22 22l-5-10-5 10"/><path d="M14 18h6"/></svg>', thumbnail: '/thumbnails/videoagent/dubbing.png', color: 'yellow', description: 'Translate & dub video', category: 'translate', group: 'localize' },
+    { id: 'multi-lang-dubbing', name: 'Multi-Language Dubbing', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h12M3 10h8M3 15h12"/><path d="M15 13l6 4-6 4z"/></svg>', thumbnail: '/thumbnails/videoagent/dubbing.webp', color: 'lime', description: 'Dub into many languages', category: 'translate', group: 'localize' },
+
+    // ── Edit (assemble & polish the final cut) ──
+    { id: 'clip-segmentation', name: 'Clip Segmentation', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="8" height="16" rx="1"/><rect x="14" y="4" width="8" height="16" rx="1"/><line x1="12" y1="4" x2="12" y2="20" stroke-dasharray="2 2"/></svg>', thumbnail: '/thumbnails/videoagent/clip-segmentation.png', color: 'purple', description: 'Split into clip segments', category: 'editing', group: 'edit' },
+    { id: 'color-correct', name: 'Color Correction', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 22c-4.97 0-9-2.69-9-6v-.01C3 12.2 7.03 8.6 12 8.6s9 3.6 9 7.39V16c0 3.31-4.03 6-9 6z"/></svg>', thumbnail: '/thumbnails/videoagent/color-correct.png', color: 'rose', description: 'Adjust colors & tones', category: 'enhance', group: 'edit' },
+    { id: 'upscale', name: 'Video Upscale', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>', thumbnail: '/thumbnails/videoagent/upscale.png', color: 'emerald', description: 'Enhance resolution', category: 'enhance', group: 'edit' },
+    { id: 'stabilize', name: 'Stabilize', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>', thumbnail: '/thumbnails/videoagent/stabilize.png', color: 'violet', description: 'Fix shaky footage', category: 'enhance', group: 'edit' },
+    { id: 'intro-outro', name: 'Intro / Outro', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5v14l11-7z"/><path d="M16 5v14"/></svg>', thumbnail: '/thumbnails/videoagent/clip-segmentation.png', color: 'violet', description: 'Plan branded intro/outro', category: 'editing', group: 'edit' },
+    { id: 'brand-elements', name: 'Brand Elements', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.4H22l-6 4.3 2.3 7.3L12 16.7 5.7 21l2.3-7.3-6-4.3h7.6z"/></svg>', thumbnail: '/thumbnails/videoagent/color-correct.png', color: 'amber', description: 'Logo + brand overlay plan', category: 'editing', group: 'edit' },
+    { id: 'dynamic-ads', name: 'Dynamic Ads', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l18-5v12L3 13z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>', thumbnail: '/thumbnails/videoagent/music-video.png', color: 'yellow', description: 'Personalized ad variants', category: 'editing', group: 'edit' },
+    { id: 'output-formatting', name: 'Intelligent Output Formatting', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>', thumbnail: '/thumbnails/videoagent/color-correct.png', color: 'rose', description: 'Best export format per platform', category: 'editing', group: 'edit' },
+
+    // ── Connect (ship outputs to people & systems) ──
+    { id: 'sales-assistant', name: 'Sales Assistant Agent (CRM)', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3z"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>', thumbnail: '/thumbnails/videoagent/overview.png', color: 'emerald', description: 'Extract pitch + CRM follow-up', category: 'understanding', group: 'connect' },
+    { id: 'slack', name: 'Slack Agent', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 10v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2"/><path d="M10 4h6a2 2 0 0 1 2 2v8"/></svg>', thumbnail: '/thumbnails/videoagent/overview.png', color: 'violet', description: 'Post video summary to Slack', category: 'understanding', group: 'connect' },
+    { id: 'thumbnail', name: 'Thumbnail Agent', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>', thumbnail: '/thumbnails/videoagent/highlight-detection.png', color: 'amber', description: 'Pick best frame + title + tags', category: 'understanding', group: 'connect' },
+    { id: 'comparison', name: 'Comparison Agent', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M5 8l-3 3 3 3M19 8l3 3-3 3"/></svg>', thumbnail: '/thumbnails/videoagent/qa.png', color: 'indigo', description: 'Compare two videos/descriptions', category: 'understanding', group: 'connect' },
+];
+
+const USE_CASES = [
+    { id: 'standup', name: 'Stand-up Comedy', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>', thumbnail: '/thumbnails/videoagent/standup.png', description: 'Transform video with comedy timing' },
+    { id: 'commentary', name: 'Commentary', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>', thumbnail: '/thumbnails/videoagent/commentary.png', description: 'Add AI commentary overlay' },
+    { id: 'overview', name: 'Video Overview', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>', thumbnail: '/thumbnails/videoagent/overview.png', description: 'Generate summary overview' },
+    { id: 'meme', name: 'Meme Generator', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 8h10"/><path d="M7 12h4"/><path d="M7 16h6"/></svg>', thumbnail: '/thumbnails/videoagent/meme.png', description: 'Create meme videos' },
+    { id: 'music-video', name: 'Music Video', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>', thumbnail: '/thumbnails/videoagent/music-video.png', description: 'Set video to music' },
+    { id: 'qa', name: 'Video Q&A', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>', thumbnail: '/thumbnails/videoagent/qa.png', description: 'Interactive video Q&A' },
+];
+
+export function VideoAgentPage() {
+    const container = document.createElement('div');
+    container.className = 'w-full h-full flex flex-col items-center justify-center bg-app-bg relative p-4 md:p-6 overflow-y-auto custom-scrollbar overflow-x-hidden';
+  mountStudioChrome(container, { currentRoute: 'video-agent' });
+
+    // AbortController for cancelling async operations
+    const abortController = new AbortController();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const videoId = urlParams.get('videoId') || '';
+    let videoUrl = urlParams.get('videoUrl') || '';
+    
+    const processingQueue = [];
+    let isProcessing = false;
+    
+    // ==========================================
+    // 1. HERO SECTION
+    // ==========================================
+    const hero = document.createElement('div');
+    hero.className = 'flex flex-col items-center mb-8 md:mb-12 animate-fade-in-up transition-all duration-700 w-full max-w-5xl';
+    const heroBanner = createHeroSection('videoagent', 'h-32 md:h-44 mb-4');
+    if (heroBanner) {
+        const heroContent = document.createElement('div');
+        heroContent.className = 'absolute bottom-0 left-0 right-0 p-6 z-10';
+        heroContent.innerHTML = `
+            <h1 class="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight mb-1">VideoAgent</h1>
+            <p class="text-white/60 text-sm font-medium">AI-powered video processing & enhancement</p>
+        `;
+        heroBanner.appendChild(heroContent);
+        hero.appendChild(heroBanner);
+    }
+    container.appendChild(hero);
+    
+    // Main content wrapper with max-width
+    const contentWrapper = document.createElement('div');
+    contentWrapper.className = 'w-full max-w-5xl relative z-40 animate-fade-in-up';
+    contentWrapper.style.animationDelay = '0.1s';
+    
+    contentWrapper.innerHTML = `
+        <!-- Back Button -->
+        <div class="mb-6 flex items-center gap-2">
+            <button id="back-btn" class="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all text-white/70 hover:text-white">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Back to Video
+            </button>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex flex-col lg:flex-row gap-6">
+            <!-- Left: Video Preview + Use Cases -->
+            <div class="flex-1 flex flex-col">
+                <!-- Video Preview Card -->
+                <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
+                    <div class="aspect-video flex items-center justify-center bg-black rounded-xl overflow-hidden relative" id="video-preview-stage">
+                        ${videoUrl ? `
+                            <video 
+                                id="videoagent-video" 
+                                class="max-w-full max-h-full" 
+                                controls
+                                src="${escapeHtml(videoUrl)}"
+                            >
+                                Your browser does not support video playback.
+                            </video>
+                        ` : `
+                            <div class="relative w-full h-full flex items-center justify-center overflow-hidden">
+                                <img src="/thumbnails/videoagent/empty-video.png" alt="No video loaded" class="absolute inset-0 w-full h-full object-cover opacity-40" onerror="this.style.display='none'" />
+                                <div class="relative text-center p-8 z-10">
+                                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="text-muted mx-auto mb-4">
+                                        <polygon points="5 3 19 12 5 21 5 3"/>
+                                    </svg>
+                                    <p class="text-white/50">No video loaded</p>
+                                    <p class="text-xs text-muted mt-2">Upload a video to start processing</p>
+                                </div>
+                            </div>
+                        `}
+                    </div>
+                    <div class="mt-3 flex items-center gap-3 flex-wrap">
+                        <button id="load-video-btn" class="flex items-center gap-2 px-4 py-2.5 btn-secondary-modern font-bold rounded-xl hover:scale-[1.02] transition-transform text-sm">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                            </svg>
+                            Load Video
+                        </button>
+                        <button id="pexels-videoagent-btn" type="button" title="Browse sample videos from Pexels" class="w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+                        </button>
+                        <span id="load-video-status" class="text-xs text-muted truncate"></span>
+                        <input id="video-file-input" type="file" accept="video/*" class="hidden" />
+                    </div>
+                    <div id="pexels-videoagent-attribution" class="mt-2"></div>
+                </div>
+                
+                <!-- Agent Prompt (used by VideoDB + GenAI agents) -->
+                <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
+                    <label class="block text-xs font-bold text-white/70 mb-2 tracking-wide">AGENT PROMPT <span class="text-muted font-normal">(optional — describe what you want, e.g. "find the moment the product is revealed")</span></label>
+                    <textarea id="agent-prompt" rows="2" placeholder="Describe the shot, search, or generation you want…" class="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-primary/50 resize-none"></textarea>
+                    <p id="key-status" class="text-[11px] text-muted mt-2"></p>
+                </div>
+
+                <!-- Use Cases -->
+                <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] overflow-hidden shadow-3xl">
+                    <div class="relative w-full h-28 overflow-hidden">
+                        <img src="/thumbnails/videoagent/header-use-cases.png" alt="AI Use Cases" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'" />
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#111] via-[#111]/50 to-transparent"></div>
+                        <h3 class="absolute bottom-3 left-5 font-black text-white text-sm tracking-wide z-10">AI USE CASES</h3>
+                    </div>
+                    <div class="p-4 md:p-6 pt-4">
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        ${USE_CASES.map(uc => `
+                            <button class="usecase-btn overflow-hidden bg-white/5 hover:bg-white/10 border border-white/5 hover:border-primary/30 rounded-2xl text-left transition-all hover:scale-[1.02] cursor-pointer" data-usecase="${uc.id}">
+                                <div class="relative w-full aspect-square overflow-hidden">
+                                    <img src="${uc.thumbnail}" alt="${uc.name}" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'" />
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
+                                    <div class="absolute bottom-0 left-0 right-0 p-3">
+                                        <div class="font-bold text-white text-sm">${uc.name}</div>
+                                        <div class="text-[10px] text-white/60">${uc.description}</div>
+                                    </div>
+                                </div>
+                            </button>
+                        `).join('')}
+                    </div>
+                    </div>
+                </div>
+                
+                <!-- Processing Results -->
+                <div id="results-panel" class="mt-6 hidden">
+                    <h3 class="font-black text-white mb-3 text-sm tracking-wide">PROCESSING RESULTS</h3>
+                    <div id="results-content" class="space-y-2">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Panel - AI Tools -->
+            <div class="w-full lg:w-96 flex-shrink-0">
+                <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] overflow-hidden shadow-3xl">
+                    <!-- Tools Header Banner -->
+                    <div class="relative w-full h-28 overflow-hidden">
+                        <img src="/thumbnails/videoagent/header-tools.png" alt="AI Processing Tools" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'" />
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#111] via-[#111]/50 to-transparent"></div>
+                        <h3 class="absolute bottom-3 left-5 font-black text-white text-sm tracking-wide z-10">AI PROCESSING TOOLS</h3>
+                    </div>
+                    <div class="p-4 md:p-6 pt-4">
+                    <!-- Category Tabs -->
+                    <div class="flex flex-wrap border-b border-white/10 mb-4 -mx-4 px-4">
+                        <button class="category-tab flex-1 py-2 text-xs font-bold text-primary border-b-2 border-primary" data-group="all">
+                            ALL
+                        </button>
+                        <button class="category-tab flex-1 py-2 text-xs font-bold text-muted hover:text-white" data-group="perceive">
+                            PERCEIVE
+                        </button>
+                        <button class="category-tab flex-1 py-2 text-xs font-bold text-muted hover:text-white" data-group="storyboard">
+                            STORYBOARD
+                        </button>
+                        <button class="category-tab flex-1 py-2 text-xs font-bold text-muted hover:text-white" data-group="generate">
+                            GENERATE
+                        </button>
+                        <button class="category-tab flex-1 py-2 text-xs font-bold text-muted hover:text-white" data-group="voice">
+                            VOICE
+                        </button>
+                        <button class="category-tab flex-1 py-2 text-xs font-bold text-muted hover:text-white" data-group="localize">
+                            LOCALIZE
+                        </button>
+                        <button class="category-tab flex-1 py-2 text-xs font-bold text-muted hover:text-white" data-group="edit">
+                            EDIT
+                        </button>
+                        <button class="category-tab flex-1 py-2 text-xs font-bold text-muted hover:text-white" data-group="connect">
+                            CONNECT
+                        </button>
+                    </div>
+                    
+                    <!-- AI Tools Grid (sectioned by creation group) -->
+                    <div id="tools-grid" class="space-y-6 mb-6"></div>
+                    
+                    <!-- Processing Queue -->
+                    <div class="border-t border-white/10 pt-4 mb-4">
+                        <h3 class="font-black text-white mb-3 text-sm flex items-center gap-2">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                <polyline points="22 4 12 14.01 9 11.01"/>
+                            </svg>
+                            PROCESSING QUEUE
+                        </h3>
+                        <div id="queue-list" class="space-y-2 max-h-40 overflow-auto">
+                            <div class="text-sm text-muted italic p-2">No jobs in queue</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Full Pipeline -->
+                    <button id="run-full-pipeline" class="w-full py-4 btn-secondary-modern font-black rounded-2xl hover:scale-[1.02] transition-transform flex items-center justify-center gap-2 mb-4">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                        </svg>
+                        Run Full Pipeline
+                    </button>
+                    
+                    <!-- Settings -->
+                    <div class="border-t border-white/10 pt-4">
+                        <h4 class="font-black text-white text-sm mb-3">SETTINGS</h4>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="text-xs text-muted block mb-1">Output Quality</label>
+                                <select class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white">
+                                    <option>720p</option>
+                                    <option selected>1080p</option>
+                                    <option>4K</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs text-muted block mb-1">Output Format</label>
+                                <select class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white">
+                                    <option selected>MP4</option>
+                                    <option>WebM</option>
+                                    <option>MOV</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-muted">Auto-save results</span>
+                                <button class="w-10 h-5 bg-primary rounded-full relative">
+                                    <span class="absolute right-0.5 top-0.5 w-4 h-4 bg-black rounded-full"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Processing Modal -->
+        <div id="processing-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 hidden">
+            <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-3xl p-8 max-w-md w-full mx-4 shadow-3xl">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 mx-auto mb-4 bg-primary/20 rounded-full flex items-center justify-center">
+                        <div class="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full"></div>
+                    </div>
+                    <h3 class="text-xl font-black text-white mb-2">Processing Video</h3>
+                    <p id="processing-name" class="text-sm text-muted">Initializing...</p>
+                </div>
+                
+                <div class="mb-6">
+                    <div class="flex justify-between text-xs mb-2">
+                        <span class="text-muted">Progress</span>
+                        <span id="processing-percent" class="text-primary font-black">0%</span>
+                    </div>
+                    <div class="h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div id="modal-progress-bar" class="h-full bg-primary transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <div id="processing-steps" class="space-y-2 mb-6">
+                </div>
+                
+                <button id="cancel-processing" class="w-full py-3 bg-white/10 text-white font-bold rounded-xl hover:bg-white/20 transition-colors">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // Append content wrapper
+    container.appendChild(contentWrapper);
+
+    // ---- Video upload (Supabase Storage) ----
+    const previewStage = container.querySelector('#video-preview-stage');
+    const fileInput = container.querySelector('#video-file-input');
+    const loadBtn = container.querySelector('#load-video-btn');
+    const loadStatus = container.querySelector('#load-video-status');
+
+    function renderVideoPreview() {
+        if (!previewStage) return;
+        previewStage.innerHTML = videoUrl
+            ? `<video id="videoagent-video" class="max-w-full max-h-full" controls src="${escapeHtml(videoUrl)}">Your browser does not support video playback.</video>`
+            : `<div class="relative w-full h-full flex items-center justify-center overflow-hidden">
+                   <img src="/thumbnails/videoagent/empty-video.png" alt="No video loaded" class="absolute inset-0 w-full h-full object-cover opacity-40" onerror="this.style.display='none'" />
+                   <div class="relative text-center p-8 z-10">
+                       <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="text-muted mx-auto mb-4"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                       <p class="text-white/50">No video loaded</p>
+                       <p class="text-xs text-muted mt-2">Upload a video to start processing</p>
+                   </div>
+               </div>`;
+    }
+
+    async function handleVideoFile(file) {
+        if (!file) return;
+        if (!file.type.startsWith('video/')) {
+            showToast('Please choose a video file', 'error');
+            return;
+        }
+        try {
+            loadStatus.textContent = 'Uploading…';
+            loadBtn.disabled = true;
+            const url = await uploadMediaFile(file);
+            videoUrl = url; // server-reachable https URL the backend can fetch
+            renderVideoPreview();
+            loadStatus.textContent = 'Loaded ✓';
+            showToast('Video loaded', 'success');
+        } catch (err) {
+            console.error('[VideoAgentPage] upload failed:', err);
+            loadStatus.textContent = 'Upload failed';
+            showToast('Upload failed: ' + err.message, 'error');
+        } finally {
+            loadBtn.disabled = false;
+        }
+    }
+
+    if (loadBtn) loadBtn.onclick = () => fileInput && fileInput.click();
+    if (fileInput) fileInput.onchange = (e) => handleVideoFile(e.target.files && e.target.files[0]);
+
+    const pexelsVideoBtn = container.querySelector('#pexels-videoagent-btn');
+    const pexelsVideoAttr = container.querySelector('#pexels-videoagent-attribution');
+    if (pexelsVideoBtn) {
+        pexelsVideoBtn.onclick = async () => {
+            const { browsePexelsVideos } = await import('../lib/studioPexels.js');
+            browsePexelsVideos({
+                title: 'Use Sample Video',
+                studioName: 'VideoAgent',
+                onSelect: (asset) => {
+                    videoUrl = asset.video_files?.[0]?.link || asset.url || asset.original;
+                    renderVideoPreview();
+                    loadStatus.textContent = 'Loaded (Pexels) ✓';
+                    showToast('Sample video loaded', 'success');
+                    if (pexelsVideoAttr) {
+                        pexelsVideoAttr.innerHTML = '';
+                        import('../lib/attributionChip.js').then(mod => mod.renderAttributionChip(asset, pexelsVideoAttr));
+                    }
+                }
+            });
+        };
+    }
+    // Drag & drop onto the preview stage
+    if (previewStage) {
+        previewStage.addEventListener('dragover', (e) => { e.preventDefault(); previewStage.classList.add('ring-2', 'ring-primary'); });
+        previewStage.addEventListener('dragleave', () => previewStage.classList.remove('ring-2', 'ring-primary'));
+        previewStage.addEventListener('drop', (e) => {
+            e.preventDefault();
+            previewStage.classList.remove('ring-2', 'ring-primary');
+            const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+            handleVideoFile(f);
+        });
+    }
+    renderVideoPreview();
+
+    // Event handlers
+    container.querySelector('#back-btn').onclick = () => {
+        navigate('render', { videoId, videoUrl });
+    };
+
+    // Category tabs (creation groups)
+    container.querySelectorAll('.category-tab').forEach(tab => {
+        tab.onclick = () => {
+            container.querySelectorAll('.category-tab').forEach(t => {
+                t.classList.remove('text-primary', 'border-primary');
+                t.classList.add('text-muted');
+            });
+            tab.classList.remove('text-muted');
+            tab.classList.add('text-primary', 'border-primary');
+            renderToolsGrid(tab.dataset.group);
+        };
+    });
+
+    // Build the tool grid, sectioned by creation group. Pass a group key to
+    // show just that section, or 'all' to show every section with headers.
+    const TOOL_GROUPS = [
+        { key: 'perceive', label: 'Perceive' },
+        { key: 'storyboard', label: 'Storyboard' },
+        { key: 'generate', label: 'Generate' },
+        { key: 'voice', label: 'Voice' },
+        { key: 'localize', label: 'Localize' },
+        { key: 'edit', label: 'Edit' },
+        { key: 'connect', label: 'Connect' },
+    ];
+    function renderToolsGrid(group = 'all') {
+        const grid = container.querySelector('#tools-grid');
+        if (!grid) return;
+        const sections = TOOL_GROUPS.filter(g => group === 'all' || g.key === group);
+        grid.innerHTML = sections.map(section => {
+            const tools = AI_TOOLS.filter(t => t.group === section.key);
+            if (!tools.length) return '';
+            const cards = tools.map(tool => `
+                <button class="tool-btn overflow-hidden bg-white/5 hover:bg-white/10 border border-white/5 hover:border-primary/30 rounded-2xl text-left transition-all hover:scale-[1.02] cursor-pointer" data-tool="${tool.id}" data-group="${tool.group}" data-category="${tool.category}">
+                    <div class="relative w-full aspect-square overflow-hidden">
+                        <img src="${tool.thumbnail}" alt="${tool.name}" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'" />
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
+                        <div class="absolute bottom-0 left-0 right-0 p-2.5">
+                            <div class="font-bold text-white text-xs">${tool.name}</div>
+                            <div class="text-[9px] text-white/60">${tool.description}</div>
+                        </div>
+                    </div>
+                </button>`).join('');
+            const header = group === 'all'
+                ? `<h4 class="text-xs font-black text-white/80 tracking-wide uppercase mb-2 mt-1">${section.label}</h4>`
+                : '';
+            return `${header}<div class="grid grid-cols-2 gap-3">${cards}</div>`;
+        }).join('');
+        // Re-bind tool clicks for the freshly rendered cards.
+        grid.querySelectorAll('.tool-btn').forEach(btn => {
+            btn.onclick = () => {
+                const toolId = btn.dataset.tool;
+                const tool = AI_TOOLS.find(t => t.id === toolId);
+                runTool(tool);
+            };
+        });
+    }
+
+    // Initial render (all groups, sectioned).
+    renderToolsGrid('all');
+    
+    // Use case buttons
+    container.querySelectorAll('.usecase-btn').forEach(btn => {
+        btn.onclick = () => {
+            const usecaseId = btn.dataset.usecase;
+            const usecase = USE_CASES.find(u => u.id === usecaseId);
+            runUseCase(usecase);
+        };
+    });
+    
+    // Full pipeline button
+    container.querySelector('#run-full-pipeline').onclick = async () => {
+        await runFullPipeline();
+    };
+    
+    // Cancel processing
+    container.querySelector('#cancel-processing').onclick = async () => {
+        container.querySelector('#processing-modal').classList.add('hidden');
+        isProcessing = false;
+        abortController.abort();
+        if (currentJobId) {
+            try { await fetch(`${getBackendBase()}/videoagent/cancel/${currentJobId}`, { method: 'POST' }); } catch (_) {}
+            try {
+                if (isSupabaseConfigured()) {
+                    await fetch(`${getSupabaseUrl()}/functions/v1/videoagent/cancel/${currentJobId}`, { method: 'POST' });
+                }
+            } catch (_) {}
+            currentJobId = null;
+        }
+        showToast('Processing cancelled', 'info');
+    };
+    
+    const runTool = async (tool) => {
+        if (!(await requireEntitlement())) return;
+        if (isProcessing) {
+            showToast('Already processing', 'error');
+            return;
+        }
+
+        // Voice/tts tools don't need a loaded video; everything else does.
+        const NO_VIDEO_TOOLS = ['cosyvoice', 'fish-speech', 'seed-vc', 'ai-voiceovers', 'voice-cloning', 'audio-overlay', 'trailer-narration', 'storyboarding', 'text-to-movie', 'text-to-video', 'faceless-video', 'ai-ad-films', 'kids-storyteller', 'tiktok-lyric', 'year-in-frames'];
+        if (!videoId && !videoUrl && !NO_VIDEO_TOOLS.includes(tool.id)) {
+            showToast('Please load a video first', 'error');
+            return;
+        }
+
+        isProcessing = true;
+        addToQueue(tool.name, 'pending');
+
+        const modal = container.querySelector('#processing-modal');
+        const nameEl = container.querySelector('#processing-name');
+        const stepsEl = container.querySelector('#processing-steps');
+        const progressBar = container.querySelector('#modal-progress-bar');
+        const percentEl = container.querySelector('#processing-percent');
+
+        nameEl.textContent = tool.description;
+        modal.classList.remove('hidden');
+
+        // Try Express direct (real OpenAI Whisper, TTS, agent orchestrator).
+        // Fall back to Supabase edge function (which proxies to Express).
+        // Fall back to simulation ONLY if both fail.
+        const directEndpoint = `${getBackendBase()}/videoagent/process`;
+        const supabaseEndpoint = isSupabaseConfigured()
+            ? `${getSupabaseUrl()}/functions/v1/videoagent`
+            : null;
+
+        const callProcess = async (endpoint) => {
+            // Send the user's own OpenAI + VideoDB keys so the backend (Render)
+            // uses their accounts. Falls back to empty (backend uses global keys).
+            const userOpenAIKey = apiKeyManager.getOpenAIKey() || '';
+            const userVideoDbKey = apiKeyManager.getVideoDBKey() || '';
+            return await fetch(endpoint, {
+                method: 'POST',
+                signal: AbortSignal.any([abortController.signal, AbortSignal.timeout(90000)]),
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'process-tool',
+                    tool: tool.id,
+                    toolName: tool.name,
+                    videoId,
+                    videoUrl,
+                    apiKey: userOpenAIKey,
+                    videoDbKey: userVideoDbKey,
+                    text: (NO_VIDEO_TOOLS.includes(tool.id)
+                        ? 'Welcome to the studio. This is a synthesized voice sample for your project.'
+                        : tool.description),
+                    prompt: container.querySelector('#agent-prompt')?.value || '',
+                    settings: {
+                        quality: container.querySelector('select')?.value || '1080p',
+                        format: container.querySelectorAll('select')[1]?.value || 'MP4',
+                        apiKey: userOpenAIKey,
+                        videoDbKey: userVideoDbKey,
+                    },
+                }),
+            });
+        };
+
+        let response = null;
+        let usedEndpoint = null;
+        try {
+            response = await callProcess(directEndpoint);
+            usedEndpoint = 'direct';
+            if (!response.ok) throw new Error(`Direct: ${response.status}`);
+        } catch (_) {
+            if (supabaseEndpoint) {
+                try {
+                    response = await callProcess(supabaseEndpoint);
+                    usedEndpoint = 'supabase';
+                    if (!response.ok) throw new Error(`Supabase: ${response.status}`);
+                } catch (e) {
+                    response = null;
+                }
+            }
+        }
+
+        if (!response) {
+            // Both backends down — fall through to simulation
+            showToast('Backends unavailable. Using offline mode.', 'info');
+            modal.classList.add('hidden');
+            await fallbackOrSimulate(tool);
+            return;
+        }
+
+        const result = await response.json();
+        let finalResult = result;
+
+        if (result.jobId) {
+            setCurrentJob(result.jobId);
+            // Poll for completion. Use the same endpoint that returned the job.
+            const pollUrl = usedEndpoint === 'direct'
+                ? `${getBackendBase()}/videoagent/job/${result.jobId}`
+                : `${supabaseEndpoint}?jobId=${result.jobId}`;
+            try {
+                const finalJob = await pollJob(pollUrl, result.steps || getToolSteps(tool.id), stepsEl, progressBar, percentEl, abortController.signal);
+                finalResult = finalJob || result;
+            } catch (e) {
+                showToast('Polling failed. Using offline mode.', 'error');
+                modal.classList.add('hidden');
+                setCurrentJob(null);
+                await fallbackOrSimulate(tool);
+                return;
+            }
+            setCurrentJob(null);
+        } else if (result.status === 'completed' || result.success) {
+            updateProgress(stepsEl, progressBar, percentEl, 100);
+            await new Promise((r) => setTimeout(r, 300));
+        } else {
+            // No jobId and no completion — treat as failure.
+            showToast('Backend returned no job. Using offline mode.', 'info');
+            modal.classList.add('hidden');
+            await fallbackOrSimulate(tool);
+            return;
+        }
+
+        modal.classList.add('hidden');
+        isProcessing = false;
+        updateQueueItem(tool.name, 'complete');
+        showResults(tool, finalResult.result || finalResult);
+        showToast(`${tool.name} completed!`, 'success');
+    };
+    
+    const runUseCase = async (usecase) => {
+        if (!(await requireEntitlement())) return;
+        if (isProcessing) {
+            showToast('Already processing', 'error');
+            return;
+        }
+
+        if (!videoId && !videoUrl) {
+            showToast('Please load a video first', 'error');
+            return;
+        }
+
+        isProcessing = true;
+        addToQueue(usecase.name, 'pending');
+
+        const modal = container.querySelector('#processing-modal');
+        const nameEl = container.querySelector('#processing-name');
+        const stepsEl = container.querySelector('#processing-steps');
+        const progressBar = container.querySelector('#modal-progress-bar');
+        const percentEl = container.querySelector('#processing-percent');
+
+        nameEl.textContent = usecase.description;
+        modal.classList.remove('hidden');
+
+        const directEndpoint = `${getBackendBase()}/videoagent/process`;
+        const supabaseEndpoint = isSupabaseConfigured()
+            ? `${getSupabaseUrl()}/functions/v1/videoagent`
+            : null;
+
+        const callProcess = async (endpoint) => {
+            const userOpenAIKey = apiKeyManager.getOpenAIKey() || '';
+            const userVideoDbKey = apiKeyManager.getVideoDBKey() || '';
+            return await fetch(endpoint, {
+                method: 'POST',
+                signal: AbortSignal.any([abortController.signal, AbortSignal.timeout(90000)]),
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'process-usecase',
+                    usecase: usecase.id,
+                    usecaseName: usecase.name,
+                    videoId,
+                    videoUrl,
+                    apiKey: userOpenAIKey,
+                    videoDbKey: userVideoDbKey,
+                    prompt: container.querySelector('#agent-prompt')?.value || '',
+                    settings: { apiKey: userOpenAIKey, videoDbKey: userVideoDbKey },
+                }),
+            });
+        };
+
+        let response = null;
+        let usedEndpoint = null;
+        try {
+            response = await callProcess(directEndpoint);
+            usedEndpoint = 'direct';
+            if (!response.ok) throw new Error(`Direct: ${response.status}`);
+        } catch (_) {
+            if (supabaseEndpoint) {
+                try {
+                    response = await callProcess(supabaseEndpoint);
+                    usedEndpoint = 'supabase';
+                    if (!response.ok) throw new Error(`Supabase: ${response.status}`);
+                } catch (e) {
+                    response = null;
+                }
+            }
+        }
+
+        if (!response) {
+            showToast('Backends unavailable. Using offline mode.', 'info');
+            modal.classList.add('hidden');
+            await handleUnavailable(usecase, 'No backend is running and this use case cannot run in your browser.');
+            return;
+        }
+
+        const result = await response.json();
+        let finalResult = result;
+        if (result.jobId) {
+            setCurrentJob(result.jobId);
+            const pollUrl = usedEndpoint === 'direct'
+                ? `${getBackendBase()}/videoagent/job/${result.jobId}`
+                : `${supabaseEndpoint}?jobId=${result.jobId}`;
+            try {
+                const finalJob = await pollJob(pollUrl, getUseCaseSteps(usecase.id), stepsEl, progressBar, percentEl, abortController.signal);
+                finalResult = finalJob || result;
+            } catch (e) {
+                showToast('Polling failed. Using offline mode.', 'error');
+                modal.classList.add('hidden');
+                setCurrentJob(null);
+                await handleUnavailable(usecase, 'No backend is running and this use case cannot run in your browser.');
+                return;
+            }
+            setCurrentJob(null);
+        } else if (result.status === 'completed' || result.success) {
+            updateProgress(stepsEl, progressBar, percentEl, 100);
+            await new Promise((r) => setTimeout(r, 300));
+        } else {
+            showToast('Backend returned no job. Using offline mode.', 'info');
+            modal.classList.add('hidden');
+            await handleUnavailable(usecase, 'No backend is running and this use case cannot run in your browser.');
+            return;
+        }
+
+        modal.classList.add('hidden');
+        isProcessing = false;
+        updateQueueItem(usecase.name, 'complete');
+        showResults({ name: usecase.name, icon: usecase.icon }, finalResult.result || finalResult);
+        showToast(`${usecase.name} completed!`, 'success');
+    };
+
+    const runFullPipeline = async () => {
+        if (!(await requireEntitlement())) return;
+        if (isProcessing) {
+            showToast('Already processing', 'error');
+            return;
+        }
+
+        if (!videoId && !videoUrl) {
+            showToast('Please load a video first', 'error');
+            return;
+        }
+
+        isProcessing = true;
+
+        const modal = container.querySelector('#processing-modal');
+        const nameEl = container.querySelector('#processing-name');
+        const stepsEl = container.querySelector('#processing-steps');
+        const progressBar = container.querySelector('#modal-progress-bar');
+        const percentEl = container.querySelector('#processing-percent');
+
+        nameEl.textContent = 'Running full AI processing pipeline';
+        modal.classList.remove('hidden');
+
+        const directEndpoint = `${getBackendBase()}/videoagent/process`;
+        const supabaseEndpoint = isSupabaseConfigured()
+            ? `${getSupabaseUrl()}/functions/v1/videoagent`
+            : null;
+
+        const callProcess = async (endpoint) => {
+            const userOpenAIKey = apiKeyManager.getOpenAIKey() || '';
+            const userVideoDbKey = apiKeyManager.getVideoDBKey() || '';
+            return await fetch(endpoint, {
+                method: 'POST',
+                signal: AbortSignal.any([abortController.signal, AbortSignal.timeout(90000)]),
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'full-pipeline',
+                    videoId,
+                    videoUrl,
+                    apiKey: userOpenAIKey,
+                    videoDbKey: userVideoDbKey,
+                    prompt: container.querySelector('#agent-prompt')?.value || '',
+                    settings: { quality: '1080p', format: 'MP4', apiKey: userOpenAIKey, videoDbKey: userVideoDbKey },
+                }),
+            });
+        };
+
+        let response = null;
+        let usedEndpoint = null;
+        try {
+            response = await callProcess(directEndpoint);
+            usedEndpoint = 'direct';
+            if (!response.ok) throw new Error(`Direct: ${response.status}`);
+        } catch (_) {
+            if (supabaseEndpoint) {
+                try {
+                    response = await callProcess(supabaseEndpoint);
+                    usedEndpoint = 'supabase';
+                    if (!response.ok) throw new Error(`Supabase: ${response.status}`);
+                } catch (e) {
+                    response = null;
+                }
+            }
+        }
+
+        if (!response) {
+            showToast('Backends unavailable. Using offline mode.', 'info');
+            modal.classList.add('hidden');
+            await handleUnavailable({ name: 'Full Pipeline', icon: '⚙️' }, 'No backend is running and the full pipeline cannot run in your browser.');
+            return;
+        }
+
+        const result = await response.json();
+        let finalResult = result;
+        if (result.jobId) {
+            setCurrentJob(result.jobId);
+            const pollUrl = usedEndpoint === 'direct'
+                ? `${getBackendBase()}/videoagent/job/${result.jobId}`
+                : `${supabaseEndpoint}?jobId=${result.jobId}`;
+            try {
+                const finalJob = await pollJob(pollUrl, getUseCaseSteps('overview'), stepsEl, progressBar, percentEl, abortController.signal);
+                finalResult = finalJob || result;
+            } catch (e) {
+                showToast('Polling failed. Using offline mode.', 'error');
+                modal.classList.add('hidden');
+                setCurrentJob(null);
+                await handleUnavailable({ name: 'Full Pipeline', icon: '⚙️' }, 'No backend is running and the full pipeline cannot run in your browser.');
+                return;
+            }
+            setCurrentJob(null);
+        } else if (result.status === 'completed' || result.success) {
+            updateProgress(stepsEl, progressBar, percentEl, 100);
+            await new Promise((r) => setTimeout(r, 300));
+        } else {
+            showToast('Backend returned no job. Using offline mode.', 'info');
+            modal.classList.add('hidden');
+            await handleUnavailable({ name: 'Full Pipeline', icon: '⚙️' }, 'No backend is running and the full pipeline cannot run in your browser.');
+            return;
+        }
+
+        modal.classList.add('hidden');
+        isProcessing = false;
+        showResults({ name: 'Full Pipeline', icon: '⚙️' }, finalResult.result || finalResult);
+        showToast('Full pipeline completed!', 'success');
+    };
+    
+    const addToQueue = (name, status) => {
+        processingQueue.push({ name, status, id: Date.now() });
+        renderQueue();
+    };
+    
+    const updateQueueItem = (name, status) => {
+        const item = processingQueue.find(q => q.name === name);
+        if (item) item.status = status;
+        renderQueue();
+    };
+    
+    const renderQueue = () => {
+        const queueEl = container.querySelector('#queue-list');
+        
+        if (processingQueue.length === 0) {
+            queueEl.innerHTML = '<div class="text-sm text-muted italic p-2">No jobs in queue</div>';
+            return;
+        }
+        
+        queueEl.innerHTML = processingQueue.map(item => `
+            <div class="flex items-center gap-2 p-2 bg-white/5 rounded-xl">
+                ${item.status === 'complete' ? `
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="text-primary">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                ` : item.status === 'running' ? `
+                    <div class="animate-spin w-3 h-3 border border-primary border-t-transparent rounded-full"></div>
+                ` : `
+                    <span class="w-3 h-3 rounded-full bg-muted"></span>
+                `}
+                <span class="text-xs text-white flex-1">${item.name}</span>
+            </div>
+        `).join('');
+    };
+    
+    const showResults = (tool, payload) => {
+        const resultsPanel = container.querySelector('#results-panel');
+        const resultsContent = container.querySelector('#results-content');
+
+        resultsPanel.classList.remove('hidden');
+
+        const isAudioUrl = (u) =>
+            /\.(mp3|wav|m4a|ogg)$/i.test(u) ||
+            (payload && /audio\//.test(payload.mimeType || ''));
+        const videoUrl =
+            payload && typeof payload === 'object'
+                ? payload.url || payload.downloadUrl || payload.audioUrl || (payload.shorts && payload.shorts[0] && payload.shorts[0].url)
+                : null;
+        const isAudio =
+            isAudioUrl(videoUrl) ||
+            (payload && payload.mimeType && /audio\//.test(payload.mimeType)) ||
+            (payload && payload.audioBase64);
+
+        const resultEl = document.createElement('div');
+        resultEl.className = 'p-3 bg-white/5 rounded-xl flex flex-col gap-2';
+
+        // Header
+        const header = document.createElement('div');
+        header.className = 'flex items-center gap-3';
+        header.innerHTML = `
+            <div class="w-10 h-10 bg-green-600/20 rounded-lg flex items-center justify-center">
+                <span class="text-lg">${tool.icon || '✓'}</span>
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="text-sm text-white font-bold truncate">${tool.name}</div>
+                <div class="text-[11px] text-secondary truncate">${escapeHtml(payload && payload.source ? String(payload.source) : 'result')}</div>
+            </div>
+        `;
+        resultEl.appendChild(header);
+
+        // Honest "unavailable" state — no faked completion.
+        if (payload && payload.unavailable) {
+            const note = document.createElement('div');
+            note.className = 'text-xs text-rose-300/90 bg-rose-500/10 border border-rose-500/20 rounded-lg p-2';
+            note.textContent =
+                (payload.error || 'This tool is not available.') +
+                ' Start the backend (npm run dev:backend) to enable real processing.';
+            resultEl.appendChild(note);
+            resultsContent.insertBefore(resultEl, resultsContent.firstChild);
+            return;
+        }
+
+        // Real playable video/audio output.
+        if (videoUrl) {
+            resultEl.appendChild(buildMediaPlayer(videoUrl, { isAudio, mimeType: payload && payload.mimeType }));
+            const dlBtn = document.createElement('button');
+            dlBtn.className = 'self-start mt-1 text-xs text-primary hover:underline flex items-center gap-1';
+            dlBtn.textContent = '↓ Download result';
+            dlBtn.onclick = () => {
+                try {
+                    const a = document.createElement('a');
+                    a.href = videoUrl;
+                    a.download = `${(tool.id || 'video')}.${isAudio ? 'mp3' : 'mp4'}`;
+                    a.click();
+                } catch (_) {}
+            };
+            resultEl.appendChild(dlBtn);
+        }
+
+        // TTS that was spoken live in the browser (no downloadable file).
+        if (payload && payload.spoken) {
+            const note = document.createElement('div');
+            note.className = 'text-xs text-white/70';
+            note.textContent = `Spoken via your browser’s speech synthesis: “${String(payload.text || '')}”`;
+            resultEl.appendChild(note);
+        }
+
+        // Audio returned as base64 (backend TTS / browser) without a URL.
+        if (payload && payload.audioBase64 && !videoUrl) {
+            try {
+                const bytes = Uint8Array.from(atob(payload.audioBase64), (c) => c.charCodeAt(0));
+                const blob = new Blob([bytes], { type: payload.mimeType || 'audio/mpeg' });
+                const url = URL.createObjectURL(blob);
+                resultEl.appendChild(buildMediaPlayer(url, { isAudio: true, mimeType: payload.mimeType }));
+            } catch (_) {}
+        }
+
+        // Summary line.
+        let summary = '';
+        if (payload && typeof payload === 'object') {
+            if (payload.transcription) summary = `Transcript: “${String(payload.transcription).slice(0, 120)}…”`;
+            else if (payload.summary) summary = String(payload.summary);
+            else if (payload.result) summary = String(payload.result);
+            else if (typeof payload.chapters === 'number') summary = `${payload.chapters} chapters`;
+            else if (Array.isArray(payload.scenes)) summary = `${payload.scenes.length} scenes detected`;
+            else if (Array.isArray(payload.segments)) summary = `${payload.segments.length} clips segmented`;
+            else if (Array.isArray(payload.highlights)) summary = `${payload.highlights.length} highlights found`;
+        }
+        if (summary) {
+            const s = document.createElement('div');
+            s.className = 'text-xs text-secondary truncate';
+            s.textContent = summary;
+            resultEl.appendChild(s);
+        }
+
+        // Metadata rows for scene/segment/highlight detection.
+        const listRows = (arr, fmt) => {
+            if (!Array.isArray(arr) || !arr.length) return;
+            const ul = document.createElement('div');
+            ul.className = 'text-[11px] text-white/60 flex flex-col gap-0.5 mt-1';
+            arr.slice(0, 8).forEach((it) => {
+                const row = document.createElement('div');
+                row.textContent = fmt(it);
+                ul.appendChild(row);
+            });
+            resultEl.appendChild(ul);
+        };
+        listRows(payload && payload.scenes, (s) => `Scene ${s.index}: ${s.start}s–${s.end}s`);
+        listRows(payload && payload.segments, (s) => `Clip ${s.index}: ${s.start}s–${s.end}s`);
+        listRows(payload && payload.highlights, (h) => `Highlight: ${h.start}s–${h.end}s (score ${h.score})`);
+
+        resultsContent.insertBefore(resultEl, resultsContent.firstChild);
+    };
+    
+    const getToolSteps = (toolId) => {
+        const stepsMap = {
+            'scene-detection': ['Analyzing video frames...', 'Detecting scene changes...', 'Labeling scenes...', 'Generating scene map...'],
+            'clip-segmentation': ['Identifying segment boundaries...', 'Creating clip markers...', 'Optimizing cut points...', 'Finalizing segments...'],
+            'highlight-detection': ['Analyzing content...', 'Scoring moments...', 'Ranking highlights...', 'Extracting clips...'],
+            'cosyvoice': ['Loading voice model...', 'Processing audio...', 'Generating voice...', 'Finalizing output...'],
+            'fish-speech': ['Synthesizing speech...', 'Applying voice characteristics...', 'Optimizing audio...', 'Complete!'],
+            'seed-vc': ['Analyzing source voice...', 'Processing conversion...', 'Applying target voice...', 'Done!'],
+            'whisper': ['Extracting audio...', 'Transcribing speech...', 'Formatting text...', 'Complete!'],
+            'imagebind': ['Binding modalities...', 'Analyzing content...', 'Generating insights...', 'Complete!'],
+            'dubbing': ['Translating content...', 'Synthesizing speech...', 'Syncing to video...', 'Complete!'],
+            'multi-lang-dubbing': ['Translating to languages...', 'Synthesizing voices...', 'Syncing tracks...', 'Complete!'],
+            'color-correct': ['Analyzing color palette...', 'Applying corrections...', 'Balancing tones...', 'Final render...'],
+            'upscale': ['Analyzing frames...', 'Enhancing resolution...', 'Applying AI scaling...', 'Complete!'],
+            'stabilize': ['Analyzing motion...', 'Computing vectors...', 'Applying stabilization...', 'Done!'],
+            // VideoDB + OpenAI Responses API Agents
+            'storyboarding': ['Planning steps...', 'Generating script + voice + image per step...', 'Assembling timeline...', 'Compiling storyboard stream...'],
+            'highlights': ['Indexing video...', 'Ranking moments...', 'Writing summary...', 'Complete!'],
+            'text-to-movie': ['Writing screenplay...', 'Planning shots...', 'Finalizing...', 'Complete!'],
+            'text-to-video': ['Writing prompt...', 'Planning shots...', 'Finalizing...', 'Complete!'],
+            'visual-search': ['Searching frames...', 'Ranking matches...', 'Compiling results...', 'Complete!'],
+            'keyword-search': ['Transcribing speech...', 'Searching keywords...', 'Compiling clips...', 'Complete!'],
+            'voice-cloning': ['Loading voice model...', 'Synthesizing sample...', 'Finalizing...', 'Complete!'],
+            'audio-overlay': ['Writing narration...', 'Synthesizing audio...', 'Finalizing...', 'Complete!'],
+            'ai-voiceovers': ['Writing script...', 'Synthesizing voiceover...', 'Finalizing...', 'Complete!'],
+            'trailer-narration': ['Writing trailer script...', 'Synthesizing voice...', 'Finalizing...', 'Complete!'],
+            'sales-assistant': ['Transcribing pitch...', 'Extracting insights...', 'Drafting CRM task...', 'Complete!'],
+            'comparison': ['Analyzing A...', 'Analyzing B...', 'Comparing...', 'Complete!'],
+            'output-formatting': ['Reading target platform...', 'Choosing format...', 'Writing recommendation...', 'Complete!'],
+            'thumbnail': ['Picking frame...', 'Writing title...', 'Suggesting tags...', 'Complete!'],
+            'profanity': ['Transcribing...', 'Scanning language...', 'Suggesting edits...', 'Complete!'],
+            'subtitle': ['Transcribing...', 'Generating SRT...', 'Finalizing...', 'Complete!'],
+            'slack': ['Summarizing...', 'Posting to Slack...', 'Complete!'],
+            'kids-storyteller': ['Writing story...', 'Planning animation...', 'Finalizing...', 'Complete!'],
+            'faceless-video': ['Writing script...', 'Planning visuals...', 'Finalizing plan...', 'Complete!'],
+            'ai-ad-films': ['Writing ad...', 'Planning shots...', 'Finalizing...', 'Complete!'],
+            'tiktok-lyric': ['Writing lyrics...', 'Planning sync...', 'Finalizing...', 'Complete!'],
+            'year-in-frames': ['Collecting frames...', 'Ordering montage...', 'Finalizing...', 'Complete!'],
+            'intro-outro': ['Planning intro...', 'Planning outro...', 'Finalizing...', 'Complete!'],
+            'brand-elements': ['Placing logo...', 'Planning overlays...', 'Finalizing...', 'Complete!'],
+            'dynamic-ads': ['Reading variants...', 'Planning cuts...', 'Finalizing...', 'Complete!'],
+        };
+        return stepsMap[toolId] || ['Processing...', 'Finalizing...'];
+    };
+    
+    const getUseCaseSteps = (usecaseId) => {
+        const stepsMap = {
+            'standup': ['Analyzing content...', 'Detecting pacing...', 'Adding comedy timing...', 'Optimizing delivery...'],
+            'commentary': ['Analyzing video...', 'Generating commentary...', 'Syncing overlay...', 'Complete!'],
+            'overview': ['Summarizing content...', 'Generating chapters...', 'Creating overview...', 'Done!'],
+            'meme': ['Analyzing frames...', 'Generating captions...', 'Applying effects...', 'Complete!'],
+            'music-video': ['Analyzing audio...', 'Syncing to beat...', 'Adding effects...', 'Done!'],
+            'qa': ['Analyzing content...', 'Generating questions...', 'Creating interaction...', 'Complete!'],
+        };
+        return stepsMap[usecaseId] || ['Processing...', 'Finalizing...'];
+    };
+    
+    // ==========================================
+    // API HELPER FUNCTIONS (need container access)
+    // ==========================================
+    
+    function getModalElements() {
+        return {
+            modal: container.querySelector('#processing-modal'),
+            nameEl: container.querySelector('#processing-name'),
+            stepsEl: container.querySelector('#processing-steps'),
+            progressBar: container.querySelector('#modal-progress-bar'),
+            percentEl: container.querySelector('#processing-percent'),
+            queueList: container.querySelector('#queue-list'),
+            resultsPanel: container.querySelector('#results-panel'),
+            resultsContent: container.querySelector('#results-content')
+        };
+    }
+    
+    // Generic job poller (used by both tool and pipeline flows).
+    let currentJobId = null;
+    async function pollJob(pollUrl, steps, stepsEl, progressBar, percentEl, abortSignal) {
+        const maxAttempts = 90;
+        const stepList = steps || ['Processing...'];
+        for (let i = 0; i < maxAttempts; i++) {
+            if (abortSignal?.aborted) return;
+            try {
+                const response = await fetch(pollUrl);
+                if (!response.ok) throw new Error(`Poll: ${response.status}`);
+                const result = await response.json();
+                if (result.status === 'completed' || result.status === 'cancelled') {
+                    updateProgress(stepsEl, progressBar, percentEl, 100);
+                    try {
+                        updateStepsDisplay(stepsEl, stepList, stepList.length - 1);
+                    } catch (_) {}
+                    return result;
+                } else if (result.status === 'failed') {
+                    throw new Error(result.error || 'Job failed');
+                } else if (result.currentStep) {
+                    const stepIndex = Math.min(result.currentStep - 1, stepList.length - 1);
+                    updateStepsDisplay(stepsEl, stepList, stepIndex);
+                    const percent = Math.round(((stepIndex + 1) / stepList.length) * 100);
+                    updateProgress(stepsEl, progressBar, percentEl, percent);
+                }
+                await new Promise((resolve) => setTimeout(resolve, 1500));
+            } catch (error) {
+                if (i === maxAttempts - 1) throw error;
+                await new Promise((resolve) => setTimeout(resolve, 1500));
+            }
+        }
+        throw new Error('Job timed out');
+    }
+
+    // Track the active jobId so the cancel button can call /cancel.
+    function setCurrentJob(jobId) {
+        currentJobId = jobId;
+    }
+    
+    // Update progress bar and percentage
+    function updateProgress(stepsEl, progressBar, percentEl, percent) {
+        if (progressBar) progressBar.style.width = `${percent}%`;
+        if (percentEl) percentEl.textContent = `${percent}%`;
+    }
+    
+    // Update steps display during polling
+    function updateStepsDisplay(stepsEl, steps, currentIndex) {
+        if (!stepsEl) return;
+        stepsEl.innerHTML = steps.map((s, idx) => `
+            <div class="flex items-center gap-2 text-sm ${idx <= currentIndex ? 'text-white' : 'text-muted'}">
+                <span class="w-1.5 h-1.5 rounded-full ${idx < currentIndex ? 'bg-primary' : idx === currentIndex ? 'bg-primary animate-pulse' : 'bg-muted'}"></span>
+                ${s}
+            </div>
+        `).join('');
+    }
+    
+    // Fallback simulation for tool processing
+    // Try to process a tool entirely in the browser (FFmpeg-free fallback).
+    // Returns true if it produced a result, false if it couldn't (e.g. the
+    // video bytes aren't locally accessible or the browser lacks MediaRecorder).
+    const tryBrowserProcessing = async (item) => {
+        if (!browserVideoProcessor.supports(item.id)) return false;
+        try {
+            const result = await browserVideoProcessor.processInBrowser({
+                action: item.id,
+                videoUrl,
+                settings: {
+                    quality: container.querySelector('select')?.value || '1080p',
+                    format: container.querySelectorAll('select')[1]?.value || 'MP4',
+                },
+            });
+            if (!result) return false;
+            getModalElements().modal.classList.add('hidden');
+            isProcessing = false;
+            updateQueueItem(item.name, 'complete');
+            showResults(item, result);
+            showToast(`${item.name} done in your browser!`, 'success');
+            return true;
+        } catch (e) {
+            console.warn('[VideoAgentPage] browser processing failed:', e.message);
+            return false;
+        }
+    };
+
+    // If the backend is unreachable AND the browser can't do the work, show an
+    // honest "unavailable" result instead of a fake progress animation.
+    const fallbackOrSimulate = async (item) => {
+        if (!(await tryBrowserProcessing(item))) {
+            handleUnavailable(item, 'No backend is running and this tool cannot run in your browser.');
+        }
+    };
+
+    // Honest fallback: when the backend is unreachable AND the browser can't do
+    // the work, surface "unavailable" instead of faking a completed result.
+    function handleUnavailable(item, reason) {
+        const m = getModalElements();
+        m.modal.classList.add('hidden');
+        isProcessing = false;
+        if (item && item.name) updateQueueItem(item.name, 'failed');
+        showResults(item || { name: 'Tool' }, {
+            unavailable: true,
+            error: reason || 'This tool is not available right now.',
+        });
+        showToast(reason || 'Tool unavailable', 'error');
+    }
+
+    // Build a playable <video>/<audio> element for a real result URL.
+    function buildMediaPlayer(url, { isAudio = false, mimeType = '' } = {}) {
+        const el = document.createElement(isAudio ? 'audio' : 'video');
+        el.src = url;
+        el.controls = true;
+        if (!isAudio) {
+            el.className = 'w-full rounded-xl mt-2 bg-black max-h-64';
+            el.loop = true;
+        } else {
+            el.className = 'w-full mt-2';
+        }
+        if (mimeType) el.type = mimeType;
+        return el;
+    }
+
+    // Cleanup function to abort ongoing operations
+    container.cleanup = () => {
+        abortController.abort();
+    };
+
+    return container;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}

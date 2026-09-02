@@ -1,0 +1,318 @@
+.advanced-settings-container {
+  margin-top: 1em;
+
+  .slider-input input {
+    width: 3em;
+  }
+}
+
+.checkbox-box {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.font-color-container-input {
+  width: 100% !important;
+}
+
+.container-select {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: $btn-gray;
+
+  .MuiSvgIcon-root {
+    color: $btn-gray;
+  }
+
+  .MuiOutlinedInput-notchedOutline {
+    border-color: $btn-gray;
+    opacity: 0.23;
+  }
+
+  .MuiOutlinedInput-notchedOutline:hover {
+    border-color: $secondary-color;
+  }
+
+  &-slider {
+    &-element.MuiSlider-root {
+      color: $backgroundSlider;
+    }
+
+    &-input.MuiInputBase-root {
+      color: $white;
+    }
+  }
+}
+
+.container-form-checkbox {
+  .checbox-background {
+    justify-content: flex-end;
+  }
+}
+
+.container-text-edit {
+  display: flex;
+  justify-content: space-between;
+  width: 15rem;
+
+  .icon-text {
+    @include make-fluid("margin-right", 4px, 10px, $xl + 1, $mock, 10px, px);
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    &-inline {
+      min-width: 1.3em;
+    }
+  }
+}
+
+.font-section, .font-style-section {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+
+  .select-element {
+    min-width: 8rem;
+  }
+  .slider-container {
+    width: 100%;
+  }
+}
+
+.font-section__input {
+  width: 46%;
+  z-index: 2;
+}
+
+.font-size-container {
+  display: flex;
+  width: 50%;
+  flex-direction: column;
+}
+
+.font-decoration-section {
+  display: flex;
+  justify-content: space-between;
+  margin-top: .5rem;
+
+  .font-decoration-container {
+    display: flex;
+
+    .checkbox-element {
+      & + .checkbox-element {
+        margin-left: 1rem;
+      }
+    }
+  }
+
+  .icon-edit-text {
+    display: flex;
+    width: 50%;
+    justify-content: flex-end;
+    align-items: center;
+
+    .container-text-radio {
+      width: 40%;
+    }
+  }
+
+  .MuiFormGroup-root {
+    .MuiFormControlLabel-root:last-child {
+      & > span:last-child {
+        margin-left: -9px;
+      }
+    }
+  }
+}
+
+.font-style-container {
+  display: flex;
+  flex-wrap: wrap;
+  max-width: 46%;
+  justify-content: flex-end;
+  padding-top: 2em;
+
+  .checkbox-element {
+    .MuiIconButton-root {
+      margin-right: -9px;
+    }
+  }
+}
+
+.font-style-group {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+
+  &:last-child {
+    justify-content: flex-end;
+  }
+
+  & + & {
+    margin-top: 1rem;
+  }
+
+  .checkbox-element {
+    & + .checkbox-element {
+      margin-left: 1rem;
+    }
+  }
+}
+
+.container-icon-arrow {
+  display: flex;
+  justify-content: center;
+  cursor: pointer;
+  margin-top: 2em;
+  margin-bottom: 2em;
+
+  .icon-arrow {
+    @include make-fluid("margin-right", 4px, 10px, $xl + 1, $mock, 10px, px);
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    &-inline {
+      min-width: 1.2rem;
+    }
+  }
+
+  .icon-arrow-rotate {
+    transform: rotate(180deg);
+  }
+}
+
+.font-color-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  text-align: left;
+
+  &-input {
+    width: 46%;
+  }
+
+  & > &-input {
+    margin-bottom: 1rem;
+  }
+
+  .checkbox-element {
+    padding-top: 1rem;
+
+    .MuiButtonBase-root {
+      margin-right: -9px;
+    }
+
+    .MuiButton-text {
+      margin-right: 1rem;
+    }
+  }
+}
+
+@media screen and (max-width: $xxl) {
+  .font-size-container {
+    width: 100%;
+  }
+
+  .font-section {
+    flex-direction: column;
+
+    .slider-container {
+      margin-top: 1rem;
+      width: 100%;
+    }
+  }
+
+  .font-decoration-section {
+    width: 100%;
+
+    .icon-edit-text {
+      justify-content: flex-end;
+      margin-bottom: 0.5rem;
+      margin-right: 5px;
+    }
+  }
+
+  .MuiFormGroup-root {
+    .MuiFormControlLabel-root:first-child {
+      & > span:first-child {
+        margin-left: -9px;
+      }
+    }
+  }
+
+  .font-style-section {
+    flex-direction: column;
+    text-align: left;
+  }
+
+  .font-style-container {
+    max-width: 100%;
+    flex-direction: column;
+    padding-top: 1rem;
+
+    .checkbox-element {
+      justify-content: space-between;
+    }
+  }
+
+  .font-style-group {
+    flex-direction: column;
+
+    & + & {
+      margin-top: 0;
+    }
+
+    .checkbox-element {
+      & + .checkbox-element {
+        margin-left: 0;
+      }
+    }
+  }
+
+  .font-color-container {
+    flex-direction: column;
+
+    .checkbox-element {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+
+  .font-color-container-input {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: $lg) {
+  .font-decoration-section {
+    .font-decoration-container {
+      width: 50%;
+      display: flex;
+      justify-content: flex-start;
+
+      .checkbox-element {
+        justify-content: space-between;
+        margin-right: .5rem;
+        width: 35%;
+
+        & + .checkbox-element {
+          margin-left: 0;
+        }
+      }
+
+      .MuiButtonBase-root {
+        margin-right: -9px;
+      }
+    }
+  }
+
+}
+
+

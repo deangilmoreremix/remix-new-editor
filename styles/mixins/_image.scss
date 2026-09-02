@@ -1,0 +1,29 @@
+@mixin icon($image, $width, $height: $width) {
+  background-image: $image;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: right;
+  display: inline-block;
+  height: $height;
+  min-width: $width;
+}
+
+@mixin icon-responsive($image, $width, $height: $width, $tablet-width: $width, $tablet-height: $height, $mobile-width: $tablet-width, $mobile-height: $tablet-height) {
+  @include icon($image, $width, $height: $width);
+
+  @include max-w($max-width-tablet) {
+    height: $tablet-height;
+    width: $tablet-width;
+  }
+
+  @include max-w($max-width-mobile) {
+    height: $mobile-height;
+    width: $mobile-width;
+  }
+}
+
+@mixin icon-flexible($image, $min-width, $max-width, $min-height, $max-height, $min-screen, $max-screen, $units: px) {
+  @include icon($image, $max-width, $max-height);
+  @include make-fluid(width, $min-width, $max-width, $min-screen, $max-screen, $max-width, $units);
+  @include make-fluid(height, $min-height, $max-height, $min-screen, $max-screen, $max-height, $units);
+}

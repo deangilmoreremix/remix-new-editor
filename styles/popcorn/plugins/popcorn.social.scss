@@ -1,0 +1,27 @@
+.social-plugin-div {
+  &.active {
+    outline: dotted;
+
+    .resize-handle {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: $white;
+      border: $secondary-color solid 0.5px;
+    }
+  }
+}
+
+.social-wrapper {
+  position: absolute;
+  cursor: move;
+  height: 100%;
+  width: 100%;
+  border: none;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  overflow: hidden;
+  outline: none;
+}

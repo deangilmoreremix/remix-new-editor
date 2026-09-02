@@ -1,0 +1,170 @@
+.MuiFormGroup-root div.text-input div.MuiInput-root {
+  color: $white ;
+
+  &:hover {
+    border: none ;
+  }
+  &:after {
+    border: none ;
+  }
+  &:before {
+    border: none;
+  }
+}
+
+input, div, textarea {
+  &.medium-long {
+    width: 10.9375rem;
+  }
+
+  &.medium-small {
+    width: 8.75rem;
+  }
+
+  &.medium {
+    width: 9.843rem;
+  }
+
+  &.colorpick {
+    width: 8.75rem;
+  }
+
+  &.small-params {
+    width: 4.103rem;
+  }
+
+  &.time-params {
+    width: 4.103rem;
+  }
+
+  &.medium-one {
+    width: 14.218rem;
+  }
+
+  &.long {
+    width: 15.312rem;
+  }
+
+  &.long-max {
+    width: 23.515rem;
+  }
+
+  &.text-input {
+    @include input-placeholder;
+    min-height: 2.065rem;
+    padding: 0 0.546rem;
+    outline: none;
+    color: $white;
+    font-family: $font-primary;
+    border: 0.055rem solid $border-color;
+    border-radius: 0.218rem;
+    font-style: normal;
+    font-weight: normal;
+    background: $sidebr-bg;
+    font-size: $defaultFontSize;
+    line-height: 1;
+
+    input {
+      padding: 0;
+      font-size: $defaultFontSize;
+      min-height: 2.065rem;
+
+      &:disabled {
+        color: $border-color;
+      }
+    }
+
+    &-disabled {
+      opacity: 0.5;
+
+    }
+  }
+
+  &.text-input:focus, &.text-input:hover {
+    border: 0.055rem solid $secondary-color;
+  }
+
+  &.text-input-disabled:focus, &.text-input-disabled:hover {
+    border: 0.055rem solid $btn-gray;
+  }
+
+  &.input-disabled:hover {
+    border: 0.055rem solid $btn-gray;
+    cursor: not-allowed;
+  }
+}
+
+textarea.text-input {
+  padding: 0.546rem;
+  resize: none;
+}
+
+label {
+  &.label-left,
+  &.label-top,
+  &.select-label-left,
+  &.select-label-top {
+    font-family: $font-primary;
+    font-size: $defaultFontSize;
+    vertical-align: middle;
+    color: $white;
+    line-height: $defaultLineHeight;
+    text-align: left;
+  }
+}
+.label-left {
+  display: inline-block;
+  margin-right: 1.093rem;
+  margin-top: 1rem;
+  margin-bottom: -1.5rem;
+}
+
+.label-left + div.text-input {
+  display: inline-block;
+  margin-left: 3rem;
+}
+
+.label-top {
+  position: relative;
+  display: block;
+  right: 0.109rem;
+  bottom: 0.546rem;
+  margin-top: 1rem;
+}
+
+.label-none {
+  display: none;
+}
+
+.container-textarea {
+
+  .text-area {
+    display: flex;
+
+    textarea {
+      color: $white;
+    }
+
+    fieldset {
+      border-color: $btn-gray;
+      top: 0;
+    }
+
+    .MuiOutlinedInput-root:hover fieldset, .MuiOutlinedInput-root.Mui-focused fieldset {
+      border-color: $secondary-color;
+    }
+  }
+}
+
+//disabled form color
+.input-disabled, .button-disabled, .label-disabled {
+   opacity: 0.3;
+
+  & input:hover {
+    cursor: not-allowed;
+  }
+}
+
+.button-disabled:hover {
+  cursor: not-allowed;
+}

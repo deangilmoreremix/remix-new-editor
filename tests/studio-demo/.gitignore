@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+
+# Test results
+test-results/
+dist/
+
+# Videos (large files, handle separately)
+*.webm
+*.mp4
+
+# Screenshots
+*.png
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Coverage
+coverage/

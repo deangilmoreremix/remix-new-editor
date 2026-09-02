@@ -1,0 +1,248 @@
+.personalization {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translateY(-50%) translateX(-50%);
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.7);
+  font: $defaultFontSize $font-primary;
+  color: #343a40;
+
+  button, input {
+    font-family: $font-primary;
+    outline: none;
+  }
+}
+
+.personalization__wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 95%;
+  max-width: 40em;
+  height: 23em;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translateY(-50%) translateX(-50%);
+  background: $dark-twinlight;
+  border-radius: 3px;
+}
+
+.personalization__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  line-height: 1;
+  color: $secondary-color;
+  background: $modal-lightdark-bg;
+
+  &__title {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+  }
+}
+
+.personalization__close {
+  padding: 0;
+  border: none;
+  outline: none;
+  background: none;
+  font-size: 1.1em;
+  color: $secondary-color;
+  opacity: 0.5;
+  transition: 0.3s all;
+  font-weight: 700;
+
+  &:hover {
+    opacity: 1;
+    color: $red;
+  }
+
+  & svg {
+    width: 14px;
+    height: 14px;
+
+    & path {
+      stroke: $red !important;
+    }
+  }
+}
+
+.personalization__body {
+  display: flex;
+  flex: 1;
+  padding: 15px;
+}
+
+.personalization__list {
+  @include tiny-scrollbar;
+
+  width: 25%;
+  min-width: 11em;
+  max-height: 18em;
+  overflow-x: hidden;
+  border-right: 1px $media-library-color solid;
+}
+
+.personalization__list__border {
+  border-right: none;
+}
+
+.personalization__items {
+  display: flex;
+  padding: 5px;
+
+  .radio-button-icon {
+    width: unset;
+    min-width: 0.75rem;
+  }
+
+  .personalization__svg__active {
+    svg {
+      path {
+        fill: $secondary-color;
+      }
+    }
+  }
+
+  .radio-button-icon {
+    min-width: auto;
+    max-width: 0.75rem;
+  }
+
+  &:hover {
+    .radio-button-icon {
+      svg {
+        path {
+          fill: $secondary-color;
+        }
+      }
+    }
+    .personalization__item {
+      color: $secondary-color;
+    }
+  }
+}
+
+.personalization__item {
+  display: block;
+  margin-bottom: 0.7em;
+  position: relative;
+  padding-left: 1.1em;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  background: none;
+  color: $white;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  &-active {
+    color: $secondary-color;
+  }
+}
+
+.personalization__list .personalization__item {
+  text-transform: uppercase;
+}
+
+.personalization__info {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex: 1;
+  padding-left: 15px;
+
+  .personalization__item {
+
+    &:hover {
+      color: $secondary-color;
+    }
+    &:before {
+      content: "";
+      width: 0.8em;
+      height: 0.8em;
+      position: absolute;
+      top: 50%;
+      left: 0;
+      transform: translateY(-50%);
+      border-radius: 20%;
+      border: 2px solid $modal-lightdark-bg;
+      opacity: 0.5;
+      transition: 0.3s all;
+    }
+    &-active {
+      color: $secondary-color;
+      &:before {
+        opacity: 1;
+        border-color: $secondary-color;
+      }
+    }
+  }
+}
+
+.personalization__item__container {
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+.item-fallback {
+  display: flex;
+
+  .personalization__item {
+    margin-bottom: 0;
+  }
+}
+
+.personalization__name {
+  text-transform: uppercase;
+  border-bottom: 1px $media-library-color solid;
+  padding-bottom: 0.7em;
+  margin-bottom: 0.7em;
+  color: $white;
+}
+
+.personalization__input,
+.personalization__input__image {
+  display: block;
+  width: 60%;
+  outline: none;
+  padding: 0.8em;
+  margin-left: 2em;
+  border: 1px solid $media-library-color;
+  border-radius: 3px;
+  background: $dark-twinlight;
+  color: $white;
+}
+
+.personalization__input__image {
+  input {
+    text-transform: uppercase;
+    color: $white;
+  }
+}
+
+.personalization__add {
+  outline: none;
+  border: 1px solid $secondary-color;
+  background: $dark-twinlight;
+  color: $white;
+  text-transform: uppercase;
+  border-radius: 3px;
+  padding: 0.7em;
+  width: 5em;
+  align-self: flex-end;
+
+  &:hover {
+    background: $secondary-color;
+  }
+}

@@ -1,0 +1,12 @@
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.4
+python-dotenv==1.0.1
+# maigret 1.0.0 does not exist on PyPI (latest is 0.6.x). Pin the published 0.6.3.
+# socid-extractor is a hard transitive dependency of maigret (declared as
+# >=0.1.1,<0.2.0) and is resolved automatically — do NOT pin it here, an
+# explicit older pin causes a ResolutionImpossible build failure.
+maigret==0.6.3
+redis==5.2.1
+httpx==0.28.1
+

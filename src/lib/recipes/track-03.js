@@ -1,0 +1,71 @@
+export const RECIPES_03 = {
+  '03-faceless-ai-channels::retention-script-template': {
+    id: '03-faceless-ai-channels::retention-script-template',
+    title: 'Faceless Retention Script',
+    description: 'Draft a high-retention 60-second faceless channel script (hook, problem, resolution, pattern interrupt, call to value).',
+    category: '03-faceless-ai-channels',
+    target: 'video',
+    icon: 'PlayCircle',
+    buildPrompt(ctx = {}) {
+      const topic = ctx.topic || '[Niche Topic]';
+      return [
+        `Faceless Retention Script — Topic: ${topic}`,
+        'Target Duration: 60 seconds (~150-180 words)',
+        '',
+        '1. The Hook (0-10s): Call out the audience\'s primary desire or fear. No long intros.',
+        '• Script: [immediate desire/fear statement]',
+        '• Visual: Fast cut or text flash; high-contrast motion immediately.',
+        '',
+        '2. The Core Problem (10-25s): Why the viewer struggles or why a common solution fails. Build tension.',
+        '• Script: [struggle statement]',
+        '• Visual: B-roll of struggle or complex data overlays.',
+        '',
+        '3. The Resolution / Method (25-45s): Step-by-step blueprint or primary solution.',
+        '• Script: [solution / steps]',
+        '• Visual: Clean transitions, screen demos, or product shots.',
+        '',
+        '4. Pattern Interrupt (45-50s): Shift audio/visual styling to re-engage dropping attention.',
+        '• Script: [quick fact or shocking number]',
+        '• Visual: Rapid zoom or unexpected icon transition + zoom sound effect.',
+        '',
+        '5. Call to Value (55-60s): Offer a reason to click the link (newsletter, free tool).',
+        '• Script: [offer + click link in description]',
+        '• Visual: Downward cursor arrow to description, show logo.',
+      ].join('\n');
+    },
+  },
+
+  '03-faceless-ai-channels::funnel-setup-checklist': {
+    id: '03-faceless-ai-channels::funnel-setup-checklist',
+    title: 'Faceless Funnel Setup',
+    description: 'Plan a high-conversion sales funnel for a faceless channel (lead magnet, CTA link, email sequence, checkout).',
+    category: '03-faceless-ai-channels',
+    target: 'director',
+    icon: 'Layers',
+    buildPrompt(ctx = {}) {
+      const niche = ctx.niche || '[Niche]';
+      return [
+        `Faceless Channel Funnel Setup — Niche: ${niche}`,
+        'Goal: monetize a small base (<10,000 followers).',
+        '',
+        '1. Lead Magnet (Entry Point):',
+        '• Define a high-value asset: PDF guide, template, spreadsheet solving the niche\'s primary problem.',
+        '• Build opt-in landing page (Carrd/ConvertKit) with name + email field.',
+        '• Generate a text-to-image mockup of the resource for the page.',
+        '',
+        '2. Conversion Link (Video CTA):',
+        '• Pin landing page URL as first link in description and in pinned comment.',
+        '• Insert downward-pointing CTA overlay at the 55-second mark.',
+        '',
+        '3. Email Welcome Sequence:',
+        '• Welcome email delivers the lead magnet instantly.',
+        '• Emails 2-3: extra free tips to build trust (no hard sell).',
+        '• Email 4: pitch premium product (ebook, membership, consultation) with purchase link.',
+        '',
+        '4. Payment & Delivery Gate:',
+        '• Checkout page via Gumroad/Stripe/Whop.',
+        '• Connect purchase event to email software for instant access fulfillment.',
+      ].join('\n');
+    },
+  },
+};

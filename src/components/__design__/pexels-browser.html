@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pexels Browser Modal — Design Prototype</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: #050505;
+    color: #e5e5e5;
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Background context: fake studio behind the modal */
+  .studio-background {
+    padding: 24px;
+    opacity: 0.35;
+  }
+  .studio-bar {
+    height: 56px;
+    background: #0f0f0f;
+    border: 1px solid #262626;
+    border-radius: 28px;
+    margin-bottom: 16px;
+  }
+  .studio-row {
+    display: flex; gap: 12px;
+  }
+  .studio-box {
+    flex: 1; height: 180px;
+    background: #0f0f0f;
+    border: 1px dashed #262626;
+    border-radius: 16px;
+  }
+
+  /* Modal overlay */
+  .pexels-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.96);
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header */
+  .pexels-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(12px);
+  }
+  .pexels-title h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+  .pexels-title p {
+    margin: 4px 0 0;
+    font-size: 11px;
+    color: #737373;
+  }
+  .pexels-close {
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #a3a3a3;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .pexels-close:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+  }
+
+  /* Controls */
+  .pexels-controls {
+    padding: 12px 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    background: rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .controls-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .tab-bar {
+    display: flex;
+    gap: 4px;
+    background: rgba(255,255,255,0.04);
+    padding: 4px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .tab-btn {
+    padding: 6px 14px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    background: transparent;
+    color: #a3a3a3;
+  }
+  .tab-btn[aria-selected="true"] {
+    background: #ccff00;
+    color: #000;
+  }
+  .tab-btn:hover:not([aria-selected="true"]) {
+    color: #e5e5e5;
+    background: rgba(255,255,255,0.04);
+  }
+  .search-input {
+    flex: 1;
+    min-width: 180px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 8px 14px;
+    color: #fff;
+    font-size: 12px;
+    outline: none;
+    transition: all 0.15s ease;
+  }
+  .search-input:focus {
+    border-color: rgba(204,255,0,0.4);
+    background: rgba(255,255,255,0.06);
+  }
+  .search-input::placeholder {
+    color: #525252;
+  }
+  .filter-select {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 7px 28px 7px 10px;
+    color: #e5e5e5;
+    font-size: 11px;
+    font-weight: 600;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    transition: all 0.15s ease;
+  }
+  .filter-select:hover {
+    border-color: rgba(255,255,255,0.15);
+  }
+  .filter-select option {
+    background: #0a0a0a;
+    color: #e5e5e5;
+  }
+
+  /* Content */
+  .pexels-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 24px;
+  }
+  .pexels-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+  }
+  @media (max-width: 1280px) { .pexels-grid { grid-template-columns: repeat(4, 1fr); } }
+  @media (max-width: 1024px) { .pexels-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 640px) { .pexels-grid { grid-template-columns: repeat(2, 1fr); } }
+
+  /* Cards */
+  .pexels-card {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border-radius: 14px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.05);
+    background: #0a0a0a;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+  .pexels-card:hover {
+    border-color: rgba(255,255,255,0.18);
+    transform: translateY(-1px);
+  }
+  .pexels-card img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    position: relative;
+    z-index: 2;
+  }
+  .pexels-card .avg-color-bg {
+    position: absolute; inset: 0;
+    z-index: 1;
+    transition: opacity 0.3s ease;
+  }
+  .pexels-card .play-badge {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+    z-index: 3;
+  }
+  .pexels-card .type-badge {
+    position: absolute;
+    top: 8px; right: 8px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    z-index: 4;
+  }
+  .badge-photo { background: rgba(16, 185, 129, 0.85); color: #fff; }
+  .badge-video { background: rgba(59, 130, 246, 0.85); color: #fff; }
+  .pexels-card .hover-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 10px;
+  }
+  .pexels-card:hover .hover-overlay {
+    opacity: 1;
+  }
+  .hover-overlay .photographer {
+    font-size: 10px;
+    color: #fff;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .hover-overlay .title {
+    font-size: 9px;
+    color: #a3a3a3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Preview panel */
+  .preview-panel {
+    display: none;
+  }
+  .preview-panel.active {
+    display: block;
+  }
+  .preview-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #a3a3a3;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px 0;
+    margin-bottom: 12px;
+    transition: color 0.15s ease;
+  }
+  .preview-back:hover { color: #fff; }
+  .preview-layout {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+  }
+  @media (max-width: 1024px) {
+    .preview-layout { flex-direction: column; }
+  }
+  .preview-media {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0a0a0a;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .preview-media img,
+  .preview-media video {
+    max-width: 100%;
+    max-height: 65vh;
+    border-radius: 12px;
+    display: block;
+  }
+  .preview-sidebar {
+    width: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  @media (max-width: 1024px) {
+    .preview-sidebar { width: 100%; }
+  }
+  .preview-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .preview-card h3 {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .preview-card p {
+    margin: 0;
+    font-size: 11px;
+    color: #a3a3a3;
+    line-height: 1.4;
+  }
+  .preview-card a {
+    color: #ccff00;
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .preview-card a:hover {
+    text-decoration: underline;
+  }
+  .preview-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .preview-btn-primary {
+    background: #ccff00;
+    color: #000;
+  }
+  .preview-btn-primary:hover {
+    box-shadow: 0 0 24px rgba(204,255,0,0.25);
+  }
+  .quality-select {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 6px 10px;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    outline: none;
+    margin-top: 8px;
+  }
+  .quality-select option { background: #0a0a0a; }
+
+  /* Footer */
+  .pexels-footer {
+    padding: 12px 24px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .pexels-footer span {
+    font-size: 10px;
+    color: #525252;
+    font-weight: 500;
+  }
+  .pexels-footer a {
+    color: #a3a3a3;
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .pexels-footer a:hover { color: #fff; }
+
+  /* Skeleton */
+  .skeleton {
+    background: linear-gradient(90deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.2s infinite;
+    border-radius: 14px;
+  }
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Empty state */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    color: #525252;
+  }
+  .empty-state svg {
+    margin-bottom: 16px;
+    opacity: 0.4;
+  }
+  .empty-state .title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #a3a3a3;
+    margin-bottom: 4px;
+  }
+  .empty-state .subtitle {
+    font-size: 11px;
+    color: #525252;
+  }
+
+  /* Rate limit banner */
+  .rate-banner {
+    padding: 8px 24px;
+    font-size: 11px;
+    font-weight: 700;
+    display: none;
+  }
+  .rate-banner.warning {
+    display: block;
+    background: rgba(234, 179, 8, 0.08);
+    border-bottom: 1px solid rgba(234, 179, 8, 0.2);
+    color: #fde047;
+  }
+  .rate-banner.error {
+    display: block;
+    background: rgba(239, 68, 68, 0.08);
+    border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+  }
+
+  /* Utility */
+  .hidden { display: none !important; }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px;
+    padding: 0; margin: -1px; overflow: hidden;
+    clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0;
+  }
+</style>
+</head>
+<body>
+
+  <!-- Fake studio background so you can see how the modal sits above the app -->
+  <div class="studio-background">
+    <div class="studio-bar"></div>
+    <div class="studio-row">
+      <div class="studio-box"></div>
+      <div class="studio-box"></div>
+      <div class="studio-box"></div>
+    </div>
+    <p style="margin-top:12px;font-size:11px;color:#525252;">This is the studio behind the modal. The Pexels browser overlays it.</p>
+  </div>
+
+  <!-- PEXELS BROWSER MODAL -->
+  <div class="pexels-overlay" id="pexelsOverlay" role="dialog" aria-modal="true" aria-label="Stock Media Browser">
+    <div class="rate-banner" id="rateBanner"></div>
+
+    <!-- Header -->
+    <div class="pexels-header">
+      <div class="pexels-title">
+        <h2 id="modalTitle">Stock Media</h2>
+        <p id="modalSubtitle">Select media to use in Image Studio</p>
+      </div>
+      <button class="pexels-close" id="closeBtn" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Controls -->
+    <div class="pexels-controls">
+      <div class="controls-row">
+        <div class="tab-bar" role="tablist">
+          <button class="tab-btn" role="tab" aria-selected="true" data-tab="search">Search</button>
+          <button class="tab-btn" role="tab" aria-selected="false" data-tab="curated">Curated</button>
+          <button class="tab-btn" role="tab" aria-selected="false" data-tab="popular">Popular</button>
+          <button class="tab-btn" role="tab" aria-selected="false" data-tab="collections">Collections</button>
+        </div>
+        <input type="text" class="search-input" placeholder="Search Pexels..." id="searchInput" />
+        <select class="filter-select" id="typeFilter">
+          <option value="">All Types</option>
+          <option value="image">Photos</option>
+          <option value="video">Videos</option>
+        </select>
+      </div>
+      <div class="controls-row">
+        <select class="filter-select" id="orientationFilter">
+          <option value="">Orientation: Any</option>
+          <option value="landscape">Landscape</option>
+          <option value="portrait">Portrait</option>
+          <option value="square">Square</option>
+        </select>
+        <select class="filter-select" id="sizeFilter">
+          <option value="">Size: Any</option>
+          <option value="large">Large (24MP)</option>
+          <option value="medium">Medium (12MP)</option>
+          <option value="small">Small (4MP)</option>
+        </select>
+        <select class="filter-select" id="colorFilter">
+          <option value="">Color: Any</option>
+          <option value="red">Red</option>
+          <option value="orange">Orange</option>
+          <option value="yellow">Yellow</option>
+          <option value="green">Green</option>
+          <option value="blue">Blue</option>
+          <option value="violet">Violet</option>
+          <option value="pink">Pink</option>
+          <option value="brown">Brown</option>
+          <option value="black">Black</option>
+          <option value="gray">Gray</option>
+          <option value="white">White</option>
+        </select>
+        <select class="filter-select" id="durationFilter">
+          <option value="">Duration: Any</option>
+          <option value="short">< 15s</option>
+          <option value="medium">15-60s</option>
+          <option value="long">> 60s</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="pexels-content" id="contentArea">
+      <!-- Grid view -->
+      <div class="pexels-grid" id="gridView"></div>
+
+      <!-- Preview panel (hidden by default) -->
+      <div class="preview-panel" id="previewPanel">
+        <button class="preview-back" id="previewBack">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+          Back to results
+        </button>
+        <div class="preview-layout">
+          <div class="preview-media" id="previewMedia"></div>
+          <div class="preview-sidebar">
+            <div class="preview-card">
+              <h3 id="previewTitle">Photo Title</h3>
+              <p id="previewDimensions">1920 × 1080</p>
+              <p style="margin-top:4px;">
+                By <a href="#" id="previewPhotographerLink">Photographer</a> on <a href="https://www.pexels.com" target="_blank" rel="noopener">Pexels</a>
+              </p>
+              <a href="#" id="previewPexelsLink" target="_blank" rel="noopener" style="font-size:10px;color:#737373;">View on Pexels →</a>
+            </div>
+            <div class="preview-card" id="qualityCard" style="display:none;">
+              <p style="font-size:10px;font-weight:700;color:#737373;text-transform:uppercase;letter-spacing:0.08em;">Quality</p>
+              <select class="quality-select" id="qualitySelect"></select>
+            </div>
+            <button class="preview-btn preview-btn-primary" id="useInStudioBtn">Use in Image Studio</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div class="empty-state hidden" id="emptyState">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <div class="title">No results found</div>
+        <div class="subtitle">Try a different search term</div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="pexels-footer">
+      <span>Media provided by <a href="https://www.pexels.com" target="_blank" rel="noopener">Pexels</a></span>
+      <span id="resultCount">0 items</span>
+    </div>
+  </div>
+
+<script>
+  // ============================================================
+  // Mock data simulating Pexels API responses
+  // ============================================================
+  const MOCK_PHOTOS = [
+    { id: 1, type: 'photo', width: 1920, height: 1280, url: 'https://www.pexels.com/photo/1/', photographer: 'Alex Rivera', photographer_url: 'https://www.pexels.com/@alex', avg_color: '#2d3748', src: { medium: 'https://images.pexels.com/photos/1/pexels-photo-1.jpeg?auto=compress&cs=tinysrgb&h=350', large: 'https://images.pexels.com/photos/1/pexels-photo-1.jpeg?auto=compress&cs=tinysrgb&h=650' }, alt: 'Mountain landscape at golden hour' },
+    { id: 2, type: 'photo', width: 1080, height: 1350, url: 'https://www.pexels.com/photo/2/', photographer: 'Sarah Chen', photographer_url: 'https://www.pexels.com/@sarah', avg_color: '#4a5568', src: { medium: 'https://images.pexels.com/photos/2/pexels-photo-2.jpeg?auto=compress&cs=tinysrgb&h=350', large: 'https://images.pexels.com/photos/2/pexels-photo-2.jpeg?auto=compress&cs=tinysrgb&h=650' }, alt: 'Portrait of a woman in natural light' },
+    { id: 3, type: 'photo', width: 2400, height: 1600, url: 'https://www.pexels.com/photo/3/', photographer: 'Marcus Johnson', photographer_url: 'https://www.pexels.com/@marcus', avg_color: '#1a202c', src: { medium: 'https://images.pexels.com/photos/3/pexels-photo-3.jpeg?auto=compress&cs=tinysrgb&h=350', large: 'https://images.pexels.com/photos/3/pexels-photo-3.jpeg?auto=compress&cs=tinysrgb&h=650' }, alt: 'Urban cityscape at night' },
+    { id: 4, type: 'photo', width: 1200, height: 800, url: 'https://www.pexels.com/photo/4/', photographer: 'Emma Wilson', photographer_url: 'https://www.pexels.com/@emma', avg_color: '#742a2a', src: { medium: 'https://images.pexels.com/photos/4/pexels-photo-4.jpeg?auto=compress&cs=tinysrgb&h=350', large: 'https://images.pexels.com/photos/4/pexels-photo-4.jpeg?auto=compress&cs=tinysrgb&h=650' }, alt: 'Red autumn leaves on tree' },
+    { id: 5, type: 'photo', width: 1600, height: 900, url: 'https://www.pexels.com/photo/5/', photographer: 'David Park', photographer_url: 'https://www.pexels.com/@david', avg_color: '#2f855a', src: { medium: 'https://images.pexels.com/photos/5/pexels-photo-5.jpeg?auto=compress&cs=tinysrgb&h=350', large: 'https://images.pexels.com/photos/5/pexels-photo-5.jpeg?auto=compress&cs=tinysrgb&h=650' }, alt: 'Green forest path in sunlight' },
+    { id: 6, type: 'photo', width: 1400, height: 1400, url: 'https://www.pexels.com/photo/6/', photographer: 'Lisa Brown', photographer_url: 'https://www.pexels.com/@lisa', avg_color: '#4a5568', src: { medium: 'https://images.pexels.com/photos/6/pexels-photo-6.jpeg?auto=compress&cs=tinysrgb&h=350', large: 'https://images.pexels.com/photos/6/pexels-photo-6.jpeg?auto=compress&cs=tinysrgb&h=650' }, alt: 'Abstract blue geometric patterns' },
+    { id: 7, type: 'photo', width: 1800, height: 1200, url: 'https://www.pexels.com/photo/7/', photographer: 'Tom Wilson', photographer_url: 'https://www.pexels.com/@tom', avg_color: '#744210', src: { medium: 'https://images.pexels.com/photos/7/pexels-photo-7.jpeg?auto=compress&cs=tinysrgb&h=350', large: 'https://images.pexels.com/photos/7/pexels-photo-7.jpeg?auto=compress&cs=tinysrgb&h=650' }, alt: 'Desert dunes at sunset' },
+    { id: 8, type: 'photo', width: 2000, height: 1333, url: 'https://www.pexels.com/photo/8/', photographer: 'Anna Martinez', photographer_url: 'https://www.pexels.com/@anna', avg_color: '#1a365d', src: { medium: 'https://images.pexels.com/photos/8/pexels-photo-8.jpeg?auto=compress&cs=tinysrgb&h=350', large: 'https://images.pexels.com/photos/8/pexels-photo-8.jpeg?auto=compress&cs=tinysrgb&h=650' }, alt: 'Ocean waves crashing on rocks' },
+    { id: 9, type: 'photo', width: 1080, height: 1080, url: 'https://www.pexels.com/photo/9/', photographer: 'Chris Lee', photographer_url: 'https://www.pexels.com/@chris', avg_color: '#4a5568', src: { medium: 'https://images.pexels.com/photos/9/pexels-photo-9.jpeg?auto=compress&cs=tinysrgb&h=350', large: 'https://images.pexels.com/photos/9/pexels-photo-9.jpeg?auto=compress&cs=tinysrgb&h=650' }, alt: 'Minimalist white workspace' },
+    { id: 10, type: 'photo', width: 1920, height: 1280, url: 'https://www.pexels.com/photo/10/', photographer: 'Nina Patel', photographer_url: 'https://www.pexels.com/@nina', avg_color: '#2d3748', src: { medium: 'https://images.pexels.com/photos/10/pexels-photo-10.jpeg?auto=compress&cs=tinysrgb&h=350', large: 'https://images.pexels.com/photos/10/pexels-photo-10.jpeg?auto=compress&cs=tinysrgb&h=650' }, alt: 'Snowy mountain peaks' },
+  ];
+
+  const MOCK_VIDEOS = [
+    { id: 101, type: 'video', width: 1920, height: 1080, url: 'https://www.pexels.com/video/101/', image: 'https://images.pexels.com/videos/101/free-video-101.jpg?fit=crop&w=600&h=400&auto=compress&cs=tinysrgb', duration: 22, user: { name: 'Videographer One', url: 'https://www.pexels.com/@v1' }, video_files: [
+      { quality: 'hd', file_type: 'video/mp4', width: 1920, height: 1080, fps: 23.976, link: 'https://player.vimeo.com/external/342571552.hd.mp4?s=abc' },
+      { quality: 'sd', file_type: 'video/mp4', width: 640, height: 360, fps: 23.976, link: 'https://player.vimeo.com/external/342571552.sd.mp4?s=def' }
+    ], video_pictures: [{ picture: 'https://images.pexels.com/videos/101/free-video-101.jpg?fit=crop&w=600&h=400&auto=compress&cs=tinysrgb', nr: 0 }] },
+    { id: 102, type: 'video', width: 1080, height: 1920, url: 'https://www.pexels.com/video/102/', image: 'https://images.pexels.com/videos/102/free-video-102.jpg?fit=crop&w=400&h=600&auto=compress&cs=tinysrgb', duration: 15, user: { name: 'Videographer Two', url: 'https://www.pexels.com/@v2' }, video_files: [
+      { quality: 'hd', file_type: 'video/mp4', width: 1080, height: 1920, fps: 30, link: 'https://player.vimeo.com/external/342571553.hd.mp4?s=ghi' }
+    ], video_pictures: [{ picture: 'https://images.pexels.com/videos/102/free-video-102.jpg?fit=crop&w=400&h=600&auto=compress&cs=tinysrgb', nr: 0 }] },
+    { id: 103, type: 'video', width: 3840, height: 2160, url: 'https://www.pexels.com/video/103/', image: 'https://images.pexels.com/videos/103/free-video-103.jpg?fit=crop&w=600&h=400&auto=compress&cs=tinysrgb', duration: 45, user: { name: 'Videographer Three', url: 'https://www.pexels.com/@v3' }, video_files: [
+      { quality: 'hd', file_type: 'video/mp4', width: 3840, height: 2160, fps: 60, link: 'https://player.vimeo.com/external/342571554.hd.mp4?s=jkl' },
+      { quality: 'sd', file_type: 'video/mp4', width: 1920, height: 1080, fps: 60, link: 'https://player.vimeo.com/external/342571554.sd.mp4?s=mno' }
+    ], video_pictures: [{ picture: 'https://images.pexels.com/videos/103/free-video-103.jpg?fit=crop&w=600&h=400&auto=compress&cs=tinysrgb', nr: 0 }] },
+    { id: 104, type: 'video', width: 1280, height: 720, url: 'https://www.pexels.com/video/104/', image: 'https://images.pexels.com/videos/104/free-video-104.jpg?fit=crop&w=600&h=400&auto=compress&cs=tinysrgb', duration: 8, user: { name: 'Videographer Four', url: 'https://www.pexels.com/@v4' }, video_files: [
+      { quality: 'sd', file_type: 'video/mp4', width: 1280, height: 720, fps: 24, link: 'https://player.vimeo.com/external/342571555.sd.mp4?s=pqr' }
+    ], video_pictures: [{ picture: 'https://images.pexels.com/videos/104/free-video-104.jpg?fit=crop&w=600&h=400&auto=compress&cs=tinysrgb', nr: 0 }] },
+  ];
+
+  const MOCK_COLLECTIONS = [
+    { id: 'col-1', title: 'Nature & Landscapes', media_count: 42, photos_count: 38, videos_count: 4 },
+    { id: 'col-2', title: 'Urban Architecture', media_count: 28, photos_count: 25, videos_count: 3 },
+    { id: 'col-3', title: 'People & Portraits', media_count: 56, photos_count: 50, videos_count: 6 },
+    { id: 'col-4', title: 'Abstract & Textures', media_count: 19, photos_count: 19, videos_count: 0 },
+  ];
+
+  // ============================================================
+  // State
+  // ============================================================
+  let activeTab = 'curated';
+  let searchQuery = '';
+  let filterType = '';
+  let currentItems = [];
+  let selectedItem = null;
+
+  // ============================================================
+  // DOM refs
+  // ============================================================
+  const overlay = document.getElementById('pexelsOverlay');
+  const gridView = document.getElementById('gridView');
+  const previewPanel = document.getElementById('previewPanel');
+  const emptyState = document.getElementById('emptyState');
+  const searchInput = document.getElementById('searchInput');
+  const typeFilter = document.getElementById('typeFilter');
+  const orientationFilter = document.getElementById('orientationFilter');
+  const sizeFilter = document.getElementById('sizeFilter');
+  const colorFilter = document.getElementById('colorFilter');
+  const durationFilter = document.getElementById('durationFilter');
+  const rateBanner = document.getElementById('rateBanner');
+  const resultCount = document.getElementById('resultCount');
+
+  // ============================================================
+  // Tabs
+  // ============================================================
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeTab = btn.dataset.tab;
+      document.querySelectorAll('.tab-btn').forEach(b => b.setAttribute('aria-selected', b === btn ? 'true' : 'false'));
+      searchInput.value = '';
+      searchQuery = '';
+      loadItems(true);
+    });
+  });
+
+  // ============================================================
+  // Search & filters
+  // ============================================================
+  let searchDebounce;
+  searchInput.addEventListener('input', () => {
+    clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(() => {
+      searchQuery = searchInput.value.trim();
+      activeTab = 'search';
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.setAttribute('aria-selected', b.dataset.tab === 'search' ? 'true' : 'false');
+      });
+      loadItems(true);
+    }, 300);
+  });
+
+  [typeFilter, orientationFilter, sizeFilter, colorFilter, durationFilter].forEach(sel => {
+    sel.addEventListener('change', () => {
+      filterType = typeFilter.value;
+      loadItems(true);
+    });
+  });
+
+  // ============================================================
+  // Close
+  // ============================================================
+  document.getElementById('closeBtn').addEventListener('click', closeModal);
+  document.getElementById('previewBack').addEventListener('click', showGridView);
+
+  function closeModal() {
+    overlay.remove();
+  }
+
+  // ============================================================
+  // Keyboard
+  // ============================================================
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (previewPanel.classList.contains('active')) {
+        showGridView();
+      } else {
+        closeModal();
+      }
+    }
+  });
+
+  // ============================================================
+  // Load items
+  // ============================================================
+  function loadItems(reset) {
+    if (!reset) return;
+
+    // Show skeleton
+    gridView.innerHTML = Array.from({ length: 10 }).map(() => `
+      <div class="skeleton" style="aspect-ratio:1/1;"></div>
+    `).join('');
+    emptyState.classList.add('hidden');
+    previewPanel.classList.remove('active');
+    gridView.classList.remove('hidden');
+
+    // Simulate async load
+    setTimeout(() => {
+      let items = [];
+      if (activeTab === 'search' && searchQuery) {
+        items = [...MOCK_PHOTOS, ...MOCK_VIDEOS];
+      } else if (activeTab === 'curated') {
+        items = [...MOCK_PHOTOS];
+      } else if (activeTab === 'popular') {
+        items = [...MOCK_VIDEOS];
+      } else if (activeTab === 'collections') {
+        renderCollections();
+        return;
+      }
+
+      // Apply filters
+      if (filterType === 'image') items = items.filter(i => i.type === 'photo');
+      if (filterType === 'video') items = items.filter(i => i.type === 'video');
+
+      currentItems = items;
+      renderGrid(items);
+    }, 600);
+  }
+
+  // ============================================================
+  // Render grid
+  // ============================================================
+  function renderGrid(items) {
+    gridView.innerHTML = '';
+
+    if (items.length === 0) {
+      emptyState.classList.remove('hidden');
+      gridView.classList.add('hidden');
+      resultCount.textContent = '0 items';
+      return;
+    }
+
+    emptyState.classList.add('hidden');
+    gridView.classList.remove('hidden');
+    resultCount.textContent = items.length + ' item' + (items.length !== 1 ? 's' : '');
+
+    items.forEach(item => {
+      const isVideo = item.type === 'video';
+      const card = document.createElement('div');
+      card.className = 'pexels-card';
+      card.setAttribute('tabindex', '0');
+      card.setAttribute('role', 'button');
+      card.setAttribute('aria-label', isVideo ? 'Video: ' + item.alt : 'Photo: ' + item.alt);
+
+      // avg_color placeholder background
+      if (!isVideo && item.avg_color) {
+        const avgBg = document.createElement('div');
+        avgBg.className = 'avg-color-bg';
+        avgBg.style.backgroundColor = item.avg_color;
+        card.appendChild(avgBg);
+      }
+
+      // Media
+      if (isVideo) {
+        const thumb = item.image || (item.video_pictures && item.video_pictures[0] && item.video_pictures[0].picture) || '';
+        const img = document.createElement('img');
+        img.src = thumb;
+        img.alt = item.alt || 'Video thumbnail';
+        img.loading = 'lazy';
+        img.onload = () => { const bg = card.querySelector('.avg-color-bg'); if (bg) bg.style.opacity = '0'; };
+        card.appendChild(img);
+
+        // Play icon
+        const playBadge = document.createElement('div');
+        playBadge.className = 'play-badge';
+        playBadge.innerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="white" opacity="0.85"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+        card.appendChild(playBadge);
+
+        // Video badge
+        const badge = document.createElement('div');
+        badge.className = 'type-badge badge-video';
+        badge.textContent = 'VIDEO';
+        card.appendChild(badge);
+      } else {
+        const src = item.src?.medium || item.src?.small || item.url;
+        const img = document.createElement('img');
+        img.src = src;
+        img.alt = item.alt || 'Photo';
+        img.loading = 'lazy';
+        img.onload = () => { const bg = card.querySelector('.avg-color-bg'); if (bg) bg.style.opacity = '0'; };
+        card.appendChild(img);
+
+        const badge = document.createElement('div');
+        badge.className = 'type-badge badge-photo';
+        badge.textContent = 'PHOTO';
+        card.appendChild(badge);
+      }
+
+      // Hover overlay
+      const hoverOverlay = document.createElement('div');
+      hoverOverlay.className = 'hover-overlay';
+      const photographer = item.photographer || (item.user && item.user.name) || '';
+      if (photographer) {
+        const photographerEl = document.createElement('div');
+        photographerEl.className = 'photographer';
+        photographerEl.textContent = 'By ' + photographer;
+        hoverOverlay.appendChild(photographerEl);
+      }
+      const titleEl = document.createElement('div');
+      titleEl.className = 'title';
+      titleEl.textContent = item.alt || '';
+      hoverOverlay.appendChild(titleEl);
+      card.appendChild(hoverOverlay);
+
+      // Click
+      card.addEventListener('click', () => openPreview(item));
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') openPreview(item);
+      });
+
+      gridView.appendChild(card);
+    });
+  }
+
+  // ============================================================
+  // Collections view
+  // ============================================================
+  function renderCollections() {
+    gridView.innerHTML = '';
+    gridView.classList.remove('hidden');
+    emptyState.classList.add('hidden');
+    resultCount.textContent = MOCK_COLLECTIONS.length + ' collections';
+
+    MOCK_COLLECTIONS.forEach(col => {
+      const card = document.createElement('div');
+      card.className = 'pexels-card';
+      card.style.aspectRatio = '16/9';
+      card.innerHTML = `
+        <div style="position:absolute;inset:0;background:linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%);z-index:2;"></div>
+        <div style="position:absolute;bottom:0;left:0;right:0;padding:14px;z-index:3;">
+          <div style="font-size:12px;font-weight:800;color:#fff;">${col.title}</div>
+          <div style="font-size:10px;color:#a3a3a3;margin-top:2px;">${col.media_count} items · ${col.photos_count} photos · ${col.videos_count} videos</div>
+        </div>
+      `;
+      card.addEventListener('click', () => {
+        alert('Would open collection: ' + col.title + '\n\nIn the real app, this would fetch collection media via GET /api/pexels/collections/' + col.id);
+      });
+      gridView.appendChild(card);
+    });
+  }
+
+  // ============================================================
+  // Preview
+  // ============================================================
+  function openPreview(item) {
+    selectedItem = item;
+    const isVideo = item.type === 'video';
+    const previewMedia = document.getElementById('previewMedia');
+    const qualityCard = document.getElementById('qualityCard');
+    const previewTitle = document.getElementById('previewTitle');
+    const previewDimensions = document.getElementById('previewDimensions');
+    const previewPhotographerLink = document.getElementById('previewPhotographerLink');
+    const previewPexelsLink = document.getElementById('previewPexelsLink');
+    const useInStudioBtn = document.getElementById('useInStudioBtn');
+
+    previewTitle.textContent = item.alt || 'Untitled';
+    previewDimensions.textContent = (item.width || '?') + ' × ' + (item.height || '?') + (isVideo ? ' • ' + Math.floor(item.duration || 0) + 's' : '');
+    const photographer = item.photographer || (item.user && item.user.name) || 'Pexels';
+    const photographerUrl = item.photographer_url || (item.user && item.user.url) || 'https://www.pexels.com';
+    previewPhotographerLink.textContent = photographer;
+    previewPhotographerLink.href = photographerUrl;
+    previewPexelsLink.href = item.url || ('https://www.pexels.com/photo/' + item.id + '/');
+
+    useInStudioBtn.textContent = 'Use in Image Studio';
+    useInStudioBtn.onclick = () => {
+      alert('Selected: ' + item.alt + '\n\nIn the real app, this asset would be injected into the calling studio.');
+      closeModal();
+    };
+
+    previewMedia.innerHTML = '';
+
+    if (isVideo) {
+      qualityCard.style.display = 'block';
+      const videoFiles = item.video_files || [];
+      const hlsFile = videoFiles.find(f => f.quality === 'hls');
+      const hdFile = videoFiles.find(f => f.quality === 'hd');
+      const sdFile = videoFiles.find(f => f.quality === 'sd');
+      const defaultSrc = hlsFile ? hlsFile.link : (hdFile ? hdFile.link : (sdFile ? sdFile.link : videoFiles[0]?.link || ''));
+
+      const qualitySelect = document.getElementById('qualitySelect');
+      qualitySelect.innerHTML = '';
+      const qualities = [];
+      if (hlsFile) qualities.push({ v: hlsFile.link, l: 'Auto (HLS)' });
+      if (hdFile) qualities.push({ v: hdFile.link, l: 'HD (' + hdFile.width + 'x' + hdFile.height + ')' });
+      if (sdFile) qualities.push({ v: sdFile.link, l: 'SD (' + sdFile.width + 'x' + sdFile.height + ')' });
+      qualities.forEach(q => {
+        const opt = document.createElement('option');
+        opt.value = q.v;
+        opt.textContent = q.l;
+        if (q.v === defaultSrc) opt.selected = true;
+        qualitySelect.appendChild(opt);
+      });
+
+      const video = document.createElement('video');
+      video.src = defaultSrc;
+      video.controls = true;
+      video.autoplay = true;
+      video.loop = true;
+      video.className = 'preview-media-video';
+      qualitySelect.onchange = () => { video.src = qualitySelect.value; video.play(); };
+      previewMedia.appendChild(video);
+    } else {
+      qualityCard.style.display = 'none';
+      const src = item.src?.large || item.src?.original || item.url;
+      const img = document.createElement('img');
+      img.src = src;
+      img.alt = item.alt || 'Pexels photo';
+      previewMedia.appendChild(img);
+    }
+
+    gridView.classList.add('hidden');
+    previewPanel.classList.add('active');
+  }
+
+  function showGridView() {
+    previewPanel.classList.remove('active');
+    gridView.classList.remove('hidden');
+    selectedItem = null;
+  }
+
+  // ============================================================
+  // Init
+  // ============================================================
+  loadItems(true);
+
+  // Expose for console experimentation
+  window.pexelsBrowser = {
+    openPreview,
+    showGridView,
+    closeModal,
+    loadItems,
+    getState: () => ({ activeTab, searchQuery, filterType, currentItems, selectedItem })
+  };
+</script>
+</body>
+</html>

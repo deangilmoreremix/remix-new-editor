@@ -1,0 +1,32 @@
+// Media Queries Min Width
+@mixin min-w($width) {
+  @media screen and (min-width: $width) { @content; }
+}
+
+// Media Queries Max Width
+@mixin max-w($width) {
+  @media screen and (max-width: $width) { @content; }
+}
+
+// Media Queries Range Width
+@mixin min-max-w($min-width, $max-width) {
+  @media screen and (min-width: $min-width) and (max-width: $max-width) { @content; }
+}
+
+// Media Queries Landscape orientation and max-width
+@mixin max-landscape($width) {
+  @media screen and (max-width: $width) and (orientation: landscape) { @content; }
+}
+
+// Media Queries Portrait orientation and max-width
+@mixin max-portrait($width) {
+  @media screen and (max-width: $width) and (orientation: portrait) { @content; }
+}
+
+@mixin max-h($height) {
+  @media screen and (max-height: $height) { @content; }
+}
+
+@mixin max-landscape-h($height) {
+  @media screen and (max-height: $height) and (orientation: landscape) { @content; }
+}

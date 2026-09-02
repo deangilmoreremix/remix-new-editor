@@ -1,0 +1,472 @@
+- main [ref=e2]:
+  - generic [ref=e5]:
+    - link "OG SmartVideo GO" [ref=e6] [cursor=pointer]:
+      - /url: /
+      - generic [ref=e7]: OG
+      - generic [ref=e8]: SmartVideo GO
+    - navigation "Primary navigation" [ref=e9]:
+      - link "Studio" [ref=e10] [cursor=pointer]:
+        - /url: "#studio"
+      - link "Workflow" [ref=e11] [cursor=pointer]:
+        - /url: "#workflow"
+      - link "Pricing" [ref=e12] [cursor=pointer]:
+        - /url: "#pricing"
+      - link "FAQ" [ref=e13] [cursor=pointer]:
+        - /url: "#faq"
+    - generic [ref=e15]:
+      - link "Sign in" [ref=e16] [cursor=pointer]:
+        - /url: /sign-in
+      - link "Sign up" [ref=e17] [cursor=pointer]:
+        - /url: /sign-up
+  - generic [ref=e19]:
+    - paragraph [ref=e20]: Every studio feature is demoable before signup
+    - heading "Build AI video campaigns at the speed of imagination." [level=1] [ref=e21]
+    - paragraph [ref=e22]: Generate images, cinematic video, UGC ads, VFX, agents, workflows, music, thumbnails, scripts, and marketing assets from one polished creative operating system.
+    - generic [ref=e23]:
+      - link "Try the studio" [ref=e24] [cursor=pointer]:
+        - /url: "#studio"
+      - link "Launch full studio" [ref=e25] [cursor=pointer]:
+        - /url: "#studio"
+    - generic [ref=e26]:
+      - generic [ref=e27]:
+        - generic [ref=e28]: 20+
+        - generic [ref=e29]: studio apps
+      - generic [ref=e30]:
+        - generic [ref=e31]: 200+
+        - generic [ref=e32]: models
+      - generic [ref=e33]:
+        - generic [ref=e34]: "0"
+        - generic [ref=e35]: demo API key required
+  - generic [ref=e37]:
+    - paragraph [ref=e38]: Built for teams creating
+    - generic [ref=e39]:
+      - generic [ref=e40]: Creators
+      - generic [ref=e41]: Agencies
+      - generic [ref=e42]: Video Teams
+      - generic [ref=e43]: UGC Brands
+      - generic [ref=e44]: AI Studios
+      - generic [ref=e45]: Enterprise
+  - generic [ref=e46]:
+    - generic [ref=e54]:
+      - paragraph [ref=e55]: Powered by SmartVideo GO AI
+      - heading "Create Anything. Sell Everything." [level=1] [ref=e56]: Create Anything.Sell Everything.
+      - paragraph [ref=e57]: Create professional images, videos, ads, characters, commercials and social content with AI.
+      - generic [ref=e58]:
+        - generic [ref=e59]: 200+ AI Models
+        - generic [ref=e60]: 20 Professional Studios
+      - generic [ref=e61]:
+        - link "Start Creating" [ref=e62] [cursor=pointer]:
+          - /url: /studio/video?template=minimax-h3-porto-francesinha-comedy-recipe
+        - link "Watch What You Can Make" [ref=e63] [cursor=pointer]:
+          - /url: "#smartvideo-showcase"
+    - generic [ref=e65]:
+      - generic [ref=e66]:
+        - paragraph [ref=e67]: One platform
+        - heading "One Creative Platform. Every AI Workflow." [level=2] [ref=e68]: One Creative Platform.Every AI Workflow.
+        - paragraph [ref=e69]: Every interaction you expect from a modern creative tool — loading, hover, click, scroll, drag, carousel, generate, edit, and publish — wired into a single studio.
+      - generic [ref=e70]:
+        - generic [ref=e72]:
+          - generic "Ice Gunslinger interactive web loop" [ref=e74]
+          - generic:
+            - generic: Loading
+            - generic: Hover
+            - generic: Click
+          - generic:
+            - generic: Scroll
+            - generic: Drag
+            - generic: Carousel
+          - generic:
+            - generic: ice-gunslinger · web loop
+            - generic: Generate ▸
+        - generic [ref=e75]:
+          - generic [ref=e76]:
+            - generic [ref=e77]: ✓
+            - generic [ref=e78]:
+              - generic [ref=e79]: Generate
+              - generic [ref=e80]: Prompt to a finished clip
+          - generic [ref=e81]:
+            - generic [ref=e82]: ✓
+            - generic [ref=e83]:
+              - generic [ref=e84]: Animate
+              - generic [ref=e85]: Add motion to stills
+          - generic [ref=e86]:
+            - generic [ref=e87]: ✓
+            - generic [ref=e88]:
+              - generic [ref=e89]: Edit
+              - generic [ref=e90]: Trim, mask, restyle
+          - generic [ref=e91]:
+            - generic [ref=e92]: ✓
+            - generic [ref=e93]:
+              - generic [ref=e94]: Upscale
+              - generic [ref=e95]: 4K without the wait
+          - generic [ref=e96]:
+            - generic [ref=e97]: ✓
+            - generic [ref=e98]:
+              - generic [ref=e99]: Publish
+              - generic [ref=e100]: Ship to every channel
+    - generic [ref=e102]:
+      - generic [ref=e103]:
+        - generic [ref=e104]:
+          - paragraph [ref=e105]: Made with SmartVideo GO AI
+          - heading "From a single idea to a finished commercial." [level=2] [ref=e106]
+        - generic [ref=e107]:
+          - button "Scroll reel left" [ref=e108] [cursor=pointer]
+          - button "Scroll reel right" [ref=e111] [cursor=pointer]
+      - generic [ref=e114]:
+        - article [ref=e116]:
+          - generic [ref=e117]:
+            - generic "Luxury perfume commercial — video preview" [ref=e119]
+            - generic [ref=e120]: Commercial
+          - generic [ref=e121]:
+            - heading "Luxury perfume commercial" [level=3] [ref=e122]
+            - paragraph [ref=e123]: Luxury perfume hero commercial
+            - generic [ref=e124]:
+              - button "View Prompt" [ref=e125] [cursor=pointer]
+              - link "Create This Style" [ref=e126] [cursor=pointer]:
+                - /url: /studio/marketing?template=minimax-h3-luxury-perfume-commercial
+        - article [ref=e128]:
+          - generic [ref=e129]:
+            - generic "Luxury Skincare Storyboard Commercial — video preview" [ref=e131]
+            - generic [ref=e132]: Commercial
+          - generic [ref=e133]:
+            - heading "Luxury Skincare Storyboard Commercial" [level=3] [ref=e134]
+            - paragraph [ref=e135]: Luxury skincare storyboard commercial
+            - generic [ref=e136]:
+              - button "View Prompt" [ref=e137] [cursor=pointer]
+              - link "Create This Style" [ref=e138] [cursor=pointer]:
+                - /url: /studio/marketing?template=minimax-h3-luxury-skincare-storyboard-commercial
+        - article [ref=e140]:
+          - generic [ref=e141]:
+            - generic "Yellow Sunglasses in a Black Studio — video preview" [ref=e143]
+            - generic [ref=e144]: Commercial
+          - generic [ref=e145]:
+            - heading "Yellow Sunglasses in a Black Studio" [level=3] [ref=e146]
+            - paragraph [ref=e147]: Yellow sunglasses product film in a black studio
+            - generic [ref=e148]:
+              - button "View Prompt" [ref=e149] [cursor=pointer]
+              - link "Create This Style" [ref=e150] [cursor=pointer]:
+                - /url: /studio/marketing?template=minimax-h3-yellow-sunglasses-in-a-black-studio
+        - article [ref=e152]:
+          - generic [ref=e153]:
+            - generic "Strawberry Drink Transformation Commercial — video preview" [ref=e155]
+            - generic [ref=e156]: Commercial
+          - generic [ref=e157]:
+            - heading "Strawberry Drink Transformation Commercial" [level=3] [ref=e158]
+            - paragraph [ref=e159]: Strawberry drink transformation commercial
+            - generic [ref=e160]:
+              - button "View Prompt" [ref=e161] [cursor=pointer]
+              - link "Create This Style" [ref=e162] [cursor=pointer]:
+                - /url: /studio/marketing?template=minimax-h3-strawberry-drink-transformation-commercial
+        - article [ref=e164]:
+          - generic [ref=e165]:
+            - generic "Emerald Bio-Serum Product Film — video preview" [ref=e167]
+            - generic [ref=e168]: Commercial
+          - generic [ref=e169]:
+            - heading "Emerald Bio-Serum Product Film" [level=3] [ref=e170]
+            - paragraph [ref=e171]: Emerald bio-serum product film
+            - generic [ref=e172]:
+              - button "View Prompt" [ref=e173] [cursor=pointer]
+              - link "Create This Style" [ref=e174] [cursor=pointer]:
+                - /url: /studio/marketing?template=minimax-h3-emerald-bio-serum-product-film
+        - article [ref=e176]:
+          - generic [ref=e177]:
+            - generic "Black-and-Gold Perfume Commercial — video preview" [ref=e179]
+            - generic [ref=e180]: Commercial
+          - generic [ref=e181]:
+            - heading "Black-and-Gold Perfume Commercial" [level=3] [ref=e182]
+            - paragraph [ref=e183]: Black-and-gold perfume commercial
+            - generic [ref=e184]:
+              - button "View Prompt" [ref=e185] [cursor=pointer]
+              - link "Create This Style" [ref=e186] [cursor=pointer]:
+                - /url: /studio/marketing?template=minimax-h3-black-and-gold-perfume-commercial
+    - generic [ref=e188]:
+      - generic [ref=e189]:
+        - paragraph [ref=e190]: UGC at scale
+        - heading "Create UGC Ads Without Hiring Creators" [level=2] [ref=e191]
+        - paragraph [ref=e192]: Turn products, ideas and scripts into social-ready ads in minutes.
+      - generic [ref=e193]:
+        - article [ref=e194]:
+          - generic [ref=e195]:
+            - generic "Ramen Bowl UGC Taste Test — video preview" [ref=e197]
+            - generic [ref=e198]: Restaurant
+          - generic [ref=e199]:
+            - heading "Ramen Bowl UGC Taste Test" [level=3] [ref=e200]
+            - paragraph [ref=e201]: UGC ramen taste-test ad
+            - link "Create This Type of Video" [ref=e203] [cursor=pointer]:
+              - /url: /studio/video?template=minimax-h3-ramen-bowl-ugc-taste-test
+        - article [ref=e204]:
+          - generic [ref=e205]:
+            - generic "Gourmet Burger UGC Taste Test — video preview" [ref=e207]
+            - generic [ref=e208]: Local Business
+          - generic [ref=e209]:
+            - heading "Gourmet Burger UGC Taste Test" [level=3] [ref=e210]
+            - paragraph [ref=e211]: UGC gourmet burger taste-test
+            - link "Create This Type of Video" [ref=e213] [cursor=pointer]:
+              - /url: /studio/video?template=minimax-h3-gourmet-burger-ugc-taste-test
+        - article [ref=e214]:
+          - generic [ref=e215]:
+            - generic "Blackberry Vanilla Soda UGC Vlog — video preview" [ref=e217]
+            - generic [ref=e218]: Beverage
+          - generic [ref=e219]:
+            - heading "Blackberry Vanilla Soda UGC Vlog" [level=3] [ref=e220]
+            - paragraph [ref=e221]: UGC blackberry vanilla soda vlog
+            - link "Create This Type of Video" [ref=e223] [cursor=pointer]:
+              - /url: /studio/video?template=minimax-h3-blackberry-vanilla-soda-ugc-vlog
+        - article [ref=e224]:
+          - generic [ref=e225]:
+            - generic "Morning Lip Oil UGC Testimonial — video preview" [ref=e227]
+            - generic [ref=e228]: Beauty
+          - generic [ref=e229]:
+            - heading "Morning Lip Oil UGC Testimonial" [level=3] [ref=e230]
+            - paragraph [ref=e231]: UGC morning lip oil testimonial
+            - link "Create This Type of Video" [ref=e233] [cursor=pointer]:
+              - /url: /studio/video?template=minimax-h3-morning-lip-oil-ugc-testimonial
+    - generic [ref=e235]:
+      - generic [ref=e236]:
+        - paragraph [ref=e237]: Full showcase
+        - heading "Every SmartVideo GO AI Demo, On Demand" [level=2] [ref=e238]
+        - paragraph [ref=e239]: Browse the full library. Open any prompt or jump straight into the matching studio.
+      - generic [ref=e240]:
+        - button "All" [pressed] [ref=e241] [cursor=pointer]
+        - button "Action" [ref=e242] [cursor=pointer]
+        - button "Animation" [ref=e243] [cursor=pointer]
+        - button "Cinema" [ref=e244] [cursor=pointer]
+        - button "Commercial" [ref=e245] [cursor=pointer]
+        - button "Fashion" [ref=e246] [cursor=pointer]
+        - button "Social" [ref=e247] [cursor=pointer]
+        - button "UGC" [ref=e248] [cursor=pointer]
+      - generic [ref=e249]:
+        - article [ref=e250]:
+          - generic [ref=e251]:
+            - generic "Modern warfare FPS gameplay — video preview" [ref=e253]
+            - generic [ref=e254]: Action
+          - generic [ref=e255]:
+            - heading "Modern warfare FPS gameplay" [level=3] [ref=e256]
+            - paragraph [ref=e257]: First-person AAA shooter gameplay with full HUD
+            - generic [ref=e258]:
+              - button "View Prompt" [ref=e259] [cursor=pointer]
+              - link "Create This Style" [ref=e260] [cursor=pointer]:
+                - /url: /studio/vfx-studio?template=minimax-h3-modern-warfare-fps-gameplay
+        - article [ref=e261]:
+          - generic [ref=e262]:
+            - generic "Luxury perfume commercial — video preview" [ref=e264]
+            - generic [ref=e265]: Commercial
+          - generic [ref=e266]:
+            - heading "Luxury perfume commercial" [level=3] [ref=e267]
+            - paragraph [ref=e268]: Luxury perfume hero commercial
+            - generic [ref=e269]:
+              - button "View Prompt" [ref=e270] [cursor=pointer]
+              - link "Create This Style" [ref=e271] [cursor=pointer]:
+                - /url: /studio/marketing?template=minimax-h3-luxury-perfume-commercial
+        - article [ref=e272]:
+          - generic [ref=e273]:
+            - generic "1980s open-source family comedy — video preview" [ref=e275]
+            - generic [ref=e276]: Social
+          - generic [ref=e277]:
+            - heading "1980s open-source family comedy" [level=3] [ref=e278]
+            - paragraph [ref=e279]: Retro 1980s open-source family comedy skit
+            - generic [ref=e280]:
+              - button "View Prompt" [ref=e281] [cursor=pointer]
+              - link "Create This Style" [ref=e282] [cursor=pointer]:
+                - /url: /studio/video?template=minimax-h3-1980s-open-source-family-comedy
+        - article [ref=e283]:
+          - generic [ref=e284]:
+            - generic "Radio operator evacuation bridge — video preview" [ref=e286]
+            - generic [ref=e287]: Cinema
+          - generic [ref=e288]:
+            - heading "Radio operator evacuation bridge" [level=3] [ref=e289]
+            - paragraph [ref=e290]: Cinematic radio-operator evacuation scene
+            - generic [ref=e291]:
+              - button "View Prompt" [ref=e292] [cursor=pointer]
+              - link "Create This Style" [ref=e293] [cursor=pointer]:
+                - /url: /studio/cinema?template=minimax-h3-radio-operator-evacuation-bridge
+        - article [ref=e294]:
+          - generic [ref=e295]:
+            - generic "Giant koi park incident — video preview" [ref=e297]
+            - generic [ref=e298]: Social
+          - generic [ref=e299]:
+            - heading "Giant koi park incident" [level=3] [ref=e300]
+            - paragraph [ref=e301]: Viral giant-koi park incident short
+            - generic [ref=e302]:
+              - button "View Prompt" [ref=e303] [cursor=pointer]
+              - link "Create This Style" [ref=e304] [cursor=pointer]:
+                - /url: /studio/video?template=minimax-h3-giant-koi-park-incident
+        - article [ref=e305]:
+          - generic [ref=e306]:
+            - generic "Greenhouse tea isekai anime — video preview" [ref=e308]
+            - generic [ref=e309]: Animation
+          - generic [ref=e310]:
+            - heading "Greenhouse tea isekai anime" [level=3] [ref=e311]
+            - paragraph [ref=e312]: Isekai anime greenhouse tea scene
+            - generic [ref=e313]:
+              - button "View Prompt" [ref=e314] [cursor=pointer]
+              - link "Create This Style" [ref=e315] [cursor=pointer]:
+                - /url: /studio/video?template=minimax-h3-greenhouse-tea-isekai-anime
+        - article [ref=e316]:
+          - generic [ref=e317]:
+            - generic "Low-Angle Fashion Tracking Film — video preview" [ref=e319]
+            - generic [ref=e320]: Fashion
+          - generic [ref=e321]:
+            - heading "Low-Angle Fashion Tracking Film" [level=3] [ref=e322]
+            - paragraph [ref=e323]: Low-angle fashion tracking shot
+            - generic [ref=e324]:
+              - button "View Prompt" [ref=e325] [cursor=pointer]
+              - link "Create This Style" [ref=e326] [cursor=pointer]:
+                - /url: /studio/ai-influencer?template=minimax-h3-low-angle-fashion-tracking-film
+        - article [ref=e327]:
+          - generic [ref=e328]:
+            - generic "Storm-Lit Pirate Galleon Battle — video preview" [ref=e330]
+            - generic [ref=e331]: Action
+          - generic [ref=e332]:
+            - heading "Storm-Lit Pirate Galleon Battle" [level=3] [ref=e333]
+            - paragraph [ref=e334]: Storm-lit pirate galleon battle
+            - generic [ref=e335]:
+              - button "View Prompt" [ref=e336] [cursor=pointer]
+              - link "Create This Style" [ref=e337] [cursor=pointer]:
+                - /url: /studio/vfx-studio?template=minimax-h3-storm-lit-pirate-galleon-battle
+        - article [ref=e338]:
+          - generic [ref=e339]:
+            - generic "Stormy Claymation Whale Breach — video preview" [ref=e341]
+            - generic [ref=e342]: Animation
+          - generic [ref=e343]:
+            - heading "Stormy Claymation Whale Breach" [level=3] [ref=e344]
+            - paragraph [ref=e345]: Claymation whale breach in a storm
+            - generic [ref=e346]:
+              - button "View Prompt" [ref=e347] [cursor=pointer]
+              - link "Create This Style" [ref=e348] [cursor=pointer]:
+                - /url: /studio/video?template=minimax-h3-stormy-claymation-whale-breach
+        - article [ref=e349]:
+          - generic [ref=e350]:
+            - generic "Blue-Haired Hero and Spirit Fox Escape — video preview" [ref=e352]
+            - generic [ref=e353]: Cinema
+          - generic [ref=e354]:
+            - heading "Blue-Haired Hero and Spirit Fox Escape" [level=3] [ref=e355]
+            - paragraph [ref=e356]: Anime hero and spirit fox escape
+            - generic [ref=e357]:
+              - button "View Prompt" [ref=e358] [cursor=pointer]
+              - link "Create This Style" [ref=e359] [cursor=pointer]:
+                - /url: /studio/cinema?template=minimax-h3-blue-haired-hero-and-spirit-fox-escape
+        - article [ref=e360]:
+          - generic [ref=e361]:
+            - generic "Kintsugi Sword Seamless Loop — video preview" [ref=e363]
+            - generic [ref=e364]: Fashion
+          - generic [ref=e365]:
+            - heading "Kintsugi Sword Seamless Loop" [level=3] [ref=e366]
+            - paragraph [ref=e367]: Seamless kintsugi sword loop
+            - generic [ref=e368]:
+              - button "View Prompt" [ref=e369] [cursor=pointer]
+              - link "Create This Style" [ref=e370] [cursor=pointer]:
+                - /url: /studio/ai-influencer?template=minimax-h3-kintsugi-sword-seamless-loop
+        - article [ref=e371]:
+          - generic [ref=e372]:
+            - generic "Ramen Bowl UGC Taste Test — video preview" [ref=e374]
+            - generic [ref=e375]: UGC
+          - generic [ref=e376]:
+            - heading "Ramen Bowl UGC Taste Test" [level=3] [ref=e377]
+            - paragraph [ref=e378]: UGC ramen taste-test ad
+            - generic [ref=e379]:
+              - button "View Prompt" [ref=e380] [cursor=pointer]
+              - link "Create This Style" [ref=e381] [cursor=pointer]:
+                - /url: /studio/video?template=minimax-h3-ramen-bowl-ugc-taste-test
+      - button "Show More (18 more)" [ref=e383] [cursor=pointer]
+  - generic [ref=e384]:
+    - generic [ref=e386]:
+      - paragraph [ref=e387]: Full studio
+      - heading "Every feature, live on this page." [level=2] [ref=e388]
+      - paragraph [ref=e389]: The complete studio — switch between any tool, generate with your key, and explore every function without leaving the landing page.
+    - generic [ref=e390]: Loading the full studio...
+  - generic [ref=e393]:
+    - generic [ref=e394]:
+      - paragraph [ref=e395]: Workflow
+      - heading "From idea to shipped campaign in one loop." [level=2] [ref=e396]
+      - paragraph [ref=e397]: Plan the concept, generate the assets, refine the edit, publish the campaign, and learn from analytics without switching tools.
+    - generic [ref=e398]:
+      - generic [ref=e399]:
+        - generic [ref=e400]: "1"
+        - generic [ref=e401]:
+          - heading "Brief" [level=3] [ref=e402]
+          - paragraph [ref=e403]: Enter a product, script, or campaign goal.
+      - generic [ref=e404]:
+        - generic [ref=e405]: "2"
+        - generic [ref=e406]:
+          - heading "Generate" [level=3] [ref=e407]
+          - paragraph [ref=e408]: Use image, video, UGC, VFX, audio, or agent tools.
+      - generic [ref=e409]:
+        - generic [ref=e410]: "3"
+        - generic [ref=e411]:
+          - heading "Refine" [level=3] [ref=e412]
+          - paragraph [ref=e413]: Review outputs, adjust prompts, and rerun in seconds.
+      - generic [ref=e414]:
+        - generic [ref=e415]: "4"
+        - generic [ref=e416]:
+          - heading "Launch" [level=3] [ref=e417]
+          - paragraph [ref=e418]: Export assets, embed videos, and track campaign performance.
+  - generic [ref=e419]:
+    - generic [ref=e420]:
+      - paragraph [ref=e421]: Pricing
+      - heading "One plan. Every studio. Yours for life." [level=2] [ref=e422]
+    - generic [ref=e423]:
+      - generic [ref=e424]:
+        - heading "Pro" [level=3] [ref=e425]
+        - generic [ref=e426]: Lifetime
+      - generic [ref=e427]: $299
+      - paragraph [ref=e428]: One-time payment. Unlock every studio, forever.
+      - list [ref=e429]:
+        - listitem [ref=e430]: Image Studio
+        - listitem [ref=e432]: Video Studio
+        - listitem [ref=e434]: Audio Studio
+        - listitem [ref=e436]: AI Clipping
+        - listitem [ref=e438]: Vibe Motion
+        - listitem [ref=e440]: Lip Sync Studio
+        - listitem [ref=e442]: Cinema Studio
+        - listitem [ref=e444]: Storyboard
+        - listitem [ref=e446]: Marketing Studio
+        - listitem [ref=e448]: Body Swap (Recast)
+        - listitem [ref=e450]: Workflow Studio
+        - listitem [ref=e452]: Agents
+        - listitem [ref=e454]: Design Agent
+        - listitem [ref=e456]: VFX Studio
+        - listitem [ref=e458]: Thumbnail Studio
+        - listitem [ref=e460]: AI Influencer Studio
+        - listitem [ref=e462]: Social Publishing
+        - listitem [ref=e464]: GO- AI Viral
+  - generic [ref=e467]:
+    - figure "Creative operations lead Agency producer" [ref=e468]:
+      - blockquote [ref=e469]: "\"The landing page needs to feel like the product itself: fast, visual, and impossible to ignore.\""
+      - generic [ref=e470]:
+        - generic [ref=e471]: Creative operations lead
+        - generic [ref=e472]: Agency producer
+    - figure "Growth marketer SaaS launch team" [ref=e473]:
+      - blockquote [ref=e474]: "\"Every feature should be demoable without a login, but every demo should point toward the full studio.\""
+      - generic [ref=e475]:
+        - generic [ref=e476]: Growth marketer
+        - generic [ref=e477]: SaaS launch team
+    - figure "Founder AI video platform" [ref=e478]:
+      - blockquote [ref=e479]: "\"The best AI tools sell through interaction, not static screenshots.\""
+      - generic [ref=e480]:
+        - generic [ref=e481]: Founder
+        - generic [ref=e482]: AI video platform
+  - generic [ref=e483]:
+    - heading "Questions before you launch?" [level=2] [ref=e484]
+    - generic [ref=e485]:
+      - group [ref=e486]:
+        - generic "Are the landing page demos the real studio?" [ref=e487] [cursor=pointer]
+      - group [ref=e488]:
+        - generic "Will the full studio still work?" [ref=e489] [cursor=pointer]
+      - group [ref=e490]:
+        - generic "Do the demos need an API key to generate?" [ref=e491] [cursor=pointer]
+  - generic [ref=e493]:
+    - heading "Make the first demo feel like the full product." [level=2] [ref=e494]
+    - paragraph [ref=e495]: Visitors should understand the platform, try a feature, and know exactly where to go next.
+    - generic [ref=e496]:
+      - link "Try the studio" [ref=e497] [cursor=pointer]:
+        - /url: "#studio"
+      - link "Open full studio" [ref=e498] [cursor=pointer]:
+        - /url: "#studio"
+  - generic [ref=e499]:
+    - generic [ref=e500]: SmartVideo GO — premium AI image, video, and campaign studio. Made with SmartVideo GO AI
+    - generic [ref=e501]:
+      - link "Studio" [ref=e502] [cursor=pointer]:
+        - /url: "#studio"
+      - link "FAQ" [ref=e503] [cursor=pointer]:
+        - /url: "#faq"

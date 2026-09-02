@@ -1,0 +1,72 @@
+div.modal-container__content.voice-modal {
+  width: 32.125rem;
+  padding: 0;
+}
+
+.voice-modal {
+  &__header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 2.0625rem;
+    background: $modal-header-bg;
+    font-size: 0.875rem;
+    color: $white;
+    text-transform: uppercase;
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 4.0625rem 1rem 6.5625rem;
+    background: $sidebr-bg;
+  }
+
+  &__icon {
+    width: 3.95625rem;
+    height: 3.95625rem;
+
+    path {
+      stroke: $secondary-color;
+    }
+
+    &-arrow {
+      width: 0.565rem;
+      height: 0.543rem;
+      position: absolute;
+      top: 50%;
+      right: 0.43rem;
+      transform: translateY(-50%);
+
+      svg {
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+    }
+  }
+
+  &__text {
+    font-size: 1.125rem;
+    text-align: center;
+    color: $white;
+    margin: 1.67rem 0 2.56rem;
+  }
+
+  &__btn {
+    @include reset-button;
+    width: 10rem;
+    height: 1.625rem;
+    position: relative;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    padding-left: 1.15rem;
+    border-radius: 3px;
+    border: 1px solid $secondary-color;
+    font-size: 0.75rem;
+    color: $white;
+    text-transform: uppercase;
+  }
+}

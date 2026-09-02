@@ -1,0 +1,6 @@
+- generic [ref=f1e2]:
+  - generic [ref=f1e3]: 😕
+  - heading "Application Error" [level=1] [ref=f1e4]
+  - paragraph [ref=f1e5]: "Failed to fetch dynamically imported module: http://localhost:3100/src/components/auth/HeaderAuth.jsx"
+  - paragraph [ref=f1e6]: Please try refreshing the page. If the problem persists, clear your browser cache.
+  - button "Reload Page" [ref=f1e7] [cursor=pointer]

@@ -1,0 +1,96 @@
+.float-left {
+  display: flex;
+  flex-direction: row;
+}
+
+.float-right {
+  display: flex;
+  flex-direction: row-reverse;
+}
+
+.MuiCheckbox-colorSecondary {
+  .MuiSvgIcon-root {
+    fill: transparent;
+  }
+}
+
+.checkbox-element {
+  cursor: pointer;
+  align-items: center;
+  justify-content: space-between;
+
+  button {
+    @include reset-button;
+    font-family: $font-primary;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 0.765rem;
+    line-height: 0.93rem;
+    color: $white;
+
+    span.MuiButton-label label.MuiInputLabel-root {
+      color: $white;
+    }
+
+    &:focus {
+      outline-width: 0;
+    }
+  }
+}
+
+.checkmark {
+  &.unchecked .MuiIconButton-label {
+    &:after {
+      background-color: $white;
+    }
+
+    &:hover .MuiIconButton-label {
+      &:after {
+        background-color: $red;
+      }
+    }
+  }
+
+  &.checked .MuiIconButton-label {
+    &::after {
+      background-color: $red;
+    }
+
+    &:hover .MuiIconButton-label {
+      &:after {
+        background-color: $white;
+      }
+    }
+  }
+
+  .MuiIconButton-label {
+    width: 1.07rem;
+    height: 1.07rem;
+    background-color: $dark-night;
+    display: inline-block;
+    border: 0.055rem solid;
+    border-color: $btn-gray;
+    border-radius: 0.175rem;
+
+    &:hover {
+      border-color: $red;
+      color: $red;
+      fill: $red;
+    }
+
+    &:after {
+      content: "";
+      width: 0.205rem;
+      height: 0.205rem;
+      display: inline-block;
+      border-radius: 50%;
+      background-color: #ffffff;
+      z-index: 1;
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+    }
+
+  }
+
+}

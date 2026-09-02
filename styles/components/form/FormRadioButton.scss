@@ -1,0 +1,50 @@
+.MuiRadio-root {
+  color: $white;
+}
+
+.layout-container {
+  .MuiRadio-colorSecondary {
+    cursor: pointer;
+
+    &:hover {
+      background-color: transparent;
+    }
+  }
+}
+
+.MuiRadio-colorSecondary.Mui-checked {
+  color: $secondary-color;
+
+  &:hover {
+    background-color: transparent !important;
+  }
+}
+
+.MuiSvgIcon-root {
+  font-size: 1rem;
+}
+
+.radio-button-icon {
+  min-width: 0.7rem;
+  width: 100%;
+}
+
+.radio-button-icon-svg:hover {
+
+}
+
+.icon-svg-checked-svg {
+  & path {
+    fill: $secondary-color !important;
+  }
+}
+
+.MuiFormControl-root:first-child {
+  .MuiFormGroup-root {
+    .MuiFormControlLabel-root:first-child {
+      & > .MuiRadio-root {
+        margin-left: -9px;
+      }
+    }
+  }
+}

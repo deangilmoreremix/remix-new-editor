@@ -1,0 +1,159 @@
+/* Form Validation Styles */
+
+/* Base form field styles */
+.form-field-error {
+  border-color: #f44336 !important;
+  box-shadow: 0 0 0 1px #f44336 !important;
+}
+
+.form-field-success {
+  border-color: #4caf50 !important;
+  box-shadow: 0 0 0 1px #4caf50 !important;
+}
+
+.form-field-touched {
+  /* Add any touched state styling */
+}
+
+/* Required field indicator */
+.required-indicator {
+  color: #f44336;
+  font-weight: bold;
+  margin-left: 2px;
+}
+
+/* Input validation states */
+.input-error {
+  border-color: #f44336 !important;
+  background-color: rgba(244, 67, 54, 0.04) !important;
+}
+
+.input-error:focus {
+  border-color: #f44336 !important;
+  box-shadow: 0 0 0 2px rgba(244, 67, 54, 0.2) !important;
+}
+
+.input-success {
+  border-color: #4caf50 !important;
+  background-color: rgba(76, 175, 80, 0.04) !important;
+}
+
+.input-success:focus {
+  border-color: #4caf50 !important;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2) !important;
+}
+
+/* Select validation states */
+.select-error .select__control {
+  border-color: #f44336 !important;
+  box-shadow: 0 0 0 1px #f44336 !important;
+}
+
+.select-success .select__control {
+  border-color: #4caf50 !important;
+  box-shadow: 0 0 0 1px #4caf50 !important;
+}
+
+/* Popcorn form input validation */
+.popcorn-form-input.input-error {
+  border: 2px solid #f44336 !important;
+  background-color: rgba(244, 67, 54, 0.05) !important;
+}
+
+.popcorn-form-input.input-success {
+  border: 2px solid #4caf50 !important;
+  background-color: rgba(76, 175, 80, 0.05) !important;
+}
+
+/* Error message styling */
+.form-error-message {
+  color: #f44336;
+  font-size: 0.75rem;
+  margin-top: 4px;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.form-helper-text {
+  color: rgba(0, 0, 0, 0.54);
+  font-size: 0.75rem;
+  margin-top: 4px;
+  margin-bottom: 4px;
+  display: block;
+}
+
+/* Field error message for popcorn forms */
+.field-error-message {
+  color: #f44336;
+  font-size: 12px;
+  margin-top: 4px;
+  margin-bottom: 8px;
+  padding: 4px 8px;
+  background-color: rgba(244, 67, 54, 0.1);
+  border-radius: 4px;
+  border-left: 3px solid #f44336;
+}
+
+/* Accessibility improvements */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Focus indicators */
+.form-field-error input:focus,
+.form-field-error textarea:focus,
+.form-field-error .select__control:focus {
+  outline: 2px solid #f44336;
+  outline-offset: 2px;
+}
+
+.form-field-success input:focus,
+.form-field-success textarea:focus,
+.form-field-success .select__control:focus {
+  outline: 2px solid #4caf50;
+  outline-offset: 2px;
+}
+
+/* Loading states for async validation */
+.input-validating {
+  position: relative;
+}
+
+.input-validating::after {
+  content: '';
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ccc;
+  border-top-color: #2196f3;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: translateY(-50%) rotate(360deg);
+  }
+}
+
+/* Validation feedback animations */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.input-error-shake {
+  animation: shake 0.5s ease-in-out;
+}

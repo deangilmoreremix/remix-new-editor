@@ -1,0 +1,98 @@
+/* ============================================================
+   Timeline Editor — Design Tokens (single source of truth)
+   ------------------------------------------------------------
+   This file IS the design contract for the redesigned Timeline
+   Editor. Its values are extracted verbatim from the approved
+   redesign prototype (timeline-redesign-prototype.html) so the
+   live editor renders EXACTLY the prototype design.
+
+   Namespace note: the prototype and all component CSS use the
+   PLAIN token namespace (--bg, --cyan, --border, ...). Do NOT
+   introduce a second namespace (e.g. --tl-*); every token the
+   timeline CSS consumes must be defined here in this namespace.
+
+   Loaded BEFORE timeline-editor-page.css (static import order in
+   src/components/TimelineEditorPage.jsx).
+   ============================================================ */
+
+:root {
+  /* Surfaces */
+  --bg: #07090d;
+  --bg-app: #07090d;
+  --surface-1: rgba(255, 255, 255, 0.03);
+  --surface-2: rgba(255, 255, 255, 0.05);
+  --surface-3: rgba(255, 255, 255, 0.08);
+  --surface-sunken: rgba(0, 0, 0, 0.20);
+  --track-lane: rgba(255, 255, 255, 0.02);
+  --track-meta: rgba(0, 0, 0, 0.35);
+
+  /* Track type accents (dot colors) — from prototype .track-type-dot.* */
+  --type-video: #38bdf8;
+  --type-audio: #34d399;
+  --type-text:  #f59e0b;
+  --type-fx:    #a78bfa;
+
+  /* Borders */
+  --border: rgba(255, 255, 255, 0.10);
+  --border-soft: rgba(255, 255, 255, 0.06);
+  --border-strong: rgba(255, 255, 255, 0.16);
+
+  /* Text */
+  --text: rgba(255, 255, 255, 0.86);
+  --text-strong: #ffffff;
+  --text-muted: rgba(255, 255, 255, 0.60);
+  --text-dim: rgba(255, 255, 255, 0.45);
+  --text-faint: rgba(255, 255, 255, 0.35);
+
+  /* Brand accent (cyan / emerald) */
+  --cyan: #22d3ee;
+  --cyan-soft: rgba(34, 211, 238, 0.22);
+  --cyan-faint: rgba(34, 211, 238, 0.10);
+  --cyan-glow: rgba(34, 211, 238, 0.80);
+  --emerald: #34d399;
+  --accent-grad: linear-gradient(to right, var(--cyan), var(--emerald));
+
+  /* Status colors (used sparingly, with text) */
+  --amber: #f59e0b;
+  --amber-bright: #fbbf24;
+  --danger: #ef4444;
+  --danger-soft: rgba(239, 68, 68, 0.20);
+  --success-soft: rgba(52, 211, 153, 0.10);
+  --success-text: #bbf7d0;
+  --success-dot: #86efac;
+
+  /* Spacing scale (4 / 8px disciplined) */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 20px; --sp-6: 24px; --sp-8: 32px;
+
+  /* Radius scale */
+  --r-sm: 8px;  --r-md: 12px; --r-lg: 16px; --r-xl: 20px; --r-2xl: 24px;
+  --r-full: 999px;
+  --radius-xl: 28px;
+
+  /* Shadows */
+  --shadow-card: 0 20px 60px rgba(0, 0, 0, 0.35);
+  --shadow-pop: 0 12px 40px rgba(0, 0, 0, 0.5);
+  --shadow-focus: 0 0 0 4px rgba(34, 211, 238, 0.30);
+
+  /* Type scale */
+  --fs-display: 20px; --fw-display: 900;
+  --fs-title: 16px;   --fw-title: 700;
+  --fs-label: 11px;   --fw-label: 800; --ls-label: 0.08em;
+  --fs-track: 12px;   --fw-track: 700;
+  --fs-time: 11px;
+  --fs-clip: 10px;    --fw-clip: 600;
+  --fs-help: 9px;
+
+  /* Panel solid background (tooltips, progress, toasts) */
+  --panel-solid: rgba(7, 12, 18, 0.95);
+
+  /* Brand soft border (rgba(34,211,238,0.3) used on tooltips/drop zones) */
+  --brand-border-soft: rgba(34, 211, 238, 0.3);
+
+  /* Layout dimensions */
+  --header-h: 72px;
+  --track-h: 64px;
+  --track-w: 140px;
+  --ruler-h: 40px;
+}

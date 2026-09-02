@@ -1,0 +1,90 @@
+.item-retarget-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0.6rem;
+  background: $scrollbarColor;
+  margin-top: 1em;
+  margin-bottom: 1em;
+  z-index: 100;
+  cursor: grab;
+
+  &-input {
+    height: 100%;
+  }
+
+  .elements-container {
+    display: flex;
+
+    .item-form {
+      margin-right: 5px;
+    }
+  }
+
+  .retarget-remove {
+    position: relative;
+  }
+    @media (max-width: 1377px) {
+      .item-form {
+        width: 45%;
+      }
+      .select-element {
+        min-width: 7rem;
+      }
+    }
+}
+
+.add-field-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+
+  &-button {
+    background: $secondary-color;
+    border: none;
+    border-radius: 3px;
+    padding: 0.1em 0.3em;
+    color: $white;
+    font-size: $defaultFontSize;
+    height: 2.174rem;
+    padding: 0 24px;
+  }
+}
+
+.input-field-container {
+  margin-bottom: 1em;
+}
+
+.popup-fields-box {
+  margin-top: 2rem;
+}
+
+@media screen and (max-width: $xxl) {
+  .item-retarget-container {
+    flex-direction: column;
+    align-items: center;
+    padding: 0.6rem;
+
+    & > * + * {
+      margin-top: .5rem;
+    }
+
+    .item-form {
+      width: 100%;
+      margin: 0;
+    }
+
+    .elements-container {
+      flex-direction: column;
+      width: 100%;
+
+      .MuiFormGroup-root + .MuiFormGroup-root {
+        margin-top: 0.6rem;
+      }
+    }
+  }
+
+  .add-field-container-button {
+    width: 100%;
+  }
+}

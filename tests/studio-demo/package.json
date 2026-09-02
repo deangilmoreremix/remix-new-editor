@@ -1,0 +1,33 @@
+{
+  "name": "studio-demo-automation",
+  "version": "1.0.0",
+  "description": "Playwright-based studio demo automation with video recording",
+  "main": "studio-demo.ts",
+  "scripts": {
+    "demo": "playwright test",
+    "demo:headed": "HEADLESS=false npx playwright test",
+    "demo:ui": "playwright test --ui",
+    "demo:debug": "playwright test --debug",
+    "demo:report": "playwright show-report",
+    "demo:video-mp4": "VIDEO_CONVERT=true npx playwright test",
+    "demo:studio": "TEST_STUDIO_ID=studio-alpha npx playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "@types/fluent-ffmpeg": "^2.1.28",
+    "@types/node": "^22.20.1",
+    "typescript": "^5.6.0"
+  },
+  "dependencies": {
+    "ffmpeg-static": "^5.3.0"
+  },
+  "keywords": [
+    "playwright",
+    "automation",
+    "video-recording",
+    "demo",
+    "studio",
+    "e2e"
+  ],
+  "license": "MIT"
+}

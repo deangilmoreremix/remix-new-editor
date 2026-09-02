@@ -1,0 +1,40 @@
+.canvas-size {
+  &-selector {
+    height: 197px;
+    position: absolute;
+    right: 1rem;
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+    top: calc(50% - 98.5px);
+    z-index: 1;
+    transition: 0.3s top;
+  }
+
+  &-item {
+    @include reset-button;
+    @include button-primary;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $btn-gray;
+    font-size: 12px;
+    border: 1px solid $btn-gray;
+    border-radius: 4px;
+    transition: all 0.25s ease;
+
+    &:hover {
+      border-color: $red;
+    }
+
+    &.active {
+      background: $red;
+      color: $white;
+    }
+
+    &:not(:last-of-type) {
+      margin-bottom: 0.75rem;
+    }
+  }
+}
