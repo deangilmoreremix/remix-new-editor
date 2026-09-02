@@ -45,7 +45,7 @@ const AUTOSAVE_DEBOUNCE_MS = 1500;
 
 // Runtime singletons that must be stripped before persistence
 // (they cannot be JSON-serialized and are rebuilt on init).
-const NON_SERIALIZABLE_KEYS = new Set([
+const HARDCODED_NON_SERIALIZABLE_KEYS = new Set([
   'keyframeSystem',
   'transitionEditor',
   'sceneDetector',
@@ -55,6 +55,31 @@ const NON_SERIALIZABLE_KEYS = new Set([
   'runtimeSubscriptions',
   '_eventListeners'
 ]);
+
+/**
+ * Auto-discover non-serializable keys from a state object by checking for
+ * functions and class-instance values. Combined with the hardcoded set so
+ * newly added singleton systems don't require manual registration here.
+ */
+function buildNonSerializableKeys(state) {
+  const discovered = new Set();
+  if (!state || typeof state !== 'object') return discovered;
+  for (const [key, value] of Object.entries(state)) {
+    if (typeof value === 'function') {
+      discovered.add(key);
+    } else if (value && typeof value === 'object' && !Array.isArray(value)) {
+      const ctor = value.constructor;
+      if (ctor !== Object && ctor !== Array) {
+        discovered.add(key);
+      }
+    }
+  }
+  return discovered;
+}
+
+function getNonSerializableKeys(state) {
+  return new Set([...HARDCODED_NON_SERIALIZABLE_KEYS, ...buildNonSerializableKeys(state)]);
+}
 
 // ============================================================================
 // BACKEND ABSTRACTION
@@ -109,6 +134,33 @@ export function setSupabaseClient(client) {
 }
 
 // ============================================================================
+// BEFORE-UNLOAD SAVE
+// ============================================================================
+
+let _beforeUnloadStateGetter = null;
+
+/**
+ * Register a state getter so persistence can save synchronously on tab close.
+ * Call once from editor initialization: registerBeforeUnloadState(() => getCurrentState())
+ */
+export function registerBeforeUnloadState(getState) {
+  _beforeUnloadStateGetter = getState;
+  if (typeof window !== 'undefined' && !window.__timelineBeforeUnloadRegistered) {
+    window.__timelineBeforeUnloadRegistered = true;
+    window.addEventListener('beforeunload', () => {
+      try {
+        if (typeof _beforeUnloadStateGetter === 'function') {
+          const state = _beforeUnloadStateGetter();
+          saveProjectSync(state);
+        }
+      } catch (e) {
+        // best-effort only
+      }
+    });
+  }
+}
+
+// ============================================================================
 // VERSIONING
 // ============================================================================
 
@@ -140,10 +192,48 @@ export function unwrapVersioned(payload) {
 
 /**
  * Migration map. Each entry migrates from version N to N+1.
- * v1 → v2: ensure track.clips alias is wired (handled by TimelineState
- *           _normalizeState, which runs on load).
+ * v1 → v2: normalize legacy clip shapes, ensure track.items/track.clips
+ *           alias is wired, and normalize left/width to start/end.
  */
 const MIGRATIONS = {
+  1: (project) => {
+    if (!project || typeof project !== 'object') return project;
+    const tracks = project.tracks || (project.project && project.project.tracks) || [];
+    const normalizedTracks = tracks.map(track => {
+      const items = Array.isArray(track.items) ? track.items : [];
+      const clips = Array.isArray(track.clips) ? track.clips : [];
+      // Ensure clips and items reference the same array when both exist
+      if (items.length && !clips.length) {
+        track.clips = items;
+      } else if (clips.length && !items.length) {
+        track.items = clips;
+      } else if (items.length && clips.length) {
+        track.items = track.clips = items;
+      }
+      // Normalize legacy left/width clips
+      const normalized = (track.clips || []).map(clip => {
+        if (typeof clip.left === 'number' && typeof clip.width === 'number') {
+          const total = project.timelineSeconds || 60;
+          return {
+            ...clip,
+            start: (clip.left / 100) * total,
+            end: ((clip.left + clip.width) / 100) * total,
+            sourceStart: clip.trimIn || 0,
+            sourceEnd: (clip.trimOut || 0) + ((clip.end || 0) - (clip.start || 0)),
+          };
+        }
+        return clip;
+      });
+      return { ...track, clips: normalized, items: normalized };
+    });
+    if (project.project && Array.isArray(project.project.tracks)) {
+      project.project.tracks = normalizedTracks;
+    }
+    if (Array.isArray(project.tracks)) {
+      project.tracks = normalizedTracks;
+    }
+    return project;
+  },
   // Example for future versions:
   // 2: (project) => { ...; return project; }
 };
@@ -174,9 +264,10 @@ export function migrate(project, fromVersion) {
 function stripForPersist(state) {
   if (!state || typeof state !== 'object') return state;
   if (Array.isArray(state)) return state.map(stripForPersist);
+  const nonSerializable = getNonSerializableKeys(state);
   const out = {};
   for (const [k, v] of Object.entries(state)) {
-    if (NON_SERIALIZABLE_KEYS.has(k)) continue;
+    if (nonSerializable.has(k)) continue;
     if (typeof v === 'function') continue;
     if (typeof v === 'undefined') continue;
     out[k] = stripForPersist(v);

@@ -8,6 +8,15 @@ vi.mock('../ai-features/fillExtendTools.js', () => ({
   extendClip: vi.fn(),
 }));
 
+vi.mock('../aiMuapi.js', () => ({
+  AiMuAPI: {
+    generateVideo: vi.fn().mockRejectedValue(new Error('no-api-key')),
+    generateImage: vi.fn(),
+    generateMusic: vi.fn(),
+    applySAM3Segmentation: vi.fn(),
+  },
+}));
+
 describe('AIEditingTools - model dropdown', () => {
   let container;
   let tools;

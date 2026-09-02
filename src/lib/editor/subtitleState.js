@@ -446,6 +446,53 @@ class SubtitleState {
     this.history = [];
     this.subtitles = [];
   }
+
+  /**
+   * Format seconds as SRT timestamp: HH:MM:SS,mmm
+   */
+  static formatSrtTime(seconds) {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    const ms = Math.floor((seconds - Math.floor(seconds)) * 1000);
+    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')},${String(ms).padStart(3,'0')}`;
+  }
+
+  /**
+   * Format seconds as VTT timestamp: HH:MM:SS.mmm
+   */
+  static formatVttTime(seconds) {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    const ms = Math.floor((seconds - Math.floor(seconds)) * 1000);
+    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(ms).padStart(3,'0')}`;
+  }
+
+  /**
+   * Export subtitles as SRT string
+   */
+  static exportSubtitleSRT(subtitles) {
+    return subtitles
+      .map((sub, i) => {
+        const text = (sub.text || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        return `${i + 1}\n${SubtitleState.formatSrtTime(sub.startTime)} --> ${SubtitleState.formatSrtTime(sub.endTime)}\n${text}\n`;
+      })
+      .join('\n');
+  }
+
+  /**
+   * Export subtitles as VTT string
+   */
+  static exportSubtitleVTT(subtitles) {
+    const body = subtitles
+      .map((sub) => {
+        const text = (sub.text || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        return `${SubtitleState.formatVttTime(sub.startTime)} --> ${SubtitleState.formatVttTime(sub.endTime)}\n${text}`;
+      })
+      .join('\n\n');
+    return `WEBVTT\n\n${body}\n`;
+  }
 }
 
 // Create default instance

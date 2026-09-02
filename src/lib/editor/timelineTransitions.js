@@ -121,6 +121,18 @@ export class TimelineTransitions {
       endTime: this.getClipEndTime(trackId, beforeClipId) + duration / 2
     };
 
+    // Collision detection: flag if transition duration exceeds involved clips
+    const allClips = this._collectAllClips();
+    const clipIds = [parseInt(beforeClipId)].filter(Boolean);
+    const clipDurations = clipIds.map(id => allClips.find(c => c.id === id)).filter(Boolean);
+    if (clipDurations.length) {
+      const minDuration = Math.min(...clipDurations.map(c => (c.end ?? c.endTime ?? c.start + c.duration) - (c.start ?? c.startTime ?? 0)));
+      if (duration > minDuration) {
+        transitionData.hasCollision = true;
+        transitionData.collisionInfo = `Transition duration (${duration}s) exceeds clip duration (${minDuration}s)`;
+      }
+    }
+
     // Add to state
     if (!this.state.transitions) {
       this.state.transitions = [];
@@ -132,6 +144,17 @@ export class TimelineTransitions {
 
     // Update timeline
     this.updateTimelineAfterTransition(transitionData);
+  }
+
+  _collectAllClips() {
+    const clips = [];
+    for (const track of (this.state.tracks || [])) {
+      const items = track.clips || track.items || [];
+      for (const clip of items) {
+        if (clip) clips.push(clip);
+      }
+    }
+    return clips;
   }
 
   getClipEndTime(trackId, clipId) {
@@ -162,12 +185,18 @@ export class TimelineTransitions {
     transitionEl.className = 'timeline-transition';
     transitionEl.dataset.transitionId = transitionData.id;
     transitionEl.style.width = `${(transitionData.duration / this.state.timelineSeconds) * 100}%`;
+    if (transitionData.hasCollision) {
+      transitionEl.classList.add('transition-collision');
+      transitionEl.style.background = 'repeating-linear-gradient(45deg, #ef4444, #ef4444 4px, #b91c1c 4px, #b91c1c 8px)';
+      transitionEl.style.border = '2px solid #ef4444';
+    }
 
     transitionEl.innerHTML = `
       <div class="transition-visual">
         <div class="transition-icon">${transition.icon}</div>
         <div class="transition-name">${transition.name}</div>
         <div class="transition-duration">${transitionData.duration}s</div>
+        ${transitionData.hasCollision ? `<div class="transition-collision-warning" style="color:#ef4444;font-size:10px;">⚠ ${transitionData.collisionInfo || 'Collision'}</div>` : ''}
       </div>
       <div class="transition-controls">
         <button class="transition-edit-btn" title="Edit transition">✏️</button>
@@ -354,6 +383,11 @@ export class TimelineTransitions {
           this.updateTimelineAfterTransition(transitionData);
 
           // Close modal
+          modal.remove();
+        },
+        () => {
+          // Delete transition
+          this.deleteTransition(transitionData.id);
           modal.remove();
         }
       );

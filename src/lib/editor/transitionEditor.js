@@ -6,9 +6,10 @@
 import { TransitionsLibrary } from './transitionsLibrary.js';
 
 export class TransitionEditor {
-  constructor(container, onTransitionChange) {
+  constructor(container, onTransitionChange, onDeleteTransition) {
     this.container = container;
     this.onTransitionChange = onTransitionChange;
+    this.onDeleteTransition = onDeleteTransition;
     this.library = new TransitionsLibrary();
     this.currentTransition = null;
     this.currentParams = {};
@@ -117,6 +118,7 @@ export class TransitionEditor {
         <div class="transition-editor__actions">
           <button class="transition-btn secondary" id="savePreset" data-tooltip="Save as Preset - Save the current transition settings as a reusable preset">💾 Save as Preset</button>
           <button class="transition-btn secondary" id="exportTransition" data-tooltip="Export - Download the transition configuration as a JSON file">📤 Export</button>
+          <button class="transition-btn secondary" id="deleteTransition" data-tooltip="Delete Transition - Remove this transition from the timeline">🗑️ Delete</button>
           <button class="transition-btn primary" id="applyTransition" data-tooltip="Apply Transition - Apply the selected transition to your clips in the timeline">✅ Apply Transition</button>
         </div>
       </div>
@@ -278,6 +280,7 @@ export class TransitionEditor {
     // Action buttons
     this.container.querySelector('#savePreset').addEventListener('click', () => this.savePreset());
     this.container.querySelector('#exportTransition').addEventListener('click', () => this.exportTransition());
+    this.container.querySelector('#deleteTransition')?.addEventListener('click', () => this.deleteTransition());
     this.container.querySelector('#applyTransition').addEventListener('click', () => this.applyTransition());
   }
 
@@ -432,6 +435,12 @@ export class TransitionEditor {
 
     this.onTransitionChange?.(this.currentTransition, this.currentParams, this.duration);
     alert(`Applied ${this.currentTransition.name} transition`);
+  }
+
+  deleteTransition() {
+    if (this.onDeleteTransition) {
+      this.onDeleteTransition();
+    }
   }
 
   getCurrentConfig() {

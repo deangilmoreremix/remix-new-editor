@@ -63,6 +63,7 @@ export class ColorCorrectionSystem {
         <button class="preset-btn" data-preset="cool" data-tooltip="Cool Preset - Apply a cool color grade that enhances blues and cyans for a crisp, modern look">Cool</button>
         <button class="preset-btn" data-preset="vintage" data-tooltip="Vintage Preset - Apply a retro film look with faded colors, lifted blacks, and warm tones">Vintage</button>
         <button class="preset-btn" data-preset="cinematic" data-tooltip="Cinematic Preset - Apply a professional film-style grade with enhanced contrast and teal-orange color balance">Cinematic</button>
+        <button class="preset-btn apply-color-btn" id="applyColorCorrectionBtn" data-tooltip="Apply - Save the current color correction settings to the selected clip">Apply</button>
       </div>
     `;
 
@@ -328,7 +329,11 @@ export class ColorCorrectionSystem {
     const presets = this.colorCorrectionPanel.querySelectorAll('.preset-btn');
     presets.forEach(preset => {
       preset.addEventListener('click', () => {
-        this.applyPreset(preset.dataset.preset);
+        if (preset.id === 'applyColorCorrectionBtn') {
+          this.applyColorCorrectionsToClip();
+        } else {
+          this.applyPreset(preset.dataset.preset);
+        }
       });
     });
 
@@ -526,6 +531,30 @@ export class ColorCorrectionSystem {
 
     this.updatePanelValues();
     this.applyColorCorrections();
+  }
+
+  applyColorCorrectionsToClip() {
+    if (!this.selectedClipId) return;
+    const corrections = this.getCurrentCorrections(this.state.playheadPercent * this.state.timelineSeconds);
+    if (!Object.keys(corrections).length) return;
+
+    const clip = this.state.clips.find(c => c.id === this.selectedClipId)
+      || this.state.tracks.flatMap(t => t.items || []).find(c => c.id === this.selectedClipId);
+    if (!clip) return;
+
+    const effect = {
+      id: `colorCorrection-${Date.now()}`,
+      type: 'colorCorrection',
+      params: corrections,
+    };
+
+    const existing = (clip.effects || []).filter(e => e.type !== 'colorCorrection');
+    clip.effects = [...existing, effect];
+
+    // Notify listeners so the timeline re-renders with the updated clip
+    if (typeof this.state.persist === 'function') {
+      this.state.persist();
+    }
   }
 
   updateScopes() {

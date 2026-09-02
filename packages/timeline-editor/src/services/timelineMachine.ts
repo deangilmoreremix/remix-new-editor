@@ -38,6 +38,10 @@ export type TimelineEvent =
   | { type: 'ADD_MARKER'; marker: Marker }
   | { type: 'REMOVE_MARKER'; markerId: string }
   | { type: 'ADD_TRANSITION'; transition: Transition }
+  | { type: 'REMOVE_TRANSITION'; transitionId: string }
+  | { type: 'ADD_KEYFRAME'; clipId: string; keyframe: { id: string; time: number; value: number; easing: string; interpolation: string } }
+  | { type: 'REMOVE_KEYFRAME'; clipId: string; keyframeId: string }
+  | { type: 'UPDATE_KEYFRAME'; clipId: string; keyframeId: string; patch: { time?: number; value?: number } }
   | { type: 'ADD_GROUP'; group: ClipGroup }
   | { type: 'UNDO' }
   | { type: 'REDO' }
@@ -142,6 +146,10 @@ export const timelineMachine = setup({
         ADD_MARKER: { actions: ['commit', assignAddMarker] },
         REMOVE_MARKER: { actions: ['commit', assignRemoveMarker] },
         ADD_TRANSITION: { actions: ['commit', assignAddTransition] },
+        REMOVE_TRANSITION: { actions: ['commit', assignRemoveTransition] },
+        ADD_KEYFRAME: { actions: ['commit', assignAddKeyframe] },
+        REMOVE_KEYFRAME: { actions: ['commit', assignRemoveKeyframe] },
+        UPDATE_KEYFRAME: { actions: ['commit', assignUpdateKeyframe] },
         ADD_GROUP: { actions: ['commit', assignAddGroup] },
         UNDO: { target: 'idle', actions: 'undo' },
         REDO: { target: 'idle', actions: 'redo' },
@@ -153,6 +161,10 @@ export const timelineMachine = setup({
         SET_TIME: { actions: assignSetTime },
         SET_PLAYING: { actions: assignSetPlaying },
         ADD_MARKER: { actions: ['commit', assignAddMarker] },
+        REMOVE_TRANSITION: { actions: ['commit', assignRemoveTransition] },
+        ADD_KEYFRAME: { actions: ['commit', assignAddKeyframe] },
+        REMOVE_KEYFRAME: { actions: ['commit', assignRemoveKeyframe] },
+        UPDATE_KEYFRAME: { actions: ['commit', assignUpdateKeyframe] },
         UNDO: { target: 'idle', actions: 'undo' },
         REDO: { target: 'idle', actions: 'redo' },
       },
@@ -304,4 +316,52 @@ const assignAddTransition = assign({
 const assignAddGroup = assign({
   groups: ({ context, event }) =>
     event.type === 'ADD_GROUP' ? [...context.groups, event.group] : context.groups,
+});
+
+const assignRemoveTransition = assign({
+  transitions: ({ context, event }) =>
+    event.type === 'REMOVE_TRANSITION'
+      ? context.transitions.filter((t) => t.id !== event.transitionId)
+      : context.transitions,
+});
+
+const assignAddKeyframe = assign({
+  clips: ({ context, event }) =>
+    event.type === 'ADD_KEYFRAME'
+      ? context.clips.map((c) =>
+          c.id === event.clipId
+            ? {
+                ...c,
+                keyframes: [...(c.keyframes || []), { ...event.keyframe, clipId: event.clipId }],
+              }
+            : c,
+        )
+      : context.clips,
+});
+
+const assignRemoveKeyframe = assign({
+  clips: ({ context, event }) =>
+    event.type === 'REMOVE_KEYFRAME'
+      ? context.clips.map((c) =>
+          c.id === event.clipId
+            ? { ...c, keyframes: (c.keyframes || []).filter((k) => k.id !== event.keyframeId) }
+            : c,
+        )
+      : context.clips,
+});
+
+const assignUpdateKeyframe = assign({
+  clips: ({ context, event }) =>
+    event.type === 'UPDATE_KEYFRAME'
+      ? context.clips.map((c) =>
+          c.id === event.clipId
+            ? {
+                ...c,
+                keyframes: (c.keyframes || []).map((k) =>
+                  k.id === event.keyframeId ? { ...k, ...event.patch } : k,
+                ),
+              }
+            : c,
+        )
+      : context.clips,
 });
