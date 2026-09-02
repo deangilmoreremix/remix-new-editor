@@ -316,11 +316,18 @@ export function safeValidate(schema, data) {
 export function validateOrPass(schema, data, context = 'unknown') {
   if (data === null || data === undefined) return data;
   if (!schema || typeof schema.safeParse !== 'function') return data;
-  const result = schema.safeParse(data);
-  if (result.success) return result.data;
-  if (typeof console !== 'undefined' && console.warn) {
-    console.warn(`[Validation:${context}] Using data as-is despite ${result.error.issues.length} issue(s):`,
-      result.error.issues.slice(0, 3).map(i => `${i.path.join('.')}: ${i.message}`).join('; '));
+  try {
+    const result = schema.safeParse(data);
+    if (result && result.success) return result.data;
+  } catch (err) {
+    // zod runtime can throw if the Vite-pre-bundled zod is internally
+    // inconsistent (e.g. _zod property missing on a class instance).
+    // validateOrPass must never throw — it is on the boot critical path
+    // for TimelineState and persistence, and a failed validation must
+    // degrade to "use data as-is" rather than block the timeline mount.
+    if (typeof console !== 'undefined' && console.warn) {
+      console.warn(`[Validation:${context}] safeParse threw, using data as-is:`, err?.message || err);
+    }
   }
   return data;
 }

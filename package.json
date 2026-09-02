@@ -23,7 +23,14 @@
     "clean:ai-vfx": "rm -rf apps/ai-vfx/.next",
     "build:packages": "npm run build --workspaces --if-present",
     "dev:packages": "npm run dev --workspaces --if-present",
-    "dev:backend": "cd backend && npm run dev"
+    "dev:backend": "cd backend && npm run dev",
+    "dev:video-agent-studio": "cd apps/video-agent-studio && npm run dev:shared",
+    "dev:video-agent-studio:isolated": "cd apps/video-agent-studio && npm run dev:isolated",
+    "build:video-agent-studio": "cd apps/video-agent-studio && npm run build",
+    "test:video-agent-studio": "cd apps/video-agent-studio && npm test --if-present",
+    "lint:video-agent-studio": "cd apps/video-agent-studio && npm run lint --if-present",
+    "verify:video-agent-studio": "cd apps/video-agent-studio && npm run verify:affected --if-present",
+    "update:video-agent-studio-subtree": "git fetch openchatcut && git subtree pull --prefix=apps/video-agent-studio openchatcut main --squash"
   },
   "devDependencies": {
     "@babel/plugin-proposal-class-properties": "^7.18.6",

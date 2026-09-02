@@ -71,7 +71,7 @@ const pageLoaders = {
   'commercial-page': () => import('../components/CommercialPage.js').then(m => m.CommercialPage()),
   'upscale-page': () => import('../components/UpscalePage.js').then(m => m.UpscalePage()),
   render: () => import('../components/RenderPage.js').then(m => m.RenderPage()),
-  'video-agent': () => import('../components/VideoAgentPage.js').then(m => m.VideoAgentPage()),
+  'video-agent': () => import('../components/VideoAgentStudioShell.js').then(m => m.VideoAgentStudioShell()),
   director: () => import('../components/DirectorPage.js').then(m => m.DirectorPage()),
   timeline: () => import('../components/TimelineEditorPage.jsx').then(m => m.TimelineEditorPage()),
   'ai-vfx': () => import('../components/AIVFXPage.js').then(m => m.AIVFXPage()),

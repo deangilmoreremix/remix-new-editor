@@ -22,6 +22,12 @@ import openmontageProxy from './services/openmontageProxy.js';
 import { auth, optionalAuth } from './middleware/auth.js';
 import chatRouter from './routes/chat.js';
 import setupChatWebSocket from './websocket/chat.js';
+import { createVideoAgentStudioRouter } from './routes/video-agent-studio/index.js';
+import { InMemoryVideoAgentProjectRepository } from './services/video-agent-studio/projectRepository.js';
+import { InMemoryVideoAgentMediaStore } from './services/video-agent-studio/mediaStore.js';
+import { InMemorySmartVideoGenerationAdapter } from './services/video-agent-studio/generationAdapter.js';
+import { InMemoryCreditLedger } from './services/video-agent-studio/creditLedger.js';
+import { InMemoryVideoAgentEventBus } from './services/video-agent-studio/eventBus.js';
 
  const app = express();
  const server = http.createServer(app);
@@ -65,6 +71,37 @@ app.use('/api/gtm-boost', optionalAuth, gtmBoostService);
 app.use('/api/storyboard', storyboardService);
 app.use('/videoagent', videoAgentLimiter, optionalAuth, videoAgentService);
 app.use('/openmontage', optionalAuth, openmontageProxy);
+
+// Video Agent Studio — new OpenChatCut-derived integration surface.
+// The in-memory repositories below are intended for development and
+// tests. The production wiring (Postgres projects, Supabase Storage,
+// MuAPI generation, real credit ledger) is a follow-up that must not
+// change the wire contract defined in
+// backend/services/video-agent-studio/*.
+const videoAgentStudioDeps = {
+  projectRepository: new InMemoryVideoAgentProjectRepository(),
+  mediaStore: new InMemoryVideoAgentMediaStore(),
+  generationAdapter: new InMemorySmartVideoGenerationAdapter(),
+  creditLedger: new InMemoryCreditLedger(),
+  eventBus: new InMemoryVideoAgentEventBus(),
+  getApprovalMode: async () => ({ mode: 'BALANCED', autoApproveThresholdCredits: 25 }),
+  requireUser: async (req) => {
+    if (req?.user?.id) return { id: req.user.id };
+    // Dev fallback so the new routes are still testable without Clerk.
+    if (process.env.NODE_ENV === 'development') {
+      const devId = req?.headers?.['x-dev-user-id'];
+      if (typeof devId === 'string' && devId.length > 0) return { id: devId };
+    }
+    const err = new Error('unauthenticated');
+    err.status = 401;
+    throw err;
+  },
+};
+app.use(
+  '/api/video-agent-studio',
+  auth,
+  createVideoAgentStudioRouter(videoAgentStudioDeps),
+);
 
 // Health check
 app.get('/health', (req, res) => {

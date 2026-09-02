@@ -99,7 +99,7 @@
     flex: 0 0 52%;
     max-height: none;
     min-height: 320px;
-    overflow: hidden;
+    overflow: visible;
   }
 }
 
@@ -134,27 +134,25 @@
 
 .mdv-media-element {
   display: block;
-  max-width: 100%;
-  max-height: 60vh;
-  width: auto;
-  height: auto;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
   border-radius: 12px;
 }
 
 @media (min-width: 768px) {
   .mdv-media-element {
-    max-height: 65vh;
+    max-height: none;
   }
 }
 
 .mdv-media-element[type="video"] {
-  max-height: 35vh;
+  max-height: none;
 }
 
 @media (min-width: 768px) {
   .mdv-media-element[type="video"] {
-    max-height: 60vh;
+    max-height: none;
   }
 }
 
