@@ -4150,3 +4150,100 @@
 .hero-subtitle,
 .gtm-subtitle { color: var(--muted); font-size: 14px; }
 .template-generator-content { display: flex; flex-direction: column; gap: 16px; }
+
+/* === Drawer-layout fixes for this modal cluster (right-side drawer) ===
+   The shared BaseModal now renders as a full-height right drawer with a
+   scrollable body and a pinned footer. These rules keep each modal's own
+   action bar / step actions stuck to the bottom of the scroll area instead
+   of floating mid-body, and give the template preview a real height. */
+
+/* Push Reset (footer-left) to the left, Cancel/Save to the right. */
+.modal-footer .footer-left { margin-right: auto; }
+
+/* SaveProjectModal + SettingsModal: their action bars are rendered inside the
+   scrollable body (dynamic Saving spinner / re-created on every updateBody),
+   so pin them with sticky instead of moving them out of the body. */
+.saveproject-footer,
+.settings-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+}
+
+/* ContactImporterModal: per-step action bar relied on margin-top:auto in a
+   height-constrained centered body; pin it within the drawer scroll area.
+   Scoped to .importer-container so the shared .step-actions rule used by
+   other modals is unaffected. */
+.importer-container .step-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  background: var(--panel-soft);
+}
+
+/* TemplatePreviewModal: the preview canvas uses height:100% but its
+   ancestors (.preview-viewport / .preview-content) had no height, so it
+   collapsed. Scoped to this modal's container so the shared .preview-viewport
+   (used by the End Screen modal) is untouched. */
+.template-preview-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.template-preview-container .preview-viewport {
+  aspect-ratio: 16 / 9;
+  max-height: 55vh;
+  width: 100%;
+}
+.template-preview-container .preview-content {
+  height: 100%;
+}
+
+/* === Drawer-layout fixes: this modal cluster (right-side drawer) ===
+   Mirrors the sticky-footer pattern above for modals that render their own
+   action bar inside the scrollable body instead of using BaseModal's footer.
+   Scoped to each modal's own footer class so nothing else is touched. */
+
+.modal-footer.previewmedia-footer,
+.modal-footer.recorder-footer,
+.modal-footer.pageshot-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  background: var(--bg);
+}
+
+/* PreviewMediaModal: media must fill the bounded drawer width (size 'full'
+   = 90vw) instead of rendering at intrinsic/default size. */
+.media-video {
+  width: 100%;
+  max-height: 60vh;
+  object-fit: contain;
+  background: #000;
+}
+.media-image {
+  max-width: 100%;
+}
+
+/* RecorderModal: recorded playback / webcam feeds must not overflow the
+   bounded 'medium' drawer width. */
+.recorded-playback {
+  width: 100%;
+  background: #000;
+}
+.webcam-feed {
+  width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+/* PageShotModal: captured screenshot must not overflow the 'large' drawer
+   width; the canvas viewport spans the full body width. */
+.viewport-canvas {
+  width: 100%;
+}
+.screenshot-image {
+  max-width: 100%;
+  display: block;
+}

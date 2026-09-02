@@ -59,6 +59,20 @@ export function DemosSection() {
             <!-- Animated Border Glow -->
             <div class="absolute inset-0 bg-gradient-to-br from-cyan-400/20 to-blue-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             
+            <!-- Historical sample gallery added as visual enhancement -->
+            <div class="relative h-40 overflow-hidden border-b border-white/10">
+              <img 
+                src="/thumbnails/studios/image.webp" 
+                alt="AI image generation sample"
+                class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
+                loading="lazy"
+              />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+              <div class="absolute bottom-3 left-4">
+                <span class="text-xs font-medium text-cyan-300 bg-black/40 px-2 py-1 rounded">Sample Output</span>
+              </div>
+            </div>
+            
             <div class="relative z-10 p-6">
               <div class="text-center mb-4">
                 <div class="w-16 h-16 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-cyan-400/30">
@@ -84,6 +98,25 @@ export function DemosSection() {
           <div class="demo-card relative bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-2xl overflow-hidden group hover:border-purple-400/50 transition-all duration-500">
             <div class="absolute inset-0 bg-gradient-to-br from-purple-400/20 to-pink-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             
+            <!-- Historical sample video poster added as visual enhancement -->
+            <div class="relative h-40 overflow-hidden border-b border-white/10">
+              <img 
+                src="/thumbnails/studios/video.webp" 
+                alt="AI video generation sample"
+                class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
+                loading="lazy"
+              />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+              <div class="absolute inset-0 flex items-center justify-center">
+                <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
+                  <span class="text-2xl">▶</span>
+                </div>
+              </div>
+              <div class="absolute bottom-3 left-4">
+                <span class="text-xs font-medium text-purple-300 bg-black/40 px-2 py-1 rounded">Video Sample</span>
+              </div>
+            </div>
+            
             <div class="relative z-10 p-6">
               <div class="text-center mb-4">
                 <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-purple-400/30">
@@ -106,6 +139,20 @@ export function DemosSection() {
         <div class="demo-card-wrapper opacity-0 translate-y-8" style="transition-delay: 300ms;">
           <div class="demo-card relative bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-2xl overflow-hidden group hover:border-green-400/50 transition-all duration-500">
             <div class="absolute inset-0 bg-gradient-to-br from-green-400/20 to-emerald-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            
+            <!-- Historical character preview added as visual enhancement -->
+            <div class="relative h-40 overflow-hidden border-b border-white/10">
+              <img 
+                src="/thumbnails/studios/character.webp" 
+                alt="AI character creation sample"
+                class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
+                loading="lazy"
+              />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+              <div class="absolute bottom-3 left-4">
+                <span class="text-xs font-medium text-green-300 bg-black/40 px-2 py-1 rounded">Character Preview</span>
+              </div>
+            </div>
             
             <div class="relative z-10 p-6">
               <div class="text-center mb-4">

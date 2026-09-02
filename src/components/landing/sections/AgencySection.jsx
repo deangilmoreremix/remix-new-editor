@@ -1,5 +1,7 @@
 // Agency Section - This Is Not Just A Tool — It's An AI Video Agency Business In A Box
 
+import SHOWCASE_CONFIG from '../../content/showcaseConfig.js';
+
 export function AgencySection() {
   const section = document.createElement('section');
   section.className = 'py-20 px-4 bg-[#020205]';
@@ -120,6 +122,22 @@ export function AgencySection() {
               <div class="stat-item hover:scale-105 transition-transform duration-200 cursor-default">
                 <div class="text-2xl font-bold text-purple-400">95%</div>
                 <div class="text-xs text-gray-400">Client Satisfaction</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Historical sample gallery added as visual enhancement -->
+          <div class="mt-8">
+            <h4 class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-4">Sample Client Work</h4>
+            <div class="grid grid-cols-3 gap-2">
+              <div class="aspect-square rounded-lg overflow-hidden border border-white/10 hover:border-cyan-400/30 transition-colors">
+                <img src="/thumbnails/categories/commercial.webp" alt="Commercial sample" class="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity" loading="lazy" />
+              </div>
+              <div class="aspect-square rounded-lg overflow-hidden border border-white/10 hover:border-cyan-400/30 transition-colors">
+                <img src="/thumbnails/categories/social.webp" alt="Social media sample" class="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity" loading="lazy" />
+              </div>
+              <div class="aspect-square rounded-lg overflow-hidden border border-white/10 hover:border-cyan-400/30 transition-colors">
+                <img src="/thumbnails/categories/portrait.webp" alt="Portrait sample" class="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity" loading="lazy" />
               </div>
             </div>
           </div>

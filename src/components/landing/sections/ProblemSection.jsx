@@ -1,5 +1,7 @@
 // Problem Section - AI Video Is Exploding... But Most People Can't Turn It Into A Real Business
 
+import SHOWCASE_CONFIG from '../../content/showcaseConfig.js';
+
 export function ProblemSection() {
   const section = document.createElement('section');
   section.className = 'py-20 px-4 bg-gradient-to-b from-[#020205] to-[#05070b]';
@@ -14,6 +16,18 @@ export function ProblemSection() {
         <p class="text-xl text-gray-300 max-w-4xl mx-auto leading-relaxed">
           Everyone's talking about AI video tools, but here's the harsh reality: Most creators and agencies are stuck buying 10+ different tools, learning complex workflows, and still delivering mediocre results that don't impress clients.
         </p>
+      </div>
+
+      <!-- Scattered tools visual - historical category thumbnails added as enhancement -->
+      <div class="flex flex-wrap justify-center gap-3 mb-12">
+        ${['camera', 'commercial', 'social', 'portrait', 'vfx', 'style'].map((cat, i) => {
+          const thumb = SHOWCASE_CONFIG.categoryThumbnails[cat];
+          return `
+          <div class="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden border border-white/10 hover:border-red-400/30 hover:scale-110 transition-all duration-300 opacity-0 translate-y-4" style="transition-delay: ${i * 60}ms;">
+            <img src="${thumb}" alt="${cat} category" class="w-full h-full object-cover opacity-70" loading="lazy" />
+          </div>
+          `;
+        }).join('')}
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 problem-cards">
@@ -76,21 +90,36 @@ export function ProblemSection() {
     </style>
   `;
 
-  // Initialize scroll animations
-  setTimeout(() => {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('animate-in');
-          observer.unobserve(entry.target);
-        }
+    // Initialize scroll animations
+    setTimeout(() => {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('animate-in');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+      section.querySelectorAll('.problem-card, .solution-reveal, .problem-headline').forEach(el => {
+        observer.observe(el);
       });
-    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
 
-    section.querySelectorAll('.problem-card, .solution-reveal, .problem-headline').forEach(el => {
-      observer.observe(el);
-    });
-  }, 100);
+      // Animate category thumbnails
+      const catThumbs = section.querySelectorAll('[style*="transition-delay"]');
+      const catObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+            entry.target.style.transition = 'opacity 0.5s ease-out-quart, transform 0.5s ease-out-quart';
+            catObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -30px 0px' });
 
-  return section;
-}
+      catThumbs.forEach(el => catObserver.observe(el));
+    }, 100);
+
+    return section;
+  }

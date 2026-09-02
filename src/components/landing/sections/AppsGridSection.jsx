@@ -1,5 +1,7 @@
 // Apps Grid Section - 33 AI Creative Apps Showcase
 
+import SHOWCASE_CONFIG from '../../content/showcaseConfig.js';
+
 export function AppsGridSection({ apps }) {
   const section = document.createElement('section');
   section.className = 'py-20 px-4 bg-gradient-to-b from-[#05070b] to-[#020205]';
@@ -61,7 +63,9 @@ export function AppsGridSection({ apps }) {
 
       <!-- Apps Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12" id="apps-grid">
-        ${apps.map((app, index) => `
+        ${apps.map((app, index) => {
+          const thumbnailPath = SHOWCASE_CONFIG.getStudioThumbnail(app.id);
+          return `
           <a href="${app.link}" class="app-card group block p-6 bg-gradient-to-br from-white/5 to-white/2 border border-white/10 rounded-xl hover:border-cyan-400/50 hover:bg-cyan-400/5 transition-all duration-300 hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-cyan-400/20 opacity-0 translate-y-4" data-app-id="${app.id}" data-index="${index}" data-testid="app-card">
             <div class="flex items-start gap-4">
               <div class="w-12 h-12 bg-cyan-400/20 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-cyan-400/30 transition-colors">
@@ -72,6 +76,15 @@ export function AppsGridSection({ apps }) {
                 <p class="text-sm text-gray-400 leading-relaxed">${app.description}</p>
               </div>
             </div>
+            <!-- Historical studio thumbnail added as visual enhancement -->
+            <div class="mt-4 rounded-lg overflow-hidden border border-white/10 group-hover:border-cyan-400/30 transition-colors">
+              <img 
+                src="${thumbnailPath}" 
+                alt="${app.title} studio preview"
+                class="w-full h-32 object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300"
+                loading="lazy"
+              />
+            </div>
             <div class="mt-4 flex items-center text-xs text-cyan-400 font-medium opacity-0 group-hover:opacity-100 transition-opacity">
               <span>Open ${app.title}</span>
               <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -79,13 +92,51 @@ export function AppsGridSection({ apps }) {
               </svg>
             </div>
           </a>
-        `).join('')}
+          `;
+        }).join('')}
       </div>
 
       <!-- No Results Message -->
       <div id="no-results" class="hidden text-center py-12">
         <div class="text-4xl mb-4">🔍</div>
         <p class="text-gray-400 text-lg">No apps found matching your search.</p>
+      </div>
+
+      <!-- Before/After Tool Previews - Historical tool examples added as visual enhancement -->
+      <div class="mt-16 mb-12">
+        <div class="text-center mb-8">
+          <h3 class="text-2xl md:text-3xl font-bold text-white mb-3">Edit Studio — See It In Action</h3>
+          <p class="text-gray-400 max-w-2xl mx-auto">Powerful AI editing tools that transform your visuals. Remove backgrounds, swap faces, enhance skin, upscale resolution, and more.</p>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          ${[
+            { id: 'remove-bg', name: 'Remove Background', thumb: SHOWCASE_CONFIG.getToolThumbnail('removeBg') },
+            { id: 'remove-object', name: 'Remove Object', thumb: SHOWCASE_CONFIG.getToolThumbnail('removeObject') },
+            { id: 'face-swap', name: 'Face Swap', thumb: SHOWCASE_CONFIG.getToolThumbnail('faceSwap') },
+            { id: 'product-shot', name: 'Product Shot', thumb: SHOWCASE_CONFIG.getToolThumbnail('productShot') },
+            { id: 'upscale', name: 'Upscale', thumb: SHOWCASE_CONFIG.getToolThumbnail('upscale') },
+            { id: 'skin-enhance', name: 'Skin Enhance', thumb: SHOWCASE_CONFIG.getToolThumbnail('skinEnhance') },
+            { id: 'colorize', name: 'Colorize', thumb: SHOWCASE_CONFIG.getToolThumbnail('colorize') },
+            { id: 'reframe', name: 'Reframe', thumb: SHOWCASE_CONFIG.getToolThumbnail('reframe') },
+            { id: 'ai-edit', name: 'AI Edit', thumb: SHOWCASE_CONFIG.getToolThumbnail('aiEdit') },
+            { id: 'extend', name: 'Extend', thumb: SHOWCASE_CONFIG.getToolThumbnail('extend') },
+            { id: 'ghibli-style', name: 'Ghibli Style', thumb: SHOWCASE_CONFIG.getToolThumbnail('ghibliStyle') },
+            { id: 'watermark', name: 'Watermark', thumb: SHOWCASE_CONFIG.getToolThumbnail('watermark') }
+          ].map((tool, i) => `
+            <div class="tool-preview-card group relative aspect-[3/4] rounded-xl overflow-hidden border border-white/10 hover:border-cyan-400/50 transition-all duration-300 cursor-pointer" style="transition-delay: ${i * 40}ms;">
+              <img 
+                src="${tool.thumb}" 
+                alt="${tool.name} tool preview"
+                class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500"
+                loading="lazy"
+              />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+              <div class="absolute bottom-0 left-0 right-0 p-3">
+                <span class="text-sm font-medium text-white">${tool.name}</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
       </div>
 
       <!-- CTA Button -->
@@ -122,6 +173,20 @@ export function AppsGridSection({ apps }) {
         .app-card:hover { transform: none; }
         .category-tab { transition: none; }
         .category-tab:hover { transform: none; }
+        .tool-preview-card { transition: none; opacity: 1; transform: none; }
+        .tool-preview-card:hover { transform: none; }
+      }
+
+      /* Tool preview cards */
+      .tool-preview-card {
+        transition: opacity 0.5s ease-out-quart, transform 0.5s ease-out-quart, border-color 0.3s ease, box-shadow 0.3s ease;
+      }
+      .tool-preview-card.animate-in {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .tool-preview-card:hover {
+        transform: translateY(-4px);
       }
     </style>
   `;
@@ -186,6 +251,22 @@ export function AppsGridSection({ apps }) {
     appCards.forEach((card, index) => {
       card.style.animationDelay = `${index * 30}ms`;
       observer.observe(card);
+    });
+
+    // Animate tool preview cards
+    const toolCards = section.querySelectorAll('.tool-preview-card');
+    const toolObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animate-in');
+          toolObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+    toolCards.forEach((card, index) => {
+      card.style.animationDelay = `${index * 40}ms`;
+      toolObserver.observe(card);
     });
   }, 0);
 

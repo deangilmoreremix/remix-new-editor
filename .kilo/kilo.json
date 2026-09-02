@@ -79,5 +79,6 @@
         "mcp": "deny"
       }
     }
-  }
+  },
+  "snapshot": false
 }
