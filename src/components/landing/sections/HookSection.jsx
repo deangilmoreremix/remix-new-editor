@@ -1,4 +1,7 @@
 // Hook Section - Stop buying scattered AI tools, start building an AI video agency
+
+import SHOWCASE_CONFIG from '../../content/showcaseConfig.js';
+
 export function HookSection() {
   const section = document.createElement('section');
   section.className = 'py-16 px-4 bg-gradient-to-b from-[#020205] to-[#05070b] border-y border-cyan-400/20';
@@ -34,12 +37,32 @@ export function HookSection() {
             See It In Action
           </button>
         </div>
+
+        <!-- Studio visual gallery - historical thumbnails added as enhancement -->
+        <div class="mt-12 flex flex-wrap justify-center gap-3 md:gap-4 max-w-5xl mx-auto">
+          ${['image', 'video', 'cinema', 'character', 'edit', 'audio', 'avatar', 'effects', 'commercial', 'storyboard'].map((studioId, i) => {
+            const thumb = SHOWCASE_CONFIG.getStudioThumbnail(studioId);
+            return `
+            <div class="w-14 h-14 md:w-16 md:h-16 rounded-lg overflow-hidden border border-white/10 hover:border-cyan-400/50 hover:scale-110 transition-all duration-300 opacity-0 translate-y-4" style="transition-delay: ${i * 60}ms;">
+              <img src="${thumb}" alt="${studioId}" class="w-full h-full object-cover" loading="lazy" />
+            </div>
+            `;
+          }).join('')}
+        </div>
       </div>
     </div>
 
     <style>
+      @keyframes hookFadeIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .hook-thumb-animate {
+        animation: hookFadeIn 0.6s ease-out forwards;
+      }
       @media (prefers-reduced-motion: reduce) {
         .hook-animate { animation: none; }
+        .hook-thumb-animate { animation: none; opacity: 1; transform: none; }
       }
     </style>
    `;
@@ -51,6 +74,22 @@ export function HookSection() {
       window.location.href = 'https://buy.stripe.com/dRmbJ02OoeaAeKx8Mo5Rm07';
     });
   }
+
+  // Animate studio thumbnails
+  setTimeout(() => {
+    const thumbObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('hook-thumb-animate');
+          thumbObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -30px 0px' });
+
+    section.querySelectorAll('[style*="transition-delay"]').forEach(el => {
+      thumbObserver.observe(el);
+    });
+  }, 100);
 
   return section;
 }

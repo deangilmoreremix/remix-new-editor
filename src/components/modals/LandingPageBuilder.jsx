@@ -78,7 +78,7 @@ export class LandingPageBuilder extends BaseModal {
           padding: 24px 0;
         }
 
-        .template-grid {
+        .landing-page-builder .template-grid {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
           gap: 16px;
@@ -188,7 +188,7 @@ export class LandingPageBuilder extends BaseModal {
           margin-bottom: 24px;
         }
 
-        .code-preview {
+        .landing-page-builder .code-preview {
           background: var(--panel);
           border: 1px solid var(--border);
           border-radius: 8px;
@@ -197,7 +197,7 @@ export class LandingPageBuilder extends BaseModal {
           font-size: 12px;
           line-height: 1.4;
           max-height: 300px;
-          overflow-y: auto;
+          overflow: auto;
           white-space: pre-wrap;
           color: var(--text);
         }

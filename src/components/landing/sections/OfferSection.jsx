@@ -3,6 +3,8 @@
 
 import CheckoutCTA from '../common/CheckoutCTA.jsx';
 
+import SHOWCASE_CONFIG from '../../content/showcaseConfig.js';
+
 export function OfferSection() {
   const section = document.createElement('section');
   section.className = 'py-20 px-4 bg-gradient-to-b from-[#020205] via-[#05070b] to-[#020205] relative overflow-hidden';
@@ -279,6 +281,43 @@ export function OfferSection() {
            </div>
          </div>
        </div>
+
+      <!-- Template Gallery - Historical template previews added as visual enhancement -->
+      <div class="template-gallery max-w-6xl mx-auto mb-20">
+        <div class="text-center mb-10">
+          <h3 class="text-2xl md:text-3xl font-bold text-white mb-4">Start With Proven Templates</h3>
+          <p class="text-gray-400 max-w-2xl mx-auto">Choose from industry-specific templates for restaurants, spas, real estate, fitness, fashion, and more. Each template is pre-configured with prompts, styles, and settings.</p>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          ${Object.entries({
+            'Restaurant': SHOWCASE_CONFIG.getTemplateThumbnail('restaurant'),
+            'Med Spa': SHOWCASE_CONFIG.getTemplateThumbnail('medspa'),
+            'Real Estate': SHOWCASE_CONFIG.getTemplateThumbnail('realEstate'),
+            'Fitness': SHOWCASE_CONFIG.getTemplateThumbnail('fitness'),
+            'Fashion': SHOWCASE_CONFIG.getTemplateThumbnail('fashion'),
+            'Dental': SHOWCASE_CONFIG.getTemplateThumbnail('dental'),
+            'Automotive': SHOWCASE_CONFIG.getTemplateThumbnail('automotive'),
+            'Beauty': SHOWCASE_CONFIG.getTemplateThumbnail('beauty'),
+            'Salon': SHOWCASE_CONFIG.getTemplateThumbnail('salon'),
+            'Legal': SHOWCASE_CONFIG.getTemplateThumbnail('legal'),
+            'Luxury': SHOWCASE_CONFIG.getTemplateThumbnail('luxury'),
+            'Events': SHOWCASE_CONFIG.getTemplateThumbnail('events')
+          }).map(([name, thumb], i) => `
+            <div class="template-card group relative aspect-[3/4] rounded-xl overflow-hidden border border-white/10 hover:border-cyan-400/50 transition-all duration-300 cursor-pointer" style="transition-delay: ${i * 50}ms;">
+              <img 
+                src="${thumb}" 
+                alt="${name} template preview"
+                class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500"
+                loading="lazy"
+              />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+              <div class="absolute bottom-0 left-0 right-0 p-3">
+                <span class="text-sm font-medium text-white">${name}</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
 
       <!-- Interactive Feature Comparison -->
       <div class="feature-comparison max-w-5xl mx-auto">

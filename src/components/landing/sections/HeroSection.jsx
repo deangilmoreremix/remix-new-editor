@@ -1,6 +1,8 @@
 // Hero Section - Smart Video AI Studio
 // Cinematic design with direct-response positioning and premium motion
 
+import SHOWCASE_CONFIG from '../../content/showcaseConfig.js';
+
 export function HeroSection() {
   const section = document.createElement('section');
   section.className = 'relative py-24 md:py-32 px-4 overflow-hidden min-h-screen flex items-center';
@@ -91,6 +93,20 @@ export function HeroSection() {
         </div>
       </div>
 
+      <!-- Studio Visual Gallery - Historical thumbnails added as visual enhancement -->
+      <div class="mt-16 relative">
+        <div class="flex flex-wrap justify-center gap-4 md:gap-6 max-w-6xl mx-auto">
+          ${['image', 'video', 'cinema', 'character', 'edit', 'audio', 'avatar', 'effects'].map((studioId, i) => {
+            const thumb = SHOWCASE_CONFIG.getStudioThumbnail(studioId);
+            return `
+            <div class="studio-thumb-item w-20 h-20 md:w-24 md:h-24 rounded-xl overflow-hidden border-2 border-white/10 hover:border-cyan-400/50 hover:scale-110 transition-all duration-300 opacity-0 translate-y-4" style="transition-delay: ${i * 80}ms;">
+              <img src="${thumb}" alt="${studioId} studio" class="w-full h-full object-cover" loading="lazy" />
+            </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+
       <!-- Scroll indicator with bounce animation -->
       <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
         <svg class="w-6 h-6 text-cyan-400/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -151,8 +167,36 @@ export function HeroSection() {
         .hero-headline span { opacity: 1 !important; }
         .parallax-layer { animation: none !important; }
       }
+      
+      /* Studio thumbnail gallery */
+      .studio-thumb-item {
+        transition: opacity 0.5s ease-out-quart, transform 0.5s ease-out-quart, border-color 0.3s ease;
+      }
+      .studio-thumb-item.animate-in {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .studio-thumb-item:hover {
+        transform: translateY(-4px) scale(1.1);
+      }
     </style>
   `;
+
+  // Animate studio thumbnails on scroll
+  setTimeout(() => {
+    const thumbObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animate-in');
+          thumbObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+    section.querySelectorAll('.studio-thumb-item').forEach(el => {
+      thumbObserver.observe(el);
+    });
+  }, 500);
 
   // Typewriter effect for headline
   setTimeout(() => {
