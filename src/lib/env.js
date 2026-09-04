@@ -11,6 +11,11 @@ const REQUIRED_VARS = [
     'VITE_SUPABASE_ANON_KEY'
 ];
 
+// Variables that must NOT be set in production
+const PROD_FORBIDDEN_VARS = [
+    'VITE_DEV_BYPASS_AUTH'
+];
+
 // Optional environment variables with defaults
 const OPTIONAL_VARS = {
     'VITE_LOG_LEVEL': 'INFO',
@@ -83,6 +88,15 @@ export function validateEnv() {
             if (!result.valid) {
                 errors.push(result.error);
             }
+        }
+    }
+
+    // Check production-forbidden variables
+    const isProduction = import.meta.env.MODE === 'production';
+    for (const varName of PROD_FORBIDDEN_VARS) {
+        const value = import.meta.env[varName];
+        if (isProduction && value && value !== 'false' && value !== '0') {
+            errors.push(`${varName} must not be set in production (current: "${value}")`);
         }
     }
     

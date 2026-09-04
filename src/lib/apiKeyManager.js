@@ -283,7 +283,12 @@ apiKeyManager.migrateFromLegacy();
  * flag is unset. The placeholder key is NOT a real Muapi key, so live API calls
  * will still fail — this only bypasses the auth gate for UI development.
  */
-const DEV_PLACEHOLDER_KEY = 'dev-bypass-key-not-real';
+// Use a placeholder key that the proxy also rejects. The proxy only
+// recognizes the literal string 'dev', so we use that here to avoid
+// leaking a 22-char placeholder upstream. This placeholder is injected
+// only in memory; it is never persisted to sessionStorage/localStorage.
+const DEV_PLACEHOLDER_KEY = 'dev';
+
 export const isDevBypass =
     (typeof import.meta !== 'undefined' && import.meta.env?.VITE_DEV_BYPASS_AUTH === 'true') ||
     (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('dev'));
