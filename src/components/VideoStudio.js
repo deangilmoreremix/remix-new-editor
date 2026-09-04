@@ -12,7 +12,7 @@ import { createUploadPicker } from './UploadPicker.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
-import { mountPersonalizePopover, replaceTokensInPrompt } from './personalize/personalizePopover.js';
+import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { navigate } from '../lib/router.js';
 import { consumeStudioPrefill } from '../lib/studioPrefill.js';
 import { saveGeneratedAsset } from '../lib/assets/assetActions.js';
