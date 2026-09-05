@@ -37,8 +37,9 @@ import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { selectScenes } from '../lib/sceneSelector.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
-import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
+import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
 import { enrichPromptString, composeNegativePrompt } from '../lib/templateEngine.js';
+import { saveGeneration } from '../lib/generationHistory.js';
 
 export function CinemaTemplateStudio() {
   const container = document.createElement('div');
@@ -1725,7 +1726,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       const logoUrl = PROVIDER_LOGOS[provider];
       const name = model ? model.name : getModelName(selectedModel);
       if (logoUrl) {
-        triggerBtn.innerHTML = `<div class="w-5 h-5 rounded-md flex items-center justify-center overflow-hidden bg-white/5 shrink-0"><img src="${logoUrl}" alt="" class="w-full h-full object-contain ${invertLogos.includes(provider) ? 'invert' : ''}" /></div><span class="text-sm font-bold text-white truncate">${name}</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted shrink-0 ml-auto"><polyline points="6 9 12 15 18 9"/></svg>`;
+        triggerBtn.innerHTML = `<div class="w-5 h-5 rounded-md flex items-center justify-center overflow-hidden bg-white/5 shrink-0">${renderProviderLogoImg(provider, '', 'w-full h-full object-contain', invertLogos.includes(provider) ? 'invert' : '')}</div><span class="text-sm font-bold text-white truncate">${name}</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted shrink-0 ml-auto"><polyline points="6 9 12 15 18 9"/></svg>`;
       } else {
         const style = getProviderStyle(provider);
         triggerBtn.innerHTML = `<div class="w-5 h-5 bg-primary rounded-md flex items-center justify-center shadow-lg shadow-primary/20 shrink-0"><span class="text-[10px] font-black text-black">${style.text}</span></div><span class="text-sm font-bold text-white truncate">${name}</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted shrink-0 ml-auto"><polyline points="6 9 12 15 18 9"/></svg>`;
@@ -1753,9 +1754,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       dropdown.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
       dropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
 
-      const triggerRect = triggerBtn.getBoundingClientRect();
-      dropdown.style.top = `${triggerRect.bottom + 6}px`;
-      dropdown.style.left = `${triggerRect.left}px`;
+      positionModelSelectorDropdown(dropdown, triggerBtn, 6, container);
 
       if (_modelSelectorOutsideClickHandler) {
         document.removeEventListener('click', _modelSelectorOutsideClickHandler);
@@ -1778,8 +1777,8 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
             selectedModelId: selectedModel,
             showProviderName: true,
             loadingMessage: 'Loading models...',
-            onSelectModel: (modelId) => {
-              selectedModel = modelId;
+            onSelectModel: (model) => {
+              selectedModel = model.id;
               updateTrigger();
               closeDropdown();
             },
@@ -2644,18 +2643,15 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
   }
 
   function saveToHistory(url, prompt, model, templateId) {
-    try {
-      const history = JSON.parse(localStorage.getItem('muapi_history') || '[]');
-      history.unshift({
-        id: Date.now().toString(),
-        url,
-        prompt,
-        model: model || selectedModel,
-        template: templateId || (currentTemplate ? currentTemplate.id : ''),
-        timestamp: new Date().toISOString(),
-      });
-      localStorage.setItem('muapi_history', JSON.stringify(history.slice(0, 100)));
-    } catch { /* ignore */ }
+    saveGeneration({
+      studio: 'cinema',
+      type: 'image',
+      url,
+      prompt,
+      model: model || selectedModel,
+      parameters: { template_id: templateId || (currentTemplate ? currentTemplate.id : '') },
+      timestamp: new Date().toISOString(),
+    });
   }
 
   // ================================

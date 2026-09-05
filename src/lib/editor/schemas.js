@@ -207,6 +207,12 @@ export const EditorStateSchema = z.object({
   splitScreenMode: z.boolean().default(false),
   cameraAngles: z.array(z.unknown()).default([]),
   activeCameraAngle: z.union([z.string(), z.number(), z.null()]).optional(),
+  pipWindows: z.array(z.unknown()).default([]),
+  splitScreenConfig: z.object({
+    type: z.string().default('horizontal'),
+    ratio: z.number().min(0.1).max(0.9).default(0.5),
+    transition: z.string().default('none'),
+  }).default({ type: 'horizontal', ratio: 0.5, transition: 'none' }),
   compositingMode: z.string().default('normal'),
   // Multi-timeline support
   timelines: z.record(z.unknown()).optional(),

@@ -43,20 +43,19 @@ export function CinematicVideoHero() {
 
     <div class="container relative z-10 mx-auto max-w-7xl px-5 py-24 sm:px-6 md:py-28">
       <div class="max-w-xl md:w-[45%] md:max-w-none lg:w-[42%]">
+         <div class="mmx-reveal mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-400/25 bg-cyan-400/[0.07] px-4 py-1.5 backdrop-blur-sm">
 
-        <div class="mmx-reveal mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-400/25 bg-cyan-400/[0.07] px-4 py-1.5 backdrop-blur-sm">
           <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-400"></span>
-          <span class="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-300">AI Creative Platform</span>
+          <span class="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-300">AI Creative Personalization Platform</span>
         </div>
 
         <h1 id="mmx-hero-headline" class="mmx-reveal font-black leading-[0.95] tracking-tight text-white" style="font-size: clamp(2.75rem, 7.5vw, 5rem);">
           Create Anything.<br/>
-          <span class="italic text-cyan-400">Sell Everything.</span>
+          <span class="italic text-cyan-400">Personalize Everything.</span>
         </h1>
 
         <p class="mmx-reveal mt-6 max-w-lg text-base leading-relaxed text-gray-300 sm:text-lg">
-          Create professional images, videos, ads, characters, commercials and
-          social content with AI.
+          Create personalized cinematic images, videos, ads, characters, commercials and viral social media content with AI.
         </p>
 
         <div class="mmx-reveal mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -96,8 +95,8 @@ export function CinematicVideoHero() {
           <div>
             <dt class="sr-only">Professional studios included</dt>
             <dd>
-              <span class="block text-2xl font-black text-white sm:text-3xl">33</span>
-              <span class="mt-0.5 block text-xs uppercase tracking-[0.14em] text-gray-500">Professional Studios</span>
+               <span class="block text-2xl font-black text-white sm:text-3xl">34</span>
+               <span class="mt-0.5 block text-xs uppercase tracking-[0.14em] text-gray-500">Professional Studios</span>
             </dd>
           </div>
         </dl>
@@ -143,15 +142,17 @@ export function CinematicVideoHero() {
   });
   positionObserver.observe(frame, { childList: true });
 
-  /* -------------------------------------------------------------------- CTAs */
+  /* ------------------------------------------------------------------ primary + secondary CTAs */
 
-  const primary = section.querySelector('[data-mmx-hero-primary]');
+   const primary = section.querySelector('[data-mmx-hero-primary]');
+
+  if (primary) {
+    primary.addEventListener('click', () => {
+      window.location.href = 'https://buy.stripe.com/dRmbJ02OoeaAeKx8Mo5Rm07';
+    });
+  }
+
   const secondary = section.querySelector('[data-mmx-hero-secondary]');
-
-  primary.addEventListener('click', () => {
-    // Existing default entry point into the app.
-    goToRoute('image');
-  });
 
   secondary.addEventListener('click', () => {
     // Stay on the page — jump to the showcase reel.

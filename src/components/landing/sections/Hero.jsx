@@ -17,13 +17,13 @@ export function Hero() {
     <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 3px 3px, rgba(34,211,238,0.1) 1px, transparent 0); background-size: 60px 60px;"></div>
 
     <div class="container mx-auto max-w-5xl text-center relative z-10">
-      <!-- Badge -->
-      <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 mb-8 shadow-lg shadow-cyan-400/20" role="status" aria-live="polite">
-        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" aria-hidden="true"></span>
-        <span class="text-sm text-cyan-100">Now with AI-powered keyframe automation</span>
-      </div>
+       <!-- Badge -->
+       <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 mb-8 shadow-lg shadow-cyan-400/20" role="status" aria-live="polite">
+         <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" aria-hidden="true"></span>
+         <span class="text-sm text-cyan-100">Now with AI-powered keyframe automation</span>
+       </div>
 
-      <!-- Main headline -->
+       <!-- Main headline -->
       <h1 id="hero-headline" class="mb-6 leading-tight text-4xl md:text-5xl lg:text-6xl xl:text-7xl" style="font-size: clamp(2.5rem, 8vw, 4.5rem);">
         <span class="text-cyan-400 italic">ONE TIMELINE.</span><br/>
         <span class="text-white">EVERY WORKFLOW.</span>

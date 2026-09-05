@@ -356,8 +356,8 @@ export async function InfluencerStudio() {
   mountModelSelector(modelSelectorContainer, {
     models: i2iModels,
     selectedModelId: selectedModel.id,
-    onSelectModel: (modelId) => {
-      selectedModel = i2iModels.find(m => m.id === modelId) || selectedModel;
+    onSelectModel: (model) => {
+      selectedModel = model;
     },
   });
 

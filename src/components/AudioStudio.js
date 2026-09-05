@@ -642,9 +642,9 @@ export function AudioStudio() {
       selectedProvider,
       search: searchQuery,
       showProviderName: true,
-      onSelectModel: (modelId) => {
-        selectedModel = audioModels.find(m => m.id === modelId) || audioModels[0];
-        selectedModelId = selectedModel.id;
+      onSelectModel: (model) => {
+        selectedModel = model;
+        selectedModelId = model.id;
         schemaParams = {};
         updateFormVisibility();
         schedulePersist();
@@ -715,7 +715,7 @@ export function AudioStudio() {
 
   const gtmBtn = document.createElement('button');
   gtmBtn.type = 'button';
-  gtmBtn.textContent = 'GTM Boost';
+  gtmBtn.textContent = '🎯 GTM Boost';
   gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
   gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
   gtmBtn.className = 'gtm-boost-btn shrink-0';

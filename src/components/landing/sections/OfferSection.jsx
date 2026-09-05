@@ -1,5 +1,9 @@
-// Offer Section - Get The AI Video Agency Studio Today
-// Two-tier pricing: $297 Lifetime | $997 Whitelabel Lifetime
+// Offer Section - Get The Smart Video AI Studio Today
+// Two-tier pricing: $199 Lifetime | $997 Whitelabel Lifetime
+
+import CheckoutCTA from '../common/CheckoutCTA.jsx';
+
+import SHOWCASE_CONFIG from '../../content/showcaseConfig.js';
 
 export function OfferSection() {
   const section = document.createElement('section');
@@ -9,7 +13,7 @@ export function OfferSection() {
   // All features for the interactive comparison
   const featureCategories = {
     'Core Platform': [
-      '33 AI Creative Apps Access',
+      '34 AI Creative Apps Access',
       '60+ AI Features & Tools',
       '200+ AI Models Library',
       'Professional Timeline Editor',
@@ -114,8 +118,16 @@ export function OfferSection() {
 
     <div class="container mx-auto max-w-7xl relative z-10">
       <div class="text-center mb-16 offer-headline opacity-0">
-        <div class="inline-block bg-gradient-to-r from-cyan-400/20 to-emerald-400/20 border border-cyan-400/30 rounded-2xl px-6 py-3 mb-8">
-          <span class="text-cyan-400 font-bold text-lg">💎 Lifetime Access Pricing</span>
+        <div class="inline-flex items-center gap-2.5 mb-8">
+          <div class="inline-flex items-center gap-2 rounded-full border border-cyan-400/25 bg-cyan-400/[0.07] px-4 py-1.5 backdrop-blur-sm">
+            <span class="h-1.5 w-1.5 rounded-full bg-cyan-400"></span>
+            <span class="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-300">💎 Lifetime Access Pricing</span>
+          </div>
+          <div class="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/[0.08] px-3 py-1 backdrop-blur-sm">
+            <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+            <span class="text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-300">Lifetime Offer</span>
+            <span class="text-[9px] font-bold text-emerald-400">$199</span>
+          </div>
         </div>
         <h2 id="offer-heading" class="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-6">
           Get <span class="text-cyan-400 italic">Lifetime Access</span> Today
@@ -132,7 +144,7 @@ export function OfferSection() {
           <div class="bg-gradient-to-br from-[#171b24] to-[#0a0b0f] border border-white/10 rounded-3xl p-8 hover:border-cyan-400/50 transition-all duration-500 h-full flex flex-col">
             <div class="text-center mb-6">
               <h3 class="text-2xl font-bold text-white mb-2">Lifetime Access</h3>
-              <div class="text-5xl font-black text-cyan-400 mb-2">$297</div>
+              <div class="text-5xl font-black text-cyan-400 mb-2">$199</div>
               <div class="text-gray-400">One-time payment • Forever yours</div>
             </div>
 
@@ -143,7 +155,7 @@ export function OfferSection() {
                   <div class="w-5 h-5 bg-cyan-400/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                     <span class="text-cyan-400 text-xs">✓</span>
                   </div>
-                  <span class="text-gray-300 text-sm">Full access to all 33 AI Creative Apps</span>
+                   <span class="text-gray-300 text-sm">Full access to all 34 AI Creative Apps</span>
                 </li>
                 <li class="flex items-start gap-3">
                   <div class="w-5 h-5 bg-cyan-400/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -176,20 +188,18 @@ export function OfferSection() {
                   <span class="text-gray-300 text-sm">Lifetime Updates</span>
                 </li>
               </ul>
-            </div>
+             </div>
 
-            <button class="w-full py-4 bg-gradient-to-r from-cyan-500 to-cyan-400 text-[#020205] font-bold text-lg rounded-xl hover:from-cyan-400 hover:to-cyan-300 transition-all duration-300 shadow-lg shadow-cyan-400/30 hover:shadow-cyan-400/50 transform hover:scale-105">
-              Get Lifetime Access — $297
-            </button>
+             <div id="checkout-cta-lifetime-host"></div>
 
-            <div class="text-center mt-4">
-              <p class="text-xs text-gray-500">30-day money-back guarantee</p>
-            </div>
-          </div>
-        </div>
+             <div class="text-center mt-4">
+               <p class="text-xs text-gray-500">30-day money-back guarantee</p>
+             </div>
+           </div>
+         </div>
 
-        <!-- Whitelabel Plan -->
-        <div class="whitelabel-card pricing-card opacity-0 translate-y-4 relative" style="transition-delay: 150ms;">
+         <!-- Whitelabel Plan -->
+         <div class="whitelabel-card pricing-card opacity-0 translate-y-4 relative" style="transition-delay: 150ms;">
           <!-- Popular Badge -->
           <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 z-20">
             <div class="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-bold px-4 py-1 rounded-full shadow-lg">
@@ -260,17 +270,52 @@ export function OfferSection() {
                     <span class="text-gray-300 text-sm"><strong class="text-white">Dedicated Support</strong> — 24/7 priority assistance</span>
                   </li>
                 </ul>
-              </div>
+               </div>
 
-              <button class="w-full py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-lg rounded-xl hover:from-purple-400 hover:to-pink-400 transition-all duration-300 shadow-lg shadow-purple-400/30 hover:shadow-purple-400/50 transform hover:scale-105">
-                Get Whitelabel Pro — $997
-              </button>
+               <div id="checkout-cta-whitelabel-host"></div>
 
-              <div class="text-center mt-4">
-                <p class="text-xs text-gray-500">30-day money-back guarantee • Instant delivery</p>
+               <div class="text-center mt-4">
+                 <p class="text-xs text-gray-500">30-day money-back guarantee • Instant delivery</p>
+               </div>
+             </div>
+           </div>
+         </div>
+       </div>
+
+      <!-- Template Gallery - Historical template previews added as visual enhancement -->
+      <div class="template-gallery max-w-6xl mx-auto mb-20">
+        <div class="text-center mb-10">
+          <h3 class="text-2xl md:text-3xl font-bold text-white mb-4">Start With Proven Templates</h3>
+          <p class="text-gray-400 max-w-2xl mx-auto">Choose from industry-specific templates for restaurants, spas, real estate, fitness, fashion, and more. Each template is pre-configured with prompts, styles, and settings.</p>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          ${Object.entries({
+            'Restaurant': SHOWCASE_CONFIG.getTemplateThumbnail('restaurant'),
+            'Med Spa': SHOWCASE_CONFIG.getTemplateThumbnail('medspa'),
+            'Real Estate': SHOWCASE_CONFIG.getTemplateThumbnail('realEstate'),
+            'Fitness': SHOWCASE_CONFIG.getTemplateThumbnail('fitness'),
+            'Fashion': SHOWCASE_CONFIG.getTemplateThumbnail('fashion'),
+            'Dental': SHOWCASE_CONFIG.getTemplateThumbnail('dental'),
+            'Automotive': SHOWCASE_CONFIG.getTemplateThumbnail('automotive'),
+            'Beauty': SHOWCASE_CONFIG.getTemplateThumbnail('beauty'),
+            'Salon': SHOWCASE_CONFIG.getTemplateThumbnail('salon'),
+            'Legal': SHOWCASE_CONFIG.getTemplateThumbnail('legal'),
+            'Luxury': SHOWCASE_CONFIG.getTemplateThumbnail('luxury'),
+            'Events': SHOWCASE_CONFIG.getTemplateThumbnail('events')
+          }).map(([name, thumb], i) => `
+            <div class="template-card group relative aspect-[3/4] rounded-xl overflow-hidden border border-white/10 hover:border-cyan-400/50 transition-all duration-300 cursor-pointer" style="transition-delay: ${i * 50}ms;">
+              <img 
+                src="${thumb}" 
+                alt="${name} template preview"
+                class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500"
+                loading="lazy"
+              />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+              <div class="absolute bottom-0 left-0 right-0 p-3">
+                <span class="text-sm font-medium text-white">${name}</span>
               </div>
             </div>
-          </div>
+          `).join('')}
         </div>
       </div>
 
@@ -422,6 +467,41 @@ export function OfferSection() {
 
     // Initial render
     renderFeatures(activeCategory);
+
+    // Checkout CTAs
+    const lifetimeHost = section.querySelector('#checkout-cta-lifetime-host');
+    if (lifetimeHost) {
+      const lifetimeBtn = CheckoutCTA({
+        variant: 'inline',
+        offer: {
+          id: 'lifetime',
+          cta: 'Get Lifetime Access — {price}',
+          price: '$199',
+        },
+        providers: [],
+        onCheckout: () => {
+          window.location.href = 'https://buy.stripe.com/dRmbJ02OoeaAeKx8Mo5Rm07';
+        },
+      });
+      lifetimeHost.appendChild(lifetimeBtn);
+    }
+
+    const whitelabelHost = section.querySelector('#checkout-cta-whitelabel-host');
+    if (whitelabelHost) {
+      const whitelabelBtn = CheckoutCTA({
+        variant: 'inline',
+        offer: {
+          id: 'whitelabel',
+          cta: 'Get Whitelabel Pro — {price}',
+          price: '$997',
+        },
+        providers: [],
+        onCheckout: () => {
+          window.location.href = 'https://buy.stripe.com/9B614m3Ss9Uk31Pe6I5Rm08';
+        },
+      });
+      whitelabelHost.appendChild(whitelabelBtn);
+    }
   }, 100);
 
   return section;

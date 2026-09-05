@@ -14,87 +14,127 @@ let renderMultiCameraToolbar, renderPipControls, renderSplitScreenControls;
 try {
   const playback = await import('./timelinePlayback.js');
   updatePlaybackUI = playback.updatePlaybackUI;
-} catch (e) {}
+} catch (e) {
+  console.warn('[TimelineRendererEnhanced] Failed to load timelinePlayback:', e.message);
+}
 try {
   const rendererOriginal = await import('./timelineRendererOriginal.js');
   updatePreview = rendererOriginal.updatePreview;
-} catch (e) {}
+} catch (e) {
+  console.warn('[TimelineRendererEnhanced] Failed to load timelineRendererOriginal:', e.message);
+}
 try {
   const dragDrop = await import('./dragDrop.js');
   initializeAdvancedDragDrop = dragDrop.initializeAdvancedDragDrop;
   setupEnhancedTooltips = dragDrop.setupEnhancedTooltips;
   initializeVideoPlaybackControls = dragDrop.initializeVideoPlaybackControls;
-} catch (e) {}
+} catch (e) {
+  console.warn('[TimelineRendererEnhanced] Failed to load dragDrop:', e.message);
+}
 try {
   const multiCam = await import('./multiCamera.js');
   renderMultiCameraToolbar = multiCam.renderMultiCameraToolbar;
   renderPipControls = multiCam.renderPipControls;
   renderSplitScreenControls = multiCam.renderSplitScreenControls;
-} catch (e) {}
+} catch (e) {
+  console.warn('[TimelineRendererEnhanced] Failed to load multiCamera:', e.message);
+}
 try {
   const mod = await import('../../../components/common/timeline/PlayButton.js');
   PlayButton = mod.PlayButton || mod.default;
-} catch (e) {}
+} catch (e) {
+  console.warn('[TimelineRendererEnhanced] Failed to load PlayButton:', e.message);
+}
 try {
   const mod = await import('../../../components/common/timeline/PlayTime.js');
   PlayTime = mod.PlayTime || mod.default;
-} catch (e) {}
+} catch (e) {
+  console.warn('[TimelineRendererEnhanced] Failed to load PlayTime:', e.message);
+}
 try {
   const mod = await import('../../../components/common/timeline/PlusButton.js');
   PlusButton = mod.PlusButton || mod.default;
-} catch (e) {}
+} catch (e) {
+  console.warn('[TimelineRendererEnhanced] Failed to load PlusButton:', e.message);
+}
 try {
   const mod = await import('../../../components/common/timeline/Layer.js');
   Layer = mod.Layer || mod.default;
-} catch (e) {}
+} catch (e) {
+  console.warn('[TimelineRendererEnhanced] Failed to load Layer:', e.message);
+}
 try {
   const mod = await import('../../../components/common/timeline/BlendingMode.js');
   BlendingMode = mod.BlendingMode || mod.default;
-} catch (e) {}
+} catch (e) {
+  console.warn('[TimelineRendererEnhanced] Failed to load BlendingMode:', e.message);
+}
 try {
   const mod = await import('../../../components/common/timeline/Opacity.js');
   Opacity = mod.Opacity || mod.default;
-} catch (e) {}
+} catch (e) {
+  console.warn('[TimelineRendererEnhanced] Failed to load Opacity:', e.message);
+}
 try {
   const mod = await import('../../../components/common/timeline/TimeLineSlider.js');
   TimeLineSlider = mod.TimeLineSlider || mod.default;
-} catch (e) {}
+} catch (e) {
+  console.warn('[TimelineRendererEnhanced] Failed to load TimeLineSlider:', e.message);
+}
 try {
   const mod = await import('../../../components/common/timeline/LineSlider.js');
   LineSlider = mod.LineSlider || mod.default;
-} catch (e) {}
+} catch (e) {
+  console.warn('[TimelineRendererEnhanced] Failed to load LineSlider:', e.message);
+}
 try {
   const mod = await import('../../../components/common/timeline/SliderArrow.js');
   SliderArrow = mod.SliderArrow || mod.default;
-} catch (e) {}
+} catch (e) {
+  console.warn('[TimelineRendererEnhanced] Failed to load SliderArrow:', e.message);
+}
 try {
   const mod = await import('../../../components/common/timeline/TransitionButton.js');
   TransitionButton = mod.TransitionButton || mod.default;
-} catch (e) {}
+} catch (e) {
+  console.warn('[TimelineRendererEnhanced] Failed to load TransitionButton:', e.message);
+}
 try {
   const mod = await import('../../../components/common/timeline/PopcornElement.js');
   PopcornElement = mod.PopcornElement || mod.default;
-} catch (e) {}
+} catch (e) {
+  console.warn('[TimelineRendererEnhanced] Failed to load PopcornElement:', e.message);
+}
 try {
   const mod = await import('../../../components/common/timeline/PopcornElements.js');
   PopcornElements = mod.PopcornElements || mod.default;
-} catch (e) {}
+} catch (e) {
+  console.warn('[TimelineRendererEnhanced] Failed to load PopcornElements:', e.message);
+}
 try {
   const mod = await import('../../../components/common/timeline/ContextMenu.js');
   ContextMenu = mod.ContextMenu || mod.default;
-} catch (e) {}
+} catch (e) {
+  console.warn('[TimelineRendererEnhanced] Failed to load ContextMenu:', e.message);
+}
 try {
   const mod = await import('../../../components/common/timeline/elements/AnimatableElement.jsx');
   AnimatableElement = mod.AnimatableElement || mod.default;
-} catch (e) {}
+} catch (e) {
+  console.warn('[TimelineRendererEnhanced] Failed to load AnimatableElement:', e.message);
+}
 try {
   const mod = await import('../../../components/common/timeline/elements/DefaultElement.js');
   DefaultElement = mod.DefaultElement || mod.default;
-} catch (e) {}
+} catch (e) {
+  console.warn('[TimelineRendererEnhanced] Failed to load DefaultElement:', e.message);
+}
 try {
   const mod = await import('../../../components/common/timeline/elements/IconElement.js');
   IconElement = mod.IconElement || mod.default;
-} catch (e) {}
+} catch (e) {
+  console.warn('[TimelineRendererEnhanced] Failed to load IconElement:', e.message);
+}
 
 let timelineZoom = 1.0;
 let timelinePan = 0;

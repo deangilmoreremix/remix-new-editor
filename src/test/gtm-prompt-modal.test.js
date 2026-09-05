@@ -497,4 +497,15 @@ describe('GTM premium studio integration', () => {
     expect(css).toContain('.thumbnail-prompt-btn');
     expect(css).toContain('.generated-prompt-actions');
   });
+
+  it('VideoStudio and ImageStudio import mountPersonalizeTrigger, not the deprecated alias', async () => {
+    const videoSrc = fs.readFileSync(path.join(root, 'src/components/VideoStudio.js'), 'utf8');
+    const imageSrc = fs.readFileSync(path.join(root, 'src/components/ImageStudio.js'), 'utf8');
+
+    expect(videoSrc).toContain('import { mountPersonalizeTrigger, replaceTokensInPrompt } from \'./personalize/personalizePopover.js\'');
+    expect(imageSrc).toContain('import { mountPersonalizeTrigger, replaceTokensInPrompt } from \'./personalize/personalizePopover.js\'');
+
+    expect(videoSrc).not.toContain('mountPersonalizePopover');
+    expect(imageSrc).not.toContain('mountPersonalizePopover');
+  });
 });

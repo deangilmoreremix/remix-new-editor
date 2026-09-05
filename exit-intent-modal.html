@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wait — Don't Leave Your $2K Clients to Your Competitors</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg-deep: #020205;
+            --bg-surface: #05070b;
+            --bg-panel: #171b24;
+            --bg-card: rgba(255, 255, 255, 0.025);
+            --border-card: rgba(255, 255, 255, 0.08);
+            --border-light: rgba(255, 255, 255, 0.12);
+            --primary: #22d3ee;
+            --primary-hover: #34d399;
+            --primary-soft: rgba(34, 211, 238, 0.10);
+            --primary-glow: rgba(34, 211, 238, 0.25);
+            --brand: #d9ff00;
+            --brand-soft: rgba(217, 255, 0, 0.12);
+            --brand-glow: rgba(217, 255, 0, 0.25);
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --text-muted: #52525b;
+            --danger: #ef4444;
+            --success: #22c55e;
+            --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+            --radius-lg: 1.5rem;
+            --radius-xl: 2rem;
+            --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* Demo trigger button */
+        .demo-trigger {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: var(--primary);
+            color: var(--bg-deep);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-family: var(--font-body);
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            z-index: 1;
+            box-shadow: 0 0 20px var(--primary-glow);
+            transition: all var(--transition-fast);
+        }
+
+        .demo-trigger:hover {
+            background: var(--primary-hover);
+            box-shadow: 0 0 30px var(--primary-glow);
+        }
+
+        /* ===== OVERLAY ===== */
+        .exit-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+                        visibility 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .exit-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .exit-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(2, 2, 5, 0.92);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        /* ===== MODAL ===== */
+        .exit-modal {
+            position: relative;
+            width: 100%;
+            max-width: 720px;
+            max-height: 90vh;
+            overflow-y: auto;
+            background: var(--bg-surface);
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--border-card);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                        0 0 0 1px rgba(34, 211, 238, 0.08);
+            transform: scale(0.95) translateY(10px);
+            transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-card) transparent;
+        }
+
+        .exit-overlay.active .exit-modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .exit-modal::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .exit-modal::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .exit-modal::-webkit-scrollbar-thumb {
+            background: var(--border-card);
+            border-radius: 3px;
+        }
+
+        /* ===== CLOSE BUTTON ===== */
+        .close-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border-light);
+            color: var(--text-secondary);
+            font-size: 20px;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+            z-index: 10;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: white;
+            transform: rotate(90deg);
+        }
+
+        .close-hint {
+            position: absolute;
+            top: 60px;
+            right: 16px;
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: right;
+            max-width: 140px;
+            line-height: 1.4;
+            z-index: 10;
+        }
+
+        /* ===== VIDEO HEADER ===== */
+        .video-header {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: var(--bg-deep);
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+            overflow: hidden;
+        }
+
+        .video-header video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .video-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 30px 28px;
+            background: linear-gradient(to top, rgba(5, 7, 11, 0.95) 0%, rgba(5, 7, 11, 0.6) 60%, transparent 100%);
+            z-index: 2;
+        }
+
+        .video-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--primary-soft);
+            border: 1px solid rgba(34, 211, 238, 0.25);
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            margin-bottom: 12px;
+            backdrop-filter: blur(8px);
+        }
+
+        .video-badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--primary);
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.3); }
+        }
+
+        .video-headline {
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            font-weight: 900;
+            color: white;
+            line-height: 1.2;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+
+        .video-headline .highlight {
+            color: var(--primary);
+            font-style: italic;
+        }
+
+        .video-subhead {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .video-subhead strong {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* ===== EVENT BAR ===== */
+        .event-bar {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-card);
+            padding: 14px 24px;
+            text-align: center;
+            backdrop-filter: blur(8px);
+        }
+
+        .event-bar span {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+
+        .event-bar .event-accent {
+            color: var(--primary);
+            font-weight: 800;
+        }
+
+        /* ===== SECTIONS ===== */
+        .section {
+            padding: 28px;
+            text-align: center;
+        }
+
+        .section-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--primary);
+            margin-bottom: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-label::before {
+            content: '';
+            width: 8px;
+            height: 2px;
+            background: var(--primary);
+            border-radius: 1px;
+        }
+
+        .section-headline {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text-primary);
+            line-height: 1.3;
+            margin-bottom: 20px;
+            letter-spacing: -0.3px;
+        }
+
+        /* ===== VALUE vs LOSS ===== */
+        .value-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            justify-content: center;
+        }
+
+        .value-column {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            backdrop-filter: blur(8px);
+        }
+
+        .value-column.loss {
+            border-color: rgba(239, 68, 68, 0.15);
+            background: rgba(239, 68, 68, 0.03);
+        }
+
+        .value-column-header {
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 0.02em;
+        }
+
+        .value-column.gain .value-column-header {
+            color: var(--success);
+        }
+
+        .value-column.loss .value-column-header {
+            color: var(--danger);
+        }
+
+        .value-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .value-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .value-column.gain .value-item {
+            color: var(--text-secondary);
+        }
+
+        .value-column.loss .value-item {
+            color: var(--text-muted);
+        }
+
+        .value-icon {
+            flex-shrink: 0;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            margin-top: 1px;
+        }
+
+        .gain .value-icon {
+            background: rgba(34, 197, 94, 0.12);
+            color: var(--success);
+        }
+
+        .loss .value-icon {
+            background: rgba(239, 68, 68, 0.12);
+            color: var(--danger);
+        }
+
+        .value-text strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* ===== BONUS SECTION ===== */
+        .bonus-header {
+            background: linear-gradient(135deg, rgba(34, 211, 238, 0.12), rgba(52, 211, 153, 0.08));
+            border: 1px solid rgba(34, 211, 238, 0.2);
+            padding: 20px 24px;
+            text-align: center;
+            border-radius: var(--radius-lg);
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bonus-header::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 0%, rgba(34, 211, 238, 0.15) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .bonus-header-title {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--primary);
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .bonus-header-value {
+            font-size: 36px;
+            font-weight: 900;
+            color: white;
+            letter-spacing: -1px;
+            line-height: 1;
+            position: relative;
+        }
+
+        .bonus-header-sub {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            line-height: 1.5;
+            position: relative;
+        }
+
+        .bonus-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .bonus-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            position: relative;
+            transition: all var(--transition-normal);
+            backdrop-filter: blur(8px);
+        }
+
+        .bonus-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(34, 211, 238, 0.2);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .bonus-badge {
+            display: inline-block;
+            background: var(--primary-soft);
+            color: var(--primary);
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            border: 1px solid rgba(34, 211, 238, 0.15);
+        }
+
+        .bonus-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+
+        .bonus-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        .bonus-value {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--success);
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ===== TOTAL VALUE BAR ===== */
+        .total-value-bar {
+            background: linear-gradient(135deg, rgba(34, 211, 238, 0.15), rgba(52, 211, 153, 0.1));
+            border: 1px solid rgba(34, 211, 238, 0.25);
+            border-radius: var(--radius-lg);
+            padding: 20px 24px;
+            text-align: center;
+            margin-top: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .total-value-bar::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 0%, rgba(34, 211, 238, 0.2) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .total-value-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--primary);
+            margin-bottom: 4px;
+            position: relative;
+        }
+
+        .total-value-amount {
+            font-size: 36px;
+            font-weight: 900;
+            color: white;
+            letter-spacing: -1px;
+            line-height: 1;
+            position: relative;
+        }
+
+        .total-value-sub {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            line-height: 1.5;
+            position: relative;
+        }
+
+        /* ===== COUNTDOWN ===== */
+        .countdown-section {
+            text-align: center;
+            padding: 24px 28px;
+            border-top: 1px solid var(--border-card);
+        }
+
+        .countdown-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+
+        .countdown-timer {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .countdown-block {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 12px;
+            padding: 10px 14px;
+            min-width: 60px;
+            backdrop-filter: blur(8px);
+        }
+
+        .countdown-number {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--primary);
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .countdown-unit {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+
+        .countdown-note {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* ===== CTA ===== */
+        .cta-section {
+            padding: 0 28px 28px;
+        }
+
+        .cta-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            background: var(--primary);
+            color: var(--bg-deep);
+            font-family: var(--font-body);
+            font-size: 16px;
+            font-weight: 800;
+            text-align: center;
+            padding: 18px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all var(--transition-normal);
+            box-shadow: 0 0 20px var(--primary-glow), 0 8px 30px rgba(34, 211, 238, 0.2);
+            letter-spacing: 0.3px;
+        }
+
+        .cta-button:hover {
+            background: var(--primary-hover);
+            box-shadow: 0 0 30px var(--primary-glow), 0 12px 40px rgba(34, 211, 238, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .cta-button--secondary {
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid rgba(34, 211, 238, 0.3);
+            box-shadow: none;
+        }
+
+        .cta-button--secondary:hover {
+            background: rgba(34, 211, 238, 0.08);
+            border-color: rgba(34, 211, 238, 0.5);
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.15);
+        }
+
+        .cta-button:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .cta-arrow {
+            display: inline-block;
+            transition: transform var(--transition-fast);
+        }
+
+        .cta-button:hover .cta-arrow {
+            transform: translateX(4px);
+        }
+
+        .cta-sub {
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 12px;
+            line-height: 1.5;
+        }
+
+        .cta-deny {
+            display: block;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 10px;
+            background: none;
+            border: none;
+            font-family: var(--font-body);
+            padding: 4px;
+            cursor: pointer;
+            transition: color var(--transition-fast);
+        }
+
+        .cta-deny:hover {
+            color: var(--text-secondary);
+        }
+
+        /* ===== FOOTER ===== */
+        .modal-footer {
+            padding: 20px 28px;
+            border-top: 1px solid var(--border-card);
+            text-align: center;
+        }
+
+        .footer-trust {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .footer-links {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .footer-links a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: color var(--transition-fast);
+        }
+
+        .footer-links a:hover {
+            color: var(--primary-hover);
+            text-decoration: underline;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 640px) {
+            .exit-modal {
+                max-height: 95vh;
+                border-radius: var(--radius-lg);
+            }
+
+            .video-header {
+                border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            }
+
+            .video-headline {
+                font-size: 1.25rem;
+            }
+
+            .value-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .bonus-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .section {
+                padding: 20px;
+            }
+
+            .cta-section {
+                padding: 0 20px 20px;
+            }
+
+            .countdown-block {
+                min-width: 50px;
+                padding: 8px 10px;
+            }
+
+            .countdown-number {
+                font-size: 20px;
+            }
+
+            .total-value-amount {
+                font-size: 28px;
+            }
+
+            .close-hint {
+                display: none;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .countdown-timer {
+                gap: 4px;
+            }
+
+            .countdown-block {
+                min-width: 44px;
+                padding: 6px 8px;
+            }
+
+            .countdown-number {
+                font-size: 18px;
+            }
+        }
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-in {
+            animation: fadeInUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+
+        .delay-1 { animation-delay: 0.1s; opacity: 0; }
+        .delay-2 { animation-delay: 0.2s; opacity: 0; }
+        .delay-3 { animation-delay: 0.3s; opacity: 0; }
+        .delay-4 { animation-delay: 0.4s; opacity: 0; }
+        .delay-5 { animation-delay: 0.5s; opacity: 0; }
+    </style>
+</head>
+<body>
+
+    <!-- Demo trigger for testing -->
+    <button class="demo-trigger" onclick="showExitIntent()">
+        Test Exit Intent
+    </button>
+
+    <!-- ===== EXIT INTENT OVERLAY ===== -->
+    <div class="exit-overlay" id="exitOverlay" role="dialog" aria-modal="true" aria-labelledby="modalHeadline">
+        <div class="exit-backdrop" onclick="closeExitIntent()"></div>
+
+        <div class="exit-modal">
+            <!-- Close -->
+            <button class="close-btn" onclick="closeExitIntent()" aria-label="Close">×</button>
+            <div class="close-hint">You can leave anytime — but you'll never see these bonuses again.</div>
+
+            <!-- Video Header -->
+            <div class="video-header">
+                <video autoplay muted loop playsinline poster="">
+                    <source src="/public/media/minimax-h3/videos/nighttime-motorcycle-chase-synced-to-music.webm" type="video/webm">
+                </video>
+                <div class="video-overlay">
+                    <div class="video-badge">
+                        <span>Limited-Time Training Access</span>
+                    </div>
+                    <h1 class="video-headline" id="modalHeadline">
+                        Your <span class="highlight">Competitor</span> Just Stole Your Next $2,000 Client
+                    </h1>
+                    <p class="video-subhead">The <strong>SmartVideo AI</strong> Video Recipe Library — and <strong>$2,893 in bonuses</strong> — unlocked live Saturday only.</p>
+                </div>
+            </div>
+
+            <!-- Event Bar -->
+            <div class="event-bar">
+                <span>🎁 <span class="event-accent">7 Bonuses</span> Unlocked Live Now</span>
+            </div>
+
+            <!-- Value vs Loss -->
+            <div class="section animate-in delay-1">
+                <div class="section-label">The Choice Is Yours</div>
+                <div class="value-grid">
+                    <!-- GAIN -->
+                    <div class="value-column gain">
+                        <div class="value-column-header">
+                            <span class="value-icon">✓</span>
+                            What You Gain (In 90 Minutes)
+                        </div>
+                        <div class="value-item">
+                            <span class="value-icon">✓</span>
+                            <span class="value-text"><strong>Proven video recipes</strong> from viral ads worth $500–$2,000 each</span>
+                        </div>
+                        <div class="value-item">
+                            <span class="value-icon">✓</span>
+                            <span class="value-text"><strong>500+ AI models</strong> in one platform — no more tab-switching</span>
+                        </div>
+                        <div class="value-item">
+                            <span class="value-icon">✓</span>
+                            <span class="value-text"><strong>Swap & Ship</strong> — replace the product, business & offer in seconds</span>
+                        </div>
+                        <div class="value-item">
+                            <span class="value-icon">✓</span>
+                            <span class="value-text"><strong>33 apps + 350+ effects</strong> for every creative need</span>
+                        </div>
+                        <div class="value-item">
+                            <span class="value-icon">✓</span>
+                            <span class="value-text"><strong>Cinema Studio</strong> with pro camera controls — no crew needed</span>
+                        </div>
+                        <div class="value-item">
+                            <span class="value-icon">✓</span>
+                            <span class="value-text"><strong>The Recipe Library</strong> — real videos broken down shot-by-shot</span>
+                        </div>
+                    </div>
+
+                    <!-- LOSS -->
+                    <div class="value-column loss">
+                        <div class="value-column-header">
+                            <span class="value-icon">✕</span>
+                            What You Lose (By Closing)
+                        </div>
+                        <div class="value-item">
+                            <span class="value-icon">✕</span>
+                            <span class="value-text"><strong>Turn viral clips</strong> into paying client projects</span>
+                        </div>
+                        <div class="value-item">
+                            <span class="value-icon">✕</span>
+                            <span class="value-text"><strong>Pay for 5+ disconnected tools</strong> with broken workflows</span>
+                        </div>
+                        <div class="value-item">
+                            <span class="value-icon">✕</span>
+                            <span class="value-text"><strong>Re-shoot from scratch</strong> for every new client</span>
+                        </div>
+                        <div class="value-item">
+                            <span class="value-icon">✕</span>
+                            <span class="value-text"><strong>Generic AI outputs</strong> that look like everyone else's</span>
+                        </div>
+                        <div class="value-item">
+                            <span class="value-icon">✕</span>
+                            <span class="value-text"><strong>Hire a film crew</strong> or learn Premiere for years</span>
+                        </div>
+                        <div class="value-item">
+                            <span class="value-icon">✕</span>
+                            <span class="value-text"><strong>Guess what to create</strong> and hope it works</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bonus Stack -->
+            <div class="section animate-in delay-2">
+                <div class="bonus-header">
+                    <div class="bonus-header-title">🎁 7 New Bonuses — Unlocked Live Now</div>
+                    <div class="bonus-header-value">$2,893</div>
+                    <div class="bonus-header-sub">Combined value — yours free when you attend</div>
+                </div>
+
+                <div class="bonus-grid">
+                    <div class="bonus-card">
+                        <span class="bonus-badge">Bonus 1 · New</span>
+                        <div class="bonus-name">AI Social Publishing</div>
+                        <div class="bonus-desc">AI thumbnail creation built in — auto-generate scroll-stopping thumbnails and publish straight to social.</div>
+                        <div class="bonus-value">$499</div>
+                    </div>
+
+                    <div class="bonus-card">
+                        <span class="bonus-badge">Bonus 2 · New</span>
+                        <div class="bonus-name">AI Cinema Studio</div>
+                        <div class="bonus-desc">46 AI cinema templates — drop in your footage and go.</div>
+                        <div class="bonus-value">$399</div>
+                    </div>
+
+                    <div class="bonus-card">
+                        <span class="bonus-badge">Bonus 3 · New</span>
+                        <div class="bonus-name">Smart Video Academy</div>
+                        <div class="bonus-desc">The complete learning hub for monetizing AI video creation.</div>
+                        <div class="bonus-value">$999</div>
+                    </div>
+
+                    <div class="bonus-card">
+                        <span class="bonus-badge">Bonus 4 · New</span>
+                        <div class="bonus-name">Thumbnail Model AI</div>
+                        <div class="bonus-desc">Generate AI thumbnail images and GIFs in seconds.</div>
+                        <div class="bonus-value">$299</div>
+                    </div>
+
+                    <div class="bonus-card">
+                        <span class="bonus-badge">Bonus 5 · New</span>
+                        <div class="bonus-name">Brand Kit</div>
+                        <div class="bonus-desc">Lock in your colors, fonts, and logo across every video you create.</div>
+                        <div class="bonus-value">$199</div>
+                    </div>
+
+                    <div class="bonus-card">
+                        <span class="bonus-badge">Bonus 6 · New</span>
+                        <div class="bonus-name">AI Video Thumbnails</div>
+                        <div class="bonus-desc">AI-generated thumbnails optimized for maximum click-through.</div>
+                        <div class="bonus-value">$299</div>
+                    </div>
+
+                    <div class="bonus-card">
+                        <span class="bonus-badge">Bonus 7 · New</span>
+                        <div class="bonus-name">Tonalities & Content Writer</div>
+                        <div class="bonus-desc">Dial in the exact tone and voice for every piece of content you write.</div>
+                        <div class="bonus-value">$199</div>
+                    </div>
+                </div>
+
+                <div class="total-value-bar">
+                    <div class="total-value-label">Combined Bonus Value</div>
+                    <div class="total-value-amount">$2,893</div>
+                    <div class="total-value-sub">Yours just for showing up to the live training.</div>
+                </div>
+            </div>
+
+                <div class="countdown-section animate-in delay-3">
+                    <div class="countdown-label">⏳ Limited spots available:</div>
+                    <div class="countdown-timer" id="countdownTimer">
+                        <div class="countdown-block">
+                            <div class="countdown-number" id="countDays">00</div>
+                            <div class="countdown-unit">Days</div>
+                        </div>
+                        <div class="countdown-block">
+                            <div class="countdown-number" id="countHours">00</div>
+                            <div class="countdown-unit">Hours</div>
+                        </div>
+                        <div class="countdown-block">
+                            <div class="countdown-number" id="countMinutes">00</div>
+                            <div class="countdown-unit">Mins</div>
+                        </div>
+                        <div class="countdown-block">
+                            <div class="countdown-number" id="countSeconds">00</div>
+                            <div class="countdown-unit">Secs</div>
+                        </div>
+                    </div>
+                    <div class="countdown-note">Claim your spot before it's filled.</div>
+                </div>
+
+            <!-- CTA -->
+            <div class="cta-section animate-in delay-4">
+                <a href="https://buy.stripe.com/9B614m3Ss9Uk31Pe6I5Rm08" class="cta-button" target="_blank" rel="noopener">
+                    Whitelabel — $997 <span class="cta-arrow">→</span>
+                </a>
+                <a href="https://buy.stripe.com/dRmbJ02OoeaAeKx8Mo5Rm07" class="cta-button" target="_blank" rel="noopener" style="margin-top: 12px; background: transparent; color: var(--primary); border: 1px solid rgba(34,211,238,0.3); box-shadow: none;">
+                    Standard — $197 <span class="cta-arrow">→</span>
+                </a>
+                <div class="cta-sub">Secure checkout · Instant access · 30-day money-back guarantee</div>
+                <button class="cta-deny" onclick="closeExitIntent()">No thanks, I'll pass on both offers</button>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer animate-in delay-5">
+                <div class="footer-trust">Join 15,000+ creators already using SmartVideo AI</div>
+                <div class="footer-links">
+                    <a href="https://smartvid.app/" target="_blank" rel="noopener">smartvid.app</a> ·
+                    Bonuses subject to availability · Training recorded for attendees only
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== CONFIGURATION =====
+        const EVENT_DATE = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 hours from now
+        const SESSION_KEY = 'sv_exit_intent_shown';
+
+        // ===== COUNTDOWN TIMER =====
+        function updateCountdown() {
+            const now = new Date();
+            const diff = EVENT_DATE - now;
+
+            if (diff <= 0) {
+                document.getElementById('countDays').textContent = '00';
+                document.getElementById('countHours').textContent = '00';
+                document.getElementById('countMinutes').textContent = '00';
+                document.getElementById('countSeconds').textContent = '00';
+                return;
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            document.getElementById('countDays').textContent = String(days).padStart(2, '0');
+            document.getElementById('countHours').textContent = String(hours).padStart(2, '0');
+            document.getElementById('countMinutes').textContent = String(minutes).padStart(2, '0');
+            document.getElementById('countSeconds').textContent = String(seconds).padStart(2, '0');
+        }
+
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+
+        // ===== EXIT INTENT LOGIC =====
+        function showExitIntent() {
+            const overlay = document.getElementById('exitOverlay');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            sessionStorage.setItem(SESSION_KEY, 'true');
+        }
+
+        function closeExitIntent() {
+            const overlay = document.getElementById('exitOverlay');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Desktop: mouse leaves viewport top
+        document.addEventListener('mouseleave', function(e) {
+            if (e.clientY < 0 && !sessionStorage.getItem(SESSION_KEY)) {
+                showExitIntent();
+            }
+        });
+
+        // Mobile: scroll depth trigger
+        let mobileTriggered = false;
+        window.addEventListener('scroll', function() {
+            if (mobileTriggered) return;
+            const scrollPercent = (window.scrollY + window.innerHeight) / document.body.scrollHeight;
+            if (scrollPercent > 0.5 && !sessionStorage.getItem(SESSION_KEY)) {
+                mobileTriggered = true;
+                showExitIntent();
+            }
+        });
+
+        // Close on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeExitIntent();
+            }
+        });
+
+        // Prevent modal close when clicking inside modal
+        document.querySelector('.exit-modal').addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    </script>
+</body>
+</html>

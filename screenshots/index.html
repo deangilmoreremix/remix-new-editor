@@ -9,16 +9,60 @@
   body { background: #0a0a0a; color: #eee; font-family: system-ui, sans-serif; padding: 24px; }
   h1 { font-size: 18px; margin-bottom: 16px; font-weight: 600; }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
-  .card { background: #111; border: 1px solid #222; border-radius: 12px; overflow: hidden; }
+  .card { background: #111; border: 1px solid #222; border-radius: 12px; overflow: hidden; cursor: pointer; }
   .card img { width: 100%; height: auto; display: block; border-bottom: 1px solid #222; }
   .card .meta { padding: 10px 12px; font-size: 12px; color: #aaa; display: flex; justify-content: space-between; }
   .card .meta .name { color: #fff; font-weight: 600; }
   .empty { color: #666; font-style: italic; }
+  .lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; justify-content: center; align-items: center; padding: 40px; }
+  .lightbox.active { display: flex; }
+  .lightbox img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; }
+  .lightbox .close { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.1); border: none; color: #fff; font-size: 24px; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .lightbox .close:hover { background: rgba(255,255,255,0.2); }
+  .badge { display: inline-block; background: #2563eb; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 6px; text-transform: uppercase; }
 </style>
 </head>
 <body>
 <h1>Studio Screenshots</h1>
-  <div class="grid" id="grid"></div>
-  <script src="./gallery.js"></script>
+<div class="grid" id="grid"></div>
+<div class="lightbox" id="lightbox">
+  <button class="close" onclick="closeLightbox()">&times;</button>
+  <img id="lightbox-img" src="" alt="">
+</div>
+<script src="./gallery.js?v=2"></script>
+<script>
+  const fullPageNames = ['apps','image','video','cinema','cinema-template','storyboard','effects','edit','audio','viral','render','video-agent','director','timeline','templates','explore','library','content-library','community','assist','settings'];
+  const cards = document.querySelectorAll('.card');
+  cards.forEach(card => {
+    const nameEl = card.querySelector('.name');
+    const name = nameEl ? nameEl.textContent : '';
+    const isFullPage = fullPageNames.includes(name);
+    if (isFullPage) {
+      const badge = document.createElement('span');
+      badge.className = 'badge';
+      badge.textContent = 'FULL';
+      nameEl.appendChild(badge);
+    }
+    card.addEventListener('click', () => {
+      const img = card.querySelector('img');
+      if (img && img.src && !img.src.includes('missing:')) {
+        openLightbox(img.src);
+      }
+    });
+  });
+  function openLightbox(src) {
+    document.getElementById('lightbox-img').src = src;
+    document.getElementById('lightbox').classList.add('active');
+  }
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('active');
+  }
+  document.getElementById('lightbox').addEventListener('click', (e) => {
+    if (e.target.id === 'lightbox') closeLightbox();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeLightbox();
+  });
+</script>
 </body>
 </html>

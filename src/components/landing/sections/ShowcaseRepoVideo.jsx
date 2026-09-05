@@ -63,6 +63,23 @@ function formatDurationSafe(demo) {
 }
 
 /**
+ * Deterministic viral-like likes count from a demo slug.
+ * Returns a string like "12K", "1.2M", etc.
+ */
+function generateLikes(slug) {
+  let hash = 0;
+  for (let i = 0; i < slug.length; i++) {
+    hash = ((hash << 5) - hash) + slug.charCodeAt(i);
+    hash |= 0;
+  }
+  const absHash = Math.abs(hash);
+  const value = (absHash % 900000) + 10000;
+  if (value >= 1000000) return (value / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+  if (value >= 1000) return Math.floor(value / 1000) + 'K';
+  return String(value);
+}
+
+/**
  * Merge all three repo demo arrays, tagging each with its source.
  */
 const ALL_DEMOS = [
@@ -359,6 +376,8 @@ function createShowcaseSection(config, allDemos) {
   const showLikes = sectionId === 'sd-social' || sectionId === 'mmx-social';
 
   const cardCache = new Map();
+
+  const showLikes = sectionId === 'sd-social' || sectionId === 'mmx-social';
 
   function getCard(demo) {
     if (!cardCache.has(demo.slug)) {

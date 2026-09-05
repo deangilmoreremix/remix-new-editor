@@ -4,7 +4,7 @@
   publish = "dist"
 
 [build.environment]
-  NODE_VERSION = "20"
+  NODE_VERSION = "22"
   SECRETS_SCAN_OMIT_KEYS = "CLERK_SECRET_KEY,MAIGRET_WORKER_SECRET,MAIGRET_WORKER_URL"
 
 # Serve the model catalog as a static file in production.

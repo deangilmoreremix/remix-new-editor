@@ -1183,7 +1183,7 @@ export class VideoRecorder {
     return fullPath;
   }
 
-  createSession(studioId: string, page: Page): { videoPath: string; addFrame: () => Promise<void>; startSteadyCapture: (intervalMs?: number) => void; stop: () => Promise<void>; finish: () => Promise<string> } {
+  startSession(studioId: string, page: Page): { videoPath: string; capture: () => Promise<void>; finish: () => Promise<string> } {
     const videoPath = this.getVideoPath(studioId);
     const framesDir = path.join(this.videoDir, `frames-${Date.now()}`);
     if (!fs.existsSync(framesDir)) {
@@ -1193,16 +1193,9 @@ export class VideoRecorder {
     const frames: string[] = [];
     let index = 0;
     const maxFrames = 120;
-    let stopped = false;
-    let capturePromise: Promise<void> | null = null;
-    let capturing = false;
 
-    const addFrame = async () => {
-      if (stopped || index >= maxFrames) return;
-      while (capturing) {
-        await new Promise(resolve => setTimeout(resolve, 10));
-      }
-      capturing = true;
+    const capture = async () => {
+      if (index >= maxFrames) return;
       try {
         const framePath = path.join(framesDir, `frame-${String(index).padStart(5, '0')}.png`);
         const screenshot = await page.screenshot({ fullPage: false });
@@ -1211,32 +1204,10 @@ export class VideoRecorder {
         index++;
       } catch (err) {
         console.warn(`[Video] Failed to capture frame ${index}: ${(err as Error).message}`);
-      } finally {
-        capturing = false;
-      }
-    };
-
-    const startSteadyCapture = (intervalMs = 500) => {
-      capturePromise = (async () => {
-        while (!stopped && index < maxFrames) {
-          await addFrame();
-          if (!stopped && index < maxFrames) {
-            await new Promise(resolve => setTimeout(resolve, intervalMs));
-          }
-        }
-      })();
-    };
-
-    const stop = async () => {
-      stopped = true;
-      if (capturePromise) {
-        await capturePromise;
       }
     };
 
     const finish = async (): Promise<string> => {
-      await stop();
-      console.log(`[Video] Finishing: ${frames.length} frames captured`);
       if (frames.length === 0) {
         this.cleanupFrames(framesDir);
         return videoPath;
@@ -1249,7 +1220,7 @@ export class VideoRecorder {
       return videoPath;
     };
 
-    return { videoPath, addFrame, startSteadyCapture, stop, finish };
+    return { videoPath, capture, finish };
   }
 
   private async combineFramesToVideo(framesDir: string, outputPath: string, fps: number): Promise<void> {

@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { saveGeneration } from '../lib/generationHistory.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
@@ -1546,19 +1547,15 @@ generateBtn.type = 'button';
   }
 
   function saveToHistory(url, type) {
-    try {
-      const key = type === 'video' ? 'video_history' : 'muapi_history';
-      const history = JSON.parse(localStorage.getItem(key) || '[]');
-      history.unshift({
-        id: Date.now().toString(),
-        url,
-        prompt: selectedEffect,
-        model: activeTab.id,
-        type,
-        timestamp: new Date().toISOString(),
-      });
-      localStorage.setItem(key, JSON.stringify(history.slice(0, 100)));
-    } catch (e) { /* ignore */ }
+    saveGeneration({
+      studio: 'effects',
+      type,
+      url,
+      prompt: selectedEffect,
+      model: activeTab.id,
+      parameters: {},
+      timestamp: new Date().toISOString(),
+    });
   }
 
   generateBtn.onclick = handleGenerate;

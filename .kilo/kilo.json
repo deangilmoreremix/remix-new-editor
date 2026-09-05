@@ -89,5 +89,6 @@
         "mcp": "deny"
       }
     }
-  }
+  },
+  "snapshot": false
 }

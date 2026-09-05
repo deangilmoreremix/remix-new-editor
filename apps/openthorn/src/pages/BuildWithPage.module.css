@@ -1,0 +1,216 @@
+/* ===== Page shell (mirrors ComparePage) ===== */
+.page {
+  min-height: calc(100vh - var(--header-height));
+  padding: var(--space-3xl) var(--space-lg) var(--space-6xl);
+  position: relative;
+  overflow: hidden;
+}
+
+.page::before {
+  content: '';
+  position: absolute;
+  top: -160px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 720px;
+  height: 480px;
+  background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.1), transparent 70%);
+  pointer-events: none;
+}
+
+.container {
+  max-width: 880px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.heading {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  animation: pageRise 0.6s var(--ease-out-expo) both;
+}
+
+.logoWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border: 1px solid rgba(157, 137, 251, 0.16);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.logo {
+  max-width: 42px;
+  max-height: 42px;
+  object-fit: contain;
+  display: block;
+}
+
+.eyebrow {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  margin: 0 0 var(--space-md);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 var(--space-md);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.lastVerified {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-lg);
+  animation: pageRise 0.6s var(--ease-out-expo) 0.1s both;
+}
+
+/* ===== Direct-answer block (AEO: quotable 40–60 word answer) ===== */
+.answer {
+  line-height: 1.7;
+  color: var(--color-text);
+  padding: var(--space-md) var(--space-lg);
+  border-left: 3px solid var(--color-accent);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 0 8px 8px 0;
+  margin: 0 0 var(--space-2xl);
+  animation: pageRise 0.6s var(--ease-out-expo) 0.12s both;
+}
+
+/* ===== Key facts ===== */
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-md);
+  margin: 0 0 var(--space-2xl);
+  animation: pageRise 0.6s var(--ease-out-expo) 0.16s both;
+}
+
+.fact {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: var(--space-md) var(--space-lg);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.factLabel {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  margin: 0 0 var(--space-xs);
+}
+
+.fact p {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+.fact a {
+  color: var(--color-accent);
+}
+
+.fact a:hover {
+  text-decoration: underline;
+}
+
+/* ===== Sections ===== */
+.sectionTitle {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: var(--space-2xl) 0 var(--space-md);
+}
+
+.models {
+  list-style: none;
+  margin: 0 0 var(--space-xl);
+  padding: 0;
+}
+
+.models li {
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+.models li strong {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.steps {
+  margin: 0 0 var(--space-xl);
+  padding-left: 1.4rem;
+}
+
+.steps li {
+  margin-bottom: var(--space-md);
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+}
+
+.steps li strong {
+  display: block;
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.costNote {
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-xl);
+}
+
+.faqItem {
+  margin-bottom: var(--space-lg);
+}
+
+.faqItem h3 {
+  font-size: 1.0625rem;
+  color: var(--color-text);
+  margin: 0 0 var(--space-xs);
+}
+
+.faqItem p {
+  margin: 0;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+}
+
+.links {
+  line-height: 1.9;
+  color: var(--color-text-secondary);
+}
+
+.links a {
+  color: var(--color-accent);
+}
+
+.links a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+  .heading {
+    flex-direction: column;
+  }
+}

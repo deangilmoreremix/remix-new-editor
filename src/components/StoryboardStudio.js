@@ -819,7 +819,7 @@ const compareBtn = document.createElement('button');
 
   // Model / aspect-ratio dropdowns
   const dropdown = document.createElement('div');
-  dropdown.className = 'absolute bottom-[102%] left-2 z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-bottom-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
+  dropdown.className = 'absolute z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-bottom-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
 
   function closeDropdown() {
     dropdown.classList.add('opacity-0', 'pointer-events-none');
@@ -844,10 +844,9 @@ const compareBtn = document.createElement('button');
         models: storyboardModels,
         selectedModelId: selectedModel,
         showProviderName: true,
-        onSelectModel: (modelId) => {
-          selectedModel = modelId;
-          const model = storyboardModels.find((m) => m.id === modelId);
-          selectedModelName = model ? model.name : modelId;
+        onSelectModel: (model) => {
+          selectedModel = model.id;
+          selectedModelName = model.name;
           const availableArs = getAspectRatiosForModel(selectedModel);
           selectedAr = availableArs[0];
           document.getElementById('model-btn-label').textContent = selectedModelName;
@@ -907,6 +906,7 @@ const compareBtn = document.createElement('button');
       }
     };
     document.addEventListener('click', _storyboardOutsideClickHandler);
+    positionModelSelectorDropdown(dropdown, anchorBtn, 8, container);
   }
 
   const createControlBtn = (icon, label, id, tooltip) => {
@@ -933,7 +933,7 @@ const compareBtn = document.createElement('button');
     const provider = current?.provider || 'muapi';
     const logoUrl = PROVIDER_LOGOS[provider];
     if (logoUrl) {
-      iconEl.innerHTML = `<img src="${logoUrl}" alt="" class="w-full h-full object-contain ${invertLogos.includes(provider) ? 'invert' : ''}" />`;
+      iconEl.innerHTML = renderProviderLogoImg(provider, '', 'w-full h-full object-contain', invertLogos.includes(provider) ? 'invert' : '');
     } else {
       const style = getProviderStyle(provider);
       iconEl.innerHTML = `<span class="text-[10px] font-black text-black">${style.text}</span>`;

@@ -295,7 +295,42 @@ export function splitAllTracks(timeline, splitTime) {
     timeline.tracks.filter((t) => t.locked).map((t) => t.id),
   );
   let result = timeline;
-  for (const clip of timeline.clips) {
+  const clips = [...timeline.clips];
+  const seen = new Set(timeline.clips.map((c) => c.id));
+
+  for (const track of timeline.tracks) {
+    if (lockedTrackIds.has(track.id)) continue;
+    for (const item of (track.items || [])) {
+      if (!seen.has(item.id)) {
+        clips.push({
+          id: item.id,
+          assetId: item.assetId || item.id,
+          trackId: track.id,
+          name: item.name || item.text || 'Item',
+          startTime: item.start || 0,
+          duration: typeof item.end === 'number' && typeof item.start === 'number'
+            ? item.end - item.start
+            : (item.duration || 0),
+          trimStart: item.trimIn || item.trimStart || 0,
+          trimEnd: item.trimOut || item.trimEnd || 0,
+          speed: item.playbackRate || item.speed || 1,
+          opacity: item.opacity ?? 1,
+          volume: item.volume ?? 1,
+          flipH: Boolean(item.flipH),
+          flipV: Boolean(item.flipV),
+          keyframes: Array.isArray(item.keyframes) ? item.keyframes : [],
+          linkedClipIds: Array.isArray(item.linkedClipIds) ? item.linkedClipIds : undefined,
+        });
+        seen.add(item.id);
+      }
+    }
+  }
+
+  if (clips.length !== timeline.clips.length) {
+    result = { ...result, clips };
+  }
+
+  for (const clip of clips) {
     if (lockedTrackIds.has(clip.trackId)) continue;
     const effDur = clipEffectiveDuration(clip);
     const rel = splitTime - clip.startTime;

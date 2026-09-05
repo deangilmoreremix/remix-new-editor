@@ -1,9 +1,59 @@
 // Workflow Section - Go From Simple Idea To Finished Client Asset In Minutes
 
+import SHOWCASE_CONFIG from '../../content/showcaseConfig.js';
+
 export function WorkflowSection() {
   const section = document.createElement('section');
   section.className = 'py-20 px-4 bg-[#05070b]';
   section.setAttribute('aria-labelledby', 'workflow-heading');
+
+  const workflowSteps = [
+    {
+      step: 1,
+      title: 'Ideate',
+      icon: '💡',
+      description: 'Use AI chat and explore features to brainstorm creative concepts, write compelling prompts, and plan your video strategy.',
+      tags: 'Chat • Explore • Assist',
+      gradient: 'from-cyan-500 to-cyan-400',
+      thumb: SHOWCASE_CONFIG.getStudioThumbnail('chat')
+    },
+    {
+      step: 2,
+      title: 'Generate',
+      icon: '🎬',
+      description: 'Create cinematic videos, stunning images, and visual effects using our 200+ AI models and professional-grade tools.',
+      tags: 'Image • Video • Cinema',
+      gradient: 'from-emerald-500 to-emerald-400',
+      thumb: SHOWCASE_CONFIG.getStudioThumbnail('image')
+    },
+    {
+      step: 3,
+      title: 'Enhance',
+      icon: '✨',
+      description: 'Add VFX, effects, motion, upscale quality, and apply professional editing techniques to polish your content.',
+      tags: 'VFX • Effects • Edit',
+      gradient: 'from-purple-500 to-purple-400',
+      thumb: SHOWCASE_CONFIG.getStudioThumbnail('edit')
+    },
+    {
+      step: 4,
+      title: 'Produce',
+      icon: '🎯',
+      description: 'Arrange scenes in timeline, add audio, dub for multiple languages, and finalize your professional video production.',
+      tags: 'Timeline • Audio • Dubbing',
+      gradient: 'from-pink-500 to-pink-400',
+      thumb: SHOWCASE_CONFIG.getStudioThumbnail('cinema')
+    },
+    {
+      step: 5,
+      title: 'Deliver',
+      icon: '🚀',
+      description: 'Export in multiple formats, organize in your library, and deliver polished client-ready packages with professional branding.',
+      tags: 'Render • Library • Commercial',
+      gradient: 'from-yellow-500 to-yellow-400',
+      thumb: SHOWCASE_CONFIG.getStudioThumbnail('commercial')
+    }
+  ];
 
   section.innerHTML = `
     <div class="container mx-auto max-w-7xl">
@@ -12,7 +62,7 @@ export function WorkflowSection() {
           Go From Simple Idea To <span class="text-cyan-400 italic">Finished Client Asset</span> In Minutes
         </h2>
         <p class="text-xl text-gray-300 max-w-3xl mx-auto">
-          Stop juggling multiple tools and complex workflows. AI Video Agency Studio gives you a streamlined creative pipeline that turns concepts into polished deliverables.
+           Stop juggling multiple tools and complex workflows. Smart Video AI Studio gives you a streamlined creative pipeline that turns concepts into polished deliverables.
         </p>
       </div>
 
@@ -22,65 +72,21 @@ export function WorkflowSection() {
         <div class="hidden lg:block absolute top-24 left-1/2 transform -translate-x-1/2 w-full max-w-4xl h-0.5 bg-gradient-to-r from-cyan-400/50 via-emerald-400/50 to-cyan-400/50 workflow-line opacity-0"></div>
         
         <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-4 workflow-steps">
-          <!-- Step 1: Ideate -->
-          <div class="workflow-step opacity-0 translate-y-4 text-center group">
-            <div class="w-16 h-16 bg-gradient-to-br from-cyan-500 to-cyan-400 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-cyan-400/30">
-              <span class="text-2xl">💡</span>
+          ${workflowSteps.map((step, i) => `
+          <div class="workflow-step opacity-0 translate-y-4 text-center group" style="transition-delay: ${i * 100}ms;">
+            <div class="relative mb-4">
+              <div class="w-16 h-16 bg-gradient-to-br ${step.gradient} rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                <span class="text-2xl">${step.icon}</span>
+              </div>
+              <div class="absolute -bottom-1 -right-1 w-8 h-8 rounded-md overflow-hidden border-2 border-[#05070b]">
+                <img src="${step.thumb}" alt="${step.title}" class="w-full h-full object-cover" loading="lazy" />
+              </div>
             </div>
-            <h3 class="text-lg font-bold text-white mb-2">1. Ideate</h3>
-            <p class="text-sm text-gray-400 leading-relaxed">
-              Use AI chat and explore features to brainstorm creative concepts, write compelling prompts, and plan your video strategy.
-            </p>
-            <div class="text-xs text-cyan-400 mt-2 font-medium">Chat • Explore • Assist</div>
+            <h3 class="text-lg font-bold text-white mb-2">${step.step}. ${step.title}</h3>
+            <p class="text-sm text-gray-400 leading-relaxed">${step.description}</p>
+            <div class="text-xs text-cyan-400 mt-2 font-medium">${step.tags}</div>
           </div>
-
-          <!-- Step 2: Generate -->
-          <div class="workflow-step opacity-0 translate-y-4 text-center group" style="transition-delay: 100ms;">
-            <div class="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-emerald-400/30">
-              <span class="text-2xl">🎬</span>
-            </div>
-            <h3 class="text-lg font-bold text-white mb-2">2. Generate</h3>
-            <p class="text-sm text-gray-400 leading-relaxed">
-              Create cinematic videos, stunning images, and visual effects using our 200+ AI models and professional-grade tools.
-            </p>
-            <div class="text-xs text-emerald-400 mt-2 font-medium">Image • Video • Cinema</div>
-          </div>
-
-          <!-- Step 3: Enhance -->
-          <div class="workflow-step opacity-0 translate-y-4 text-center group" style="transition-delay: 200ms;">
-            <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-400 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-purple-400/30">
-              <span class="text-2xl">✨</span>
-            </div>
-            <h3 class="text-lg font-bold text-white mb-2">3. Enhance</h3>
-            <p class="text-sm text-gray-400 leading-relaxed">
-              Add VFX, effects, motion, upscale quality, and apply professional editing techniques to polish your content.
-            </p>
-            <div class="text-xs text-purple-400 mt-2 font-medium">VFX • Effects • Edit</div>
-          </div>
-
-          <!-- Step 4: Produce -->
-          <div class="workflow-step opacity-0 translate-y-4 text-center group" style="transition-delay: 300ms;">
-            <div class="w-16 h-16 bg-gradient-to-br from-pink-500 to-pink-400 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-pink-400/30">
-              <span class="text-2xl">🎯</span>
-            </div>
-            <h3 class="text-lg font-bold text-white mb-2">4. Produce</h3>
-            <p class="text-sm text-gray-400 leading-relaxed">
-              Arrange scenes in timeline, add audio, dub for multiple languages, and finalize your professional video production.
-            </p>
-            <div class="text-xs text-pink-400 mt-2 font-medium">Timeline • Audio • Dubbing</div>
-          </div>
-
-          <!-- Step 5: Deliver -->
-          <div class="workflow-step opacity-0 translate-y-4 text-center group" style="transition-delay: 400ms;">
-            <div class="w-16 h-16 bg-gradient-to-br from-yellow-500 to-yellow-400 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-yellow-400/30">
-              <span class="text-2xl">🚀</span>
-            </div>
-            <h3 class="text-lg font-bold text-white mb-2">5. Deliver</h3>
-            <p class="text-sm text-gray-400 leading-relaxed">
-              Export in multiple formats, organize in your library, and deliver polished client-ready packages with professional branding.
-            </p>
-            <div class="text-xs text-yellow-400 mt-2 font-medium">Render • Library • Commercial</div>
-          </div>
+          `).join('')}
         </div>
       </div>
 

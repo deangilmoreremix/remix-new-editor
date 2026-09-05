@@ -697,6 +697,21 @@
 /* Every studio uses the same trigger styling. These selectors are kept so
    studio-scoped markup keeps resolving to the shared palette instead of
    falling back to a per-studio hue. */
+/* Cinema Studio overrides — align GTM Boost with the studio's control buttons */
+.cinema-studio .gtm-boost-btn {
+  min-height: auto;
+  padding: 8px 12px;
+  font-size: 12px;
+  border-radius: 12px;
+}
+
+@media (min-width: 768px) {
+  .cinema-studio .gtm-boost-btn {
+    padding: 10px 16px;
+    border-radius: 24px;
+  }
+}
+
 .cinema-template-studio .gtm-boost-btn,
 .template-studio .gtm-boost-btn,
 .image-studio .gtm-boost-btn,
@@ -857,6 +872,50 @@
 }
 
 .btn-ghost-modern:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+  transform: none !important;
+}
+
+.btn-danger-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 7px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #ef4444;
+  background: transparent;
+  border: 1px solid rgba(239,68,68,0.25);
+  border-left: 2px solid #ef4444;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  line-height: 1.2;
+  transition: all 200ms ease;
+}
+
+.btn-danger-ghost:hover {
+  background: rgba(239,68,68,0.15);
+  color: #ef4444;
+  border-color: rgba(239,68,68,0.5);
+  border-left: 2px solid #ef4444;
+  box-shadow: 0 0 12px rgba(239,68,68,0.10);
+  transform: translateY(-1px);
+}
+
+.btn-danger-ghost:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.btn-danger-ghost:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--bg-app), 0 0 0 4px rgba(239,68,68,0.4);
+}
+
+.btn-danger-ghost:disabled {
   opacity: 0.4;
   cursor: not-allowed;
   pointer-events: none;

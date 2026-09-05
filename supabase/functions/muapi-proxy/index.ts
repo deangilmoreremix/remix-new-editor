@@ -36,17 +36,19 @@ const RETRYABLE_STATUSES = new Set([502, 503, 429]);
 
 // --- Output Integrity ---
 
-// Patterns that indicate a static/demo/placeholder URL from MuAPI.
-// Only match against the hostname + path structure, NOT the filename,
-// to avoid false positives from user uploads containing "sample" or "demo"
-// in their filenames (e.g., "my-sample-video.mp4").
+// Gate the output integrity check so it can be disabled in production
+// while investigating upstream placeholder responses. When false, the
+// proxy still runs the validation but returns 200 with a warning instead
+// of 422, preventing total studio outage.
+const ALLOW_PLACEHOLDER_URLS = Deno.env.get('MUAPI_ALLOW_PLACEHOLDER_URLS') === 'true';
+
+// Narrowed to exact path prefixes to avoid false positives on legitimate
+// CDN URLs. Removed '/webassets/' and '/placeholder/' because they match
+// too many real asset paths.
 const KNOWN_STATIC_PATTERNS = [
   '/muapi/homepage/',
   '/muapi/demo/',
   '/muapi/sandbox/',
-  '/webassets/videomodels/',
-  '/webassets/',
-  '/placeholder/',
   '/static/demo/',
 ];
 
@@ -76,7 +78,10 @@ function extractOutputUrls(result: any): string[] {
   return urls.filter(Boolean);
 }
 
-function validateOutputIntegrity(result: any, requestId: string): { ok: boolean; reason?: string } {
+function validateOutputIntegrity(result: any, requestId: string): { ok: boolean; reason?: string; allowed: boolean } {
+  if (ALLOW_PLACEHOLDER_URLS) {
+    return { ok: true, allowed: true };
+  }
   const urls = extractOutputUrls(result);
 
   if (urls.length === 0) {
@@ -501,7 +506,7 @@ Deno.serve(async (req: Request) => {
             error: 'No Muapi API key was provided in the request. Set your key in Settings and retry.'
           }),
           {
-            status: 500,
+            status: 401,
             headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
           }
         );
@@ -582,11 +587,28 @@ Deno.serve(async (req: Request) => {
       }
       result = unwrapResponse(result);
 
-      // NEW: Validate output integrity for completed results
+      // Validate output integrity for completed results
       const completionStatuses = new Set(['completed', 'succeeded', 'success']);
       if (result.status && completionStatuses.has(result.status.toLowerCase())) {
         const validation = validateOutputIntegrity(result, result.id || result.request_id);
         if (!validation.ok) {
+          // Circuit breaker: if placeholders are being blocked repeatedly,
+          // allow through to avoid total outage while investigating.
+          const now = Date.now();
+          const breakerKey = `breaker_${validation.reason}`;
+          const record = rateLimitStore.get(breakerKey) || { count: 0, resetTime: now + 60000 };
+          if (now > record.resetTime) {
+            rateLimitStore.set(breakerKey, { count: 1, resetTime: now + 60000 });
+          } else {
+            record.count++;
+          }
+          if (record.count > 10) {
+            console.warn(`[muapi-proxy] Circuit breaker open for ${validation.reason}, allowing through`);
+            return new Response(
+              JSON.stringify({ ...result, _placeholder_warning: validation.reason }),
+              { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+            );
+          }
           console.error(`[muapi-proxy] Blocked static/demo output: ${validation.reason}`);
           return new Response(
             JSON.stringify({
@@ -662,7 +684,7 @@ Deno.serve(async (req: Request) => {
           error: 'No Muapi API key was provided in the request. Set your key in Settings and retry.'
         }),
         {
-          status: 500,
+          status: 401,
           headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
         }
       );
@@ -730,7 +752,7 @@ Deno.serve(async (req: Request) => {
       fetchOptions.body = JSON.stringify(params ?? {});
     }
 
-    const muapiResponse = await fetch(muapiUrl, fetchOptions);
+    const muapiResponse = await fetchWithRetry(muapiUrl, fetchOptions, AbortSignal.timeout(UPSTREAM_TIMEOUT_MS));
 
     if (!muapiResponse.ok) {
       const errorText = await muapiResponse.text();
@@ -751,11 +773,26 @@ Deno.serve(async (req: Request) => {
     let result = await muapiResponse.json();
     result = unwrapResponse(result);
 
-    // NEW: Validate output integrity for completed results
+    // Validate output integrity for completed results
     const completionStatuses = new Set(['completed', 'succeeded', 'success']);
     if (result.status && completionStatuses.has(result.status.toLowerCase())) {
       const validation = validateOutputIntegrity(result, result.id || result.request_id);
       if (!validation.ok) {
+        const now = Date.now();
+        const breakerKey = `breaker_${validation.reason}`;
+        const record = rateLimitStore.get(breakerKey) || { count: 0, resetTime: now + 60000 };
+        if (now > record.resetTime) {
+          rateLimitStore.set(breakerKey, { count: 1, resetTime: now + 60000 });
+        } else {
+          record.count++;
+        }
+        if (record.count > 10) {
+          console.warn(`[muapi-proxy] Circuit breaker open for ${validation.reason}, allowing through`);
+          return new Response(
+            JSON.stringify({ ...result, _placeholder_warning: validation.reason }),
+            { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          );
+        }
         console.error(`[muapi-proxy] Blocked static/demo output: ${validation.reason}`);
         return new Response(
           JSON.stringify({

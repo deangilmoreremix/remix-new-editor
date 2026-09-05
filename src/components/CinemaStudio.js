@@ -9,7 +9,7 @@ import { buildNanoBananaPrompt, CAMERA_MAP, LENS_MAP, FOCAL_PERSPECTIVE, APERTUR
 import { AuthModal } from './AuthModal.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { getVideoModelById, getI2VModelById, getModelById, t2vModels, i2vModels, getDurationsForModel, getDurationsForI2VModel, getResolutionsForVideoModel, getResolutionsForI2VModel } from '../lib/models.js';
-import { mountModelSelector } from '../lib/modelSelectorUI.js';
+import { mountModelSelector, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { createUploadPicker } from './UploadPicker.js';
@@ -396,10 +396,7 @@ let showAdvanced = false;
         });
       }).catch((err) => console.error('[CinemaStudio] GTM Boost failed:', err));
     });
-    const toolbar = document.createElement('div');
-    toolbar.className = 'flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06]';
-    toolbar.appendChild(gtmBtn);
-    inputRow.appendChild(toolbar);
+
 
     // --- Reference image upload (the "Upload your scene" step) ---
     // Real upload control that posts the still to the backend and stores the
@@ -498,7 +495,7 @@ let showAdvanced = false;
 
     // 2. Settings Toolbar (Bottom Left)
     const settingsToolbar = document.createElement('div');
-    settingsToolbar.className = 'flex items-center gap-3'; // Removed pl-11 to align left
+    settingsToolbar.className = 'flex items-center gap-1.5 md:gap-2.5'; // Align with video/image studio control buttons
 
     // Helper: Create Dropdown
     const createDropdown = (items, selected, onSelect, trigger) => {
@@ -545,6 +542,7 @@ let showAdvanced = false;
     };
     updateModelBtn();
     modelBtn.onclick = (e) => { e.stopPropagation(); showModelDropdown(); };
+    settingsToolbar.appendChild(gtmBtn);
     settingsToolbar.appendChild(modelBtn);
 
     // Model Picker button
@@ -605,8 +603,8 @@ let showAdvanced = false;
             updateModelBtn();
             updateControlsForModel();
           },
-          onSelectModel: (modelId) => {
-            currentSettings.model = modelId;
+          onSelectModel: (model) => {
+            currentSettings.model = model.id;
             updateModelBtn();
             updateControlsForModel();
             closeModelDropdown();
@@ -624,6 +622,7 @@ let showAdvanced = false;
             if (!modelDropdown.contains(e.target) && e.target !== modelBtn) closeModelDropdown();
         };
         document.addEventListener('click', _modelSelectorOutsideClickHandler);
+        positionModelSelectorDropdown(modelDropdown, modelBtn, 8, container);
     }
 
     // Sync controls (duration/resolution availability) to the selected model.

@@ -97,6 +97,7 @@ export function OpenMontagePage() {
     stageIndex: 4,
     isProcessing: false,
     currentJobId: null,
+    currentProjectId: null,
     prompt: '',
     referenceVideo: '',
     audience: 'developers & platform teams',
@@ -443,6 +444,23 @@ export function OpenMontagePage() {
   main.appendChild(contentCol);
   main.appendChild(right);
   contentWrapper.appendChild(main);
+
+  // Backlot iframe (hidden by default)
+  const backlotSection = document.createElement('div');
+  backlotSection.id = 'om-backlot-section';
+  backlotSection.className = 'hidden mt-6';
+  backlotSection.innerHTML = `
+    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] overflow-hidden shadow-3xl">
+      <div class="flex items-center justify-between px-5 py-3 border-b border-white/10">
+        <h3 class="text-xs font-black text-white/80 tracking-wide">BACKLOT — LIVE STORYBOARD</h3>
+        <button id="om-close-backlot" class="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[11px] font-bold text-white/70 hover:text-white hover:bg-white/10 transition-all">Close</button>
+      </div>
+      <div class="w-full" style="height: 70vh;">
+        <iframe id="om-backlot-iframe" class="w-full h-full border-0" src="about:blank" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+      </div>
+    </div>
+  `;
+  contentWrapper.appendChild(backlotSection);
 
   container.appendChild(contentWrapper);
 
@@ -1376,6 +1394,7 @@ export function OpenMontagePage() {
 
   updateServiceStatus();
   updateKeyStatus();
+  setStage(0);
 
   // Initial key status display
   const keyStatusEl = container.querySelector('#om-key-status');

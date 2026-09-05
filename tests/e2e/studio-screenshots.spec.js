@@ -49,9 +49,7 @@ const TEMPLATE_IDS = [
   'tiktok-video', 'instagram-reel', 'youtube-thumbnail',
 ];
 
-const CINEMA_TEMPLATE_IDS = [
-  'cinematic-short-film', 'mini-movie', 'trailer-video',
-];
+const CINEMA_TEMPLATE_IDS = [];
 
 async function dismissApiModal(page) {
   const modalTitle = page.getByText('Welcome — set up your API keys');
@@ -175,6 +173,8 @@ async function waitForMedia(page) {
       // ignore
     }
   }
+
+  await page.waitForTimeout(1000);
 }
 
 async function clickAndCapture(page, selector, filename, waitMs = 1500) {
@@ -201,7 +201,7 @@ async function captureTemplateEditors(page) {
     await page.waitForTimeout(4000);
     await dismissOverlays(page);
 
-    const card = page.locator('[class*="cursor-pointer"]').first();
+    const card = page.locator('.group.bg-white\\/5').first();
     if (await card.count() > 0 && await card.isVisible()) {
       await card.click();
       await page.waitForTimeout(3000);

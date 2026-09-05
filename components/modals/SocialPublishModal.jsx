@@ -380,7 +380,7 @@ function ThumbnailZone({
             <button type="button" style={{ ...ghostBtn, marginBottom: 6 }} onClick={onOpenThumbnail}>
               Change thumbnail
             </button>
-            <button type="button" style={{ ...ghostBtn, color: '#ff9a9a', borderColor: 'rgba(255,120,120,0.3)', marginLeft: 8 }} onClick={() => updateForm('thumbnail', null)}>
+            <button type="button" className="btn-danger-ghost" style={{ marginLeft: 8 }} onClick={() => updateForm('thumbnail', null)}>
               Remove
             </button>
             <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 8 }}>Aspect ratio: {ar}</div>

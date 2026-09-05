@@ -9,7 +9,7 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './tests/e2e',
-  testMatch: ['**/timeline-healthcheck.spec.js', '**/timeline-editing.spec.js', '**/timeline-sam3.spec.js'],
+  testMatch: ['**/timeline-healthcheck.spec.js', '**/timeline-editing.spec.js', '**/timeline-sam3.spec.js', '**/public-audit-report.spec.js', '**/video-agent-studio.spec.js', '**/template-generator.spec.js'],
   testIgnore: '**/node_modules/**',
 
   fullyParallel: false,

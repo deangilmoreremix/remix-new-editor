@@ -1,31 +1,6 @@
 // Six Creative Engines Section - Animated with parallax and hover effects
 
-const GRADIENT_HEX = {
-  cyan: ['#06b6d4', '#22d3ee'],
-  emerald: ['#10b981', '#34d399'],
-  purple: ['#a855f7', '#c084fc'],
-  pink: ['#ec4899', '#f472b6'],
-  yellow: ['#eab308', '#facc15'],
-  indigo: ['#6366f1', '#818cf8'],
-};
-
-const COLOR_RGB = {
-  cyan: '34, 211, 238',
-  emerald: '52, 211, 153',
-  purple: '168, 85, 247',
-  pink: '236, 72, 153',
-  yellow: '250, 204, 21',
-  indigo: '99, 102, 241',
-};
-
-function engineGradient(color) {
-  const [c1, c2] = GRADIENT_HEX[color] || ['#06b6d4', '#22d3ee'];
-  return `linear-gradient(135deg, ${c1}1a, ${c2}1a)`;
-}
-
-function engineBorderRGB(color) {
-  return COLOR_RGB[color] || '34, 211, 238';
-}
+import SHOWCASE_CONFIG from '../../content/showcaseConfig.js';
 
 export function SixEnginesSection() {
   const engines = [
@@ -36,7 +11,8 @@ export function SixEnginesSection() {
       icon: '🎨',
       gradient: 'from-cyan-500 to-cyan-400',
       apps: ['Image', 'Video', 'Cinema Studio', 'Character', 'Influencer', 'Commercial'],
-      color: 'cyan'
+      color: 'cyan',
+      thumbnail: SHOWCASE_CONFIG.getStudioThumbnail('image')
     },
     {
       id: 'enhance',
@@ -45,7 +21,8 @@ export function SixEnginesSection() {
       icon: '✨',
       gradient: 'from-emerald-500 to-emerald-400',
       apps: ['Effects', 'VFX', 'AI-VFX', 'Motion', 'Upscale', 'Edit'],
-      color: 'emerald'
+      color: 'emerald',
+      thumbnail: SHOWCASE_CONFIG.getStudioThumbnail('edit')
     },
     {
       id: 'produce',
@@ -54,7 +31,8 @@ export function SixEnginesSection() {
       icon: '🎬',
       gradient: 'from-purple-500 to-purple-400',
       apps: ['Storyboard', 'Director', 'Timeline', 'Render', 'Video Tools', 'Audio'],
-      color: 'purple'
+      color: 'purple',
+      thumbnail: SHOWCASE_CONFIG.getStudioThumbnail('cinema')
     },
     {
       id: 'localize',
@@ -63,7 +41,8 @@ export function SixEnginesSection() {
       icon: '🌍',
       gradient: 'from-pink-500 to-pink-400',
       apps: ['Dubbing', 'Lip Sync', 'Avatar', 'TikTok', 'Social Content'],
-      color: 'pink'
+      color: 'pink',
+      thumbnail: SHOWCASE_CONFIG.getStudioThumbnail('avatar')
     },
     {
       id: 'automate',
@@ -71,8 +50,9 @@ export function SixEnginesSection() {
       description: 'Streamline workflows with AI assistance',
       icon: '🤖',
       gradient: 'from-yellow-500 to-yellow-400',
-      apps: ['Agents', 'Assist', 'Chat'],
-      color: 'yellow'
+      apps: ['Video Agent', 'Agents', 'Workflows', 'Assist', 'Chat', 'MCP & CLI'],
+      color: 'yellow',
+      thumbnail: SHOWCASE_CONFIG.getStudioThumbnail('videoAgent')
     },
     {
       id: 'scale',
@@ -81,7 +61,8 @@ export function SixEnginesSection() {
       icon: '📊',
       gradient: 'from-indigo-500 to-indigo-400',
       apps: ['Templates', 'Explore', 'Library', 'Community', 'Training'],
-      color: 'indigo'
+      color: 'indigo',
+      thumbnail: SHOWCASE_CONFIG.getStudioThumbnail('templates')
     }
   ];
 
@@ -133,17 +114,26 @@ export function SixEnginesSection() {
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
         ${engines.map((engine, index) => `
           <div 
-            class="engine-card relative border border-white/10 rounded-2xl p-6 cursor-pointer group hover:scale-105 transition-all duration-500 overflow-hidden"
+            class="engine-card relative bg-gradient-to-br ${engine.gradient.replace('from-', 'from-[').replace(' to-', ']/to-[')}/10 border border-white/10 rounded-2xl p-6 cursor-pointer group hover:scale-105 transition-all duration-500 overflow-hidden"
             data-engine="${engine.id}"
-            style="background: ${engineGradient(engine.color)}; transition-delay: ${index * 100}ms;"
+            style="transition-delay: ${index * 100}ms;"
           >
             <!-- Animated Gradient Overlay on Hover -->
             <div class="engine-card-glow absolute inset-0 bg-gradient-to-br ${engine.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500"></div>
             
             <!-- Content -->
             <div class="relative z-10">
-              <div class="w-16 h-16 bg-gradient-to-br ${engine.gradient} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg">
-                <span class="text-3xl">${engine.icon}</span>
+              <div class="relative mb-4 rounded-xl overflow-hidden border border-white/10">
+                <img 
+                  src="${engine.thumbnail}" 
+                  alt="${engine.title} studio preview"
+                  class="w-full h-40 object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
+                  loading="lazy"
+                />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                <div class="absolute bottom-3 left-3 w-10 h-10 bg-gradient-to-br ${engine.gradient} rounded-lg flex items-center justify-center shadow-lg">
+                  <span class="text-xl">${engine.icon}</span>
+                </div>
               </div>
               <h3 class="text-xl font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors duration-300">${engine.title}</h3>
               <p class="text-gray-400 text-sm mb-4">${engine.description}</p>
@@ -162,7 +152,9 @@ export function SixEnginesSection() {
             </div>
 
             <!-- Corner Accent -->
-            <div class="absolute top-0 right-0 w-20 h-20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style="border-top: 40px solid rgba(${engineBorderRGB(engine.color)}, 0.3); border-right: 40px solid transparent;" aria-hidden="true"></div>
+            <div class="engine-corner absolute top-0 right-0 w-20 h-20 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+              <div class="absolute top-0 right-0 border-t-[40px] border-r-[40px] border-transparent border-t-${engine.color}-400/30"></div>
+            </div>
           </div>
         `).join('')}
       </div>
@@ -172,7 +164,7 @@ export function SixEnginesSection() {
         <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           <div class="stat-item group">
             <div class="text-3xl md:text-4xl font-black text-cyan-400 mb-2 relative">
-              <span class="counter-number" data-target="30">0</span>
+              <span class="counter-number" data-target="33">0</span>
               <div class="absolute -inset-2 bg-cyan-400/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </div>
             <div class="text-gray-400 text-sm">AI Creative Apps</div>

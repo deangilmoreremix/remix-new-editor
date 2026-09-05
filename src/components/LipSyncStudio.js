@@ -9,7 +9,7 @@ import { savePendingJob, removePendingJob, getPendingJobs } from '../lib/pending
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
-import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
+import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { getModelById } from '../lib/models.js';
@@ -351,7 +351,7 @@ export function LipSyncStudio() {
         const provider = current?.provider || 'muapi';
         const logoUrl = PROVIDER_LOGOS[provider];
         if (logoUrl) {
-            iconEl.innerHTML = `<img src="${logoUrl}" alt="" class="w-full h-full object-contain ${invertLogos.includes(provider) ? 'invert' : ''}" />`;
+            iconEl.innerHTML = renderProviderLogoImg(provider, '', 'w-full h-full object-contain', invertLogos.includes(provider) ? 'invert' : '');
         } else {
             const style = getProviderStyle(provider);
             iconEl.innerHTML = `<span class="text-[10px] font-black text-black">${style.text}</span>`;
@@ -495,10 +495,8 @@ export function LipSyncStudio() {
                 inputMode = catId;
                 updateUIForMode();
               },
-              onSelectModel: (modelId) => {
-                const model = (inputMode === 'image' ? imageLipSyncModels : videoLipSyncModels).find((m) => m.id === modelId);
-                if (!model) return;
-                selectedModel = modelId;
+              onSelectModel: (model) => {
+                selectedModel = model.id;
                 document.getElementById('ls-model-btn-label').textContent = model.name;
                 updateModelBtnIcon();
                 const resolutions = getResolutionsForLipSyncModel(selectedModel);

@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { saveGeneration } from '../lib/generationHistory.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
@@ -449,7 +450,7 @@ export function ImageStudio() {
         const provider = current?.provider || 'muapi';
         const logoUrl = PROVIDER_LOGOS[provider];
         if (logoUrl) {
-            iconEl.innerHTML = `<img src="${logoUrl}" alt="" class="w-full h-full object-contain ${invertLogos.includes(provider) ? 'invert' : ''}" />`;
+            iconEl.innerHTML = renderProviderLogoImg(provider, '', 'w-full h-full object-contain', invertLogos.includes(provider) ? 'invert' : '');
         } else {
             const style = getProviderStyle(provider);
             iconEl.innerHTML = `<span class="text-[10px] font-black text-black">${style.text}</span>`;
@@ -897,31 +898,31 @@ generateBtn.type = 'button';
                   dynamicControls.update(getExtendedModel(resolved));
                 }
               },
-              onSelectModel: (modelId) => {
-                selectedModel = modelId;
-                selectedModelName =
-                  t2iModels.find(m => m.id === modelId)?.name ||
-                  i2iModels.find(m => m.id === modelId)?.name ||
-                  modelId;
-                const availableArs = getCurrentAspectRatios(selectedModel);
-                selectedAr = availableArs[0];
+              onSelectModel: (model, categoryId) => {
+                const newImageMode = categoryId === 'i2i';
+                imageMode = newImageMode;
+                selectedModel = model.id;
+                selectedModelName = model.name;
+                selectedAr = newImageMode
+                  ? getAspectRatiosForI2IModel(selectedModel)[0]
+                  : getAspectRatiosForModel(selectedModel)[0];
                 document.getElementById('model-btn-label').textContent = selectedModelName;
                 document.getElementById('ar-btn-label').textContent = selectedAr;
-                const validResolutions = getCurrentResolutions(selectedModel);
+                const validResolutions = newImageMode
+                  ? getResolutionsForI2IModel(selectedModel)
+                  : getResolutionsForModel(selectedModel);
                 qualityBtn.style.display = validResolutions.length > 0 ? 'flex' : 'none';
                 if (validResolutions.length > 0) {
                   document.getElementById('quality-btn-label').textContent = validResolutions[0];
                 }
-                if (imageMode) {
+                if (newImageMode) {
                   picker.setMaxImages(getMaxImagesForI2IModel(selectedModel));
                 }
                 updateModelBtnIcon();
                 if (dynamicControls) {
-                  const resolved = getModelById(selectedModel)
-                    || getI2IModelById(selectedModel)
-                    || getI2VModelById(selectedModel)
-                    || getV2VModelById(selectedModel)
-                    || { id: selectedModel, inputs: {} };
+                  const resolved = newImageMode
+                    ? getI2IModelById(selectedModel)
+                    : getModelById(selectedModel);
                   dynamicControls.update(getExtendedModel(resolved));
                 }
                 closeDropdown();
@@ -981,19 +982,11 @@ generateBtn.type = 'button';
             dropdown.appendChild(list);
         }
 
-        // Position dropdown
-        const btnRect = anchorBtn.getBoundingClientRect();
-        const containerRect = container.getBoundingClientRect();
-
-        // Horizontal position
+        // Position dropdown viewport-aware
+        positionModelSelectorDropdown(dropdown, anchorBtn, 8, container);
         if (window.innerWidth < 768) {
-            // Center on mobile
             dropdown.style.left = '50%';
-            dropdown.style.transform = 'translateX(-50%) translate(0, 8px)';
-        } else {
-            // Align with button on desktop
-            dropdown.style.left = `${btnRect.left - containerRect.left}px`;
-            dropdown.style.transform = 'translate(0, 8px)';
+            dropdown.style.transform = 'translateX(-50%)';
         }
 
         // Vertical position (always above button)
@@ -1006,57 +999,64 @@ generateBtn.type = 'button';
         dropdown.classList.remove('opacity-100', 'pointer-events-auto');
         dropdownOpen = null;
         selectedProvider = 'all';
-        if (_imageStudioOutsideClickHandler) {
-            window.removeEventListener('click', _imageStudioOutsideClickHandler);
-            _imageStudioOutsideClickHandler = null;
+        const handler = dropdown._outsideClickHandler;
+        if (handler) {
+            window.removeEventListener('click', handler);
+            dropdown._outsideClickHandler = null;
         }
     };
 
-    modelBtn.onclick = (e) => {
+    modelBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         if (dropdownOpen === 'model') closeDropdown();
         else {
             dropdownOpen = 'model';
             selectedProvider = 'all';
             showDropdown('model', modelBtn);
-            if (_imageStudioOutsideClickHandler) {
-                window.removeEventListener('click', _imageStudioOutsideClickHandler);
-                _imageStudioOutsideClickHandler = null;
+            const handler = dropdown._outsideClickHandler;
+            if (handler) {
+                window.removeEventListener('click', handler);
+                dropdown._outsideClickHandler = null;
             }
-            _imageStudioOutsideClickHandler = () => closeDropdown();
-            window.addEventListener('click', _imageStudioOutsideClickHandler);
+            const newHandler = () => closeDropdown();
+            dropdown._outsideClickHandler = newHandler;
+            window.addEventListener('click', newHandler);
         }
-    };
+    });
 
-    arBtn.onclick = (e) => {
+    arBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         if (dropdownOpen === 'ar') closeDropdown();
         else {
             dropdownOpen = 'ar';
             showDropdown('ar', arBtn);
-            if (_imageStudioOutsideClickHandler) {
-                window.removeEventListener('click', _imageStudioOutsideClickHandler);
-                _imageStudioOutsideClickHandler = null;
+            const handler = dropdown._outsideClickHandler;
+            if (handler) {
+                window.removeEventListener('click', handler);
+                dropdown._outsideClickHandler = null;
             }
-            _imageStudioOutsideClickHandler = () => closeDropdown();
-            window.addEventListener('click', _imageStudioOutsideClickHandler);
+            const newHandler = () => closeDropdown();
+            dropdown._outsideClickHandler = newHandler;
+            window.addEventListener('click', newHandler);
         }
-    };
+    });
 
-    qualityBtn.onclick = (e) => {
+    qualityBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         if (dropdownOpen === 'quality') closeDropdown();
         else {
             dropdownOpen = 'quality';
             showDropdown('quality', qualityBtn);
-            if (_imageStudioOutsideClickHandler) {
-                window.removeEventListener('click', _imageStudioOutsideClickHandler);
-                _imageStudioOutsideClickHandler = null;
+            const handler = dropdown._outsideClickHandler;
+            if (handler) {
+                window.removeEventListener('click', handler);
+                dropdown._outsideClickHandler = null;
             }
-            _imageStudioOutsideClickHandler = () => closeDropdown();
-            window.addEventListener('click', _imageStudioOutsideClickHandler);
+            const newHandler = () => closeDropdown();
+            dropdown._outsideClickHandler = newHandler;
+            window.addEventListener('click', newHandler);
         }
-    };
+    });
     container.appendChild(dropdown);
 
     // ==========================================
@@ -1144,12 +1144,20 @@ generateBtn.type = 'button';
     const addToHistory = (entry) => {
         generationHistory.unshift(entry);
 
-        try {
-            // Save to localStorage
-            localStorage.setItem('muapi_history', JSON.stringify(generationHistory.slice(0, 50)));
-        } catch (e) {
-            // Ignore storage errors (private mode, quota exceeded, etc.)
-        }
+        // Persist to localStorage + Supabase (for Library Studio)
+        // saveGeneration handles localStorage; addToHistory only manages
+        // the in-memory sidebar array.
+        saveGeneration({
+            studio: 'image',
+            type: 'image',
+            url: entry.url,
+            prompt: entry.prompt,
+            model: entry.model,
+            parameters: { aspect_ratio: entry.aspect_ratio },
+            timestamp: entry.timestamp,
+            id: entry.id,
+            request_id: entry.id,
+        });
 
         // Show sidebar
         historySidebar.classList.remove('translate-x-full', 'opacity-0');

@@ -51,17 +51,22 @@ const SIZES = {
 };
 
 const BASE_MODAL_STYLES = `
+  /* ============================================================
+     Drawer layout: modals slide in from the RIGHT as side panels
+     instead of centered overlays. All design tokens, classes,
+     header/body/footer structure, error/loading states, and
+     event handling are preserved — only the positioning changes.
+     ============================================================ */
   .modal-overlay {
     position: fixed;
     inset: 0;
     z-index: 9999;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    background: rgba(0,0,0,0.75);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    align-items: stretch;
+    justify-content: flex-end;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
     opacity: 0;
     transition: opacity ${DESIGN_SYSTEM.durations.normal} ease-out;
   }
@@ -72,26 +77,27 @@ const BASE_MODAL_STYLES = `
   
   .modal-content {
     position: relative;
+    height: 100%;
     width: 90%;
     max-width: ${SIZES.medium.maxWidth};
-    max-height: 90vh;
     display: flex;
     flex-direction: column;
-    border-radius: ${DESIGN_SYSTEM.radii.lg};
-    border: 1px solid ${DESIGN_SYSTEM.colors.border};
+    border-radius: 0;
+    border: none;
+    border-left: 1px solid ${DESIGN_SYSTEM.colors.border};
     background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
-    box-shadow: ${DESIGN_SYSTEM.shadow};
+    box-shadow: -8px 0 30px rgba(0,0,0,0.4);
     font-family: ${DESIGN_SYSTEM.font};
     color: ${DESIGN_SYSTEM.colors.text};
     overflow: hidden;
     opacity: 0;
-    transform: scale(0.95) translateY(-10px);
-    transition: all ${DESIGN_SYSTEM.durations.normal} ease-out;
+    transform: translateX(100%);
+    transition: transform ${DESIGN_SYSTEM.durations.normal} ease-out, opacity ${DESIGN_SYSTEM.durations.normal} ease-out;
   }
   
   .modal-overlay.active .modal-content {
     opacity: 1;
-    transform: scale(1) translateY(0);
+    transform: translateX(0);
   }
   
   .modal-content.modal-small { max-width: ${SIZES.small.maxWidth}; }
@@ -323,24 +329,18 @@ const BASE_MODAL_STYLES = `
     margin-top: 8px;
   }
   
-  /* Responsive */
+  /* Responsive — drawer becomes full-width on small screens */
   @media (max-width: 640px) {
-    .modal-overlay {
-      padding: 12px;
-      align-items: flex-end;
-    }
-    
-    .modal-content {
+    .modal-content,
+    .modal-content.modal-small,
+    .modal-content.modal-medium,
+    .modal-content.modal-large,
+    .modal-content.modal-full {
       width: 100%;
       max-width: 100%;
-      border-radius: ${DESIGN_SYSTEM.radii.lg} ${DESIGN_SYSTEM.radii.lg} 0 0;
-      max-height: 85vh;
-    }
-    
-    .modal-content.modal-full {
+      height: 100%;
+      border-left: none;
       border-radius: 0;
-      max-height: 100vh;
-      height: 100vh;
     }
     
     .modal-header {
@@ -361,6 +361,7 @@ const BASE_MODAL_STYLES = `
       min-width: 100px;
     }
   }
+
 `;
 
 let stylesInjected = false;

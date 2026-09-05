@@ -49,6 +49,109 @@ export const PROVIDER_LOGOS = {
   openrouter: "https://cdn.muapi.ai/models/openrouter.png",
 };
 
+export const PROVIDER_LOGO_FALLBACKS = {
+  wan: [
+    "https://cdn.muapi.ai/models/wan2.1.png",
+    "https://cdn.muapi.ai/models/wan2.5.png",
+    "https://cdn.muapi.ai/models/wan2.6.png",
+  ],
+  ltx: [
+    "https://cdn.muapi.ai/models/ltx-ai.png",
+    "https://cdn.muapi.ai/models/lightricks.png",
+  ],
+  creatify: [
+    "https://cdn.muapi.ai/models/creatify-ai.png",
+  ],
+};
+
+export function getProviderLogoUrls(provider) {
+  const primary = PROVIDER_LOGOS[provider];
+  const fallbacks = PROVIDER_LOGO_FALLBACKS[provider] || [];
+  return [primary, ...fallbacks].filter(Boolean);
+}
+
+const LOGO_CACHE = new Map();
+const LOGO_FAILED = new Set();
+
+if (typeof window !== 'undefined') {
+  window.__providerLogoCache = window.__providerLogoCache || new Map();
+  window.__providerLogoFailed = window.__providerLogoFailed || new Set();
+}
+
+function cacheProviderLogoBlob(provider, blobUrl) {
+  if (provider && blobUrl) {
+    LOGO_CACHE.set(provider, blobUrl);
+    if (typeof window !== 'undefined') window.__providerLogoCache.set(provider, blobUrl);
+  }
+}
+
+function getCachedProviderLogoBlob(provider) {
+  if (provider && LOGO_CACHE.has(provider)) return LOGO_CACHE.get(provider);
+  if (typeof window !== 'undefined' && window.__providerLogoCache.has(provider)) return window.__providerLogoCache.get(provider);
+  return null;
+}
+
+function markProviderLogoFailed(provider) {
+  if (provider) {
+    LOGO_FAILED.add(provider);
+    if (typeof window !== 'undefined') window.__providerLogoFailed.add(provider);
+  }
+}
+
+function isProviderLogoFailed(provider) {
+  if (provider && LOGO_FAILED.has(provider)) return true;
+  if (typeof window !== 'undefined' && window.__providerLogoFailed.has(provider)) return true;
+  return false;
+}
+
+export function preloadProviderLogos(providers) {
+  if (!providers || !providers.length) return;
+  providers.forEach((p) => {
+    const id = typeof p === 'string' ? p : p.id;
+    if (!id || getCachedProviderLogoBlob(id) || isProviderLogoFailed(id)) return;
+    const urls = getProviderLogoUrls(id);
+    if (!urls.length) return;
+    let resolved = false;
+    urls.forEach((url) => {
+      if (resolved) return;
+      const img = new Image();
+      img.onload = () => {
+        try {
+          fetch(url)
+            .then((r) => r.blob())
+            .then((blob) => {
+              const blobUrl = URL.createObjectURL(blob);
+              cacheProviderLogoBlob(id, blobUrl);
+              resolved = true;
+            })
+            .catch(() => {});
+        } catch (_) {}
+      };
+      img.onerror = () => {};
+      img.src = url;
+    });
+  });
+}
+
+export function renderProviderLogoImg(provider, alt, sizeClasses = 'w-full h-full', extraClasses = '') {
+  if (isProviderLogoFailed(provider)) {
+    const style = getProviderStyle(provider);
+    return LOGO_FALLBACK_HTML(provider, style.text);
+  }
+  const cachedBlob = getCachedProviderLogoBlob(provider);
+  const urls = getProviderLogoUrls(provider);
+  const primaryUrl = cachedBlob || (urls[0] || '');
+  const fallbackUrls = urls.slice(1);
+  const style = getProviderStyle(provider);
+  const invertClass = invertLogos.includes(provider) ? 'invert' : '';
+  const badgeHtml = LOGO_FALLBACK_HTML(provider, style.text).replace(/'/g, "&#39;");
+
+  const cacheKey = cachedBlob ? '1' : '0';
+  const fallbackJson = JSON.stringify(fallbackUrls).replace(/"/g, '&quot;');
+
+  return `<img src="${primaryUrl}" alt="${alt}" class="${sizeClasses} object-contain ${invertClass} ${extraClasses}" data-provider-logo="${provider}" data-fallback-urls='${JSON.stringify(fallbackUrls)}' data-fallback-index="0" data-badge-html="${badgeHtml}" data-cached="${cacheKey}" />`;
+}
+
 export const invertLogos = [
   'openai',
   'blackforest',
@@ -197,7 +300,7 @@ export function renderProviderSidebar(availableProviders, selectedProvider, onSe
     if (hasLogo) {
       const invertClass = invertLogos.includes(p.id) ? 'invert' : '';
       const sidebarBadge = LOGO_FALLBACK_HTML(p.id, getProviderStyle(p.id).text).replace(/'/g, "&#39;");
-      html += `<img src="${logoUrl}" alt="${p.name}" class="w-full h-full rounded-full object-contain ${invertClass}" onerror="this.outerHTML='${sidebarBadge}'" />`;
+      html += renderProviderLogoImg(p.id, p.name, 'w-full h-full rounded-full object-contain', invertClass);
     } else {
       html += `<span>${style.text}</span>`;
     }
@@ -216,8 +319,8 @@ export function getModelLogoHtml(model, sizeClasses = 'w-4 h-4') {
   const provider = model?.provider || 'muapi';
   const logoUrl = PROVIDER_LOGOS[provider];
   if (logoUrl) {
-    const logoBadge = LOGO_FALLBACK_HTML(provider, getProviderStyle(provider).text).replace(/'/g, "&#39;");
-    return `<div class="${sizeClasses} rounded-md flex items-center justify-center overflow-hidden bg-white/5 shrink-0"><img src="${logoUrl}" alt="" class="w-full h-full object-contain ${invertLogos.includes(provider) ? 'invert' : ''}" onerror="this.outerHTML='${logoBadge}'" /></div>`;
+    const invertClass = invertLogos.includes(provider) ? 'invert' : '';
+    return `<div class="${sizeClasses} rounded-md flex items-center justify-center overflow-hidden bg-white/5 shrink-0">${renderProviderLogoImg(provider, '', 'w-full h-full object-contain', invertClass)}</div>`;
   }
   const style = getProviderStyle(provider);
   return `<div class="${sizeClasses} bg-primary rounded-md flex items-center justify-center shadow-lg shadow-primary/20 shrink-0"><span class="text-[9px] font-black text-black">${style.text}</span></div>`;
@@ -240,7 +343,6 @@ export function renderModelRow(model, opts = {}) {
 
   const logoUrl = PROVIDER_LOGOS[model.provider];
   const hasLogo = Boolean(logoUrl);
-  const modelBadge = LOGO_FALLBACK_HTML(model.provider, getProviderStyle(model.provider).text).replace(/'/g, "&#39;");
   const iconHtml = hasLogo
     ? `<div class="w-10 h-10 rounded-lg border border-white/5 overflow-hidden shrink-0 flex items-center justify-center bg-white/[0.02]"><img src="${logoUrl}" alt="${model.provider_name || ''}" class="w-full h-full object-contain p-1.5 ${invertLogos.includes(model.provider) ? 'invert' : ''}" onerror="this.outerHTML='${modelBadge}'" /></div>`
     : `<div class="w-10 h-10 rounded-lg border border-white/5 flex items-center justify-center font-bold text-xs shadow-inner uppercase ${(model.family === 'kontext' ? 'bg-blue-500/10 text-blue-400 border-blue-500/10' : model.family === 'effects' ? 'bg-purple-500/10 text-purple-400 border-purple-500/10' : 'bg-primary/10 text-primary border-primary/10')}">${(model.name || model.id).charAt(0)}</div>`;
@@ -284,14 +386,11 @@ export function renderModelList(models, selectedModelId, showProviderName, onSel
 export const MODEL_SELECTOR_PANEL_CLASS =
   'flex gap-5 h-full max-h-[70vh] min-h-[350px] overflow-hidden';
 
-// Build the split-pane panel and wire its interactions. Returns an object with
-// the `root` element and a `refresh()` method so callers can re-render without
-// rebuilding the DOM (preserves search focus and scroll position).
+// Exact vanilla-JS port of the upstream React `ModelDropdown` component.
 //
 // Options:
-//   models           - flat model list (used when `sections` is omitted)
-//   sections         - optional [{ models, label?, rowOptions?(m) }] for grouped
-//                      lists (e.g. generation models + a "Video Tools" group)
+//   models           - flat model list
+//   sections         - optional grouped model list
 //   selectedModelId  - id of the currently selected model
 //   selectedProvider - initial provider filter ('all' or a provider id)
 //   search           - initial search query
@@ -301,11 +400,11 @@ export const MODEL_SELECTOR_PANEL_CLASS =
 //   autoFocus        - focus the search input on open
 //   emptyText        - message shown when no models match
 //   loadingMessage   - message shown while `models` is empty and still loading
-//   categories       - optional [{ id, label, models }] for category tabs
-//                      shown above the search bar (e.g. T2I vs I2I modes)
-//   onSelectModel    - (id) => void
+//   categories       - [{ id, label, models }]
+//   onSelectModel    - (model, categoryId) => void
 //   onSelectProvider - (provider) => void
 //   onSearch         - (query) => void
+//   onSelectCategory - (categoryId) => void
 export function buildModelSelectorPanel(options = {}) {
   const {
     models = [],
@@ -326,7 +425,24 @@ export function buildModelSelectorPanel(options = {}) {
     categories = null,
   } = options;
 
-  const allModels = sections ? sections.flatMap((s) => s.models) : models;
+  // Normalize categories into the upstream `modelCategories` shape.
+  const modelCategories = [];
+  if (categories && categories.length > 0) {
+    categories.forEach((cat) => {
+      modelCategories.push({
+        id: cat.id,
+        label: cat.label,
+        entries: (cat.models || []).map((m) => ({ model: m, category: cat.id })),
+      });
+    });
+  } else {
+    const flat = sections ? sections.flatMap((s) => s.models) : models;
+    modelCategories.push({
+      id: 'all',
+      label: headerLabel || 'Available models',
+      entries: flat.map((m) => ({ model: m, category: 'all' })),
+    });
+  }
 
   const st = {
     models,
@@ -339,123 +455,206 @@ export function buildModelSelectorPanel(options = {}) {
     checkColor,
     emptyText,
     loadingMessage,
-    availableProviders: getAvailableProviders(allModels),
+    modelCategories,
+    selectedCategory: modelCategories[0]?.id || 'all',
+    availableProviders: [],
     onSelectModel,
     onSelectProvider,
     onSearch,
     onSelectCategory,
-    categories,
-    selectedCategory: categories && categories.length > 0 ? categories[0].id : null,
   };
 
   const root = document.createElement('div');
   root.className = MODEL_SELECTOR_PANEL_CLASS;
 
+  // Left sidebar
   const sidebarEl = document.createElement('div');
-  sidebarEl.setAttribute('data-provider-sidebar', '');
+  sidebarEl.className = 'flex flex-col gap-2.5 items-center pr-2 border-r border-white/5 shrink-0 select-none overflow-y-auto custom-scrollbar w-14 pt-0.5';
 
-  const mainEl = document.createElement('div');
-  mainEl.className = 'flex-1 flex flex-col gap-2 min-w-0';
+  // Right pane
+  const rightEl = document.createElement('div');
+  rightEl.className = 'flex-1 flex flex-col gap-2 min-w-0';
 
-  const listEl = document.createElement('div');
-  listEl.className = 'flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-1';
-  listEl.setAttribute('data-model-list', '');
+  // Category + search wrapper
+  const categorySearchEl = document.createElement('div');
+  categorySearchEl.className = 'border-b border-white/5 shrink-0 pb-2 space-y-2';
 
-  mainEl.innerHTML = renderSearchBar();
+  const tabsEl = document.createElement('div');
+  tabsEl.className = 'flex gap-1.5 overflow-x-auto custom-scrollbar pb-0.5';
 
-  let tabsContainer = null;
-  if (st.categories && st.categories.length > 0) {
-    tabsContainer = document.createElement('div');
-    tabsContainer.className = 'flex gap-1.5 overflow-x-auto custom-scrollbar pb-0.5 shrink-0';
-    st.categories.forEach((cat) => {
-      const tab = document.createElement('button');
-      tab.type = 'button';
-      const isActive = st.selectedCategory === cat.id;
-      tab.className = `shrink-0 rounded-lg px-2.5 py-1.5 text-[10px] font-bold transition-colors border ${
-        isActive
-          ? 'bg-primary/15 text-primary border-primary/30'
-          : 'bg-white/[0.02] text-white/50 border-white/[0.04] hover:bg-white/5 hover:text-white'
-      }`;
-      tab.textContent = cat.label;
-      tab.onclick = (e) => {
-        e.stopPropagation();
-        st.selectedCategory = cat.id;
-        if (st.onSelectCategory) st.onSelectCategory(cat.id);
-        if (st.onSelectProvider) st.onSelectProvider('all');
-        st.selectedProvider = 'all';
-        st.refresh();
-      };
-      tabsContainer.appendChild(tab);
+  modelCategories.forEach((cat) => {
+    const tab = document.createElement('button');
+    tab.type = 'button';
+    const isActive = st.selectedCategory === cat.id;
+    tab.className = `shrink-0 rounded-lg px-2.5 py-1.5 text-[10px] font-bold transition-colors border ${
+      isActive
+        ? 'bg-primary/15 text-primary border-primary/30'
+        : 'bg-white/[0.02] text-white/50 border-white/[0.04] hover:bg-white/5 hover:text-white'
+    }`;
+    tab.textContent = cat.label;
+    tab.addEventListener('click', (e) => {
+      e.stopPropagation();
+      st.selectedCategory = cat.id;
+      if (st.onSelectCategory) st.onSelectCategory(cat.id);
+      if (st.onSelectProvider) st.onSelectProvider('all');
+      st.selectedProvider = 'all';
+      st.refresh();
     });
-    mainEl.insertBefore(tabsContainer, mainEl.firstChild);
-  }
+    tabsEl.appendChild(tab);
+  });
 
-  const header = document.createElement('div');
-  header.className =
-    'text-xs font-semibold text-secondary py-1 shrink-0 flex items-center justify-between';
-  header.innerHTML =
-    `<span>${headerLabel}</span><span data-provider-badge class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60 hidden"></span>`;
-  mainEl.appendChild(header);
-  mainEl.appendChild(listEl);
+  const searchEl = document.createElement('div');
+  searchEl.className = 'flex items-center gap-3 bg-white/5 rounded-xl px-4 py-2 border border-white/5 focus-within:border-primary/50 transition-colors';
+  searchEl.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="text-muted"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>`;
+  const searchInput = document.createElement('input');
+  searchInput.type = 'text';
+  searchInput.placeholder = 'Search models...';
+  searchInput.className = 'bg-transparent border-none text-xs text-white focus:ring-0 w-full p-0 focus:outline-none';
+  searchInput.addEventListener('click', (e) => e.stopPropagation());
+  searchInput.addEventListener('input', () => {
+    st.search = searchInput.value;
+    if (st.onSearch) st.onSearch(searchInput.value);
+    st.refresh();
+  });
+  searchEl.appendChild(searchInput);
+
+  categorySearchEl.appendChild(tabsEl);
+  categorySearchEl.appendChild(searchEl);
+
+  // Header with category label and provider badge
+  const headerEl = document.createElement('div');
+  headerEl.className = 'text-xs font-semibold text-secondary py-1 shrink-0 flex items-center justify-between';
+  const badgeEl = document.createElement('span');
+  badgeEl.className = 'text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60 hidden';
+  headerEl.appendChild(document.createTextNode(''));
+  headerEl.appendChild(badgeEl);
+
+  // Model list
+  const listEl = document.createElement('div');
+  listEl.className = 'flex flex-col gap-1.5 overflow-y-auto custom-scrollbar pr-1 pb-2 flex-1';
+
+  rightEl.appendChild(categorySearchEl);
+  rightEl.appendChild(headerEl);
+  rightEl.appendChild(listEl);
 
   root.appendChild(sidebarEl);
-  root.appendChild(mainEl);
+  root.appendChild(rightEl);
 
-  const badgeEl = header.querySelector('[data-provider-badge]');
-  const searchInput = mainEl.querySelector('[data-provider-search]');
+  const getActiveCategory = () => modelCategories.find((c) => c.id === st.selectedCategory) || modelCategories[0];
+  const getModelEntries = () => getActiveCategory().entries;
 
-  const renderListHtml = () => {
-    let baseModels = st.models;
-    if (st.categories && st.selectedCategory) {
-      const cat = st.categories.find((c) => c.id === st.selectedCategory);
-      if (cat && cat.models) baseModels = cat.models;
-    }
-
-    const showName = st.showProviderName || st.selectedProvider === 'all';
-    const groups = st.sections || [{ models: baseModels }];
-    let html = '<div class="flex flex-col gap-1.5 pb-2">';
-    let any = false;
-    for (const g of groups) {
-      const filtered = filterModels(g.models, st.search, st.selectedProvider);
-      if (filtered.length === 0) continue;
-      any = true;
-      if (g.label) {
-        html += `<div class="text-[10px] font-bold text-orange-400/70 px-3 py-2 mt-1 border-t border-white/5">${g.label}</div>`;
+  const computeProviders = () => {
+    const entries = getModelEntries();
+    const providers = [];
+    const seen = new Set();
+    entries.forEach(({ model: m }) => {
+      const pId = m.provider || 'muapi';
+      const pName = m.provider_name || 'Muapi';
+      if (!seen.has(pId)) {
+        seen.add(pId);
+        providers.push({ id: pId, name: pName });
       }
-      for (const m of filtered) {
-        const sublabel = g.rowOptions ? g.rowOptions(m).sublabel : '';
-        html += renderModelRow(m, {
-          isSelected: m.id === st.selectedModelId,
-          showProviderName: showName,
-          sublabel,
-          checkColor: st.checkColor,
-        });
+    });
+    return providers;
+  };
+
+  const renderSidebar = () => {
+    const providers = computeProviders();
+    st.availableProviders = providers;
+    let html = `<button type="button" data-provider="all" class="w-8 h-8 rounded-full flex items-center justify-center border transition-all flex-shrink-0 cursor-pointer ${
+      st.selectedProvider === 'all'
+        ? 'bg-white/10 text-yellow-400 border-yellow-500/30 shadow-md scale-105'
+        : 'bg-white/[0.02] text-white/50 border-white/[0.03] hover:bg-white/5 hover:text-white'
+    }" title="All Providers"><svg width="15" height="15" viewBox="0 0 24 24" fill="${st.selectedProvider === 'all' ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg></button>`;
+
+    providers.forEach((p) => {
+      const style = getProviderStyle(p.id);
+      const isSelected = st.selectedProvider === p.id;
+      const logoUrl = PROVIDER_LOGOS[p.id];
+      const hasLogo = Boolean(logoUrl);
+      const itemClasses = isSelected
+        ? `${style.bg} border-white/25 scale-105 shadow-md`
+        : 'bg-white/[0.02] text-white/40 border-white/[0.02] hover:bg-white/5 hover:text-white/80';
+
+      html += `<button type="button" data-provider="${p.id}" class="w-8 h-8 flex-shrink-0 rounded-full flex items-center justify-center font-black text-[10px] border transition-all flex-shrink-0 cursor-pointer overflow-hidden ${itemClasses}" title="${p.name}">`;
+      if (hasLogo) {
+        const invertClass = invertLogos.includes(p.id) ? 'invert' : '';
+        html += renderProviderLogoImg(p.id, p.name, 'w-full h-full rounded-full object-contain', invertClass);
+      } else {
+        html += `<span>${style.text}</span>`;
       }
+      html += `</button>`;
+    });
+
+    sidebarEl.innerHTML = html;
+  };
+
+  const renderList = () => {
+    const entries = getModelEntries();
+    const filtered = entries.filter(({ model: m }) => {
+      if (st.selectedProvider !== 'all') {
+        const pId = m.provider || 'muapi';
+        if (pId !== st.selectedProvider) return false;
+      }
+      const query = (st.search || '').toLowerCase();
+      if (!query) return true;
+      return (
+        (m.name || '').toLowerCase().includes(query) ||
+        (m.id || '').toLowerCase().includes(query)
+      );
+    });
+
+    if (filtered.length === 0) {
+      listEl.innerHTML = `<div class="text-xs text-white/30 text-center py-6">${st.emptyText || 'No models found'}</div>`;
+      return;
     }
-    html += '</div>';
-    if (!any) {
-      const msg = baseModels.length === 0 && st.loadingMessage ? st.loadingMessage : st.emptyText;
-      return `<div class="text-xs text-white/30 text-center py-6">${msg}</div>`;
-    }
-    return html;
+
+    let html = '';
+    filtered.forEach(({ model: m, category }) => {
+      const isSelected = st.selectedModelId === m.id;
+      const style = getProviderStyle(m.provider);
+      const logoUrl = PROVIDER_LOGOS[m.provider];
+      const hasLogo = Boolean(logoUrl);
+      const modelBadge = LOGO_FALLBACK_HTML(m.provider, style.text).replace(/'/g, "&#39;");
+      const iconHtml = hasLogo
+        ? `<div class="w-8 h-8 rounded-full border border-white/5 overflow-hidden shrink-0 flex items-center justify-center bg-white/[0.02]">${renderProviderLogoImg(m.provider, m.provider_name || '', 'w-full h-full object-contain p-1', invertLogos.includes(m.provider) ? 'invert' : '')}</div>`
+        : `<div class="w-8 h-8 rounded-full border border-white/5 flex items-center justify-center font-bold text-xs shadow-inner uppercase ${(m.family === 'kontext' ? 'bg-blue-500/10 text-blue-400 border-blue-500/10' : m.family === 'effects' ? 'bg-purple-500/10 text-purple-400 border-purple-500/10' : 'bg-primary/10 text-primary border-primary/10')}">${(m.name || m.id).charAt(0)}</div>`;
+
+      const providerLabel = st.showProviderName || st.selectedProvider === 'all'
+        ? `<span class="text-[9px] text-white/40">${m.provider_name || ''}</span>`
+        : '';
+
+      const checkSvg = isSelected
+        ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${st.checkColor}" stroke-width="4"><polyline points="20 6 9 17 4 12" /></svg>`
+        : '';
+
+      html += `<div data-model-id="${m.id}" class="flex items-center justify-between p-3 hover:bg-white/5 rounded-lg cursor-pointer transition-all border border-transparent hover:border-white/5 ${isSelected ? 'bg-white/5 border-white/5' : ''}">`;
+      html += `<div class="flex items-center gap-3">${iconHtml}<div class="flex flex-col gap-0.5 min-w-0"><span class="text-xs font-bold text-white tracking-tight truncate">${m.name}</span>${providerLabel}</div></div>`;
+      html += checkSvg;
+      html += `</div>`;
+    });
+
+    listEl.innerHTML = html;
   };
 
   st.refresh = () => {
-    sidebarEl.innerHTML = renderProviderSidebar(st.availableProviders, st.selectedProvider, () => {});
-    listEl.innerHTML = renderListHtml();
+    renderSidebar();
+    renderList();
 
+    const activeCategory = getActiveCategory();
+    const providerName = st.availableProviders.find((p) => p.id === st.selectedProvider)?.name || st.selectedProvider;
+    headerEl.firstChild.textContent = `${activeCategory.label} models`;
     if (st.selectedProvider !== 'all') {
-      const pName = st.availableProviders.find((p) => p.id === st.selectedProvider)?.name || st.selectedProvider;
-      badgeEl.textContent = pName;
+      badgeEl.textContent = providerName;
       badgeEl.classList.remove('hidden');
     } else {
       badgeEl.classList.add('hidden');
     }
 
-    if (tabsContainer && st.categories) {
-      const tabs = tabsContainer.querySelectorAll('button');
+    if (tabsEl && modelCategories) {
+      const tabs = tabsEl.querySelectorAll('button');
       tabs.forEach((tab, idx) => {
-        const cat = st.categories[idx];
+        const cat = modelCategories[idx];
         if (cat.id === st.selectedCategory) {
           tab.className = 'shrink-0 rounded-lg px-2.5 py-1.5 text-[10px] font-bold transition-colors border bg-primary/15 text-primary border-primary/30';
         } else {
@@ -465,18 +664,18 @@ export function buildModelSelectorPanel(options = {}) {
     }
   };
 
-  // Model selection via delegation on the list.
   listEl.addEventListener('click', (e) => {
     const item = e.target.closest('[data-model-id]');
     if (!item) return;
     e.stopPropagation();
     const id = item.getAttribute('data-model-id');
+    const activeCategory = getActiveCategory();
+    const entry = activeCategory.entries.find((en) => en.model.id === id);
     st.selectedModelId = id;
     st.refresh();
-    if (st.onSelectModel) st.onSelectModel(id);
+    if (st.onSelectModel) st.onSelectModel(entry ? entry.model : id, activeCategory.id);
   });
 
-  // Provider selection via delegation on the sidebar.
   sidebarEl.addEventListener('click', (e) => {
     const btn = e.target.closest('button[data-provider]');
     if (!btn) return;
@@ -488,37 +687,16 @@ export function buildModelSelectorPanel(options = {}) {
     }
   });
 
-  // Live search — re-render the list without losing input focus.
   searchInput.addEventListener('click', (e) => e.stopPropagation());
-  searchInput.addEventListener('input', () => {
-    st.search = searchInput.value;
-    if (st.onSearch) st.onSearch(searchInput.value);
-    st.refresh();
-  });
 
   st.root = root;
-  st.scrollToSelected = () => {
-    try {
-      const items = listEl.querySelectorAll('[data-model-id]');
-      let el = null;
-      for (const it of items) {
-        if (it.getAttribute('data-model-id') === st.selectedModelId) { el = it; break; }
-      }
-      if (el && typeof el.scrollIntoView === 'function') el.scrollIntoView({ block: 'nearest' });
-    } catch (_) { /* ignore: scroll is cosmetic */ }
-  };
   st.refresh();
-  st.scrollToSelected();
+  preloadProviderLogos(st.availableProviders);
   if (autoFocus) searchInput.focus();
   return st;
 }
 
-// Mount a complete model selector into an existing container element.
-// Returns the root element so callers can keep a reference for cleanup.
-//
-// The mount is idempotent: calling it again on the same container refreshes
-// the existing panel instead of rebuilding it. This keeps the search input
-// focused and the scroll position stable while the user types or filters.
+// Keep `mountModelSelector` working with the updated panel builder.
 export function mountModelSelector(container, options = {}) {
   if (!container) return null;
 
@@ -542,10 +720,9 @@ export function mountModelSelector(container, options = {}) {
 
     if (sections) {
       existing.sections = sections;
-      existing.availableProviders = getAvailableProviders(sections.flatMap((s) => s.models));
+      existing.models = sections.flatMap((s) => s.models);
     } else {
       existing.models = models;
-      existing.availableProviders = getAvailableProviders(models);
     }
     existing.selectedModelId = selectedModelId;
     if (typeof headerLabel === 'string') existing.headerLabel = headerLabel;
@@ -559,10 +736,11 @@ export function mountModelSelector(container, options = {}) {
     if (typeof selectedProvider === 'string') existing.selectedProvider = selectedProvider;
     if (typeof search === 'string') {
       existing.search = search;
-      const input = existing.root.querySelector('[data-provider-search]');
+      const input = existing.root.querySelector('input[type="text"]');
       if (input && document.activeElement !== input) input.value = search;
     }
     existing.refresh();
+    preloadProviderLogos(existing.availableProviders);
     return existing.root;
   }
 
@@ -571,4 +749,111 @@ export function mountModelSelector(container, options = {}) {
   container.appendChild(st.root);
   container._msMount = st;
   return st.root;
+}
+
+/**
+ * Position a model-selector dropdown viewport-aware.
+ *
+ * Behavior:
+ * - Prefers placing the dropdown below the anchor when there is enough room.
+ * - Flips above the anchor when the viewport has more space there.
+ * - Constrains the dropdown height to the viewport so it never overflows.
+ *
+ * @param {HTMLElement} dropdown
+ * @param {HTMLElement} anchorBtn
+ * @param {number} [gap=8]
+ */
+export function positionModelSelectorDropdown(dropdown, anchorBtn, gap = 8, container) {
+  if (!dropdown || !anchorBtn) return;
+
+  const anchorRect = anchorBtn.getBoundingClientRect();
+  const viewportHeight = window.innerHeight;
+
+  // Reset previous inline positioning so measurements are accurate.
+  dropdown.style.top = '';
+  dropdown.style.left = '';
+  dropdown.style.bottom = '';
+  dropdown.style.right = '';
+  dropdown.style.maxHeight = '';
+  dropdown.style.transform = '';
+
+  if (container) {
+    const containerRect = container.getBoundingClientRect();
+    const scrollTop = container.scrollTop;
+    const anchorTopInContent = anchorRect.top - containerRect.top + scrollTop;
+    const anchorBottomInContent = anchorRect.bottom - containerRect.top + scrollTop;
+    const spaceBelow = container.scrollHeight - anchorBottomInContent;
+    const spaceAbove = anchorTopInContent;
+    const placeBelow = spaceBelow >= spaceAbove || spaceBelow >= 320;
+
+    if (placeBelow) {
+      dropdown.style.top = `${anchorBottomInContent + gap}px`;
+    } else {
+      const renderedHeight = dropdown.offsetHeight || 320;
+      dropdown.style.top = `${Math.max(0, anchorTopInContent - renderedHeight - gap)}px`;
+    }
+
+    dropdown.style.left = `${anchorRect.left - containerRect.left}px`;
+    dropdown.style.maxHeight = `${Math.max(viewportHeight - 32, 320)}px`;
+    dropdown.style.overflowY = 'auto';
+
+    const estimatedWidth = Math.min(dropdown.offsetWidth || 480, containerRect.width - 16);
+    if (anchorRect.left - containerRect.left + estimatedWidth > containerRect.width - 8) {
+      dropdown.style.left = `${Math.max(8, containerRect.width - estimatedWidth - 8)}px`;
+    }
+    return;
+  }
+
+  const spaceBelow = viewportHeight - anchorRect.bottom;
+  const spaceAbove = anchorRect.top;
+  const placeBelow = spaceBelow >= spaceAbove || spaceBelow >= 320;
+
+  if (placeBelow) {
+    dropdown.style.top = `${anchorRect.bottom + gap}px`;
+  } else {
+    dropdown.style.top = 'auto';
+    dropdown.style.bottom = `${viewportHeight - anchorRect.top + gap}px`;
+  }
+
+  dropdown.style.left = `${anchorRect.left}px`;
+  dropdown.style.maxHeight = `${Math.max(viewportHeight - 32, 320)}px`;
+  dropdown.style.overflowY = 'auto';
+
+  const estimatedWidth = Math.min(dropdown.offsetWidth || 480, window.innerWidth - 16);
+  if (anchorRect.left + estimatedWidth > window.innerWidth - 8) {
+    dropdown.style.left = `${Math.max(8, window.innerWidth - estimatedWidth - 8)}px`;
+  }
+}
+
+if (typeof window !== 'undefined') {
+  window.__providerLogoErrorHandlerAttached = window.__providerLogoErrorHandlerAttached || false;
+  if (!window.__providerLogoErrorHandlerAttached) {
+    window.__providerLogoErrorHandlerAttached = true;
+    document.addEventListener('error', (event) => {
+      const img = event.target;
+      if (!(img instanceof HTMLImageElement)) return;
+      const provider = img.getAttribute('data-provider-logo');
+      if (!provider) return;
+      const fallbackUrlsJson = img.getAttribute('data-fallback-urls');
+      const badgeHtml = img.getAttribute('data-badge-html');
+      if (!fallbackUrlsJson || !badgeHtml) return;
+      let fallbackUrls;
+      try {
+        fallbackUrls = JSON.parse(fallbackUrlsJson);
+      } catch {
+        return;
+      }
+      const currentIndex = parseInt(img.getAttribute('data-fallback-index') || '0', 10);
+      const nextIndex = currentIndex + 1;
+      if (nextIndex < fallbackUrls.length) {
+        img.setAttribute('data-fallback-index', String(nextIndex));
+        img.src = fallbackUrls[nextIndex];
+      } else {
+        try {
+          (window.__providerLogoFailed || new Set()).add(provider);
+        } catch (_) {}
+        img.outerHTML = badgeHtml;
+      }
+    }, true);
+  }
 }

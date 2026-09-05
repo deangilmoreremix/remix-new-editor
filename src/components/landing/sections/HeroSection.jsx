@@ -1,5 +1,7 @@
-// Hero Section - AI Video Agency Studio
+// Hero Section - Smart Video AI Studio
 // Cinematic design with direct-response positioning and premium motion
+
+import SHOWCASE_CONFIG from '../../content/showcaseConfig.js';
 
 export function HeroSection() {
   const section = document.createElement('section');
@@ -26,13 +28,13 @@ export function HeroSection() {
     <div class="absolute top-1/2 right-1/3 w-48 h-48 bg-purple-400/5 rounded-full blur-3xl animate-pulse -z-5" style="animation-delay: 1s;"></div>
 
     <div class="container mx-auto max-w-6xl text-center relative z-10">
-      <!-- Trust Badge with entrance animation -->
-      <div class="trust-badge opacity-0 translate-y-4 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 mb-8 shadow-lg shadow-cyan-400/20">
-        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-        <span class="text-sm text-cyan-100 font-medium">Trusted by 10,000+ Creators & Agencies</span>
-      </div>
+       <!-- Trust Badge with entrance animation -->
+       <div class="trust-badge opacity-0 translate-y-4 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 mb-8 shadow-lg shadow-cyan-400/20">
+         <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+         <span class="text-sm text-cyan-100 font-medium">Trusted by Thousands of Creators & Agencies</span>
+       </div>
 
-      <!-- Main Headline with typewriter effect -->
+       <!-- Main Headline with typewriter effect -->
       <h1 id="hero-headline" class="hero-headline mb-6 leading-tight text-4xl md:text-5xl lg:text-6xl xl:text-7xl" style="max-width: 100%; font-size: clamp(2.5rem, 8vw, 4.5rem);">
         <span class="text-cyan-400 italic font-black" id="headline-part-1">Create Cinematic Personalized AI Videos,</span><br/>
         <span class="text-white font-black" id="headline-part-2">Images, VFX, Commercials,</span><br/>
@@ -48,7 +50,7 @@ export function HeroSection() {
 
       <!-- Primary CTA with hover effects -->
       <div class="hero-cta flex flex-col sm:flex-row gap-4 justify-center mb-12">
-        <button class="cta-primary px-8 md:px-12 py-4 bg-gradient-to-r from-cyan-400 to-cyan-300 text-[#020205] font-bold text-lg rounded-lg hover:from-cyan-300 hover:to-cyan-200 transition-all duration-300 shadow-2xl shadow-cyan-400/30 hover:shadow-cyan-300/50 hover:scale-105 group relative overflow-hidden">
+         <button id="hero-cta-start" class="cta-primary px-8 md:px-12 py-4 bg-gradient-to-r from-cyan-400 to-cyan-300 text-[#020205] font-bold text-lg rounded-lg hover:from-cyan-300 hover:to-cyan-200 transition-all duration-300 shadow-2xl shadow-cyan-400/30 hover:shadow-cyan-300/50 hover:scale-105 group relative overflow-hidden">
           <span class="flex items-center justify-center gap-2">
             Start Building My AI Video Agency
             <svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -60,7 +62,7 @@ export function HeroSection() {
         </button>
         <button class="cta-secondary px-8 md:px-12 py-4 border-2 border-cyan-400/50 text-cyan-100 font-bold text-lg rounded-lg hover:border-cyan-400 hover:bg-cyan-400/10 transition-all duration-300 backdrop-blur-sm group relative overflow-hidden">
           <span class="flex items-center justify-center gap-2">
-            Watch The Demo Video
+             Watch The Demo Videos
             <svg class="w-5 h-5 transform group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
             </svg>
@@ -74,7 +76,7 @@ export function HeroSection() {
       <div class="hero-stats flex flex-wrap justify-center gap-8 md:gap-12 text-sm" role="region" aria-labelledby="stats-heading">
         <h2 id="stats-heading" class="sr-only">Platform Statistics</h2>
         <div class="stat-item text-center transform hover:scale-110 transition-transform duration-200">
-          <div class="text-cyan-400 font-bold text-2xl md:text-3xl mb-1">33</div>
+          <div class="text-cyan-400 font-bold text-2xl md:text-3xl mb-1">34</div>
           <div class="text-gray-400">AI Creative Apps</div>
         </div>
         <div class="stat-item text-center transform hover:scale-110 transition-transform duration-200">
@@ -88,6 +90,20 @@ export function HeroSection() {
         <div class="stat-item text-center transform hover:scale-110 transition-transform duration-200">
           <div class="text-cyan-400 font-bold text-2xl md:text-3xl mb-1">Lifetime</div>
           <div class="text-gray-400">Access</div>
+        </div>
+      </div>
+
+      <!-- Studio Visual Gallery - Historical thumbnails added as visual enhancement -->
+      <div class="mt-16 relative">
+        <div class="flex flex-wrap justify-center gap-4 md:gap-6 max-w-6xl mx-auto">
+          ${['image', 'video', 'cinema', 'character', 'edit', 'audio', 'avatar', 'effects'].map((studioId, i) => {
+            const thumb = SHOWCASE_CONFIG.getStudioThumbnail(studioId);
+            return `
+            <div class="studio-thumb-item w-20 h-20 md:w-24 md:h-24 rounded-xl overflow-hidden border-2 border-white/10 hover:border-cyan-400/50 hover:scale-110 transition-all duration-300 opacity-0 translate-y-4" style="transition-delay: ${i * 80}ms;">
+              <img src="${thumb}" alt="${studioId} studio" class="w-full h-full object-cover" loading="lazy" />
+            </div>
+            `;
+          }).join('')}
         </div>
       </div>
 
@@ -151,8 +167,36 @@ export function HeroSection() {
         .hero-headline span { opacity: 1 !important; }
         .parallax-layer { animation: none !important; }
       }
+      
+      /* Studio thumbnail gallery */
+      .studio-thumb-item {
+        transition: opacity 0.5s ease-out-quart, transform 0.5s ease-out-quart, border-color 0.3s ease;
+      }
+      .studio-thumb-item.animate-in {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .studio-thumb-item:hover {
+        transform: translateY(-4px) scale(1.1);
+      }
     </style>
   `;
+
+  // Animate studio thumbnails on scroll
+  setTimeout(() => {
+    const thumbObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animate-in');
+          thumbObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+    section.querySelectorAll('.studio-thumb-item').forEach(el => {
+      thumbObserver.observe(el);
+    });
+  }, 500);
 
   // Typewriter effect for headline
   setTimeout(() => {
@@ -172,7 +216,7 @@ export function HeroSection() {
       }, delay);
       delay += 150; // 150ms between each part
     });
-  }, 300);
+   }, 300);
 
   const secondaryButton = section.querySelector('.cta-secondary');
   if (secondaryButton) {

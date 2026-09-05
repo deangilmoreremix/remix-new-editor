@@ -54,9 +54,12 @@ function createReelCard(demo) {
   `;
 
   const mediaHost = card.querySelector('[data-mmx-card-media]');
+  const ratio = demo._source === 'seedance25'
+    ? seedanceRatioToNumber(demo.aspectRatio)
+    : minimaxRatioToNumber(demo.aspectRatio);
   const frame = createMediaFrame(demo, {
     mode: 'hover',
-    ratio: 16 / 9,
+    ratio,
     className: 'w-full',
     ariaLabel: `${demo.title} — ${demo.useCase}`,
   });

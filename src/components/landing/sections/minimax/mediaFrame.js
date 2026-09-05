@@ -127,7 +127,7 @@ function ensureVideo(frame, state) {
 
   const video = document.createElement('video');
   video.className =
-    'mmx-video absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-700 ease-out';
+    `mmx-video absolute inset-0 h-full w-full object-${state.objectFit} opacity-0 transition-opacity duration-700 ease-out`;
   video.muted = true;
   video.defaultMuted = true;
   video.loop = true;
@@ -261,6 +261,7 @@ export function createMediaFrame(demo, options = {}) {
     reducedMotion,
     priority,
     ariaLabel,
+    objectFit,
     failed: false,
   };
   frameState.set(frame, state);

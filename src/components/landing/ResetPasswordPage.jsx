@@ -23,7 +23,7 @@ import {
 
 export function ResetPasswordPage() {
   const { signIn, errors, fetchStatus } = useSignIn();
-  const { isSignedIn, isLoaded: userLoaded } = useUser();
+  const { isSignedIn, isLoaded: userLoaded, user } = useUser();
   const isLoaded = signIn !== undefined;
   const [email, setEmail] = useState(
     () => new URLSearchParams(window.location.search).get('email') || ''

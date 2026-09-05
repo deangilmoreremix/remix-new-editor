@@ -564,16 +564,16 @@ export async function loadDemoPrompt(slug) {
 // route from the gallery.
 export const CATEGORY_ROUTES = {
   Commercial: 'commercial',
-  UGC: 'influencer',
+  UGC: 'video',
   Cinema: 'cinema',
   Action: 'cinema',
   Fashion: 'influencer',
   Animation: 'cinema',
   Characters: 'character',
-  Food: 'influencer',
-  Beauty: 'commercial',
+  Food: 'commercial',
+  Beauty: 'influencer',
   VFX: 'effects',
-  Social: 'storyboard',
+  Social: 'video',
   'Web / UI': 'effects',
 };
 

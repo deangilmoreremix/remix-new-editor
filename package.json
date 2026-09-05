@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "dev": "vite --port 3100",
-    "dev:all": "concurrently -n root,aivfx -c magenta,green \"npm run dev\" \"bash -c 'cd apps/ai-vfx && npm run dev & sleep 1; until curl -sf http://localhost:3000/ > /dev/null 2>&1; do sleep 0.5; done; echo \\\"✓ ai-vfx ready at http://localhost:3000\\\"; wait'\"",
+    "dev:all": "concurrently -n root,video-agent-studio -c magenta,cyan \"npm run dev\" \"npm run dev:video-agent-studio\"",
     "build": "rm -rf dist && vite build",
     "build:ai-vfx": "npm run build --workspace apps/ai-vfx",
     "build:analyze": "vite build --mode analyze",
@@ -24,12 +24,13 @@
     "build:packages": "npm run build --workspaces --if-present",
     "dev:packages": "npm run dev --workspaces --if-present",
     "dev:backend": "cd backend && npm run dev",
+    "install:video-agent-studio": "cd apps/video-agent-studio && npm install",
     "dev:video-agent-studio": "cd apps/video-agent-studio && npm run dev:shared",
     "dev:video-agent-studio:isolated": "cd apps/video-agent-studio && npm run dev:isolated",
     "build:video-agent-studio": "cd apps/video-agent-studio && npm run build",
     "test:video-agent-studio": "cd apps/video-agent-studio && npm test --if-present",
     "lint:video-agent-studio": "cd apps/video-agent-studio && npm run lint --if-present",
-    "verify:video-agent-studio": "cd apps/video-agent-studio && npm run verify:affected --if-present",
+    "verify:video-agent-studio": "node scripts/verify-video-agent-studio.mjs",
     "update:video-agent-studio-subtree": "git fetch openchatcut && git subtree pull --prefix=apps/video-agent-studio openchatcut main --squash"
   },
   "devDependencies": {
@@ -136,6 +137,6 @@
     "zod": "^4.4.3"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.0.0"
   }
 }
