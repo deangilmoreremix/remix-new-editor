@@ -1,6 +1,19 @@
 // Problem Section - AI Video Is Exploding... But Most People Can't Turn It Into A Real Business
 
-import SHOWCASE_CONFIG from '../../content/showcaseConfig.js';
+const SHOWCASE_CONFIG = {
+  getStudioThumbnail: () => '/thumbnails/studios/video.webp',
+  getToolThumbnail: () => null,
+  getTemplateThumbnail: () => null,
+  getEffectPreview: () => null,
+  categoryThumbnails: {
+    camera: '/thumbnails/categories/camera.webp',
+    commercial: '/thumbnails/categories/commercial.webp',
+    social: '/thumbnails/categories/social.webp',
+    portrait: '/thumbnails/categories/portrait.webp',
+    vfx: '/thumbnails/categories/vfx.webp',
+    style: '/thumbnails/categories/style.webp',
+  },
+};
 
 export function ProblemSection() {
   const section = document.createElement('section');

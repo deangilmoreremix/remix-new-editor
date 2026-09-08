@@ -5,7 +5,7 @@
 // and the shared governor in mediaFrame.js caps concurrent playback at two.
 
 import { minimaxH3Demos, formatDuration, getCreateTarget as getMinimaxCreateTarget, loadDemoPrompt as loadDemoPromptMinimax } from '../../../data/minimaxH3Demos.js';
-import { seedance25Demos, getCreateTarget as getCreateTargetSeedance, loadDemoPrompt as loadDemoPromptSeedance } from '../../../data/beatapiSeedance25Demos.js';
+import { seedanceDemos, getCreateTarget as getCreateTargetSeedance, loadDemoPrompt as loadDemoPromptSeedance } from '../../../data/seedanceDemos.js';
 import { createMediaFrame, cleanupFrames, revealOnScroll } from './minimax/mediaFrame.js';
 import {
   injectMinimaxStyles,
@@ -126,7 +126,7 @@ export function MadeWithSmartVideo() {
     .filter(Boolean)
     .map((d) => ({ ...d, _source: 'minimax', _getCreateTarget: getMinimaxCreateTarget }));
 
-  const cinemaDemos = seedance25Demos
+  const cinemaDemos = seedanceDemos
     .filter((d) => d.category === 'Cinema')
     .map((d) => ({ ...d, _source: 'seedance25', _getCreateTarget: getCreateTargetSeedance }));
 
