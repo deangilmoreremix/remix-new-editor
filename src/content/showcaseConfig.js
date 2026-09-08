@@ -8,11 +8,11 @@ const SHOWCASE_CONFIG = {
     video: '/thumbnails/studios/video.webp',
     cinema: '/thumbnails/studios/cinema.webp',
     character: '/thumbnails/studios/character.webp',
-    'ai-vfx': '/thumbnails/studios/vfx.webp',
-    influencer: '/thumbnails/studios/influencer.webp',
+    'ai-vfx': '/thumbnails/categories/vfx.webp',
+    'vfx': '/thumbnails/categories/vfx.webp',
+    influencer: '/thumbnails/heroes/influencer.webp',
     storyboard: '/thumbnails/studios/storyboard.webp',
     effects: '/thumbnails/studios/effects.webp',
-    vfx: '/thumbnails/studios/vfx.webp',
     edit: '/thumbnails/studios/edit.webp',
     upscale: '/thumbnails/studios/upscale.webp',
     audio: '/thumbnails/studios/audio.webp',
@@ -123,7 +123,17 @@ const SHOWCASE_CONFIG = {
   },
 
   getStudioThumbnail: function(id) {
-    return this.studioThumbnails[id] || '/thumbnails/studios/video.webp';
+    const aliases = {
+      'runway-motion': 'motion',
+      'tiktok-carousel': 'tiktok',
+      'advanced-dubbing': 'dubbing',
+      'lip-sync': 'lipSync',
+      'video-agent': 'videoAgent',
+      'workflows': 'workflows',
+      'mcp-cli': 'mcpCli'
+    };
+    const key = aliases[id] || id;
+    return this.studioThumbnails[key] || '/thumbnails/studios/video.webp';
   },
 
   getToolThumbnail: function(id) {

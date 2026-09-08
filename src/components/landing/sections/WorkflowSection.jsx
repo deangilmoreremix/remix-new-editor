@@ -1,6 +1,6 @@
 // Workflow Section - Go From Simple Idea To Finished Client Asset In Minutes
 
-import SHOWCASE_CONFIG from '../../content/showcaseConfig.js';
+import SHOWCASE_CONFIG from '../../../content/showcaseConfig.js';
 
 export function WorkflowSection() {
   const section = document.createElement('section');

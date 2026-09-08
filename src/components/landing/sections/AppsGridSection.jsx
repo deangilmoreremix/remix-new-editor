@@ -1,6 +1,7 @@
 // Apps Grid Section - 33 AI Creative Apps Showcase
 
-import SHOWCASE_CONFIG from '../../content/showcaseConfig.js';
+import { getAppThumbnail } from '../../../lib/thumbnails.js';
+import SHOWCASE_CONFIG from '../../../content/showcaseConfig.js';
 
 export function AppsGridSection({ apps }) {
   const section = document.createElement('section');
@@ -11,11 +12,11 @@ export function AppsGridSection({ apps }) {
   // Get unique categories from apps
   const categories = ['All', 'Create', 'Enhance', 'Produce', 'Localize', 'Automate', 'Scale'];
   const categoryMap = {
-    'All': ['image', 'video', 'cinema', 'character', 'ai-vfx', 'influencer', 'storyboard', 'effects', 'vfx', 'edit', 'upscale', 'audio', 'avatar', 'training', 'videotools', 'render', 'video-agent', 'director', 'timeline', 'motion', 'tiktok', 'dubbing', 'chat', 'commercial', 'templates', 'explore', 'library', 'community', 'assist', 'lip-sync', 'workflows', 'agents', 'mcp-cli'],
+    'All': ['image', 'video', 'cinema', 'character', 'ai-vfx', 'influencer', 'storyboard', 'effects', 'vfx', 'edit', 'upscale', 'audio', 'avatar', 'training', 'videotools', 'render', 'video-agent', 'director', 'timeline', 'runway-motion', 'tiktok-carousel', 'advanced-dubbing', 'chat', 'commercial', 'templates', 'explore', 'library', 'community', 'assist', 'lip-sync', 'workflows', 'agents', 'mcp-cli'],
     'Create': ['image', 'video', 'cinema', 'character', 'influencer', 'commercial'],
-    'Enhance': ['effects', 'vfx', 'ai-vfx', 'motion', 'upscale', 'edit'],
+    'Enhance': ['effects', 'vfx', 'ai-vfx', 'runway-motion', 'upscale', 'edit'],
     'Produce': ['storyboard', 'director', 'timeline', 'render', 'videotools', 'audio'],
-    'Localize': ['dubbing', 'lip-sync', 'avatar', 'tiktok'],
+    'Localize': ['advanced-dubbing', 'lip-sync', 'avatar', 'tiktok-carousel'],
     'Automate': ['video-agent', 'agents', 'workflows', 'assist', 'chat', 'mcp-cli'],
     'Scale': ['templates', 'explore', 'library', 'community', 'training']
   };
@@ -64,7 +65,7 @@ export function AppsGridSection({ apps }) {
       <!-- Apps Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12" id="apps-grid">
         ${apps.map((app, index) => {
-          const thumbnailPath = SHOWCASE_CONFIG.getStudioThumbnail(app.id);
+          const thumbnailPath = getAppThumbnail(app.id) || SHOWCASE_CONFIG.getStudioThumbnail(app.id);
           return `
           <a href="${app.link}" class="app-card group block p-6 bg-gradient-to-br from-white/5 to-white/2 border border-white/10 rounded-xl hover:border-cyan-400/50 hover:bg-cyan-400/5 transition-all duration-300 hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-cyan-400/20 opacity-0 translate-y-4" data-app-id="${app.id}" data-index="${index}" data-testid="app-card">
             <div class="flex items-start gap-4">
@@ -78,11 +79,13 @@ export function AppsGridSection({ apps }) {
             </div>
             <!-- Historical studio thumbnail added as visual enhancement -->
             <div class="mt-4 rounded-lg overflow-hidden border border-white/10 group-hover:border-cyan-400/30 transition-colors">
-              <img 
-                src="${thumbnailPath}" 
+              <img
+                src="${thumbnailPath}"
                 alt="${app.title} studio preview"
                 class="w-full h-32 object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300"
+                style="aspect-ratio: 16 / 9;"
                 loading="lazy"
+                onerror="this.style.display='none'; this.parentElement.classList.add('thumb-fallback'); const card=this.closest('.app-card'); if(card) card.classList.add('thumb-fallback');"
               />
             </div>
             <div class="mt-4 flex items-center text-xs text-cyan-400 font-medium opacity-0 group-hover:opacity-100 transition-opacity">
