@@ -46,6 +46,58 @@ vi.mock('../data/minimaxH3Demos.js', () => ({
   TEMPLATE_PREFIX: 'minimax-h3-',
 }));
 
+vi.mock('../data/beatapiMinimaxH3Demos.js', () => ({
+  get minimaxH3Demos() { return mockMinimaxDemos; },
+  MINIMAX_MODEL: 'MiniMax Hailuo 3 (H3)',
+  CATEGORY_ROUTES: { Commercial: 'commercial' },
+  DEFAULT_CREATE_ROUTE: 'video',
+  TEMPLATE_PREFIX: 'minimax-h3-',
+  getCreateTarget: (demo) => ({
+    route: 'commercial',
+    params: { template: `minimax-h3-${demo.slug}`, ref: 'minimax-h3' },
+    href: `/?template=minimax-h3-${demo.slug}&ref=minimax-h3#/commercial`,
+  }),
+  loadDemoPrompt: vi.fn(async (slug) => `Mocked beatapi prompt for ${slug}`),
+}));
+
+vi.mock('../data/beatapiSeedance25Demos.js', () => ({
+  get seedance25Demos() { return []; },
+  SEEDANCE_MODEL: 'Seedance 2.5 (ByteDance)',
+  SEEDANCE_CATEGORIES: ['All', 'Action', 'Animation', 'Cinema', 'Commercial', 'Fashion', 'Social'],
+  CATEGORY_ROUTES: { Action: 'cinema', Animation: 'cinema', Cinema: 'cinema', Commercial: 'commercial', Social: 'video' },
+  DEFAULT_CREATE_ROUTE: 'video',
+  TEMPLATE_PREFIX: 'seedance-2.5-',
+  getCreateTarget: (demo) => ({
+    route: 'video',
+    params: { template: `seedance-2.5-${demo.slug}`, ref: 'seedance-2.5' },
+    href: `/?template=seedance-2.5-${demo.slug}&ref=seedance-2.5#/video`,
+  }),
+  getCreateUrl: (demo) => '',
+  loadDemoPrompt: vi.fn(async (slug) => `Mocked seedance prompt for ${slug}`),
+}));
+
+vi.mock('../data/zeroLuDemos.js', () => ({
+  get zeroLuDemos() { return []; },
+  ZERO_LU_MODEL: 'Seedance 2.0 (Bytedance)',
+  ZERO_LU_CATEGORIES: ['Animation', 'Cinema', 'Commercial', 'Social', 'UGC', 'VFX'],
+  CATEGORY_ROUTES: { Cinema: 'cinema', Commercial: 'commercial', Social: 'video' },
+  DEFAULT_CREATE_ROUTE: 'video',
+  TEMPLATE_PREFIX: 'seedance-2.0-',
+  getCreateTarget: (demo) => ({
+    route: 'video',
+    params: { template: `seedance-2.0-${demo.slug}`, ref: 'seedance-2.0' },
+    href: `/?template=seedance-2.0-${demo.slug}&ref=seedance-2.0#/video`,
+  }),
+  getCreateUrl: (demo) => '',
+  loadDemoPrompt: vi.fn(async (slug) => `Mocked zerolu prompt for ${slug}`),
+  getDemoBySlug: vi.fn(),
+  requireDemo: vi.fn(),
+  getDemosByCategory: vi.fn(),
+  getCategoryCounts: vi.fn(),
+  ratioToNumber: vi.fn(),
+  formatDuration: vi.fn(),
+}));
+
 vi.mock('../data/academyStudioAdapters.js', () => ({
   get ACADEMY_STUDIO_ADAPTERS() { return mockAcademyAdapters; },
   getAcademyCreateTarget: (assetId) => {
@@ -114,11 +166,11 @@ describe('exampleGalleryBridge', () => {
     it('shows a prompt modal for minimax source', async () => {
       const asset = { source: 'minimax', slug: 'luxury-perfume-commercial', title: 'Luxury perfume commercial' };
       await handleViewPrompt(asset);
-      const modal = document.body.querySelector('div');
+      const modal = document.body.querySelector('.mdv-overlay');
       expect(modal).toBeTruthy();
-      const titleEl = modal?.querySelector('h3');
+      const titleEl = modal?.querySelector('h2');
       expect(titleEl?.textContent).toBe('Luxury perfume commercial');
-      const promptEl = modal?.querySelector('p');
+      const promptEl = modal?.querySelector('pre');
       expect(promptEl?.textContent).toBe('Mocked prompt for luxury-perfume-commercial');
     });
 
