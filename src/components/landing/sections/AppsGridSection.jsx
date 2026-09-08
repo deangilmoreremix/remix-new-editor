@@ -1,6 +1,6 @@
 // Apps Grid Section - 33 AI Creative Apps Showcase
 
-import SHOWCASE_CONFIG from '../../content/showcaseConfig.js';
+import SHOWCASE_CONFIG from '../../../content/showcaseConfig.js';
 
 export function AppsGridSection({ apps }) {
   const section = document.createElement('section');
