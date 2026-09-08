@@ -7,6 +7,8 @@ import { navigate } from './router.js';
 import { MediaDetailView } from '../components/MediaDetailView.js';
 import { getRelatedAssets } from '../data/exampleGalleryAssets.js';
 
+// Auto-generation is handled by the destination studio reading the
+// `autoGenerate` flag from the staged prefill payload, not by the bridge.
 function scheduleAutoGenerate(route) {}
 
 function openAssetDetail(asset) {
