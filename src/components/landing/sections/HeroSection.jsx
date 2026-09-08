@@ -1,7 +1,7 @@
 // Hero Section - Smart Video AI Studio
 // Cinematic design with direct-response positioning and premium motion
 
-import SHOWCASE_CONFIG from '../../content/showcaseConfig.js';
+import SHOWCASE_CONFIG from '../../../content/showcaseConfig.js';
 
 export function HeroSection() {
   const section = document.createElement('section');
