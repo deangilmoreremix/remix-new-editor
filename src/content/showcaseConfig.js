@@ -123,7 +123,14 @@ const SHOWCASE_CONFIG = {
   },
 
   getStudioThumbnail: function(id) {
-    return this.studioThumbnails[id] || '/thumbnails/studios/video.webp';
+    const aliases = {
+      'runway-motion': 'motion',
+      'tiktok-carousel': 'tiktok',
+      'advanced-dubbing': 'dubbing',
+      'lip-sync': 'lipSync'
+    };
+    const key = aliases[id] || id;
+    return this.studioThumbnails[key] || '/thumbnails/studios/video.webp';
   },
 
   getToolThumbnail: function(id) {
