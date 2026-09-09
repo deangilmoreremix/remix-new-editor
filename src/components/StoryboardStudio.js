@@ -354,7 +354,7 @@ export async function StoryboardStudio(options = {}) {
     acceptEndFrame: false,
     onUpload: async (key, file) => {
       try {
-        const { uploadFileToStorage } = await import('../lib/hybrid-supabase.js');
+        const { uploadFileToStorage } = await import('../lib/uploadService.js');
         const url = await uploadFileToStorage(file);
         storyboardAttachments[key] = storyboardAttachments[key] || [];
         storyboardAttachments[key].push(url);

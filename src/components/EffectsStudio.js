@@ -452,7 +452,7 @@ export async function EffectsStudio() {
     acceptAudio: false,
     onUpload: async (key, file) => {
       try {
-        const { uploadFileToStorage } = await import('../lib/hybrid-supabase.js');
+        const { uploadFileToStorage } = await import('../lib/uploadService.js');
         const url = await uploadFileToStorage(file);
         effectsAttachmentState[key] = effectsAttachmentState[key] || [];
         effectsAttachmentState[key].push(url);

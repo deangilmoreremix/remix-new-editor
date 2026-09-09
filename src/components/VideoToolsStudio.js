@@ -209,7 +209,7 @@ const triggerBtn = document.createElement('button');
      acceptAudio: false,
      onUpload: async (key, file) => {
        try {
-         const { uploadFileToStorage } = await import('../lib/hybrid-supabase.js');
+         const { uploadFileToStorage } = await import('../lib/uploadService.js');
          const url = await uploadFileToStorage(file);
          videoToolsAttachmentState[key] = videoToolsAttachmentState[key] || [];
          videoToolsAttachmentState[key].push(url);

@@ -29,6 +29,18 @@ export function getRouteForItem(item) {
   return ROUTE_MAP[item] || item.toLowerCase().replace(/\s+/g, '-');
 }
 
+export function cleanTemplateParams(params, page) {
+  if (!params || typeof params !== 'object') return {};
+  const isTemplatePage = page === 'templates' || (typeof page === 'string' && page.startsWith('template/'));
+  if (isTemplatePage) return { ...params };
+  const cleaned = { ...params };
+  delete cleaned.template;
+  delete cleaned['academy-template'];
+  delete cleaned.academyTemplate;
+  delete cleaned.templateId;
+  return cleaned;
+}
+
 const pageLoaders = {
   image: () => import('../components/ImageStudio.js').then(m => m.ImageStudio()),
   video: () => import('../components/VideoStudio.js').then(m => m.VideoStudio()),

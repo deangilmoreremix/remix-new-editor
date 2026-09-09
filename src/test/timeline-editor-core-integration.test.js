@@ -5,12 +5,17 @@ import { isFeatureEnabled, getAllFeatureFlags } from '../lib/featureFlags.js';
 import { TIMELINE_DESIGN_SYSTEM, enforceDesignSystem } from '../lib/designSystemEnforcer.js';
 
 // Setup JSDOM environment
-const { window } = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
-  url: 'http://localhost'
+let window, document;
+beforeAll(() => {
+  const env = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
+    url: 'http://localhost'
+  });
+  window = env.window;
+  document = window.document;
+  global.window = window;
+  global.document = document;
+  global.navigator = window.navigator;
 });
-global.window = window;
-global.document = window.document;
-global.navigator = window.navigator;
 
 describe('Timeline Editor Core Integration Test', () => {
   let timeline;

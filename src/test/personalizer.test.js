@@ -17,6 +17,22 @@ const localStorageStub = {
 Object.defineProperty(globalThis, 'localStorage', { value: localStorageStub });
 
 const toastCalls = [];
+
+// Mock interact.js global
+const createInteractable = () => ({
+  draggable: () => createInteractable(),
+  resizable: () => createInteractable(),
+  on: () => createInteractable(),
+  modifiers: [],
+});
+globalThis.interact = Object.assign(
+  () => createInteractable(),
+  {
+    modifiers: {
+      restrictRect: () => ({}),
+    },
+  }
+);
 vi.mock('../lib/studioChrome.js', () => ({
   mountStudioChrome: (container) => {
     const el = document.createElement('div');

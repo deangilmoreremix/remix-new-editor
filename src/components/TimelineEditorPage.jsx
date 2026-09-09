@@ -1,4 +1,4 @@
-import { supabase, uploadFileToStorage } from '../lib/hybrid-supabase.js';
+import { uploadFileToStorage } from '../lib/uploadService.js';
 import { setupEnhancedTooltips } from '../lib/editor/dragDrop.js';
 import { processFileUpload } from '../lib/editor/uploadPipeline.js';
 import { setupUploadSources } from '../lib/editor/uploadSources.js';
@@ -85,6 +85,9 @@ export function TimelineEditorPage() {
     cineGenTools: true,       // CineGen AI tool suite
     agentIntegration: true,   // Timeline agent hooks
     subtitleGeneration: true, // Whisper-based subtitle generation
+    sourceViewer: true,       // Source viewer + dual viewer modes
+    proxyPlayback: true,      // Proxy playback toggle
+    timelineTabs: true        // Multiple timeline tabs
   };
   TLEditor.featureFlags = FEATURE_FLAGS;
 
@@ -406,33 +409,35 @@ export function TimelineEditorPage() {
     <button class="fi-chip" data-modal="voice">Voice</button>
   </nav>
 
-  <div class="main-grid">
-    <div class="left-col">
-      <section class="preview-card preview-large">
-        <div class="preview-glow"></div>
-        <div class="preview-inner">
-          <div class="viewer">
-            <div class="viewer-stage" id="viewerStage">
-              <div class="viewer-frame" id="viewerFrame">
-                <div class="preview-stage" id="previewStage"></div>
-                <div class="vf-gradient"></div>
-                <div class="preview-empty" id="previewEmpty">
-                  <div class="vf-subtitle" id="vfSubtitle">Your story starts here.</div>
-                </div>
-              </div>
-              <div class="viewer-controls">
-                <button class="circle-btn" id="rewindBtn" data-tooltip="Rewind - Move the playhead back by 10% (←)" aria-label="Rewind the playhead by 10%">⏮</button>
-                <button class="circle-btn primary" id="playBtn" data-tooltip="Play or pause timeline preview (Spacebar)" aria-label="Play or pause timeline preview">▶</button>
-                <button class="circle-btn" id="stopBtn" data-tooltip="Stop - Stop playback and return to beginning" aria-label="Stop playback and return to the beginning">⏹</button>
-                <div class="vf-progress"><div class="vf-fill" id="progressFill" style="width:28%"></div></div>
-                <span class="vf-time"><span id="currentTime">00:12.4</span> / <span id="totalTime">00:45.0</span></span>
-              </div>
-            </div>
-            <div class="filmstrip" id="filmstrip" aria-label="Clip thumbnails"></div>
-          </div>
-        </div>
-        <input type="file" id="uploadInput" accept="video/*,image/*,audio/*,.txt" hidden data-testid="file-input" />
-      </section>
+   <div class="main-grid">
+     <div class="left-col">
+       <section class="preview-card preview-large">
+         <div class="preview-glow"></div>
+         <div class="preview-inner">
+           <div class="viewer">
+             <div class="viewer-stage" id="viewerStage">
+               <div class="viewer-frame" id="viewerFrame">
+                 <div class="preview-stage" id="previewStage"></div>
+                 <div class="source-stage" id="sourceStage" hidden></div>
+                 <div class="vf-gradient"></div>
+                 <div class="preview-empty" id="previewEmpty">
+                   <div class="vf-subtitle" id="vfSubtitle">Your story starts here.</div>
+                 </div>
+               </div>
+               <div class="viewer-controls">
+                 <button class="circle-btn" id="rewindBtn" data-tooltip="Rewind - Move the playhead back by 10% (←)" aria-label="Rewind the playhead by 10%">⏮</button>
+                 <button class="circle-btn primary" id="playBtn" data-tooltip="Play or pause timeline preview (Spacebar)" aria-label="Play or pause timeline preview">▶</button>
+                 <button class="circle-btn" id="stopBtn" data-tooltip="Stop - Stop playback and return to beginning" aria-label="Stop playback and return to the beginning">⏹</button>
+                 <div class="vf-progress"><div class="vf-fill" id="progressFill" style="width:28%"></div></div>
+                 <span class="vf-time"><span id="currentTime">00:12.4</span> / <span id="totalTime">00:45.0</span></span>
+                 <button class="circle-btn" id="viewerModeBtn" data-tooltip="Toggle source/dual viewer" aria-label="Toggle viewer mode">🖥️</button>
+               </div>
+             </div>
+             <div class="filmstrip" id="filmstrip" aria-label="Clip thumbnails"></div>
+           </div>
+         </div>
+         <input type="file" id="uploadInput" accept="video/*,image/*,audio/*,.txt" hidden data-testid="file-input" />
+       </section>
       <section class="timeline-card" data-testid="timeline-container">
         <div class="timeline-top">
           <div class="toolbar-left">
@@ -445,6 +450,8 @@ export function TimelineEditorPage() {
               <span class="time-now">00:12.4</span>
               <span class="time-total">/ 00:45.0</span>
             </div>
+            <div class="timeline-tabs" id="timelineTabs" role="tablist" aria-label="Timeline tabs"></div>
+            <button class="tool-btn" id="tbAddTimeline" data-tooltip="Add timeline tab" aria-label="Add timeline">＋</button>
             <div class="tool-group" role="group" aria-label="Edit tools">
               <button class="tool-btn" id="tbSplit" data-tooltip="Split selected clip at playhead" aria-label="Split clip at playhead">✂</button>
               <button class="tool-btn" id="tbDelete" data-tooltip="Delete selected clip" aria-label="Delete selected clip">⌫</button>
@@ -641,7 +648,10 @@ export function TimelineEditorPage() {
       generateType: 'Text',
       playing: false,
       playheadPercent: 34,
-      viewerMode: 'timeline',
+      viewerMode: 'timeline', // timeline | source | dual
+      proxyEnabled: false,
+      timelineTabs: [],
+      selectedTimelineId: null,
       zoom: 1,
       timelineSeconds: 45,
       // Prototype seed (timeline-redesign-prototype.html): 4 tracks, demo clips,
@@ -1068,11 +1078,13 @@ export function TimelineEditorPage() {
       progressFill: root.querySelector('#progressFill'),
       vfSubtitle: root.querySelector('#vfSubtitle'),
       previewStage: root.querySelector('#previewStage'),
+      sourceStage: root.querySelector('#sourceStage'),
       previewEmpty: root.querySelector('#previewEmpty'),
       playheadLine: root.querySelector('#playheadLine'),
       playheadKnob: root.querySelector('#playheadKnob'),
       rulerCanvas: root.querySelector('#rulerCanvas'),
       rulerTicks: root.querySelector('#rulerTicks'),
+      viewerModeBtn: root.querySelector('#viewerModeBtn'),
       projectTitle: root.querySelector('#projectTitle'),
       promptInput: root.querySelector('#promptInput'),
       durationSelect: root.querySelector('#durationSelect'),
@@ -1617,6 +1629,64 @@ export function TimelineEditorPage() {
       }
       els.projectTitle.textContent = state.projectTitle;
       renderPreviewAsset(selected);
+      renderSourceViewer(selected);
+    }
+
+    function cycleViewerMode() {
+      const modes = ['timeline', 'source', 'dual'];
+      const current = state.viewerMode || 'timeline';
+      const next = modes[(modes.indexOf(current) + 1) % modes.length];
+      state.viewerMode = next;
+      applyViewerMode(next);
+    }
+
+    function applyViewerMode(mode) {
+      const preview = els.previewStage;
+      const source = els.sourceStage;
+      const frame = document.getElementById('viewerFrame');
+      if (!preview || !source || !frame) return;
+
+      frame.classList.remove('viewer-mode-source', 'viewer-mode-dual');
+      preview.hidden = false;
+      source.hidden = true;
+
+      if (mode === 'source') {
+        frame.classList.add('viewer-mode-source');
+        preview.hidden = true;
+        source.hidden = false;
+      } else if (mode === 'dual') {
+        frame.classList.add('viewer-mode-dual');
+        preview.hidden = false;
+        source.hidden = false;
+      }
+    }
+
+    function renderSourceViewer(selected) {
+      if (!els.sourceStage) return;
+      els.sourceStage.innerHTML = '';
+      if ((state.viewerMode || 'timeline') === 'timeline') return;
+      if (!selected || !selected.src) {
+        els.sourceStage.innerHTML = '<div class="preview-empty">No source media</div>';
+        return;
+      }
+      if (selected.type === 'video') {
+        const video = document.createElement('video');
+        video.src = selected.src;
+        video.controls = true;
+        video.style.width = '100%';
+        video.style.height = '100%';
+        video.dataset.clipId = selected.id;
+        els.sourceStage.appendChild(video);
+      } else if (selected.type === 'image') {
+        const image = document.createElement('img');
+        image.src = selected.src;
+        image.alt = selected.name || 'Source';
+        image.style.maxWidth = '100%';
+        image.style.maxHeight = '100%';
+        els.sourceStage.appendChild(image);
+      } else {
+        els.sourceStage.innerHTML = `<div class="preview-empty">Source preview not available for ${selected.type || 'this clip type'}</div>`;
+      }
     }
 
     function syncMediaPlayState() {
@@ -3578,19 +3648,32 @@ export function TimelineEditorPage() {
               <button id="clip-mute" type="button" data-tooltip="${clip.mute ? 'Unmute this clip' : 'Mute this clip to silence it'}">${clip.mute ? 'Unmute' : 'Mute'}</button>
             </div>
           </div>
-          <div class="clip-editor__section">
-            <h3>Visual Controls</h3>
-            <div class="clip-editor__field">
-              <button id="clip-visibility" type="button" data-tooltip="${clip.hidden ? 'Make clip visible on timeline' : 'Hide clip from timeline view'}">${clip.hidden ? 'Show' : 'Hide'}</button>
-            </div>
-            <div class="clip-editor__field">
-              <label for="clip-fill" data-tooltip="How the clip fits within its frame">Fill Mode</label>
-              <select id="clip-fill" data-tooltip="Choose how the clip scales to fit">
-                <option value="scale" ${clip.fit === 'contain' ? 'selected' : ''}>Scale to Fit</option>
-                <option value="fit" ${clip.fit !== 'contain' ? 'selected' : ''}>Fit</option>
-              </select>
-            </div>
-          </div>
+           <div class="clip-editor__section">
+             <h3>Visual Controls</h3>
+             <div class="clip-editor__field">
+               <button id="clip-visibility" type="button" data-tooltip="${clip.hidden ? 'Make clip visible on timeline' : 'Hide clip from timeline view'}">${clip.hidden ? 'Show' : 'Hide'}</button>
+             </div>
+             <div class="clip-editor__field">
+               <label for="clip-fill" data-tooltip="How the clip fits within its frame">Fill Mode</label>
+               <select id="clip-fill" data-tooltip="Choose how the clip scales to fit">
+                 <option value="scale" ${clip.fit === 'contain' ? 'selected' : ''}>Scale to Fit</option>
+                 <option value="fit" ${clip.fit !== 'contain' ? 'selected' : ''}>Fit</option>
+               </select>
+             </div>
+             <div class="clip-editor__field">
+               <label>Flip</label>
+               <select id="clip-flip" data-tooltip="Mirror the clip horizontally or vertically">
+                 <option value="">None</option>
+                 <option value="horizontal" ${clip.transform?.scaleX === -1 ? 'selected' : ''}>Horizontal</option>
+                 <option value="vertical" ${clip.transform?.scaleY === -1 ? 'selected' : ''}>Vertical</option>
+                 <option value="both" ${clip.transform?.scaleX === -1 && clip.transform?.scaleY === -1 ? 'selected' : ''}>Both</option>
+               </select>
+             </div>
+             <div class="clip-editor__field">
+               <label for="clip-speed">Speed (${(clip.playbackRate || 1).toFixed(2)}x)</label>
+               <input id="clip-speed" type="range" min="0.1" max="4" step="0.1" value="${clip.playbackRate || 1}" data-tooltip="Adjust playback speed from 0.1x to 4x" />
+             </div>
+           </div>
         </div>
       `;
 
@@ -3622,6 +3705,26 @@ export function TimelineEditorPage() {
         e.target.textContent = clip.hidden ? 'Show' : 'Hide';
         renderTracks();
       });
+      const flipSelect = els.clipEditorContainer.querySelector('#clip-flip');
+      if (flipSelect) {
+        flipSelect.addEventListener('change', () => {
+          clip.transform = clip.transform || { x: 0, y: 0, scale: 1, rotation: 0 };
+          const value = flipSelect.value;
+          clip.transform.scaleX = value === 'horizontal' || value === 'both' ? -1 : 1;
+          clip.transform.scaleY = value === 'vertical' || value === 'both' ? -1 : 1;
+          renderTracks();
+          updatePreview();
+        });
+      }
+      const speedInput = els.clipEditorContainer.querySelector('#clip-speed');
+      if (speedInput) {
+        speedInput.addEventListener('input', () => {
+          const value = parseFloat(speedInput.value);
+          clip.playbackRate = Number.isFinite(value) ? value : 1;
+          speedInput.previousElementSibling.textContent = `Speed (${clip.playbackRate.toFixed(2)}x)`;
+          renderTracks();
+        });
+      }
        const transSelect = els.clipEditorContainer.querySelector('#clip-transition');
        if (transSelect) {
          transSelect.value = clip.transition?.type || '';
@@ -5848,6 +5951,7 @@ export function TimelineEditorPage() {
       els.playBtn?.addEventListener('click', togglePlayback);
       els.stopBtn?.addEventListener('click', stopPlayback);
       els.rewindBtn?.addEventListener('click', rewindPlayback);
+      els.viewerModeBtn?.addEventListener('click', cycleViewerMode);
       els.generateBtn?.addEventListener('click', generateClip);
 
       // Header top actions (prototype skeleton, listeners-only)
@@ -5910,6 +6014,7 @@ export function TimelineEditorPage() {
         else if (key === ']') { nudgeSelectedClip(0.5); }
         else if ((ev.ctrlKey || ev.metaKey) && key === 'c') { ev.preventDefault(); copySelectedClip(); }
         else if ((ev.ctrlKey || ev.metaKey) && key === 'v') { ev.preventDefault(); pasteClipAtPlayhead(); }
+        else if (key === 'v' && !ev.ctrlKey && !ev.metaKey) { ev.preventDefault(); cycleViewerMode(); }
       });
 
       // Zoom controls (prototype: out / track / in / fit)
@@ -6246,7 +6351,12 @@ export function TimelineEditorPage() {
             clipId: state.selectedClipId
           });
           updateCineGenResults(result);
-          if (result.success) {}
+          if (result.success) {
+            showToast('Audio sync complete', 'success');
+            renderTracks();
+          } else {
+            showToast(result.error || 'Audio sync failed', 'error');
+          }
         });
       }
 
@@ -6271,9 +6381,16 @@ export function TimelineEditorPage() {
       const proxyBtn = root.querySelector('#cinegenProxyBtn');
       if (proxyBtn) {
         proxyBtn.addEventListener('click', async () => {
-          const result = await runCineGenTool('proxy_playback', { enabled: true });
+          const next = !state.proxyEnabled;
+          const result = await runCineGenTool('proxy_playback', { enabled: next });
           updateCineGenResults(result);
-          if (result.success) {}
+          if (result.success) {
+            state.proxyEnabled = next;
+            showToast(next ? 'Proxy playback enabled' : 'Proxy playback disabled', 'success');
+            renderTracks();
+          } else {
+            showToast(result.error || 'Proxy playback toggle failed', 'error');
+          }
         });
       }
 
@@ -6320,11 +6437,46 @@ export function TimelineEditorPage() {
       renderTracks();
       renderMedia();
       renderGenerateTypes();
-
+      renderTimelineTabs();
       renderRail();
       renderMultiCamera();
       updatePreview();
       updatePlaybackUI();
+    }
+
+    function renderTimelineTabs() {
+      const container = document.getElementById('timelineTabs');
+      if (!container) return;
+      if (!state.timelines || state.timelines.length === 0) {
+        container.innerHTML = '';
+        return;
+      }
+      const tabs = state.timelines.map(timeline => {
+        const active = timeline.id === state.selectedTimelineId ? 'active' : '';
+        return `<button class="timeline-tab ${active}" data-timeline-id="${timeline.id}" role="tab" aria-selected="${active ? 'true' : 'false'}">${escapeHtml(timeline.projectTitle || 'Timeline')}</button>`;
+      }).join('');
+      container.innerHTML = tabs + '<button class="timeline-tab timeline-tab-add" id="tbAddTimeline" data-tooltip="Add timeline tab" aria-label="Add timeline">＋</button>';
+      const addBtn = container.querySelector('#tbAddTimeline');
+      if (addBtn) {
+        addBtn.addEventListener('click', () => {
+          addNewTimeline(state);
+          renderTimelineTabs();
+          renderTracks();
+          updatePreview();
+        });
+      }
+      container.querySelectorAll('.timeline-tab[data-timeline-id]').forEach(tab => {
+        tab.addEventListener('click', () => {
+          const timelineId = tab.dataset.timelineId;
+          if (timelineId && timelineId !== state.selectedTimelineId) {
+            switchToTimeline(state, timelineId);
+            renderTimelineTabs();
+            renderTracks();
+            updatePreview();
+            updatePlaybackUI();
+          }
+        });
+      });
     }
 
     function renderMultiCamera() {

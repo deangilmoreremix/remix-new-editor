@@ -22,7 +22,7 @@ describe('StoryboardPanel', () => {
     const shotButtons = root.querySelectorAll('.sb-shot');
     expect(shotButtons.length).toBeGreaterThan(0);
     const activeButtons = [...shotButtons].filter((btn) =>
-      btn.classList.contains('bg-primary')
+      btn.classList.contains('btn-secondary-modern')
     );
     expect(activeButtons.length).toBe(1);
   });

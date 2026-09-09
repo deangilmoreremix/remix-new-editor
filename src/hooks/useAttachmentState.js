@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { uploadFileToStorage } from '../lib/hybrid-supabase.js';
+import { uploadFileToStorage } from '../lib/uploadService.js';
 
 export function useAttachmentState() {
   const [attachments, setAttachments] = useState({

@@ -10,7 +10,7 @@
  * - Accessibility features (keyboard navigation, screen reader support)
  */
 
-import { uploadFileToStorage } from '../hybrid-supabase.js';
+import { uploadFileToStorage } from '../lib/uploadService.js';
 import { mediaWorker } from '../media-worker-manager.js';
 import { processFileUpload } from './uploadPipeline.js';
 import { formatErrorMessage } from '../errorMessages.js';

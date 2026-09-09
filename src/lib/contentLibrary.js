@@ -1,4 +1,5 @@
-import { supabase, isSupabaseConfigured, uploadFileToStorage } from './supabase.js';
+import { supabase, isSupabaseConfigured } from './supabase.js';
+import { uploadFileToStorage } from '../lib/uploadService.js';
 import { getUserKey } from './userKey.js';
 import { formatErrorMessage } from './errorMessages.js';
 
