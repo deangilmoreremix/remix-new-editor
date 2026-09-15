@@ -573,6 +573,8 @@ export function clearAllStockMediaCaches() {
   clearGiphyCache();
 }
 
+export { PROVIDERS, MEDIA_TYPES };
+
 export default {
   openStockMediaBrowser,
   PROVIDERS,

@@ -186,19 +186,6 @@ const SHOWCASE_SECTIONS = [
   },
 ];
 
-function generateLikes(slug) {
-  let hash = 0;
-  for (let i = 0; i < slug.length; i++) {
-    hash = ((hash << 5) - hash) + slug.charCodeAt(i);
-    hash |= 0;
-  }
-  const absHash = Math.abs(hash);
-  const value = (absHash % 900000) + 10000;
-  if (value >= 1000000) return (value / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-  if (value >= 1000) return Math.floor(value / 1000) + 'K';
-  return String(value);
-}
-
 /**
  * Build a gallery card for a demo, with per-source CTA and prompt loading.
  */
@@ -376,8 +363,6 @@ function createShowcaseSection(config, allDemos) {
   const showLikes = sectionId === 'sd-social' || sectionId === 'mmx-social';
 
   const cardCache = new Map();
-
-  const showLikes = sectionId === 'sd-social' || sectionId === 'mmx-social';
 
   function getCard(demo) {
     if (!cardCache.has(demo.slug)) {
