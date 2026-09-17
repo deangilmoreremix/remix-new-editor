@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll } from 'vitest';
 import * as router from '../lib/router.js';
+import * as clerkEntitlements from '../lib/clerkEntitlements.js';
 
 let RenderPage;
 let consoleErrorSpy;
@@ -33,6 +34,7 @@ describe('RenderPage bug fixes', () => {
     vi.spyOn(router, 'navigate').mockImplementation(() => {});
     if (!global.URL.createObjectURL) global.URL.createObjectURL = () => 'blob:x';
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(clerkEntitlements, 'requireEntitlement').mockResolvedValue(true);
   });
 
   afterEach(() => {
@@ -101,13 +103,16 @@ describe('RenderPage bug fixes', () => {
     expect(exportBtn && exportBtn.getAttribute('aria-pressed')).toBe('true');
   });
 
-  it('B4: queued render shows a readable label', () => {
+  it('B4: queued render shows a readable label', async () => {
     const el = RenderPage();
     const queueBtn = [...el.querySelectorAll('#actionButtonsRow button')].find(
       (b) => b.textContent.trim() === 'Queue Render'
     );
     expect(queueBtn).toBeTruthy();
-    queueBtn.click();
+    await new Promise((resolve) => {
+      queueBtn.addEventListener('click', resolve, { once: true });
+      queueBtn.click();
+    });
     const queue = JSON.parse(store['render:queue'] || '[]');
     expect(queue.length).toBeGreaterThan(0);
     expect(queue[queue.length - 1].label).toBeTruthy();

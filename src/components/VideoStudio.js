@@ -23,7 +23,7 @@ import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
 import { VIDEO_QUICK_PROMPTS } from '../lib/promptUtils.js';
-import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
+import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
 import { categorizeGenerationError, createAbortAwareGenerate, startGenerationProgress, showInlineError, hideInlineError } from '../lib/studioHelpers.js';
 import { showToast, createLoadingOverlay, createProgressBar } from '../lib/loading.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
@@ -54,9 +54,11 @@ export function VideoStudio() {
     let lastGenerationModel = null;
     let nativeAudio = false;
     let characterLock = false;
+    let autoGenerate = false;
     let dropdownOpen = null;
     let selectedProvider = 'all';
     let uploadedImageUrl = null;
+    let uploadedEndImageUrl = null;
     let imageMode = false; // false = t2v models, true = i2v models
     let v2vMode = false;   // true = video-to-video tools mode
     let uploadedVideoUrl = null;
@@ -308,6 +310,58 @@ export function VideoStudio() {
 
     topRow.appendChild(lastFrameBtn);
 
+    // --- End Frame upload (I2V end frame image) ---
+    const endFrameInput = document.createElement('input');
+    endFrameInput.type = 'file';
+    endFrameInput.accept = 'image/*';
+    endFrameInput.className = 'hidden';
+
+    const endFrameBtn = document.createElement('button');
+    endFrameBtn.type = 'button';
+    endFrameBtn.title = 'Upload end frame image for I2V';
+    endFrameBtn.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center relative overflow-hidden mt-1.5 bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group';
+    endFrameBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-muted group-hover:text-primary transition-colors"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><polyline points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/><text x="12" y="14" text-anchor="middle" font-size="7" fill="currentColor" stroke="none">⏮</text></svg>`;
+    endFrameBtn.appendChild(endFrameInput);
+
+    endFrameBtn.onclick = (e) => {
+        e.stopPropagation();
+        if (uploadedEndImageUrl) {
+            uploadedEndImageUrl = null;
+            endFrameBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-muted group-hover:text-primary transition-colors"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><polyline points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/><text x="12" y="14" text-anchor="middle" font-size="7" fill="currentColor" stroke="none">⏮</text></svg>`;
+            endFrameBtn.classList.remove('border-primary/60');
+            endFrameBtn.classList.add('border-white/10');
+        } else {
+            endFrameInput.click();
+        }
+    };
+
+    endFrameInput.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const apiKey = apiKeyManager.getKey();
+        if (!apiKey) { AuthModal(() => endFrameInput.click()); return; }
+        endFrameBtn.disabled = true;
+        endFrameBtn.innerHTML = `<span class="animate-spin text-primary text-sm">◌</span>`;
+        try {
+            const url = await uploadMediaFile(file);
+            if (url) {
+                uploadedEndImageUrl = url;
+                endFrameBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-primary"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><polyline points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/><text x="12" y="14" text-anchor="middle" font-size="7" fill="currentColor" stroke="none">⏮</text></svg>`;
+                endFrameBtn.classList.remove('border-white/10');
+                endFrameBtn.classList.add('border-primary/60');
+                showToast('End frame loaded', 'success');
+            }
+        } catch (err) {
+            console.error('[VideoStudio] End frame upload failed:', err);
+            showToast('Failed to upload end frame: ' + err.message, 'error');
+        } finally {
+            endFrameBtn.disabled = false;
+            endFrameInput.value = '';
+        }
+    };
+
+    topRow.appendChild(endFrameBtn);
+
     // --- Video Upload Picker (Video-to-Video) ---
     const videoFileInput = document.createElement('input');
     videoFileInput.type = 'file';
@@ -494,6 +548,7 @@ export function VideoStudio() {
         if (staged) {
             if (staged.model) selectedModel = staged.model;
             videoPrefill = staged.prompt || '';
+            autoGenerate = Boolean(staged.autoGenerate);
         }
     }
     if (videoPrefill) {
@@ -1989,6 +2044,7 @@ generateBtn.type = 'button';
                     image_url: uploadedImageUrl,
                     signal: abortController.signal,
                 };
+                if (uploadedEndImageUrl) i2vParams.last_image = uploadedEndImageUrl;
                 if (prompt) i2vParams.prompt = prompt;
                 const isWanI2V = selectedModel === 'wan2.1-image-to-video' || selectedModel === 'wan2.5-image-to-video';
                 if (!isWanI2V && customThumbnailUrl) i2vParams.thumbnail_url = customThumbnailUrl;
@@ -2129,6 +2185,12 @@ const durations = getCurrentDurations(selectedModel);
     if (galleryAssets.length > 0) {
       const gallery = ExampleGallery({ studioId: 'video', assets: galleryAssets, maxCards: 28 });
       container.appendChild(gallery);
+    }
+
+    if (autoGenerate) {
+      setTimeout(() => {
+        generateBtn.click();
+      }, 50);
     }
 
     return container;

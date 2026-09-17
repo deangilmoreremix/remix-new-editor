@@ -357,7 +357,7 @@ let showAdvanced = false;
       getTextarea: () => textarea,
       onUpload: async (key, file) => {
         try {
-          const { uploadFileToStorage } = await import('../lib/hybrid-supabase.js');
+          const { uploadFileToStorage } = await import('../lib/uploadService.js');
           const url = await uploadFileToStorage(file);
           if (key === 'startFrame' || key === 'endFrame') {
             if (key === 'startFrame') currentSettings.referenceUrl = url;
@@ -386,7 +386,7 @@ let showAdvanced = false;
     gtmBtn.textContent = '🎯 GTM Boost';
     gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
     gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
-    gtmBtn.className = 'btn-ghost-modern shrink-0';
+    gtmBtn.className = 'gtm-boost-btn';
     gtmBtn.addEventListener('click', () => {
       import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
         openGTMPromptModal('cinema-studio', (prompt) => {

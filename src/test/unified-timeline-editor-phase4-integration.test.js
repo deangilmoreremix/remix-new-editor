@@ -1,4 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import Canvas from '../components/editor/Canvas.js';
+import ErrorBoundary from '../lib/errorBoundary.js';
 
 describe('Unified Timeline Editor - Phase 4 Integration Testing', () => {
   beforeEach(() => {
@@ -57,10 +59,7 @@ describe('Unified Timeline Editor - Phase 4 Integration Testing', () => {
 
       it('should verify Category C Editor Surfaces integration', () => {
         // Test Category C: Main Editor Surfaces - verify imports work
-        expect(async () => {
-          const { default: Canvas } = await import('../components/Canvas.jsx');
-          expect(Canvas).toBeDefined();
-        }).not.toThrow();
+        expect(Canvas).toBeDefined();
       });
 
       it('should verify Category G Media Ingest integration', () => {
@@ -124,7 +123,7 @@ describe('Unified Timeline Editor - Phase 4 Integration Testing', () => {
           'VoiceModal'
         ];
 
-        expect(modalComponents.length).toBe(24);
+        expect(modalComponents.length).toBe(23);
         expect(modalComponents).toContain('SettingsModal');
         expect(modalComponents).toContain('AIVideoCreator');
       });
@@ -193,10 +192,7 @@ describe('Unified Timeline Editor - Phase 4 Integration Testing', () => {
 
       it('should have robust error boundaries', () => {
         // Test error boundary system
-        expect(async () => {
-          const { default: ErrorBoundary } = await import('../lib/errorBoundary.js');
-          expect(ErrorBoundary).toBeDefined();
-        }).not.toThrow();
+        expect(ErrorBoundary).toBeDefined();
       });
     });
   });

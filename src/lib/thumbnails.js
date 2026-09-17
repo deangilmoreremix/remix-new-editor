@@ -426,6 +426,9 @@ const APP_THUMBNAILS = {
   community: '/thumbnails/pages/community.webp',
   assist: '/thumbnails/pages/assist.webp',
   agents: '/thumbnails/heroes/videoagent.webp.png',
+  'video-agent': '/thumbnails/heroes/videoagent.webp.png',
+  workflows: '/thumbnails/videoagent/commentary.png',
+  'mcp-cli': '/thumbnails/videoagent/tab-edit.png',
 };
 
 export function getAppThumbnail(appId) {

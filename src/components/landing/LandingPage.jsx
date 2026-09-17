@@ -31,6 +31,7 @@ const ALL_APPS = [
   { id: 'community', title: 'Community', description: 'Showcase examples, discover creative workflows, highlight user creations, and build a community around AI video creation.', link: '/community?public=1' },
   { id: 'assist', title: 'Assist', description: 'Use guided AI help for prompts, workflows, studio selection, creative improvement, and project completion.', link: '/assist?public=1' },
   { id: 'lip-sync', title: 'Lip Sync', description: 'Generate accurate lip sync for any video, character, or avatar in any language for natural-looking dubbed content.', link: '/lipsync?public=1' },
+  { id: 'video-agent', title: 'Video Agent', description: 'Automate video creation with AI agents that handle editing, effects, voiceovers, and publishing from a single prompt.', link: '/video-agent?public=1' },
   { id: 'agents', title: 'Agents', description: 'Use specialized AI agents for creative direction, editing, storyboarding, video creation, pitch improvement, and production planning.', link: '/agents?public=1' },
 ];
 
@@ -199,6 +200,7 @@ export default async function LandingPage() {
     const hookSection = createLazySection(() => import('./sections/HookSection.jsx'), 'hook', {}, 1);
     const sixEngines = createLazySection(() => import('./sections/SixEnginesSection.jsx'), 'engines', {}, 2);
     const appsGrid = createLazySection(() => import('./sections/AppsGridSection.jsx'), 'apps', { apps: ALL_APPS }, 3);
+    const demos = createLazySection(() => import('./sections/DemosSection.jsx'), 'demos', {}, 4);
     const features = createLazySection(() => import('./sections/FeaturesSection.jsx'), 'features', {}, 5);
     const problem = createLazySection(() => import('./sections/ProblemSection.jsx'), 'problem', {}, 6);
     const workflow = createLazySection(() => import('./sections/WorkflowSection.jsx'), 'workflow', {}, 7);
@@ -221,6 +223,7 @@ export default async function LandingPage() {
     container.appendChild(aiWorkflow);      // NEW
     container.appendChild(sixEngines);
     container.appendChild(appsGrid);
+    container.appendChild(demos);
     container.appendChild(madeWith);        // NEW
     container.appendChild(ugcShowcase);     // NEW
     container.appendChild(features);

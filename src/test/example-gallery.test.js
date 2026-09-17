@@ -183,6 +183,39 @@ describe('exampleGalleryBridge', () => {
   });
 });
 
+describe('createStyleLink auto-generate', () => {
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    vi.clearAllMocks();
+  });
+
+  it('stages autoGenerate=false by default', async () => {
+    const { createStyleLink } = await import('../components/landing/sections/minimax/ui.js');
+    const demo = { slug: 'luxury-perfume-commercial', title: 'Luxury perfume commercial' };
+    const link = createStyleLink(demo, { loadPrompt: vi.fn(async () => 'prompt') });
+    document.body.appendChild(link);
+    link.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    await new Promise(r => setTimeout(r, 500));
+    const staged = (await import('../lib/studioPrefill.js')).peekStudioPrefill();
+    expect(staged).toBeTruthy();
+    expect(staged.autoGenerate).toBe(false);
+  });
+
+  it('stages autoGenerate=true when option is passed', async () => {
+    const { createStyleLink } = await import('../components/landing/sections/minimax/ui.js');
+    const demo = { slug: 'luxury-perfume-commercial', title: 'Luxury perfume commercial' };
+    const link = createStyleLink(demo, { loadPrompt: vi.fn(async () => 'prompt'), autoGenerate: true });
+    document.body.appendChild(link);
+    
+    link.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    await new Promise(r => setTimeout(r, 500));
+    
+    const staged = (await import('../lib/studioPrefill.js')).peekStudioPrefill();
+    expect(staged).toBeTruthy();
+    expect(staged.autoGenerate).toBe(true);
+  });
+});
+
 describe('minimaxTemplates', () => {
   it('getAllMinimaxTemplates returns the mapped templates array', () => {
     const all = getAllMinimaxTemplates();

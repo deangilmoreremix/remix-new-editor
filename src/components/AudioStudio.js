@@ -700,7 +700,7 @@ export function AudioStudio() {
           const url = await uploadAudioFile(file, null, apiKey);
           audioAttachmentState.audio = url;
         } else {
-          const { uploadFileToStorage } = await import('../lib/hybrid-supabase.js');
+          const { uploadFileToStorage } = await import('../lib/uploadService.js');
           const url = await uploadFileToStorage(file);
           audioAttachmentState[key] = audioAttachmentState[key] || [];
           audioAttachmentState[key].push(url);

@@ -1,6 +1,6 @@
 // Six Creative Engines Section - Animated with parallax and hover effects
 
-import SHOWCASE_CONFIG from '../../content/showcaseConfig.js';
+import SHOWCASE_CONFIG from '../../../content/showcaseConfig.js';
 
 export function SixEnginesSection() {
   const engines = [

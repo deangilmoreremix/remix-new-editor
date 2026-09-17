@@ -992,6 +992,21 @@ export default defineConfig({
     plugins: [
         publicAuditReportPlugin(),
         tailwindcss(),
+        {
+            name: 'tsx-pre-transform',
+            enforce: 'pre',
+            async transform(src, id) {
+                if (id.endsWith('.tsx')) {
+                    const { transform } = await import('esbuild');
+                    const result = await transform(src, {
+                        loader: 'tsx',
+                        jsx: 'automatic',
+                        tsconfigRaw: { compilerOptions: { experimentalDecorators: true } },
+                    });
+                    return result.code;
+                }
+            },
+        },
         // Legacy components (e.g. SocialPublisherModal.jsx) use MobX
         // @inject/@observer decorators. @vitejs/plugin-react transforms .jsx
         // via Babel, which does not enable decorators by default — enable the
@@ -1303,13 +1318,12 @@ export default defineConfig({
     build: {
         target: 'esnext',
         minify: 'terser',
-        esbuild: {
-            jsx: 'automatic',
-            loader: 'tsx',
-            include: /\.jsx?$/,
-            exclude: /\.tsx?$/,
-            tsconfigRaw: { compilerOptions: { experimentalDecorators: true } },
-        },
+    esbuild: {
+        jsx: 'automatic',
+        loader: 'tsx',
+        include: /\.(jsx|tsx|ts)$/,
+        tsconfigRaw: { compilerOptions: { experimentalDecorators: true } },
+    },
         terserOptions: {
             compress: {
                 drop_console: false,

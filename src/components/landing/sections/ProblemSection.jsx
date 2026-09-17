@@ -1,6 +1,6 @@
 // Problem Section - AI Video Is Exploding... But Most People Can't Turn It Into A Real Business
 
-import SHOWCASE_CONFIG from '../../content/showcaseConfig.js';
+import SHOWCASE_CONFIG from '../../../content/showcaseConfig.js';
 
 export function ProblemSection() {
   const section = document.createElement('section');
