@@ -1,4 +1,4 @@
-import { openAICaptionsModal } from '../components/modals/AICaptionsModal.jsx';
+import { openAICaptionsModal } from '../../components/modals/AICaptionsModal.jsx';
 
 /**
  * Open the AI Captions modal.

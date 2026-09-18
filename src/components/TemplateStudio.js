@@ -1,4 +1,5 @@
 import { getTemplateById } from '../lib/templates.js';
+import { normalizeTemplate } from '../lib/templateAdapter.js';
 import { resolveTemplate } from '../lib/showcaseTemplateResolver.js';
 import { getTemplateThumbnailCandidates, saveCustomThumbnailToCache, clearCustomThumbnailCache, getCustomThumbnailFromCache } from '../lib/thumbnails.js';
 import { getTemplateSpecs, hasEnhancedSpecs } from '../lib/templateSpecs.js';
@@ -8,7 +9,7 @@ import { getNicheTerms, enrichPromptString, deriveEngineInputFromTemplate, compo
 import { NICHE_ENRICHMENT, FILM_FAMILIES } from '../lib/templateMatrix.js';
 import { t2iModels, i2iModels, i2vModels, t2vModels, v2vModels, getV2VModelById } from '../lib/models.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
-import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
+import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
 import { AuthModal } from './AuthModal.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { createUploadPicker } from './UploadPicker.js';
@@ -24,6 +25,9 @@ import { getTemplateStudioAsset } from '../lib/personalizerAdapters.js';
 
 export function TemplateStudio(templateId) {
   let template = getTemplateById(templateId);
+  if (template) {
+    template = normalizeTemplate(template);
+  }
 
   // Fallback: if the template isn't in the built-in templates.js registry,
   // try the unified showcase resolver (covers all 512 MiniMax H3 / Seedance 2.5 / ZeroLu demos).
@@ -514,7 +518,7 @@ let fallbackList = [];
 
     const triggerBtn = document.createElement('button');
     triggerBtn.type = 'button';
-    triggerBtn.id = 'template-model-trigger';
+    triggerBtn.id = 'templateModelTrigger';
     triggerBtn.setAttribute('aria-haspopup', 'listbox');
     triggerBtn.setAttribute('aria-expanded', 'false');
     triggerBtn.setAttribute('aria-label', 'Select model');
