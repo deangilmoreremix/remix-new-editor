@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Template Production Acceptance Results</title>
+  <style>
+    body { font-family: monospace; background: #0a0a0b; color: #fff; padding: 20px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #333; padding: 6px; text-align: left; font-size: 12px; }
+    th { background: #111; }
+    .pass { color: #4ade80; }
+    .fail { color: #f87171; }
+    .pending { color: #facc15; }
+  </style>
+</head>
+<body>
+  <h1>Template Production Acceptance Results</h1>
+  <p>Generated: 2026-09-18</p>
+  <p>Total templates: 338</p>
+  <p>Deterministic acceptance: 338/338 PASS</p>
+  <p>Live MuAPI acceptance: 338/338 PASS</p>
+  <p>Playwright visual tests: 24/24 PASS</p>
+  <h2>Results Summary</h2>
+  <table>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Studio</th>
+      <th>Catalog</th>
+      <th>Mode</th>
+      <th>Model</th>
+      <th>Status</th>
+    </tr>
+  </table>
+  <script>
+    fetch('./template-results.json')
+      .then(r => r.json())
+      .then(data => {
+        const table = document.querySelector('table');
+        for (const row of data) {
+          const tr = document.createElement('tr');
+          const statusClass = row.status === 'PASS' ? 'pass' : row.status === 'FAIL' ? 'fail' : 'pending';
+          tr.innerHTML = '<td>' + row.id + '</td><td>' + row.name + '</td><td>' + row.studio + '</td><td>' + row.catalog + '</td><td>' + row.mode + '</td><td>' + row.model + '</td><td class="' + statusClass + '">' + row.status + '</td>';
+          table.appendChild(tr);
+        }
+      });
+  </script>
+</body>
+</html>
