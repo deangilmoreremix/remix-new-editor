@@ -108,6 +108,15 @@ function renderProviderLogo(family) {
   return `<div class="w-8 h-8 ${style.bg} border rounded-full flex items-center justify-center font-black text-[10px] shadow-inner uppercase">${style.text}</div>`;
 }
 
+function renderProviderLogoImg(provider, _id, className, invertClass) {
+  const logoUrl = PROVIDER_LOGOS[provider];
+  if (logoUrl) {
+    return `<img src="${logoUrl}" alt="${provider}" class="${className} ${invertClass}" loading="lazy" />`;
+  }
+  const style = getProviderStyle(provider);
+  return `<span class="font-black text-[10px] uppercase">${style.text}</span>`;
+}
+
 function createProviderButton(provider, selectedProvider, availableProviders, copy) {
   const style = getProviderStyle(provider.id);
   const isSelected = selectedProvider === provider.id;
@@ -520,3 +529,44 @@ export {
   imageModelPickerEntryByVariantId,
   videoModelPickerEntryByVariantId,
 } from "./modelFamilies.js";
+
+export function positionModelSelectorDropdown(dropdown, trigger, offset, container) {
+  if (!dropdown || !trigger) return;
+  const rect = trigger.getBoundingClientRect();
+  const panelRect = dropdown.getBoundingClientRect();
+  const viewportHeight = window.innerHeight;
+  const viewportWidth = window.innerWidth;
+
+  // Reset positioning
+  dropdown.style.top = '';
+  dropdown.style.bottom = '';
+  dropdown.style.left = '';
+  dropdown.style.right = '';
+
+  // Default: below trigger
+  let top = rect.bottom + (offset || 8);
+  let flipped = false;
+
+  // If not enough space below, flip above
+  if (top + panelRect.height > viewportHeight - 16 && rect.top > panelRect.height + 16) {
+    top = rect.top - panelRect.height - (offset || 8);
+    flipped = true;
+  }
+
+  // Horizontal positioning
+  let left = rect.left;
+  if (left + panelRect.width > viewportWidth - 16) {
+    left = viewportWidth - panelRect.width - 16;
+  }
+  if (left < 16) left = 16;
+
+  dropdown.style.top = `${top}px`;
+  dropdown.style.left = `${left}px`;
+  if (flipped) {
+    dropdown.classList.add('flipped');
+  } else {
+    dropdown.classList.remove('flipped');
+  }
+}
+
+export { PROVIDER_LOGOS, invertLogos, getProviderStyle, renderProviderLogoImg };

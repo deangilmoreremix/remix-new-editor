@@ -16,6 +16,16 @@ vi.mock('../../src/lib/muapi.js', () => {
   };
 });
 
+// Mock apiKeyManager to bypass auth modal
+vi.mock('../../src/lib/apiKeyManager.js', () => ({
+  apiKeyManager: {
+    getMuapiKey: () => 'test-api-key',
+    getOpenAIKey: () => null,
+    getVideoDBKey: () => null,
+    getPexelsKey: () => null,
+  },
+}));
+
 import { TemplateStudio } from '../../src/components/TemplateStudio.js';
 
 describe('TemplateStudio real-component generation tests', () => {
@@ -64,12 +74,12 @@ describe('TemplateStudio real-component generation tests', () => {
     const genBtn = Array.from(container.querySelectorAll('button')).find(btn => btn.textContent?.includes('Generate'));
     expect(genBtn).not.toBeNull();
     
-    // Click generate without upload - should block
-    const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    // Click generate without upload - should block with inline error
     genBtn.click();
     await new Promise(resolve => setTimeout(resolve, 100));
-    expect(alertMock).toHaveBeenCalledWith('Please upload an image before generating.');
-    alertMock.mockRestore();
+    const inlineError = container.querySelector('.ts-inline-error');
+    expect(inlineError).not.toBeNull();
+    expect(inlineError.textContent).toContain('Please upload an image before generating.');
   });
 
   it('Niche T2V: prompt-only template renders without image upload', async () => {
