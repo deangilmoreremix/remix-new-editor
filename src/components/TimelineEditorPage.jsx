@@ -484,6 +484,11 @@ export function TimelineEditorPage() {
               <div class="ruler-ticks" id="rulerTicks"></div>
             </div>
           </div>
+          <div class="timeline-tabs-bar" id="timelineTabsBar" style="display:flex;align-items:center;gap:6px;padding:4px 8px;background:rgba(255,255,255,0.03);border-bottom:1px solid var(--border);">
+            <span style="font-size:11px;color:var(--text-dim);margin-right:4px;">Timelines:</span>
+            <button class="mini-btn" id="addTimelineTabBtn" title="Add new timeline tab">+ New Tab</button>
+            <span id="timelineTabsContainer" style="display:flex;gap:4px;flex:1;overflow-x:auto;"></span>
+          </div>
           <div class="timeline-body" id="timelineBody">
             <div class="compositing-overlay" id="compositingOverlay"></div>
             <div class="playhead-layer"><div class="playhead-line" id="playheadLine"></div><div class="playhead-knob" id="playheadKnob" role="slider" tabindex="0" aria-label="Playhead position" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0" aria-valuetext="00:00.0"></div></div>
@@ -1078,6 +1083,9 @@ export function TimelineEditorPage() {
       playheadKnob: root.querySelector('#playheadKnob'),
       rulerCanvas: root.querySelector('#rulerCanvas'),
       rulerTicks: root.querySelector('#rulerTicks'),
+      timelineTabsBar: root.querySelector('#timelineTabsBar'),
+      timelineTabsContainer: root.querySelector('#timelineTabsContainer'),
+      addTimelineTabBtn: root.querySelector('#addTimelineTabBtn'),
       projectTitle: root.querySelector('#projectTitle'),
       promptInput: root.querySelector('#promptInput'),
       durationSelect: root.querySelector('#durationSelect'),
@@ -6079,6 +6087,14 @@ export function TimelineEditorPage() {
         showToast(`Snap ${state.snapEnabled ? 'ON' : 'OFF'}`, 'info');
       });
 
+      if (els.addTimelineTabBtn) {
+        els.addTimelineTabBtn.addEventListener('click', () => {
+          addNewTimeline(state);
+          renderAll();
+          showToast('New timeline tab created', 'success');
+        });
+      }
+
       // Keyboard shortcuts
       root.setAttribute('tabindex', '0');
       root.addEventListener('keydown', (ev) => {
@@ -6517,6 +6533,7 @@ export function TimelineEditorPage() {
       renderTracks();
       renderMedia();
       renderGenerateTypes();
+      renderTimelineTabs();
 
       renderRail();
       renderMultiCamera();
@@ -6528,6 +6545,38 @@ export function TimelineEditorPage() {
       if (els.multiCameraToolbar) renderMultiCameraToolbar(state, els.multiCameraToolbar);
       if (els.pipControls) renderPipControls(state, els.pipControls);
       if (els.splitControls) renderSplitScreenControls(state, els.splitControls);
+    }
+
+    function renderTimelineTabs() {
+      if (!els.timelineTabsContainer) return;
+      const timelines = state.timelines || [];
+      const selectedId = state.selectedTimelineId;
+      els.timelineTabsContainer.innerHTML = timelines.map(t => `
+        <button class="mini-btn timeline-tab-btn ${t.id === selectedId ? 'active' : ''}" data-timeline-id="${t.id}" title="${escapeHtml(t.projectTitle || 'Untitled')}">
+          ${escapeHtml(t.projectTitle || 'Timeline')}
+          <span class="tab-close" data-timeline-id="${t.id}" title="Close tab">×</span>
+        </button>
+      `).join('');
+
+      els.timelineTabsContainer.querySelectorAll('.timeline-tab-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          if (e.target.classList.contains('tab-close')) {
+            e.stopPropagation();
+            const id = e.target.dataset.timelineId;
+            const idx = (state.timelines || []).findIndex(t => t.id === id);
+            if (idx > -1 && (state.timelines || []).length > 1) {
+              state.timelines.splice(idx, 1);
+              if (state.selectedTimelineId === id) {
+                switchToTimeline(state, state.timelines[0]?.id || state.timelines[0]?.id);
+              }
+              renderAll();
+            }
+            return;
+          }
+          switchToTimeline(state, btn.dataset.timelineId);
+          renderAll();
+        });
+      });
     }
 
      // Color correction system not implemented
