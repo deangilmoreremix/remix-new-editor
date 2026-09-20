@@ -352,27 +352,11 @@ export async function providerShotBoard(params = {}) {
 }
 
 export async function providerCompositionPlan(params = {}) {
-  const { duration = 180, mood, genre, style, lyrics } = params;
-
-  const sections = [
-    { name: 'Intro', start: 0, end: Math.min(15, duration * 0.1), mood: mood || 'calm', instrumentation: 'ambient pad' },
-    { name: 'Verse', start: Math.min(15, duration * 0.1), end: Math.min(60, duration * 0.35), mood: mood || 'neutral', instrumentation: 'piano, soft drums' },
-    { name: 'Pre-Chorus', start: Math.min(60, duration * 0.35), end: Math.min(90, duration * 0.5), mood: 'building', instrumentation: 'strings, riser' },
-    { name: 'Chorus', start: Math.min(90, duration * 0.5), end: Math.min(135, duration * 0.75), mood: mood || 'energetic', instrumentation: 'full band, lead' },
-    { name: 'Bridge', start: Math.min(135, duration * 0.75), end: Math.min(160, duration * 0.9), mood: 'reflective', instrumentation: 'acoustic, minimal' },
-    { name: 'Outro', start: Math.min(160, duration * 0.9), end: duration, mood: 'fading', instrumentation: 'ambient pad' },
-  ].filter(s => s.end > s.start);
-
   return {
-    success: true,
+    success: false,
+    code: 'PROVIDER_NOT_CONFIGURED',
     tool: 'composition_plan',
-    plan: {
-      duration,
-      genre: genre || 'cinematic',
-      style: style || 'modern',
-      sections,
-      lyrics: lyrics || null,
-    },
+    error: 'Composition plan generation is not configured. This feature requires a configured LLM or music-planning provider endpoint.'
   };
 }
 
@@ -424,7 +408,7 @@ export async function providerMaskTool(params = {}) {
     success: false,
     code: 'PROVIDER_NOT_CONFIGURED',
     tool: 'mask_tool',
-    error: 'SAM3/mask provider is not configured. Configure a segmentation provider to enable masking.',
+    error: 'Mask generation is not configured. Configure a SAM3 or segmentation provider to enable object masking and cutout.'
   };
 }
 
@@ -460,7 +444,7 @@ export async function providerAudioSync(params = {}) {
     success: false,
     code: 'PROVIDER_NOT_CONFIGURED',
     tool: 'audio_sync',
-    error: 'Audio sync provider is not configured. Use the local audioSync utility in the editor.',
+    error: 'Server-side audio sync is not configured. Use the local audioSync utility in the editor for waveform-based sync.'
   };
 }
 
@@ -469,7 +453,7 @@ export async function providerProxyPlayback(params = {}) {
     success: false,
     code: 'PROVIDER_NOT_CONFIGURED',
     tool: 'proxy_playback',
-    error: 'Proxy playback provider is not configured.',
+    error: 'Proxy playback is not configured. Browser-native low-res preview is not currently available for this project.'
   };
 }
 
@@ -478,6 +462,6 @@ export async function providerLayerDecompose(params = {}) {
     success: false,
     code: 'PROVIDER_NOT_CONFIGURED',
     tool: 'layer_decompose',
-    error: 'Layer decomposition provider is not configured.',
+    error: 'Layer decomposition is not configured. This feature requires a configured provider that supports foreground/background separation.'
   };
 }

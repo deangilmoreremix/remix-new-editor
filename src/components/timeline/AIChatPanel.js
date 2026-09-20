@@ -156,15 +156,27 @@ export default class AIChatPanel {
   async _processMessage(text, mentions) {
     // Build context from timeline state
     const context = this._buildContext(mentions);
-
-    // Check for specific commands
     const lower = text.toLowerCase();
 
+    // Handle actionable commands with callbacks first
     if (lower.includes('trim') || lower.includes('cut')) {
-      return {
-        text: `I can help with that. The timeline has ${this.state.tracks?.length || 0} tracks. ${context}\n\n**Suggested edits:**\n- Trim intro to 3s\n- Remove dead space between clips\n- Apply J-cut at transition points`,
-        tokensIn: 150, tokensOut: 80, cost: 0.001
-      };
+      if (this.callbacks.trimSelectedClip) {
+        await this.callbacks.trimSelectedClip();
+        return {
+          text: `Trimmed selected clip. ${context}`,
+          tokensIn: 80, tokensOut: 40, cost: 0.0005
+        };
+      }
+    }
+
+    if (lower.includes('split')) {
+      if (this.callbacks.splitClipAtPlayhead) {
+        await this.callbacks.splitClipAtPlayhead();
+        return {
+          text: 'Clip split at playhead.',
+          tokensIn: 60, tokensOut: 30, cost: 0.0004
+        };
+      }
     }
 
     if (lower.includes('subtitle') || lower.includes('transcri')) {
@@ -180,35 +192,69 @@ export default class AIChatPanel {
     if (lower.includes('transition')) {
       return {
         text: 'Available transitions:\n\n| Type | Duration | Best For |\n|------|----------|----------|\n| Crossfade | 0.5s | Smooth cuts |\n| Dip to Black | 1.0s | Scene changes |\n| Wipe | 0.8s | Energy |\n| Zoom | 0.6s | Dramatic |',
-        tokensIn: 100, tokensOut: 120, cost: 0.0008,
-        citations: [{ time: 12.4, label: 'Clip 2 start' }]
-      };
-    }
-
-    if (lower.includes('analyze') || lower.includes('performance')) {
-      return {
-        text: `**Timeline Analysis:**\n- Duration: ${this.state.timelineSeconds || 45}s\n- Tracks: ${this.state.tracks?.length || 0}\n- Clips: ${this.state.tracks?.flatMap(t => t.clips).length || 0}\n\n**Suggestions:**\n1. Consider tightening the intro\n2. Add B-roll at the 20s mark\n3. Audio levels need normalization`,
-        tokensIn: 200, tokensOut: 150, cost: 0.002
+        tokensIn: 100, tokensOut: 120, cost: 0.0008
       };
     }
 
     if (lower.includes('humanize') || lower.includes('silence')) {
       return {
-        text: '**Humanize Cut Analysis:**\n\nI found 3 silence boundaries where cuts would feel more natural:\n- @[00:08.2] — breath between sentences\n- @[00:22.1] — natural pause\n- @[00:35.7] — end of thought\n\nEnable "Humanize Cut" to snap boundaries to these points.',
-        tokensIn: 180, tokensOut: 130, cost: 0.0015,
-        citations: [
-          { time: 8.2, label: 'Silence boundary' },
-          { time: 22.1, label: 'Natural pause' },
-          { time: 35.7, label: 'End of thought' }
-        ]
+        text: '**Humanize Cut Analysis:**\n\nI found silence boundaries where cuts would feel more natural. Use the silence detection tool to identify exact timestamps, then enable "Humanize Cut" to snap boundaries to those points.',
+        tokensIn: 180, tokensOut: 130, cost: 0.0015
       };
     }
 
-    // Default response
+    // Default: send to real LLM
+    try {
+      const llmResult = await this._callLLM(text, context);
+      if (llmResult && llmResult.text) {
+        return {
+          text: llmResult.text,
+          tokensIn: llmResult.usage?.prompt_tokens || 0,
+          tokensOut: llmResult.usage?.completion_tokens || 0,
+          cost: this._estimateCost(llmResult.usage),
+          citations: llmResult.citations || []
+        };
+      }
+    } catch (err) {
+      console.error('[AIChatPanel] LLM call failed:', err);
+    }
+
+    // Fallback
     return {
       text: `I understand you want to: "${text}"\n\n${context}\n\nI can help with editing, transitions, subtitles, effects, and more. Try asking me to:\n- "Trim the intro"\n- "Add a crossfade"\n- "Generate subtitles"\n- "Analyze the timeline"\n- "Humanize the cuts"`,
       tokensIn: 120, tokensOut: 100, cost: 0.001
     };
+  }
+
+  async _callLLM(message, context) {
+    const { runTimelineAITool } = await import('../cinegenIntegration.js');
+    const result = await runTimelineAITool('llm_chat', {
+      message,
+      context: {
+        tracks: this.state.tracks?.length || 0,
+        clips: this.state.tracks?.flatMap(t => t.clips).length || 0,
+        timelineSeconds: this.state.timelineSeconds,
+        selectedClipId: this.state.selectedClipId,
+        context
+      }
+    });
+
+    if (result && result.success && result.text) {
+      return {
+        text: result.text,
+        usage: result.usage,
+        citations: result.citations
+      };
+    }
+    return null;
+  }
+
+  _estimateCost(usage) {
+    if (!usage) return 0;
+    // Rough estimate: gpt-4o-mini pricing
+    const inputCost = (usage.prompt_tokens || 0) * 0.00000015;
+    const outputCost = (usage.completion_tokens || 0) * 0.0000006;
+    return inputCost + outputCost;
   }
 
   _buildContext(mentions) {
