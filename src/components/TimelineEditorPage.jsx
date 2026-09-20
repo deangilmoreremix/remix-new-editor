@@ -2200,6 +2200,44 @@ export function TimelineEditorPage() {
         showImportTimelineModal();
       } else if (pill === 'IC-LoRA') {
         showICLoraPanel();
+      } else if (pill === 'Audio Sync') {
+        syncSelectedAudio();
+      } else if (pill === 'Fill Gap AI') {
+        runCineGenTool(CINEGEN_TOOLS.GAP_FILL, { clipId: state.selectedClipId }).then(updateCineGenResults);
+      } else if (pill === 'Extend') {
+        runCineGenTool(CINEGEN_TOOLS.EXTEND, { clipId: state.selectedClipId }).then(updateCineGenResults);
+      } else if (pill === 'Music Gen') {
+        runCineGenTool('music_generation', { clipId: state.selectedClipId }).then(updateCineGenResults);
+      } else if (pill === 'Elements') {
+        showToast('Elements panel: browse and drag reusable media into timeline', 'info');
+      }
+    }
+
+    async function syncSelectedAudio() {
+      const selectedClip = findSelectedClip();
+      if (!selectedClip || selectedClip.type !== 'video') {
+        showToast('Select a video clip to sync audio', 'info');
+        return;
+      }
+      const audioClip = state.tracks.find(t => t.type === 'audio')?.clips?.find(c => c.type === 'audio');
+      if (!audioClip) {
+        showToast('No audio clip found on audio track', 'info');
+        return;
+      }
+      try {
+        const { computeAudioOffset } = await import('../lib/editor/audioSync.js');
+        showToast('Analyzing audio sync...', 'info');
+        const result = await computeAudioOffset(selectedClip.src, audioClip.src);
+        if (result && result.confidence > 0) {
+          showToast(`Audio sync offset: ${result.offsetSeconds.toFixed(2)}s (confidence: ${Math.round(result.confidence * 100)}%)`, 'success');
+          audioClip.start = (selectedClip.start || 0) + result.offsetSeconds;
+          renderAll();
+          debouncedSave(0);
+        } else {
+          showToast('Could not determine audio sync offset', 'error');
+        }
+      } catch (err) {
+        showToast(`Audio sync failed: ${err.message}`, 'error');
       }
     }
 
