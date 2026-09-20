@@ -4962,7 +4962,10 @@ export function TimelineEditorPage() {
             case 'AI Personalizer':
               window.dispatchEvent(new CustomEvent('open-personalizer'));
               break;
-            case 'CineGen Tools':
+             case 'Export':
+               openExportModal(state, showToast);
+               break;
+             case 'CineGen Tools':
               openPanel('cinegenResultsPanel');
               break;
             case 'Gap Fill':
@@ -5039,6 +5042,90 @@ export function TimelineEditorPage() {
       if (els.modalClose) els.modalClose.focus();
       // Trap focus within modal
       cleanup.addDocumentListener('keydown', handleModalKeydown);
+    }
+
+    function openExportModal(state, showToast) {
+      const content = `
+        <div class="export-modal">
+          <div class="form-group">
+            <label>Format</label>
+            <select id="exportFormat">
+              <option value="mp4">MP4 (H.264)</option>
+              <option value="webm">WebM (VP9)</option>
+              <option value="mov">MOV</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Quality</label>
+            <select id="exportQuality">
+              <option value="1080p">1080p (Full HD)</option>
+              <option value="720p">720p (HD)</option>
+              <option value="4k">4K (Ultra HD)</option>
+            </select>
+          </div>
+          <button class="primary-btn" id="startExportBtn">Start Export</button>
+          <button class="secondary-btn" id="cancelExportBtn">Cancel</button>
+          <div id="exportProgress" style="margin-top:12px;display:none;">
+            <div class="progress-bar"><div class="progress-fill" id="exportProgressFill" style="width:0%"></div></div>
+            <div id="exportProgressText">Preparing export...</div>
+          </div>
+        </div>
+      `;
+      openAdvancedModal(content, 'Export Project');
+
+      const startBtn = els.modalBody.querySelector('#startExportBtn');
+      const cancelBtn = els.modalBody.querySelector('#cancelExportBtn');
+      const progress = els.modalBody.querySelector('#exportProgress');
+      const progressFill = els.modalBody.querySelector('#exportProgressFill');
+      const progressText = els.modalBody.querySelector('#exportProgressText');
+
+      const doExport = async () => {
+        if (!startBtn) return;
+        startBtn.disabled = true;
+        progress.style.display = 'block';
+        progressText.textContent = 'Exporting...';
+
+        try {
+          const { ExportPipeline } = await import('../lib/editor/exportPipeline.js');
+          const pipeline = new ExportPipeline(els.timelineBody, state);
+          const format = els.modalBody.querySelector('#exportFormat')?.value || 'mp4';
+          const quality = els.modalBody.querySelector('#exportQuality')?.value || '1080p';
+
+          pipeline.onProgress = (pct) => {
+            progressFill.style.width = `${Math.min(100, Math.max(0, pct))}%`;
+            progressText.textContent = `Exporting... ${Math.round(pct)}%`;
+          };
+
+          const result = await pipeline.export({
+            format,
+            quality,
+            width: quality === '4k' ? 3840 : quality === '720p' ? 1280 : 1920,
+            height: quality === '4k' ? 2160 : quality === '720p' ? 720 : 1080,
+            fps: 30
+          });
+
+          if (result && result.url) {
+            progressText.textContent = 'Export complete!';
+            const a = document.createElement('a');
+            a.href = result.url;
+            a.download = `timeline-export-${Date.now()}.${format}`;
+            a.click();
+            showToast('Export complete — file downloaded', 'success');
+            setTimeout(closeModal, 1500);
+          } else {
+            progressText.textContent = 'Export failed — no output URL';
+            showToast('Export failed', 'error');
+          }
+        } catch (err) {
+          progressText.textContent = `Export error: ${err.message}`;
+          showToast(`Export error: ${err.message}`, 'error');
+        } finally {
+          startBtn.disabled = false;
+        }
+      };
+
+      startBtn?.addEventListener('click', doExport);
+      cancelBtn?.addEventListener('click', closeModal);
     }
 
     function closeModal() {
