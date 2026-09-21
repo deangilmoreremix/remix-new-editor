@@ -310,7 +310,7 @@ export class ExportPipeline {
       return this.performServerExport(settings);
     }
 
-    this.exportWorker = new Worker(new URL('../workers/exportWorker.js', import.meta.url));
+    this.exportWorker = new Worker(new URL('./exportWorker.js', import.meta.url));
 
     return new Promise((resolve, reject) => {
       this.exportWorker.onmessage = (e) => {

@@ -8,12 +8,12 @@
  * but locked to Pexels-only for backward compatibility.
  */
 
-import { openStockMediaBrowser, PROVIDERS } from '../components/StockMediaBrowser.js';
+import StockMediaBrowser from '../components/StockMediaBrowser.js';
 
 export async function browsePexels({ accept = ['image', 'video'], onSelect, onCancel, title, studioName, onDownload }) {
-  openStockMediaBrowser({
+  StockMediaBrowser.openStockMediaBrowser({
     accept,
-    providers: [PROVIDERS.PEXELS],
+    providers: [StockMediaBrowser.PROVIDERS.PEXELS],
     onSelect: (asset) => {
       if (onSelect) onSelect(asset);
     },

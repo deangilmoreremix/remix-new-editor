@@ -83,6 +83,11 @@ if (typeof globalThis.indexedDB === 'undefined') {
 // Mock fetch
 global.fetch = vi.fn();
 
+// Polyfill scrollIntoView for jsdom (not implemented by default)
+if (typeof globalThis.HTMLElement !== 'undefined' && !globalThis.HTMLElement.prototype.scrollIntoView) {
+  globalThis.HTMLElement.prototype.scrollIntoView = function() {};
+}
+
 // Mock console methods to reduce noise in tests
 const originalConsole = global.console;
 global.console = {

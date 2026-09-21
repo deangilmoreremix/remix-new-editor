@@ -5126,34 +5126,16 @@ export function TimelineEditorPage() {
         try {
           const { ExportPipeline } = await import('../lib/editor/exportPipeline.js');
           const pipeline = new ExportPipeline(els.timelineBody, state);
-          const format = els.modalBody.querySelector('#exportFormat')?.value || 'mp4';
-          const quality = els.modalBody.querySelector('#exportQuality')?.value || '1080p';
 
           pipeline.onProgress = (pct) => {
             progressFill.style.width = `${Math.min(100, Math.max(0, pct))}%`;
             progressText.textContent = `Exporting... ${Math.round(pct)}%`;
           };
 
-          const result = await pipeline.export({
-            format,
-            quality,
-            width: quality === '4k' ? 3840 : quality === '720p' ? 1280 : 1920,
-            height: quality === '4k' ? 2160 : quality === '720p' ? 720 : 1080,
-            fps: 30
-          });
-
-          if (result && result.url) {
-            progressText.textContent = 'Export complete!';
-            const a = document.createElement('a');
-            a.href = result.url;
-            a.download = `timeline-export-${Date.now()}.${format}`;
-            a.click();
-            showToast('Export complete — file downloaded', 'success');
-            setTimeout(closeModal, 1500);
-          } else {
-            progressText.textContent = 'Export failed — no output URL';
-            showToast('Export failed', 'error');
-          }
+          await pipeline.startExport();
+          progressText.textContent = 'Export complete!';
+          showToast('Export complete', 'success');
+          setTimeout(closeModal, 1500);
         } catch (err) {
           progressText.textContent = `Export error: ${err.message}`;
           showToast(`Export error: ${err.message}`, 'error');

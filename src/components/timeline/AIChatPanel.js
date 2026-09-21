@@ -163,8 +163,7 @@ export default class AIChatPanel {
       if (this.callbacks.trimSelectedClip) {
         await this.callbacks.trimSelectedClip();
         return {
-          text: `Trimmed selected clip. ${context}`,
-          tokensIn: 80, tokensOut: 40, cost: 0.0005
+          text: `Trimmed selected clip. ${context}`
         };
       }
     }
@@ -173,8 +172,7 @@ export default class AIChatPanel {
       if (this.callbacks.splitClipAtPlayhead) {
         await this.callbacks.splitClipAtPlayhead();
         return {
-          text: 'Clip split at playhead.',
-          tokensIn: 60, tokensOut: 30, cost: 0.0004
+          text: 'Clip split at playhead.'
         };
       }
     }
@@ -184,22 +182,19 @@ export default class AIChatPanel {
         await this.callbacks.generateSubtitles();
       }
       return {
-        text: 'Subtitles generated using Whisper transcription. Check the subtitle track below.',
-        tokensIn: 50, tokensOut: 30, cost: 0.0005
+        text: 'Subtitles generated using Whisper transcription. Check the subtitle track below.'
       };
     }
 
     if (lower.includes('transition')) {
       return {
-        text: 'Available transitions:\n\n| Type | Duration | Best For |\n|------|----------|----------|\n| Crossfade | 0.5s | Smooth cuts |\n| Dip to Black | 1.0s | Scene changes |\n| Wipe | 0.8s | Energy |\n| Zoom | 0.6s | Dramatic |',
-        tokensIn: 100, tokensOut: 120, cost: 0.0008
+        text: 'Available transitions:\n\n| Type | Duration | Best For |\n|------|----------|----------|\n| Crossfade | 0.5s | Smooth cuts |\n| Dip to Black | 1.0s | Scene changes |\n| Wipe | 0.8s | Energy |\n| Zoom | 0.6s | Dramatic |'
       };
     }
 
     if (lower.includes('humanize') || lower.includes('silence')) {
       return {
-        text: '**Humanize Cut Analysis:**\n\nI found silence boundaries where cuts would feel more natural. Use the silence detection tool to identify exact timestamps, then enable "Humanize Cut" to snap boundaries to those points.',
-        tokensIn: 180, tokensOut: 130, cost: 0.0015
+        text: '**Humanize Cut Analysis:**\n\nI found silence boundaries where cuts would feel more natural. Use the silence detection tool to identify exact timestamps, then enable "Humanize Cut" to snap boundaries to those points.'
       };
     }
 
@@ -221,8 +216,7 @@ export default class AIChatPanel {
 
     // Fallback
     return {
-      text: `I understand you want to: "${text}"\n\n${context}\n\nI can help with editing, transitions, subtitles, effects, and more. Try asking me to:\n- "Trim the intro"\n- "Add a crossfade"\n- "Generate subtitles"\n- "Analyze the timeline"\n- "Humanize the cuts"`,
-      tokensIn: 120, tokensOut: 100, cost: 0.001
+      text: `I understand you want to: "${text}"\n\n${context}\n\nI can help with editing, transitions, subtitles, effects, and more. Try asking me to:\n- "Trim the intro"\n- "Add a crossfade"\n- "Generate subtitles"\n- "Analyze the timeline"\n- "Humanize the cuts"`
     };
   }
 

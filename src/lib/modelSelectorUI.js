@@ -569,4 +569,198 @@ export function positionModelSelectorDropdown(dropdown, trigger, offset, contain
   }
 }
 
+export function getAvailableProviders(entries) {
+  const providers = [];
+  const seen = new Set();
+  for (const { family } of entries) {
+    const pId = family.provider || "muapi";
+    const pName = family.provider_name || "Muapi";
+    if (!seen.has(pId)) {
+      seen.add(pId);
+      providers.push({ id: pId, name: pName });
+    }
+  }
+  return providers;
+}
+
 export { PROVIDER_LOGOS, invertLogos, getProviderStyle, renderProviderLogoImg };
+
+export function mountModelSelector(container, options = {}) {
+  if (!container) return;
+
+  const {
+    models = [],
+    categories = null,
+    selectedModelId = null,
+    selectedCategory = null,
+    showProviderName = false,
+    onSelectModel = () => {},
+    onSelectCategory = () => {},
+    headerLabel = '',
+    autoFocus = false,
+  } = options;
+
+  container.innerHTML = '';
+
+  const wrapper = document.createElement('div');
+  wrapper.style.cssText = 'padding: 8px; font-family: system-ui, sans-serif; color: #e5e7eb;';
+
+  // Header
+  if (headerLabel) {
+    const header = document.createElement('div');
+    header.textContent = headerLabel;
+    header.style.cssText = 'font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #9ca3af; margin-bottom: 8px; padding: 0 8px;';
+    wrapper.appendChild(header);
+  }
+
+  // Categories
+  if (categories && categories.length > 0) {
+    const catContainer = document.createElement('div');
+    catContainer.style.cssText = 'display: flex; gap: 4px; margin-bottom: 8px; padding: 0 4px;';
+
+    categories.forEach((cat) => {
+      const catBtn = document.createElement('button');
+      catBtn.textContent = cat.label;
+      const isActive = cat.id === selectedCategory;
+      catBtn.style.cssText = `
+        flex: 1;
+        padding: 6px 8px;
+        border: 1px solid ${isActive ? '#3b82f6' : 'rgba(255,255,255,0.1)'};
+        border-radius: 6px;
+        background: ${isActive ? '#1d4ed8' : 'transparent'};
+        color: ${isActive ? '#fff' : '#9ca3af'};
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.15s;
+      `;
+      catBtn.addEventListener('click', () => {
+        onSelectCategory(cat.id);
+      });
+      catContainer.appendChild(catBtn);
+    });
+
+    wrapper.appendChild(catContainer);
+  }
+
+  // Models list
+  const listContainer = document.createElement('div');
+  listContainer.style.cssText = 'max-height: 300px; overflow-y: auto;';
+
+  const modelsToRender = categories && selectedCategory
+    ? categories.find(c => c.id === selectedCategory)?.models || models
+    : models;
+
+  modelsToRender.forEach((model) => {
+    const modelBtn = document.createElement('button');
+    const isSelected = model.id === selectedModelId || model.name === selectedModelId;
+    modelBtn.style.cssText = `
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid ${isSelected ? '#3b82f6' : 'transparent'};
+      border-radius: 8px;
+      background: ${isSelected ? '#1e3a5f' : 'transparent'};
+      color: #e5e7eb;
+      font-size: 13px;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.15s;
+    `;
+
+    const modelName = document.createElement('span');
+    modelName.textContent = model.name || model.id;
+    modelBtn.appendChild(modelName);
+
+    if (showProviderName && model.provider_name) {
+      const providerBadge = document.createElement('span');
+      providerBadge.textContent = model.provider_name;
+      providerBadge.style.cssText = 'margin-left: auto; font-size: 11px; color: #6b7280;';
+      modelBtn.appendChild(providerBadge);
+    }
+
+    modelBtn.addEventListener('click', () => {
+      onSelectModel(model);
+    });
+
+    modelBtn.addEventListener('mouseenter', () => {
+      if (!isSelected) modelBtn.style.background = 'rgba(255,255,255,0.05)';
+    });
+    modelBtn.addEventListener('mouseleave', () => {
+      if (!isSelected) modelBtn.style.background = 'transparent';
+    });
+
+    listContainer.appendChild(modelBtn);
+  });
+
+  wrapper.appendChild(listContainer);
+  container.appendChild(wrapper);
+}
+
+/**
+ * Render a simple search bar HTML string.
+ *
+ * @param {Object} options
+ * @param {string} [options.placeholder='Search models...']
+ * @param {string} [options.value='']
+ * @param {Function} [options.onInput]
+ * @returns {string} HTML string
+ */
+export function renderSearchBar({ placeholder = 'Search models...', value = '', onInput = () => {} } = {}) {
+  return `<input type="text" placeholder="${placeholder}" value="${value}" style="width: 100%; padding: 8px 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; background: rgba(0,0,0,0.3); color: #e5e7eb; font-size: 13px; box-sizing: border-box;" oninput="this.dispatchEvent(new Event('input'))" />`;
+}
+
+/**
+ * Render a provider sidebar HTML string.
+ *
+ * @param {Array} providers - Array of provider objects { id, name }
+ * @param {string} selectedProvider - Currently selected provider ID
+ * @param {Function} onSelect - Called when a provider is selected
+ * @returns {string} HTML string
+ */
+export function renderProviderSidebar(providers = [], selectedProvider = 'all', onSelect = () => {}) {
+  const items = providers.map(p => {
+    const isActive = p.id === selectedProvider;
+    return `<button data-provider="${p.id}" style="display: block; width: 100%; text-align: left; padding: 6px 8px; border: none; border-radius: 4px; background: ${isActive ? '#1d4ed8' : 'transparent'}; color: ${isActive ? '#fff' : '#9ca3af'}; font-size: 12px; cursor: pointer;">${p.name}</button>`;
+  }).join('');
+  return `<div style="display: flex; flex-direction: column; gap: 2px;">${items}</div>`;
+}
+
+/**
+ * Render a model list HTML string.
+ *
+ * @param {Array} models - Array of model objects
+ * @param {string} selectedModelId - Currently selected model ID
+ * @param {boolean} showProviderName - Show provider name
+ * @param {Function} onSelect - Called when a model is selected
+ * @returns {string} HTML string
+ */
+export function renderModelList(models = [], selectedModelId = null, showProviderName = false, onSelect = () => {}) {
+  const items = models.map(m => {
+    const isSelected = m.id === selectedModelId || m.name === selectedModelId;
+    const providerBadge = showProviderName && m.provider_name ? `<span style="margin-left: auto; font-size: 11px; color: #6b7280;">${m.provider_name}</span>` : '';
+    return `<button data-model-id="${m.id}" data-model-name="${m.name}" style="display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 12px; border: 1px solid ${isSelected ? '#3b82f6' : 'transparent'}; border-radius: 8px; background: ${isSelected ? '#1e3a5f' : 'transparent'}; color: #e5e7eb; font-size: 13px; cursor: pointer; text-align: left;">${m.name || m.id}${providerBadge}</button>`;
+  }).join('');
+  return `<div style="display: flex; flex-direction: column; gap: 4px;">${items}</div>`;
+}
+
+/**
+ * Filter models by search query and provider.
+ *
+ * @param {Array} models - Array of model objects
+ * @param {string} query - Search query string
+ * @param {string} provider - Provider ID or 'all'
+ * @returns {Array} Filtered models
+ */
+export function filterModels(models = [], query = '', provider = 'all') {
+  let result = models;
+  if (provider && provider !== 'all') {
+    result = result.filter(m => m.provider === provider);
+  }
+  if (query) {
+    const q = query.toLowerCase();
+    result = result.filter(m => (m.name || m.id || '').toLowerCase().includes(q));
+  }
+  return result;
+}
