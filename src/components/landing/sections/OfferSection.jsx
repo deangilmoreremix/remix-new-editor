@@ -3,7 +3,7 @@
 
 import CheckoutCTA from '../common/CheckoutCTA.jsx';
 
-import SHOWCASE_CONFIG from '../../content/showcaseConfig.js';
+import SHOWCASE_CONFIG from '../../../content/showcaseConfig.js';
 
 export function OfferSection() {
   const section = document.createElement('section');

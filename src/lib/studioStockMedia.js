@@ -7,7 +7,7 @@
  * This replaces and extends the old studioPexels.js with multi-provider support.
  */
 
-import { openStockMediaBrowser, PROVIDERS, MEDIA_TYPES, clearAllStockMediaCaches } from '../components/StockMediaBrowser.js';
+import StockMediaBrowser from '../components/StockMediaBrowser.js';
 
 /**
  * Open the unified stock media browser with all available providers.
@@ -21,7 +21,7 @@ import { openStockMediaBrowser, PROVIDERS, MEDIA_TYPES, clearAllStockMediaCaches
  * @param {string} [options.studioName='Studio'] - Studio name for context
  */
 export async function browseStockMedia({ accept = ['image', 'video', 'gif'], onSelect, onCancel, onDownload, title, studioName }) {
-  openStockMediaBrowser({
+  StockMediaBrowser.openStockMediaBrowser({
     accept,
     onSelect: (asset) => {
       if (onSelect) onSelect(asset);
@@ -60,9 +60,9 @@ export async function browseStockGifs({ onSelect, onDownload, title, studioName 
  * Convenience: browse Pexels only (legacy behavior).
  */
 export async function browsePexels({ accept = ['image', 'video'], onSelect, onCancel, onDownload, title, studioName }) {
-  openStockMediaBrowser({
+  StockMediaBrowser.openStockMediaBrowser({
     accept,
-    providers: [PROVIDERS.PEXELS],
+    providers: [StockMediaBrowser.PROVIDERS.PEXELS],
     onSelect: (asset) => {
       if (onSelect) onSelect(asset);
     },
@@ -93,9 +93,9 @@ export async function browsePexelsVideos({ onSelect, onDownload, title, studioNa
  * Convenience: browse Pixabay only.
  */
 export async function browsePixabay({ accept = ['image', 'video'], onSelect, onCancel, onDownload, title, studioName }) {
-  openStockMediaBrowser({
+  StockMediaBrowser.openStockMediaBrowser({
     accept,
-    providers: [PROVIDERS.PIXABAY],
+    providers: [StockMediaBrowser.PROVIDERS.PIXABAY],
     onSelect: (asset) => {
       if (onSelect) onSelect(asset);
     },
@@ -126,9 +126,9 @@ export async function browsePixabayVideos({ onSelect, onDownload, title, studioN
  * Convenience: browse Giphy only.
  */
 export async function browseGiphy({ accept = ['gif', 'sticker'], onSelect, onCancel, onDownload, title, studioName }) {
-  openStockMediaBrowser({
+  StockMediaBrowser.openStockMediaBrowser({
     accept,
-    providers: [PROVIDERS.GIPHY],
+    providers: [StockMediaBrowser.PROVIDERS.GIPHY],
     onSelect: (asset) => {
       if (onSelect) onSelect(asset);
     },
@@ -174,7 +174,7 @@ export async function downloadStockMediaAsset(item, url) {
 /**
  * Clear all stock media caches.
  */
-export { clearAllStockMediaCaches };
+export function clearAllStockMediaCaches(...args) { return StockMediaBrowser.clearAllStockMediaCaches(...args); }
 
 export default {
   browseStockMedia,
@@ -191,7 +191,7 @@ export default {
   browseGiphyGifs,
   browseGiphyStickers,
   downloadStockMediaAsset,
-  clearAllStockMediaCaches,
-  PROVIDERS,
-  MEDIA_TYPES,
+  clearAllStockMediaCaches: StockMediaBrowser.clearAllStockMediaCaches,
+  PROVIDERS: StockMediaBrowser.PROVIDERS,
+  MEDIA_TYPES: StockMediaBrowser.MEDIA_TYPES,
 };

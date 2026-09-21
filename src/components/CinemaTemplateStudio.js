@@ -1538,10 +1538,10 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
               const url = asset.src?.large || asset.src?.original || asset.url;
               if (isFrame) {
                 currentInputs[input.name] = { startUrl: url, endUrl: null, urls: [url] };
-                uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-[#d9ff00]/40 bg-[#d9ff00]/10 text-lg">📷</div><span class="text-sm text-[#d9ff00]">Start frame from Pexels</span>`;
+                uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-primary/40 bg-primary/10 text-lg">📷</div><span class="text-sm text-primary">Start frame from Pexels</span>`;
               } else {
                 currentInputs[input.name] = url;
-                uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-[#d9ff00]/40 bg-[#d9ff00]/10 text-lg">📷</div><span class="text-sm text-[#d9ff00]">Image from Pexels</span>`;
+                uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-primary/40 bg-primary/10 text-lg">📷</div><span class="text-sm text-primary">Image from Pexels</span>`;
               }
             },
           });
@@ -1599,7 +1599,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
             onSelect: (asset) => {
               const url = (asset.video_files?.find(f => f.quality === 'hd') || asset.video_files?.[0])?.link || asset.url;
               currentInputs[input.name] = url;
-              uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-[#d9ff00]/40 bg-[#d9ff00]/10 text-lg">🎬</div><span class="text-sm text-[#d9ff00]">Video from Pexels</span>`;
+              uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-primary/40 bg-primary/10 text-lg">🎬</div><span class="text-sm text-primary">Video from Pexels</span>`;
             },
           });
         };
@@ -1735,7 +1735,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     updateTrigger();
 
     const dropdown = document.createElement('div');
-    dropdown.className = 'fixed z-[100] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom-left';
+    dropdown.className = 'fixed z-[100] bg-gray-900 border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom-left';
     dropdown.style.width = 'calc(100vw - 2rem)';
     dropdown.style.maxWidth = '480px';
     dropdown.style.maxHeight = '70vh';

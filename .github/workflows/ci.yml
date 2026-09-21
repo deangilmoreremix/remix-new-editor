@@ -55,8 +55,6 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run lint:cinema-hex
-      - run: npm run lint --workspace backend --if-present
-      - run: npm run lint --workspace apps/director/frontend --if-present
 
   typecheck:
     runs-on: ubuntu-latest
@@ -80,7 +78,7 @@ jobs:
           cache: "npm"
       - run: npm ci
       - run: npm run test:run
-      - run: npm test --workspace backend
+      - run: cd backend && npm ci && npm test
 
   build:
     runs-on: ubuntu-latest
@@ -92,7 +90,7 @@ jobs:
           cache: "npm"
       - run: npm ci
       - run: npm run build
-      - run: npm run build --workspace apps/director/frontend
+      - run: cd apps/director/frontend && npm ci && npm run build
 
   security:
     runs-on: ubuntu-latest

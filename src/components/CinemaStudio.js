@@ -312,7 +312,7 @@ let showAdvanced = false;
     promptBarWrapper.style.animationDelay = '0.2s';
 
     const promptBar = document.createElement('div');
-    promptBar.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 shadow-3xl relative';
+    promptBar.className = 'w-full bg-gray-900/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 shadow-3xl relative';
 
     // --- INPUT AREA (Prompt + Upload) ---
     const inputArea = document.createElement('div');

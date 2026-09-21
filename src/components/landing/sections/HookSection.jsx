@@ -1,6 +1,6 @@
 // Hook Section - Stop buying scattered AI tools, start building an AI video agency
 
-import SHOWCASE_CONFIG from '../../content/showcaseConfig.js';
+import SHOWCASE_CONFIG from '../../../content/showcaseConfig.js';
 
 export function HookSection() {
   const section = document.createElement('section');
