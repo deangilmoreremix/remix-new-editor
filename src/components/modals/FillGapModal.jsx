@@ -80,19 +80,10 @@ export class FillGapModal extends BaseModal {
         this.onError(this.error);
       }
     } catch (e) {
-      // Fallback: simulate a successful local fill so the UI/flow is usable
-      // even if the CineGen backend integration is not wired yet.
-      const simulatedDuration = parseFloat(this.container.querySelector('#fillGapDuration')?.value || '5');
-      this.result = {
-        success: true,
-        clipId: this.selectedClipId,
-        duration: simulatedDuration,
-        source: 'local-fallback',
-        tool: 'fill_gap'
-      };
-      this.status = 'done';
+      this.status = 'error';
+      this.error = e.message || 'Fill gap failed';
       this.refresh();
-      this.onComplete(this.result);
+      this.onError(this.error);
     }
   }
 }

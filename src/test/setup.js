@@ -98,3 +98,15 @@ global.console = {
   info: vi.fn(),
   debug: vi.fn(),
 };
+
+// Provide default test values for required env vars so modules don't throw
+// during import/initialization in the test environment.
+if (typeof globalThis.process === 'undefined') {
+  globalThis.process = { env: {} };
+}
+if (!globalThis.process.env) {
+  globalThis.process.env = {};
+}
+globalThis.process.env.VITE_SUPABASE_URL = globalThis.process.env.VITE_SUPABASE_URL || 'http://localhost:54321';
+globalThis.process.env.VITE_SUPABASE_ANON_KEY = globalThis.process.env.VITE_SUPABASE_ANON_KEY || 'test-anon-key';
+globalThis.process.env.FAL_KEY = globalThis.process.env.FAL_KEY || 'test-fal-key';

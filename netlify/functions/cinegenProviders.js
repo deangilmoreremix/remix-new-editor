@@ -458,10 +458,81 @@ export async function providerProxyPlayback(params = {}) {
 }
 
 export async function providerLayerDecompose(params = {}) {
-  return {
-    success: false,
-    code: 'PROVIDER_NOT_CONFIGURED',
-    tool: 'layer_decompose',
-    error: 'Layer decomposition is not configured. This feature requires a configured provider that supports foreground/background separation.'
-  };
+  const { imageUrl, numLayers = 4, prompt = '', negativePrompt = '' } = params;
+
+  if (!imageUrl) {
+    return {
+      success: false,
+      code: 'PROVIDER_NOT_CONFIGURED',
+      tool: 'layer_decompose',
+      error: 'An image URL is required for layer decomposition.'
+    };
+  }
+
+  const falKey = process.env.FAL_KEY;
+  if (!falKey) {
+    return {
+      success: false,
+      code: 'PROVIDER_NOT_CONFIGURED',
+      tool: 'layer_decompose',
+      error: 'FAL_KEY is not configured. Layer decomposition requires fal.ai credentials.'
+    };
+  }
+
+  try {
+    const response = await fetch('https://queue.fal.run/fal-ai/qwen-image-layered', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Key ${falKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        image_url: imageUrl,
+        prompt: prompt || undefined,
+        negative_prompt: negativePrompt || undefined,
+        num_layers: Math.min(Math.max(numLayers, 1), 10),
+        num_inference_steps: 28,
+        guidance_scale: 5,
+        output_format: 'png',
+        enable_safety_checker: true,
+        seed: -1,
+      }),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`fal qwen-image-layered failed: ${response.status} ${response.statusText} - ${text.slice(0, 200)}`);
+    }
+
+    const result = await response.json();
+
+    // Extract layer URLs from response
+    const layerImages = result.images || [];
+    if (!layerImages.length) {
+      throw new Error('fal response missing images');
+    }
+
+    const layers = layerImages.map((img, idx) => ({
+      name: `Layer ${idx + 1}`,
+      url: img.url,
+      index: idx,
+    }));
+
+    return {
+      success: true,
+      tool: 'layer_decompose',
+      url: layers[0].url,
+      layers,
+      requestId: result.request_id || result.id,
+      raw: result,
+    };
+  } catch (error) {
+    console.error('[providerLayerDecompose] fal error:', error);
+    return {
+      success: false,
+      code: 'PROVIDER_ERROR',
+      tool: 'layer_decompose',
+      error: error.message || 'Layer decomposition failed'
+    };
+  }
 }

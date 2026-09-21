@@ -6573,9 +6573,46 @@ export function TimelineEditorPage() {
       const layerBtn = root.querySelector('#cinegenLayerBtn');
       if (layerBtn) {
         layerBtn.addEventListener('click', async () => {
-          const result = await runCineGenTool('layer_decompose', { clipId: state.selectedClipId });
+          const selectedClip = findSelectedClip();
+          const imageUrl = selectedClip?.src || selectedClip?.url;
+          if (!imageUrl) {
+            showToast('Select a clip with media to decompose', 'error');
+            return;
+          }
+          const result = await runCineGenTool('layer_decompose', { clipId: state.selectedClipId, imageUrl });
           updateCineGenResults(result);
-          if (result.success) {}
+          if (result.success) {
+            // Add decomposed layers to media library
+            if (result.layers && Array.isArray(result.layers)) {
+              state.mediaLibrary = state.mediaLibrary || [];
+              result.layers.forEach((layer, idx) => {
+                state.mediaLibrary.push({
+                  id: `layer-${Date.now()}-${idx}`,
+                  icon: '🖼️',
+                  label: layer.name || `Layer ${idx + 1}`,
+                  type: 'image',
+                  desc: 'AI-decomposed layer',
+                  src: layer.url,
+                  metadata: { cinegenProcessed: true, tool: 'layer_decompose', layerIndex: idx }
+                });
+              });
+              renderMedia();
+              showToast(`Layer decomposition complete: ${result.layers.length} layers added to media library`, 'success');
+            } else if (result.url) {
+              state.mediaLibrary = state.mediaLibrary || [];
+              state.mediaLibrary.push({
+                id: `layer-${Date.now()}`,
+                icon: '🖼️',
+                label: 'Decomposed Layer',
+                type: 'image',
+                desc: 'AI-decomposed layer',
+                src: result.url,
+                metadata: { cinegenProcessed: true, tool: 'layer_decompose' }
+              });
+              renderMedia();
+              showToast('Layer decomposition complete', 'success');
+            }
+          }
         });
       }
 

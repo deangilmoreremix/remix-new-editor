@@ -28,6 +28,7 @@ import { videoDb } from '../videoDb.js';
 export function toWorkerTimelineData(state) {
   const project = state?.project || state;
   const tracks = Array.isArray(project?.tracks) ? project.tracks : [];
+  const transitions = Array.isArray(project?.transitions) ? project.transitions : [];
   return {
     duration: state?.duration || state?.timelineSeconds ? (state.timelineSeconds || 5) * 1000 : 5000,
     tracks: tracks.map((track) => {
@@ -40,6 +41,13 @@ export function toWorkerTimelineData(state) {
       }));
       return { type: track.type, clips };
     }),
+    transitions: transitions.map((t) => ({
+      id: t.id,
+      type: t.type,
+      duration: t.duration,
+      clipAId: t.clipAId,
+      clipBId: t.clipBId,
+    })),
   };
 }
 
