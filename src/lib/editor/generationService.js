@@ -33,9 +33,6 @@ const DEFAULT_CONFIG = {
     timeout: 300000, // 5 minutes
     defaultModel: 'ltx-2-fast',
   },
-  gemini: {
-    timeout: 300000,
-  },
 };
 
 // ============================================================================
@@ -480,41 +477,6 @@ class MuAPIProvider {
 }
 
 // ============================================================================
-// GEMINI PROVIDER (Minimal compatibility for AI tools)
-// ============================================================================
-
-class GeminiProvider {
-  constructor(config = {}) {
-    this.config = { ...DEFAULT_CONFIG.gemini, ...config };
-  }
-
-  async checkApiKey() {
-    // Production caller only checks existence; real key validation is handled upstream.
-    return true;
-  }
-
-  async submit(request) {
-    const generationId = `gemini_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    return {
-      generationId,
-      status: 'queued',
-      previewUrl: null,
-      assetIds: [],
-      metadata: {},
-    };
-  }
-
-  async poll(generationId) {
-    return {
-      generationId,
-      status: 'completed',
-      previewUrl: null,
-      error: null,
-    };
-  }
-}
-
-// ============================================================================
 // GENERATION SERVICE
 // ============================================================================
 
@@ -526,7 +488,6 @@ class GenerationService {
   constructor() {
     this.providers = {
       muapi: new MuAPIProvider(),
-      gemini: new GeminiProvider(),
       ltx: new LtxProvider(),
       fal: new FalProvider(),
     };
@@ -544,7 +505,7 @@ class GenerationService {
 
   /**
    * Set provider configuration
-   * @param {'ltx' | 'fal' | 'muapi' | 'gemini'} name
+   * @param {'ltx' | 'fal' | 'muapi'} name
    * @param {Object} config
    */
   configureProvider(name, config) {
@@ -554,8 +515,6 @@ class GenerationService {
       this.providers.fal = new FalProvider(config);
     } else if (name === 'muapi') {
       this.providers.muapi = new MuAPIProvider(config);
-    } else if (name === 'gemini') {
-      this.providers.gemini = new GeminiProvider(config);
     }
     this._lastProvider = name;
   }
@@ -571,7 +530,7 @@ class GenerationService {
   /**
    * Submit a generation job
    * @param {GenerationRequest} request
-   * @param {'ltx' | 'fal' | 'muapi' | 'gemini'} [provider]
+   * @param {'ltx' | 'fal' | 'muapi'} [provider]
    * @returns {Promise<GenerationResult>}
    */
   async submit(request, provider = 'muapi') {
@@ -918,5 +877,5 @@ export function createBrollRequest(prompt, options = {}) {
 // ============================================================================
 
 export const generationService = new GenerationService();
-export { GenerationService, LtxProvider, FalProvider, MuAPIProvider, GeminiProvider };
+export { GenerationService, LtxProvider, FalProvider, MuAPIProvider };
 export default generationService;

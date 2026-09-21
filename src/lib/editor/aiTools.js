@@ -1,4 +1,8 @@
 // Cutout Pro Features Integration
+// AI Tools feature definitions.
+// NOTE: `modelTarget` values below are legacy identifiers that do not map
+// to current MuAPI model IDs. They are retained for UI metadata only.
+// Real generation routes are resolved explicitly in handleGenerate().
 export const AI_FEATURES = [
   {
     id: 'generate-video',
@@ -109,6 +113,66 @@ export const AI_FEATURES = [
   }
 ];
 
+// Resolve a feature ID to a real MuAPI model ID and generation type.
+// Returns null when the feature has no supported backend in this build.
+function resolveFeatureRoute(featureId) {
+  switch (featureId) {
+    case 'generate-video':
+      return { provider: 'muapi', model: 'veo3-text-to-video', generationType: 'video' };
+    case 'generate-image':
+      return { provider: 'muapi', model: 'google-imagen4', generationType: 'image' };
+    case 'bg-remove':
+      return { provider: 'muapi', model: 'ai-background-remover', generationType: 'image' };
+    case 'replace-bg':
+      return { provider: 'muapi', model: 'ai-background-remover', generationType: 'image' };
+    case 'enhance':
+      return { provider: 'muapi', model: 'ai-image-upscaler', generationType: 'image' };
+    case 'colorize':
+      return { provider: 'muapi', model: 'ai-color-photo', generationType: 'image' };
+    case 'cartoon':
+      return null; // no configured model in models.js
+    case 'text-to-speech':
+      return { provider: 'muapi', model: 'minimax-speech-2.6-turbo', generationType: 'audio' };
+    case 'record':
+      return null; // browser MediaRecorder, not a generation provider
+    case 'cutout-pro':
+      return null; // no configured model in models.js
+    default:
+      return null;
+  }
+}
+
+// Map internal GenerationService result fields to UI result types.
+function mapResultType(generationType, category) {
+  if (generationType === 'audio') return 'audio';
+  if (generationType === 'video' || category === 'VIDEO') return 'video';
+  return 'image';
+}
+
+// Poll a job until completion or failure using the real service API.
+async function pollToCompletion(generationId, providerName, onProgress) {
+  const service = window.generationService;
+  if (!service || typeof service.poll !== 'function') {
+    throw new Error('Generation service is not available.');
+  }
+
+  const maxAttempts = 120;
+  const intervalMs = 2000;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const result = await service.poll(generationId);
+    if (onProgress) {
+      onProgress(result);
+    }
+    if (result.status === 'completed' || result.status === 'failed') {
+      return result;
+    }
+    await new Promise(resolve => setTimeout(resolve, intervalMs));
+  }
+
+  throw new Error('Generation timed out waiting for completion.');
+}
+
 export function renderAITools(selectedFeature, onSelectFeature, container) {
   if (!container) return;
   container.innerHTML = '';
@@ -213,6 +277,7 @@ function renderResult(result) {
     <div class="result">
       ${result.type === 'image' ? `<img src="${result.url}" />` : ''}
       ${result.type === 'video' ? `<video src="${result.url}" controls />` : ''}
+      ${result.type === 'audio' ? `<audio src="${result.url}" controls />` : ''}
       ${result.type === 'text' ? `<p>${result.text}</p>` : ''}
       <button class="add-to-timeline-btn" onclick="addToTimeline()">Add to Timeline</button>
     </div>
@@ -223,29 +288,52 @@ export async function handleGenerate(selectedFeature, selectedFile, showToast) {
   if (!selectedFeature) return;
 
   try {
-    const hasKey = await window.generationService.providers.gemini.checkApiKey();
-    if (!hasKey) {
-      throw new Error('Please configure your Google AI API key first.');
+    const route = resolveFeatureRoute(selectedFeature.id);
+    if (!route) {
+      return {
+        type: 'text',
+        text: `The "${selectedFeature.title}" tool is not configured in this build.`
+      };
     }
 
     const request = {
       mode: selectedFeature.id,
       prompt: document.getElementById('promptInput')?.value || selectedFeature.defaultPrompt,
       aspectRatio: document.getElementById('aspectSelect')?.value || '16:9',
-      references: selectedFile ? [URL.createObjectURL(selectedFile)] : undefined
+      references: selectedFile ? [URL.createObjectURL(selectedFile)] : undefined,
+      model: route.model,
     };
 
-    const genResult = await window.generationService.submit(request, 'gemini');
+    const genResult = await window.generationService.submit(request, route.provider);
 
-    if (genResult.status === 'completed') {
+    if (genResult.status === 'failed') {
       return {
-        type: selectedFeature.category === 'VIDEO' ? 'video' :
-              selectedFeature.category === 'AUDIO' ? 'audio' : 'image',
-        url: genResult.previewUrl
+        type: 'text',
+        text: genResult.error ? `Error: ${genResult.error}` : 'Generation failed.'
       };
-    } else {
-      return { type: 'text', text: `Error: ${genResult.error}` };
     }
+
+    // Poll for completion on real async jobs.
+    const finalResult = await pollToCompletion(genResult.generationId, route.provider);
+
+    if (finalResult.status === 'completed') {
+      const outputUrl = finalResult.url || finalResult.previewUrl;
+      if (!outputUrl) {
+        return {
+          type: 'text',
+          text: 'Generation completed but no output URL was returned.'
+        };
+      }
+      return {
+        type: mapResultType(route.generationType, selectedFeature.category),
+        url: outputUrl
+      };
+    }
+
+    return {
+      type: 'text',
+      text: finalResult.error ? `Error: ${finalResult.error}` : 'Generation did not complete successfully.'
+    };
   } catch (error) {
     return { type: 'text', text: `Error: ${error.message}` };
   }
