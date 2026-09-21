@@ -1,5 +1,6 @@
 import os
 import logging
+from datetime import datetime
 
 from director.agents.frame import FrameAgent
 from director.agents.summarize_video import SummarizeVideoAgent
@@ -198,6 +199,55 @@ class ChatHandler:
         except Exception as e:
             session.output_message.update_status(MsgStatus.error)
             logger.exception(f"Error in chat handler: {e}")
+
+    def execute_agent(self, agent_name: str, params: dict):
+        """Execute a single registered agent directly, bypassing the LLM reasoning layer.
+
+        This is the deterministic path for programmatic Render Studio actions.
+        It creates its own ephemeral session/conv IDs when not provided, runs the
+        named agent with the supplied params, and returns a normalized dict.
+        """
+        if not agent_name:
+            raise ValueError("agent_name is required")
+
+        agents_mapping = {agent().agent_name: agent for agent in self.agents}
+        if agent_name not in agents_mapping:
+            raise ValueError(f"Unknown agent: {agent_name}")
+
+        agent_cls = agents_mapping[agent_name]
+        session = Session(
+            db=self.db,
+            session_id=params.get("session_id") or str(datetime.now().timestamp()),
+            conv_id=params.get("conv_id") or str(datetime.now().timestamp()),
+            collection_id=params.get("collection_id"),
+            video_id=params.get("video_id"),
+        )
+        session.create()
+        self.add_videodb_state(session)
+
+        agent_instance = agent_cls(session=session)
+        agent_params = {k: v for k, v in params.items() if k not in {"session_id", "conv_id", "collection_id", "video_id"}}
+        response = agent_instance.safe_call(**agent_params)
+
+        video_url = None
+        if response.data:
+            video_url = response.data.get("stream_url") or response.data.get("videoUrl")
+
+        normalized = {
+            "status": response.status,
+            "agent": agent_name,
+            "sessionId": session.session_id,
+            "conversationId": session.conv_id,
+            "collectionId": session.collection_id,
+            "videoId": session.video_id,
+            "videoUrl": video_url,
+            "scenes": response.data.get("scenes", []) if isinstance(response.data, dict) else [],
+            "highlights": response.data.get("highlights", []) if isinstance(response.data, dict) else [],
+            "subtitles": response.data.get("subtitles") if isinstance(response.data, dict) else None,
+            "data": response.data or {},
+            "error": response.message if response.status == AgentStatus.ERROR else None,
+        }
+        return normalized
 
 
 class SessionHandler:

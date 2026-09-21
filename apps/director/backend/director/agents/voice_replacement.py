@@ -2,6 +2,7 @@ import logging
 import os
 import requests
 import uuid
+from typing import Optional
 from director.agents.base import BaseAgent, AgentResponse, AgentStatus
 from director.core.session import Session, MsgStatus, TextContent, VideoContent, VideoData
 from director.tools.elevenlabs import ElevenLabsTool
@@ -71,7 +72,7 @@ class VoiceReplacementAgent(BaseAgent):
         self.agent_name = "voice_replacement"
         self.description = "This agent is used to clone the voice of the given by the user and overlay it on top of all the videos given. The user must be authorised to clone the voice. This agent can handle multiple agents at once"
         self.parameters = VOICE_REPLACEMENT_AGENT_PARAMETERS
-        self.timeline: Timeline | None = None
+        self.timeline: Optional[Timeline] = None
         super().__init__(session=session, **kwargs)
         
 

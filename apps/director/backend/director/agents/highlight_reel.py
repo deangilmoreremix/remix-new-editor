@@ -240,6 +240,16 @@ class HighlightReelAgent(BaseAgent):
             message=f"Highlight reel created with {len(highlights)} clips.",
             data={
                 "stream_url": stream_url,
+                "highlights": [
+                    {
+                        "startTime": float(hl.get("start", 0)),
+                        "endTime": float(hl.get("end", 0)),
+                        "confidence": 1.0,
+                        "type": "highlight",
+                        "reason": hl.get("reason", ""),
+                    }
+                    for hl in highlights
+                ],
                 "highlights_count": len(highlights),
                 "total_duration": current_time,
             },

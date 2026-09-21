@@ -38,11 +38,13 @@ class SocialAgent(BaseAgent):
             videodb_tool = VideoDBTool(collection_id=collection_id)
             video = videodb_tool.get_video(video_id)
             duration = float(video.get("length", 30))
+            start_time = 0
+            end_time = min(duration, 60)
 
             timeline = Timeline(videodb_tool.conn)
             timeline.resolution = aspect_ratio
             track = Track()
-            clip = Clip(asset=VideoAsset(id=video_id, start=0), duration=min(duration, 60))
+            clip = Clip(asset=VideoAsset(id=video_id, start=0), duration=end_time)
             track.add_clip(0, clip)
             timeline.add_track(track)
 
@@ -59,4 +61,12 @@ class SocialAgent(BaseAgent):
             return AgentResponse(status=AgentStatus.ERROR, message=str(e))
 
         return AgentResponse(status=AgentStatus.SUCCESS, message="Social clip created.",
-                                 data={"stream_url": stream_url})
+                                 data={
+                                     "stream_url": stream_url,
+                                     "videoUrl": stream_url,
+                                     "aspectRatio": aspect_ratio,
+                                     "startTime": start_time,
+                                     "endTime": end_time,
+                                     "duration": end_time - start_time,
+                                     "scenes": [],
+                                 })

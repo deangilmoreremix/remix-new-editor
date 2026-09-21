@@ -1154,22 +1154,21 @@ export function RenderPage() {
       if (progressStatus) progressStatus.textContent = 'Generating subtitles...';
       try {
         const result = await generateSubtitles(resolvedVideoUrl);
-        if (result.error || !result.url) {
-          showToast('Subtitles unavailable — Director/VideoDB not reachable');
+        if (result.status === 'error' || !result.videoUrl) {
+          showToast(result.error || 'Subtitles unavailable — Director/VideoDB not reachable');
           return;
         }
-        // Director returns a real subtitled-video URL (burned-in captions).
         const link = document.createElement('a');
-        link.href = result.url;
+        link.href = result.videoUrl;
         link.target = '_blank';
         link.rel = 'noopener';
         link.className = 'mt-3 inline-block rounded-2xl border border-emerald-400/25 bg-emerald-500/10 px-4 py-2 text-xs text-emerald-100/90';
-        link.textContent = `Open subtitled video (${result.url})`;
+        link.textContent = `Open subtitled video (${result.videoUrl})`;
         const badge = container.querySelector('#previewBadge');
         if (badge) {
           badge.after(link);
         }
-        const segCount = (result.segments || []).length;
+        const segCount = (result.data?.segments || []).length;
         showToast(`Subtitles generated — ${segCount} segments. Subtitled video ready.`);
       } catch (err) {
         console.error('[RenderPage] Add Subtitles failed:', err);
@@ -1183,19 +1182,29 @@ export function RenderPage() {
       if (spinner) spinner.hidden = false;
       if (progressStatus) progressStatus.textContent = 'Detecting highlights...';
       try {
-        const scenes = await generateHighlights(resolvedVideoUrl);
-        if (!scenes || scenes.length === 0) {
-          showToast('No highlight scenes detected');
+        const result = await generateHighlights(resolvedVideoUrl);
+        if (result.status === 'error' || !result.highlights || result.highlights.length === 0) {
+          showToast(result.error || 'No highlight scenes detected');
           return;
         }
-        const sceneList = scenes
+        const sceneList = result.highlights
           .map(
             (s, i) =>
-              `  ${i + 1}. ${s.type || 'Scene'} @ ${s.startTime.toFixed(1)}s–${s.endTime.toFixed(1)}s (confidence: ${(s.confidence * 100).toFixed(0)}%)`
+              `  ${i + 1}. ${s.type || 'Scene'} @ ${(s.startTime ?? s.start_time ?? 0).toFixed(1)}s–${(s.endTime ?? s.end_time ?? 0).toFixed(1)}s (confidence: ${((s.confidence ?? 0) * 100).toFixed(0)}%)`
           )
           .join('\n');
         console.log('[RenderPage] Highlight scenes:\n' + sceneList);
-        showToast(`${scenes.length} highlight scenes found — check console for details`);
+        if (result.videoUrl) {
+          const link = document.createElement('a');
+          link.href = result.videoUrl;
+          link.target = '_blank';
+          link.rel = 'noopener';
+          link.className = 'mt-3 inline-block rounded-2xl border border-cyan-400/25 bg-cyan-500/10 px-4 py-2 text-xs text-cyan-100/90';
+          link.textContent = `Open highlight reel (${result.videoUrl})`;
+          const badge = container.querySelector('#previewBadge');
+          if (badge) badge.after(link);
+        }
+        showToast(`${result.highlights.length} highlight scenes found — check console for details`);
       } catch (err) {
         console.error('[RenderPage] Generate Highlights failed:', err);
         showToast('Service unavailable — please check configuration');
@@ -1210,14 +1219,13 @@ export function RenderPage() {
       if (spinner) spinner.hidden = false;
       if (progressStatus) progressStatus.textContent = 'Generating voiceover...';
       try {
-        const narratedUrl = await generateVoiceover(script.trim(), resolvedVideoUrl);
-        if (!narratedUrl) {
-          showToast('Voiceover unavailable — Director/VideoDB not reachable');
+        const result = await generateVoiceover(script.trim(), resolvedVideoUrl);
+        if (result.status === 'error' || !result.videoUrl) {
+          showToast(result.error || 'Voiceover unavailable — Director/VideoDB not reachable');
           return;
         }
-        // Director returns a narrated VIDEO (voiceover burned onto the footage).
         const video = document.createElement('video');
-        video.src = narratedUrl;
+        video.src = result.videoUrl;
         video.controls = true;
         video.crossOrigin = 'anonymous';
         video.className = 'mt-3 w-full rounded-2xl border border-white/10 bg-black/30';
@@ -1243,23 +1251,23 @@ export function RenderPage() {
       if (progressStatus) progressStatus.textContent = 'Planning short clips...';
       try {
         const shortPlan = await createShorts(resolvedVideoUrl);
-        if (!shortPlan) {
-          showToast('Could not generate short — no suitable scenes found');
+        if (shortPlan.status === 'error') {
+          showToast(shortPlan.error || 'Could not generate short — no suitable scenes found');
           return;
         }
-        console.log('[RenderPage] Short plan:', shortPlan);
+        console.log('[RenderPage] Short plan:', shortPlan.data);
         const previewBadgeEl = document.querySelector('#previewBadge');
         if (previewBadgeEl) {
           const shortBadge = document.createElement('div');
           shortBadge.className = 'mt-3 rounded-2xl border border-fuchsia-400/25 bg-fuchsia-500/10 px-4 py-3 text-xs text-fuchsia-100/80';
           shortBadge.innerHTML =
-            `Short: ${shortPlan.aspectRatio} · ` +
-            `${shortPlan.startTime.toFixed(1)}s – ${shortPlan.endTime.toFixed(1)}s · ` +
-            `${shortPlan.duration.toFixed(1)}s duration · ` +
-            `${shortPlan.scenes.length} scene(s)`;
+            `Short: ${shortPlan.data.aspectRatio} · ` +
+            `${shortPlan.data.startTime.toFixed(1)}s – ${shortPlan.data.endTime.toFixed(1)}s · ` +
+            `${shortPlan.data.duration.toFixed(1)}s duration · ` +
+            `${shortPlan.data.scenes.length} scene(s)`;
           previewBadgeEl.after(shortBadge);
         }
-        showToast(`Short planned: ${shortPlan.aspectRatio}, ${shortPlan.duration.toFixed(1)}s`);
+        showToast(`Short planned: ${shortPlan.data.aspectRatio}, ${shortPlan.data.duration.toFixed(1)}s`);
       } catch (err) {
         console.error('[RenderPage] Create Shorts failed:', err);
         showToast('Service unavailable — please check configuration');
@@ -1273,9 +1281,9 @@ export function RenderPage() {
       if (progressStatus) progressStatus.textContent = 'Running AI auto-edit...';
       try {
         const plan = await runAiAutoEdit(resolvedVideoUrl, { captionStyle: selectedPreset });
-        const sceneCount = (plan.scenes || []).length;
-        const highlightCount = (plan.highlights || []).length;
-        const subtitleCount = (plan.subtitles?.segments || []).length;
+        const sceneCount = (plan.scenes?.scenes || []).length;
+        const highlightCount = (plan.highlights?.highlights || []).length;
+        const subtitleCount = (plan.subtitles?.data?.segments || []).length;
         console.log('[RenderPage] AI Auto-Edit plan:', plan);
         const editPlan = plan.plan && !plan.plan.error ? plan.plan : null;
         if (editPlan) {
