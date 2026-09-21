@@ -55,7 +55,10 @@ vi.mock('../../src/lib/models.js', () => ({
   t2vModels: [],
   i2vModels: [],
   getVideoModelById: () => null,
-  getI2VModelById: () => null
+  getI2VModelById: () => null,
+  getModelById: () => null,
+  getI2IModelById: () => null,
+  getAudioModelById: () => null,
 }));
 
 import { generationService, GenerationService, MuAPIProvider } from '../../src/lib/editor/generationService.js';

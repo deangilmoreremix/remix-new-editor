@@ -1924,7 +1924,7 @@ export class MuapiClient {
     }
 
     // Low-level primitives for GenerationService / MuAPIProvider compatibility
-    async submitOnly(endpoint, payload, key) {
+    async submitOnly(endpoint, payload, key, generationType = 'video', studioType = 'video') {
         const url = this.proxyUrl;
         const response = await fetch(url, {
             method: 'POST',
@@ -1932,8 +1932,8 @@ export class MuapiClient {
             body: JSON.stringify({
                 endpoint,
                 params: payload,
-                generationType: 'video',
-                studioType: 'video'
+                generationType,
+                studioType
             })
         });
         if (!response.ok) {
@@ -2004,8 +2004,8 @@ export const muapi = new MuapiClient();
 
 // Low-level standalone wrappers for GenerationService / MuAPIProvider tests and compatibility.
 // These delegate to the singleton muapi instance so existing mocks in tests keep working.
-export async function submitOnly(endpoint, payload, key) {
-    return muapi.submitOnly(endpoint, payload, key);
+export async function submitOnly(endpoint, payload, key, generationType, studioType) {
+    return muapi.submitOnly(endpoint, payload, key, generationType, studioType);
 }
 
 export async function checkStatus(requestId, key) {

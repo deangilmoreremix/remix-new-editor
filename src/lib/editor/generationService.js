@@ -6,6 +6,7 @@
 
 import { GenerationModes, GenerationProviders, createDefaultProject } from './types.js';
 import { submitOnly, checkStatus, downloadResult } from '../muapi.js';
+import { getModelById, getVideoModelById, getI2IModelById, getAudioModelById } from '../models.js';
 import { circuitBreaker } from '../services/CircuitBreaker.js';
 
 // ============================================================================
@@ -341,8 +342,8 @@ class MuAPIProvider {
     }
 
     try {
-      const { endpoint, payload } = this.buildRequest(request);
-      const { requestId, submitData } = await submitOnly(endpoint, payload, null);
+      const { endpoint, payload, generationType, studioType } = this.buildRequest(request);
+      const { requestId, submitData } = await submitOnly(endpoint, payload, null, generationType, studioType);
       this.requestIds.set(generationId, requestId);
       circuitBreaker.recordSuccess(serviceName);
 
@@ -439,42 +440,71 @@ class MuAPIProvider {
    */
   buildRequest(request) {
     const mode = request.mode || request.type;
-    if (mode === 'text-to-video' || mode === 'broll') {
-      return {
-        endpoint: 'generate',
-        payload: {
-          prompt: request.prompt,
-          negative_prompt: request.negativePrompt || '',
-          aspect_ratio: request.aspectRatio || '16:9',
-          duration: request.duration || 5,
-        },
-      };
-    }
-    if (mode === 'image-to-video') {
-      return {
-        endpoint: 'i2v',
-        payload: {
-          prompt: request.prompt,
-          negative_prompt: request.negativePrompt || '',
-          image_url: request.references?.[0] || '',
-          aspect_ratio: request.aspectRatio || '16:9',
-          duration: request.duration || 5,
-        },
-      };
-    }
+    const model = request.model || '';
+    const modelInfo = getModelById(model) || getVideoModelById(model) || getI2IModelById(model) || getAudioModelById(model);
+
+    // Image generation
     if (mode === 'generate-image') {
+      const endpoint = modelInfo?.endpoint || 'generate';
+      const payload = {
+        prompt: request.prompt,
+        negative_prompt: request.negativePrompt || '',
+        aspect_ratio: request.aspectRatio || '16:9',
+      };
+      if (model) payload.model = model;
+      if (request.references?.[0]) payload.image_url = request.references[0];
       return {
-        endpoint: 'generate',
-        payload: {
-          prompt: request.prompt,
-          negative_prompt: request.negativePrompt || '',
-          aspect_ratio: request.aspectRatio || '16:9',
-        },
+        endpoint,
+        payload,
+        generationType: 'image',
+        studioType: 'image',
       };
     }
+
+    // Video generation
+    if (mode === 'text-to-video' || mode === 'broll') {
+      const endpoint = modelInfo?.endpoint || 'generate';
+      const payload = {
+        prompt: request.prompt,
+        negative_prompt: request.negativePrompt || '',
+        aspect_ratio: request.aspectRatio || '16:9',
+        duration: request.duration || 5,
+      };
+      if (model) payload.model = model;
+      if (request.references?.[0]) payload.image_url = request.references[0];
+      return {
+        endpoint,
+        payload,
+        generationType: 'video',
+        studioType: 'video',
+      };
+    }
+
+    // Image-to-video
+    if (mode === 'image-to-video') {
+      const endpoint = modelInfo?.endpoint || 'i2v';
+      const payload = {
+        prompt: request.prompt,
+        negative_prompt: request.negativePrompt || '',
+        image_url: request.references?.[0] || '',
+        aspect_ratio: request.aspectRatio || '16:9',
+        duration: request.duration || 5,
+      };
+      if (model) payload.model = model;
+      return {
+        endpoint,
+        payload,
+        generationType: 'video',
+        studioType: 'video',
+      };
+    }
+
+    // Fallback for unknown modes
     return {
       endpoint: mode || 'api_request',
       payload: request,
+      generationType: 'video',
+      studioType: 'video',
     };
   }
 }

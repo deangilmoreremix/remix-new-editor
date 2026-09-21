@@ -113,26 +113,26 @@ export const AI_FEATURES = [
   }
 ];
 
-// Resolve a feature ID to a real MuAPI model ID and generation type.
+// Resolve a feature ID to a real MuAPI model ID and generation operation.
 // Returns null when the feature has no supported backend in this build.
-function resolveFeatureRoute(featureId) {
+export function resolveFeatureRoute(featureId) {
   switch (featureId) {
     case 'generate-video':
-      return { provider: 'muapi', model: 'veo3-text-to-video', generationType: 'video' };
+      return { provider: 'muapi', operation: 'text-to-video', model: 'veo3-text-to-video', mediaType: 'video' };
     case 'generate-image':
-      return { provider: 'muapi', model: 'google-imagen4', generationType: 'image' };
+      return { provider: 'muapi', operation: 'generate-image', model: 'google-imagen4', mediaType: 'image' };
     case 'bg-remove':
-      return { provider: 'muapi', model: 'ai-background-remover', generationType: 'image' };
+      return { provider: 'muapi', operation: 'generate-image', model: 'ai-background-remover', mediaType: 'image' };
     case 'replace-bg':
-      return { provider: 'muapi', model: 'ai-background-remover', generationType: 'image' };
+      return null; // no configured replacement model in models.js
     case 'enhance':
-      return { provider: 'muapi', model: 'ai-image-upscaler', generationType: 'image' };
+      return { provider: 'muapi', operation: 'generate-image', model: 'ai-image-upscaler', mediaType: 'image' };
     case 'colorize':
-      return { provider: 'muapi', model: 'ai-color-photo', generationType: 'image' };
+      return { provider: 'muapi', operation: 'generate-image', model: 'ai-color-photo', mediaType: 'image' };
     case 'cartoon':
       return null; // no configured model in models.js
     case 'text-to-speech':
-      return { provider: 'muapi', model: 'minimax-speech-2.6-turbo', generationType: 'audio' };
+      return { provider: 'muapi', operation: 'text-to-speech', model: 'minimax-speech-2.6-turbo', mediaType: 'audio' };
     case 'record':
       return null; // browser MediaRecorder, not a generation provider
     case 'cutout-pro':
@@ -143,14 +143,14 @@ function resolveFeatureRoute(featureId) {
 }
 
 // Map internal GenerationService result fields to UI result types.
-function mapResultType(generationType, category) {
-  if (generationType === 'audio') return 'audio';
-  if (generationType === 'video' || category === 'VIDEO') return 'video';
+export function mapResultType(mediaType, category) {
+  if (mediaType === 'audio') return 'audio';
+  if (mediaType === 'video' || category === 'VIDEO') return 'video';
   return 'image';
 }
 
 // Poll a job until completion or failure using the real service API.
-async function pollToCompletion(generationId, providerName, onProgress) {
+export async function pollToCompletion(generationId, providerName, onProgress) {
   const service = window.generationService;
   if (!service || typeof service.poll !== 'function') {
     throw new Error('Generation service is not available.');
@@ -297,7 +297,7 @@ export async function handleGenerate(selectedFeature, selectedFile, showToast) {
     }
 
     const request = {
-      mode: selectedFeature.id,
+      mode: route.operation,
       prompt: document.getElementById('promptInput')?.value || selectedFeature.defaultPrompt,
       aspectRatio: document.getElementById('aspectSelect')?.value || '16:9',
       references: selectedFile ? [URL.createObjectURL(selectedFile)] : undefined,
@@ -325,7 +325,7 @@ export async function handleGenerate(selectedFeature, selectedFile, showToast) {
         };
       }
       return {
-        type: mapResultType(route.generationType, selectedFeature.category),
+        type: mapResultType(route.mediaType, selectedFeature.category),
         url: outputUrl
       };
     }
