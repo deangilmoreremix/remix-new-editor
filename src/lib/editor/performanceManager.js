@@ -452,16 +452,18 @@ export class PerformanceManager {
 
   bindEvents() {
     // Listen for timeline changes that affect performance
-    this.state.addEventListener('tracks-changed', () => {
-      if (this.proxyMode) {
-        this.generateProxyFiles();
-      }
-    });
+    if (typeof this.state.addEventListener === 'function') {
+      this.state.addEventListener('tracks-changed', () => {
+        if (this.proxyMode) {
+          this.generateProxyFiles();
+        }
+      });
 
-    // Listen for playhead changes for real-time updates
-    this.state.addEventListener('time-changed', () => {
-      this.updateRealtimePreview();
-    });
+      // Listen for playhead changes for real-time updates
+      this.state.addEventListener('time-changed', () => {
+        this.updateRealtimePreview();
+      });
+    }
   }
 
   updateRealtimePreview() {
