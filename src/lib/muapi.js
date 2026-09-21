@@ -1922,8 +1922,96 @@ export class MuapiClient {
             default: return [1024, 1024];
         }
     }
+
+    // Low-level primitives for GenerationService / MuAPIProvider compatibility
+    async submitOnly(endpoint, payload, key) {
+        const url = this.proxyUrl;
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: this._getMuapiHeaders(),
+            body: JSON.stringify({
+                endpoint,
+                params: payload,
+                generationType: 'video',
+                studioType: 'video'
+            })
+        });
+        if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(`API Request Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
+        }
+        const submitData = await response.json();
+        const requestId = submitData.request_id || submitData.id || null;
+        return { requestId, submitData };
+    }
+
+    async checkStatus(requestId, key) {
+        if (!requestId) {
+            return { status: 'failed', error: 'No requestId provided' };
+        }
+        const url = this.proxyUrl;
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: this._getMuapiHeaders(),
+                body: JSON.stringify({
+                    endpoint: `predictions/${requestId}/result`,
+                    params: {},
+                    generationType: 'poll'
+                })
+            });
+            if (!response.ok) {
+                if (response.status >= 500) {
+                    return { status: 'processing', error: `Server error: ${response.status}`, retryable: true };
+                }
+                if (response.status === 404) {
+                    return { status: 'failed', error: 'Request not found - may have expired' };
+                }
+                const errText = await response.text();
+                return { status: 'failed', error: `Poll Failed: ${response.status} - ${errText.slice(0, 100)}` };
+            }
+            const data = await response.json();
+            const status = (data.status || '').toLowerCase();
+            const outputUrl = data.outputs?.[0] || data.url || data.output?.url || null;
+            if (status === 'completed' || status === 'succeeded' || status === 'success') {
+                return { status: 'completed', url: outputUrl, data, progress: 100 };
+            }
+            if (status === 'failed' || status === 'error') {
+                return { status: 'failed', error: data.error || 'Generation failed', data };
+            }
+            const progress = data.progress != null ? data.progress : 50;
+            return { status: 'processing', progress, data, url: null };
+        } catch (error) {
+            return { status: 'failed', error: error.message || 'Poll request failed', retryable: true };
+        }
+    }
+
+    async downloadResult(url) {
+        if (!url) return null;
+        try {
+            const response = await fetch(url);
+            if (!response.ok) return null;
+            return await response.blob();
+        } catch (e) {
+            return null;
+        }
+    }
 }
 
 export default MuapiClient;
 
 export const muapi = new MuapiClient();
+
+// Low-level standalone wrappers for GenerationService / MuAPIProvider tests and compatibility.
+// These delegate to the singleton muapi instance so existing mocks in tests keep working.
+export async function submitOnly(endpoint, payload, key) {
+    return muapi.submitOnly(endpoint, payload, key);
+}
+
+export async function checkStatus(requestId, key) {
+    return muapi.checkStatus(requestId, key);
+}
+
+export async function downloadResult(url) {
+    return muapi.downloadResult(url);
+}
