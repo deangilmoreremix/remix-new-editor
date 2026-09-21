@@ -396,15 +396,18 @@ class MuAPIProvider {
   }
 
   /**
-   * Cancel a generation job
+   * Cancel local polling for a generation job.
+   * NOTE: This does NOT cancel the remote generation. It only stops local
+   * tracking so subsequent polls return failed. The upstream job may still
+   * complete or fail on its own.
    */
   async cancel(generationId) {
     const requestId = this.requestIds.get(generationId);
     if (requestId) {
-      // No direct cancel API in current muapi.js; remove tracking so poll returns failed
       this.requestIds.delete(generationId);
+      this.results.delete(generationId);
     }
-    return { generationId, status: 'cancelled' };
+    return { generationId, status: 'locally_cancelled' };
   }
 
   /**

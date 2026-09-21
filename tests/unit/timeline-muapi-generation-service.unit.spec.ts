@@ -155,12 +155,12 @@ describe('MuAPIProvider — poll', () => {
 });
 
 describe('MuAPIProvider — cancel + download', () => {
-  it('cancel removes the requestId', async () => {
+  it('cancel stops local polling and returns explicit local status', async () => {
     const provider = new MuAPIProvider();
     const submitResult = await provider.submit({ mode: 'text-to-video', prompt: 'x' });
     const r = await provider.cancel(submitResult.generationId);
-    expect(r.status).toBe('cancelled');
-    // Polling after cancel should fail
+    expect(r.status).toBe('locally_cancelled');
+    // Polling after local cancel should report failed because requestId was removed
     const pollR = await provider.poll(submitResult.generationId);
     expect(pollR.status).toBe('failed');
   });
