@@ -12,7 +12,11 @@ function extractVideoFromTimeline(timelineData) {
     const clips = track.clips || track.items || [];
     for (const clip of clips) {
       if (clip && clip.type === 'video' && (clip.src || clip.source)) {
-        return clip.src || clip.source;
+        // Defense in depth: never use proxy sources for export
+        const src = clip.src || clip.source;
+        if (src && !src.includes('proxy')) {
+          return src;
+        }
       }
     }
   }

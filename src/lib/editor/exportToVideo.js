@@ -25,7 +25,7 @@ import { videoDb } from '../videoDb.js';
  * The redesign stores clips under `project.tracks[].items[]` with `start`/`end`
  * and a `src` (or `assetId`); the worker only needs type + a renderable src.
  */
-function toWorkerTimelineData(state) {
+export function toWorkerTimelineData(state) {
   const project = state?.project || state;
   const tracks = Array.isArray(project?.tracks) ? project.tracks : [];
   return {
@@ -33,6 +33,7 @@ function toWorkerTimelineData(state) {
     tracks: tracks.map((track) => {
       const clips = (track.items || track.clips || []).map((clip) => ({
         type: clip.type || track.type || 'video',
+        // NEVER use proxy sources for export — always use original media
         src: clip.src || clip.url || clip.assetId || null,
         start: clip.start ?? 0,
         end: clip.end ?? (clip.start ?? 0) + 5,

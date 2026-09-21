@@ -6591,9 +6591,12 @@ export function TimelineEditorPage() {
       const proxyBtn = root.querySelector('#cinegenProxyBtn');
       if (proxyBtn) {
         proxyBtn.addEventListener('click', async () => {
-          const result = await runCineGenTool('proxy_playback', { enabled: true });
-          updateCineGenResults(result);
-          if (result.success) {}
+          // Toggle proxy mode locally — proxy playback is a browser-side feature
+          const newProxyMode = !state.proxyMode;
+          state.setProxyMode(newProxyMode);
+          proxyBtn.classList.toggle('active', newProxyMode);
+          showToast(newProxyMode ? 'Proxy playback enabled' : 'Proxy playback disabled', 'info');
+          renderAll();
         });
       }
 
