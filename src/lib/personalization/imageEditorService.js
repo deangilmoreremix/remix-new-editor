@@ -280,7 +280,7 @@ export class PersonalizationImageEditorService {
       }
     }
 
-    return this.thumbnailService.refineLastImage({
+    const result = await this.thumbnailService.refineLastImage({
       prompt: enrichedPrompt,
       previousResponseId,
       imageAction: 'edit',
