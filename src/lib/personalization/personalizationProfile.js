@@ -186,6 +186,14 @@ export function ensurePersonalizationProfile(profile = {}) {
         : (current.business?.audience || 'me'),
       business: normalizeBusinessProfile(current.business || {}, profile),
       assets: normalizePersonalizationAssets(current.assets || {}),
+      generationOptions: {
+        exactLogoHandling: ['ai-reference', 'final-overlay'].includes(current.generationOptions?.exactLogoHandling)
+          ? current.generationOptions.exactLogoHandling
+          : 'final-overlay',
+        exactCtaHandling: ['ai-generated', 'final-end-card'].includes(current.generationOptions?.exactCtaHandling)
+          ? current.generationOptions.exactCtaHandling
+          : 'final-end-card',
+      },
       discoveredAssets: normalizeArray(current.discoveredAssets),
       updatedAt: current.updatedAt || profile.updatedAt || new Date().toISOString(),
     },
@@ -205,6 +213,26 @@ export function updatePersonalizationBusiness(profile, patch = {}) {
       ...normalized.personalization,
       audience: business.audience,
       business,
+      updatedAt: new Date().toISOString(),
+    },
+  };
+}
+
+export function setPersonalizationGenerationOptions(profile, patch = {}) {
+  const normalized = ensurePersonalizationProfile(profile);
+  const current = normalized.personalization.generationOptions || {};
+  const exactLogoHandling = ['ai-reference', 'final-overlay'].includes(patch.exactLogoHandling)
+    ? patch.exactLogoHandling
+    : current.exactLogoHandling;
+  const exactCtaHandling = ['ai-generated', 'final-end-card'].includes(patch.exactCtaHandling)
+    ? patch.exactCtaHandling
+    : current.exactCtaHandling;
+
+  return {
+    ...normalized,
+    personalization: {
+      ...normalized.personalization,
+      generationOptions: { exactLogoHandling, exactCtaHandling },
       updatedAt: new Date().toISOString(),
     },
   };
