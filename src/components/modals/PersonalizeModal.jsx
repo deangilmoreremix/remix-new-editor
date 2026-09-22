@@ -1935,6 +1935,156 @@ export class PersonalizeModal extends BaseModal {
           text-overflow: ellipsis;
         }
 
+        .pm-asset-thumb-button {
+          appearance: none;
+          border: 0;
+          background: transparent;
+          color: var(--text-muted);
+          padding: 0;
+          display: inline-flex;
+          flex-direction: column;
+          gap: 3px;
+          align-items: center;
+          cursor: pointer;
+          font: inherit;
+          font-size: 9px;
+        }
+        .pm-asset-thumb-button:hover .pm-asset-thumb { border-color: var(--pm-primary); }
+
+        .pm-editor-shell {
+          border: 1px solid var(--border-color);
+          border-radius: 16px;
+          background: var(--bg-card);
+          overflow: hidden;
+          box-shadow: 0 18px 50px rgba(0,0,0,.22);
+        }
+        .pm-editor-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          padding: 14px 16px;
+          border-bottom: 1px solid var(--border-color);
+        }
+        .pm-editor-title { font-size: 15px; font-weight: 800; color: var(--text-primary); }
+        .pm-editor-subtitle { margin-top: 3px; font-size: 10px; color: var(--text-muted); }
+        .pm-editor-simple { display: flex; flex-direction: column; gap: 14px; padding: 14px; }
+        .pm-editor-stage {
+          position: relative;
+          min-height: 320px;
+          max-height: 58vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+          border-radius: 12px;
+          background:
+            linear-gradient(45deg, rgba(255,255,255,.03) 25%, transparent 25%),
+            linear-gradient(-45deg, rgba(255,255,255,.03) 25%, transparent 25%),
+            #090b0d;
+          background-size: 24px 24px;
+          background-position: 0 0, 0 12px;
+        }
+        .pm-editor-stage > img { max-width: 100%; max-height: 58vh; object-fit: contain; display: block; }
+        .pm-editor-busy {
+          position: absolute; inset: 0;
+          display: flex; align-items: center; justify-content: center; gap: 8px;
+          background: rgba(0,0,0,.58); color: #fff; font-size: 12px; font-weight: 700;
+        }
+        .pm-editor-progressive {
+          position: absolute; left: 10px; bottom: 10px;
+          background: rgba(0,0,0,.72); color: #fff; font-size: 9px;
+          padding: 4px 7px; border-radius: 999px;
+        }
+        .pm-editor-safe-area { pointer-events:none; position:absolute; inset:7%; border:1px dashed rgba(41,211,242,.7); }
+        .pm-editor-safe-v, .pm-editor-safe-h { position:absolute; background:rgba(41,211,242,.28); }
+        .pm-editor-safe-v { top:0; bottom:0; width:1px; left:50%; }
+        .pm-editor-safe-h { left:0; right:0; height:1px; top:50%; }
+        .pm-editor-compare { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+        .pm-editor-compare figure { margin:0; padding:8px; border-radius:12px; background:#090b0d; }
+        .pm-editor-compare img { width:100%; aspect-ratio:16/10; object-fit:contain; display:block; }
+        .pm-editor-compare figcaption { margin-top:5px; text-align:center; font-size:9px; color:var(--text-muted); }
+        .pm-editor-meta { display:flex; flex-wrap:wrap; align-items:center; gap:6px; font-size:10px; color:var(--text-muted); }
+        .pm-editor-good, .pm-editor-status { color:#22c55e; }
+        .pm-editor-recommendation {
+          display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+          border:1px solid rgba(41,211,242,.22); background:rgba(41,211,242,.04);
+          border-radius:12px; padding:12px;
+        }
+        .pm-editor-recommendation strong { color:var(--text-primary); font-size:12px; }
+        .pm-editor-recommendation p { margin:5px 0 0; color:var(--text-muted); font-size:10px; line-height:1.5; }
+        .pm-editor-issue-row { display:flex; flex-wrap:wrap; gap:4px; margin-top:7px; }
+        .pm-editor-issue-row span { padding:3px 6px; border-radius:999px; background:var(--bg-panel); font-size:9px; color:var(--text-muted); }
+        .pm-editor-quick-actions { display:flex; flex-wrap:wrap; gap:7px; }
+        .pm-editor-smart { border:1px solid var(--border-color); border-radius:12px; padding:12px; background:var(--bg-panel); }
+        .pm-editor-smart > label { display:block; margin-bottom:7px; font-size:11px; font-weight:700; color:var(--text-primary); }
+        .pm-editor-smart-row { display:flex; gap:8px; }
+        .pm-editor-smart textarea {
+          flex:1; min-height:76px; resize:vertical; border:1px solid var(--border-color); border-radius:10px;
+          background:var(--bg-app); color:var(--text-primary); padding:9px; font:inherit; font-size:11px;
+        }
+        .pm-editor-versions { display:flex; gap:7px; overflow-x:auto; padding:2px; }
+        .pm-editor-version {
+          flex:0 0 90px; border:1px solid var(--border-color); border-radius:9px; padding:4px;
+          background:var(--bg-panel); color:var(--text-muted); cursor:pointer; font:inherit; font-size:9px;
+        }
+        .pm-editor-version.active { border-color:var(--pm-primary); color:var(--text-primary); }
+        .pm-editor-version img { width:100%; height:52px; object-fit:cover; border-radius:6px; display:block; margin-bottom:3px; }
+        .pm-editor-note { border:1px solid var(--border-color); background:var(--bg-panel); border-radius:9px; padding:8px; font-size:9px; line-height:1.45; color:var(--text-muted); }
+        .pm-editor-footer { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; border-top:1px solid var(--border-color); padding-top:12px; }
+        .pm-editor-advanced { display:grid; grid-template-columns:170px minmax(0,1fr) 280px; min-height:620px; }
+        .pm-editor-tool-sidebar, .pm-editor-right-panel { padding:12px; background:var(--bg-panel); }
+        .pm-editor-tool-sidebar { border-right:1px solid var(--border-color); }
+        .pm-editor-right-panel { border-left:1px solid var(--border-color); max-height:70vh; overflow:auto; }
+        .pm-editor-advanced-stage { min-width:0; padding:12px; display:flex; flex-direction:column; gap:10px; }
+        .pm-editor-sidebar-title { margin:10px 0 6px; font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.12em; color:var(--text-muted); }
+        .pm-editor-group {
+          width:100%; text-align:left; border:0; border-radius:8px; padding:8px; margin:1px 0;
+          background:transparent; color:var(--text-secondary); cursor:pointer; font:inherit; font-size:10px; font-weight:650;
+        }
+        .pm-editor-group.active, .pm-small-btn.active { background:var(--pm-soft); color:var(--pm-primary); }
+        .pm-editor-sidebar-separator { height:1px; background:var(--border-color); margin:10px 0; }
+        .pm-editor-operation-list { display:flex; flex-direction:column; gap:6px; }
+        .pm-editor-operation {
+          width:100%; text-align:left; border:1px solid var(--border-color); background:var(--bg-card);
+          border-radius:10px; padding:9px; color:var(--text-primary); cursor:pointer; font:inherit;
+        }
+        .pm-editor-operation strong { display:block; font-size:10px; }
+        .pm-editor-operation span { display:block; margin-top:3px; color:var(--text-muted); font-size:9px; line-height:1.4; }
+        .pm-editor-details { margin-top:9px; border:1px solid var(--border-color); border-radius:10px; background:var(--bg-card); padding:9px; }
+        .pm-editor-details summary { cursor:pointer; font-size:10px; font-weight:700; color:var(--text-primary); }
+        .pm-editor-detail-body { display:flex; flex-direction:column; gap:9px; margin-top:9px; }
+        .pm-editor-control { display:flex; flex-direction:column; gap:4px; font-size:9px; color:var(--text-muted); }
+        .pm-editor-control > span { display:flex; justify-content:space-between; gap:8px; }
+        .pm-editor-control input[type="range"] { width:100%; accent-color:var(--pm-primary); }
+        .pm-editor-control input[type="text"], .pm-editor-control select {
+          width:100%; border:1px solid var(--border-color); border-radius:7px; background:var(--bg-panel); color:var(--text-primary); padding:6px; font-size:10px;
+        }
+        .pm-editor-button-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:5px; }
+        .pm-editor-protections label { display:flex; gap:6px; align-items:center; font-size:10px; color:var(--text-secondary); }
+        .pm-editor-mask-host { min-height:360px; }
+        .pm-mask-toolbar {
+          display:flex; gap:8px; flex-wrap:wrap; align-items:center; padding:8px;
+          border:1px solid var(--border-color); border-radius:10px; background:var(--bg-panel);
+        }
+        .pm-mask-tools, .pm-mask-actions { display:flex; gap:5px; flex-wrap:wrap; }
+        .pm-mask-tool.active { background:rgba(41,211,242,.12); color:#29d3f2; }
+        .pm-mask-brush-label { margin-left:auto; display:flex; align-items:center; gap:6px; font-size:9px; color:var(--text-muted); }
+        .pm-mask-brush-label input { width:90px; accent-color:#29d3f2; }
+        .pm-mask-stage { position:relative; margin-top:8px; overflow:hidden; border-radius:10px; background:#000; }
+        .pm-mask-image { width:100%; max-height:56vh; object-fit:contain; display:block; }
+        .pm-mask-canvas { position:absolute; inset:0; width:100%; height:100%; touch-action:none; cursor:crosshair; opacity:.48; filter:drop-shadow(0 0 4px rgba(41,211,242,.8)); }
+        .pm-mask-help { font-size:9px; line-height:1.4; color:var(--text-muted); margin:7px 0 0; }
+
+        @media (max-width: 980px) {
+          .pm-editor-advanced { grid-template-columns:1fr; }
+          .pm-editor-tool-sidebar, .pm-editor-right-panel { border:0; border-bottom:1px solid var(--border-color); max-height:none; }
+          .pm-editor-compare { grid-template-columns:1fr; }
+        }
+        @media (max-width: 720px) {
+          .pm-editor-smart-row, .pm-editor-recommendation { flex-direction:column; }
+        }
+
         .pm-modal.pm-light {
           --text-primary: #1a1a1a;
           --text-secondary: #4b5563;
