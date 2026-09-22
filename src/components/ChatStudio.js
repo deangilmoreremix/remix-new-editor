@@ -219,7 +219,7 @@ sendBtn.type = 'button';
   thumbBtn.type = 'button';
   thumbBtn.textContent = '🖼 Thumbnail';
   thumbBtn.title = 'Generate a custom thumbnail';
-  thumbBtn.className = 'btn-ghost-modern shrink-0';
+  thumbBtn.className = 'btn-action-secondary shrink-0';
   thumbBtn.addEventListener('click', () => {
     const modal = new TemplateThumbnailModal({
       appTheme: 'chat-studio',

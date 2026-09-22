@@ -185,13 +185,25 @@ export function inspectPromptTokens(prompt, profile) {
   }
   const button = document.createElement('button');
   button.id = 'v-contact-btn';
-  button.className = 'flex items-center gap-1.5 md:gap-2.5 px-3 md:px-4 py-2 md:py-2.5 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl transition-all border border-white/5 group whitespace-nowrap';
+  button.className = 'btn-personalize';
   button.setAttribute('data-tooltip', tooltip);
-  button.innerHTML = `
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-60 text-secondary"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-    <span id="v-contact-btn-label" class="text-xs font-bold text-white group-hover:text-primary transition-colors">${label}</span>
-    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" class="opacity-20 group-hover:opacity-100 transition-opacity"><path d="M6 9l6 6 6-6"/></svg>
-  `;
+  const labelSpan = document.createElement('span');
+  labelSpan.id = 'v-contact-btn-label';
+  labelSpan.className = 'text-xs font-bold text-white group-hover:text-primary transition-colors';
+  labelSpan.textContent = label;
+  const arrowSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  arrowSvg.setAttribute('width', '10');
+  arrowSvg.setAttribute('height', '10');
+  arrowSvg.setAttribute('viewBox', '0 0 24 24');
+  arrowSvg.setAttribute('fill', 'none');
+  arrowSvg.setAttribute('stroke', 'currentColor');
+  arrowSvg.setAttribute('stroke-width', '4');
+  arrowSvg.className = 'opacity-20 group-hover:opacity-100 transition-opacity';
+  const arrowPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  arrowPath.setAttribute('d', 'M6 9l6 6 6-6');
+  arrowSvg.appendChild(arrowPath);
+  button.appendChild(labelSpan);
+  button.appendChild(arrowSvg);
   controlsContainer.appendChild(button);
 
   // Lazy-load the modal class so host apps that only need the trigger don't
@@ -241,7 +253,7 @@ export function inspectPromptTokens(prompt, profile) {
     open();
   };
 
-  // Update the trigger label to the active contact's name (if any).
+  // Update the trigger label to the active contact's first name (if any).
   const refresh = () => {
     const id = getSelectedContactId();
     const lbl = button.querySelector('#v-contact-btn-label');
@@ -250,7 +262,9 @@ export function inspectPromptTokens(prompt, profile) {
       try {
         const contacts = _listContacts();
         const c = contacts.find((x) => x.id === id);
-        lbl.textContent = c?.name || label;
+        const rawName = c?.name || label;
+        const firstName = rawName.split(' ')[0];
+        lbl.textContent = firstName.length > 12 ? firstName.slice(0, 12) + '…' : firstName;
       } catch { lbl.textContent = label; }
     } else {
       lbl.textContent = label;

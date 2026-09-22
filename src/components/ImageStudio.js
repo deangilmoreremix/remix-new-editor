@@ -388,32 +388,81 @@ export function ImageStudio() {
       },
     });
 
-    // Premium GTM Boost entry point — opens the cinematic prompt enhancer
-    // themed for image creation and loads the result straight into this prompt.
-    const gtmBtn = document.createElement('button');
-    gtmBtn.type = 'button';
-    gtmBtn.textContent = '🎯 GTM Boost';
-    gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
-    gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
-    gtmBtn.className = 'gtm-boost-btn';
-    gtmBtn.addEventListener('click', () => {
-      import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-        openGTMPromptModal('image-studio', (prompt) => {
-          textarea.value = prompt;
-          textarea.dispatchEvent(new Event('input', { bubbles: true }));
-          textarea.focus();
-          textarea.style.height = 'auto';
-          textarea.style.height = Math.min(textarea.scrollHeight, 250) + 'px';
-        });
-      }).catch((err) => console.error('[ImageStudio] GTM Boost failed:', err));
+    // Enhancement tools overflow menu (GTM Boost, Recipes, Monetize, Prompts)
+    const enhanceMenu = document.createElement('div');
+    enhanceMenu.className = 'overflow-menu shrink-0';
+    enhanceMenu.innerHTML = `
+      <button type="button" class="overflow-menu__trigger" data-tooltip="More tools" aria-label="More enhancement tools">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+      </button>
+      <div class="overflow-menu__panel">
+        <button type="button" class="overflow-menu__item" data-enhance="gtm">🎯 GTM Boost</button>
+        <button type="button" class="overflow-menu__item" data-enhance="recipe">📋 Recipes</button>
+        <button type="button" class="overflow-menu__item" data-enhance="monetize">💼 Monetize</button>
+        <button type="button" class="overflow-menu__item" data-enhance="prompts">📚 Prompts</button>
+      </div>
+    `;
+    const enhanceTrigger = enhanceMenu.querySelector('.overflow-menu__trigger');
+    const enhancePanel = enhanceMenu.querySelector('.overflow-menu__panel');
+    const enhanceItems = enhanceMenu.querySelectorAll('[data-enhance]');
+
+    function toggleEnhanceMenu() {
+      const isOpen = enhanceMenu.classList.contains('is-open');
+      enhanceMenu.classList.toggle('is-open', !isOpen);
+    }
+
+    enhanceTrigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleEnhanceMenu();
     });
+
+    enhanceItems.forEach(item => {
+      item.addEventListener('click', () => {
+        const action = item.dataset.enhance;
+        if (action === 'gtm') {
+          import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+            openGTMPromptModal('image-studio', (prompt) => {
+              textarea.value = prompt;
+              textarea.dispatchEvent(new Event('input', { bubbles: true }));
+              textarea.focus();
+              textarea.style.height = 'auto';
+              textarea.style.height = Math.min(textarea.scrollHeight, 250) + 'px';
+            });
+          }).catch((err) => console.error('[ImageStudio] GTM Boost failed:', err));
+        } else if (action === 'recipe') {
+          openRecipeModal().catch((err) => console.error('[Recipe] open failed:', err));
+        } else if (action === 'monetize') {
+          openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+        } else if (action === 'prompts') {
+          openPromptGallery({
+            appTheme: 'image-studio',
+            onSelect: (prompt) => {
+              const ta = document.getElementById('i-prompt-textarea') || document.querySelector('textarea');
+              if (ta) {
+                ta.value = prompt;
+                ta.dispatchEvent(new Event('input', { bubbles: true }));
+                ta.focus();
+                ta.style.height = 'auto';
+                ta.style.height = Math.min(ta.scrollHeight, 250) + 'px';
+              }
+            }
+          }).catch((err) => console.error('[PromptGallery] open failed:', err));
+        }
+        enhanceMenu.classList.remove('is-open');
+      });
+    });
+
+    // Close overflow menu when clicking outside
+    const closeEnhanceMenu = (e) => {
+      if (!enhanceMenu.contains(e.target)) {
+        enhanceMenu.classList.remove('is-open');
+      }
+    };
+    window.addEventListener('click', closeEnhanceMenu);
 
     const toolbar = document.createElement('div');
     toolbar.className = 'flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06]';
-    toolbar.appendChild(gtmBtn);
-    toolbar.appendChild(recipeBtn);
-    toolbar.appendChild(monetizationBtn);
-    toolbar.appendChild(promptGalleryBtn);
+    toolbar.appendChild(enhanceMenu);
     topRow.appendChild(toolbar);
 
     bar.appendChild(topRow);
@@ -471,12 +520,12 @@ export function ImageStudio() {
     controlsLeft.appendChild(arBtn);
     controlsLeft.appendChild(qualityBtn);
 
-    // Thumbnail studio button — next to creation controls, GTM Boost styling
+    // Thumbnail studio button — next to creation controls
     const thumbBtn = document.createElement('button');
     thumbBtn.type = 'button';
     thumbBtn.textContent = '🖼 Thumbnail';
     thumbBtn.title = 'Generate a custom thumbnail';
-    thumbBtn.className = 'btn-ghost-modern shrink-0';
+    thumbBtn.className = 'btn-action-secondary shrink-0';
     thumbBtn.addEventListener('click', () => {
     const modal = new TemplateThumbnailModal({
       appTheme: 'image-studio',
@@ -515,7 +564,7 @@ export function ImageStudio() {
   modelPickerBtn.textContent = 'AI Pick';
   modelPickerBtn.title = 'Open intelligent model picker';
   modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-  modelPickerBtn.className = 'text-[11px] font-bold text-primary border border-primary/30 bg-primary/10 px-2.5 py-1.5 rounded-lg hover:bg-primary/20 transition-colors ml-2 whitespace-nowrap';
+  modelPickerBtn.className = 'btn-action-secondary shrink-0';
   modelPickerBtn.addEventListener('click', () => {
     openModelPicker({
       currentModelId: selectedModel,
@@ -537,9 +586,11 @@ export function ImageStudio() {
 
     
     // Quick Tools toggle button
-    const toolsBtn = createControlBtn(`
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-60 text-secondary"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
-    `, 'Tools', 'tools-btn', 'Quick starters & prompt enhancer');
+    const toolsBtn = document.createElement('button');
+    toolsBtn.type = 'button';
+    toolsBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-60 text-secondary"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg> <span class="text-xs font-bold text-white group-hover:text-primary transition-colors">Tools</span>`;
+    toolsBtn.className = 'btn-action-secondary shrink-0';
+    toolsBtn.setAttribute('data-tooltip', 'Quick starters & prompt enhancer');
     controlsLeft.appendChild(toolsBtn);
 
     // Personalize button + inline popover (shared module)

@@ -312,7 +312,7 @@ let showAdvanced = false;
     promptBarWrapper.style.animationDelay = '0.2s';
 
     const promptBar = document.createElement('div');
-    promptBar.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 shadow-3xl relative';
+    promptBar.className = 'w-full bg-gray-900/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 shadow-3xl relative';
 
     // --- INPUT AREA (Prompt + Upload) ---
     const inputArea = document.createElement('div');
@@ -379,23 +379,56 @@ let showAdvanced = false;
       },
     });
 
-    // GTM Boost entry point — opens the cinematic prompt enhancer themed for
-    // cinema creation and loads the result straight into this prompt.
-    const gtmBtn = document.createElement('button');
-    gtmBtn.type = 'button';
-    gtmBtn.textContent = '🎯 GTM Boost';
-    gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
-    gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
-    gtmBtn.className = 'btn-ghost-modern shrink-0';
-    gtmBtn.addEventListener('click', () => {
-      import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-        openGTMPromptModal('cinema-studio', (prompt) => {
-          textarea.value = prompt;
-          textarea.dispatchEvent(new Event('input', { bubbles: true }));
-          textarea.focus();
-        });
-      }).catch((err) => console.error('[CinemaStudio] GTM Boost failed:', err));
+    // Enhancement tools overflow menu (GTM Boost, Recipes, Monetize, Prompts)
+    const enhanceMenu = document.createElement('div');
+    enhanceMenu.className = 'overflow-menu shrink-0';
+    enhanceMenu.innerHTML = `
+      <button type="button" class="overflow-menu__trigger" data-tooltip="More tools" aria-label="More enhancement tools">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+      </button>
+      <div class="overflow-menu__panel">
+        <button type="button" class="overflow-menu__item" data-enhance="gtm">🎯 GTM Boost</button>
+      </div>
+    `;
+    const enhanceTrigger = enhanceMenu.querySelector('.overflow-menu__trigger');
+    const enhancePanel = enhanceMenu.querySelector('.overflow-menu__panel');
+    const enhanceItems = enhanceMenu.querySelectorAll('[data-enhance]');
+
+    function toggleEnhanceMenu() {
+      const isOpen = enhanceMenu.classList.contains('is-open');
+      enhanceMenu.classList.toggle('is-open', !isOpen);
+    }
+
+    enhanceTrigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleEnhanceMenu();
     });
+
+    enhanceItems.forEach(item => {
+      item.addEventListener('click', () => {
+        const action = item.dataset.enhance;
+        if (action === 'gtm') {
+          import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+            openGTMPromptModal('cinema-studio', (prompt) => {
+              textarea.value = prompt;
+              textarea.dispatchEvent(new Event('input', { bubbles: true }));
+              textarea.focus();
+            });
+          }).catch((err) => console.error('[CinemaStudio] GTM Boost failed:', err));
+        }
+        enhanceMenu.classList.remove('is-open');
+      });
+    });
+
+    // Close overflow menu when clicking outside
+    const closeEnhanceMenu = (e) => {
+      if (!enhanceMenu.contains(e.target)) {
+        enhanceMenu.classList.remove('is-open');
+      }
+    };
+    window.addEventListener('click', closeEnhanceMenu);
+
+    settingsToolbar.appendChild(enhanceMenu);
 
 
     // --- Reference image upload (the "Upload your scene" step) ---
@@ -551,7 +584,7 @@ let showAdvanced = false;
     modelPickerBtn.textContent = 'AI Pick';
     modelPickerBtn.title = 'Open intelligent model picker';
     modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-    modelPickerBtn.className = 'text-[11px] font-bold text-primary border border-primary/30 bg-primary/10 px-2.5 py-1.5 rounded-lg hover:bg-primary/20 transition-colors ml-2 whitespace-nowrap';
+    modelPickerBtn.className = 'btn-action-secondary shrink-0';
     modelPickerBtn.addEventListener('click', () => {
       openModelPicker({
         currentModelId: currentSettings.model,
@@ -759,13 +792,13 @@ let showAdvanced = false;
      // Thumbnail Button — integrated into the creation workflow alongside
      // the Generate button so users can create a custom thumbnail during
      // the cinema generation process.
-      const thumbBtn = document.createElement('button');
-      thumbBtn.type = 'button';
-      thumbBtn.textContent = '🖼 Thumbnail';
-      thumbBtn.title = 'Generate a custom thumbnail';
-      thumbBtn.setAttribute('data-tooltip', 'Create custom thumbnail for Cinema Studio');
-      thumbBtn.setAttribute('aria-label', 'Create custom thumbnail');
-      thumbBtn.className = 'btn-ghost-modern shrink-0';
+       const thumbBtn = document.createElement('button');
+       thumbBtn.type = 'button';
+       thumbBtn.textContent = '🖼 Thumbnail';
+       thumbBtn.title = 'Generate a custom thumbnail';
+       thumbBtn.setAttribute('data-tooltip', 'Create custom thumbnail for Cinema Studio');
+       thumbBtn.setAttribute('aria-label', 'Create custom thumbnail');
+       thumbBtn.className = 'btn-action-secondary shrink-0';
      thumbBtn.onclick = () => {
        const modal = new TemplateThumbnailModal({
          appTheme: 'cinema-studio',

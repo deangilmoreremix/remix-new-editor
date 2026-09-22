@@ -20,6 +20,9 @@ import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateTh
 import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
+import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
+import { openRecipeModal } from '../lib/recipeIntegration.js';
+import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { getTemplateStudioAsset } from '../lib/personalizerAdapters.js';
 
@@ -183,7 +186,7 @@ export function TemplateStudio(templateId) {
   // Thumbnail action button — matches .gtm-boost-btn styling so it is
   // discoverable alongside the GTM Boost control in the hero section.
   const thumbAction = document.createElement('button');
-  thumbAction.className = 'mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition';
+  thumbAction.className = 'mb-5 btn-action-secondary shrink-0';
   thumbAction.style.background = 'linear-gradient(135deg, #10b981, #34d399)';
   thumbAction.style.boxShadow = '0 4px 14px rgba(16,185,129,0.3)';
   thumbAction.style.color = '#022c22';
@@ -270,7 +273,7 @@ export function TemplateStudio(templateId) {
       ${showTextButtons ? `
         <div class="flex items-center gap-2">
           <button class="enhancer-btn rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] transition border-white/10 bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-white" data-field="${input.name}">Enhance</button>
-          ${isPrimaryPrompt ? `<button class="gtm-boost-btn shrink-0" data-gtm-boost="primary" title="Enhance your prompt with GTM conversion frameworks" aria-label="GTM Boost prompt enhancer">🎯 GTM Boost</button>` : ''}
+           ${isPrimaryPrompt ? '<div class="overflow-menu shrink-0" data-gtm-menu="primary"><button type="button" class="overflow-menu__trigger" data-tooltip="More tools" aria-label="More enhancement tools"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg></button><div class="overflow-menu__panel"><button type="button" class="overflow-menu__item" data-enhance="gtm">🎯 GTM Boost</button><button type="button" class="overflow-menu__item" data-enhance="recipe">📋 Recipes</button><button type="button" class="overflow-menu__item" data-enhance="monetize">💼 Monetize</button><button type="button" class="overflow-menu__item" data-enhance="prompts">📚 Prompts</button></div></div>' : ''}
         </div>
       ` : ''}
     `;
@@ -444,57 +447,91 @@ export function TemplateStudio(templateId) {
     leftPanel.appendChild(fieldWrapper);
   });
 
-  // GTM Boost: wire the button on the primary prompt field to open the
-  // modal, pre-fill template context, and write the generated prompt back
-  // into the prompt field + formState. Available on EVERY template type
-  // (video and image).
-  const gtmBtn = leftPanel.querySelector('[data-gtm-boost="primary"]');
-  if (gtmBtn && promptEl && promptFieldName) {
-    gtmBtn.addEventListener('click', async () => {
-      gtmBtn.disabled = true;
-      const originalText = gtmBtn.textContent;
-      gtmBtn.textContent = '🎯 Loading…';
-      try {
-        // Fetch template-aware defaults from the backend so the modal
-        // opens with the right industry/tonality/methodology pre-selected.
-        const ctx = await import('../lib/uiIntegration.js').then(async (m) => {
-          const result = m.fetchGTMTemplateContext?.(template);
-          if (result && typeof result.then === 'function') return await result;
-          return result;
-        }).catch(() => null);
-        // Merge: any pre-existing user input wins over the backend defaults.
-        const basePrompt = promptEl.value || (ctx && ctx.basePrompt) || template.description || '';
-        const templateContext = {
-          ...(ctx || {}),
-          basePrompt,
-          templateId: template.id,
-          category: template.category,
-          niche: template.niche,
-          outputType: template.outputType,
-        };
-        const onPromptGenerated = (generatedPrompt) => {
-          // Write into the DOM element so the user sees it, then update
-          // formState and dispatch input events so any other listeners
-          // (e.g. the AI Enhancer / extra instructions) pick it up.
-          promptEl.value = generatedPrompt;
-          promptEl.dispatchEvent(new Event('input', { bubbles: true }));
-          promptEl.dispatchEvent(new Event('change', { bubbles: true }));
-          formState[promptFieldName] = generatedPrompt;
-          promptEl.focus();
-        };
-        import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-          openGTMPromptModal('template-studio', onPromptGenerated, {
-            templateContext,
-          });
-        }).catch((err) => {
-          console.error('[TemplateStudio] GTM Boost failed:', err);
-          showInlineError(leftPanel, 'GTM Boost failed to load. Please try again.');
-        });
-      } finally {
-        gtmBtn.disabled = false;
-        gtmBtn.textContent = originalText;
-      }
+  // Enhancement tools overflow menu (GTM Boost, Recipes, Monetize, Prompts)
+  const enhanceMenu = leftPanel.querySelector('.overflow-menu');
+  if (enhanceMenu && promptEl && promptFieldName) {
+    const enhanceTrigger = enhanceMenu.querySelector('.overflow-menu__trigger');
+    const enhancePanel = enhanceMenu.querySelector('.overflow-menu__panel');
+    const enhanceItems = enhanceMenu.querySelectorAll('[data-enhance]');
+
+    function toggleEnhanceMenu() {
+      const isOpen = enhanceMenu.classList.contains('is-open');
+      enhanceMenu.classList.toggle('is-open', !isOpen);
+    }
+
+    enhanceTrigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleEnhanceMenu();
     });
+
+    enhanceItems.forEach(item => {
+      item.addEventListener('click', () => {
+        const action = item.dataset.enhance;
+        if (action === 'gtm') {
+          const originalText = enhanceTrigger.textContent;
+          enhanceTrigger.textContent = '🎯 Loading…';
+          try {
+            const ctx = await import('../lib/uiIntegration.js').then(async (m) => {
+              const result = m.fetchGTMTemplateContext?.(template);
+              if (result && typeof result.then === 'function') return await result;
+              return result;
+            }).catch(() => null);
+            const basePrompt = promptEl.value || (ctx && ctx.basePrompt) || template.description || '';
+            const templateContext = {
+              ...(ctx || {}),
+              basePrompt,
+              templateId: template.id,
+              category: template.category,
+              niche: template.niche,
+              outputType: template.outputType,
+            };
+            const onPromptGenerated = (generatedPrompt) => {
+              promptEl.value = generatedPrompt;
+              promptEl.dispatchEvent(new Event('input', { bubbles: true }));
+              promptEl.dispatchEvent(new Event('change', { bubbles: true }));
+              formState[promptFieldName] = generatedPrompt;
+              promptEl.focus();
+            };
+            import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+              openGTMPromptModal('template-studio', onPromptGenerated, {
+                templateContext,
+              });
+            }).catch((err) => {
+              console.error('[TemplateStudio] GTM Boost failed:', err);
+              showInlineError(leftPanel, 'GTM Boost failed to load. Please try again.');
+            });
+          } finally {
+            enhanceTrigger.textContent = originalText;
+          }
+        } else if (action === 'recipe') {
+          openRecipeModal({
+            onRunRecipe: (url) => {
+            }
+          }).catch((err) => console.error('[Recipe] open failed:', err));
+        } else if (action === 'monetize') {
+          openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+        } else if (action === 'prompts') {
+          openPromptGallery({
+            appTheme: 'template-studio',
+            onSelect: (prompt) => {
+              if (promptEl) {
+                promptEl.value = prompt;
+                promptEl.dispatchEvent(new Event('input', { bubbles: true }));
+                promptEl.focus();
+              }
+            }
+          }).catch((err) => console.error('[PromptGallery] open failed:', err));
+        }
+        enhanceMenu.classList.remove('is-open');
+      });
+    });
+
+    const closeEnhanceMenu = (e) => {
+      if (!enhanceMenu.contains(e.target)) {
+        enhanceMenu.classList.remove('is-open');
+      }
+    };
+    window.addEventListener('click', closeEnhanceMenu);
   }
 
   // Model selector (async - fetches enriched catalog with descriptions)
@@ -722,13 +759,9 @@ let fallbackList = [];
   // GTM Boost affordance (opt-in enhancement via GTMPromptModal).
   // Uses the shared .gtm-boost-btn design (matches Image / Video studios);
   // the .template-studio ancestor class themes it emerald via gtm-prompt-modal.css.
-  const gtmBoostBtn = document.createElement('button');
-  gtmBoostBtn.type = 'button';
-  gtmBoostBtn.textContent = '🎯 GTM Boost';
-  gtmBoostBtn.title = 'Enhance your prompt with GTM conversion frameworks';
-  gtmBoostBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
-  gtmBoostBtn.className = 'gtm-boost-btn w-full mt-4';
-  leftPanel.appendChild(gtmBoostBtn);
+  function renderGtmBoost(leftPanel) {
+    // GTM Boost moved to overflow menu in primary prompt field
+  }
 
   // Advanced controls content
   const advancedControls = enhancerSection.querySelector('#advancedControls');
@@ -1041,57 +1074,6 @@ let fallbackList = [];
         }
         textarea.classList.add('border-emerald-400/50');
         setTimeout(() => textarea.classList.remove('border-emerald-400/50'), 1000);
-      };
-    }
-
-    // GTM Boost button (bottom) — unified to use openGTMPromptModal
-    if (gtmBoostBtn) {
-      gtmBoostBtn.onclick = async () => {
-        try {
-          const ctx = await import('../lib/uiIntegration.js').then(async (m) => {
-            const result = m.fetchGTMTemplateContext?.(template);
-            if (result && typeof result.then === 'function') return await result;
-            return result;
-          }).catch(() => null) || {};
-          const basePrompt = (document.getElementById('outputTextarea')?.value) || template.description || '';
-          const templateContext = {
-            ...ctx,
-            basePrompt,
-            templateId: template.id,
-            category: template.category,
-            niche: template.niche,
-            outputType: template.outputType,
-          };
-          const onPromptGenerated = (text) => {
-            lastBuiltPrompt = text;
-            outputTabValues['Enhanced Prompt'] = text;
-            const ta = document.getElementById('outputTextarea');
-            if (ta) {
-              ta.value = text;
-              ta.dispatchEvent(new Event('input', { bubbles: true }));
-              ta.dispatchEvent(new Event('change', { bubbles: true }));
-            }
-            if (primaryPromptField) {
-              primaryPromptField.value = text;
-              primaryPromptField.dispatchEvent(new Event('input', { bubbles: true }));
-              primaryPromptField.dispatchEvent(new Event('change', { bubbles: true }));
-            }
-            if (promptFieldName) {
-              formState[promptFieldName] = text;
-            }
-          };
-          import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-            openGTMPromptModal('template-studio', onPromptGenerated, {
-              templateContext,
-            });
-          }).catch((e) => {
-            console.warn('[TemplateStudio] GTM Boost modal load failed:', e);
-            showInlineError(container, 'Failed to load GTM Boost. Please try again.');
-          });
-        } catch (e) {
-          console.warn('[TemplateStudio] GTM Boost failed:', e);
-          showInlineError(container, 'GTM Boost failed. Please try again.');
-        }
       };
     }
 

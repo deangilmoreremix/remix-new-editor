@@ -1,6 +1,6 @@
 // Agency Section - This Is Not Just A Tool — It's An AI Video Agency Business In A Box
 
-import SHOWCASE_CONFIG from '../../content/showcaseConfig.js';
+import SHOWCASE_CONFIG from '../../../content/showcaseConfig.js';
 
 export function AgencySection() {
   const section = document.createElement('section');

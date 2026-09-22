@@ -1000,6 +1000,7 @@ export default defineConfig({
             babel: {
                 presets: [
                     '@babel/preset-typescript',
+                    '@babel/preset-react',
                 ],
                 plugins: [
                     ['@babel/plugin-proposal-decorators', { legacy: true }],

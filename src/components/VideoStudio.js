@@ -566,118 +566,84 @@ export function VideoStudio() {
       },
     });
 
-    // Premium GTM Boost entry point — opens the cinematic prompt enhancer
-    // themed for video creation and loads the result straight into this prompt.
-    const gtmBtn = document.createElement('button');
-    gtmBtn.type = 'button';
-    gtmBtn.textContent = '🎯 GTM Boost';
-    gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
-    gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
-    gtmBtn.className = 'gtm-boost-btn';
-    gtmBtn.addEventListener('click', () => {
-      import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-        openGTMPromptModal('video-studio', (prompt) => {
-          textarea.value = prompt;
-          textarea.dispatchEvent(new Event('input', { bubbles: true }));
-          textarea.focus();
-          textarea.style.height = 'auto';
-          textarea.style.height = Math.min(textarea.scrollHeight, 250) + 'px';
-        });
-      }).catch((err) => console.error('[VideoStudio] GTM Boost failed:', err));
+    // Enhancement tools overflow menu (GTM Boost, Recipes, Monetize, Prompts)
+    const enhanceMenu = document.createElement('div');
+    enhanceMenu.className = 'overflow-menu shrink-0';
+    enhanceMenu.innerHTML = `
+      <button type="button" class="overflow-menu__trigger" data-tooltip="More tools" aria-label="More enhancement tools">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+      </button>
+      <div class="overflow-menu__panel">
+        <button type="button" class="overflow-menu__item" data-enhance="gtm">🎯 GTM Boost</button>
+        <button type="button" class="overflow-menu__item" data-enhance="recipe">📋 Recipes</button>
+        <button type="button" class="overflow-menu__item" data-enhance="monetize">💼 Monetize</button>
+        <button type="button" class="overflow-menu__item" data-enhance="prompts">📚 Prompts</button>
+      </div>
+    `;
+    const enhanceTrigger = enhanceMenu.querySelector('.overflow-menu__trigger');
+    const enhancePanel = enhanceMenu.querySelector('.overflow-menu__panel');
+    const enhanceItems = enhanceMenu.querySelectorAll('[data-enhance]');
+
+    function toggleEnhanceMenu() {
+      const isOpen = enhanceMenu.classList.contains('is-open');
+      enhanceMenu.classList.toggle('is-open', !isOpen);
+    }
+
+    enhanceTrigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleEnhanceMenu();
     });
 
-    // Recipe Engine button
-    const recipeBtn = document.createElement('button');
-    recipeBtn.type = 'button';
-    recipeBtn.textContent = '📋 Recipes';
-    recipeBtn.title = 'Browse AI recipes';
-    recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-    recipeBtn.className = 'btn-ghost-modern';
-    recipeBtn.addEventListener('click', () => {
-      openRecipeModal().catch((err) => console.error('[Recipe] open failed:', err));
-    });
-
-    // Monetization Hub button
-    const monetizationBtn = document.createElement('button');
-    monetizationBtn.type = 'button';
-    monetizationBtn.textContent = '💼 Monetize';
-    monetizationBtn.title = 'Open Smart Video AI Monetization Hub';
-    monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-    monetizationBtn.className = 'btn-ghost-modern';
-    monetizationBtn.addEventListener('click', () => {
-      openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
-    });
-
-    // Prompt Gallery button
-    const promptGalleryBtn = document.createElement('button');
-    promptGalleryBtn.type = 'button';
-    promptGalleryBtn.textContent = '📚 Prompts';
-    promptGalleryBtn.title = 'Browse prompt gallery';
-    promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
-    promptGalleryBtn.className = 'btn-ghost-modern';
-    promptGalleryBtn.addEventListener('click', () => {
-      openPromptGallery({
-        appTheme: 'video-studio',
-        onSelect: (prompt) => {
-          const ta = document.getElementById('v-v-prompt-textarea');
-          if (ta) {
-            ta.value = prompt;
-            ta.dispatchEvent(new Event('input', { bubbles: true }));
-            ta.focus();
-            ta.style.height = 'auto';
-            ta.style.height = Math.min(ta.scrollHeight, 250) + 'px';
-          }
+    enhanceItems.forEach(item => {
+      item.addEventListener('click', () => {
+        const action = item.dataset.enhance;
+        if (action === 'gtm') {
+          import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+            openGTMPromptModal('video-studio', (prompt) => {
+              textarea.value = prompt;
+              textarea.dispatchEvent(new Event('input', { bubbles: true }));
+              textarea.focus();
+              textarea.style.height = 'auto';
+              textarea.style.height = Math.min(textarea.scrollHeight, 250) + 'px';
+            });
+          }).catch((err) => console.error('[VideoStudio] GTM Boost failed:', err));
+        } else if (action === 'recipe') {
+          openRecipeModal().catch((err) => console.error('[Recipe] open failed:', err));
+        } else if (action === 'monetize') {
+          openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+        } else if (action === 'prompts') {
+          openPromptGallery({
+            appTheme: 'video-studio',
+            onSelect: (prompt) => {
+              const ta = document.getElementById('v-v-prompt-textarea');
+              if (ta) {
+                ta.value = prompt;
+                ta.dispatchEvent(new Event('input', { bubbles: true }));
+                ta.focus();
+                ta.style.height = 'auto';
+                ta.style.height = Math.min(ta.scrollHeight, 250) + 'px';
+              }
+            }
+          }).catch((err) => console.error('[PromptGallery] open failed:', err));
         }
-      }).catch((err) => console.error('[PromptGallery] open failed:', err));
+        enhanceMenu.classList.remove('is-open');
+      });
     });
+
+    // Close overflow menu when clicking outside
+    const closeEnhanceMenu = (e) => {
+      if (!enhanceMenu.contains(e.target)) {
+        enhanceMenu.classList.remove('is-open');
+      }
+    };
+    window.addEventListener('click', closeEnhanceMenu);
 
     const toolbar = document.createElement('div');
     toolbar.className = 'flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06]';
-    toolbar.appendChild(gtmBtn);
-    toolbar.appendChild(recipeBtn);
-    toolbar.appendChild(monetizationBtn);
-    toolbar.appendChild(promptGalleryBtn);
+    toolbar.appendChild(enhanceMenu);
     topRow.appendChild(toolbar);
 
     bar.appendChild(topRow);
-
-    // Personalized chip — shows when a contact is active
-    const personalizedChip = document.createElement('div');
-    personalizedChip.id = 'v-personalized-chip';
-    personalizedChip.className = 'hidden items-center gap-2 px-3 py-2 mx-2 mt-2 bg-primary/10 border border-primary/20 rounded-xl text-xs text-primary';
-    bar.appendChild(personalizedChip);
-
-    function refreshPersonalizedChip() {
-      const id = (() => { try { return localStorage.getItem('remix_selected_contact_id'); } catch { return null; } })();
-      if (!id) {
-        personalizedChip.classList.add('hidden');
-        personalizedChip.classList.remove('flex');
-        return;
-      }
-      try {
-        const contacts = JSON.parse(localStorage.getItem('remix_contacts') || '[]');
-        const contact = contacts.find(c => c.id === id);
-        if (contact) {
-          personalizedChip.classList.remove('hidden');
-          personalizedChip.classList.add('flex');
-          personalizedChip.innerHTML = `
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            <span>Personalized for <strong>${escapeHtml(contact.name)}</strong>${contact.company ? ` at ${escapeHtml(contact.company)}` : ''}</span>
-            <button id="v-clear-contact" class="ml-2 text-primary/60 hover:text-primary" title="Remove personalization">✕</button>
-          `;
-          const clearBtn = personalizedChip.querySelector('#v-clear-contact');
-          if (clearBtn) {
-            clearBtn.onclick = (e) => {
-              e.stopPropagation();
-              localStorage.removeItem('remix_selected_contact_id');
-              refreshPersonalizedChip();
-              refreshPopoverForSelectedContact();
-            };
-          }
-        }
-      } catch {}
-    }
-    refreshPersonalizedChip();
 
     // Extend mode banner (shown when extend model is active, not editable by user)
     const extendBanner = document.createElement('div');
@@ -757,7 +723,7 @@ export function VideoStudio() {
     modelPickerBtn.textContent = 'AI Pick';
     modelPickerBtn.title = 'Open intelligent model picker';
     modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-    modelPickerBtn.className = 'text-[11px] font-bold text-primary border border-primary/30 bg-primary/10 px-2.5 py-1.5 rounded-lg hover:bg-primary/20 transition-colors ml-2 whitespace-nowrap';
+    modelPickerBtn.className = 'btn-action-secondary shrink-0';
     modelPickerBtn.addEventListener('click', () => {
       openModelPicker({
         currentModelId: selectedModel,
@@ -821,10 +787,6 @@ export function VideoStudio() {
         return vid?.src || '';
       },
     });
-    // Refresh the personalized chip when the active contact changes
-    window.addEventListener('remix:contact-changed', () => {
-      try { refreshPersonalizedChip(); } catch {}
-    });
 
 
     // Initial visibility (t2v mode)
@@ -834,12 +796,12 @@ export function VideoStudio() {
     resolutionBtn.style.display = initResolutions.length > 0 ? 'flex' : 'none';
     qualityBtn.style.display = 'none';
 
-    // Thumbnail studio button — next to creation controls, GTM Boost styling
+    // Thumbnail studio button — next to creation controls
     const thumbBtn = document.createElement('button');
     thumbBtn.type = 'button';
     thumbBtn.textContent = '🖼 Thumbnail';
     thumbBtn.title = 'Generate a custom thumbnail';
-    thumbBtn.className = 'btn-ghost-modern shrink-0';
+    thumbBtn.className = 'btn-action-secondary shrink-0';
     thumbBtn.addEventListener('click', () => {
     const modal = new TemplateThumbnailModal({
       appTheme: 'video-studio',

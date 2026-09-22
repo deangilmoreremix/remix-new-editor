@@ -713,22 +713,73 @@ export function AudioStudio() {
     },
   });
 
-  const gtmBtn = document.createElement('button');
-  gtmBtn.type = 'button';
-  gtmBtn.textContent = '🎯 GTM Boost';
-  gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
-  gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
-  gtmBtn.className = 'gtm-boost-btn shrink-0';
-  gtmBtn.addEventListener('click', () => {
-    import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-      openGTMPromptModal('audio-studio', (p) => {
-        promptInput.value = p;
-        promptInput.dispatchEvent(new Event('input', { bubbles: true }));
-        promptInput.focus();
-      });
-    }).catch((err) => console.error('[AudioStudio] GTM Boost failed:', err));
+  const enhanceMenu = document.createElement('div');
+  enhanceMenu.className = 'overflow-menu shrink-0';
+  enhanceMenu.innerHTML = `
+    <button type="button" class="overflow-menu__trigger" data-tooltip="More tools" aria-label="More enhancement tools">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+    </button>
+    <div class="overflow-menu__panel">
+      <button type="button" class="overflow-menu__item" data-enhance="gtm">🎯 GTM Boost</button>
+      <button type="button" class="overflow-menu__item" data-enhance="recipe">📋 Recipes</button>
+      <button type="button" class="overflow-menu__item" data-enhance="monetize">💼 Monetize</button>
+      <button type="button" class="overflow-menu__item" data-enhance="prompts">📚 Prompts</button>
+    </div>
+  `;
+  const enhanceTrigger = enhanceMenu.querySelector('.overflow-menu__trigger');
+  const enhancePanel = enhanceMenu.querySelector('.overflow-menu__panel');
+  const enhanceItems = enhanceMenu.querySelectorAll('[data-enhance]');
+
+  function toggleEnhanceMenu() {
+    const isOpen = enhanceMenu.classList.contains('is-open');
+    enhanceMenu.classList.toggle('is-open', !isOpen);
+  }
+
+  enhanceTrigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleEnhanceMenu();
   });
-  promptGroup.appendChild(gtmBtn);
+
+  enhanceItems.forEach(item => {
+    item.addEventListener('click', () => {
+      const action = item.dataset.enhance;
+      if (action === 'gtm') {
+        import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+          openGTMPromptModal('audio-studio', (p) => {
+            promptInput.value = p;
+            promptInput.dispatchEvent(new Event('input', { bubbles: true }));
+            promptInput.focus();
+          });
+        }).catch((err) => console.error('[AudioStudio] GTM Boost failed:', err));
+      } else if (action === 'recipe') {
+        openRecipeModal().catch((err) => console.error('[Recipe] open failed:', err));
+      } else if (action === 'monetize') {
+        openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+      } else if (action === 'prompts') {
+        openPromptGallery({
+          appTheme: 'audio-studio',
+          onSelect: (prompt) => {
+            const ta = promptInput;
+            if (ta) {
+              ta.value = prompt;
+              ta.dispatchEvent(new Event('input', { bubbles: true }));
+              ta.focus();
+            }
+          }
+        }).catch((err) => console.error('[PromptGallery] open failed:', err));
+      }
+      enhanceMenu.classList.remove('is-open');
+    });
+  });
+
+  const closeEnhanceMenu = (e) => {
+    if (!enhanceMenu.contains(e.target)) {
+      enhanceMenu.classList.remove('is-open');
+    }
+  };
+  window.addEventListener('click', closeEnhanceMenu);
+
+  promptGroup.appendChild(enhanceMenu);
   mountPersonalizeTrigger({ controlsContainer: formCard, getTextarea: () => promptInput, appId: 'audio-studio' });
   formCard.appendChild(promptGroup);
 
@@ -906,7 +957,7 @@ export function AudioStudio() {
   thumbBtn.type = 'button';
   thumbBtn.textContent = 'Thumbnail';
   thumbBtn.title = 'Generate a custom thumbnail';
-  thumbBtn.className = 'gtm-boost-btn w-full';
+  thumbBtn.className = 'btn-action-secondary shrink-0';
   thumbBtn.addEventListener('click', () => {
     const modal = new StudioThumbnailModal({
       appTheme: 'audio-studio',

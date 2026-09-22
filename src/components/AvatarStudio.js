@@ -244,23 +244,76 @@ const triggerBtn = document.createElement('button');
   promptInput.setAttribute('aria-label', 'Avatar prompt');
   promptInput.oninput = (e) => { prompt = e.target.value; };
   promptGroup.appendChild(promptInput);
-    // GTM Boost entry point — opens the prompt enhancer themed for avatar
-    // animation and loads the result straight into this prompt.
-    const gtmBtn = document.createElement('button');
-    gtmBtn.type = 'button';
-    gtmBtn.textContent = '🎯 GTM Boost';
-    gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
-    gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
-    gtmBtn.className = 'gtm-boost-btn';
-    gtmBtn.addEventListener('click', () => {
-      import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-        openGTMPromptModal('avatar-studio', (prompt) => {
-          promptInput.value = prompt;
-          promptInput.dispatchEvent(new Event('input', { bubbles: true }));
-          promptInput.focus();
-        });
-      }).catch((err) => console.error('[AvatarStudio] GTM Boost failed:', err));
+    // Enhancement tools overflow menu (GTM Boost, Recipes, Monetize, Prompts)
+    const enhanceMenu = document.createElement('div');
+    enhanceMenu.className = 'overflow-menu shrink-0';
+    enhanceMenu.innerHTML = `
+      <button type="button" class="overflow-menu__trigger" data-tooltip="More tools" aria-label="More enhancement tools">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+      </button>
+      <div class="overflow-menu__panel">
+        <button type="button" class="overflow-menu__item" data-enhance="gtm">🎯 GTM Boost</button>
+        <button type="button" class="overflow-menu__item" data-enhance="recipe">📋 Recipes</button>
+        <button type="button" class="overflow-menu__item" data-enhance="monetize">💼 Monetize</button>
+        <button type="button" class="overflow-menu__item" data-enhance="prompts">📚 Prompts</button>
+      </div>
+    `;
+    const enhanceTrigger = enhanceMenu.querySelector('.overflow-menu__trigger');
+    const enhancePanel = enhanceMenu.querySelector('.overflow-menu__panel');
+    const enhanceItems = enhanceMenu.querySelectorAll('[data-enhance]');
+
+    function toggleEnhanceMenu() {
+      const isOpen = enhanceMenu.classList.contains('is-open');
+      enhanceMenu.classList.toggle('is-open', !isOpen);
+    }
+
+    enhanceTrigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleEnhanceMenu();
     });
+
+    enhanceItems.forEach(item => {
+      item.addEventListener('click', () => {
+        const action = item.dataset.enhance;
+        if (action === 'gtm') {
+          import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+            openGTMPromptModal('avatar-studio', (prompt) => {
+              promptInput.value = prompt;
+              promptInput.dispatchEvent(new Event('input', { bubbles: true }));
+              promptInput.focus();
+            });
+          }).catch((err) => console.error('[AvatarStudio] GTM Boost failed:', err));
+        } else if (action === 'recipe') {
+          openRecipeModal({
+            onRunRecipe: (url) => {
+            }
+          }).catch((err) => console.error('[Recipe] open failed:', err));
+        } else if (action === 'monetize') {
+          openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+        } else if (action === 'prompts') {
+          openPromptGallery({
+            appTheme: 'avatar-studio',
+            onSelect: (prompt) => {
+              const ta = document.querySelector('textarea') || document.querySelector('[data-prompt]');
+              if (ta) {
+                ta.value = prompt;
+                ta.dispatchEvent(new Event('input', { bubbles: true }));
+                ta.focus();
+              }
+            }
+          }).catch((err) => console.error('[PromptGallery] open failed:', err));
+        }
+        enhanceMenu.classList.remove('is-open');
+      });
+    });
+
+    const closeEnhanceMenu = (e) => {
+      if (!enhanceMenu.contains(e.target)) {
+        enhanceMenu.classList.remove('is-open');
+      }
+    };
+    window.addEventListener('click', closeEnhanceMenu);
+    promptGroup.appendChild(enhanceMenu);
   formCard.appendChild(promptGroup);
   mountPersonalizeTrigger({ controlsContainer: formCard, getTextarea: () => promptInput, appId: 'avatar-studio' });
 
@@ -270,7 +323,7 @@ const triggerBtn = document.createElement('button');
   modelPickerBtn.textContent = 'AI Pick';
   modelPickerBtn.title = 'Open intelligent model picker';
   modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-  modelPickerBtn.className = 'text-[11px] font-bold text-cyan-400 border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 rounded-lg hover:bg-cyan-400/20 transition-colors ml-2 whitespace-nowrap';
+  modelPickerBtn.className = 'btn-action-secondary shrink-0';
   modelPickerBtn.addEventListener('click', () => {
     openModelPicker({
       currentModelId: selectedModel.id,
@@ -315,7 +368,7 @@ const triggerBtn = document.createElement('button');
   thumbBtn.type = 'button';
   thumbBtn.textContent = '🖼 Thumbnail';
   thumbBtn.title = 'Generate a custom thumbnail';
-  thumbBtn.className = 'btn-ghost-modern w-full';
+  thumbBtn.className = 'btn-action-secondary shrink-0';
   thumbBtn.addEventListener('click', () => {
     const modal = new TemplateThumbnailModal({
       appTheme: 'avatar-studio',
@@ -376,61 +429,6 @@ const triggerBtn = document.createElement('button');
 
   // Helper functions
 
-
-    // Prompt Gallery button
-    const promptGalleryBtn = document.createElement('button');
-    promptGalleryBtn.type = 'button';
-    promptGalleryBtn.textContent = '📚 Prompts';
-    promptGalleryBtn.title = 'Browse prompt gallery';
-    promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
-    promptGalleryBtn.className = 'btn-ghost-modern';
-    promptGalleryBtn.addEventListener('click', () => {
-      openPromptGallery({
-        appTheme: 'avatar-studio',
-        onSelect: (prompt) => {
-          // Default: try to find a textarea in the studio
-          const ta = document.querySelector('textarea') || document.querySelector('[data-prompt]');
-          if (ta) {
-            ta.value = prompt;
-            ta.dispatchEvent(new Event('input', { bubbles: true }));
-            ta.focus();
-          }
-        }
-      }).catch((err) => console.error('[PromptGallery] open failed:', err));
-    });
-
-    // Recipe Engine button
-    const recipeBtn = document.createElement('button');
-    recipeBtn.type = 'button';
-    recipeBtn.textContent = '📋 Recipes';
-    recipeBtn.title = 'Browse AI recipes';
-    recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-    recipeBtn.className = 'btn-ghost-modern';
-    recipeBtn.addEventListener('click', () => {
-      openRecipeModal({
-        onRunRecipe: (url) => {
-        }
-      }).catch((err) => console.error('[Recipe] open failed:', err));
-    });
-
-
-    // Monetization Hub button
-    const monetizationBtn = document.createElement('button');
-    monetizationBtn.type = 'button';
-    monetizationBtn.textContent = '💼 Monetize';
-    monetizationBtn.title = "Open Smart Video AI Monetization Hub";
-    monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-    monetizationBtn.className = 'btn-ghost-modern';
-    monetizationBtn.addEventListener('click', () => {
-      openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
-    });
-    const toolbar = document.createElement('div');
-    toolbar.className = 'flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06]';
-    toolbar.appendChild(gtmBtn);
-    toolbar.appendChild(recipeBtn);
-    toolbar.appendChild(monetizationBtn);
-    toolbar.appendChild(promptGalleryBtn);
-    promptGroup.appendChild(toolbar);
 
   function updateFormVisibility() {
     // Show/hide video upload
