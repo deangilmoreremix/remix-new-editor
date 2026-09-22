@@ -52,22 +52,8 @@ import {
   analyzePersonalizationImages,
   validatePersonalizationImageEdit,
 } from '../../lib/personalization/visionService.js';
-import {
-  PersonalizationImageEditorService,
-  preparePersonalizationImageDataUrl,
-} from '../../lib/personalization/imageEditorService.js';
-import {
-  appendEditorVersion,
-  createPersonalizationImageEditorSession,
-  currentEditorVersion,
-  editorPreserveList,
-  getEditorOperationForSession,
-  renderPersonalizationImageEditorPanel,
-  setEditorVersionIndex,
-} from '../../lib/personalization/imageEditorPanel.js';
-import { applyLocalImageAdjustments } from '../../lib/personalization/localImageEditor.js';
-import { mountPersonalizationMaskEditor } from '../../lib/personalization/maskEditor.js';
-import { makePersonalizationAssetVideoReady } from '../../lib/personalization/videoReady.js';
+import { renderPersonalizationImageEditorPanel } from '../../lib/personalization/imageEditorPanel.js';
+import { PersonalizationImageEditorController } from '../../lib/personalization/imageEditorController.js';
 
 const CONTACTS_KEY = 'remix_contacts';
 const PROFILES_KEY = 'remix_contact_profiles';
@@ -262,8 +248,17 @@ export class PersonalizeModal extends BaseModal {
     this.businessSaveStatus = '';
     this.assetEditorAssetId = null;
     this.imageEditorSession = null;
-    this.maskEditorController = null;
-    this.imageEditorService = new PersonalizationImageEditorService();
+    this.imageEditorController = new PersonalizationImageEditorController({
+      onChange: (session, { render = true } = {}) => {
+        this.imageEditorSession = session;
+        if (render) this.refreshBody();
+        else this._updateEditorBusyLabel();
+      },
+      onPreview: (dataUrl) => {
+        const preview = this.overlay?.querySelector('[data-editor-preview]');
+        if (preview && dataUrl) preview.src = dataUrl;
+      },
+    });
     this.isDiscoveringBusinessAssets = false;
     this.isAnalyzingBusinessAssets = false;
     this.isImportingBusinessAssets = false;
