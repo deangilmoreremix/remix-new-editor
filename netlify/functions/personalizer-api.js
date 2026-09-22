@@ -29,6 +29,29 @@ async function checkRateLimit(userId) {
   } catch { return true; }
 }
 
+async function recordBillablePersonalizationRequest(userId, mode) {
+  const now = new Date().toISOString();
+  const { error } = await supabaseService
+    .from('personalization_projects')
+    .insert({
+      user_id: userId,
+      app_id: 'personalization-image-editor',
+      mode,
+      target_name: 'image-vision',
+      status: 'complete',
+      created_at: now,
+      updated_at: now,
+    });
+
+  if (error) {
+    console.error('[personalizer] Failed to record billable Vision request:', error.message || error);
+    const recordError = new Error('Vision usage could not be recorded. Please try again.');
+    recordError.status = 503;
+    throw recordError;
+  }
+}
+
+
 async function verifyAuth(event) {
   const authHeader = event.headers.authorization || event.headers.Authorization;
   if (!authHeader?.startsWith('Bearer ')) return { error: 'Missing or invalid authorization header' };
@@ -878,6 +901,15 @@ export async function handler(event, context) {
     // vs edited and returns preservation QA.
     if (path === '/image-analyze' && event.httpMethod === 'POST') {
       try {
+        // Record every paid Vision analysis/validation request before calling
+        // OpenAI so the existing per-user project-window limiter actually
+        // advances. If accounting fails, fail closed rather than incur
+        // unmetered API cost.
+        const usageMode = body.mode === 'validate'
+          ? 'image-vision-validate'
+          : 'image-vision-analyze';
+        await recordBillablePersonalizationRequest(userId, usageMode);
+
         const result = await handlePersonalizationImageVision(body);
         return { statusCode: 200, headers, body: JSON.stringify(result) };
       } catch (visionError) {
