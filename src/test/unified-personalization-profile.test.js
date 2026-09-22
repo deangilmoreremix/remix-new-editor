@@ -3,6 +3,7 @@ import {
   createPersonalizationAsset,
   ensurePersonalizationProfile,
   getAllPersonalizationAssets,
+  movePersonalizationAsset,
   normalizeBusinessProfile,
   removePersonalizationAsset,
   updatePersonalizationBusiness,
@@ -67,6 +68,18 @@ describe('unified personalization profile', () => {
     expect(asset.originalUrl).toBe(asset.url);
     expect(asset.edited).toBe(false);
     expect(asset.versions[0].type).toBe('original');
+  });
+
+  it('moves an imported asset to a different personalization role without changing its durable URL', () => {
+    const logo = createPersonalizationAsset({ role: 'logo', url: 'https://x/logo.png' });
+    let profile = ensurePersonalizationProfile({});
+    profile = addPersonalizationAsset(profile, logo);
+    profile = movePersonalizationAsset(profile, logo.id, 'first_frame');
+
+    expect(profile.personalization.assets.logos).toHaveLength(0);
+    expect(profile.personalization.assets.firstFrame.id).toBe(logo.id);
+    expect(profile.personalization.assets.firstFrame.url).toBe('https://x/logo.png');
+    expect(profile.personalization.assets.firstFrame.role).toBe('first_frame');
   });
 
   it('flattens every role-aware asset collection', () => {
