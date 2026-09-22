@@ -92,6 +92,48 @@
 12. Studio handoff expansion.
 13. Regression + E2E gates.
 
+## Completion status — 2026-09-22
+
+The integration is code-complete on `feature/unified-personalization-image-editor` subject to executable CI/browser validation.
+
+Completed architecture:
+
+- Existing `PersonalizeModal.jsx` remains the only personalization modal; legacy Discover / Results / History flows remain present.
+- Business targeting supports Me / My Business / Client plus OSM/Nominatim business discovery and free static business research.
+- Free-first asset discovery order is enforced as:
+  1. 5-minute cache
+  2. static HTML / src / srcset / picture / OpenGraph / Twitter / structured image metadata
+  3. robots.txt + sitemap page discovery
+  4. configured Playwright/Open-Pomelli rendered asset extraction worker
+  5. Firecrawl v2 only as the final optional fallback when `FIRECRAWL_API_KEY` is configured
+- Website image validation is bounded by concurrency and an overall request budget.
+- Discovery never silently invokes paid Vision.
+- Asset review supports select/deselect, reject/restore, reclassification, explicit destination role, imported-asset role moves, uploads, drag/drop, delete, Vision, editing, Video Ready and durable import.
+- First Frame / Last Frame / CTA are explicit roles and never auto-assigned by website discovery.
+- Person, Logo, Product/Service, Brand Reference, First/Last Frame, CTA, Audio and Saved Reference libraries are first-class.
+- SmartVideo AI image editing reuses `ThumbnailService` + `ai-thumbnail-generator`; no duplicate image API backend was created.
+- 68 operations and 16 asset recipes are present.
+- Simple/Advanced editor, Vision analysis/QA, mask editor, local zero-credit edits, Smart Edit, versions, compare, protections and Video Ready are integrated.
+- Paid Vision requests are authenticated and metered through the existing rate-limit accounting path.
+- Image / Video / Template / Cinema use capability-aware personalization context for first frame, last frame, image references and audio references.
+- Exact logos and CTA graphics are excluded from generative reference inputs and represented by a deterministic final-composite manifest for exact logo overlay / end-card composition.
+- Existing local browser profiles remain compatible. The existing Supabase `contact_profiles.profile JSONB` and `contact_assets.metadata JSONB` schema already supports this metadata, so a duplicate personalization schema/migration was intentionally not added.
+- A dedicated Playwright acceptance spec is included in the certification test set.
+- The four automated PR review findings (auth client, Vision metering, discovery timeout bounding, partial-import durability) were fixed and their review threads resolved.
+
+Validation completed in the available execution environment:
+
+- Static JavaScript parsing completed across the core personalization backend, modal, services, studio integrations, adapters and new tests.
+- A pre-existing Template Studio parse blocker discovered during this audit was fixed on the feature branch.
+- Executable pure-module checks verified the 68/16 registry contract, asset role routing, profile preservation, first/last/reference model capability routing, logo/CTA exclusion from generative refs, deterministic exact-overlay manifest behavior, mask alpha semantics and imported-asset role movement.
+- The dedicated Playwright acceptance spec and Playwright config parse cleanly.
+
+External validation blocker:
+
+- GitHub Actions currently creates CI jobs without assigning a runner (`runner_id: 0`, empty runner name, zero executed steps). Therefore the displayed CI failures are infrastructure failures, not executed build/test/lint/typecheck/security failures.
+- The current execution container also cannot resolve `github.com` for a repository clone, so full `npm ci`, build and browser execution cannot be substituted locally.
+- PR #25 remains draft and must not be merged solely on the static checks above. When runners are available, the required gates remain `npm run test:run`, lint, typecheck, build, security, and the Playwright certification suite.
+
 ## Explicit non-goals
 
 - No duplicate Personalize modal.
