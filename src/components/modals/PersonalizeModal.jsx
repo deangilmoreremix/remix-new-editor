@@ -41,6 +41,7 @@ import {
   normalizeBusinessProfile,
   removePersonalizationAsset,
   setDiscoveredPersonalizationAssets,
+  setPersonalizationGenerationOptions,
   updatePersonalizationAsset,
   updatePersonalizationBusiness,
 } from '../../lib/personalization/personalizationProfile.js';
@@ -2683,6 +2684,32 @@ export class PersonalizeModal extends BaseModal {
 
         <div class="pm-section">
           <div class="pm-section-header">
+            <span class="pm-section-label">Exact Brand Handling</span>
+            <span class="pm-preview-pill pm-preview-pill-muted">Deterministic by default</span>
+          </div>
+          <div class="pm-preview-empty">
+            Keep exact logos, CTA wording, phone numbers, and URLs out of generative redraws when fidelity matters. These settings travel with studio/Personalizer handoffs.
+          </div>
+          <div class="pm-business-grid">
+            <label class="pm-business-field">
+              <span>Logo Handling</span>
+              <select data-generation-option="exactLogoHandling">
+                <option value="final-overlay" ${profile.personalization.generationOptions?.exactLogoHandling !== 'ai-reference' ? 'selected' : ''}>Final exact overlay</option>
+                <option value="ai-reference" ${profile.personalization.generationOptions?.exactLogoHandling === 'ai-reference' ? 'selected' : ''}>AI reference</option>
+              </select>
+            </label>
+            <label class="pm-business-field">
+              <span>CTA Handling</span>
+              <select data-generation-option="exactCtaHandling">
+                <option value="final-end-card" ${profile.personalization.generationOptions?.exactCtaHandling !== 'ai-generated' ? 'selected' : ''}>Final exact end card</option>
+                <option value="ai-generated" ${profile.personalization.generationOptions?.exactCtaHandling === 'ai-generated' ? 'selected' : ''}>AI generated</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div class="pm-section">
+          <div class="pm-section-header">
             <span class="pm-section-label">Reusable personalization assets</span>
             <span class="pm-preview-pill pm-preview-pill-muted">SmartVideo AI Asset Library</span>
           </div>
@@ -2798,6 +2825,18 @@ export class PersonalizeModal extends BaseModal {
         this.imageEditorController.close();
       }
       this.assetDiscoveryStatus = '✓ Asset removed from this profile';
+      this.refreshBody();
+    }
+  }
+
+  _handleGenerationOptionChange(key, value) {
+    const id = getSelectedContactId();
+    const profile = id ? _getProfile(id) : null;
+    if (!profile || !key) return;
+    const next = setPersonalizationGenerationOptions(profile, { [key]: value });
+    next.updatedAt = new Date().toISOString();
+    if (this._persistSelectedProfile(next)) {
+      this.assetDiscoveryStatus = '✓ Exact brand handling updated';
       this.refreshBody();
     }
   }
@@ -4002,6 +4041,12 @@ export class PersonalizeModal extends BaseModal {
           btn.onclick = (e) => {
             e.stopPropagation();
             this._handleResearchBusiness(btn.dataset.businessIndex);
+          };
+        });
+
+        scope.querySelectorAll('[data-generation-option]').forEach((select) => {
+          select.onchange = () => {
+            this._handleGenerationOptionChange(select.dataset.generationOption, select.value);
           };
         });
 
