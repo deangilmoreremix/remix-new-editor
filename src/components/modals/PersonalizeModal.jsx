@@ -55,6 +55,7 @@ import {
 } from '../../lib/personalization/businessDiscoveryService.js';
 import { renderPersonalizationImageEditorPanel } from '../../lib/personalization/imageEditorPanel.js';
 import { PersonalizationImageEditorController } from '../../lib/personalization/imageEditorController.js';
+import { buildPersonalizationContext } from '../../lib/personalization/studioContext.js';
 
 const CONTACTS_KEY = 'remix_contacts';
 const PROFILES_KEY = 'remix_contact_profiles';
@@ -4736,7 +4737,11 @@ export class PersonalizeModal extends BaseModal {
         ta.value = replaceTokensInPrompt(ta.value, profile);
         ta.dispatchEvent(new Event('input', { bubbles: true }));
       }
-      this.onApply({ contactId: id, profile });
+      const personalization = buildPersonalizationContext(profile);
+      this.onApply({ contactId: id, profile, personalization });
+      window.dispatchEvent(new CustomEvent('remix:personalization-applied', {
+        detail: { contactId: id, profile, personalization, studioId: this.studioId || '' },
+      }));
     }
     this.close();
   }
@@ -4770,6 +4775,20 @@ export class PersonalizeModal extends BaseModal {
         previewUrl: preview || undefined,
         fields: personalizableFields,
         metadata: { source: 'personalize-modal-fallback' },
+      };
+    }
+
+    if (asset && profile) {
+      const personalization = buildPersonalizationContext(profile);
+      const ta = this.getTextarea?.();
+      asset = {
+        ...asset,
+        fields: Array.isArray(asset.fields) ? asset.fields : [],
+        metadata: {
+          ...(asset.metadata || {}),
+          personalization,
+          personalizedPrompt: ta?.value ? replaceTokensInPrompt(ta.value, profile) : undefined,
+        },
       };
     }
 
