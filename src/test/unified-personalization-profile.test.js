@@ -4,6 +4,7 @@ import {
   ensurePersonalizationProfile,
   getAllPersonalizationAssets,
   normalizeBusinessProfile,
+  removePersonalizationAsset,
   updatePersonalizationBusiness,
 } from '../lib/personalization/personalizationProfile.js';
 import { buildVariables, resolveToken } from '../components/personalize/tokenSchema.js';
@@ -76,4 +77,16 @@ describe('unified personalization profile', () => {
     profile.personalization.assets.firstFrame = frame;
     expect(getAllPersonalizationAssets(profile)).toHaveLength(2);
   });
+  it('removes assets and repairs primary selections', () => {
+    const first = createPersonalizationAsset({ id: 'logo-1', role: 'logo', url: 'https://x/one.png' });
+    const second = createPersonalizationAsset({ id: 'logo-2', role: 'logo', url: 'https://x/two.png' });
+    const profile = ensurePersonalizationProfile({});
+    profile.personalization.assets.logos = [first, second];
+    profile.personalization.assets.primaryLogoId = first.id;
+
+    const next = removePersonalizationAsset(profile, first.id);
+    expect(next.personalization.assets.logos.map((asset) => asset.id)).toEqual(['logo-2']);
+    expect(next.personalization.assets.primaryLogoId).toBe('logo-2');
+  });
+
 });
