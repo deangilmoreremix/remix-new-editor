@@ -446,59 +446,203 @@ async function validateImageCandidatesBounded(candidates, {
     .map((entry) => entry.value);
 }
 
-async function captureRenderedScreenshotFallback(websiteUrl) {
+function collectRenderedCandidates(payload, websiteUrl) {
+  const candidates = new Map();
+  const socialProfiles = new Map();
+
+  const addValue = (value, meta = {}) => {
+    if (!value) return;
+    if (typeof value === 'string') {
+      addCandidate(candidates, value, websiteUrl, meta);
+      return;
+    }
+    if (typeof value === 'object') {
+      const url = value.url || value.src || value.currentSrc || value.image || value.href;
+      if (url) {
+        addCandidate(candidates, url, value.sourcePage || websiteUrl, {
+          altText: value.alt || value.altText || '',
+          context: value.context || value.className || meta.context || 'rendered-dom',
+        });
+      }
+    }
+  };
+
+  for (const value of [
+    ...(Array.isArray(payload?.assets) ? payload.assets : []),
+    ...(Array.isArray(payload?.images) ? payload.images : []),
+    ...(Array.isArray(payload?.data?.assets) ? payload.data.assets : []),
+    ...(Array.isArray(payload?.data?.images) ? payload.data.images : []),
+  ]) {
+    addValue(value, { context: 'rendered-dom' });
+  }
+
+  const renderedHtml =
+    (typeof payload?.html === 'string' && payload.html) ||
+    (typeof payload?.rawHtml === 'string' && payload.rawHtml) ||
+    (typeof payload?.data?.html === 'string' && payload.data.html) ||
+    (typeof payload?.data?.rawHtml === 'string' && payload.data.rawHtml) ||
+    '';
+  if (renderedHtml) {
+    for (const candidate of extractImageCandidates(renderedHtml, websiteUrl)) {
+      if (!candidates.has(candidate.url)) candidates.set(candidate.url, candidate);
+    }
+    for (const social of extractSocialProfiles(renderedHtml, websiteUrl)) {
+      socialProfiles.set(social.url, social);
+    }
+  }
+
+  for (const social of [
+    ...(Array.isArray(payload?.socialProfiles) ? payload.socialProfiles : []),
+    ...(Array.isArray(payload?.data?.socialProfiles) ? payload.data.socialProfiles : []),
+  ]) {
+    if (social?.url) socialProfiles.set(social.url, social);
+  }
+
+  const screenshotUrl =
+    payload?.screenshot ||
+    payload?.url ||
+    payload?.image ||
+    payload?.data?.screenshot ||
+    payload?.data?.url ||
+    '';
+  if (screenshotUrl) {
+    addValue(screenshotUrl, {
+      context: 'rendered-screenshot',
+      altText: 'Rendered website screenshot',
+    });
+  }
+
+  return {
+    candidates: Array.from(candidates.values()),
+    socialProfiles: Array.from(socialProfiles.values()),
+  };
+}
+
+function discoveredAssetFromValidated(valid, sourceType = 'WEBSITE') {
+  const classification = heuristicClassification(valid);
+  if (!USEFUL_CATEGORIES.has(classification.category)) return null;
+  return {
+    id: `disc_${crypto.randomUUID()}`,
+    sourceUrl: valid.url,
+    previewUrl: valid.url,
+    sourcePage: valid.sourcePage,
+    sourceType,
+    category: classification.category,
+    confidence: classification.confidence,
+    qualityScore: null,
+    relevanceScore: null,
+    selected: classification.recommended,
+    recommended: classification.recommended,
+    rejected: false,
+    assignedRole: null,
+    autoAssigned: false,
+    mimeType: valid.mimeType,
+    altText: valid.altText || '',
+    visionAnalysis: null,
+    editedUrl: null,
+    videoReady: false,
+  };
+}
+
+async function discoverRenderedAssetsFallback(websiteUrl, limit = 20) {
   const apiUrl = process.env.PERSONALIZATION_RENDERED_DISCOVERY_URL || process.env.SCREENSHOT_API_URL;
   if (!apiUrl) return null;
 
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(process.env.SCREENSHOT_API_KEY
-          ? { Authorization: `Bearer ${process.env.SCREENSHOT_API_KEY}` }
+        ...((process.env.PERSONALIZATION_RENDERED_DISCOVERY_KEY || process.env.SCREENSHOT_API_KEY)
+          ? { Authorization: `Bearer ${process.env.PERSONALIZATION_RENDERED_DISCOVERY_KEY || process.env.SCREENSHOT_API_KEY}` }
           : {}),
       },
-      body: JSON.stringify({ url: websiteUrl, width: 1280, height: 720 }),
+      // Contract is compatible with an Open-Pomelli/Playwright worker. Older
+      // screenshot-only services can ignore the extra fields and still return
+      // their screenshot URL.
+      body: JSON.stringify({
+        url: websiteUrl,
+        mode: 'asset-discovery',
+        renderer: 'playwright',
+        includeImages: true,
+        includeHtml: true,
+        includeSocial: true,
+        width: 1280,
+        height: 720,
+      }),
       signal: controller.signal,
     });
-    clearTimeout(timeout);
     if (!response.ok) return null;
+
     const payload = await response.json().catch(() => ({}));
-    const screenshotUrl = payload.url || payload.screenshot || payload.image;
-    if (!screenshotUrl) return null;
-    const valid = await validateImageCandidate({
-      url: screenshotUrl,
-      sourcePage: websiteUrl,
-      context: 'rendered-screenshot',
-      altText: 'Rendered website screenshot',
+    const collected = collectRenderedCandidates(payload, websiteUrl);
+    const validated = await validateImageCandidatesBounded(collected.candidates, {
+      limit: Math.max(1, Math.min(Number(limit) || 20, 30)),
+      budgetMs: 12000,
+      concurrency: 6,
     });
-    if (!valid) return null;
+    const assets = validated
+      .map((valid) => discoveredAssetFromValidated(valid, 'PLAYWRIGHT_RENDERED'))
+      .filter(Boolean);
+
     return {
-      id: `disc_${crypto.randomUUID()}`,
-      sourceUrl: valid.url,
-      previewUrl: valid.url,
-      sourcePage: websiteUrl,
-      sourceType: 'RENDERED_SCREENSHOT',
-      category: 'brand',
-      confidence: 60,
-      qualityScore: null,
-      relevanceScore: null,
-      selected: true,
-      recommended: true,
-      rejected: false,
-      assignedRole: 'brand_reference',
-      autoAssigned: false,
-      mimeType: valid.mimeType,
-      altText: 'Rendered website screenshot',
-      visionAnalysis: null,
-      editedUrl: null,
-      videoReady: false,
+      providerUsed: 'PLAYWRIGHT_RENDERED',
+      assets,
+      socialProfiles: collected.socialProfiles,
     };
   } catch {
     return null;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function discoverWithFirecrawlLastFallback(websiteUrl, limit = 20) {
+  const apiKey = process.env.FIRECRAWL_API_KEY;
+  if (!apiKey) return null;
+
+  const endpoint = process.env.FIRECRAWL_API_URL || 'https://api.firecrawl.dev/v2/scrape';
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        url: websiteUrl,
+        formats: ['html', 'images', 'links'],
+        onlyMainContent: false,
+        maxAge: 0,
+      }),
+      signal: controller.signal,
+    });
+    if (!response.ok) return null;
+
+    const payload = await response.json().catch(() => ({}));
+    const collected = collectRenderedCandidates(payload, websiteUrl);
+    const validated = await validateImageCandidatesBounded(collected.candidates, {
+      limit: Math.max(1, Math.min(Number(limit) || 20, 30)),
+      budgetMs: 12000,
+      concurrency: 6,
+    });
+    const assets = validated
+      .map((valid) => discoveredAssetFromValidated(valid, 'FIRECRAWL'))
+      .filter(Boolean);
+
+    return {
+      providerUsed: 'FIRECRAWL',
+      assets,
+      socialProfiles: collected.socialProfiles,
+    };
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
