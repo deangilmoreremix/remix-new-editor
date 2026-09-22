@@ -1996,7 +1996,16 @@ export class PersonalizeModal extends BaseModal {
           box-shadow: 0 0 0 2px var(--pm-soft);
           background: var(--pm-soft);
         }
-        .pm-asset-thumb-wrap { position:relative; display:inline-flex; align-items:flex-start; }
+        .pm-asset-thumb-wrap {
+          position:relative; display:inline-flex; flex-direction:column; align-items:center; gap:4px;
+          max-width:120px;
+        }
+        .pm-asset-role-move {
+          width:100%; max-width:120px; padding:3px 4px; border-radius:6px;
+          border:1px solid var(--border-color); background:var(--bg-panel); color:var(--text-secondary);
+          font:inherit; font-size:8px;
+        }
+        .pm-asset-role-move:focus { outline:2px solid var(--pm-primary); outline-offset:1px; }
         .pm-asset-delete {
           position:absolute; top:-5px; right:-5px; width:18px; height:18px; border-radius:999px;
           border:1px solid var(--border-color); background:var(--bg-app); color:var(--text-muted);
