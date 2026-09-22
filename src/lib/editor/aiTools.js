@@ -3,6 +3,8 @@
 // NOTE: `modelTarget` values below are legacy identifiers that do not map
 // to current MuAPI model IDs. They are retained for UI metadata only.
 // Real generation routes are resolved explicitly in handleGenerate().
+import { uploadFileToStorage } from '../supabase.js';
+
 export const AI_FEATURES = [
   {
     id: 'generate-video',
@@ -296,11 +298,24 @@ export async function handleGenerate(selectedFeature, selectedFile, showToast) {
       };
     }
 
+    let remoteReferences = undefined;
+    if (selectedFile) {
+      try {
+        const publicUrl = await uploadFileToStorage(selectedFile);
+        remoteReferences = [publicUrl];
+      } catch (uploadError) {
+        return {
+          type: 'text',
+          text: `Upload failed: ${uploadError.message || 'Could not upload file for generation.'}`
+        };
+      }
+    }
+
     const request = {
       mode: route.operation,
       prompt: document.getElementById('promptInput')?.value || selectedFeature.defaultPrompt,
       aspectRatio: document.getElementById('aspectSelect')?.value || '16:9',
-      references: selectedFile ? [URL.createObjectURL(selectedFile)] : undefined,
+      references: remoteReferences,
       model: route.model,
     };
 

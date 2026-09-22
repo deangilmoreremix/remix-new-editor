@@ -499,6 +499,21 @@ class MuAPIProvider {
       };
     }
 
+    // Audio/TTS
+    if (mode === 'text-to-speech') {
+      const endpoint = modelInfo?.endpoint || mode;
+      const payload = {
+        prompt: request.prompt,
+      };
+      if (model) payload.model = model;
+      return {
+        endpoint,
+        payload,
+        generationType: 'audio',
+        studioType: 'audio',
+      };
+    }
+
     // Fallback for unknown modes
     return {
       endpoint: mode || 'api_request',
