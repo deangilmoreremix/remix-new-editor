@@ -79,4 +79,12 @@ describe('studio personalization context', () => {
     expect(params).not.toHaveProperty('cta_graphic');
     expect(params).not.toHaveProperty('logo');
   });
+  it('defaults exact logos and CTAs to deterministic post-generation handling', () => {
+    const context = buildPersonalizationContext(profile);
+    expect(context.generationOptions.exactLogoHandling).toBe('final-overlay');
+    expect(context.generationOptions.exactCtaHandling).toBe('final-end-card');
+    expect(context.exactOverlays.logoHandling).toBe('final-overlay');
+    expect(context.exactOverlays.ctaHandling).toBe('final-end-card');
+  });
+
 });
