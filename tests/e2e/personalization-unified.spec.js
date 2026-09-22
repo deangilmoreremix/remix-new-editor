@@ -217,6 +217,11 @@ test.describe('Unified personalization acceptance', () => {
     expect(detail.personalization.ctaGraphic.url).toBe('https://placehold.co/1280x720/png');
     expect(detail.personalization.exactOverlays.logoHandling).toBe('final-overlay');
     expect(detail.personalization.exactOverlays.ctaHandling).toBe('final-end-card');
+    expect(detail.personalization.exactOverlayManifest.strategy).toBe('deterministic-final-composite');
+    expect(detail.personalization.exactOverlayManifest.items).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'exact-logo', type: 'image-overlay', deterministic: true }),
+      expect.objectContaining({ id: 'exact-cta-end-card', type: 'end-card-image', deterministic: true }),
+    ]));
 
     await expect(prompt).toHaveValue(/Acme Roofing/);
     await expect(prompt).toHaveValue(/Free roof inspection/);
