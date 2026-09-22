@@ -48,12 +48,16 @@ export async function discoverBusinessAssets({
   const assets = Array.isArray(payload?.discoveredAssets) ? payload.discoveredAssets : [];
   return {
     ...payload,
-    discoveredAssets: assets.map((asset) => ({
-      ...asset,
-      selected: asset.selected !== false,
-      rejected: Boolean(asset.rejected),
-      assignedRole: asset.assignedRole || defaultRoleForDiscoveredCategory(asset.category),
-    })),
+    discoveredAssets: assets.map((asset) => {
+      const hadAssignedRole = Boolean(asset.assignedRole);
+      return {
+        ...asset,
+        selected: asset.selected !== false,
+        rejected: Boolean(asset.rejected),
+        assignedRole: asset.assignedRole || defaultRoleForDiscoveredCategory(asset.category),
+        autoAssigned: hadAssignedRole ? Boolean(asset.autoAssigned) : true,
+      };
+    }),
   };
 }
 
