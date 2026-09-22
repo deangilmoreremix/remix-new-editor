@@ -3686,6 +3686,20 @@ export class PersonalizeModal extends BaseModal {
           };
         });
 
+        scope.querySelectorAll('[data-action="open-asset-editor"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._openAssetEditor(btn.dataset.assetId, 'discovered');
+          };
+        });
+
+        scope.querySelectorAll('[data-action="open-imported-asset-editor"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._openAssetEditor(btn.dataset.assetId, 'imported');
+          };
+        });
+
         scope.querySelectorAll('[data-audience]').forEach((btn) => {
           btn.onclick = (e) => {
             e.stopPropagation();
@@ -3720,8 +3734,112 @@ export class PersonalizeModal extends BaseModal {
             this._insertToken(chip);
           };
         });
+
+        this._bindImageEditorActions(scope);
       }
     }
+
+  _bindImageEditorActions(scope) {
+    const controller = this.imageEditorController;
+    const session = controller?.session;
+    if (!scope || !session) return;
+
+    scope.querySelectorAll('[data-editor-action]').forEach((btn) => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        const action = btn.dataset.editorAction;
+        if (action === 'close') this._closeAssetEditor();
+        else if (action === 'analyze') this._handleEditorAnalyze();
+        else if (action === 'video-ready') this._handleEditorVideoReady();
+        else if (action === 'smart-edit') this._handleEditorSmartEdit();
+        else if (action === 'compare') controller.toggleCompare();
+        else if (action === 'safe-area') controller.toggleSafeArea();
+        else if (action === 'advanced') controller.setMode('advanced');
+        else if (action === 'simple') controller.setMode('simple');
+        else if (action === 'revert-original') controller.revertOriginal();
+        else if (action === 'undo') controller.undo();
+        else if (action === 'redo') controller.redo();
+        else if (action === 'mask') this._handleEditorMask();
+        else if (action === 'apply-local') this._handleEditorApplyLocal();
+        else if (action === 'apply') this._handleEditorApply();
+      };
+    });
+
+    scope.querySelectorAll('[data-editor-operation]').forEach((btn) => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        this._handleEditorOperation(btn.dataset.editorOperation);
+      };
+    });
+
+    scope.querySelectorAll('[data-editor-version]').forEach((btn) => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        controller.chooseVersion(Number(btn.dataset.editorVersion));
+      };
+    });
+
+    scope.querySelectorAll('[data-editor-group]').forEach((btn) => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        controller.setGroup(btn.dataset.editorGroup);
+      };
+    });
+
+    const smartPrompt = scope.querySelector('[data-editor-smart-prompt]');
+    if (smartPrompt) {
+      smartPrompt.oninput = () => {
+        controller.setSmartPrompt(smartPrompt.value);
+        const run = scope.querySelector('[data-editor-action="smart-edit"]');
+        if (run) run.disabled = !smartPrompt.value.trim() || Boolean(session.busyLabel);
+      };
+    }
+
+    scope.querySelectorAll('[data-editor-setting]').forEach((select) => {
+      select.onchange = () => controller.setSetting(select.dataset.editorSetting, select.value);
+    });
+
+    scope.querySelectorAll('[data-editor-protection]').forEach((input) => {
+      input.onchange = () => controller.setProtection(input.dataset.editorProtection, input.checked);
+    });
+
+    scope.querySelectorAll('[data-editor-local]').forEach((input) => {
+      input.oninput = () => {
+        const key = input.dataset.editorLocal;
+        controller.setLocalControl(key, Number(input.value));
+        const value = scope.querySelector(`[data-editor-local-value="${key}"]`);
+        if (value) value.textContent = `${input.value}${input.dataset.editorSuffix || ''}`;
+      };
+    });
+
+    scope.querySelectorAll('[data-editor-local-select]').forEach((select) => {
+      select.onchange = () => controller.setLocalControl(select.dataset.editorLocalSelect, select.value);
+    });
+
+    scope.querySelectorAll('[data-editor-local-text]').forEach((input) => {
+      input.oninput = () => controller.setLocalControl(input.dataset.editorLocalText, input.value);
+    });
+
+    scope.querySelectorAll('[data-editor-local-action]').forEach((btn) => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        const action = btn.dataset.editorLocalAction;
+        const controls = controller.session?.localControls;
+        if (!controls) return;
+        if (action === 'rotate') {
+          controller.setLocalControl('rotation', (Number(controls.rotation) + 90) % 360);
+        } else if (action === 'flipX') {
+          controller.setLocalControl('flipX', !controls.flipX);
+          btn.classList.toggle('active', !controls.flipX);
+        } else if (action === 'flipY') {
+          controller.setLocalControl('flipY', !controls.flipY);
+          btn.classList.toggle('active', !controls.flipY);
+        }
+      };
+    });
+
+    this._mountActiveEditorMask();
+  }
 
   /**
    * Insert a token chip's canonical `{{key}}` at the host textarea's cursor.
