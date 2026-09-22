@@ -448,6 +448,77 @@ export async function downloadPersonalizationImage(sourceUrl) {
   };
 }
 
+export async function researchBusinessWebsite(websiteUrl) {
+  const rootUrl = await sanitizePublicHttpUrl(websiteUrl);
+  const page = await fetchHtml(rootUrl);
+  if (!page) {
+    return {
+      canonicalUrl: rootUrl,
+      finalUrl: rootUrl,
+      reachable: false,
+      socialLinks: {},
+      contactInfo: { phones: [], emails: [], addresses: [] },
+    };
+  }
+
+  const html = page.html;
+  const finalUrl = page.finalUrl;
+  const title = decodeHtml(html.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1] || '').trim();
+  const description = decodeHtml(
+    html.match(/<meta[^>]+(?:name|property)=["'](?:description|og:description)["'][^>]+content=["']([^"']+)["']/i)?.[1] ||
+    html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+(?:name|property)=["'](?:description|og:description)["']/i)?.[1] ||
+    ''
+  ).trim();
+  const logoUrl = absoluteUrl(
+    html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)?.[1] ||
+    html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)?.[1] ||
+    '',
+    finalUrl
+  ) || '';
+
+  const socialProfiles = extractSocialProfiles(html, finalUrl);
+  const socialLinks = {};
+  for (const profile of socialProfiles) {
+    if (!socialLinks[profile.platform]) socialLinks[profile.platform] = profile.url;
+  }
+
+  const phones = new Set();
+  const emails = new Set();
+  const addresses = new Set();
+  for (const match of html.matchAll(/href=["']tel:([^"'?]+)["']/gi)) {
+    const phone = decodeHtml(match[1] || '').trim();
+    if (phone) phones.add(phone.slice(0, 80));
+  }
+  for (const match of html.matchAll(/href=["']mailto:([^"'?]+)["']/gi)) {
+    const email = decodeHtml(match[1] || '').trim().toLowerCase();
+    if (email) emails.add(email.slice(0, 240));
+  }
+  const textOnly = decodeHtml(html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ' ').replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, ' ').replace(/<[^>]+>/g, ' '));
+  for (const email of textOnly.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g) || []) {
+    emails.add(email.toLowerCase().slice(0, 240));
+    if (emails.size >= 10) break;
+  }
+  for (const match of html.matchAll(/<address\b[^>]*>([\s\S]*?)<\/address>/gi)) {
+    const address = decodeHtml(String(match[1] || '').replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim();
+    if (address) addresses.add(address.slice(0, 500));
+  }
+
+  return {
+    canonicalUrl: rootUrl,
+    finalUrl,
+    reachable: true,
+    title: title.slice(0, 300),
+    description: description.slice(0, 1200),
+    logoUrl,
+    socialLinks,
+    contactInfo: {
+      phones: Array.from(phones).slice(0, 10),
+      emails: Array.from(emails).slice(0, 10),
+      addresses: Array.from(addresses).slice(0, 10),
+    },
+  };
+}
+
 function extensionForMime(mime) {
   const type = String(mime || '').toLowerCase();
   if (type.includes('jpeg')) return 'jpg';
