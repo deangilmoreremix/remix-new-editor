@@ -28,6 +28,7 @@ export function mountPersonalizationMaskEditor(container, {
   imageUrl,
   onMaskChange = () => {},
   initialBrushSize = 64,
+  initialMaskB64 = '',
 } = {}) {
   if (!container) throw new Error('Mask editor container is required.');
   if (!imageUrl) throw new Error('Mask editor imageUrl is required.');
@@ -125,10 +126,49 @@ export function mountPersonalizationMaskEditor(container, {
     syncButtons();
   }
 
-  function initialize() {
+  async function initialize() {
     canvas.width = image.naturalWidth || image.width || 1024;
     canvas.height = image.naturalHeight || image.height || 1024;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (initialMaskB64) {
+      try {
+        const apiMaskImage = new Image();
+        await new Promise((resolve, reject) => {
+          apiMaskImage.onload = resolve;
+          apiMaskImage.onerror = reject;
+          apiMaskImage.src = `data:image/png;base64,${initialMaskB64}`;
+        });
+        const temp = document.createElement('canvas');
+        temp.width = canvas.width;
+        temp.height = canvas.height;
+        const tempCtx = temp.getContext('2d');
+        if (tempCtx) {
+          tempCtx.drawImage(apiMaskImage, 0, 0, temp.width, temp.height);
+          const apiData = tempCtx.getImageData(0, 0, temp.width, temp.height);
+          const selection = ctx.createImageData(temp.width, temp.height);
+          let selectedPixels = 0;
+          for (let i = 0; i < apiData.data.length; i += 4) {
+            const apiAlpha = apiData.data[i + 3];
+            const selectedAlpha = 255 - apiAlpha;
+            if (selectedAlpha > 0) selectedPixels += 1;
+            selection.data[i] = 41;
+            selection.data[i + 1] = 211;
+            selection.data[i + 2] = 242;
+            selection.data[i + 3] = selectedAlpha;
+          }
+          ctx.putImageData(selection, 0, 0);
+          hasMask = selectedPixels > 0;
+          currentMaskB64 = hasMask ? initialMaskB64 : '';
+          onMaskChange(currentMaskB64 || null);
+          syncButtons();
+          return;
+        }
+      } catch {
+        // Fall through to a clear mask if the stored mask cannot be restored.
+      }
+    }
+
     hasMask = false;
     currentMaskB64 = '';
     onMaskChange(null);
