@@ -210,6 +210,102 @@ export function updatePersonalizationBusiness(profile, patch = {}) {
   };
 }
 
+export function setDiscoveredPersonalizationAssets(profile, discoveredAssets = []) {
+  const normalized = ensurePersonalizationProfile(profile);
+  return {
+    ...normalized,
+    personalization: {
+      ...normalized.personalization,
+      discoveredAssets: Array.isArray(discoveredAssets) ? discoveredAssets.filter(Boolean) : [],
+      updatedAt: new Date().toISOString(),
+    },
+  };
+}
+
+export function addPersonalizationAsset(profile, asset) {
+  if (!asset?.role || !asset?.url) throw new Error('A valid personalization asset is required.');
+  const normalized = ensurePersonalizationProfile(profile);
+  const assets = {
+    ...normalized.personalization.assets,
+    identities: [...normalized.personalization.assets.identities],
+    logos: [...normalized.personalization.assets.logos],
+    products: [...normalized.personalization.assets.products],
+    brandReferences: [...normalized.personalization.assets.brandReferences],
+    audio: [...normalized.personalization.assets.audio],
+    savedReferences: [...normalized.personalization.assets.savedReferences],
+  };
+
+  const dedupePush = (list, item) => {
+    const existing = list.findIndex((entry) => entry?.id === item.id || entry?.url === item.url);
+    if (existing >= 0) list[existing] = item;
+    else list.push(item);
+  };
+
+  if (['presenter_identity', 'face_identity', 'character_identity'].includes(asset.role)) {
+    dedupePush(assets.identities, asset);
+    if (!assets.primaryIdentityId) assets.primaryIdentityId = asset.id;
+  } else if (asset.role === 'logo') {
+    dedupePush(assets.logos, asset);
+    if (!assets.primaryLogoId) assets.primaryLogoId = asset.id;
+  } else if (asset.role === 'product_reference') {
+    dedupePush(assets.products, asset);
+  } else if (asset.role === 'brand_reference' || asset.role === 'background_reference') {
+    dedupePush(assets.brandReferences, asset);
+  } else if (asset.role === 'first_frame') {
+    assets.firstFrame = asset;
+  } else if (asset.role === 'last_frame') {
+    assets.lastFrame = asset;
+  } else if (asset.role === 'cta_graphic') {
+    assets.ctaGraphic = asset;
+  } else if (asset.role === 'audio_reference') {
+    dedupePush(assets.audio, asset);
+  } else {
+    dedupePush(assets.savedReferences, asset);
+  }
+
+  return {
+    ...normalized,
+    personalization: {
+      ...normalized.personalization,
+      assets,
+      updatedAt: new Date().toISOString(),
+    },
+  };
+}
+
+export function updatePersonalizationAsset(profile, assetId, updater) {
+  const normalized = ensurePersonalizationProfile(profile);
+  let changed = false;
+  const apply = (asset) => {
+    if (!asset || asset.id !== assetId) return asset;
+    changed = true;
+    const next = typeof updater === 'function' ? updater(asset) : { ...asset, ...(updater || {}) };
+    return { ...next, updatedAt: new Date().toISOString() };
+  };
+  const a = normalized.personalization.assets;
+  const assets = {
+    ...a,
+    identities: a.identities.map(apply),
+    logos: a.logos.map(apply),
+    products: a.products.map(apply),
+    brandReferences: a.brandReferences.map(apply),
+    firstFrame: apply(a.firstFrame),
+    lastFrame: apply(a.lastFrame),
+    ctaGraphic: apply(a.ctaGraphic),
+    audio: a.audio.map(apply),
+    savedReferences: a.savedReferences.map(apply),
+  };
+  if (!changed) return normalized;
+  return {
+    ...normalized,
+    personalization: {
+      ...normalized.personalization,
+      assets,
+      updatedAt: new Date().toISOString(),
+    },
+  };
+}
+
 export function getAllPersonalizationAssets(profile = {}) {
   const { assets } = ensurePersonalizationProfile(profile).personalization;
   return [
