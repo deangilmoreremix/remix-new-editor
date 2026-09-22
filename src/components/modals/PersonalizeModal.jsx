@@ -35,6 +35,7 @@ import { createPersonalizerHandoff, savePersonalizerHandoff } from '../../lib/pe
 import { navigate } from '../../lib/router.js';
 import {
   addPersonalizationAsset,
+  createPersonalizationAsset,
   ensurePersonalizationProfile,
   getAllPersonalizationAssets,
   normalizeBusinessProfile,
@@ -2473,7 +2474,7 @@ export class PersonalizeModal extends BaseModal {
     `;
   }
 
-  _assetRoleCard(title, description, items = []) {
+  _assetRoleCard(title, description, items = [], uploadRole = null) {
     const safeItems = (Array.isArray(items) ? items : []).filter(Boolean);
     const thumbs = safeItems.slice(0, 4).map((asset) => {
       const url = typeof asset === 'string' ? asset : (asset.url || asset.originalUrl || '');
@@ -2491,6 +2492,7 @@ export class PersonalizeModal extends BaseModal {
         </div>
         <div class="pm-asset-role-copy">${escapeHtml(description)}</div>
         ${thumbs ? `<div class="pm-asset-thumbs">${thumbs}</div>` : '<div class="pm-empty" style="padding:0;">No assets yet</div>'}
+        ${uploadRole ? `<button type="button" class="pm-small-btn" data-action="upload-personalization-asset" data-upload-role="${escapeHtml(uploadRole)}">+ Upload</button>` : ''}
       </div>
     `;
   }
@@ -2658,17 +2660,78 @@ export class PersonalizeModal extends BaseModal {
         </div>
 
         <div class="pm-asset-role-grid">
-          ${this._assetRoleCard('Person / Presenter', 'Face, body, side/profile, presenter and identity references.', identities)}
-          ${this._assetRoleCard('Logo', 'Primary and alternate brand logos.', logos)}
-          ${this._assetRoleCard('Products / Services', 'Products, services, completed work and marketing subjects.', products)}
-          ${this._assetRoleCard('Brand References', 'Brand imagery, environments and style references.', assets.brandReferences || [])}
-          ${this._assetRoleCard('First Frame', 'Explicit opening-frame asset; never auto-assigned by discovery.', single(assets.firstFrame))}
-          ${this._assetRoleCard('Last Frame', 'Explicit ending-frame asset; never auto-assigned by discovery.', single(assets.lastFrame))}
-          ${this._assetRoleCard('CTA Graphic', 'Exact CTA/logo/phone/URL graphics for deterministic final use.', single(assets.ctaGraphic))}
-          ${this._assetRoleCard('Saved References', 'Reusable references available to compatible generation models.', assets.savedReferences || [])}
+          ${this._assetRoleCard('Person / Presenter', 'Face, body, side/profile, presenter and identity references.', identities, 'presenter_identity')}
+          ${this._assetRoleCard('Logo', 'Primary and alternate brand logos.', logos, 'logo')}
+          ${this._assetRoleCard('Products / Services', 'Products, services, completed work and marketing subjects.', products, 'product_reference')}
+          ${this._assetRoleCard('Brand References', 'Brand imagery, environments and style references.', assets.brandReferences || [], 'brand_reference')}
+          ${this._assetRoleCard('First Frame', 'Explicit opening-frame asset; never auto-assigned by discovery.', single(assets.firstFrame), 'first_frame')}
+          ${this._assetRoleCard('Last Frame', 'Explicit ending-frame asset; never auto-assigned by discovery.', single(assets.lastFrame), 'last_frame')}
+          ${this._assetRoleCard('CTA Graphic', 'Exact CTA/logo/phone/URL graphics for deterministic final use.', single(assets.ctaGraphic), 'cta_graphic')}
+          ${this._assetRoleCard('Saved References', 'Reusable references available to compatible generation models.', assets.savedReferences || [], 'saved_reference')}
         </div>
       </div>
     `;
+  }
+
+  async _handleManualAssetUpload(role) {
+    const id = getSelectedContactId();
+    let profile = id ? _getProfile(id) : null;
+    if (!profile || !role) return;
+
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = role === 'audio_reference' ? 'audio/*' : 'image/*';
+    input.style.display = 'none';
+    document.body.appendChild(input);
+
+    const cleanup = () => {
+      if (input.parentNode) input.parentNode.removeChild(input);
+    };
+
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (!file) { cleanup(); return; }
+      this.assetDiscoveryError = '';
+      this.assetDiscoveryStatus = `Uploading ${file.name}…`;
+      this.refreshBody();
+
+      try {
+        const { uploadFileToStorage } = await import('../../lib/hybrid-supabase.js');
+        const url = await uploadFileToStorage(file);
+        if (!url) throw new Error('Upload returned no durable URL.');
+
+        const asset = createPersonalizationAsset({
+          role,
+          name: file.name,
+          url,
+          originalUrl: url,
+          sourceType: 'MANUAL_UPLOAD',
+          sourceCategory:
+            role === 'logo' ? 'logo'
+            : role === 'product_reference' ? 'product'
+            : role === 'presenter_identity' ? 'person'
+            : role === 'brand_reference' ? 'brand'
+            : null,
+          mimeType: file.type || null,
+        });
+
+        profile = addPersonalizationAsset(profile, asset);
+        profile.updatedAt = new Date().toISOString();
+        profile.variables = buildVariables(profile, profile.variables || {});
+        if (!this._persistSelectedProfile(profile)) {
+          throw new Error('Could not save the uploaded asset to the selected profile.');
+        }
+        this.assetDiscoveryStatus = `✓ Uploaded ${file.name}`;
+      } catch (error) {
+        this.assetDiscoveryError = error?.message || 'Asset upload failed.';
+        this.assetDiscoveryStatus = '';
+      } finally {
+        cleanup();
+        this.refreshBody();
+      }
+    };
+    input.oncancel = cleanup;
+    input.click();
   }
 
   _persistDiscoveredAssets(assets, status = '') {
@@ -3794,6 +3857,13 @@ export class PersonalizeModal extends BaseModal {
           btn.onclick = (e) => {
             e.stopPropagation();
             this._handleResearchBusiness(btn.dataset.businessIndex);
+          };
+        });
+
+        scope.querySelectorAll('[data-action="upload-personalization-asset"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._handleManualAssetUpload(btn.dataset.uploadRole);
           };
         });
 
