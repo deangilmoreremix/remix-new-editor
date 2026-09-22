@@ -5,6 +5,38 @@ import {
   resolveEditorAssetKind,
 } from './imageEditRegistry.js';
 
+async function getPersonalizerSession() {
+  try {
+    const { createClient } = await import('../supabase.js');
+    const supabase = createClient();
+    const { data } = await supabase.auth.getSession();
+    return data?.session || null;
+  } catch {
+    return null;
+  }
+}
+
+export async function preparePersonalizationImageDataUrl(sourceUrl) {
+  if (typeof sourceUrl !== 'string' || !sourceUrl) throw new Error('Image source is required.');
+  if (sourceUrl.startsWith('data:image/')) return sourceUrl;
+
+  const session = await getPersonalizerSession();
+  if (!session?.access_token) throw new Error('Sign in to prepare this image for editing.');
+
+  const response = await fetch('/api/personalizer/download-image', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify({ sourceUrl }),
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload?.error || `Image preparation failed (${response.status})`);
+  if (!payload?.image?.dataUrl) throw new Error('Image preparation returned no image data.');
+  return payload.image.dataUrl;
+}
+
 function stripDataUrl(value) {
   if (typeof value !== 'string') return '';
   const match = value.match(/^data:image\/[a-zA-Z0-9.+-]+;base64,(.+)$/);
