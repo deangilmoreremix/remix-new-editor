@@ -3039,7 +3039,7 @@ export class PersonalizeModal extends BaseModal {
     this.assetDiscoveryStatus = `Importing ${selected.length} selected asset(s)…`;
     this.refreshBody();
 
-    const importedIds = new Map();
+    let discoveredState = this._currentDiscoveredAssets();
     let importedCount = 0;
     try {
       for (const asset of selected) {
@@ -3047,22 +3047,34 @@ export class PersonalizeModal extends BaseModal {
           role: asset.assignedRole || defaultRoleForDiscoveredCategory(asset.category),
           name: asset.altText || asset.category,
         });
+
+        // Persist every successful remote upload before starting the next one.
+        // This prevents a later failure from orphaning already-uploaded files
+        // or causing them to be uploaded again on retry.
         profile = addPersonalizationAsset(profile, imported);
-        importedIds.set(asset.id, imported.id);
+        discoveredState = discoveredState.map((candidate) =>
+          candidate.id === asset.id
+            ? { ...candidate, importedAssetId: imported.id, selected: false }
+            : candidate
+        );
+        profile = setDiscoveredPersonalizationAssets(profile, discoveredState);
+        profile.updatedAt = new Date().toISOString();
+        profile.variables = buildVariables(profile, profile.variables || {});
+
+        if (!this._persistSelectedProfile(profile)) {
+          throw new Error('Could not persist an imported asset after upload.');
+        }
+
         importedCount += 1;
+        this.assetDiscoveryStatus = `Imported ${importedCount} of ${selected.length} asset(s)…`;
       }
-      profile = setDiscoveredPersonalizationAssets(profile, this._currentDiscoveredAssets().map((asset) =>
-        importedIds.has(asset.id)
-          ? { ...asset, importedAssetId: importedIds.get(asset.id), selected: false }
-          : asset
-      ));
-      profile.updatedAt = new Date().toISOString();
-      profile.variables = buildVariables(profile, profile.variables || {});
-      if (!this._persistSelectedProfile(profile)) throw new Error('Could not persist imported assets.');
+
       this.assetDiscoveryStatus = `✓ Imported ${importedCount} durable asset(s)`;
     } catch (error) {
       this.assetDiscoveryError = error?.message || 'Asset import failed.';
-      this.assetDiscoveryStatus = importedCount ? `Imported ${importedCount} before the error` : '';
+      this.assetDiscoveryStatus = importedCount
+        ? `✓ Saved ${importedCount} imported asset(s) before the error`
+        : '';
     } finally {
       this.isImportingBusinessAssets = false;
       this.refreshBody();
