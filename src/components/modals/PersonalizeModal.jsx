@@ -2561,6 +2561,7 @@ export class PersonalizeModal extends BaseModal {
     const relevance = vision?.relevanceScore ?? asset.relevanceScore;
     const badges = [
       asset.importedAssetId ? '<span class="pm-discovered-badge">Imported</span>' : '',
+      asset.autoAssigned ? '<span class="pm-discovered-badge">Auto-assigned</span>' : '',
       asset.videoReady ? '<span class="pm-discovered-badge">Video Ready</span>' : '',
       vision ? '<span class="pm-discovered-badge">Vision</span>' : '',
       quality != null ? `<span class="pm-discovered-badge">Q ${Math.round(Number(quality) || 0)}</span>` : '',
