@@ -7,6 +7,9 @@ const REQUEST_TIMEOUT_MS = 15000;
 const MAX_REDIRECTS = 5;
 const DEFAULT_MAX_PAGES = 6;
 const DEFAULT_MAX_IMAGES = 60;
+const VALIDATION_CONCURRENCY = 6;
+const VALIDATION_BUDGET_MS = 22000;
+const VALIDATION_REQUEST_TIMEOUT_MS = 3500;
 
 const PRIORITY_PATH_HINTS = [
   'about', 'team', 'staff', 'services', 'products', 'gallery', 'portfolio',
@@ -106,11 +109,11 @@ export async function sanitizePublicHttpUrl(input) {
   return url.toString();
 }
 
-async function fetchWithRedirectGuards(inputUrl, options = {}, maxBytes = MAX_HTML_BYTES) {
+async function fetchWithRedirectGuards(inputUrl, options = {}, maxBytes = MAX_HTML_BYTES, timeoutMs = REQUEST_TIMEOUT_MS) {
   let current = await sanitizePublicHttpUrl(inputUrl);
   for (let redirect = 0; redirect <= MAX_REDIRECTS; redirect += 1) {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
     let response;
     try {
       response = await fetch(current, {
@@ -290,18 +293,19 @@ function heuristicClassification(candidate) {
   return { category: 'brand', confidence: 48, recommended: false };
 }
 
-async function validateImageCandidate(candidate) {
+async function validateImageCandidate(candidate, timeoutMs = VALIDATION_REQUEST_TIMEOUT_MS) {
   try {
     const safeUrl = await sanitizePublicHttpUrl(candidate.url);
+    const perRequestTimeout = Math.max(500, Math.min(VALIDATION_REQUEST_TIMEOUT_MS, Number(timeoutMs) || VALIDATION_REQUEST_TIMEOUT_MS));
     let checked = await fetchWithRedirectGuards(safeUrl, {
       method: 'HEAD',
       headers: { Accept: 'image/*' },
-    }, MAX_IMAGE_BYTES);
+    }, MAX_IMAGE_BYTES, perRequestTimeout);
     if (!checked.response.ok || !String(checked.response.headers.get('content-type') || '').toLowerCase().startsWith('image/')) {
       checked = await fetchWithRedirectGuards(safeUrl, {
         method: 'GET',
         headers: { Accept: 'image/*', Range: 'bytes=0-2047' },
-      }, MAX_IMAGE_BYTES);
+      }, MAX_IMAGE_BYTES, perRequestTimeout);
     }
     const type = String(checked.response.headers.get('content-type') || '').toLowerCase().split(';')[0];
     if (!checked.response.ok || !type.startsWith('image/')) return null;
@@ -311,6 +315,44 @@ async function validateImageCandidate(candidate) {
   } catch {
     return null;
   }
+}
+
+async function validateImageCandidatesBounded(candidates, {
+  limit,
+  budgetMs = VALIDATION_BUDGET_MS,
+  concurrency = VALIDATION_CONCURRENCY,
+} = {}) {
+  const queue = Array.isArray(candidates) ? candidates : [];
+  if (!queue.length) return [];
+
+  const maxResults = Math.max(1, Number(limit) || DEFAULT_MAX_IMAGES);
+  const deadline = Date.now() + Math.max(1000, Number(budgetMs) || VALIDATION_BUDGET_MS);
+  const results = [];
+  let cursor = 0;
+
+  async function worker() {
+    while (cursor < queue.length && results.length < maxResults) {
+      const remaining = deadline - Date.now();
+      if (remaining <= 500) return;
+
+      const index = cursor;
+      cursor += 1;
+      const valid = await validateImageCandidate(
+        queue[index],
+        Math.min(VALIDATION_REQUEST_TIMEOUT_MS, remaining),
+      );
+      if (valid && results.length < maxResults) {
+        results.push({ index, value: valid });
+      }
+    }
+  }
+
+  const workerCount = Math.max(1, Math.min(Number(concurrency) || VALIDATION_CONCURRENCY, queue.length));
+  await Promise.all(Array.from({ length: workerCount }, () => worker()));
+  return results
+    .sort((a, b) => a.index - b.index)
+    .slice(0, maxResults)
+    .map((entry) => entry.value);
 }
 
 async function captureRenderedScreenshotFallback(websiteUrl) {
@@ -421,10 +463,11 @@ export async function discoverBusinessAssetsFreeFirst({
   }
 
   const discoveredAssets = [];
-  for (const candidate of candidateMap.values()) {
-    if (discoveredAssets.length >= imageLimit) break;
-    const valid = await validateImageCandidate(candidate);
-    if (!valid) continue;
+  const validatedCandidates = await validateImageCandidatesBounded(
+    Array.from(candidateMap.values()),
+    { limit: imageLimit },
+  );
+  for (const valid of validatedCandidates) {
     const classification = heuristicClassification(valid);
     if (!USEFUL_CATEGORIES.has(classification.category)) continue;
     discoveredAssets.push({
@@ -448,6 +491,7 @@ export async function discoverBusinessAssetsFreeFirst({
       editedUrl: null,
       videoReady: false,
     });
+    if (discoveredAssets.length >= imageLimit) break;
   }
 
   const providerAttempts = ['SMARTVIDEO_STATIC'];
