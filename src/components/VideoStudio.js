@@ -18,6 +18,10 @@ import { navigate } from '../lib/router.js';
 import { consumeStudioPrefill } from '../lib/studioPrefill.js';
 import { saveGeneratedAsset } from '../lib/assets/assetActions.js';
 import { getVideoStudioAsset } from '../lib/personalizerAdapters.js';
+import {
+    applyPersonalizationInputsToParams,
+    resolvePersonalizationForModel,
+} from '../lib/personalization/studioContext.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
@@ -61,6 +65,7 @@ export function VideoStudio() {
     let v2vMode = false;   // true = video-to-video tools mode
     let uploadedVideoUrl = null;
     let customThumbnailUrl = getCustomThumbnailFromCache('video-studio');
+    let activePersonalizationContext = null;
 
     // Restore the last GTM context the user picked in the prompt modal,
     // if any. The modal persists selections to localStorage on apply; we
@@ -785,6 +790,19 @@ export function VideoStudio() {
       getPreview: () => {
         const vid = document.querySelector('#v-result-video');
         return vid?.src || '';
+      },
+      onApply: ({ personalization }) => {
+        activePersonalizationContext = personalization || null;
+        const model = getModelById(selectedModel) || getCurrentModel();
+        const resolved = activePersonalizationContext
+          ? resolvePersonalizationForModel(activePersonalizationContext, model, { studio: 'video' })
+          : null;
+        if (resolved?.firstFrameUrl && imageMode) uploadedImageUrl = resolved.firstFrameUrl;
+        if (resolved?.warnings?.length) {
+          showToast(resolved.warnings.join(' '), 'info');
+        } else if (resolved) {
+          showToast('Personalization assets ready for this video model', 'success');
+        }
       },
     });
 
@@ -1946,7 +1964,7 @@ generateBtn.type = 'button';
                     throw new Error('No video URL returned by API');
                 }
             } else if (imageMode) {
-                const i2vParams = {
+                let i2vParams = {
                     model: selectedModel,
                     image_url: uploadedImageUrl,
                     signal: abortController.signal,
@@ -1970,6 +1988,14 @@ generateBtn.type = 'button';
                     }
                 }
 
+                if (activePersonalizationContext) {
+                    const personalizationInputs = resolvePersonalizationForModel(
+                        activePersonalizationContext,
+                        getModelById(selectedModel) || getCurrentModel(),
+                        { studio: 'video' },
+                    );
+                    i2vParams = applyPersonalizationInputsToParams(i2vParams, personalizationInputs);
+                }
 
                 const res = await muapi.generateI2V(i2vParams);
                 if (res && res.url) {
@@ -2003,7 +2029,7 @@ addToHistory({ id: genId, url: res.url, prompt: enrichedPrompt, model: selectedM
             if (isExtendMode) {
                 params.request_id = lastGenerationId;
             } else {
-                const params = { model: selectedModel, signal: abortController.signal };
+                let params = { model: selectedModel, signal: abortController.signal };
 
                 if (customThumbnailUrl) params.thumbnail_url = customThumbnailUrl;
                 if (enrichedPrompt) params.prompt = enrichedPrompt;
@@ -2033,6 +2059,15 @@ const durations = getCurrentDurations(selectedModel);
                         params.reference_images = [ref.imageUrl];
                         params.character_consistency = true;
                     }
+                }
+
+                if (activePersonalizationContext) {
+                    const personalizationInputs = resolvePersonalizationForModel(
+                        activePersonalizationContext,
+                        getModelById(selectedModel) || getCurrentModel(),
+                        { studio: 'video' },
+                    );
+                    params = applyPersonalizationInputsToParams(params, personalizationInputs);
                 }
 
                 const res = await muapi.generateVideo(params);
