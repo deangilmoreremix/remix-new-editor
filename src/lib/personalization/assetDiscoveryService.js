@@ -76,6 +76,7 @@ export async function importDiscoveredAsset(asset, { role, name } = {}) {
     url: imported.url,
     originalUrl: imported.url,
     sourceType: asset.sourceType || 'WEBSITE',
+    sourceUrl: asset.sourceUrl || asset.previewUrl,
     sourceCategory: asset.category,
     mimeType: imported.mimeType,
     videoReady: Boolean(asset.videoReady),
