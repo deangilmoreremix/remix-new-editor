@@ -39,6 +39,7 @@ import {
   ensurePersonalizationProfile,
   getAllPersonalizationAssets,
   normalizeBusinessProfile,
+  movePersonalizationAsset,
   removePersonalizationAsset,
   setDiscoveredPersonalizationAssets,
   setPersonalizationGenerationOptions,
@@ -64,6 +65,20 @@ import { buildPersonalizationContext } from '../../lib/personalization/studioCon
 
 const CONTACTS_KEY = 'remix_contacts';
 const PROFILES_KEY = 'remix_contact_profiles';
+const IMPORTED_IMAGE_ROLE_OPTIONS = Object.freeze([
+  ['presenter_identity', 'Person / Presenter'],
+  ['face_identity', 'Face Identity'],
+  ['character_identity', 'Character Identity'],
+  ['logo', 'Logo'],
+  ['product_reference', 'Product / Service'],
+  ['brand_reference', 'Brand Reference'],
+  ['background_reference', 'Background Reference'],
+  ['saved_reference', 'Saved Reference'],
+  ['first_frame', 'First Frame'],
+  ['last_frame', 'Last Frame'],
+  ['cta_graphic', 'CTA Graphic'],
+]);
+
 
 const DISCOVERY_STEPS = [
   'Scanning public profiles...',
@@ -2510,7 +2525,12 @@ export class PersonalizeModal extends BaseModal {
       const preview = uploadRole === 'audio_reference'
         ? `<span class="pm-asset-audio-chip" title="${escapeHtml(asset.name || 'Audio reference')}">♫ ${escapeHtml(asset.name || 'Audio')}</span>`
         : `<button type="button" class="pm-asset-thumb-button" data-action="open-imported-asset-editor" data-asset-id="${escapeHtml(asset.id)}" title="Edit ${escapeHtml(asset.name || title)}"><img class="pm-asset-thumb" src="${escapeHtml(url)}" alt="" loading="lazy" /><span>Edit</span></button>`;
-      return `<span class="pm-asset-thumb-wrap">${preview}<button type="button" class="pm-asset-delete" data-action="delete-personalization-asset" data-asset-id="${escapeHtml(asset.id)}" aria-label="Delete ${escapeHtml(asset.name || title)}">×</button></span>`;
+      const moveControl = uploadRole === 'audio_reference'
+        ? ''
+        : `<select class="pm-asset-role-move" data-imported-asset-role="${escapeHtml(asset.id)}" aria-label="Move ${escapeHtml(asset.name || title)} to another role">
+            ${IMPORTED_IMAGE_ROLE_OPTIONS.map(([role, label]) => `<option value="${role}" ${asset.role === role ? 'selected' : ''}>${label}</option>`).join('')}
+          </select>`;
+      return `<span class="pm-asset-thumb-wrap">${preview}${moveControl}<button type="button" class="pm-asset-delete" data-action="delete-personalization-asset" data-asset-id="${escapeHtml(asset.id)}" aria-label="Delete ${escapeHtml(asset.name || title)}">×</button></span>`;
     }).join('');
     return `
       <div class="pm-asset-role-card" ${uploadRole ? `data-asset-drop-role="${escapeHtml(uploadRole)}"` : ''}>
@@ -2810,6 +2830,30 @@ export class PersonalizeModal extends BaseModal {
     };
     input.oncancel = cleanup;
     input.click();
+  }
+
+  _handleMovePersonalizationAsset(assetId, nextRole) {
+    const id = getSelectedContactId();
+    const profile = id ? _getProfile(id) : null;
+    if (!profile || !assetId || !nextRole) return;
+
+    try {
+      const next = movePersonalizationAsset(profile, assetId, nextRole);
+      next.updatedAt = new Date().toISOString();
+      next.variables = buildVariables(next, next.variables || {});
+      if (!this._persistSelectedProfile(next)) {
+        throw new Error('Could not save the new asset role.');
+      }
+      if (this.assetEditorAssetId === assetId && this.imageEditorController.session) {
+        this.imageEditorController.session.role = nextRole;
+      }
+      this.assetDiscoveryStatus = '✓ Asset moved to its new personalization role';
+      this.assetDiscoveryError = '';
+      this.refreshBody();
+    } catch (error) {
+      this.assetDiscoveryError = error?.message || 'Could not move the asset.';
+      this.refreshBody();
+    }
   }
 
   _handleDeletePersonalizationAsset(assetId) {
@@ -4059,6 +4103,13 @@ export class PersonalizeModal extends BaseModal {
         scope.querySelectorAll('[data-generation-option]').forEach((select) => {
           select.onchange = () => {
             this._handleGenerationOptionChange(select.dataset.generationOption, select.value);
+          };
+        });
+
+        scope.querySelectorAll('[data-imported-asset-role]').forEach((select) => {
+          select.onchange = (e) => {
+            e.stopPropagation();
+            this._handleMovePersonalizationAsset(select.dataset.importedAssetRole, select.value);
           };
         });
 
