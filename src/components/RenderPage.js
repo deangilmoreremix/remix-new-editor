@@ -8,6 +8,16 @@ import { enqueueRender, listRenderQueue, subscribe, removeFromRenderQueue, start
 import { assetStore } from '../lib/assets/assetStore.js';
 import { videoDb } from '../lib/videoDb.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
+import { applyPresetFilter } from '../lib/editor/renderFrameProcessor.js';
+import {
+  ASPECT_DIMS,
+  extensionForMime,
+  resolveExportMimeType,
+  getVideoBitrate,
+  computeFitSourceRect,
+  computeTrailerDuration,
+  buildFrameFilename,
+} from '../lib/editor/renderHelpers.js';
 
 import { generateSubtitles, generateHighlights, generateVoiceover, createShorts, runAiAutoEdit } from '../lib/editor/renderAiActions.js';
 
@@ -762,19 +772,6 @@ export function RenderPage() {
     return candidates.find((c) => MediaRecorder.isTypeSupported(c)) || '';
   }
 
-  function extensionForMime(mimeType) {
-    if (!mimeType) return 'webm';
-    if (mimeType.includes('mp4') || mimeType.includes('avc1') || mimeType.includes('h264') || mimeType.includes('hevc')) return 'mp4';
-    return 'webm';
-  }
-
-  const ASPECT_DIMS = {
-    '9:16': { width: 1080, height: 1920 },
-    '1:1': { width: 1080, height: 1080 },
-    '4:5': { width: 1080, height: 1350 },
-    '16:9': { width: 1920, height: 1080 },
-  };
-
   function seekVideo(video, time) {
     return new Promise((resolve, reject) => {
       const onSeeked = () => { video.removeEventListener('seeked', onSeeked); resolve(); };
@@ -783,24 +780,38 @@ export function RenderPage() {
     });
   }
 
-  async function captureRealVideo({ videoUrl, action, settings = {}, timeRange, effects, onProgress }) {
+  async function captureRealVideo({ videoUrl, action, settings = {}, timeRange, effects, preset, onProgress }) {
     const supported = typeof MediaRecorder !== 'undefined'
       && typeof HTMLCanvasElement !== 'undefined'
       && typeof HTMLCanvasElement.prototype.captureStream === 'function';
     if (!supported) throw new Error('Video export is not supported in this browser');
 
     const video = document.createElement('video');
-    video.muted = true;
     video.playsInline = true;
     video.crossOrigin = 'anonymous';
     video.preload = 'auto';
     video.src = videoUrl;
 
+    let loadError = null;
     await new Promise((res, rej) => {
       const t = setTimeout(() => rej(new Error('Video source timed out')), 30000);
       video.addEventListener('loadedmetadata', () => { clearTimeout(t); res(); }, { once: true });
-      video.addEventListener('error', () => { clearTimeout(t); rej(new Error('Could not load video source')); }, { once: true });
+      video.addEventListener('error', () => {
+        clearTimeout(t);
+        const err = new Error('Could not load video source');
+        if (video.error && video.error.code === MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED) {
+          err.message = 'Video source is not supported or blocked by CORS. Try a different source or ensure the server allows cross-origin access.';
+        }
+        loadError = err;
+        rej(err);
+      }, { once: true });
     });
+
+    // If we got here but the video is completely unplayable, fail fast.
+    if (loadError) throw loadError;
+    if (video.readyState < 2) {
+      throw new Error('Video metadata loaded but the file is not ready for playback. It may be corrupt or unsupported.');
+    }
 
     const vw = video.videoWidth || 1280;
     const vh = video.videoHeight || 720;
@@ -827,12 +838,19 @@ export function RenderPage() {
       );
     }
 
-    const stream = canvas.captureStream(30);
-    const recorder = new MediaRecorder(stream, { mimeType });
+    const fps = Math.max(1, Math.min(120, parseInt((settings && settings.frameRate) || '30', 10) || 30));
+    const stream = canvas.captureStream(fps);
+    const recorder = new MediaRecorder(stream, {
+      mimeType,
+      videoBitsPerSecond: getVideoBitrate({ width: cw, height: ch, fps, quality: settings.quality }),
+    });
     const chunks = [];
     recorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) chunks.push(e.data); };
     const finished = new Promise((res, rej) => {
-      recorder.onstop = () => res(new Blob(chunks, { type: mimeType }));
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: mimeType });
+        res(blob);
+      };
       recorder.onerror = (e) => rej(e.error || new Error('Recording failed'));
     });
 
@@ -849,20 +867,60 @@ export function RenderPage() {
       try { await seekVideo(video, Math.max(0, timeRange.start)); } catch { /* best effort */ }
     }
 
+    // Audio: capture source audio track when present and re-attach it to the
+    // recording stream so the exported file preserves the original audio.
+    let sourceAudioTrack = null;
+    try {
+      // Keep playback muted to the user, but allow capture to see the audio data.
+      video.muted = false;
+      video.volume = 0;
+      await new Promise((resume) => video.addEventListener('playing', resume, { once: true }));
+      const audioTracks = video.captureStream?.()?.getAudioTracks?.() || [];
+      if (audioTracks.length) {
+        sourceAudioTrack = audioTracks[0];
+        stream.addTrack(sourceAudioTrack);
+      }
+    } catch (audioErr) {
+      console.warn('[Render] Source audio capture failed, exporting video only:', audioErr);
+    }
+
+    function fitSourceRect() {
+      const srcAspect = vw / vh;
+      const dstAspect = cw / ch;
+      let sx, sy, sw, sh;
+      if (srcAspect > dstAspect) {
+        sh = vh;
+        sw = Math.round(vh * dstAspect);
+        sx = Math.round((vw - sw) / 2);
+        sy = 0;
+      } else {
+        sw = vw;
+        sh = Math.round(vw / dstAspect);
+        sx = 0;
+        sy = Math.round((vh - sh) / 2);
+      }
+      return { sx, sy, sw, sh };
+    }
+
     let rafId = null;
     const startTs = performance.now();
+    let frameCount = 0;
     function drawFrame() {
       try {
+        ctx.save();
+        if (preset) {
+          applyPresetFilter(ctx, preset, cw, ch);
+        }
         if (effects && (effects.brightness != null || effects.contrast != null)) {
           const parts = [];
           if (effects.brightness != null) parts.push(`brightness(${Math.round(effects.brightness * 100)}%)`);
           if (effects.contrast != null) parts.push(`contrast(${Math.round(effects.contrast * 100)}%)`);
-          ctx.filter = parts.join(' ');
-        } else {
-          ctx.filter = 'none';
+          ctx.filter = (ctx.filter ? ctx.filter + ' ' : '') + parts.join(' ');
         }
-        ctx.drawImage(video, 0, 0, cw, ch);
-        ctx.filter = 'none';
+        const { sx, sy, sw, sh } = fitSourceRect();
+        ctx.drawImage(video, sx, sy, sw, sh, 0, 0, cw, ch);
+        ctx.restore();
+        frameCount++;
       } catch { /* frame not ready yet */ }
       const elapsed = performance.now() - startTs;
       const pct = Math.min(100, Math.round((elapsed / durationMs) * 100));
@@ -879,6 +937,10 @@ export function RenderPage() {
       try { video.pause(); } catch { /* ignore */ }
       video.removeAttribute('src');
       video.load();
+      if (sourceAudioTrack) {
+        try { stream.removeTrack(sourceAudioTrack); } catch { /* ignore */ }
+        sourceAudioTrack = null;
+      }
     }
 
     activeExportCleanup = cleanup;
@@ -889,11 +951,23 @@ export function RenderPage() {
     drawFrame();
 
     const blob = await finished;
+
+    // Output validation: fail clearly if the render produced no usable media.
+    if (!blob || blob.size === 0) {
+      throw new Error('Export produced an empty file. The render may have failed silently.');
+    }
+    if (frameCount === 0) {
+      throw new Error('Export produced no frames. The source video may not be playable or may be blocked by CORS.');
+    }
+
     return {
       blob,
       url: URL.createObjectURL(blob),
       mime: mimeType,
       ext: extensionForMime(mimeType),
+      size: blob.size,
+      hasAudio: sourceAudioTrack != null,
+      frameCount,
     };
   }
 
@@ -913,6 +987,7 @@ export function RenderPage() {
         settings: payload.settings || {},
         timeRange: payload.timeRange,
         effects: payload.effects,
+        preset: payload.preset || selectedPreset,
         onProgress: (pct) => {
           if (progressBar) progressBar.style.width = `${pct}%`;
           if (progressPercent) progressPercent.textContent = `${pct}%`;
@@ -940,6 +1015,7 @@ export function RenderPage() {
       videoUrl: sourceUrl,
       action: 'export-video',
       settings: (job && job.outputSettings) || getOutputSettings(),
+      preset: selectedPreset,
       onProgress,
     });
   });
@@ -994,10 +1070,14 @@ export function RenderPage() {
     'Export Video': async () => {
       if (!resolvedVideoUrl) { showToast('Load a video first'); return; }
       await runExportWorker(
-        { action: 'export-video', videoUrl: resolvedVideoUrl, settings: getOutputSettings() },
+        { action: 'export-video', videoUrl: resolvedVideoUrl, settings: getOutputSettings(), preset: selectedPreset },
         'Exporting master video',
         'Export Video',
         (result) => {
+          if (!result || !result.blob) {
+            showToast('Export produced no output');
+            return;
+          }
           const a = document.createElement('a');
           a.href = result.url;
           a.download = `${resolvedVideoId || 'export'}_master.${result.ext || 'webm'}`;
@@ -1054,13 +1134,17 @@ export function RenderPage() {
     'Trailer Cut': async () => {
       if (!resolvedVideoUrl) { showToast('Load a video first'); return; }
       await runExportWorker(
-        { action: 'trailer-cut', videoUrl: resolvedVideoUrl, timeRange: { start: 0, end: 30 } },
+        { action: 'trailer-cut', videoUrl: resolvedVideoUrl, timeRange: { start: 0, end: 30 }, preset: selectedPreset },
         'Building trailer cut',
         'Trailer Cut',
         (result) => {
+          if (!result || !result.blob) {
+            showToast('Trailer cut produced no output');
+            return;
+          }
           const a = document.createElement('a');
           a.href = result.url;
-          a.download = `${resolvedVideoId || 'export'}_trailer.mp4`;
+          a.download = `${resolvedVideoId || 'export'}_trailer.${result.ext || 'webm'}`;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
@@ -1075,10 +1159,15 @@ export function RenderPage() {
       for (const aspect of aspects) {
         await new Promise((resolve, reject) => {
           runExportWorker(
-            { action: 'social-resize', videoUrl: resolvedVideoUrl, settings: { aspectRatio: aspect } },
+            { action: 'social-resize', videoUrl: resolvedVideoUrl, settings: { aspectRatio: aspect }, preset: selectedPreset },
             `Exporting ${aspect}`,
             'Social Resize',
             (result) => {
+              if (!result || !result.blob) {
+                showToast(`${aspect} produced no output`);
+                resolve();
+                return;
+              }
               const a = document.createElement('a');
               a.href = result.url;
               a.download = `${resolvedVideoId || 'export'}_${aspect.replace(':', 'x')}.${result.ext || 'webm'}`;
@@ -1096,13 +1185,17 @@ export function RenderPage() {
     'Remix Scene': async () => {
       if (!resolvedVideoUrl) { showToast('Load a video first'); return; }
       await runExportWorker(
-        { action: 'remix-scene', videoUrl: resolvedVideoUrl, effects: { brightness: 1.1, contrast: 1.2 } },
+        { action: 'remix-scene', videoUrl: resolvedVideoUrl, effects: { brightness: 1.1, contrast: 1.2 }, preset: selectedPreset },
         'Remixing scene',
         'Remix Scene',
         (result) => {
+          if (!result || !result.blob) {
+            showToast('Remix produced no output');
+            return;
+          }
           const a = document.createElement('a');
           a.href = result.url;
-          a.download = `${resolvedVideoId || 'export'}_remix.mp4`;
+          a.download = `${resolvedVideoId || 'export'}_remix.${result.ext || 'webm'}`;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
@@ -1118,10 +1211,14 @@ export function RenderPage() {
       const outputs = [];
       for (const fmt of supportedFormats) {
         await runExportWorker(
-          { action: 'export-video', videoUrl: resolvedVideoUrl, settings: { ...getOutputSettings(), format: fmt } },
+          { action: 'export-video', videoUrl: resolvedVideoUrl, settings: { ...getOutputSettings(), format: fmt }, preset: selectedPreset },
           `Packaging ${fmt}`,
           'Publish / Deliver',
           (result) => {
+            if (!result || !result.blob) {
+              showToast(`${fmt} produced no output`);
+              return;
+            }
             outputs.push({ format: fmt, url: result.url, ext: result.ext });
             setTimeout(() => URL.revokeObjectURL(result.url), 1000);
           }

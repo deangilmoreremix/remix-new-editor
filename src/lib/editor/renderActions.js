@@ -126,7 +126,7 @@ export async function getVideoMetadata(videoUrl) {
 }
 
 export async function downloadFrame(videoEl, opts = {}) {
-  const { format = 'image/png', quality = 0.92 } = opts;
+  const { format = 'image/png', quality = 0.92, filename } = opts;
 
   const canvas = document.createElement('canvas');
   canvas.width = videoEl.videoWidth || 1920;
@@ -135,18 +135,41 @@ export async function downloadFrame(videoEl, opts = {}) {
   const ctx = canvas.getContext('2d');
   ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
 
-  return new Promise((resolve) => {
-    canvas.toBlob((blob) => {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'frame.png';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      resolve(blob);
-    }, format, quality);
+  const currentTime = typeof videoEl.currentTime === 'number' ? videoEl.currentTime : 0;
+  const minutes = Math.floor(currentTime / 60);
+  const seconds = Math.floor(currentTime % 60);
+  const ms = Math.floor((currentTime % 1) * 1000);
+  const timeTag = `${String(minutes).padStart(2, '0')}-${String(seconds).padStart(2, '0')}-${String(ms).padStart(3, '0')}`;
+  const baseName = filename || `smartvideo-frame-${timeTag}`;
+  const extension = format === 'image/jpeg' ? 'jpg' : format.replace('image/', '') || 'png';
+  const safeName = `${baseName.replace(/[^a-zA-Z0-9_-]+/g, '_')}.${extension}`;
+
+  return new Promise((resolve, reject) => {
+    try {
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            reject(new Error('Frame export produced an empty image'));
+            return;
+          }
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = safeName;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          // Keep the URL alive briefly so the browser can finish the download,
+          // then revoke it to avoid leaking object URLs.
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+          resolve(blob);
+        },
+        format,
+        quality
+      );
+    } catch (err) {
+      reject(new Error(`Frame export failed: ${err.message}`));
+    }
   });
 }
 
