@@ -36,16 +36,38 @@ import { navigate } from '../../lib/router.js';
 import {
   addPersonalizationAsset,
   ensurePersonalizationProfile,
+  getAllPersonalizationAssets,
   normalizeBusinessProfile,
   setDiscoveredPersonalizationAssets,
+  updatePersonalizationAsset,
   updatePersonalizationBusiness,
 } from '../../lib/personalization/personalizationProfile.js';
 import {
   defaultRoleForDiscoveredCategory,
   discoverBusinessAssets,
   importDiscoveredAsset,
+  persistPersonalizationAssetVersion,
 } from '../../lib/personalization/assetDiscoveryService.js';
-import { analyzePersonalizationImages } from '../../lib/personalization/visionService.js';
+import {
+  analyzePersonalizationImages,
+  validatePersonalizationImageEdit,
+} from '../../lib/personalization/visionService.js';
+import {
+  PersonalizationImageEditorService,
+  preparePersonalizationImageDataUrl,
+} from '../../lib/personalization/imageEditorService.js';
+import {
+  appendEditorVersion,
+  createPersonalizationImageEditorSession,
+  currentEditorVersion,
+  editorPreserveList,
+  getEditorOperationForSession,
+  renderPersonalizationImageEditorPanel,
+  setEditorVersionIndex,
+} from '../../lib/personalization/imageEditorPanel.js';
+import { applyLocalImageAdjustments } from '../../lib/personalization/localImageEditor.js';
+import { mountPersonalizationMaskEditor } from '../../lib/personalization/maskEditor.js';
+import { makePersonalizationAssetVideoReady } from '../../lib/personalization/videoReady.js';
 
 const CONTACTS_KEY = 'remix_contacts';
 const PROFILES_KEY = 'remix_contact_profiles';
@@ -239,6 +261,9 @@ export class PersonalizeModal extends BaseModal {
     this.businessDraft = null;
     this.businessSaveStatus = '';
     this.assetEditorAssetId = null;
+    this.imageEditorSession = null;
+    this.maskEditorController = null;
+    this.imageEditorService = new PersonalizationImageEditorService();
     this.isDiscoveringBusinessAssets = false;
     this.isAnalyzingBusinessAssets = false;
     this.isImportingBusinessAssets = false;
@@ -2178,8 +2203,13 @@ export class PersonalizeModal extends BaseModal {
       return `<div class="${cls}"><label for="${id}">${escapeHtml(label)}</label>${input}</div>`;
     };
 
+    const editorHtml = this.imageEditorSession
+      ? renderPersonalizationImageEditorPanel(this.imageEditorSession)
+      : '';
+
     return `
       <div class="pm-form">
+        ${editorHtml}
         <div class="pm-section">
           <div class="pm-section-label">Who is this for?</div>
           <div class="pm-audience-grid">
@@ -2226,7 +2256,10 @@ export class PersonalizeModal extends BaseModal {
     const thumbs = safeItems.slice(0, 4).map((asset) => {
       const url = typeof asset === 'string' ? asset : (asset.url || asset.originalUrl || '');
       if (!url) return '';
-      return `<img class="pm-asset-thumb" src="${escapeHtml(url)}" alt="" loading="lazy" />`;
+      const edit = typeof asset === 'object' && asset.id
+        ? `<button type="button" class="pm-asset-thumb-button" data-action="open-imported-asset-editor" data-asset-id="${escapeHtml(asset.id)}" title="Edit ${escapeHtml(asset.name || title)}"><img class="pm-asset-thumb" src="${escapeHtml(url)}" alt="" loading="lazy" /><span>Edit</span></button>`
+        : `<img class="pm-asset-thumb" src="${escapeHtml(url)}" alt="" loading="lazy" />`;
+      return edit;
     }).join('');
     return `
       <div class="pm-asset-role-card">
