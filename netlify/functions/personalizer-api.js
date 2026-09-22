@@ -4,7 +4,9 @@ import {
   discoverBusinessAssetsFreeFirst,
   downloadPersonalizationImage,
   mirrorPersonalizationAsset,
+  researchBusinessWebsite,
 } from './_personalizationAssets.js';
+import { findNearbyBusinesses } from './_businessDiscovery.js';
 
 const supabaseService = createClient(
   process.env.SUPABASE_URL,
@@ -767,6 +769,43 @@ export async function handler(event, context) {
       if (scanError) throw scanError;
 
       return { statusCode: 200, headers, body: JSON.stringify({ scanId: scan.id, scanData, usernames }) };
+    }
+
+    // POST /api/personalizer/find-businesses
+    // Free OpenStreetMap/Overpass discovery + Nominatim geocoding.
+    if (path === '/find-businesses' && event.httpMethod === 'POST') {
+      const niche = validateInput(String(body.niche || 'general-business'), 'text', 80) || 'general-business';
+      const location = validateInput(String(body.location || ''), 'text', 240);
+      const radiusMiles = Number(body.radiusMiles || 15);
+      const limit = Number(body.limit || 20);
+      if (!location) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: 'location is required' }) };
+      }
+      try {
+        const result = await findNearbyBusinesses({ niche, location, radiusMiles, limit });
+        return { statusCode: 200, headers, body: JSON.stringify(result) };
+      } catch (businessError) {
+        const message = businessError?.message || 'Business discovery failed.';
+        const status = /required|unsupported|not found|invalid/i.test(message) ? 400 : 502;
+        return { statusCode: status, headers, body: JSON.stringify({ error: message }) };
+      }
+    }
+
+    // POST /api/personalizer/research-business
+    // Free static website research used after a user selects a business.
+    if (path === '/research-business' && event.httpMethod === 'POST') {
+      const websiteUrl = validateInput(String(body.websiteUrl || ''), 'text', 2000);
+      if (!websiteUrl) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: 'websiteUrl is required' }) };
+      }
+      try {
+        const research = await researchBusinessWebsite(websiteUrl);
+        return { statusCode: 200, headers, body: JSON.stringify({ research }) };
+      } catch (businessError) {
+        const message = businessError?.message || 'Business research failed.';
+        const status = /required|allowed|private|resolve/i.test(message) ? 400 : 502;
+        return { statusCode: status, headers, body: JSON.stringify({ error: message }) };
+      }
     }
 
     // POST /api/personalizer/discover-assets
