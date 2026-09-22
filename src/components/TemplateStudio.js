@@ -470,7 +470,7 @@ export function TemplateStudio(templateId) {
     });
 
     enhanceItems.forEach(item => {
-      item.addEventListener('click', () => {
+      item.addEventListener('click', async () => {
         const action = item.dataset.enhance;
         if (action === 'gtm') {
           const originalText = enhanceTrigger.textContent;
