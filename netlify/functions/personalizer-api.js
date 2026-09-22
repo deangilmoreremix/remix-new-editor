@@ -1,5 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 import { IMAGE_EDIT_OPERATIONS } from '../../src/lib/personalization/imageEditRegistry.js';
+import {
+  discoverBusinessAssetsFreeFirst,
+  mirrorPersonalizationAsset,
+} from './_personalizationAssets.js';
 
 const supabaseService = createClient(
   process.env.SUPABASE_URL,
@@ -762,6 +766,53 @@ export async function handler(event, context) {
       if (scanError) throw scanError;
 
       return { statusCode: 200, headers, body: JSON.stringify({ scanId: scan.id, scanData, usernames }) };
+    }
+
+    // POST /api/personalizer/discover-assets
+    // Free-first website image discovery. This endpoint deliberately does not
+    // invoke Vision or Firecrawl; it returns review candidates for the user.
+    if (path === '/discover-assets' && event.httpMethod === 'POST') {
+      const websiteUrl = validateInput(String(body.websiteUrl || ''), 'text', 2000);
+      if (!websiteUrl) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: 'websiteUrl is required' }) };
+      }
+      try {
+        const result = await discoverBusinessAssetsFreeFirst({
+          websiteUrl,
+          maxPages: body.maxPages,
+          maxImages: body.maxImages,
+        });
+        return { statusCode: 200, headers, body: JSON.stringify(result) };
+      } catch (assetError) {
+        const message = assetError?.message || 'Asset discovery failed.';
+        const status = /required|allowed|private|resolve/i.test(message) ? 400 : 502;
+        return { statusCode: status, headers, body: JSON.stringify({ error: message }) };
+      }
+    }
+
+    // POST /api/personalizer/import-asset
+    // Mirrors only a user-approved image into SmartVideo-controlled storage.
+    if (path === '/import-asset' && event.httpMethod === 'POST') {
+      const sourceUrl = validateInput(String(body.sourceUrl || ''), 'text', 15000000);
+      const role = validateInput(String(body.role || ''), 'text', 80);
+      const name = validateInput(String(body.name || ''), 'text', 200) || '';
+      if (!sourceUrl || !role) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: 'sourceUrl and role are required' }) };
+      }
+      try {
+        const imported = await mirrorPersonalizationAsset({
+          supabase: supabaseService,
+          userId,
+          sourceUrl,
+          role,
+          name,
+        });
+        return { statusCode: 200, headers, body: JSON.stringify({ asset: imported }) };
+      } catch (assetError) {
+        const message = assetError?.message || 'Asset import failed.';
+        const status = /required|unsupported|allowed|private|resolve/i.test(message) ? 400 : 502;
+        return { statusCode: status, headers, body: JSON.stringify({ error: message }) };
+      }
     }
 
     // POST /api/personalizer/image-analyze
