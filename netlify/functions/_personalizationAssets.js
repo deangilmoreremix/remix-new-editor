@@ -656,32 +656,48 @@ export async function discoverBusinessAssetsFreeFirst({
   const rootHost = new URL(rootUrl).hostname;
   const pageLimit = Math.max(1, Math.min(Number(maxPages) || DEFAULT_MAX_PAGES, 8));
   const imageLimit = Math.max(1, Math.min(Number(maxImages) || DEFAULT_MAX_IMAGES, 60));
-
-  const homepage = await fetchHtml(rootUrl);
-  if (!homepage) {
+  const cacheKey = `${rootUrl}|${pageLimit}|${imageLimit}`;
+  const cached = getDiscoveryCache(cacheKey);
+  if (cached) {
     return {
-      providerUsed: 'SMARTVIDEO_STATIC',
-      providerAttempts: ['SMARTVIDEO_STATIC'],
-      pagesCrawled: 0,
-      rawCandidates: 0,
-      discoveredAssets: [],
-      socialProfiles: [],
+      ...cached,
+      cached: true,
       durationMs: Date.now() - startedAt,
     };
   }
 
+  const providerAttempts = ['SMARTVIDEO_STATIC'];
   const candidateMap = new Map();
   const socialMap = new Map();
-  const pages = [{ url: homepage.finalUrl, html: homepage.html }];
-  for (const candidate of extractImageCandidates(homepage.html, homepage.finalUrl)) {
-    candidateMap.set(candidate.url, candidate);
-  }
-  for (const social of extractSocialProfiles(homepage.html, homepage.finalUrl)) socialMap.set(social.url, social);
+  const pages = [];
 
-  const links = extractInternalLinks(homepage.html, homepage.finalUrl, rootHost)
+  const homepage = await fetchHtml(rootUrl);
+  if (homepage) {
+    pages.push({ url: homepage.finalUrl, html: homepage.html });
+    for (const candidate of extractImageCandidates(homepage.html, homepage.finalUrl)) {
+      candidateMap.set(candidate.url, candidate);
+    }
+    for (const social of extractSocialProfiles(homepage.html, homepage.finalUrl)) {
+      socialMap.set(social.url, social);
+    }
+  }
+
+  // Robots/sitemap is still a free static path and often exposes gallery,
+  // product, service and team pages that are not linked from a JS-heavy
+  // homepage. It runs before any rendered browser or paid scraper.
+  providerAttempts.push('SITEMAP_ROBOTS');
+  const sitemapLinks = await discoverSitemapLinks(rootUrl, rootHost);
+
+  const internalLinks = homepage
+    ? extractInternalLinks(homepage.html, homepage.finalUrl, rootHost)
+    : [];
+  const links = Array.from(new Set([...internalLinks, ...sitemapLinks]))
     .map((url) => ({
       url,
-      score: PRIORITY_PATH_HINTS.reduce((score, hint) => score + (new URL(url).pathname.toLowerCase().includes(hint) ? hint.length : 0), 0),
+      score: PRIORITY_PATH_HINTS.reduce(
+        (score, hint) => score + (new URL(url).pathname.toLowerCase().includes(hint) ? hint.length : 0),
+        0,
+      ),
     }))
     .sort((a, b) => b.score - a.score);
 
@@ -694,70 +710,92 @@ export async function discoverBusinessAssetsFreeFirst({
     for (const candidate of extractImageCandidates(page.html, page.finalUrl)) {
       if (!candidateMap.has(candidate.url)) candidateMap.set(candidate.url, candidate);
     }
-    for (const social of extractSocialProfiles(page.html, page.finalUrl)) socialMap.set(social.url, social);
+    for (const social of extractSocialProfiles(page.html, page.finalUrl)) {
+      socialMap.set(social.url, social);
+    }
   }
 
   const discoveredAssets = [];
+  const seenAssetUrls = new Set();
+  const addAssets = (assets) => {
+    for (const asset of Array.isArray(assets) ? assets : []) {
+      if (!asset?.sourceUrl || seenAssetUrls.has(asset.sourceUrl)) continue;
+      seenAssetUrls.add(asset.sourceUrl);
+      discoveredAssets.push(asset);
+      if (discoveredAssets.length >= imageLimit) break;
+    }
+  };
+
   const validatedCandidates = await validateImageCandidatesBounded(
     Array.from(candidateMap.values()),
     { limit: imageLimit },
   );
-  for (const valid of validatedCandidates) {
-    const classification = heuristicClassification(valid);
-    if (!USEFUL_CATEGORIES.has(classification.category)) continue;
-    discoveredAssets.push({
-      id: `disc_${crypto.randomUUID()}`,
-      sourceUrl: valid.url,
-      previewUrl: valid.url,
-      sourcePage: valid.sourcePage,
-      sourceType: 'WEBSITE',
-      category: classification.category,
-      confidence: classification.confidence,
-      qualityScore: null,
-      relevanceScore: null,
-      selected: classification.recommended,
-      recommended: classification.recommended,
-      rejected: false,
-      assignedRole: null,
-      autoAssigned: false,
-      mimeType: valid.mimeType,
-      altText: valid.altText || '',
-      visionAnalysis: null,
-      editedUrl: null,
-      videoReady: false,
-    });
-    if (discoveredAssets.length >= imageLimit) break;
-  }
+  addAssets(validatedCandidates
+    .map((valid) => discoveredAssetFromValidated(valid, 'WEBSITE'))
+    .filter(Boolean));
 
-  const providerAttempts = ['SMARTVIDEO_STATIC'];
   let providerUsed = 'SMARTVIDEO_STATIC';
   let browserUsed = false;
+  let firecrawlUsed = false;
 
-  // Keep rendered capture strictly behind free/static extraction. RNE already
-  // supports a separate Playwright/Puppeteer screenshot backend via
-  // SCREENSHOT_API_URL; this avoids bundling Chromium into Netlify functions.
+  // Free rendered-browser path. The configured endpoint is expected to run
+  // Playwright/Open-Pomelli-style DOM extraction and may also return a
+  // screenshot. A legacy screenshot-only endpoint remains compatible.
   if (discoveredAssets.length < 3) {
-    providerAttempts.push('RENDERED_SCREENSHOT');
-    const rendered = await captureRenderedScreenshotFallback(rootUrl);
-    if (rendered && !discoveredAssets.some((asset) => asset.sourceUrl === rendered.sourceUrl)) {
-      discoveredAssets.push(rendered);
-      providerUsed = 'RENDERED_SCREENSHOT';
-      browserUsed = true;
+    providerAttempts.push('PLAYWRIGHT_RENDERED');
+    const rendered = await discoverRenderedAssetsFallback(
+      rootUrl,
+      Math.min(imageLimit - discoveredAssets.length, 30),
+    );
+    if (rendered) {
+      const before = discoveredAssets.length;
+      addAssets(rendered.assets);
+      for (const social of rendered.socialProfiles || []) {
+        if (social?.url) socialMap.set(social.url, social);
+      }
+      if (discoveredAssets.length > before) {
+        providerUsed = 'PLAYWRIGHT_RENDERED';
+        browserUsed = true;
+      }
     }
   }
 
-  return {
+  // Paid fallback is deliberately last and opt-in by environment key. Static,
+  // sitemap and rendered-browser discovery always get the first opportunity.
+  if (discoveredAssets.length < 3 && process.env.FIRECRAWL_API_KEY) {
+    providerAttempts.push('FIRECRAWL');
+    const firecrawl = await discoverWithFirecrawlLastFallback(
+      rootUrl,
+      Math.min(imageLimit - discoveredAssets.length, 30),
+    );
+    if (firecrawl) {
+      const before = discoveredAssets.length;
+      addAssets(firecrawl.assets);
+      for (const social of firecrawl.socialProfiles || []) {
+        if (social?.url) socialMap.set(social.url, social);
+      }
+      if (discoveredAssets.length > before) {
+        providerUsed = 'FIRECRAWL';
+        firecrawlUsed = true;
+      }
+    }
+  }
+
+  const result = {
     providerUsed,
     providerAttempts,
     pagesCrawled: pages.length,
     rawCandidates: candidateMap.size,
-    discoveredAssets,
+    discoveredAssets: discoveredAssets.slice(0, imageLimit),
     socialProfiles: Array.from(socialMap.values()),
     durationMs: Date.now() - startedAt,
     visionUsed: false,
     browserUsed,
-    firecrawlUsed: false,
+    firecrawlUsed,
+    cached: false,
   };
+  setDiscoveryCache(cacheKey, result);
+  return result;
 }
 
 function parseDataImage(value) {
