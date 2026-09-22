@@ -57,6 +57,23 @@ export async function discoverBusinessAssets({
   };
 }
 
+export async function persistPersonalizationAssetVersion({
+  sourceUrl,
+  role,
+  name,
+} = {}) {
+  if (!sourceUrl) throw new Error('Edited asset source is required.');
+  if (!role) throw new Error('Edited asset role is required.');
+
+  const payload = await post('import-asset', {
+    sourceUrl,
+    role,
+    name: name || role,
+  });
+  if (!payload?.asset?.url) throw new Error('Edited asset persistence returned no durable URL.');
+  return payload.asset;
+}
+
 export async function importDiscoveredAsset(asset, { role, name } = {}) {
   const assignedRole = role || asset?.assignedRole || defaultRoleForDiscoveredCategory(asset?.category);
   const sourceUrl = asset?.editedUrl || asset?.previewUrl || asset?.sourceUrl;
