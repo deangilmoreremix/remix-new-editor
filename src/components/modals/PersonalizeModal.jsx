@@ -2740,6 +2740,219 @@ export class PersonalizeModal extends BaseModal {
     }
   }
 
+  _updateEditorBusyLabel() {
+    const busy = this.overlay?.querySelector('.pm-editor-busy');
+    if (busy && this.imageEditorSession?.busyLabel) {
+      busy.textContent = this.imageEditorSession.busyLabel;
+    }
+  }
+
+  _editorBusinessContext() {
+    const profile = this._selectedUnifiedProfile();
+    const business = this._currentBusinessDraft() || profile?.personalization?.business || {};
+    return {
+      businessName: business.businessName || '',
+      industry: business.industry || '',
+      productService: business.productService || '',
+      brandDescription: business.brandDescription || '',
+      offer: business.offer || '',
+      callToAction: business.callToAction || '',
+    };
+  }
+
+  _findImportedPersonalizationAsset(assetId) {
+    const profile = this._selectedUnifiedProfile();
+    return getAllPersonalizationAssets(profile || {}).find((asset) => asset?.id === assetId) || null;
+  }
+
+  _openAssetEditor(assetId, source = 'discovered') {
+    if (!assetId) return;
+    let asset = null;
+    let resolvedSource = source;
+
+    if (source === 'imported') {
+      asset = this._findImportedPersonalizationAsset(assetId);
+    } else {
+      const discovered = this._currentDiscoveredAssets().find((candidate) => candidate.id === assetId);
+      if (discovered) {
+        asset = {
+          ...discovered,
+          name: discovered.altText || discovered.category || 'Discovered Business Asset',
+          role: discovered.assignedRole || defaultRoleForDiscoveredCategory(discovered.category),
+          sourceCategory: discovered.category,
+          url: discovered.editedUrl || discovered.previewUrl || discovered.sourceUrl,
+          originalUrl: discovered.sourceUrl || discovered.previewUrl,
+        };
+      } else {
+        asset = this._findImportedPersonalizationAsset(assetId);
+        resolvedSource = 'imported';
+      }
+    }
+
+    if (!asset) {
+      this.assetDiscoveryError = 'Could not find the selected personalization asset.';
+      this.refreshBody();
+      return;
+    }
+
+    this._forcedTab = 'assets';
+    this.assetEditorAssetId = assetId;
+    this.imageEditorController.open(asset, {
+      source: resolvedSource,
+      businessContext: this._editorBusinessContext(),
+    });
+  }
+
+  _closeAssetEditor() {
+    this.assetEditorAssetId = null;
+    this.imageEditorController.close();
+  }
+
+  _persistEditorAnalysis() {
+    const session = this.imageEditorController.session;
+    if (!session?.visionAnalysis) return;
+
+    if (session.source === 'discovered') {
+      this._updateDiscoveredAsset(session.assetId, {
+        visionAnalysis: session.visionAnalysis,
+        category: session.visionAnalysis.confidence >= 75
+          ? session.visionAnalysis.category
+          : session.category,
+        qualityScore: session.visionAnalysis.qualityScore,
+        relevanceScore: session.visionAnalysis.relevanceScore,
+      });
+      return;
+    }
+
+    const id = getSelectedContactId();
+    const profile = id ? _getProfile(id) : null;
+    if (!profile) return;
+    const next = updatePersonalizationAsset(profile, session.assetId, {
+      visionAnalysis: session.visionAnalysis,
+      sourceCategory: session.category,
+    });
+    next.updatedAt = new Date().toISOString();
+    this._persistSelectedProfile(next);
+  }
+
+  async _handleEditorAnalyze() {
+    await this.imageEditorController.analyze();
+    this._persistEditorAnalysis();
+  }
+
+  async _handleEditorOperation(operationId) {
+    await this.imageEditorController.runOperation(operationId);
+  }
+
+  async _handleEditorSmartEdit() {
+    await this.imageEditorController.smartEdit();
+  }
+
+  async _handleEditorVideoReady() {
+    await this.imageEditorController.makeVideoReady();
+  }
+
+  async _handleEditorApplyLocal() {
+    await this.imageEditorController.applyLocal();
+  }
+
+  async _handleEditorMask() {
+    await this.imageEditorController.toggleMask();
+  }
+
+  _mountActiveEditorMask() {
+    const session = this.imageEditorController.session;
+    if (!session?.maskMode) return;
+    const host = this.overlay?.querySelector('[data-editor-mask-host]');
+    if (host) this.imageEditorController.mountMask(host);
+  }
+
+  _serializedEditorVersions(session) {
+    return (session?.versions || []).map((version) => ({
+      id: version.id,
+      label: version.label,
+      url: version.dataUrl,
+      operation: version.operation,
+      prompt: version.prompt || '',
+      model: version.model || '',
+      transparent: Boolean(version.transparent),
+      videoReady: Boolean(version.videoReady),
+      responseId: version.responseId || null,
+      revisedPrompt: version.revisedPrompt || null,
+      visionValidation: version.visionValidation || null,
+      createdAt: version.createdAt || new Date().toISOString(),
+    }));
+  }
+
+  async _handleEditorApply() {
+    const controller = this.imageEditorController;
+    const session = controller.session;
+    if (!session) return;
+
+    const qa = await controller.validateCurrent();
+    if (!qa.ok) return;
+
+    try {
+      session.busyLabel = 'Saving accepted edit versions…';
+      this._updateEditorBusyLabel();
+      await controller.persistVersions();
+      const current = controller.currentVersion();
+      if (!current?.dataUrl) throw new Error('No edited version is available to save.');
+
+      const versions = this._serializedEditorVersions(session);
+      const editMetadata = {
+        operation: current.operation,
+        prompt: current.prompt || '',
+        model: current.model || '',
+        responseId: current.responseId || null,
+        revisedPrompt: current.revisedPrompt || null,
+        acceptedAt: new Date().toISOString(),
+      };
+
+      if (session.source === 'discovered') {
+        this._updateDiscoveredAsset(session.assetId, {
+          editedUrl: current.dataUrl,
+          stagedDurableUrl: current.dataUrl,
+          stagedRole: session.role,
+          stagedMimeType: current.mimeType || null,
+          videoReady: Boolean(current.videoReady),
+          visionAnalysis: session.visionAnalysis || null,
+          visionValidation: current.visionValidation || null,
+          editMetadata,
+          versions,
+          selected: true,
+        });
+        this.assetDiscoveryStatus = '✓ Edited asset saved. Import it when you are ready to add it to the reusable library.';
+      } else {
+        const id = getSelectedContactId();
+        const profile = id ? _getProfile(id) : null;
+        if (!profile) throw new Error('The selected personalization profile is no longer available.');
+        let next = updatePersonalizationAsset(profile, session.assetId, (asset) => ({
+          ...asset,
+          url: current.dataUrl,
+          edited: current.dataUrl !== (asset.originalUrl || current.dataUrl),
+          videoReady: Boolean(current.videoReady),
+          hasTransparency: Boolean(current.transparent),
+          visionAnalysis: session.visionAnalysis || asset.visionAnalysis || null,
+          visionValidation: current.visionValidation || null,
+          editMetadata,
+          versions,
+        }));
+        next.updatedAt = new Date().toISOString();
+        next.variables = buildVariables(next, next.variables || {});
+        if (!this._persistSelectedProfile(next)) throw new Error('Could not save the edited asset profile.');
+        this.assetDiscoveryStatus = '✓ Edited reusable asset saved';
+      }
+
+      this.assetEditorAssetId = null;
+      controller.close();
+    } catch (error) {
+      session.busyLabel = '';
+      session.error = error?.message || 'Could not save the edited asset.';
+      this.refreshBody();
+    }
+  }
+
   _persistSelectedProfile(profile) {
     if (!profile?.id) return false;
     try {
