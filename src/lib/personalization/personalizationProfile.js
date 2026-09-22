@@ -273,6 +273,45 @@ export function addPersonalizationAsset(profile, asset) {
   };
 }
 
+export function removePersonalizationAsset(profile, assetId) {
+  const normalized = ensurePersonalizationProfile(profile);
+  const a = normalized.personalization.assets;
+  const identities = a.identities.filter((asset) => asset?.id !== assetId);
+  const logos = a.logos.filter((asset) => asset?.id !== assetId);
+  const products = a.products.filter((asset) => asset?.id !== assetId);
+  const brandReferences = a.brandReferences.filter((asset) => asset?.id !== assetId);
+  const audio = a.audio.filter((asset) => asset?.id !== assetId);
+  const savedReferences = a.savedReferences.filter((asset) => asset?.id !== assetId);
+
+  const assets = {
+    ...a,
+    identities,
+    primaryIdentityId: identities.some((asset) => asset.id === a.primaryIdentityId)
+      ? a.primaryIdentityId
+      : (identities[0]?.id || null),
+    logos,
+    primaryLogoId: logos.some((asset) => asset.id === a.primaryLogoId)
+      ? a.primaryLogoId
+      : (logos[0]?.id || null),
+    products,
+    brandReferences,
+    firstFrame: a.firstFrame?.id === assetId ? null : a.firstFrame,
+    lastFrame: a.lastFrame?.id === assetId ? null : a.lastFrame,
+    ctaGraphic: a.ctaGraphic?.id === assetId ? null : a.ctaGraphic,
+    audio,
+    savedReferences,
+  };
+
+  return {
+    ...normalized,
+    personalization: {
+      ...normalized.personalization,
+      assets,
+      updatedAt: new Date().toISOString(),
+    },
+  };
+}
+
 export function updatePersonalizationAsset(profile, assetId, updater) {
   const normalized = ensurePersonalizationProfile(profile);
   let changed = false;
