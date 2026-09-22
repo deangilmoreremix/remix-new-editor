@@ -46,12 +46,13 @@ import {
   defaultRoleForDiscoveredCategory,
   discoverBusinessAssets,
   importDiscoveredAsset,
-  persistPersonalizationAssetVersion,
 } from '../../lib/personalization/assetDiscoveryService.js';
+import { analyzePersonalizationImages } from '../../lib/personalization/visionService.js';
 import {
-  analyzePersonalizationImages,
-  validatePersonalizationImageEdit,
-} from '../../lib/personalization/visionService.js';
+  BUSINESS_DISCOVERY_NICHES,
+  findBusinesses,
+  researchBusiness,
+} from '../../lib/personalization/businessDiscoveryService.js';
 import { renderPersonalizationImageEditorPanel } from '../../lib/personalization/imageEditorPanel.js';
 import { PersonalizationImageEditorController } from '../../lib/personalization/imageEditorController.js';
 
@@ -246,6 +247,13 @@ export class PersonalizeModal extends BaseModal {
     // only hold unsaved form state while the modal is open.
     this.businessDraft = null;
     this.businessSaveStatus = '';
+    this.businessSearchResults = [];
+    this.businessSearchStatus = '';
+    this.businessSearchError = '';
+    this.isSearchingBusinesses = false;
+    this.isResearchingBusiness = false;
+    this.businessSearchNiche = 'general-business';
+    this.businessSearchRadius = 15;
     this.assetEditorAssetId = null;
     this.imageEditorSession = null;
     this.imageEditorController = new PersonalizationImageEditorController({
@@ -1739,6 +1747,20 @@ export class PersonalizeModal extends BaseModal {
         .pm-audience-title { font-size: 13px; font-weight: 700; }
         .pm-audience-copy { margin-top: 4px; font-size: 11px; line-height: 1.4; color: var(--text-muted); }
 
+        .pm-business-search-grid {
+          display: grid;
+          grid-template-columns: minmax(150px, .9fr) minmax(220px, 1.4fr) minmax(110px, .6fr) auto;
+          gap: 10px;
+          align-items: end;
+        }
+        .pm-business-search-action { display:flex; align-items:flex-end; padding-bottom:1px; }
+        .pm-business-results { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:10px; margin-top:12px; }
+        .pm-business-result { border:1px solid var(--border-color); border-radius:12px; padding:11px; background:var(--bg-card); display:flex; flex-direction:column; gap:8px; }
+        .pm-business-result-head { display:flex; justify-content:space-between; gap:8px; align-items:flex-start; }
+        .pm-business-result-head strong { display:block; font-size:11px; color:var(--text-primary); }
+        .pm-business-result-head span:not(.pm-preview-pill) { display:block; margin-top:2px; font-size:9px; color:var(--text-muted); }
+        .pm-business-result-meta { display:flex; flex-direction:column; gap:3px; font-size:9px; color:var(--text-secondary); line-height:1.35; overflow-wrap:anywhere; }
+
         .pm-business-grid {
           display: grid;
           grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1817,7 +1839,8 @@ export class PersonalizeModal extends BaseModal {
 
         @media (max-width: 720px) {
           .pm-audience-grid,
-          .pm-business-grid { grid-template-columns: 1fr; }
+          .pm-business-grid,
+          .pm-business-search-grid { grid-template-columns: 1fr; }
           .pm-business-field.pm-span-2 { grid-column: auto; }
         }
 
@@ -2348,13 +2371,8 @@ export class PersonalizeModal extends BaseModal {
       return `<div class="${cls}"><label for="${id}">${escapeHtml(label)}</label>${input}</div>`;
     };
 
-    const editorHtml = this.imageEditorSession
-      ? renderPersonalizationImageEditorPanel(this.imageEditorSession)
-      : '';
-
     return `
       <div class="pm-form">
-        ${editorHtml}
         <div class="pm-section">
           <div class="pm-section-label">Who is this for?</div>
           <div class="pm-audience-grid">
@@ -2365,6 +2383,64 @@ export class PersonalizeModal extends BaseModal {
               </button>
             `).join('')}
           </div>
+        </div>
+
+        <div class="pm-section">
+          <div class="pm-section-header">
+            <span class="pm-section-label">Find a Business</span>
+            <span class="pm-business-status">${escapeHtml(this.businessSearchStatus || '')}</span>
+          </div>
+          <div class="pm-preview-empty">
+            Search nearby businesses with free OpenStreetMap + Overpass data. Nominatim resolves the location; no paid lead database is required.
+          </div>
+          ${this.businessSearchError ? `<div class="pm-error" role="alert">${escapeHtml(this.businessSearchError)}</div>` : ''}
+          <div class="pm-business-search-grid">
+            <label class="pm-business-field">
+              <span>Business Type</span>
+              <select id="pm-business-search-niche">
+                ${BUSINESS_DISCOVERY_NICHES.map(([id, label]) => `<option value="${id}" ${this.businessSearchNiche === id ? 'selected' : ''}>${escapeHtml(label)}</option>`).join('')}
+              </select>
+            </label>
+            <label class="pm-business-field">
+              <span>Search Location</span>
+              <input id="pm-business-search-location" class="pm-input" type="text" value="${escapeHtml(b.location || '')}" placeholder="Miami, FL or 33020" />
+            </label>
+            <label class="pm-business-field">
+              <span>Radius</span>
+              <select id="pm-business-search-radius">
+                ${[5,10,15,25,50].map((miles) => `<option value="${miles}" ${Number(this.businessSearchRadius) === miles ? 'selected' : ''}>${miles} miles</option>`).join('')}
+              </select>
+            </label>
+            <div class="pm-business-search-action">
+              <button type="button" class="pm-btn pm-btn-primary" data-action="find-businesses" ${this.isSearchingBusinesses ? 'disabled' : ''}>
+                ${this.isSearchingBusinesses ? 'Searching…' : 'Find Businesses'}
+              </button>
+            </div>
+          </div>
+          ${this.businessSearchResults.length ? `
+            <div class="pm-business-results">
+              ${this.businessSearchResults.map((business, index) => `
+                <article class="pm-business-result">
+                  <div class="pm-business-result-head">
+                    <div>
+                      <strong>${escapeHtml(business.name || 'Unnamed Business')}</strong>
+                      <span>${escapeHtml(business.category || '')}</span>
+                    </div>
+                    <span class="pm-preview-pill pm-preview-pill-muted">Lead ${Math.round(Number(business.leadScore) || 0)}</span>
+                  </div>
+                  <div class="pm-business-result-meta">
+                    ${business.address ? `<span>📍 ${escapeHtml(business.address)}</span>` : ''}
+                    ${business.phone ? `<span>☎ ${escapeHtml(business.phone)}</span>` : ''}
+                    ${business.website ? `<span>🌐 ${escapeHtml(business.website)}</span>` : '<span>Website not listed in OSM</span>'}
+                  </div>
+                  <div class="pm-asset-actions">
+                    <button type="button" class="pm-small-btn" data-action="select-business-result" data-business-index="${index}">Use Business</button>
+                    ${business.website ? `<button type="button" class="pm-small-btn" data-action="research-business-result" data-business-index="${index}" ${this.isResearchingBusiness ? 'disabled' : ''}>Research Website</button>` : ''}
+                  </div>
+                </article>
+              `).join('')}
+            </div>
+          ` : ''}
         </div>
 
         <div class="pm-section">
@@ -2528,8 +2604,13 @@ export class PersonalizeModal extends BaseModal {
       : (legacy.productImages || []).map((url) => ({ url }));
     const single = (value) => value ? [value] : [];
 
+    const editorHtml = this.imageEditorSession
+      ? renderPersonalizationImageEditorPanel(this.imageEditorSession)
+      : '';
+
     return `
       <div class="pm-form">
+        ${editorHtml}
         <div class="pm-section">
           <div class="pm-section-header">
             <span class="pm-section-label">Find Business Assets</span>
@@ -2949,6 +3030,90 @@ export class PersonalizeModal extends BaseModal {
     } catch (error) {
       session.busyLabel = '';
       session.error = error?.message || 'Could not save the edited asset.';
+      this.refreshBody();
+    }
+  }
+
+  async _handleFindBusinesses() {
+    const location = this.overlay?.querySelector('#pm-business-search-location')?.value?.trim()
+      || this._currentBusinessDraft()?.location
+      || '';
+    const niche = this.overlay?.querySelector('#pm-business-search-niche')?.value || this.businessSearchNiche;
+    const radiusMiles = Number(this.overlay?.querySelector('#pm-business-search-radius')?.value || this.businessSearchRadius || 15);
+
+    if (!location) {
+      this.businessSearchError = 'Enter a city, ZIP code, or location first.';
+      this.refreshBody();
+      return;
+    }
+
+    this.businessSearchNiche = niche;
+    this.businessSearchRadius = radiusMiles;
+    this.isSearchingBusinesses = true;
+    this.businessSearchError = '';
+    this.businessSearchStatus = 'Searching OpenStreetMap…';
+    this.refreshBody();
+
+    try {
+      const result = await findBusinesses({ niche, location, radiusMiles, limit: 20 });
+      this.businessSearchResults = Array.isArray(result?.businesses) ? result.businesses : [];
+      this.businessSearchStatus = `✓ Found ${this.businessSearchResults.length} businesses near ${result?.geocode?.displayName || location}`;
+    } catch (error) {
+      this.businessSearchResults = [];
+      this.businessSearchError = error?.message || 'Business search failed.';
+      this.businessSearchStatus = '';
+    } finally {
+      this.isSearchingBusinesses = false;
+      this.refreshBody();
+    }
+  }
+
+  _applyBusinessSearchResult(index) {
+    const business = this.businessSearchResults[Number(index)];
+    if (!business) return;
+    const current = this._readBusinessDraftFromDom() || this._currentBusinessDraft() || {};
+    this.businessDraft = {
+      ...current,
+      businessName: business.name || current.businessName || '',
+      website: business.website || current.website || '',
+      industry: business.category || current.industry || '',
+      location: business.address || [business.city, business.region].filter(Boolean).join(', ') || current.location || '',
+      phone: business.phone || current.phone || '',
+      email: business.email || current.email || '',
+    };
+    this.businessSaveStatus = 'Business selected — save when ready';
+    this.businessSearchError = '';
+    this.refreshBody();
+  }
+
+  async _handleResearchBusiness(index) {
+    const business = this.businessSearchResults[Number(index)];
+    if (!business?.website) return;
+    this.isResearchingBusiness = true;
+    this.businessSearchError = '';
+    this.businessSearchStatus = `Researching ${business.name || 'business'} website…`;
+    this.refreshBody();
+    try {
+      const result = await researchBusiness({ websiteUrl: business.website });
+      const research = result?.research || {};
+      const current = this._currentBusinessDraft() || {};
+      this.businessDraft = {
+        ...current,
+        businessName: business.name || current.businessName || research.title || '',
+        website: research.finalUrl || business.website || current.website || '',
+        industry: business.category || current.industry || '',
+        location: business.address || current.location || research.contactInfo?.addresses?.[0] || '',
+        phone: business.phone || research.contactInfo?.phones?.[0] || current.phone || '',
+        email: business.email || research.contactInfo?.emails?.[0] || current.email || '',
+        brandDescription: research.description || current.brandDescription || '',
+      };
+      this.businessSaveStatus = '✓ Website research applied — save when ready';
+      this.businessSearchStatus = '✓ Free website research complete';
+    } catch (error) {
+      this.businessSearchError = error?.message || 'Business website research failed.';
+      this.businessSearchStatus = '';
+    } finally {
+      this.isResearchingBusiness = false;
       this.refreshBody();
     }
   }
@@ -3607,6 +3772,27 @@ export class PersonalizeModal extends BaseModal {
           btn.onclick = (e) => {
             e.stopPropagation();
             this._loadScanById(btn.dataset.scanId);
+          };
+        });
+
+        scope.querySelectorAll('[data-action="find-businesses"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._handleFindBusinesses();
+          };
+        });
+
+        scope.querySelectorAll('[data-action="select-business-result"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._applyBusinessSearchResult(btn.dataset.businessIndex);
+          };
+        });
+
+        scope.querySelectorAll('[data-action="research-business-result"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._handleResearchBusiness(btn.dataset.businessIndex);
           };
         });
 
