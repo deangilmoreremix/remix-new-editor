@@ -417,6 +417,37 @@ function parseDataImage(value) {
   return { mimeType: match[1].toLowerCase(), bytes };
 }
 
+export async function downloadPersonalizationImage(sourceUrl) {
+  const inlineImage = parseDataImage(sourceUrl);
+  if (inlineImage) {
+    return {
+      sourceUrl,
+      mimeType: inlineImage.mimeType,
+      size: inlineImage.bytes.length,
+      dataUrl: `data:${inlineImage.mimeType};base64,${inlineImage.bytes.toString('base64')}`,
+    };
+  }
+
+  const safeUrl = await sanitizePublicHttpUrl(sourceUrl);
+  const { response, finalUrl } = await fetchWithRedirectGuards(safeUrl, {
+    method: 'GET',
+    headers: { Accept: 'image/*' },
+  }, MAX_IMAGE_BYTES);
+  if (!response.ok) throw new Error(`Image download failed (HTTP ${response.status}).`);
+
+  const mimeType = String(response.headers.get('content-type') || '').toLowerCase().split(';')[0];
+  if (!mimeType.startsWith('image/')) throw new Error('URL did not return an image.');
+  const bytes = Buffer.from(await response.arrayBuffer());
+  if (!bytes.length || bytes.length > MAX_IMAGE_BYTES) throw new Error('Image exceeds the allowed size.');
+
+  return {
+    sourceUrl: finalUrl,
+    mimeType,
+    size: bytes.length,
+    dataUrl: `data:${mimeType};base64,${bytes.toString('base64')}`,
+  };
+}
+
 function extensionForMime(mime) {
   const type = String(mime || '').toLowerCase();
   if (type.includes('jpeg')) return 'jpg';
