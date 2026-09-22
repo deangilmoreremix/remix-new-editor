@@ -48,6 +48,7 @@ import {
   defaultRoleForDiscoveredCategory,
   discoverBusinessAssets,
   importDiscoveredAsset,
+  persistPersonalizationAssetVersion,
 } from '../../lib/personalization/assetDiscoveryService.js';
 import { analyzePersonalizationImages } from '../../lib/personalization/visionService.js';
 import {
@@ -57,6 +58,7 @@ import {
 } from '../../lib/personalization/businessDiscoveryService.js';
 import { renderPersonalizationImageEditorPanel } from '../../lib/personalization/imageEditorPanel.js';
 import { PersonalizationImageEditorController } from '../../lib/personalization/imageEditorController.js';
+import { makePersonalizationAssetVideoReady } from '../../lib/personalization/videoReady.js';
 import { buildPersonalizationContext } from '../../lib/personalization/studioContext.js';
 
 const CONTACTS_KEY = 'remix_contacts';
@@ -272,6 +274,7 @@ export class PersonalizeModal extends BaseModal {
     });
     this.isDiscoveringBusinessAssets = false;
     this.isAnalyzingBusinessAssets = false;
+    this.isBatchVideoReady = false;
     this.isImportingBusinessAssets = false;
     this.assetDiscoveryStatus = '';
     this.assetDiscoveryError = '';
@@ -2595,6 +2598,7 @@ export class PersonalizeModal extends BaseModal {
           </div>
           ${vision?.summary ? `<div class="pm-discovered-summary">${escapeHtml(vision.summary)}</div>` : ''}
           ${vision?.issues?.length ? `<div class="pm-discovered-summary"><strong>Issues:</strong> ${escapeHtml(vision.issues.join(' • '))}</div>` : ''}
+          ${asset.batchVideoReadyError ? `<div class="pm-error" role="alert">${escapeHtml(asset.batchVideoReadyError)}</div>` : ''}
           <div class="pm-discovered-source" title="${escapeHtml(asset.sourceUrl || '')}">${escapeHtml(asset.sourceUrl || '')}</div>
           <div class="pm-discovered-footer">
             <button type="button" class="pm-small-btn" data-action="${asset.rejected ? 'restore-discovered' : 'reject-discovered'}" data-asset-id="${escapeHtml(asset.id)}">
@@ -2653,6 +2657,9 @@ export class PersonalizeModal extends BaseModal {
             </button>
             <button type="button" class="pm-btn pm-btn-secondary" data-action="analyze-selected-assets" ${selectedCount === 0 || this.isAnalyzingBusinessAssets ? 'disabled' : ''}>
               ${this.isAnalyzingBusinessAssets ? 'Analyzing…' : `Analyze Selected with Vision (${selectedCount})`}
+            </button>
+            <button type="button" class="pm-btn pm-btn-secondary" data-action="video-ready-selected-assets" ${selectedCount === 0 || this.isBatchVideoReady ? 'disabled' : ''}>
+              ${this.isBatchVideoReady ? 'Preparing…' : `Make Selected Video Ready (${selectedCount})`}
             </button>
             <button type="button" class="pm-btn pm-btn-secondary" data-action="import-selected-assets" ${selectedCount === 0 || this.isImportingBusinessAssets ? 'disabled' : ''}>
               ${this.isImportingBusinessAssets ? 'Importing…' : `Import Selected (${selectedCount})`}
@@ -2898,6 +2905,83 @@ export class PersonalizeModal extends BaseModal {
       this.assetDiscoveryStatus = '';
     } finally {
       this.isAnalyzingBusinessAssets = false;
+      this.refreshBody();
+    }
+  }
+
+  async _handleMakeSelectedVideoReady() {
+    const selected = this._currentDiscoveredAssets().filter((asset) => asset.selected && !asset.rejected);
+    if (!selected.length) return;
+
+    const business = this._currentBusinessDraft() || {};
+    this.isBatchVideoReady = true;
+    this.assetDiscoveryError = '';
+    let completed = 0;
+    const updates = new Map();
+    this.assetDiscoveryStatus = `Preparing 0/${selected.length} assets…`;
+    this.refreshBody();
+
+    try {
+      for (const asset of selected) {
+        this.assetDiscoveryStatus = `Preparing ${completed + 1}/${selected.length}: ${asset.altText || asset.category || 'asset'}…`;
+        this.refreshBody();
+
+        try {
+          const result = await makePersonalizationAssetVideoReady({
+            id: asset.id,
+            url: asset.editedUrl || asset.previewUrl || asset.sourceUrl,
+            originalUrl: asset.sourceUrl || asset.previewUrl,
+            sourceCategory: asset.category,
+            role: asset.assignedRole || defaultRoleForDiscoveredCategory(asset.category),
+            visionAnalysis: asset.visionAnalysis || null,
+          }, {
+            businessContext: {
+              businessName: business.businessName,
+              industry: business.industry,
+              productService: business.productService,
+              brandDescription: business.brandDescription,
+            },
+          });
+
+          const stored = await persistPersonalizationAssetVersion({
+            sourceUrl: result.url,
+            role: asset.assignedRole || defaultRoleForDiscoveredCategory(asset.category),
+            name: `${asset.altText || asset.category || 'Business asset'} — Video Ready`,
+          });
+
+          updates.set(asset.id, {
+            editedUrl: stored.url,
+            stagedDurableUrl: stored.url,
+            stagedRole: asset.assignedRole || defaultRoleForDiscoveredCategory(asset.category),
+            stagedMimeType: stored.mimeType || 'image/png',
+            videoReady: true,
+            visionAnalysis: result.visionAnalysis || asset.visionAnalysis || null,
+            visionValidation: result.visionValidation || null,
+            editMetadata: result.editMetadata || null,
+            batchVideoReadyError: null,
+          });
+          completed += 1;
+        } catch (error) {
+          updates.set(asset.id, {
+            videoReady: false,
+            batchVideoReadyError: error?.message || 'Video Ready preparation failed.',
+            visionValidation: error?.validation || asset.visionValidation || null,
+          });
+        }
+      }
+
+      const next = this._currentDiscoveredAssets().map((asset) =>
+        updates.has(asset.id) ? { ...asset, ...updates.get(asset.id) } : asset
+      );
+      this._persistDiscoveredAssets(next);
+      const failed = selected.length - completed;
+      this.assetDiscoveryStatus = failed
+        ? `Prepared ${completed}/${selected.length}; ${failed} need review`
+        : `✓ ${completed} selected assets are Video Ready`;
+    } catch (error) {
+      this.assetDiscoveryError = error?.message || 'Batch Video Ready failed.';
+    } finally {
+      this.isBatchVideoReady = false;
       this.refreshBody();
     }
   }
@@ -3974,6 +4058,13 @@ export class PersonalizeModal extends BaseModal {
           btn.onclick = (e) => {
             e.stopPropagation();
             this._analyzeAssetIds([btn.dataset.assetId]);
+          };
+        });
+
+        scope.querySelectorAll('[data-action="video-ready-selected-assets"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._handleMakeSelectedVideoReady();
           };
         });
 
