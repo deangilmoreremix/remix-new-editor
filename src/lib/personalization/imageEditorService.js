@@ -17,6 +17,25 @@ function buildReferenceArgs(imageUrl) {
   return b64 ? { referenceImageB64: b64 } : { referenceImageUrl: imageUrl };
 }
 
+function resultImageDataUrl(result, fallbackFormat = 'png') {
+  if (result?.imageDataUrl) return result.imageDataUrl;
+  if (result?.b64_json) return `data:image/${fallbackFormat};base64,${result.b64_json}`;
+  if (result?.dataUrl) return result.dataUrl;
+  if (result?.url) return result.url;
+  return '';
+}
+
+function normalizeRefineResult(result, fallbackFormat = 'png') {
+  if (!result) return null;
+  return {
+    ...result,
+    imageDataUrl: resultImageDataUrl(result, fallbackFormat),
+    responseId: result.responseId || result.response_id || null,
+    revisedPrompt: result.revisedPrompt || result.revised_prompt || null,
+    imageGenerationCallId: result.imageGenerationCallId || result.image_generation_call_id || null,
+  };
+}
+
 function compactList(values) {
   return Array.from(new Set((Array.isArray(values) ? values : []).filter(Boolean).map(String)));
 }
@@ -156,7 +175,7 @@ export class PersonalizationImageEditorService {
     if (maskB64) {
       const imageB64 = stripDataUrl(imageUrl);
       if (!imageB64) throw new Error('Masked edits require a base64/data URL source image');
-      return this.thumbnailService.inpaint({
+      const result = await this.thumbnailService.inpaint({
         prompt,
         imageB64,
         maskB64,
@@ -167,6 +186,7 @@ export class PersonalizationImageEditorService {
         referenceImageB64: referenceImages.map(stripDataUrl).filter(Boolean),
         apiKey: this.apiKey,
       });
+      return normalizeRefineResult(result, controls.outputFormat || 'png');
     }
 
     const referenceArgs = buildReferenceArgs(imageUrl);
@@ -186,7 +206,7 @@ export class PersonalizationImageEditorService {
       ];
     }
 
-    return this.thumbnailService.refineLastImage({
+    const result = await this.thumbnailService.refineLastImage({
       prompt,
       previousResponseId: '',
       imageAction: 'edit',
@@ -196,6 +216,7 @@ export class PersonalizationImageEditorService {
       ...referenceArgs,
       apiKey: this.apiKey,
     });
+    return normalizeRefineResult(result, controls.outputFormat || 'png');
   }
 
   async smartEdit({
@@ -269,6 +290,7 @@ export class PersonalizationImageEditorService {
       ...refArgs,
       apiKey: this.apiKey,
     });
+    return normalizeRefineResult(result, controls.outputFormat || 'png');
   }
 
   async smartEditStream(options, callbacks = {}) {
@@ -324,16 +346,41 @@ export class PersonalizationImageEditorService {
       }
     }
 
-    return this.thumbnailService.refineLastImageStream({
-      prompt: enrichedPrompt,
-      previousResponseId,
-      imageAction: 'edit',
-      ...controlsInput,
-      ...controls,
-      ...refArgs,
-      partialImages: controlsInput.partialImages ?? 2,
-      apiKey: this.apiKey,
-    }, callbacks);
+    return new Promise((resolve, reject) => {
+      let settled = false;
+      const finish = (fn, value) => {
+        if (settled) return;
+        settled = true;
+        fn(value);
+      };
+
+      this.thumbnailService.refineLastImageStream({
+        prompt: enrichedPrompt,
+        previousResponseId,
+        imageAction: 'edit',
+        ...controlsInput,
+        ...controls,
+        ...refArgs,
+        partialImages: controlsInput.partialImages ?? 2,
+        apiKey: this.apiKey,
+      }, {
+        onPartial: (b64) => {
+          callbacks.onPartial?.(`data:image/png;base64,${b64}`);
+        },
+        onDone: (result) => {
+          const normalized = normalizeRefineResult(result, controls.outputFormat || 'png');
+          callbacks.onDone?.(normalized);
+          finish(resolve, normalized);
+        },
+        onError: (error) => {
+          callbacks.onError?.(error);
+          finish(reject, error instanceof Error ? error : new Error(String(error)));
+        },
+      }).catch((error) => {
+        callbacks.onError?.(error);
+        finish(reject, error);
+      });
+    });
   }
 }
 
