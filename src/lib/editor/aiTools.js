@@ -151,6 +151,20 @@ export function mapResultType(mediaType, category) {
   return 'image';
 }
 
+// Validate that a URL is a remotely accessible HTTPS URL suitable for
+// provider-side generation. Reject null/undefined/empty and local protocols.
+export function isRemoteGenerationUrl(value) {
+  if (typeof value !== 'string') return false;
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+  if (trimmed.startsWith('blob:')) return false;
+  if (trimmed.startsWith('file:')) return false;
+  if (trimmed.startsWith('data:')) return false;
+  if (trimmed.startsWith('blob:offline/')) return false;
+  if (!trimmed.startsWith('https://')) return false;
+  return true;
+}
+
 // Poll a job until completion or failure using the real service API.
 export async function pollToCompletion(generationId, providerName, onProgress) {
   const service = window.generationService;
@@ -302,6 +316,12 @@ export async function handleGenerate(selectedFeature, selectedFile, showToast) {
     if (selectedFile) {
       try {
         const publicUrl = await uploadFileToStorage(selectedFile);
+        if (!isRemoteGenerationUrl(publicUrl)) {
+          return {
+            type: 'text',
+            text: 'Upload failed: storage did not return a usable public URL.'
+          };
+        }
         remoteReferences = [publicUrl];
       } catch (uploadError) {
         return {

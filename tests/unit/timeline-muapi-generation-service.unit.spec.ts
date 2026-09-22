@@ -56,9 +56,9 @@ vi.mock('../../src/lib/models.js', () => ({
   i2vModels: [],
   getVideoModelById: () => null,
   getI2VModelById: () => null,
-  getModelById: () => null,
+  getModelById: (id) => id === 'google-imagen4' ? { id, endpoint: 'generate', family: 'image' } : null,
   getI2IModelById: () => null,
-  getAudioModelById: () => null,
+  getAudioModelById: (id) => id === 'minimax-speech-2.6-turbo' ? { id, endpoint: 'minimax-speech-2.6-turbo' } : null,
 }));
 
 import { generationService, GenerationService, MuAPIProvider } from '../../src/lib/editor/generationService.js';
@@ -98,6 +98,22 @@ describe('MuAPIProvider — submit', () => {
       duration: 3
     });
     expect(r.status).toBe('queued');
+  });
+
+  it('submits a text-to-speech request with audio generationType/studioType', async () => {
+    submitOnlyMock.mockClear();
+    const r = await new MuAPIProvider().submit({
+      mode: 'text-to-speech',
+      model: 'minimax-speech-2.6-turbo',
+      prompt: 'Hello world'
+    });
+    expect(r.status).toBe('queued');
+    expect(r.requestId).toBe('req_test_123');
+    expect(submitOnlyMock).toHaveBeenCalledTimes(1);
+    const callArgs = submitOnlyMock.mock.calls[0];
+    expect(callArgs[0]).toBe('minimax-speech-2.6-turbo');
+    expect(callArgs[3]).toBe('audio');
+    expect(callArgs[4]).toBe('audio');
   });
 
   it('returns failed for unsupported mode', async () => {
@@ -306,6 +322,10 @@ describe('MuAPIProvider — getServiceNameForMode', () => {
 
   it('maps generate-image to image_generation', () => {
     expect(new MuAPIProvider().getServiceNameForMode('generate-image')).toBe('image_generation');
+  });
+
+  it('maps text-to-speech to audio_generation', () => {
+    expect(new MuAPIProvider().getServiceNameForMode('text-to-speech')).toBe('audio_generation');
   });
 
   it('maps unknown to api_request', () => {

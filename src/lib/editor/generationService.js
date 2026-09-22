@@ -431,6 +431,7 @@ class MuAPIProvider {
       'image-to-video': 'video_generation',
       'generate-image': 'image_generation',
       'broll': 'video_generation',
+      'text-to-speech': 'audio_generation',
     };
     return map[mode] || 'api_request';
   }
