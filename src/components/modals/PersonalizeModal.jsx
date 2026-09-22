@@ -39,6 +39,7 @@ import {
   ensurePersonalizationProfile,
   getAllPersonalizationAssets,
   normalizeBusinessProfile,
+  removePersonalizationAsset,
   setDiscoveredPersonalizationAssets,
   updatePersonalizationAsset,
   updatePersonalizationBusiness,
@@ -1971,6 +1972,24 @@ export class PersonalizeModal extends BaseModal {
         }
         .pm-asset-thumb-button:hover .pm-asset-thumb { border-color: var(--pm-primary); }
 
+        .pm-asset-role-card.drag-over {
+          border-color: var(--pm-primary);
+          box-shadow: 0 0 0 2px var(--pm-soft);
+          background: var(--pm-soft);
+        }
+        .pm-asset-thumb-wrap { position:relative; display:inline-flex; align-items:flex-start; }
+        .pm-asset-delete {
+          position:absolute; top:-5px; right:-5px; width:18px; height:18px; border-radius:999px;
+          border:1px solid var(--border-color); background:var(--bg-app); color:var(--text-muted);
+          cursor:pointer; font-size:13px; line-height:15px; padding:0;
+        }
+        .pm-asset-delete:hover { color:#fff; background:#ef4444; border-color:#ef4444; }
+        .pm-asset-audio-chip {
+          display:inline-flex; max-width:120px; align-items:center; gap:4px; padding:8px;
+          border:1px solid var(--border-color); border-radius:8px; background:var(--bg-panel);
+          color:var(--text-secondary); font-size:9px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+        }
+
         .pm-editor-shell {
           border: 1px solid var(--border-color);
           border-radius: 16px;
@@ -2479,13 +2498,18 @@ export class PersonalizeModal extends BaseModal {
     const thumbs = safeItems.slice(0, 4).map((asset) => {
       const url = typeof asset === 'string' ? asset : (asset.url || asset.originalUrl || '');
       if (!url) return '';
-      const edit = typeof asset === 'object' && asset.id
-        ? `<button type="button" class="pm-asset-thumb-button" data-action="open-imported-asset-editor" data-asset-id="${escapeHtml(asset.id)}" title="Edit ${escapeHtml(asset.name || title)}"><img class="pm-asset-thumb" src="${escapeHtml(url)}" alt="" loading="lazy" /><span>Edit</span></button>`
-        : `<img class="pm-asset-thumb" src="${escapeHtml(url)}" alt="" loading="lazy" />`;
-      return edit;
+      if (typeof asset !== 'object' || !asset.id) {
+        return uploadRole === 'audio_reference'
+          ? `<span class="pm-asset-audio-chip">Audio</span>`
+          : `<img class="pm-asset-thumb" src="${escapeHtml(url)}" alt="" loading="lazy" />`;
+      }
+      const preview = uploadRole === 'audio_reference'
+        ? `<span class="pm-asset-audio-chip" title="${escapeHtml(asset.name || 'Audio reference')}">♫ ${escapeHtml(asset.name || 'Audio')}</span>`
+        : `<button type="button" class="pm-asset-thumb-button" data-action="open-imported-asset-editor" data-asset-id="${escapeHtml(asset.id)}" title="Edit ${escapeHtml(asset.name || title)}"><img class="pm-asset-thumb" src="${escapeHtml(url)}" alt="" loading="lazy" /><span>Edit</span></button>`;
+      return `<span class="pm-asset-thumb-wrap">${preview}<button type="button" class="pm-asset-delete" data-action="delete-personalization-asset" data-asset-id="${escapeHtml(asset.id)}" aria-label="Delete ${escapeHtml(asset.name || title)}">×</button></span>`;
     }).join('');
     return `
-      <div class="pm-asset-role-card">
+      <div class="pm-asset-role-card" ${uploadRole ? `data-asset-drop-role="${escapeHtml(uploadRole)}"` : ''}>
         <div class="pm-asset-role-head">
           <span class="pm-asset-role-title">${escapeHtml(title)}</span>
           <span class="pm-asset-role-count">${safeItems.length}</span>
@@ -2668,16 +2692,67 @@ export class PersonalizeModal extends BaseModal {
           ${this._assetRoleCard('Last Frame', 'Explicit ending-frame asset; never auto-assigned by discovery.', single(assets.lastFrame), 'last_frame')}
           ${this._assetRoleCard('CTA Graphic', 'Exact CTA/logo/phone/URL graphics for deterministic final use.', single(assets.ctaGraphic), 'cta_graphic')}
           ${this._assetRoleCard('Saved References', 'Reusable references available to compatible generation models.', assets.savedReferences || [], 'saved_reference')}
+          ${this._assetRoleCard('Audio References', 'Reusable audio references for models that explicitly support reference audio.', assets.audio || [], 'audio_reference')}
         </div>
       </div>
     `;
   }
 
-  async _handleManualAssetUpload(role) {
+  async _uploadPersonalizationAssetFile(role, file) {
     const id = getSelectedContactId();
     let profile = id ? _getProfile(id) : null;
-    if (!profile || !role) return;
+    if (!profile || !role || !file) return;
 
+    const expectedAudio = role === 'audio_reference';
+    if (expectedAudio && !String(file.type || '').startsWith('audio/')) {
+      throw new Error('Audio Reference accepts audio files only.');
+    }
+    if (!expectedAudio && !String(file.type || '').startsWith('image/')) {
+      throw new Error('This personalization asset role accepts image files only.');
+    }
+
+    this.assetDiscoveryError = '';
+    this.assetDiscoveryStatus = `Uploading ${file.name}…`;
+    this.refreshBody();
+
+    try {
+      const { uploadFileToStorage } = await import('../../lib/hybrid-supabase.js');
+      const url = await uploadFileToStorage(file);
+      if (!url) throw new Error('Upload returned no durable URL.');
+
+      const asset = createPersonalizationAsset({
+        role,
+        name: file.name,
+        url,
+        originalUrl: url,
+        sourceType: 'MANUAL_UPLOAD',
+        sourceCategory:
+          role === 'logo' ? 'logo'
+          : role === 'product_reference' ? 'product'
+          : role === 'presenter_identity' ? 'person'
+          : role === 'brand_reference' ? 'brand'
+          : null,
+        mimeType: file.type || null,
+      });
+
+      profile = addPersonalizationAsset(profile, asset);
+      profile.updatedAt = new Date().toISOString();
+      profile.variables = buildVariables(profile, profile.variables || {});
+      if (!this._persistSelectedProfile(profile)) {
+        throw new Error('Could not save the uploaded asset to the selected profile.');
+      }
+      this.assetDiscoveryStatus = `✓ Uploaded ${file.name}`;
+    } catch (error) {
+      this.assetDiscoveryError = error?.message || 'Asset upload failed.';
+      this.assetDiscoveryStatus = '';
+      throw error;
+    } finally {
+      this.refreshBody();
+    }
+  }
+
+  async _handleManualAssetUpload(role) {
+    if (!role) return;
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = role === 'audio_reference' ? 'audio/*' : 'image/*';
@@ -2690,48 +2765,33 @@ export class PersonalizeModal extends BaseModal {
 
     input.onchange = async () => {
       const file = input.files?.[0];
-      if (!file) { cleanup(); return; }
-      this.assetDiscoveryError = '';
-      this.assetDiscoveryStatus = `Uploading ${file.name}…`;
-      this.refreshBody();
-
       try {
-        const { uploadFileToStorage } = await import('../../lib/hybrid-supabase.js');
-        const url = await uploadFileToStorage(file);
-        if (!url) throw new Error('Upload returned no durable URL.');
-
-        const asset = createPersonalizationAsset({
-          role,
-          name: file.name,
-          url,
-          originalUrl: url,
-          sourceType: 'MANUAL_UPLOAD',
-          sourceCategory:
-            role === 'logo' ? 'logo'
-            : role === 'product_reference' ? 'product'
-            : role === 'presenter_identity' ? 'person'
-            : role === 'brand_reference' ? 'brand'
-            : null,
-          mimeType: file.type || null,
-        });
-
-        profile = addPersonalizationAsset(profile, asset);
-        profile.updatedAt = new Date().toISOString();
-        profile.variables = buildVariables(profile, profile.variables || {});
-        if (!this._persistSelectedProfile(profile)) {
-          throw new Error('Could not save the uploaded asset to the selected profile.');
-        }
-        this.assetDiscoveryStatus = `✓ Uploaded ${file.name}`;
-      } catch (error) {
-        this.assetDiscoveryError = error?.message || 'Asset upload failed.';
-        this.assetDiscoveryStatus = '';
+        if (file) await this._uploadPersonalizationAssetFile(role, file);
+      } catch {
+        // Error is already surfaced in the Assets tab.
       } finally {
         cleanup();
-        this.refreshBody();
       }
     };
     input.oncancel = cleanup;
     input.click();
+  }
+
+  _handleDeletePersonalizationAsset(assetId) {
+    const id = getSelectedContactId();
+    const profile = id ? _getProfile(id) : null;
+    if (!profile || !assetId) return;
+    const next = removePersonalizationAsset(profile, assetId);
+    next.updatedAt = new Date().toISOString();
+    next.variables = buildVariables(next, next.variables || {});
+    if (this._persistSelectedProfile(next)) {
+      if (this.assetEditorAssetId === assetId) {
+        this.assetEditorAssetId = null;
+        this.imageEditorController.close();
+      }
+      this.assetDiscoveryStatus = '✓ Asset removed from this profile';
+      this.refreshBody();
+    }
   }
 
   _persistDiscoveredAssets(assets, status = '') {
@@ -3857,6 +3917,32 @@ export class PersonalizeModal extends BaseModal {
           btn.onclick = (e) => {
             e.stopPropagation();
             this._handleResearchBusiness(btn.dataset.businessIndex);
+          };
+        });
+
+        scope.querySelectorAll('[data-action="delete-personalization-asset"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._handleDeletePersonalizationAsset(btn.dataset.assetId);
+          };
+        });
+
+        scope.querySelectorAll('[data-asset-drop-role]').forEach((card) => {
+          card.ondragover = (e) => {
+            e.preventDefault();
+            card.classList.add('drag-over');
+          };
+          card.ondragleave = () => card.classList.remove('drag-over');
+          card.ondrop = async (e) => {
+            e.preventDefault();
+            card.classList.remove('drag-over');
+            const file = e.dataTransfer?.files?.[0];
+            if (!file) return;
+            try {
+              await this._uploadPersonalizationAssetFile(card.dataset.assetDropRole, file);
+            } catch {
+              // Error already rendered.
+            }
           };
         });
 
