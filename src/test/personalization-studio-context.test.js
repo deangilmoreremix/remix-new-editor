@@ -41,6 +41,63 @@ describe('studio personalization context', () => {
     expect(context.exactOverlays.phone).toBe('555-0100');
   });
 
+  it('builds a deterministic final-composite manifest for exact logo and CTA assets', () => {
+    const context = buildPersonalizationContext(profile);
+    expect(context.exactOverlayManifest.strategy).toBe('deterministic-final-composite');
+    expect(context.exactOverlayManifest.items).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'exact-logo',
+        type: 'image-overlay',
+        deterministic: true,
+        preserveExactPixels: true,
+      }),
+      expect.objectContaining({
+        id: 'exact-cta-end-card',
+        type: 'end-card-image',
+        deterministic: true,
+        preserveExactPixels: true,
+      }),
+    ]));
+  });
+
+  it('falls back to a deterministic text end card when no CTA graphic exists', () => {
+    const context = buildPersonalizationContext({
+      personalization: {
+        business: {
+          website: 'https://acme.example',
+          phone: '555-0100',
+          ctaHeadline: 'Free inspection',
+          callToAction: 'Call now',
+        },
+        assets: {
+          identities: [],
+          logos: [],
+          products: [],
+          brandReferences: [],
+          firstFrame: null,
+          lastFrame: null,
+          ctaGraphic: null,
+          audio: [],
+          savedReferences: [],
+        },
+        generationOptions: {
+          exactLogoHandling: 'final-overlay',
+          exactCtaHandling: 'final-end-card',
+        },
+      },
+    });
+
+    expect(context.exactOverlayManifest.items).toContainEqual(expect.objectContaining({
+      id: 'exact-text-end-card',
+      type: 'end-card-text',
+      fields: expect.objectContaining({
+        callToAction: 'Call now',
+        phone: '555-0100',
+        website: 'https://acme.example',
+      }),
+    }));
+  });
+
   it('only passes reference classes supported by the selected model', () => {
     const context = buildPersonalizationContext(profile);
     const model = {
