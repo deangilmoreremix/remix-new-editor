@@ -10,6 +10,7 @@ import {
 } from '../lib/personalization/imageEditRegistry.js';
 import {
   buildPersonalizationEditPrompt,
+  partitionImageReferences,
   resolvePersonalizationEditControls,
 } from '../lib/personalization/imageEditorService.js';
 
@@ -78,6 +79,32 @@ describe('personalization image editor service helpers', () => {
     expect(controls.inputFidelity).toBe('high');
     expect(controls.outputFormat).toBe('png');
     expect(controls.background).toBe('transparent');
+  });
+
+  it('partitions mixed first-turn references into URL and base64 channels', () => {
+    const refs = partitionImageReferences(
+      'https://cdn.example.com/source.png',
+      [
+        'data:image/png;base64,AAAA',
+        'https://cdn.example.com/ref.png',
+        'data:image/jpeg;base64,BBBB',
+      ],
+    );
+
+    expect(refs.referenceImageUrl).toEqual([
+      'https://cdn.example.com/source.png',
+      'https://cdn.example.com/ref.png',
+    ]);
+    expect(refs.referenceImageB64).toEqual(['AAAA', 'BBBB']);
+  });
+
+  it('deduplicates and caps Smart Edit references at six total images', () => {
+    const refs = partitionImageReferences(
+      'https://cdn.example.com/source.png',
+      Array.from({ length: 10 }, (_, i) => `https://cdn.example.com/ref-${i}.png`),
+    );
+    expect(refs.referenceImageUrl).toHaveLength(6);
+    expect(refs.referenceImageUrl[0]).toBe('https://cdn.example.com/source.png');
   });
 
   it('allows explicit output controls to override defaults', () => {
