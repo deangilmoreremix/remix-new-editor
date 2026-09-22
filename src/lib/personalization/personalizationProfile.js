@@ -340,6 +340,23 @@ export function removePersonalizationAsset(profile, assetId) {
   };
 }
 
+export function movePersonalizationAsset(profile, assetId, nextRole) {
+  if (!PERSONALIZATION_ASSET_ROLES.includes(nextRole)) {
+    throw new Error(`Unsupported personalization asset role: ${nextRole || '(missing)'}`);
+  }
+  const normalized = ensurePersonalizationProfile(profile);
+  const current = getAllPersonalizationAssets(normalized).find((asset) => asset?.id === assetId);
+  if (!current) return normalized;
+  if (current.role === nextRole) return normalized;
+
+  const without = removePersonalizationAsset(normalized, assetId);
+  return addPersonalizationAsset(without, {
+    ...current,
+    role: nextRole,
+    updatedAt: new Date().toISOString(),
+  });
+}
+
 export function updatePersonalizationAsset(profile, assetId, updater) {
   const normalized = ensurePersonalizationProfile(profile);
   let changed = false;
