@@ -43,10 +43,33 @@ function stripDataUrl(value) {
   return match ? match[1] : '';
 }
 
-function buildReferenceArgs(imageUrl) {
-  if (!imageUrl || typeof imageUrl !== 'string') return {};
-  const b64 = stripDataUrl(imageUrl);
-  return b64 ? { referenceImageB64: b64 } : { referenceImageUrl: imageUrl };
+export function partitionImageReferences(primaryImageUrl, referenceImages = [], limit = 6) {
+  const max = Math.max(1, Math.min(6, Number(limit) || 6));
+  const ordered = [primaryImageUrl, ...(Array.isArray(referenceImages) ? referenceImages : [])]
+    .filter((value) => typeof value === 'string' && value.trim());
+
+  const unique = [];
+  const seen = new Set();
+  for (const value of ordered) {
+    const trimmed = value.trim();
+    if (seen.has(trimmed)) continue;
+    seen.add(trimmed);
+    unique.push(trimmed);
+    if (unique.length >= max) break;
+  }
+
+  const b64 = [];
+  const urls = [];
+  for (const value of unique) {
+    const encoded = stripDataUrl(value);
+    if (encoded) b64.push(encoded);
+    else urls.push(value);
+  }
+
+  return {
+    ...(b64.length ? { referenceImageB64: b64.length === 1 ? b64[0] : b64 } : {}),
+    ...(urls.length ? { referenceImageUrl: urls.length === 1 ? urls[0] : urls } : {}),
+  };
 }
 
 function resultImageDataUrl(result, fallbackFormat = 'png') {
@@ -207,6 +230,17 @@ export class PersonalizationImageEditorService {
     if (maskB64) {
       const imageB64 = stripDataUrl(imageUrl);
       if (!imageB64) throw new Error('Masked edits require a base64/data URL source image');
+
+      const preparedRefs = [];
+      for (const reference of referenceImages.slice(0, 5)) {
+        if (typeof reference !== 'string' || !reference.trim()) continue;
+        const dataUrl = reference.startsWith('data:image/')
+          ? reference
+          : await preparePersonalizationImageDataUrl(reference);
+        const encoded = stripDataUrl(dataUrl);
+        if (encoded) preparedRefs.push(encoded);
+      }
+
       const result = await this.thumbnailService.inpaint({
         prompt,
         imageB64,
@@ -215,28 +249,13 @@ export class PersonalizationImageEditorService {
         model,
         size,
         ...controls,
-        referenceImageB64: referenceImages.map(stripDataUrl).filter(Boolean),
+        ...(preparedRefs.length ? { referenceImageB64: preparedRefs } : {}),
         apiKey: this.apiKey,
       });
       return normalizeRefineResult(result, controls.outputFormat || 'png');
     }
 
-    const referenceArgs = buildReferenceArgs(imageUrl);
-    const extraReferences = referenceImages
-      .map((url) => stripDataUrl(url) || url)
-      .filter(Boolean);
-
-    if (referenceArgs.referenceImageB64) {
-      referenceArgs.referenceImageB64 = [
-        referenceArgs.referenceImageB64,
-        ...extraReferences.map((value) => stripDataUrl(value) || value),
-      ];
-    } else if (referenceArgs.referenceImageUrl) {
-      referenceArgs.referenceImageUrl = [
-        referenceArgs.referenceImageUrl,
-        ...extraReferences,
-      ];
-    }
+    const referenceArgs = partitionImageReferences(imageUrl, referenceImages, 6);
 
     const result = await this.thumbnailService.refineLastImage({
       prompt,
@@ -297,20 +316,9 @@ export class PersonalizationImageEditorService {
       inputFidelity,
     });
 
-    const refArgs = previousResponseId ? {} : buildReferenceArgs(imageUrl);
-    if (!previousResponseId && referenceImages.length) {
-      if (refArgs.referenceImageB64) {
-        refArgs.referenceImageB64 = [
-          refArgs.referenceImageB64,
-          ...referenceImages.map(stripDataUrl).filter(Boolean),
-        ];
-      } else {
-        refArgs.referenceImageUrl = [
-          ...(refArgs.referenceImageUrl ? [refArgs.referenceImageUrl] : []),
-          ...referenceImages.filter((x) => typeof x === 'string' && x),
-        ];
-      }
-    }
+    const refArgs = previousResponseId
+      ? {}
+      : partitionImageReferences(imageUrl, referenceImages, 6);
 
     const result = await this.thumbnailService.refineLastImage({
       prompt: enrichedPrompt,
@@ -362,21 +370,9 @@ export class PersonalizationImageEditorService {
       visionAnalysis,
       ...controlsInput,
     });
-    const refArgs = previousResponseId ? {} : buildReferenceArgs(imageUrl);
-
-    if (!previousResponseId && referenceImages.length) {
-      if (refArgs.referenceImageB64) {
-        refArgs.referenceImageB64 = [
-          refArgs.referenceImageB64,
-          ...referenceImages.map(stripDataUrl).filter(Boolean),
-        ];
-      } else {
-        refArgs.referenceImageUrl = [
-          ...(refArgs.referenceImageUrl ? [refArgs.referenceImageUrl] : []),
-          ...referenceImages.filter((x) => typeof x === 'string' && x),
-        ];
-      }
-    }
+    const refArgs = previousResponseId
+      ? {}
+      : partitionImageReferences(imageUrl, referenceImages, 6);
 
     return new Promise((resolve, reject) => {
       let settled = false;
@@ -408,9 +404,16 @@ export class PersonalizationImageEditorService {
           callbacks.onError?.(error);
           finish(reject, error instanceof Error ? error : new Error(String(error)));
         },
+      }).then(() => {
+        if (!settled) {
+          const error = new Error('Smart Edit stream ended without a final image.');
+          callbacks.onError?.(error);
+          finish(reject, error);
+        }
       }).catch((error) => {
-        callbacks.onError?.(error);
-        finish(reject, error);
+        const normalizedError = error instanceof Error ? error : new Error(String(error));
+        callbacks.onError?.(normalizedError);
+        finish(reject, normalizedError);
       });
     });
   }
