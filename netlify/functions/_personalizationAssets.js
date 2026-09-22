@@ -10,6 +10,12 @@ const DEFAULT_MAX_IMAGES = 60;
 const VALIDATION_CONCURRENCY = 6;
 const VALIDATION_BUDGET_MS = 22000;
 const VALIDATION_REQUEST_TIMEOUT_MS = 3500;
+const DISCOVERY_CACHE_TTL_MS = 5 * 60 * 1000;
+const DISCOVERY_CACHE_MAX = 50;
+const SITEMAP_MAX_URLS = 30;
+const SITEMAP_MAX_FILES = 4;
+
+const DISCOVERY_CACHE = new Map();
 
 const PRIORITY_PATH_HINTS = [
   'about', 'team', 'staff', 'services', 'products', 'gallery', 'portfolio',
@@ -159,6 +165,91 @@ async function fetchHtml(url) {
   } catch {
     return null;
   }
+}
+
+async function fetchTextResource(url, maxBytes = 1024 * 1024) {
+  try {
+    const { response, finalUrl } = await fetchWithRedirectGuards(url, {
+      method: 'GET',
+      headers: { Accept: 'text/plain,application/xml,text/xml,*/*;q=0.5' },
+    }, maxBytes, 7000);
+    if (!response.ok) return null;
+    const text = await response.text();
+    if (Buffer.byteLength(text, 'utf8') > maxBytes) return null;
+    return { text, finalUrl };
+  } catch {
+    return null;
+  }
+}
+
+function clonePlain(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function getDiscoveryCache(key) {
+  const entry = DISCOVERY_CACHE.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.createdAt > DISCOVERY_CACHE_TTL_MS) {
+    DISCOVERY_CACHE.delete(key);
+    return null;
+  }
+  return clonePlain(entry.value);
+}
+
+function setDiscoveryCache(key, value) {
+  if (DISCOVERY_CACHE.size >= DISCOVERY_CACHE_MAX) {
+    const oldest = DISCOVERY_CACHE.keys().next().value;
+    if (oldest) DISCOVERY_CACHE.delete(oldest);
+  }
+  DISCOVERY_CACHE.set(key, { createdAt: Date.now(), value: clonePlain(value) });
+}
+
+function extractXmlLocations(xml) {
+  const urls = [];
+  for (const match of String(xml || '').matchAll(/<loc\b[^>]*>([\s\S]*?)<\/loc>/gi)) {
+    const value = decodeHtml(String(match[1] || '').trim());
+    if (value) urls.push(value);
+  }
+  return Array.from(new Set(urls));
+}
+
+async function discoverSitemapLinks(rootUrl, rootHost) {
+  const root = new URL(rootUrl);
+  const sitemapUrls = new Set([new URL('/sitemap.xml', root).toString()]);
+
+  const robots = await fetchTextResource(new URL('/robots.txt', root).toString(), 512 * 1024);
+  if (robots?.text) {
+    for (const match of robots.text.matchAll(/^\s*Sitemap:\s*(\S+)\s*$/gim)) {
+      const sitemapUrl = absoluteUrl(match[1], rootUrl);
+      if (sitemapUrl) sitemapUrls.add(sitemapUrl);
+      if (sitemapUrls.size >= SITEMAP_MAX_FILES) break;
+    }
+  }
+
+  const pageUrls = new Set();
+  let sitemapCount = 0;
+  for (const sitemapUrl of sitemapUrls) {
+    if (sitemapCount >= SITEMAP_MAX_FILES || pageUrls.size >= SITEMAP_MAX_URLS) break;
+    sitemapCount += 1;
+    const sitemap = await fetchTextResource(sitemapUrl, 1024 * 1024);
+    if (!sitemap?.text) continue;
+
+    for (const location of extractXmlLocations(sitemap.text)) {
+      if (pageUrls.size >= SITEMAP_MAX_URLS) break;
+      let parsed;
+      try { parsed = new URL(location, sitemap.finalUrl); } catch { continue; }
+      if (parsed.hostname !== rootHost) continue;
+
+      if (/\.xml(?:\?|$)/i.test(parsed.pathname) && sitemapUrls.size < SITEMAP_MAX_FILES) {
+        sitemapUrls.add(parsed.toString());
+        continue;
+      }
+      if (/\.(pdf|zip|mp4|mov|avi|webm|jpg|jpeg|png|gif|webp)(?:\?|$)/i.test(parsed.pathname)) continue;
+      pageUrls.add(parsed.toString());
+    }
+  }
+
+  return Array.from(pageUrls);
 }
 
 function decodeHtml(value) {
