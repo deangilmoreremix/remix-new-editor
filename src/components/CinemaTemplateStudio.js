@@ -34,6 +34,9 @@ import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { AuthModal } from './AuthModal.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
+import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
+import { openRecipeModal } from '../lib/recipeIntegration.js';
+import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { selectScenes } from '../lib/sceneSelector.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
@@ -461,7 +464,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
 
     // Thumbnail action button — matches TemplateStudio styling
     const thumbAction = document.createElement('button');
-    thumbAction.className = 'mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition';
+    thumbAction.className = 'btn-action-secondary shrink-0';
     thumbAction.style.background = 'linear-gradient(135deg, #10b981, #34d399)';
     thumbAction.style.boxShadow = '0 4px 14px rgba(16,185,129,0.3)';
     thumbAction.style.color = '#022c22';
@@ -1423,7 +1426,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       ${showTextButtons ? `
         <div class="flex items-center gap-2">
           <button class="enhancer-btn rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] transition border-white/10 bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-white" data-field="${input.name}">Enhance</button>
-          ${isPrimaryPromptField ? `<button class="gtm-boost-btn shrink-0" data-gtm-boost="primary" title="Enhance your prompt with GTM conversion frameworks" aria-label="GTM Boost prompt enhancer">🎯 GTM Boost</button>` : ''}
+           ${isPrimaryPromptField ? '<div class="overflow-menu shrink-0" data-gtm-menu="primary"><button type="button" class="overflow-menu__trigger" data-tooltip="More tools" aria-label="More enhancement tools"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg></button><div class="overflow-menu__panel"><button type="button" class="overflow-menu__item" data-enhance="gtm">🎯 GTM Boost</button><button type="button" class="overflow-menu__item" data-enhance="recipe">📋 Recipes</button><button type="button" class="overflow-menu__item" data-enhance="monetize">💼 Monetize</button><button type="button" class="overflow-menu__item" data-enhance="prompts">📚 Prompts</button></div></div>' : ''}
         </div>
       ` : ''}
     `;
@@ -1657,35 +1660,78 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         };
       }
 
-      const gtmBtn = label.querySelector('button[data-gtm-boost="primary"]');
-      if (gtmBtn) {
-        gtmBtn.addEventListener('click', () => {
-          const promptEl = field.querySelector('textarea, input');
-          const basePrompt = (promptEl && promptEl.value) || currentTemplate.description || '';
-          const templateContext = {
-            basePrompt,
-            templateId: currentTemplate.id,
-            category: currentTemplate.category,
-            niche: currentTemplate.niche,
-            outputType: currentTemplate.outputType,
-          };
-          const onPromptGenerated = (prompt) => {
-            const ta = field.querySelector('textarea, input');
-            if (ta) {
-              ta.value = prompt;
-              ta.dispatchEvent(new Event('input', { bubbles: true }));
-              ta.dispatchEvent(new Event('change', { bubbles: true }));
-              ta.focus();
-            }
-          };
-          import('../lib/uiIntegration.js').then(async ({ fetchGTMTemplateContext, openGTMPromptModal }) => {
-            const ctx = await Promise.resolve(fetchGTMTemplateContext?.(currentTemplate)).catch(() => null) || {};
-            if (ctx?.basePrompt) {
-              templateContext.basePrompt = ctx.basePrompt;
-            }
-            openGTMPromptModal('cinema-template-studio', { onPromptGenerated, templateContext });
-          }).catch((err) => console.error('[CinemaTemplateStudio] GTM Boost failed:', err));
+      const enhanceMenu = label.querySelector('.overflow-menu');
+      if (enhanceMenu) {
+        const enhanceTrigger = enhanceMenu.querySelector('.overflow-menu__trigger');
+        const enhancePanel = enhanceMenu.querySelector('.overflow-menu__panel');
+        const enhanceItems = enhanceMenu.querySelectorAll('[data-enhance]');
+
+        function toggleEnhanceMenu() {
+          const isOpen = enhanceMenu.classList.contains('is-open');
+          enhanceMenu.classList.toggle('is-open', !isOpen);
+        }
+
+        enhanceTrigger.addEventListener('click', (e) => {
+          e.stopPropagation();
+          toggleEnhanceMenu();
         });
+
+        enhanceItems.forEach(item => {
+          item.addEventListener('click', () => {
+            const action = item.dataset.enhance;
+            if (action === 'gtm') {
+              const promptEl = field.querySelector('textarea, input');
+              const basePrompt = (promptEl && promptEl.value) || currentTemplate.description || '';
+              const templateContext = {
+                basePrompt,
+                templateId: currentTemplate.id,
+                category: currentTemplate.category,
+                niche: currentTemplate.niche,
+                outputType: currentTemplate.outputType,
+              };
+              const onPromptGenerated = (prompt) => {
+                const ta = field.querySelector('textarea, input');
+                if (ta) {
+                  ta.value = prompt;
+                  ta.dispatchEvent(new Event('input', { bubbles: true }));
+                  ta.dispatchEvent(new Event('change', { bubbles: true }));
+                  ta.focus();
+                }
+              };
+              import('../lib/uiIntegration.js').then(async ({ fetchGTMTemplateContext, openGTMPromptModal }) => {
+                const ctx = await Promise.resolve(fetchGTMTemplateContext?.(currentTemplate)).catch(() => null) || {};
+                if (ctx?.basePrompt) {
+                  templateContext.basePrompt = ctx.basePrompt;
+                }
+                openGTMPromptModal('cinema-template-studio', { onPromptGenerated, templateContext });
+              }).catch((err) => console.error('[CinemaTemplateStudio] GTM Boost failed:', err));
+            } else if (action === 'recipe') {
+              openRecipeModal().catch((err) => console.error('[Recipe] open failed:', err));
+            } else if (action === 'monetize') {
+              openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+            } else if (action === 'prompts') {
+              openPromptGallery({
+                appTheme: 'cinema-template-studio',
+                onSelect: (prompt) => {
+                  const ta = field.querySelector('textarea, input');
+                  if (ta) {
+                    ta.value = prompt;
+                    ta.dispatchEvent(new Event('input', { bubbles: true }));
+                    ta.focus();
+                  }
+                }
+              }).catch((err) => console.error('[PromptGallery] open failed:', err));
+            }
+            enhanceMenu.classList.remove('is-open');
+          });
+        });
+
+        const closeEnhanceMenu = (e) => {
+          if (!enhanceMenu.contains(e.target)) {
+            enhanceMenu.classList.remove('is-open');
+          }
+        };
+        window.addEventListener('click', closeEnhanceMenu);
       }
     }, 0);
 
@@ -2210,61 +2256,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
   // GTM BOOST
   // ================================
   function renderGtmBoost(formPanel) {
-    const gtmBoostBtn = document.createElement('button');
-    gtmBoostBtn.type = 'button';
-    gtmBoostBtn.textContent = '🎯 GTM Boost';
-    gtmBoostBtn.title = 'Enhance your prompt with GTM conversion frameworks';
-    gtmBoostBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
-    gtmBoostBtn.className = 'gtm-boost-btn w-full mt-4';
-    formPanel.appendChild(gtmBoostBtn);
-
-    setTimeout(() => {
-      if (gtmBoostBtn) {
-        gtmBoostBtn.onclick = async () => {
-          try {
-            const ctx = await import('../lib/uiIntegration.js').then(async (m) => {
-              const result = m.fetchGTMTemplateContext?.(currentTemplate);
-              if (result && typeof (result).then === 'function') {
-                return await result;
-              }
-              return result;
-            }).catch(() => null) || {};
-            const basePrompt = (document.getElementById('outputTextarea')?.value) || currentTemplate.description || '';
-            const templateContext = {
-              ...ctx,
-              basePrompt,
-              templateId: currentTemplate.id,
-              category: currentTemplate.category,
-              niche: currentTemplate.niche,
-              outputType: currentTemplate.outputType,
-            };
-            const onPromptGenerated = (text) => {
-              lastBuiltPrompt = text;
-              outputTabValues['Enhanced Prompt'] = text;
-              const ta = document.getElementById('outputTextarea');
-              if (ta) {
-                ta.value = text;
-                ta.dispatchEvent(new Event('input', { bubbles: true }));
-                ta.dispatchEvent(new Event('change', { bubbles: true }));
-              }
-              const primaryPromptField = formPanel.querySelector('[name="prompt"]') || formPanel.querySelector('textarea, input');
-              if (primaryPromptField) {
-                primaryPromptField.value = text;
-                primaryPromptField.dispatchEvent(new Event('input', { bubbles: true }));
-                primaryPromptField.dispatchEvent(new Event('change', { bubbles: true }));
-              }
-            };
-            import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-          openGTMPromptModal('cinema-template-studio', { onPromptGenerated, templateContext });
-            }).catch((e) => {
-              console.warn('[CinemaTemplateStudio] GTM Boost modal load failed:', e);
-            });
-          } catch (e) {
-            console.warn('[CinemaTemplateStudio] GTM Boost failed:', e);
-          }
-        };
-      }
-    }, 0);
+    // GTM Boost moved to overflow menu in primary prompt field
   }
 
   // ================================

@@ -93,3 +93,21 @@ global.console = {
   info: vi.fn(),
   debug: vi.fn(),
 };
+
+// Mock interactjs (used by Personalizer.js for drag/resize)
+if (typeof globalThis.interact === 'undefined') {
+  globalThis.interact = () => ({
+    draggable: () => ({
+      modifiers: [],
+      on: () => {},
+    }),
+    resizable: () => ({
+      restrictEdges: {},
+      modifiers: [],
+      on: () => {},
+    }),
+    modifiers: {
+      restrictRect: () => ({}),
+    },
+  });
+}

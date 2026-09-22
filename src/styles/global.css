@@ -269,5 +269,230 @@
     transform: translateX(calc(100% + 6px)) translateY(-50%);
 }
 
+/* ============================================================
+   STUDIO CONTROL STRIP UTILITIES
+   Shared button roles, overflow menu, and two-row layout helpers
+   for the generation control strip across all creation studios.
+   ============================================================ */
+
+/* Enhancement tools: GTM Boost, Recipes, Monetize, Prompts */
+.btn-enhance {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  line-height: 1.2;
+  transition: all 200ms ease;
+}
+.btn-enhance:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+.btn-enhance:active {
+  transform: translateY(0) scale(0.98);
+}
+.btn-enhance:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--bg-app), 0 0 0 4px rgba(217, 255, 0, 0.35);
+}
+.btn-enhance:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+  transform: none !important;
+}
+
+/* Personalize: distinct workflow trigger */
+.btn-personalize {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(217, 255, 0, 0.08);
+  border: 1px solid rgba(217, 255, 0, 0.25);
+  border-radius: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  line-height: 1.2;
+  transition: all 200ms ease;
+}
+.btn-personalize:hover {
+  color: #ffffff;
+  background: rgba(217, 255, 0, 0.14);
+  border-color: rgba(217, 255, 0, 0.45);
+  box-shadow: 0 0 14px rgba(217, 255, 0, 0.08);
+}
+.btn-personalize:active {
+  transform: translateY(0) scale(0.98);
+}
+.btn-personalize:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--bg-app), 0 0 0 4px rgba(217, 255, 0, 0.4);
+}
+.btn-personalize:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+  transform: none !important;
+}
+
+/* Secondary action: AI Pick, Tools, Thumbnail */
+.btn-action-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  line-height: 1.2;
+  transition: all 200ms ease;
+}
+.btn-action-secondary:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+.btn-action-secondary:active {
+  transform: translateY(0) scale(0.98);
+}
+.btn-action-secondary:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--bg-app), 0 0 0 4px rgba(217, 255, 0, 0.35);
+}
+.btn-action-secondary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+  transform: none !important;
+}
+
+/* Overflow menu trigger */
+.overflow-menu {
+  position: relative;
+  display: inline-flex;
+}
+.overflow-menu__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  line-height: 1.2;
+  transition: all 200ms ease;
+}
+.overflow-menu__trigger:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+.overflow-menu__trigger:active {
+  transform: translateY(0) scale(0.98);
+}
+.overflow-menu__trigger:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--bg-app), 0 0 0 4px rgba(217, 255, 0, 0.35);
+}
+.overflow-menu__panel {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  right: 0;
+  min-width: 180px;
+  padding: 6px;
+  background: rgba(10, 10, 10, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
+  z-index: 50;
+  display: none;
+}
+.overflow-menu.is-open .overflow-menu__panel {
+  display: block;
+}
+.overflow-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+.overflow-menu__item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+.overflow-menu__item:active {
+  transform: scale(0.98);
+}
+
+/* Control strip layout */
+.control-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.control-row--actions {
+  gap: 10px;
+}
+.control-row--actions .btn-primary-modern {
+  margin-left: auto;
+}
+
+/* Mobile: allow horizontal scroll for parameter row */
+@media (max-width: 767px) {
+  .control-row--parameters {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .control-row--parameters::-webkit-scrollbar {
+    height: 0;
+  }
+}
+
+/* Tooltip for overflow menu trigger */
+.overflow-menu__trigger[data-tooltip]::after {
+  display: none;
+}
+
 /* MediaDetailView */
 @import "./media-detail.css";
