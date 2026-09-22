@@ -313,6 +313,62 @@ async function validateImageCandidate(candidate) {
   }
 }
 
+async function captureRenderedScreenshotFallback(websiteUrl) {
+  const apiUrl = process.env.PERSONALIZATION_RENDERED_DISCOVERY_URL || process.env.SCREENSHOT_API_URL;
+  if (!apiUrl) return null;
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(process.env.SCREENSHOT_API_KEY
+          ? { Authorization: `Bearer ${process.env.SCREENSHOT_API_KEY}` }
+          : {}),
+      },
+      body: JSON.stringify({ url: websiteUrl, width: 1280, height: 720 }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    if (!response.ok) return null;
+    const payload = await response.json().catch(() => ({}));
+    const screenshotUrl = payload.url || payload.screenshot || payload.image;
+    if (!screenshotUrl) return null;
+    const valid = await validateImageCandidate({
+      url: screenshotUrl,
+      sourcePage: websiteUrl,
+      context: 'rendered-screenshot',
+      altText: 'Rendered website screenshot',
+    });
+    if (!valid) return null;
+    return {
+      id: `disc_${crypto.randomUUID()}`,
+      sourceUrl: valid.url,
+      previewUrl: valid.url,
+      sourcePage: websiteUrl,
+      sourceType: 'RENDERED_SCREENSHOT',
+      category: 'brand',
+      confidence: 60,
+      qualityScore: null,
+      relevanceScore: null,
+      selected: true,
+      recommended: true,
+      rejected: false,
+      assignedRole: 'brand_reference',
+      autoAssigned: false,
+      mimeType: valid.mimeType,
+      altText: 'Rendered website screenshot',
+      visionAnalysis: null,
+      editedUrl: null,
+      videoReady: false,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function discoverBusinessAssetsFreeFirst({
   websiteUrl,
   maxPages = DEFAULT_MAX_PAGES,
@@ -394,16 +450,33 @@ export async function discoverBusinessAssetsFreeFirst({
     });
   }
 
+  const providerAttempts = ['SMARTVIDEO_STATIC'];
+  let providerUsed = 'SMARTVIDEO_STATIC';
+  let browserUsed = false;
+
+  // Keep rendered capture strictly behind free/static extraction. RNE already
+  // supports a separate Playwright/Puppeteer screenshot backend via
+  // SCREENSHOT_API_URL; this avoids bundling Chromium into Netlify functions.
+  if (discoveredAssets.length < 3) {
+    providerAttempts.push('RENDERED_SCREENSHOT');
+    const rendered = await captureRenderedScreenshotFallback(rootUrl);
+    if (rendered && !discoveredAssets.some((asset) => asset.sourceUrl === rendered.sourceUrl)) {
+      discoveredAssets.push(rendered);
+      providerUsed = 'RENDERED_SCREENSHOT';
+      browserUsed = true;
+    }
+  }
+
   return {
-    providerUsed: 'SMARTVIDEO_STATIC',
-    providerAttempts: ['SMARTVIDEO_STATIC'],
+    providerUsed,
+    providerAttempts,
     pagesCrawled: pages.length,
     rawCandidates: candidateMap.size,
     discoveredAssets,
     socialProfiles: Array.from(socialMap.values()),
     durationMs: Date.now() - startedAt,
     visionUsed: false,
-    browserUsed: false,
+    browserUsed,
     firecrawlUsed: false,
   };
 }
