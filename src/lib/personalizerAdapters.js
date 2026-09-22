@@ -204,3 +204,45 @@ export function getTemplateStudioAsset({
     },
   };
 }
+
+
+/**
+ * CinemaStudio adapter.
+ */
+export function getCinemaStudioAsset({
+  textarea,
+  settings = {},
+  customThumbnailUrl,
+  previewUrl,
+}) {
+  const prompt = textarea?.value?.trim() || settings.prompt || '';
+  const referenceUrls = Array.isArray(settings.referenceUrls)
+    ? settings.referenceUrls.filter((entry) => entry?.url)
+    : [];
+
+  const fields = [
+    field({ id: 'prompt', label: 'Prompt', type: 'text', value: prompt, supportsPersonalization: true }),
+    field({ id: 'model', label: 'Model', type: 'text', value: settings.model || '', supportsPersonalization: false }),
+    field({ id: 'aspectRatio', label: 'Aspect Ratio', type: 'text', value: settings.aspect_ratio || '16:9', supportsPersonalization: false }),
+    field({ id: 'firstFrameUrl', label: 'First Frame', type: 'url', value: settings.referenceUrl || '', supportsPersonalization: false, readonly: true }),
+    field({ id: 'lastFrameUrl', label: 'Last Frame', type: 'url', value: settings.endFrameUrl || '', supportsPersonalization: false, readonly: true }),
+    field({ id: 'referenceImages', label: 'Reference Images', type: 'url', value: referenceUrls.filter((entry) => entry.type === 'image').map((entry) => entry.url), supportsPersonalization: false, readonly: true }),
+    field({ id: 'referenceVideos', label: 'Reference Videos', type: 'url', value: referenceUrls.filter((entry) => entry.type === 'video').map((entry) => entry.url), supportsPersonalization: false, readonly: true }),
+    field({ id: 'referenceAudios', label: 'Reference Audios', type: 'url', value: referenceUrls.filter((entry) => entry.type === 'audio').map((entry) => entry.url), supportsPersonalization: false, readonly: true }),
+  ];
+
+  return {
+    id: 'cinema-current',
+    type: 'video',
+    title: prompt.slice(0, 80) || 'Untitled Cinema Shot',
+    previewUrl: previewUrl || customThumbnailUrl || settings.referenceUrl || undefined,
+    fields,
+    metadata: {
+      studio: 'CinemaStudio',
+      camera: settings.camera || undefined,
+      lens: settings.lens || undefined,
+      movement: settings.movement || undefined,
+      look: settings.look || undefined,
+    },
+  };
+}
