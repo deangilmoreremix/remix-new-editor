@@ -79,12 +79,21 @@ export async function importDiscoveredAsset(asset, { role, name } = {}) {
   const sourceUrl = asset?.editedUrl || asset?.previewUrl || asset?.sourceUrl;
   if (!sourceUrl) throw new Error('Discovered asset has no image URL.');
 
-  const payload = await post('import-asset', {
-    sourceUrl,
-    role: assignedRole,
-    name: name || asset.altText || asset.category || assignedRole,
-  });
-  const imported = payload?.asset;
+  let imported;
+  if (asset?.stagedDurableUrl && asset?.stagedRole === assignedRole && asset.stagedDurableUrl === sourceUrl) {
+    imported = {
+      url: asset.stagedDurableUrl,
+      name: name || asset.altText || asset.category || assignedRole,
+      mimeType: asset.stagedMimeType || asset.mimeType || null,
+    };
+  } else {
+    const payload = await post('import-asset', {
+      sourceUrl,
+      role: assignedRole,
+      name: name || asset.altText || asset.category || assignedRole,
+    });
+    imported = payload?.asset;
+  }
   if (!imported?.url) throw new Error('Import did not return a durable asset URL.');
 
   return createPersonalizationAsset({
