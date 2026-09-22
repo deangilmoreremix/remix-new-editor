@@ -15,6 +15,67 @@ function primaryById(items, id) {
   return items.find((item) => item?.id === id) || items[0] || null;
 }
 
+export function buildExactOverlayManifest({
+  business = {},
+  logo = null,
+  ctaGraphic = null,
+  generationOptions = {},
+} = {}) {
+  const logoHandling = generationOptions.exactLogoHandling || 'final-overlay';
+  const ctaHandling = generationOptions.exactCtaHandling || 'final-end-card';
+  const items = [];
+
+  if (logo && logoHandling === 'final-overlay') {
+    items.push({
+      id: 'exact-logo',
+      type: 'image-overlay',
+      role: 'logo',
+      asset: logo,
+      placement: 'top-right',
+      timing: 'full',
+      deterministic: true,
+      preserveExactPixels: true,
+    });
+  }
+
+  if (ctaGraphic && ctaHandling === 'final-end-card') {
+    items.push({
+      id: 'exact-cta-end-card',
+      type: 'end-card-image',
+      role: 'cta_graphic',
+      asset: ctaGraphic,
+      placement: 'full-frame',
+      timing: 'end',
+      deterministic: true,
+      preserveExactPixels: true,
+    });
+  } else if (ctaHandling === 'final-end-card') {
+    const fields = {
+      headline: business.ctaHeadline || '',
+      callToAction: business.callToAction || '',
+      phone: business.phone || '',
+      website: business.website || '',
+    };
+    if (Object.values(fields).some(Boolean)) {
+      items.push({
+        id: 'exact-text-end-card',
+        type: 'end-card-text',
+        role: 'cta_graphic',
+        fields,
+        placement: 'full-frame',
+        timing: 'end',
+        deterministic: true,
+      });
+    }
+  }
+
+  return {
+    version: 1,
+    strategy: 'deterministic-final-composite',
+    items,
+  };
+}
+
 export function buildPersonalizationContext(profile = {}) {
   const normalized = ensurePersonalizationProfile(profile);
   const business = normalized.personalization.business || {};
@@ -62,6 +123,12 @@ export function buildPersonalizationContext(profile = {}) {
       logoHandling: generationOptions.exactLogoHandling || 'final-overlay',
       ctaHandling: generationOptions.exactCtaHandling || 'final-end-card',
     },
+    exactOverlayManifest: buildExactOverlayManifest({
+      business,
+      logo,
+      ctaGraphic: assets.ctaGraphic || null,
+      generationOptions,
+    }),
   };
 }
 
@@ -142,6 +209,12 @@ export function resolvePersonalizationForModel(context, model, {
     referenceImages,
     referenceAudios,
     exactOverlays: ctx.exactOverlays,
+    exactOverlayManifest: ctx.exactOverlayManifest || buildExactOverlayManifest({
+      business: ctx.business,
+      logo: ctx.logo,
+      ctaGraphic: ctx.ctaGraphic,
+      generationOptions: ctx.generationOptions,
+    }),
     warnings,
   };
 }
