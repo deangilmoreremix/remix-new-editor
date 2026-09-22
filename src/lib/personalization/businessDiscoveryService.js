@@ -1,7 +1,6 @@
 async function getSession() {
   try {
-    const { createClient } = await import('../supabase.js');
-    const supabase = createClient();
+    const { supabase } = await import('../supabase.js');
     const { data } = await supabase.auth.getSession();
     return data?.session || null;
   } catch {
