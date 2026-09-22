@@ -33,6 +33,11 @@ import { TOKEN_LABELS, buildVariables } from '../personalize/tokenSchema.js';
 import { normalizeSocialIdentities, buildLegacySocialMap } from '../../lib/socialIdentity.js';
 import { createPersonalizerHandoff, savePersonalizerHandoff } from '../../lib/personalizerHandoff.js';
 import { navigate } from '../../lib/router.js';
+import {
+  ensurePersonalizationProfile,
+  normalizeBusinessProfile,
+  updatePersonalizationBusiness,
+} from '../../lib/personalization/personalizationProfile.js';
 
 const CONTACTS_KEY = 'remix_contacts';
 const PROFILES_KEY = 'remix_contact_profiles';
@@ -219,6 +224,13 @@ export class PersonalizeModal extends BaseModal {
 
     // Settings are loaded asynchronously when the modal opens
     this._settingsLoaded = false;
+
+    // Unified SmartVideo AI business/client + asset personalization state.
+    // The durable source of truth remains the selected profile; these fields
+    // only hold unsaved form state while the modal is open.
+    this.businessDraft = null;
+    this.businessSaveStatus = '';
+    this.assetEditorAssetId = null;
   }
 
   _resolveAppColors(theme) {
@@ -273,7 +285,7 @@ export class PersonalizeModal extends BaseModal {
 
     return `
       <div class="pm-modal ${this.darkMode ? 'pm-dark' : 'pm-light'}" data-theme="${this.darkMode ? 'dark' : 'light'}" style="--pm-primary: ${primary}; --pm-accent: ${accent}; --pm-on-primary: ${this.appColors.onPrimary || '#000000'}; --pm-soft: ${soft}; --pm-soft-accent: ${softAccent}; --pm-glow: ${hexToRgba(primary, 0.25)}; --app-primary: ${primary}; --app-accent: ${accent}; --app-on-primary: ${this.appColors.onPrimary || '#000000'}; --app-soft: ${soft}; --app-soft-accent: ${softAccent}; --app-glow: ${hexToRgba(primary, 0.25)};">
-        <p id="pm-subtitle" class="pm-subtitle">Discover a contact, view Maigret intelligence, and insert personalized tokens into your prompt.</p>
+        <p id="pm-subtitle" class="pm-subtitle">Discover people and businesses, organize brand assets, edit media, and apply SmartVideo AI personalization without leaving your creation workflow.</p>
 
         <div class="pm-sr-only" role="status" aria-live="polite" id="pm-live"></div>
 
@@ -282,6 +294,8 @@ export class PersonalizeModal extends BaseModal {
         <div class="pm-tabs" role="tablist" aria-label="Personalization sections">
           <button type="button" class="pm-tab ${activeTab === 'discover' ? 'pm-tab-active' : ''}" data-tab="discover" ${tabAria('discover')}>Discover</button>
           <button type="button" class="pm-tab ${activeTab === 'results' ? 'pm-tab-active' : ''}" data-tab="results" ${!this.lastScanData ? 'disabled' : ''} ${tabAria('results')}>Results</button>
+          <button type="button" class="pm-tab ${activeTab === 'business' ? 'pm-tab-active' : ''}" data-tab="business" ${tabAria('business')}>Business / Client</button>
+          <button type="button" class="pm-tab ${activeTab === 'assets' ? 'pm-tab-active' : ''}" data-tab="assets" ${tabAria('assets')}>Assets</button>
           <button type="button" class="pm-tab ${activeTab === 'history' ? 'pm-tab-active' : ''}" data-tab="history" ${tabAria('history')}>History</button>
         </div>
 
@@ -291,6 +305,12 @@ export class PersonalizeModal extends BaseModal {
           </div>
           <div class="pm-tab-panel ${activeTab === 'results' ? 'pm-tab-panel-active' : ''}" data-panel="results" role="tabpanel" id="pm-panel-results" aria-labelledby="pm-tab-results" tabindex="0">
             ${this.lastScanData ? this._renderResults() : '<div class="pm-empty">Run a discovery to see results here.</div>'}
+          </div>
+          <div class="pm-tab-panel ${activeTab === 'business' ? 'pm-tab-panel-active' : ''}" data-panel="business" role="tabpanel" id="pm-panel-business" aria-labelledby="pm-tab-business" tabindex="0">
+            ${this._renderBusinessTab()}
+          </div>
+          <div class="pm-tab-panel ${activeTab === 'assets' ? 'pm-tab-panel-active' : ''}" data-panel="assets" role="tabpanel" id="pm-panel-assets" aria-labelledby="pm-tab-assets" tabindex="0">
+            ${this._renderAssetsTab()}
           </div>
           <div class="pm-tab-panel ${activeTab === 'history' ? 'pm-tab-panel-active' : ''}" data-panel="history" role="tabpanel" id="pm-panel-history" aria-labelledby="pm-tab-history" tabindex="0">
             ${this._renderHistory()}
@@ -1657,6 +1677,117 @@ export class PersonalizeModal extends BaseModal {
           .pm-advanced-checks { flex-direction: column; gap: 6px; }
         }
 
+        /* Unified business/client profile */
+        .pm-audience-grid {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 8px;
+        }
+
+        .pm-audience-card {
+          appearance: none;
+          text-align: left;
+          border: 1px solid var(--border-color);
+          background: var(--bg-panel);
+          color: var(--text-primary);
+          border-radius: var(--border-radius-lg);
+          padding: 12px;
+          cursor: pointer;
+          font-family: var(--font-family);
+          transition: all var(--transition-fast);
+        }
+
+        .pm-audience-card:hover,
+        .pm-audience-card.active {
+          border-color: var(--pm-primary);
+          background: var(--pm-soft);
+        }
+
+        .pm-audience-title { font-size: 13px; font-weight: 700; }
+        .pm-audience-copy { margin-top: 4px; font-size: 11px; line-height: 1.4; color: var(--text-muted); }
+
+        .pm-business-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 12px;
+        }
+
+        .pm-business-field {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .pm-business-field.pm-span-2 { grid-column: 1 / -1; }
+        .pm-business-field label { font-size: 11px; font-weight: 600; color: var(--text-secondary); }
+        .pm-business-field textarea { min-height: 82px; resize: vertical; }
+
+        .pm-business-save-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+
+        .pm-business-status { font-size: 11px; color: var(--pm-accent); }
+
+        .pm-asset-role-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          gap: 10px;
+        }
+
+        .pm-asset-role-card {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          min-height: 104px;
+          padding: 12px;
+          border: 1px solid var(--border-color);
+          border-radius: var(--border-radius-lg);
+          background: var(--bg-card);
+        }
+
+        .pm-asset-role-head {
+          display: flex;
+          justify-content: space-between;
+          gap: 8px;
+          align-items: center;
+        }
+
+        .pm-asset-role-title { font-size: 12px; font-weight: 700; color: var(--text-primary); }
+        .pm-asset-role-count {
+          min-width: 22px;
+          height: 22px;
+          border-radius: 999px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 10px;
+          font-weight: 700;
+          background: var(--pm-soft);
+          color: var(--pm-primary);
+          border: 1px solid var(--pm-primary);
+        }
+
+        .pm-asset-role-copy { font-size: 10px; line-height: 1.4; color: var(--text-muted); }
+        .pm-asset-thumbs { display: flex; gap: 6px; flex-wrap: wrap; }
+        .pm-asset-thumb {
+          width: 44px;
+          height: 44px;
+          border-radius: 8px;
+          object-fit: cover;
+          background: var(--bg-panel);
+          border: 1px solid var(--border-color);
+        }
+
+        @media (max-width: 720px) {
+          .pm-audience-grid,
+          .pm-business-grid { grid-template-columns: 1fr; }
+          .pm-business-field.pm-span-2 { grid-column: auto; }
+        }
+
         .pm-modal.pm-light {
           --text-primary: #1a1a1a;
           --text-secondary: #4b5563;
@@ -1863,6 +1994,228 @@ export class PersonalizeModal extends BaseModal {
         </div>
       </div>
     `;
+  }
+
+  _selectedUnifiedProfile() {
+    const profile = this._getSelectedProfile();
+    return profile ? ensurePersonalizationProfile(profile) : null;
+  }
+
+  _currentBusinessDraft() {
+    const profile = this._selectedUnifiedProfile();
+    if (!profile) return null;
+    return normalizeBusinessProfile(
+      this.businessDraft || profile.personalization?.business || {},
+      profile,
+    );
+  }
+
+  _readBusinessDraftFromDom() {
+    if (!this.overlay) return this.businessDraft;
+    const read = (id, fallback = '') => {
+      const el = this.overlay.querySelector('#' + id);
+      return el ? String(el.value || '').trim() : fallback;
+    };
+    const current = this._currentBusinessDraft();
+    if (!current) return null;
+    this.businessDraft = {
+      ...current,
+      website: read('pm-business-website', current.website),
+      name: read('pm-business-name', current.name),
+      businessName: read('pm-business-business-name', current.businessName),
+      industry: read('pm-business-industry', current.industry),
+      location: read('pm-business-location', current.location),
+      productService: read('pm-business-product-service', current.productService),
+      offer: read('pm-business-offer', current.offer),
+      ctaHeadline: read('pm-business-cta-headline', current.ctaHeadline),
+      callToAction: read('pm-business-cta', current.callToAction),
+      phone: read('pm-business-phone', current.phone),
+      email: read('pm-business-email', current.email),
+      brandDescription: read('pm-business-brand-description', current.brandDescription),
+    };
+    return this.businessDraft;
+  }
+
+  _renderBusinessTab() {
+    const profile = this._selectedUnifiedProfile();
+    if (!profile) {
+      return '<div class="pm-empty">Select or discover a contact first. The business/client profile will attach to that existing SmartVideo personalization profile.</div>';
+    }
+
+    const b = this._currentBusinessDraft();
+    const audiences = [
+      { id: 'me', title: 'Me', copy: 'Personalize using your own identity and brand.' },
+      { id: 'my-business', title: 'My Business', copy: 'Build reusable SmartVideo assets for your company.' },
+      { id: 'client', title: 'Client', copy: 'Create and save a separate business profile for a customer.' },
+    ];
+    const field = (id, label, value, options = {}) => {
+      const cls = options.full ? 'pm-business-field pm-span-2' : 'pm-business-field';
+      const input = options.textarea
+        ? `<textarea id="${id}" class="pm-input" placeholder="${escapeHtml(options.placeholder || '')}">${escapeHtml(value || '')}</textarea>`
+        : `<input id="${id}" class="pm-input" type="${options.type || 'text'}" value="${escapeHtml(value || '')}" placeholder="${escapeHtml(options.placeholder || '')}" />`;
+      return `<div class="${cls}"><label for="${id}">${escapeHtml(label)}</label>${input}</div>`;
+    };
+
+    return `
+      <div class="pm-form">
+        <div class="pm-section">
+          <div class="pm-section-label">Who is this for?</div>
+          <div class="pm-audience-grid">
+            ${audiences.map((a) => `
+              <button type="button" class="pm-audience-card ${b.audience === a.id ? 'active' : ''}" data-audience="${a.id}" aria-pressed="${b.audience === a.id ? 'true' : 'false'}">
+                <div class="pm-audience-title">${a.title}</div>
+                <div class="pm-audience-copy">${a.copy}</div>
+              </button>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="pm-section">
+          <div class="pm-section-header">
+            <span class="pm-section-label">Business / Client Profile</span>
+            <span class="pm-business-status">${escapeHtml(this.businessSaveStatus || '')}</span>
+          </div>
+          <div class="pm-business-grid">
+            ${field('pm-business-website', 'Website', b.website, { full: true, placeholder: 'https://example.com' })}
+            ${field('pm-business-name', 'Contact / Client Name', b.name)}
+            ${field('pm-business-business-name', 'Business Name', b.businessName)}
+            ${field('pm-business-industry', 'Industry', b.industry)}
+            ${field('pm-business-location', 'Location', b.location)}
+            ${field('pm-business-product-service', 'Product / Service', b.productService, { full: true })}
+            ${field('pm-business-offer', 'Offer', b.offer, { full: true })}
+            ${field('pm-business-cta-headline', 'CTA Headline', b.ctaHeadline)}
+            ${field('pm-business-cta', 'Call To Action', b.callToAction)}
+            ${field('pm-business-phone', 'Phone', b.phone, { type: 'tel' })}
+            ${field('pm-business-email', 'Email', b.email, { type: 'email' })}
+            ${field('pm-business-brand-description', 'Brand Description', b.brandDescription, { full: true, textarea: true, placeholder: 'Describe the brand, positioning, audience, tone, and important visual cues.' })}
+          </div>
+        </div>
+
+        <div class="pm-business-save-row">
+          <div class="pm-preview-empty">Saving updates the existing profile and immediately makes the new business/offer/CTA fields available as personalization tokens.</div>
+          <button type="button" class="pm-btn pm-btn-primary" data-action="save-business-profile">Save business profile</button>
+        </div>
+      </div>
+    `;
+  }
+
+  _assetRoleCard(title, description, items = []) {
+    const safeItems = (Array.isArray(items) ? items : []).filter(Boolean);
+    const thumbs = safeItems.slice(0, 4).map((asset) => {
+      const url = typeof asset === 'string' ? asset : (asset.url || asset.originalUrl || '');
+      if (!url) return '';
+      return `<img class="pm-asset-thumb" src="${escapeHtml(url)}" alt="" loading="lazy" />`;
+    }).join('');
+    return `
+      <div class="pm-asset-role-card">
+        <div class="pm-asset-role-head">
+          <span class="pm-asset-role-title">${escapeHtml(title)}</span>
+          <span class="pm-asset-role-count">${safeItems.length}</span>
+        </div>
+        <div class="pm-asset-role-copy">${escapeHtml(description)}</div>
+        ${thumbs ? `<div class="pm-asset-thumbs">${thumbs}</div>` : '<div class="pm-empty" style="padding:0;">No assets yet</div>'}
+      </div>
+    `;
+  }
+
+  _renderAssetsTab() {
+    const profile = this._selectedUnifiedProfile();
+    if (!profile) {
+      return '<div class="pm-empty">Select or discover a contact first. Assets are stored with that profile so they can be reused across studios.</div>';
+    }
+
+    const assets = profile.personalization.assets || {};
+    const legacy = profile.assets || {};
+    const identities = assets.identities?.length
+      ? assets.identities
+      : (legacy.avatar || []).map((url) => ({ url }));
+    const logos = assets.logos?.length
+      ? assets.logos
+      : (legacy.logos || []).map((url) => ({ url }));
+    const products = assets.products?.length
+      ? assets.products
+      : (legacy.productImages || []).map((url) => ({ url }));
+
+    const single = (value) => value ? [value] : [];
+
+    return `
+      <div class="pm-form">
+        <div class="pm-section">
+          <div class="pm-section-header">
+            <span class="pm-section-label">Reusable personalization assets</span>
+            <span class="pm-preview-pill pm-preview-pill-muted">SmartVideo AI Asset Library</span>
+          </div>
+          <div class="pm-preview-empty">
+            Existing RNE avatar/logo/product assets are shown here automatically. New role-aware assets use the unified profile model and retain their originals, edit metadata, Vision data, versions, and Video Ready state.
+          </div>
+        </div>
+
+        <div class="pm-asset-role-grid">
+          ${this._assetRoleCard('Person / Presenter', 'Face, body, side/profile, presenter and identity references.', identities)}
+          ${this._assetRoleCard('Logo', 'Primary and alternate brand logos.', logos)}
+          ${this._assetRoleCard('Products / Services', 'Products, services, completed work and marketing subjects.', products)}
+          ${this._assetRoleCard('Brand References', 'Brand imagery, environments and style references.', assets.brandReferences || [])}
+          ${this._assetRoleCard('First Frame', 'Explicit opening-frame asset; never auto-assigned by discovery.', single(assets.firstFrame))}
+          ${this._assetRoleCard('Last Frame', 'Explicit ending-frame asset; never auto-assigned by discovery.', single(assets.lastFrame))}
+          ${this._assetRoleCard('CTA Graphic', 'Exact CTA/logo/phone/URL graphics for deterministic final use.', single(assets.ctaGraphic))}
+          ${this._assetRoleCard('Saved References', 'Reusable references available to compatible generation models.', assets.savedReferences || [])}
+        </div>
+
+        <div class="pm-preview">
+          <div class="pm-preview-label">Discovery + editing integration</div>
+          <div class="pm-preview-empty">The next integration layer attaches the OpenHiggs discovered-asset review grid, Vision analysis, Make Video Ready, and the SmartVideo AI image editor to these same role-aware collections—without creating another modal.</div>
+        </div>
+      </div>
+    `;
+  }
+
+  _persistSelectedProfile(profile) {
+    if (!profile?.id) return false;
+    try {
+      const profiles = JSON.parse(localStorage.getItem(PROFILES_KEY) || '[]');
+      const idx = profiles.findIndex((p) => p.id === profile.id);
+      if (idx >= 0) profiles[idx] = profile;
+      else profiles.unshift(profile);
+      localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  _handleAudienceChange(audience) {
+    if (!['me', 'my-business', 'client'].includes(audience)) return;
+    const draft = this._readBusinessDraftFromDom() || this._currentBusinessDraft();
+    this.businessDraft = { ...draft, audience };
+    this.businessSaveStatus = '';
+    this.refreshBody();
+  }
+
+  _handleSaveBusinessProfile() {
+    const id = getSelectedContactId();
+    const profile = id ? _getProfile(id) : null;
+    if (!profile) {
+      this.errorMessage = 'Select or discover a contact before saving a business profile.';
+      this.refreshBody();
+      return;
+    }
+
+    const draft = this._readBusinessDraftFromDom();
+    let next = updatePersonalizationBusiness(profile, draft || {});
+    next.updatedAt = new Date().toISOString();
+    next.variables = buildVariables(next, next.variables || {});
+    if (!this._persistSelectedProfile(next)) {
+      this.errorMessage = 'Could not save the business profile in this browser.';
+      this.refreshBody();
+      return;
+    }
+
+    this.businessDraft = null;
+    this.businessSaveStatus = '✓ Saved';
+    this.errorMessage = '';
+    this._refreshProfileSummary();
+    this.refreshBody();
+    window.dispatchEvent(new CustomEvent('remix:contact-changed', { detail: { contactId: id } }));
   }
 
   _renderHistory() {
@@ -2473,6 +2826,20 @@ export class PersonalizeModal extends BaseModal {
           };
         });
 
+        scope.querySelectorAll('[data-audience]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._handleAudienceChange(btn.dataset.audience);
+          };
+        });
+
+        scope.querySelectorAll('[data-action="save-business-profile"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._handleSaveBusinessProfile();
+          };
+        });
+
         scope.querySelectorAll('[data-action="clear-contact"]').forEach((btn) => {
           btn.onclick = (e) => {
             e.stopPropagation();
@@ -2861,6 +3228,8 @@ export class PersonalizeModal extends BaseModal {
 
   _setSelectedContact(contactId) {
     this.selectedContactId = contactId || null;
+    this.businessDraft = null;
+    this.businessSaveStatus = '';
     setSelectedContactId(contactId || null);
     this._refreshContactsList();
     this._refreshProfileSummary();
@@ -3152,6 +3521,10 @@ export class PersonalizeModal extends BaseModal {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
+
+      // Add the non-breaking unified SmartVideo AI personalization extension.
+      const unifiedProfile = ensurePersonalizationProfile(profile);
+      Object.assign(profile, unifiedProfile);
 
       // Derive the complete token map from the profile via the shared schema.
       profile.variables = buildVariables(profile, {
