@@ -3829,11 +3829,13 @@ export class PersonalizeModal extends BaseModal {
         if (action === 'rotate') {
           controller.setLocalControl('rotation', (Number(controls.rotation) + 90) % 360);
         } else if (action === 'flipX') {
-          controller.setLocalControl('flipX', !controls.flipX);
-          btn.classList.toggle('active', !controls.flipX);
+          const next = !controls.flipX;
+          controller.setLocalControl('flipX', next);
+          btn.classList.toggle('active', next);
         } else if (action === 'flipY') {
-          controller.setLocalControl('flipY', !controls.flipY);
-          btn.classList.toggle('active', !controls.flipY);
+          const next = !controls.flipY;
+          controller.setLocalControl('flipY', next);
+          btn.classList.toggle('active', next);
         }
       };
     });
