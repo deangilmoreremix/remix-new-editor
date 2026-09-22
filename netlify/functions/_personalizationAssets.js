@@ -408,6 +408,15 @@ export async function discoverBusinessAssetsFreeFirst({
   };
 }
 
+function parseDataImage(value) {
+  if (typeof value !== 'string') return null;
+  const match = value.match(/^data:(image\/(?:png|jpeg|webp|gif));base64,([A-Za-z0-9+/=\r\n]+)$/i);
+  if (!match) return null;
+  const bytes = Buffer.from(match[2].replace(/\s+/g, ''), 'base64');
+  if (!bytes.length || bytes.length > MAX_IMAGE_BYTES) throw new Error('Asset exceeds the allowed size.');
+  return { mimeType: match[1].toLowerCase(), bytes };
+}
+
 function extensionForMime(mime) {
   const type = String(mime || '').toLowerCase();
   if (type.includes('jpeg')) return 'jpg';
@@ -426,17 +435,27 @@ export async function mirrorPersonalizationAsset({
   if (!supabase || !userId) throw new Error('Authenticated storage context is required.');
   if (!IMPORT_ROLES.has(role)) throw new Error('Unsupported personalization asset role.');
 
-  const safeUrl = await sanitizePublicHttpUrl(sourceUrl);
-  const { response, finalUrl } = await fetchWithRedirectGuards(safeUrl, {
-    method: 'GET',
-    headers: { Accept: 'image/*' },
-  }, MAX_IMAGE_BYTES);
-  if (!response.ok) throw new Error(`Asset download failed (HTTP ${response.status}).`);
+  const inlineImage = parseDataImage(sourceUrl);
+  let finalUrl = sourceUrl;
+  let mimeType;
+  let bytes;
 
-  const mimeType = String(response.headers.get('content-type') || '').toLowerCase().split(';')[0];
-  if (!mimeType.startsWith('image/')) throw new Error('Asset URL did not return an image.');
-  const bytes = new Uint8Array(await response.arrayBuffer());
-  if (!bytes.length || bytes.length > MAX_IMAGE_BYTES) throw new Error('Asset exceeds the allowed size.');
+  if (inlineImage) {
+    mimeType = inlineImage.mimeType;
+    bytes = inlineImage.bytes;
+  } else {
+    const safeUrl = await sanitizePublicHttpUrl(sourceUrl);
+    const fetched = await fetchWithRedirectGuards(safeUrl, {
+      method: 'GET',
+      headers: { Accept: 'image/*' },
+    }, MAX_IMAGE_BYTES);
+    if (!fetched.response.ok) throw new Error(`Asset download failed (HTTP ${fetched.response.status}).`);
+    finalUrl = fetched.finalUrl;
+    mimeType = String(fetched.response.headers.get('content-type') || '').toLowerCase().split(';')[0];
+    if (!mimeType.startsWith('image/')) throw new Error('Asset URL did not return an image.');
+    bytes = new Uint8Array(await fetched.response.arrayBuffer());
+    if (!bytes.length || bytes.length > MAX_IMAGE_BYTES) throw new Error('Asset exceeds the allowed size.');
+  }
 
   const bucket = process.env.ASSETS_BUCKET || 'contact-assets';
   const ext = extensionForMime(mimeType);
