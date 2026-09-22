@@ -34,10 +34,18 @@ import { normalizeSocialIdentities, buildLegacySocialMap } from '../../lib/socia
 import { createPersonalizerHandoff, savePersonalizerHandoff } from '../../lib/personalizerHandoff.js';
 import { navigate } from '../../lib/router.js';
 import {
+  addPersonalizationAsset,
   ensurePersonalizationProfile,
   normalizeBusinessProfile,
+  setDiscoveredPersonalizationAssets,
   updatePersonalizationBusiness,
 } from '../../lib/personalization/personalizationProfile.js';
+import {
+  defaultRoleForDiscoveredCategory,
+  discoverBusinessAssets,
+  importDiscoveredAsset,
+} from '../../lib/personalization/assetDiscoveryService.js';
+import { analyzePersonalizationImages } from '../../lib/personalization/visionService.js';
 
 const CONTACTS_KEY = 'remix_contacts';
 const PROFILES_KEY = 'remix_contact_profiles';
@@ -231,6 +239,11 @@ export class PersonalizeModal extends BaseModal {
     this.businessDraft = null;
     this.businessSaveStatus = '';
     this.assetEditorAssetId = null;
+    this.isDiscoveringBusinessAssets = false;
+    this.isAnalyzingBusinessAssets = false;
+    this.isImportingBusinessAssets = false;
+    this.assetDiscoveryStatus = '';
+    this.assetDiscoveryError = '';
   }
 
   _resolveAppColors(theme) {
@@ -1788,6 +1801,115 @@ export class PersonalizeModal extends BaseModal {
           .pm-business-field.pm-span-2 { grid-column: auto; }
         }
 
+        .pm-asset-actions {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+          align-items: center;
+        }
+
+        .pm-discovered-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+          gap: 12px;
+        }
+
+        .pm-discovered-card {
+          border: 1px solid var(--border-color);
+          border-radius: var(--border-radius-lg);
+          background: var(--bg-card);
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+        }
+
+        .pm-discovered-card.rejected { opacity: 0.55; }
+        .pm-discovered-image-wrap {
+          position: relative;
+          aspect-ratio: 16 / 10;
+          background: #111;
+          overflow: hidden;
+        }
+        .pm-discovered-image {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+        .pm-discovered-check {
+          position: absolute;
+          top: 8px;
+          left: 8px;
+          width: 18px;
+          height: 18px;
+          accent-color: var(--pm-primary);
+        }
+        .pm-discovered-badges {
+          position: absolute;
+          right: 8px;
+          top: 8px;
+          display: flex;
+          gap: 4px;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+        }
+        .pm-discovered-badge {
+          padding: 3px 6px;
+          border-radius: 999px;
+          background: rgba(0,0,0,.72);
+          color: #fff;
+          font-size: 9px;
+          font-weight: 700;
+        }
+        .pm-discovered-body {
+          padding: 10px;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .pm-discovered-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+        }
+        .pm-discovered-row label {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          font-size: 9px;
+          color: var(--text-muted);
+          text-transform: uppercase;
+          letter-spacing: .04em;
+        }
+        .pm-discovered-row select {
+          min-width: 0;
+          width: 100%;
+          padding: 6px;
+          border-radius: 6px;
+          border: 1px solid var(--border-color);
+          background: var(--bg-panel);
+          color: var(--text-primary);
+          font-size: 10px;
+        }
+        .pm-discovered-summary {
+          font-size: 10px;
+          line-height: 1.45;
+          color: var(--text-secondary);
+        }
+        .pm-discovered-footer {
+          display: flex;
+          gap: 6px;
+          flex-wrap: wrap;
+        }
+        .pm-discovered-source {
+          font-size: 9px;
+          color: var(--text-muted);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
         .pm-modal.pm-light {
           --text-primary: #1a1a1a;
           --text-secondary: #4b5563;
@@ -2118,14 +2240,105 @@ export class PersonalizeModal extends BaseModal {
     `;
   }
 
+  _currentDiscoveredAssets() {
+    const profile = this._selectedUnifiedProfile();
+    return Array.isArray(profile?.personalization?.discoveredAssets)
+      ? profile.personalization.discoveredAssets
+      : [];
+  }
+
+  _renderDiscoveredAssetCard(asset) {
+    const imageUrl = asset.editedUrl || asset.previewUrl || asset.sourceUrl || '';
+    const categories = [
+      'person', 'logo', 'product', 'service', 'completed_work', 'storefront',
+      'office', 'branded_vehicle', 'team', 'brand', 'irrelevant',
+    ];
+    const roles = [
+      ['presenter_identity', 'Person / Presenter'],
+      ['face_identity', 'Face Identity'],
+      ['character_identity', 'Character Identity'],
+      ['logo', 'Logo'],
+      ['product_reference', 'Product / Service'],
+      ['brand_reference', 'Brand Reference'],
+      ['background_reference', 'Background Reference'],
+      ['saved_reference', 'Saved Reference'],
+      ['first_frame', 'First Frame'],
+      ['last_frame', 'Last Frame'],
+      ['cta_graphic', 'CTA Graphic'],
+    ];
+    const categoryOptions = categories.map((category) =>
+      `<option value="${category}" ${asset.category === category ? 'selected' : ''}>${category.replace(/_/g, ' ')}</option>`
+    ).join('');
+    const roleOptions = roles.map(([role, label]) =>
+      `<option value="${role}" ${asset.assignedRole === role ? 'selected' : ''}>${label}</option>`
+    ).join('');
+    const vision = asset.visionAnalysis;
+    const quality = vision?.qualityScore ?? asset.qualityScore;
+    const relevance = vision?.relevanceScore ?? asset.relevanceScore;
+    const badges = [
+      asset.importedAssetId ? '<span class="pm-discovered-badge">Imported</span>' : '',
+      asset.videoReady ? '<span class="pm-discovered-badge">Video Ready</span>' : '',
+      vision ? '<span class="pm-discovered-badge">Vision</span>' : '',
+      quality != null ? `<span class="pm-discovered-badge">Q ${Math.round(Number(quality) || 0)}</span>` : '',
+      relevance != null ? `<span class="pm-discovered-badge">R ${Math.round(Number(relevance) || 0)}</span>` : '',
+    ].filter(Boolean).join('');
+
+    return `
+      <div class="pm-discovered-card ${asset.rejected ? 'rejected' : ''}" data-discovered-card="${escapeHtml(asset.id)}">
+        <div class="pm-discovered-image-wrap">
+          <img class="pm-discovered-image" src="${escapeHtml(imageUrl)}" alt="${escapeHtml(asset.altText || asset.category || 'Discovered business asset')}" loading="lazy" />
+          <input
+            class="pm-discovered-check"
+            type="checkbox"
+            data-discovered-select="${escapeHtml(asset.id)}"
+            ${asset.selected && !asset.rejected ? 'checked' : ''}
+            ${asset.rejected ? 'disabled' : ''}
+            aria-label="Select discovered asset"
+          />
+          <div class="pm-discovered-badges">${badges}</div>
+        </div>
+        <div class="pm-discovered-body">
+          <div class="pm-discovered-row">
+            <label>
+              Category
+              <select data-discovered-category="${escapeHtml(asset.id)}" ${asset.rejected ? 'disabled' : ''}>
+                ${categoryOptions}
+              </select>
+            </label>
+            <label>
+              Destination
+              <select data-discovered-role="${escapeHtml(asset.id)}" ${asset.rejected ? 'disabled' : ''}>
+                ${roleOptions}
+              </select>
+            </label>
+          </div>
+          ${vision?.summary ? `<div class="pm-discovered-summary">${escapeHtml(vision.summary)}</div>` : ''}
+          ${vision?.issues?.length ? `<div class="pm-discovered-summary"><strong>Issues:</strong> ${escapeHtml(vision.issues.join(' • '))}</div>` : ''}
+          <div class="pm-discovered-source" title="${escapeHtml(asset.sourceUrl || '')}">${escapeHtml(asset.sourceUrl || '')}</div>
+          <div class="pm-discovered-footer">
+            <button type="button" class="pm-small-btn" data-action="${asset.rejected ? 'restore-discovered' : 'reject-discovered'}" data-asset-id="${escapeHtml(asset.id)}">
+              ${asset.rejected ? 'Restore' : 'Reject'}
+            </button>
+            ${asset.visionAnalysis ? '' : `<button type="button" class="pm-small-btn" data-action="analyze-one-asset" data-asset-id="${escapeHtml(asset.id)}">Vision</button>`}
+            <button type="button" class="pm-small-btn" data-action="open-asset-editor" data-asset-id="${escapeHtml(asset.id)}" ${asset.rejected ? 'disabled' : ''}>Edit</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   _renderAssetsTab() {
     const profile = this._selectedUnifiedProfile();
     if (!profile) {
       return '<div class="pm-empty">Select or discover a contact first. Assets are stored with that profile so they can be reused across studios.</div>';
     }
 
+    const business = this._currentBusinessDraft() || profile.personalization?.business || {};
     const assets = profile.personalization.assets || {};
     const legacy = profile.assets || {};
+    const discovered = this._currentDiscoveredAssets();
+    const selectedCount = discovered.filter((asset) => asset.selected && !asset.rejected).length;
+
     const identities = assets.identities?.length
       ? assets.identities
       : (legacy.avatar || []).map((url) => ({ url }));
@@ -2135,18 +2348,52 @@ export class PersonalizeModal extends BaseModal {
     const products = assets.products?.length
       ? assets.products
       : (legacy.productImages || []).map((url) => ({ url }));
-
     const single = (value) => value ? [value] : [];
 
     return `
       <div class="pm-form">
         <div class="pm-section">
           <div class="pm-section-header">
+            <span class="pm-section-label">Find Business Assets</span>
+            <span class="pm-business-status">${escapeHtml(this.assetDiscoveryStatus || '')}</span>
+          </div>
+          <div class="pm-preview-empty">
+            SmartVideo AI checks the business website with free/static discovery first. Vision analysis is a separate explicit action, so discovery itself does not spend OpenAI image-analysis credits.
+          </div>
+          ${this.assetDiscoveryError ? `<div class="pm-error" role="alert">${escapeHtml(this.assetDiscoveryError)}</div>` : ''}
+          <div class="pm-asset-actions">
+            <button type="button" class="pm-btn pm-btn-primary" data-action="discover-business-assets" ${!business.website || this.isDiscoveringBusinessAssets ? 'disabled' : ''}>
+              ${this.isDiscoveringBusinessAssets ? 'Finding assets…' : 'Find Business Assets'}
+            </button>
+            <button type="button" class="pm-btn pm-btn-secondary" data-action="analyze-selected-assets" ${selectedCount === 0 || this.isAnalyzingBusinessAssets ? 'disabled' : ''}>
+              ${this.isAnalyzingBusinessAssets ? 'Analyzing…' : `Analyze Selected with Vision (${selectedCount})`}
+            </button>
+            <button type="button" class="pm-btn pm-btn-secondary" data-action="import-selected-assets" ${selectedCount === 0 || this.isImportingBusinessAssets ? 'disabled' : ''}>
+              ${this.isImportingBusinessAssets ? 'Importing…' : `Import Selected (${selectedCount})`}
+            </button>
+          </div>
+          ${business.website ? `<div class="pm-preview-empty">Website: ${escapeHtml(business.website)}</div>` : '<div class="pm-preview-empty">Add a Website in Business / Client before running discovery.</div>'}
+        </div>
+
+        ${discovered.length ? `
+          <div class="pm-section">
+            <div class="pm-section-header">
+              <span class="pm-section-label">Discovered Asset Review</span>
+              <span class="pm-preview-pill pm-preview-pill-muted">${discovered.length} candidates</span>
+            </div>
+            <div class="pm-discovered-grid">
+              ${discovered.map((asset) => this._renderDiscoveredAssetCard(asset)).join('')}
+            </div>
+          </div>
+        ` : ''}
+
+        <div class="pm-section">
+          <div class="pm-section-header">
             <span class="pm-section-label">Reusable personalization assets</span>
             <span class="pm-preview-pill pm-preview-pill-muted">SmartVideo AI Asset Library</span>
           </div>
           <div class="pm-preview-empty">
-            Existing RNE avatar/logo/product assets are shown here automatically. New role-aware assets use the unified profile model and retain their originals, edit metadata, Vision data, versions, and Video Ready state.
+            Imported assets use SmartVideo-controlled storage. Existing RNE avatar/logo/product assets remain visible for backward compatibility.
           </div>
         </div>
 
@@ -2160,13 +2407,159 @@ export class PersonalizeModal extends BaseModal {
           ${this._assetRoleCard('CTA Graphic', 'Exact CTA/logo/phone/URL graphics for deterministic final use.', single(assets.ctaGraphic))}
           ${this._assetRoleCard('Saved References', 'Reusable references available to compatible generation models.', assets.savedReferences || [])}
         </div>
-
-        <div class="pm-preview">
-          <div class="pm-preview-label">Discovery + editing integration</div>
-          <div class="pm-preview-empty">The next integration layer attaches the OpenHiggs discovered-asset review grid, Vision analysis, Make Video Ready, and the SmartVideo AI image editor to these same role-aware collections—without creating another modal.</div>
-        </div>
       </div>
     `;
+  }
+
+  _persistDiscoveredAssets(assets, status = '') {
+    const id = getSelectedContactId();
+    const profile = id ? _getProfile(id) : null;
+    if (!profile) return false;
+    const next = setDiscoveredPersonalizationAssets(profile, assets);
+    next.updatedAt = new Date().toISOString();
+    if (!this._persistSelectedProfile(next)) return false;
+    if (status) this.assetDiscoveryStatus = status;
+    return true;
+  }
+
+  _updateDiscoveredAsset(assetId, patch) {
+    const assets = this._currentDiscoveredAssets().map((asset) =>
+      asset.id === assetId ? { ...asset, ...(typeof patch === 'function' ? patch(asset) : patch) } : asset
+    );
+    this._persistDiscoveredAssets(assets);
+    return assets;
+  }
+
+  async _handleDiscoverBusinessAssets() {
+    const business = this._readBusinessDraftFromDom() || this._currentBusinessDraft();
+    if (!business?.website) {
+      this.assetDiscoveryError = 'Add a Website in Business / Client first.';
+      this.refreshBody();
+      return;
+    }
+
+    this.isDiscoveringBusinessAssets = true;
+    this.assetDiscoveryError = '';
+    this.assetDiscoveryStatus = 'Scanning website with free-first discovery…';
+    this.refreshBody();
+
+    try {
+      const result = await discoverBusinessAssets({
+        websiteUrl: business.website,
+        maxPages: 6,
+        maxImages: 60,
+      });
+      const candidates = result.discoveredAssets || [];
+      this._persistDiscoveredAssets(candidates);
+      this.assetDiscoveryStatus = `✓ Found ${candidates.length} review candidates across ${result.pagesCrawled || 0} page(s)`;
+    } catch (error) {
+      this.assetDiscoveryError = error?.message || 'Business asset discovery failed.';
+      this.assetDiscoveryStatus = '';
+    } finally {
+      this.isDiscoveringBusinessAssets = false;
+      this.refreshBody();
+    }
+  }
+
+  async _analyzeAssetIds(assetIds) {
+    const ids = new Set(assetIds || []);
+    const assets = this._currentDiscoveredAssets().filter((asset) => ids.has(asset.id) && !asset.rejected);
+    if (!assets.length) return;
+
+    const business = this._currentBusinessDraft() || {};
+    this.isAnalyzingBusinessAssets = true;
+    this.assetDiscoveryError = '';
+    this.assetDiscoveryStatus = `Analyzing ${assets.length} asset(s) with SmartVideo AI Vision…`;
+    this.refreshBody();
+
+    try {
+      const analyses = await analyzePersonalizationImages({
+        images: assets.map((asset) => ({
+          id: asset.id,
+          imageUrl: asset.editedUrl || asset.previewUrl || asset.sourceUrl,
+          categoryHint: asset.category,
+          roleHint: asset.assignedRole,
+        })),
+        businessContext: {
+          businessName: business.businessName,
+          industry: business.industry,
+          productService: business.productService,
+          brandDescription: business.brandDescription,
+        },
+      });
+      const byId = new Map(analyses.map((analysis) => [analysis.id, analysis]));
+      const next = this._currentDiscoveredAssets().map((asset) => {
+        const analysis = byId.get(asset.id);
+        if (!analysis) return asset;
+        const oldDefaultRole = defaultRoleForDiscoveredCategory(asset.category);
+        const category = analysis.confidence >= 75 ? analysis.category : asset.category;
+        const assignedRole = asset.assignedRole === oldDefaultRole
+          ? defaultRoleForDiscoveredCategory(category)
+          : asset.assignedRole;
+        return {
+          ...asset,
+          category,
+          assignedRole,
+          confidence: analysis.confidence,
+          qualityScore: analysis.qualityScore,
+          relevanceScore: analysis.relevanceScore,
+          visionAnalysis: analysis,
+          recommended: analysis.relevanceScore >= 65,
+          selected: asset.selected && !analysis.duplicateLikely,
+        };
+      });
+      this._persistDiscoveredAssets(next);
+      this.assetDiscoveryStatus = `✓ Vision analyzed ${analyses.length} asset(s)`;
+    } catch (error) {
+      this.assetDiscoveryError = error?.message || 'Vision analysis failed.';
+      this.assetDiscoveryStatus = '';
+    } finally {
+      this.isAnalyzingBusinessAssets = false;
+      this.refreshBody();
+    }
+  }
+
+  async _handleImportSelectedAssets() {
+    const selected = this._currentDiscoveredAssets().filter((asset) => asset.selected && !asset.rejected);
+    if (!selected.length) return;
+
+    const id = getSelectedContactId();
+    let profile = id ? _getProfile(id) : null;
+    if (!profile) return;
+
+    this.isImportingBusinessAssets = true;
+    this.assetDiscoveryError = '';
+    this.assetDiscoveryStatus = `Importing ${selected.length} selected asset(s)…`;
+    this.refreshBody();
+
+    const importedIds = new Map();
+    let importedCount = 0;
+    try {
+      for (const asset of selected) {
+        const imported = await importDiscoveredAsset(asset, {
+          role: asset.assignedRole || defaultRoleForDiscoveredCategory(asset.category),
+          name: asset.altText || asset.category,
+        });
+        profile = addPersonalizationAsset(profile, imported);
+        importedIds.set(asset.id, imported.id);
+        importedCount += 1;
+      }
+      profile = setDiscoveredPersonalizationAssets(profile, this._currentDiscoveredAssets().map((asset) =>
+        importedIds.has(asset.id)
+          ? { ...asset, importedAssetId: importedIds.get(asset.id), selected: false }
+          : asset
+      ));
+      profile.updatedAt = new Date().toISOString();
+      profile.variables = buildVariables(profile, profile.variables || {});
+      if (!this._persistSelectedProfile(profile)) throw new Error('Could not persist imported assets.');
+      this.assetDiscoveryStatus = `✓ Imported ${importedCount} durable asset(s)`;
+    } catch (error) {
+      this.assetDiscoveryError = error?.message || 'Asset import failed.';
+      this.assetDiscoveryStatus = importedCount ? `Imported ${importedCount} before the error` : '';
+    } finally {
+      this.isImportingBusinessAssets = false;
+      this.refreshBody();
+    }
   }
 
   _persistSelectedProfile(profile) {
@@ -2823,6 +3216,82 @@ export class PersonalizeModal extends BaseModal {
           btn.onclick = (e) => {
             e.stopPropagation();
             this._loadScanById(btn.dataset.scanId);
+          };
+        });
+
+        scope.querySelectorAll('[data-action="discover-business-assets"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._handleDiscoverBusinessAssets();
+          };
+        });
+
+        scope.querySelectorAll('[data-action="analyze-selected-assets"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            const ids = this._currentDiscoveredAssets()
+              .filter((asset) => asset.selected && !asset.rejected)
+              .map((asset) => asset.id);
+            this._analyzeAssetIds(ids);
+          };
+        });
+
+        scope.querySelectorAll('[data-action="analyze-one-asset"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._analyzeAssetIds([btn.dataset.assetId]);
+          };
+        });
+
+        scope.querySelectorAll('[data-action="import-selected-assets"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._handleImportSelectedAssets();
+          };
+        });
+
+        scope.querySelectorAll('[data-discovered-select]').forEach((input) => {
+          input.onchange = () => {
+            this._updateDiscoveredAsset(input.dataset.discoveredSelect, { selected: input.checked });
+            this.refreshBody();
+          };
+        });
+
+        scope.querySelectorAll('[data-discovered-category]').forEach((select) => {
+          select.onchange = () => {
+            const id = select.dataset.discoveredCategory;
+            const current = this._currentDiscoveredAssets().find((asset) => asset.id === id);
+            if (!current) return;
+            const wasDefault = current.assignedRole === defaultRoleForDiscoveredCategory(current.category);
+            this._updateDiscoveredAsset(id, {
+              category: select.value,
+              assignedRole: wasDefault ? defaultRoleForDiscoveredCategory(select.value) : current.assignedRole,
+              visionAnalysis: null,
+            });
+            this.refreshBody();
+          };
+        });
+
+        scope.querySelectorAll('[data-discovered-role]').forEach((select) => {
+          select.onchange = () => {
+            this._updateDiscoveredAsset(select.dataset.discoveredRole, { assignedRole: select.value });
+            this.refreshBody();
+          };
+        });
+
+        scope.querySelectorAll('[data-action="reject-discovered"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._updateDiscoveredAsset(btn.dataset.assetId, { rejected: true, selected: false });
+            this.refreshBody();
+          };
+        });
+
+        scope.querySelectorAll('[data-action="restore-discovered"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._updateDiscoveredAsset(btn.dataset.assetId, { rejected: false });
+            this.refreshBody();
           };
         });
 
