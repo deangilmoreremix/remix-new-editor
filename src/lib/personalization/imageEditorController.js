@@ -433,6 +433,7 @@ export class PersonalizationImageEditorController {
     this.destroyMask();
     this.maskController = mountPersonalizationMaskEditor(container, {
       imageUrl: session.maskPreparedUrl,
+      initialMaskB64: session.maskB64 || '',
       onMaskChange: (maskB64) => {
         if (this.session === session) session.maskB64 = maskB64;
       },
