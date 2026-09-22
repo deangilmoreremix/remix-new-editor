@@ -19,6 +19,10 @@ export function buildPersonalizationContext(profile = {}) {
   const normalized = ensurePersonalizationProfile(profile);
   const business = normalized.personalization.business || {};
   const assets = normalized.personalization.assets || {};
+  const generationOptions = normalized.personalization.generationOptions || {
+    exactLogoHandling: 'final-overlay',
+    exactCtaHandling: 'final-end-card',
+  };
   const presenter = primaryById(assets.identities, assets.primaryIdentityId);
   const logo = primaryById(assets.logos, assets.primaryLogoId);
 
@@ -48,12 +52,15 @@ export function buildPersonalizationContext(profile = {}) {
     ctaGraphic: assets.ctaGraphic || null,
     audio: [...(assets.audio || [])],
     savedReferences: [...(assets.savedReferences || [])],
+    generationOptions: { ...generationOptions },
     exactOverlays: {
       logo: logo || null,
       ctaGraphic: assets.ctaGraphic || null,
       phone: business.phone || '',
       website: business.website || '',
       callToAction: business.callToAction || '',
+      logoHandling: generationOptions.exactLogoHandling || 'final-overlay',
+      ctaHandling: generationOptions.exactCtaHandling || 'final-end-card',
     },
   };
 }
