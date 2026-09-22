@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { IMAGE_EDIT_OPERATIONS } from '../../src/lib/personalization/imageEditRegistry.js';
 import {
   discoverBusinessAssetsFreeFirst,
+  downloadPersonalizationImage,
   mirrorPersonalizationAsset,
 } from './_personalizationAssets.js';
 
@@ -786,6 +787,23 @@ export async function handler(event, context) {
       } catch (assetError) {
         const message = assetError?.message || 'Asset discovery failed.';
         const status = /required|allowed|private|resolve/i.test(message) ? 400 : 502;
+        return { statusCode: status, headers, body: JSON.stringify({ error: message }) };
+      }
+    }
+
+    // POST /api/personalizer/download-image
+    // Same-origin, authenticated image preparation for local canvas and mask edits.
+    if (path === '/download-image' && event.httpMethod === 'POST') {
+      const sourceUrl = validateInput(String(body.sourceUrl || ''), 'text', 15000000);
+      if (!sourceUrl) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: 'sourceUrl is required' }) };
+      }
+      try {
+        const image = await downloadPersonalizationImage(sourceUrl);
+        return { statusCode: 200, headers, body: JSON.stringify({ image }) };
+      } catch (imageError) {
+        const message = imageError?.message || 'Image download failed.';
+        const status = /required|allowed|private|resolve|exceeds/i.test(message) ? 400 : 502;
         return { statusCode: status, headers, body: JSON.stringify({ error: message }) };
       }
     }
