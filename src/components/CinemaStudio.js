@@ -277,6 +277,9 @@ let showAdvanced = false;
     overlayContent.appendChild(overlayHeader);
 
     // Controls Component
+    let summaryTitle = null;
+    let summaryValue = null;
+
     const cameraControls = CameraControls((state) => {
         currentSettings.camera = state.camera;
         currentSettings.lens = state.lens;
@@ -428,6 +431,10 @@ let showAdvanced = false;
     };
     window.addEventListener('click', closeEnhanceMenu);
 
+    // Settings Toolbar
+    const settingsToolbar = document.createElement('div');
+    settingsToolbar.className = 'flex items-center gap-1.5 md:gap-2.5';
+
     settingsToolbar.appendChild(enhanceMenu);
 
 
@@ -526,10 +533,6 @@ let showAdvanced = false;
     `;
     inputArea.appendChild(referencePill);
 
-    // 2. Settings Toolbar (Bottom Left)
-    const settingsToolbar = document.createElement('div');
-    settingsToolbar.className = 'flex items-center gap-1.5 md:gap-2.5'; // Align with video/image studio control buttons
-
     // Helper: Create Dropdown
     const createDropdown = (items, selected, onSelect, trigger) => {
         const existing = document.querySelectorAll('.custom-dropdown');
@@ -575,6 +578,8 @@ let showAdvanced = false;
     };
     updateModelBtn();
     modelBtn.onclick = (e) => { e.stopPropagation(); showModelDropdown(); };
+    const gtmBtn = document.createElement('button');
+    gtmBtn.textContent = 'GTM';
     settingsToolbar.appendChild(gtmBtn);
     settingsToolbar.appendChild(modelBtn);
 
@@ -602,6 +607,8 @@ let showAdvanced = false;
     const modelDropdown = document.createElement('div');
     modelDropdown.className = 'absolute top-[102%] left-2 z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-top-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-md shadow-4xl border border-white/10 flex flex-col';
     settingsToolbar.appendChild(modelDropdown);
+
+    let _modelSelectorOutsideClickHandler = null;
 
     const closeModelDropdown = () => {
         modelDropdown.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
@@ -759,11 +766,11 @@ let showAdvanced = false;
     dot.className = 'absolute top-2 right-2 w-2 h-2 bg-primary rounded-full shadow-glow-sm';
     summaryCard.appendChild(dot);
 
-    const summaryTitle = document.createElement('span');
+    summaryTitle = document.createElement('span');
     summaryTitle.className = 'text-[10px] font-bold text-white uppercase truncate w-full tracking-wide';
     summaryTitle.textContent = currentSettings.camera;
 
-    const summaryValue = document.createElement('span');
+    summaryValue = document.createElement('span');
     summaryValue.className = 'text-[10px] font-medium text-white/60 truncate w-full';
     summaryValue.textContent = formatSummaryValue();
 
@@ -777,6 +784,7 @@ let showAdvanced = false;
     }
 
     function updateSummaryCard() {
+        if (!summaryTitle || !summaryValue) return;
         summaryTitle.textContent = currentSettings.camera;
         summaryValue.textContent = `${currentSettings.movement} • ${currentSettings.look}`;
     }
