@@ -465,17 +465,20 @@ export function TemplateStudio(templateId) {
     });
 
     enhanceItems.forEach(item => {
-      item.addEventListener('click', () => {
+      item.addEventListener('click', async () => {
         const action = item.dataset.enhance;
         if (action === 'gtm') {
           const originalText = enhanceTrigger.textContent;
           enhanceTrigger.textContent = '🎯 Loading…';
           try {
-            const ctx = await import('../lib/uiIntegration.js').then(async (m) => {
+            let ctx = null;
+            try {
+              const m = await import('../lib/uiIntegration.js');
               const result = m.fetchGTMTemplateContext?.(template);
-              if (result && typeof result.then === 'function') return await result;
-              return result;
-            }).catch(() => null);
+              ctx = result && typeof result.then === 'function' ? await result : result;
+            } catch {
+              ctx = null;
+            }
             const basePrompt = promptEl.value || (ctx && ctx.basePrompt) || template.description || '';
             const templateContext = {
               ...(ctx || {}),
@@ -594,6 +597,10 @@ let fallbackList = [];
       }
     };
 
+    const modelLoadingStatus = document.createElement('span');
+    modelLoadingStatus.id = 'model-loading-status';
+    modelLoadingStatus.className = 'text-[10px] text-zinc-500';
+
     const openDropdown = () => {
       dropdown.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
       dropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
@@ -677,10 +684,6 @@ let fallbackList = [];
       }
     };
     document.addEventListener('keydown', onKeyDown);
-
-    const modelLoadingStatus = document.createElement('span');
-    modelLoadingStatus.id = 'model-loading-status';
-    modelLoadingStatus.className = 'text-[10px] text-zinc-500';
 
     const headerRow = document.createElement('div');
     headerRow.className = 'mb-3 flex items-center justify-between gap-3';
@@ -1109,7 +1112,7 @@ let fallbackList = [];
       errEl.className = 'ts-inline-error mt-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200';
       genBtn.insertAdjacentElement('afterend', errEl);
     }
-    errEl.textContent = message;
+    errEl.innerHTML = message;
     clearTimeout(errEl.__dismissTimer);
     errEl.__dismissTimer = setTimeout(() => { if (errEl && errEl.parentNode) errEl.remove(); }, 5000);
   }
@@ -1424,7 +1427,9 @@ let fallbackList = [];
     prompt = prompt
       .replace(/\s*\.\s*/g, '. ')
       .replace(/\.{2,}/g, '.')
-      .replace(/([^.]+)\.\s*(?=\1)/g, '')
+      .split('. ')
+      .filter((sentence, index, arr) => index === 0 || sentence.trim().toLowerCase() !== arr[index - 1].trim().toLowerCase())
+      .join('. ')
       .trim();
     if (!prompt.endsWith('.')) prompt += '.';
     return prompt;

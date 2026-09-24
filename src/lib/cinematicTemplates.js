@@ -2940,6 +2940,7 @@ export class RenderHandoff {
         duration: scene.duration,
         shots: scene.shots?.map((shot, sIdx) => ({
           number: sIdx + 1,
+          shotNumber: shot.shotNumber || sIdx + 1,
           type: shot.type,
           movement: shot.movement,
           duration: shot.duration,
@@ -2958,6 +2959,7 @@ export class RenderHandoff {
       duration: scene.duration,
       shots: scene.shots?.map(shot => ({
         number: shot.shotNumber,
+        shotNumber: shot.shotNumber,
         type: shot.type,
         movement: shot.movement,
         description: shot.description

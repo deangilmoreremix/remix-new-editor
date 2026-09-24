@@ -704,7 +704,11 @@ export function composeNegativePrompt(filmType, niche, visualStyle) {
     luxury: 'cheap, tacky, low-budget, garish',
     dramatic: 'flat, boring, static, lifeless',
     documentary: 'over-produced, artificial, staged',
-    commercial: 'under-produced, unprofessional'
+    commercial: 'under-produced, unprofessional',
+    bold: 'washed out, timid, muted, uninspired',
+    minimal: 'cluttered, noisy, distracting, overdone',
+    warm: 'cold, harsh, blue-tinted, sterile',
+    cool: 'warm, yellow-tinted, dated, muddy'
   };
   const nicheNegatives = {
     [NICHE_TYPES.RESTAURANT]: 'fast food, chain restaurant',

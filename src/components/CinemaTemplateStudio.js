@@ -779,17 +779,22 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       }
       if (container.querySelector('#add-scene-btn')) {
         container.querySelector('#add-scene-btn').onclick = () => {
-          if (!sceneBuilder) return;
-          const scenes = sceneBuilder.getScenes();
-          const nextNumber = scenes.length ? Math.max(...scenes.map(s => s.sceneNumber || 0)) + 1 : 1;
-          sceneBuilder.addScene({
-            sceneNumber: nextNumber,
-            beat: `Scene ${nextNumber}`,
-            duration: 5,
-            shots: [{ type: 'MEDIUM', movement: 'STATIC', duration: 3, order: 1 }]
-          });
-          renderSceneBuilder();
-          renderSceneTimeline();
+          try {
+            if (!sceneBuilder) return;
+            const scenes = sceneBuilder.getScenes();
+            const nextNumber = scenes.length ? Math.max(...scenes.map(s => s.sceneNumber || 0)) + 1 : 1;
+            sceneBuilder.addScene({
+              sceneNumber: nextNumber,
+              beat: `Scene ${nextNumber}`,
+              duration: 5,
+              shots: [{ type: 'MEDIUM', movement: 'STATIC', duration: 3, order: 1 }]
+            });
+            renderSceneBuilder();
+            renderSceneTimeline();
+          } catch (err) {
+            console.error('[CinemaTemplateStudio] Failed to add scene:', err);
+            showToast('Failed to add scene', 'error');
+          }
         };
       }
     }
@@ -1238,22 +1243,32 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
 
     list.querySelectorAll('.delete-scene-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        sceneBuilder.removeScene(btn.dataset.id);
-        renderSceneBuilder();
-        renderSceneTimeline();
+        try {
+          sceneBuilder.removeScene(btn.dataset.id);
+          renderSceneBuilder();
+          renderSceneTimeline();
+        } catch (err) {
+          console.error('[CinemaTemplateStudio] Failed to remove scene:', err);
+          showToast('Failed to remove scene', 'error');
+        }
       });
     });
 
     list.querySelectorAll('.move-scene-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        const idx = parseInt(btn.dataset.idx, 10);
-        const dir = btn.dataset.dir;
-        const scenes = sceneBuilder.getScenes();
-        const newIdx = dir === 'up' ? idx - 1 : idx + 1;
-        if (newIdx < 0 || newIdx >= scenes.length) return;
-        sceneBuilder.moveScene(scenes[idx].id, newIdx);
-        renderSceneBuilder();
-        renderSceneTimeline();
+        try {
+          const idx = parseInt(btn.dataset.idx, 10);
+          const dir = btn.dataset.dir;
+          const scenes = sceneBuilder.getScenes();
+          const newIdx = dir === 'up' ? idx - 1 : idx + 1;
+          if (newIdx < 0 || newIdx >= scenes.length) return;
+          sceneBuilder.moveScene(scenes[idx].id, newIdx);
+          renderSceneBuilder();
+          renderSceneTimeline();
+        } catch (err) {
+          console.error('[CinemaTemplateStudio] Failed to move scene:', err);
+          showToast('Failed to move scene', 'error');
+        }
       });
     });
   }
@@ -1796,6 +1811,10 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       }
     };
 
+    const modelLoadingStatus = document.createElement('span');
+    modelLoadingStatus.id = 'model-loading-status';
+    modelLoadingStatus.className = 'text-[10px] text-zinc-500';
+
     const openDropdown = () => {
       dropdown.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
       dropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
@@ -1872,10 +1891,6 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         openDropdown();
       }
     };
-
-    const modelLoadingStatus = document.createElement('span');
-    modelLoadingStatus.id = 'model-loading-status';
-    modelLoadingStatus.className = 'text-[10px] text-zinc-500';
 
     const headerRow = document.createElement('div');
     headerRow.className = 'mb-3';
@@ -2737,4 +2752,4 @@ const firstChild = storyboardRoot.firstElementChild;
 
   return container;
 }
-// test
+
