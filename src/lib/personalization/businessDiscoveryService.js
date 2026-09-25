@@ -1,3 +1,5 @@
+import { personalizationApiError } from './apiErrors.js';
+
 async function getSession() {
   try {
     const { supabase } = await import('../supabase.js');
@@ -20,7 +22,7 @@ async function post(path, body) {
     body: JSON.stringify(body),
   });
   const payload = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(payload?.error || `Business discovery failed (${response.status})`);
+  if (!response.ok) throw personalizationApiError(response, payload, 'Business discovery failed.');
   return payload;
 }
 
