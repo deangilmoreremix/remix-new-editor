@@ -1,4 +1,5 @@
 import { ThumbnailService } from '../thumbnailService.js';
+import { personalizationApiError } from './apiErrors.js';
 import {
   getAssetRecipe,
   getOperation,
@@ -31,7 +32,7 @@ export async function preparePersonalizationImageDataUrl(sourceUrl) {
     body: JSON.stringify({ sourceUrl }),
   });
   const payload = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(payload?.error || `Image preparation failed (${response.status})`);
+  if (!response.ok) throw personalizationApiError(response, payload, 'Image preparation failed.');
   if (!payload?.image?.dataUrl) throw new Error('Image preparation returned no image data.');
   return payload.image.dataUrl;
 }
