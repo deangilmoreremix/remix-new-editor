@@ -1,4 +1,5 @@
 import { createPersonalizationAsset } from './personalizationProfile.js';
+import { personalizationApiError } from './apiErrors.js';
 
 async function getSession() {
   try {
@@ -23,7 +24,7 @@ async function post(path, body) {
     body: JSON.stringify(body),
   });
   const payload = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(payload?.error || `Request failed (${response.status})`);
+  if (!response.ok) throw personalizationApiError(response, payload, 'Business asset request failed.');
   return payload;
 }
 
