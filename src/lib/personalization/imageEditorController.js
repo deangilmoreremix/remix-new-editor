@@ -33,6 +33,25 @@ function modelControls(session) {
   return {};
 }
 
+function openAIImageSizeForAspectRatio(aspectRatio) {
+  switch (aspectRatio) {
+    case '9:16': return '1024x1536';
+    case '1:1': return '1024x1024';
+    case '4:5': return '1024x1280';
+    case '16:9': return '1536x1024';
+    default: return 'auto';
+  }
+}
+
+function aiEditControls(session) {
+  return {
+    ...modelControls(session),
+    size: openAIImageSizeForAspectRatio(session.aspectRatio),
+    outputFormat: session.outputFormat,
+    outputCompression: typeof session.outputCompression === 'number' ? session.outputCompression : 90,
+  };
+}
+
 function businessContextForSession(session) {
   return {
     ...(session.businessContext || {}),
@@ -105,6 +124,10 @@ export class PersonalizationImageEditorController {
     if (key === 'aspectRatio' && ['original', '9:16', '16:9', '1:1', '4:5'].includes(value)) {
       this.session.aspectRatio = value;
       this.session.localControls.aspectRatio = value;
+      this.service.aspectRatio = value === 'original' ? '16:9' : value;
+      if (this.service.thumbnailService) {
+        this.service.thumbnailService.aspectRatio = this.service.aspectRatio;
+      }
     }
     if (key === 'outputFormat' && ['png', 'webp', 'jpeg'].includes(value)) {
       this.session.outputFormat = value;
@@ -214,6 +237,7 @@ export class PersonalizationImageEditorController {
         maskB64 = session.maskB64;
       }
 
+      const controls = aiEditControls(session);
       const result = await this.service.edit({
         imageUrl,
         operationId,
@@ -222,8 +246,7 @@ export class PersonalizationImageEditorController {
         visionAnalysis: session.visionAnalysis,
         businessContext: businessContextForSession(session),
         maskB64,
-        outputFormat: session.outputFormat,
-        ...modelControls(session),
+        ...controls,
       });
 
       if (!result?.imageDataUrl) throw new Error('Image edit returned no image.');
@@ -233,9 +256,14 @@ export class PersonalizationImageEditorController {
         operation: operation.id,
         prompt: operation.prompt,
         model: result.modelUsed || 'openai-image',
+        quality: controls.quality || 'medium',
         transparent: Boolean(operation.transparency),
         responseId: result.responseId,
+        imageGenerationCallId: result.imageGenerationCallId,
         revisedPrompt: result.revisedPrompt,
+        outputFormat: controls.outputFormat,
+        outputCompression: controls.outputCompression,
+        inputFidelity: controls.inputFidelity || null,
       });
       session.maskMode = false;
       session.maskB64 = null;
@@ -261,6 +289,7 @@ export class PersonalizationImageEditorController {
     this._change(true);
 
     try {
+      const controls = aiEditControls(session);
       const result = await this.service.smartEditStream({
         imageUrl: current.dataUrl,
         prompt: session.smartPrompt,
@@ -269,9 +298,8 @@ export class PersonalizationImageEditorController {
         role: session.role,
         visionAnalysis: session.visionAnalysis,
         businessContext: businessContextForSession(session),
-        outputFormat: session.outputFormat,
         partialImages: 2,
-        ...modelControls(session),
+        ...controls,
       }, {
         onPartial: (dataUrl) => {
           if (!this.session || this.session !== session) return;
@@ -287,8 +315,13 @@ export class PersonalizationImageEditorController {
         operation: 'custom',
         prompt: session.smartPrompt,
         model: result.modelUsed || 'openai-responses',
+        quality: controls.quality || 'medium',
         responseId: result.responseId,
+        imageGenerationCallId: result.imageGenerationCallId,
         revisedPrompt: result.revisedPrompt,
+        outputFormat: controls.outputFormat,
+        outputCompression: controls.outputCompression,
+        inputFidelity: controls.inputFidelity || null,
       });
       session.smartPrompt = '';
       session.status = '✓ Smart Edit complete';
@@ -488,29 +521,31 @@ export class PersonalizationImageEditorController {
     const session = this.session;
     if (!session?.role) throw new Error('Choose a destination role before saving edited versions.');
 
-    const persisted = [];
     for (let index = 0; index < session.versions.length; index += 1) {
       const version = session.versions[index];
-      if (!isDataImage(version.dataUrl)) {
-        persisted.push({ ...version });
-        continue;
-      }
+      if (!isDataImage(version.dataUrl)) continue;
+
       session.busyLabel = `Saving ${version.label}…`;
       this._change(false);
+
       const stored = await persistPersonalizationAssetVersion({
         sourceUrl: version.dataUrl,
         role: session.role,
         name: `${session.name} — ${version.label}`,
       });
-      persisted.push({
+
+      // Commit each successful upload immediately so a later failure cannot
+      // orphan earlier durable versions or upload them again on retry.
+      session.versions[index] = {
         ...version,
         dataUrl: stored.url,
         storagePath: stored.storagePath || null,
         mimeType: stored.mimeType || null,
-      });
+      };
+      this._change(false);
     }
-    session.versions = persisted;
-    session.versionIndex = Math.min(session.versionIndex, persisted.length - 1);
+
+    session.versionIndex = Math.max(0, Math.min(session.versionIndex, session.versions.length - 1));
     session.busyLabel = '';
     return session;
   }
