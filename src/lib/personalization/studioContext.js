@@ -153,9 +153,30 @@ export function resolvePersonalizationForModel(context, model, {
   const ctx = context?.version === 1 ? context : buildPersonalizationContext(context || {});
   const schema = schemaForModel(model);
   const warnings = [];
-  const firstFrameField = firstExisting(schema, ['first_frame_url', 'start_image_url', 'first_image_url', 'image_url', 'images_list']);
-  const lastFrameField = firstExisting(schema, ['last_frame_url', 'last_image_url', 'end_image_url']);
-  const referenceImageField = firstExisting(schema, ['reference_images', 'image_urls', 'images_list']);
+  const catalogImageField = typeof model?.imageField === 'string' && model.imageField
+    ? model.imageField
+    : null;
+  const catalogFirstImageField = typeof model?.firstImageField === 'string' && model.firstImageField
+    ? model.firstImageField
+    : null;
+  const catalogLastImageField = typeof model?.lastImageField === 'string' && model.lastImageField
+    ? model.lastImageField
+    : null;
+
+  const firstFrameField =
+    catalogFirstImageField ||
+    firstExisting(schema, ['first_frame_url', 'start_image_url', 'first_image_url']) ||
+    catalogImageField ||
+    firstExisting(schema, ['image_url', 'images_list', 'image_urls']);
+
+  const lastFrameField =
+    catalogLastImageField ||
+    firstExisting(schema, ['last_frame_url', 'last_image_url', 'end_image_url']);
+
+  const referenceImageField =
+    firstExisting(schema, ['reference_images', 'image_urls', 'images_list']) ||
+    catalogImageField;
+
   const referenceAudioField = firstExisting(schema, ['reference_audios', 'audio_urls']);
   const supported = {
     firstFrame: Boolean(firstFrameField),
@@ -172,9 +193,22 @@ export function resolvePersonalizationForModel(context, model, {
   const savedUrls = uniqueUrls(ctx.savedReferences);
   const audioUrls = uniqueUrls(ctx.audio);
 
-  const refLimit = referenceImageField ? maxItemsFor(schema[referenceImageField], maxReferenceImages) : maxReferenceImages;
+  const catalogMaxImages = Number(model?.maxImages);
+  const refLimit = referenceImageField
+    ? maxItemsFor(
+        schema[referenceImageField],
+        Number.isFinite(catalogMaxImages) && catalogMaxImages > 0
+          ? catalogMaxImages
+          : maxReferenceImages,
+      )
+    : maxReferenceImages;
+  const logoReferenceUrl =
+    ctx.generationOptions?.exactLogoHandling === 'ai-reference'
+      ? assetUrl(ctx.logo)
+      : '';
   const referenceCandidates = uniqueUrls([
     presenterUrl,
+    logoReferenceUrl,
     ...productUrls,
     ...brandUrls,
     ...savedUrls,
@@ -251,9 +285,21 @@ export function applyPersonalizationInputsToParams(params = {}, resolved = {}) {
         ...resolved.referenceImages,
       ]));
     } else if (resolved.referenceImageField === 'image_urls') {
-      next.image_urls = resolved.referenceImages;
-    } else {
+      next.image_urls = Array.from(new Set([
+        ...(Array.isArray(next.image_urls) ? next.image_urls : []),
+        ...resolved.referenceImages,
+      ]));
+    } else if (resolved.referenceImageField === 'image_url') {
+      next.image_url = next.image_url || resolved.referenceImages[0];
+    } else if (resolved.referenceImageField === 'reference_images') {
       next.reference_images = resolved.referenceImages;
+    } else {
+      // Honor catalog-defined media fields that are intentionally not repeated
+      // in model.inputs.
+      const current = next[resolved.referenceImageField];
+      next[resolved.referenceImageField] = Array.isArray(current)
+        ? Array.from(new Set([...current, ...resolved.referenceImages]))
+        : (current || resolved.referenceImages[0]);
     }
   }
 
