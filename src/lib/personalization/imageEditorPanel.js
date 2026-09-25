@@ -47,7 +47,12 @@ function cleanVersion(version, index, fallbackUrl) {
     transparent: Boolean(version?.transparent),
     videoReady: Boolean(version?.videoReady),
     responseId: version?.responseId || version?.response_id || null,
+    imageGenerationCallId: version?.imageGenerationCallId || version?.image_generation_call_id || null,
     revisedPrompt: version?.revisedPrompt || version?.revised_prompt || null,
+    quality: version?.quality || null,
+    outputFormat: version?.outputFormat || null,
+    outputCompression: typeof version?.outputCompression === 'number' ? version.outputCompression : null,
+    inputFidelity: version?.inputFidelity || null,
     visionValidation: version?.visionValidation || null,
     createdAt: version?.createdAt || new Date().toISOString(),
   };
@@ -130,6 +135,7 @@ export function createPersonalizationImageEditorSession(asset, {
     modelMode: 'auto',
     aspectRatio: 'original',
     outputFormat: 'png',
+    outputCompression: 90,
     protections: defaultProtections(kind),
     localControls: { ...DEFAULT_LOCAL_IMAGE_CONTROLS },
     validationOverrideVersionId: null,
@@ -137,7 +143,13 @@ export function createPersonalizationImageEditorSession(asset, {
 }
 
 export function currentEditorVersion(session) {
-  return session?.versions?.[session.versionIndex] || session?.versions?.[0] || null;
+  if (!session?.versions?.length) return null;
+  const requested = Number(session.versionIndex);
+  const safeIndex = Number.isFinite(requested)
+    ? Math.max(0, Math.min(session.versions.length - 1, requested))
+    : 0;
+  if (session.versionIndex !== safeIndex) session.versionIndex = safeIndex;
+  return session.versions[safeIndex] || session.versions[0] || null;
 }
 
 export function appendEditorVersion(session, version) {
