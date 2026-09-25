@@ -3330,7 +3330,12 @@ export class PersonalizeModal extends BaseModal {
       transparent: Boolean(version.transparent),
       videoReady: Boolean(version.videoReady),
       responseId: version.responseId || null,
+      imageGenerationCallId: version.imageGenerationCallId || null,
       revisedPrompt: version.revisedPrompt || null,
+      quality: version.quality || null,
+      outputFormat: version.outputFormat || null,
+      outputCompression: typeof version.outputCompression === 'number' ? version.outputCompression : null,
+      inputFidelity: version.inputFidelity || null,
       visionValidation: version.visionValidation || null,
       createdAt: version.createdAt || new Date().toISOString(),
     }));
@@ -3357,7 +3362,14 @@ export class PersonalizeModal extends BaseModal {
         prompt: current.prompt || '',
         model: current.model || '',
         responseId: current.responseId || null,
+        imageGenerationCallId: current.imageGenerationCallId || null,
         revisedPrompt: current.revisedPrompt || null,
+        quality: current.quality || null,
+        outputFormat: current.outputFormat || session.outputFormat || null,
+        outputCompression: typeof current.outputCompression === 'number'
+          ? current.outputCompression
+          : (typeof session.outputCompression === 'number' ? session.outputCompression : null),
+        inputFidelity: current.inputFidelity || null,
         acceptedAt: new Date().toISOString(),
       };
 
