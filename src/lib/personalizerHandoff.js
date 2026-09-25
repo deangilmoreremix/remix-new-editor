@@ -58,6 +58,29 @@ function isPlainObject(value) {
   return !!value && typeof value === 'object' && !Array.isArray(value);
 }
 
+function sanitizeSerializableValue(value) {
+  if (typeof value === 'string') {
+    return value.startsWith('blob:') ? null : value;
+  }
+  if (Array.isArray(value)) {
+    return value.map(sanitizeSerializableValue).filter((item) => item !== null && item !== undefined);
+  }
+  if (isPlainObject(value)) {
+    const entries = Object.entries(value)
+      .map(([key, nested]) => [key, sanitizeSerializableValue(nested)])
+      .filter(([, nested]) => nested !== null && nested !== undefined);
+    return Object.fromEntries(entries);
+  }
+  return value;
+}
+
+function persistentUrl(value) {
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  if (!trimmed || trimmed.startsWith('blob:')) return undefined;
+  return trimmed;
+}
+
 function validateHandoff(raw) {
   if (!isPlainObject(raw)) return null;
   if (raw.version !== 1) return null;
@@ -104,10 +127,10 @@ function validateAsset(asset) {
     id: asset.id ? String(asset.id).trim() : undefined,
     type,
     title: asset.title ? String(asset.title).trim() : undefined,
-    previewUrl: asset.previewUrl ? String(asset.previewUrl).trim() : undefined,
-    thumbnailUrl: asset.thumbnailUrl ? String(asset.thumbnailUrl).trim() : undefined,
+    previewUrl: persistentUrl(asset.previewUrl),
+    thumbnailUrl: persistentUrl(asset.thumbnailUrl),
     fields,
-    metadata: isPlainObject(asset.metadata) ? asset.metadata : undefined,
+    metadata: isPlainObject(asset.metadata) ? sanitizeSerializableValue(asset.metadata) : undefined,
   };
 }
 
@@ -125,7 +148,7 @@ function validateField(field) {
     id: String(field.id).trim(),
     label: String(field.label).trim(),
     type,
-    value: field.value !== undefined ? field.value : null,
+    value: field.value !== undefined ? sanitizeSerializableValue(field.value) : null,
     path: field.path ? String(field.path).trim() : undefined,
     supportsPersonalization: Boolean(field.supportsPersonalization),
     readonly: Boolean(field.readonly),
@@ -183,8 +206,15 @@ export function savePersonalizerHandoff(handoff) {
   try {
     const validated = validateHandoff(handoff);
     if (!validated) return false;
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(validated));
-    return true;
+    const serialized = JSON.stringify(validated);
+    sessionStorage.setItem(STORAGE_KEY, serialized);
+
+    // Verify the write before navigation. This closes the race where a target
+    // studio reads a stale or missing handoff immediately after route change.
+    const readBack = sessionStorage.getItem(STORAGE_KEY);
+    if (!readBack) return false;
+    const verified = validateHandoff(JSON.parse(readBack));
+    return Boolean(verified && verified.createdAt === validated.createdAt);
   } catch {
     return false;
   }

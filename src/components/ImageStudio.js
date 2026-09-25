@@ -21,6 +21,10 @@ import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { getImageStudioAsset } from '../lib/personalizerAdapters.js';
+import {
+    applyPersonalizationInputsToParams,
+    resolvePersonalizationForModel,
+} from '../lib/personalization/studioContext.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
@@ -49,6 +53,7 @@ export function ImageStudio() {
     let uploadedImageUrls = []; // array of uploaded image URLs (multi-image support)
     let imageMode = false; // false = t2i models, true = i2i models
     let customThumbnailUrl = getCustomThumbnailFromCache('image-studio');
+    let activePersonalizationContext = null;
 
     // Restore the last GTM context the user picked in the prompt modal,
     // if any. The modal persists selections to localStorage on apply; we
@@ -628,6 +633,18 @@ export function ImageStudio() {
       getPreview: () => {
         const img = document.querySelector('#i-result-img');
         return img?.src || (uploadedImageUrls && uploadedImageUrls[0]) || '';
+      },
+      onApply: ({ personalization }) => {
+        activePersonalizationContext = personalization || null;
+        const resolved = activePersonalizationContext
+          ? resolvePersonalizationForModel(activePersonalizationContext, getModelById(selectedModel), { studio: 'image' })
+          : null;
+        if (resolved?.referenceImages?.length && imageMode) {
+          const max = Math.max(1, getMaxImagesForI2IModel(selectedModel) || resolved.referenceImages.length);
+          uploadedImageUrls = Array.from(new Set([...uploadedImageUrls, ...resolved.referenceImages])).slice(0, max);
+        }
+        if (resolved?.warnings?.length) showToast(resolved.warnings.join(' '), 'info');
+        else if (resolved) showToast('Personalization references ready for this image model', 'success');
       },
     });
     // Show quality button if the default model has quality/resolution options
@@ -1379,7 +1396,7 @@ generateBtn.type = 'button';
             const dynamicPayload = dynamicControls.getPayload({});
 
             if (imageMode) {
-                const genParams = {
+                let genParams = {
                     model: selectedModel,
                     images_list: uploadedImageUrls,
                     image_url: uploadedImageUrls[0], // backward compat for single-image models
@@ -1390,6 +1407,21 @@ generateBtn.type = 'button';
                 if (prompt) genParams.prompt = prompt;
                 const qualityField = getCurrentQualityField(selectedModel);
                 if (qualityField && qualityLabel) genParams[qualityField] = qualityLabel;
+                if (activePersonalizationContext) {
+                    const personalizationInputs = resolvePersonalizationForModel(
+                        activePersonalizationContext,
+                        getModelById(selectedModel),
+                        { studio: 'image', maxReferenceImages: getMaxImagesForI2IModel(selectedModel) || 6 },
+                    );
+                    genParams = applyPersonalizationInputsToParams(genParams, personalizationInputs);
+                    if (personalizationInputs.referenceImages?.length) {
+                        genParams.images_list = Array.from(new Set([
+                            ...(genParams.images_list || []),
+                            ...personalizationInputs.referenceImages,
+                        ])).slice(0, getMaxImagesForI2IModel(selectedModel) || 6);
+                        genParams.image_url = genParams.image_url || genParams.images_list[0];
+                    }
+                }
                 res = await muapi.generateI2I(genParams);
             } else {
                 let finalPrompt = prompt;
@@ -1397,7 +1429,7 @@ generateBtn.type = 'button';
                 if (selectedStyle && selectedStyle !== 'None') {
                     finalPrompt = `${prompt}, ${selectedStyle.toLowerCase()} style`;
                 }
-                const genParams = {
+                let genParams = {
                     model: selectedModel,
                     prompt: finalPrompt,
                     aspect_ratio: selectedAr,
@@ -1406,6 +1438,14 @@ generateBtn.type = 'button';
                 if (customThumbnailUrl) genParams.thumbnail_url = customThumbnailUrl;
                 const qualityField = getCurrentQualityField(selectedModel);
                 if (qualityField && qualityLabel) genParams[qualityField] = qualityLabel;
+                if (activePersonalizationContext) {
+                    const personalizationInputs = resolvePersonalizationForModel(
+                        activePersonalizationContext,
+                        getModelById(selectedModel),
+                        { studio: 'image' },
+                    );
+                    genParams = applyPersonalizationInputsToParams(genParams, personalizationInputs);
+                }
                 res = await muapi.generateImage(genParams);
             }
 

@@ -33,9 +33,52 @@ import { TOKEN_LABELS, buildVariables } from '../personalize/tokenSchema.js';
 import { normalizeSocialIdentities, buildLegacySocialMap } from '../../lib/socialIdentity.js';
 import { createPersonalizerHandoff, savePersonalizerHandoff } from '../../lib/personalizerHandoff.js';
 import { navigate } from '../../lib/router.js';
+import {
+  addPersonalizationAsset,
+  createPersonalizationAsset,
+  ensurePersonalizationProfile,
+  getAllPersonalizationAssets,
+  normalizeBusinessProfile,
+  movePersonalizationAsset,
+  removePersonalizationAsset,
+  setDiscoveredPersonalizationAssets,
+  setPersonalizationGenerationOptions,
+  updatePersonalizationAsset,
+  updatePersonalizationBusiness,
+} from '../../lib/personalization/personalizationProfile.js';
+import {
+  defaultRoleForDiscoveredCategory,
+  discoverBusinessAssets,
+  importDiscoveredAsset,
+  persistPersonalizationAssetVersion,
+} from '../../lib/personalization/assetDiscoveryService.js';
+import { analyzePersonalizationImages } from '../../lib/personalization/visionService.js';
+import {
+  BUSINESS_DISCOVERY_NICHES,
+  findBusinesses,
+  researchBusiness,
+} from '../../lib/personalization/businessDiscoveryService.js';
+import { renderPersonalizationImageEditorPanel } from '../../lib/personalization/imageEditorPanel.js';
+import { PersonalizationImageEditorController } from '../../lib/personalization/imageEditorController.js';
+import { makePersonalizationAssetVideoReady } from '../../lib/personalization/videoReady.js';
+import { buildPersonalizationContext } from '../../lib/personalization/studioContext.js';
 
 const CONTACTS_KEY = 'remix_contacts';
 const PROFILES_KEY = 'remix_contact_profiles';
+const IMPORTED_IMAGE_ROLE_OPTIONS = Object.freeze([
+  ['presenter_identity', 'Person / Presenter'],
+  ['face_identity', 'Face Identity'],
+  ['character_identity', 'Character Identity'],
+  ['logo', 'Logo'],
+  ['product_reference', 'Product / Service'],
+  ['brand_reference', 'Brand Reference'],
+  ['background_reference', 'Background Reference'],
+  ['saved_reference', 'Saved Reference'],
+  ['first_frame', 'First Frame'],
+  ['last_frame', 'Last Frame'],
+  ['cta_graphic', 'CTA Graphic'],
+]);
+
 
 const DISCOVERY_STEPS = [
   'Scanning public profiles...',
@@ -80,10 +123,9 @@ function _getProfile(id) {
 
 async function getSession() {
   try {
-    const { createClient } = await import('../../lib/supabase.js');
-    const supabase = createClient();
+    const { supabase } = await import('../../lib/supabase.js');
     const { data } = await supabase.auth.getSession();
-    return data.session;
+    return data?.session || null;
   } catch {
     return null;
   }
@@ -219,6 +261,38 @@ export class PersonalizeModal extends BaseModal {
 
     // Settings are loaded asynchronously when the modal opens
     this._settingsLoaded = false;
+
+    // Unified SmartVideo AI business/client + asset personalization state.
+    // The durable source of truth remains the selected profile; these fields
+    // only hold unsaved form state while the modal is open.
+    this.businessDraft = null;
+    this.businessSaveStatus = '';
+    this.businessSearchResults = [];
+    this.businessSearchStatus = '';
+    this.businessSearchError = '';
+    this.isSearchingBusinesses = false;
+    this.isResearchingBusiness = false;
+    this.businessSearchNiche = 'general-business';
+    this.businessSearchRadius = 15;
+    this.assetEditorAssetId = null;
+    this.imageEditorSession = null;
+    this.imageEditorController = new PersonalizationImageEditorController({
+      onChange: (session, { render = true } = {}) => {
+        this.imageEditorSession = session;
+        if (render) this.refreshBody();
+        else this._updateEditorBusyLabel();
+      },
+      onPreview: (dataUrl) => {
+        const preview = this.overlay?.querySelector('[data-editor-preview]');
+        if (preview && dataUrl) preview.src = dataUrl;
+      },
+    });
+    this.isDiscoveringBusinessAssets = false;
+    this.isAnalyzingBusinessAssets = false;
+    this.isBatchVideoReady = false;
+    this.isImportingBusinessAssets = false;
+    this.assetDiscoveryStatus = '';
+    this.assetDiscoveryError = '';
   }
 
   _resolveAppColors(theme) {
@@ -253,6 +327,16 @@ export class PersonalizeModal extends BaseModal {
     }, 80);
   }
 
+  handleKeyDown(e) {
+    if (e.key === 'Escape' && this.imageEditorController?.session) {
+      e.preventDefault();
+      e.stopPropagation();
+      this._closeAssetEditor();
+      return;
+    }
+    super.handleKeyDown(e);
+  }
+
   setBodyContent(html) {
     super.setBodyContent(html);
     this._wireEvents();
@@ -273,7 +357,7 @@ export class PersonalizeModal extends BaseModal {
 
     return `
       <div class="pm-modal ${this.darkMode ? 'pm-dark' : 'pm-light'}" data-theme="${this.darkMode ? 'dark' : 'light'}" style="--pm-primary: ${primary}; --pm-accent: ${accent}; --pm-on-primary: ${this.appColors.onPrimary || '#000000'}; --pm-soft: ${soft}; --pm-soft-accent: ${softAccent}; --pm-glow: ${hexToRgba(primary, 0.25)}; --app-primary: ${primary}; --app-accent: ${accent}; --app-on-primary: ${this.appColors.onPrimary || '#000000'}; --app-soft: ${soft}; --app-soft-accent: ${softAccent}; --app-glow: ${hexToRgba(primary, 0.25)};">
-        <p id="pm-subtitle" class="pm-subtitle">Discover a contact, view Maigret intelligence, and insert personalized tokens into your prompt.</p>
+        <p id="pm-subtitle" class="pm-subtitle">Discover people and businesses, organize brand assets, edit media, and apply SmartVideo AI personalization without leaving your creation workflow.</p>
 
         <div class="pm-sr-only" role="status" aria-live="polite" id="pm-live"></div>
 
@@ -282,6 +366,8 @@ export class PersonalizeModal extends BaseModal {
         <div class="pm-tabs" role="tablist" aria-label="Personalization sections">
           <button type="button" class="pm-tab ${activeTab === 'discover' ? 'pm-tab-active' : ''}" data-tab="discover" ${tabAria('discover')}>Discover</button>
           <button type="button" class="pm-tab ${activeTab === 'results' ? 'pm-tab-active' : ''}" data-tab="results" ${!this.lastScanData ? 'disabled' : ''} ${tabAria('results')}>Results</button>
+          <button type="button" class="pm-tab ${activeTab === 'business' ? 'pm-tab-active' : ''}" data-tab="business" ${tabAria('business')}>Business / Client</button>
+          <button type="button" class="pm-tab ${activeTab === 'assets' ? 'pm-tab-active' : ''}" data-tab="assets" ${tabAria('assets')}>Assets</button>
           <button type="button" class="pm-tab ${activeTab === 'history' ? 'pm-tab-active' : ''}" data-tab="history" ${tabAria('history')}>History</button>
         </div>
 
@@ -291,6 +377,12 @@ export class PersonalizeModal extends BaseModal {
           </div>
           <div class="pm-tab-panel ${activeTab === 'results' ? 'pm-tab-panel-active' : ''}" data-panel="results" role="tabpanel" id="pm-panel-results" aria-labelledby="pm-tab-results" tabindex="0">
             ${this.lastScanData ? this._renderResults() : '<div class="pm-empty">Run a discovery to see results here.</div>'}
+          </div>
+          <div class="pm-tab-panel ${activeTab === 'business' ? 'pm-tab-panel-active' : ''}" data-panel="business" role="tabpanel" id="pm-panel-business" aria-labelledby="pm-tab-business" tabindex="0">
+            ${this._renderBusinessTab()}
+          </div>
+          <div class="pm-tab-panel ${activeTab === 'assets' ? 'pm-tab-panel-active' : ''}" data-panel="assets" role="tabpanel" id="pm-panel-assets" aria-labelledby="pm-tab-assets" tabindex="0">
+            ${this._renderAssetsTab()}
           </div>
           <div class="pm-tab-panel ${activeTab === 'history' ? 'pm-tab-panel-active' : ''}" data-panel="history" role="tabpanel" id="pm-panel-history" aria-labelledby="pm-tab-history" tabindex="0">
             ${this._renderHistory()}
@@ -1657,6 +1749,418 @@ export class PersonalizeModal extends BaseModal {
           .pm-advanced-checks { flex-direction: column; gap: 6px; }
         }
 
+        /* Unified business/client profile */
+        .pm-audience-grid {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 8px;
+        }
+
+        .pm-audience-card {
+          appearance: none;
+          text-align: left;
+          border: 1px solid var(--border-color);
+          background: var(--bg-panel);
+          color: var(--text-primary);
+          border-radius: var(--border-radius-lg);
+          padding: 12px;
+          cursor: pointer;
+          font-family: var(--font-family);
+          transition: all var(--transition-fast);
+        }
+
+        .pm-audience-card:hover,
+        .pm-audience-card.active {
+          border-color: var(--pm-primary);
+          background: var(--pm-soft);
+        }
+
+        .pm-audience-title { font-size: 13px; font-weight: 700; }
+        .pm-audience-copy { margin-top: 4px; font-size: 11px; line-height: 1.4; color: var(--text-muted); }
+
+        .pm-business-search-grid {
+          display: grid;
+          grid-template-columns: minmax(150px, .9fr) minmax(220px, 1.4fr) minmax(110px, .6fr) auto;
+          gap: 10px;
+          align-items: end;
+        }
+        .pm-business-search-action { display:flex; align-items:flex-end; padding-bottom:1px; }
+        .pm-business-results { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:10px; margin-top:12px; }
+        .pm-business-result { border:1px solid var(--border-color); border-radius:12px; padding:11px; background:var(--bg-card); display:flex; flex-direction:column; gap:8px; }
+        .pm-business-result-head { display:flex; justify-content:space-between; gap:8px; align-items:flex-start; }
+        .pm-business-result-head strong { display:block; font-size:11px; color:var(--text-primary); }
+        .pm-business-result-head span:not(.pm-preview-pill) { display:block; margin-top:2px; font-size:9px; color:var(--text-muted); }
+        .pm-business-result-meta { display:flex; flex-direction:column; gap:3px; font-size:9px; color:var(--text-secondary); line-height:1.35; overflow-wrap:anywhere; }
+
+        .pm-business-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 12px;
+        }
+
+        .pm-business-field {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .pm-business-field.pm-span-2 { grid-column: 1 / -1; }
+        .pm-business-field label { font-size: 11px; font-weight: 600; color: var(--text-secondary); }
+        .pm-business-field textarea { min-height: 82px; resize: vertical; }
+
+        .pm-business-save-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+
+        .pm-business-status { font-size: 11px; color: var(--pm-accent); }
+
+        .pm-asset-role-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          gap: 10px;
+        }
+
+        .pm-asset-role-card {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          min-height: 104px;
+          padding: 12px;
+          border: 1px solid var(--border-color);
+          border-radius: var(--border-radius-lg);
+          background: var(--bg-card);
+        }
+
+        .pm-asset-role-head {
+          display: flex;
+          justify-content: space-between;
+          gap: 8px;
+          align-items: center;
+        }
+
+        .pm-asset-role-title { font-size: 12px; font-weight: 700; color: var(--text-primary); }
+        .pm-asset-role-count {
+          min-width: 22px;
+          height: 22px;
+          border-radius: 999px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 10px;
+          font-weight: 700;
+          background: var(--pm-soft);
+          color: var(--pm-primary);
+          border: 1px solid var(--pm-primary);
+        }
+
+        .pm-asset-role-copy { font-size: 10px; line-height: 1.4; color: var(--text-muted); }
+        .pm-asset-thumbs { display: flex; gap: 6px; flex-wrap: wrap; }
+        .pm-asset-thumb {
+          width: 44px;
+          height: 44px;
+          border-radius: 8px;
+          object-fit: cover;
+          background: var(--bg-panel);
+          border: 1px solid var(--border-color);
+        }
+
+        @media (max-width: 720px) {
+          .pm-audience-grid,
+          .pm-business-grid,
+          .pm-business-search-grid { grid-template-columns: 1fr; }
+          .pm-business-field.pm-span-2 { grid-column: auto; }
+        }
+
+        .pm-asset-actions {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+          align-items: center;
+        }
+
+        .pm-discovered-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+          gap: 12px;
+        }
+
+        .pm-discovered-card {
+          border: 1px solid var(--border-color);
+          border-radius: var(--border-radius-lg);
+          background: var(--bg-card);
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+        }
+
+        .pm-discovered-card.rejected { opacity: 0.55; }
+        .pm-discovered-image-wrap {
+          position: relative;
+          aspect-ratio: 16 / 10;
+          background: #111;
+          overflow: hidden;
+        }
+        .pm-discovered-image {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+        .pm-discovered-check {
+          position: absolute;
+          top: 8px;
+          left: 8px;
+          width: 18px;
+          height: 18px;
+          accent-color: var(--pm-primary);
+        }
+        .pm-discovered-badges {
+          position: absolute;
+          right: 8px;
+          top: 8px;
+          display: flex;
+          gap: 4px;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+        }
+        .pm-discovered-badge {
+          padding: 3px 6px;
+          border-radius: 999px;
+          background: rgba(0,0,0,.72);
+          color: #fff;
+          font-size: 9px;
+          font-weight: 700;
+        }
+        .pm-discovered-body {
+          padding: 10px;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .pm-discovered-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+        }
+        .pm-discovered-row label {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          font-size: 9px;
+          color: var(--text-muted);
+          text-transform: uppercase;
+          letter-spacing: .04em;
+        }
+        .pm-discovered-row select {
+          min-width: 0;
+          width: 100%;
+          padding: 6px;
+          border-radius: 6px;
+          border: 1px solid var(--border-color);
+          background: var(--bg-panel);
+          color: var(--text-primary);
+          font-size: 10px;
+        }
+        .pm-discovered-summary {
+          font-size: 10px;
+          line-height: 1.45;
+          color: var(--text-secondary);
+        }
+        .pm-discovered-footer {
+          display: flex;
+          gap: 6px;
+          flex-wrap: wrap;
+        }
+        .pm-discovered-source {
+          font-size: 9px;
+          color: var(--text-muted);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .pm-asset-thumb-button {
+          appearance: none;
+          border: 0;
+          background: transparent;
+          color: var(--text-muted);
+          padding: 0;
+          display: inline-flex;
+          flex-direction: column;
+          gap: 3px;
+          align-items: center;
+          cursor: pointer;
+          font: inherit;
+          font-size: 9px;
+        }
+        .pm-asset-thumb-button:hover .pm-asset-thumb { border-color: var(--pm-primary); }
+
+        .pm-asset-role-card.drag-over {
+          border-color: var(--pm-primary);
+          box-shadow: 0 0 0 2px var(--pm-soft);
+          background: var(--pm-soft);
+        }
+        .pm-asset-thumb-wrap {
+          position:relative; display:inline-flex; flex-direction:column; align-items:center; gap:4px;
+          max-width:120px;
+        }
+        .pm-asset-role-move {
+          width:100%; max-width:120px; padding:3px 4px; border-radius:6px;
+          border:1px solid var(--border-color); background:var(--bg-panel); color:var(--text-secondary);
+          font:inherit; font-size:8px;
+        }
+        .pm-asset-role-move:focus { outline:2px solid var(--pm-primary); outline-offset:1px; }
+        .pm-asset-delete {
+          position:absolute; top:-5px; right:-5px; width:18px; height:18px; border-radius:999px;
+          border:1px solid var(--border-color); background:var(--bg-app); color:var(--text-muted);
+          cursor:pointer; font-size:13px; line-height:15px; padding:0;
+        }
+        .pm-asset-delete:hover { color:#fff; background:#ef4444; border-color:#ef4444; }
+        .pm-asset-audio-chip {
+          display:inline-flex; max-width:120px; align-items:center; gap:4px; padding:8px;
+          border:1px solid var(--border-color); border-radius:8px; background:var(--bg-panel);
+          color:var(--text-secondary); font-size:9px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+        }
+
+        .pm-editor-shell {
+          border: 1px solid var(--border-color);
+          border-radius: 16px;
+          background: var(--bg-card);
+          overflow: hidden;
+          box-shadow: 0 18px 50px rgba(0,0,0,.22);
+        }
+        .pm-editor-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          padding: 14px 16px;
+          border-bottom: 1px solid var(--border-color);
+        }
+        .pm-editor-title { font-size: 15px; font-weight: 800; color: var(--text-primary); }
+        .pm-editor-subtitle { margin-top: 3px; font-size: 10px; color: var(--text-muted); }
+        .pm-editor-simple { display: flex; flex-direction: column; gap: 14px; padding: 14px; }
+        .pm-editor-stage {
+          position: relative;
+          min-height: 320px;
+          max-height: 58vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+          border-radius: 12px;
+          background:
+            linear-gradient(45deg, rgba(255,255,255,.03) 25%, transparent 25%),
+            linear-gradient(-45deg, rgba(255,255,255,.03) 25%, transparent 25%),
+            #090b0d;
+          background-size: 24px 24px;
+          background-position: 0 0, 0 12px;
+        }
+        .pm-editor-stage > img { max-width: 100%; max-height: 58vh; object-fit: contain; display: block; }
+        .pm-editor-busy {
+          position: absolute; inset: 0;
+          display: flex; align-items: center; justify-content: center; gap: 8px;
+          background: rgba(0,0,0,.58); color: #fff; font-size: 12px; font-weight: 700;
+        }
+        .pm-editor-progressive {
+          position: absolute; left: 10px; bottom: 10px;
+          background: rgba(0,0,0,.72); color: #fff; font-size: 9px;
+          padding: 4px 7px; border-radius: 999px;
+        }
+        .pm-editor-safe-area { pointer-events:none; position:absolute; inset:7%; border:1px dashed rgba(41,211,242,.7); }
+        .pm-editor-safe-v, .pm-editor-safe-h { position:absolute; background:rgba(41,211,242,.28); }
+        .pm-editor-safe-v { top:0; bottom:0; width:1px; left:50%; }
+        .pm-editor-safe-h { left:0; right:0; height:1px; top:50%; }
+        .pm-editor-compare { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+        .pm-editor-compare figure { margin:0; padding:8px; border-radius:12px; background:#090b0d; }
+        .pm-editor-compare img { width:100%; aspect-ratio:16/10; object-fit:contain; display:block; }
+        .pm-editor-compare figcaption { margin-top:5px; text-align:center; font-size:9px; color:var(--text-muted); }
+        .pm-editor-meta { display:flex; flex-wrap:wrap; align-items:center; gap:6px; font-size:10px; color:var(--text-muted); }
+        .pm-editor-good, .pm-editor-status { color:#22c55e; }
+        .pm-editor-recommendation {
+          display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+          border:1px solid rgba(41,211,242,.22); background:rgba(41,211,242,.04);
+          border-radius:12px; padding:12px;
+        }
+        .pm-editor-recommendation strong { color:var(--text-primary); font-size:12px; }
+        .pm-editor-recommendation p { margin:5px 0 0; color:var(--text-muted); font-size:10px; line-height:1.5; }
+        .pm-editor-issue-row { display:flex; flex-wrap:wrap; gap:4px; margin-top:7px; }
+        .pm-editor-issue-row span { padding:3px 6px; border-radius:999px; background:var(--bg-panel); font-size:9px; color:var(--text-muted); }
+        .pm-editor-quick-actions { display:flex; flex-wrap:wrap; gap:7px; }
+        .pm-editor-smart { border:1px solid var(--border-color); border-radius:12px; padding:12px; background:var(--bg-panel); }
+        .pm-editor-smart > label { display:block; margin-bottom:7px; font-size:11px; font-weight:700; color:var(--text-primary); }
+        .pm-editor-smart-row { display:flex; gap:8px; }
+        .pm-editor-smart textarea {
+          flex:1; min-height:76px; resize:vertical; border:1px solid var(--border-color); border-radius:10px;
+          background:var(--bg-app); color:var(--text-primary); padding:9px; font:inherit; font-size:11px;
+        }
+        .pm-editor-versions { display:flex; gap:7px; overflow-x:auto; padding:2px; }
+        .pm-editor-version {
+          flex:0 0 90px; border:1px solid var(--border-color); border-radius:9px; padding:4px;
+          background:var(--bg-panel); color:var(--text-muted); cursor:pointer; font:inherit; font-size:9px;
+        }
+        .pm-editor-version.active { border-color:var(--pm-primary); color:var(--text-primary); }
+        .pm-editor-version img { width:100%; height:52px; object-fit:cover; border-radius:6px; display:block; margin-bottom:3px; }
+        .pm-editor-note { border:1px solid var(--border-color); background:var(--bg-panel); border-radius:9px; padding:8px; font-size:9px; line-height:1.45; color:var(--text-muted); }
+        .pm-editor-footer { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; border-top:1px solid var(--border-color); padding-top:12px; }
+        .pm-editor-advanced { display:grid; grid-template-columns:170px minmax(0,1fr) 280px; min-height:620px; }
+        .pm-editor-tool-sidebar, .pm-editor-right-panel { padding:12px; background:var(--bg-panel); }
+        .pm-editor-tool-sidebar { border-right:1px solid var(--border-color); }
+        .pm-editor-right-panel { border-left:1px solid var(--border-color); max-height:70vh; overflow:auto; }
+        .pm-editor-advanced-stage { min-width:0; padding:12px; display:flex; flex-direction:column; gap:10px; }
+        .pm-editor-sidebar-title { margin:10px 0 6px; font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.12em; color:var(--text-muted); }
+        .pm-editor-group {
+          width:100%; text-align:left; border:0; border-radius:8px; padding:8px; margin:1px 0;
+          background:transparent; color:var(--text-secondary); cursor:pointer; font:inherit; font-size:10px; font-weight:650;
+        }
+        .pm-editor-group.active, .pm-small-btn.active { background:var(--pm-soft); color:var(--pm-primary); }
+        .pm-editor-sidebar-separator { height:1px; background:var(--border-color); margin:10px 0; }
+        .pm-editor-operation-list { display:flex; flex-direction:column; gap:6px; }
+        .pm-editor-operation {
+          width:100%; text-align:left; border:1px solid var(--border-color); background:var(--bg-card);
+          border-radius:10px; padding:9px; color:var(--text-primary); cursor:pointer; font:inherit;
+        }
+        .pm-editor-operation strong { display:block; font-size:10px; }
+        .pm-editor-operation span { display:block; margin-top:3px; color:var(--text-muted); font-size:9px; line-height:1.4; }
+        .pm-editor-details { margin-top:9px; border:1px solid var(--border-color); border-radius:10px; background:var(--bg-card); padding:9px; }
+        .pm-editor-details summary { cursor:pointer; font-size:10px; font-weight:700; color:var(--text-primary); }
+        .pm-editor-detail-body { display:flex; flex-direction:column; gap:9px; margin-top:9px; }
+        .pm-editor-control { display:flex; flex-direction:column; gap:4px; font-size:9px; color:var(--text-muted); }
+        .pm-editor-control > span { display:flex; justify-content:space-between; gap:8px; }
+        .pm-editor-control input[type="range"] { width:100%; accent-color:var(--pm-primary); }
+        .pm-editor-control input[type="text"], .pm-editor-control select {
+          width:100%; border:1px solid var(--border-color); border-radius:7px; background:var(--bg-panel); color:var(--text-primary); padding:6px; font-size:10px;
+        }
+        .pm-editor-button-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:5px; }
+        .pm-editor-protections label { display:flex; gap:6px; align-items:center; font-size:10px; color:var(--text-secondary); }
+        .pm-editor-mask-host { min-height:360px; }
+        .pm-mask-toolbar {
+          display:flex; gap:8px; flex-wrap:wrap; align-items:center; padding:8px;
+          border:1px solid var(--border-color); border-radius:10px; background:var(--bg-panel);
+        }
+        .pm-mask-tools, .pm-mask-actions { display:flex; gap:5px; flex-wrap:wrap; }
+        .pm-mask-tool.active { background:rgba(41,211,242,.12); color:#29d3f2; }
+        .pm-mask-brush-label { margin-left:auto; display:flex; align-items:center; gap:6px; font-size:9px; color:var(--text-muted); }
+        .pm-mask-brush-label input { width:90px; accent-color:#29d3f2; }
+        .pm-mask-stage { position:relative; margin-top:8px; overflow:hidden; border-radius:10px; background:#000; }
+        .pm-mask-image { width:100%; max-height:56vh; object-fit:contain; display:block; }
+        .pm-mask-canvas { position:absolute; inset:0; width:100%; height:100%; touch-action:none; cursor:crosshair; opacity:.48; filter:drop-shadow(0 0 4px rgba(41,211,242,.8)); }
+        .pm-mask-help { font-size:9px; line-height:1.4; color:var(--text-muted); margin:7px 0 0; }
+
+        @media (max-width: 980px) {
+          .pm-editor-advanced { grid-template-columns:1fr; }
+          .pm-editor-tool-sidebar, .pm-editor-right-panel { border:0; border-bottom:1px solid var(--border-color); max-height:none; }
+          .pm-editor-compare { grid-template-columns:1fr; }
+        }
+        @media (max-width: 720px) {
+          .pm-editor-smart-row, .pm-editor-recommendation { flex-direction:column; }
+        }
+
         .pm-modal.pm-light {
           --text-primary: #1a1a1a;
           --text-secondary: #4b5563;
@@ -1863,6 +2367,1187 @@ export class PersonalizeModal extends BaseModal {
         </div>
       </div>
     `;
+  }
+
+  _selectedUnifiedProfile() {
+    const profile = this._getSelectedProfile();
+    return profile ? ensurePersonalizationProfile(profile) : null;
+  }
+
+  _currentBusinessDraft() {
+    const profile = this._selectedUnifiedProfile();
+    if (!profile) return null;
+    return normalizeBusinessProfile(
+      this.businessDraft || profile.personalization?.business || {},
+      profile,
+    );
+  }
+
+  _readBusinessDraftFromDom() {
+    if (!this.overlay) return this.businessDraft;
+    const read = (id, fallback = '') => {
+      const el = this.overlay.querySelector('#' + id);
+      return el ? String(el.value || '').trim() : fallback;
+    };
+    const current = this._currentBusinessDraft();
+    if (!current) return null;
+    this.businessDraft = {
+      ...current,
+      website: read('pm-business-website', current.website),
+      name: read('pm-business-name', current.name),
+      businessName: read('pm-business-business-name', current.businessName),
+      industry: read('pm-business-industry', current.industry),
+      location: read('pm-business-location', current.location),
+      productService: read('pm-business-product-service', current.productService),
+      offer: read('pm-business-offer', current.offer),
+      ctaHeadline: read('pm-business-cta-headline', current.ctaHeadline),
+      callToAction: read('pm-business-cta', current.callToAction),
+      phone: read('pm-business-phone', current.phone),
+      email: read('pm-business-email', current.email),
+      brandDescription: read('pm-business-brand-description', current.brandDescription),
+    };
+    return this.businessDraft;
+  }
+
+  _renderBusinessTab() {
+    const profile = this._selectedUnifiedProfile();
+    if (!profile) {
+      return '<div class="pm-empty">Select or discover a contact first. The business/client profile will attach to that existing SmartVideo personalization profile.</div>';
+    }
+
+    const b = this._currentBusinessDraft();
+    const audiences = [
+      { id: 'me', title: 'Me', copy: 'Personalize using your own identity and brand.' },
+      { id: 'my-business', title: 'My Business', copy: 'Build reusable SmartVideo assets for your company.' },
+      { id: 'client', title: 'Client', copy: 'Create and save a separate business profile for a customer.' },
+    ];
+    const field = (id, label, value, options = {}) => {
+      const cls = options.full ? 'pm-business-field pm-span-2' : 'pm-business-field';
+      const input = options.textarea
+        ? `<textarea id="${id}" class="pm-input" placeholder="${escapeHtml(options.placeholder || '')}">${escapeHtml(value || '')}</textarea>`
+        : `<input id="${id}" class="pm-input" type="${options.type || 'text'}" value="${escapeHtml(value || '')}" placeholder="${escapeHtml(options.placeholder || '')}" />`;
+      return `<div class="${cls}"><label for="${id}">${escapeHtml(label)}</label>${input}</div>`;
+    };
+
+    return `
+      <div class="pm-form">
+        <div class="pm-section">
+          <div class="pm-section-label">Who is this for?</div>
+          <div class="pm-audience-grid">
+            ${audiences.map((a) => `
+              <button type="button" class="pm-audience-card ${b.audience === a.id ? 'active' : ''}" data-audience="${a.id}" aria-pressed="${b.audience === a.id ? 'true' : 'false'}">
+                <div class="pm-audience-title">${a.title}</div>
+                <div class="pm-audience-copy">${a.copy}</div>
+              </button>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="pm-section">
+          <div class="pm-section-header">
+            <span class="pm-section-label">Find a Business</span>
+            <span class="pm-business-status">${escapeHtml(this.businessSearchStatus || '')}</span>
+          </div>
+          <div class="pm-preview-empty">
+            Search nearby businesses with free OpenStreetMap + Overpass data. Nominatim resolves the location; no paid lead database is required.
+          </div>
+          ${this.businessSearchError ? `<div class="pm-error" role="alert">${escapeHtml(this.businessSearchError)}</div>` : ''}
+          <div class="pm-business-search-grid">
+            <label class="pm-business-field">
+              <span>Business Type</span>
+              <select id="pm-business-search-niche">
+                ${BUSINESS_DISCOVERY_NICHES.map(([id, label]) => `<option value="${id}" ${this.businessSearchNiche === id ? 'selected' : ''}>${escapeHtml(label)}</option>`).join('')}
+              </select>
+            </label>
+            <label class="pm-business-field">
+              <span>Search Location</span>
+              <input id="pm-business-search-location" class="pm-input" type="text" value="${escapeHtml(b.location || '')}" placeholder="Miami, FL or 33020" />
+            </label>
+            <label class="pm-business-field">
+              <span>Radius</span>
+              <select id="pm-business-search-radius">
+                ${[5,10,15,25,50].map((miles) => `<option value="${miles}" ${Number(this.businessSearchRadius) === miles ? 'selected' : ''}>${miles} miles</option>`).join('')}
+              </select>
+            </label>
+            <div class="pm-business-search-action">
+              <button type="button" class="pm-btn pm-btn-primary" data-action="find-businesses" ${this.isSearchingBusinesses ? 'disabled' : ''}>
+                ${this.isSearchingBusinesses ? 'Searching…' : 'Find Businesses'}
+              </button>
+            </div>
+          </div>
+          ${this.businessSearchResults.length ? `
+            <div class="pm-business-results">
+              ${this.businessSearchResults.map((business, index) => `
+                <article class="pm-business-result">
+                  <div class="pm-business-result-head">
+                    <div>
+                      <strong>${escapeHtml(business.name || 'Unnamed Business')}</strong>
+                      <span>${escapeHtml(business.category || '')}</span>
+                    </div>
+                    <span class="pm-preview-pill pm-preview-pill-muted">Lead ${Math.round(Number(business.leadScore) || 0)}</span>
+                  </div>
+                  <div class="pm-business-result-meta">
+                    ${business.address ? `<span>📍 ${escapeHtml(business.address)}</span>` : ''}
+                    ${business.phone ? `<span>☎ ${escapeHtml(business.phone)}</span>` : ''}
+                    ${business.website ? `<span>🌐 ${escapeHtml(business.website)}</span>` : '<span>Website not listed in OSM</span>'}
+                  </div>
+                  <div class="pm-asset-actions">
+                    <button type="button" class="pm-small-btn" data-action="select-business-result" data-business-index="${index}">Use Business</button>
+                    ${business.website ? `<button type="button" class="pm-small-btn" data-action="research-business-result" data-business-index="${index}" ${this.isResearchingBusiness ? 'disabled' : ''}>Research Website</button>` : ''}
+                  </div>
+                </article>
+              `).join('')}
+            </div>
+          ` : ''}
+        </div>
+
+        <div class="pm-section">
+          <div class="pm-section-header">
+            <span class="pm-section-label">Business / Client Profile</span>
+            <span class="pm-business-status">${escapeHtml(this.businessSaveStatus || '')}</span>
+          </div>
+          <div class="pm-business-grid">
+            ${field('pm-business-website', 'Website', b.website, { full: true, placeholder: 'https://example.com' })}
+            ${field('pm-business-name', 'Contact / Client Name', b.name)}
+            ${field('pm-business-business-name', 'Business Name', b.businessName)}
+            ${field('pm-business-industry', 'Industry', b.industry)}
+            ${field('pm-business-location', 'Location', b.location)}
+            ${field('pm-business-product-service', 'Product / Service', b.productService, { full: true })}
+            ${field('pm-business-offer', 'Offer', b.offer, { full: true })}
+            ${field('pm-business-cta-headline', 'CTA Headline', b.ctaHeadline)}
+            ${field('pm-business-cta', 'Call To Action', b.callToAction)}
+            ${field('pm-business-phone', 'Phone', b.phone, { type: 'tel' })}
+            ${field('pm-business-email', 'Email', b.email, { type: 'email' })}
+            ${field('pm-business-brand-description', 'Brand Description', b.brandDescription, { full: true, textarea: true, placeholder: 'Describe the brand, positioning, audience, tone, and important visual cues.' })}
+          </div>
+        </div>
+
+        <div class="pm-business-save-row">
+          <div class="pm-preview-empty">Saving updates the existing profile and immediately makes the new business/offer/CTA fields available as personalization tokens.</div>
+          <button type="button" class="pm-btn pm-btn-primary" data-action="save-business-profile">Save business profile</button>
+        </div>
+      </div>
+    `;
+  }
+
+  _assetRoleCard(title, description, items = [], uploadRole = null) {
+    const safeItems = (Array.isArray(items) ? items : []).filter(Boolean);
+    const thumbs = safeItems.slice(0, 4).map((asset) => {
+      const url = typeof asset === 'string' ? asset : (asset.url || asset.originalUrl || '');
+      if (!url) return '';
+      if (typeof asset !== 'object' || !asset.id) {
+        return uploadRole === 'audio_reference'
+          ? `<span class="pm-asset-audio-chip">Audio</span>`
+          : `<img class="pm-asset-thumb" src="${escapeHtml(url)}" alt="" loading="lazy" />`;
+      }
+      const preview = uploadRole === 'audio_reference'
+        ? `<span class="pm-asset-audio-chip" title="${escapeHtml(asset.name || 'Audio reference')}">♫ ${escapeHtml(asset.name || 'Audio')}</span>`
+        : `<button type="button" class="pm-asset-thumb-button" data-action="open-imported-asset-editor" data-asset-id="${escapeHtml(asset.id)}" title="Edit ${escapeHtml(asset.name || title)}"><img class="pm-asset-thumb" src="${escapeHtml(url)}" alt="" loading="lazy" /><span>Edit</span></button>`;
+      const moveControl = uploadRole === 'audio_reference'
+        ? ''
+        : `<select class="pm-asset-role-move" data-imported-asset-role="${escapeHtml(asset.id)}" aria-label="Move ${escapeHtml(asset.name || title)} to another role">
+            ${IMPORTED_IMAGE_ROLE_OPTIONS.map(([role, label]) => `<option value="${role}" ${asset.role === role ? 'selected' : ''}>${label}</option>`).join('')}
+          </select>`;
+      return `<span class="pm-asset-thumb-wrap">${preview}${moveControl}<button type="button" class="pm-asset-delete" data-action="delete-personalization-asset" data-asset-id="${escapeHtml(asset.id)}" aria-label="Delete ${escapeHtml(asset.name || title)}">×</button></span>`;
+    }).join('');
+    return `
+      <div class="pm-asset-role-card" ${uploadRole ? `data-asset-drop-role="${escapeHtml(uploadRole)}"` : ''}>
+        <div class="pm-asset-role-head">
+          <span class="pm-asset-role-title">${escapeHtml(title)}</span>
+          <span class="pm-asset-role-count">${safeItems.length}</span>
+        </div>
+        <div class="pm-asset-role-copy">${escapeHtml(description)}</div>
+        ${thumbs ? `<div class="pm-asset-thumbs">${thumbs}</div>` : '<div class="pm-empty" style="padding:0;">No assets yet</div>'}
+        ${uploadRole ? `<button type="button" class="pm-small-btn" data-action="upload-personalization-asset" data-upload-role="${escapeHtml(uploadRole)}">+ Upload</button>` : ''}
+      </div>
+    `;
+  }
+
+  _currentDiscoveredAssets() {
+    const profile = this._selectedUnifiedProfile();
+    return Array.isArray(profile?.personalization?.discoveredAssets)
+      ? profile.personalization.discoveredAssets
+      : [];
+  }
+
+  _renderDiscoveredAssetCard(asset) {
+    const imageUrl = asset.editedUrl || asset.previewUrl || asset.sourceUrl || '';
+    const categories = [
+      'person', 'logo', 'product', 'service', 'completed_work', 'storefront',
+      'office', 'branded_vehicle', 'team', 'brand', 'irrelevant',
+    ];
+    const roles = [
+      ['presenter_identity', 'Person / Presenter'],
+      ['face_identity', 'Face Identity'],
+      ['character_identity', 'Character Identity'],
+      ['logo', 'Logo'],
+      ['product_reference', 'Product / Service'],
+      ['brand_reference', 'Brand Reference'],
+      ['background_reference', 'Background Reference'],
+      ['saved_reference', 'Saved Reference'],
+      ['first_frame', 'First Frame'],
+      ['last_frame', 'Last Frame'],
+      ['cta_graphic', 'CTA Graphic'],
+    ];
+    const categoryOptions = categories.map((category) =>
+      `<option value="${category}" ${asset.category === category ? 'selected' : ''}>${category.replace(/_/g, ' ')}</option>`
+    ).join('');
+    const roleOptions = roles.map(([role, label]) =>
+      `<option value="${role}" ${asset.assignedRole === role ? 'selected' : ''}>${label}</option>`
+    ).join('');
+    const vision = asset.visionAnalysis;
+    const quality = vision?.qualityScore ?? asset.qualityScore;
+    const relevance = vision?.relevanceScore ?? asset.relevanceScore;
+    const badges = [
+      asset.importedAssetId ? '<span class="pm-discovered-badge">Imported</span>' : '',
+      asset.autoAssigned ? '<span class="pm-discovered-badge">Auto-assigned</span>' : '',
+      asset.videoReady ? '<span class="pm-discovered-badge">Video Ready</span>' : '',
+      vision ? '<span class="pm-discovered-badge">Vision</span>' : '',
+      quality != null ? `<span class="pm-discovered-badge">Q ${Math.round(Number(quality) || 0)}</span>` : '',
+      relevance != null ? `<span class="pm-discovered-badge">R ${Math.round(Number(relevance) || 0)}</span>` : '',
+    ].filter(Boolean).join('');
+
+    return `
+      <div class="pm-discovered-card ${asset.rejected ? 'rejected' : ''}" data-discovered-card="${escapeHtml(asset.id)}">
+        <div class="pm-discovered-image-wrap">
+          <img class="pm-discovered-image" src="${escapeHtml(imageUrl)}" alt="${escapeHtml(asset.altText || asset.category || 'Discovered business asset')}" loading="lazy" />
+          <input
+            class="pm-discovered-check"
+            type="checkbox"
+            data-discovered-select="${escapeHtml(asset.id)}"
+            ${asset.selected && !asset.rejected ? 'checked' : ''}
+            ${asset.rejected ? 'disabled' : ''}
+            aria-label="Select discovered asset"
+          />
+          <div class="pm-discovered-badges">${badges}</div>
+        </div>
+        <div class="pm-discovered-body">
+          <div class="pm-discovered-row">
+            <label>
+              Category
+              <select data-discovered-category="${escapeHtml(asset.id)}" ${asset.rejected ? 'disabled' : ''}>
+                ${categoryOptions}
+              </select>
+            </label>
+            <label>
+              Destination
+              <select data-discovered-role="${escapeHtml(asset.id)}" ${asset.rejected ? 'disabled' : ''}>
+                ${roleOptions}
+              </select>
+            </label>
+          </div>
+          ${vision?.summary ? `<div class="pm-discovered-summary">${escapeHtml(vision.summary)}</div>` : ''}
+          ${vision?.issues?.length ? `<div class="pm-discovered-summary"><strong>Issues:</strong> ${escapeHtml(vision.issues.join(' • '))}</div>` : ''}
+          ${asset.batchVideoReadyError ? `<div class="pm-error" role="alert">${escapeHtml(asset.batchVideoReadyError)}</div>` : ''}
+          ${asset.importError ? `<div class="pm-error" role="alert">${escapeHtml(asset.importError)}</div>` : ''}
+          <div class="pm-discovered-source" title="${escapeHtml(asset.sourceUrl || '')}">${escapeHtml(asset.sourceUrl || '')}</div>
+          <div class="pm-discovered-footer">
+            <button type="button" class="pm-small-btn" data-action="${asset.rejected ? 'restore-discovered' : 'reject-discovered'}" data-asset-id="${escapeHtml(asset.id)}">
+              ${asset.rejected ? 'Restore' : 'Reject'}
+            </button>
+            ${asset.visionAnalysis ? '' : `<button type="button" class="pm-small-btn" data-action="analyze-one-asset" data-asset-id="${escapeHtml(asset.id)}">Vision</button>`}
+            ${asset.importError ? `<button type="button" class="pm-small-btn" data-action="retry-discovered-import" data-asset-id="${escapeHtml(asset.id)}">Retry Import</button>` : ''}
+            <button type="button" class="pm-small-btn" data-action="open-asset-editor" data-asset-id="${escapeHtml(asset.id)}" ${asset.rejected ? 'disabled' : ''}>Edit</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  _renderAssetsTab() {
+    const profile = this._selectedUnifiedProfile();
+    if (!profile) {
+      return '<div class="pm-empty">Select or discover a contact first. Assets are stored with that profile so they can be reused across studios.</div>';
+    }
+
+    const business = this._currentBusinessDraft() || profile.personalization?.business || {};
+    const assets = profile.personalization.assets || {};
+    const legacy = profile.assets || {};
+    const discovered = this._currentDiscoveredAssets();
+    const visibleDiscovered = discovered.filter((asset) => asset.category !== 'irrelevant');
+    const selectedCount = visibleDiscovered.filter((asset) => asset.selected && !asset.rejected).length;
+
+    const identities = assets.identities?.length
+      ? assets.identities
+      : (legacy.avatar || []).map((url) => ({ url }));
+    const logos = assets.logos?.length
+      ? assets.logos
+      : (legacy.logos || []).map((url) => ({ url }));
+    const products = assets.products?.length
+      ? assets.products
+      : (legacy.productImages || []).map((url) => ({ url }));
+    const single = (value) => value ? [value] : [];
+
+    const editorHtml = this.imageEditorSession
+      ? renderPersonalizationImageEditorPanel(this.imageEditorSession)
+      : '';
+
+    return `
+      <div class="pm-form">
+        ${editorHtml}
+        <div class="pm-section">
+          <div class="pm-section-header">
+            <span class="pm-section-label">Find Business Assets</span>
+            <span class="pm-business-status">${escapeHtml(this.assetDiscoveryStatus || '')}</span>
+          </div>
+          <div class="pm-preview-empty">
+            SmartVideo AI checks the business website with free/static discovery first. Vision analysis is a separate explicit action, so discovery itself does not spend OpenAI image-analysis credits.
+          </div>
+          ${this.assetDiscoveryError ? `<div class="pm-error" role="alert">${escapeHtml(this.assetDiscoveryError)}</div>` : ''}
+          <div class="pm-asset-actions">
+            <button type="button" class="pm-btn pm-btn-primary" data-action="discover-business-assets" ${!business.website || this.isDiscoveringBusinessAssets ? 'disabled' : ''}>
+              ${this.isDiscoveringBusinessAssets ? 'Finding assets…' : 'Find Business Assets'}
+            </button>
+            <button type="button" class="pm-btn pm-btn-secondary" data-action="analyze-selected-assets" ${selectedCount === 0 || this.isAnalyzingBusinessAssets ? 'disabled' : ''}>
+              ${this.isAnalyzingBusinessAssets ? 'Analyzing…' : `Analyze Selected with Vision (${selectedCount})`}
+            </button>
+            <button type="button" class="pm-btn pm-btn-secondary" data-action="video-ready-selected-assets" ${selectedCount === 0 || this.isBatchVideoReady ? 'disabled' : ''}>
+              ${this.isBatchVideoReady ? 'Preparing…' : `Make Selected Video Ready (${selectedCount})`}
+            </button>
+            <button type="button" class="pm-btn pm-btn-secondary" data-action="import-selected-assets" ${selectedCount === 0 || this.isImportingBusinessAssets ? 'disabled' : ''}>
+              ${this.isImportingBusinessAssets ? 'Importing…' : `Import Selected (${selectedCount})`}
+            </button>
+          </div>
+          ${business.website ? `<div class="pm-preview-empty">Website: ${escapeHtml(business.website)}</div>` : '<div class="pm-preview-empty">Add a Website in Business / Client before running discovery.</div>'}
+        </div>
+
+        ${visibleDiscovered.length ? `
+          <div class="pm-section">
+            <div class="pm-section-header">
+              <span class="pm-section-label">Discovered Asset Review</span>
+              <span class="pm-preview-pill pm-preview-pill-muted">${visibleDiscovered.length} candidates</span>
+            </div>
+            <div class="pm-discovered-grid">
+              ${visibleDiscovered.map((asset) => this._renderDiscoveredAssetCard(asset)).join('')}
+            </div>
+          </div>
+        ` : ''}
+
+        <div class="pm-section">
+          <div class="pm-section-header">
+            <span class="pm-section-label">Exact Brand Handling</span>
+            <span class="pm-preview-pill pm-preview-pill-muted">Deterministic by default</span>
+          </div>
+          <div class="pm-preview-empty">
+            Keep exact logos, CTA wording, phone numbers, and URLs out of generative redraws when fidelity matters. These settings travel with studio/Personalizer handoffs.
+          </div>
+          <div class="pm-business-grid">
+            <label class="pm-business-field">
+              <span>Logo Handling</span>
+              <select data-generation-option="exactLogoHandling">
+                <option value="final-overlay" ${profile.personalization.generationOptions?.exactLogoHandling !== 'ai-reference' ? 'selected' : ''}>Final exact overlay</option>
+                <option value="ai-reference" ${profile.personalization.generationOptions?.exactLogoHandling === 'ai-reference' ? 'selected' : ''}>AI reference</option>
+              </select>
+            </label>
+            <label class="pm-business-field">
+              <span>CTA Handling</span>
+              <select data-generation-option="exactCtaHandling">
+                <option value="final-end-card" ${profile.personalization.generationOptions?.exactCtaHandling !== 'ai-generated' ? 'selected' : ''}>Final exact end card</option>
+                <option value="ai-generated" ${profile.personalization.generationOptions?.exactCtaHandling === 'ai-generated' ? 'selected' : ''}>AI generated</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div class="pm-section">
+          <div class="pm-section-header">
+            <span class="pm-section-label">Reusable personalization assets</span>
+            <span class="pm-preview-pill pm-preview-pill-muted">SmartVideo AI Asset Library</span>
+          </div>
+          <div class="pm-preview-empty">
+            Imported assets use SmartVideo-controlled storage. Existing RNE avatar/logo/product assets remain visible for backward compatibility.
+          </div>
+        </div>
+
+        <div class="pm-asset-role-grid">
+          ${this._assetRoleCard('Person / Presenter', 'Face, body, side/profile, presenter and identity references.', identities, 'presenter_identity')}
+          ${this._assetRoleCard('Logo', 'Primary and alternate brand logos.', logos, 'logo')}
+          ${this._assetRoleCard('Products / Services', 'Products, services, completed work and marketing subjects.', products, 'product_reference')}
+          ${this._assetRoleCard('Brand References', 'Brand imagery, environments and style references.', assets.brandReferences || [], 'brand_reference')}
+          ${this._assetRoleCard('First Frame', 'Explicit opening-frame asset; never auto-assigned by discovery.', single(assets.firstFrame), 'first_frame')}
+          ${this._assetRoleCard('Last Frame', 'Explicit ending-frame asset; never auto-assigned by discovery.', single(assets.lastFrame), 'last_frame')}
+          ${this._assetRoleCard('CTA Graphic', 'Exact CTA/logo/phone/URL graphics for deterministic final use.', single(assets.ctaGraphic), 'cta_graphic')}
+          ${this._assetRoleCard('Saved References', 'Reusable references available to compatible generation models.', assets.savedReferences || [], 'saved_reference')}
+          ${this._assetRoleCard('Audio References', 'Reusable audio references for models that explicitly support reference audio.', assets.audio || [], 'audio_reference')}
+        </div>
+      </div>
+    `;
+  }
+
+  async _uploadPersonalizationAssetFile(role, file) {
+    const id = getSelectedContactId();
+    let profile = id ? _getProfile(id) : null;
+    if (!profile || !role || !file) return;
+
+    const expectedAudio = role === 'audio_reference';
+    const singletonRole = ['first_frame', 'last_frame', 'cta_graphic'].includes(role);
+    if (!singletonRole) {
+      const sameRoleCount = getAllPersonalizationAssets(profile).filter((asset) => asset?.role === role).length;
+      if (sameRoleCount >= 10) {
+        throw new Error('This asset section already has the maximum of 10 saved references.');
+      }
+    }
+    if (expectedAudio && !String(file.type || '').startsWith('audio/')) {
+      throw new Error('Audio Reference accepts audio files only.');
+    }
+    if (!expectedAudio && !String(file.type || '').startsWith('image/')) {
+      throw new Error('This personalization asset role accepts image files only.');
+    }
+
+    this.assetDiscoveryError = '';
+    this.assetDiscoveryStatus = `Uploading ${file.name}…`;
+    this.refreshBody();
+
+    try {
+      const { uploadFileToStorage } = await import('../../lib/hybrid-supabase.js');
+      const url = await uploadFileToStorage(file);
+      if (!url) throw new Error('Upload returned no durable URL.');
+
+      const asset = createPersonalizationAsset({
+        role,
+        name: file.name,
+        url,
+        originalUrl: url,
+        sourceType: 'MANUAL_UPLOAD',
+        sourceCategory:
+          role === 'logo' ? 'logo'
+          : role === 'product_reference' ? 'product'
+          : role === 'presenter_identity' ? 'person'
+          : role === 'brand_reference' ? 'brand'
+          : null,
+        mimeType: file.type || null,
+      });
+
+      profile = addPersonalizationAsset(profile, asset);
+      profile.updatedAt = new Date().toISOString();
+      profile.variables = buildVariables(profile, profile.variables || {});
+      if (!this._persistSelectedProfile(profile)) {
+        throw new Error('Could not save the uploaded asset to the selected profile.');
+      }
+      this.assetDiscoveryStatus = `✓ Uploaded ${file.name}`;
+    } catch (error) {
+      this.assetDiscoveryError = error?.message || 'Asset upload failed.';
+      this.assetDiscoveryStatus = '';
+      throw error;
+    } finally {
+      this.refreshBody();
+    }
+  }
+
+  async _handleManualAssetUpload(role) {
+    if (!role) return;
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = role === 'audio_reference' ? 'audio/*' : 'image/*';
+    input.style.display = 'none';
+    document.body.appendChild(input);
+
+    const cleanup = () => {
+      if (input.parentNode) input.parentNode.removeChild(input);
+    };
+
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      try {
+        if (file) await this._uploadPersonalizationAssetFile(role, file);
+      } catch {
+        // Error is already surfaced in the Assets tab.
+      } finally {
+        cleanup();
+      }
+    };
+    input.oncancel = cleanup;
+    input.click();
+  }
+
+  _handleMovePersonalizationAsset(assetId, nextRole) {
+    const id = getSelectedContactId();
+    const profile = id ? _getProfile(id) : null;
+    if (!profile || !assetId || !nextRole) return;
+
+    try {
+      const next = movePersonalizationAsset(profile, assetId, nextRole);
+      next.updatedAt = new Date().toISOString();
+      next.variables = buildVariables(next, next.variables || {});
+      if (!this._persistSelectedProfile(next)) {
+        throw new Error('Could not save the new asset role.');
+      }
+      if (this.assetEditorAssetId === assetId && this.imageEditorController.session) {
+        this.imageEditorController.session.role = nextRole;
+      }
+      this.assetDiscoveryStatus = '✓ Asset moved to its new personalization role';
+      this.assetDiscoveryError = '';
+      this.refreshBody();
+    } catch (error) {
+      this.assetDiscoveryError = error?.message || 'Could not move the asset.';
+      this.refreshBody();
+    }
+  }
+
+  _handleDeletePersonalizationAsset(assetId) {
+    const id = getSelectedContactId();
+    const profile = id ? _getProfile(id) : null;
+    if (!profile || !assetId) return;
+    const next = removePersonalizationAsset(profile, assetId);
+    next.updatedAt = new Date().toISOString();
+    next.variables = buildVariables(next, next.variables || {});
+    if (this._persistSelectedProfile(next)) {
+      if (this.assetEditorAssetId === assetId) {
+        this.assetEditorAssetId = null;
+        this.imageEditorController.close();
+      }
+      this.assetDiscoveryStatus = '✓ Asset removed from this profile';
+      this.refreshBody();
+    }
+  }
+
+  _handleGenerationOptionChange(key, value) {
+    const id = getSelectedContactId();
+    const profile = id ? _getProfile(id) : null;
+    if (!profile || !key) return;
+    const next = setPersonalizationGenerationOptions(profile, { [key]: value });
+    next.updatedAt = new Date().toISOString();
+    if (this._persistSelectedProfile(next)) {
+      this.assetDiscoveryStatus = '✓ Exact brand handling updated';
+      this.refreshBody();
+    }
+  }
+
+  _persistDiscoveredAssets(assets, status = '') {
+    const id = getSelectedContactId();
+    const profile = id ? _getProfile(id) : null;
+    if (!profile) return false;
+    const next = setDiscoveredPersonalizationAssets(profile, assets);
+    next.updatedAt = new Date().toISOString();
+    if (!this._persistSelectedProfile(next)) return false;
+    if (status) this.assetDiscoveryStatus = status;
+    return true;
+  }
+
+  _updateDiscoveredAsset(assetId, patch) {
+    const assets = this._currentDiscoveredAssets().map((asset) =>
+      asset.id === assetId ? { ...asset, ...(typeof patch === 'function' ? patch(asset) : patch) } : asset
+    );
+    this._persistDiscoveredAssets(assets);
+    return assets;
+  }
+
+  async _handleDiscoverBusinessAssets() {
+    const business = this._readBusinessDraftFromDom() || this._currentBusinessDraft();
+    if (!business?.website) {
+      this.assetDiscoveryError = 'Add a Website in Business / Client first.';
+      this.refreshBody();
+      return;
+    }
+
+    this.isDiscoveringBusinessAssets = true;
+    this.assetDiscoveryError = '';
+    this.assetDiscoveryStatus = 'Scanning website with free-first discovery…';
+    this.refreshBody();
+
+    try {
+      const result = await discoverBusinessAssets({
+        websiteUrl: business.website,
+        maxPages: 6,
+        maxImages: 60,
+      });
+      const candidates = result.discoveredAssets || [];
+      this._persistDiscoveredAssets(candidates);
+      this.assetDiscoveryStatus = `✓ Found ${candidates.length} review candidates across ${result.pagesCrawled || 0} page(s)`;
+    } catch (error) {
+      this.assetDiscoveryError = error?.message || 'Business asset discovery failed.';
+      this.assetDiscoveryStatus = '';
+    } finally {
+      this.isDiscoveringBusinessAssets = false;
+      this.refreshBody();
+    }
+  }
+
+  async _analyzeAssetIds(assetIds) {
+    const ids = new Set(assetIds || []);
+    const assets = this._currentDiscoveredAssets().filter((asset) => ids.has(asset.id) && !asset.rejected);
+    if (!assets.length) return;
+
+    const business = this._currentBusinessDraft() || {};
+    this.isAnalyzingBusinessAssets = true;
+    this.assetDiscoveryError = '';
+    this.assetDiscoveryStatus = `Analyzing ${assets.length} asset(s) with SmartVideo AI Vision…`;
+    this.refreshBody();
+
+    try {
+      const analyses = await analyzePersonalizationImages({
+        images: assets.map((asset) => ({
+          id: asset.id,
+          imageUrl: asset.editedUrl || asset.previewUrl || asset.sourceUrl,
+          categoryHint: asset.category,
+          roleHint: asset.assignedRole,
+        })),
+        businessContext: {
+          businessName: business.businessName,
+          industry: business.industry,
+          productService: business.productService,
+          brandDescription: business.brandDescription,
+        },
+      });
+      const byId = new Map(analyses.map((analysis) => [analysis.id, analysis]));
+      const next = this._currentDiscoveredAssets().map((asset) => {
+        const analysis = byId.get(asset.id);
+        if (!analysis) return asset;
+        const oldDefaultRole = defaultRoleForDiscoveredCategory(asset.category);
+        const category = analysis.confidence >= 75 ? analysis.category : asset.category;
+        const assignedRole = asset.assignedRole === oldDefaultRole
+          ? defaultRoleForDiscoveredCategory(category)
+          : asset.assignedRole;
+        return {
+          ...asset,
+          category,
+          assignedRole,
+          confidence: analysis.confidence,
+          qualityScore: analysis.qualityScore,
+          relevanceScore: analysis.relevanceScore,
+          visionAnalysis: analysis,
+          recommended: analysis.relevanceScore >= 65,
+          selected: asset.selected && !analysis.duplicateLikely,
+        };
+      });
+      this._persistDiscoveredAssets(next);
+      this.assetDiscoveryStatus = `✓ Vision analyzed ${analyses.length} asset(s)`;
+    } catch (error) {
+      this.assetDiscoveryError = error?.message || 'Vision analysis failed.';
+      this.assetDiscoveryStatus = '';
+    } finally {
+      this.isAnalyzingBusinessAssets = false;
+      this.refreshBody();
+    }
+  }
+
+  async _handleMakeSelectedVideoReady() {
+    const selected = this._currentDiscoveredAssets().filter((asset) => asset.selected && !asset.rejected);
+    if (!selected.length) return;
+
+    const business = this._currentBusinessDraft() || {};
+    this.isBatchVideoReady = true;
+    this.assetDiscoveryError = '';
+    let completed = 0;
+    const updates = new Map();
+    this.assetDiscoveryStatus = `Preparing 0/${selected.length} assets…`;
+    this.refreshBody();
+
+    try {
+      for (const asset of selected) {
+        this.assetDiscoveryStatus = `Preparing ${completed + 1}/${selected.length}: ${asset.altText || asset.category || 'asset'}…`;
+        this.refreshBody();
+
+        try {
+          const result = await makePersonalizationAssetVideoReady({
+            id: asset.id,
+            url: asset.editedUrl || asset.previewUrl || asset.sourceUrl,
+            originalUrl: asset.sourceUrl || asset.previewUrl,
+            sourceCategory: asset.category,
+            role: asset.assignedRole || defaultRoleForDiscoveredCategory(asset.category),
+            visionAnalysis: asset.visionAnalysis || null,
+          }, {
+            businessContext: {
+              businessName: business.businessName,
+              industry: business.industry,
+              productService: business.productService,
+              brandDescription: business.brandDescription,
+            },
+          });
+
+          const stored = await persistPersonalizationAssetVersion({
+            sourceUrl: result.url,
+            role: asset.assignedRole || defaultRoleForDiscoveredCategory(asset.category),
+            name: `${asset.altText || asset.category || 'Business asset'} — Video Ready`,
+          });
+
+          updates.set(asset.id, {
+            editedUrl: stored.url,
+            stagedDurableUrl: stored.url,
+            stagedRole: asset.assignedRole || defaultRoleForDiscoveredCategory(asset.category),
+            stagedMimeType: stored.mimeType || 'image/png',
+            videoReady: true,
+            visionAnalysis: result.visionAnalysis || asset.visionAnalysis || null,
+            visionValidation: result.visionValidation || null,
+            editMetadata: result.editMetadata || null,
+            batchVideoReadyError: null,
+          });
+          completed += 1;
+        } catch (error) {
+          updates.set(asset.id, {
+            videoReady: false,
+            batchVideoReadyError: error?.message || 'Video Ready preparation failed.',
+            visionValidation: error?.validation || asset.visionValidation || null,
+          });
+        }
+      }
+
+      const next = this._currentDiscoveredAssets().map((asset) =>
+        updates.has(asset.id) ? { ...asset, ...updates.get(asset.id) } : asset
+      );
+      this._persistDiscoveredAssets(next);
+      const failed = selected.length - completed;
+      this.assetDiscoveryStatus = failed
+        ? `Prepared ${completed}/${selected.length}; ${failed} need review`
+        : `✓ ${completed} selected assets are Video Ready`;
+    } catch (error) {
+      this.assetDiscoveryError = error?.message || 'Batch Video Ready failed.';
+    } finally {
+      this.isBatchVideoReady = false;
+      this.refreshBody();
+    }
+  }
+
+  async _importOneDiscoveredAsset(asset) {
+    const id = getSelectedContactId();
+    let profile = id ? _getProfile(id) : null;
+    if (!profile || !asset) throw new Error('The selected personalization profile is unavailable.');
+
+    try {
+      const imported = await importDiscoveredAsset(asset, {
+        role: asset.assignedRole || defaultRoleForDiscoveredCategory(asset.category),
+        name: asset.altText || asset.category,
+      });
+
+      profile = addPersonalizationAsset(profile, imported);
+      const discoveredState = this._currentDiscoveredAssets().map((candidate) =>
+        candidate.id === asset.id
+          ? { ...candidate, importedAssetId: imported.id, selected: false, importError: null }
+          : candidate
+      );
+      profile = setDiscoveredPersonalizationAssets(profile, discoveredState);
+      profile.updatedAt = new Date().toISOString();
+      profile.variables = buildVariables(profile, profile.variables || {});
+
+      if (!this._persistSelectedProfile(profile)) {
+        throw new Error('The asset uploaded, but its profile record could not be saved.');
+      }
+      return imported;
+    } catch (error) {
+      const message = error?.message || 'Asset import failed.';
+      this._updateDiscoveredAsset(asset.id, { importError: message });
+      throw error;
+    }
+  }
+
+  async _handleRetryDiscoveredImport(assetId) {
+    const asset = this._currentDiscoveredAssets().find((candidate) => candidate.id === assetId);
+    if (!asset) return;
+    this.isImportingBusinessAssets = true;
+    this.assetDiscoveryError = '';
+    this.assetDiscoveryStatus = 'Retrying asset import…';
+    this.refreshBody();
+    try {
+      await this._importOneDiscoveredAsset(asset);
+      this.assetDiscoveryStatus = '✓ Asset imported successfully';
+    } catch (error) {
+      this.assetDiscoveryError = error?.message || 'Asset import retry failed.';
+      this.assetDiscoveryStatus = '';
+    } finally {
+      this.isImportingBusinessAssets = false;
+      this.refreshBody();
+    }
+  }
+
+  async _handleImportSelectedAssets() {
+    const selected = this._currentDiscoveredAssets().filter(
+      (asset) => asset.selected && !asset.rejected && asset.category !== 'irrelevant'
+    );
+    if (!selected.length) return;
+
+    this.isImportingBusinessAssets = true;
+    this.assetDiscoveryError = '';
+    this.assetDiscoveryStatus = `Importing ${selected.length} selected asset(s)…`;
+    this.refreshBody();
+
+    let importedCount = 0;
+    const failures = [];
+    try {
+      for (let index = 0; index < selected.length; index += 1) {
+        const asset = selected[index];
+        this.assetDiscoveryStatus = `Importing ${index + 1}/${selected.length}: ${asset.altText || asset.category || 'asset'}…`;
+        this.refreshBody();
+        try {
+          await this._importOneDiscoveredAsset(asset);
+          importedCount += 1;
+        } catch (error) {
+          failures.push({
+            id: asset.id,
+            message: error?.message || 'Import failed',
+          });
+        }
+      }
+
+      if (failures.length) {
+        this.assetDiscoveryError = `${failures.length} asset(s) failed to import. Use Retry Import on the affected cards.`;
+        this.assetDiscoveryStatus = importedCount
+          ? `✓ Imported ${importedCount}/${selected.length}; ${failures.length} need retry`
+          : '';
+      } else {
+        this.assetDiscoveryStatus = `✓ Imported ${importedCount} durable asset(s)`;
+      }
+    } finally {
+      this.isImportingBusinessAssets = false;
+      this.refreshBody();
+    }
+  }
+
+  _updateEditorBusyLabel() {
+    const busy = this.overlay?.querySelector('.pm-editor-busy');
+    if (busy && this.imageEditorSession?.busyLabel) {
+      busy.textContent = this.imageEditorSession.busyLabel;
+    }
+  }
+
+  _editorBusinessContext() {
+    const profile = this._selectedUnifiedProfile();
+    const business = this._currentBusinessDraft() || profile?.personalization?.business || {};
+    return {
+      businessName: business.businessName || '',
+      industry: business.industry || '',
+      productService: business.productService || '',
+      brandDescription: business.brandDescription || '',
+      offer: business.offer || '',
+      callToAction: business.callToAction || '',
+    };
+  }
+
+  _findImportedPersonalizationAsset(assetId) {
+    const profile = this._selectedUnifiedProfile();
+    return getAllPersonalizationAssets(profile || {}).find((asset) => asset?.id === assetId) || null;
+  }
+
+  _openAssetEditor(assetId, source = 'discovered') {
+    if (!assetId) return;
+    let asset = null;
+    let resolvedSource = source;
+
+    if (source === 'imported') {
+      asset = this._findImportedPersonalizationAsset(assetId);
+    } else {
+      const discovered = this._currentDiscoveredAssets().find((candidate) => candidate.id === assetId);
+      if (discovered) {
+        asset = {
+          ...discovered,
+          name: discovered.altText || discovered.category || 'Discovered Business Asset',
+          role: discovered.assignedRole || defaultRoleForDiscoveredCategory(discovered.category),
+          sourceCategory: discovered.category,
+          url: discovered.editedUrl || discovered.previewUrl || discovered.sourceUrl,
+          originalUrl: discovered.sourceUrl || discovered.previewUrl,
+        };
+      } else {
+        asset = this._findImportedPersonalizationAsset(assetId);
+        resolvedSource = 'imported';
+      }
+    }
+
+    if (!asset) {
+      this.assetDiscoveryError = 'Could not find the selected personalization asset.';
+      this.refreshBody();
+      return;
+    }
+
+    this._forcedTab = 'assets';
+    this.assetEditorAssetId = assetId;
+    this.imageEditorController.open(asset, {
+      source: resolvedSource,
+      businessContext: this._editorBusinessContext(),
+    });
+  }
+
+  _closeAssetEditor() {
+    this.assetEditorAssetId = null;
+    this.imageEditorController.close();
+  }
+
+  _persistEditorAnalysis() {
+    const session = this.imageEditorController.session;
+    if (!session?.visionAnalysis) return;
+
+    if (session.source === 'discovered') {
+      this._updateDiscoveredAsset(session.assetId, {
+        visionAnalysis: session.visionAnalysis,
+        category: session.visionAnalysis.confidence >= 75
+          ? session.visionAnalysis.category
+          : session.category,
+        qualityScore: session.visionAnalysis.qualityScore,
+        relevanceScore: session.visionAnalysis.relevanceScore,
+      });
+      return;
+    }
+
+    const id = getSelectedContactId();
+    const profile = id ? _getProfile(id) : null;
+    if (!profile) return;
+    const next = updatePersonalizationAsset(profile, session.assetId, {
+      visionAnalysis: session.visionAnalysis,
+      sourceCategory: session.category,
+    });
+    next.updatedAt = new Date().toISOString();
+    this._persistSelectedProfile(next);
+  }
+
+  async _handleEditorAnalyze() {
+    await this.imageEditorController.analyze();
+    this._persistEditorAnalysis();
+  }
+
+  async _handleEditorOperation(operationId) {
+    await this.imageEditorController.runOperation(operationId);
+  }
+
+  async _handleEditorSmartEdit() {
+    await this.imageEditorController.smartEdit();
+  }
+
+  async _handleEditorVideoReady() {
+    await this.imageEditorController.makeVideoReady();
+  }
+
+  async _handleEditorApplyLocal() {
+    await this.imageEditorController.applyLocal();
+  }
+
+  async _handleEditorMask() {
+    await this.imageEditorController.toggleMask();
+  }
+
+  _mountActiveEditorMask() {
+    const session = this.imageEditorController.session;
+    if (!session?.maskMode) return;
+    const host = this.overlay?.querySelector('[data-editor-mask-host]');
+    if (host) this.imageEditorController.mountMask(host);
+  }
+
+  _serializedEditorVersions(session) {
+    return (session?.versions || []).map((version) => ({
+      id: version.id,
+      label: version.label,
+      url: version.dataUrl,
+      operation: version.operation,
+      prompt: version.prompt || '',
+      model: version.model || '',
+      transparent: Boolean(version.transparent),
+      videoReady: Boolean(version.videoReady),
+      responseId: version.responseId || null,
+      imageGenerationCallId: version.imageGenerationCallId || null,
+      revisedPrompt: version.revisedPrompt || null,
+      quality: version.quality || null,
+      outputFormat: version.outputFormat || null,
+      outputCompression: typeof version.outputCompression === 'number' ? version.outputCompression : null,
+      inputFidelity: version.inputFidelity || null,
+      visionValidation: version.visionValidation || null,
+      createdAt: version.createdAt || new Date().toISOString(),
+    }));
+  }
+
+  async _handleEditorApply() {
+    const controller = this.imageEditorController;
+    const session = controller.session;
+    if (!session) return;
+
+    const qa = await controller.validateCurrent();
+    if (!qa.ok) return;
+
+    try {
+      session.busyLabel = 'Saving accepted edit versions…';
+      this._updateEditorBusyLabel();
+      await controller.persistVersions();
+      const current = controller.currentVersion();
+      if (!current?.dataUrl) throw new Error('No edited version is available to save.');
+
+      const versions = this._serializedEditorVersions(session);
+      const editMetadata = {
+        operation: current.operation,
+        prompt: current.prompt || '',
+        model: current.model || '',
+        responseId: current.responseId || null,
+        imageGenerationCallId: current.imageGenerationCallId || null,
+        revisedPrompt: current.revisedPrompt || null,
+        quality: current.quality || null,
+        outputFormat: current.outputFormat || session.outputFormat || null,
+        outputCompression: typeof current.outputCompression === 'number'
+          ? current.outputCompression
+          : (typeof session.outputCompression === 'number' ? session.outputCompression : null),
+        inputFidelity: current.inputFidelity || null,
+        acceptedAt: new Date().toISOString(),
+      };
+
+      if (session.source === 'discovered') {
+        this._updateDiscoveredAsset(session.assetId, {
+          editedUrl: current.dataUrl,
+          stagedDurableUrl: current.dataUrl,
+          stagedRole: session.role,
+          stagedMimeType: current.mimeType || null,
+          videoReady: Boolean(current.videoReady),
+          visionAnalysis: session.visionAnalysis || null,
+          visionValidation: current.visionValidation || null,
+          editMetadata,
+          versions,
+          selected: true,
+        });
+        this.assetDiscoveryStatus = '✓ Edited asset saved. Import it when you are ready to add it to the reusable library.';
+      } else {
+        const id = getSelectedContactId();
+        const profile = id ? _getProfile(id) : null;
+        if (!profile) throw new Error('The selected personalization profile is no longer available.');
+        let next = updatePersonalizationAsset(profile, session.assetId, (asset) => ({
+          ...asset,
+          url: current.dataUrl,
+          edited: current.dataUrl !== (asset.originalUrl || current.dataUrl),
+          videoReady: Boolean(current.videoReady),
+          hasTransparency: Boolean(current.transparent),
+          visionAnalysis: session.visionAnalysis || asset.visionAnalysis || null,
+          visionValidation: current.visionValidation || null,
+          editMetadata,
+          versions,
+        }));
+        next.updatedAt = new Date().toISOString();
+        next.variables = buildVariables(next, next.variables || {});
+        if (!this._persistSelectedProfile(next)) throw new Error('Could not save the edited asset profile.');
+        this.assetDiscoveryStatus = '✓ Edited reusable asset saved';
+      }
+
+      this.assetEditorAssetId = null;
+      controller.close();
+    } catch (error) {
+      session.busyLabel = '';
+      session.error = error?.message || 'Could not save the edited asset.';
+      this.refreshBody();
+    }
+  }
+
+  async _handleFindBusinesses() {
+    const location = this.overlay?.querySelector('#pm-business-search-location')?.value?.trim()
+      || this._currentBusinessDraft()?.location
+      || '';
+    const niche = this.overlay?.querySelector('#pm-business-search-niche')?.value || this.businessSearchNiche;
+    const radiusMiles = Number(this.overlay?.querySelector('#pm-business-search-radius')?.value || this.businessSearchRadius || 15);
+
+    if (!location) {
+      this.businessSearchError = 'Enter a city, ZIP code, or location first.';
+      this.refreshBody();
+      return;
+    }
+
+    this.businessSearchNiche = niche;
+    this.businessSearchRadius = radiusMiles;
+    this.isSearchingBusinesses = true;
+    this.businessSearchError = '';
+    this.businessSearchStatus = 'Searching OpenStreetMap…';
+    this.refreshBody();
+
+    try {
+      const result = await findBusinesses({ niche, location, radiusMiles, limit: 20 });
+      this.businessSearchResults = Array.isArray(result?.businesses) ? result.businesses : [];
+      this.businessSearchStatus = `✓ Found ${this.businessSearchResults.length} businesses near ${result?.geocode?.displayName || location}`;
+    } catch (error) {
+      this.businessSearchResults = [];
+      this.businessSearchError = error?.message || 'Business search failed.';
+      this.businessSearchStatus = '';
+    } finally {
+      this.isSearchingBusinesses = false;
+      this.refreshBody();
+    }
+  }
+
+  _applyBusinessSearchResult(index) {
+    const business = this.businessSearchResults[Number(index)];
+    if (!business) return;
+    const current = this._readBusinessDraftFromDom() || this._currentBusinessDraft() || {};
+    this.businessDraft = {
+      ...current,
+      businessName: business.name || current.businessName || '',
+      website: business.website || current.website || '',
+      industry: business.category || current.industry || '',
+      location: business.address || [business.city, business.region].filter(Boolean).join(', ') || current.location || '',
+      phone: business.phone || current.phone || '',
+      email: business.email || current.email || '',
+    };
+    this.businessSaveStatus = 'Business selected — save when ready';
+    this.businessSearchError = '';
+    this.refreshBody();
+  }
+
+  async _handleResearchBusiness(index) {
+    const business = this.businessSearchResults[Number(index)];
+    if (!business?.website) return;
+    this.isResearchingBusiness = true;
+    this.businessSearchError = '';
+    this.businessSearchStatus = `Researching ${business.name || 'business'} website…`;
+    this.refreshBody();
+    try {
+      const result = await researchBusiness({ websiteUrl: business.website });
+      const research = result?.research || {};
+      const current = this._currentBusinessDraft() || {};
+      this.businessDraft = {
+        ...current,
+        businessName: business.name || current.businessName || research.title || '',
+        website: research.finalUrl || business.website || current.website || '',
+        industry: business.category || current.industry || '',
+        location: business.address || current.location || research.contactInfo?.addresses?.[0] || '',
+        phone: business.phone || research.contactInfo?.phones?.[0] || current.phone || '',
+        email: business.email || research.contactInfo?.emails?.[0] || current.email || '',
+        brandDescription: research.description || current.brandDescription || '',
+      };
+      this.businessSaveStatus = '✓ Website research applied — save when ready';
+      this.businessSearchStatus = '✓ Free website research complete';
+    } catch (error) {
+      this.businessSearchError = error?.message || 'Business website research failed.';
+      this.businessSearchStatus = '';
+    } finally {
+      this.isResearchingBusiness = false;
+      this.refreshBody();
+    }
+  }
+
+  _persistSelectedProfile(profile) {
+    if (!profile?.id) return false;
+    try {
+      const profiles = JSON.parse(localStorage.getItem(PROFILES_KEY) || '[]');
+      const idx = profiles.findIndex((p) => p.id === profile.id);
+      if (idx >= 0) profiles[idx] = profile;
+      else profiles.unshift(profile);
+      localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  _handleAudienceChange(audience) {
+    if (!['me', 'my-business', 'client'].includes(audience)) return;
+    const draft = this._readBusinessDraftFromDom() || this._currentBusinessDraft();
+    this.businessDraft = { ...draft, audience };
+    this.businessSaveStatus = '';
+    this.refreshBody();
+  }
+
+  _handleSaveBusinessProfile() {
+    const id = getSelectedContactId();
+    const profile = id ? _getProfile(id) : null;
+    if (!profile) {
+      this.errorMessage = 'Select or discover a contact before saving a business profile.';
+      this.refreshBody();
+      return;
+    }
+
+    const draft = this._readBusinessDraftFromDom();
+    let next = updatePersonalizationBusiness(profile, draft || {});
+    next.updatedAt = new Date().toISOString();
+    next.variables = buildVariables(next, next.variables || {});
+    if (!this._persistSelectedProfile(next)) {
+      this.errorMessage = 'Could not save the business profile in this browser.';
+      this.refreshBody();
+      return;
+    }
+
+    this.businessDraft = null;
+    this.businessSaveStatus = '✓ Saved';
+    this.errorMessage = '';
+    this._refreshProfileSummary();
+    this.refreshBody();
+    window.dispatchEvent(new CustomEvent('remix:contact-changed', { detail: { contactId: id } }));
   }
 
   _renderHistory() {
@@ -2397,6 +4082,9 @@ export class PersonalizeModal extends BaseModal {
           btn.onclick = (e) => {
             e.stopPropagation();
             if (btn.disabled) return;
+            if (this._activeTab() === 'business' && btn.dataset.tab !== 'business') {
+              this._readBusinessDraftFromDom();
+            }
             this._forcedTab = btn.dataset.tab;
             this.refreshBody();
             this._announce(`Showing ${btn.dataset.tab} tab`);
@@ -2473,6 +4161,191 @@ export class PersonalizeModal extends BaseModal {
           };
         });
 
+        scope.querySelectorAll('[data-action="find-businesses"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._handleFindBusinesses();
+          };
+        });
+
+        scope.querySelectorAll('[data-action="select-business-result"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._applyBusinessSearchResult(btn.dataset.businessIndex);
+          };
+        });
+
+        scope.querySelectorAll('[data-action="research-business-result"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._handleResearchBusiness(btn.dataset.businessIndex);
+          };
+        });
+
+        scope.querySelectorAll('[data-generation-option]').forEach((select) => {
+          select.onchange = () => {
+            this._handleGenerationOptionChange(select.dataset.generationOption, select.value);
+          };
+        });
+
+        scope.querySelectorAll('[data-imported-asset-role]').forEach((select) => {
+          select.onchange = (e) => {
+            e.stopPropagation();
+            this._handleMovePersonalizationAsset(select.dataset.importedAssetRole, select.value);
+          };
+        });
+
+        scope.querySelectorAll('[data-action="delete-personalization-asset"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._handleDeletePersonalizationAsset(btn.dataset.assetId);
+          };
+        });
+
+        scope.querySelectorAll('[data-asset-drop-role]').forEach((card) => {
+          card.ondragover = (e) => {
+            e.preventDefault();
+            card.classList.add('drag-over');
+          };
+          card.ondragleave = () => card.classList.remove('drag-over');
+          card.ondrop = async (e) => {
+            e.preventDefault();
+            card.classList.remove('drag-over');
+            const file = e.dataTransfer?.files?.[0];
+            if (!file) return;
+            try {
+              await this._uploadPersonalizationAssetFile(card.dataset.assetDropRole, file);
+            } catch {
+              // Error already rendered.
+            }
+          };
+        });
+
+        scope.querySelectorAll('[data-action="upload-personalization-asset"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._handleManualAssetUpload(btn.dataset.uploadRole);
+          };
+        });
+
+        scope.querySelectorAll('[data-action="discover-business-assets"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._handleDiscoverBusinessAssets();
+          };
+        });
+
+        scope.querySelectorAll('[data-action="analyze-selected-assets"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            const ids = this._currentDiscoveredAssets()
+              .filter((asset) => asset.selected && !asset.rejected)
+              .map((asset) => asset.id);
+            this._analyzeAssetIds(ids);
+          };
+        });
+
+        scope.querySelectorAll('[data-action="analyze-one-asset"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._analyzeAssetIds([btn.dataset.assetId]);
+          };
+        });
+
+        scope.querySelectorAll('[data-action="video-ready-selected-assets"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._handleMakeSelectedVideoReady();
+          };
+        });
+
+        scope.querySelectorAll('[data-action="retry-discovered-import"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._handleRetryDiscoveredImport(btn.dataset.assetId);
+          };
+        });
+
+        scope.querySelectorAll('[data-action="import-selected-assets"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._handleImportSelectedAssets();
+          };
+        });
+
+        scope.querySelectorAll('[data-discovered-select]').forEach((input) => {
+          input.onchange = () => {
+            this._updateDiscoveredAsset(input.dataset.discoveredSelect, { selected: input.checked });
+            this.refreshBody();
+          };
+        });
+
+        scope.querySelectorAll('[data-discovered-category]').forEach((select) => {
+          select.onchange = () => {
+            const id = select.dataset.discoveredCategory;
+            const current = this._currentDiscoveredAssets().find((asset) => asset.id === id);
+            if (!current) return;
+            const wasDefault = current.assignedRole === defaultRoleForDiscoveredCategory(current.category);
+            this._updateDiscoveredAsset(id, {
+              category: select.value,
+              assignedRole: wasDefault ? defaultRoleForDiscoveredCategory(select.value) : current.assignedRole,
+              visionAnalysis: null,
+            });
+            this.refreshBody();
+          };
+        });
+
+        scope.querySelectorAll('[data-discovered-role]').forEach((select) => {
+          select.onchange = () => {
+            this._updateDiscoveredAsset(select.dataset.discoveredRole, { assignedRole: select.value });
+            this.refreshBody();
+          };
+        });
+
+        scope.querySelectorAll('[data-action="reject-discovered"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._updateDiscoveredAsset(btn.dataset.assetId, { rejected: true, selected: false });
+            this.refreshBody();
+          };
+        });
+
+        scope.querySelectorAll('[data-action="restore-discovered"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._updateDiscoveredAsset(btn.dataset.assetId, { rejected: false });
+            this.refreshBody();
+          };
+        });
+
+        scope.querySelectorAll('[data-action="open-asset-editor"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._openAssetEditor(btn.dataset.assetId, 'discovered');
+          };
+        });
+
+        scope.querySelectorAll('[data-action="open-imported-asset-editor"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._openAssetEditor(btn.dataset.assetId, 'imported');
+          };
+        });
+
+        scope.querySelectorAll('[data-audience]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._handleAudienceChange(btn.dataset.audience);
+          };
+        });
+
+        scope.querySelectorAll('[data-action="save-business-profile"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._handleSaveBusinessProfile();
+          };
+        });
+
         scope.querySelectorAll('[data-action="clear-contact"]').forEach((btn) => {
           btn.onclick = (e) => {
             e.stopPropagation();
@@ -2493,8 +4366,114 @@ export class PersonalizeModal extends BaseModal {
             this._insertToken(chip);
           };
         });
+
+        this._bindImageEditorActions(scope);
       }
     }
+
+  _bindImageEditorActions(scope) {
+    const controller = this.imageEditorController;
+    const session = controller?.session;
+    if (!scope || !session) return;
+
+    scope.querySelectorAll('[data-editor-action]').forEach((btn) => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        const action = btn.dataset.editorAction;
+        if (action === 'close') this._closeAssetEditor();
+        else if (action === 'analyze') this._handleEditorAnalyze();
+        else if (action === 'video-ready') this._handleEditorVideoReady();
+        else if (action === 'smart-edit') this._handleEditorSmartEdit();
+        else if (action === 'compare') controller.toggleCompare();
+        else if (action === 'safe-area') controller.toggleSafeArea();
+        else if (action === 'advanced') controller.setMode('advanced');
+        else if (action === 'simple') controller.setMode('simple');
+        else if (action === 'revert-original') controller.revertOriginal();
+        else if (action === 'undo') controller.undo();
+        else if (action === 'redo') controller.redo();
+        else if (action === 'mask') this._handleEditorMask();
+        else if (action === 'apply-local') this._handleEditorApplyLocal();
+        else if (action === 'apply') this._handleEditorApply();
+      };
+    });
+
+    scope.querySelectorAll('[data-editor-operation]').forEach((btn) => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        this._handleEditorOperation(btn.dataset.editorOperation);
+      };
+    });
+
+    scope.querySelectorAll('[data-editor-version]').forEach((btn) => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        controller.chooseVersion(Number(btn.dataset.editorVersion));
+      };
+    });
+
+    scope.querySelectorAll('[data-editor-group]').forEach((btn) => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        controller.setGroup(btn.dataset.editorGroup);
+      };
+    });
+
+    const smartPrompt = scope.querySelector('[data-editor-smart-prompt]');
+    if (smartPrompt) {
+      smartPrompt.oninput = () => {
+        controller.setSmartPrompt(smartPrompt.value);
+        const run = scope.querySelector('[data-editor-action="smart-edit"]');
+        if (run) run.disabled = !smartPrompt.value.trim() || Boolean(session.busyLabel);
+      };
+    }
+
+    scope.querySelectorAll('[data-editor-setting]').forEach((select) => {
+      select.onchange = () => controller.setSetting(select.dataset.editorSetting, select.value);
+    });
+
+    scope.querySelectorAll('[data-editor-protection]').forEach((input) => {
+      input.onchange = () => controller.setProtection(input.dataset.editorProtection, input.checked);
+    });
+
+    scope.querySelectorAll('[data-editor-local]').forEach((input) => {
+      input.oninput = () => {
+        const key = input.dataset.editorLocal;
+        controller.setLocalControl(key, Number(input.value));
+        const value = scope.querySelector(`[data-editor-local-value="${key}"]`);
+        if (value) value.textContent = `${input.value}${input.dataset.editorSuffix || ''}`;
+      };
+    });
+
+    scope.querySelectorAll('[data-editor-local-select]').forEach((select) => {
+      select.onchange = () => controller.setLocalControl(select.dataset.editorLocalSelect, select.value);
+    });
+
+    scope.querySelectorAll('[data-editor-local-text]').forEach((input) => {
+      input.oninput = () => controller.setLocalControl(input.dataset.editorLocalText, input.value);
+    });
+
+    scope.querySelectorAll('[data-editor-local-action]').forEach((btn) => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        const action = btn.dataset.editorLocalAction;
+        const controls = controller.session?.localControls;
+        if (!controls) return;
+        if (action === 'rotate') {
+          controller.setLocalControl('rotation', (Number(controls.rotation) + 90) % 360);
+        } else if (action === 'flipX') {
+          const next = !controls.flipX;
+          controller.setLocalControl('flipX', next);
+          btn.classList.toggle('active', next);
+        } else if (action === 'flipY') {
+          const next = !controls.flipY;
+          controller.setLocalControl('flipY', next);
+          btn.classList.toggle('active', next);
+        }
+      };
+    });
+
+    this._mountActiveEditorMask();
+  }
 
   /**
    * Insert a token chip's canonical `{{key}}` at the host textarea's cursor.
@@ -2861,6 +4840,8 @@ export class PersonalizeModal extends BaseModal {
 
   _setSelectedContact(contactId) {
     this.selectedContactId = contactId || null;
+    this.businessDraft = null;
+    this.businessSaveStatus = '';
     setSelectedContactId(contactId || null);
     this._refreshContactsList();
     this._refreshProfileSummary();
@@ -3153,6 +5134,10 @@ export class PersonalizeModal extends BaseModal {
         updatedAt: new Date().toISOString(),
       };
 
+      // Add the non-breaking unified SmartVideo AI personalization extension.
+      const unifiedProfile = ensurePersonalizationProfile(profile);
+      Object.assign(profile, unifiedProfile);
+
       // Derive the complete token map from the profile via the shared schema.
       profile.variables = buildVariables(profile, {
         firstName,
@@ -3197,7 +5182,11 @@ export class PersonalizeModal extends BaseModal {
         ta.value = replaceTokensInPrompt(ta.value, profile);
         ta.dispatchEvent(new Event('input', { bubbles: true }));
       }
-      this.onApply({ contactId: id, profile });
+      const personalization = buildPersonalizationContext(profile);
+      this.onApply({ contactId: id, profile, personalization });
+      window.dispatchEvent(new CustomEvent('remix:personalization-applied', {
+        detail: { contactId: id, profile, personalization, studioId: this.studioId || '' },
+      }));
     }
     this.close();
   }
@@ -3232,6 +5221,36 @@ export class PersonalizeModal extends BaseModal {
         fields: personalizableFields,
         metadata: { source: 'personalize-modal-fallback' },
       };
+    }
+
+    if (asset && profile) {
+      const personalization = buildPersonalizationContext(profile);
+      const ta = this.getTextarea?.();
+      asset = {
+        ...asset,
+        fields: Array.isArray(asset.fields) ? asset.fields : [],
+        metadata: {
+          ...(asset.metadata || {}),
+          personalization,
+          personalizedPrompt: ta?.value ? replaceTokensInPrompt(ta.value, profile) : undefined,
+        },
+      };
+    }
+
+    if (asset) {
+      const stripBlob = (value) => {
+        if (typeof value === 'string') return value.startsWith('blob:') ? '' : value;
+        if (Array.isArray(value)) return value.map(stripBlob).filter(Boolean);
+        if (value && typeof value === 'object') {
+          return Object.fromEntries(
+            Object.entries(value)
+              .map(([key, nested]) => [key, stripBlob(nested)])
+              .filter(([, nested]) => nested !== '' && nested !== undefined)
+          );
+        }
+        return value;
+      };
+      asset = stripBlob(asset);
     }
 
     if (!asset) {
@@ -3370,6 +5389,9 @@ export class PersonalizeModal extends BaseModal {
     else if (e.key === 'End') next = tabs[tabs.length - 1];
     if (next) {
       e.preventDefault();
+      if (this._activeTab() === 'business' && next.dataset.tab !== 'business') {
+        this._readBusinessDraftFromDom();
+      }
       this._forcedTab = next.dataset.tab;
       this.refreshBody();
       this.overlay.querySelector(`#pm-tab-${next.dataset.tab}`)?.focus();
