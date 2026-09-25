@@ -123,10 +123,9 @@ function _getProfile(id) {
 
 async function getSession() {
   try {
-    const { createClient } = await import('../../lib/supabase.js');
-    const supabase = createClient();
+    const { supabase } = await import('../../lib/supabase.js');
     const { data } = await supabase.auth.getSession();
-    return data.session;
+    return data?.session || null;
   } catch {
     return null;
   }
@@ -326,6 +325,16 @@ export class PersonalizeModal extends BaseModal {
       const input = this.overlay?.querySelector('#pm-input');
       if (input && document.activeElement !== input) input.focus();
     }, 80);
+  }
+
+  handleKeyDown(e) {
+    if (e.key === 'Escape' && this.imageEditorController?.session) {
+      e.preventDefault();
+      e.stopPropagation();
+      this._closeAssetEditor();
+      return;
+    }
+    super.handleKeyDown(e);
   }
 
   setBodyContent(html) {
@@ -2630,12 +2639,14 @@ export class PersonalizeModal extends BaseModal {
           ${vision?.summary ? `<div class="pm-discovered-summary">${escapeHtml(vision.summary)}</div>` : ''}
           ${vision?.issues?.length ? `<div class="pm-discovered-summary"><strong>Issues:</strong> ${escapeHtml(vision.issues.join(' • '))}</div>` : ''}
           ${asset.batchVideoReadyError ? `<div class="pm-error" role="alert">${escapeHtml(asset.batchVideoReadyError)}</div>` : ''}
+          ${asset.importError ? `<div class="pm-error" role="alert">${escapeHtml(asset.importError)}</div>` : ''}
           <div class="pm-discovered-source" title="${escapeHtml(asset.sourceUrl || '')}">${escapeHtml(asset.sourceUrl || '')}</div>
           <div class="pm-discovered-footer">
             <button type="button" class="pm-small-btn" data-action="${asset.rejected ? 'restore-discovered' : 'reject-discovered'}" data-asset-id="${escapeHtml(asset.id)}">
               ${asset.rejected ? 'Restore' : 'Reject'}
             </button>
             ${asset.visionAnalysis ? '' : `<button type="button" class="pm-small-btn" data-action="analyze-one-asset" data-asset-id="${escapeHtml(asset.id)}">Vision</button>`}
+            ${asset.importError ? `<button type="button" class="pm-small-btn" data-action="retry-discovered-import" data-asset-id="${escapeHtml(asset.id)}">Retry Import</button>` : ''}
             <button type="button" class="pm-small-btn" data-action="open-asset-editor" data-asset-id="${escapeHtml(asset.id)}" ${asset.rejected ? 'disabled' : ''}>Edit</button>
           </div>
         </div>
@@ -2653,7 +2664,8 @@ export class PersonalizeModal extends BaseModal {
     const assets = profile.personalization.assets || {};
     const legacy = profile.assets || {};
     const discovered = this._currentDiscoveredAssets();
-    const selectedCount = discovered.filter((asset) => asset.selected && !asset.rejected).length;
+    const visibleDiscovered = discovered.filter((asset) => asset.category !== 'irrelevant');
+    const selectedCount = visibleDiscovered.filter((asset) => asset.selected && !asset.rejected).length;
 
     const identities = assets.identities?.length
       ? assets.identities
@@ -2699,14 +2711,14 @@ export class PersonalizeModal extends BaseModal {
           ${business.website ? `<div class="pm-preview-empty">Website: ${escapeHtml(business.website)}</div>` : '<div class="pm-preview-empty">Add a Website in Business / Client before running discovery.</div>'}
         </div>
 
-        ${discovered.length ? `
+        ${visibleDiscovered.length ? `
           <div class="pm-section">
             <div class="pm-section-header">
               <span class="pm-section-label">Discovered Asset Review</span>
-              <span class="pm-preview-pill pm-preview-pill-muted">${discovered.length} candidates</span>
+              <span class="pm-preview-pill pm-preview-pill-muted">${visibleDiscovered.length} candidates</span>
             </div>
             <div class="pm-discovered-grid">
-              ${discovered.map((asset) => this._renderDiscoveredAssetCard(asset)).join('')}
+              ${visibleDiscovered.map((asset) => this._renderDiscoveredAssetCard(asset)).join('')}
             </div>
           </div>
         ` : ''}
@@ -2768,6 +2780,13 @@ export class PersonalizeModal extends BaseModal {
     if (!profile || !role || !file) return;
 
     const expectedAudio = role === 'audio_reference';
+    const singletonRole = ['first_frame', 'last_frame', 'cta_graphic'].includes(role);
+    if (!singletonRole) {
+      const sameRoleCount = getAllPersonalizationAssets(profile).filter((asset) => asset?.role === role).length;
+      if (sameRoleCount >= 10) {
+        throw new Error('This asset section already has the maximum of 10 saved references.');
+      }
+    }
     if (expectedAudio && !String(file.type || '').startsWith('audio/')) {
       throw new Error('Audio Reference accepts audio files only.');
     }
@@ -3079,55 +3098,94 @@ export class PersonalizeModal extends BaseModal {
     }
   }
 
-  async _handleImportSelectedAssets() {
-    const selected = this._currentDiscoveredAssets().filter((asset) => asset.selected && !asset.rejected);
-    if (!selected.length) return;
-
+  async _importOneDiscoveredAsset(asset) {
     const id = getSelectedContactId();
     let profile = id ? _getProfile(id) : null;
-    if (!profile) return;
+    if (!profile || !asset) throw new Error('The selected personalization profile is unavailable.');
+
+    try {
+      const imported = await importDiscoveredAsset(asset, {
+        role: asset.assignedRole || defaultRoleForDiscoveredCategory(asset.category),
+        name: asset.altText || asset.category,
+      });
+
+      profile = addPersonalizationAsset(profile, imported);
+      const discoveredState = this._currentDiscoveredAssets().map((candidate) =>
+        candidate.id === asset.id
+          ? { ...candidate, importedAssetId: imported.id, selected: false, importError: null }
+          : candidate
+      );
+      profile = setDiscoveredPersonalizationAssets(profile, discoveredState);
+      profile.updatedAt = new Date().toISOString();
+      profile.variables = buildVariables(profile, profile.variables || {});
+
+      if (!this._persistSelectedProfile(profile)) {
+        throw new Error('The asset uploaded, but its profile record could not be saved.');
+      }
+      return imported;
+    } catch (error) {
+      const message = error?.message || 'Asset import failed.';
+      this._updateDiscoveredAsset(asset.id, { importError: message });
+      throw error;
+    }
+  }
+
+  async _handleRetryDiscoveredImport(assetId) {
+    const asset = this._currentDiscoveredAssets().find((candidate) => candidate.id === assetId);
+    if (!asset) return;
+    this.isImportingBusinessAssets = true;
+    this.assetDiscoveryError = '';
+    this.assetDiscoveryStatus = 'Retrying asset import…';
+    this.refreshBody();
+    try {
+      await this._importOneDiscoveredAsset(asset);
+      this.assetDiscoveryStatus = '✓ Asset imported successfully';
+    } catch (error) {
+      this.assetDiscoveryError = error?.message || 'Asset import retry failed.';
+      this.assetDiscoveryStatus = '';
+    } finally {
+      this.isImportingBusinessAssets = false;
+      this.refreshBody();
+    }
+  }
+
+  async _handleImportSelectedAssets() {
+    const selected = this._currentDiscoveredAssets().filter(
+      (asset) => asset.selected && !asset.rejected && asset.category !== 'irrelevant'
+    );
+    if (!selected.length) return;
 
     this.isImportingBusinessAssets = true;
     this.assetDiscoveryError = '';
     this.assetDiscoveryStatus = `Importing ${selected.length} selected asset(s)…`;
     this.refreshBody();
 
-    let discoveredState = this._currentDiscoveredAssets();
     let importedCount = 0;
+    const failures = [];
     try {
-      for (const asset of selected) {
-        const imported = await importDiscoveredAsset(asset, {
-          role: asset.assignedRole || defaultRoleForDiscoveredCategory(asset.category),
-          name: asset.altText || asset.category,
-        });
-
-        // Persist every successful remote upload before starting the next one.
-        // This prevents a later failure from orphaning already-uploaded files
-        // or causing them to be uploaded again on retry.
-        profile = addPersonalizationAsset(profile, imported);
-        discoveredState = discoveredState.map((candidate) =>
-          candidate.id === asset.id
-            ? { ...candidate, importedAssetId: imported.id, selected: false }
-            : candidate
-        );
-        profile = setDiscoveredPersonalizationAssets(profile, discoveredState);
-        profile.updatedAt = new Date().toISOString();
-        profile.variables = buildVariables(profile, profile.variables || {});
-
-        if (!this._persistSelectedProfile(profile)) {
-          throw new Error('Could not persist an imported asset after upload.');
+      for (let index = 0; index < selected.length; index += 1) {
+        const asset = selected[index];
+        this.assetDiscoveryStatus = `Importing ${index + 1}/${selected.length}: ${asset.altText || asset.category || 'asset'}…`;
+        this.refreshBody();
+        try {
+          await this._importOneDiscoveredAsset(asset);
+          importedCount += 1;
+        } catch (error) {
+          failures.push({
+            id: asset.id,
+            message: error?.message || 'Import failed',
+          });
         }
-
-        importedCount += 1;
-        this.assetDiscoveryStatus = `Imported ${importedCount} of ${selected.length} asset(s)…`;
       }
 
-      this.assetDiscoveryStatus = `✓ Imported ${importedCount} durable asset(s)`;
-    } catch (error) {
-      this.assetDiscoveryError = error?.message || 'Asset import failed.';
-      this.assetDiscoveryStatus = importedCount
-        ? `✓ Saved ${importedCount} imported asset(s) before the error`
-        : '';
+      if (failures.length) {
+        this.assetDiscoveryError = `${failures.length} asset(s) failed to import. Use Retry Import on the affected cards.`;
+        this.assetDiscoveryStatus = importedCount
+          ? `✓ Imported ${importedCount}/${selected.length}; ${failures.length} need retry`
+          : '';
+      } else {
+        this.assetDiscoveryStatus = `✓ Imported ${importedCount} durable asset(s)`;
+      }
     } finally {
       this.isImportingBusinessAssets = false;
       this.refreshBody();
@@ -4012,6 +4070,9 @@ export class PersonalizeModal extends BaseModal {
           btn.onclick = (e) => {
             e.stopPropagation();
             if (btn.disabled) return;
+            if (this._activeTab() === 'business' && btn.dataset.tab !== 'business') {
+              this._readBusinessDraftFromDom();
+            }
             this._forcedTab = btn.dataset.tab;
             this.refreshBody();
             this._announce(`Showing ${btn.dataset.tab} tab`);
@@ -4183,6 +4244,13 @@ export class PersonalizeModal extends BaseModal {
           btn.onclick = (e) => {
             e.stopPropagation();
             this._handleMakeSelectedVideoReady();
+          };
+        });
+
+        scope.querySelectorAll('[data-action="retry-discovered-import"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._handleRetryDiscoveredImport(btn.dataset.assetId);
           };
         });
 
@@ -5157,6 +5225,22 @@ export class PersonalizeModal extends BaseModal {
       };
     }
 
+    if (asset) {
+      const stripBlob = (value) => {
+        if (typeof value === 'string') return value.startsWith('blob:') ? '' : value;
+        if (Array.isArray(value)) return value.map(stripBlob).filter(Boolean);
+        if (value && typeof value === 'object') {
+          return Object.fromEntries(
+            Object.entries(value)
+              .map(([key, nested]) => [key, stripBlob(nested)])
+              .filter(([, nested]) => nested !== '' && nested !== undefined)
+          );
+        }
+        return value;
+      };
+      asset = stripBlob(asset);
+    }
+
     if (!asset) {
       this.errorMessage = 'This studio does not support sending content to Personalizer yet.';
       this.refreshBody();
@@ -5293,6 +5377,9 @@ export class PersonalizeModal extends BaseModal {
     else if (e.key === 'End') next = tabs[tabs.length - 1];
     if (next) {
       e.preventDefault();
+      if (this._activeTab() === 'business' && next.dataset.tab !== 'business') {
+        this._readBusinessDraftFromDom();
+      }
       this._forcedTab = next.dataset.tab;
       this.refreshBody();
       this.overlay.querySelector(`#pm-tab-${next.dataset.tab}`)?.focus();
