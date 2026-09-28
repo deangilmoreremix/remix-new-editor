@@ -75,6 +75,8 @@ const triggerBtn = document.createElement('button');
   dropdown.style.maxHeight = '70vh';
   dropdown.style.minHeight = '350px';
 
+  let _modelSelectorOutsideClickHandler = null;
+
   const closeDropdown = () => {
     dropdown.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
     dropdown.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
