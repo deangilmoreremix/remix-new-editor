@@ -198,7 +198,7 @@ export function inspectPromptTokens(prompt, profile) {
   arrowSvg.setAttribute('fill', 'none');
   arrowSvg.setAttribute('stroke', 'currentColor');
   arrowSvg.setAttribute('stroke-width', '4');
-  arrowSvg.className = 'opacity-20 group-hover:opacity-100 transition-opacity';
+  arrowSvg.setAttribute('class', 'opacity-20 group-hover:opacity-100 transition-opacity');
   const arrowPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   arrowPath.setAttribute('d', 'M6 9l6 6 6-6');
   arrowSvg.appendChild(arrowPath);
