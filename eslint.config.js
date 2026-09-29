@@ -1,14 +1,27 @@
 import js from '@eslint/js';
+import { FlatCompat } from '@eslint/compat';
+import tsParser from '@typescript-eslint/parser';
+import reactHooks from 'eslint-plugin-react-hooks';
+
+const compat = new FlatCompat({
+  baseDirectory: new URL('.', import.meta.url),
+});
 
 export default [
   js.configs.recommended,
+  ...compat.extends('airbnb-base'),
+  ...compat.extends('airbnb'),
   {
-    // Include .jsx/.tsx — BEFORE this change these were silently skipped,
-    // which allowed the handleNavClick ReferenceError to ship to production.
     files: ['src/**/*.{js,jsx,ts,tsx}'],
     languageOptions: {
-      ecmaVersion: 2022,
-      sourceType: 'module',
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: 2022,
+        sourceType: 'module',
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
       globals: {
         console: 'readonly',
         window: 'readonly',
@@ -26,7 +39,6 @@ export default [
         location: 'readonly',
         process: 'readonly',
         globalThis: 'readonly',
-        // Browser globals
         localStorage: 'readonly',
         sessionStorage: 'readonly',
         setTimeout: 'readonly',
@@ -53,8 +65,11 @@ export default [
         XMLHttpRequest: 'readonly',
         alert: 'readonly',
         confirm: 'readonly',
-        prompt: 'readonly'
-      }
+        prompt: 'readonly',
+      },
+    },
+    plugins: {
+      'react-hooks': reactHooks,
     },
     rules: {
       'no-unused-vars': 'warn',
@@ -65,8 +80,35 @@ export default [
       'no-dupe-class-members': 'error',
       'no-empty': 'warn',
       'no-case-declarations': 'error',
-      'preserve-caught-error': 'warn'
-    }
+      'preserve-caught-error': 'warn',
+      'class-methods-use-this': 'off',
+      'consistent-return': 'off',
+      'function-paren-newline': 'off',
+      'jsx-a11y/alt-text': 'off',
+      'jsx-a11y/media-has-caption': 'off',
+      'jsx-a11y/anchor-is-valid': 'off',
+      'jsx-a11y/label-has-associated-control': 'off',
+      'jsx-a11y/control-has-associated-label': 'off',
+      'jsx-a11y/anchor-has-content': 'off',
+      'react/button-has-type': 'off',
+      'jsx-a11y/label-has-for': 'off',
+      'no-plusplus': 'off',
+      'no-use-before-define': 'off',
+      'no-underscore-dangle': ['error', { allow: ['_id', '__STATE'] }],
+      'object-curly-newline': ['error', { multiline: true, consistent: true }],
+      'import/prefer-default-export': 'off',
+      'import/no-cycle': 'off',
+      'react/prop-types': ['error', {
+        ignore: ['common', 'projectStore', 'mediaStore'],
+        customValidators: [],
+      }],
+      'react/require-default-props': 'off',
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'off',
+      'react/jsx-props-no-spreading': 'off',
+      'react/jsx-fragments': 'off',
+      semi: ['error', 'always'],
+    },
   },
   {
     files: ['backend/**/*.js', 'scripts/**/*.mjs'],
@@ -87,11 +129,11 @@ export default [
         setInterval: 'readonly',
         clearInterval: 'readonly',
         globalThis: 'readonly',
-      }
+      },
     },
     rules: {
       'no-unused-vars': 'warn',
       'no-console': 'off',
-    }
-  }
+    },
+  },
 ];

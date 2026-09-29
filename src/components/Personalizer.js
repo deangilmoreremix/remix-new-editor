@@ -126,6 +126,16 @@ function generateId() {
   return `${Date.now()}/${Math.random().toString(36).slice(2, 9)}`;
 }
 
+function _quickChecksum(value) {
+  // Simple integrity hash for localStorage data tampering detection.
+  const str = typeof value === 'string' ? value : JSON.stringify(value);
+  let h = 0;
+  for (let i = 0; i < str.length; i++) {
+    h = ((h << 5) - h + str.charCodeAt(i)) | 0;
+  }
+  return String(Math.abs(h) || 0);
+}
+
 function clamp(value, min, max) {
   if (typeof value !== 'number' || Number.isNaN(value)) return min;
   return Math.max(min, Math.min(max, value));
@@ -543,8 +553,13 @@ export function Personalizer() {
     font-family: inherit;
   `;
   saveBtn.addEventListener('click', () => {
-    localStorage.setItem('personalizer-canvas', JSON.stringify({ elements, canvasWidth, canvasHeight }));
-    showToast('Canvas saved');
+    try {
+      const payload = JSON.stringify({ elements, canvasWidth, canvasHeight, checksum: _quickChecksum([...elements, canvasWidth, canvasHeight]) });
+      localStorage.setItem('personalizer-canvas', payload);
+      showToast('Canvas saved');
+    } catch {
+      showToast('Save failed — storage may be full');
+    }
   });
   sidebar.appendChild(saveBtn);
 
@@ -569,6 +584,15 @@ export function Personalizer() {
     }
     try {
       const data = JSON.parse(raw);
+      if (!data || typeof data !== 'object' || typeof data.checksum !== 'string') {
+        showToast('Saved canvas appears corrupted');
+        return;
+      }
+      const expected = _quickChecksum([...(data.elements || []), data.canvasWidth, data.canvasHeight]);
+      if (data.checksum !== expected) {
+        showToast('Saved canvas integrity check failed');
+        return;
+      }
       elements = data.elements || [];
       canvasWidth = data.canvasWidth || 1280;
       canvasHeight = data.canvasHeight || 720;
@@ -1011,11 +1035,27 @@ export function Personalizer() {
         font-family: inherit;
         width: 100%;
       `;
+  function _safeReturnRoute(route) {
+    if (typeof route !== 'string') return null;
+    const trimmed = route.trim();
+    if (!trimmed) return null;
+    // Only allow relative studio routes; block absolute URLs and schemes.
+    if (/^[a-zA-Z][a-zA-Z0-9+\-.]*:/.test(trimmed)) return null;
+    if (trimmed.startsWith('//')) return null;
+    return trimmed.replace(/^\/+/, '').replace(/^#\/?/, '');
+  }
+
+  // ... later where returnRoute is used ...
       returnBtn.addEventListener('click', () => {
         try {
-          navigate(sourceHandoff.returnRoute);
+          const safe = _safeReturnRoute(sourceHandoff.returnRoute);
+          if (safe) {
+            navigate(safe);
+          } else {
+            showToast('Invalid return route');
+          }
         } catch {
-          window.location.hash = `#/${sourceHandoff.returnRoute}`;
+          showToast('Unable to return to source studio');
         }
       });
       sourceSection.appendChild(returnBtn);
@@ -1374,6 +1414,18 @@ export function Personalizer() {
     propertiesPanel.appendChild(form);
   }
 
+  function _safeUrl(value) {
+    if (typeof value !== 'string') return null;
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    // Only allow safe schemes; block javascript/data/file.
+    const lower = trimmed.toLowerCase();
+    if (/^[a-zA-Z][a-zA-Z0-9+\-.]*:/.test(lower)) {
+      if (!['http://', 'https://', 'mailto:', 'tel:'].some(p => lower.startsWith(p))) return null;
+    }
+    return trimmed;
+  }
+
   // ─── Token insertion into selected element ───────────────────────────────
   function insertTokenIntoSelectedElement(tokenKey) {
     if (!selectedElementId) {
@@ -1386,9 +1438,11 @@ export function Personalizer() {
     if (el.text !== undefined) {
       updateElement(el.id, { text: `${el.text || ''} ${token}` });
     } else if (el.href !== undefined) {
-      updateElement(el.id, { href: `${el.href || ''}${token}` });
+      const current = _safeUrl(el.href) || '';
+      updateElement(el.id, { href: `${current}${token}` });
     } else if (el.src !== undefined) {
-      updateElement(el.id, { src: `${el.src || ''}${token}` });
+      const current = _safeUrl(el.src) || '';
+      updateElement(el.id, { src: `${current}${token}` });
     } else {
       showToast('This element type does not support tokens');
     }
@@ -1419,14 +1473,15 @@ export function Personalizer() {
       // Resolve href
       if (el.href !== undefined) {
         const resolved = replaceTokensInPrompt(el.href, { variables });
+        const safe = _safeUrl(resolved);
         const anchor = wrapper.querySelector('a');
-        if (anchor) anchor.href = resolved;
+        if (anchor) anchor.href = safe || '#';
       }
       // Resolve image src
       if (el.src !== undefined && el.type === ELEMENT_TYPES.IMAGE) {
         const resolved = replaceTokensInPrompt(el.src, { variables });
-        const img = wrapper.querySelector('img');
-        if (img && resolved) img.src = resolved;
+        const safe = _safeUrl(resolved);
+        if (img && safe) img.src = safe;
       }
     });
   }
@@ -1450,39 +1505,41 @@ export function Personalizer() {
       const resolvedText = el.text !== undefined ? replaceTokensInPrompt(el.text, { variables }) : '';
       const resolvedHref = el.href !== undefined ? replaceTokensInPrompt(el.href, { variables }) : '';
       const resolvedSrc = el.src !== undefined ? replaceTokensInPrompt(el.src, { variables }) : '';
+      const safeHref = _safeUrl(resolvedHref) || '#';
+      const safeSrc = _safeUrl(resolvedSrc) || '';
 
       switch (el.type) {
         case ELEMENT_TYPES.HEADING:
-          body += `<h1 style="position:absolute;left:${el.x}%;top:${el.y}%;width:${el.width}px;height:${el.height}px;font-size:${el.fontSize}px;font-weight:${el.fontWeight || 700};color:${el.color};background:${el.backgroundColor};padding:${el.padding}px;border-radius:${el.borderRadius}px;margin:0;">${escapeHtml(resolvedText)}</h1>`;
+          body += `<h1 style="position:absolute;left:${el.x}%;top:${el.y}%;width:${el.width}px;height:${el.height}px;font-size:${el.fontSize}px;font-weight:${el.fontWeight || 700};color:${escapeHtml(el.color)};background:${escapeHtml(el.backgroundColor)};padding:${el.padding}px;border-radius:${el.borderRadius}px;margin:0;">${escapeHtml(resolvedText)}</h1>`;
           break;
         case ELEMENT_TYPES.TEXT:
-          body += `<p style="position:absolute;left:${el.x}%;top:${el.y}%;width:${el.width}px;height:${el.height}px;font-size:${el.fontSize}px;font-family:${el.fontFamily};color:${el.color};background:${el.backgroundColor};padding:${el.padding}px;border-radius:${el.borderRadius}px;margin:0;line-height:1.4;">${escapeHtml(resolvedText)}</p>`;
+          body += `<p style="position:absolute;left:${el.x}%;top:${el.y}%;width:${el.width}px;height:${el.height}px;font-size:${el.fontSize}px;font-family:${escapeHtml(el.fontFamily)};color:${escapeHtml(el.color)};background:${escapeHtml(el.backgroundColor)};padding:${el.padding}px;border-radius:${el.borderRadius}px;margin:0;line-height:1.4;">${escapeHtml(resolvedText)}</p>`;
           break;
         case ELEMENT_TYPES.IMAGE:
-          if (resolvedSrc) body += `<img src="${escapeHtml(resolvedSrc)}" style="position:absolute;left:${el.x}%;top:${el.y}%;width:${el.width}px;height:${el.height}px;object-fit:${el.objectFit};border-radius:${el.borderRadius}px;" />`;
+          if (safeSrc) body += `<img src="${escapeHtml(safeSrc)}" style="position:absolute;left:${el.x}%;top:${el.y}%;width:${el.width}px;height:${el.height}px;object-fit:${el.objectFit};border-radius:${el.borderRadius}px;" />`;
           break;
         case ELEMENT_TYPES.BUTTON:
-          body += `<a href="${escapeHtml(resolvedHref || '#')}" style="position:absolute;left:${el.x}%;top:${el.y}%;width:${el.width}px;height:${el.height}px;display:inline-flex;align-items:center;justify-content:center;background:${el.backgroundColor};color:${el.color};border-radius:${el.borderRadius}px;text-decoration:none;font-size:${el.fontSize}px;font-weight:${el.fontWeight || 600}px;">${escapeHtml(resolvedText || el.text)}</a>`;
+          body += `<a href="${escapeHtml(safeHref)}" style="position:absolute;left:${el.x}%;top:${el.y}%;width:${el.width}px;height:${el.height}px;display:inline-flex;align-items:center;justify-content:center;background:${escapeHtml(el.backgroundColor)};color:${escapeHtml(el.color)};border-radius:${el.borderRadius}px;text-decoration:none;font-size:${el.fontSize}px;font-weight:${el.fontWeight || 600};">${escapeHtml(resolvedText || el.text)}</a>`;
           break;
         case ELEMENT_TYPES.FORM: {
           const fields = (el.fields || '').split(',').map((f) => f.trim()).filter(Boolean);
-          let formHtml = `<div style="position:absolute;left:${el.x}%;top:${el.y}%;width:${el.width}px;background:${el.backgroundColor};border-radius:${el.borderRadius}px;padding:${el.padding}px;display:flex;flex-direction:column;gap:8px;">`;
+          let formHtml = `<div style="position:absolute;left:${el.x}%;top:${el.y}%;width:${el.width}px;background:${escapeHtml(el.backgroundColor)};border-radius:${el.borderRadius}px;padding:${el.padding}px;display:flex;flex-direction:column;gap:8px;">`;
           fields.forEach((field) => {
             const inputType = field === 'email' ? 'email' : 'text';
-            formHtml += `<input type="${inputType}" placeholder="${field}" style="width:100%;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.12);background:rgba(0,0,0,0.25);color:#fff;font-size:13px;box-sizing:border-box;" />`;
+            formHtml += `<input type="${inputType}" placeholder="${escapeHtml(field)}" style="width:100%;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.12);background:rgba(0,0,0,0.25);color:#fff;font-size:13px;box-sizing:border-box;" />`;
           });
           formHtml += `<button type="button" style="margin-top:4px;padding:8px;border-radius:6px;border:none;background:#d9ff00;color:#000;font-weight:600;cursor:pointer;">${escapeHtml(el.submitText || 'Submit')}</button></div>`;
           body += formHtml;
           break;
         }
         case ELEMENT_TYPES.VIDEO:
-          if (resolvedSrc) body += `<video src="${escapeHtml(resolvedSrc)}" controls style="position:absolute;left:${el.x}%;top:${el.y}%;width:${el.width}px;height:${el.height}px;object-fit:cover;border-radius:${el.borderRadius}px;background:#000;" />`;
+          if (safeSrc) body += `<video src="${escapeHtml(safeSrc)}" controls style="position:absolute;left:${el.x}%;top:${el.y}%;width:${el.width}px;height:${el.height}px;object-fit:cover;border-radius:${el.borderRadius}px;background:#000;" />`;
           break;
         case ELEMENT_TYPES.SPACER:
-          body += `<div style="position:absolute;left:${el.x}%;top:${el.y}%;width:${el.width}px;height:${el.height}px;background:${el.backgroundColor || 'transparent'};"></div>`;
+          body += `<div style="position:absolute;left:${el.x}%;top:${el.y}%;width:${el.width}px;height:${el.height}px;background:${escapeHtml(el.backgroundColor || 'transparent')};"></div>`;
           break;
         case ELEMENT_TYPES.CONTAINER:
-          body += `<div style="position:absolute;left:${el.x}%;top:${el.y}%;width:${el.width}px;height:${el.height}px;background:${el.backgroundColor};border-radius:${el.borderRadius}px;padding:${el.padding}px;border:${el.borderWidth || 1}px solid ${el.borderColor};box-sizing:border-box;"></div>`;
+          body += `<div style="position:absolute;left:${el.x}%;top:${el.y}%;width:${el.width}px;height:${el.height}px;background:${escapeHtml(el.backgroundColor)};border-radius:${el.borderRadius}px;padding:${el.padding}px;border:${el.borderWidth || 1}px solid ${escapeHtml(el.borderColor)};box-sizing:border-box;"></div>`;
           break;
         default:
           break;
@@ -1512,21 +1569,25 @@ export function Personalizer() {
     if (!win) {
       showToast('Popup blocked — please allow popups for this site');
     }
+    // Revoke the blob URL after the window has had a chance to load it.
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   // ─── Keyboard shortcuts ──────────────────────────────────────────────────
-  document.addEventListener('keydown', (e) => {
+  const onKeyDown = (e) => {
     if (!selectedElementId) return;
     if (e.key === 'Delete' || e.key === 'Backspace') {
       if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
       removeElement(selectedElementId);
       showToast('Element deleted');
     }
-  });
+  };
+  document.addEventListener('keydown', onKeyDown);
 
   // ─── Mount Personalize Trigger ───────────────────────────────────────────
+  let triggerDestroy = null;
   try {
-    mountPersonalizeTrigger({
+    const trigger = mountPersonalizeTrigger({
       controlsContainer: chromeContainer,
       appId: 'personalizer',
       appTheme: 'personalizer',
@@ -1541,6 +1602,7 @@ export function Personalizer() {
         renderCanvasPreview();
       },
     });
+    triggerDestroy = typeof trigger.destroy === 'function' ? trigger.destroy : null;
   } catch (err) {
     console.warn('[Personalizer] personalize trigger failed:', err);
   }
@@ -1548,40 +1610,56 @@ export function Personalizer() {
   // Initialize canvas
   renderCanvas();
 
-  interact('.dom-element-wrapper')
-    .draggable({
-      inertia: true,
-      modifiers: [
-        interact.modifiers.restrictRect({ restriction: canvasEl })
-      ]
-    })
-    .resizable({
-      edges: { right: true, bottom: true },
-      restrictEdges: { outer: canvasEl },
-      modifiers: []
-    })
-    .on('dragmove', (e) => {
-      const wrapper = e.target;
-      const id = wrapper.dataset.id;
-      const el = getElementById(id);
-      if (!el) return;
-      const rect = canvasEl.getBoundingClientRect();
-      const x = clamp(((e.clientX - rect.left) / rect.width) * 100, 0, 95);
-      const y = clamp(((e.clientY - rect.top) / rect.height) * 100, 0, 95);
-      updateElement(id, { x, y });
-    })
-    .on('resizemove', (e) => {
-      const wrapper = e.target;
-      const id = wrapper.dataset.id;
-      const el = getElementById(id);
-      if (!el) return;
-      updateElement(id, {
-        width: Math.max(40, e.rect.width),
-        height: Math.max(40, e.rect.height)
-      });
-    });
+  // Initialize interactjs drag/resize if available. The library is loaded as a
+  // global in production; guard here so the studio remains usable (elements
+  // can still be placed and edited) if it fails to load.
+  try {
+    if (typeof interact === 'function') {
+      interact('.dom-element-wrapper')
+        .draggable({
+          inertia: true,
+          modifiers: [
+            interact.modifiers.restrictRect({ restriction: canvasEl })
+          ]
+        })
+        .resizable({
+          edges: { right: true, bottom: true },
+          restrictEdges: { outer: canvasEl },
+          modifiers: []
+        })
+        .on('dragmove', (e) => {
+          const wrapper = e.target;
+          const id = wrapper.dataset.id;
+          const el = getElementById(id);
+          if (!el) return;
+          const rect = canvasEl.getBoundingClientRect();
+          const x = clamp(((e.clientX - rect.left) / rect.width) * 100, 0, 95);
+          const y = clamp(((e.clientY - rect.top) / rect.height) * 100, 0, 95);
+          updateElement(id, { x, y });
+        })
+        .on('resizemove', (e) => {
+          const wrapper = e.target;
+          const id = wrapper.dataset.id;
+          const el = getElementById(id);
+          if (!el) return;
+          updateElement(id, {
+            width: Math.max(40, e.rect.width),
+            height: Math.max(40, e.rect.height)
+          });
+        });
+    }
+  } catch (err) {
+    console.warn('[Personalizer] interactjs initialization failed:', err);
+  }
 
   renderPropertiesPanel();
+
+  // Expose cleanup so the router can remove global listeners when navigating
+  // away from this studio.
+  container.cleanup = () => {
+    document.removeEventListener('keydown', onKeyDown);
+    if (triggerDestroy) triggerDestroy();
+  };
 
   return container;
 }

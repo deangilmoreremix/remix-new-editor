@@ -446,7 +446,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'salon-process-doc',
@@ -467,7 +467,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'salon-transformation-story',
@@ -488,7 +488,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'salon-testimonial',
@@ -509,7 +509,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'salon-founder-doc',
@@ -530,7 +530,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'salon-offer-promo',
@@ -551,7 +551,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'salon-launch-trailer',
@@ -572,7 +572,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'salon-social-reel',
@@ -593,7 +593,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'salon-atmosphere-piece',
@@ -614,7 +614,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'salon-luxury-offer',
@@ -635,7 +635,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
   // FITNESS NICHE (10 templates)
     {
@@ -657,7 +657,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'fitness-process-doc',
@@ -678,7 +678,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'fitness-transformation-story',
@@ -699,7 +699,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'fitness-testimonial',
@@ -720,7 +720,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'fitness-founder-doc',
@@ -741,7 +741,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'fitness-offer-promo',
@@ -762,7 +762,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'fitness-launch-trailer',
@@ -783,7 +783,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'fitness-social-reel',
@@ -804,7 +804,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'fitness-atmosphere-piece',
@@ -825,7 +825,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'fitness-luxury-offer',
@@ -846,7 +846,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
   // REAL-ESTATE NICHE (10 templates)
     {
@@ -868,7 +868,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'real-estate-process-doc',
@@ -889,7 +889,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'real-estate-transformation-story',
@@ -910,7 +910,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'real-estate-testimonial',
@@ -931,7 +931,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'real-estate-founder-doc',
@@ -952,7 +952,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'real-estate-offer-promo',
@@ -973,7 +973,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'real-estate-launch-trailer',
@@ -994,7 +994,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'real-estate-social-reel',
@@ -1015,7 +1015,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'real-estate-atmosphere-piece',
@@ -1036,7 +1036,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'real-estate-luxury-offer',
@@ -1057,7 +1057,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
   // DENTAL NICHE (10 templates)
     {
@@ -1079,7 +1079,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'dental-process-doc',
@@ -1100,7 +1100,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'dental-transformation-story',
@@ -1121,7 +1121,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'dental-testimonial',
@@ -1142,7 +1142,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'dental-founder-doc',
@@ -1163,7 +1163,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'dental-offer-promo',
@@ -1184,7 +1184,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'dental-launch-trailer',
@@ -1205,7 +1205,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'dental-social-reel',
@@ -1226,7 +1226,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'dental-atmosphere-piece',
@@ -1247,7 +1247,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'dental-luxury-offer',
@@ -1268,7 +1268,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
   // CHIROPRACTIC NICHE (10 templates)
     {
@@ -1290,7 +1290,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'chiropractic-process-doc',
@@ -1311,7 +1311,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'chiropractic-transformation-story',
@@ -1332,7 +1332,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'chiropractic-testimonial',
@@ -1353,7 +1353,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'chiropractic-founder-doc',
@@ -1374,7 +1374,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'chiropractic-offer-promo',
@@ -1395,7 +1395,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'chiropractic-launch-trailer',
@@ -1416,7 +1416,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'chiropractic-social-reel',
@@ -1437,7 +1437,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'chiropractic-atmosphere-piece',
@@ -1458,7 +1458,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'chiropractic-luxury-offer',
@@ -1479,7 +1479,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
   // LEGAL NICHE (10 templates)
     {
@@ -1501,7 +1501,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'legal-process-doc',
@@ -1522,7 +1522,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'legal-transformation-story',
@@ -1543,7 +1543,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'legal-testimonial',
@@ -1564,7 +1564,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'legal-founder-doc',
@@ -1585,7 +1585,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'legal-offer-promo',
@@ -1606,7 +1606,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'legal-launch-trailer',
@@ -1627,7 +1627,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'legal-social-reel',
@@ -1648,7 +1648,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'legal-atmosphere-piece',
@@ -1669,7 +1669,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'legal-luxury-offer',
@@ -1690,7 +1690,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
   // AUTOMOTIVE NICHE (10 templates)
     {
@@ -1712,7 +1712,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'automotive-process-doc',
@@ -1733,7 +1733,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'automotive-transformation-story',
@@ -1754,7 +1754,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'automotive-testimonial',
@@ -1775,7 +1775,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'automotive-founder-doc',
@@ -1796,7 +1796,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'automotive-offer-promo',
@@ -1817,7 +1817,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'automotive-launch-trailer',
@@ -1838,7 +1838,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'automotive-social-reel',
@@ -1859,7 +1859,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'automotive-atmosphere-piece',
@@ -1880,7 +1880,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'automotive-luxury-offer',
@@ -1901,7 +1901,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
   // FASHION NICHE (10 templates)
     {
@@ -1923,7 +1923,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'fashion-process-doc',
@@ -1944,7 +1944,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'fashion-transformation-story',
@@ -1965,7 +1965,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'fashion-testimonial',
@@ -1986,7 +1986,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'fashion-founder-doc',
@@ -2007,7 +2007,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'fashion-offer-promo',
@@ -2028,7 +2028,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'fashion-launch-trailer',
@@ -2049,7 +2049,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'fashion-social-reel',
@@ -2070,7 +2070,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'fashion-atmosphere-piece',
@@ -2091,7 +2091,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'fashion-luxury-offer',
@@ -2112,7 +2112,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
   // EVENT NICHE (10 templates)
     {
@@ -2134,7 +2134,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'event-process-doc',
@@ -2155,7 +2155,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'event-transformation-story',
@@ -2176,7 +2176,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'event-testimonial',
@@ -2197,7 +2197,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'event-founder-doc',
@@ -2218,7 +2218,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'event-offer-promo',
@@ -2239,7 +2239,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'event-launch-trailer',
@@ -2260,7 +2260,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'event-social-reel',
@@ -2281,7 +2281,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'event-atmosphere-piece',
@@ -2302,7 +2302,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'event-luxury-offer',
@@ -2323,7 +2323,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
   // LUXURY-BRAND NICHE (10 templates)
     {
@@ -2345,7 +2345,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'luxury-brand-process-doc',
@@ -2366,7 +2366,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'luxury-brand-transformation-story',
@@ -2387,7 +2387,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'luxury-brand-testimonial',
@@ -2408,7 +2408,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'luxury-brand-founder-doc',
@@ -2429,7 +2429,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'luxury-brand-offer-promo',
@@ -2450,7 +2450,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'luxury-brand-launch-trailer',
@@ -2471,7 +2471,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'luxury-brand-social-reel',
@@ -2492,7 +2492,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'luxury-brand-atmosphere-piece',
@@ -2513,7 +2513,7 @@ export const MATRIX_TEMPLATES = [
     },
     model: 'motion-controls',
     modelType: 'i2v',
-  },,
+  },
 
     {
     id: 'luxury-brand-luxury-offer',

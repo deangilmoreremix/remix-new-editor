@@ -1,5 +1,55 @@
 // Value Stack Section - Studio Screenshot Showcase
 
+const SHOWCASE_CONFIG = { getStudioThumbnail: () => '/thumbnails/studios/video.webp', getToolThumbnail: () => null, getTemplateThumbnail: () => null, getEffectPreview: () => null };
+
+const FULL_SCENE_SCREENSHOTS = [
+  { src: '/screenshots/full-desktop.png', alt: 'Full desktop studio view' },
+  { src: '/screenshots/hero-desktop.png', alt: 'Hero desktop view' },
+  { src: '/screenshots/workflow-desktop.png', alt: 'Workflow desktop view' },
+  { src: '/screenshots/gallery-desktop.png', alt: 'Gallery desktop view' },
+];
+
+const SMALL_SCREENSHOTS = [
+  { src: '/screenshots/image.png', alt: 'Image studio' },
+  { src: '/screenshots/video.png', alt: 'Video studio' },
+  { src: '/screenshots/cinema.png', alt: 'Cinema studio' },
+  { src: '/screenshots/edit.png', alt: 'Edit studio' },
+  { src: '/screenshots/effects.png', alt: 'Effects studio' },
+  { src: '/screenshots/audio.png', alt: 'Audio studio' },
+  { src: '/screenshots/director.png', alt: 'Director studio' },
+  { src: '/screenshots/storyboard.png', alt: 'Storyboard studio' },
+  { src: '/screenshots/render.png', alt: 'Render studio' },
+  { src: '/screenshots/timeline.png', alt: 'Timeline editor' },
+  { src: '/screenshots/templates.png', alt: 'Templates library' },
+  { src: '/screenshots/explore.png', alt: 'Explore page' },
+];
+
+const LONG_SCREENSHOTS = [
+  { src: '/screenshots/full-mobile.png', alt: 'Full mobile view' },
+  { src: '/screenshots/hero-mobile.png', alt: 'Hero mobile view' },
+  { src: '/screenshots/workflow-mobile.png', alt: 'Workflow mobile view' },
+  { src: '/screenshots/gallery-mobile.png', alt: 'Gallery mobile view' },
+  { src: '/screenshots/reel-mobile.png', alt: 'Reel mobile view' },
+  { src: '/screenshots/ugc-mobile.png', alt: 'UGC mobile view' },
+];
+
+function screenshotCard(item) {
+  return `
+    <div class="screenshot-card group relative aspect-video rounded-xl overflow-hidden border border-white/10 hover:border-cyan-400/50 transition-all duration-300 cursor-pointer">
+      <img 
+        src="${item.src}" 
+        alt="${item.alt}"
+        class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
+        loading="lazy"
+      />
+      <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+      <div class="absolute bottom-0 left-0 right-0 p-3">
+        <span class="text-sm font-medium text-white">${item.alt}</span>
+      </div>
+    </div>
+  `;
+}
+
 export function ValueStackSection() {
   const section = document.createElement('section');
   section.className = 'py-20 px-4 bg-gradient-to-b from-[#05070b] to-[#020205]';

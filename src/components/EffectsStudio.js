@@ -149,7 +149,7 @@ export async function EffectsStudio() {
     thumbBtn.type = 'button';
     thumbBtn.textContent = '🖼 Thumbnail';
     thumbBtn.title = 'Generate a custom thumbnail';
-    thumbBtn.className = 'absolute top-3 right-3 z-20 px-3 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-violet-500 to-indigo-500 text-white hover:from-violet-400 hover:to-indigo-400 transition-all shadow-lg shadow-violet-500/25';
+    thumbBtn.className = 'btn-action-secondary shrink-0';
     thumbBtn.onclick = () => {
       const modal = new TemplateThumbnailModal({
         studioId: 'effects-studio',
@@ -182,7 +182,7 @@ export async function EffectsStudio() {
   modelPickerBtn.textContent = 'AI Pick';
   modelPickerBtn.title = 'Open intelligent model picker';
   modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-  modelPickerBtn.className = 'text-[11px] font-bold text-cyan-400 border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 rounded-lg hover:bg-cyan-400/20 transition-colors ml-2 whitespace-nowrap';
+  modelPickerBtn.className = 'btn-action-secondary shrink-0';
   modelPickerBtn.addEventListener('click', () => {
     openModelPicker({
       currentModelId: activeTab.id,
@@ -469,7 +469,7 @@ export async function EffectsStudio() {
   thumbBtn.type = 'button';
   thumbBtn.textContent = '🖼 Thumbnail';
   thumbBtn.title = 'Generate a custom thumbnail';
-  thumbBtn.className = 'btn-ghost-modern';
+  thumbBtn.className = 'btn-action-secondary shrink-0';
   thumbBtn.addEventListener('click', () => {
     const modal = new TemplateThumbnailModal({
       appTheme: 'effects-studio',
@@ -505,51 +505,64 @@ generateBtn.type = 'button';
     effectsPublishBtn.onclick = () => openSocialPublish({ mediaUrl: lastResultUrl, mediaType: lastResultType });
     promptRow.appendChild(effectsPublishBtn);
     mountPersonalizeTrigger({ controlsContainer: promptRow, getTextarea: () => promptInput, appId: 'effects-studio' });
-  // Prompt Gallery button
-  const promptGalleryBtn = document.createElement('button');
-  promptGalleryBtn.type = 'button';
-  promptGalleryBtn.textContent = '📚 Prompts';
-  promptGalleryBtn.title = 'Browse prompt gallery';
-  promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
-  promptGalleryBtn.className = 'btn-ghost-modern';
-  promptGalleryBtn.addEventListener('click', () => {
-    openPromptGallery({
-      appTheme: 'video-studio',
-      onSelect: (prompt) => {
-        const ta = promptInput;
-        if (ta) { ta.value = prompt; ta.dispatchEvent(new Event('input', { bubbles: true })); ta.focus(); }
-      }
-    }).catch((err) => console.error('[PromptGallery] open failed:', err));
-  });
+    // Enhancement tools overflow menu (Recipes, Monetize, Prompts)
+    const enhanceMenu = document.createElement('div');
+    enhanceMenu.className = 'overflow-menu shrink-0';
+    enhanceMenu.innerHTML = `
+      <button type="button" class="overflow-menu__trigger" data-tooltip="More tools" aria-label="More enhancement tools">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+      </button>
+      <div class="overflow-menu__panel">
+        <button type="button" class="overflow-menu__item" data-enhance="recipe">📋 Recipes</button>
+        <button type="button" class="overflow-menu__item" data-enhance="monetize">💼 Monetize</button>
+        <button type="button" class="overflow-menu__item" data-enhance="prompts">📚 Prompts</button>
+      </div>
+    `;
+    const enhanceTrigger = enhanceMenu.querySelector('.overflow-menu__trigger');
+    const enhancePanel = enhanceMenu.querySelector('.overflow-menu__panel');
+    const enhanceItems = enhanceMenu.querySelectorAll('[data-enhance]');
 
-    // Recipe Engine button
-    const recipeBtn = document.createElement('button');
-    recipeBtn.type = 'button';
-    recipeBtn.textContent = '📋 Recipes';
-    recipeBtn.title = 'Browse AI recipes';
-    recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-    recipeBtn.className = 'btn-ghost-modern';
-    recipeBtn.addEventListener('click', () => {
-      openRecipeModal({
-        onRunRecipe: (url) => {
+    function toggleEnhanceMenu() {
+      const isOpen = enhanceMenu.classList.contains('is-open');
+      enhanceMenu.classList.toggle('is-open', !isOpen);
+    }
+
+    enhanceTrigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleEnhanceMenu();
+    });
+
+    enhanceItems.forEach(item => {
+      item.addEventListener('click', () => {
+        const action = item.dataset.enhance;
+        if (action === 'recipe') {
+          openRecipeModal({
+            onRunRecipe: (url) => {
+            }
+          }).catch((err) => console.error('[Recipe] open failed:', err));
+        } else if (action === 'monetize') {
+          openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+        } else if (action === 'prompts') {
+          openPromptGallery({
+            appTheme: 'video-studio',
+            onSelect: (prompt) => {
+              const ta = promptInput;
+              if (ta) { ta.value = prompt; ta.dispatchEvent(new Event('input', { bubbles: true })); ta.focus(); }
+            }
+          }).catch((err) => console.error('[PromptGallery] open failed:', err));
         }
-      }).catch((err) => console.error('[Recipe] open failed:', err));
+        enhanceMenu.classList.remove('is-open');
+      });
     });
 
+    const closeEnhanceMenu = (e) => {
+      if (!enhanceMenu.contains(e.target)) {
+        enhanceMenu.classList.remove('is-open');
+      }
+    };
+    window.addEventListener('click', closeEnhanceMenu);
 
-    // Monetization Hub button
-    const monetizationBtn = document.createElement('button');
-    monetizationBtn.type = 'button';
-    monetizationBtn.textContent = '💼 Monetize';
-    monetizationBtn.title = "Open Smart Video AI Monetization Hub";
-    monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-    monetizationBtn.className = 'btn-ghost-modern';
-    monetizationBtn.addEventListener('click', () => {
-      openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
-    });
-  promptRow.appendChild(recipeBtn);
-  promptRow.appendChild(monetizationBtn);
-  promptRow.appendChild(promptGalleryBtn);
+    promptRow.appendChild(enhanceMenu);
     previewTop.appendChild(promptRow);
 
   // ─── Advanced Generation Controls ────────────────────────────────────
