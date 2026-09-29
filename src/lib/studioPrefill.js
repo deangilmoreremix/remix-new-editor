@@ -14,7 +14,7 @@ const KEY = 'sv_studio_prefill';
 
 /**
  * Stage a payload that a studio should pick up on its next mount.
- * @param {{route:string, prompt?:string, model?:string, params?:object, ref?:string}} payload
+ * @param {{route:string, prompt?:string, model?:string, params?:object, ref?:string, autoGenerate?:boolean}} payload
  */
 export function stageStudioPrefill(payload) {
   const clean = {
@@ -23,6 +23,7 @@ export function stageStudioPrefill(payload) {
     model: payload.model || undefined,
     params: payload.params || {},
     ref: payload.ref || 'minimax-h3',
+    autoGenerate: Boolean(payload.autoGenerate),
     at: Date.now(),
   };
   try {
