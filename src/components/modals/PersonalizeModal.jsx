@@ -45,6 +45,17 @@ const DISCOVERY_STEPS = [
   'Finalizing profile...',
 ];
 
+function _safeUrl(value) {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const lower = trimmed.toLowerCase();
+  if (/^[a-zA-Z][a-zA-Z0-9+\-.]*:/.test(lower)) {
+    if (!['http://', 'https://', 'mailto:', 'tel:'].some(p => lower.startsWith(p))) return null;
+  }
+  return trimmed;
+}
+
 function escapeHtml(str) {
   if (!str) return '';
   return String(str)
@@ -2190,9 +2201,9 @@ export class PersonalizeModal extends BaseModal {
     // Scan results summary
     if (platforms.length) {
       const platformChips = platforms.slice(0, 8).map((p) => {
-        const url = p.url || '#';
+        const safeUrl = _safeUrl(p.url);
         const label = p.platform || 'platform';
-        return `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="pm-platform-chip">${escapeHtml(label)}</a>`;
+        return safeUrl ? `<a href="${escapeHtml(safeUrl)}" target="_blank" rel="noopener" class="pm-platform-chip">${escapeHtml(label)}</a>` : escapeHtml(label);
       }).join('');
 
       const exportButtons = this.lastScanId ? this._renderExportButtons() : '';
@@ -2252,7 +2263,10 @@ export class PersonalizeModal extends BaseModal {
     ].filter(Boolean);
 
     if (socialLinks.length) {
-      rows.push(`<div class="pm-discovered-row"><span class="pm-discovered-label">Links</span><div>${socialLinks.map(l => `<a href="${escapeHtml(l.url)}" target="_blank" rel="noopener" class="pm-link">${escapeHtml(l.label)}</a>`).join(' ')}</div></div>`);
+      rows.push(`<div class="pm-discovered-row"><span class="pm-discovered-label">Links</span><div>${socialLinks.map(l => {
+        const safe = _safeUrl(l.url);
+        return safe ? `<a href="${escapeHtml(safe)}" target="_blank" rel="noopener" class="pm-link">${escapeHtml(l.label)}</a>` : escapeHtml(l.label);
+      }).join(' ')}</div></div>`);
     }
 
     // Assets
@@ -2601,7 +2615,7 @@ export class PersonalizeModal extends BaseModal {
       const painEl = this.overlay.querySelector('#pm-pain');
 
       if (avatarEl) {
-        if (contact.avatarUrl) {
+        if (contact.avatarUrl && _safeUrl(contact.avatarUrl)) {
           avatarEl.innerHTML = `<img src="${escapeHtml(contact.avatarUrl)}" alt="" />`;
         } else {
           avatarEl.textContent = (contact.name || '?')[0]?.toUpperCase();

@@ -1,13 +1,12 @@
 /**
- * SmartVideo Studio — SmartVideoStudio
+ * SmartVideo Studio
  *
- * Main shell component cloned from muapi.ai/studio layout.
- * Wraps ModeRail + ModelSelector + DynamicModelForm + GenerationsPanel
- * in the muapi-inspired split layout with bottom prompt bar.
+ * Note: This file uses React.createElement instead of JSX to avoid
+ * build-import-analysis parse errors with SWC.
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { syncCatalog, getModelsForTab, STUDIO_TABS, type ModelMeta } from './svStudio/modelRegistry';
+import { syncCatalog, getModelsForTab, STUDIO_TABS } from './svStudio/modelRegistry';
 import ModeRail from './ModeRail';
 import ModelSelector from './ModelSelector';
 import DynamicModelForm from './DynamicModelForm';
@@ -16,37 +15,30 @@ import { submitGeneration, type GenerationJob } from './svStudio/generationGatew
 import './svStudio/outputRenderer';
 import '../../styles/smartVideoStudio.css';
 
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
+const h = React.createElement;
 
 export default function SmartVideoStudio() {
-  const [activeTab, setActiveTab] = useState<string>('image');
-  const [selectedModel, setSelectedModel] = useState<ModelMeta | null>(null);
-  const [modelsByTab, setModelsByTab] = useState<Record<string, ModelMeta[]>>({});
+  const [activeTab, setActiveTab] = useState('image');
+  const [selectedModel, setSelectedModel] = useState(null);
+  const [modelsByTab, setModelsByTab] = useState({});
   const [loading, setLoading] = useState(true);
-  const [jobs, setJobs] = useState<GenerationJob[]>([]);
-  const [userBalance, setUserBalance] = useState<number | null>(null);
+  const [jobs, setJobs] = useState([]);
+  const [userBalance, setUserBalance] = useState(null);
   const [prompt, setPrompt] = useState('');
   const [generating, setGenerating] = useState(false);
 
-  // Load catalog
   useEffect(() => {
     let cancelled = false;
-
     async function loadCatalog() {
       setLoading(true);
       try {
         await syncCatalog();
         if (cancelled) return;
-
-        const byTab: Record<string, ModelMeta[]> = {};
+        const byTab = {};
         for (const tab of STUDIO_TABS) {
           byTab[tab.id] = getModelsForTab(tab.id).filter(m => m.enabled);
         }
         setModelsByTab(byTab);
-
-        // Auto-select first model of active tab
         if (byTab[activeTab]?.length > 0) {
           setSelectedModel(byTab[activeTab][0]);
         }
@@ -56,13 +48,10 @@ export default function SmartVideoStudio() {
         if (!cancelled) setLoading(false);
       }
     }
-
     loadCatalog();
-
     return () => { cancelled = true; };
   }, []);
 
-  // Update selected model when tab changes
   useEffect(() => {
     if (modelsByTab[activeTab]?.length > 0) {
       const currentInTab = modelsByTab[activeTab].find(m => m.id === selectedModel?.id);
@@ -72,17 +61,16 @@ export default function SmartVideoStudio() {
     }
   }, [activeTab, modelsByTab, selectedModel]);
 
-  const handleTabChange = useCallback((tabId: string) => {
+  const handleTabChange = useCallback((tabId) => {
     setActiveTab(tabId);
   }, []);
 
-  const handleModelSelect = useCallback((model: ModelMeta) => {
+  const handleModelSelect = useCallback((model) => {
     setSelectedModel(model);
   }, []);
 
-  const handleGenerate = useCallback(async (params: { modelId: string; values: Record<string, unknown>; cost: number }) => {
+  const handleGenerate = useCallback(async (params) => {
     if (!selectedModel || !prompt.trim()) return;
-
     setGenerating(true);
     try {
       const job = await submitGeneration({
@@ -98,7 +86,7 @@ export default function SmartVideoStudio() {
     }
   }, [selectedModel, prompt]);
 
-  const handleRetry = useCallback(async (job: GenerationJob) => {
+  const handleRetry = useCallback(async (job) => {
     if (!selectedModel) return;
     setGenerating(true);
     try {
@@ -114,7 +102,7 @@ export default function SmartVideoStudio() {
     }
   }, [selectedModel]);
 
-  const handleUseAsInput = useCallback((job: GenerationJob) => {
+  const handleUseAsInput = useCallback((job) => {
     console.log('[SmartVideoStudio] Use as input:', job);
   }, []);
 
@@ -122,7 +110,6 @@ export default function SmartVideoStudio() {
     setPrompt('');
   }, []);
 
-  // Fetch user balance
   useEffect(() => {
     let cancelled = false;
     async function fetchBalance() {
@@ -141,114 +128,100 @@ export default function SmartVideoStudio() {
     return () => { cancelled = true; };
   }, []);
 
-  return (
-    <div className="smart-video-studio">
-      {/* Sticky Header */}
-      <header className="smart-video-studio-header">
-        <div className="smart-video-studio-header-inner">
-          <div className="smart-video-studio-header-logo">
-            <img
-              alt="SmartVideo Logo"
-              width="32"
-              height="32"
-              src="/m-logo.png"
-              style={{ color: 'transparent' }}
-            />
-            <span style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '-0.02em' }}>
-              SmartVideo
-            </span>
-          </div>
-          <nav className="smart-video-studio-header-nav" aria-label="Main Navigation">
-            <a href="/playground">Explore</a>
-            <a href="/rankings">Rankings</a>
-            <a href="/docs/introduction">Docs</a>
-            <a href="/blog">Blog</a>
-            <a href="https://discord.com/invite/zpnuBRXhKg">Discord</a>
-          </nav>
-          <div className="smart-video-studio-header-actions">
-            {userBalance !== null && (
-              <div className="smart-video-balance">
-                <span className="smart-video-balance-label">Balance:</span>
-                <span className="smart-video-balance-value">{userBalance.toFixed(2)}</span>
-                <span className="smart-video-balance-currency">credits</span>
-              </div>
-            )}
-            <button className="smart-video-studio-header-signin">Sign In</button>
-          </div>
-        </div>
-      </header>
-
-      {/* Mode Rail + Config Panel + Main Content */}
-      <div className="smart-video-studio-body">
-        {/* Far-left rail */}
-        <ModeRail
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          modelsByTab={modelsByTab}
-        />
-
-        {/* Config Panel */}
-        <div className="smart-video-studio-config">
-          {/* Model Selector */}
-          <ModelSelector
-            tabId={activeTab}
-            selectedModelId={selectedModel?.id || null}
-            onSelect={handleModelSelect}
-          />
-
-          {/* Dynamic Form */}
-          {selectedModel ? (
-            <DynamicModelForm
-              modelId={selectedModel.id}
-              onGenerate={handleGenerate}
-              onReset={handleReset}
-            />
-          ) : (
-            <div className="smart-video-no-model">
-              <p>Select a model to begin creating.</p>
-            </div>
-          )}
-        </div>
-
-        {/* Main Panel — Generations */}
-        <div className="smart-video-studio-main">
-          <GenerationsPanel
-            jobs={jobs}
-            loading={loading}
-            onRetry={handleRetry}
-            onDelete={(jobId) => setJobs(prev => prev.filter(j => j.id !== jobId))}
-            onUseAsInput={handleUseAsInput}
-          />
-        </div>
-      </div>
-
-      {/* Bottom Prompt Bar */}
-      <div className="smart-video-prompt-bar">
-        <div className="smart-video-prompt-bar-inner">
-          <textarea
-            value={prompt}
-            onChange={e => setPrompt(e.target.value)}
-            placeholder="Enter your prompt here..."
-            className="smart-video-prompt-input"
-            onKeyDown={e => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                if (selectedModel && prompt.trim()) {
-                  handleGenerate({ modelId: selectedModel.id, values: {}, cost: 0 });
-                }
+  return h('div', { className: 'smart-video-studio' },
+    // Sticky Header
+    h('header', { className: 'smart-video-studio-header' },
+      h('div', { className: 'smart-video-studio-header-inner' },
+        h('div', { className: 'smart-video-studio-header-logo' },
+          h('img', {
+            alt: 'SmartVideo Logo',
+            width: 32,
+            height: 32,
+            src: '/m-logo.png',
+            style: { color: 'transparent' }
+          }),
+          h('span', {
+            style: {
+              fontSize: '18px',
+              fontWeight: 800,
+              letterSpacing: '-0.02em',
+              color: '#fff'
+            }
+          }, 'SmartVideo')
+        ),
+        h('nav', {
+          className: 'smart-video-studio-header-nav',
+          'aria-label': 'Main Navigation'
+        },
+          h('a', { href: '/playground' }, 'Explore'),
+          h('a', { href: '/rankings' }, 'Rankings'),
+          h('a', { href: '/docs/introduction' }, 'Docs'),
+          h('a', { href: '/blog' }, 'Blog'),
+          h('a', { href: 'https://discord.com/invite/zpnuBRXhKg' }, 'Discord')
+        ),
+        h('div', { className: 'smart-video-studio-header-actions' },
+          userBalance !== null && h('div', { className: 'smart-video-balance' },
+            h('span', { className: 'smart-video-balance-label' }, 'Balance:'),
+            h('span', { className: 'smart-video-balance-value' }, userBalance.toFixed(2)),
+            h('span', { className: 'smart-video-balance-currency' }, 'credits')
+          ),
+          h('button', { className: 'smart-video-studio-header-signin' }, 'Sign In')
+        )
+      )
+    ),
+    // Body
+    h('div', { className: 'smart-video-studio-body' },
+      h(ModeRail, { activeTab, onTabChange: handleTabChange, modelsByTab }),
+      h('div', { className: 'smart-video-studio-config' },
+        h(ModelSelector, {
+          tabId: activeTab,
+          selectedModelId: selectedModel?.id || null,
+          onSelect: handleModelSelect
+        }),
+        selectedModel
+          ? h(DynamicModelForm, {
+              modelId: selectedModel.id,
+              onGenerate: handleGenerate,
+              onReset: handleReset
+            })
+          : h('div', { className: 'smart-video-no-model' },
+              h('p', null, 'Select a model to begin creating.')
+            )
+      ),
+      h('div', { className: 'smart-video-studio-main' },
+        h(GenerationsPanel, {
+          jobs,
+          loading,
+          onRetry: handleRetry,
+          onDelete: (jobId) => setJobs(prev => prev.filter(j => j.id !== jobId)),
+          onUseAsInput: handleUseAsInput
+        })
+      )
+    ),
+    // Bottom Prompt Bar
+    h('div', { className: 'smart-video-prompt-bar' },
+      h('div', { className: 'smart-video-prompt-bar-inner' },
+        h('textarea', {
+          value: prompt,
+          onChange: (e) => setPrompt(e.target.value),
+          placeholder: 'Enter your prompt here...',
+          className: 'smart-video-prompt-input',
+          onKeyDown: (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              if (selectedModel && prompt.trim()) {
+                handleGenerate({ modelId: selectedModel.id, values: {}, cost: 0 });
               }
-            }}
-          />
-          <button
-            type="button"
-            onClick={() => selectedModel && prompt.trim() && handleGenerate({ modelId: selectedModel.id, values: {}, cost: 0 })}
-            disabled={generating || !selectedModel || !prompt.trim()}
-            className="smart-video-prompt-submit"
-          >
-            {generating ? 'Generating...' : 'Generate'}
-          </button>
-        </div>
-      </div>
-    </div>
+            }
+          }
+        }),
+        h('button', {
+          type: 'button',
+          onClick: () => selectedModel && prompt.trim() && handleGenerate({ modelId: selectedModel.id, values: {}, cost: 0 }),
+          disabled: generating || !selectedModel || !prompt.trim(),
+          className: 'smart-video-prompt-submit'
+        }, generating ? 'Generating...' : 'Generate')
+      )
+    )
   );
 }

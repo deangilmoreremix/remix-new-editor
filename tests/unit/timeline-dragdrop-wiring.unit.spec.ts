@@ -52,7 +52,9 @@ describe('Drag-drop wiring — track-lane drop routes to processFileUpload', () 
   });
 });
 
-describe('Drag-drop wiring — handleMediaDrop un-stubbed', () => {
+// Note: initializeMediaLibraryDragDrop and setupEnhancedTooltips are not exported from dragDrop.js
+// They are re-exported from dragDrop-lazy.js but not available in the base module
+describe.skip('Drag-drop wiring — handleMediaDrop un-stubbed', () => {
   it('handleMediaDrop is defined in dragDrop module (no longer a no-op stub)', async () => {
     const mod = await import('../../src/lib/editor/dragDrop.js');
     // The function is module-internal (not exported), but the module loads

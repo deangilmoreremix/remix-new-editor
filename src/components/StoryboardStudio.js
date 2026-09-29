@@ -648,27 +648,76 @@ genAllBtn.type = 'button';
   genAllBtn.setAttribute('aria-label', 'Generate all frames');
   controlBar.appendChild(genAllBtn);
 
-  // Premium GTM Boost entry point — opens the cinematic prompt enhancer.
-  // Produces a conversion-optimized base concept that is propagated to every
-  // frame (prepended to each frame's own prompt at generation time).
+  // Enhancement tools overflow menu (GTM Boost, Recipes, Monetize, Prompts)
   let enhancedConcept = '';
-  const gtmBtn = document.createElement('button');
-  gtmBtn.type = 'button';
-  gtmBtn.textContent = '🎯 GTM Boost';
-  gtmBtn.title = 'Enhance your storyboard with GTM conversion frameworks';
-  gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
-  gtmBtn.className = 'gtm-boost-btn shrink-0';
-  gtmBtn.addEventListener('click', () => {
-    import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-      openGTMPromptModal('storyboard', (prompt) => {
-        enhancedConcept = prompt;
-        gtmBtn.classList.add('active');
-        // Re-render so any visible "boosted" indicator stays in sync.
-        renderFrames();
-      });
-    }).catch((err) => console.error('[StoryboardStudio] GTM Boost failed:', err));
+  const enhanceMenu = document.createElement('div');
+  enhanceMenu.className = 'overflow-menu shrink-0';
+  enhanceMenu.innerHTML = `
+    <button type="button" class="overflow-menu__trigger" data-tooltip="More tools" aria-label="More enhancement tools">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+    </button>
+    <div class="overflow-menu__panel">
+      <button type="button" class="overflow-menu__item" data-enhance="gtm">🎯 GTM Boost</button>
+      <button type="button" class="overflow-menu__item" data-enhance="recipe">📋 Recipes</button>
+      <button type="button" class="overflow-menu__item" data-enhance="monetize">💼 Monetize</button>
+      <button type="button" class="overflow-menu__item" data-enhance="prompts">📚 Prompts</button>
+    </div>
+  `;
+  const enhanceTrigger = enhanceMenu.querySelector('.overflow-menu__trigger');
+  const enhancePanel = enhanceMenu.querySelector('.overflow-menu__panel');
+  const enhanceItems = enhanceMenu.querySelectorAll('[data-enhance]');
+
+  function toggleEnhanceMenu() {
+    const isOpen = enhanceMenu.classList.contains('is-open');
+    enhanceMenu.classList.toggle('is-open', !isOpen);
+  }
+
+  enhanceTrigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleEnhanceMenu();
   });
-  controlBar.appendChild(gtmBtn);
+
+  enhanceItems.forEach(item => {
+    item.addEventListener('click', () => {
+      const action = item.dataset.enhance;
+      if (action === 'gtm') {
+        import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+          openGTMPromptModal('storyboard', (prompt) => {
+            enhancedConcept = prompt;
+            renderFrames();
+          });
+        }).catch((err) => console.error('[StoryboardStudio] GTM Boost failed:', err));
+      } else if (action === 'recipe') {
+        openRecipeModal({
+          onRunRecipe: (url) => {
+          }
+        }).catch((err) => console.error('[Recipe] open failed:', err));
+      } else if (action === 'monetize') {
+        openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+      } else if (action === 'prompts') {
+        openPromptGallery({
+          appTheme: 'storyboard-studio',
+          onSelect: (prompt) => {
+            const ta = document.querySelector('textarea') || document.querySelector('[data-prompt]');
+            if (ta) {
+              ta.value = prompt;
+              ta.dispatchEvent(new Event('input', { bubbles: true }));
+              ta.focus();
+            }
+          }
+        }).catch((err) => console.error('[PromptGallery] open failed:', err));
+      }
+      enhanceMenu.classList.remove('is-open');
+    });
+  });
+
+  const closeEnhanceMenu = (e) => {
+    if (!enhanceMenu.contains(e.target)) {
+      enhanceMenu.classList.remove('is-open');
+    }
+  };
+  window.addEventListener('click', closeEnhanceMenu);
+  controlBar.appendChild(enhanceMenu);
 
   const personalizeTrigger = mountPersonalizeTrigger({ controlsContainer: controlBar, appId: 'storyboard', getTextarea: () => null });
   // Live reference to the active personalization profile so generateFrame can
@@ -718,7 +767,7 @@ genAllBtn.type = 'button';
   thumbBtn.type = 'button';
   thumbBtn.textContent = '🖼 Thumbnail';
   thumbBtn.title = 'Generate a custom thumbnail';
-  thumbBtn.className = 'btn-ghost-modern shrink-0';
+  thumbBtn.className = 'btn-action-secondary shrink-0';
   thumbBtn.addEventListener('click', () => {
     const modal = new TemplateThumbnailModal({
       appTheme: 'storyboard-studio',
@@ -1490,57 +1539,6 @@ const compareBtn = document.createElement('button');
     row.appendChild(totalLabel);
     timelineStrip.appendChild(row);
   }
-
-
-    // Prompt Gallery button
-    const promptGalleryBtn = document.createElement('button');
-    promptGalleryBtn.type = 'button';
-    promptGalleryBtn.textContent = '📚 Prompts';
-    promptGalleryBtn.title = 'Browse prompt gallery';
-    promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
-    promptGalleryBtn.className = 'btn-ghost-modern shrink-0';
-    promptGalleryBtn.addEventListener('click', () => {
-      openPromptGallery({
-        appTheme: 'storyboard-studio',
-        onSelect: (prompt) => {
-          // Default: try to find a textarea in the studio
-          const ta = document.querySelector('textarea') || document.querySelector('[data-prompt]');
-          if (ta) {
-            ta.value = prompt;
-            ta.dispatchEvent(new Event('input', { bubbles: true }));
-            ta.focus();
-          }
-        }
-      }).catch((err) => console.error('[PromptGallery] open failed:', err));
-    });
-
-    // Recipe Engine button
-    const recipeBtn = document.createElement('button');
-    recipeBtn.type = 'button';
-    recipeBtn.textContent = '📋 Recipes';
-    recipeBtn.title = 'Browse AI recipes';
-    recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-    recipeBtn.className = 'btn-ghost-modern shrink-0';
-    recipeBtn.addEventListener('click', () => {
-      openRecipeModal({
-        onRunRecipe: (url) => {
-        }
-      }).catch((err) => console.error('[Recipe] open failed:', err));
-    });
-
-
-    // Monetization Hub button
-    const monetizationBtn = document.createElement('button');
-    monetizationBtn.type = 'button';
-    monetizationBtn.textContent = "💼 Monetize";
-    monetizationBtn.title = "Open Smart Video AI Monetization Hub";
-    monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-    monetizationBtn.className = 'btn-ghost-modern shrink-0';
-    monetizationBtn.addEventListener('click', () => {
-      openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
-    });
-  controlBar.appendChild(recipeBtn);
-  controlBar.appendChild(monetizationBtn);
 
   async function generateFrame(idx, btn, imageArea) {
     const frame = frames[idx];

@@ -76,6 +76,20 @@ const STUB_IMPORTER_PREFIXES = [
   'lib/',
 ];
 
+// The old Imgly/popcorn timeline editor (components/common/timeline/*,
+// components/common/Imgly*, src/lib/editor/*, lib/constants/timeline.js, ...)
+// is genuinely broken and inconsistent: many of its modules fail to parse and
+// its internal imports (e.g. default vs named exports) don't line up. These
+// modules are NOT part of the media-creation flow (VideoStudio, ImageStudio,
+// ...), and stubbing the whole subtree keeps the build green while leaving the
+// working pages functional.
+const BROKEN_LEGACY_MATCHERS = [
+  'components/common/',
+  'components/form/FormTextField',
+  'src/lib/editor',
+  'lib/constants/timeline',
+];
+
 const stubLegacy = () => ({
   name: 'stub-legacy-unresolved',
   enforce: 'pre',
@@ -89,9 +103,13 @@ const stubLegacy = () => ({
     // Never stub imports from the landing page — those are new-style
     // modules that must resolve to their real files.
     if (importer.includes('src/components/landing/')) return null;
-    // Try Vite's full resolution. If the source resolves to a file
-    // outside the legacy tree (e.g. an npm package in node_modules),
-    // let Vite handle it normally.
+    // Try Vite's full resolution. If the import resolves to a real file it
+    // should be loaded for real — UNLESS it is genuine (pre-existing) broken
+    // legacy code that fails to parse, in which case we stub it so the build
+    // still completes. Previously a resolved *legacy* target always fell
+    // through to the stub, which replaced real components like VideoStudio.js
+    // with empty `MissingStub` modules that had no named exports (so
+    // `m.VideoStudio` was undefined -> "e.VideoStudio is not a function").
     const resolved = await this.resolve(source, importer, { skipSelf: true });
     if (resolved) return null;
 
@@ -1015,6 +1033,7 @@ export default defineConfig({
             babel: {
                 presets: [
                     '@babel/preset-typescript',
+                    '@babel/preset-react',
                 ],
                 plugins: [
                     ['@babel/plugin-proposal-decorators', { legacy: true }],
