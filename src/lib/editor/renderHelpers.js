@@ -39,7 +39,12 @@ export function getVideoBitrate({ width = 1920, height = 1080, fps = 30, quality
   return Math.max(500_000, Math.round(baseBps * fpsFactor * qualityFactor));
 }
 
-export function computeFitSourceRect(srcWidth, srcHeight, dstWidth, dstHeight) {
+/**
+ * COVER: fill the destination canvas, cropping the source as needed.
+ * The returned rect describes the source rectangle to draw, mapped to the
+ * full destination canvas.
+ */
+export function computeCoverRect(srcWidth, srcHeight, dstWidth, dstHeight) {
   const srcAspect = srcWidth / srcHeight;
   const dstAspect = dstWidth / dstHeight;
   let sx, sy, sw, sh;
@@ -54,7 +59,29 @@ export function computeFitSourceRect(srcWidth, srcHeight, dstWidth, dstHeight) {
     sx = 0;
     sy = Math.round((srcHeight - sh) / 2);
   }
-  return { sx, sy, sw, sh };
+  return { sx, sy, sw, sh, dx: 0, dy: 0, dw: dstWidth, dh: dstHeight };
+}
+
+/**
+ * CONTAIN: show the full source within the destination, letterboxing/pillarboxing.
+ * The returned rect describes the destination rectangle to draw into.
+ */
+export function computeContainRect(srcWidth, srcHeight, dstWidth, dstHeight) {
+  const srcAspect = srcWidth / srcHeight;
+  const dstAspect = dstWidth / dstHeight;
+  let dw, dh, dx, dy;
+  if (srcAspect > dstAspect) {
+    dw = dstWidth;
+    dh = Math.round(dstWidth / srcAspect);
+    dx = 0;
+    dy = Math.round((dstHeight - dh) / 2);
+  } else {
+    dh = dstHeight;
+    dw = Math.round(dstHeight * srcAspect);
+    dx = Math.round((dstWidth - dw) / 2);
+    dy = 0;
+  }
+  return { sx: 0, sy: 0, sw: srcWidth, sh: srcHeight, dx, dy, dw, dh };
 }
 
 export function computeTrailerDuration(timeRange, settingsDuration, sourceDurationSec) {
