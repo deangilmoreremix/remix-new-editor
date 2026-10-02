@@ -27,6 +27,11 @@ export default defineConfig({
   timeout: 60_000,
   expect: { timeout: 10_000 },
 
+  // Warm the dev server before any test runs. A cold Vite server pre-bundles
+  // dependencies on first navigation, which can exceed the navigation timeout
+  // and fail the first test spuriously.
+  globalSetup: './tests/e2e/renderGlobalSetup.js',
+
   use: {
     baseURL: 'http://127.0.0.1:3100',
     trace: 'retain-on-failure',

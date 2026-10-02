@@ -336,7 +336,7 @@ export function RenderPage() {
       <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <p class="mb-3 text-xs uppercase tracking-[0.28em] text-white/70">AI Film Studio</p>
-          <h1 class="text-3xl font-black tracking-tight md:text-5xl text-white">Video Render TEST</h1>
+          <h1 class="text-3xl font-black tracking-tight md:text-5xl text-white">Video Render</h1>
           <p class="mt-2 max-w-2xl text-sm text-white/60 md:text-base">Review, refine, and process your generated video with a cinematic render workflow.</p>
         </div>
         <div class="flex flex-wrap gap-3">
@@ -758,10 +758,16 @@ export function RenderPage() {
 
   void initAssetResolve();
 
-  // Test helper: allow Playwright/e2e to inject a video source without a
-  // full page navigation. Blob/data URLs created in a previous document are
-  // invalidated on navigation, so this keeps the source inside the live page.
-  if (typeof window !== 'undefined') {
+  // Render test hook (DEV-ONLY).
+  //
+  // Lets the Playwright acceptance suite inject a video source without a full
+  // page navigation — blob/data URLs created in a previous document are
+  // invalidated on navigation, so the source must be set inside the live page.
+  //
+  // Gated on import.meta.env.DEV so Vite statically removes this block from
+  // production builds. Production bundles must not expose Render test-control
+  // globals.
+  if (import.meta.env && import.meta.env.DEV && typeof window !== 'undefined') {
     window.__setRenderVideoSource = (url, id, title) => {
       resolvedVideoUrl = url;
       if (id) resolvedVideoId = id;
