@@ -72,6 +72,13 @@ export const TOKEN_DEFS = [
   { key: 'linkedin', label: 'LinkedIn', paths: ['social.linkedin'] },
   { key: 'twitter', label: 'X / Twitter', paths: ['social.twitter'], aliases: ['x'] },
   { key: 'website', label: 'Website', paths: ['social.website', 'website.url'], aliases: ['site', 'url'] },
+  { key: 'businessName', label: 'Business Name', paths: ['personalization.business.businessName', 'company.name', 'contact.company'] },
+  { key: 'businessPhone', label: 'Business Phone', paths: ['personalization.business.phone', 'contact.phone'], aliases: ['phone'] },
+  { key: 'productService', label: 'Product / Service', paths: ['personalization.business.productService', 'intelligence.products.0', 'intelligence.services.0'] },
+  { key: 'offer', label: 'Offer', paths: ['personalization.business.offer'] },
+  { key: 'ctaHeadline', label: 'CTA Headline', paths: ['personalization.business.ctaHeadline'] },
+  { key: 'callToAction', label: 'Call To Action', paths: ['personalization.business.callToAction'], aliases: ['cta'] },
+  { key: 'brandDescription', label: 'Brand Description', paths: ['personalization.business.brandDescription', 'company.summary'] },
 ];
 
 /** Canonical key -> display label. Mirrors the old TOKEN_LABELS map. */

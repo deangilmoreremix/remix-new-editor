@@ -398,9 +398,60 @@ export class ThumbnailService {
     const userKey = resolveUserOpenAIKey(opts.apiKey);
     if (userKey) body.apiKey = userKey;
 
-    let res;
+    const controller = new AbortController();
+    const timeoutMs = Math.max(1000, Number(opts.timeoutMs) || 90000);
+    let timedOut = false;
+    let errorReported = false;
+    let reader = null;
+
+    const reportError = (error) => {
+      if (errorReported) return;
+      errorReported = true;
+      onError?.(error instanceof Error ? error : new Error(String(error)));
+    };
+
+    const timeout = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+      try { reader?.cancel?.(); } catch { /* ignore */ }
+    }, timeoutMs);
+
+    const externalAbort = () => controller.abort();
+    if (opts.signal) {
+      if (opts.signal.aborted) controller.abort();
+      else opts.signal.addEventListener('abort', externalAbort, { once: true });
+    }
+
+    const dispatchBlock = (raw) => {
+      if (!raw || !raw.trim()) return false;
+      const dataLines = raw
+        .split(/\r?\n/)
+        .filter((line) => line.startsWith('data:'))
+        .map((line) => line.slice(5).trim())
+        .filter(Boolean);
+      if (!dataLines.length) return false;
+
+      const payload = dataLines.join('\n');
+      let evt;
+      try { evt = JSON.parse(payload); }
+      catch { return false; }
+
+      if (evt.type === 'partial' && evt.b64) {
+        onPartial?.(evt.b64);
+        return false;
+      }
+      if (evt.type === 'done') {
+        onDone?.(evt.result);
+        return true;
+      }
+      if (evt.type === 'error') {
+        reportError(new Error(evt.message || 'Smart Edit stream failed.'));
+      }
+      return false;
+    };
+
     try {
-      res = await fetch(url, {
+      const res = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -408,46 +459,55 @@ export class ThumbnailService {
           apikey: getSupabaseAnonKey(),
         },
         body: JSON.stringify(body),
+        signal: controller.signal,
       });
-    } catch (err) {
-      onError?.(err);
-      return;
-    }
 
-    if (!res.ok || !res.body) {
-      let detail = '';
-      try { detail = await res.text(); } catch { /* ignore */ }
-      onError?.(new Error(detail || `Refine stream failed (${res.status})`));
-      return;
-    }
+      if (!res.ok || !res.body) {
+        let detail = '';
+        try { detail = await res.text(); } catch { /* ignore */ }
+        reportError(new Error(detail || `Refine stream failed (${res.status})`));
+        return;
+      }
 
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
+      reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let completed = false;
 
-    try {
       for (;;) {
         const { value, done } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
+        if (value) buffer += decoder.decode(value, { stream: !done });
 
-        let sep;
-        while ((sep = buffer.indexOf('\n\n')) !== -1) {
-          const raw = buffer.slice(0, sep);
-          buffer = buffer.slice(sep + 2);
-          const dataLine = raw.split('\n').find((l) => l.startsWith('data:'));
-          if (!dataLine) continue;
-          const payload = dataLine.slice(5).trim();
-          if (!payload) continue;
-          let evt;
-          try { evt = JSON.parse(payload); } catch { continue; }
-          if (evt.type === 'partial') onPartial?.(evt.b64);
-          else if (evt.type === 'done') onDone?.(evt.result);
-          else if (evt.type === 'error') onError?.(new Error(evt.message));
+        let separator;
+        while ((separator = buffer.search(/\r?\n\r?\n/)) !== -1) {
+          const raw = buffer.slice(0, separator);
+          const separatorMatch = buffer.slice(separator).match(/^(?:\r?\n){2}/);
+          buffer = buffer.slice(separator + (separatorMatch?.[0]?.length || 2));
+          if (dispatchBlock(raw)) completed = true;
+        }
+
+        if (done) {
+          buffer += decoder.decode();
+          if (buffer.trim() && dispatchBlock(buffer)) completed = true;
+          break;
         }
       }
+
+      if (!completed && !errorReported) {
+        reportError(new Error('Smart Edit stream ended before a final image was returned.'));
+      }
     } catch (err) {
-      onError?.(err);
+      if (timedOut) {
+        reportError(new Error('Smart Edit timed out after 90 seconds. Retry the edit or use a smaller/faster request.'));
+      } else if (opts.signal?.aborted) {
+        reportError(new Error('Smart Edit was cancelled.'));
+      } else {
+        reportError(err);
+      }
+    } finally {
+      clearTimeout(timeout);
+      if (opts.signal) opts.signal.removeEventListener('abort', externalAbort);
+      try { await reader?.cancel?.(); } catch { /* ignore */ }
     }
   }
 

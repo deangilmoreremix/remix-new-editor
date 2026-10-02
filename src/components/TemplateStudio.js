@@ -25,6 +25,10 @@ import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { getTemplateStudioAsset } from '../lib/personalizerAdapters.js';
+import {
+  applyPersonalizationInputsToParams,
+  resolvePersonalizationForModel,
+} from '../lib/personalization/studioContext.js';
 
 export function TemplateStudio(templateId) {
   let template = getTemplateById(templateId);
@@ -70,6 +74,7 @@ export function TemplateStudio(templateId) {
   let loadedModels = [];
   let primaryPromptField = null;
   let customThumbnailUrl = getCustomThumbnailFromCache(template.id);
+  let activePersonalizationContext = null;
 
   // Restore the last GTM context the user picked in the prompt modal,
   // if any. The modal persists selections to localStorage on apply; we
@@ -849,6 +854,17 @@ let fallbackList = [];
       ];
     },
     getPreview: () => customThumbnailUrl || lastGeneratedUrl || '',
+    onApply: ({ personalization }) => {
+      activePersonalizationContext = personalization || null;
+      if (!activePersonalizationContext) return;
+      const modelId = selectedModel || template.model;
+      const model = [...t2iModels, ...i2iModels, ...i2vModels, ...t2vModels, ...v2vModels]
+        .find((candidate) => candidate.id === modelId);
+      const resolved = resolvePersonalizationForModel(activePersonalizationContext, model, { studio: 'template' });
+      if (resolved.warnings.length) {
+        showInlineError(container, resolved.warnings.join(' '));
+      }
+    },
   });
 
   // AI Captions button — always visible in the studio controls for video templates
@@ -1202,6 +1218,21 @@ let fallbackList = [];
       params.thumbnail_url = customThumbnailUrl;
     }
 
+    if (activePersonalizationContext) {
+      const modelId = selectedModel || template.model;
+      const model = [...t2iModels, ...i2iModels, ...i2vModels, ...t2vModels, ...v2vModels]
+        .find((candidate) => candidate.id === modelId);
+      const resolved = resolvePersonalizationForModel(activePersonalizationContext, model, { studio: 'template' });
+      Object.assign(params, applyPersonalizationInputsToParams(params, resolved));
+      if (template.modelType === 'i2i' && resolved.referenceImages.length) {
+        params.images_list = Array.from(new Set([
+          ...(Array.isArray(params.images_list) ? params.images_list : []),
+          ...resolved.referenceImages,
+        ]));
+        params.image_url = params.image_url || params.images_list[0];
+      }
+    }
+
     // Client-side validation before muapi call
     const EFFECT_MODELS = ['ai-video-effects', 'motion-controls', 'video-effects', 'vfx'];
     const needsImageUrl = template.modelType === 'i2v' || template.modelType === 'i2i';
@@ -1238,6 +1269,21 @@ let fallbackList = [];
       // Merge template defaults with the params built by genBtn.onclick
       const mergedParams = { model: selectedModel || template.model, ...(template.defaultParams || {}), ...params };
       params = mergedParams;
+
+      if (activePersonalizationContext) {
+        const modelId = selectedModel || template.model;
+        const model = [...t2iModels, ...i2iModels, ...i2vModels, ...t2vModels, ...v2vModels]
+          .find((candidate) => candidate.id === modelId);
+        const resolved = resolvePersonalizationForModel(activePersonalizationContext, model, { studio: 'template' });
+        params = applyPersonalizationInputsToParams(params, resolved);
+        if (template.modelType === 'i2i' && resolved.referenceImages.length) {
+          params.images_list = Array.from(new Set([
+            ...(Array.isArray(params.images_list) ? params.images_list : []),
+            ...resolved.referenceImages,
+          ]));
+          params.image_url = params.image_url || params.images_list[0];
+        }
+      }
 
       // Normalize aspect ratio for standard and matrix templates
       const aspectRatio = template.aspectRatio || (template.aspectRatios ? template.aspectRatios[0] : null);
