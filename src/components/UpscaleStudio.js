@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { saveGeneration } from '../lib/generationHistory.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
@@ -9,7 +10,7 @@ import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
-import { mountModelSelector, getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
+import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
@@ -122,7 +123,7 @@ const triggerBtn = document.createElement('button');
   methodWrapper.appendChild(dropdown);
   container.appendChild(methodWrapper);
 
-  let _modelSelectorOutsideClickHandler = null;
+let _modelSelectorOutsideClickHandler = null;
 
   const factorRow = document.createElement('div');
   factorRow.className = 'flex gap-2 mb-6 justify-center';
@@ -190,7 +191,6 @@ const triggerBtn = document.createElement('button');
         upscaleAttachmentState[key].push(url);
         showToast('Reference uploaded', 'success');
       } catch (err) {
-        console.error('[UpscaleStudio] attachment upload failed:', err);
         showToast('Attachment upload failed: ' + err.message, 'error');
       }
     },
@@ -272,9 +272,9 @@ genBtn.type = 'button';
         openRecipeModal({
           onRunRecipe: (url) => {
           }
-        }).catch((err) => console.error('[Recipe] open failed:', err));
+        }).catch(() => {});
       } else if (action === 'monetize') {
-        openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+        openMonetizationHub().catch(() => {});
       } else if (action === 'prompts') {
         openPromptGallery({
           appTheme: 'upscale-studio',
@@ -286,7 +286,7 @@ genBtn.type = 'button';
               ta.focus();
             }
           }
-        }).catch((err) => console.error('[PromptGallery] open failed:', err));
+        }).catch(() => {});
       }
       enhanceMenu.classList.remove('is-open');
     });
@@ -329,15 +329,20 @@ genBtn.type = 'button';
 
   genBtn.onclick = async () => {
     if (!(await requireEntitlement())) return;
-    if (!uploadedUrl) { alert('Upload an image or video first'); return; }
+    if (!uploadedUrl) {
+      showToast('Upload an image or video first', 'error');
+      return;
+    }
     const apiKey = apiKeyManager.getMuapiKey();
     if (!apiKey) { AuthModal(() => genBtn.click()); return; }
 
     genBtn.disabled = true;
     genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Upscaling...';
 
+    const controller = new AbortController();
+
     try {
-      const params = { model: selectedMethod.id, image_url: uploadedUrl, customThumbnailUrl: customThumbnailUrl || undefined };
+      const params = { model: selectedMethod.id, image_url: uploadedUrl, thumbnail_url: customThumbnailUrl || undefined, signal: controller.signal };
       if (selectedFactor) params.upscale_factor = parseInt(selectedFactor);
 
       // Merge attachment URLs from the unified toolbar.
@@ -364,9 +369,18 @@ genBtn.type = 'button';
         `;
         const publishBtn = resultArea.querySelector('.publish-social-btn');
         if (publishBtn) publishBtn.onclick = () => openSocialPublish({ mediaUrl: lastOutputUrl, mediaType: 'image' });
+        saveGeneration({
+          studio: 'upscale',
+          type: 'image',
+          url: result.url,
+          prompt: null,
+          model: selectedMethod.id,
+          parameters: { upscale_factor: parseInt(selectedFactor) },
+        });
+        showToast('Image upscaled successfully!', 'success');
       }
     } catch (err) {
-      alert(`Error: ${err.message}`);
+      showToast(`Error: ${err.message}`, 'error');
     } finally {
       genBtn.disabled = false;
       genBtn.textContent = 'Upscale Image';

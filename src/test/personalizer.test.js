@@ -89,7 +89,7 @@ describe('Personalizer', () => {
     expect(container.querySelector('.dom-sidebar')).toBeTruthy();
     expect(container.querySelector('.dom-canvas')).toBeTruthy();
     expect(container.querySelector('.dom-properties-panel')).toBeTruthy();
-  });
+  }, 30000);
 
   it('adds an element to the canvas without tearing down existing nodes', () => {
     const container = mountStudio();

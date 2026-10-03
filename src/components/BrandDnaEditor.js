@@ -2,6 +2,10 @@
 // Editable Brand DNA review — port of Open-Pomelli's DnaEditor.
 // Follows the existing studio pattern with mountStudioChrome + vanilla DOM.
 // Uses repo's shared button classes: .btn-primary-modern, .btn-secondary-modern.
+//
+// NOTE: This is a pure brand-metadata editor — it has NO MuAPI integration.
+// It only reads/writes brand fields via brandStore.js. No generationHistory,
+// brandApi, or muapi calls are made here by design.
 
 import { navigate } from '../lib/brandNavigation.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';

@@ -18,7 +18,7 @@ import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { navigate } from '../lib/router.js';
 import { saveGeneratedAsset } from '../lib/assets/assetActions.js';
 import { showToast } from '../lib/loading.js';
-import { validateEffectParams, EFFECT_PARAM_SCHEMA, createSliderControl, createAdvancedSection } from '../lib/effectParamValidator.js';
+import { createSliderControl } from '../lib/effectParamValidator.js';
 import { EffectCompositor } from '../lib/editor/effectCompositor.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import ExampleGallery from './studios/ExampleGallery.js';
@@ -190,7 +190,7 @@ export async function EffectsStudio() {
       const tab = EFFECT_TABS.find(t => t.id === id);
       if (tab) switchTab(tab);
       }
-    }).catch((err) => console.error('[ModelPicker] open failed:', err));
+    }).catch(() => {});
   });
   tabRow.appendChild(modelPickerBtn);
 
@@ -375,7 +375,6 @@ export async function EffectsStudio() {
       }, 'effects-studio');
       showToast('Added to media library', 'success');
     } catch (err) {
-      console.error('[EffectsStudio] Failed to save asset:', err);
       showToast('Failed to add to library', 'error');
     }
   };
@@ -400,7 +399,6 @@ export async function EffectsStudio() {
       navigate('timeline', { asset: asset.id });
       showToast('Inserting into timeline...', 'success');
     } catch (err) {
-      console.error('[EffectsStudio] Failed to insert into timeline:', err);
       showToast('Failed to insert into timeline', 'error');
     }
   };
@@ -458,7 +456,6 @@ export async function EffectsStudio() {
         effectsAttachmentState[key].push(url);
         showToast('Reference uploaded', 'success');
       } catch (err) {
-        console.error('[EffectsStudio] attachment upload failed:', err);
         showToast('Attachment upload failed: ' + err.message, 'error');
       }
     },
@@ -493,7 +490,7 @@ export async function EffectsStudio() {
   promptRow.appendChild(thumbBtn);
 
   const generateBtn = document.createElement('button');
-generateBtn.type = 'button';
+  generateBtn.type = 'button';
   generateBtn.className = 'btn-primary-modern px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all whitespace-nowrap';
   generateBtn.textContent = 'Apply Effect';
   generateBtn.setAttribute('aria-label', 'Apply effect');
@@ -539,9 +536,9 @@ generateBtn.type = 'button';
           openRecipeModal({
             onRunRecipe: (url) => {
             }
-          }).catch((err) => console.error('[Recipe] open failed:', err));
+          }).catch(() => {});
         } else if (action === 'monetize') {
-          openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+          openMonetizationHub().catch(() => {});
         } else if (action === 'prompts') {
           openPromptGallery({
             appTheme: 'video-studio',
@@ -549,7 +546,7 @@ generateBtn.type = 'button';
               const ta = promptInput;
               if (ta) { ta.value = prompt; ta.dispatchEvent(new Event('input', { bubbles: true })); ta.focus(); }
             }
-          }).catch((err) => console.error('[PromptGallery] open failed:', err));
+          }).catch(() => {});
         }
         enhanceMenu.classList.remove('is-open');
       });
@@ -1150,8 +1147,8 @@ generateBtn.type = 'button';
 
   async function handleGenerate() {
     if (!(await requireEntitlement())) return;
-    if (!selectedEffect) { alert('Select an effect first'); return; }
-    if (!uploadedUrl) { alert('Upload an image or video first'); return; }
+    if (!selectedEffect) { showToast('Select an effect first', 'error'); return; }
+    if (!uploadedUrl) { showToast('Upload an image or video first', 'error'); return; }
     const apiKey = apiKeyManager.getMuapiKey();
     if (!apiKey) { AuthModal(() => handleGenerate()); return; }
 
@@ -1200,7 +1197,7 @@ generateBtn.type = 'button';
       model: activeTab.id,
       image_url: uploadedUrl,
       [activeTab.field]: selectedEffect,
-      customThumbnailUrl: customThumbnailUrl || undefined,
+      thumbnail_url: customThumbnailUrl || undefined,
       guidance_scale: advancedSettings.guidanceScale,
       steps: advancedSettings.steps,
       seed: advancedSettings.seed,
@@ -1276,6 +1273,14 @@ generateBtn.type = 'button';
       baseResult = await muapi.generateI2I(baseParams, controller.signal);
     }
     layerResults.push({ url: baseResult.url, blendMode: 'normal', opacity: 1.0 });
+    saveGeneration({
+      studio: 'effects',
+      type: activeTab.type === 'i2v' ? 'video' : 'image',
+      url: baseResult.url,
+      prompt: selectedEffect,
+      model: activeTab.id,
+      parameters: { layer_name: 'base', blend_mode: 'normal', opacity: 1.0 },
+    });
 
     // Generate each layer
     for (const layer of fxLayers) {
@@ -1295,6 +1300,14 @@ generateBtn.type = 'button';
       } else {
         layerResult = await muapi.generateI2I(layerParams, controller.signal);
       }
+      saveGeneration({
+        studio: 'effects',
+        type: activeTab.type === 'i2v' ? 'video' : 'image',
+        url: layerResult.url,
+        prompt: selectedEffect,
+        model: activeTab.id,
+        parameters: { layer_name: layer.name, blend_mode: layer.blendMode, opacity: layer.opacity },
+      });
       layerResults.push({ url: layerResult.url, blendMode: layer.blendMode, opacity: layer.opacity });
     }
 
@@ -1566,7 +1579,15 @@ generateBtn.type = 'button';
       url,
       prompt: selectedEffect,
       model: activeTab.id,
-      parameters: {},
+      parameters: {
+        guidance_scale: advancedSettings.guidanceScale,
+        steps: advancedSettings.steps,
+        seed: advancedSettings.seed,
+        negative_prompt: advancedSettings.negativePrompt || undefined,
+        denoise_strength: advancedSettings.denoiseStrength,
+        effect_strength: advancedSettings.effectStrength,
+        cfg_scale: advancedSettings.cfgScale,
+      },
       timestamp: new Date().toISOString(),
     });
   }
@@ -1589,11 +1610,11 @@ generateBtn.type = 'button';
   };
 
   switchTab(EFFECT_TABS[0]);
-    const galleryAssets = getAssetsForStudio('effects');
-    if (galleryAssets.length > 0) {
-      const gallery = ExampleGallery({ studioId: 'effects', assets: galleryAssets, maxCards: 28 });
-      container.appendChild(gallery);
-    }
+  const galleryAssets = getAssetsForStudio('effects');
+  if (galleryAssets.length > 0) {
+    const gallery = ExampleGallery({ studioId: 'effects', assets: galleryAssets, maxCards: 28 });
+    container.appendChild(gallery);
+  }
 
-    return container;
+  return container;
 }

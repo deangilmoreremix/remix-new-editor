@@ -348,7 +348,7 @@ let showAdvanced = false;
         });
     }
 
-    if (!textarea.value && currentSettings.prompt) {
+     if (!textarea.value && currentSettings.prompt) {
         textarea.value = currentSettings.prompt;
     }
 
@@ -376,7 +376,6 @@ let showAdvanced = false;
             currentSettings.referenceUrls.push({ type: key, url, file });
           }
         } catch (err) {
-          console.error('[CinemaStudio] attachment upload failed:', err);
           showToast('Attachment upload failed: ' + err.message, 'error');
         }
       },
@@ -417,7 +416,9 @@ let showAdvanced = false;
               textarea.dispatchEvent(new Event('input', { bubbles: true }));
               textarea.focus();
             });
-          }).catch((err) => console.error('[CinemaStudio] GTM Boost failed:', err));
+          }).catch(() => {
+            showToast('GTM Boost failed', 'error');
+          });
         }
         enhanceMenu.classList.remove('is-open');
       });
@@ -598,7 +599,7 @@ let showAdvanced = false;
           updateModelBtn();
           updateControlsForModel();
         }
-      }).catch((err) => console.error('[ModelPicker] open failed:', err));
+      }).catch(() => {});
     });
     settingsToolbar.appendChild(modelPickerBtn);
 
@@ -791,16 +792,16 @@ let showAdvanced = false;
 
     // Generate Button
     const generateBtn = document.createElement('button');
-     generateBtn.type = 'button';
-     generateBtn.className = 'btn-primary-modern px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:scale-105 active:scale-95 transition-all w-full sm:w-auto shadow-lg disabled:opacity-50 disabled:cursor-not-allowed';
+    generateBtn.type = 'button';
+    generateBtn.className = 'btn-primary-modern px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:scale-105 active:scale-95 transition-all w-full sm:w-auto shadow-lg disabled:opacity-50 disabled:cursor-not-allowed';
     generateBtn.setAttribute('data-tooltip', 'Generate cinema shot');
     generateBtn.setAttribute('aria-label', 'Generate cinema shot');
     generateBtn.innerHTML = `GENERATE ✨`;
 
-     // Thumbnail Button — integrated into the creation workflow alongside
-     // the Generate button so users can create a custom thumbnail during
-     // the cinema generation process.
-       const thumbBtn = document.createElement('button');
+    // Thumbnail Button — integrated into the creation workflow alongside
+    // the Generate button so users can create a custom thumbnail during
+    // the cinema generation process.
+    const thumbBtn = document.createElement('button');
        thumbBtn.type = 'button';
        thumbBtn.textContent = '🖼 Thumbnail';
        thumbBtn.title = 'Generate a custom thumbnail';
@@ -1451,7 +1452,7 @@ let showAdvanced = false;
             ta.focus();
           }
         }
-      }).catch((err) => console.error('[PromptGallery] open failed:', err));
+      }).catch(() => {});
     });
 
     // Recipe Engine button
@@ -1462,7 +1463,7 @@ let showAdvanced = false;
     recipeBtn.setAttribute('aria-label', 'Open recipe engine');
     recipeBtn.className = 'btn-ghost-modern shrink-0';
     recipeBtn.addEventListener('click', () => {
-      openRecipeModal().catch((err) => console.error('[Recipe] open failed:', err));
+      openRecipeModal().catch(() => {});
     });
 
 
@@ -1474,7 +1475,7 @@ let showAdvanced = false;
     monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
     monetizationBtn.className = 'btn-ghost-modern shrink-0';
     monetizationBtn.addEventListener('click', () => {
-      openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+      openMonetizationHub().catch(() => {});
     });
     if (!toolbar.querySelector('[aria-label="Open recipe engine"]')) toolbar.appendChild(recipeBtn);
     if (!toolbar.querySelector('[aria-label="Open Smart Video AI Monetization Hub"]')) toolbar.appendChild(monetizationBtn);
@@ -1500,7 +1501,6 @@ let showAdvanced = false;
             }
 
         } catch (e) {
-            console.error(e);
             showToast('Generation Failed: ' + e.message, 'error');
         } finally {
             generateBtn.disabled = false;

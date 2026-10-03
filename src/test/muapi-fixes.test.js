@@ -101,7 +101,7 @@ describe('MuapiClient Fixes', () => {
       ).rejects.toThrow(/placeholder or demo result/);
     }, 10000);
 
-    test('detects static webassets path in video url', async () => {
+    test('allows webassets path in video url (matches proxy behavior)', async () => {
       global.fetch = vi.fn(() =>
         Promise.resolve({
           ok: true,
@@ -114,9 +114,8 @@ describe('MuapiClient Fixes', () => {
         })
       );
 
-      await expect(
-        client.pollForResult('req-static-2', 5, 500)
-      ).rejects.toThrow(/placeholder or demo result/);
+      const result = await client.pollForResult('req-static-2', 5, 500);
+      expect(result.url).toBe('https://cdn.muapi.ai/webassets/videomodels/wan2.5-image-to-video.mp4');
     }, 10000);
 
     test('allows real unique generation URLs', async () => {

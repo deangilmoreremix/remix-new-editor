@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { saveGeneration } from '../lib/generationHistory.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
@@ -12,10 +13,10 @@ import { i2iModels } from '../lib/models.js';
 import { createSafeImage } from '../lib/security.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import ExampleGallery from './studios/ExampleGallery.js';
-import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
+import { showToast } from '../lib/loading.js';
 
 const STYLE_PRESETS = [
   'Realistic', 'DigitalCam', 'Quiet luxury', 'FashionShow', '90s Grain', 'Sunset beach',
@@ -702,21 +703,21 @@ export async function InfluencerStudio() {
   }
 
   const promptInput = document.createElement('textarea');
-    const modelPickerBtn = document.createElement('button');
-    modelPickerBtn.type = 'button';
-    modelPickerBtn.textContent = 'AI Pick';
-    modelPickerBtn.title = 'Open intelligent model picker';
-    modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-    modelPickerBtn.className = 'btn-action-secondary shrink-0';
-    modelPickerBtn.addEventListener('click', () => {
-      openModelPicker({
-        currentModelId: selectedModel.id,
-        onSelectModel: (modelId) => {
-          selectedModel = i2iModels.find(m => m.id === modelId) || selectedModel;
-        }
-      }).catch((err) => console.error('[ModelPicker] open failed:', err));
-    });
-    formCard.appendChild(modelPickerBtn);
+  const modelPickerBtn = document.createElement('button');
+  modelPickerBtn.type = 'button';
+  modelPickerBtn.textContent = 'AI Pick';
+  modelPickerBtn.title = 'Open intelligent model picker';
+  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
+  modelPickerBtn.className = 'btn-action-secondary shrink-0';
+  modelPickerBtn.addEventListener('click', () => {
+    openModelPicker({
+      currentModelId: selectedModel.id,
+      onSelectModel: (modelId) => {
+        selectedModel = i2iModels.find(m => m.id === modelId) || selectedModel;
+      }
+    }).catch(() => {});
+  });
+  formCard.appendChild(modelPickerBtn);
   promptInput.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors resize-none';
   promptInput.rows = 2;
   promptInput.placeholder = 'Additional instructions (optional)';
@@ -733,7 +734,7 @@ export async function InfluencerStudio() {
         promptInput.dispatchEvent(new Event('input', { bubbles: true }));
       }
     });
-  } catch (e) { console.error('[InfluencerStudio] prefill failed', e); }
+  } catch (e) { /* ignore prefill failure */ }
 
   // Enhancement tools overflow menu (GTM Boost, Recipes, Monetize, Prompts)
   const enhanceMenu = document.createElement('div');
@@ -773,14 +774,14 @@ export async function InfluencerStudio() {
             promptInput.dispatchEvent(new Event('input', { bubbles: true }));
             promptInput.focus();
           });
-        }).catch((err) => console.error('[InfluencerStudio] GTM Boost failed:', err));
+        }).catch(() => {});
       } else if (action === 'recipe') {
         openRecipeModal({
           onRunRecipe: (url) => {
           }
-        }).catch((err) => console.error('[Recipe] open failed:', err));
+          }).catch(() => {});
       } else if (action === 'monetize') {
-        openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+          openMonetizationHub().catch(() => {});
       } else if (action === 'prompts') {
         openPromptGallery({
           appTheme: 'influencer-studio',
@@ -789,7 +790,7 @@ export async function InfluencerStudio() {
             promptInput.dispatchEvent(new Event('input', { bubbles: true }));
             promptInput.focus();
           }
-        }).catch((err) => console.error('[PromptGallery] open failed:', err));
+          }).catch(() => {});
       }
       enhanceMenu.classList.remove('is-open');
     });
@@ -845,7 +846,7 @@ export async function InfluencerStudio() {
   formCard.appendChild(thumbBtn);
 
   const genBtn = document.createElement('button');
-genBtn.type = 'button';
+ genBtn.type = 'button';
   genBtn.className = 'btn-primary-modern w-full px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all mt-2';
   genBtn.textContent = 'Generate Content';
   genBtn.setAttribute('aria-label', 'Generate content');
@@ -1118,7 +1119,10 @@ genBtn.type = 'button';
 
   genBtn.onclick = async () => {
     if (!(await requireEntitlement())) return;
-    if (!uploadedUrl) { alert('Upload a photo first'); return; }
+    if (!uploadedUrl) {
+      showToast('Upload a photo first', 'error');
+      return;
+    }
     const apiKey = apiKeyManager.getMuapiKey();
     if (!apiKey) { AuthModal(() => genBtn.click()); return; }
 
@@ -1135,7 +1139,7 @@ genBtn.type = 'button';
         style: selectedStyle,
         style_intensity: styleIntensity / 100,
         aspect_ratio: selectedFormat.ar,
-        customThumbnailUrl: customThumbnailUrl || undefined,
+        thumbnail_url: customThumbnailUrl || undefined,
       };
       if (seedLocked) params.seed = currentSeed;
       const result = await muapi.generateI2I(params);
@@ -1151,9 +1155,18 @@ genBtn.type = 'button';
         placeholderContent.classList.add('hidden');
         resultArea.classList.add('hidden');
         addToHistory({ id: Date.now(), url: result.url, prompt, style: selectedStyle, timestamp: Date.now() });
+        saveGeneration({
+          studio: 'influencer',
+          type: 'image',
+          url: result.url,
+          prompt,
+          model: selectedModel.id,
+          parameters: { style: selectedStyle, style_intensity: styleIntensity / 100, aspect_ratio: selectedFormat.ar, seed_locked: seedLocked },
+        });
+        showToast('Influencer content generated!', 'success');
       }
     } catch (err) {
-      alert(`Error: ${err.message}`);
+      showToast(`Error: ${err.message}`, 'error');
     } finally {
       genBtn.disabled = false;
       genBtn.textContent = 'Generate Content';

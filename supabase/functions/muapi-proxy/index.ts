@@ -2,6 +2,11 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 // muapi-proxy — forwards requests to api.muapi.ai on behalf of the client.
 //
+// SECURITY: ALLOWED_ORIGINS must be set in any non-development environment.
+// If unset, getCorsHeaders() throws instead of returning Access-Control-Allow-Origin: *.
+// The OPTIONS preflight handler (line 429) and the main handler catch block both
+// translate that throw into an HTTP 500 so misconfiguration is loud, not silent.
+//
 // Auth model (user-key-required, no server fallback):
 //   Every request MUST carry a Muapi API key supplied by the caller. Accepted
 //   sources (in priority order for JSON bodies):
@@ -159,6 +164,15 @@ function getAllowedOrigins(): string[] {
 function getCorsHeaders(req: Request): Record<string, string> {
   const allowedOrigins = getAllowedOrigins();
   const requestOrigin = req.headers.get('origin') || '';
+  const isProduction = Deno.env.get('ENVIRONMENT') !== 'development';
+
+  if (isProduction && allowedOrigins.length === 0) {
+    throw new Error(
+      '[muapi-proxy] ALLOWED_ORIGINS is not set in a production environment. ' +
+        'CORS wildcard fallback is not allowed. Set ALLOWED_ORIGINS to a comma-separated ' +
+        'list of allowed origins.'
+    );
+  }
 
   const originHeader: string =
     requestOrigin && allowedOrigins.includes(requestOrigin)
@@ -167,7 +181,7 @@ function getCorsHeaders(req: Request): Record<string, string> {
         ? allowedOrigins[0]
         : '*';
 
-  if (originHeader === '*' && Deno.env.get('ENVIRONMENT') !== 'development') {
+  if (originHeader === '*' && isProduction) {
     console.warn('[muapi-proxy] ALLOWED_ORIGINS not set; falling back to wildcard CORS in production');
   }
 
@@ -419,10 +433,18 @@ function verifyCsrfProtection(req: Request, auth: { reason: string }): { ok: boo
 
 Deno.serve(async (req: Request) => {
    if (req.method === "OPTIONS") {
-     return new Response(null, {
-       status: 200,
-       headers: getCorsHeaders(req),
-     });
+     try {
+       return new Response(null, {
+         status: 200,
+         headers: getCorsHeaders(req),
+       });
+     } catch (err) {
+       console.error('[muapi-proxy] CORS config error on OPTIONS preflight:', (err as Error).message);
+       return new Response(
+         JSON.stringify({ error: 'Server misconfigured: ALLOWED_ORIGINS is not set.' }),
+         { status: 500, headers: { 'Content-Type': 'application/json' } }
+       );
+     }
    }
 
   // Rate limiting

@@ -24,9 +24,9 @@ import { getImageStudioAsset } from '../lib/personalizerAdapters.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
-import { getAssetsForStudio, EXAMPLE_ASSETS } from '../data/exampleGalleryAssets.js';
-import { youmindImagePrompts } from '../data/youmindImagePrompts.js';
-import { showToast } from '../lib/loading.js';
+import { EXAMPLE_ASSETS } from '../data/exampleGalleryAssets.js';
+import { showToast, createLoadingOverlay, createProgressBar } from '../lib/loading.js';
+import { showInlineError, hideInlineError } from '../lib/studioHelpers.js';
 import ExampleGallery from './studios/ExampleGallery.js';
 import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
@@ -57,9 +57,6 @@ export function ImageStudio() {
     // flagged as unused until something consumes it.
     try {
       const restoredGtmContext = getGtmContext('image-studio');
-      if (restoredGtmContext && typeof console !== 'undefined' && console.info) {
-        console.info('[ImageStudio] Restored GTM context', restoredGtmContext);
-      }
       void restoredGtmContext;
     } catch { /* ignore */ }
     
@@ -281,7 +278,7 @@ export function ImageStudio() {
             ta.focus();
           }
         }
-      }).catch((err) => console.error('[PromptGallery] open failed:', err));
+      }).catch(() => {});
     });
 
     // Recipe Engine button
@@ -292,7 +289,7 @@ export function ImageStudio() {
     recipeBtn.setAttribute('aria-label', 'Open recipe engine');
     recipeBtn.className = 'btn-ghost-modern';
     recipeBtn.addEventListener('click', () => {
-      openRecipeModal().catch((err) => console.error('[Recipe] open failed:', err));
+      openRecipeModal().catch(() => {});
     });
 
 
@@ -304,7 +301,7 @@ export function ImageStudio() {
     monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
     monetizationBtn.className = 'btn-ghost-modern';
     monetizationBtn.addEventListener('click', () => {
-      openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+      openMonetizationHub().catch(() => {});
     });
 
     textarea.placeholder = 'Describe the image you want to create';
@@ -382,8 +379,7 @@ export function ImageStudio() {
               : 'Describe how to transform this image (optional)';
           }
         } catch (err) {
-          console.error('[ImageStudio] attachment upload failed:', err);
-          showToast('Attachment upload failed: ' + err.message, 'error');
+        showToast('Attachment upload failed: ' + err.message, 'error');
         }
       },
     });
@@ -428,11 +424,11 @@ export function ImageStudio() {
               textarea.style.height = 'auto';
               textarea.style.height = Math.min(textarea.scrollHeight, 250) + 'px';
             });
-          }).catch((err) => console.error('[ImageStudio] GTM Boost failed:', err));
+          }).catch(() => {});
         } else if (action === 'recipe') {
-          openRecipeModal().catch((err) => console.error('[Recipe] open failed:', err));
+      openRecipeModal().catch(() => {});
         } else if (action === 'monetize') {
-          openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+      openMonetizationHub().catch(() => {});
         } else if (action === 'prompts') {
           openPromptGallery({
             appTheme: 'image-studio',
@@ -446,7 +442,7 @@ export function ImageStudio() {
                 ta.style.height = Math.min(ta.scrollHeight, 250) + 'px';
               }
             }
-          }).catch((err) => console.error('[PromptGallery] open failed:', err));
+          }).catch(() => {});
         }
         enhanceMenu.classList.remove('is-open');
       });
@@ -580,7 +576,7 @@ export function ImageStudio() {
         qualityBtn.style.display = validResolutions.length > 0 ? 'flex' : 'none';
         if (validResolutions.length > 0) document.getElementById('quality-btn-label').textContent = validResolutions[0];
       }
-    }).catch((err) => console.error('[ModelPicker] open failed:', err));
+    }).catch(() => {});
   });
   controlsLeft.appendChild(modelPickerBtn);
 
@@ -780,10 +776,6 @@ generateBtn.type = 'button';
         advancedPanel.classList.toggle('hidden', !showAdvanced);
         document.getElementById('advanced-btn-label').textContent = showAdvanced ? 'Less' : 'Advanced';
     };
-    
-    // Add tools panel and advanced panel to container first before accessing their elements
-    container.appendChild(toolsPanel);
-    container.appendChild(advancedPanel);
     
     // Now set up event handlers after elements are in DOM
     advancedBtn.onclick = toggleAdvanced;
@@ -1351,12 +1343,12 @@ generateBtn.type = 'button';
 
         if (imageMode) {
             if (uploadedImageUrls.length === 0) {
-                alert('Please upload a reference image first.');
+                showInlineError(container, 'Please upload a reference image first.');
                 return;
             }
         } else {
             if (!prompt) {
-                alert('Please enter a prompt to generate an image.');
+                showInlineError(container, 'Please enter a prompt to generate an image.');
                 return;
             }
         }
@@ -1370,6 +1362,11 @@ generateBtn.type = 'button';
         hero.classList.add('opacity-0', 'scale-95', '-translate-y-10', 'pointer-events-none');
         generateBtn.disabled = true;
         generateBtn.innerHTML = `<span class="animate-spin inline-block mr-2 text-black">◌</span> Generating...`;
+        const controller = new AbortController();
+        const loadingOverlay = createLoadingOverlay('Generating image...');
+        const progressBar = createProgressBar(0);
+        loadingOverlay.appendChild(progressBar);
+        container.appendChild(loadingOverlay);
 
         try {
             let res;
@@ -1377,33 +1374,49 @@ generateBtn.type = 'button';
             // Collect dynamic control values. Studio-specific fields (style, batch_count)
             // are excluded from the payload and handled manually below.
             const dynamicPayload = dynamicControls.getPayload({});
-
             if (imageMode) {
                 const genParams = {
                     model: selectedModel,
                     images_list: uploadedImageUrls,
                     image_url: uploadedImageUrls[0], // backward compat for single-image models
                     aspect_ratio: selectedAr,
+                    signal: controller.signal,
                     ...dynamicPayload
                 };
                 if (customThumbnailUrl) genParams.thumbnail_url = customThumbnailUrl;
                 if (prompt) genParams.prompt = prompt;
+                if (batchCount > 1) genParams.batch_count = batchCount;
+                if (selectedLora) genParams.lora = selectedLora;
+                if (loraWeight !== 1.0) genParams.lora_weight = loraWeight;
+                if (referenceStrength !== 50) genParams.reference_strength = referenceStrength;
                 const qualityField = getCurrentQualityField(selectedModel);
                 if (qualityField && qualityLabel) genParams[qualityField] = qualityLabel;
                 res = await muapi.generateI2I(genParams);
             } else {
+                const modelInfo = getModelById(selectedModel);
+                const modelInputs = modelInfo?.inputs || {};
+                const supportsStyleParam = 'style' in modelInputs;
+
                 let finalPrompt = prompt;
-                // Add style to prompt if selected
                 if (selectedStyle && selectedStyle !== 'None') {
-                    finalPrompt = `${prompt}, ${selectedStyle.toLowerCase()} style`;
+                    if (supportsStyleParam) {
+                        genParams.style = selectedStyle;
+                    } else {
+                        finalPrompt = `${prompt}, ${selectedStyle.toLowerCase()} style`;
+                    }
                 }
+
                 const genParams = {
                     model: selectedModel,
                     prompt: finalPrompt,
                     aspect_ratio: selectedAr,
+                    signal: controller.signal,
                     ...dynamicPayload
                 };
                 if (customThumbnailUrl) genParams.thumbnail_url = customThumbnailUrl;
+                if (batchCount > 1) genParams.batch_count = batchCount;
+                if (selectedLora) genParams.lora = selectedLora;
+                if (loraWeight !== 1.0) genParams.lora_weight = loraWeight;
                 const qualityField = getCurrentQualityField(selectedModel);
                 if (qualityField && qualityLabel) genParams[qualityField] = qualityLabel;
                 res = await muapi.generateImage(genParams);
@@ -1423,10 +1436,10 @@ generateBtn.type = 'button';
                 // Show image
                 showImageInCanvas(res.url);
             } else {
-                console.error('[ImageStudio] No image URL in response:', res);
                 throw new Error('No image URL returned by API');
             }
         } catch (e) {
+            if (loadingOverlay && loadingOverlay.parentNode) loadingOverlay.remove();
             generateBtn.innerHTML = `Error: ${e.message.slice(0, 40)}`;
             setTimeout(() => {
                 generateBtn.innerHTML = `Generate ✨`;
@@ -1434,6 +1447,7 @@ generateBtn.type = 'button';
             }, 3000);
             return;
         }
+        if (loadingOverlay && loadingOverlay.parentNode) loadingOverlay.remove();
         generateBtn.disabled = false;
         generateBtn.innerHTML = `Generate ✨`;
     };

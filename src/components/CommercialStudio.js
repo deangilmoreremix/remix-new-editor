@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { saveGeneration } from '../lib/generationHistory.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
@@ -7,16 +8,16 @@ import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCa
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
-import { mountModelSelector, getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
+import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
-import { getModelById } from '../lib/models.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import ExampleGallery from './studios/ExampleGallery.js';
 import { openModelPicker } from '../lib/modelPickerIntegration.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
+import { showToast } from '../lib/loading.js';
 
 const SCENE_PRESETS = [
   'Studio white background', 'Luxury marble surface', 'Outdoor natural light',
@@ -162,7 +163,7 @@ const COMMERCIAL_MODELS = [
       onSelectModel: (id) => {
         selectedModel = id;
       }
-    }).catch((err) => console.error('[ModelPicker] open failed:', err));
+    }).catch(() => {});
   });
   formCard.appendChild(modelPickerBtn);
 
@@ -314,7 +315,7 @@ const COMMERCIAL_MODELS = [
   formCard.appendChild(thumbBtn);
 
   const genBtn = document.createElement('button');
-genBtn.type = 'button';
+ genBtn.type = 'button';
   genBtn.className = 'btn-primary-modern w-full px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all mt-2';
   genBtn.textContent = 'Generate Product Shot';
   genBtn.setAttribute('aria-label', 'Generate product shot');
@@ -354,16 +355,16 @@ genBtn.type = 'button';
         openRecipeModal({
           onRunRecipe: (url) => {
           }
-        }).catch((err) => console.error('[Recipe] open failed:', err));
+        }).catch(() => {});
       } else if (action === 'monetize') {
-        openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+        openMonetizationHub().catch(() => {});
       } else if (action === 'prompts') {
         openPromptGallery({
           appTheme: 'commercial-studio',
           onSelect: (prompt) => {
             commercialPrompt = prompt;
           }
-        }).catch((err) => console.error('[PromptGallery] open failed:', err));
+        }).catch(() => {});
       }
       enhanceMenu.classList.remove('is-open');
     });
@@ -400,7 +401,6 @@ genBtn.type = 'button';
     rail.classList.add('max-w-xl', 'mt-8');
     container.appendChild(rail);
   } catch (e) {
-    console.error('[CommercialStudio] examples rail failed', e);
   }
 
   const resultArea = document.createElement('div');
@@ -411,18 +411,24 @@ genBtn.type = 'button';
 
   genBtn.onclick = async () => {
     if (!(await requireEntitlement())) return;
-    if (!uploadedUrl) { alert('Upload a product image or video first'); return; }
+    if (!uploadedUrl) {
+      showToast('Upload a product image or video first', 'error');
+      return;
+    }
     const apiKey = apiKeyManager.getMuapiKey();
     if (!apiKey) { AuthModal(() => genBtn.click()); return; }
 
     genBtn.disabled = true;
     genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Generating...';
 
+    const controller = new AbortController();
+
     try {
       const params = {
         model: selectedModel,
         image_url: uploadedUrl,
-customThumbnailUrl: customThumbnailUrl || undefined,
+        thumbnail_url: customThumbnailUrl || undefined,
+        signal: controller.signal,
       };
       if (dynamicControls) {
         Object.assign(params, dynamicControls.getPayload({}));
@@ -449,9 +455,18 @@ customThumbnailUrl: customThumbnailUrl || undefined,
          const publishBtn = resultArea.querySelector('.publish-social-btn');
          if (publishBtn) publishBtn.onclick = () => openSocialPublish({ mediaUrl: result.url, mediaType: 'image' });
          resultArea.querySelector('.regen-btn').onclick = () => genBtn.click();
+         saveGeneration({
+           studio: 'commercial',
+           type: 'image',
+           url: result.url,
+           prompt: `${selectedScene}, professional product photography, commercial quality`,
+           model: selectedModel,
+           parameters: { scene: selectedScene, format: selectedFormat.ar, ...(dynamicControls ? dynamicControls.getPayload({}) : {}) },
+         });
+         showToast('Product shot generated successfully!', 'success');
        }
     } catch (err) {
-      alert(`Error: ${err.message}`);
+      showToast(`Error: ${err.message}`, 'error');
     } finally {
       genBtn.disabled = false;
       genBtn.textContent = 'Generate Product Shot';

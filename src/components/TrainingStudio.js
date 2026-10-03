@@ -8,7 +8,7 @@ import { createInlineInstructions } from './InlineInstructions.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
-import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
+import { showToast } from '../lib/loading.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 
@@ -325,14 +325,20 @@ const triggerBtn = document.createElement('button');
               ta.focus();
             }
           });
-        }).catch((err) => console.error('[TrainingStudio] GTM Boost failed:', err));
+        }).catch(() => {
+          showToast('GTM Boost failed', 'error');
+        });
       } else if (action === 'recipe') {
         openRecipeModal({
           onRunRecipe: (url) => {
           }
-        }).catch((err) => console.error('[Recipe] open failed:', err));
+        }).catch(() => {
+          showToast('Recipe failed to open', 'error');
+        });
       } else if (action === 'monetize') {
-        openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+        openMonetizationHub().catch(() => {
+          showToast('Monetization hub failed to open', 'error');
+        });
       } else if (action === 'prompts') {
         openPromptGallery({
           appTheme: 'training-studio',
@@ -344,7 +350,9 @@ const triggerBtn = document.createElement('button');
               ta.focus();
             }
           }
-        }).catch((err) => console.error('[PromptGallery] open failed:', err));
+        }).catch(() => {
+          showToast('Prompt gallery failed to open', 'error');
+        });
       }
       enhanceMenu.classList.remove('is-open');
     });
@@ -392,11 +400,11 @@ const triggerBtn = document.createElement('button');
   trainBtn.onclick = async () => {
     if (!(await requireEntitlement())) return;
     if (!loraName) {
-      alert('Enter a LoRA name');
+      showToast('Enter a LoRA name', 'error');
       return;
     }
     if (uploadedImages.length < 5) {
-      alert('Upload at least 5 training images (10-20 recommended)');
+      showToast('Upload at least 5 training images (10-20 recommended)', 'error');
       return;
     }
     const apiKey = apiKeyManager.getMuapiKey();
@@ -430,7 +438,7 @@ const triggerBtn = document.createElement('button');
         `;
       }
     } catch (err) {
-      alert(`Error: ${err.message}`);
+      showToast(`Error: ${err.message}`, 'error');
     } finally {
       trainBtn.disabled = false;
       trainBtn.textContent = 'Train LoRA';

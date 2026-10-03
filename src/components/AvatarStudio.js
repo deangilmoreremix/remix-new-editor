@@ -5,16 +5,16 @@ import { avatarModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { uploadMediaFile } from '../lib/editor/upload.js';
+import { saveGeneration } from '../lib/generationHistory.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
-import { mountModelSelector, getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
+import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
-import { getModelById } from '../lib/models.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import ExampleGallery from './studios/ExampleGallery.js';
@@ -22,6 +22,7 @@ import { openModelPicker } from '../lib/modelPickerIntegration.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
+import { showToast } from '../lib/loading.js';
 
 export function AvatarStudio() {
   const container = document.createElement('div');
@@ -36,6 +37,7 @@ export function AvatarStudio() {
   let customThumbnailUrl = getCustomThumbnailFromCache('avatar-studio');
   let dynamicControls = null;
   let dynamicControlsContainer = null;
+  let avatarAbortController = null;
 
   // Header with hero banner
   const header = document.createElement('div');
@@ -221,7 +223,7 @@ const triggerBtn = document.createElement('button');
     try {
       uploadedAudioUrl = await uploadMediaFile(file);
     } catch (err) {
-      alert(`Error: ${err.message}`);
+      showToast(`Audio upload failed: ${err.message}`, 'error');
     } finally {
       audioInput.value = '';
     }
@@ -244,8 +246,24 @@ const triggerBtn = document.createElement('button');
   promptInput.setAttribute('aria-label', 'Avatar prompt');
   promptInput.oninput = (e) => { prompt = e.target.value; };
   promptGroup.appendChild(promptInput);
-    // Enhancement tools overflow menu (GTM Boost, Recipes, Monetize, Prompts)
-    const enhanceMenu = document.createElement('div');
+  // Model Picker button
+  const modelPickerBtn = document.createElement('button');
+  modelPickerBtn.type = 'button';
+  modelPickerBtn.textContent = 'AI Pick';
+  modelPickerBtn.title = 'Open intelligent model picker';
+  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
+  modelPickerBtn.className = 'btn-action-secondary shrink-0';
+  modelPickerBtn.addEventListener('click', () => {
+    openModelPicker({
+      currentModelId: selectedModel.id,
+      onSelectModel: (modelId) => {
+        selectedModel = avatarModels.find(m => m.id === modelId) || selectedModel;
+      }
+    }).catch(() => {});
+  });
+  formCard.appendChild(modelPickerBtn);
+
+  // Enhancement tools overflow menu (GTM Boost, Recipes, Monetize, Prompts)
     enhanceMenu.className = 'overflow-menu shrink-0';
     enhanceMenu.innerHTML = `
       <button type="button" class="overflow-menu__trigger" data-tooltip="More tools" aria-label="More enhancement tools">
@@ -282,14 +300,14 @@ const triggerBtn = document.createElement('button');
               promptInput.dispatchEvent(new Event('input', { bubbles: true }));
               promptInput.focus();
             });
-          }).catch((err) => console.error('[AvatarStudio] GTM Boost failed:', err));
+          }).catch(() => {});
         } else if (action === 'recipe') {
           openRecipeModal({
             onRunRecipe: (url) => {
             }
-          }).catch((err) => console.error('[Recipe] open failed:', err));
+          }).catch(() => {});
         } else if (action === 'monetize') {
-          openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+          openMonetizationHub().catch(() => {});
         } else if (action === 'prompts') {
           openPromptGallery({
             appTheme: 'avatar-studio',
@@ -301,7 +319,7 @@ const triggerBtn = document.createElement('button');
                 ta.focus();
               }
             }
-          }).catch((err) => console.error('[PromptGallery] open failed:', err));
+          }).catch(() => {});
         }
         enhanceMenu.classList.remove('is-open');
       });
@@ -318,7 +336,6 @@ const triggerBtn = document.createElement('button');
   mountPersonalizeTrigger({ controlsContainer: formCard, getTextarea: () => promptInput, appId: 'avatar-studio' });
 
   // Model Picker button
-  const modelPickerBtn = document.createElement('button');
   modelPickerBtn.type = 'button';
   modelPickerBtn.textContent = 'AI Pick';
   modelPickerBtn.title = 'Open intelligent model picker';
@@ -330,11 +347,11 @@ const triggerBtn = document.createElement('button');
       onSelectModel: (modelId) => {
         selectedModel = avatarModels.find(m => m.id === modelId) || selectedModel;
       }
-    }).catch((err) => console.error('[ModelPicker] open failed:', err));
+    }).catch(() => {});
   });
   formCard.appendChild(modelPickerBtn);
 
-// Dynamic model-specific advanced controls
+  // Dynamic model-specific advanced controls
   dynamicControlsContainer = document.createElement('div');
   dynamicControlsContainer.className = 'flex flex-col gap-3';
   formCard.appendChild(dynamicControlsContainer);
@@ -389,31 +406,31 @@ const triggerBtn = document.createElement('button');
     mountThumbnailModal(modal);
     modal.open();
   });
-   formCard.appendChild(thumbBtn);
-   formCard.appendChild(genBtn);
+  formCard.appendChild(thumbBtn);
+  formCard.appendChild(genBtn);
 
-   // Native audio toggle
-   const nativeAudioRow = document.createElement('div');
-   nativeAudioRow.className = 'flex items-center justify-between px-2';
-   nativeAudioRow.innerHTML = `
-     <label class="text-xs font-bold text-secondary uppercase tracking-wider">Native Audio</label>
-     <button id="avatar-native-audio-btn" class="relative h-7 w-12 rounded-full transition bg-white/10 border border-white/10" data-native-audio="false">
-       <span class="absolute top-1 h-5 w-5 rounded-full bg-white transition left-1" id="avatar-native-audio-knob"></span>
-     </button>
-   `;
-   const nativeAudioBtn = nativeAudioRow.querySelector('#avatar-native-audio-btn');
-   const nativeAudioKnob = nativeAudioRow.querySelector('#avatar-native-audio-knob');
-   if (nativeAudioBtn && nativeAudioKnob) {
-     nativeAudioBtn.onclick = () => {
-       nativeAudio = !nativeAudio;
-       nativeAudioBtn.setAttribute('data-native-audio', String(nativeAudio));
-       nativeAudioBtn.style.background = nativeAudio ? 'var(--cyan)' : '';
-       nativeAudioBtn.style.borderColor = nativeAudio ? 'var(--cyan)' : '';
-       nativeAudioKnob.style.left = nativeAudio ? 'calc(100% - 22px)' : '4px';
-     };
-   }
-   formCard.appendChild(nativeAudioRow);
-   container.appendChild(formCard);
+  // Native audio toggle
+  const nativeAudioRow = document.createElement('div');
+  nativeAudioRow.className = 'flex items-center justify-between px-2';
+  nativeAudioRow.innerHTML = `
+    <label class="text-xs font-bold text-secondary uppercase tracking-wider">Native Audio</label>
+    <button id="avatar-native-audio-btn" class="relative h-7 w-12 rounded-full transition bg-white/10 border border-white/10" data-native-audio="false">
+      <span class="absolute top-1 h-5 w-5 rounded-full bg-white transition left-1" id="avatar-native-audio-knob"></span>
+    </button>
+  `;
+  const nativeAudioBtn = nativeAudioRow.querySelector('#avatar-native-audio-btn');
+  const nativeAudioKnob = nativeAudioRow.querySelector('#avatar-native-audio-knob');
+  if (nativeAudioBtn && nativeAudioKnob) {
+    nativeAudioBtn.onclick = () => {
+      nativeAudio = !nativeAudio;
+      nativeAudioBtn.setAttribute('data-native-audio', String(nativeAudio));
+      nativeAudioBtn.style.background = nativeAudio ? 'var(--cyan)' : '';
+      nativeAudioBtn.style.borderColor = nativeAudio ? 'var(--cyan)' : '';
+      nativeAudioKnob.style.left = nativeAudio ? 'calc(100% - 22px)' : '4px';
+    };
+  }
+  formCard.appendChild(nativeAudioRow);
+  container.appendChild(formCard);
 
   // Instructions
   const inlineInstructions = createInlineInstructions('avatar');
@@ -453,11 +470,11 @@ const triggerBtn = document.createElement('button');
   genBtn.onclick = async () => {
     if (!(await requireEntitlement())) return;
     if (!uploadedVideoUrl && selectedModel.hasVideo) {
-      alert('Upload a source video or image first');
+      showToast('Upload a source video or image first', 'error');
       return;
     }
     if (selectedModel.hasPrompt && (!prompt || !prompt.trim())) {
-      alert('Please enter a prompt for this avatar model.');
+      showToast('Please enter a prompt for this avatar model.', 'error');
       return;
     }
     const apiKey = apiKeyManager.getMuapiKey();
@@ -468,59 +485,71 @@ const triggerBtn = document.createElement('button');
 
     genBtn.disabled = true;
     genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Generating...';
+    avatarAbortController = new AbortController();
 
     try {
-const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
-        const params = {
-          model: selectedModel.id,
-          video_url: uploadedVideoUrl,
-          customThumbnailUrl: customThumbnailUrl || undefined,
-        };
+      const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
+      const params = {
+        model: selectedModel.id,
+        video_url: uploadedVideoUrl,
+        thumbnail_url: customThumbnailUrl || undefined,
+        signal: avatarAbortController.signal,
+      };
 
-       if (uploadedAudioUrl) params.audio_url = uploadedAudioUrl;
-       if (prompt) params.prompt = replaceTokensInPrompt(prompt, activeProfile);
-       if (dynamicControls) {
-         Object.assign(params, dynamicControls.getPayload({}));
-       }
-       
-       const result = await muapi.generateAvatar(params);
-       if (result?.url) {
-         resultArea.classList.remove('hidden');
-         resultArea.innerHTML = `
-           <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4">
-             <video controls class="w-full rounded-xl mb-3" src="${result.url}"></video>
-             <a href="${result.url}" download class="block w-full btn-secondary-modern py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download Video</a>
-             <button type="button" class="publish-social-btn block w-full mt-2 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
-           </div>
-         `;
-          const publishBtn = resultArea.querySelector('.publish-social-btn');
-          if (publishBtn) publishBtn.onclick = () => openSocialPublish({ mediaUrl: result.url, mediaType: 'video' });
-          if (result.url && /\.(mp4|webm|mov|m3u8)/i.test(result.url)) {
-            const captionBtn = document.createElement('button');
-            captionBtn.type = 'button';
-            captionBtn.textContent = '💬 Add AI Captions';
-            captionBtn.className = 'w-full bg-white/10 hover:bg-white/20 text-white py-2.5 rounded-xl font-bold text-sm border border-white/10 transition-all mt-3';
-            captionBtn.onclick = () => {
-              addCaptionButton({
-                videoUrl: result.url,
-                appTheme: 'avatar-studio',
-                onComplete: (captionedUrl) => {
-                  const vid = resultArea.querySelector('video');
-                  if (vid) vid.src = captionedUrl;
-                  const dl = resultArea.querySelector('a[download]');
-                  if (dl) dl.href = captionedUrl;
-                  showToast('Preview updated with captions');
-                },
-              });
-            };
-            resultArea.appendChild(captionBtn);
-          }
+      if (uploadedAudioUrl) params.audio_url = uploadedAudioUrl;
+      if (prompt) params.prompt = replaceTokensInPrompt(prompt, activeProfile);
+      if (dynamicControls) {
+        Object.assign(params, dynamicControls.getPayload({}));
+      }
+      
+      const result = await muapi.generateAvatar(params);
+      if (result?.url) {
+        resultArea.classList.remove('hidden');
+        resultArea.innerHTML = `
+          <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4">
+            <video controls class="w-full rounded-xl mb-3" src="${result.url}"></video>
+            <a href="${result.url}" download class="block w-full btn-secondary-modern py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download Video</a>
+            <button type="button" class="publish-social-btn block w-full mt-2 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
+          </div>
+        `;
+        const publishBtn = resultArea.querySelector('.publish-social-btn');
+        if (publishBtn) publishBtn.onclick = () => openSocialPublish({ mediaUrl: result.url, mediaType: 'video' });
+        if (result.url && /\.(mp4|webm|mov|m3u8)/i.test(result.url)) {
+          const captionBtn = document.createElement('button');
+          captionBtn.type = 'button';
+          captionBtn.textContent = '💬 Add AI Captions';
+          captionBtn.className = 'w-full bg-white/10 hover:bg-white/20 text-white py-2.5 rounded-xl font-bold text-sm border border-white/10 transition-all mt-3';
+          captionBtn.onclick = () => {
+            addCaptionButton({
+              videoUrl: result.url,
+              appTheme: 'avatar-studio',
+              onComplete: (captionedUrl) => {
+                const vid = resultArea.querySelector('video');
+                if (vid) vid.src = captionedUrl;
+                const dl = resultArea.querySelector('a[download]');
+                if (dl) dl.href = captionedUrl;
+                showToast('Preview updated with captions');
+              },
+            });
+          };
+          resultArea.appendChild(captionBtn);
         }
+        saveGeneration({
+          studio: 'avatar',
+          type: 'video',
+          url: result.url,
+          prompt: prompt,
+          model: selectedModel.id,
+          parameters: { native_audio: nativeAudio },
+        });
+        showToast('Avatar generated successfully!', 'success');
+      }
     } catch (err) {
-      alert(`Error: ${err.message}`);
+      showToast(`Error: ${err.message}`, 'error');
     } finally {
       genBtn.disabled = false;
       genBtn.textContent = 'Generate Avatar Video';
+      avatarAbortController = null;
     }
   };
 

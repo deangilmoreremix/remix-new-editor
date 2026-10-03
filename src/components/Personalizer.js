@@ -204,6 +204,10 @@ function renderImageElement(options) {
   const el = document.createElement('img');
   el.src = options.src || '';
   el.alt = options.alt || '';
+  el.onerror = () => {
+    el.style.opacity = '0.25';
+    el.style.border = '1px dashed rgba(255,255,255,0.15)';
+  };
   el.style.cssText = `
     width: 100%;
     height: 100%;
@@ -901,7 +905,7 @@ export function Personalizer() {
       }
     }
   } catch (err) {
-    console.warn('[Personalizer] personalization bootstrap failed:', err);
+    // personalization stack unavailable; studio remains usable
   }
 
   if (!personalizeReady && contactSelect) {
@@ -1035,17 +1039,7 @@ export function Personalizer() {
         font-family: inherit;
         width: 100%;
       `;
-  function _safeReturnRoute(route) {
-    if (typeof route !== 'string') return null;
-    const trimmed = route.trim();
-    if (!trimmed) return null;
-    // Only allow relative studio routes; block absolute URLs and schemes.
-    if (/^[a-zA-Z][a-zA-Z0-9+\-.]*:/.test(trimmed)) return null;
-    if (trimmed.startsWith('//')) return null;
-    return trimmed.replace(/^\/+/, '').replace(/^#\/?/, '');
-  }
 
-  // ... later where returnRoute is used ...
       returnBtn.addEventListener('click', () => {
         try {
           const safe = _safeReturnRoute(sourceHandoff.returnRoute);
@@ -1426,6 +1420,16 @@ export function Personalizer() {
     return trimmed;
   }
 
+  function _safeReturnRoute(route) {
+    if (typeof route !== 'string') return null;
+    const trimmed = route.trim();
+    if (!trimmed) return null;
+    // Only allow relative studio routes; block absolute URLs and schemes.
+    if (/^[a-zA-Z][a-zA-Z0-9+\-.]*:/.test(trimmed)) return null;
+    if (trimmed.startsWith('//')) return null;
+    return trimmed.replace(/^\/+/, '').replace(/^#\/?/, '');
+  }
+
   // ─── Token insertion into selected element ───────────────────────────────
   function insertTokenIntoSelectedElement(tokenKey) {
     if (!selectedElementId) {
@@ -1481,7 +1485,8 @@ export function Personalizer() {
       if (el.src !== undefined && el.type === ELEMENT_TYPES.IMAGE) {
         const resolved = replaceTokensInPrompt(el.src, { variables });
         const safe = _safeUrl(resolved);
-        if (img && safe) img.src = safe;
+        const imgEl = wrapper.querySelector('img');
+        if (imgEl && safe) imgEl.src = safe;
       }
     });
   }
@@ -1603,8 +1608,8 @@ export function Personalizer() {
       },
     });
     triggerDestroy = typeof trigger.destroy === 'function' ? trigger.destroy : null;
-  } catch (err) {
-    console.warn('[Personalizer] personalize trigger failed:', err);
+  } catch {
+    // personalize trigger unavailable; studio remains usable
   }
 
   // Initialize canvas
@@ -1648,8 +1653,8 @@ export function Personalizer() {
           });
         });
     }
-  } catch (err) {
-    console.warn('[Personalizer] interactjs initialization failed:', err);
+  } catch {
+    // interactjs unavailable; drag/resize remain disabled but studio is usable
   }
 
   renderPropertiesPanel();

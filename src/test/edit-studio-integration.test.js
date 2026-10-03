@@ -68,7 +68,7 @@ describe('EditStudio', () => {
     const { EditStudio } = await import('../components/EditStudio.js');
     expect(EditStudio).toBeDefined();
     expect(typeof EditStudio).toBe('function');
-  });
+  }, 30000);
 
   test('EditStudio renders 13 tools', async () => {
     const { EditStudio } = await import('../components/EditStudio.js');

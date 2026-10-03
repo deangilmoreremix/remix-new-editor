@@ -1,5 +1,5 @@
 import { getModelById, getVideoModelById, getI2IModelById, getI2VModelById, getV2VModelById, getLipSyncModelById, getAudioModelById, getVideoToolById, getAvatarModelById, getTextModelById, getTrainingModelById, i2vModels } from './models.js';
-import { apiKeyManager, isDevBypass } from './apiKeyManager.js';
+import { apiKeyManager } from './apiKeyManager.js';
 import { uploadFileToStorage } from './supabase.js';
 import { validateFile } from './editor/validateFile.js';
 import { analytics } from './analytics.js';
@@ -45,8 +45,6 @@ const STATIC_OUTPUT_PATTERNS = [
   '/muapi/homepage/',
   '/muapi/demo/',
   '/muapi/sandbox/',
-  '/webassets/videomodels/',
-  '/webassets/',
   '/placeholder/',
   '/sample/',
   '/static/demo/',
@@ -89,8 +87,7 @@ export class MuapiClient {
         // Validate that Supabase URL is configured before building proxy URL
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
         if (!supabaseUrl) {
-            console.error('[MuapiClient] VITE_SUPABASE_URL is not configured');
-            this.proxyUrl = '/functions/v1/muapi-proxy'; // Fallback to relative path
+            this.proxyUrl = '/functions/v1/muapi-proxy';
         } else {
             this.proxyUrl = `${supabaseUrl}/functions/v1/muapi-proxy`;
         }
@@ -110,7 +107,7 @@ export class MuapiClient {
 
     _getMuapiHeaders() {
         const key = this.apiKeyManager.getMuapiKey();
-        if (key && !isDevBypass) {
+        if (key) {
             return { 'Content-Type': 'application/json', 'x-api-key': key };
         }
         return { 'Content-Type': 'application/json' };
@@ -142,7 +139,6 @@ export class MuapiClient {
         if (controller) {
             controller.abort();
             this.activeControllers.delete(requestId);
-            console.log(`[MuapiClient] Cancelled request: ${requestId}`);
         }
     }
 
@@ -152,7 +148,6 @@ export class MuapiClient {
             controller.abort();
         }
         this.activeControllers.clear();
-        console.log('[MuapiClient] Cancelled all requests');
     }
 
     // Validate API response structure
@@ -169,6 +164,7 @@ export class MuapiClient {
     async generateImage(params, signal) {
         this._requireMuapiKey();
         await acquireRateLimitToken();
+        const effectiveSignal = signal ?? params?.signal;
         const modelInfo = getModelById(params.model);
         const endpoint = modelInfo?.endpoint || params.model;
         analytics.trackGeneration(params.model, 'image', { endpoint, studioType: params.studioType });
@@ -203,6 +199,7 @@ export class MuapiClient {
         if (params.prompt_extend) finalPayload.prompt_extend = true;
 
         if (params.thumbnail_url) finalPayload.thumbnail_url = params.thumbnail_url;
+        if (params.webhook_url) finalPayload.webhook_url = params.webhook_url;
 
         // Forward any tool-specific params defined in the model's input schema
         // that weren't already handled above. This lets Edit Studio controls like
@@ -227,6 +224,7 @@ export class MuapiClient {
             'cfg_scale',
             'prompt_extend',
             'thumbnail_url',
+            'webhook_url',
             'reference_images',
             'reference_videos',
             'reference_audios',
@@ -254,7 +252,7 @@ export class MuapiClient {
                     generationType: 'image',
                     studioType: params.studioType || 'image'
                 }),
-                signal
+                signal: effectiveSignal
             });
 
             if (!response.ok) {
@@ -270,12 +268,12 @@ export class MuapiClient {
                 return submitData;
             }
 
-            const result = await this.pollForResult(requestId, 60, 2000, signal);
+            const result = await this.pollForResult(requestId, 60, 2000, effectiveSignal);
 
             // Validate output URL exists
             const imageUrl = result.outputs?.[0] || result.url || result.output?.url;
             if (!imageUrl) {
-                console.warn('[MuapiClient] No image URL in response, returning full result');
+                throw new Error('No image URL in response');
             }
             analytics.trackGenerationComplete(params.model, 'image', true);
             return { ...result, url: imageUrl };
@@ -339,7 +337,6 @@ export class MuapiClient {
                   try {
                     checkOutputIntegrity(data);
                   } catch (integrityError) {
-                    console.error('[MuapiClient] Output integrity failure:', integrityError);
                     throw new Error(
                       `Received a placeholder or demo result instead of a unique generation. ` +
                       `This usually means your MuAPI key is in sandbox mode or has no credits. ` +
@@ -359,11 +356,6 @@ export class MuapiClient {
                     throw new Error(`Generation failed: ${data.error || 'Unknown error'}`);
                 }
 
-                // Log progress for long-running tasks
-                if (attempt % 10 === 0) {
-                    console.log(`[MuapiClient] Still processing... attempt ${attempt}/${maxAttempts}`);
-                }
-
             } catch (error) {
                 if (error.name === 'AbortError') {
                     throw new Error('Request cancelled');
@@ -378,6 +370,7 @@ export class MuapiClient {
     async generateVideo(params, signal) {
         this._requireMuapiKey();
         await acquireRateLimitToken();
+        const effectiveSignal = signal ?? params?.signal;
         const modelInfo = getVideoModelById(params.model);
         const endpoint = modelInfo?.endpoint || params.model;
         analytics.trackGeneration(params.model, 'video', { endpoint, studioType: params.studioType });
@@ -421,43 +414,44 @@ export class MuapiClient {
                 method: 'POST',
                 headers: this._getMuapiHeaders(),
                 body: JSON.stringify({
-                    endpoint,
-                    params: finalPayload,
-                    generationType: 'video',
-                    studioType: params.studioType || 'video'
-                }),
-                signal
-            });
+                     endpoint,
+                     params: finalPayload,
+                     generationType: 'video',
+                     studioType: params.studioType || 'video'
+                 }),
+                 signal: effectiveSignal
+             });
 
-            if (!response.ok) {
-                const errText = await response.text();
-                throw new Error(`API Request Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
-            }
+             if (!response.ok) {
+                 const errText = await response.text();
+                 throw new Error(`API Request Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
+             }
 
-            const submitData = await response.json();
-            this.validateResponse(submitData, 'submit');
+             const submitData = await response.json();
+             this.validateResponse(submitData, 'submit');
 
-            const requestId = submitData.request_id || submitData.id;
-            if (!requestId) return submitData;
+             const requestId = submitData.request_id || submitData.id;
+             if (!requestId) return submitData;
 
-            const result = await this.pollForResult(requestId, 120, 2000, signal);
+             const result = await this.pollForResult(requestId, 120, 2000, effectiveSignal);
 
-            const videoUrl = result.outputs?.[0] || result.url || result.output?.url;
-            analytics.trackGenerationComplete(params.model, 'video', true);
-            return { ...result, url: videoUrl };
+             const videoUrl = result.outputs?.[0] || result.url || result.output?.url;
+             analytics.trackGenerationComplete(params.model, 'video', true);
+             return { ...result, url: videoUrl };
 
-        } catch (error) {
-            if (error.name === 'AbortError') {
-                throw new Error('Request cancelled by user');
-            }
-            analytics.trackGenerationError(params.model, 'video', error);
-            throw error;
-        }
-    }
+         } catch (error) {
+             if (error.name === 'AbortError') {
+                 throw new Error('Request cancelled by user');
+             }
+             analytics.trackGenerationError(params.model, 'video', error);
+             throw error;
+         }
+     }
 
-    async generateI2I(params, signal) {
+     async generateI2I(params, signal) {
         this._requireMuapiKey();
         await acquireRateLimitToken();
+        const effectiveSignal = signal ?? params?.signal;
         const modelInfo = getI2IModelById(params.model);
         const endpoint = modelInfo?.endpoint || params.model;
         analytics.trackGeneration(params.model, 'i2i', { endpoint, studioType: params.studioType });
@@ -563,41 +557,42 @@ export class MuapiClient {
                 method: 'POST',
                 headers: this._getMuapiHeaders(),
                 body: JSON.stringify({
-                    endpoint,
-                    params: finalPayload,
-                    generationType: 'i2v',
-                    studioType: params.studioType || 'video'
-                }),
-                signal
-            });
+                     endpoint,
+                     params: finalPayload,
+                     generationType: 'i2v',
+                     studioType: params.studioType || 'video'
+                 }),
+                 signal: effectiveSignal
+             });
 
-            if (!response.ok) {
-                const errText = await response.text();
-                throw new Error(`API Request Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
-            }
+             if (!response.ok) {
+                 const errText = await response.text();
+                 throw new Error(`API Request Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
+             }
 
-            const submitData = await response.json();
-            this.validateResponse(submitData, 'submit');
+             const submitData = await response.json();
+             this.validateResponse(submitData, 'submit');
 
-            const requestId = submitData.request_id || submitData.id;
-            if (!requestId) return submitData;
+             const requestId = submitData.request_id || submitData.id;
+             if (!requestId) return submitData;
 
-            const result = await this.pollForResult(requestId, 60, 2000, signal);
-            const imageUrl = result.outputs?.[0] || result.url || result.output?.url;
-            analytics.trackGenerationComplete(params.model, 'i2i', true);
-            return { ...result, url: imageUrl };
-        } catch (error) {
-            if (error.name === 'AbortError') {
-                throw new Error('Request cancelled by user');
-            }
-            analytics.trackGenerationError(params.model, 'i2i', error);
-            throw error;
-        }
-    }
+             const result = await this.pollForResult(requestId, 60, 2000, effectiveSignal);
+             const imageUrl = result.outputs?.[0] || result.url || result.output?.url;
+             analytics.trackGenerationComplete(params.model, 'i2i', true);
+             return { ...result, url: imageUrl };
+         } catch (error) {
+             if (error.name === 'AbortError') {
+                 throw new Error('Request cancelled by user');
+             }
+             analytics.trackGenerationError(params.model, 'i2i', error);
+             throw error;
+         }
+     }
 
-    async generateI2V(params, signal) {
+     async generateI2V(params, signal) {
         this._requireMuapiKey();
         await acquireRateLimitToken();
+        const effectiveSignal = signal ?? params?.signal;
         const modelInfo = getI2VModelById(params.model);
         const endpoint = modelInfo?.endpoint || params.model;
         analytics.trackGeneration(params.model, 'i2v', { endpoint, studioType: params.studioType });
@@ -652,6 +647,7 @@ export class MuapiClient {
         if (p.prompt_extend) finalPayload.prompt_extend = true;
 
         if (p.thumbnail_url) finalPayload.thumbnail_url = p.thumbnail_url;
+        if (params.webhook_url) finalPayload.webhook_url = params.webhook_url;
 
         // Multimodal references (Phase 0)
         if (params.reference_images?.length) finalPayload.reference_images = params.reference_images;
@@ -664,52 +660,49 @@ export class MuapiClient {
         if (params.native_audio) finalPayload.native_audio = params.native_audio;
 
         try {
-            const response = await fetch(this.proxyUrl, {
-                method: 'POST',
-                headers: this._getMuapiHeaders(),
-                body: JSON.stringify({
-                    endpoint,
-                    params: finalPayload,
-                    generationType: 'i2v',
-                    studioType: params.studioType || 'video'
-                }),
-                signal
-            });
+             const response = await fetch(this.proxyUrl, {
+                 method: 'POST',
+                 headers: this._getMuapiHeaders(),
+                 body: JSON.stringify({
+                     endpoint,
+                     params: finalPayload,
+                     generationType: 'i2v',
+                     studioType: params.studioType || 'video'
+                 }),
+                 signal: effectiveSignal
+             });
 
-            if (!response.ok) {
-                const errText = await response.text();
-                throw new Error(`API Request Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
-            }
+             if (!response.ok) {
+                 const errText = await response.text();
+                 throw new Error(`API Request Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
+             }
 
-            const submitData = await response.json();
-            this.validateResponse(submitData, 'submit');
+             const submitData = await response.json();
+             this.validateResponse(submitData, 'submit');
 
-            const requestId = submitData.request_id || submitData.id;
-            if (!requestId) return submitData;
+             const requestId = submitData.request_id || submitData.id;
+             if (!requestId) return submitData;
 
-            const result = await this.pollForResult(requestId, 120, 2000, signal);
-            const videoUrl = result.outputs?.[0] || result.url || result.output?.url;
-            analytics.trackGenerationComplete(params.model, 'i2v', true);
-            return { ...result, url: videoUrl };
+             const result = await this.pollForResult(requestId, 120, 2000, effectiveSignal);
+             const videoUrl = result.outputs?.[0] || result.url || result.output?.url;
+             analytics.trackGenerationComplete(params.model, 'i2v', true);
+             return { ...result, url: videoUrl };
 
-        } catch (error) {
-            if (error.name === 'AbortError') {
-                throw new Error('Request cancelled by user');
-            }
-            analytics.trackGenerationError(params.model, 'i2v', error);
-            throw error;
-        }
-    }
+         } catch (error) {
+             if (error.name === 'AbortError') {
+                 throw new Error('Request cancelled by user');
+             }
+             analytics.trackGenerationError(params.model, 'i2v', error);
+             throw error;
+         }
+     }
 
-    async uploadFile(file, { signal, onProgress } = {}) {
+     async uploadFile(file, { signal, onProgress } = {}) {
         this._requireMuapiKey();
         await acquireRateLimitToken();
 
         const key = this.getKey();
         const muapiKey = this.apiKeyManager.getMuapiKey();
-        if (key !== muapiKey) {
-            console.warn('[MuapiClient] getKey() and getMuapiKey() returned different values:', { getKey: key, getMuapiKey: muapiKey });
-        }
 
         let validation;
         try {
@@ -798,7 +791,6 @@ export class MuapiClient {
 
                     if (retryableStatuses.has(status) && attempt < maxRetries) {
                         const backoff = Math.pow(2, attempt) * 1000;
-                        console.warn(`[MuapiClient] Upload failed with ${status}, retrying in ${backoff}ms...`);
                         await new Promise(resolve => setTimeout(resolve, backoff));
                         lastErr = err;
                         continue;
@@ -839,7 +831,6 @@ export class MuapiClient {
                 if (err.name === 'AbortError') {
                     if (abortedByTimeout && attempt < maxRetries) {
                         const backoff = Math.pow(2, attempt) * 1000;
-                        console.warn(`[MuapiClient] Upload attempt ${attempt + 1} timed out, retrying in ${backoff}ms...`);
                         await new Promise(resolve => setTimeout(resolve, backoff));
                         continue;
                     }
@@ -851,14 +842,12 @@ export class MuapiClient {
 
                 if (retryableStatuses.has(status) && attempt < maxRetries) {
                     const backoff = Math.pow(2, attempt) * 1000;
-                    console.warn(`[MuapiClient] Upload attempt ${attempt + 1} failed with ${status}, retrying in ${backoff}ms...`);
                     await new Promise(resolve => setTimeout(resolve, backoff));
                     continue;
                 }
 
                 if (!status && attempt < maxRetries) {
                     const backoff = Math.pow(2, attempt) * 1000;
-                    console.warn(`[MuapiClient] Upload attempt ${attempt + 1} failed with network error, retrying in ${backoff}ms...`);
                     await new Promise(resolve => setTimeout(resolve, backoff));
                     continue;
                 }
@@ -879,11 +868,9 @@ export class MuapiClient {
             throw lastErr;
         }
 
-        console.warn('[MuapiClient] Proxy upload failed, falling back to Supabase Storage:', lastErr);
         try {
             return await uploadFileToStorage(file);
         } catch (fallbackErr) {
-            console.error('[MuapiClient] Fallback upload also failed:', fallbackErr);
             throw new Error(`Upload failed: ${lastErr.message || fallbackErr.message}`);
         }
     }
@@ -899,7 +886,7 @@ export class MuapiClient {
         const retryableStatuses = new Set(UPLOAD_RETRY_CONFIG.retryableStatuses);
         let lastErr;
 
-        console.info(`[MuapiClient] File size ${file.size} exceeds proxy threshold, uploading directly to MuAPI`);
+
 
         for (let attempt = 0; attempt <= maxRetries; attempt++) {
             const controller = new AbortController();
@@ -956,7 +943,6 @@ export class MuapiClient {
 
                     if (retryableStatuses.has(status) && attempt < maxRetries) {
                         const backoff = Math.pow(2, attempt) * 1000;
-                        console.warn(`[MuapiClient] Direct upload failed with ${status}, retrying in ${backoff}ms...`);
                         await new Promise(resolve => setTimeout(resolve, backoff));
                         lastErr = err;
                         continue;
@@ -991,7 +977,6 @@ export class MuapiClient {
                 if (err.name === 'AbortError') {
                     if (abortedByTimeout && attempt < maxRetries) {
                         const backoff = Math.pow(2, attempt) * 1000;
-                        console.warn(`[MuapiClient] Direct upload attempt ${attempt + 1} timed out, retrying in ${backoff}ms...`);
                         await new Promise(resolve => setTimeout(resolve, backoff));
                         continue;
                     }
@@ -1003,14 +988,12 @@ export class MuapiClient {
 
                 if (retryableStatuses.has(status) && attempt < maxRetries) {
                     const backoff = Math.pow(2, attempt) * 1000;
-                    console.warn(`[MuapiClient] Direct upload attempt ${attempt + 1} failed with ${status}, retrying in ${backoff}ms...`);
                     await new Promise(resolve => setTimeout(resolve, backoff));
                     continue;
                 }
 
                 if (!status && attempt < maxRetries) {
                     const backoff = Math.pow(2, attempt) * 1000;
-                    console.warn(`[MuapiClient] Direct upload attempt ${attempt + 1} failed with network error, retrying in ${backoff}ms...`);
                     await new Promise(resolve => setTimeout(resolve, backoff));
                     continue;
                 }
@@ -1042,6 +1025,11 @@ export class MuapiClient {
 
             const result = await new Promise((resolve, reject) => {
                 const xhr = new XMLHttpRequest();
+                xhr.timeout = 300000;
+
+                xhr.addEventListener('timeout', () => {
+                    reject(new Error('Upload timed out'));
+                });
 
                 xhr.upload.addEventListener('progress', (e) => {
                     if (e.lengthComputable && typeof onProgress === 'function') {
@@ -1095,7 +1083,6 @@ export class MuapiClient {
                 const status = err.status;
                 if (retryableStatuses.has(status) && attempt < maxRetries) {
                     const backoff = Math.pow(2, attempt) * 1000;
-                    console.warn(`[MuapiClient] Progress upload failed with ${status}, retrying in ${backoff}ms...`);
                     return new Promise(r => setTimeout(r, backoff));
                 }
                 throw err;
@@ -1123,6 +1110,7 @@ export class MuapiClient {
     async processV2V(params, signal) {
         this._requireMuapiKey();
         await acquireRateLimitToken();
+        const effectiveSignal = signal ?? params?.signal;
         const modelInfo = getV2VModelById(params.model);
         const endpoint = modelInfo?.endpoint || params.model;
         analytics.trackGeneration(params.model, 'v2v', { endpoint, studioType: params.studioType });
@@ -1134,46 +1122,87 @@ export class MuapiClient {
             finalPayload.thumbnail_url = params.thumbnail_url;
         }
 
-        try {
-            const response = await fetch(this.proxyUrl, {
-                method: 'POST',
-                headers: this._getMuapiHeaders(),
-                body: JSON.stringify({
-                    endpoint,
-                    params: finalPayload,
-                    generationType: 'v2v',
-                    studioType: params.studioType || 'upscale'
-                }),
-                signal
-            });
-
-            if (!response.ok) {
-                const errText = await response.text();
-                throw new Error(`API Request Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
-            }
-
-            const submitData = await response.json();
-            this.validateResponse(submitData, 'submit');
-
-            const requestId = submitData.request_id || submitData.id;
-            if (!requestId) return submitData;
-
-            const result = await this.pollForResult(requestId, 120, 2000, signal);
-            const videoUrl = result.outputs?.[0] || result.url || result.output?.url;
-            analytics.trackGenerationComplete(params.model, 'v2v', true);
-            return { ...result, url: videoUrl };
-        } catch (error) {
-            if (error.name === 'AbortError') {
-                throw new Error('Request cancelled by user');
-            }
-            analytics.trackGenerationError(params.model, 'v2v', error);
-            throw error;
+        // Forward any model-specific input fields that weren't already handled.
+        const modelInputKeys = new Set(
+            Object.keys(modelInfo?.inputs || {}).map(k => k.trim())
+        );
+        const alreadyForwarded = new Set([
+            'video_url',
+            'thumbnail_url',
+            'webhook_url',
+            'prompt',
+            'images_list',
+            'aspect_ratio',
+            'resolution',
+            'quality',
+            'output_format',
+            'name',
+            'negative_prompt',
+            'seed',
+            'guidance_scale',
+            'steps',
+            'denoise_strength',
+            'effect_strength',
+            'cfg_scale',
+            'prompt_extend',
+            'reference_images',
+            'reference_videos',
+            'reference_audios',
+            'last_image_url',
+            'sheet_url',
+            'first_frame_url',
+            'last_frame_url',
+            'character_consistency',
+            'native_audio',
+        ]);
+        for (const [key, value] of Object.entries(params)) {
+            if (alreadyForwarded.has(key)) continue;
+            if (!modelInputKeys.has(key)) continue;
+            if (value === undefined || value === null || value === '') continue;
+            finalPayload[key] = value;
         }
-    }
 
-    async generateAvatar(params, signal) {
+        try {
+             const response = await fetch(this.proxyUrl, {
+                 method: 'POST',
+                 headers: this._getMuapiHeaders(),
+                 body: JSON.stringify({
+                      endpoint,
+                      params: finalPayload,
+                      generationType: 'i2v',
+                      studioType: params.studioType || 'video'
+                  }),
+                  signal: effectiveSignal
+              });
+
+             if (!response.ok) {
+                 const errText = await response.text();
+                 throw new Error(`API Request Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
+             }
+
+             const submitData = await response.json();
+             this.validateResponse(submitData, 'submit');
+
+             const requestId = submitData.request_id || submitData.id;
+             if (!requestId) return submitData;
+
+             const result = await this.pollForResult(requestId, 120, 2000, effectiveSignal);
+             const videoUrl = result.outputs?.[0] || result.url || result.output?.url;
+             analytics.trackGenerationComplete(params.model, 'v2v', true);
+             return { ...result, url: videoUrl };
+         } catch (error) {
+             if (error.name === 'AbortError') {
+                 throw new Error('Request cancelled by user');
+             }
+             analytics.trackGenerationError(params.model, 'v2v', error);
+             throw error;
+         }
+     }
+
+     async generateAvatar(params, signal) {
         this._requireMuapiKey();
         await acquireRateLimitToken();
+        const effectiveSignal = signal ?? params?.signal;
         const modelInfo = getAvatarModelById(params.model);
         const endpoint = modelInfo?.endpoint || params.model || 'avatar';
         analytics.trackGeneration(params.model, 'avatar', { endpoint, studioType: params.studioType });
@@ -1184,6 +1213,7 @@ export class MuapiClient {
         if (params.video_url) finalPayload.video_url = params.video_url;
         if (params.audio_url) finalPayload.audio_url = params.audio_url;
         if (params.prompt) finalPayload.prompt = params.prompt;
+        if (params.thumbnail_url) finalPayload.thumbnail_url = params.thumbnail_url;
 
         // Multimodal references (Phase 0)
         if (params.reference_images?.length) finalPayload.reference_images = params.reference_images;
@@ -1196,45 +1226,46 @@ export class MuapiClient {
         if (params.native_audio) finalPayload.native_audio = params.native_audio;
 
         try {
-            const response = await fetch(this.proxyUrl, {
-                method: 'POST',
-                headers: this._getMuapiHeaders(),
-                body: JSON.stringify({
-                    endpoint,
-                    params: finalPayload,
-                    generationType: 'avatar',
-                    studioType: 'avatar'
-                }),
-                signal
-            });
+             const response = await fetch(this.proxyUrl, {
+                 method: 'POST',
+                 headers: this._getMuapiHeaders(),
+                 body: JSON.stringify({
+                     endpoint,
+                     params: finalPayload,
+                     generationType: 'avatar',
+                     studioType: 'avatar'
+                 }),
+                 signal: effectiveSignal
+             });
 
-            if (!response.ok) {
-                const errText = await response.text();
-                throw new Error(`API Request Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
-            }
+             if (!response.ok) {
+                 const errText = await response.text();
+                 throw new Error(`API Request Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
+             }
 
-            const submitData = await response.json();
-            this.validateResponse(submitData, 'submit');
+             const submitData = await response.json();
+             this.validateResponse(submitData, 'submit');
 
-            const requestId = submitData.request_id || submitData.id;
-            if (!requestId) return submitData;
+             const requestId = submitData.request_id || submitData.id;
+             if (!requestId) return submitData;
 
-            const result = await this.pollForResult(requestId, 120, 2000, signal);
-            const videoUrl = result.outputs?.[0] || result.url || result.output?.url;
-            analytics.trackGenerationComplete(params.model, 'avatar', true);
-            return { ...result, url: videoUrl };
-        } catch (error) {
-            if (error.name === 'AbortError') {
-                throw new Error('Request cancelled by user');
-            }
-            analytics.trackGenerationError(params.model, 'avatar', error);
-            throw error;
-        }
-    }
+             const result = await this.pollForResult(requestId, 120, 2000, effectiveSignal);
+             const videoUrl = result.outputs?.[0] || result.url || result.output?.url;
+             analytics.trackGenerationComplete(params.model, 'avatar', true);
+             return { ...result, url: videoUrl };
+         } catch (error) {
+             if (error.name === 'AbortError') {
+                 throw new Error('Request cancelled by user');
+             }
+             analytics.trackGenerationError(params.model, 'avatar', error);
+             throw error;
+         }
+     }
 
-    async generateAudio(params, signal) {
+     async generateAudio(params, signal) {
         this._requireMuapiKey();
         await acquireRateLimitToken();
+        const effectiveSignal = signal ?? params?.signal;
         const modelInfo = getAudioModelById(params.model);
         const endpoint = modelInfo?.endpoint || params.model || 'audio';
         analytics.trackGeneration(params.model, 'audio', { endpoint });
@@ -1246,6 +1277,11 @@ export class MuapiClient {
         if (params.duration) finalPayload.duration = params.duration;
         if (params.style) finalPayload.style = params.style;
         if (params.audio_url) finalPayload.audio_url = params.audio_url;
+        if (params.voice) finalPayload.voice = params.voice;
+        if (params.speed !== undefined) finalPayload.speed = params.speed;
+        if (params.pitch !== undefined) finalPayload.pitch = params.pitch;
+        if (params.tone) finalPayload.tone = params.tone;
+        if (params.emotion) finalPayload.emotion = params.emotion;
 
         // Multimodal references (Phase 0)
         if (params.reference_images?.length) finalPayload.reference_images = params.reference_images;
@@ -1258,43 +1294,44 @@ export class MuapiClient {
         if (params.native_audio) finalPayload.native_audio = params.native_audio;
 
         try {
-            const response = await fetch(this.proxyUrl, {
-                method: 'POST',
-                headers: this._getMuapiHeaders(),
-                body: JSON.stringify({
-                    endpoint,
-                    params: finalPayload,
-                    generationType: 'audio',
-                    studioType: 'audio'
-                }),
-                signal
-            });
+             const response = await fetch(this.proxyUrl, {
+                 method: 'POST',
+                 headers: this._getMuapiHeaders(),
+                 body: JSON.stringify({
+                     endpoint,
+                     params: finalPayload,
+                     generationType: 'audio',
+                     studioType: 'audio'
+                 }),
+                 signal: effectiveSignal
+             });
 
-            if (!response.ok) {
-                const errText = await response.text();
-                throw new Error(`API Request Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
-            }
+             if (!response.ok) {
+                 const errText = await response.text();
+                 throw new Error(`API Request Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
+             }
 
-            const submitData = await response.json();
-            this.validateResponse(submitData, 'submit');
+             const submitData = await response.json();
+             this.validateResponse(submitData, 'submit');
 
-            const requestId = submitData.request_id || submitData.id;
-            if (!requestId) return submitData;
+             const requestId = submitData.request_id || submitData.id;
+             if (!requestId) return submitData;
 
-            const result = await this.pollForResult(requestId, 120, 2000, signal);
-            const audioUrl = result.outputs?.[0] || result.url || result.output?.url;
-            analytics.trackGenerationComplete(params.model, 'audio', true);
-            return { ...result, url: audioUrl };
-        } catch (error) {
-            if (error.name === 'AbortError') throw new Error('Request cancelled by user');
-            analytics.trackGenerationError(params.model, 'audio', error);
-            throw error;
-        }
-    }
+             const result = await this.pollForResult(requestId, 120, 2000, effectiveSignal);
+             const audioUrl = result.outputs?.[0] || result.url || result.output?.url;
+             analytics.trackGenerationComplete(params.model, 'audio', true);
+             return { ...result, url: audioUrl };
+         } catch (error) {
+             if (error.name === 'AbortError') throw new Error('Request cancelled by user');
+             analytics.trackGenerationError(params.model, 'audio', error);
+             throw error;
+         }
+     }
 
-    async generateMusic(params, signal) {
+     async generateMusic(params, signal) {
         this._requireMuapiKey();
         await acquireRateLimitToken();
+        const effectiveSignal = signal ?? params?.signal;
         const modelInfo = getAudioModelById(params.model);
         const endpoint = modelInfo?.endpoint || params.model || 'suno-create-music';
         analytics.trackGeneration(params.model, 'music', { endpoint });
@@ -1315,43 +1352,44 @@ export class MuapiClient {
         if (params.sheet_url) finalPayload.sheet_url = params.sheet_url;
 
         try {
-            const response = await fetch(this.proxyUrl, {
-                method: 'POST',
-                headers: this._getMuapiHeaders(),
-                body: JSON.stringify({
-                    endpoint,
-                    params: finalPayload,
-                    generationType: 'music',
-                    studioType: 'audio'
-                }),
-                signal
-            });
+             const response = await fetch(this.proxyUrl, {
+                 method: 'POST',
+                 headers: this._getMuapiHeaders(),
+                 body: JSON.stringify({
+                     endpoint,
+                     params: finalPayload,
+                     generationType: 'music',
+                     studioType: 'audio'
+                 }),
+                 signal: effectiveSignal
+             });
 
-            if (!response.ok) {
-                const errText = await response.text();
-                throw new Error(`API Request Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
-            }
+             if (!response.ok) {
+                 const errText = await response.text();
+                 throw new Error(`API Request Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
+             }
 
-            const submitData = await response.json();
-            this.validateResponse(submitData, 'submit');
+             const submitData = await response.json();
+             this.validateResponse(submitData, 'submit');
 
-            const requestId = submitData.request_id || submitData.id;
-            if (!requestId) return submitData;
+             const requestId = submitData.request_id || submitData.id;
+             if (!requestId) return submitData;
 
-            const result = await this.pollForResult(requestId, 180, 3000, signal);
-            const audioUrl = result.outputs?.[0] || result.url || result.output?.url || result.audio?.url;
-            analytics.trackGenerationComplete(params.model, 'music', true);
-            return { ...result, url: audioUrl };
-        } catch (error) {
-            if (error.name === 'AbortError') throw new Error('Request cancelled by user');
-            analytics.trackGenerationError(params.model, 'music', error);
-            throw error;
-        }
-    }
+             const result = await this.pollForResult(requestId, 180, 3000, effectiveSignal);
+             const audioUrl = result.outputs?.[0] || result.url || result.output?.url || result.audio?.url;
+             analytics.trackGenerationComplete(params.model, 'music', true);
+             return { ...result, url: audioUrl };
+         } catch (error) {
+             if (error.name === 'AbortError') throw new Error('Request cancelled by user');
+             analytics.trackGenerationError(params.model, 'music', error);
+             throw error;
+         }
+     }
 
-    async generateVideoEffect(params, signal) {
+     async generateVideoEffect(params, signal) {
         this._requireMuapiKey();
         await acquireRateLimitToken();
+        const effectiveSignal = signal ?? params?.signal;
         const endpoint = 'generate_wan_ai_effects';
         analytics.trackGeneration(params.model, 'video-effect', { endpoint, effectName: params.name, studioType: params.studioType });
 
@@ -1433,32 +1471,33 @@ export class MuapiClient {
                     generationType: 'video',
                     studioType: params.studioType || 'video'
                 }),
-                signal
-            });
+                 signal: effectiveSignal
+             });
 
-            if (!response.ok) {
-                const errText = await response.text();
-                throw new Error(`API Request Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
-            }
+             if (!response.ok) {
+                 const errText = await response.text();
+                 throw new Error(`API Request Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
+             }
 
-            const submitData = await response.json();
-            this.validateResponse(submitData, 'submit');
+             const submitData = await response.json();
+             this.validateResponse(submitData, 'submit');
 
-            const requestId = submitData.request_id || submitData.id;
-            if (!requestId) return submitData;
+             const requestId = submitData.request_id || submitData.id;
+             if (!requestId) return submitData;
 
-            const result = await this.pollForResult(requestId, 120, 2000, signal);
-            const videoUrl = result.outputs?.[0] || result.url || result.output?.url || result.video?.url;
-            analytics.trackGenerationComplete(params.model, 'video-effect', true);
-            return { ...result, url: videoUrl };
-        } catch (error) {
-            if (error.name === 'AbortError') throw new Error('Request cancelled by user');
-            analytics.trackGenerationError(params.model, 'video-effect', error);
-            throw error;
-        }
-    }
+             const result = await this.pollForResult(requestId, 120, 2000, effectiveSignal);
+             const videoUrl = result.outputs?.[0] || result.url || result.output?.url || result.video?.url;
+             analytics.trackGenerationComplete(params.model, 'video-effect', true);
+             return { ...result, url: videoUrl };
+         } catch (error) {
+             if (error.name === 'AbortError') throw new Error('Request cancelled by user');
+             analytics.trackGenerationError(params.model, 'video-effect', error);
+             throw error;
+         }
+     }
 
-    async listAssets(params, signal) {
+     async listAssets(params, signal) {
+        const effectiveSignal = signal ?? params?.signal;
         // NOTE: asset listing is a FIRST-PARTY SmartVideo service, NOT a
         // muapi endpoint (muapi exposes no asset-list route). Route to the
         // app's own backend, never the muapi proxy.
@@ -1473,12 +1512,12 @@ export class MuapiClient {
         if (params.type) finalPayload.type = params.type;
 
         try {
-            const response = await fetch(`${base}/functions/v1/assets`, {
-                method: 'POST',
-                headers: this._getMuapiHeaders(),
-                body: JSON.stringify(finalPayload),
-                signal
-            });
+             const response = await fetch(`${base}/functions/v1/assets`, {
+                 method: 'POST',
+                 headers: this._getMuapiHeaders(),
+                 body: JSON.stringify(finalPayload),
+                 signal: effectiveSignal
+             });
 
             if (!response.ok) {
                 const errText = await response.text();
@@ -1524,7 +1563,6 @@ export class MuapiClient {
             try {
               checkOutputIntegrity(data);
             } catch (integrityError) {
-              console.error('[MuapiClient] Output integrity failure in makeRequest:', integrityError);
               throw new Error(
                 `Received a placeholder or demo result instead of a unique generation. ` +
                 `This usually means your MuAPI key is in sandbox mode or has no credits. ` +
@@ -1582,7 +1620,6 @@ export class MuapiClient {
             try {
               checkOutputIntegrity(data);
             } catch (integrityError) {
-              console.error('[MuapiClient] Output integrity failure in proxyJson:', integrityError);
               throw new Error(
                 `Received a placeholder or demo result instead of a unique generation. ` +
                 `This usually means your MuAPI key is in sandbox mode or has no credits. ` +
@@ -1601,6 +1638,7 @@ export class MuapiClient {
     async generateText(params, signal) {
         this._requireMuapiKey();
         await acquireRateLimitToken();
+        const effectiveSignal = signal ?? params?.signal;
         const modelInfo = getTextModelById(params.model);
         const endpoint = modelInfo?.endpoint || params.model || 'text';
         analytics.trackGeneration(params.model, 'text', { endpoint });
@@ -1612,18 +1650,18 @@ export class MuapiClient {
         if (params.temperature) finalPayload.temperature = params.temperature;
         if (params.max_tokens) finalPayload.max_tokens = params.max_tokens;
 
-        try {
-            const response = await fetch(this.proxyUrl, {
-                method: 'POST',
-                headers: this._getMuapiHeaders(),
-                body: JSON.stringify({
-                    endpoint,
-                    params: finalPayload,
-                    generationType: 'text',
-                    studioType: 'chat'
-                }),
-                signal
-            });
+         try {
+             const response = await fetch(this.proxyUrl, {
+                 method: 'POST',
+                 headers: this._getMuapiHeaders(),
+                 body: JSON.stringify({
+                     endpoint,
+                     params: finalPayload,
+                     generationType: 'text',
+                     studioType: 'chat'
+                 }),
+                 signal: effectiveSignal
+             });
 
             if (!response.ok) {
                 const errText = await response.text();
@@ -1637,7 +1675,6 @@ export class MuapiClient {
             try {
               checkOutputIntegrity(data);
             } catch (integrityError) {
-              console.error('[MuapiClient] Output integrity failure in generateText:', integrityError);
               throw new Error(
                 `Received a placeholder or demo result instead of a unique generation. ` +
                 `This usually means your MuAPI key is in sandbox mode or has no credits. ` +
@@ -1699,7 +1736,10 @@ export class MuapiClient {
 
                 while (true) {
                     const { done, value } = await reader.read();
-                    if (done) break;
+                    if (done) {
+                        onDone && onDone(fullText);
+                        return;
+                    }
                     buffer += decoder.decode(value, { stream: true });
                     const lines = buffer.split('\n');
                     buffer = lines.pop() || '';
@@ -1707,7 +1747,6 @@ export class MuapiClient {
                         if (line.startsWith('data: ')) {
                             const data = line.slice(6).trim();
                             if (data === '[DONE]') {
-                                onDone && onDone(fullText);
                                 return;
                             }
                             try {
@@ -1721,8 +1760,6 @@ export class MuapiClient {
                         }
                     }
                 }
-                onDone && onDone(fullText);
-                return;
             }
 
             const data = await response.json();
@@ -1746,6 +1783,7 @@ export class MuapiClient {
         analytics.trackGeneration(params.model, 'train', { endpoint });
         const finalPayload = {};
 
+        if (params.name) finalPayload.name = params.name;
         if (params.images) finalPayload.images = params.images;
         if (params.trigger_word) finalPayload.trigger_word = params.trigger_word;
         if (params.epochs) finalPayload.epochs = params.epochs;
@@ -1789,6 +1827,7 @@ export class MuapiClient {
     async processVideoTool(params, signal) {
         this._requireMuapiKey();
         await acquireRateLimitToken();
+        const effectiveSignal = signal ?? params?.signal;
         const modelInfo = getVideoToolById(params.model);
         const endpoint = modelInfo?.endpoint || params.model || 'video-tool';
         analytics.trackGeneration(params.model, 'video-tool', { endpoint });
@@ -1796,7 +1835,10 @@ export class MuapiClient {
 
         if (params.model) finalPayload.model = params.model;
         if (params.video_url) finalPayload.video_url = params.video_url;
+        if (params.image_url) finalPayload.image_url = params.image_url;
         if (params.prompt) finalPayload.prompt = params.prompt;
+        if (params.thumbnail_url) finalPayload.thumbnail_url = params.thumbnail_url;
+        if (params.webhook_url) finalPayload.webhook_url = params.webhook_url;
 
         // Native audio
         if (params.native_audio) finalPayload.native_audio = params.native_audio;
@@ -1808,6 +1850,25 @@ export class MuapiClient {
         if (params.last_image_url) finalPayload.last_image_url = params.last_image_url;
         if (params.sheet_url) finalPayload.sheet_url = params.sheet_url;
 
+        // Forward any model-specific input fields that weren't already handled.
+        const modelInputKeys = new Set(
+            Object.keys(modelInfo?.inputs || {}).map(k => k.trim())
+        );
+        const alreadyForwarded = new Set([
+            'model', 'video_url', 'image_url', 'prompt', 'thumbnail_url', 'webhook_url',
+            'native_audio', 'reference_images', 'reference_videos', 'reference_audios',
+            'last_image_url', 'sheet_url', 'signal',
+            'name', 'negative_prompt', 'seed', 'guidance_scale', 'steps',
+            'denoise_strength', 'effect_strength', 'cfg_scale', 'prompt_extend',
+            'first_frame_url', 'last_frame_url', 'character_consistency',
+        ]);
+        for (const [key, value] of Object.entries(params)) {
+            if (alreadyForwarded.has(key)) continue;
+            if (!modelInputKeys.has(key)) continue;
+            if (value === undefined || value === null || value === '') continue;
+            finalPayload[key] = value;
+        }
+
         try {
             const response = await fetch(this.proxyUrl, {
                 method: 'POST',
@@ -1818,7 +1879,7 @@ export class MuapiClient {
                     generationType: 'video-tool',
                     studioType: 'video-tools'
                 }),
-                signal
+                signal: effectiveSignal
             });
 
             if (!response.ok) {
@@ -1832,7 +1893,7 @@ export class MuapiClient {
             const requestId = submitData.request_id || submitData.id;
             if (!requestId) return submitData;
 
-            const result = await this.pollForResult(requestId, 120, 2000, signal);
+            const result = await this.pollForResult(requestId, 120, 2000, effectiveSignal);
             const videoUrl = result.outputs?.[0] || result.url || result.output?.url;
             analytics.trackGenerationComplete(params.model, 'video-tool', true);
             return { ...result, url: videoUrl };
@@ -1845,9 +1906,10 @@ export class MuapiClient {
         }
     }
 
-    async processLipSync(params) {
+    async processLipSync(params, signal) {
         this._requireMuapiKey();
         await acquireRateLimitToken();
+        const effectiveSignal = signal ?? params?.signal;
         const modelInfo = getLipSyncModelById(params.model);
         const endpoint = modelInfo?.endpoint || params.model;
         analytics.trackGeneration(params.model, 'lipsync', { endpoint });
@@ -1860,6 +1922,7 @@ export class MuapiClient {
         if (params.prompt) finalPayload.prompt = params.prompt;
         if (params.resolution) finalPayload.resolution = params.resolution;
         if (params.seed !== undefined && params.seed !== -1) finalPayload.seed = params.seed;
+        if (params.webhook_url) finalPayload.webhook_url = params.webhook_url;
 
         // Multimodal references (Phase 0)
         if (params.reference_images?.length) finalPayload.reference_images = params.reference_images;
@@ -1871,47 +1934,67 @@ export class MuapiClient {
         // Native audio (Phase 7)
         if (params.native_audio) finalPayload.native_audio = params.native_audio;
 
-        console.log('[Muapi] LipSync Request:', endpoint, finalPayload);
-
-        try {
-            const response = await fetch(this.proxyUrl, {
-                method: 'POST',
-                headers: this._getMuapiHeaders(),
-                body: JSON.stringify({
-                    endpoint,
-                    params: finalPayload,
-                    generationType: 'lipsync',
-                    studioType: 'lipsync'
-                })
-            });
-
-            if (!response.ok) {
-                const errText = await response.text();
-                console.error('[Muapi] LipSync API Error:', errText);
-                throw new Error(`API Request Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
-            }
-
-            const submitData = await response.json();
-            console.log('[Muapi] LipSync Submit Response:', submitData);
-
-            const requestId = submitData.request_id || submitData.id;
-            if (!requestId) return submitData;
-
-            if (params.onRequestId) params.onRequestId(requestId);
-
-            const result = await this.pollForResult(requestId, 900, 2000);
-            const videoUrl = result.outputs?.[0] || result.url || result.output?.url;
-            console.log('[Muapi] LipSync Result URL:', videoUrl);
-            analytics.trackGenerationComplete(params.model, 'lipsync', true);
-            return { ...result, url: videoUrl };
-        } catch (error) {
-            console.error('Muapi LipSync Error:', error);
-            analytics.trackGenerationError(params.model, 'lipsync', error);
-            throw error;
+        // Forward any model-specific input fields that weren't already handled.
+        const modelInputKeys = new Set(
+            Object.keys(modelInfo?.inputs || {}).map(k => k.trim())
+        );
+        const alreadyForwarded = new Set([
+            'audio_url', 'image_url', 'video_url', 'prompt', 'resolution', 'seed',
+            'webhook_url', 'native_audio', 'reference_images', 'reference_videos',
+            'reference_audios', 'last_image_url', 'sheet_url', 'signal',
+            'mode', 'separate_vocal', 'open_scenedet', 'align_audio',
+            'align_audio_reverse', 'templ_start_seconds',
+            'name', 'negative_prompt', 'guidance_scale', 'steps',
+            'denoise_strength', 'effect_strength', 'cfg_scale', 'prompt_extend',
+            'first_frame_url', 'last_frame_url', 'character_consistency',
+        ]);
+        for (const [key, value] of Object.entries(params)) {
+            if (alreadyForwarded.has(key)) continue;
+            if (!modelInputKeys.has(key)) continue;
+            if (value === undefined || value === null || value === '') continue;
+            finalPayload[key] = value;
         }
-    }
 
-    getDimensionsFromAR(ar) {
+         try {
+             const response = await fetch(this.proxyUrl, {
+                 method: 'POST',
+                 headers: this._getMuapiHeaders(),
+                 body: JSON.stringify({
+                     endpoint,
+                     params: finalPayload,
+                     generationType: 'lipsync',
+                     studioType: 'lipsync'
+                 }),
+                 signal: effectiveSignal
+             });
+
+             if (!response.ok) {
+                 const errText = await response.text();
+                 throw new Error(`API Request Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
+             }
+
+             const submitData = await response.json();
+             this.validateResponse(submitData, 'submit');
+
+             const requestId = submitData.request_id || submitData.id;
+             if (!requestId) return submitData;
+
+             if (params.onRequestId) params.onRequestId(requestId);
+
+             const result = await this.pollForResult(requestId, 900, 2000, effectiveSignal);
+             const videoUrl = result.outputs?.[0] || result.url || result.output?.url;
+             analytics.trackGenerationComplete(params.model, 'lipsync', true);
+             return { ...result, url: videoUrl };
+         } catch (error) {
+             if (error.name === 'AbortError') {
+                 throw new Error('Request cancelled by user');
+             }
+             analytics.trackGenerationError(params.model, 'lipsync', error);
+             throw error;
+         }
+     }
+
+     getDimensionsFromAR(ar) {
         switch (ar) {
             case '1:1': return [1024, 1024];
             case '16:9': return [1280, 720];

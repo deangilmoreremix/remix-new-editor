@@ -26,7 +26,7 @@ export function Header(navigate) {
 
   const menu = document.createElement('nav');
   menu.className = 'hidden lg:flex items-center gap-5 text-[13px] font-bold text-secondary';
-  const items = ['Explore', 'Image', 'Video', 'Tools', 'Storyboard', 'Edit', 'Character', 'Vibe Motion', 'Cinema Studio', 'Cinema Template Studio', 'AI Influencer', 'Smart Video Viral', 'Apps', 'Templates', 'Assist', 'Community', 'Content Library'];
+  const items = ['Explore', 'Image', 'Video', 'Storyboard', 'Edit', 'Character', 'Commercial', 'Upscale', 'Vibe Motion', 'Cinema Studio', 'Cinema Template Studio', 'AI Influencer', 'Smart Video Viral', 'Audio', 'Avatar', 'Training', 'Video Tools', 'Chat', 'Lip Sync', 'Personalizer', 'Video Agent', 'AI VFX', 'Brand Studio', 'Apps', 'Templates', 'Assist', 'Community', 'Social', 'Landing', 'Brand DNA', 'Campaign', 'Asset Edit', 'Photo Studio', 'Brand Photo Studio', 'Animate'];
 
   const links = {};
 
@@ -53,13 +53,21 @@ export function Header(navigate) {
   };
 
   const toolsDropdownItems = [
-    { label: 'Storyboard', route: 'storyboard-page' },
-    { label: 'Character', route: 'character-page' },
-    { label: 'Vibe Motion', route: 'effects-page' },
-    { label: 'Cinema Studio', route: 'cinema-page' },
-    { label: 'AI Influencer', route: 'influencer-page' },
-    { label: 'Commercial', route: 'commercial-page' },
-    { label: 'Upscale', route: 'upscale-page' },
+    { label: 'Storyboard', route: 'storyboard' },
+    { label: 'Character', route: 'character' },
+    { label: 'Vibe Motion', route: 'effects' },
+    { label: 'Cinema Studio', route: 'cinema' },
+    { label: 'AI Influencer', route: 'influencer' },
+    { label: 'Commercial', route: 'commercial' },
+    { label: 'Upscale', route: 'upscale' },
+    { label: 'Social', route: 'social' },
+    { label: 'Landing', route: 'landing' },
+    { label: 'Brand DNA', route: 'brand-dna' },
+    { label: 'Campaign', route: 'campaign' },
+    { label: 'Asset Edit', route: 'asset-edit' },
+    { label: 'Photo Studio', route: 'photo-studio' },
+    { label: 'Brand Photo Studio', route: 'brand-photo-studio' },
+    { label: 'Animate', route: 'animate' },
   ];
 
   items.forEach(item => {
@@ -108,19 +116,61 @@ export function Header(navigate) {
     }
 
     if (item === 'Storyboard') {
-      link.onclick = () => navigate('storyboard-page');
+      link.onclick = () => navigate('storyboard');
+    } else if (item === 'Edit') {
+      link.onclick = () => navigate('edit');
     } else if (item === 'Character') {
-      link.onclick = () => navigate('character-page');
+      link.onclick = () => navigate('character');
+    } else if (item === 'Commercial') {
+      link.onclick = () => navigate('commercial');
+    } else if (item === 'Upscale') {
+      link.onclick = () => navigate('upscale');
     } else if (item === 'Vibe Motion') {
-      link.onclick = () => navigate('effects-page');
+      link.onclick = () => navigate('effects');
     } else if (item === 'Cinema Studio') {
       link.onclick = () => navigate('cinema');
     } else if (item === 'Cinema Template Studio') {
       link.onclick = () => navigate('cinema-template');
     } else if (item === 'AI Influencer') {
-      link.onclick = () => navigate('influencer-page');
+      link.onclick = () => navigate('influencer');
     } else if (item === 'Smart Video Viral') {
       link.onclick = () => navigate('viral');
+    } else if (item === 'Audio') {
+      link.onclick = () => navigate('audio');
+    } else if (item === 'Avatar') {
+      link.onclick = () => navigate('avatar');
+    } else if (item === 'Training') {
+      link.onclick = () => navigate('training');
+    } else if (item === 'Video Tools') {
+      link.onclick = () => navigate('videotools');
+    } else if (item === 'Chat') {
+      link.onclick = () => navigate('chat');
+    } else if (item === 'Lip Sync') {
+      link.onclick = () => navigate('lipsync');
+    } else if (item === 'Personalizer') {
+      link.onclick = () => navigate('personalizer');
+    } else if (item === 'Video Agent') {
+      link.onclick = () => navigate('video-agent');
+    } else if (item === 'AI VFX') {
+      link.onclick = () => navigate('ai-vfx');
+    } else if (item === 'Brand Studio') {
+      link.onclick = () => navigate('brand');
+    } else if (item === 'Social') {
+      link.onclick = () => navigate('social');
+    } else if (item === 'Landing') {
+      link.onclick = () => navigate('landing');
+    } else if (item === 'Brand DNA') {
+      link.onclick = () => navigate('brand-dna');
+    } else if (item === 'Campaign') {
+      link.onclick = () => navigate('campaign');
+    } else if (item === 'Asset Edit') {
+      link.onclick = () => navigate('asset-edit');
+    } else if (item === 'Photo Studio') {
+      link.onclick = () => navigate('photo-studio');
+    } else if (item === 'Brand Photo Studio') {
+      link.onclick = () => navigate('brand-photo-studio');
+    } else if (item === 'Animate') {
+      link.onclick = () => navigate('animate');
     } else if (item === 'Image' || item === 'Video' || item === 'Tools') {
       // Already handled above
     } else {
@@ -158,7 +208,7 @@ export function Header(navigate) {
     link.className = 'text-xl font-bold text-secondary hover:text-white transition-colors cursor-pointer';
     
     if (item === 'Image' || item === 'Video' || item === 'Tools') {
-      const targetRoute = item === 'Image' ? 'text-to-image' : item === 'Video' ? 'text-to-video' : 'storyboard-page';
+      const targetRoute = item === 'Image' ? 'text-to-image' : item === 'Video' ? 'text-to-video' : 'storyboard';
       link.onclick = () => {
         navigate(targetRoute);
         mobileMenu.classList.add('opacity-0', 'pointer-events-none');
@@ -180,21 +230,21 @@ export function Header(navigate) {
       });
     } else if (item === 'Storyboard') {
       link.onclick = () => {
-        navigate('storyboard-page');
+        navigate('storyboard');
         mobileMenu.classList.add('opacity-0', 'pointer-events-none');
         mobileMenu.classList.remove('opacity-100', 'pointer-events-auto');
       };
       mobileMenu.appendChild(link);
     } else if (item === 'Character') {
       link.onclick = () => {
-        navigate('character-page');
+        navigate('character');
         mobileMenu.classList.add('opacity-0', 'pointer-events-none');
         mobileMenu.classList.remove('opacity-100', 'pointer-events-auto');
       };
       mobileMenu.appendChild(link);
     } else if (item === 'Vibe Motion') {
       link.onclick = () => {
-        navigate('effects-page');
+        navigate('effects');
         mobileMenu.classList.add('opacity-0', 'pointer-events-none');
         mobileMenu.classList.remove('opacity-100', 'pointer-events-auto');
       };
@@ -215,7 +265,7 @@ export function Header(navigate) {
       mobileMenu.appendChild(link);
     } else if (item === 'AI Influencer') {
       link.onclick = () => {
-        navigate('influencer-page');
+        navigate('influencer');
         mobileMenu.classList.add('opacity-0', 'pointer-events-none');
         mobileMenu.classList.remove('opacity-100', 'pointer-events-auto');
       };
@@ -223,6 +273,62 @@ export function Header(navigate) {
     } else if (item === 'Smart Video Viral') {
       link.onclick = () => {
         navigate('viral');
+        mobileMenu.classList.add('opacity-0', 'pointer-events-none');
+        mobileMenu.classList.remove('opacity-100', 'pointer-events-auto');
+      };
+      mobileMenu.appendChild(link);
+    } else if (item === 'Social') {
+      link.onclick = () => {
+        navigate('social');
+        mobileMenu.classList.add('opacity-0', 'pointer-events-none');
+        mobileMenu.classList.remove('opacity-100', 'pointer-events-auto');
+      };
+      mobileMenu.appendChild(link);
+    } else if (item === 'Landing') {
+      link.onclick = () => {
+        navigate('landing');
+        mobileMenu.classList.add('opacity-0', 'pointer-events-none');
+        mobileMenu.classList.remove('opacity-100', 'pointer-events-auto');
+      };
+      mobileMenu.appendChild(link);
+    } else if (item === 'Brand DNA') {
+      link.onclick = () => {
+        navigate('brand-dna');
+        mobileMenu.classList.add('opacity-0', 'pointer-events-none');
+        mobileMenu.classList.remove('opacity-100', 'pointer-events-auto');
+      };
+      mobileMenu.appendChild(link);
+    } else if (item === 'Campaign') {
+      link.onclick = () => {
+        navigate('campaign');
+        mobileMenu.classList.add('opacity-0', 'pointer-events-none');
+        mobileMenu.classList.remove('opacity-100', 'pointer-events-auto');
+      };
+      mobileMenu.appendChild(link);
+    } else if (item === 'Asset Edit') {
+      link.onclick = () => {
+        navigate('asset-edit');
+        mobileMenu.classList.add('opacity-0', 'pointer-events-none');
+        mobileMenu.classList.remove('opacity-100', 'pointer-events-auto');
+      };
+      mobileMenu.appendChild(link);
+    } else if (item === 'Photo Studio') {
+      link.onclick = () => {
+        navigate('photo-studio');
+        mobileMenu.classList.add('opacity-0', 'pointer-events-none');
+        mobileMenu.classList.remove('opacity-100', 'pointer-events-auto');
+      };
+      mobileMenu.appendChild(link);
+    } else if (item === 'Brand Photo Studio') {
+      link.onclick = () => {
+        navigate('brand-photo-studio');
+        mobileMenu.classList.add('opacity-0', 'pointer-events-none');
+        mobileMenu.classList.remove('opacity-100', 'pointer-events-auto');
+      };
+      mobileMenu.appendChild(link);
+    } else if (item === 'Animate') {
+      link.onclick = () => {
+        navigate('animate');
         mobileMenu.classList.add('opacity-0', 'pointer-events-none');
         mobileMenu.classList.remove('opacity-100', 'pointer-events-auto');
       };
@@ -274,7 +380,7 @@ export function Header(navigate) {
     const page = e.detail.page;
     const imageRoutes = ['image', 'text-to-image', 'image-to-image'];
     const videoRoutes = ['video', 'text-to-video', 'image-to-video', 'video-to-video', 'video-watermark'];
-    const toolsRoutes = ['storyboard-page', 'character-page', 'effects-page', 'cinema-page', 'influencer-page', 'commercial-page', 'upscale-page'];
+    const toolsRoutes = ['storyboard', 'character', 'effects', 'cinema', 'influencer', 'commercial', 'upscale', 'social', 'landing', 'brand-dna', 'campaign', 'asset-edit', 'photo-studio', 'brand-photo-studio', 'animate'];
     
     Object.entries(links).forEach(([route, el]) => {
       if (route === page || (page.startsWith('template/') && route === 'templates')) {
@@ -289,13 +395,13 @@ export function Header(navigate) {
       } else if (toolsRoutes.includes(page) && route === 'Tools') {
         el.classList.add('text-white');
         el.classList.remove('text-secondary');
-      } else if (page === 'storyboard-page' && route === 'Storyboard') {
+      } else if (page === 'storyboard' && route === 'Storyboard') {
         el.classList.add('text-white');
         el.classList.remove('text-secondary');
-      } else if (page === 'character-page' && route === 'Character') {
+      } else if (page === 'character' && route === 'Character') {
         el.classList.add('text-white');
         el.classList.remove('text-secondary');
-      } else if (page === 'effects-page' && route === 'Vibe Motion') {
+      } else if (page === 'effects' && route === 'Vibe Motion') {
         el.classList.add('text-white');
         el.classList.remove('text-secondary');
       } else if (page === 'cinema' && route === 'Cinema Studio') {
@@ -304,10 +410,34 @@ export function Header(navigate) {
       } else if (page === 'cinema-template' && route === 'Cinema Template Studio') {
         el.classList.add('text-white');
         el.classList.remove('text-secondary');
-      } else if (page === 'influencer-page' && route === 'AI Influencer') {
+      } else if (page === 'influencer' && route === 'AI Influencer') {
         el.classList.add('text-white');
         el.classList.remove('text-secondary');
       } else if (page === 'viral' && route === 'Smart Video Viral') {
+        el.classList.add('text-white');
+        el.classList.remove('text-secondary');
+      } else if (page === 'social' && route === 'Social') {
+        el.classList.add('text-white');
+        el.classList.remove('text-secondary');
+      } else if (page === 'landing' && route === 'Landing') {
+        el.classList.add('text-white');
+        el.classList.remove('text-secondary');
+      } else if (page === 'brand-dna' && route === 'Brand DNA') {
+        el.classList.add('text-white');
+        el.classList.remove('text-secondary');
+      } else if (page === 'campaign' && route === 'Campaign') {
+        el.classList.add('text-white');
+        el.classList.remove('text-secondary');
+      } else if (page === 'asset-edit' && route === 'Asset Edit') {
+        el.classList.add('text-white');
+        el.classList.remove('text-secondary');
+      } else if (page === 'photo-studio' && route === 'Photo Studio') {
+        el.classList.add('text-white');
+        el.classList.remove('text-secondary');
+      } else if (page === 'brand-photo-studio' && route === 'Brand Photo Studio') {
+        el.classList.add('text-white');
+        el.classList.remove('text-secondary');
+      } else if (page === 'animate' && route === 'Animate') {
         el.classList.add('text-white');
         el.classList.remove('text-secondary');
       } else if (route !== 'Image' && route !== 'Video' && route !== 'Tools') {

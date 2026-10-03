@@ -7,6 +7,7 @@ import { uploadMediaFile } from '../lib/editor/upload.js';
 import { browserVideoProcessor } from '../lib/browserVideoProcessor.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
+import { saveGeneration } from '../lib/generationHistory.js';
 
 // Backend wiring
 function getBackendBase() {
@@ -93,6 +94,8 @@ export function VideoAgentPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const videoId = urlParams.get('videoId') || '';
     let videoUrl = urlParams.get('videoUrl') || '';
+    let lastFailedAction = null;
+    let retryButton = null;
     
     const processingQueue = [];
     let isProcessing = false;
@@ -382,8 +385,6 @@ export function VideoAgentPage() {
             loadStatus.textContent = 'Loaded ✓';
             showToast('Video loaded', 'success');
         } catch (err) {
-            console.error('[VideoAgentPage] upload failed:', err);
-            loadStatus.textContent = 'Upload failed';
             showToast('Upload failed: ' + err.message, 'error');
         } finally {
             loadBtn.disabled = false;
@@ -502,9 +503,22 @@ export function VideoAgentPage() {
     });
     
     // Full pipeline button
-    container.querySelector('#run-full-pipeline').onclick = async () => {
-        await runFullPipeline();
-    };
+    const runFullPipelineBtn = container.querySelector('#run-full-pipeline');
+    if (runFullPipelineBtn) {
+        runFullPipelineBtn.onclick = async () => {
+            const btn = container.querySelector('#run-full-pipeline');
+            if (btn && btn.dataset.retryMode) {
+                btn.innerHTML = `
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                    </svg>
+                    Run Full Pipeline
+                `;
+                delete btn.dataset.retryMode;
+            }
+            await runFullPipeline();
+        };
+    }
     
     // Cancel processing
     container.querySelector('#cancel-processing').onclick = async () => {
@@ -590,25 +604,33 @@ export function VideoAgentPage() {
 
         let response = null;
         let usedEndpoint = null;
+        let lastError = null;
         try {
             response = await callProcess(directEndpoint);
             usedEndpoint = 'direct';
-            if (!response.ok) throw new Error(`Direct: ${response.status}`);
-        } catch (_) {
+            if (!response.ok) {
+                lastError = `Direct backend error (${response.status})`;
+                throw new Error(lastError);
+            }
+        } catch (e) {
+            lastError = lastError || e.message || String(e);
             if (supabaseEndpoint) {
                 try {
                     response = await callProcess(supabaseEndpoint);
                     usedEndpoint = 'supabase';
-                    if (!response.ok) throw new Error(`Supabase: ${response.status}`);
-                } catch (e) {
+                    if (!response.ok) {
+                        lastError = `Supabase backend error (${response.status})`;
+                        throw new Error(lastError);
+                    }
+                } catch (e2) {
+                    lastError = lastError || (e2.message || String(e2));
                     response = null;
                 }
             }
         }
 
         if (!response) {
-            // Both backends down — fall through to simulation
-            showToast('Backends unavailable. Using offline mode.', 'info');
+            showToast(`Error: ${lastError || 'Backends unavailable'}. Using offline mode.`, 'error');
             modal.classList.add('hidden');
             await fallbackOrSimulate(tool);
             return;
@@ -627,7 +649,7 @@ export function VideoAgentPage() {
                 const finalJob = await pollJob(pollUrl, result.steps || getToolSteps(tool.id), stepsEl, progressBar, percentEl, abortController.signal);
                 finalResult = finalJob || result;
             } catch (e) {
-                showToast('Polling failed. Using offline mode.', 'error');
+                showToast(`Polling failed: ${e.message || 'unknown error'}. Using offline mode.`, 'error');
                 modal.classList.add('hidden');
                 setCurrentJob(null);
                 await fallbackOrSimulate(tool);
@@ -638,8 +660,7 @@ export function VideoAgentPage() {
             updateProgress(stepsEl, progressBar, percentEl, 100);
             await new Promise((r) => setTimeout(r, 300));
         } else {
-            // No jobId and no completion — treat as failure.
-            showToast('Backend returned no job. Using offline mode.', 'info');
+            showToast(`Backend returned unexpected response. Using offline mode.`, 'info');
             modal.classList.add('hidden');
             await fallbackOrSimulate(tool);
             return;
@@ -649,6 +670,30 @@ export function VideoAgentPage() {
         isProcessing = false;
         updateQueueItem(tool.name, 'complete');
         showResults(tool, finalResult.result || finalResult);
+
+        // Save generation to history
+        try {
+            const resultPayload = finalResult.result || finalResult;
+            const resultUrl = resultPayload?.url || resultPayload?.downloadUrl || resultPayload?.audioUrl || (resultPayload?.shorts && resultPayload.shorts[0]?.url);
+            if (resultUrl) {
+                saveGeneration({
+                    studio: 'videoagent',
+                    type: resultPayload?.mimeType?.startsWith('audio') ? 'audio' : 'video',
+                    url: resultUrl,
+                    prompt: tool.name,
+                    model: 'videoagent',
+                    parameters: {
+                        toolId: tool.id,
+                        toolName: tool.name,
+                        videoId,
+                        videoUrl,
+                    },
+                });
+            }
+        } catch (e) {
+          // history save is best-effort
+        }
+
         showToast(`${tool.name} completed!`, 'success');
     };
     
@@ -704,24 +749,33 @@ export function VideoAgentPage() {
 
         let response = null;
         let usedEndpoint = null;
+        let lastError = null;
         try {
             response = await callProcess(directEndpoint);
             usedEndpoint = 'direct';
-            if (!response.ok) throw new Error(`Direct: ${response.status}`);
-        } catch (_) {
+            if (!response.ok) {
+                lastError = `Direct backend error (${response.status})`;
+                throw new Error(lastError);
+            }
+        } catch (e) {
+            lastError = lastError || e.message || String(e);
             if (supabaseEndpoint) {
                 try {
                     response = await callProcess(supabaseEndpoint);
                     usedEndpoint = 'supabase';
-                    if (!response.ok) throw new Error(`Supabase: ${response.status}`);
-                } catch (e) {
+                    if (!response.ok) {
+                        lastError = `Supabase backend error (${response.status})`;
+                        throw new Error(lastError);
+                    }
+                } catch (e2) {
+                    lastError = lastError || (e2.message || String(e2));
                     response = null;
                 }
             }
         }
 
         if (!response) {
-            showToast('Backends unavailable. Using offline mode.', 'info');
+            showToast(`Error: ${lastError || 'Backends unavailable'}. Using offline mode.`, 'error');
             modal.classList.add('hidden');
             await handleUnavailable(usecase, 'No backend is running and this use case cannot run in your browser.');
             return;
@@ -738,7 +792,7 @@ export function VideoAgentPage() {
                 const finalJob = await pollJob(pollUrl, getUseCaseSteps(usecase.id), stepsEl, progressBar, percentEl, abortController.signal);
                 finalResult = finalJob || result;
             } catch (e) {
-                showToast('Polling failed. Using offline mode.', 'error');
+                showToast(`Polling failed: ${e.message || 'unknown error'}. Using offline mode.`, 'error');
                 modal.classList.add('hidden');
                 setCurrentJob(null);
                 await handleUnavailable(usecase, 'No backend is running and this use case cannot run in your browser.');
@@ -749,7 +803,7 @@ export function VideoAgentPage() {
             updateProgress(stepsEl, progressBar, percentEl, 100);
             await new Promise((r) => setTimeout(r, 300));
         } else {
-            showToast('Backend returned no job. Using offline mode.', 'info');
+            showToast(`Backend returned unexpected response. Using offline mode.`, 'info');
             modal.classList.add('hidden');
             await handleUnavailable(usecase, 'No backend is running and this use case cannot run in your browser.');
             return;
@@ -759,6 +813,30 @@ export function VideoAgentPage() {
         isProcessing = false;
         updateQueueItem(usecase.name, 'complete');
         showResults({ name: usecase.name, icon: usecase.icon }, finalResult.result || finalResult);
+
+        // Save generation to history
+        try {
+            const resultPayload = finalResult.result || finalResult;
+            const resultUrl = resultPayload?.url || resultPayload?.downloadUrl || resultPayload?.audioUrl || (resultPayload?.shorts && resultPayload.shorts[0]?.url);
+            if (resultUrl) {
+                saveGeneration({
+                    studio: 'videoagent',
+                    type: resultPayload?.mimeType?.startsWith('audio') ? 'audio' : 'video',
+                    url: resultUrl,
+                    prompt: usecase.name,
+                    model: 'videoagent',
+                    parameters: {
+                        usecaseId: usecase.id,
+                        usecaseName: usecase.name,
+                        videoId,
+                        videoUrl,
+                    },
+                });
+            }
+        } catch (e) {
+          // history save is best-effort
+        }
+
         showToast(`${usecase.name} completed!`, 'success');
     };
 
@@ -811,25 +889,35 @@ export function VideoAgentPage() {
 
         let response = null;
         let usedEndpoint = null;
+        let lastError = null;
         try {
             response = await callProcess(directEndpoint);
             usedEndpoint = 'direct';
-            if (!response.ok) throw new Error(`Direct: ${response.status}`);
-        } catch (_) {
+            if (!response.ok) {
+                lastError = `Direct backend error (${response.status})`;
+                throw new Error(lastError);
+            }
+        } catch (e) {
+            lastError = lastError || e.message || String(e);
             if (supabaseEndpoint) {
                 try {
                     response = await callProcess(supabaseEndpoint);
                     usedEndpoint = 'supabase';
-                    if (!response.ok) throw new Error(`Supabase: ${response.status}`);
-                } catch (e) {
+                    if (!response.ok) {
+                        lastError = `Supabase backend error (${response.status})`;
+                        throw new Error(lastError);
+                    }
+                } catch (e2) {
+                    lastError = lastError || (e2.message || String(e2));
                     response = null;
                 }
             }
         }
 
         if (!response) {
-            showToast('Backends unavailable. Using offline mode.', 'info');
+            showToast(`Error: ${lastError || 'Backends unavailable'}. Using offline mode.`, 'error');
             modal.classList.add('hidden');
+            setPipelineRetryMode();
             await handleUnavailable({ name: 'Full Pipeline', icon: '⚙️' }, 'No backend is running and the full pipeline cannot run in your browser.');
             return;
         }
@@ -845,9 +933,10 @@ export function VideoAgentPage() {
                 const finalJob = await pollJob(pollUrl, getUseCaseSteps('overview'), stepsEl, progressBar, percentEl, abortController.signal);
                 finalResult = finalJob || result;
             } catch (e) {
-                showToast('Polling failed. Using offline mode.', 'error');
+                showToast(`Polling failed: ${e.message || 'unknown error'}. Using offline mode.`, 'error');
                 modal.classList.add('hidden');
                 setCurrentJob(null);
+                setPipelineRetryMode();
                 await handleUnavailable({ name: 'Full Pipeline', icon: '⚙️' }, 'No backend is running and the full pipeline cannot run in your browser.');
                 return;
             }
@@ -856,15 +945,51 @@ export function VideoAgentPage() {
             updateProgress(stepsEl, progressBar, percentEl, 100);
             await new Promise((r) => setTimeout(r, 300));
         } else {
-            showToast('Backend returned no job. Using offline mode.', 'info');
+            showToast(`Backend returned unexpected response. Using offline mode.`, 'info');
             modal.classList.add('hidden');
+            setPipelineRetryMode();
             await handleUnavailable({ name: 'Full Pipeline', icon: '⚙️' }, 'No backend is running and the full pipeline cannot run in your browser.');
             return;
         }
 
         modal.classList.add('hidden');
         isProcessing = false;
+
+        // Clear retry state on success
+        const pipelineBtn = container.querySelector('#run-full-pipeline');
+        if (pipelineBtn && pipelineBtn.dataset.retryMode) {
+            pipelineBtn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                </svg>
+                Run Full Pipeline
+            `;
+            delete pipelineBtn.dataset.retryMode;
+        }
+
         showResults({ name: 'Full Pipeline', icon: '⚙️' }, finalResult.result || finalResult);
+
+        // Save generation to history
+        try {
+            const resultPayload = finalResult.result || finalResult;
+            const resultUrl = resultPayload?.url || resultPayload?.downloadUrl || resultPayload?.audioUrl || (resultPayload?.shorts && resultPayload.shorts[0]?.url);
+            if (resultUrl) {
+                saveGeneration({
+                    studio: 'videoagent',
+                    type: resultPayload?.mimeType?.startsWith('audio') ? 'audio' : 'video',
+                    url: resultUrl,
+                    prompt: 'Full Pipeline',
+                    model: 'videoagent',
+                    parameters: {
+                        videoId,
+                        videoUrl,
+                    },
+                });
+            }
+        } catch (e) {
+          // history save is best-effort
+        }
+
         showToast('Full pipeline completed!', 'success');
     };
     
@@ -1095,6 +1220,20 @@ export function VideoAgentPage() {
             resultsContent: container.querySelector('#results-content')
         };
     }
+
+    function setPipelineRetryMode() {
+        const pipelineBtn = container.querySelector('#run-full-pipeline');
+        if (pipelineBtn && !pipelineBtn.dataset.retryMode) {
+            pipelineBtn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="23 4 23 10 17 10"/>
+                    <path d="M1 20v-7a4 4 0 0 1 4-4h10"/>
+                </svg>
+                Retry
+            `;
+            pipelineBtn.dataset.retryMode = '1';
+        }
+    }
     
     // Generic job poller (used by both tool and pipeline flows).
     let currentJobId = null;
@@ -1175,7 +1314,6 @@ export function VideoAgentPage() {
             showToast(`${item.name} done in your browser!`, 'success');
             return true;
         } catch (e) {
-            console.warn('[VideoAgentPage] browser processing failed:', e.message);
             return false;
         }
     };

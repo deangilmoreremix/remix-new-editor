@@ -1,7 +1,6 @@
 import { muapi } from './muapi.js';
 import { openaiService } from './openaiService.js';
 import { apiKeyManager } from './apiKeyManager.js';
-import { buildNanoBananaPrompt } from './promptUtils.js';
 
 const SHOT_TYPES = ['Wide Shot', 'Medium Shot', 'Close-Up', 'Extreme Close-Up', 'POV', 'Overhead', 'Low Angle'];
 const TONE_MAP = {
@@ -27,7 +26,7 @@ export function resolveOpenAISize(value) {
 }
 
 export async function generateFrameImage(prompt, aspectRatio, model, style, lighting, color, customThumbnailUrl) {
-  const cinematicPrompt = buildNanoBananaPrompt(prompt, 'Full-Frame Cine Digital', 'Classic Anamorphic', 50, 'f/1.4')
+  const enhancedPrompt = prompt
     + (style && style !== 'None' ? `, ${style.toLowerCase()} style` : '')
     + (lighting && lighting !== 'None' ? `, ${lighting.toLowerCase()} lighting` : '')
     + (color && color !== 'None' ? `, ${color.toLowerCase()} color grade` : '');
@@ -35,7 +34,7 @@ export async function generateFrameImage(prompt, aspectRatio, model, style, ligh
   if (apiKeyManager.hasOpenAIKey()) {
     try {
       const { images } = await openaiService.generateImageResponses({
-        input: cinematicPrompt,
+        input: enhancedPrompt,
         size: resolveOpenAISize(aspectRatio),
         quality: 'auto',
         outputFormat: 'png',
@@ -49,7 +48,7 @@ export async function generateFrameImage(prompt, aspectRatio, model, style, ligh
     }
   }
 
-  const result = await muapi.generateImage({ model, prompt: cinematicPrompt, aspect_ratio: aspectRatio, customThumbnailUrl: customThumbnailUrl || undefined });
+  const result = await muapi.generateImage({ model, prompt: enhancedPrompt, aspect_ratio: aspectRatio, customThumbnailUrl: customThumbnailUrl || undefined });
   return result?.url || null;
 }
 
@@ -66,7 +65,7 @@ export async function generateStoryboardFromIntent(intent, options = {}) {
     lightingPreset = 'None',
     colorGrade = 'None',
     cta = '',
-    model = 'flux-pro',
+    model = t2iModels[0]?.id,
     customThumbnailUrl,
   } = intent;
 

@@ -4,12 +4,13 @@
 
 import { navigate } from '../lib/brandNavigation.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
-import { getBrand, saveBrand, saveCampaign, saveAsset } from '../lib/brandStore.js';
+import { getBrand } from '../lib/brandStore.js';
 import { CAMPAIGN_GOALS } from '../lib/campaignGenerator.js';
 import { PLATFORMS } from '../lib/platforms.js';
 import { createSafeImage } from '../lib/security.js';
 import { showToast, createLoadingOverlay } from '../lib/loading.js';
 import { apiCall } from '../lib/brandApi.js';
+import { saveGeneration } from '../lib/generationHistory.js';
 
 const CONCURRENCY = 3;
 
@@ -62,6 +63,11 @@ export function CampaignWizard(params = {}) {
     <button class="btn-secondary-modern" data-action="back">Back to Brand</button>
   `;
   root.appendChild(header);
+
+  // ---- Error Banner ----
+  const errorBanner = document.createElement('div');
+  errorBanner.className = 'mb-6 hidden';
+  root.appendChild(errorBanner);
 
   // ---- Step: Goal Picker ----
   const goalSection = document.createElement('div');
@@ -227,6 +233,18 @@ export function CampaignWizard(params = {}) {
               });
               state.assetStatus[platform] = { status: 'done', label: platformMeta.label };
               renderAssetStatus();
+
+              if (asset.imageUrl) {
+                saveGeneration({
+                  studio: 'campaign',
+                  type: 'image',
+                  url: asset.imageUrl,
+                  prompt: state.direction || asset.headline || '',
+                  model: 'brandApi/campaign-asset',
+                  parameters: { platform, campaignId: state.campaignId, conceptIndex: state.selectedConcept.index },
+                });
+              }
+
               return asset;
             } catch (err) {
               state.assetStatus[platform] = { status: 'error', label: platformMeta.label, error: String(err) };
@@ -363,6 +381,18 @@ export function CampaignWizard(params = {}) {
     goalSection.style.display = state.step === 'goal' ? '' : 'none';
     conceptSection.style.display = state.step === 'concepts' || state.step === 'assets' ? '' : 'none';
     assetSection.style.display = state.step === 'assets' ? '' : 'none';
+
+    if (state.error) {
+      errorBanner.className = 'mb-6 bg-red-900/30 border border-red-500/40 rounded-xl p-4';
+      errorBanner.innerHTML = `
+        <div class="text-xs font-bold text-red-400 mb-1">Error</div>
+        <div class="text-xs text-red-300">${escapeHtml(state.error)}</div>
+      `;
+      errorBanner.classList.remove('hidden');
+    } else {
+      errorBanner.className = 'mb-6 hidden';
+      errorBanner.innerHTML = '';
+    }
   }
 
   render();

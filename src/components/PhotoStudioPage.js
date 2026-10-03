@@ -2,14 +2,16 @@
 // AI Photo Studio — 6 categories × 5 styles = 30 product-photography presets.
 // Follows the exact pattern of existing studios (vanilla DOM + mountStudioChrome).
 
-import { navigate } from '../lib/brandNavigation.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
-import { getBrand, listBrands, savePhotoshoot } from '../lib/brandStore.js';
+import { listBrands, savePhotoshoot } from '../lib/brandStore.js';
 import { PHOTO_CATEGORIES, PHOTO_STYLES } from '../lib/photoStudio.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createSafeImage } from '../lib/security.js';
 import { showToast, createLoadingOverlay } from '../lib/loading.js';
 import { apiCall } from '../lib/brandApi.js';
+import { muapi } from '../lib/muapi.js';
+import { saveGeneration } from '../lib/generationHistory.js';
+import { i2iModels } from '../lib/models.js';
 
 const CONCURRENCY = 2;
 const RESOLUTIONS = ['1k', '2k', '4k'];
@@ -30,9 +32,21 @@ export function PhotoStudioPage() {
     selectedStyles: [],
     resolution: '2k',
     direction: '',
+    negativePrompt: '',
+    seed: undefined,
+    steps: undefined,
+    guidanceScale: undefined,
+    denoiseStrength: undefined,
+    cfgScale: undefined,
+    promptExtend: false,
+    style: '',
+    strength: undefined,
+    thumbnailUrl: null,
     loading: false,
     results: [],
     errors: [],
+    muapiMode: false,
+    selectedMuapiModel: null,
   };
 
   const root = document.createElement('div');
@@ -112,6 +126,137 @@ export function PhotoStudioPage() {
   resolutionSelect.onchange = () => { state.resolution = resolutionSelect.value; };
   resolutionRow.appendChild(resolutionSelect);
   root.appendChild(resolutionRow);
+
+  // ---- MuAPI Mode + Model Selector ----
+  const muapiRow = document.createElement('div');
+  muapiRow.className = 'mb-6';
+
+  const muapiModeRow = document.createElement('div');
+  muapiModeRow.className = 'flex items-center gap-3 mb-3';
+  const muapiLabel = document.createElement('label');
+  muapiLabel.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
+  muapiLabel.textContent = 'Generation Mode';
+  muapiModeRow.appendChild(muapiLabel);
+
+  const modeToggle = document.createElement('button');
+  modeToggle.type = 'button';
+  modeToggle.className = `px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${state.muapiMode ? 'bg-primary text-black border-primary' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
+  modeToggle.textContent = state.muapiMode ? 'Direct MuAPI' : 'Brand API';
+  modeToggle.onclick = () => {
+    state.muapiMode = !state.muapiMode;
+    if (!state.muapiMode) state.selectedMuapiModel = null;
+    modeToggle.className = `px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${state.muapiMode ? 'bg-primary text-black border-primary' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
+    modeToggle.textContent = state.muapiMode ? 'Direct MuAPI' : 'Brand API';
+    renderMuapiModelSelector();
+  };
+  muapiModeRow.appendChild(modeToggle);
+  muapiRow.appendChild(muapiModeRow);
+
+  const muapiModelWrapper = document.createElement('div');
+  muapiModelWrapper.className = 'hidden';
+  muapiRow.appendChild(muapiModelWrapper);
+
+  root.appendChild(muapiRow);
+
+  // ---- Advanced MuAPI Controls ----
+  const advancedMuapiRow = document.createElement('div');
+  advancedMuapiRow.className = 'mb-6 hidden';
+  advancedMuapiRow.id = 'photo-advanced-muapi';
+  muapiRow.appendChild(advancedMuapiRow);
+
+  function renderAdvancedMuapiControls() {
+    advancedMuapiRow.innerHTML = '';
+    if (!state.muapiMode) {
+      advancedMuapiRow.classList.add('hidden');
+      return;
+    }
+    advancedMuapiRow.classList.remove('hidden');
+
+    const card = document.createElement('div');
+    card.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-xl p-4 flex flex-col gap-3';
+
+    const addField = (label, type, value, onChange, placeholder) => {
+      const row = document.createElement('div');
+      row.className = 'flex flex-col gap-1';
+      const lbl = document.createElement('label');
+      lbl.className = 'text-[10px] font-bold text-secondary uppercase tracking-wider';
+      lbl.textContent = label;
+      row.appendChild(lbl);
+      const input = document.createElement('input');
+      input.type = type;
+      input.value = value || '';
+      input.placeholder = placeholder || '';
+      input.className = 'w-full bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-white text-xs focus:outline-none focus:border-primary/50';
+      input.oninput = (e) => {
+        const v = e.target.value;
+        onChange(v === '' ? undefined : (type === 'number' ? parseFloat(v) : v));
+      };
+      row.appendChild(input);
+      card.appendChild(row);
+    };
+
+    addField('Negative Prompt', 'text', state.negativePrompt, (v) => { state.negativePrompt = v; }, 'Things to avoid...');
+    addField('Seed', 'number', state.seed, (v) => { state.seed = v; }, '-1 for random');
+    addField('Steps', 'number', state.steps, (v) => { state.steps = v; }, '20');
+    addField('Guidance Scale', 'number', state.guidanceScale, (v) => { state.guidanceScale = v; }, '7.5');
+    addField('Denoise Strength', 'number', state.denoiseStrength, (v) => { state.denoiseStrength = v; }, '0.7');
+    addField('CFG Scale', 'number', state.cfgScale, (v) => { state.cfgScale = v; }, '0.5');
+    addField('Style', 'text', state.style, (v) => { state.style = v; }, 'e.g. photorealistic');
+    addField('Strength', 'number', state.strength, (v) => { state.strength = v; }, '0.6');
+
+    const extendRow = document.createElement('div');
+    extendRow.className = 'flex items-center gap-2';
+    const extendLabel = document.createElement('label');
+    extendLabel.className = 'text-[10px] font-bold text-secondary uppercase tracking-wider';
+    extendLabel.textContent = 'Prompt Extend';
+    const extendCheckbox = document.createElement('input');
+    extendCheckbox.type = 'checkbox';
+    extendCheckbox.checked = state.promptExtend;
+    extendCheckbox.className = 'accent-primary';
+    extendCheckbox.onchange = (e) => { state.promptExtend = e.target.checked; };
+    extendRow.appendChild(extendLabel);
+    extendRow.appendChild(extendCheckbox);
+    card.appendChild(extendRow);
+
+    advancedMuapiRow.appendChild(card);
+  }
+
+  // Update advanced controls visibility when mode changes
+  const origModeToggleOnClick = modeToggle.onclick;
+  modeToggle.onclick = () => {
+    state.muapiMode = !state.muapiMode;
+    if (!state.muapiMode) state.selectedMuapiModel = null;
+    modeToggle.className = `px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${state.muapiMode ? 'bg-primary text-black border-primary' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
+    modeToggle.textContent = state.muapiMode ? 'Direct MuAPI' : 'Brand API';
+    renderMuapiModelSelector();
+    renderAdvancedMuapiControls();
+  };
+
+  root.appendChild(muapiRow);
+
+  function renderMuapiModelSelector() {
+    muapiModelWrapper.innerHTML = '';
+    if (!state.muapiMode) {
+      muapiModelWrapper.className = 'hidden';
+      return;
+    }
+    muapiModelWrapper.className = 'mb-4';
+
+    const lbl = document.createElement('label');
+    lbl.className = 'text-xs font-bold text-secondary uppercase tracking-wider block mb-2';
+    lbl.textContent = 'MuAPI Model (I2I)';
+    muapiModelWrapper.appendChild(lbl);
+
+    const select = document.createElement('select');
+    select.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer';
+    select.innerHTML = '<option value="">Select a model...</option>' +
+      i2iModels
+        .filter(m => ['gpt-image-2-image-to-image', 'nano-banana-2-edit', 'bytedance-seedream-5.0-pro-edit'].includes(m.id))
+        .map(m => `<option value="${m.id}" ${m.id === state.selectedMuapiModel ? 'selected' : ''}>${m.name}</option>`)
+        .join('');
+    select.onchange = () => { state.selectedMuapiModel = select.value || null; };
+    muapiModelWrapper.appendChild(select);
+  }
 
   // ---- Category + Style Selectors (multi-select) ----
   const selectorRow = document.createElement('div');
@@ -195,6 +340,39 @@ export function PhotoStudioPage() {
             const categoryMeta = PHOTO_CATEGORIES.find(c => c.id === category) || PHOTO_CATEGORIES[0];
             const styleMeta = PHOTO_STYLES.find(s => s.id === style) || PHOTO_STYLES[0];
 
+            if (state.muapiMode && state.selectedMuapiModel) {
+              const result = await muapi.generateI2I({
+                model: state.selectedMuapiModel,
+                image_url: state.productImageUrl,
+                prompt: state.direction || undefined,
+                negative_prompt: state.negativePrompt || undefined,
+                seed: state.seed !== undefined ? state.seed : undefined,
+                steps: state.steps !== undefined ? state.steps : undefined,
+                guidance_scale: state.guidanceScale !== undefined ? state.guidanceScale : undefined,
+                denoise_strength: state.denoiseStrength !== undefined ? state.denoiseStrength : undefined,
+                cfg_scale: state.cfgScale !== undefined ? state.cfgScale : undefined,
+                prompt_extend: state.promptExtend || undefined,
+                style: state.style || undefined,
+                strength: state.strength !== undefined ? state.strength : undefined,
+                resolution: state.resolution,
+                thumbnail_url: state.thumbnailUrl || undefined,
+                studioType: 'image',
+              });
+
+              return {
+                ...result,
+                imageUrl: result.url,
+                styleLabel: styleMeta.label,
+                category: categoryMeta.label,
+                styleId: style,
+                categoryId: category,
+                direction: state.direction,
+                resolution: state.resolution,
+                aspect: '1:1',
+                format: 'png',
+              };
+            }
+
             const result = await apiCall('/api/photo-studio/generate', {
               productImageUrl: state.productImageUrl,
               category,
@@ -216,11 +394,27 @@ export function PhotoStudioPage() {
 
         for (const r of batchResults) {
           if (r.status === 'fulfilled') {
-            state.results.push(r.value);
-            if (selectedBrand) {
+            const result = r.value;
+            state.results.push(result);
+            if (selectedBrand && result.imageUrl) {
               savePhotoshoot({
-                ...r.value,
+                ...result,
                 brandId: selectedBrand.id,
+              });
+            }
+            if (result.imageUrl) {
+              saveGeneration({
+                studio: 'image',
+                type: 'image',
+                url: result.imageUrl,
+                prompt: state.direction || result.direction || '',
+                model: state.muapiMode ? state.selectedMuapiModel : 'brandApi/photo-studio',
+                parameters: {
+                  category: result.category,
+                  styleId: result.styleId,
+                  resolution: state.resolution,
+                  muapiMode: state.muapiMode,
+                },
               });
             }
           } else {

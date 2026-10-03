@@ -100,6 +100,7 @@
     "@tailwindcss/vite": "^4.3.2",
     "@tanstack/react-virtual": "^3.13.24",
     "@xstate/react": "^6.1.0",
+    "caniuse-lite": "^1.0.30001813",
     "class-variance-authority": "^0.7.1",
     "classnames": "^2.5.1",
     "clsx": "^2.1.1",

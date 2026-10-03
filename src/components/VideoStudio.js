@@ -7,7 +7,7 @@ import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { createSafeVideo } from '../lib/security.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
-import { t2vModels, getAspectRatiosForVideoModel, getDurationsForModel, getResolutionsForVideoModel, i2vModels, getAspectRatiosForI2VModel, getDurationsForI2VModel, getResolutionsForI2VModel, v2vModels, getModelById } from '../lib/models.js';
+import { t2vModels, getAspectRatiosForVideoModel, getDurationsForModel, getResolutionsForVideoModel, i2vModels, getAspectRatiosForI2VModel, getDurationsForI2VModel, getResolutionsForI2VModel, v2vModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
@@ -22,7 +22,6 @@ import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateTh
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
-import { VIDEO_QUICK_PROMPTS } from '../lib/promptUtils.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
 import { categorizeGenerationError, createAbortAwareGenerate, startGenerationProgress, showInlineError, hideInlineError } from '../lib/studioHelpers.js';
 import { showToast, createLoadingOverlay, createProgressBar } from '../lib/loading.js';
@@ -71,9 +70,6 @@ export function VideoStudio() {
     // flagged as unused until something consumes it.
     try {
       const restoredGtmContext = getGtmContext('video-studio');
-      if (restoredGtmContext && typeof console !== 'undefined' && console.info) {
-        console.info('[VideoStudio] Restored GTM context', restoredGtmContext);
-      }
       void restoredGtmContext;
     } catch { /* ignore */ }
     
@@ -299,7 +295,6 @@ export function VideoStudio() {
                 showToast('Last frame loaded for I2V', 'success');
             }
         } catch (err) {
-            console.error('[VideoStudio] Last frame extraction failed:', err);
             showToast('Failed to extract last frame: ' + err.message, 'error');
         } finally {
             lastFrameBtn.disabled = false;
@@ -352,7 +347,6 @@ export function VideoStudio() {
                 showToast('End frame loaded', 'success');
             }
         } catch (err) {
-            console.error('[VideoStudio] End frame upload failed:', err);
             showToast('Failed to upload end frame: ' + err.message, 'error');
         } finally {
             endFrameBtn.disabled = false;
@@ -466,9 +460,8 @@ export function VideoStudio() {
             textarea.placeholder = 'Video ready — click Generate to remove watermark';
             textarea.disabled = true;
         } catch (err) {
-            console.error('[VideoStudio] Video upload failed:', err);
             showVideoIcon();
-            alert(`Video upload failed: ${err.message}`);
+            showInlineError(container, 'Video upload failed: ' + err.message);
         }
         videoFileInput.value = '';
     };
@@ -615,7 +608,6 @@ export function VideoStudio() {
             textarea.disabled = true;
           }
         } catch (err) {
-          console.error('[VideoStudio] attachment upload failed:', err);
           showToast('Attachment upload failed: ' + err.message, 'error');
         }
       },
@@ -661,11 +653,11 @@ export function VideoStudio() {
               textarea.style.height = 'auto';
               textarea.style.height = Math.min(textarea.scrollHeight, 250) + 'px';
             });
-          }).catch((err) => console.error('[VideoStudio] GTM Boost failed:', err));
+          }).catch(() => {});
         } else if (action === 'recipe') {
-          openRecipeModal().catch((err) => console.error('[Recipe] open failed:', err));
+          openRecipeModal().catch(() => {});
         } else if (action === 'monetize') {
-          openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+          openMonetizationHub().catch(() => {});
         } else if (action === 'prompts') {
           openPromptGallery({
             appTheme: 'video-studio',
@@ -679,7 +671,7 @@ export function VideoStudio() {
                 ta.style.height = Math.min(ta.scrollHeight, 250) + 'px';
               }
             }
-          }).catch((err) => console.error('[PromptGallery] open failed:', err));
+          }).catch(() => {});
         }
         enhanceMenu.classList.remove('is-open');
       });
@@ -788,7 +780,7 @@ export function VideoStudio() {
           document.getElementById('v-model-btn-label').textContent = selectedModelName;
           updateControlsForModel(selectedModel);
         }
-      }).catch((err) => console.error('[ModelPicker] open failed:', err));
+      }).catch(() => {});
     });
     controlsLeft.appendChild(modelPickerBtn);
 
@@ -923,9 +915,7 @@ generateBtn.type = 'button';
             });
             container.appendChild(rail);
         });
-    }).catch((e) => {
-        console.error('[VideoStudio] demo rail failed', e);
-    });
+    }).catch(() => {});
 
     // ==========================================
     // ADVANCED OPTIONS PANEL
@@ -1740,8 +1730,7 @@ generateBtn.type = 'button';
             currentAssetId = asset && asset.id;
             navigate('render', { asset: currentAssetId });
         } catch (err) {
-            console.error('[VideoStudio] Failed to save asset for Render:', err);
-            alert(`Could not open in Render: ${err.message}`);
+            showInlineError(container, `Could not open in Render: ${err.message}`);
             renderBtn.disabled = false;
             renderBtn.textContent = '🎬 Open in Render';
         }
@@ -1990,7 +1979,6 @@ generateBtn.type = 'button';
                 if (customThumbnailUrl) v2vParams.thumbnail_url = customThumbnailUrl;
                 if (nativeAudio) v2vParams.native_audio = true;
                 const res = await muapi.processV2V(v2vParams);
-                console.log('[VideoStudio] V2V response:', res);
                 if (res && res.url) {
                     const genId = res.id || res.request_id || Date.now().toString();
                     lastGenerationId = null;
@@ -2006,7 +1994,10 @@ generateBtn.type = 'button';
                     image_url: uploadedImageUrl,
                     signal: abortController.signal,
                 };
-                if (uploadedEndImageUrl) i2vParams.last_image = uploadedEndImageUrl;
+                if (uploadedEndImageUrl) {
+                    i2vParams.lastFrameUrl = uploadedEndImageUrl;
+                    i2vParams.last_image_url = uploadedEndImageUrl;
+                }
                 if (prompt) i2vParams.prompt = prompt;
                 const isWanI2V = selectedModel === 'wan2.1-image-to-video' || selectedModel === 'wan2.5-image-to-video';
                 if (!isWanI2V && customThumbnailUrl) i2vParams.thumbnail_url = customThumbnailUrl;
@@ -2037,74 +2028,6 @@ generateBtn.type = 'button';
                         lastGenerationId = null;
                         lastGenerationModel = null;
                     }
-addToHistory({ id: genId, url: res.url, prompt: enrichedPrompt, model: selectedModel, aspect_ratio: selectedAr, duration: selectedDuration, timestamp: new Date().toISOString() });
-                    showVideoInCanvas(res.url, selectedModel);
-                } else {
-                    throw new Error('No video URL returned by API');
-                }
-                generateBtn.disabled = false;
-                generateBtn.innerHTML = `Generate ✨`;
-                return;
-            }
-
-            const params = { model: selectedModel };
-
-            if (customThumbnailUrl) params.thumbnail_url = customThumbnailUrl;
-            if (prompt) params.prompt = prompt;
-            const advancedPayload = dynamicControls ? dynamicControls.getPayload() : {};
-            if (advancedPayload.negative_prompt) params.negative_prompt = advancedPayload.negative_prompt;
-            if (advancedPayload.seed) params.seed = advancedPayload.seed;
-
-            // Extend mode: pass stored request_id, skip aspect_ratio
-            if (isExtendMode) {
-                params.request_id = lastGenerationId;
-            } else {
-                const params = { model: selectedModel, signal: abortController.signal };
-
-                if (customThumbnailUrl) params.thumbnail_url = customThumbnailUrl;
-                if (enrichedPrompt) params.prompt = enrichedPrompt;
-                if (negativePrompt) params.negative_prompt = negativePrompt;
-                if (seed && seed !== -1) params.seed = seed;
-                if (guidanceScale && guidanceScale !== 7.5) params.guidance_scale = guidanceScale;
-
-// Extend mode: pass stored request_id, skip aspect_ratio
-                if (isExtendMode) {
-                    params.request_id = lastGenerationId;
-                } else {
-                    params.aspect_ratio = selectedAr;
-                }
-
-const durations = getCurrentDurations(selectedModel);
-                if (durations.length > 0) params.duration = selectedDuration;
-
-                const resolutions = getCurrentResolutions(selectedModel);
-                if (resolutions.length > 0) params.resolution = selectedResolution;
-
-                if (selectedQuality) params.quality = selectedQuality;
-
-                if (nativeAudio) params.native_audio = true;
-                if (characterLock) {
-                    const ref = await getCharacterReference('studio-character-lock');
-                    if (ref?.imageUrl) {
-                        params.reference_images = [ref.imageUrl];
-                        params.character_consistency = true;
-                    }
-                }
-
-                const res = await muapi.generateVideo(params);
-
-                console.log('[VideoStudio] Full response:', res);
-
-                if (res && res.url) {
-                    const genId = res.id || res.request_id || Date.now().toString();
-                    if (selectedModel === 'seedance-v2.0-t2v' || selectedModel === 'seedance-v2.0-i2v') {
-                        lastGenerationId = genId;
-                        lastGenerationModel = selectedModel;
-                    } else {
-                        lastGenerationId = null;
-                        lastGenerationModel = null;
-                    }
-
                     addToHistory({
                         id: genId,
                         url: res.url,
@@ -2116,9 +2039,69 @@ const durations = getCurrentDurations(selectedModel);
                     });
                     showVideoInCanvas(res.url, selectedModel);
                 } else {
-                    console.error('[VideoStudio] No video URL in response:', res);
                     throw new Error('No video URL returned by API');
                 }
+                generateBtn.disabled = false;
+                generateBtn.innerHTML = `Generate ✨`;
+                return;
+            }
+
+            const params = { model: selectedModel, signal: abortController.signal };
+
+            if (customThumbnailUrl) params.thumbnail_url = customThumbnailUrl;
+            if (enrichedPrompt) params.prompt = enrichedPrompt;
+            const advancedPayload = dynamicControls ? dynamicControls.getPayload() : {};
+            if (advancedPayload.negative_prompt) params.negative_prompt = advancedPayload.negative_prompt;
+            if (advancedPayload.seed) params.seed = advancedPayload.seed;
+
+            // Extend mode: pass stored request_id, skip aspect_ratio
+            if (isExtendMode) {
+                params.request_id = lastGenerationId;
+            } else {
+                params.aspect_ratio = selectedAr;
+            }
+
+            const durations = getCurrentDurations(selectedModel);
+            if (durations.length > 0) params.duration = selectedDuration;
+
+            const resolutions = getCurrentResolutions(selectedModel);
+            if (resolutions.length > 0) params.resolution = selectedResolution;
+
+            if (selectedQuality) params.quality = selectedQuality;
+
+            if (nativeAudio) params.native_audio = true;
+            if (characterLock) {
+                const ref = await getCharacterReference('studio-character-lock');
+                if (ref?.imageUrl) {
+                    params.reference_images = [ref.imageUrl];
+                    params.character_consistency = true;
+                }
+            }
+
+            const res = await muapi.generateVideo(params);
+
+            if (res && res.url) {
+                const genId = res.id || res.request_id || Date.now().toString();
+                if (selectedModel === 'seedance-v2.0-t2v' || selectedModel === 'seedance-v2.0-i2v') {
+                    lastGenerationId = genId;
+                    lastGenerationModel = selectedModel;
+                } else {
+                    lastGenerationId = null;
+                    lastGenerationModel = null;
+                }
+
+                addToHistory({
+                    id: genId,
+                    url: res.url,
+                    prompt: enrichedPrompt,
+                    model: selectedModel,
+                    aspect_ratio: selectedAr,
+                    duration: selectedDuration,
+                    timestamp: new Date().toISOString()
+                });
+                showVideoInCanvas(res.url, selectedModel);
+            } else {
+                throw new Error('No video URL returned by API');
             }
         } catch (e) {
             const { message } = categorizeGenerationError(e);

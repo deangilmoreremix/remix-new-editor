@@ -143,7 +143,6 @@ async function fetchDynamicModels() {
         (t2iData || []).forEach(m => merged.set(m.id, m));
         return Array.from(merged.values());
     } catch (e) {
-        console.warn('[EditStudio] Failed to fetch dynamic model catalog:', e);
         return [];
     }
 }
@@ -814,7 +813,6 @@ export function EditStudio() {
         editAttachmentState[key].push(url);
         showToast('Reference uploaded', 'success');
       } catch (err) {
-        console.error('[EditStudio] attachment upload failed:', err);
         showToast('Attachment upload failed: ' + err.message, 'error');
       }
     },
@@ -1021,7 +1019,6 @@ export function EditStudio() {
       dynamicStatus.textContent = `${dynamicModels.length} models available`;
     } catch (e) {
       dynamicStatus.textContent = 'Failed to load models';
-      console.error(e);
     } finally {
       dynamicModelsLoading = false;
     }
@@ -1129,6 +1126,7 @@ export function EditStudio() {
 
     cancelBtn.classList.remove('hidden');
     cancelBtn.onclick = () => {
+      controller.abort();
       if (progressPoll) { clearInterval(progressPoll); progressPoll = null; }
       updateProgress(null);
       editBtn.disabled = false;
@@ -1136,9 +1134,12 @@ export function EditStudio() {
       cancelBtn.classList.add('hidden');
     };
 
+    const controller = new AbortController();
+
     try {
       const params = {
         model: activeTool.id,
+        signal: controller.signal,
       };
 
       if (activeTool.mode === 't2i') {

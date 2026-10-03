@@ -7,8 +7,8 @@ import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCa
 import { createInlineInstructions } from './InlineInstructions.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
-import { getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
-import { getVideoIntent, setVideoIntent, resetVideoIntent } from '../lib/videoIntentStore.js';
+import { PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
+import { getVideoIntent, setVideoIntent } from '../lib/videoIntentStore.js';
 import { navigate } from '../lib/router.js';
 
 export function ChatStudio() {
@@ -17,9 +17,10 @@ export function ChatStudio() {
   mountStudioChrome(container, { currentRoute: 'chat' });
 
   let selectedModel = textModels[0];
-  const messages = []; // Chat history
+  const messages = []; // Chat history [{role, content}]
   let isGenerating = false;
   let customThumbnailUrl = getCustomThumbnailFromCache('chat-studio');
+  let abortController = null;
 
   // Header with hero banner
   const header = document.createElement('div');
@@ -364,24 +365,38 @@ sendBtn.type = 'button';
     if (!apiKey) { AuthModal(() => handleSend()); return; }
 
     textarea.value = '';
+    messages.push({ role: 'user', content: userMessage });
     addMessage(userMessage, true);
 
     showLoading();
 
     try {
+      abortController = new AbortController();
       const response = await muapi.generateText({
         model: selectedModel.id,
+        messages: messages.map(m => ({ role: m.role, content: m.content })),
         prompt: userMessage,
         system_prompt: systemInput.value.trim() || undefined,
         temperature: parseFloat(tempInput.value),
-        max_tokens: parseInt(tokensInput.value)
+        max_tokens: parseInt(tokensInput.value),
+        signal: abortController.signal,
+        webhook_url: undefined,
       });
 
       hideLoading();
-      addMessage(response.text, false);
+      const aiText = response.text || response.response || response.output?.text || '';
+      messages.push({ role: 'assistant', content: aiText });
+      addMessage(aiText, false);
     } catch (error) {
       hideLoading();
-      addMessage(`Error: ${error.message}`, false);
+      if (error.message !== 'Request cancelled by user') {
+        addMessage(`Error: ${error.message}`, false);
+      }
+    } finally {
+      isGenerating = false;
+      sendBtn.disabled = false;
+      sendBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      abortController = null;
     }
   }
 

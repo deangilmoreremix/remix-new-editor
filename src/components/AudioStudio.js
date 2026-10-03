@@ -11,9 +11,6 @@ import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { mountModelSelector } from '../lib/modelSelectorUI.js';
 import { showToast } from '../lib/loading.js';
 import { formatErrorMessage } from '../lib/errorMessages.js';
-import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
-import ExampleGallery from './studios/ExampleGallery.js';
-import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
@@ -560,6 +557,7 @@ export function AudioStudio() {
   let activeResultUrl = null;
   let activeResultTitle = '';
   let view = 'input';
+  let audioAbortController = null;
 
   const apiKey = apiKeyManager.getMuapiKey();
   const PERSIST_KEY = scopedPersistKey('hg_audio_studio_persistent', apiKey);
@@ -586,7 +584,7 @@ export function AudioStudio() {
       if (data.view) view = data.view;
     }
   } catch (err) {
-    console.warn('Failed to load AudioStudio persistence:', err);
+
   }
 
   let persistTimer = null;
@@ -604,7 +602,7 @@ export function AudioStudio() {
         };
         localStorage.setItem(PERSIST_KEY, JSON.stringify(state));
       } catch (err) {
-        console.warn('Failed to save AudioStudio persistence:', err);
+
       }
     }, 500);
   }
@@ -707,7 +705,6 @@ export function AudioStudio() {
         }
         showToast('Reference uploaded', 'success');
       } catch (err) {
-        console.error('[AudioStudio] attachment upload failed:', err);
         showToast('Attachment upload failed: ' + err.message, 'error');
       }
     },
@@ -750,11 +747,11 @@ export function AudioStudio() {
             promptInput.dispatchEvent(new Event('input', { bubbles: true }));
             promptInput.focus();
           });
-        }).catch((err) => console.error('[AudioStudio] GTM Boost failed:', err));
+        }).catch(() => {});
       } else if (action === 'recipe') {
-        openRecipeModal().catch((err) => console.error('[Recipe] open failed:', err));
+        openRecipeModal().catch(() => {});
       } else if (action === 'monetize') {
-        openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+        openMonetizationHub().catch(() => {});
       } else if (action === 'prompts') {
         openPromptGallery({
           appTheme: 'audio-studio',
@@ -766,7 +763,7 @@ export function AudioStudio() {
               ta.focus();
             }
           }
-        }).catch((err) => console.error('[PromptGallery] open failed:', err));
+        }).catch(() => {});
       }
       enhanceMenu.classList.remove('is-open');
     });
@@ -1287,7 +1284,6 @@ export function AudioStudio() {
         }
       }
     } catch (err) {
-      console.error('[AudioStudio] WaveSurfer init failed:', err);
       const waveformContainer = resultArea.querySelector('#waveform-container');
       if (waveformContainer) {
         waveformContainer.innerHTML = `
@@ -1341,6 +1337,7 @@ export function AudioStudio() {
     showLoading();
 
     cleanupResult();
+    audioAbortController = new AbortController();
 
     try {
       const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
@@ -1348,8 +1345,7 @@ export function AudioStudio() {
       let result;
       const modelType = selectedModel.type;
 
-      // Merge attachment URLs from the unified toolbar into schema params.
-      const mergedSchemaParams = { ...schemaParams };
+      const mergedSchemaParams = { ...schemaParams, signal: audioAbortController.signal };
       if (audioAttachmentState.audio && !mergedSchemaParams.audio_url) {
         mergedSchemaParams.audio_url = audioAttachmentState.audio;
       }
@@ -1371,9 +1367,12 @@ export function AudioStudio() {
       } else if (modelType === 'tts') {
         result = await muapi.generateAudio({
           model: selectedModel.id,
-          text: processedPrompt,
+          prompt: processedPrompt,
           speed: speed,
           voice: selectedVoice,
+          pitch: pitch,
+          tone: toneValue !== 'neutral' ? toneValue : undefined,
+          emotion: emotionValue !== 'none' ? emotionValue : undefined,
           ...mergedSchemaParams,
         });
       } else {
@@ -1406,13 +1405,13 @@ export function AudioStudio() {
         showToast('Audio generated successfully!', 'success');
       }
     } catch (err) {
-      console.error('[AudioStudio]', err);
       const errMsg = formatErrorMessage(err, 'Failed to generate audio');
       showToast(errMsg, 'error');
     } finally {
       hideLoading();
       genBtn.disabled = false;
       genBtn.textContent = 'Generate Audio';
+      audioAbortController = null;
     }
   };
 
@@ -1442,9 +1441,7 @@ export function AudioStudio() {
       className: 'mt-10 max-w-6xl mx-auto',
     });
     container.appendChild(rail);
-  }).catch((e) => {
-    console.error('[AudioStudio] demo rail failed', e);
-  });
+  }).catch(() => {});
 
   return container;
 }

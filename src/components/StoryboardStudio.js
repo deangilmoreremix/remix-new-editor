@@ -3,17 +3,18 @@ import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { createHeroSection, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { openaiService } from '../lib/openaiService.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import Store from '../stores/base/Store.js';
-import { t2iModels, getAspectRatiosForModel, getModelById, getI2IModelById, getI2VModelById, getV2VModelById } from '../lib/models.js';
+import { t2iModels, getAspectRatiosForModel, getModelById, getI2IModelById, getI2VModelById, getV2VModelById, i2vModels } from '../lib/models.js';
 import { showToast } from '../lib/loading.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
+import { saveGeneration } from '../lib/generationHistory.js';
 import { CINEMATIC_THEME } from '../lib/cinematicTheme.js';
 import { getVideoIntent, setVideoIntent } from '../lib/videoIntentStore.js';
-import { generateStoryboardFromIntent, generateFrameImage as engineGenerateFrameImage, resolveOpenAISize } from '../lib/storyboardEngine.js';
+import { generateStoryboardFromIntent, generateFrameImage as engineGenerateFrameImage } from '../lib/storyboardEngine.js';
 import { createAutosave, saveProject, loadProject } from '../lib/editor/persistence.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
@@ -148,7 +149,9 @@ export async function StoryboardStudio(options = {}) {
   const autosave = createAutosave({
     debounceMs: 1500,
     onSave: () => {},
-    onError: (err) => console.warn('[StoryboardStudio] Autosave failed:', err),
+    onError: (err) => {
+      showToast('Autosave encountered an issue', 'error');
+    },
   });
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col bg-app-bg overflow-y-auto relative storyboard-studio';
@@ -360,7 +363,6 @@ export async function StoryboardStudio(options = {}) {
         storyboardAttachments[key].push(url);
         showToast('Reference uploaded', 'success');
       } catch (err) {
-        console.error('[StoryboardStudio] attachment upload failed:', err);
         showToast('Attachment upload failed: ' + err.message, 'error');
       }
     },
@@ -407,7 +409,7 @@ export async function StoryboardStudio(options = {}) {
     const intent = {
       ...getVideoIntent(),
       model: selectedModel,
-      customThumbnailUrl: customThumbnailUrl || undefined,
+      thumbnail_url: customThumbnailUrl || undefined,
       // Merge attachment URLs from the unified toolbar.
       reference_images: storyboardAttachments.images?.length ? storyboardAttachments.images : undefined,
       reference_videos: storyboardAttachments.videos?.length ? storyboardAttachments.videos : undefined,
@@ -587,7 +589,7 @@ export async function StoryboardStudio(options = {}) {
           }
         }
       } catch (e) {
-        console.warn('[StoryboardStudio] Supabase load failed:', e);
+        showToast('Supabase load failed: ' + e.message, 'error');
       }
     }
     if (loadedFromSupabase) return;
@@ -686,14 +688,14 @@ genAllBtn.type = 'button';
             enhancedConcept = prompt;
             renderFrames();
           });
-        }).catch((err) => console.error('[StoryboardStudio] GTM Boost failed:', err));
+        }).catch(() => {});
       } else if (action === 'recipe') {
         openRecipeModal({
           onRunRecipe: (url) => {
           }
-        }).catch((err) => console.error('[Recipe] open failed:', err));
+        }).catch(() => {});
       } else if (action === 'monetize') {
-        openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+        openMonetizationHub().catch(() => {});
       } else if (action === 'prompts') {
         openPromptGallery({
           appTheme: 'storyboard-studio',
@@ -705,7 +707,7 @@ genAllBtn.type = 'button';
               ta.focus();
             }
           }
-        }).catch((err) => console.error('[PromptGallery] open failed:', err));
+        }).catch(() => {});
       }
       enhanceMenu.classList.remove('is-open');
     });
@@ -1316,7 +1318,7 @@ const compareBtn = document.createElement('button');
             frameEnhanceBtn.textContent = '🎯 Enhanced';
             frameEnhanceBtn.classList.add('active');
           });
-        }).catch((err) => console.error('[StoryboardStudio] Frame GTM Boost failed:', err));
+        }).catch(() => {});
       });
       const enhanceRow = document.createElement('div');
       enhanceRow.className = 'flex items-center justify-between -mt-1';
@@ -1454,6 +1456,40 @@ const compareBtn = document.createElement('button');
       };
       card.appendChild(genFrameBtn);
 
+      const genVideoBtn = document.createElement('button');
+      genVideoBtn.type = 'button';
+      genVideoBtn.className = 'w-full bg-white/5 text-white py-2 rounded-lg text-xs font-bold hover:bg-white/10 transition-all mt-1';
+      genVideoBtn.textContent = '🎬 Generate Video Clip';
+      genVideoBtn.setAttribute('aria-label', 'Generate video from this frame');
+      genVideoBtn.onclick = async () => {
+        if (!frame.imageUrl) { showToast('Generate the frame image first', 'warning'); return; }
+        if (!(await requireEntitlement())) return;
+        const defaultI2VModel = i2vModels[0]?.id;
+        if (!defaultI2VModel) { showToast('No video model available', 'error'); return; }
+        genVideoBtn.disabled = true;
+        genVideoBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Generating...';
+        try {
+          const res = await muapi.generateI2V({
+            model: defaultI2VModel,
+            image_url: frame.imageUrl,
+            prompt: frame.prompt,
+            aspect_ratio: selectedAr,
+          });
+          if (res?.url) {
+            window.open(res.url, '_blank');
+            showToast('Video clip generated', 'success');
+          } else {
+            throw new Error('No video URL returned');
+          }
+        } catch (err) {
+          showToast(`Video generation failed: ${err.message}`, 'error');
+        } finally {
+          genVideoBtn.disabled = false;
+          genVideoBtn.textContent = '🎬 Generate Video Clip';
+        }
+      };
+      card.appendChild(genVideoBtn);
+
       const publishFrameBtn = document.createElement('button');
       publishFrameBtn.type = 'button';
       publishFrameBtn.textContent = 'Publish to Social';
@@ -1542,7 +1578,7 @@ const compareBtn = document.createElement('button');
 
   async function generateFrame(idx, btn, imageArea) {
     const frame = frames[idx];
-    if (!frame.prompt.trim()) { alert('Enter a scene description'); return; }
+    if (!frame.prompt.trim()) { showToast('Enter a scene description', 'error'); return; }
     const hasKey = apiKeyManager.hasOpenAIKey() || apiKeyManager.hasMuapiKey();
     if (!hasKey) { AuthModal(() => generateFrame(idx, btn, imageArea)); return; }
 
@@ -1568,6 +1604,16 @@ const compareBtn = document.createElement('button');
       if (url) {
         frame.imageUrl = url;
         imageArea.innerHTML = `<img src="${url}" class="w-full h-full object-cover">`;
+        saveGeneration({
+          studio: 'storyboard',
+          type: 'image',
+          url,
+          prompt: frame.prompt,
+          model: selectedModel,
+          parameters: { aspect_ratio: selectedAr, shot: frame.shot },
+          timestamp: new Date().toISOString(),
+          id: `storyboard-${Date.now()}-${idx}`,
+        });
       }
     } catch (err) {
       showToast(`Error: ${err.message}`, 'error');
@@ -1585,27 +1631,25 @@ const compareBtn = document.createElement('button');
    * @param {string} prompt
    * @returns {Promise<string|null>} image URL/data-URL or null
    */
-   async function generateFrameImage(prompt) {
-     if (apiKeyManager.hasOpenAIKey()) {
-       try {
-         const { images } = await openaiService.generateImageResponses({
-           input: prompt,
-           size: '16:9',
-           quality: 'auto',
-           outputFormat: 'png',
-         });
-         const img = images?.[0];
-         if (!img) return null;
-         return img.base64 ? `data:image/png;base64,${img.base64}` : img.url || null;
-       } catch (err) {
-         // Surface OpenAI-specific failures clearly; MuAPI fallback below.
-         if (!apiKeyManager.hasMuapiKey()) throw err;
-         console.warn('[StoryboardStudio] OpenAI Responses generation failed, falling back to MuAPI:', err.message);
-       }
-     }
-     const result = await muapi.generateImage({ model: 'nano-banana', prompt, aspect_ratio: '16:9' });
-     return result?.url || null;
-   }
+    async function generateFrameImage(prompt) {
+      if (apiKeyManager.hasOpenAIKey()) {
+        try {
+          const { images } = await openaiService.generateImageResponses({
+            input: prompt,
+            size: '16:9',
+            quality: 'auto',
+            outputFormat: 'png',
+          });
+          const img = images?.[0];
+          if (!img) return null;
+          return img.base64 ? `data:image/png;base64,${img.base64}` : img.url || null;
+        } catch (err) {
+          if (!apiKeyManager.hasMuapiKey()) throw err;
+        }
+      }
+      const result = await muapi.generateImage({ model: selectedModel, prompt, aspect_ratio: selectedAr });
+      return result?.url || null;
+    }
 
   genAllBtn.onclick = async () => {
     const hasKey = apiKeyManager.hasOpenAIKey() || apiKeyManager.hasMuapiKey();

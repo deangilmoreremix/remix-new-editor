@@ -5,24 +5,36 @@ const ROUTE_MAP = {
   'Storyboard': 'storyboard',
   'Edit': 'edit',
   'Character': 'character',
+  'Commercial': 'commercial',
+  'Upscale': 'upscale',
 
-  'Vibe Motion': 'effects',
-  'Cinema Studio': 'cinema',
-  'AI Influencer': 'influencer',
+
+  'Smart Video Viral': 'viral',
   'Apps': 'apps',
-  'Templates': 'templates',
-  'Assist': 'assist',
+
   'Community': 'community',
   'Avatar': 'avatar',
   'Audio': 'audio',
   'Smart Video Scheduler': 'smart-video-scheduler',
-  'SmartVideo AI Studio': 'smart-video-studio',
-  'Settings': 'timeline',
+
   'Personalizer': 'personalizer',
   'Contacts': 'contacts',
-  'Media Lib': 'timeline',
-  'Social': 'timeline',
-  'Landing': 'timeline',
+  'Social': 'social',
+  'Landing': 'landing',
+  'Training': 'training',
+  'Video Tools': 'videotools',
+  'Chat': 'chat',
+  'Lip Sync': 'lipsync',
+  'Video Agent': 'video-agent',
+  'Video Agent Studio': 'video-agent-studio',
+  'AI VFX': 'ai-vfx',
+  'Brand Studio': 'brand',
+  'Brand DNA': 'brand-dna',
+  'Campaign': 'campaign',
+  'Asset Edit': 'asset-edit',
+  'Photo Studio': 'photo-studio',
+  'Brand Photo Studio': 'brand-photo-studio',
+  'Animate': 'animate',
 };
 
 export function getRouteForItem(item) {
@@ -91,7 +103,7 @@ const pageLoaders = {
   'ai-vfx': () => import('../components/AIVFXPage.js').then(m => m.AIVFXPage()),
   viral: () => import('../components/SmartVideoViral.js').then(m => m.SmartVideoViral()),
   'timeline-iframe-warning': () => Promise.resolve(document.createElement('div')),
-  brand: () => { console.log('[DEBUG] Loading BrandStudioIframe'); return import('../components/BrandStudioIframe.js').then(m => m.BrandStudioIframe()); },
+  brand: () => import('../components/BrandStudioIframe.js').then(m => m.BrandStudioIframe()),
   'brand-dna': () => import('../components/BrandDnaEditor.js').then(m => m.BrandDnaEditor()),
   campaign: () => import('../components/CampaignWizard.js').then(m => m.CampaignWizard()),
   'campaign-page': () => import('../components/CampaignPage.js').then(m => m.CampaignPage()),
@@ -123,7 +135,6 @@ export async function navigate(page, params = {}) {
 
   // Prevent concurrent navigation to avoid infinite loops
   if (isNavigating) {
-    console.warn('[Router] Navigation already in progress, skipping...');
     return;
   }
 
@@ -167,7 +178,6 @@ export async function navigate(page, params = {}) {
     contentArea.appendChild(element);
     currentPageEl = element;
   } catch (err) {
-    console.error(`[Router] Failed to load page: ${page}`, err);
     contentArea.innerHTML = '';
     currentPageEl?.cleanup?.();
     currentPageEl = null;
