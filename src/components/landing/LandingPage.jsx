@@ -33,6 +33,9 @@ const ALL_APPS = [
   { id: 'lip-sync', title: 'Lip Sync', description: 'Generate accurate lip sync for any video, character, or avatar in any language for natural-looking dubbed content.', link: '/lipsync?public=1' },
   { id: 'video-agent', title: 'Video Agent', description: 'Automate video creation with AI agents that handle editing, effects, voiceovers, and publishing from a single prompt.', link: '/video-agent?public=1' },
   { id: 'agents', title: 'Agents', description: 'Use specialized AI agents for creative direction, editing, storyboarding, video creation, pitch improvement, and production planning.', link: '/agents?public=1' },
+  { id: 'workflows', title: 'Workflows', description: 'Build, save, and automate repeatable creative pipelines for client projects, social content, and campaign delivery.', link: '/workflows?public=1' },
+  { id: 'mcp-cli', title: 'MCP & CLI', description: 'Control studios and generation pipelines via model context protocol and command-line tools for power users and developers.', link: '/mcp-cli?public=1' },
+  { id: 'academy', title: 'Academy', description: 'Learn AI video creation, agency building, prompt engineering, and client delivery with structured courses and training paths.', link: '/academy?public=1' },
 ];
 
 let globalStylesAdded = false;
@@ -200,15 +203,14 @@ export default async function LandingPage() {
     const hookSection = createLazySection(() => import('./sections/HookSection.jsx'), 'hook', {}, 1);
     const sixEngines = createLazySection(() => import('./sections/SixEnginesSection.jsx'), 'engines', {}, 2);
     const appsGrid = createLazySection(() => import('./sections/AppsGridSection.jsx'), 'apps', { apps: ALL_APPS }, 3);
-    const demos = createLazySection(() => import('./sections/DemosSection.jsx'), 'demos', {}, 4);
-    const features = createLazySection(() => import('./sections/FeaturesSection.jsx'), 'features', {}, 5);
-    const problem = createLazySection(() => import('./sections/ProblemSection.jsx'), 'problem', {}, 6);
-    const workflow = createLazySection(() => import('./sections/WorkflowSection.jsx'), 'workflow', {}, 7);
-    const comparison = createLazySection(() => import('./sections/ComparisonSection.jsx'), 'comparison', {}, 8);
-    const valueStack = createLazySection(() => import('./sections/ValueStackSection.jsx'), 'value', {}, 9);
-    const agency = createLazySection(() => import('./sections/AgencySection.jsx'), 'agency', {}, 10);
-    const offer = createLazySection(() => import('./sections/OfferSection.jsx'), 'offer', {}, 11);
-    const finalCTA = createLazySection(() => import('./sections/FinalCTASection.jsx'), 'cta', {}, 12);
+    const features = createLazySection(() => import('./sections/FeaturesSection.jsx'), 'features', {}, 4);
+    const problem = createLazySection(() => import('./sections/ProblemSection.jsx'), 'problem', {}, 5);
+    const workflow = createLazySection(() => import('./sections/WorkflowSection.jsx'), 'workflow', {}, 6);
+    const comparison = createLazySection(() => import('./sections/ComparisonSection.jsx'), 'comparison', {}, 7);
+    const valueStack = createLazySection(() => import('./sections/ValueStackSection.jsx'), 'value', {}, 8);
+    const agency = createLazySection(() => import('./sections/AgencySection.jsx'), 'agency', {}, 9);
+    const offer = createLazySection(() => import('./sections/OfferSection.jsx'), 'offer', {}, 10);
+    const finalCTA = createLazySection(() => import('./sections/FinalCTASection.jsx'), 'cta', {}, 11);
 
     // NEW: MiniMax H3 showcase sections, lazy-loaded with the same observer
     // pattern as every other section on this page.
@@ -223,7 +225,6 @@ export default async function LandingPage() {
     container.appendChild(aiWorkflow);      // NEW
     container.appendChild(sixEngines);
     container.appendChild(appsGrid);
-    container.appendChild(demos);
     container.appendChild(madeWith);        // NEW
     container.appendChild(ugcShowcase);     // NEW
     container.appendChild(features);

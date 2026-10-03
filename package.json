@@ -5,12 +5,13 @@
   "version": "1.0.0",
   "type": "module",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "apps/*"
   ],
   "scripts": {
     "dev": "vite --port 3100",
     "dev:all": "concurrently -n root,video-agent-studio -c magenta,cyan \"npm run dev\" \"npm run dev:video-agent-studio\"",
-    "build": "rm -rf dist && vite build",
+    "build": "npm run build:openthorn && rm -rf dist && vite build",
     "build:ai-vfx": "npm run build --workspace apps/ai-vfx",
     "build:analyze": "vite build --mode analyze",
     "preview": "vite preview",
@@ -31,6 +32,8 @@
     "test:video-agent-studio": "cd apps/video-agent-studio && npm test --if-present",
     "lint:video-agent-studio": "cd apps/video-agent-studio && npm run lint --if-present",
     "verify:video-agent-studio": "node scripts/verify-video-agent-studio.mjs",
+    "build:openthorn": "cd apps/openthorn && npx vite build && rm -rf ../../public/openthorn && cp -r dist ../../public/openthorn",
+    "dev:openthorn": "cd apps/openthorn && npm run dev",
     "update:video-agent-studio-subtree": "git fetch openchatcut && git subtree pull --prefix=apps/video-agent-studio openchatcut main --squash"
   },
   "devDependencies": {

@@ -267,7 +267,7 @@ function createGalleryCard(demo, showLikes = false) {
     })
   );
   primaryActions.appendChild(createStyleLink(demo, {
-    label: 'Create This Style',
+    label: 'Create This Type of Video',
     variant: 'ghost',
     getTarget: adapter.getCreateTarget,
     loadPrompt: adapter.loadDemoPrompt,

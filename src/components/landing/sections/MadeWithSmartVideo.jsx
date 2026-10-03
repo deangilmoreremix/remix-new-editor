@@ -88,7 +88,7 @@ function createReelCard(demo) {
 
   primaryActions.appendChild(createViewPromptButton(demo, handleViewPrompt));
   primaryActions.appendChild(createStyleLink(demo, {
-    label: 'Create This Style',
+    label: 'Create This Type of Video',
     getTarget,
     loadPrompt,
   }));

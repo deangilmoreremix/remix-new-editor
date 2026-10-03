@@ -78,6 +78,7 @@ const pageLoaders = {
   lipsync: () => import('../components/LipSyncStudio.js').then(m => m.LipSyncStudio()),
   leadfinder: () => import('../components/LeadFinderStudio.js').then(m => m.LeadFinderStudio()),
   personalizer: () => import('../components/Personalizer.js').then(m => m.Personalizer()),
+  'website-builder': () => import('../components/OpenThornStudio.js').then(m => m.OpenThornStudio()),
 
   assist: () => import('../components/AssistPage.js').then(m => m.AssistPage()),
   community: () => import('../components/CommunityPage.js').then(m => m.CommunityPage()),

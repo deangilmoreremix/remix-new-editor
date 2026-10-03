@@ -1,4 +1,4 @@
-// Apps Grid Section - 33 AI Creative Apps Showcase
+// Apps Grid Section - 34 AI Creative Apps Showcase
 
 import SHOWCASE_CONFIG from '../../../content/showcaseConfig.js';
 
@@ -11,13 +11,13 @@ export function AppsGridSection({ apps }) {
   // Get unique categories from apps
   const categories = ['All', 'Create', 'Enhance', 'Produce', 'Localize', 'Automate', 'Scale'];
   const categoryMap = {
-    'All': ['image', 'video', 'cinema', 'character', 'ai-vfx', 'influencer', 'storyboard', 'effects', 'vfx', 'edit', 'upscale', 'audio', 'avatar', 'training', 'videotools', 'render', 'video-agent', 'director', 'timeline', 'motion', 'tiktok', 'dubbing', 'chat', 'commercial', 'templates', 'explore', 'library', 'community', 'assist', 'lip-sync', 'workflows', 'agents', 'mcp-cli'],
+    'All': ['image', 'video', 'cinema', 'character', 'ai-vfx', 'influencer', 'storyboard', 'effects', 'vfx', 'edit', 'upscale', 'audio', 'avatar', 'training', 'videotools', 'render', 'video-agent', 'director', 'timeline', 'motion', 'tiktok', 'dubbing', 'chat', 'commercial', 'templates', 'explore', 'library', 'community', 'assist', 'lip-sync', 'workflows', 'agents', 'mcp-cli', 'academy'],
     'Create': ['image', 'video', 'cinema', 'character', 'influencer', 'commercial'],
     'Enhance': ['effects', 'vfx', 'ai-vfx', 'motion', 'upscale', 'edit'],
     'Produce': ['storyboard', 'director', 'timeline', 'render', 'videotools', 'audio'],
     'Localize': ['dubbing', 'lip-sync', 'avatar', 'tiktok'],
     'Automate': ['video-agent', 'agents', 'workflows', 'assist', 'chat', 'mcp-cli'],
-    'Scale': ['templates', 'explore', 'library', 'community', 'training']
+    'Scale': ['templates', 'explore', 'library', 'community', 'training', 'academy']
   };
 
   section.innerHTML = `
@@ -25,7 +25,7 @@ export function AppsGridSection({ apps }) {
       <!-- Section Header -->
       <div class="text-center mb-12">
         <h2 id="apps-heading" class="text-3xl md:text-4xl lg:text-5xl font-black text-white mb-4">
-          One Platform. <span class="text-cyan-400 italic">33 AI Creative Apps.</span> 60+ Ways To Create, Edit, Sell & Deliver AI Content.
+          One Platform. <span class="text-cyan-400 italic">${apps.length} AI Creative Apps.</span> 60+ Ways To Create, Edit, Sell & Deliver AI Content.
         </h2>
         <p class="text-lg text-gray-300 max-w-3xl mx-auto">
           Most AI tools give you one feature. AI Video Agency Studio gives you a full creative production ecosystem. You can generate images, create videos, direct cinematic scenes, build characters, add VFX, edit assets, upscale outputs, create avatars, dub videos, sync lips, build workflows, use AI agents, organize assets, explore templates, and deliver client-ready creative packages from one powerful dashboard.
@@ -142,7 +142,7 @@ export function AppsGridSection({ apps }) {
       <!-- CTA Button -->
       <div class="text-center">
         <a href="/apps" class="inline-block px-8 py-4 bg-gradient-to-r from-cyan-400 to-cyan-300 text-[#020205] font-bold text-lg rounded-lg hover:from-cyan-300 hover:to-cyan-200 transition-all duration-300 shadow-2xl shadow-cyan-400/30 hover:shadow-cyan-300/50 transform hover:scale-105">
-          Explore All 33 AI Creative Apps →
+          Explore All ${apps.length} AI Creative Apps →
         </a>
       </div>
     </div>

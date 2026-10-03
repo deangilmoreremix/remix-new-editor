@@ -163,8 +163,8 @@ export function SixEnginesSection() {
       <div class="stats-reveal opacity-0 translate-y-8 bg-gradient-to-r from-cyan-400/10 via-purple-400/10 to-emerald-400/10 border border-cyan-400/30 rounded-2xl p-8">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           <div class="stat-item group">
-            <div class="text-3xl md:text-4xl font-black text-cyan-400 mb-2 relative">
-              <span class="counter-number" data-target="33">0</span>
+              <div class="text-3xl md:text-4xl font-black text-cyan-400 mb-2 relative">
+                <span class="counter-number" data-target="34">0</span>
               <div class="absolute -inset-2 bg-cyan-400/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </div>
             <div class="text-gray-400 text-sm">AI Creative Apps</div>

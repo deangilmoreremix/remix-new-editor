@@ -5,7 +5,7 @@ export function FeaturesSection({ categories }) {
   section.className = 'py-20 px-4 bg-[#020205]';
   section.setAttribute('aria-labelledby', 'features-heading');
 
-  const defaultCategories = categories || {
+  const defaultCategories = {
     creation: {
       title: 'Creation',
       features: ['Text to Image', 'Image to Image', 'Text to Video', 'Image to Video', 'Style Transfer', 'Inpainting', 'Outpainting', 'Upscaling']
@@ -32,6 +32,10 @@ export function FeaturesSection({ categories }) {
     }
   };
 
+  const resolvedCategories = categories && Object.keys(categories).length
+    ? categories
+    : defaultCategories;
+
   const categoryColors = {
     creation: { bg: 'from-cyan-500/10 to-cyan-400/5 border-cyan-400/30', icon: 'from-cyan-500 to-cyan-400' },
     cinema: { bg: 'from-emerald-500/10 to-emerald-400/5 border-emerald-400/30', icon: 'from-emerald-500 to-emerald-400' },
@@ -55,7 +59,7 @@ export function FeaturesSection({ categories }) {
 
       <!-- Features Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8" id="features-grid">
-        ${(categories && Object.entries(categories).length > 0) ? Object.entries(categories).map(([key, category], index) => `
+        ${Object.entries(resolvedCategories).map(([key, category], index) => `
           <div class="feature-category opacity-0 translate-y-4 transition-all duration-500 ease-out-quart" style="transition-delay: ${index * 100}ms;" data-index="${index}">
             <div class="bg-gradient-to-br ${categoryColors[key].bg} border rounded-2xl p-6 hover:scale-105 transition-transform duration-300">
               <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-3">
@@ -76,7 +80,7 @@ export function FeaturesSection({ categories }) {
               </ul>
             </div>
           </div>
-        `).join('') : ''}
+        `).join('')}
       </div>
 
       <!-- CTA Button -->

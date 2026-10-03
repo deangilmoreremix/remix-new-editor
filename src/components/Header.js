@@ -131,6 +131,8 @@ export function Header(navigate) {
       link.onclick = () => navigate('cinema');
     } else if (item === 'Cinema Template Studio') {
       link.onclick = () => navigate('cinema-template');
+    } else if (item === 'Website Builder') {
+      link.onclick = () => navigate('website-builder');
     } else if (item === 'AI Influencer') {
       link.onclick = () => navigate('influencer');
     } else if (item === 'Smart Video Viral') {

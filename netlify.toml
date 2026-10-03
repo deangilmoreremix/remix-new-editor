@@ -84,6 +84,16 @@ to = "/index.html"
 status = 200
 force = false
 
+# SPA fallback for the embedded Website Builder.
+# Without this, /openthorn/* client-side routes would fall through to
+# the parent SPA shell. `force = false` keeps real files like
+# /openthorn/index.html and assets on direct file serving.
+[[redirects]]
+  from = "/openthorn/*"
+  to = "/openthorn/index.html"
+  status = 200
+  force = false
+
 # SPA fallback: any path that doesn't match a real file or one of the
 # explicit redirects above is served by the SPA shell (`/index.html`).
 # This is the standard pattern for client-side hash-routed SPAs and

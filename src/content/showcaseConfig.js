@@ -36,7 +36,8 @@ const SHOWCASE_CONFIG = {
     lipSync: '/thumbnails/heroes/lipsync.webp.png',
     workflows: '/thumbnails/videoagent/commentary.png',
     agents: '/thumbnails/videoagent/audio-tts.webp.png',
-    mcpCli: '/thumbnails/videoagent/tab-edit.png'
+    mcpCli: '/thumbnails/videoagent/tab-edit.png',
+    academy: '/thumbnails/studios/academy.webp'
   },
 
   toolThumbnails: {
@@ -130,7 +131,8 @@ const SHOWCASE_CONFIG = {
       'lip-sync': 'lipSync',
       'video-agent': 'videoAgent',
       'workflows': 'workflows',
-      'mcp-cli': 'mcpCli'
+      'mcp-cli': 'mcpCli',
+      'academy': 'academy'
     };
     const key = aliases[id] || id;
     return this.studioThumbnails[key] || '/thumbnails/studios/video.webp';

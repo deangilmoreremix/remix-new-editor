@@ -52,6 +52,7 @@ export const defaultNavigationItems: MenuItem[] = [
   { label: 'Vibe Motion', route: 'effects-page' },
   { label: 'Cinema Studio', route: 'cinema-page' },
   { label: 'AI Influencer', route: 'influencer-page' },
+  { label: 'Website Builder', route: 'website-builder' },
   { label: 'Apps', route: 'apps' },
   { label: 'Templates', route: 'templates' },
   { label: 'Assist', route: 'assist' },

@@ -1,4 +1,4 @@
-// Scrolling App Strip - 33 apps + 60+ features
+// Scrolling App Strip - 34 apps + 60+ features
 // Re-adds the original larger two-row app-strip plus a third row
 // of smaller feature chips sourced from landing page feature data.
 
@@ -129,7 +129,11 @@ const APPS = [
   { name: 'Community', icon: '👥', color: 'purple' },
   { name: 'Assist', icon: '🧠', color: 'emerald' },
   { name: 'Lip Sync', icon: '🎭', color: 'pink' },
+  { name: 'Video Agent', icon: '🤖', color: 'cyan' },
   { name: 'Agents', icon: '🤖', color: 'yellow' },
+  { name: 'Workflows', icon: '⚙️', color: 'emerald' },
+  { name: 'MCP & CLI', icon: '💻', color: 'pink' },
+  { name: 'Academy', icon: '🎓', color: 'purple' },
 ];
 
 const DOT_COLORS = {
@@ -151,13 +155,16 @@ export function ScrollingAppStrip() {
   section.setAttribute('aria-label', '34 AI Creative Apps + 60+ features');
   section.setAttribute('data-testid', 'scrolling-app-strip');
 
-  const appStrip = [...APPS, ...APPS, ...APPS];
-  const featureStrip = [...ALL_FEATURES, ...ALL_FEATURES, ...ALL_FEATURES];
+  const appStrip = APPS;
+  const appStripClone = APPS;
+  const featureStrip = ALL_FEATURES;
+  const featureStripClone = ALL_FEATURES;
 
-  const appChip = (app) => `
+  const appChip = (app, ariaHidden) => `
     <div
       class="app-chip flex items-center gap-3 px-4 py-2 bg-white/[0.07] border border-white/15 rounded-full whitespace-nowrap cursor-pointer transition-all duration-300 group shadow-lg shadow-black/20"
       data-app="${app.name}"
+      ${ariaHidden ? 'aria-hidden="true"' : ''}
     >
       <span class="w-2 h-2 rounded-full shadow-lg" style="background-color: ${DOT_COLORS[app.color] || app.color}"></span>
       <span class="text-sm font-semibold text-white">${app.name}</span>
@@ -165,12 +172,12 @@ export function ScrollingAppStrip() {
     </div>
   `;
 
-  const featureChip = (feature, index) => {
+  const featureChip = (feature, index, ariaHidden) => {
     const colorIndex = index % 6;
     const colors = ['cyan', 'purple', 'emerald', 'pink', 'yellow', 'indigo'];
     const color = colors[colorIndex];
     return `
-      <div class="feature-chip flex items-center gap-3 px-4 py-2 bg-white/[0.07] border border-white/15 rounded-full whitespace-nowrap cursor-pointer transition-all duration-300 group shadow-lg shadow-black/20">
+      <div class="feature-chip flex items-center gap-3 px-4 py-2 bg-white/[0.07] border border-white/15 rounded-full whitespace-nowrap cursor-pointer transition-all duration-300 group shadow-lg shadow-black/20" ${ariaHidden ? 'aria-hidden="true"' : ''}>
         <span class="w-2 h-2 rounded-full shadow-lg" style="background-color: ${DOT_COLORS[color] || color}"></span>
         <span class="text-sm font-semibold text-white">${feature.name}</span>
         <span class="text-sm opacity-70 group-hover:opacity-100 transition-opacity duration-200">⚡</span>
@@ -201,26 +208,29 @@ export function ScrollingAppStrip() {
       <div class="absolute left-0 top-0 bottom-0 w-40 bg-gradient-to-r from-[#020205] via-[#020205]/80 to-transparent z-20 pointer-events-none"></div>
       <div class="absolute right-0 top-0 bottom-0 w-40 bg-gradient-to-l from-[#020205] via-[#020205]/80 to-transparent z-20 pointer-events-none"></div>
 
-      <!-- Row 1: 33 app chips (forward) -->
+      <!-- Row 1: 34 app chips (forward, original + clone) -->
       <div class="app-strip-wrapper overflow-hidden py-3">
         <div class="app-strip flex gap-4 animate-scroll will-change-transform">
-          ${appStrip.map(appChip).join('')}
+          ${appStrip.map(app => appChip(app, false)).join('')}
+          ${appStripClone.map(app => appChip(app, true)).join('')}
         </div>
       </div>
 
-      <!-- Row 2: 33 app chips (reverse) -->
+      <!-- Row 2: 34 app chips (reverse, original reversed + clone reversed) -->
       <div class="app-strip-wrapper-reverse overflow-hidden py-3 mt-1">
         <div class="app-strip-reverse flex gap-4 animate-scroll-reverse will-change-transform">
-          ${appStrip.slice().reverse().map(appChip).join('')}
+          ${appStrip.slice().reverse().map(app => appChip(app, false)).join('')}
+          ${appStrip.slice().reverse().map(app => appChip(app, true)).join('')}
         </div>
       </div>
 
-      <!-- Row 3: 60+ features (forward, smaller pills) -->
+      <!-- Row 3: 60+ features (forward, original + clone) -->
       <div class="feature-strip-wrapper overflow-hidden py-3 mt-1 relative">
         <div class="absolute left-0 top-0 bottom-0 w-40 bg-gradient-to-r from-[#020205] via-[#020205]/80 to-transparent z-20 pointer-events-none"></div>
         <div class="absolute right-0 top-0 bottom-0 w-40 bg-gradient-to-l from-[#020205] via-[#020205]/80 to-transparent z-20 pointer-events-none"></div>
         <div class="feature-strip flex gap-4 animate-scroll-slow will-change-transform">
-          ${featureStrip.map((feature, i) => featureChip(feature, i)).join('')}
+          ${featureStrip.map((feature, i) => featureChip(feature, i, false)).join('')}
+          ${featureStripClone.map((feature, i) => featureChip(feature, i, true)).join('')}
         </div>
       </div>
     </div>
@@ -228,15 +238,15 @@ export function ScrollingAppStrip() {
     <style>
       @keyframes scroll {
         0% { transform: translateX(0); }
-        100% { transform: translateX(calc(-100% / 3)); }
+        100% { transform: translateX(-50%); }
       }
       @keyframes scroll-reverse {
-        0% { transform: translateX(calc(-100% / 3)); }
+        0% { transform: translateX(-50%); }
         100% { transform: translateX(0); }
       }
       @keyframes scroll-slow {
         0% { transform: translateX(0); }
-        100% { transform: translateX(calc(-100% / 3)); }
+        100% { transform: translateX(-50%); }
       }
       .animate-scroll {
         animation: scroll 60s linear infinite;
