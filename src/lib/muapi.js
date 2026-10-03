@@ -1896,9 +1896,13 @@ export class MuapiClient {
         const endpoint = modelInfo?.endpoint || params.model;
         analytics.trackGeneration(params.model, 'lipsync', { endpoint });
 
-        const requestId = crypto.randomUUID();
+        if (signal?.aborted) {
+            throw new Error('Request cancelled by user');
+        }
+
+        const controllerRequestId = crypto.randomUUID();
         const controller = new AbortController();
-        this.activeControllers.set(requestId, controller);
+        this.activeControllers.set(controllerRequestId, controller);
         if (signal) {
             signal.addEventListener('abort', () => controller.abort(), { once: true });
         }
@@ -1946,15 +1950,15 @@ export class MuapiClient {
             const submitData = await response.json();
             console.log('[Muapi] LipSync Submit Response:', submitData);
 
-            const requestId = submitData.request_id || submitData.id;
-            if (!requestId) {
-                this.activeControllers.delete(requestId);
+            const apiRequestId = submitData.request_id || submitData.id;
+            if (!apiRequestId) {
+                this.activeControllers.delete(controllerRequestId);
                 return submitData;
             }
 
-            if (params.onRequestId) params.onRequestId(requestId);
+            if (params.onRequestId) params.onRequestId(apiRequestId);
 
-            const result = await this.pollForResult(requestId, 900, 2000, controller.signal);
+            const result = await this.pollForResult(apiRequestId, 900, 2000, controller.signal);
             const videoUrl = result.outputs?.[0] || result.url || result.output?.url;
             console.log('[Muapi] LipSync Result URL:', videoUrl);
             analytics.trackGenerationComplete(params.model, 'lipsync', true);
@@ -1967,7 +1971,7 @@ export class MuapiClient {
             analytics.trackGenerationError(params.model, 'lipsync', error);
             throw error;
         } finally {
-            this.activeControllers.delete(requestId);
+            this.activeControllers.delete(controllerRequestId);
         }
     }
 

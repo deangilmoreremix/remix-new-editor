@@ -729,7 +729,8 @@ export function composeNegativePrompt(filmType, niche, visualStyle) {
     [NICHE_TYPES.AGENCY]: 'amateur pitch, messy workflow, off-brand'
   };
   const nicheNegative = nicheNegatives[niche] || '';
-  return `${base}, ${styleNegatives[visualStyle] || base}${nicheNegative ? ', ' + nicheNegative : ''}`.trim();
+  const styleNegative = styleNegatives[visualStyle] || '';
+  return `${base}${styleNegative ? ', ' + styleNegative : ''}${nicheNegative ? ', ' + nicheNegative : ''}`.trim();
 }
 
 /**

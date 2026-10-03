@@ -3343,7 +3343,7 @@ export class TemplateThumbnailModal extends BaseModal {
         await new Promise((resolve, reject) => {
           this.thumbnailService.refineLastImageStream(refineOpts, {
             onPartial: (b64) => {
-              this.partialPreview = { b64, index: partialIndex++ };
+               this.partialPreview = `data:image/png;base64,${b64}`;
               this._refreshPanel();
             },
             onDone: (result) => {

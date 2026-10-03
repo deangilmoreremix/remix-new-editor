@@ -397,6 +397,8 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
   function renderCreateView() {
     if (!currentTemplate) return;
 
+    retryCount = 0;
+
     const header = document.createElement('div');
     header.className = 'flex items-center justify-between p-4 border-b border-white/10 bg-black/50';
     header.innerHTML = `
@@ -2612,7 +2614,9 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
 
     try {
       sessionStorage.setItem('cinematic_last_generation_params', JSON.stringify(params));
-    } catch { /* ignore */ }
+    } catch (error) {
+      console.warn('[CinemaTemplateStudio] Failed to store generation params in sessionStorage:', error);
+    }
 
     runGeneration(params);
   }
@@ -2647,7 +2651,9 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         generationResult = result.url;
         try {
           sessionStorage.setItem('cinematic_generation_result', result.url);
-        } catch { /* ignore */ }
+        } catch (error) {
+          console.warn('[CinemaTemplateStudio] Failed to store generation result in sessionStorage:', error);
+        }
         saveToHistory(result.url, params.prompt, params.model, currentTemplate.id);
         retryCount = 0;
         view = 'preview';
@@ -2658,7 +2664,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     } catch (err) {
       console.error('[CinemaTemplateStudio]', err);
       const message = err.message || 'Generation failed';
-      const userMessage = message.length > 80 ? 'Generation failed. Please try again.' : message;
+      const userMessage = message.length > 80 ? `${message.slice(0, 80)}…` : message;
 
       const errEl = document.createElement('div');
       errEl.className = 'mt-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200';

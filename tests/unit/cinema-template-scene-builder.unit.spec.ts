@@ -6,6 +6,91 @@ const root = process.cwd();
 const cinemaStudioPath = path.join(root, 'src/components/CinemaTemplateStudio.js');
 const cinematicTemplatesPath = path.join(root, 'src/lib/cinematicTemplates.js');
 
+// ──────────────────────────────────────────────────────────────
+// PromptAssemblyEngine.buildScenes guard tests
+// ──────────────────────────────────────────────────────────────
+import { PromptAssemblyEngine } from '../../src/lib/cinematicTemplates.js';
+
+describe('PromptAssemblyEngine.buildScenes guards', () => {
+  const emptyTemplate = { id: 'empty', name: 'Empty', sceneStructure: null };
+
+  it('returns [] when template has no sceneStructure', () => {
+    const engine = new PromptAssemblyEngine(emptyTemplate, {});
+    expect(engine.buildScenes()).toEqual([]);
+  });
+
+  it('returns [] when sceneStructure.acts is not an array', () => {
+    const engine = new PromptAssemblyEngine(
+      { id: 'bad-acts', name: 'Bad', sceneStructure: { acts: 'not-array' } },
+      {}
+    );
+    expect(engine.buildScenes()).toEqual([]);
+  });
+
+  it('returns [] when sceneStructure.acts is an empty array', () => {
+    const engine = new PromptAssemblyEngine(
+      { id: 'no-acts', name: 'None', sceneStructure: { acts: [] } },
+      {}
+    );
+    expect(engine.buildScenes()).toEqual([]);
+  });
+
+  it('returns scenes when acts have beats', () => {
+    const engine = new PromptAssemblyEngine(
+      {
+        id: 'with-acts',
+        name: 'With Acts',
+        sceneStructure: {
+          acts: [
+            { act: 1, name: 'Act 1', duration: 5000, beats: ['hook', 'reveal'] },
+          ],
+        },
+      },
+      { duration: 60 }
+    );
+    const scenes = engine.buildScenes();
+    expect(scenes.length).toBe(2);
+    expect(scenes[0].beat).toBe('hook');
+    expect(scenes[1].beat).toBe('reveal');
+  });
+
+  it('skips acts with no beats and still returns scenes from other acts', () => {
+    const engine = new PromptAssemblyEngine(
+      {
+        id: 'mixed-acts',
+        name: 'Mixed',
+        sceneStructure: {
+          acts: [
+            { act: 1, name: 'Act 1', duration: 5000, beats: [] },
+            { act: 2, name: 'Act 2', duration: 5000, beats: ['payoff'] },
+          ],
+        },
+      },
+      { duration: 60 }
+    );
+    const scenes = engine.buildScenes();
+    expect(scenes.length).toBe(1);
+    expect(scenes[0].beat).toBe('payoff');
+  });
+
+  it('does not throw when act.beats is undefined (treats as empty)', () => {
+    const engine = new PromptAssemblyEngine(
+      {
+        id: 'no-beats',
+        name: 'No Beats',
+        sceneStructure: {
+          acts: [
+            { act: 1, name: 'Act 1', duration: 5000 },
+          ],
+        },
+      },
+      { duration: 60 }
+    );
+    expect(() => engine.buildScenes()).not.toThrow();
+    expect(engine.buildScenes()).toEqual([]);
+  });
+});
+
 describe('CinemaTemplateStudio scene-builder wiring', () => {
   const cinemaSrc = fs.readFileSync(cinemaStudioPath, 'utf8');
   const templatesSrc = fs.readFileSync(cinematicTemplatesPath, 'utf8');

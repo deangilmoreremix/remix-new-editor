@@ -1344,7 +1344,7 @@ export function TemplateStudio(templateId) {
     const parts = [];
 
     // User prompt first as the core idea
-    if (userPrompt) parts.push(userPrompt);
+    if (typeof userPrompt === 'string' && userPrompt) parts.push(userPrompt);
 
     // Subject
     const subject = formState['subject'];

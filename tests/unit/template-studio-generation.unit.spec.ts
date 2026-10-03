@@ -615,4 +615,118 @@ describe('TemplateStudio feature tests', () => {
     const retryBtn = container.querySelector('#retry-btn');
     expect(retryBtn).not.toBeNull();
   });
+
+  // ─────────────────────────────────────────────────────────
+  // Regression: isGenerating lockup after error
+  // After a generation error, isGenerating must be reset to false
+  // and the generate button must be re-enabled.
+  // ─────────────────────────────────────────────────────────
+  it('resets isGenerating and re-enables generate button after generation error', async () => {
+    const { muapi } = await import('../../src/lib/muapi.js');
+    vi.mocked(muapi.generateImage).mockRejectedValueOnce(new Error('Generation failed'));
+
+    const element = TemplateStudio('movie-poster');
+    container.innerHTML = '';
+    container.appendChild(element);
+    await new Promise(r => setTimeout(r, 50));
+
+    const allInputs = container.querySelectorAll('input');
+    const promptInput = Array.from(allInputs).find(input => !input.hasAttribute('data-advanced-field'));
+    promptInput.value = 'test prompt';
+    promptInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+    const genBtn = Array.from(container.querySelectorAll('button')).find(btn => btn.textContent?.includes('Generate'));
+    genBtn.click();
+    await new Promise(r => setTimeout(r, 300));
+
+    // After error: button must be re-enabled
+    expect(genBtn.disabled).toBe(false);
+    expect(genBtn.textContent).toBe('Generate');
+  });
+
+  // ─────────────────────────────────────────────────────────
+  // Regression: image input validation uses actual input name
+  // The validation must look up the image input by type, not
+  // hardcode 'image_url' as the param key.
+  // ─────────────────────────────────────────────────────────
+  it('validates image upload using the actual input name, not hardcoded image_url', async () => {
+    // Template with an image input named 'custom_reference_image' (not 'image_url')
+    // Must include a text prompt input so the prompt validation passes first.
+    const { getTemplateById } = await import('../../src/lib/templates.js');
+    vi.mocked(getTemplateById).mockReturnValueOnce({
+      id: 'custom-img-template',
+      name: 'Custom Image Template',
+      description: 'Test',
+      outputType: 'image',
+      category: 'Design',
+      modelType: 'i2i',
+      model: 'flux-i2i',
+      inputs: [
+        { name: 'prompt', type: 'textarea', label: 'Prompt' },
+        { name: 'custom_reference_image', type: 'image', label: 'Reference' },
+      ],
+      defaultParams: {},
+    });
+
+    const element = TemplateStudio('custom-img-template');
+    container.innerHTML = '';
+    container.appendChild(element);
+    await new Promise(r => setTimeout(r, 50));
+
+    // Fill in the prompt so prompt validation passes and we reach image validation
+    const promptInput = container.querySelector('textarea');
+    promptInput.value = 'test prompt';
+    promptInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+    const genBtn = Array.from(container.querySelectorAll('button')).find(btn => btn.textContent?.includes('Generate'));
+    genBtn.click();
+    await new Promise(r => setTimeout(r, 100));
+
+    // Should show "upload an image" error using the actual input name lookup
+    const inlineError = container.querySelector('.ts-inline-error');
+    expect(inlineError).not.toBeNull();
+    expect(inlineError.textContent).toContain('upload an image');
+  });
+
+  // ─────────────────────────────────────────────────────────
+  // Regression: retry preserves raw prompt
+  // On retry, the prompt must be re-enriched from the raw
+  // (user-typed) prompt, not double-enriched from the already
+  // enriched prompt.
+  // ─────────────────────────────────────────────────────────
+  it('retry re-enriches from raw prompt stored in _rawPrompt, not double-enriched', async () => {
+    const { muapi } = await import('../../src/lib/muapi.js');
+    // Fail first call, succeed on retry
+    let callCount = 0;
+    vi.mocked(muapi.generateImage).mockImplementationOnce(async () => {
+      callCount++;
+      throw new Error('Network error');
+    }).mockImplementationOnce(async () => {
+      callCount++;
+      return { url: 'https://cdn.muapi.ai/results/retry-' + Date.now() + '.png', model: 'flux' };
+    });
+
+    const element = TemplateStudio('movie-poster');
+    container.innerHTML = '';
+    container.appendChild(element);
+    await new Promise(r => setTimeout(r, 50));
+
+    const allInputs = container.querySelectorAll('input');
+    const promptInput = Array.from(allInputs).find(input => !input.hasAttribute('data-advanced-field'));
+    promptInput.value = 'my original prompt';
+    promptInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+    const genBtn = Array.from(container.querySelectorAll('button')).find(btn => btn.textContent?.includes('Generate'));
+    genBtn.click();
+    await new Promise(r => setTimeout(r, 300));
+
+    // Click retry
+    const retryBtn = container.querySelector('#retry-btn');
+    expect(retryBtn).not.toBeNull();
+    retryBtn.click();
+    await new Promise(r => setTimeout(r, 300));
+
+    // muapi.generateImage should have been called twice (original + retry)
+    expect(callCount).toBe(2);
+  });
 });

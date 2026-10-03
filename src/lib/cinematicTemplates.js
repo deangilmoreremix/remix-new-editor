@@ -994,7 +994,7 @@ export const CINEMATIC_TEMPLATES = [
     shotBuilder: true,
     storyboardBuilder: true,
     includeCTA: true,
-    ctaOptions: ['book_now', 'visit_us', 'menu'],
+    ctaOptions: ['book_now', 'visit_us', 'call_now'],
     includeBrandContext: true
   },
   {
@@ -2424,7 +2424,8 @@ export class PromptAssemblyEngine {
     const totalDuration = this.inputs?.duration || this.template?.duration?.default || 60;
 
     structure.acts.forEach((act) => {
-      const actDuration = (parseInt(act.duration || '0') / 100) * totalDuration;
+      const rawDuration = parseInt(act.duration);
+      const actDuration = (Number.isNaN(rawDuration) ? 0 : rawDuration / 100) * totalDuration;
       const beats = Array.isArray(act.beats) ? act.beats : [];
       beats.forEach((beat) => {
         scenes.push({

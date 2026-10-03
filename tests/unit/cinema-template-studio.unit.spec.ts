@@ -1,4 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import fs from 'node:fs';
+import path from 'node:path';
+
+const cinemaStudioPath = path.join(process.cwd(), 'src/components/CinemaTemplateStudio.js');
 
 // Mock muapi before importing CinemaTemplateStudio
 vi.mock('../../src/lib/muapi.js', () => {
@@ -199,30 +203,41 @@ vi.mock('../../src/lib/cinematicTemplates.js', () => ({
         icon: '🎬',
       },
     ]),
-    get: vi.fn((id) => ({
-      id,
-      name: 'Cinema Test Template',
-      description: 'A test cinema template',
-      outputType: 'video',
-      category: 'Commercial',
-      modelType: 't2v',
-      model: 'kling-v2.6-pro-t2v',
-      icon: '🎬',
-    })),
+    get: vi.fn((id) =>
+      id
+        ? {
+            id,
+            name: 'Cinema Test Template',
+            description: 'A test cinema template',
+            outputType: 'video',
+            category: 'Commercial',
+            modelType: 't2v',
+            model: 'kling-v2.6-pro-t2v',
+            icon: '🎬',
+          }
+        : null,
+    ),
   })),
-  SHOT_TYPES: ['WIDE', 'MEDIUM', 'CLOSEUP'],
-  CAMERA_MOVEMENTS: ['STATIC', 'PUSH_IN', 'PAN'],
+  SHOT_TYPES: [{ id: 'WIDE', name: 'Wide' }, { id: 'MEDIUM', name: 'Medium' }, { id: 'CLOSEUP', name: 'Closeup' }],
+  CAMERA_MOVEMENTS: [{ id: 'STATIC', name: 'Static' }, { id: 'PUSH_IN', name: 'Push In' }, { id: 'PAN', name: 'Pan' }],
   BRAND_VOICES: ['professional', 'casual'],
   TARGET_AUDIENCES: ['general', 'enterprise'],
-  TemplateInputBuilder: vi.fn(),
+  TemplateInputBuilder: function() {
+    this.getDefaults = function() {
+      return {};
+    };
+  },
   PromptAssemblyEngine: vi.fn(),
-  SceneBuilder: vi.fn(() => ({
-    addScene: vi.fn(),
-    removeScene: vi.fn(),
-    moveScene: vi.fn(),
-    getScenes: vi.fn(() => []),
-    clear: vi.fn(),
-  })),
+  SceneBuilder: vi.fn(function SceneBuilder() {
+    this.scenes = [];
+    this.addScene = vi.fn();
+    this.removeScene = vi.fn();
+    this.moveScene = vi.fn();
+    this.getScenes = vi.fn(function() {
+      return [];
+    });
+    this.clear = vi.fn();
+  }),
   RenderHandoff: vi.fn(),
   TemplateStorage: {
     isFavorite: vi.fn(() => false),
@@ -603,5 +618,49 @@ describe('CinemaTemplateStudio feature tests', () => {
     // The filter header should have a clear button
     const filterHeader = container.querySelector('.mb-4');
     expect(filterHeader).not.toBeNull();
+  });
+
+  // ─────────────────────────────────────────────────────────
+  // Regression: model fallback map in generation flow
+  // Verifies the fallback map defined in CinemaTemplateStudio.js
+  // ensures invalid models fall back to type-compatible defaults.
+  // ─────────────────────────────────────────────────────────
+
+  it('contains fallback map with flux-dev for t2i and i2i model types', () => {
+    const cinemaSrc = fs.readFileSync(cinemaStudioPath, 'utf8');
+    const fallbackMapMatch = cinemaSrc.match(/fallbackMap\s*=\s*\{[^}]+\}/);
+    expect(fallbackMapMatch).not.toBeNull();
+    if (fallbackMapMatch) {
+      expect(fallbackMapMatch[0]).toContain("t2i: 'flux-dev'");
+      expect(fallbackMapMatch[0]).toContain("i2i: 'flux-dev'");
+    }
+  });
+
+  it('contains fallback map with kling-v2.6-pro-i2v for i2v model type', () => {
+    const cinemaSrc = fs.readFileSync(cinemaStudioPath, 'utf8');
+    const fallbackMapMatch = cinemaSrc.match(/fallbackMap\s*=\s*\{[^}]+\}/);
+    expect(fallbackMapMatch).not.toBeNull();
+    if (fallbackMapMatch) {
+      expect(fallbackMapMatch[0]).toContain("i2v: 'kling-v2.6-pro-i2v'");
+    }
+  });
+
+  it('model validation in generateFn uses candidates from modelType', () => {
+    const cinemaSrc = fs.readFileSync(cinemaStudioPath, 'utf8');
+    const modelTypeChecks = [
+      "currentTemplate.modelType === 'i2i' ? i2iModels",
+      "currentTemplate.modelType === 't2i' ? t2iModels",
+      "currentTemplate.modelType === 't2v' ? t2vModels",
+      ": i2vModels",
+    ];
+    modelTypeChecks.forEach(check => {
+      expect(cinemaSrc).toContain(check);
+    });
+  });
+
+  it('fallback uses candidates[0] or fallbackMap when selectedModel is invalid', () => {
+    const cinemaSrc = fs.readFileSync(cinemaStudioPath, 'utf8');
+    expect(cinemaSrc).toContain('candidates.find(m => m.id === selectedModel)');
+    expect(cinemaSrc).toContain('candidates[0]?.id || fallbackMap');
   });
 });

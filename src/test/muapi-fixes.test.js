@@ -3,12 +3,22 @@
 // and output integrity / placeholder detection.
 
 import { describe, test, expect, vi, beforeEach } from 'vitest';
+import fs from 'node:fs';
+import path from 'node:path';
 import { MuapiClient, muapi } from '../lib/muapi.js';
+
+const root = process.cwd();
 
 vi.mock('../lib/supabase.js', () => ({
   uploadFileToStorage: vi.fn(async (file) => {
     return `https://cdn.muapi.ai/${file.name}`;
   })
+}));
+
+vi.mock('../lib/services/RateLimiter.js', () => ({
+  rateLimiter: {
+    acquire: vi.fn(() => Promise.resolve()),
+  }
 }));
 
 describe('MuapiClient Fixes', () => {
@@ -212,6 +222,180 @@ describe('MuapiClient singleton', () => {
     expect(muapi.getKey).toBeDefined();
     const key = muapi.getKey();
     expect(key === null || typeof key === 'string').toBe(true);
+  });
+});
+
+// ─────────────────────────────────────────────────────────
+// Regression tests for specific bug fixes
+// ─────────────────────────────────────────────────────────
+
+describe('MuapiClient regression tests', () => {
+  let client;
+
+  beforeEach(async () => {
+    client = new MuapiClient();
+    await client.apiKeyManager.setMuapiKey('test-muapi-key');
+  });
+
+  // ─────────────────────────────────────────────────────────
+  // generateI2I uses correct generationType 'i2i'
+  // Previously sent 'i2v' by mistake — must send 'i2i'.
+  // ─────────────────────────────────────────────────────────
+  describe('generateI2I generationType in request body', () => {
+    const muapiSrc = fs.readFileSync(path.join(root, 'src/lib/muapi.js'), 'utf8');
+
+    function getFunctionBody(src, fnName) {
+      const fnMatch = src.match(new RegExp(`async ${fnName}\\([^)]*\\)\\s*\\{`));
+      if (!fnMatch) return null;
+      const startIdx = src.indexOf(fnMatch[0]);
+      let depth = 0;
+      let i = startIdx + fnMatch[0].length - 1;
+      while (i < src.length) {
+        if (src[i] === '{') depth++;
+        else if (src[i] === '}') depth--;
+        if (depth === 0) break;
+        i++;
+      }
+      return src.slice(startIdx, i + 1);
+    }
+
+    test('generateI2I function body contains generationType i2i', () => {
+      const body = getFunctionBody(muapiSrc, 'generateI2I');
+      expect(body).not.toBeNull();
+      expect(body).toContain("generationType: 'i2i'");
+    });
+
+    test('generateI2I function body does not contain generationType i2v', () => {
+      const body = getFunctionBody(muapiSrc, 'generateI2I');
+      expect(body).not.toBeNull();
+      expect(body).not.toContain("generationType: 'i2v'");
+    });
+
+    test('generateI2V (separate function) correctly sends generationType i2v', () => {
+      const body = getFunctionBody(muapiSrc, 'generateI2V');
+      expect(body).not.toBeNull();
+      expect(body).toContain("generationType: 'i2v'");
+    });
+  });
+
+  // Runtime verification: intercept fetch to confirm generateI2I sends correct generationType
+  describe('generateI2I fetch verification', () => {
+    test('fetch is called with generationType i2i for generateI2I', async () => {
+      const mockFetch = vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          status: 200,
+          statusText: 'OK',
+          json: () => Promise.resolve({
+            outputs: ['https://cdn.muapi.ai/outputs/i2i-result.png'],
+          }),
+        })
+      );
+
+      vi.doMock('../lib/services/RateLimiter.js', () => ({
+        rateLimiter: { acquire: vi.fn(() => Promise.resolve()) },
+      }));
+
+      vi.doMock('../lib/analytics.js', () => ({
+        trackGeneration: vi.fn(),
+        trackGenerationComplete: vi.fn(),
+        trackGenerationError: vi.fn(),
+      }));
+
+      vi.doMock('../lib/models.js', () => ({
+        getI2IModelById: () => ({ endpoint: 'flux-dev-image', inputs: {} }),
+      }));
+
+      const { MuapiClient } = await import('../lib/muapi.js');
+      const testClient = new MuapiClient();
+      testClient.apiKeyManager = { hasMuapiKey: () => true, getMuapiKey: () => 'test-key' };
+
+      global.fetch = mockFetch;
+
+      await testClient.generateI2I({ model: 'flux-i2i', prompt: 'test' });
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const callArgs = mockFetch.mock.calls[0];
+      const body = JSON.parse(callArgs[1].body);
+      expect(body.generationType).toBe('i2i');
+    }, 15000);
+  });
+
+  // ─────────────────────────────────────────────────────────
+  // Synchronous URL preservation
+  // When the API returns a synchronous result (no request_id),
+  // the URL from outputs/url/output must be preserved in the
+  // returned object, not lost.
+  // ─────────────────────────────────────────────────────────
+  describe('synchronous URL preservation', () => {
+    test('generateVideo preserves URL on synchronous response (no request_id)', async () => {
+      global.fetch = vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          status: 200,
+          statusText: 'OK',
+          json: () => Promise.resolve({
+            outputs: ['https://cdn.muapi.ai/outputs/sync-video.mp4'],
+          }),
+        })
+      );
+
+      const result = await client.generateVideo({ model: 'kling-v2.6-pro-t2v', prompt: 'test' });
+      expect(result.url).toBe('https://cdn.muapi.ai/outputs/sync-video.mp4');
+    });
+
+    test('generateI2I preserves URL on synchronous response (no request_id)', async () => {
+      global.fetch = vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          status: 200,
+          statusText: 'OK',
+          json: () => Promise.resolve({
+            outputs: ['https://cdn.muapi.ai/outputs/sync-i2i.png'],
+          }),
+        })
+      );
+
+      const result = await client.generateI2I({ model: 'flux-i2i', prompt: 'test' });
+      expect(result.url).toBe('https://cdn.muapi.ai/outputs/sync-i2i.png');
+    });
+
+    test('generateVideoEffect preserves URL on synchronous response (no request_id)', async () => {
+      global.fetch = vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          status: 200,
+          statusText: 'OK',
+          json: () => Promise.resolve({
+            outputs: ['https://cdn.muapi.ai/outputs/sync-effect.mp4'],
+          }),
+        })
+      );
+
+      const result = await client.generateVideoEffect({
+        model: 'ai-video-effects',
+        name: '360 Rotation',
+        prompt: 'test',
+        image_url: 'https://example.com/img.png',
+      });
+      expect(result.url).toBe('https://cdn.muapi.ai/outputs/sync-effect.mp4');
+    });
+
+    test('synchronous response with direct url field preserves it', async () => {
+      global.fetch = vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          status: 200,
+          statusText: 'OK',
+          json: () => Promise.resolve({
+            url: 'https://cdn.muapi.ai/outputs/direct-url.png',
+          }),
+        })
+      );
+
+      const result = await client.generateI2I({ model: 'flux-i2i', prompt: 'test' });
+      expect(result.url).toBe('https://cdn.muapi.ai/outputs/direct-url.png');
+    });
   });
 });
 
