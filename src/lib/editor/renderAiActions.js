@@ -12,13 +12,16 @@ import {
  *   { status, agent, sessionId, conversationId, collectionId, videoId,
  *     videoUrl, scenes, highlights, subtitles, data, error }
  *
- * There is no silent/mock fallback. Failures surface as loud errors or
- * result.error = null with status = 'error'.
+ * Fail-loud contract: every function either returns a real, validated result
+ * or an explicit { status: 'error', error: <string> }. There is no silent/mock
+ * fallback, and no success result may carry an empty or unusable payload where
+ * real media/metadata is expected.
  */
 
 /**
  * generateSubtitles: run the Director `subtitle` agent on the source video.
  * Returns normalized result with videoUrl set to the subtitled stream.
+ * Fails loudly when Director returns no usable media URL.
  */
 export async function generateSubtitles(videoUrl, language = 'auto') {
   if (!videoUrl) {
@@ -32,6 +35,13 @@ export async function generateSubtitles(videoUrl, language = 'auto') {
     const { result } = await runDirectorFinishingOp('subtitle', videoUrl, {
       params: { video_language: language },
     });
+    // Validation gate: success without a real subtitled URL is a lie.
+    if (result.status === 'success' && !result.videoUrl) {
+      return normalizeDirectorResult(
+        { status: 'error', error: 'Director did not return a subtitled video URL' },
+        'subtitle'
+      );
+    }
     return result;
   } catch (error) {
     return normalizeDirectorResult(

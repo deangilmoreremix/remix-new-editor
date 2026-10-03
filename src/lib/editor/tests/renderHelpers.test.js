@@ -7,6 +7,15 @@ import {
   computeContainRect,
   computeTrailerDuration,
   buildFrameFilename,
+  normalizeSourceDescriptor,
+  clampTimeRange,
+  normalizeHighlightSegments,
+  normalizeSubtitleSegments,
+  validateAutoEditPlan,
+  buildDeliveryManifest,
+  buildRenderFilename,
+  SUPPORTED_TRANSITIONS,
+  SUPPORTED_EFFECTS,
 } from '../renderHelpers.js';
 
 // Mock MediaRecorder for format resolution tests.

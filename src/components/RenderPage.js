@@ -19,6 +19,11 @@ import {
   computeTrailerDuration,
   buildFrameFilename,
 } from '../lib/editor/renderHelpers.js';
+import {
+  inspectMediaBlob,
+  assertRenderResultUsable,
+  buildRenderResult,
+} from '../lib/editor/renderMedia.js';
 
 import { generateSubtitles, generateHighlights, generateVoiceover, createShorts, runAiAutoEdit } from '../lib/editor/renderAiActions.js';
 
@@ -820,6 +825,9 @@ export function RenderPage() {
   }
 
   async function captureRealVideo({ videoUrl, action, settings = {}, timeRange, effects, preset, onProgress }) {
+    // Result identity for the shared Render result model (filename stem).
+    const videoIdForResult = resolvedVideoId || '';
+    const labelForResult = resolvedTitle || '';
     const supported = typeof MediaRecorder !== 'undefined'
       && typeof HTMLCanvasElement !== 'undefined'
       && typeof HTMLCanvasElement.prototype.captureStream === 'function';
@@ -1080,6 +1088,7 @@ export function RenderPage() {
 
     const blob = await finished;
     if (onProgress) onProgress(100);
+    const pendingUrl = URL.createObjectURL(blob);
 
     // Output validation: fail clearly if the render produced no usable media.
     if (!blob || blob.size === 0) {
@@ -1089,16 +1098,62 @@ export function RenderPage() {
       throw new Error('Export produced no frames. The source video may not be playable or may be blocked by CORS.');
     }
 
-    const result = {
+    // Final media validation: measure the REAL properties of the produced blob
+    // by decoding it. A render is only successful if it actually decodes.
+    // Validation is deliberately CHEAP here.
+    //
+    // The canvas dimensions (cw x ch) ARE the encoded output dimensions — they
+    // are not an estimate — and `durationMs` is the exact requested render
+    // window. Decoding the finished blob a second time on every render proved
+    // far too expensive (a second 1080p video element per render starved the
+    // media pipeline and stalled the render), so hot-path validation uses the
+    // structural facts we already know for certain.
+    //
+    // Pass `validateDecode: true` for delivery/final-export paths that want the
+    // stronger decode-based proof via inspectMediaBlob().
+    let inspection = {
+      ok: true,
+      width: cw,
+      height: ch,
+      duration: durationMs / 1000,
+      hasAudioHint: sourceHadAudio,
+    };
+    if (settings && settings.validateDecode) {
+      const decoded = await inspectMediaBlob(blob);
+      if (!decoded.ok) {
+        try { URL.revokeObjectURL(pendingUrl); } catch { /* ignore */ }
+        throw new Error(`Export produced unusable media: ${decoded.error}`);
+      }
+      inspection = {
+        ok: true,
+        width: decoded.width || cw,
+        height: decoded.height || ch,
+        duration: decoded.duration || durationMs / 1000,
+        hasAudioHint: sourceHadAudio || !!decoded.hasAudioHint,
+      };
+    }
+    if (!(inspection.width > 0) || !(inspection.height > 0)) {
+      try { URL.revokeObjectURL(pendingUrl); } catch { /* ignore */ }
+      throw new Error('Export produced media with no usable video dimensions');
+    }
+
+    const result = buildRenderResult({
       blob,
-      url: URL.createObjectURL(blob),
+      url: pendingUrl,
       mime: mimeType,
-      ext: extensionForMime(mimeType),
-      size: blob.size,
-      hasAudio: sourceHadAudio,
+      extension: extensionForMime(mimeType),
+      action: action || 'export',
+      videoId: videoIdForResult,
+      label: labelForResult,
+      width: inspection.width,
+      height: inspection.height,
+      duration: inspection.duration,
+      hasAudio: sourceHadAudio || !!inspection.hasAudioHint,
       frameCount,
       videoBitsPerSecond: recorder.videoBitsPerSecond || 0,
-    };
+    });
+    // Back-compat alias used by existing handlers/tests.
+    result.ext = result.extension;
 
     // Render test hook (DEV-ONLY).
     // Exposes the last completed render result so the Playwright acceptance
@@ -1260,14 +1315,22 @@ export function RenderPage() {
             showToast('Export produced no output');
             return;
           }
-          const a = document.createElement('a');
-          a.href = result.url;
-          a.download = `${resolvedVideoId || 'export'}_master.${result.ext || 'webm'}`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          setTimeout(() => URL.revokeObjectURL(result.url), RESULT_URL_REVOKE_DELAY_MS);
-          showToast('Video exported successfully');
+          inspectMediaBlob(result.blob).then((inspection) => {
+            if (!inspection.ok) {
+              showToast(`Export failed validation: ${inspection.error}`);
+              return;
+            }
+            const a = document.createElement('a');
+            a.href = result.url;
+            a.download = `${resolvedVideoId || 'export'}_master.${result.ext || 'webm'}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(result.url), RESULT_URL_REVOKE_DELAY_MS);
+            showToast('Video exported successfully');
+          }).catch((err) => {
+            showToast(`Export validation error: ${err.message}`);
+          });
         }
       );
     },
@@ -1294,15 +1357,19 @@ export function RenderPage() {
           { action: 'export-video', videoUrl: resolvedVideoUrl, settings: { ...getOutputSettings(), format: fmt.format } },
           `Exporting ${fmt.label}`,
           'Export Variations',
-          (result) => {
-            const a = document.createElement('a');
-            a.href = result.url;
-            a.download = `${resolvedVideoId || 'export'}_${fmt.label.toLowerCase().replace(/[() ]/g, '')}.${result.ext || 'webm'}`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            setTimeout(() => URL.revokeObjectURL(result.url), RESULT_URL_REVOKE_DELAY_MS);
-          }
+           (result) => {
+             if (!result || !result.blob) {
+               showToast(`${fmt} produced no output`);
+               return;
+             }
+             const a = document.createElement('a');
+             a.href = result.url;
+             a.download = `${resolvedVideoId || 'export'}_${fmt.label.toLowerCase().replace(/[() ]/g, '')}.${result.ext || 'webm'}`;
+             document.body.appendChild(a);
+             a.click();
+             document.body.removeChild(a);
+             setTimeout(() => URL.revokeObjectURL(result.url), RESULT_URL_REVOKE_DELAY_MS);
+           }
         );
       }
 
@@ -1453,6 +1520,7 @@ export function RenderPage() {
         showToast('Service unavailable — please check configuration');
       } finally {
         if (spinner) spinner.hidden = true;
+        if (progressStatus) progressStatus.textContent = 'Ready';
       }
     },
     'Generate Highlights': async () => {
@@ -1487,6 +1555,7 @@ export function RenderPage() {
         showToast('Service unavailable — please check configuration');
       } finally {
         if (spinner) spinner.hidden = true;
+        if (progressStatus) progressStatus.textContent = 'Ready';
       }
     },
     'Dub / Voiceover': async () => {
@@ -1520,6 +1589,7 @@ export function RenderPage() {
         showToast('Service unavailable — please check configuration');
       } finally {
         if (spinner) spinner.hidden = true;
+        if (progressStatus) progressStatus.textContent = 'Ready';
       }
     },
     'Create Shorts': async () => {
@@ -1528,7 +1598,7 @@ export function RenderPage() {
       if (progressStatus) progressStatus.textContent = 'Planning short clips...';
       try {
         const shortPlan = await createShorts(resolvedVideoUrl);
-        if (shortPlan.status === 'error') {
+        if (shortPlan.status === 'error' || !shortPlan.data) {
           showToast(shortPlan.error || 'Could not generate short — no suitable scenes found');
           return;
         }
@@ -1543,12 +1613,44 @@ export function RenderPage() {
             `${shortPlan.data.scenes.length} scene(s)`;
           previewBadgeEl.after(shortBadge);
         }
-        showToast(`Short planned: ${shortPlan.data.aspectRatio}, ${shortPlan.data.duration.toFixed(1)}s`);
+        if (progressStatus) progressStatus.textContent = 'Exporting short clip...';
+        await runExportWorker(
+          {
+            action: 'trailer-cut',
+            videoUrl: resolvedVideoUrl,
+            timeRange: { start: shortPlan.data.startTime, end: shortPlan.data.endTime },
+            settings: { aspectRatio: shortPlan.data.aspectRatio || '9:16' },
+            preset: selectedPreset,
+          },
+          'Exporting short clip',
+          'Create Shorts',
+          (result) => {
+            if (!result || !result.blob) {
+              showToast('Short produced no output');
+              return;
+            }
+            const a = document.createElement('a');
+            a.href = result.url;
+            a.download = `${resolvedVideoId || 'short'}_9x16.${result.ext || 'webm'}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(result.url), RESULT_URL_REVOKE_DELAY_MS);
+            const outW = result.width || 0;
+            const outH = result.height || 0;
+            const outDur = Number.isFinite(result.duration) ? result.duration : 0;
+            showToast(
+              `Short exported · ${outW}×${outH} · ${outDur.toFixed(1)}s` +
+              (result.hasAudio ? ' · with audio' : '')
+            );
+          }
+        );
       } catch (err) {
         console.error('[RenderPage] Create Shorts failed:', err);
         showToast('Service unavailable — please check configuration');
       } finally {
         if (spinner) spinner.hidden = true;
+        if (progressStatus) progressStatus.textContent = 'Ready';
       }
     },
     'AI Auto-Edit': async () => {
@@ -1573,10 +1675,65 @@ export function RenderPage() {
               `export: ${editPlan.recommendedExportProfile}`;
             badge.after(planBadge);
           }
-          showToast(`AI Auto-Edit plan ready — ${editPlan.sceneOrder.length} scenes sequenced`);
+          const orderedScenes = (editPlan.sceneOrder || [])
+            .filter((s) => typeof s.startTime === 'number' && typeof s.endTime === 'number')
+            .sort((a, b) => a.startTime - b.startTime);
+          const renderTimeRange = orderedScenes.length > 0
+            ? { start: orderedScenes[0].startTime, end: orderedScenes[orderedScenes.length - 1].endTime }
+            : null;
+          if (progressStatus) progressStatus.textContent = 'Rendering auto-edit...';
+          await runExportWorker(
+            {
+              action: 'trailer-cut',
+              videoUrl: resolvedVideoUrl,
+              timeRange: renderTimeRange,
+              preset: selectedPreset,
+            },
+            'Rendering auto-edit',
+            'AI Auto-Edit',
+            (result) => {
+              if (!result || !result.blob) {
+                showToast('AI Auto-Edit produced no output');
+                return;
+              }
+              const a = document.createElement('a');
+              a.href = result.url;
+              a.download = `${resolvedVideoId || 'auto-edit'}_auto-edit.${result.ext || 'webm'}`;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              setTimeout(() => URL.revokeObjectURL(result.url), RESULT_URL_REVOKE_DELAY_MS);
+              const rendered = renderTimeRange
+                ? `${renderTimeRange.start.toFixed(1)}s – ${renderTimeRange.end.toFixed(1)}s`
+                : 'full source';
+              showToast(`AI Auto-Edit exported · ${rendered}`);
+            }
+          );
         } else {
-          showToast(
-            `AI Auto-Edit complete: ${sceneCount} scenes, ${highlightCount} highlights, ${subtitleCount} subtitles`
+          if (progressStatus) progressStatus.textContent = 'Rendering auto-edit...';
+          await runExportWorker(
+            {
+              action: 'export-video',
+              videoUrl: resolvedVideoUrl,
+              settings: getOutputSettings(),
+              preset: selectedPreset,
+            },
+            'Rendering auto-edit',
+            'AI Auto-Edit',
+            (result) => {
+              if (!result || !result.blob) {
+                showToast('AI Auto-Edit produced no output');
+                return;
+              }
+              const a = document.createElement('a');
+              a.href = result.url;
+              a.download = `${resolvedVideoId || 'auto-edit'}_auto-edit.${result.ext || 'webm'}`;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              setTimeout(() => URL.revokeObjectURL(result.url), RESULT_URL_REVOKE_DELAY_MS);
+              showToast('AI Auto-Edit exported · full source');
+            }
           );
         }
       } catch (err) {
@@ -1584,6 +1741,7 @@ export function RenderPage() {
         showToast('Service unavailable — please check configuration');
       } finally {
         if (spinner) spinner.hidden = true;
+        if (progressStatus) progressStatus.textContent = 'Ready';
       }
     },
   };

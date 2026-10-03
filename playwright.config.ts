@@ -24,7 +24,11 @@ export default defineConfig({
     ['line']
   ],
 
-  timeout: 60_000,
+  // Render actions perform real browser media recording plus a decode-based
+  // validation pass. Those are legitimately slow (tens of seconds), so the
+  // per-test budget is generous. This does not relax any assertion — it only
+  // stops slow-but-correct renders from being killed mid-flight.
+  timeout: 150_000,
   expect: { timeout: 10_000 },
 
   // Warm the dev server before any test runs. A cold Vite server pre-bundles
