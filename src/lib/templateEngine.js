@@ -829,7 +829,12 @@ export class CinematicTemplateBuilder {
  * Infer a film type from a story blueprint string
  */
 export function inferFilmTypeFromBlueprint(blueprint) {
-  const b = (blueprint || '').toLowerCase();
+  const raw = Array.isArray(blueprint)
+    ? blueprint.join(' ')
+    : typeof blueprint === 'string'
+      ? blueprint
+      : (blueprint && typeof blueprint === 'object' ? (blueprint.id || '') : '');
+  const b = (raw || '').toLowerCase();
   if (b.includes('cta') || b.includes('offer')) return FILM_TYPES.PROMO_FILM;
   if (b.includes('origin') || b.includes('struggle')) return FILM_TYPES.FOUNDER_STORY_FILM;
   if (b.includes('problem') || b.includes('transformation')) return FILM_TYPES.TESTIMONIAL_FILM;

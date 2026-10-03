@@ -20,6 +20,8 @@ import {
 
 import { TEMPLATE_SPECS } from './templateSpecs.js';
 
+import { t2iModels, t2vModels, i2iModels, i2vModels } from './models.js';
+
 /**
  * Detect template type based on its structure
  * @param {Object} template - The template object
@@ -98,18 +100,26 @@ function generateMatrixInputs(template) {
   }
   
   // Add duration if specified
-  if (template.duration) {
-    const durationOptions = [];
-    for (let i = template.duration.min; i <= template.duration.max; i += 15) {
-      durationOptions.push(`${i}s`);
-    }
-    if (durationOptions.length > 0) {
-      inputs.push({
-        name: 'duration',
-        type: 'select',
-        label: 'Duration',
-        options: durationOptions
-      });
+  if (template.duration && typeof template.duration === 'object') {
+    const coerceNum = (v) => {
+      const n = typeof v === 'string' ? parseFloat(v) : v;
+      return typeof n === 'number' && Number.isFinite(n) ? n : null;
+    };
+    const min = coerceNum(template.duration.min);
+    const max = coerceNum(template.duration.max);
+    if (min !== null && max !== null && max >= min) {
+      const durationOptions = [];
+      for (let i = min; i <= max; i += 15) {
+        durationOptions.push(`${i}s`);
+      }
+      if (durationOptions.length > 0) {
+        inputs.push({
+          name: 'duration',
+          type: 'select',
+          label: 'Duration',
+          options: durationOptions
+        });
+      }
     }
   }
   
@@ -120,13 +130,37 @@ function generateMatrixInputs(template) {
  * Infer model based on template type and output type
  * @param {string} type - The template type
  * @param {string} outputType - The output type (video/image)
+ * @param {string} [explicitModel] - Model already set on the template (validated)
+ * @param {string} [modelType] - Template model type (t2v/i2v/t2i/i2i/v2v)
  * @returns {string} - The model name
  */
-function inferModel(type, outputType) {
+function inferModel(type, outputType, explicitModel, modelType) {
+  if (explicitModel && isKnownModel(explicitModel, modelType)) return explicitModel;
   if (type === 'matrix') {
-    return outputType === 'video' ? 'ai-video-effects' : 'nano-banana';
+    if (outputType === 'video') {
+      return modelType === 'i2v' ? 'kling-v2.6-pro-i2v' : 'kling-v2.6-pro-t2v';
+    }
+    return 'flux-dev';
   }
-  return 'ai-video-effects';
+  if (outputType === 'video') {
+    return modelType === 'i2v' ? 'kling-v2.6-pro-i2v' : 'kling-v2.6-pro-t2v';
+  }
+  return 'flux-dev';
+}
+
+/**
+ * Validate a template-declared model against the model catalog.
+ * Unknown IDs (or IDs for the wrong modality) fall back to inferModel.
+ */
+function isKnownModel(modelId, modelType) {
+  if (!modelId || typeof modelId !== 'string') return false;
+  const lists = { t2i: t2iModels, t2v: t2vModels, i2i: i2iModels, i2v: i2vModels };
+  if (modelType && lists[modelType]) {
+    return lists[modelType].some((m) => m.id === modelId);
+  }
+  return [t2iModels, t2vModels, i2iModels, i2vModels].some((list) =>
+    list.some((m) => m.id === modelId)
+  );
 }
 
 /**
@@ -147,23 +181,39 @@ function inferModelType(outputType) {
 function buildBasePrompt(template, specs) {
   // Use existing base prompt if available
   if (template.basePrompt) return template.basePrompt;
-  
+
   // Build from specs
   const parts = [];
-  
+
   if (specs.enhancerKeywords) {
     parts.push(specs.enhancerKeywords);
   }
-  
+
   if (specs.visualStyle) {
     parts.push(specs.visualStyle);
   }
-  
+
   if (template.promptDirection) {
     parts.push(template.promptDirection);
   }
-  
-  return parts.join(', ');
+
+  // Matrix/niche templates always carry a promptDirection; include the
+  // film-family direction and story beats so the fallback prompt is
+  // non-empty even when the template has no basePrompt and no specs.
+  if (template.filmFamily) {
+    parts.push(`${template.filmFamily} film style`);
+  }
+  if (Array.isArray(template.storyBlueprint) && template.storyBlueprint.length) {
+    parts.push(`Story: ${template.storyBlueprint.join(' → ')}`);
+  }
+  if (template.niche) {
+    parts.push(`${template.niche} atmosphere`);
+  }
+
+  const prompt = parts.filter(Boolean).join(', ');
+  if (prompt) return `{prompt}, ${prompt}`;
+
+  return '{prompt}, cinematic video, professional quality';
 }
 
 /**
@@ -174,8 +224,16 @@ function buildBasePrompt(template, specs) {
 function normalizeDuration(duration) {
   if (!duration) return 5;
   if (typeof duration === 'number') return duration;
+  if (typeof duration === 'string') {
+    const n = parseFloat(duration);
+    return Number.isFinite(n) ? n : 5;
+  }
   if (typeof duration === 'object') {
-    return duration.default || duration.min || 5;
+    const coerce = (v) => {
+      const n = typeof v === 'string' ? parseFloat(v) : v;
+      return typeof n === 'number' && Number.isFinite(n) ? n : null;
+    };
+    return coerce(duration.default) ?? coerce(duration.min) ?? 5;
   }
   return 5;
 }
@@ -219,7 +277,11 @@ export function normalizeTemplate(template) {
     advancedInputs: template.advancedInputs || [],
     
     // Generation config
-    model: template.model || inferModel(type, template.outputType),
+    // Ensure the resolved model is a real catalog ID: if a template carries a
+    // stale/unknown model or modelType, fall back to a valid ID for its output
+    // type so generation can actually run. Templates with no model field (all
+    // CINEMATIC_TEMPLATES / niche templates) resolve via inferModel.
+    model: inferModel(type, template.outputType, template.model, template.modelType),
     modelType: template.modelType || inferModelType(template.outputType),
     basePrompt: template.basePrompt || buildBasePrompt(template, specs),
     aspectRatio: template.aspectRatio || template.aspectRatios?.[0] || '16:9',
@@ -330,7 +392,7 @@ export function adaptCinematicTemplateLegacy(cinematicTemplate) {
     category: mapCategory(cinematicTemplate.category),
     icon: cinematicTemplate.icon,
     outputType: cinematicTemplate.outputType,
-    model: isVideo ? 'motion-controls' : 'nano-banana',
+    model: isVideo ? 'kling-v2.6-pro-i2v' : 'nano-banana',
     modelType: isVideo ? 'i2v' : 't2i',
     aspectRatio: cinematicTemplate.aspectRatios?.[0] || '16:9',
     

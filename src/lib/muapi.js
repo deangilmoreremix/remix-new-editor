@@ -11,6 +11,7 @@ import {
   validateResolution,
   validateQuality,
   EFFECT_PARAM_SCHEMA,
+  EffectParamError,
 } from './effectParamValidator.js';
 
 async function acquireRateLimitToken() {
@@ -64,6 +65,7 @@ class OutputIntegrityError extends Error {
 function extractOutputUrls(result) {
   const urls = [];
   if (Array.isArray(result.outputs)) urls.push(...result.outputs);
+  else if (typeof result.outputs === 'string') urls.push(result.outputs);
   if (Array.isArray(result.images)) urls.push(...result.images);
   if (result.url) urls.push(result.url);
   if (result.output?.url) urls.push(result.output.url);
@@ -155,6 +157,16 @@ export class MuapiClient {
         console.log('[MuapiClient] Cancelled all requests');
     }
 
+    _createRequestController(externalSignal) {
+        const controllerRequestId = crypto.randomUUID();
+        const controller = new AbortController();
+        this.activeControllers.set(controllerRequestId, controller);
+        if (externalSignal) {
+            externalSignal.addEventListener('abort', () => controller.abort(), { once: true });
+        }
+        return { controllerRequestId, signal: controller.signal };
+    }
+
     // Validate API response structure
     validateResponse(data, expectedType) {
         if (!data || typeof data !== 'object') {
@@ -169,6 +181,7 @@ export class MuapiClient {
     async generateImage(params, signal) {
         this._requireMuapiKey();
         await acquireRateLimitToken();
+        const { controllerRequestId, signal: controlledSignal } = this._createRequestController(signal);
         const modelInfo = getModelById(params.model);
         const endpoint = modelInfo?.endpoint || params.model;
         analytics.trackGeneration(params.model, 'image', { endpoint, studioType: params.studioType });
@@ -254,7 +267,7 @@ export class MuapiClient {
                     generationType: 'image',
                     studioType: params.studioType || 'image'
                 }),
-                signal
+                signal: controlledSignal
             });
 
             if (!response.ok) {
@@ -267,10 +280,11 @@ export class MuapiClient {
 
             const requestId = submitData.request_id || submitData.id;
             if (!requestId) {
+                this.activeControllers.delete(controllerRequestId);
                 return submitData;
             }
 
-            const result = await this.pollForResult(requestId, 60, 2000, signal);
+            const result = await this.pollForResult(requestId, 60, 2000, controlledSignal);
 
             // Validate output URL exists
             const imageUrl = result.outputs?.[0] || result.url || result.output?.url;
@@ -286,6 +300,8 @@ export class MuapiClient {
             }
             analytics.trackGenerationError(params.model, 'image', error);
             throw error;
+        } finally {
+            this.activeControllers.delete(controllerRequestId);
         }
     }
 
@@ -378,6 +394,7 @@ export class MuapiClient {
     async generateVideo(params, signal) {
         this._requireMuapiKey();
         await acquireRateLimitToken();
+        const { controllerRequestId, signal: controlledSignal } = this._createRequestController(signal);
         const modelInfo = getVideoModelById(params.model);
         const endpoint = modelInfo?.endpoint || params.model;
         analytics.trackGeneration(params.model, 'video', { endpoint, studioType: params.studioType });
@@ -396,7 +413,7 @@ export class MuapiClient {
         if (params.name) finalPayload.name = params.name;
 
         if (params.negative_prompt) finalPayload.negative_prompt = params.negative_prompt;
-        if (params.seed && params.seed !== -1) finalPayload.seed = params.seed;
+        if (params.seed !== null && params.seed !== undefined && params.seed !== -1) finalPayload.seed = params.seed;
         if (params.guidance_scale !== undefined && params.guidance_scale !== 7.5) finalPayload.guidance_scale = params.guidance_scale;
         if (params.steps !== undefined && params.steps !== 20) finalPayload.steps = params.steps;
         if (params.denoise_strength !== undefined && params.denoise_strength !== 0.7) finalPayload.denoise_strength = params.denoise_strength;
@@ -426,7 +443,7 @@ export class MuapiClient {
                     generationType: 'video',
                     studioType: params.studioType || 'video'
                 }),
-                signal
+                signal: controlledSignal
             });
 
             if (!response.ok) {
@@ -438,9 +455,13 @@ export class MuapiClient {
             this.validateResponse(submitData, 'submit');
 
             const requestId = submitData.request_id || submitData.id;
-            if (!requestId) return submitData;
+            if (!requestId) {
+              const videoUrl = submitData.outputs?.[0] || submitData.url || submitData.output?.url;
+              this.activeControllers.delete(controllerRequestId);
+              return { ...submitData, url: videoUrl };
+            }
 
-            const result = await this.pollForResult(requestId, 120, 2000, signal);
+            const result = await this.pollForResult(requestId, 120, 2000, controlledSignal);
 
             const videoUrl = result.outputs?.[0] || result.url || result.output?.url;
             analytics.trackGenerationComplete(params.model, 'video', true);
@@ -452,12 +473,15 @@ export class MuapiClient {
             }
             analytics.trackGenerationError(params.model, 'video', error);
             throw error;
+        } finally {
+            this.activeControllers.delete(controllerRequestId);
         }
     }
 
     async generateI2I(params, signal) {
         this._requireMuapiKey();
         await acquireRateLimitToken();
+        const { controllerRequestId, signal: controlledSignal } = this._createRequestController(signal);
         const modelInfo = getI2IModelById(params.model);
         const endpoint = modelInfo?.endpoint || params.model;
         analytics.trackGeneration(params.model, 'i2i', { endpoint, studioType: params.studioType });
@@ -565,10 +589,10 @@ export class MuapiClient {
                 body: JSON.stringify({
                     endpoint,
                     params: finalPayload,
-                    generationType: 'i2v',
-                    studioType: params.studioType || 'video'
+                    generationType: 'i2i',
+                    studioType: params.studioType || 'image'
                 }),
-                signal
+                signal: controlledSignal
             });
 
             if (!response.ok) {
@@ -580,9 +604,13 @@ export class MuapiClient {
             this.validateResponse(submitData, 'submit');
 
             const requestId = submitData.request_id || submitData.id;
-            if (!requestId) return submitData;
+            if (!requestId) {
+              const imageUrl = submitData.outputs?.[0] || submitData.url || submitData.output?.url;
+              this.activeControllers.delete(controllerRequestId);
+              return { ...submitData, url: imageUrl };
+            }
 
-            const result = await this.pollForResult(requestId, 60, 2000, signal);
+            const result = await this.pollForResult(requestId, 60, 2000, controlledSignal);
             const imageUrl = result.outputs?.[0] || result.url || result.output?.url;
             analytics.trackGenerationComplete(params.model, 'i2i', true);
             return { ...result, url: imageUrl };
@@ -592,12 +620,15 @@ export class MuapiClient {
             }
             analytics.trackGenerationError(params.model, 'i2i', error);
             throw error;
+        } finally {
+            this.activeControllers.delete(controllerRequestId);
         }
     }
 
     async generateI2V(params, signal) {
         this._requireMuapiKey();
         await acquireRateLimitToken();
+        const { controllerRequestId, signal: controlledSignal } = this._createRequestController(signal);
         const modelInfo = getI2VModelById(params.model);
         const endpoint = modelInfo?.endpoint || params.model;
         analytics.trackGeneration(params.model, 'i2v', { endpoint, studioType: params.studioType });
@@ -634,8 +665,8 @@ export class MuapiClient {
         // conventions since different model endpoints expect different keys.
         if (params.firstFrameUrl || params.first_frame_url) finalPayload.firstFrameUrl = params.firstFrameUrl || params.first_frame_url;
         if (params.lastFrameUrl || params.last_frame_url) finalPayload.lastFrameUrl = params.lastFrameUrl || params.last_frame_url;
-        if (params.startImageUrl) finalPayload.startImageUrl = params.startImageUrl;
-        if (params.endImageUrl) finalPayload.endImageUrl = params.endImageUrl;
+        if (p.startImageUrl) finalPayload.startImageUrl = p.startImageUrl;
+        if (p.endImageUrl) finalPayload.endImageUrl = p.endImageUrl;
         // Effect endpoints (generate_wan_ai_effects) REQUIRE `name`.
         // Forward it from the template's effect selection input or defaultParams.
         if (p.name) finalPayload.name = p.name;
@@ -673,7 +704,7 @@ export class MuapiClient {
                     generationType: 'i2v',
                     studioType: params.studioType || 'video'
                 }),
-                signal
+                signal: controlledSignal
             });
 
             if (!response.ok) {
@@ -685,9 +716,12 @@ export class MuapiClient {
             this.validateResponse(submitData, 'submit');
 
             const requestId = submitData.request_id || submitData.id;
-            if (!requestId) return submitData;
+            if (!requestId) {
+                this.activeControllers.delete(controllerRequestId);
+                return submitData;
+            }
 
-            const result = await this.pollForResult(requestId, 120, 2000, signal);
+            const result = await this.pollForResult(requestId, 120, 2000, controlledSignal);
             const videoUrl = result.outputs?.[0] || result.url || result.output?.url;
             analytics.trackGenerationComplete(params.model, 'i2v', true);
             return { ...result, url: videoUrl };
@@ -698,6 +732,8 @@ export class MuapiClient {
             }
             analytics.trackGenerationError(params.model, 'i2v', error);
             throw error;
+        } finally {
+            this.activeControllers.delete(controllerRequestId);
         }
     }
 
@@ -1372,6 +1408,11 @@ export class MuapiClient {
         }
         const p = validation.sanitized;
 
+        // ─── Validate source media ───────────────────────────────────────
+        if (!p.image_url && !p.video_url) {
+            throw new Error('generateVideoEffect requires at least one source media (`image_url` or `video_url`).');
+        }
+
         // ─── Apply endpoint-specific constraints ─────────────────────────
         // generate_wan_ai_effects only supports 480p/720p
         const resolution = validateResolution(p.resolution, ['480p', '720p']);
@@ -1445,7 +1486,10 @@ export class MuapiClient {
             this.validateResponse(submitData, 'submit');
 
             const requestId = submitData.request_id || submitData.id;
-            if (!requestId) return submitData;
+            if (!requestId) {
+              const videoUrl = submitData.outputs?.[0] || submitData.url || submitData.output?.url || submitData.video?.url;
+              return { ...submitData, url: videoUrl };
+            }
 
             const result = await this.pollForResult(requestId, 120, 2000, signal);
             const videoUrl = result.outputs?.[0] || result.url || result.output?.url || result.video?.url;
@@ -1845,12 +1889,19 @@ export class MuapiClient {
         }
     }
 
-    async processLipSync(params) {
+    async processLipSync(params, signal) {
         this._requireMuapiKey();
         await acquireRateLimitToken();
         const modelInfo = getLipSyncModelById(params.model);
         const endpoint = modelInfo?.endpoint || params.model;
         analytics.trackGeneration(params.model, 'lipsync', { endpoint });
+
+        const requestId = crypto.randomUUID();
+        const controller = new AbortController();
+        this.activeControllers.set(requestId, controller);
+        if (signal) {
+            signal.addEventListener('abort', () => controller.abort(), { once: true });
+        }
 
         const finalPayload = {};
 
@@ -1882,7 +1933,8 @@ export class MuapiClient {
                     params: finalPayload,
                     generationType: 'lipsync',
                     studioType: 'lipsync'
-                })
+                }),
+                signal: controller.signal
             });
 
             if (!response.ok) {
@@ -1895,19 +1947,27 @@ export class MuapiClient {
             console.log('[Muapi] LipSync Submit Response:', submitData);
 
             const requestId = submitData.request_id || submitData.id;
-            if (!requestId) return submitData;
+            if (!requestId) {
+                this.activeControllers.delete(requestId);
+                return submitData;
+            }
 
             if (params.onRequestId) params.onRequestId(requestId);
 
-            const result = await this.pollForResult(requestId, 900, 2000);
+            const result = await this.pollForResult(requestId, 900, 2000, controller.signal);
             const videoUrl = result.outputs?.[0] || result.url || result.output?.url;
             console.log('[Muapi] LipSync Result URL:', videoUrl);
             analytics.trackGenerationComplete(params.model, 'lipsync', true);
             return { ...result, url: videoUrl };
         } catch (error) {
+            if (error.name === 'AbortError') {
+                throw new Error('Request cancelled by user');
+            }
             console.error('Muapi LipSync Error:', error);
             analytics.trackGenerationError(params.model, 'lipsync', error);
             throw error;
+        } finally {
+            this.activeControllers.delete(requestId);
         }
     }
 

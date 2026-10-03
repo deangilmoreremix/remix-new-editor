@@ -205,6 +205,10 @@ try {
     if (typeof activeTimelineModal?.unmount === 'function') {
       activeTimelineModal.unmount();
     }
+    if (window._thumbModal && typeof window._thumbModal.close === 'function') {
+      window._thumbModal.close();
+      window._thumbModal = null;
+    }
   });
 
   // Sync the router with hash changes so deep links and browser back/forward
