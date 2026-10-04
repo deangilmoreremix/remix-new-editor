@@ -501,11 +501,8 @@ export function TimelineEditorPage() {
       <!-- AI Assistant (prototype parity) -->
       <aside class="side-card" id="agentPanel">
         <h3 class="card-title cyan">AI Assistant</h3>
-        <div class="chat-stack">
-          <div class="chat-bubble user">Trim the intro to 3s</div>
-          <div class="chat-bubble ai">Done — trimmed first clip, kept audio in sync.</div>
-          <div class="chat-bubble user">Add a crossfade here</div>
-          <div class="chat-bubble ai">Added 0.5s crossfade between clips 2 & 3.</div>
+        <div class="chat-stack" id="aiChatStack">
+          <div class="chat-bubble ai" style="opacity:0.7;">Select a clip or ask the AI assistant to edit your timeline.</div>
         </div>
         <div class="chat-input">
           <input class="text-input" placeholder="Ask the editor to do anything…" aria-label="Message AI assistant" />
@@ -553,18 +550,6 @@ export function TimelineEditorPage() {
         <div class="card-title">🎨 CineGen Results</div>
         <div id="cinegenResults" style="font-size: 12px; color: var(--text-dim); min-height: 60px;">No CineGen tools used yet</div>
         <button class="mini-btn" id="clearCineGenResults" style="margin-top: 8px; width: 100%;">Clear History</button>
-      </aside>
-      <aside class="side-card" id="animationDemoPanel" hidden data-tooltip="Rendiv animation demonstrations">
-        <div class="card-title">🎭 Rendiv Animation Demo</div>
-        <div id="animationDemoContainer">
-          <div class="animation-demo-controls">
-            <button class="mini-btn" id="runSpringDemo">Spring Animation</button>
-            <button class="mini-btn" id="runNoiseDemo">Noise Animation</button>
-            <button class="mini-btn" id="runInterpolateDemo">Interpolate Demo</button>
-          </div>
-          <div class="animation-demo-canvas"><canvas id="animationCanvas" width="300" height="200"></canvas></div>
-          <div class="animation-demo-info"><div id="demoStatus">Click a button to start animation demo</div></div>
-        </div>
       </aside>
       <aside class="side-card" id="clipSettingsPanel" hidden data-tooltip="Clip editor - Edit selected clip properties">
         <div class="card-title">🎬 Clip Editor</div><div id="clipEditorContainer"></div>
@@ -643,100 +628,11 @@ export function TimelineEditorPage() {
     // Initialize keyframe system
     baseState.keyframeSystem = new KeyframeSystem();
 
-    // Override with local demo data but keep enhanced features
-    const demoState = {
-      projectTitle: 'Untitled Sequence',
-      selectedTool: 'Select',
-      selectedClipId: 'clip-hero',
-      generateType: 'Text',
-      playing: false,
-      playheadPercent: 34,
-      viewerMode: 'timeline',
-      zoom: 1,
-      timelineSeconds: 45,
-      // Prototype seed (timeline-redesign-prototype.html): 4 tracks, demo clips,
-      // one crossfade transition, one scene marker. Percent-based left/width.
-      tracks: [
-        { id: 'track-video', type: 'video', name: 'Main Video', muted: false, solo: false, locked: false,
-          clips: [
-            { id: 'clip-hero', name: 'Hero Wide', left: 2, width: 22, type: 'video' },
-            { id: 'clip-product', name: 'Product Spin', left: 25, width: 16, type: 'video' },
-            { id: 'clip-lifestyle', name: 'Lifestyle B', left: 46, width: 20, type: 'video' }
-          ],
-          transitions: [{ left: 40, width: 5, duration: 0.5, name: 'Crossfade' }] },
-        { id: 'track-audio', type: 'audio', name: 'Voiceover', muted: false, solo: false, locked: true,
-          clips: [
-            { id: 'clip-vo1', name: 'VO Take 1', left: 2, width: 40, type: 'audio' },
-            { id: 'clip-vo2', name: 'VO Take 2', left: 44, width: 30, type: 'audio' }
-          ] },
-        { id: 'track-text', type: 'text', name: 'Titles', muted: false, solo: false, locked: false,
-          clips: [
-            { id: 'clip-lower', name: 'Lower Third', left: 8, width: 14, type: 'text' },
-            { id: 'clip-title', name: 'Title Card', left: 30, width: 20, type: 'text' },
-            { id: 'clip-end', name: 'End Card', left: 54, width: 12, type: 'text' }
-          ],
-          markers: [52] },
-        { id: 'track-fx', type: 'effects', name: 'Effects', muted: false, solo: false, locked: false,
-          clips: [
-            { id: 'clip-grade', name: 'Color Grade', left: 2, width: 60, type: 'effects' }
-          ] }
-      ],
-      tools: baseState.tools, // Use enhanced tools from baseState
-      pills: ['Text to Video', 'Image to Video', 'Retake', 'Extend', 'B-Roll', 'Music Gen', 'Audio Sync', 'Fill Gap AI', 'Elements', 'Import Timeline', 'IC-LoRA'],
-      topIcons: ['↶','↷','▦','⚙','🔗','🤖','💾'], // reference only — template is source of truth
-      media: [
-        { icon: '🎬', label: 'Clip 01', type: 'video', desc: '0:14 · 1080p', src: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4' },
-        { icon: '🎙️', label: 'VO Raw', type: 'audio', desc: '0:48 · WAV', src: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3' },
-        { icon: '🖼️', label: 'Logo', type: 'image', desc: 'PNG · 512', src: 'https://picsum.photos/seed/smartvideo/640/360' },
-        { icon: '🎵', label: 'Track', type: 'audio', desc: '2:10 · MP3', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' }
-      ],
-      generateTypes: [['✍️', 'Text'], ['🖼️', 'Image'], ['🔄', 'Retake'], ['➡️', 'Extend'], ['🎞️', 'B-Roll']],
-      quickCommands: ['⚡Generate','Retake','Extend','B-Roll','🎬 Detect Scenes'],
-      railActions: [
-        ['＋', 'Media'],
-        ['✨', 'Generate', true],
-        ['⬆', 'Export'],
-        ['🎬', 'Scene Detector'],
-        ['🎥', 'Camera FX'],
-        ['📊', 'Color Scopes'],
-        ['🎞️', 'Multi-Cam'],
-        ['✂️', 'Clip Editor'],
-        ['🔄', 'Transitions Panel'],
-        ['🎨', 'CineGen Results'],
-        ['🎭', 'Anim Demo'],
-        ['🎨', 'Canvas'],
-        ['🏷️', 'Token Editor'],
-        ['📦', 'Batch Generator'],
-        ['🔄', 'Workflow'],
-        ['👤', 'Personalization'],
-        ['✏️', 'Personalization Editor']
-      ],
-
-      // Enhanced state management
-      projectId: null,
-      undoStack: [],
-      redoStack: [],
-      mediaLibrary: [],
-      generationQueue: [],
-      isProcessing: false,
-      insertMode: true,        // push downstream on drop (default)
-      overwriteMode: false,    // replace existing media on drop
-      rippleMode: false,       // after insert, trim gaps beyond end
-      snapToGap: true,         // prefer dropping into empty gaps
-      clipGroups: [],          // id bucket for grouped clips
-      selectedClipIds: new Set(),
-      clipboard: null,
-      timelines: [],
-      selectedTimelineId: null
-    };
-
-    const merged = { ...baseState, ...demoState };
-
-    // Unify track.clips and track.items on the merged state.
+    // Unify track.clips and track.items on the base state.
     // track.items is the canonical model; track.clips is a compatibility
     // alias for the 58+ legacy call sites. They reference the SAME array
     // so writes via either name are visible through both.
-    (merged.tracks || []).forEach(track => {
+    (baseState.tracks || []).forEach(track => {
       if (!track || typeof track !== 'object') return;
       if (Array.isArray(track.items)) {
         track.clips = track.items;
@@ -751,9 +647,9 @@ export function TimelineEditorPage() {
     // Mirror the legacy store into the new Timeline model. This is the
     // single source of truth going forward; legacy code still reads
     // state.tracks and is kept in sync via the bridge.
-    merged.timeline = legacyToTimeline(merged);
+    baseState.timeline = legacyToTimeline(baseState);
 
-    return merged;
+    return baseState;
   }
 
   function getCurrentTimeline(state) {
@@ -2117,11 +2013,9 @@ export function TimelineEditorPage() {
       // ▦ Timeline view is the default active view — no action needed
       const settingsBtn = root.querySelector('#openSettings');
       const connectBtn = root.querySelector('#openConnect');
-      const agentsBtn = root.querySelector('#openAgents');
       const saveBtn = root.querySelector('#openSave');
       if (settingsBtn) settingsBtn.addEventListener('click', () => openEditorSettings());
       if (connectBtn) connectBtn.addEventListener('click', () => openConnectModal(state, showToast));
-      if (agentsBtn) agentsBtn.addEventListener('click', () => openAIAgentsPanel(state, showToast));
       if (saveBtn) saveBtn.addEventListener('click', () => openSaveProjectModal(state, showToast));
     }
 
@@ -2239,41 +2133,6 @@ export function TimelineEditorPage() {
       } catch (err) {
         showToast(`Audio sync failed: ${err.message}`, 'error');
       }
-    }
-
-    function initializeDefaultTracks() {
-      // Prototype seed (timeline-redesign-prototype.html): 4 tracks with demo
-      // clips, one crossfade transition, one scene marker. Percent-based items
-      // (left/width) are converted to seconds downstream by renderTracks().
-      if (!state.tracks || state.tracks.length === 0) {
-        state.tracks = [
-          { id: 'track-video', type: 'video', name: 'Main Video', muted: false, solo: false, locked: false,
-            items: [
-              { id: 'clip-hero', name: 'Hero Wide', type: 'video', left: 2, width: 22 },
-              { id: 'clip-product', name: 'Product Spin', type: 'video', left: 25, width: 16 },
-              { id: 'clip-lifestyle', name: 'Lifestyle B', type: 'video', left: 46, width: 20 }
-            ],
-            transitions: [{ left: 40, width: 5, duration: 0.5, name: 'Crossfade' }] },
-          { id: 'track-audio', type: 'audio', name: 'Voiceover', muted: false, solo: false, locked: true,
-            items: [
-              { id: 'clip-vo1', name: 'VO Take 1', type: 'audio', left: 2, width: 40, waveform: true },
-              { id: 'clip-vo2', name: 'VO Take 2', type: 'audio', left: 44, width: 30, waveform: true }
-            ] },
-          { id: 'track-text', type: 'text', name: 'Titles', muted: false, solo: false, locked: false,
-            items: [
-              { id: 'clip-lower', name: 'Lower Third', type: 'text', left: 8, width: 14 },
-              { id: 'clip-title', name: 'Title Card', type: 'text', left: 30, width: 20 },
-              { id: 'clip-end', name: 'End Card', type: 'text', left: 54, width: 12 }
-            ],
-            markers: [52] },
-          { id: 'track-fx', type: 'effects', name: 'Effects', muted: false, solo: false, locked: false,
-            items: [
-              { id: 'clip-grade', name: 'Color Grade', type: 'effects', left: 2, width: 60 }
-            ] }
-        ];
-      }
-      // Prototype renders "Hero Wide" as the active clip on load
-      if (!state.selectedClipId) state.selectedClipId = 'clip-hero';
     }
 
     function renderTracksBasic(state, els, showToast) {
@@ -3018,7 +2877,7 @@ export function TimelineEditorPage() {
       if (file.type.startsWith('video/')) return { ...base, type: 'video', src: objectUrl };
       if (file.type.startsWith('image/')) return { ...base, type: 'image', src: objectUrl, fit: 'contain' };
       if (file.type.startsWith('audio/')) return { ...base, type: 'audio', src: objectUrl };
-      return { ...base, type: 'text', heading: file.name || 'Text Asset', body: 'Uploaded text asset preview placeholder.' };
+      return { ...base, type: 'text', heading: file.name || 'Text Asset', body: 'Text file uploaded — content will be rendered in the preview.' };
     }
 
     function insertClipIntoTrack(clip, preferredTrackName) {
@@ -4167,30 +4026,12 @@ export function TimelineEditorPage() {
       }
     }
 
-    // Fallback: add sample subtitles
+    // Fallback: subtitle generation requires a real transcription service
     let subtitleTrack = state.project.tracks.find(t => t.type === 'subtitle' || t.type === 'text');
     if (!subtitleTrack) {
       state.addTrack('Text');
       subtitleTrack = state.project.tracks.find(t => t.type === 'text');
     }
-
-    const samples = [
-      { start: 0, end: 3.2, text: "Welcome to this video" },
-      { start: 3.5, end: 6.8, text: "Today we explore new techniques" },
-      { start: 7.2, end: 11.0, text: "Let's begin with the timeline" }
-    ];
-
-    samples.forEach((sub, i) => {
-      subtitleTrack.items.push({
-        id: `subtitle-${Date.now()}-${i}`,
-        name: sub.text,
-        type: 'text',
-        start: sub.start,
-        end: sub.end,
-        text: sub.text,
-        style: { fontSize: 18, color: '#ffffff', background: 'rgba(0,0,0,0.75)' }
-      });
-    });
 
     renderTracks();
 
@@ -4209,33 +4050,7 @@ export function TimelineEditorPage() {
           return;
         }
 
-        // Fallback: create sample subtitle track
-        let subtitleTrack = state.project.tracks.find(t => t.type === 'subtitle' || t.type === 'text');
-        if (!subtitleTrack) {
-          state.addTrack('Text');
-          subtitleTrack = state.project.tracks.find(t => t.type === 'text');
-        }
-
-        const samples = [
-          { start: 0, end: 3.2, text: 'Welcome to this video' },
-          { start: 3.5, end: 6.8, text: 'Today we explore new techniques' },
-          { start: 7.2, end: 11.0, text: 'Let\'s begin with the timeline' }
-        ];
-
-        samples.forEach((sub, i) => {
-          subtitleTrack.items.push({
-            id: `subtitle-${Date.now()}-${i}`,
-            name: sub.text,
-            type: 'text',
-            start: sub.start,
-            end: sub.end,
-            text: sub.text,
-            style: { fontSize: 18, color: '#ffffff', background: 'rgba(0,0,0,0.75)' }
-          });
-        });
-
-        renderTracks();
-        showToast('Subtitles generated', 'success');
+        showToast('Subtitle generation requires a transcription service', 'error');
       } catch (error) {
         console.error('Subtitle generation failed:', error);
         showToast('Subtitle generation failed', 'error');
@@ -4807,8 +4622,7 @@ export function TimelineEditorPage() {
       'Multi-Cam': 'multiCameraPanel',
       'Clip Editor': 'clipSettingsPanel',
       'Transitions Panel': 'transitionSettingsPanel',
-      'CineGen Results': 'cinegenResultsPanel',
-      'Anim Demo': 'animationDemoPanel'
+      'CineGen Results': 'cinegenResultsPanel'
     };
 
     // Maps feature-index chip data-modal keys to editor modal/open actions.
@@ -4896,8 +4710,7 @@ export function TimelineEditorPage() {
         'Multi-Cam': 'Multi-camera editing, PIP, and split screen',
         'Clip Editor': 'Clip editor - Edit selected clip properties',
         'Transitions Panel': 'Transitions - Add effects between clips',
-        'CineGen Results': 'CineGen AI Tools results history',
-        'Anim Demo': 'Rendiv animation demonstrations'
+        'CineGen Results': 'CineGen AI Tools results history'
       };
       state.railActions.forEach(([icon, label, active]) => {
         const button = document.createElement('button');
@@ -5950,185 +5763,6 @@ export function TimelineEditorPage() {
     }
 
     // Rendiv Animation Demo Functions
-    function runSpringDemo(canvas, statusEl) {
-      if (!canvas) return;
-
-      const ctx = canvas.getContext('2d');
-      const width = canvas.width;
-      const height = canvas.height;
-      let animationId = null;
-      let frame = 0;
-
-      statusEl.textContent = 'Running spring animation demo...';
-
-      function animate() {
-        ctx.clearRect(0, 0, width, height);
-
-        // Draw background
-        ctx.fillStyle = '#0a0a0a';
-        ctx.fillRect(0, 0, width, height);
-
-        // Calculate spring position (simulate a bouncing ball)
-        const springValue = spring({ frame, fps: 30, config: { damping: 12, stiffness: 100 } });
-        const x = width / 2;
-        const y = height - (springValue * height * 0.8) - 50;
-
-        // Draw ball
-        ctx.fillStyle = '#22d3ee';
-        ctx.beginPath();
-        ctx.arc(x, y, 20, 0, 2 * Math.PI);
-        ctx.fill();
-
-        // Draw trail
-        for (let i = 1; i <= 5; i++) {
-          const trailFrame = Math.max(0, frame - i * 2);
-          const trailSpring = spring({ frame: trailFrame, fps: 30, config: { damping: 12, stiffness: 100 } });
-          const trailY = height - (trailSpring * height * 0.8) - 50;
-          const alpha = (6 - i) / 6;
-
-          ctx.fillStyle = `rgba(34, 211, 238, ${alpha * 0.5})`;
-          ctx.beginPath();
-          ctx.arc(x, trailY, 20 - i * 2, 0, 2 * Math.PI);
-          ctx.fill();
-        }
-
-        frame++;
-        if (frame < 180) { // 6 seconds at 30fps
-          animationId = requestAnimationFrame(animate);
-        } else {
-          statusEl.textContent = 'Spring demo complete! Ball reached rest position.';
-        }
-      }
-
-      animate();
-    }
-
-    function runNoiseDemo(canvas, statusEl) {
-      if (!canvas) return;
-
-      const ctx = canvas.getContext('2d');
-      const width = canvas.width;
-      const height = canvas.height;
-      let animationId = null;
-      let frame = 0;
-
-      statusEl.textContent = 'Running Perlin noise animation demo...';
-
-      function animate() {
-        ctx.clearRect(0, 0, width, height);
-
-        // Draw background
-        ctx.fillStyle = '#0a0a0a';
-        ctx.fillRect(0, 0, width, height);
-
-        // Generate organic movement using noise
-        const centerX = width / 2;
-        const centerY = height / 2;
-        const radius = 60;
-
-        // Create multiple orbiting elements with noise
-        for (let i = 0; i < 8; i++) {
-          const angle = (i / 8) * Math.PI * 2 + frame * 0.02;
-          const noiseOffset = noise2D(frame * 0.05 + i, 0) * Math.PI * 0.5;
-          const finalAngle = angle + noiseOffset;
-
-          const x = centerX + Math.cos(finalAngle) * radius;
-          const y = centerY + Math.sin(finalAngle) * radius;
-
-          // Color based on position
-          const hue = (i / 8) * 360;
-          ctx.fillStyle = `hsl(${hue}, 70%, 60%)`;
-          ctx.beginPath();
-          ctx.arc(x, y, 8, 0, 2 * Math.PI);
-          ctx.fill();
-        }
-
-        // Draw central pulsing element
-        const pulseScale = 1 + noise2D(frame * 0.1, 1) * 0.3;
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, 15 * pulseScale, 0, 2 * Math.PI);
-        ctx.fill();
-
-        frame++;
-        if (frame < 300) { // 10 seconds at 30fps
-          animationId = requestAnimationFrame(animate);
-        } else {
-          statusEl.textContent = 'Noise demo complete! Organic movement simulation finished.';
-        }
-      }
-
-      animate();
-    }
-
-    function runInterpolateDemo(canvas, statusEl) {
-      if (!canvas) return;
-
-      const ctx = canvas.getContext('2d');
-      const width = canvas.width;
-      const height = canvas.height;
-      let animationId = null;
-      let frame = 0;
-
-      statusEl.textContent = 'Running interpolation animation demo...';
-
-      function animate() {
-        ctx.clearRect(0, 0, width, height);
-
-        // Draw background
-        ctx.fillStyle = '#0a0a0a';
-        ctx.fillRect(0, 0, width, height);
-
-        // Demonstrate different interpolation types
-        const progress = (frame / 120) % 1; // 4 seconds loop at 30fps
-
-        // Linear interpolation
-        const linearX = interpolate(progress, [0, 1], [50, width - 50]);
-        ctx.fillStyle = '#22d3ee';
-        ctx.beginPath();
-        ctx.arc(linearX, 60, 8, 0, 2 * Math.PI);
-        ctx.fill();
-
-        // Ease-out interpolation
-        const easeOutX = interpolate(progress, [0, 1], [50, width - 50], 'ease-out');
-        ctx.fillStyle = '#10b981';
-        ctx.beginPath();
-        ctx.arc(easeOutX, 100, 8, 0, 2 * Math.PI);
-        ctx.fill();
-
-        // Bounce interpolation
-        const bounceX = interpolate(progress, [0, 1], [50, width - 50], 'bounce');
-        ctx.fillStyle = '#f59e0b';
-        ctx.beginPath();
-        ctx.arc(bounceX, 140, 8, 0, 2 * Math.PI);
-        ctx.fill();
-
-        // Color interpolation
-        const color = blendColors(progress, '#ff0000', '#0000ff');
-        ctx.fillStyle = color;
-        ctx.beginPath();
-        ctx.arc(width / 2, 180, 12, 0, 2 * Math.PI);
-        ctx.fill();
-
-        // Labels
-        ctx.fillStyle = 'rgba(255,255,255,0.7)';
-        ctx.font = '11px Arial';
-        ctx.fillText('Linear', 50, 50);
-        ctx.fillText('Ease-Out', 50, 90);
-        ctx.fillText('Bounce', 50, 130);
-        ctx.fillText('Color Blend', 50, 170);
-
-        frame++;
-        if (frame < 480) { // 16 seconds at 30fps
-          animationId = requestAnimationFrame(animate);
-        } else {
-          statusEl.textContent = 'Interpolation demo complete! Showed linear, easing, bounce, and color interpolation.';
-        }
-      }
-
-      animate();
-    }
-
     function bindEvents() {
       // Bind whatever exists — never abort the whole batch because one
       // optional surface (generateBtn, backBtn) is not in the template.
@@ -6297,17 +5931,6 @@ export function TimelineEditorPage() {
         const handler = FEATURE_INDEX_MODALS[key];
         if (handler) chip.addEventListener('click', handler);
       });
-
-      // Rendiv Animation Demo handlers
-      const runSpringDemoBtn = root.querySelector('#runSpringDemo');
-      const runNoiseDemoBtn = root.querySelector('#runNoiseDemo');
-      const runInterpolateDemoBtn = root.querySelector('#runInterpolateDemo');
-      const animationCanvas = root.querySelector('#animationCanvas');
-      const demoStatus = root.querySelector('#demoStatus');
-
-      if (runSpringDemoBtn) runSpringDemoBtn.addEventListener('click', () => runSpringDemo(animationCanvas, demoStatus));
-      if (runNoiseDemoBtn) runNoiseDemoBtn.addEventListener('click', () => runNoiseDemo(animationCanvas, demoStatus));
-      if (runInterpolateDemoBtn) runInterpolateDemoBtn.addEventListener('click', () => runInterpolateDemo(animationCanvas, demoStatus));
 
       els.uploadBtn?.addEventListener('click', () => els.uploadInput?.click());
       els.uploadInput?.addEventListener('change', (event) => handleUpload(event.target.files?.[0]));
@@ -6833,82 +6456,6 @@ export function TimelineEditorPage() {
       }
     }
 
-    function openAIAgentsPanel(state, showToast) {
-      try {
-        const modalOverlay = document.createElement('div');
-        modalOverlay.style.cssText = `
-          position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 10000;
-          display: flex; align-items: center; justify-content: center;
-          backdrop-filter: blur(8px);
-        `;
-        
-        const modalContent = document.createElement('div');
-        modalContent.style.cssText = `
-          background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
-          border: 1px solid var(--border); border-radius: 24px;
-          box-shadow: 0 20px 60px rgba(0,0,0,0.45);
-          max-width: 500px; width: 90%; max-height: 80vh; overflow: hidden;
-        `;
-        
-        modalContent.innerHTML = `
-          <div class="modal-header" style="display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.2);">
-            <h3 style="margin: 0; color: rgba(255,255,255,0.9);">AI Agents Panel</h3>
-            <button class="modal-close" style="background: none; border: none; color: rgba(255,255,255,0.6); font-size: 20px; cursor: pointer; padding: 4px;">✕</button>
-          </div>
-          <div class="modal-body" style="padding: 24px; max-height: 60vh; overflow-y: auto;">
-            <p style="color: rgba(255,255,255,0.7); margin-bottom: 16px;">Analyze timeline and get AI-powered suggestions for improvement.</p>
-            <div id="agents-list" style="display: grid; gap: 12px; margin-bottom: 16px;"></div>
-            <div style="display: flex; gap: 8px; justify-content: flex-end;">
-              <button id="close-agents" style="padding: 8px 16px; background: rgba(255,255,255,0.1); border: 1px solid var(--border); border-radius: 8px; cursor: pointer;">Close</button>
-            </div>
-          </div>
-        `;
-        
-        modalOverlay.appendChild(modalContent);
-        document.body.appendChild(modalOverlay);
-        
-        const agentsList = modalContent.querySelector('#agents-list');
-        const agents = [
-          { id: 'analyze', name: 'Timeline Analysis', desc: 'Detect scenes, gaps, and improvement suggestions', icon: '📊' },
-          { id: 'character', name: 'Character Tracking', desc: 'Maintain character consistency across shots', icon: '👤' },
-          { id: 'broll', name: 'B-Roll Suggestions', desc: 'Get relevant b-roll recommendations', icon: '🎞️' },
-          { id: 'audio', name: 'Audio Sync', desc: 'Fix audio timing and levels', icon: '🎵' }
-        ];
-        
-        agents.forEach(agent => {
-          const btn = document.createElement('button');
-          btn.style.cssText = 'padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; text-align: left;';
-          btn.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 12px;">
-              <span style="font-size: 24px;">${agent.icon}</span>
-              <div>
-                <div style="color: rgba(255,255,255,0.9); font-weight: 500;">${agent.name}</div>
-                <div style="color: rgba(255,255,255,0.5); font-size: 12px;">${agent.desc}</div>
-              </div>
-            </div>
-          `;
-          btn.addEventListener('click', () => {
-            if (agent.id === 'analyze') openAIAnalyzeModal(state, showToast);
-            else if (agent.id === 'character') openCharacterTrackingPanel(state, showToast);
-            else if (agent.id === 'broll') suggestBRoll();
-            else if (agent.id === 'audio') generateSubtitles();
-            document.body.removeChild(modalOverlay);
-          });
-          agentsList.appendChild(btn);
-        });
-        
-        const closeModal = () => document.body.removeChild(modalOverlay);
-        modalContent.querySelector('.modal-close').addEventListener('click', closeModal);
-        modalContent.querySelector('#close-agents').addEventListener('click', closeModal);
-        modalOverlay.addEventListener('click', (e) => e.target === modalOverlay && closeModal());
-        
-        
-      } catch (error) {
-        console.error('Failed to open AI Agents panel:', error);
-        
-      }
-    }
-
     function openCharacterTrackingPanel(state, showToast) {
       try {
         const modalOverlay = document.createElement('div');
@@ -6995,12 +6542,8 @@ export function TimelineEditorPage() {
         const resultsDiv = modalContent.querySelector('#analysis-results');
         resultsDiv.innerHTML = `
           <div style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 8px;">
-            <div style="color: #cffafe; font-weight: 500;">✓ No gaps detected</div>
-            <div style="color: rgba(255,255,255,0.5); font-size: 12px;">Timeline is continuous</div>
-          </div>
-          <div style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 8px;">
-            <div style="color: #cffafe; font-weight: 500;">3 scenes detected</div>
-            <div style="color: rgba(255,255,255,0.5); font-size: 12px;">Opening, Main, Closing</div>
+            <div style="color: rgba(255,255,255,0.5); font-weight: 500;">Analysis running...</div>
+            <div style="color: rgba(255,255,255,0.4); font-size: 12px;">Detect scenes from the Scene Detector panel for real results.</div>
           </div>
         `;
         
@@ -7009,10 +6552,8 @@ export function TimelineEditorPage() {
         modalContent.querySelector('#close-analysis').addEventListener('click', closeModal);
         modalOverlay.addEventListener('click', (e) => e.target === modalOverlay && closeModal());
         
-        
       } catch (error) {
         console.error('Failed to open Timeline Analysis panel:', error);
-        
       }
     }
 
