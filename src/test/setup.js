@@ -1,7 +1,7 @@
 // Test setup for Vitest
 // Mock browser APIs and global objects
 
-/* eslint-disable no-undef */
+ 
 // Polyfill minimal browser globals so lib files that touch `window`/`document`
 // at module load time don't crash in node env (e.g. analytics.js registers
 // a `pageview` listener on import).
