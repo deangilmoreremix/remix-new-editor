@@ -6,7 +6,7 @@
  * backward compatibility with legacy project data.
  */
 
-import { createCameraState } from './cameraState';
+import { createCameraState } from './cameraState.js';
 import { EditorStateSchema, validateOrPass } from './schemas.js';
 import { legacyToTimeline, timelineToLegacy } from './timeline-bridge.js';
 import { generateId } from './renderActions.js';

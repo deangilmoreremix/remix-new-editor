@@ -50,6 +50,7 @@ export class PerformanceManager {
       }
     }
 
+    console.log('[PerformanceManager] Detected capabilities:', {
       webGL: this.webGLSupported,
       webGL2: this.webGL2Supported,
       cores: this.hardwareConcurrency,
@@ -339,9 +340,15 @@ export class PerformanceManager {
   }
 
   async createProxyFile(originalSrc) {
-    // This would create a lower resolution version of the video
-    // For now, return the original (in a real implementation, this would transcode)
-    return originalSrc;
+    // Generate a real browser-based proxy using canvas + MediaRecorder
+    const { generateProxyVideo } = await import('./proxyGenerator.js');
+
+    try {
+      return await generateProxyVideo(originalSrc);
+    } catch (error) {
+      console.warn('[PerformanceManager] Proxy generation failed, falling back to original:', error);
+      return originalSrc;
+    }
   }
 
   clearProxyFiles() {
@@ -445,16 +452,18 @@ export class PerformanceManager {
 
   bindEvents() {
     // Listen for timeline changes that affect performance
-    this.state.addEventListener('tracks-changed', () => {
-      if (this.proxyMode) {
-        this.generateProxyFiles();
-      }
-    });
+    if (typeof this.state.addEventListener === 'function') {
+      this.state.addEventListener('tracks-changed', () => {
+        if (this.proxyMode) {
+          this.generateProxyFiles();
+        }
+      });
 
-    // Listen for playhead changes for real-time updates
-    this.state.addEventListener('time-changed', () => {
-      this.updateRealtimePreview();
-    });
+      // Listen for playhead changes for real-time updates
+      this.state.addEventListener('time-changed', () => {
+        this.updateRealtimePreview();
+      });
+    }
   }
 
   updateRealtimePreview() {

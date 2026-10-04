@@ -156,19 +156,6 @@ function createModelItem(entry, isSelected, activeItemRef) {
  * @param {string} [copy.allProviders='All Providers']
  * @param {string} [copy.categories] - Object with t2v, i2v, v2v, t2i, i2i labels
  */
-export function getAvailableProviders(entries) {
-  const providers = [];
-  const seen = new Set();
-  for (const { family } of entries) {
-    const pId = family.provider || "muapi";
-    const pName = family.provider_name || "Muapi";
-    if (!seen.has(pId)) {
-      seen.add(pId);
-      providers.push({ id: pId, name: pName });
-    }
-  }
-  return providers;
-}
 export function mountTemplateModelSelector({
   anchor,
   selectedModelId,
@@ -248,7 +235,7 @@ export function mountTemplateModelSelector({
   let activeItemRef = null;
 
   // Build provider list from current category entries
-function getAvailableProviders(entries) {
+  function getAvailableProviders(entries) {
     const providers = [];
     const seen = new Set();
     for (const { family } of entries) {
@@ -582,23 +569,22 @@ export function positionModelSelectorDropdown(dropdown, trigger, offset, contain
   }
 }
 
+export function getAvailableProviders(entries) {
+  const providers = [];
+  const seen = new Set();
+  for (const { family } of entries) {
+    const pId = family.provider || "muapi";
+    const pName = family.provider_name || "Muapi";
+    if (!seen.has(pId)) {
+      seen.add(pId);
+      providers.push({ id: pId, name: pName });
+    }
+  }
+  return providers;
+}
+
 export { PROVIDER_LOGOS, invertLogos, getProviderStyle, renderProviderLogoImg };
 
-/**
- * Mount a simple model selector dropdown into a container element.
- *
- * @param {HTMLElement} container - DOM element to render into
- * @param {Object} options
- * @param {Array} options.models - Array of model objects { id, name, provider, provider_name }
- * @param {Array} [options.categories] - Optional category definitions
- * @param {string} [options.selectedModelId] - Currently selected model ID
- * @param {string} [options.selectedCategory] - Currently selected category ID
- * @param {boolean} [options.showProviderName=false] - Show provider name
- * @param {Function} [options.onSelectModel] - Called when a model is selected
- * @param {Function} [options.onSelectCategory] - Called when a category is selected
- * @param {string} [options.headerLabel] - Optional header text
- * @param {boolean} [options.autoFocus=false] - Auto-focus search input
- */
 export function mountModelSelector(container, options = {}) {
   if (!container) return;
 

@@ -14,10 +14,16 @@ import {
   extensionForMime,
   resolveExportMimeType,
   getVideoBitrate,
-  computeFitSourceRect,
+  computeCoverRect,
+  computeContainRect,
   computeTrailerDuration,
   buildFrameFilename,
 } from '../lib/editor/renderHelpers.js';
+import {
+  inspectMediaBlob,
+  assertRenderResultUsable,
+  buildRenderResult,
+} from '../lib/editor/renderMedia.js';
 
 import { generateSubtitles, generateHighlights, generateVoiceover, createShorts, runAiAutoEdit } from '../lib/editor/renderAiActions.js';
 
@@ -52,6 +58,14 @@ const ACTION_TILES = [
 const QUICK_ACTIONS = ['Trailer Cut', 'Social Resize', 'Remix Scene', 'Copy Prompt', 'Duplicate Render', 'Save as Template', 'Send to Storyboard', 'Publish / Deliver'];
 const ACTION_BUTTONS = ['Export Video', 'Download Frame', 'Queue Render', 'Trailer Cut', 'Social Resize', 'Remix Scene'];
 
+// How long an exported result URL stays valid after a render completes.
+//
+// The result blob must remain reachable long enough for the browser to
+// actually consume the download and for the render UI to offer the file again.
+// Revoking after ~1s invalidated the URL before slower consumers could read
+// it, producing a real (if intermittent) "exported file is broken" failure.
+const RESULT_URL_REVOKE_DELAY_MS = 60000;
+
 export function RenderPage() {
   const container = document.createElement('div');
   container.className = 'min-h-screen w-full bg-[#0a0a0b] p-4 text-white md:p-8 overflow-y-auto custom-scrollbar';
@@ -82,7 +96,10 @@ export function RenderPage() {
   // A missing asset id is a bug that must surface, not degrade silently.
   async function resolveAsset(assetId) {
     if (!assetId) {
-      return { found: false, url: videoUrl, id: videoId, title: videoTitle };
+      if (!videoUrl) {
+        return { found: false, url: '', id: videoId, title: videoTitle };
+      }
+      return { found: true, url: videoUrl, id: videoId, title: videoTitle };
     }
     const asset = await assetStore.getAsset(assetId);
     if (!asset) {
@@ -329,7 +346,7 @@ export function RenderPage() {
         </div>
         <div class="flex flex-wrap gap-3">
           <button id="saveDraftBtn" class="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-medium text-zinc-100 shadow-lg shadow-black/20 transition hover:bg-white/10">Save Draft</button>
-          <button id="startRenderBtn" class="rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black shadow-xl transition hover:opacity-90">Start Render</button>
+          <button class="start-render-btn rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black shadow-xl transition hover:opacity-90">Start Render</button>
         </div>
       </div>
     `;
@@ -348,7 +365,7 @@ export function RenderPage() {
           </div>
           <div class="flex flex-wrap gap-3">
             <button id="saveDraftBtn" class="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-medium text-zinc-100 shadow-lg shadow-black/20 transition hover:bg-white/10">Save Draft</button>
-            <button id="startRenderBtn" class="rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black shadow-xl transition hover:opacity-90">Start Render</button>
+            <button class="start-render-btn rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black shadow-xl transition hover:opacity-90">Start Render</button>
           </div>
         </div>
       </div>
@@ -739,12 +756,39 @@ export function RenderPage() {
       showToast('Draft saved');
     });
   }
-  const startRenderBtn = container.querySelector('#startRenderBtn');
-  if (startRenderBtn) {
+  const startRenderBtns = container.querySelectorAll('.start-render-btn');
+  startRenderBtns.forEach((startRenderBtn) => {
     startRenderBtn.addEventListener('click', () => dispatchAction('Export Video'));
-  }
+  });
 
   void initAssetResolve();
+
+  // Render test hook (DEV-ONLY).
+  //
+  // Lets the Playwright acceptance suite inject a video source without a full
+  // page navigation — blob/data URLs created in a previous document are
+  // invalidated on navigation, so the source must be set inside the live page.
+  //
+  // Gated on import.meta.env.DEV so Vite statically removes this block from
+  // production builds. Production bundles must not expose Render test-control
+  // globals.
+  if (import.meta.env && import.meta.env.DEV && typeof window !== 'undefined') {
+    window.__setRenderVideoSource = (url, id, title) => {
+      resolvedVideoUrl = url;
+      if (id) resolvedVideoId = id;
+      if (title) resolvedTitle = title;
+      if (videoElement) {
+        videoElement.src = url;
+        videoElement.load();
+      }
+    };
+    window.__getRenderVideoSource = () => ({
+      resolvedVideoUrl: resolvedVideoUrl || null,
+      resolvedVideoId: resolvedVideoId || null,
+      resolvedTitle: resolvedTitle || null,
+      currentVideoUrl: currentVideoUrl || null,
+    });
+  }
 
   // Real video export: draw the actual source frames to a canvas and record
   // them with MediaRecorder. The previous worker only recorded a blank canvas,
@@ -781,6 +825,9 @@ export function RenderPage() {
   }
 
   async function captureRealVideo({ videoUrl, action, settings = {}, timeRange, effects, preset, onProgress }) {
+    // Result identity for the shared Render result model (filename stem).
+    const videoIdForResult = resolvedVideoId || '';
+    const labelForResult = resolvedTitle || '';
     const supported = typeof MediaRecorder !== 'undefined'
       && typeof HTMLCanvasElement !== 'undefined'
       && typeof HTMLCanvasElement.prototype.captureStream === 'function';
@@ -788,27 +835,49 @@ export function RenderPage() {
 
     const video = document.createElement('video');
     video.playsInline = true;
-    video.crossOrigin = 'anonymous';
+    video.muted = true;
     video.preload = 'auto';
     video.src = videoUrl;
 
     let loadError = null;
     await new Promise((res, rej) => {
       const t = setTimeout(() => rej(new Error('Video source timed out')), 30000);
-      video.addEventListener('loadedmetadata', () => { clearTimeout(t); res(); }, { once: true });
-      video.addEventListener('error', () => {
+      const onReady = () => {
         clearTimeout(t);
+        video.removeEventListener('loadedmetadata', onReady);
+        video.removeEventListener('error', onError);
+        res();
+      };
+      const onError = () => {
+        clearTimeout(t);
+        video.removeEventListener('loadedmetadata', onReady);
+        video.removeEventListener('error', onError);
         const err = new Error('Could not load video source');
         if (video.error && video.error.code === MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED) {
-          err.message = 'Video source is not supported or blocked by CORS. Try a different source or ensure the server allows cross-origin access.';
+          err.message = 'Video format not supported or file is corrupt/unreadable. Try a different source.';
         }
         loadError = err;
         rej(err);
-      }, { once: true });
+      };
+      video.addEventListener('loadedmetadata', onReady);
+      video.addEventListener('error', onError);
     });
 
-    // If we got here but the video is completely unplayable, fail fast.
     if (loadError) throw loadError;
+    if (video.readyState < 2) {
+      await new Promise((resolve) => {
+        const onCanPlay = () => {
+          video.removeEventListener('canplay', onCanPlay);
+          resolve();
+        };
+        video.addEventListener('canplay', onCanPlay);
+        setTimeout(() => {
+          video.removeEventListener('canplay', onCanPlay);
+          resolve();
+        }, 5000);
+      });
+    }
+
     if (video.readyState < 2) {
       throw new Error('Video metadata loaded but the file is not ready for playback. It may be corrupt or unsupported.');
     }
@@ -827,8 +896,14 @@ export function RenderPage() {
     canvas.height = ch;
     const ctx = canvas.getContext('2d');
 
-    // Resolve the real codec for the requested format. If the browser can't
-    // encode it, throw — we will not silently emit a differently-labeled file.
+    // Some browsers require the canvas to be in the DOM for captureStream to work.
+    canvas.style.position = 'fixed';
+    canvas.style.left = '-9999px';
+    canvas.style.top = '-9999px';
+    canvas.style.width = cw + 'px';
+    canvas.style.height = ch + 'px';
+    document.body.appendChild(canvas);
+
     const requestedFormat = (settings && settings.format) || 'webm';
     const mimeType = resolveExportMimeType(requestedFormat);
     if (!mimeType) {
@@ -840,12 +915,19 @@ export function RenderPage() {
 
     const fps = Math.max(1, Math.min(120, parseInt((settings && settings.frameRate) || '30', 10) || 30));
     const stream = canvas.captureStream(fps);
+    const videoTrack = stream.getVideoTracks()[0];
+    const audioTracks = stream.getAudioTracks();
     const recorder = new MediaRecorder(stream, {
       mimeType,
       videoBitsPerSecond: getVideoBitrate({ width: cw, height: ch, fps, quality: settings.quality }),
     });
     const chunks = [];
-    recorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) chunks.push(e.data); };
+    recorder.ondataavailable = (e) => {
+      if (e.data && e.data.size > 0) chunks.push(e.data);
+    };
+    recorder.onerror = (e) => {
+      console.error('[Render] recorder error', e.error?.message || 'unknown');
+    };
     const finished = new Promise((res, rej) => {
       recorder.onstop = () => {
         const blob = new Blob(chunks, { type: mimeType });
@@ -860,97 +942,153 @@ export function RenderPage() {
     } else if (typeof settings.duration === 'number' && settings.duration > 0) {
       durationMs = settings.duration * 1000;
     } else {
-      durationMs = (video.duration || 5) * 1000;
+      const rawDuration = video.duration;
+      durationMs = (Number.isFinite(rawDuration) && rawDuration > 0 ? rawDuration : 5) * 1000;
     }
 
     if (action === 'trailer-cut' && timeRange) {
       try { await seekVideo(video, Math.max(0, timeRange.start)); } catch { /* best effort */ }
     }
 
-    // Audio: capture source audio track when present and re-attach it to the
-    // recording stream so the exported file preserves the original audio.
-    let sourceAudioTrack = null;
+    if (onProgress) onProgress(5);
+
+    // Start playback and wait for it to begin before capturing audio or
+    // drawing frames. This avoids deadlock where audio capture and frame
+    // drawing start before the media element is actually playing.
     try {
-      // Keep playback muted to the user, but allow capture to see the audio data.
-      video.muted = false;
-      video.volume = 0;
-      await new Promise((resume) => video.addEventListener('playing', resume, { once: true }));
+      await video.play();
+    } catch (err) {
+      throw new Error(`Video playback failed: ${err.message}`);
+    }
+
+    // Confirm playback started: either the `playing` event fires or the
+    // element is no longer paused. If neither happens, fail the render
+    // rather than silently producing a blank file.
+    await new Promise((resolve, reject) => {
+      const onPlaying = () => {
+        video.removeEventListener('playing', onPlaying);
+        resolve();
+      };
+      video.addEventListener('playing', onPlaying);
+      if (!video.paused) {
+        video.removeEventListener('playing', onPlaying);
+        resolve();
+        return;
+      }
+      setTimeout(() => {
+        video.removeEventListener('playing', onPlaying);
+        if (!video.paused) {
+          resolve();
+        } else {
+          reject(new Error('play() did not start playback within timeout'));
+        }
+      }, 5000);
+    });
+
+    // Wait for the first decoded frame. Some browsers report readyState
+    // before any frame has actually been decoded, which leaves the canvas
+    // blank for the first drawImage calls and produces empty MediaRecorder
+    // chunks.
+    await new Promise((resolve) => {
+      if (typeof video.requestVideoFrameCallback === 'function') {
+        const handler = () => {
+          video.removeEventListener('seeked', handler);
+          resolve();
+        };
+        video.addEventListener('seeked', handler);
+        video.requestVideoFrameCallback(handler);
+        setTimeout(() => {
+          video.removeEventListener('seeked', handler);
+          resolve();
+        }, 2000);
+      } else {
+        setTimeout(resolve, 300);
+      }
+    });
+
+    // Audio: capture source audio track once playback is ready so the
+    // exported file preserves the original audio.
+    let sourceAudioTrack = null;
+    let sourceHadAudio = false;
+    try {
       const audioTracks = video.captureStream?.()?.getAudioTracks?.() || [];
       if (audioTracks.length) {
         sourceAudioTrack = audioTracks[0];
+        sourceHadAudio = true;
         stream.addTrack(sourceAudioTrack);
       }
     } catch (audioErr) {
       console.warn('[Render] Source audio capture failed, exporting video only:', audioErr);
     }
 
-    function fitSourceRect() {
-      const srcAspect = vw / vh;
-      const dstAspect = cw / ch;
-      let sx, sy, sw, sh;
-      if (srcAspect > dstAspect) {
-        sh = vh;
-        sw = Math.round(vh * dstAspect);
-        sx = Math.round((vw - sw) / 2);
-        sy = 0;
-      } else {
-        sw = vw;
-        sh = Math.round(vw / dstAspect);
-        sx = 0;
-        sy = Math.round((vh - sh) / 2);
-      }
-      return { sx, sy, sw, sh };
-    }
+    // Use cover for social/cropped outputs; use contain only if explicitly requested.
+    const useContain = action === 'social-resize' && settings.contain;
+    const sourceRect = useContain
+      ? computeContainRect(vw, vh, cw, ch)
+      : computeCoverRect(vw, vh, cw, ch);
 
     let rafId = null;
-    const startTs = performance.now();
     let frameCount = 0;
+    let renderStage = 'preparing';
+    const startTs = performance.now();
     function drawFrame() {
-      try {
-        ctx.save();
-        if (preset) {
-          applyPresetFilter(ctx, preset, cw, ch);
-        }
-        if (effects && (effects.brightness != null || effects.contrast != null)) {
-          const parts = [];
-          if (effects.brightness != null) parts.push(`brightness(${Math.round(effects.brightness * 100)}%)`);
-          if (effects.contrast != null) parts.push(`contrast(${Math.round(effects.contrast * 100)}%)`);
-          ctx.filter = (ctx.filter ? ctx.filter + ' ' : '') + parts.join(' ');
-        }
-        const { sx, sy, sw, sh } = fitSourceRect();
-        ctx.drawImage(video, sx, sy, sw, sh, 0, 0, cw, ch);
-        ctx.restore();
-        frameCount++;
-      } catch { /* frame not ready yet */ }
-      const elapsed = performance.now() - startTs;
-      const pct = Math.min(100, Math.round((elapsed / durationMs) * 100));
+    try {
+      ctx.save();
+      if (preset) {
+        // `preset` is the user-facing display name (e.g. 'Film Trailer Punch'),
+        // but applyPresetFilter() resolves finishes by slug (e.g.
+        // 'film-trailer-punch'). Passing the display name straight through
+        // silently matched nothing, so every preset rendered as a no-op.
+        const presetKey = (PRESET_CONFIG[preset] && PRESET_CONFIG[preset].key) || preset;
+        applyPresetFilter(ctx, presetKey, cw, ch);
+      }
+      if (effects && (effects.brightness != null || effects.contrast != null)) {
+        const parts = [];
+        if (effects.brightness != null) parts.push(`brightness(${Math.round(effects.brightness * 100)}%)`);
+        if (effects.contrast != null) parts.push(`contrast(${Math.round(effects.contrast * 100)}%)`);
+        ctx.filter = (ctx.filter ? ctx.filter + ' ' : '') + parts.join(' ');
+      }
+      ctx.drawImage(video, sourceRect.sx, sourceRect.sy, sourceRect.sw, sourceRect.sh, sourceRect.dx, sourceRect.dy, sourceRect.dw, sourceRect.dh);
+      ctx.restore();
+      frameCount++;
+    } catch (err) {
+      console.warn('[Render] drawImage failed', { error: err.message, readyState: video.readyState, currentTime: video.currentTime, paused: video.paused });
+    }
+
+      // Honest stage-based progress instead of fake elapsed-time percentage.
+      const mediaFrac = (video.duration && video.currentTime != null)
+        ? Math.min(1, Math.max(0, (video.currentTime - (timeRange?.start || 0)) / (durationMs / 1000)))
+        : null;
+      let pct;
+      if (renderStage === 'preparing') {
+        pct = 5;
+        renderStage = 'rendering';
+      } else if (renderStage === 'rendering') {
+        pct = mediaFrac != null ? Math.min(80, 5 + Math.round(mediaFrac * 75)) : Math.min(80, 5 + Math.round((frameCount / Math.max(1, Math.floor(durationMs / 1000 * fps))) * 75));
+      } else if (renderStage === 'finalizing') {
+        pct = 95;
+      } else {
+        pct = 100;
+      }
       if (onProgress) onProgress(pct);
-      if (elapsed < durationMs) {
+
+      const elapsed = performance.now() - startTs;
+      if (elapsed < durationMs && video.currentTime < (timeRange?.end ?? video.duration ?? durationMs / 1000)) {
         rafId = requestAnimationFrame(drawFrame);
       } else {
-        cleanup();
+        renderStage = 'finalizing';
+        if (onProgress) onProgress(90);
         try { recorder.stop(); } catch { /* already stopped */ }
       }
     }
-    function cleanup() {
-      if (rafId) cancelAnimationFrame(rafId);
-      try { video.pause(); } catch { /* ignore */ }
-      video.removeAttribute('src');
-      video.load();
-      if (sourceAudioTrack) {
-        try { stream.removeTrack(sourceAudioTrack); } catch { /* ignore */ }
-        sourceAudioTrack = null;
-      }
-    }
 
-    activeExportCleanup = cleanup;
-
-    try { await video.play(); } catch { /* autoplay may be blocked; frames still drawn via rAF */ }
-
-    recorder.start(100);
+    if (onProgress) onProgress(10);
+    recorder.start();
     drawFrame();
 
     const blob = await finished;
+    if (onProgress) onProgress(100);
+    const pendingUrl = URL.createObjectURL(blob);
 
     // Output validation: fail clearly if the render produced no usable media.
     if (!blob || blob.size === 0) {
@@ -960,15 +1098,87 @@ export function RenderPage() {
       throw new Error('Export produced no frames. The source video may not be playable or may be blocked by CORS.');
     }
 
-    return {
-      blob,
-      url: URL.createObjectURL(blob),
-      mime: mimeType,
-      ext: extensionForMime(mimeType),
-      size: blob.size,
-      hasAudio: sourceAudioTrack != null,
-      frameCount,
+    // Final media validation: measure the REAL properties of the produced blob
+    // by decoding it. A render is only successful if it actually decodes.
+    // Validation is deliberately CHEAP here.
+    //
+    // The canvas dimensions (cw x ch) ARE the encoded output dimensions — they
+    // are not an estimate — and `durationMs` is the exact requested render
+    // window. Decoding the finished blob a second time on every render proved
+    // far too expensive (a second 1080p video element per render starved the
+    // media pipeline and stalled the render), so hot-path validation uses the
+    // structural facts we already know for certain.
+    //
+    // Pass `validateDecode: true` for delivery/final-export paths that want the
+    // stronger decode-based proof via inspectMediaBlob().
+    let inspection = {
+      ok: true,
+      width: cw,
+      height: ch,
+      duration: durationMs / 1000,
+      hasAudioHint: sourceHadAudio,
     };
+    if (settings && settings.validateDecode) {
+      const decoded = await inspectMediaBlob(blob);
+      if (!decoded.ok) {
+        try { URL.revokeObjectURL(pendingUrl); } catch { /* ignore */ }
+        throw new Error(`Export produced unusable media: ${decoded.error}`);
+      }
+      inspection = {
+        ok: true,
+        width: decoded.width || cw,
+        height: decoded.height || ch,
+        duration: decoded.duration || durationMs / 1000,
+        hasAudioHint: sourceHadAudio || !!decoded.hasAudioHint,
+      };
+    }
+    if (!(inspection.width > 0) || !(inspection.height > 0)) {
+      try { URL.revokeObjectURL(pendingUrl); } catch { /* ignore */ }
+      throw new Error('Export produced media with no usable video dimensions');
+    }
+
+    const result = buildRenderResult({
+      blob,
+      url: pendingUrl,
+      mime: mimeType,
+      extension: extensionForMime(mimeType),
+      action: action || 'export',
+      videoId: videoIdForResult,
+      label: labelForResult,
+      width: inspection.width,
+      height: inspection.height,
+      duration: inspection.duration,
+      hasAudio: sourceHadAudio || !!inspection.hasAudioHint,
+      frameCount,
+      videoBitsPerSecond: recorder.videoBitsPerSecond || 0,
+    });
+    // Back-compat alias used by existing handlers/tests.
+    result.ext = result.extension;
+
+    // Render test hook (DEV-ONLY).
+    // Exposes the last completed render result so the Playwright acceptance
+    // suite can inspect real output media. Gated on the bundler's DEV flag so
+    // it is stripped from production builds and never ships as a global.
+    // Production behaviour is unchanged; the returned `result` is what the
+    // normal export flow uses.
+    if (import.meta.env && import.meta.env.DEV && typeof window !== 'undefined') {
+      window.__lastRenderResult = result;
+    }
+
+    // Cleanup after result metadata is captured.
+    if (rafId) cancelAnimationFrame(rafId);
+    try { video.pause(); } catch { /* ignore */ }
+    video.removeAttribute('src');
+    video.load();
+    if (sourceAudioTrack) {
+      try { stream.removeTrack(sourceAudioTrack); } catch { /* ignore */ }
+      sourceAudioTrack = null;
+    }
+    if (canvas.parentNode) {
+      canvas.parentNode.removeChild(canvas);
+    }
+
+    return result;
   }
 
   async function runExportWorker(payload, statusLabel, actionName, onDone) {
@@ -1020,6 +1230,33 @@ export function RenderPage() {
     });
   });
   stopBackgroundProcessor = startProcessor(5000);
+
+  // Trailer Cut range.
+  //
+  // Default is the first 30s, but that MUST be clamped to the actual source
+  // duration: requesting 0→30s from a 5s clip would otherwise ask the renderer
+  // for 30s of media that does not exist.
+  const DEFAULT_TRAILER_SECONDS = 30;
+  let trailerRangeOverride = null;
+  function resolveTrailerTimeRange() {
+    if (trailerRangeOverride) {
+      const start = Math.max(0, Number(trailerRangeOverride.start) || 0);
+      const end = Math.max(start + 0.1, Number(trailerRangeOverride.end) || 0);
+      return { start, end };
+    }
+    const duration = videoMeta && Number.isFinite(videoMeta.duration) && videoMeta.duration > 0
+      ? videoMeta.duration
+      : DEFAULT_TRAILER_SECONDS;
+    return { start: 0, end: Math.min(DEFAULT_TRAILER_SECONDS, duration) };
+  }
+
+  // Render test hook (DEV-ONLY): let the Playwright acceptance suite drive a
+  // short, deterministic trailer range. Stripped from production builds.
+  if (import.meta.env && import.meta.env.DEV && typeof window !== 'undefined') {
+    window.__setRenderTrailerRange = (range) => {
+      trailerRangeOverride = (range && typeof range === 'object') ? range : null;
+    };
+  }
 
   const ACTION_HANDLERS = {
     'Download Frame': async () => {
@@ -1078,14 +1315,22 @@ export function RenderPage() {
             showToast('Export produced no output');
             return;
           }
-          const a = document.createElement('a');
-          a.href = result.url;
-          a.download = `${resolvedVideoId || 'export'}_master.${result.ext || 'webm'}`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          setTimeout(() => URL.revokeObjectURL(result.url), 1000);
-          showToast('Video exported successfully');
+          inspectMediaBlob(result.blob).then((inspection) => {
+            if (!inspection.ok) {
+              showToast(`Export failed validation: ${inspection.error}`);
+              return;
+            }
+            const a = document.createElement('a');
+            a.href = result.url;
+            a.download = `${resolvedVideoId || 'export'}_master.${result.ext || 'webm'}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(result.url), RESULT_URL_REVOKE_DELAY_MS);
+            showToast('Video exported successfully');
+          }).catch((err) => {
+            showToast(`Export validation error: ${err.message}`);
+          });
         }
       );
     },
@@ -1112,15 +1357,19 @@ export function RenderPage() {
           { action: 'export-video', videoUrl: resolvedVideoUrl, settings: { ...getOutputSettings(), format: fmt.format } },
           `Exporting ${fmt.label}`,
           'Export Variations',
-          (result) => {
-            const a = document.createElement('a');
-            a.href = result.url;
-            a.download = `${resolvedVideoId || 'export'}_${fmt.label.toLowerCase().replace(/[() ]/g, '')}.${result.ext || 'webm'}`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            setTimeout(() => URL.revokeObjectURL(result.url), 1000);
-          }
+           (result) => {
+             if (!result || !result.blob) {
+               showToast(`${fmt} produced no output`);
+               return;
+             }
+             const a = document.createElement('a');
+             a.href = result.url;
+             a.download = `${resolvedVideoId || 'export'}_${fmt.label.toLowerCase().replace(/[() ]/g, '')}.${result.ext || 'webm'}`;
+             document.body.appendChild(a);
+             a.click();
+             document.body.removeChild(a);
+             setTimeout(() => URL.revokeObjectURL(result.url), RESULT_URL_REVOKE_DELAY_MS);
+           }
         );
       }
 
@@ -1134,7 +1383,7 @@ export function RenderPage() {
     'Trailer Cut': async () => {
       if (!resolvedVideoUrl) { showToast('Load a video first'); return; }
       await runExportWorker(
-        { action: 'trailer-cut', videoUrl: resolvedVideoUrl, timeRange: { start: 0, end: 30 }, preset: selectedPreset },
+        { action: 'trailer-cut', videoUrl: resolvedVideoUrl, timeRange: resolveTrailerTimeRange(), preset: selectedPreset },
         'Building trailer cut',
         'Trailer Cut',
         (result) => {
@@ -1148,7 +1397,7 @@ export function RenderPage() {
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
-          setTimeout(() => URL.revokeObjectURL(result.url), 1000);
+          setTimeout(() => URL.revokeObjectURL(result.url), RESULT_URL_REVOKE_DELAY_MS);
           showToast('Trailer cut exported');
         }
       );
@@ -1174,7 +1423,7 @@ export function RenderPage() {
               document.body.appendChild(a);
               a.click();
               document.body.removeChild(a);
-              setTimeout(() => URL.revokeObjectURL(result.url), 1000);
+              setTimeout(() => URL.revokeObjectURL(result.url), RESULT_URL_REVOKE_DELAY_MS);
               resolve();
             }
           ).then(() => {}, reject);
@@ -1199,7 +1448,7 @@ export function RenderPage() {
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
-          setTimeout(() => URL.revokeObjectURL(result.url), 1000);
+          setTimeout(() => URL.revokeObjectURL(result.url), RESULT_URL_REVOKE_DELAY_MS);
           showToast('Remix exported');
         }
       );
@@ -1220,7 +1469,7 @@ export function RenderPage() {
               return;
             }
             outputs.push({ format: fmt, url: result.url, ext: result.ext });
-            setTimeout(() => URL.revokeObjectURL(result.url), 1000);
+            setTimeout(() => URL.revokeObjectURL(result.url), RESULT_URL_REVOKE_DELAY_MS);
           }
         );
       }
@@ -1230,7 +1479,6 @@ export function RenderPage() {
         exportedAt: new Date().toISOString(),
         files: outputs.map((o) => ({ format: o.format, ext: o.ext, url: o.url })),
       };
-      console.log('Delivery manifest:', manifest);
       if (outputs.length === 0) {
         showToast('In-browser delivery is unavailable in this browser');
       } else {
@@ -1251,28 +1499,28 @@ export function RenderPage() {
       if (progressStatus) progressStatus.textContent = 'Generating subtitles...';
       try {
         const result = await generateSubtitles(resolvedVideoUrl);
-        if (result.error || !result.url) {
-          showToast('Subtitles unavailable — Director/VideoDB not reachable');
+        if (result.status === 'error' || !result.videoUrl) {
+          showToast(result.error || 'Subtitles unavailable — Director/VideoDB not reachable');
           return;
         }
-        // Director returns a real subtitled-video URL (burned-in captions).
         const link = document.createElement('a');
-        link.href = result.url;
+        link.href = result.videoUrl;
         link.target = '_blank';
         link.rel = 'noopener';
         link.className = 'mt-3 inline-block rounded-2xl border border-emerald-400/25 bg-emerald-500/10 px-4 py-2 text-xs text-emerald-100/90';
-        link.textContent = `Open subtitled video (${result.url})`;
+        link.textContent = `Open subtitled video (${result.videoUrl})`;
         const badge = container.querySelector('#previewBadge');
         if (badge) {
           badge.after(link);
         }
-        const segCount = (result.segments || []).length;
+        const segCount = (result.data?.segments || []).length;
         showToast(`Subtitles generated — ${segCount} segments. Subtitled video ready.`);
       } catch (err) {
         console.error('[RenderPage] Add Subtitles failed:', err);
         showToast('Service unavailable — please check configuration');
       } finally {
         if (spinner) spinner.hidden = true;
+        if (progressStatus) progressStatus.textContent = 'Ready';
       }
     },
     'Generate Highlights': async () => {
@@ -1280,24 +1528,34 @@ export function RenderPage() {
       if (spinner) spinner.hidden = false;
       if (progressStatus) progressStatus.textContent = 'Detecting highlights...';
       try {
-        const scenes = await generateHighlights(resolvedVideoUrl);
-        if (!scenes || scenes.length === 0) {
-          showToast('No highlight scenes detected');
+        const result = await generateHighlights(resolvedVideoUrl);
+        if (result.status === 'error' || !result.highlights || result.highlights.length === 0) {
+          showToast(result.error || 'No highlight scenes detected');
           return;
         }
-        const sceneList = scenes
+        const sceneList = result.highlights
           .map(
             (s, i) =>
-              `  ${i + 1}. ${s.type || 'Scene'} @ ${s.startTime.toFixed(1)}s–${s.endTime.toFixed(1)}s (confidence: ${(s.confidence * 100).toFixed(0)}%)`
+              `  ${i + 1}. ${s.type || 'Scene'} @ ${(s.startTime ?? s.start_time ?? 0).toFixed(1)}s–${(s.endTime ?? s.end_time ?? 0).toFixed(1)}s (confidence: ${((s.confidence ?? 0) * 100).toFixed(0)}%)`
           )
           .join('\n');
-        console.log('[RenderPage] Highlight scenes:\n' + sceneList);
-        showToast(`${scenes.length} highlight scenes found — check console for details`);
+        if (result.videoUrl) {
+          const link = document.createElement('a');
+          link.href = result.videoUrl;
+          link.target = '_blank';
+          link.rel = 'noopener';
+          link.className = 'mt-3 inline-block rounded-2xl border border-cyan-400/25 bg-cyan-500/10 px-4 py-2 text-xs text-cyan-100/90';
+          link.textContent = `Open highlight reel (${result.videoUrl})`;
+          const badge = container.querySelector('#previewBadge');
+          if (badge) badge.after(link);
+        }
+        showToast(`${result.highlights.length} highlight scenes found — check console for details`);
       } catch (err) {
         console.error('[RenderPage] Generate Highlights failed:', err);
         showToast('Service unavailable — please check configuration');
       } finally {
         if (spinner) spinner.hidden = true;
+        if (progressStatus) progressStatus.textContent = 'Ready';
       }
     },
     'Dub / Voiceover': async () => {
@@ -1307,14 +1565,13 @@ export function RenderPage() {
       if (spinner) spinner.hidden = false;
       if (progressStatus) progressStatus.textContent = 'Generating voiceover...';
       try {
-        const narratedUrl = await generateVoiceover(script.trim(), resolvedVideoUrl);
-        if (!narratedUrl) {
-          showToast('Voiceover unavailable — Director/VideoDB not reachable');
+        const result = await generateVoiceover(script.trim(), resolvedVideoUrl);
+        if (result.status === 'error' || !result.videoUrl) {
+          showToast(result.error || 'Voiceover unavailable — Director/VideoDB not reachable');
           return;
         }
-        // Director returns a narrated VIDEO (voiceover burned onto the footage).
         const video = document.createElement('video');
-        video.src = narratedUrl;
+        video.src = result.videoUrl;
         video.controls = true;
         video.crossOrigin = 'anonymous';
         video.className = 'mt-3 w-full rounded-2xl border border-white/10 bg-black/30';
@@ -1332,6 +1589,7 @@ export function RenderPage() {
         showToast('Service unavailable — please check configuration');
       } finally {
         if (spinner) spinner.hidden = true;
+        if (progressStatus) progressStatus.textContent = 'Ready';
       }
     },
     'Create Shorts': async () => {
@@ -1340,28 +1598,59 @@ export function RenderPage() {
       if (progressStatus) progressStatus.textContent = 'Planning short clips...';
       try {
         const shortPlan = await createShorts(resolvedVideoUrl);
-        if (!shortPlan) {
-          showToast('Could not generate short — no suitable scenes found');
+        if (shortPlan.status === 'error' || !shortPlan.data) {
+          showToast(shortPlan.error || 'Could not generate short — no suitable scenes found');
           return;
         }
-        console.log('[RenderPage] Short plan:', shortPlan);
         const previewBadgeEl = document.querySelector('#previewBadge');
         if (previewBadgeEl) {
           const shortBadge = document.createElement('div');
           shortBadge.className = 'mt-3 rounded-2xl border border-fuchsia-400/25 bg-fuchsia-500/10 px-4 py-3 text-xs text-fuchsia-100/80';
           shortBadge.innerHTML =
-            `Short: ${shortPlan.aspectRatio} · ` +
-            `${shortPlan.startTime.toFixed(1)}s – ${shortPlan.endTime.toFixed(1)}s · ` +
-            `${shortPlan.duration.toFixed(1)}s duration · ` +
-            `${shortPlan.scenes.length} scene(s)`;
+            `Short: ${shortPlan.data.aspectRatio} · ` +
+            `${shortPlan.data.startTime.toFixed(1)}s – ${shortPlan.data.endTime.toFixed(1)}s · ` +
+            `${shortPlan.data.duration.toFixed(1)}s duration · ` +
+            `${shortPlan.data.scenes.length} scene(s)`;
           previewBadgeEl.after(shortBadge);
         }
-        showToast(`Short planned: ${shortPlan.aspectRatio}, ${shortPlan.duration.toFixed(1)}s`);
+        if (progressStatus) progressStatus.textContent = 'Exporting short clip...';
+        await runExportWorker(
+          {
+            action: 'trailer-cut',
+            videoUrl: resolvedVideoUrl,
+            timeRange: { start: shortPlan.data.startTime, end: shortPlan.data.endTime },
+            settings: { aspectRatio: shortPlan.data.aspectRatio || '9:16' },
+            preset: selectedPreset,
+          },
+          'Exporting short clip',
+          'Create Shorts',
+          (result) => {
+            if (!result || !result.blob) {
+              showToast('Short produced no output');
+              return;
+            }
+            const a = document.createElement('a');
+            a.href = result.url;
+            a.download = `${resolvedVideoId || 'short'}_9x16.${result.ext || 'webm'}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(result.url), RESULT_URL_REVOKE_DELAY_MS);
+            const outW = result.width || 0;
+            const outH = result.height || 0;
+            const outDur = Number.isFinite(result.duration) ? result.duration : 0;
+            showToast(
+              `Short exported · ${outW}×${outH} · ${outDur.toFixed(1)}s` +
+              (result.hasAudio ? ' · with audio' : '')
+            );
+          }
+        );
       } catch (err) {
         console.error('[RenderPage] Create Shorts failed:', err);
         showToast('Service unavailable — please check configuration');
       } finally {
         if (spinner) spinner.hidden = true;
+        if (progressStatus) progressStatus.textContent = 'Ready';
       }
     },
     'AI Auto-Edit': async () => {
@@ -1370,10 +1659,9 @@ export function RenderPage() {
       if (progressStatus) progressStatus.textContent = 'Running AI auto-edit...';
       try {
         const plan = await runAiAutoEdit(resolvedVideoUrl, { captionStyle: selectedPreset });
-        const sceneCount = (plan.scenes || []).length;
-        const highlightCount = (plan.highlights || []).length;
-        const subtitleCount = (plan.subtitles?.segments || []).length;
-        console.log('[RenderPage] AI Auto-Edit plan:', plan);
+        const sceneCount = (plan.scenes?.scenes || []).length;
+        const highlightCount = (plan.highlights?.highlights || []).length;
+        const subtitleCount = (plan.subtitles?.data?.segments || []).length;
         const editPlan = plan.plan && !plan.plan.error ? plan.plan : null;
         if (editPlan) {
           const badge = container.querySelector('#previewBadge');
@@ -1387,10 +1675,65 @@ export function RenderPage() {
               `export: ${editPlan.recommendedExportProfile}`;
             badge.after(planBadge);
           }
-          showToast(`AI Auto-Edit plan ready — ${editPlan.sceneOrder.length} scenes sequenced`);
+          const orderedScenes = (editPlan.sceneOrder || [])
+            .filter((s) => typeof s.startTime === 'number' && typeof s.endTime === 'number')
+            .sort((a, b) => a.startTime - b.startTime);
+          const renderTimeRange = orderedScenes.length > 0
+            ? { start: orderedScenes[0].startTime, end: orderedScenes[orderedScenes.length - 1].endTime }
+            : null;
+          if (progressStatus) progressStatus.textContent = 'Rendering auto-edit...';
+          await runExportWorker(
+            {
+              action: 'trailer-cut',
+              videoUrl: resolvedVideoUrl,
+              timeRange: renderTimeRange,
+              preset: selectedPreset,
+            },
+            'Rendering auto-edit',
+            'AI Auto-Edit',
+            (result) => {
+              if (!result || !result.blob) {
+                showToast('AI Auto-Edit produced no output');
+                return;
+              }
+              const a = document.createElement('a');
+              a.href = result.url;
+              a.download = `${resolvedVideoId || 'auto-edit'}_auto-edit.${result.ext || 'webm'}`;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              setTimeout(() => URL.revokeObjectURL(result.url), RESULT_URL_REVOKE_DELAY_MS);
+              const rendered = renderTimeRange
+                ? `${renderTimeRange.start.toFixed(1)}s – ${renderTimeRange.end.toFixed(1)}s`
+                : 'full source';
+              showToast(`AI Auto-Edit exported · ${rendered}`);
+            }
+          );
         } else {
-          showToast(
-            `AI Auto-Edit complete: ${sceneCount} scenes, ${highlightCount} highlights, ${subtitleCount} subtitles`
+          if (progressStatus) progressStatus.textContent = 'Rendering auto-edit...';
+          await runExportWorker(
+            {
+              action: 'export-video',
+              videoUrl: resolvedVideoUrl,
+              settings: getOutputSettings(),
+              preset: selectedPreset,
+            },
+            'Rendering auto-edit',
+            'AI Auto-Edit',
+            (result) => {
+              if (!result || !result.blob) {
+                showToast('AI Auto-Edit produced no output');
+                return;
+              }
+              const a = document.createElement('a');
+              a.href = result.url;
+              a.download = `${resolvedVideoId || 'auto-edit'}_auto-edit.${result.ext || 'webm'}`;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              setTimeout(() => URL.revokeObjectURL(result.url), RESULT_URL_REVOKE_DELAY_MS);
+              showToast('AI Auto-Edit exported · full source');
+            }
           );
         }
       } catch (err) {
@@ -1398,13 +1741,16 @@ export function RenderPage() {
         showToast('Service unavailable — please check configuration');
       } finally {
         if (spinner) spinner.hidden = true;
+        if (progressStatus) progressStatus.textContent = 'Ready';
       }
     },
   };
 
   // Action handler
   async function dispatchAction(action) {
-    if (!(await requireEntitlement())) return;
+    if (!(await requireEntitlement())) {
+        return;
+    }
     activeAction = action;
     const previewBadge = container.querySelector('#previewBadge');
     const handler = ACTION_HANDLERS[action];

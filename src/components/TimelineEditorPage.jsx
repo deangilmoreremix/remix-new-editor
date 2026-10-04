@@ -1,4 +1,4 @@
-import { uploadFileToStorage } from '../lib/uploadService.js';
+import { supabase, uploadFileToStorage } from '../lib/hybrid-supabase.js';
 import { setupEnhancedTooltips } from '../lib/editor/dragDrop.js';
 import { processFileUpload } from '../lib/editor/uploadPipeline.js';
 import { setupUploadSources } from '../lib/editor/uploadSources.js';
@@ -85,9 +85,6 @@ export function TimelineEditorPage() {
     cineGenTools: true,       // CineGen AI tool suite
     agentIntegration: true,   // Timeline agent hooks
     subtitleGeneration: true, // Whisper-based subtitle generation
-    sourceViewer: true,       // Source viewer + dual viewer modes
-    proxyPlayback: true,      // Proxy playback toggle
-    timelineTabs: true        // Multiple timeline tabs
   };
   TLEditor.featureFlags = FEATURE_FLAGS;
 
@@ -409,35 +406,38 @@ export function TimelineEditorPage() {
     <button class="fi-chip" data-modal="voice">Voice</button>
   </nav>
 
-   <div class="main-grid">
-     <div class="left-col">
-       <section class="preview-card preview-large">
-         <div class="preview-glow"></div>
-         <div class="preview-inner">
-           <div class="viewer">
-             <div class="viewer-stage" id="viewerStage">
-               <div class="viewer-frame" id="viewerFrame">
-                 <div class="preview-stage" id="previewStage"></div>
-                 <div class="source-stage" id="sourceStage" hidden></div>
-                 <div class="vf-gradient"></div>
-                 <div class="preview-empty" id="previewEmpty">
-                   <div class="vf-subtitle" id="vfSubtitle">Your story starts here.</div>
-                 </div>
-               </div>
+  <div class="main-grid">
+    <div class="left-col">
+      <section class="preview-card preview-large">
+        <div class="preview-glow"></div>
+        <div class="preview-inner">
+          <div class="viewer">
+            <div class="viewer-stage" id="viewerStage">
+              <div class="viewer-frame" id="viewerFrame">
+                <div class="preview-stage" id="previewStage"></div>
+                <div class="vf-gradient"></div>
+                <div class="preview-empty" id="previewEmpty">
+                  <div class="vf-subtitle" id="vfSubtitle">Your story starts here.</div>
+                </div>
+              </div>
                <div class="viewer-controls">
                  <button class="circle-btn" id="rewindBtn" data-tooltip="Rewind - Move the playhead back by 10% (←)" aria-label="Rewind the playhead by 10%">⏮</button>
                  <button class="circle-btn primary" id="playBtn" data-tooltip="Play or pause timeline preview (Spacebar)" aria-label="Play or pause timeline preview">▶</button>
                  <button class="circle-btn" id="stopBtn" data-tooltip="Stop - Stop playback and return to beginning" aria-label="Stop playback and return to the beginning">⏹</button>
                  <div class="vf-progress"><div class="vf-fill" id="progressFill" style="width:28%"></div></div>
-                 <span class="vf-time"><span id="currentTime">00:12.4</span> / <span id="totalTime">00:45.0</span></span>
-                 <button class="circle-btn" id="viewerModeBtn" data-tooltip="Toggle source/dual viewer" aria-label="Toggle viewer mode">🖥️</button>
+                 <span class="vf-time"><span id="currentTime">00:00.0</span> / <span id="totalTime">00:00.0</span></span>
+                 <div class="viewer-mode-btns" role="group" aria-label="Viewer mode" style="margin-left:8px;display:flex;gap:4px;">
+                   <button class="viewer-mode-btn active" data-viewer="timeline" title="Timeline view">Timeline</button>
+                   <button class="viewer-mode-btn" data-viewer="source" title="Source viewer">Source</button>
+                   <button class="viewer-mode-btn" data-viewer="split" title="Split view">Split</button>
+                 </div>
                </div>
-             </div>
-             <div class="filmstrip" id="filmstrip" aria-label="Clip thumbnails"></div>
-           </div>
-         </div>
-         <input type="file" id="uploadInput" accept="video/*,image/*,audio/*,.txt" hidden data-testid="file-input" />
-       </section>
+            </div>
+            <div class="filmstrip" id="filmstrip" aria-label="Clip thumbnails"></div>
+          </div>
+        </div>
+        <input type="file" id="uploadInput" accept="video/*,image/*,audio/*,.txt" hidden data-testid="file-input" />
+      </section>
       <section class="timeline-card" data-testid="timeline-container">
         <div class="timeline-top">
           <div class="toolbar-left">
@@ -447,11 +447,9 @@ export function TimelineEditorPage() {
               <button class="tool-btn" id="tbStop" data-tooltip="Jump to end" aria-label="Jump to end">⏭</button>
             </div>
             <div class="time-readout" aria-live="off">
-              <span class="time-now">00:12.4</span>
-              <span class="time-total">/ 00:45.0</span>
+              <span class="time-now">00:00.0</span>
+              <span class="time-total">/ 00:00.0</span>
             </div>
-            <div class="timeline-tabs" id="timelineTabs" role="tablist" aria-label="Timeline tabs"></div>
-            <button class="tool-btn" id="tbAddTimeline" data-tooltip="Add timeline tab" aria-label="Add timeline">＋</button>
             <div class="tool-group" role="group" aria-label="Edit tools">
               <button class="tool-btn" id="tbSplit" data-tooltip="Split selected clip at playhead" aria-label="Split clip at playhead">✂</button>
               <button class="tool-btn" id="tbDelete" data-tooltip="Delete selected clip" aria-label="Delete selected clip">⌫</button>
@@ -486,9 +484,14 @@ export function TimelineEditorPage() {
               <div class="ruler-ticks" id="rulerTicks"></div>
             </div>
           </div>
+          <div class="timeline-tabs-bar" id="timelineTabsBar" style="display:flex;align-items:center;gap:6px;padding:4px 8px;background:rgba(255,255,255,0.03);border-bottom:1px solid var(--border);">
+            <span style="font-size:11px;color:var(--text-dim);margin-right:4px;">Timelines:</span>
+            <button class="mini-btn" id="addTimelineTabBtn" title="Add new timeline tab">+ New Tab</button>
+            <span id="timelineTabsContainer" style="display:flex;gap:4px;flex:1;overflow-x:auto;"></span>
+          </div>
           <div class="timeline-body" id="timelineBody">
             <div class="compositing-overlay" id="compositingOverlay"></div>
-            <div class="playhead-layer"><div class="playhead-line" id="playheadLine"></div><div class="playhead-knob" id="playheadKnob" role="slider" tabindex="0" aria-label="Playhead position" aria-valuemin="0" aria-valuemax="45" aria-valuenow="14.4" aria-valuetext="00:14.4"></div></div>
+            <div class="playhead-layer"><div class="playhead-line" id="playheadLine"></div><div class="playhead-knob" id="playheadKnob" role="slider" tabindex="0" aria-label="Playhead position" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0" aria-valuetext="00:00.0"></div></div>
             <div id="trackRows"></div>
           </div>
         </div>
@@ -648,10 +651,7 @@ export function TimelineEditorPage() {
       generateType: 'Text',
       playing: false,
       playheadPercent: 34,
-      viewerMode: 'timeline', // timeline | source | dual
-      proxyEnabled: false,
-      timelineTabs: [],
-      selectedTimelineId: null,
+      viewerMode: 'timeline',
       zoom: 1,
       timelineSeconds: 45,
       // Prototype seed (timeline-redesign-prototype.html): 4 tracks, demo clips,
@@ -1078,13 +1078,14 @@ export function TimelineEditorPage() {
       progressFill: root.querySelector('#progressFill'),
       vfSubtitle: root.querySelector('#vfSubtitle'),
       previewStage: root.querySelector('#previewStage'),
-      sourceStage: root.querySelector('#sourceStage'),
       previewEmpty: root.querySelector('#previewEmpty'),
       playheadLine: root.querySelector('#playheadLine'),
       playheadKnob: root.querySelector('#playheadKnob'),
       rulerCanvas: root.querySelector('#rulerCanvas'),
       rulerTicks: root.querySelector('#rulerTicks'),
-      viewerModeBtn: root.querySelector('#viewerModeBtn'),
+      timelineTabsBar: root.querySelector('#timelineTabsBar'),
+      timelineTabsContainer: root.querySelector('#timelineTabsContainer'),
+      addTimelineTabBtn: root.querySelector('#addTimelineTabBtn'),
       projectTitle: root.querySelector('#projectTitle'),
       promptInput: root.querySelector('#promptInput'),
       durationSelect: root.querySelector('#durationSelect'),
@@ -1180,6 +1181,179 @@ export function TimelineEditorPage() {
       `;
 
       container.insertBefore(item, container.firstChild);
+    }
+
+    function applyCineGenResultToTimeline(result) {
+      if (!result || result.success === false) return;
+
+      const tool = result.tool || result.metadata?.tool;
+      const url = result.url || result.output?.url || result.video?.url;
+      const urls = Array.isArray(result.urls) ? result.urls : (url ? [url] : []);
+      const selectedClip = findSelectedClip();
+
+      if (tool === 'fill_gap' || tool === 'gap_fill') {
+        const targetTrack = state.tracks.find(t => ['video', 'image', 'b-roll', 'overlay'].includes(t.type)) || state.tracks[0];
+        if (!targetTrack) return;
+        const duration = result.duration || 5;
+        const startTime = selectedClip ? (selectedClip.end || selectedClip.start + duration) : 0;
+        const newClip = {
+          id: 'cinegen-' + Date.now(),
+          name: `AI Fill ${tool}`,
+          type: 'video',
+          src: url,
+          start: startTime,
+          end: startTime + duration,
+          duration,
+          sourceStart: 0,
+          sourceEnd: duration,
+          volume: 1,
+          opacity: 1,
+          playbackRate: 1,
+          effects: [],
+          transform: { x: 0, y: 0, scale: 1, rotation: 0 },
+          metadata: { cinegenProcessed: true, tool, requestId: result.requestId }
+        };
+        if (!targetTrack.clips) targetTrack.clips = [];
+        targetTrack.clips.push(newClip);
+        renderAll();
+        debouncedSave(0);
+        showToast('Gap filled with AI-generated clip', 'success');
+        return;
+      }
+
+      if (tool === 'extend' || tool === 'extend_clip') {
+        const targetTrack = selectedClip ? state.tracks.find(t => t.clips?.includes(selectedClip)) : state.tracks.find(t => ['video', 'image', 'b-roll'].includes(t.type)) || state.tracks[0];
+        if (!targetTrack || !selectedClip) return;
+        const addedDuration = result.addedDuration || 5;
+        const newClip = {
+          id: 'cinegen-' + Date.now(),
+          name: `AI Extend ${result.direction || 'after'}`,
+          type: selectedClip.type || 'video',
+          src: url,
+          start: selectedClip.end,
+          end: selectedClip.end + addedDuration,
+          duration: addedDuration,
+          sourceStart: 0,
+          sourceEnd: addedDuration,
+          volume: selectedClip.volume ?? 1,
+          opacity: selectedClip.opacity ?? 1,
+          playbackRate: selectedClip.playbackRate ?? 1,
+          effects: selectedClip.effects ? [...selectedClip.effects] : [],
+          transform: { ...(selectedClip.transform || { x: 0, y: 0, scale: 1, rotation: 0 }) },
+          metadata: { cinegenProcessed: true, tool, requestId: result.requestId, parentClipId: selectedClip.id }
+        };
+        if (!targetTrack.clips) targetTrack.clips = [];
+        targetTrack.clips.push(newClip);
+        renderAll();
+        debouncedSave(0);
+        showToast('Clip extended with AI-generated media', 'success');
+        return;
+      }
+
+      if (tool === 'music_generation') {
+        const audioTrack = state.tracks.find(t => t.type === 'audio') || state.tracks.find(t => t.clips?.some(c => c.type === 'audio'));
+        if (!audioTrack) return;
+        const newClip = {
+          id: 'cinegen-' + Date.now(),
+          name: `AI Music: ${result.genre || 'Generated'}`,
+          type: 'audio',
+          src: url,
+          start: 0,
+          end: result.duration || 30,
+          duration: result.duration || 30,
+          volume: 0.8,
+          metadata: { cinegenProcessed: true, tool, requestId: result.requestId, genre: result.genre, mood: result.mood, instrumental: result.instrumental }
+        };
+        if (!audioTrack.clips) audioTrack.clips = [];
+        audioTrack.clips.push(newClip);
+        renderAll();
+        debouncedSave(0);
+        showToast('AI music added to audio track', 'success');
+        return;
+      }
+
+      if (tool === 'element_create') {
+        const element = result.element || { name: 'Element', type: 'image', description: '', url };
+        state.mediaLibrary = state.mediaLibrary || [];
+        state.mediaLibrary.push({
+          id: 'element-' + Date.now(),
+          icon: element.type === 'image' ? '🖼️' : '🎬',
+          label: element.name || 'Generated Element',
+          type: element.type || 'image',
+          desc: element.description || 'AI-generated element',
+          src: element.url || url,
+          metadata: { cinegenProcessed: true, tool, requestId: result.requestId }
+        });
+        renderMedia();
+        debouncedSave(0);
+        showToast('Element added to media library', 'success');
+        return;
+      }
+
+      if (tool === 'shot_board') {
+        state.mediaLibrary = state.mediaLibrary || [];
+        (urls || []).forEach((shotUrl, idx) => {
+          state.mediaLibrary.push({
+            id: 'shot-' + Date.now() + '-' + idx,
+            icon: '🎬',
+            label: `Shot ${idx + 1}`,
+            type: 'image',
+            desc: 'AI-generated shot board frame',
+            src: shotUrl,
+            metadata: { cinegenProcessed: true, tool, requestId: result.requestId, shotIndex: idx }
+          });
+        });
+        renderMedia();
+        debouncedSave(0);
+        showToast(`${urls.length} shot board frames added to media library`, 'success');
+        return;
+      }
+
+      if (tool === 'sam3_segment' && result.video?.url) {
+        if (selectedClip) {
+          selectedClip.metadata = selectedClip.metadata || {};
+          selectedClip.metadata.maskUrl = result.video.url;
+          selectedClip.metadata.maskContentType = result.video.contentType;
+          selectedClip.metadata.sam3Processed = true;
+          selectedClip.metadata.sam3RequestId = result.requestId;
+        }
+        renderAll();
+        debouncedSave(0);
+        showToast('SAM3 segmentation applied — mask stored on clip', 'success');
+        return;
+      }
+
+      // Generic fallback: add any media URL to the first compatible track
+      if (urls.length > 0) {
+        const targetTrack = state.tracks.find(t => ['video', 'image', 'b-roll'].includes(t.type)) || state.tracks[0];
+        if (targetTrack) {
+          const startTime = selectedClip ? (selectedClip.end || selectedClip.start + 5) : 0;
+          urls.forEach((mediaUrl, idx) => {
+            const newClip = {
+              id: 'cinegen-' + Date.now() + '-' + idx,
+              name: `AI ${tool || 'Generated'} ${idx + 1}`,
+              type: 'video',
+              src: mediaUrl,
+              start: startTime + idx * 5,
+              end: startTime + idx * 5 + 5,
+              duration: 5,
+              sourceStart: 0,
+              sourceEnd: 5,
+              volume: 1,
+              opacity: 1,
+              playbackRate: 1,
+              effects: [],
+              transform: { x: 0, y: 0, scale: 1, rotation: 0 },
+              metadata: { cinegenProcessed: true, tool, requestId: result.requestId }
+            };
+            if (!targetTrack.clips) targetTrack.clips = [];
+            targetTrack.clips.push(newClip);
+          });
+          renderAll();
+          debouncedSave(0);
+          showToast(`Added ${urls.length} generated clip(s) to timeline`, 'success');
+        }
+      }
     }
 
     function clearPreviewStage() {
@@ -1629,64 +1803,6 @@ export function TimelineEditorPage() {
       }
       els.projectTitle.textContent = state.projectTitle;
       renderPreviewAsset(selected);
-      renderSourceViewer(selected);
-    }
-
-    function cycleViewerMode() {
-      const modes = ['timeline', 'source', 'dual'];
-      const current = state.viewerMode || 'timeline';
-      const next = modes[(modes.indexOf(current) + 1) % modes.length];
-      state.viewerMode = next;
-      applyViewerMode(next);
-    }
-
-    function applyViewerMode(mode) {
-      const preview = els.previewStage;
-      const source = els.sourceStage;
-      const frame = document.getElementById('viewerFrame');
-      if (!preview || !source || !frame) return;
-
-      frame.classList.remove('viewer-mode-source', 'viewer-mode-dual');
-      preview.hidden = false;
-      source.hidden = true;
-
-      if (mode === 'source') {
-        frame.classList.add('viewer-mode-source');
-        preview.hidden = true;
-        source.hidden = false;
-      } else if (mode === 'dual') {
-        frame.classList.add('viewer-mode-dual');
-        preview.hidden = false;
-        source.hidden = false;
-      }
-    }
-
-    function renderSourceViewer(selected) {
-      if (!els.sourceStage) return;
-      els.sourceStage.innerHTML = '';
-      if ((state.viewerMode || 'timeline') === 'timeline') return;
-      if (!selected || !selected.src) {
-        els.sourceStage.innerHTML = '<div class="preview-empty">No source media</div>';
-        return;
-      }
-      if (selected.type === 'video') {
-        const video = document.createElement('video');
-        video.src = selected.src;
-        video.controls = true;
-        video.style.width = '100%';
-        video.style.height = '100%';
-        video.dataset.clipId = selected.id;
-        els.sourceStage.appendChild(video);
-      } else if (selected.type === 'image') {
-        const image = document.createElement('img');
-        image.src = selected.src;
-        image.alt = selected.name || 'Source';
-        image.style.maxWidth = '100%';
-        image.style.maxHeight = '100%';
-        els.sourceStage.appendChild(image);
-      } else {
-        els.sourceStage.innerHTML = `<div class="preview-empty">Source preview not available for ${selected.type || 'this clip type'}</div>`;
-      }
     }
 
     function syncMediaPlayState() {
@@ -2084,6 +2200,44 @@ export function TimelineEditorPage() {
         showImportTimelineModal();
       } else if (pill === 'IC-LoRA') {
         showICLoraPanel();
+      } else if (pill === 'Audio Sync') {
+        syncSelectedAudio();
+      } else if (pill === 'Fill Gap AI') {
+        runCineGenTool(CINEGEN_TOOLS.GAP_FILL, { clipId: state.selectedClipId }).then(updateCineGenResults);
+      } else if (pill === 'Extend') {
+        runCineGenTool(CINEGEN_TOOLS.EXTEND, { clipId: state.selectedClipId }).then(updateCineGenResults);
+      } else if (pill === 'Music Gen') {
+        runCineGenTool('music_generation', { clipId: state.selectedClipId }).then(updateCineGenResults);
+      } else if (pill === 'Elements') {
+        showToast('Elements panel: browse and drag reusable media into timeline', 'info');
+      }
+    }
+
+    async function syncSelectedAudio() {
+      const selectedClip = findSelectedClip();
+      if (!selectedClip || selectedClip.type !== 'video') {
+        showToast('Select a video clip to sync audio', 'info');
+        return;
+      }
+      const audioClip = state.tracks.find(t => t.type === 'audio')?.clips?.find(c => c.type === 'audio');
+      if (!audioClip) {
+        showToast('No audio clip found on audio track', 'info');
+        return;
+      }
+      try {
+        const { computeAudioOffset } = await import('../lib/editor/audioSync.js');
+        showToast('Analyzing audio sync...', 'info');
+        const result = await computeAudioOffset(selectedClip.src, audioClip.src);
+        if (result && result.confidence > 0) {
+          showToast(`Audio sync offset: ${result.offsetSeconds.toFixed(2)}s (confidence: ${Math.round(result.confidence * 100)}%)`, 'success');
+          audioClip.start = (selectedClip.start || 0) + result.offsetSeconds;
+          renderAll();
+          debouncedSave(0);
+        } else {
+          showToast('Could not determine audio sync offset', 'error');
+        }
+      } catch (err) {
+        showToast(`Audio sync failed: ${err.message}`, 'error');
       }
     }
 
@@ -3648,32 +3802,19 @@ export function TimelineEditorPage() {
               <button id="clip-mute" type="button" data-tooltip="${clip.mute ? 'Unmute this clip' : 'Mute this clip to silence it'}">${clip.mute ? 'Unmute' : 'Mute'}</button>
             </div>
           </div>
-           <div class="clip-editor__section">
-             <h3>Visual Controls</h3>
-             <div class="clip-editor__field">
-               <button id="clip-visibility" type="button" data-tooltip="${clip.hidden ? 'Make clip visible on timeline' : 'Hide clip from timeline view'}">${clip.hidden ? 'Show' : 'Hide'}</button>
-             </div>
-             <div class="clip-editor__field">
-               <label for="clip-fill" data-tooltip="How the clip fits within its frame">Fill Mode</label>
-               <select id="clip-fill" data-tooltip="Choose how the clip scales to fit">
-                 <option value="scale" ${clip.fit === 'contain' ? 'selected' : ''}>Scale to Fit</option>
-                 <option value="fit" ${clip.fit !== 'contain' ? 'selected' : ''}>Fit</option>
-               </select>
-             </div>
-             <div class="clip-editor__field">
-               <label>Flip</label>
-               <select id="clip-flip" data-tooltip="Mirror the clip horizontally or vertically">
-                 <option value="">None</option>
-                 <option value="horizontal" ${clip.transform?.scaleX === -1 ? 'selected' : ''}>Horizontal</option>
-                 <option value="vertical" ${clip.transform?.scaleY === -1 ? 'selected' : ''}>Vertical</option>
-                 <option value="both" ${clip.transform?.scaleX === -1 && clip.transform?.scaleY === -1 ? 'selected' : ''}>Both</option>
-               </select>
-             </div>
-             <div class="clip-editor__field">
-               <label for="clip-speed">Speed (${(clip.playbackRate || 1).toFixed(2)}x)</label>
-               <input id="clip-speed" type="range" min="0.1" max="4" step="0.1" value="${clip.playbackRate || 1}" data-tooltip="Adjust playback speed from 0.1x to 4x" />
-             </div>
-           </div>
+          <div class="clip-editor__section">
+            <h3>Visual Controls</h3>
+            <div class="clip-editor__field">
+              <button id="clip-visibility" type="button" data-tooltip="${clip.hidden ? 'Make clip visible on timeline' : 'Hide clip from timeline view'}">${clip.hidden ? 'Show' : 'Hide'}</button>
+            </div>
+            <div class="clip-editor__field">
+              <label for="clip-fill" data-tooltip="How the clip fits within its frame">Fill Mode</label>
+              <select id="clip-fill" data-tooltip="Choose how the clip scales to fit">
+                <option value="scale" ${clip.fit === 'contain' ? 'selected' : ''}>Scale to Fit</option>
+                <option value="fit" ${clip.fit !== 'contain' ? 'selected' : ''}>Fit</option>
+              </select>
+            </div>
+          </div>
         </div>
       `;
 
@@ -3705,26 +3846,6 @@ export function TimelineEditorPage() {
         e.target.textContent = clip.hidden ? 'Show' : 'Hide';
         renderTracks();
       });
-      const flipSelect = els.clipEditorContainer.querySelector('#clip-flip');
-      if (flipSelect) {
-        flipSelect.addEventListener('change', () => {
-          clip.transform = clip.transform || { x: 0, y: 0, scale: 1, rotation: 0 };
-          const value = flipSelect.value;
-          clip.transform.scaleX = value === 'horizontal' || value === 'both' ? -1 : 1;
-          clip.transform.scaleY = value === 'vertical' || value === 'both' ? -1 : 1;
-          renderTracks();
-          updatePreview();
-        });
-      }
-      const speedInput = els.clipEditorContainer.querySelector('#clip-speed');
-      if (speedInput) {
-        speedInput.addEventListener('input', () => {
-          const value = parseFloat(speedInput.value);
-          clip.playbackRate = Number.isFinite(value) ? value : 1;
-          speedInput.previousElementSibling.textContent = `Speed (${clip.playbackRate.toFixed(2)}x)`;
-          renderTracks();
-        });
-      }
        const transSelect = els.clipEditorContainer.querySelector('#clip-transition');
        if (transSelect) {
          transSelect.value = clip.transition?.type || '';
@@ -4879,7 +5000,10 @@ export function TimelineEditorPage() {
             case 'AI Personalizer':
               window.dispatchEvent(new CustomEvent('open-personalizer'));
               break;
-            case 'CineGen Tools':
+             case 'Export':
+               openExportModal(state, showToast);
+               break;
+             case 'CineGen Tools':
               openPanel('cinegenResultsPanel');
               break;
             case 'Gap Fill':
@@ -4956,6 +5080,72 @@ export function TimelineEditorPage() {
       if (els.modalClose) els.modalClose.focus();
       // Trap focus within modal
       cleanup.addDocumentListener('keydown', handleModalKeydown);
+    }
+
+    function openExportModal(state, showToast) {
+      const content = `
+        <div class="export-modal">
+          <div class="form-group">
+            <label>Format</label>
+            <select id="exportFormat">
+              <option value="mp4">MP4 (H.264)</option>
+              <option value="webm">WebM (VP9)</option>
+              <option value="mov">MOV</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Quality</label>
+            <select id="exportQuality">
+              <option value="1080p">1080p (Full HD)</option>
+              <option value="720p">720p (HD)</option>
+              <option value="4k">4K (Ultra HD)</option>
+            </select>
+          </div>
+          <button class="primary-btn" id="startExportBtn">Start Export</button>
+          <button class="secondary-btn" id="cancelExportBtn">Cancel</button>
+          <div id="exportProgress" style="margin-top:12px;display:none;">
+            <div class="progress-bar"><div class="progress-fill" id="exportProgressFill" style="width:0%"></div></div>
+            <div id="exportProgressText">Preparing export...</div>
+          </div>
+        </div>
+      `;
+      openAdvancedModal(content, 'Export Project');
+
+      const startBtn = els.modalBody.querySelector('#startExportBtn');
+      const cancelBtn = els.modalBody.querySelector('#cancelExportBtn');
+      const progress = els.modalBody.querySelector('#exportProgress');
+      const progressFill = els.modalBody.querySelector('#exportProgressFill');
+      const progressText = els.modalBody.querySelector('#exportProgressText');
+
+      const doExport = async () => {
+        if (!startBtn) return;
+        startBtn.disabled = true;
+        progress.style.display = 'block';
+        progressText.textContent = 'Exporting...';
+
+        try {
+          const { ExportPipeline } = await import('../lib/editor/exportPipeline.js');
+          const pipeline = new ExportPipeline(els.timelineBody, state);
+
+          pipeline.onProgress = (pct) => {
+            progressFill.style.width = `${Math.min(100, Math.max(0, pct))}%`;
+            progressText.textContent = `Exporting... ${Math.round(pct)}%`;
+          };
+
+          await pipeline.startExport();
+          progressText.textContent = 'Export complete!';
+          showToast('Export complete', 'success');
+          setTimeout(closeModal, 1500);
+        } catch (err) {
+          progressText.textContent = `Export error: ${err.message}`;
+          showToast(`Export error: ${err.message}`, 'error');
+        } finally {
+          startBtn.disabled = false;
+        }
+      };
+
+      startBtn?.addEventListener('click', doExport);
+      cancelBtn?.addEventListener('click', closeModal);
     }
 
     function closeModal() {
@@ -5951,7 +6141,17 @@ export function TimelineEditorPage() {
       els.playBtn?.addEventListener('click', togglePlayback);
       els.stopBtn?.addEventListener('click', stopPlayback);
       els.rewindBtn?.addEventListener('click', rewindPlayback);
-      els.viewerModeBtn?.addEventListener('click', cycleViewerMode);
+
+      // Viewer mode switching
+      const viewerModeBtns = root.querySelectorAll('.viewer-mode-btn');
+      viewerModeBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          viewerModeBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          state.viewerMode = btn.dataset.viewer || 'timeline';
+          renderPreviewAsset(state.viewerMode === 'source' ? findSelectedClip() : null);
+        });
+      });
       els.generateBtn?.addEventListener('click', generateClip);
 
       // Header top actions (prototype skeleton, listeners-only)
@@ -5994,6 +6194,14 @@ export function TimelineEditorPage() {
         showToast(`Snap ${state.snapEnabled ? 'ON' : 'OFF'}`, 'info');
       });
 
+      if (els.addTimelineTabBtn) {
+        els.addTimelineTabBtn.addEventListener('click', () => {
+          addNewTimeline(state);
+          renderAll();
+          showToast('New timeline tab created', 'success');
+        });
+      }
+
       // Keyboard shortcuts
       root.setAttribute('tabindex', '0');
       root.addEventListener('keydown', (ev) => {
@@ -6014,7 +6222,6 @@ export function TimelineEditorPage() {
         else if (key === ']') { nudgeSelectedClip(0.5); }
         else if ((ev.ctrlKey || ev.metaKey) && key === 'c') { ev.preventDefault(); copySelectedClip(); }
         else if ((ev.ctrlKey || ev.metaKey) && key === 'v') { ev.preventDefault(); pasteClipAtPlayhead(); }
-        else if (key === 'v' && !ev.ctrlKey && !ev.metaKey) { ev.preventDefault(); cycleViewerMode(); }
       });
 
       // Zoom controls (prototype: out / track / in / fit)
@@ -6266,9 +6473,17 @@ export function TimelineEditorPage() {
       const maskBtn = root.querySelector('#cinegenMaskBtn');
       if (maskBtn) {
         maskBtn.addEventListener('click', async () => {
-          const result = await runCineGenTool('mask_tool', { clipId: state.selectedClipId });
+          const prompt = prompt('Enter segmentation prompt (e.g., "the person in red shirt")');
+          if (!prompt) return;
+          const result = await runCineGenTool('sam3_segment', {
+            clipId: state.selectedClipId,
+            prompt,
+            mode: 'text'
+          });
           updateCineGenResults(result);
-          if (result.success) {}
+          if (result.success) {
+            applyCineGenResultToTimeline(result);
+          }
         });
       }
 
@@ -6351,21 +6566,53 @@ export function TimelineEditorPage() {
             clipId: state.selectedClipId
           });
           updateCineGenResults(result);
-          if (result.success) {
-            showToast('Audio sync complete', 'success');
-            renderTracks();
-          } else {
-            showToast(result.error || 'Audio sync failed', 'error');
-          }
+          if (result.success) {}
         });
       }
 
       const layerBtn = root.querySelector('#cinegenLayerBtn');
       if (layerBtn) {
         layerBtn.addEventListener('click', async () => {
-          const result = await runCineGenTool('layer_decompose', { clipId: state.selectedClipId });
+          const selectedClip = findSelectedClip();
+          const imageUrl = selectedClip?.src || selectedClip?.url;
+          if (!imageUrl) {
+            showToast('Select a clip with media to decompose', 'error');
+            return;
+          }
+          const result = await runCineGenTool('layer_decompose', { clipId: state.selectedClipId, imageUrl });
           updateCineGenResults(result);
-          if (result.success) {}
+          if (result.success) {
+            // Add decomposed layers to media library
+            if (result.layers && Array.isArray(result.layers)) {
+              state.mediaLibrary = state.mediaLibrary || [];
+              result.layers.forEach((layer, idx) => {
+                state.mediaLibrary.push({
+                  id: `layer-${Date.now()}-${idx}`,
+                  icon: '🖼️',
+                  label: layer.name || `Layer ${idx + 1}`,
+                  type: 'image',
+                  desc: 'AI-decomposed layer',
+                  src: layer.url,
+                  metadata: { cinegenProcessed: true, tool: 'layer_decompose', layerIndex: idx }
+                });
+              });
+              renderMedia();
+              showToast(`Layer decomposition complete: ${result.layers.length} layers added to media library`, 'success');
+            } else if (result.url) {
+              state.mediaLibrary = state.mediaLibrary || [];
+              state.mediaLibrary.push({
+                id: `layer-${Date.now()}`,
+                icon: '🖼️',
+                label: 'Decomposed Layer',
+                type: 'image',
+                desc: 'AI-decomposed layer',
+                src: result.url,
+                metadata: { cinegenProcessed: true, tool: 'layer_decompose' }
+              });
+              renderMedia();
+              showToast('Layer decomposition complete', 'success');
+            }
+          }
         });
       }
 
@@ -6381,16 +6628,12 @@ export function TimelineEditorPage() {
       const proxyBtn = root.querySelector('#cinegenProxyBtn');
       if (proxyBtn) {
         proxyBtn.addEventListener('click', async () => {
-          const next = !state.proxyEnabled;
-          const result = await runCineGenTool('proxy_playback', { enabled: next });
-          updateCineGenResults(result);
-          if (result.success) {
-            state.proxyEnabled = next;
-            showToast(next ? 'Proxy playback enabled' : 'Proxy playback disabled', 'success');
-            renderTracks();
-          } else {
-            showToast(result.error || 'Proxy playback toggle failed', 'error');
-          }
+          // Toggle proxy mode locally — proxy playback is a browser-side feature
+          const newProxyMode = !state.proxyMode;
+          state.setProxyMode(newProxyMode);
+          proxyBtn.classList.toggle('active', newProxyMode);
+          showToast(newProxyMode ? 'Proxy playback enabled' : 'Proxy playback disabled', 'info');
+          renderAll();
         });
       }
 
@@ -6438,51 +6681,49 @@ export function TimelineEditorPage() {
       renderMedia();
       renderGenerateTypes();
       renderTimelineTabs();
+
       renderRail();
       renderMultiCamera();
       updatePreview();
       updatePlaybackUI();
     }
 
-    function renderTimelineTabs() {
-      const container = document.getElementById('timelineTabs');
-      if (!container) return;
-      if (!state.timelines || state.timelines.length === 0) {
-        container.innerHTML = '';
-        return;
-      }
-      const tabs = state.timelines.map(timeline => {
-        const active = timeline.id === state.selectedTimelineId ? 'active' : '';
-        return `<button class="timeline-tab ${active}" data-timeline-id="${timeline.id}" role="tab" aria-selected="${active ? 'true' : 'false'}">${escapeHtml(timeline.projectTitle || 'Timeline')}</button>`;
-      }).join('');
-      container.innerHTML = tabs + '<button class="timeline-tab timeline-tab-add" id="tbAddTimeline" data-tooltip="Add timeline tab" aria-label="Add timeline">＋</button>';
-      const addBtn = container.querySelector('#tbAddTimeline');
-      if (addBtn) {
-        addBtn.addEventListener('click', () => {
-          addNewTimeline(state);
-          renderTimelineTabs();
-          renderTracks();
-          updatePreview();
-        });
-      }
-      container.querySelectorAll('.timeline-tab[data-timeline-id]').forEach(tab => {
-        tab.addEventListener('click', () => {
-          const timelineId = tab.dataset.timelineId;
-          if (timelineId && timelineId !== state.selectedTimelineId) {
-            switchToTimeline(state, timelineId);
-            renderTimelineTabs();
-            renderTracks();
-            updatePreview();
-            updatePlaybackUI();
-          }
-        });
-      });
-    }
-
     function renderMultiCamera() {
       if (els.multiCameraToolbar) renderMultiCameraToolbar(state, els.multiCameraToolbar);
       if (els.pipControls) renderPipControls(state, els.pipControls);
       if (els.splitControls) renderSplitScreenControls(state, els.splitControls);
+    }
+
+    function renderTimelineTabs() {
+      if (!els.timelineTabsContainer) return;
+      const timelines = state.timelines || [];
+      const selectedId = state.selectedTimelineId;
+      els.timelineTabsContainer.innerHTML = timelines.map(t => `
+        <button class="mini-btn timeline-tab-btn ${t.id === selectedId ? 'active' : ''}" data-timeline-id="${t.id}" title="${escapeHtml(t.projectTitle || 'Untitled')}">
+          ${escapeHtml(t.projectTitle || 'Timeline')}
+          <span class="tab-close" data-timeline-id="${t.id}" title="Close tab">×</span>
+        </button>
+      `).join('');
+
+      els.timelineTabsContainer.querySelectorAll('.timeline-tab-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          if (e.target.classList.contains('tab-close')) {
+            e.stopPropagation();
+            const id = e.target.dataset.timelineId;
+            const idx = (state.timelines || []).findIndex(t => t.id === id);
+            if (idx > -1 && (state.timelines || []).length > 1) {
+              state.timelines.splice(idx, 1);
+              if (state.selectedTimelineId === id) {
+                switchToTimeline(state, state.timelines[0]?.id || state.timelines[0]?.id);
+              }
+              renderAll();
+            }
+            return;
+          }
+          switchToTimeline(state, btn.dataset.timelineId);
+          renderAll();
+        });
+      });
     }
 
      // Color correction system not implemented

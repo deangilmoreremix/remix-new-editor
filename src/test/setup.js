@@ -51,11 +51,12 @@ if (typeof globalThis.document === 'undefined' || typeof globalThis.document.cre
   };
 }
 
+const localStorageStore = new Map();
 const localStorageMock = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn(),
+  getItem: vi.fn((key) => (localStorageStore.has(key) ? localStorageStore.get(key) : null)),
+  setItem: vi.fn((key, value) => localStorageStore.set(key, value)),
+  removeItem: vi.fn((key) => localStorageStore.delete(key)),
+  clear: vi.fn(() => localStorageStore.clear()),
 };
 global.localStorage = localStorageMock;
 
@@ -83,6 +84,11 @@ if (typeof globalThis.indexedDB === 'undefined') {
 // Mock fetch
 global.fetch = vi.fn();
 
+// Polyfill scrollIntoView for jsdom (not implemented by default)
+if (typeof globalThis.HTMLElement !== 'undefined' && !globalThis.HTMLElement.prototype.scrollIntoView) {
+  globalThis.HTMLElement.prototype.scrollIntoView = function() {};
+}
+
 // Mock console methods to reduce noise in tests
 const originalConsole = global.console;
 global.console = {
@@ -94,20 +100,14 @@ global.console = {
   debug: vi.fn(),
 };
 
-// Mock interactjs (used by Personalizer.js for drag/resize)
-if (typeof globalThis.interact === 'undefined') {
-  globalThis.interact = () => ({
-    draggable: () => ({
-      modifiers: [],
-      on: () => {},
-    }),
-    resizable: () => ({
-      restrictEdges: {},
-      modifiers: [],
-      on: () => {},
-    }),
-    modifiers: {
-      restrictRect: () => ({}),
-    },
-  });
+// Provide default test values for required env vars so modules don't throw
+// during import/initialization in the test environment.
+if (typeof globalThis.process === 'undefined') {
+  globalThis.process = { env: {} };
 }
+if (!globalThis.process.env) {
+  globalThis.process.env = {};
+}
+globalThis.process.env.VITE_SUPABASE_URL = globalThis.process.env.VITE_SUPABASE_URL || 'http://localhost:54321';
+globalThis.process.env.VITE_SUPABASE_ANON_KEY = globalThis.process.env.VITE_SUPABASE_ANON_KEY || 'test-anon-key';
+globalThis.process.env.FAL_KEY = globalThis.process.env.FAL_KEY || 'test-fal-key';

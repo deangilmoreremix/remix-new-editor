@@ -9,7 +9,11 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './tests/e2e',
+<<<<<<< HEAD
   testMatch: ['**/timeline-healthcheck.spec.js', '**/timeline-editing.spec.js', '**/timeline-sam3.spec.js', '**/public-audit-report.spec.js', '**/video-agent-studio.spec.js', '**/template-generator.spec.js', '**/website-builder-navigation.spec.js'],
+=======
+  testMatch: ['**/timeline-healthcheck.spec.js', '**/timeline-editing.spec.js', '**/timeline-sam3.spec.js', '**/public-audit-report.spec.js', '**/video-agent-studio.spec.js', '**/template-generator.spec.js', '**/node-workflow.spec.js', '**/render-studio.spec.js'],
+>>>>>>> fix/render-core-media-cert
   testIgnore: '**/node_modules/**',
 
   fullyParallel: false,
@@ -24,8 +28,17 @@ export default defineConfig({
     ['line']
   ],
 
-  timeout: 60_000,
+  // Render actions perform real browser media recording plus a decode-based
+  // validation pass. Those are legitimately slow (tens of seconds), so the
+  // per-test budget is generous. This does not relax any assertion — it only
+  // stops slow-but-correct renders from being killed mid-flight.
+  timeout: 150_000,
   expect: { timeout: 10_000 },
+
+  // Warm the dev server before any test runs. A cold Vite server pre-bundles
+  // dependencies on first navigation, which can exceed the navigation timeout
+  // and fail the first test spuriously.
+  globalSetup: './tests/e2e/renderGlobalSetup.js',
 
   use: {
     baseURL: 'http://127.0.0.1:3100',

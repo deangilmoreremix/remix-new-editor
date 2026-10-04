@@ -568,10 +568,6 @@ export class SceneDetector {
     `)}`;
   }
 
-  showToast(message, type = 'info') {
-    this.showToast(message, type);
-  }
-
   destroy() {
     this.clearTimelineMarkers();
     if (this.surface && this.surface.parentNode) {

@@ -79,18 +79,10 @@ export class ExtendModal extends BaseModal {
         this.onError(this.error);
       }
     } catch (e) {
-      // Fallback: simulate a successful local extend so the UI/flow is usable
-      // even if the CineGen backend integration is not wired yet.
-      this.result = {
-        success: true,
-        clipId: this.selectedClipId,
-        addedDuration: this.duration,
-        source: 'local-fallback',
-        tool: 'extend'
-      };
-      this.status = 'done';
+      this.status = 'error';
+      this.error = e.message || 'Extend failed';
       this.refresh();
-      this.onComplete(this.result);
+      this.onError(this.error);
     }
   }
 }

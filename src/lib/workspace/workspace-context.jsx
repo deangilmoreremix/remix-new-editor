@@ -516,6 +516,30 @@ export function WorkspaceShell({ children, initialNodes = [], initialEdges = [] 
     lastPushType: null,
   });
 
+  // Load persisted workflow from localStorage
+  useEffect(() => {
+    try {
+      const savedSpaces = localStorage.getItem('cinegen_spaces');
+      const savedActiveSpace = localStorage.getItem('cinegen_active_space');
+      if (savedSpaces) {
+        const spaces = JSON.parse(savedSpaces);
+        if (Array.isArray(spaces) && spaces.length > 0) {
+          const activeSpaceId = savedActiveSpace || spaces[0]?.id;
+          historyDispatch({
+            type: 'HYDRATE',
+            payload: {
+              spaces,
+              nodes: spaces[0]?.nodes || initialSpace.nodes,
+              edges: spaces[0]?.edges || initialSpace.edges,
+              activeSpaceId,
+              openSpaceIds: new Set(spaces.map(s => s.id)),
+            },
+          });
+        }
+      }
+    } catch {}
+  }, []);
+
   const state = history.current;
 
   // Persist spaces to localStorage

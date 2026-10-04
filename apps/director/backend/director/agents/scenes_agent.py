@@ -35,6 +35,17 @@ class ScenesAgent(BaseAgent):
             videodb_tool = VideoDBTool(collection_id=collection_id)
             videodb_tool.index_scene(video_id, extraction_type=SceneExtractionType.shot_based)
             scenes = videodb_tool.list_scene_index(video_id) or []
+            normalized = []
+            for scene in scenes:
+                start = scene.get("start") or scene.get("start_time") or 0
+                end = scene.get("end") or scene.get("end_time") or 0
+                normalized.append({
+                    "startTime": float(start),
+                    "endTime": float(end),
+                    "duration": float(end) - float(start),
+                    "type": scene.get("type") or scene.get("scene_type") or "Scene",
+                    "confidence": float(scene.get("confidence", scene.get("score", 1))),
+                })
             video_content.status = MsgStatus.success
             video_content.status_message = "Done."
             self.output_message.publish()
@@ -44,4 +55,4 @@ class ScenesAgent(BaseAgent):
             video_content.status_message = "Failed."
             self.output_message.publish()
             return AgentResponse(status=AgentStatus.ERROR, message=str(e))
-        return AgentResponse(status=AgentStatus.SUCCESS, message="Done.", data={"scenes": scenes})
+        return AgentResponse(status=AgentStatus.SUCCESS, message="Done.", data={"scenes": normalized})

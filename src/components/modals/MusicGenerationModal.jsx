@@ -102,19 +102,10 @@ export class MusicGenerationModal extends BaseModal {
         this.onError(this.error);
       }
     } catch (e) {
-      // Fallback: simulate music generation so the modal flow is testable
-      this.result = {
-        success: true,
-        source: 'local-fallback',
-        genre: this.container.querySelector('#musicGenre')?.value || this.genre,
-        mood: this.container.querySelector('#musicMood')?.value || this.mood,
-        tempo: parseInt(this.container.querySelector('#musicTempo')?.value || '120', 10),
-        instrumental: this.container.querySelector('#musicInstrumental')?.checked ?? this.instrumental,
-        tool: 'music_generation'
-      };
-      this.status = 'done';
+      this.status = 'error';
+      this.error = e.message || 'Music generation failed';
       this.refresh();
-      this.onComplete(this.result);
+      this.onError(this.error);
     }
   }
 }
