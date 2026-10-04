@@ -6297,7 +6297,6 @@ export function TimelineEditorPage() {
       }
 
     function renderAll() {
-      initializeDefaultTracks();
       renderTools();
       renderPills();
       renderTracks();
