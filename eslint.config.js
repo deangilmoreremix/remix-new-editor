@@ -1,10 +1,16 @@
 import js from '@eslint/js';
-import { FlatCompat } from '@eslint/compat';
+import { FlatCompat } from "@eslint/eslintrc";
+import path from "path";
+import { fileURLToPath } from "url";
 import tsParser from '@typescript-eslint/parser';
 import reactHooks from 'eslint-plugin-react-hooks';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const compat = new FlatCompat({
-  baseDirectory: new URL('.', import.meta.url),
+  baseDirectory: __dirname,
+  resolvePluginsRelativeTo: __dirname,
 });
 
 export default [
@@ -80,7 +86,6 @@ export default [
       'no-dupe-class-members': 'error',
       'no-empty': 'warn',
       'no-case-declarations': 'error',
-      'preserve-caught-error': 'warn',
       'class-methods-use-this': 'off',
       'consistent-return': 'off',
       'function-paren-newline': 'off',

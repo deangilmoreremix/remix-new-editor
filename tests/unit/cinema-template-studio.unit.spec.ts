@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const cinemaStudioPath = path.join(process.cwd(), 'src/components/CinemaTemplateStudio.js');
+const orchestratorPath = path.join(process.cwd(), 'src/lib/templateGenerationOrchestrator.js');
 
 // Mock muapi before importing CinemaTemplateStudio
 vi.mock('../../src/lib/muapi.js', () => {
@@ -627,8 +628,8 @@ describe('CinemaTemplateStudio feature tests', () => {
   // ─────────────────────────────────────────────────────────
 
   it('contains fallback map with flux-dev for t2i and i2i model types', () => {
-    const cinemaSrc = fs.readFileSync(cinemaStudioPath, 'utf8');
-    const fallbackMapMatch = cinemaSrc.match(/fallbackMap\s*=\s*\{[^}]+\}/);
+    const orchestratorSrc = fs.readFileSync(orchestratorPath, 'utf8');
+    const fallbackMapMatch = orchestratorSrc.match(/DEFAULT_FALLBACK_MODELS\s*=\s*\{[^}]+\}/);
     expect(fallbackMapMatch).not.toBeNull();
     if (fallbackMapMatch) {
       expect(fallbackMapMatch[0]).toContain("t2i: 'flux-dev'");
@@ -637,8 +638,8 @@ describe('CinemaTemplateStudio feature tests', () => {
   });
 
   it('contains fallback map with kling-v2.6-pro-i2v for i2v model type', () => {
-    const cinemaSrc = fs.readFileSync(cinemaStudioPath, 'utf8');
-    const fallbackMapMatch = cinemaSrc.match(/fallbackMap\s*=\s*\{[^}]+\}/);
+    const orchestratorSrc = fs.readFileSync(orchestratorPath, 'utf8');
+    const fallbackMapMatch = orchestratorSrc.match(/DEFAULT_FALLBACK_MODELS\s*=\s*\{[^}]+\}/);
     expect(fallbackMapMatch).not.toBeNull();
     if (fallbackMapMatch) {
       expect(fallbackMapMatch[0]).toContain("i2v: 'kling-v2.6-pro-i2v'");
@@ -658,9 +659,9 @@ describe('CinemaTemplateStudio feature tests', () => {
     });
   });
 
-  it('fallback uses candidates[0] or fallbackMap when selectedModel is invalid', () => {
+  it('fallback uses resolveModel when selectedModel is invalid', () => {
     const cinemaSrc = fs.readFileSync(cinemaStudioPath, 'utf8');
     expect(cinemaSrc).toContain('candidates.find(m => m.id === selectedModel)');
-    expect(cinemaSrc).toContain('candidates[0]?.id || fallbackMap');
+    expect(cinemaSrc).toContain('resolveModel');
   });
 });

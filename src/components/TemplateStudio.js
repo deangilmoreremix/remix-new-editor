@@ -6,6 +6,7 @@ import { getTemplateSpecs, hasEnhancedSpecs } from '../lib/templateSpecs.js';
 import { muapi } from '../lib/muapi.js';
 import { saveGeneration } from '../lib/generationHistory.js';
 import { getNicheTerms, enrichPromptString, deriveEngineInputFromTemplate, composeNegativePrompt } from '../lib/templateEngine.js';
+import { resolveModel, normalizeAspectRatio, normalizeDuration, applyFormStateToParams, attachThumbnail, buildNegativePrompt, validateBeforeGenerate, formatGenerationError } from '../lib/templateGenerationOrchestrator.js';
 import { NICHE_ENRICHMENT, FILM_FAMILIES } from '../lib/templateMatrix.js';
 import { t2iModels, i2iModels, i2vModels, t2vModels, v2vModels, getV2VModelById } from '../lib/models.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
@@ -76,15 +77,7 @@ export function TemplateStudio(templateId) {
     if (!modelId || !modelType) return false;
     return !!getFallbackList(modelType).find(m => m && m.id === modelId);
   };
-  const getValidModel = (tpl, preferred) => {
-    const candidate = preferred || tpl.model;
-    if (candidate && isValidModelForType(candidate, tpl.modelType)) return candidate;
-    const list = getFallbackList(tpl.modelType);
-    if (list.length > 0 && list[0]?.id) return list[0].id;
-    if (tpl.modelType === 't2v') return 'kling-v2.6-pro-t2v';
-    if (tpl.modelType === 'i2v') return 'kling-v2.6-pro-i2v';
-    return 'flux-dev';
-  };
+  const getValidModel = (tpl, preferred) => resolveModel(tpl, preferred, modelListsByType);
   let selectedModel = getValidModel(template);
   let loadedModels = [];
   let primaryPromptField = null;
@@ -1194,53 +1187,25 @@ export function TemplateStudio(templateId) {
 
     // Build params for potential retry
     const params = { ...(template.defaultParams || {}), model: getValidModel(template, selectedModel) };
-    
-    // Normalize aspect ratio for standard and matrix templates
-    const aspectRatio = template.aspectRatio || (template.aspectRatios ? template.aspectRatios[0] : null);
-    if (aspectRatio) params.aspect_ratio = aspectRatio;
 
-    // Normalize duration from template or defaultParams
-    const duration = template.duration
-      ? (typeof template.duration === 'object' ? template.duration.default : template.duration)
-      : template.defaultParams?.duration;
-    if (duration) params.duration = duration;
-
-    allInputs.forEach(input => {
-      if (formState[input.name]) {
-        params[input.name] = formState[input.name];
-      }
-    });
+    if (normalizeAspectRatio(template)) params.aspect_ratio = normalizeAspectRatio(template);
+    if (normalizeDuration(template)) params.duration = normalizeDuration(template);
+    applyFormStateToParams(params, formState, allInputs);
 
     // Build prompt from all available template metadata and advanced options
     const promptForBuild = lastBuiltPrompt || params.prompt || '';
     params.prompt = buildEnrichedPrompt(template, specs, formState, promptForBuild);
     lastBuiltPrompt = params.prompt;
 
-    const negNiche = (formState.niche && formState.niche !== 'auto-detect') ? formState.niche : (template.niche || '');
-    const negativePrompt = formState['_customNegativePrompt'] || composeNegativePrompt(template.filmFamily || '', negNiche, formState.visualStyle || 'commercial') || specs.negativePrompt || '';
+    const negativePrompt = formState['_customNegativePrompt'] || buildNegativePrompt(template, formState, specs);
     if (negativePrompt) params.negative_prompt = negativePrompt;
 
-    // Attach the user-generated custom thumbnail if one exists
-    if (customThumbnailUrl) {
-      params.thumbnail_url = customThumbnailUrl;
-    }
+    attachThumbnail(params, customThumbnailUrl);
 
     // Client-side validation before muapi call
-    const EFFECT_MODELS = ['ai-video-effects', 'motion-controls', 'video-effects', 'vfx'];
-    const needsImageUrl = template.modelType === 'i2v' || template.modelType === 'i2i';
-    const imageInput = allInputs.find(i => i.type === 'image' || i.type === 'frame');
-    if (needsImageUrl && !params[imageInput?.name]) {
-      showInlineError(container, 'Please upload an image before generating.');
-      return;
-    }
-     // V2V models need a video_url instead of image_url
-      const isV2V = !!getV2VModelById(selectedModel);
-     if (isV2V && !params.video_url) {
-      showInlineError(container, 'Please upload a video before generating.');
-      return;
-    }
-    if (EFFECT_MODELS.includes(params.model) && !params.name) {
-      showInlineError(container, 'Please enter a name before generating.');
+    const validationError = validateBeforeGenerate(template, params, allInputs, selectedModel);
+    if (validationError) {
+      showInlineError(container, validationError);
       return;
     }
 
@@ -1270,28 +1235,15 @@ export function TemplateStudio(templateId) {
       const mergedParams = { model: validatedModel, ...(template.defaultParams || {}), ...params, model: validatedModel };
       params = mergedParams;
 
-      // Normalize aspect ratio for standard and matrix templates
-      const aspectRatio = template.aspectRatio || (template.aspectRatios ? template.aspectRatios[0] : null);
-      if (aspectRatio) params.aspect_ratio = aspectRatio;
-
-      // Normalize duration from template or defaultParams
-      const duration = template.duration
-        ? (typeof template.duration === 'object' ? template.duration.default : template.duration)
-        : template.defaultParams?.duration;
-      if (duration) params.duration = duration;
-
-      allInputs.forEach(input => {
-        if (formState[input.name]) {
-          params[input.name] = formState[input.name];
-        }
-      });
+      if (normalizeAspectRatio(template)) params.aspect_ratio = normalizeAspectRatio(template);
+      if (normalizeDuration(template)) params.duration = normalizeDuration(template);
+      applyFormStateToParams(params, formState, allInputs);
 
       // Build prompt from all available template metadata and advanced options
       params.prompt = buildEnrichedPrompt(template, specs, formState, params._rawPrompt || params.prompt);
       lastBuiltPrompt = params.prompt;
 
-      const negNiche = (formState.niche && formState.niche !== 'auto-detect') ? formState.niche : (template.niche || '');
-      const negativePrompt = formState['_customNegativePrompt'] || composeNegativePrompt(template.filmFamily || '', negNiche, formState.visualStyle || 'commercial') || specs.negativePrompt || '';
+      const negativePrompt = formState['_customNegativePrompt'] || buildNegativePrompt(template, formState, specs);
       if (negativePrompt) params.negative_prompt = negativePrompt;
 
        let result;
@@ -1319,10 +1271,7 @@ export function TemplateStudio(templateId) {
         throw new Error('No output URL returned');
       }
     } catch (err) {
-      console.error('[TemplateStudio]', err);
-      const message = err.message || 'Generation failed';
-      const userMessage = message.length > 80 ? `${message.slice(0, 80)}…` : message;
-      const retryHtml = retryCount < MAX_RETRIES ? ' <button id="retry-btn" class="ml-2 underline text-emerald-200 hover:text-white">Retry</button>' : '';
+      const { userMessage, retryHtml } = formatGenerationError(err, retryCount, MAX_RETRIES);
       showInlineError(container, `${userMessage}${retryHtml}`);
       const retryBtn = container.querySelector('#retry-btn');
       if (retryBtn && lastGenerationParams) {

@@ -41,7 +41,8 @@ import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { selectScenes } from '../lib/sceneSelector.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
 import { renderProviderLogoImg, mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
-import { enrichPromptString, composeNegativePrompt } from '../lib/templateEngine.js';
+import { enrichPromptString } from '../lib/templateEngine.js';
+import { resolveModel, normalizeAspectRatio, normalizeDuration, attachThumbnail, buildNegativePrompt, formatGenerationError } from '../lib/templateGenerationOrchestrator.js';
 import { saveGeneration } from '../lib/generationHistory.js';
 
 export function CinemaTemplateStudio() {
@@ -355,10 +356,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
 
     // Prefer template.model if valid, otherwise use first candidate
     if (lastModelType !== template.modelType || !candidates.find(m => m.id === selectedModel)) {
-      const defaultModel = template.model && candidates.find(m => m.id === template.model)
-        ? template.model
-        : (candidates[0]?.id || 'kling-v2.6-pro-t2v');
-      selectedModel = defaultModel;
+      selectedModel = resolveModel(template, selectedModel, { i2i: i2iModels, t2i: t2iModels, i2v: i2vModels, t2v: t2vModels, v2v: v2vModels });
       lastModelType = template.modelType;
     }
     outputTabValues = {};
@@ -2464,8 +2462,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
 
     const validModel = candidates.find(m => m.id === selectedModel);
     if (!validModel) {
-      const fallbackMap = { t2i: 'flux-dev', i2i: 'flux-dev', t2v: 'kling-v2.6-pro-t2v', i2v: 'kling-v2.6-pro-i2v', v2v: 'kling-v2.6-pro-v2v' };
-      selectedModel = candidates[0]?.id || fallbackMap[currentTemplate.modelType] || 'flux-dev';
+      selectedModel = resolveModel(currentTemplate, selectedModel, { i2i: i2iModels, t2i: t2iModels, i2v: i2vModels, t2v: t2vModels, v2v: v2vModels });
     }
 
     let model = selectedModel;
@@ -2552,7 +2549,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       showToast(`Prompt is ${prompt.length.toLocaleString()} characters — this may exceed model limits. Consider shortening.`, 'warning');
     }
 
-    const negativePrompt = composeNegativePrompt(currentTemplate.filmFamily || undefined, negNiche, currentInputs.visualStyle || 'commercial') || 'Low quality, blurry, amateur, poorly lit, generic stock look';
+    const negativePrompt = currentInputs['_customNegativePrompt'] || buildNegativePrompt(currentTemplate, currentInputs, {}) || 'Low quality, blurry, amateur, poorly lit, generic stock look';
 
     const params = {
       model,
@@ -2560,17 +2557,17 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       studioType: 'cinema-template',
     };
 
+    const aspectRatio = normalizeAspectRatio(currentTemplate) || '16:9';
+    if (aspectRatio) params.aspect_ratio = aspectRatio;
+
     if (isVideo) {
-      params.aspect_ratio = currentInputs.aspectRatio || currentTemplate.aspectRatios?.[0] || '16:9';
-      const duration = currentTemplate.duration;
+      const duration = normalizeDuration(currentTemplate);
       if (duration) {
-        const rawDuration = currentInputs.duration || (typeof duration === 'object' ? duration.default : duration);
+        const rawDuration = currentInputs.duration || duration;
         // The MuAPI video endpoint only accepts 5 or 10 seconds.
         // Clamp template durations to the nearest supported value.
         params.duration = rawDuration <= 5 ? 5 : 10;
       }
-    } else {
-      params.aspect_ratio = currentInputs.aspectRatio || '16:9';
     }
 
      if (imageUrl) {
@@ -2585,9 +2582,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       params.negative_prompt = negativePrompt;
     }
 
-    if (customThumbnailUrl) {
-      params.thumbnail_url = customThumbnailUrl;
-    }
+    attachThumbnail(params, customThumbnailUrl);
 
     const outputTextarea = container.querySelector('#outputTextarea');
     if (outputTextarea) {
@@ -2662,10 +2657,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         throw new Error('No output URL returned');
       }
     } catch (err) {
-      console.error('[CinemaTemplateStudio]', err);
-      const message = err.message || 'Generation failed';
-      const userMessage = message.length > 80 ? `${message.slice(0, 80)}…` : message;
-
+      const { userMessage } = formatGenerationError(err, retryCount, MAX_RETRIES);
       const errEl = document.createElement('div');
       errEl.className = 'mt-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200';
       errEl.textContent = userMessage;
