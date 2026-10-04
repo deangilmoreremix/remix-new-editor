@@ -126,11 +126,9 @@ export function FilePickerNode({ id, data, selected }) {
         {fileUrl ? (
           <div className="file-picker-node__preview">
             {fileType === 'image' && (
-              // eslint-disable-next-line @next/next/no-img-element
               <img src={fileUrl} alt={fileName} className="file-picker-node__preview-img" />
             )}
             {fileType === 'video' && thumbSrc && (
-              // eslint-disable-next-line @next/next/no-img-element
               <img src={thumbSrc} alt={fileName} className="file-picker-node__preview-img" />
             )}
             {fileType === 'video' && !thumbSrc && (

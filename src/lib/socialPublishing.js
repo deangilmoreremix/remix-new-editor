@@ -160,7 +160,7 @@ async function publishAndPoll(platform, payload, { onStatus, signal, intervalMs 
   }
 
   let attempts = 0;
-  // eslint-disable-next-line no-constant-condition
+   
   while (true) {
     if (signal?.aborted) throw new Error('Request cancelled by user');
     // First poll slightly sooner so quick publishes feel responsive.

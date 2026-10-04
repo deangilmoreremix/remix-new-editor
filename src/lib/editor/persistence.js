@@ -316,7 +316,7 @@ export async function saveProject(state) {
   }
 
   // IndexedDB (fire-and-forget, time-bounded to avoid hanging in test envs)
-  let idbOk = false;
+  const idbOk = false;
   const idbPromise = (async () => {
     try {
       const idb = await getIndexedDB();

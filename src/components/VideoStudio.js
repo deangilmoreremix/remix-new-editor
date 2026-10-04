@@ -80,8 +80,8 @@ export function VideoStudio() {
     let showAdvanced = false;
 
     // Camera motion controls
-    let cameraMovement = 'Static';
-    let motionStrength = 50;
+    const cameraMovement = 'Static';
+    const motionStrength = 50;
     let cameraSpeed = 5;
 
     // Style presets

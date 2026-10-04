@@ -2901,7 +2901,7 @@ export function TimelineEditorPage() {
       // eslint-disable-next-line no-unreachable
       renderMediaGrid(state.media, els.mediaGrid, (media, index, showToast) => {
         const generatedId = Date.now();
-        let clipData = {
+        const clipData = {
           id: generatedId,
           name: media.label || `Media ${generatedId}`,
           start: (state.playheadPercent / 100) * (state.timelineSeconds || 60),
@@ -6839,7 +6839,7 @@ export function TimelineEditorPage() {
     function applyInsertMode(track, insertLeft, insertWidth) {
       if (!state.insertMode || !track || !Array.isArray(track.items)) return;
       const sorted = [...track.items].sort((a, b) => (a.left || 0) - (b.left || 0));
-      let drift = 0;
+      const drift = 0;
       for (const clip of sorted) {
         const clipStart = clip.left || 0;
         if (clipStart >= insertLeft - 0.05) {
@@ -6900,7 +6900,7 @@ export function TimelineEditorPage() {
     function mergeAdjacentClipWithNeighbor() {
       const selId = state.selectedClipId;
       if (!selId) { showToast('Select a clip that is touching another clip to merge', 'info'); return null; }
-      let found = null;
+      const found = null;
       for (const track of state.tracks) {
         if (!Array.isArray(track.items)) continue;
         if (!track.items.some(c => c.id === selId)) continue;

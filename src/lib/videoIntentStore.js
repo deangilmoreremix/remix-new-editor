@@ -22,7 +22,7 @@ const DEFAULTS = {
 };
 
 let state = { ...DEFAULTS };
-let listeners = new Set();
+const listeners = new Set();
 
 function load() {
   try {

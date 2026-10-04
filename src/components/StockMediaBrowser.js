@@ -137,7 +137,7 @@ export function openStockMediaBrowser({
   let currentPage = 1;
   let hasMore = true;
   let isLoading = false;
-  let selectedIndex = -1;
+  const selectedIndex = -1;
 
   // Provider-specific tab configurations
   const providerTabs = {

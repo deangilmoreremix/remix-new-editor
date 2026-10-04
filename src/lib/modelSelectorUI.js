@@ -245,7 +245,7 @@ export function mountTemplateModelSelector({
   let search = "";
   let selectedCategory = modelCategories[0]?.id || "all";
   let selectedProvider = selectedEntry ? (selectedEntry.family.provider || "all") : "all";
-  let activeItemRef = null;
+  const activeItemRef = null;
 
   // Build provider list from current category entries
 function getAvailableProviders(entries) {

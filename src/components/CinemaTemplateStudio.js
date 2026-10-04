@@ -53,7 +53,7 @@ export function CinemaTemplateStudio() {
   const studioDrawer = mountStudioDrawer(document.body, { currentRoute: 'cinema' });
 
   // State
-  let registry = getTemplateRegistry();
+  const registry = getTemplateRegistry();
   let currentTemplate = null;
   let currentMode = 'quick';
   let currentInputs = {};

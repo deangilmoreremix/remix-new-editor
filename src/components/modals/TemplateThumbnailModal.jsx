@@ -1063,7 +1063,7 @@ export class TemplateThumbnailModal extends BaseModal {
       if (this.streaming && this.partialImages > 0 && ThumbnailService.isOpenAIImageModel(this.model || openaiConfig.defaultConfig.thumbnailModel)) {
         // Streaming path — update partial preview as frames arrive.
         const collected = [];
-        let partialIndex = 0;
+        const partialIndex = 0;
         await new Promise((resolve, reject) => {
           this.thumbnailService.generateCandidatesStream(promptText, baseOpts, {
             onPartial: (b64) => {
@@ -1323,7 +1323,7 @@ export class TemplateThumbnailModal extends BaseModal {
 
     try {
       if (this.streaming && this.partialImages > 0) {
-        let partialIndex = 0;
+        const partialIndex = 0;
         await new Promise((resolve, reject) => {
           this.thumbnailService.refineLastImageStream(refineOpts, {
             onPartial: (b64) => {
@@ -1354,7 +1354,7 @@ export class TemplateThumbnailModal extends BaseModal {
 
   async applyInpaint() {
     this.clearError();
-    let prompt = document.getElementById('thumb-refine-input')?.value || 'Fill this area naturally';
+    const prompt = document.getElementById('thumb-refine-input')?.value || 'Fill this area naturally';
     const selected = this.candidates[this.selectedIndex];
     if (!selected) return;
 
@@ -3339,7 +3339,7 @@ export class TemplateThumbnailModal extends BaseModal {
 
     try {
       if (this.streaming && this.partialImages > 0) {
-        let partialIndex = 0;
+        const partialIndex = 0;
         await new Promise((resolve, reject) => {
           this.thumbnailService.refineLastImageStream(refineOpts, {
             onPartial: (b64) => {

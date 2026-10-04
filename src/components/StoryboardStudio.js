@@ -63,11 +63,11 @@ let selectedStyle = 'None';
 let selectedLighting = 'None';
 let selectedColor = 'None';
 let selectedPreset = null;
-let frameNotes = '';
-let revisedPrompt = '';
-let referenceImages = [];
-let generationProgress = { current: 0, total: 0, failed: [] };
-let batchRetryCount = 0;
+const frameNotes = '';
+const revisedPrompt = '';
+const referenceImages = [];
+const generationProgress = { current: 0, total: 0, failed: [] };
+const batchRetryCount = 0;
 const MAX_RETRIES = 3;
 const RETRY_BASE_DELAY = 1000;
 
@@ -112,7 +112,7 @@ const storyboardStore = new Store({
 });
 
 function createUndoRedo() {
-  let undoStack = [];
+  const undoStack = [];
   let redoStack = [];
   const maxHistory = 50;
 

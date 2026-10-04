@@ -83,16 +83,16 @@ export function EditorPage() {
     
     let selectedTool = null;
     let selectedTransition = null;
-    let chatHistory = [];
+    const chatHistory = [];
     let isChatOpen = true;
     let isProcessing = false;
-    let aiTags = [];
+    const aiTags = [];
     let uploadedUrl = null;
     let timelineClips = videoUrl
         ? [{ id: 'clip1', name: 'Video', start: 0, duration: TIMELINE_CONFIG.defaultClipDuration, color: '#3B82F6', url: videoUrl }]
         : [];
     let timelineZoom = 1;
-    let undoStack = [];
+    const undoStack = [];
 
     // Modal for track name input
     function showTrackNameModal(callback) {
@@ -989,7 +989,7 @@ export function EditorPage() {
     }
 
     // ── Media Library ─────────────────────────────────────────────────────────────
-    let mediaLibrary = [];
+    const mediaLibrary = [];
 
     function renderMediaLibrary() {
         const grid = container.querySelector('#media-library-grid');

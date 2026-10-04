@@ -32,7 +32,7 @@ export function LipSyncStudio() {
     let selectedModel = imageLipSyncModels[0].id;
     let nativeAudio = false;
     let selectedResolution = imageLipSyncModels[0].inputs?.resolution?.default || '480p';
-    let selectedProvider = 'all';
+    const selectedProvider = 'all';
     let uploadedImageUrl = null;
     let customThumbnailUrl = getCustomThumbnailFromCache('lipsync-studio');
     let uploadedVideoUrl = null;

@@ -54,7 +54,6 @@ export function ElementNode({ id, data, selected }) {
         </select>
         {selectedElement && thumbnail && (
           <div className="element-node__preview">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={thumbnail} alt={selectedElement.name} className="element-node__thumbnail" />
             <span className="element-node__info">
               {selectedElement.name} &middot; {selectedElement.images?.length ?? 0} imgs

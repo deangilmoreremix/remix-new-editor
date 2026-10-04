@@ -41,7 +41,7 @@ export function StoryboardPanel({ appendTo } = {}) {
   // ───────────────────────────────────────────────────────────────────────
   // Subscribe to runtime state
   // ───────────────────────────────────────────────────────────────────────
-  let state = {
+  const state = {
     frames: directorRuntime.frames || [],
     selectedFrameId: directorRuntime.selectedFrameId || (directorRuntime.frames?.[0]?.id ?? 1),
     currentPreset: directorRuntime.currentPreset || STORYBOARD_PRESETS[0],
