@@ -402,27 +402,23 @@ describe('All studios smoke tests', () => {
 
   describe('CommercialStudio', () => {
     it('mounts without crashing', async () => {
-      mountStudio(CommercialStudio);
-      await new Promise(r => setTimeout(r, 50));
+      await mountStudio(CommercialStudio);
       expect(container.querySelector('h1')).not.toBeNull();
     });
 
     it('renders header with title', async () => {
-      mountStudio(CommercialStudio);
-      await new Promise(r => setTimeout(r, 50));
+      await mountStudio(CommercialStudio);
       expect(container.textContent).toContain('Commercial');
     });
 
     it('renders prompt input', async () => {
-      mountStudio(CommercialStudio);
-      await new Promise(r => setTimeout(r, 50));
+      await mountStudio(CommercialStudio);
       const input = container.querySelector('button');
       expect(input).not.toBeNull();
     });
 
     it('renders generate button', async () => {
-      mountStudio(CommercialStudio);
-      await new Promise(r => setTimeout(r, 50));
+      await mountStudio(CommercialStudio);
       const genBtn = Array.from(container.querySelectorAll('button')).find(btn => btn.textContent?.includes('Generate'));
       expect(genBtn).not.toBeNull();
     });

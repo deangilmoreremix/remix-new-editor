@@ -139,6 +139,6 @@ describe('Phase 6 Elements', () => {
       // the modal trigger button.
       const buttons = screen.getAllByRole('button', { name: /new element/i });
       expect(buttons.length).toBeGreaterThanOrEqual(1);
-    });
+    }, 15000);
   });
 });

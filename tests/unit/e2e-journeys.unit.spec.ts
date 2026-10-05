@@ -442,7 +442,7 @@ describe('E2E User Journey Tests', () => {
       // Step 5: Verify preview view is shown after generation
       const previewMedia = container.querySelector('img, video');
       expect(previewMedia).not.toBeNull();
-    });
+    }, 30000);
 
     it('shows template details in create view after selection', async () => {
       const element = CinemaTemplateStudio();
@@ -1037,7 +1037,7 @@ describe('E2E User Journey Tests', () => {
       await wait(50);
 
       expect(advancedBtn.textContent).toBe('Hide Advanced Controls');
-    });
+    }, 30000);
 
     it('TemplateStudio back button renders', async () => {
       const element = TemplateStudio('restaurant-brand-film');

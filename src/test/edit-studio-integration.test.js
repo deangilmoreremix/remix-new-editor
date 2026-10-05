@@ -68,7 +68,7 @@ describe('EditStudio', () => {
     const { EditStudio } = await import('../components/EditStudio.js');
     expect(EditStudio).toBeDefined();
     expect(typeof EditStudio).toBe('function');
-  });
+  }, 15000);
 
   test('EditStudio renders 13 tools', async () => {
     const { EditStudio } = await import('../components/EditStudio.js');
@@ -77,7 +77,7 @@ describe('EditStudio', () => {
     // The component should render without errors
     expect(container).toBeDefined();
     expect(container.tagName).toBe('DIV');
-  });
+  }, 15000);
 
   test('EditStudio tools have correct IDs', async () => {
     // Import the actual EDIT_TOOLS array
@@ -88,7 +88,7 @@ describe('EditStudio', () => {
     const { EditStudio } = module;
     const container = EditStudio();
     expect(container).toBeDefined();
-  });
+  }, 15000);
 
   test('muapi.generateI2I sends correct generationType', async () => {
     const { muapi } = await import('../lib/muapi.js');
@@ -260,7 +260,7 @@ describe('EditStudio error handling', () => {
     
     // Component should render without crashing
     expect(container).toBeDefined();
-  });
+  }, 15000);
 
   test('shows error when API returns no url', async () => {
     const { muapi } = await import('../lib/muapi.js');

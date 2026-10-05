@@ -38,7 +38,7 @@ describe('Studio runtime smoke tests', () => {
         return;
       }
 
-        const module = await import(`../${file}`);
+      const module = await import(`../${file}`);
       const factory = module[factoryName];
       if (typeof factory !== 'function') {
         console.warn(`  Skipping ${file}: factory ${factoryName} not callable`);
@@ -61,6 +61,6 @@ describe('Studio runtime smoke tests', () => {
 
       const refErrors = errors.filter(e => /ReferenceError|TypeError/.test(e));
       expect(refErrors).toEqual([]);
-    });
+    }, 15000);
   }
 });

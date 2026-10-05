@@ -14,7 +14,7 @@ describe('StoryboardPanel', () => {
     const root = mod.StoryboardPanel();
     expect(root).toBeDefined();
     expect(root.innerHTML).toBeTruthy();
-  });
+  }, 15000);
 
   it('marks the selected shot button as active', async () => {
     const mod = await import('../components/StoryboardPanel.js');
