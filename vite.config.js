@@ -103,17 +103,23 @@ const stubLegacy = () => ({
     // Never stub imports from the landing page — those are new-style
     // modules that must resolve to their real files.
     if (importer.includes('src/components/landing/')) return null;
-    // fixLegacyImports (another pre plugin) runs before us and already
-    // resolved every relative import that has a real on-disk target. For
-    // external packages, avoid the expensive this.resolve call by checking
-    // node_modules directly — if the top-level package exists, let Vite
-    // resolve it normally; otherwise stub it.
     const isExternal = !source.startsWith('.') && !source.startsWith('/') && !source.startsWith('\0');
     if (isExternal) {
       const pkgName = source.split('/')[0];
-      if (fs.existsSync(path.resolve('node_modules', pkgName))) {
-        return null;
+      const pkgDir = path.resolve('node_modules', pkgName);
+      if (!fs.existsSync(pkgDir)) {
+        console.warn('[STUB]', source, '<-', importer.replace(process.cwd() + '/', ''));
+        if (process.env.STRICT_IMPORTS) {
+          throw new Error(`Unresolved import "${source}" from ${importer.replace(process.cwd() + '/', '')}`);
+        }
+        const isAsset = /\.(svg|png|jpe?g|webp|gif|ico)(\?|$)/i.test(source);
+        return {
+          id: '\0legacy-' + (isAsset ? 'asset-' : '') + 'stub:' + source + '::' + importer,
+          meta: { legacyStub: { source, importer } }
+        };
       }
+      const resolved = await this.resolve(source, importer, { skipSelf: true });
+      if (resolved) return null;
     }
 
     // Genuinely unresolved legacy import — stub it so the bundle still
