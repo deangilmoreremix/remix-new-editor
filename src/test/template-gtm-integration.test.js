@@ -31,8 +31,8 @@ describe('GTM Boost rollout across all studios', () => {
   for (const studio of STUDIOS_WITH_GTM) {
     it(`includes GTM Boost button + modal + theme in ${studio}`, () => {
       const src = fs.readFileSync(path.join(root, `src/components/${studio}.js`), 'utf8');
-      expect(src).toContain('🎯 GTM Boost');
-      expect(src).toContain('gtm-boost-btn');
+    expect(src).toContain('🎯 GTM Boost');
+    expect(src).toContain('data-enhance="gtm"');
       // TemplateStudio uses an inline `import('./modals/GTMPromptModal.jsx')`
       // (it also captures lastBuiltPrompt), so it has no openGTMPromptModal call.
       // Every other studio wires the shared openGTMPromptModal helper.

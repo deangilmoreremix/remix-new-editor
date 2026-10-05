@@ -51,12 +51,20 @@ if (typeof globalThis.document === 'undefined' || typeof globalThis.document.cre
   };
 }
 
-const localStorageMock = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn(),
-};
+const localStorageMock = (() => {
+  let store = {};
+  const api = {
+    getItem: vi.fn((key) => store[key] || null),
+    setItem: vi.fn((key, value) => { store[key] = String(value); }),
+    removeItem: vi.fn((key) => { delete store[key]; }),
+    clear: vi.fn(() => { store = {}; }),
+  };
+  api.getItem.mockClear = vi.fn(() => {});
+  api.setItem.mockClear = vi.fn(() => {});
+  api.removeItem.mockClear = vi.fn(() => {});
+  api.clear.mockClear = vi.fn(() => {});
+  return api;
+})();
 global.localStorage = localStorageMock;
 
 const sessionStorageMock = {
@@ -110,4 +118,36 @@ if (typeof globalThis.interact === 'undefined') {
       restrictRect: () => ({}),
     },
   });
+}
+
+// Mock JSX/demo imports that break in the test environment
+try {
+  vi.mock('../../src/components/demos/DemoRail.jsx', () => ({
+    createDemoRail: () => document.createElement('div'),
+  }));
+} catch {
+  // vi not available or mock already registered
+}
+
+// Polyfill scrollIntoView for jsdom (not implemented in jsdom)
+if (typeof HTMLElement !== 'undefined' && !HTMLElement.prototype.scrollIntoView) {
+  HTMLElement.prototype.scrollIntoView = () => {};
+}
+
+// Fix TextEncoder/Uint8Array invariant for esbuild compatibility.
+// jsdom's TextEncoder may produce instances that fail the `instanceof Uint8Array`
+// check esbuild relies on. We wrap it so the result is always a real Uint8Array.
+if (typeof globalThis.TextEncoder !== 'undefined') {
+  const _NativeTextEncoder = globalThis.TextEncoder;
+  globalThis.TextEncoder = class SafeTextEncoder {
+    constructor() { return new _NativeTextEncoder(); }
+    get encoding() { return 'utf-8'; }
+    encode(input) {
+      const result = new _NativeTextEncoder().encode(input);
+      if (!(result instanceof Uint8Array)) {
+        return new Uint8Array(Array.from(result));
+      }
+      return result;
+    }
+  };
 }

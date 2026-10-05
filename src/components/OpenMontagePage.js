@@ -1394,7 +1394,6 @@ export function OpenMontagePage() {
 
   updateServiceStatus();
   updateKeyStatus();
-  setStage(0);
 
   // Initial key status display
   const keyStatusEl = container.querySelector('#om-key-status');

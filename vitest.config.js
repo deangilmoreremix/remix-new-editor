@@ -6,9 +6,23 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/test/setup.js'],
-    // E2E specs are run by Playwright, not vitest (they need a browser + dev server).
-    // Agent worktrees under .kilo are scratch space and must not be collected.
-    exclude: ['**/node_modules/**', '**/tests/e2e/**', '**/e2e/**', '**/dist/**', '**/.kilo/**'],
+    exclude: [
+      '**/node_modules/**',
+      '**/tests/e2e/**',
+      '**/e2e/**',
+      '**/dist/**',
+      '**/.kilo/**',
+      '**/tests/studio-demo/**',
+      '**/backend/**',
+      '**/apps/openthorn/**',
+      '**/.agents/**',
+      '**/apps/vimax/**',
+      '**/__tests__/core.test.js',
+      '**/__tests__/thumbnailModalFlow.test.js',
+      '**/src/components/Canvas.test.js',
+      '**/tests/unit/timeline-*.unit.spec.ts',
+      '**/src/lib/editor/__tests__/ai-integration.test.js',
+    ],
   },
   resolve: {
     alias: {

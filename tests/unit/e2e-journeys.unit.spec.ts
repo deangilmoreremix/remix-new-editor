@@ -440,8 +440,8 @@ describe('E2E User Journey Tests', () => {
       await wait(300);
 
       // Step 5: Verify preview view is shown after generation
-      const previewImg = container.querySelector('img');
-      expect(previewImg).not.toBeNull();
+      const previewMedia = container.querySelector('img, video');
+      expect(previewMedia).not.toBeNull();
     });
 
     it('shows template details in create view after selection', async () => {
@@ -595,8 +595,8 @@ describe('E2E User Journey Tests', () => {
       await wait(400);
 
       // Verify preview view after successful retry
-      const previewImg = container.querySelector('img');
-      expect(previewImg).not.toBeNull();
+      const previewMedia = container.querySelector('img, video');
+      expect(previewMedia).not.toBeNull();
     });
 
     it('exhausts retries after multiple failures in CinemaTemplateStudio', async () => {
@@ -685,8 +685,8 @@ describe('E2E User Journey Tests', () => {
       await wait(400);
 
       // Verify preview view after successful retry
-      const previewImg = container.querySelector('img');
-      expect(previewImg).not.toBeNull();
+      const previewMedia = container.querySelector('img, video');
+      expect(previewMedia).not.toBeNull();
     });
   });
 

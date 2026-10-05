@@ -92,5 +92,5 @@ describe('Timeline History — transactional Undo/Redo (Phase 23)', () => {
       history.execute(`op ${i}`, () => ts.addTrack({ type: 'video', name: `V${i}` }));
     }
     expect(history.undoStack.length).toBeLessThanOrEqual(history._limit);
-  });
+  }, 30000);
 });

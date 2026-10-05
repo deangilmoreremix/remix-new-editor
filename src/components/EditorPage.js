@@ -1418,7 +1418,7 @@ export function EditorPage() {
             else if (cmd.includes('subtitle') || cmd.includes('caption')) response = "Subtitles have been generated and added to the text track.";
             else if (cmd.includes('scene') || cmd.includes('detect')) response = "I've detected scenes in your video.";
             else if (cmd.includes('highlight') || cmd.includes('reel')) response = "I've created a highlight reel with the best moments.";
-            addChatMessage(response, false);
+            addChatPanelMessage(response, false);
         }
         agentProcessing.classList.add('hidden');
         isProcessing = false;
@@ -1431,12 +1431,11 @@ export function EditorPage() {
     });
 
     // AI Chat Panel Functionality
-    const chatMessages = container.querySelector('#chat-messages');
     const chatInput = container.querySelector('#chat-input');
     const sendChatBtn = container.querySelector('#send-chat-btn');
     const quickCommands = container.querySelector('#quick-commands');
 
-    function addChatMessage(text, isUser = false) {
+    function addChatPanelMessage(text, isUser = false) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `flex gap-2 ${isUser ? 'justify-end' : ''}`;
         messageDiv.innerHTML = `
@@ -1454,7 +1453,7 @@ export function EditorPage() {
     function processChatCommand(command) {
         if (!command.trim()) return;
 
-        addChatMessage(command, true);
+        addChatPanelMessage(command, true);
         chatInput.value = '';
 
         // Simulate AI response
@@ -1467,7 +1466,7 @@ export function EditorPage() {
             if (command.toLowerCase().includes('split')) response = "Clip split at the playhead position.";
             if (command.toLowerCase().includes('subtitle') || command.toLowerCase().includes('caption')) response = "Subtitles generated and added to timeline.";
 
-            addChatMessage(response, false);
+            addChatPanelMessage(response, false);
         }, 500);
     }
 
@@ -1490,7 +1489,7 @@ export function EditorPage() {
 
     // Add welcome message to new AI chat panel
     if (chatMessages) {
-        setTimeout(() => addChatMessage("Hello! I'm your AI timeline assistant. I can help you generate content, edit clips, and optimize your video project.", false), 500);
+        setTimeout(() => addChatPanelMessage("Hello! I'm your AI timeline assistant. I can help you generate content, edit clips, and optimize your video project.", false), 500);
     }
 
     // Generate Panel Functionality

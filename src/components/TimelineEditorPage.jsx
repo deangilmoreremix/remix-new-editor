@@ -416,10 +416,11 @@ export function TimelineEditorPage() {
          <div class="preview-inner">
            <div class="viewer">
              <div class="viewer-stage" id="viewerStage">
-               <div class="viewer-frame" id="viewerFrame">
-                 <div class="preview-stage" id="previewStage"></div>
-                 <div class="source-stage" id="sourceStage" hidden></div>
-                 <div class="vf-gradient"></div>
+                <div class="viewer-frame" id="viewerFrame">
+                  <div class="preview-stage" id="previewStage"></div>
+                  <div class="source-stage" id="sourceStage" hidden></div>
+                  <div class="mask-overlay" id="maskOverlay" hidden></div>
+                  <div class="vf-gradient"></div>
                  <div class="preview-empty" id="previewEmpty">
                    <div class="vf-subtitle" id="vfSubtitle">Your story starts here.</div>
                  </div>
@@ -452,15 +453,16 @@ export function TimelineEditorPage() {
             </div>
             <div class="timeline-tabs" id="timelineTabs" role="tablist" aria-label="Timeline tabs"></div>
             <button class="tool-btn" id="tbAddTimeline" data-tooltip="Add timeline tab" aria-label="Add timeline">＋</button>
-            <div class="tool-group" role="group" aria-label="Edit tools">
-              <button class="tool-btn" id="tbSplit" data-tooltip="Split selected clip at playhead" aria-label="Split clip at playhead">✂</button>
-              <button class="tool-btn" id="tbDelete" data-tooltip="Delete selected clip" aria-label="Delete selected clip">⌫</button>
-              <button class="tool-btn" id="tbAddTrack" data-tooltip="Add a video track" aria-label="Add a video track">＋</button>
-              <button class="tool-btn" id="tbMerge" data-tooltip="Merge selected clip with its touching neighbor" aria-label="Merge clips">⤡</button>
-              <button class="tool-btn active" id="tbInsertMode" data-tooltip="Insert mode: push downstream when dropping" aria-label="Insert mode" aria-pressed="true">Insert</button>
-              <button class="tool-btn" id="tbOverwriteMode" data-tooltip="Overwrite mode: replace existing media" aria-label="Overwrite mode">Overwrite</button>
-              <button class="tool-btn active" id="tbSnap" data-tooltip="Snap clips to grid / edges / playhead" aria-label="Snap toggled">Snap</button>
-            </div>
+             <div class="tool-group" role="group" aria-label="Edit tools">
+               <button class="tool-btn" id="tbSplit" data-tooltip="Split selected clip at playhead" aria-label="Split clip at playhead">✂</button>
+               <button class="tool-btn" id="tbDelete" data-tooltip="Delete selected clip" aria-label="Delete selected clip">⌫</button>
+               <button class="tool-btn" id="tbAddTrack" data-tooltip="Add a video track" aria-label="Add a video track">＋</button>
+               <button class="tool-btn" id="tbMerge" data-tooltip="Merge selected clip with its touching neighbor" aria-label="Merge clips">⤡</button>
+               <button class="tool-btn active" id="tbInsertMode" data-tooltip="Insert mode: push downstream when dropping" aria-label="Insert mode" aria-pressed="true">Insert</button>
+               <button class="tool-btn" id="tbOverwriteMode" data-tooltip="Overwrite mode: replace existing media" aria-label="Overwrite mode">Overwrite</button>
+               <button class="tool-btn active" id="tbSnap" data-tooltip="Snap clips to grid / edges / playhead" aria-label="Snap toggled">Snap</button>
+               <button class="tool-btn" id="tbMask" data-tooltip="Mask tool - AI object isolation (X)" aria-label="Mask tool">🎭</button>
+             </div>
           </div>
           <div class="zoom" role="group" aria-label="Zoom">
             <button class="zoom-btn" data-action="zoom-out" data-tooltip="Zoom out - See more of the timeline (Mouse wheel)" aria-label="Zoom out on the timeline">−</button>
@@ -842,6 +844,12 @@ export function TimelineEditorPage() {
       return { ...track, type: inferred };
     });
   }
+
+  // Mask tool state for click/box capture on preview stage
+  let maskClickPoint = null;
+  let maskSelectionBox = null;
+  let normStartX = 0;
+  let normStartY = 0;
 
   // Enhanced state management with local storage persistence
   function loadProjectFromStorage() {
@@ -2009,6 +2017,41 @@ export function TimelineEditorPage() {
       if (saveBtn) saveBtn.addEventListener('click', () => openSaveProjectModal(state, showToast));
     }
 
+    const TOOL_DEFS = [
+      { id: 'select', icon: '🔍', label: 'Select', hint: 'V' },
+      { id: 'blade', icon: '✂️', label: 'Blade', hint: 'B' },
+      { id: 'ripple', icon: '↗️', label: 'Ripple', hint: 'R' },
+      { id: 'roll', icon: '↔️', label: 'Roll', hint: 'N' },
+      { id: 'slip', icon: '↕️', label: 'Slip', hint: 'Y' },
+      { id: 'slide', icon: '↔️', label: 'Slide', hint: 'U' },
+      { id: 'music', icon: '🎵', label: 'Music', hint: 'M' },
+      { id: 'fillGap', icon: '✨', label: 'Fill Gap', hint: '' },
+      { id: 'extend', icon: '➡️', label: 'Extend', hint: 'E' },
+      { id: 'mask', icon: '🎭', label: 'Mask', hint: 'X' },
+    ];
+
+    const toolMap = {
+      'v': 'select',
+      'b': 'blade',
+      'r': 'ripple',
+      'n': 'roll',
+      'y': 'slip',
+      'u': 'slide',
+      'm': 'music',
+      'e': 'extend',
+      'x': 'mask',
+    };
+
+    function selectTool(id) {
+      const def = TOOL_DEFS.find(t => t.id === id);
+      state.selectedTool = def ? def.label : id;
+      renderTools();
+      updatePreview();
+      if (id === 'mask') {
+        showToast('Mask tool active — select a clip and open AI Tools to segment');
+      }
+    }
+
     function renderTools() {
       els.toolGroup.innerHTML = '';
       const toolTooltips = {
@@ -2021,28 +2064,15 @@ export function TimelineEditorPage() {
         Zoom: 'Zoom tool - Click to zoom in, Alt+click to zoom out (Z)',
         Hand: 'Hand tool - Click and drag to pan across the timeline (H)'
       };
-      const tools = state.tools || [
-        ['🔍', 'Select'],
-        ['✂️', 'Blade'],
-        ['↗️', 'Ripple'],
-        ['↔️', 'Roll'],
-        ['↕️', 'Slip'],
-        ['↔️', 'Slide'],
-        ['🔍', 'Zoom'],
-        ['✋', 'Hand']
-      ];
-      tools.forEach(([icon, label]) => {
+      const tools = TOOL_DEFS;
+      tools.forEach((def) => {
         const button = document.createElement('button');
-        button.className = `tool-btn ${state.selectedTool === label ? 'active' : ''}`;
-        button.textContent = icon;
-        button.setAttribute('data-tooltip', toolTooltips[label] || label);
-        button.title = toolTooltips[label] || label;
+        button.className = `tool-btn ${state.selectedTool === def.label ? 'active' : ''}`;
+        button.textContent = def.icon;
+        button.setAttribute('data-tooltip', def.hint ? `${def.label} (${def.hint})` : def.label);
+        button.title = def.label;
         button.setAttribute('aria-label', button.title);
-        button.addEventListener('click', () => {
-          state.selectedTool = label;
-          renderTools();
-          updatePreview();
-        });
+        button.addEventListener('click', () => selectTool(def.id));
         els.toolGroup.appendChild(button);
       });
     }
@@ -5993,6 +6023,7 @@ export function TimelineEditorPage() {
         tbSnap.setAttribute('aria-pressed', String(state.snapEnabled));
         showToast(`Snap ${state.snapEnabled ? 'ON' : 'OFF'}`, 'info');
       });
+      if (tbMask) tbMask.addEventListener('click', () => selectTool('mask'));
 
       // Keyboard shortcuts
       root.setAttribute('tabindex', '0');
@@ -6015,6 +6046,16 @@ export function TimelineEditorPage() {
         else if ((ev.ctrlKey || ev.metaKey) && key === 'c') { ev.preventDefault(); copySelectedClip(); }
         else if ((ev.ctrlKey || ev.metaKey) && key === 'v') { ev.preventDefault(); pasteClipAtPlayhead(); }
         else if (key === 'v' && !ev.ctrlKey && !ev.metaKey) { ev.preventDefault(); cycleViewerMode(); }
+        else if (toolMap[key] && !ev.ctrlKey && !ev.metaKey) {
+          ev.preventDefault();
+          const toolKey = key;
+          state.selectedTool = toolMap[toolKey];
+          renderTools();
+          updatePreview();
+          if (toolMap[toolKey] === 'mask') {
+            showToast('Mask tool active — select a clip and open AI Tools to segment');
+          }
+        }
       });
 
       // Zoom controls (prototype: out / track / in / fit)
@@ -6025,6 +6066,38 @@ export function TimelineEditorPage() {
       if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => setZoom((state.zoom || 1) - 0.25));
       if (zoomInBtn) zoomInBtn.addEventListener('click', () => setZoom((state.zoom || 1) + 0.25));
       if (zoomFitBtn) zoomFitBtn.addEventListener('click', () => setZoom(1));
+
+      // Mask overlay click/box capture for AI segmentation
+      const maskOverlay = root.querySelector('#maskOverlay');
+      if (maskOverlay) {
+        maskOverlay.addEventListener('click', (e) => {
+          if (state.selectedTool !== 'Mask') return;
+          const rect = maskOverlay.getBoundingClientRect();
+          maskClickPoint = {
+            x: Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)),
+            y: Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height)),
+          };
+        });
+        maskOverlay.addEventListener('mousedown', (e) => {
+          if (state.selectedTool !== 'Mask') return;
+          const rect = maskOverlay.getBoundingClientRect();
+          normStartX = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+          normStartY = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+          maskSelectionBox = null;
+        });
+        maskOverlay.addEventListener('mouseup', (e) => {
+          if (state.selectedTool !== 'Mask') return;
+          const rect = maskOverlay.getBoundingClientRect();
+          const endX = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+          const endY = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+          maskSelectionBox = {
+            x: Math.min(normStartX, endX),
+            y: Math.min(normStartY, endY),
+            w: Math.abs(endX - normStartX),
+            h: Math.abs(endY - normStartY),
+          };
+        });
+      }
 
       // The preview is always edge-to-edge (see .preview-large CSS in
       // timeline-editor-page.css) — no toggle, no button, always on.
