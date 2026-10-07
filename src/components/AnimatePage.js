@@ -1,5 +1,5 @@
 // src/components/AnimatePage.js
-// Animate — image-to-video via seedance-lite-i2v.
+// Animate — image-to-video, model dynamically selected from the catalog.
 // Follows the exact pattern of existing studios (vanilla DOM + mountStudioChrome).
 
 import { mountStudioChrome } from '../lib/studioChrome.js';

@@ -90,7 +90,13 @@ export class MuapiClient {
         } else {
             this.proxyUrl = `${supabaseUrl}/functions/v1/muapi-proxy`;
         }
-        this.muapiBaseUrl = `${import.meta.env.VITE_MUAPI_URL}/api/v1`;
+        const muapiUrl = import.meta.env.VITE_MUAPI_URL;
+        if (!muapiUrl) {
+            console.warn('VITE_MUAPI_URL is not configured. Falling back to default muAPI URL.');
+            this.muapiBaseUrl = 'https://api.muapi.ai/api/v1';
+        } else {
+            this.muapiBaseUrl = `${muapiUrl}/api/v1`;
+        }
         this.activeControllers = new Map();
         this.apiKeyManager = apiKeyManager;
     }

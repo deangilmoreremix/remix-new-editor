@@ -2157,7 +2157,15 @@ generateBtn.type = 'button';
       }, 50);
     }
 
-    return container;
+    container.cleanup = () => {
+      window.removeEventListener('click', closeEnhanceMenu);
+      if (_videoStudioOutsideClickHandler) {
+        window.removeEventListener('click', _videoStudioOutsideClickHandler);
+        _videoStudioOutsideClickHandler = null;
+      }
+    };
+
+  return container;
 }
 
 function escapeHtml(str) {

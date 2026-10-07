@@ -582,7 +582,8 @@ export function AudioStudio() {
       if (data.view) view = data.view;
     }
   } catch (err) {
-
+    console.error('AudioStudio: failed to load persisted state', err);
+    showToast('Could not restore previous session. Starting fresh.', 'error');
   }
 
   let persistTimer = null;
@@ -600,7 +601,8 @@ export function AudioStudio() {
         };
         localStorage.setItem(PERSIST_KEY, JSON.stringify(state));
       } catch (err) {
-
+        console.error('AudioStudio: failed to persist state', err);
+        showToast('Could not save your session. Changes may be lost.', 'error');
       }
     }, 500);
   }
@@ -1440,6 +1442,10 @@ export function AudioStudio() {
     });
     container.appendChild(rail);
   }).catch(() => {});
+
+  container.cleanup = () => {
+    window.removeEventListener('click', closeEnhanceMenu);
+  };
 
   return container;
 }

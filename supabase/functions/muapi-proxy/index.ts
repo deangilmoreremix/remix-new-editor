@@ -38,7 +38,14 @@ const MAX_VIDEO_BYTES = 50 * 1024 * 1024;  // UPLOAD_LIMITS.video
 const PROXY_BODY_LIMIT_BYTES = 8 * 1024 * 1024; // SUPABASE_PROXY_BODY_LIMIT_BYTES
 const MAX_RETRIES = 2;
 const RETRYABLE_STATUSES = new Set([502, 503, 429]);
-const MUAPI_BASE_URL = Deno.env.get('MUAPI_BASE_URL') || 'https://api.muapi.ai';
+const MUAPI_BASE_URL = (() => {
+  const configured = Deno.env.get('MUAPI_BASE_URL');
+  if (!configured) {
+    console.warn('[muapi-proxy] MUAPI_BASE_URL is not set; falling back to default production URL https://api.muapi.ai. This should be set in production environments.');
+    return 'https://api.muapi.ai';
+  }
+  return configured;
+})();
 
 // --- Output Integrity ---
 
