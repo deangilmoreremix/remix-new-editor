@@ -77,8 +77,13 @@ export function CinemaStudio() {
         referenceUrl: null,
         endFrameUrl: null,
         // Selected generation model. Cinema Studio exposes the same catalog
-        // picker as Video Studio; defaults to the first text-to-video model.
-        model: (t2vModels[0] && t2vModels[0].id) || 'kling-v2.6-pro-t2v',
+        // picker as Video Studio; requires at least one text-to-video model.
+        model: (() => {
+            const first = t2vModels[0];
+            if (first && first.id) return first.id;
+            showToast('No text-to-video models available in catalog', 'error');
+            throw new Error('No text-to-video models available in catalog');
+        })(),
     };
     const selectedProvider = 'all';
     
@@ -1343,19 +1348,30 @@ let showAdvanced = false;
             const useFrameToFrame = hasStartFrame && hasEndFrame;
 
             // Use the model the user picked in the catalog picker. Resolve it
-            // through the catalog so an unknown/renamed id degrades gracefully
-            // instead of 404-ing the backend. Falls back to a known-good Kling
-            // model when the selected id isn't in the catalog.
+            // through the catalog so an unknown/renamed id fails fast with a
+            // clear error instead of silently falling back to a hardcoded model.
             let resolvedModel;
             if (useFrameToFrame) {
                 const flf = getI2VModelById('seedance-2.5-first-last-frame');
-                resolvedModel = (flf && flf.id) || 'seedance-2.5-first-last-frame';
+                if (!flf) {
+                    showToast('Model "seedance-2.5-first-last-frame" not found in catalog', 'error');
+                    throw new Error('Model "seedance-2.5-first-last-frame" not found in catalog');
+                }
+                resolvedModel = flf.id;
             } else if (isRef) {
                 const catalogModel = getI2VModelById(currentSettings.model);
-                resolvedModel = (catalogModel && catalogModel.id) || currentSettings.model || 'kling-v2.6-pro-i2v';
+                if (!catalogModel) {
+                    showToast(`I2V model "${currentSettings.model}" not found in catalog`, 'error');
+                    throw new Error(`I2V model "${currentSettings.model}" not found in catalog`);
+                }
+                resolvedModel = catalogModel.id;
             } else {
                 const catalogModel = getVideoModelById(currentSettings.model);
-                resolvedModel = (catalogModel && catalogModel.id) || currentSettings.model || 'kling-v2.6-pro-t2v';
+                if (!catalogModel) {
+                    showToast(`Video model "${currentSettings.model}" not found in catalog`, 'error');
+                    throw new Error(`Video model "${currentSettings.model}" not found in catalog`);
+                }
+                resolvedModel = catalogModel.id;
             }
 
             // Honor the per-model duration if the catalog advertises one,

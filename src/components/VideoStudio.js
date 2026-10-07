@@ -1768,15 +1768,34 @@ generateBtn.type = 'button';
         generateBtn.classList.remove('border-red-500/50');
     };
 
-    extendBtn.onclick = () => {
+    extendBtn.onclick = async () => {
         if (!lastGenerationId) return;
         resetToPromptBar();
         textarea.value = '';
         picker.reset();
         uploadedImageUrl = null;
         imageMode = false;
-        selectedModel = 'seedance-v2.0-extend';
-        selectedModelName = 'Seedance 2.0 Extend';
+
+        let extendModelId = null;
+        let extendModelName = null;
+
+        try {
+            const catalog = await muapi.getModelCatalog();
+            const extendModel = catalog.find(m => m.requiresRequestId === true || m.id.endsWith('-extend'));
+            if (extendModel) {
+                extendModelId = extendModel.id;
+                extendModelName = extendModel.name;
+            } else {
+                showToast('Extend model not found in catalog', 'error');
+                return;
+            }
+        } catch (err) {
+            showToast('Failed to load model catalog: ' + err.message, 'error');
+            return;
+        }
+
+        selectedModel = extendModelId;
+        selectedModelName = extendModelName;
         document.getElementById('v-model-btn-label').textContent = selectedModelName;
         updateModelBtnIcon();
         updateControlsForModel(selectedModel);

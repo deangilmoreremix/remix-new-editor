@@ -84,14 +84,14 @@ function checkOutputIntegrity(result) {
 
 export class MuapiClient {
     constructor() {
-        // Validate that Supabase URL is configured before building proxy URL
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
         if (!supabaseUrl) {
             this.proxyUrl = '/functions/v1/muapi-proxy';
         } else {
             this.proxyUrl = `${supabaseUrl}/functions/v1/muapi-proxy`;
         }
-        this.activeControllers = new Map(); // For request cancellation
+        this.muapiBaseUrl = `${import.meta.env.VITE_MUAPI_URL}/api/v1`;
+        this.activeControllers = new Map();
         this.apiKeyManager = apiKeyManager;
     }
 
@@ -114,7 +114,7 @@ export class MuapiClient {
     }
 
     async getModelSchema(modelId) {
-        const url = `https://api.muapi.ai/api/v1/models/${encodeURIComponent(modelId)}`;
+        const url = `${this.muapiBaseUrl}/models/${encodeURIComponent(modelId)}`;
         const res = await fetch(url, { headers: this._getMuapiHeaders() });
         if (!res.ok) {
             const text = await res.text().catch(() => '');
@@ -124,7 +124,7 @@ export class MuapiClient {
     }
 
     async getModelCatalog() {
-        const url = `https://api.muapi.ai/api/v1/models`;
+        const url = `${this.muapiBaseUrl}/models`;
         const res = await fetch(url, { headers: this._getMuapiHeaders() });
         if (!res.ok) {
             const text = await res.text().catch(() => '');
@@ -881,7 +881,7 @@ export class MuapiClient {
      * Includes retry logic and progress tracking support.
      */
     async _uploadDirectToMuapi(file, key, validation, signal, onProgress) {
-        const MUAPI_UPLOAD_URL = 'https://api.muapi.ai/api/v1/upload_file';
+        const MUAPI_UPLOAD_URL = `${this.muapiBaseUrl}/upload_file`;
         const maxRetries = UPLOAD_RETRY_CONFIG.maxRetries;
         const retryableStatuses = new Set(UPLOAD_RETRY_CONFIG.retryableStatuses);
         let lastErr;

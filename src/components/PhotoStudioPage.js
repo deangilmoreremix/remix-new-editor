@@ -11,7 +11,7 @@ import { showToast, createLoadingOverlay } from '../lib/loading.js';
 import { apiCall } from '../lib/brandApi.js';
 import { muapi } from '../lib/muapi.js';
 import { saveGeneration } from '../lib/generationHistory.js';
-import { i2iModels } from '../lib/models.js';
+import { i2iModels, v2vModels } from '../lib/models.js';
 
 const CONCURRENCY = 2;
 const RESOLUTIONS = ['1k', '2k', '4k'];
@@ -249,9 +249,14 @@ export function PhotoStudioPage() {
 
     const select = document.createElement('select');
     select.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer';
+    const seen = new Set();
+    const editModels = [...i2iModels, ...v2vModels].filter(m => {
+      if (seen.has(m.id)) return false;
+      seen.add(m.id);
+      return m.imageField === 'images_list' && m.hasPrompt;
+    });
     select.innerHTML = '<option value="">Select a model...</option>' +
-      i2iModels
-        .filter(m => ['gpt-image-2-image-to-image', 'nano-banana-2-edit', 'bytedance-seedream-5.0-pro-edit'].includes(m.id))
+      editModels
         .map(m => `<option value="${m.id}" ${m.id === state.selectedMuapiModel ? 'selected' : ''}>${m.name}</option>`)
         .join('');
     select.onchange = () => { state.selectedMuapiModel = select.value || null; };

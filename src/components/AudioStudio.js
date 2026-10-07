@@ -251,8 +251,6 @@ function renderSchemaControls(selectedModel, schemaParams, setSchemaParams, cont
 
   Object.entries(selectedModel.inputs).forEach(([key, schema]) => {
     if (key === 'model') return;
-    const hardcodedKeys = ['prompt', 'style', 'duration', 'voice', 'tone', 'emotion', 'speed', 'pitch'];
-    if (hardcodedKeys.includes(key)) return;
 
     if (schema.type === 'string' && schema.field === 'audio') {
       const uploader = createAudioFileUploader(schema.title || key, schemaParams[key] || '', (url) => {

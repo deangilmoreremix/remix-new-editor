@@ -469,7 +469,7 @@ export function AnimatePage() {
         type: 'video',
         url: data.videoUrl,
         prompt: state.prompt,
-        model: state.muapiMode ? state.selectedMuapiModel : 'seedance-lite-i2v',
+        model: state.muapiMode ? state.selectedMuapiModel : i2vModels.find(m => !m.family?.startsWith('effect'))?.id || i2vModels[0]?.id || '',
         parameters: { duration: state.duration, resolution: state.resolution, sourceType: state.sourceType },
         request_id: data.id,
       });
