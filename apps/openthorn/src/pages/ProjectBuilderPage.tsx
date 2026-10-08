@@ -43,7 +43,7 @@ interface ProjectRouteState {
 const EMPTY_CODE_FILE: AgentCodeFile = {
   path: 'No files yet',
   language: 'txt',
-  code: 'OpenThorn will show the generated files after the first successful build.',
+  code: 'Smart Video will show the generated files after the first successful build.',
 }
 
 interface FileTreeNode {
@@ -369,7 +369,7 @@ export default function ProjectBuilderPage() {
   const initialThinkingLevel = normalizeThinkingLevel(state.thinkingLevel)
   const [title, setTitle] = useState(state.title ?? '')
   usePageTitle(title || 'Project', {
-    description: 'Build, preview, refine, export, and deploy an OpenThorn project.',
+    description: 'Build, preview, refine, export, and deploy a Smart Video project.',
   })
   const [projectFiles, setProjectFiles] = useState<AgentCodeFile[]>([])
   const [activeModel, setActiveModel] = useState<SelectedAgentModel | null>(state.selectedModel ?? null)
@@ -1161,7 +1161,7 @@ export default function ProjectBuilderPage() {
 
     if (!account) {
       setInviteLoading(false)
-      setInviteError('No OpenThorn account found for that email.')
+      setInviteError('No Smart Video account found for that email.')
       return
     }
 
@@ -1340,7 +1340,7 @@ export default function ProjectBuilderPage() {
         {
           id: assistantId,
           role: 'assistant' as const,
-          title: 'OpenThorn',
+          title: 'Smart Video',
           timeline: [],
         },
       ]
@@ -1693,7 +1693,7 @@ export default function ProjectBuilderPage() {
       {
         id: `assistant-textedit-${Date.now()}`,
         role: 'assistant' as const,
-        title: 'OpenThorn',
+        title: 'Smart Video',
         summary: `Updated the text to “${newText}”.`,
         timeline: [],
         files: nextFiles,
@@ -1789,7 +1789,7 @@ export default function ProjectBuilderPage() {
           </button>
 
           <div className={styles.brandCluster}>
-            <img src="/assets/logo.png" alt="OpenThorn" className={styles.logo} />
+             <img src="/assets/logo.png" alt="Smart Video" className={styles.logo} />
             <div>
               {titleEditing ? (
                 <input
@@ -2040,7 +2040,7 @@ export default function ProjectBuilderPage() {
                       <div className={styles.personInfo}>
                         <strong>{collaborator.name}</strong>
                         <span>
-                          {collaborator.email} - {collaborator.accountVerified ? 'OpenThorn account' : 'Pending'} - Invited {new Date(collaborator.invitedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                           {collaborator.email} - {collaborator.accountVerified ? 'Smart Video account' : 'Pending'} - Invited {new Date(collaborator.invitedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                         </span>
                       </div>
                       {canManageShare ? (
@@ -2182,7 +2182,7 @@ export default function ProjectBuilderPage() {
                 >
                   <div className={styles.assistantTop}>
                     <img src="/assets/logo.png" alt="" />
-                    <span>{message.title ?? 'OpenThorn'}</span>
+                    <span>{message.title ?? 'Smart Video'}</span>
                   </div>
 
                   {/* Chronological timeline: text, thinking, and tool calls in order */}
@@ -2315,10 +2315,10 @@ export default function ProjectBuilderPage() {
                   reconnecting
                     ? `Reconnecting to ${activeModel?.model_name ?? 'the model'} — resuming your work…`
                     : agentRunning
-                      ? agentStatus || 'OpenThorn is working...'
+                      ? agentStatus || 'Smart Video is working...'
                       : remoteGenerating
                         ? 'A collaborator is generating…'
-                        : 'Ask OpenThorn for a change...'
+                        : 'Ask Smart Video for a change...'
                 }
                 onModelChange={(model) => {
                   setActiveModel(model)
@@ -2430,7 +2430,7 @@ export default function ProjectBuilderPage() {
                       <div className={styles.previewMark}>
                         <img src="/assets/logo.png" alt="" />
                       </div>
-                      <h2>{reconnecting ? `Reconnecting to ${activeModel?.model_name ?? 'the model'}…` : agentRunning ? 'OpenThorn is building...' : 'Ready when you are'}</h2>
+                       <h2>{reconnecting ? `Reconnecting to ${activeModel?.model_name ?? 'the model'}…` : agentRunning ? 'Smart Video is building...' : 'Ready when you are'}</h2>
                       <p>{prompt}</p>
                       {(agentRunning || reconnecting) && (
                         <div className={styles.previewChecklist}>
@@ -2638,7 +2638,7 @@ export default function ProjectBuilderPage() {
             </button>
             <h2 className={styles.publishModalTitle}>Publish to Community</h2>
             <p className={styles.publishModalSubtitle}>
-              Share <strong>{title || 'this project'}</strong> with the OpenThorn community.
+              Share <strong>{title || 'this project'}</strong> with the Smart Video community.
             </p>
             <label className={styles.publishModalLabel}>
               Description <span className={styles.publishModalOptional}>(optional)</span>

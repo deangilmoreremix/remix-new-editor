@@ -94,7 +94,7 @@ export const STUDIO_ROUTES = {
   personalizer: { label: 'Personalizer', category: 'Create' },
   'studios/product-photo-studio': { label: 'Product Photo Studio', category: 'Create' },
   'studios/fashion-studio': { label: 'Fashion Studio', category: 'Create' },
-  openthorn: { label: 'OpenThorn', category: 'Tools' },
+  openthorn: { label: 'Smart Video Website Builder', category: 'Tools' },
 };
 
 // Ordered category groups for the drawer.

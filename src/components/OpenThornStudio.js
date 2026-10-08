@@ -19,10 +19,10 @@ export function OpenThornStudio() {
   header.innerHTML = `
     <div style="display:flex;align-items:center;gap:10px;">
       <span style="width:10px;height:10px;border-radius:50%;background:#10b981;box-shadow:0 0 8px #10b98188;"></span>
-      <span style="color:#fff;font-weight:600;font-size:14px;font-family:system-ui,sans-serif;">OpenThorn</span>
-      <span style="color:#6b7280;font-size:12px;font-family:system-ui,sans-serif;">BYOK AI Website Builder</span>
+      <span style="color:#fff;font-weight:600;font-size:14px;font-family:system-ui,sans-serif;">Smart Video</span>
+      <span style="color:#6b7280;font-size:12px;font-family:system-ui,sans-serif;">AI Website Builder</span>
     </div>
-    <a href="https://github.com/deangilmoraremix/OpenThorn" target="_blank" rel="noopener noreferrer"
+    <a href="https://github.com/BuildingTechAlternatives/SmartVideo" target="_blank" rel="noopener noreferrer"
        style="color:#9ca3af;font-size:12px;text-decoration:none;font-family:system-ui,sans-serif;">
       View on GitHub ↗
     </a>
@@ -37,7 +37,7 @@ export function OpenThornStudio() {
   `;
   iframe.setAttribute('loading', 'lazy');
   iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-modals');
-  iframe.setAttribute('title', 'OpenThorn Studio');
+  iframe.setAttribute('title', 'Smart Video Studio');
   container.appendChild(iframe);
 
   return container;

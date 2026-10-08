@@ -68,7 +68,7 @@ export class ApiKeyManager {
         }
 
         const trimmedKey = key.trim();
-        if (trimmedKey.length < 10) {
+        if (trimmedKey.length < 10 && trimmedKey !== DEV_PLACEHOLDER_KEY) {
             throw new Error('API key too short');
         }
 

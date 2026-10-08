@@ -4,7 +4,6 @@ import { useAuth } from '../../lib/AuthContext'
 import SlideInButton from '../SlideInButton/SlideInButton'
 import NeumorphButton from '../NeumorphButton/NeumorphButton'
 import MobileMenu from '../MobileMenu/MobileMenu'
-import BtaMark from '../BtaMark/BtaMark'
 import styles from './Header.module.css'
 
 interface HeaderProps {
@@ -19,7 +18,7 @@ interface DropdownItem {
 }
 
 const solutionsItems: DropdownItem[] = [
-  { label: 'Founders', description: 'Go from idea to working MVP in hours', href: '/blog/introducing-openthorn' },
+  { label: 'Founders', description: 'Go from idea to working MVP in hours', href: '/blog/introducing-smartvideo' },
   { label: 'Developers', description: 'Scaffold full-stack apps from a description', href: '/faq' },
   { label: 'Product managers', description: 'Skip the handoff, build it directly', href: '/pricing' },
   { label: 'Designers', description: 'Turn mockups into real interfaces', href: '/templates' },
@@ -40,12 +39,12 @@ const useCasesItems: DropdownItem[] = [
 
 const resourcesItems: DropdownItem[] = [
   { label: 'Blog', description: 'Product updates, guides, and behind-the-scenes', href: '/blog' },
-  { label: 'Comparisons', description: 'See OpenThorn against Lovable, Bolt.new, and v0', href: '/compare' },
+  { label: 'Comparisons', description: 'See Smart Video against Lovable, Bolt.new, and v0', href: '/compare' },
   { label: 'Provider Guides', description: 'Set up OpenAI, Anthropic, Gemini, and more', href: '/build-with' },
   { label: 'Glossary', description: 'Plain-English AI builder terms and concepts', href: '/glossary' },
   { label: 'Changelog', description: 'What shipped, straight from our commits', href: '/changelog' },
   { label: 'Templates', description: 'Jump-start your next project', href: '/templates' },
-  { label: 'Docs & FAQs', description: 'How OpenThorn works, answered clearly', href: '/faq' },
+  { label: 'Docs & FAQs', description: 'How Smart Video works, answered clearly', href: '/faq' },
 ]
 
 type DropdownKey = 'solutions' | 'useCases' | 'resources'
@@ -128,11 +127,7 @@ export default function Header({ onSignIn, onSignUp }: HeaderProps) {
         <a href="/" className={styles.logo}>
           <img src="/assets/logo.png" alt="" className={styles.logoImg} />
           <span className={styles.logoStack}>
-            <span className={styles.logoText}>OpenThorn</span>
-            <span className={styles.logoByline}>
-              by
-              <BtaMark className={styles.btaMark} />
-            </span>
+            <span className={styles.logoText}>Smart Video</span>
           </span>
         </a>
 
@@ -175,17 +170,10 @@ export default function Header({ onSignIn, onSignUp }: HeaderProps) {
 
           <span className={styles.divider} />
 
-          {/* Pricing */}
-          <Link to="/pricing" className={styles.navItem}>
-            Pricing
+          {/* My Projects */}
+          <Link to="/dashboard" className={styles.navItem}>
+            My Projects
           </Link>
-
-          <span className={styles.divider} />
-
-          {/* GitHub */}
-          <a href="https://github.com/BuildingTechAlternatives/OpenThorn" className={styles.navItem} target="_blank" rel="noopener noreferrer">
-            GitHub
-          </a>
 
           <span className={styles.divider} />
 

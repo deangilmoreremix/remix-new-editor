@@ -2847,7 +2847,7 @@ async function callOpenAIWithTools({
   }
   if (providerId === 'openrouter') {
     headers['HTTP-Referer'] = window.location.origin
-    headers['X-OpenRouter-Title'] = 'OpenThorn'
+    headers['X-OpenRouter-Title'] = 'Smart Video'
   }
 
   const openaiMessages = [
