@@ -2822,23 +2822,19 @@ export function TimelineEditorPage() {
             }
           } else if (data.type === 'media' && track) {
             // Media-library drag-to-timeline (dataTransfer JSON with mediaData).
-            // Falls back to a placeholder clip if the mediaData has no real src.
+            // A real src is required; if missing, surface the error instead of
+            // injecting demo media.
             const extra = {};
             const src = data.src || data.url;
             if (src) {
               extra.src = src;
-            } else if (data.mediaType === 'video') {
-              // Legacy demo fallback: only used if a media-library entry
-              // has no real src. New code should always provide src.
-              extra.src = 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4';
             } else if (data.mediaType === 'image') {
               extra.src = svgDataUri(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720"><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="#111827"/><stop offset="1" stop-color="#0f766e"/></linearGradient></defs><rect width="1280" height="720" fill="url(#g)"/><text x="90" y="320" fill="white" font-size="74" font-family="Arial" font-weight="700">${data.label}</text></svg>`);
               extra.fit = 'contain';
-            } else if (data.mediaType === 'audio') {
-              extra.src = 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3';
             } else {
-              extra.heading = data.label;
-              extra.body = 'Dragged text asset.';
+              console.warn('[Timeline] Cannot add media item without a real src:', data);
+              showToast('Cannot add media: source URL is missing', 'error');
+              return;
             }
             const width = 16;
             // snap-to-gap if enabled
