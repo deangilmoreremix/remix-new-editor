@@ -551,7 +551,7 @@ export function TemplateStudio(templateId) {
 
   // Model selector (async - fetches enriched catalog with descriptions)
   const outputType = template.outputType || (template.modelType === 't2i' || template.modelType === 'i2i' ? 'image' : 'video');
-  if (outputType === 'video' || ['i2i', 't2i', 'i2v', 't2v'].includes(template.modelType)) {
+  if (outputType === 'video' || ['i2i', 't2i', 'i2v', 't2v', 'v2v'].includes(template.modelType)) {
     const modelWrapper = document.createElement('div');
     modelWrapper.className = 'mt-6';
     const fallbackList = getFallbackList(template.modelType);
@@ -1178,8 +1178,13 @@ export function TemplateStudio(templateId) {
     }
 
     // Validate that the selected model matches the template's model type.
+    // V2V models are an accepted exception: they are routed through the t2v
+    // branch below, so a t2v template may use a v2v model.
     const allowedModels = getFallbackList(template.modelType);
-    if (allowedModels.length > 0 && !isValidModelForType(selectedModel || template.model, template.modelType)) {
+    const isV2VSelection = !!getV2VModelById(selectedModel || template.model);
+    if (allowedModels.length > 0
+      && !isValidModelForType(selectedModel || template.model, template.modelType)
+      && !isV2VSelection) {
       const fallback = getValidModel(template, selectedModel);
       showInlineError(container, `Model "${selectedModel || template.model}" is not compatible with this template type. Falling back to ${fallback}.`);
       selectedModel = fallback;
@@ -1232,7 +1237,7 @@ export function TemplateStudio(templateId) {
       // can never reach the muapi call.
       const validatedModel = getValidModel(template, selectedModel || params.model);
       selectedModel = validatedModel;
-      const mergedParams = { model: validatedModel, ...(template.defaultParams || {}), ...params, model: validatedModel };
+      const mergedParams = { model: validatedModel, ...(template.defaultParams || {}), ...params };
       params = mergedParams;
 
       if (normalizeAspectRatio(template)) params.aspect_ratio = normalizeAspectRatio(template);
@@ -1389,13 +1394,7 @@ export function TemplateStudio(templateId) {
       }
     }
 
-    // Niche-aware negative prompt (engine special-cases all canonical niches)
-    const negNiche = (formState.niche && formState.niche !== 'auto-detect') ? formState.niche : (template.niche || '');
-    const negFilm = template.filmFamily || '';
-    const negVisual = formState.visualStyle || 'commercial';
-    const engineNegative = composeNegativePrompt(negFilm, negNiche, negVisual);
-    const negativePrompt = engineNegative || specs.negativePrompt || 'Low quality, blurry, amateur, poorly lit, generic stock look';
-    // Join, clean up duplicates and extra whitespace
+    // AI ENHANCER: final polishing layer
     let prompt = parts.filter(Boolean).join('. ');
     prompt = prompt
       .replace(/\s*\.\s*/g, '. ')
@@ -1432,7 +1431,7 @@ export function TemplateStudio(templateId) {
           }
         </div>
         <div class="flex gap-3 mt-4">
-          <a href="${url}" download="${template.id}-${Date.now()}" class="flex-1 bg-white text-black py-3 rounded-xl font-bold text-sm text-center hover:opacity-90 transition">Download</a>
+          <a href="${sanitizeUrl(url)}" download="${template.id}-${Date.now()}" class="flex-1 bg-white text-black py-3 rounded-xl font-bold text-sm text-center hover:opacity-90 transition">Download</a>
           <button type="button" class="publish-social-btn flex-1 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-3 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
           <button id="generateAgainBtn" class="flex-1 border border-white/10 bg-white/[0.04] text-white py-3 rounded-xl font-bold text-sm hover:bg-white/[0.08] transition">Generate Again</button>
         </div>

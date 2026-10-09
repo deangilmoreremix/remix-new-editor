@@ -24,9 +24,18 @@ export function resolveModel(template, preferred, modelListsByType) {
     if (!modelId || !modelType) return false;
     return !!getFallbackList(modelType).find(m => m && m.id === modelId);
   };
+  // V2V models are routed through the t2v generation branch, so a t2v
+  // template may legitimately use a v2v model.
+  const isV2VModel = (modelId) => {
+    if (!modelId) return false;
+    return !!(modelListsByType.v2v || []).find(m => m && m.id === modelId);
+  };
 
   const candidate = preferred || template.model;
   if (candidate && isValidModelForType(candidate, template.modelType)) {
+    return candidate;
+  }
+  if (candidate && template.modelType === 't2v' && isV2VModel(candidate)) {
     return candidate;
   }
 
@@ -60,13 +69,23 @@ export function normalizeAspectRatio(template) {
 }
 
 /**
- * Normalize duration from template metadata.
+ * Normalize duration from template metadata to a number of seconds.
+ * Accepts numbers, numeric strings (e.g. "8") and objects with a
+ * `default`/`min` field. Returns null when no usable value exists so
+ * callers can omit the param entirely.
  */
 export function normalizeDuration(template) {
-  const duration = template.duration
+  const raw = template.duration
     ? (typeof template.duration === 'object' ? template.duration.default : template.duration)
     : template.defaultParams?.duration;
-  return duration;
+
+  if (raw === null || raw === undefined || raw === '') return null;
+  if (typeof raw === 'number') return Number.isFinite(raw) ? raw : null;
+  if (typeof raw === 'string') {
+    const parsed = parseFloat(raw);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
 }
 
 /**

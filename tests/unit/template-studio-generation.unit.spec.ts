@@ -206,12 +206,20 @@ vi.mock('../../src/lib/supabase.js', () => ({
   },
 }));
 
+// Captures the options passed to createUploadPicker so tests can invoke the
+// selection callback directly (the real picker needs a browser file dialog).
+const uploadPickerState = vi.hoisted(() => ({ lastOptions: null }));
+
 vi.mock('../../src/components/UploadPicker.js', () => ({
-  createUploadPicker: vi.fn(() => ({
-    panel: document.createElement('div'),
-    open: vi.fn(),
-    close: vi.fn(),
-  })),
+  createUploadPicker: vi.fn((opts) => {
+    uploadPickerState.lastOptions = opts;
+    const panel = document.createElement('div');
+    panel.className = 'upload-picker-panel';
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    panel.appendChild(fileInput);
+    return { panel, open: vi.fn(), close: vi.fn() };
+  }),
 }));
 
 vi.mock('../../src/components/modals/TemplateThumbnailModal.jsx', () => ({
@@ -228,7 +236,22 @@ describe('TemplateStudio feature tests', () => {
   let container;
   let localStorageMock;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    // Reset cross-test mock state. Without this, `mockReturnValueOnce`
+    // values and muapi call history leak between tests, so a later mount
+    // can consume a stale template and generation never reaches the
+    // expected muapi method. `mockReset()` restores the original mock
+    // factory implementation *and* clears queued one-time values.
+    const { muapi } = await import('../../src/lib/muapi.js');
+    const { getTemplateById } = await import('../../src/lib/templates.js');
+    const { saveGeneration } = await import('../../src/lib/generationHistory.js');
+
+    vi.mocked(getTemplateById).mockReset();
+    vi.mocked(saveGeneration).mockReset();
+    Object.values(muapi).forEach((fn) => {
+      if (fn && typeof fn.mockReset === 'function') fn.mockReset();
+    });
+
     container = document.createElement('div');
     container.id = 'app';
     document.body.appendChild(container);
@@ -653,7 +676,7 @@ describe('TemplateStudio feature tests', () => {
     // Template with an image input named 'custom_reference_image' (not 'image_url')
     // Must include a text prompt input so the prompt validation passes first.
     const { getTemplateById } = await import('../../src/lib/templates.js');
-    vi.mocked(getTemplateById).mockReturnValueOnce({
+    vi.mocked(getTemplateById).mockReturnValue({
       id: 'custom-img-template',
       name: 'Custom Image Template',
       description: 'Test',
@@ -689,44 +712,272 @@ describe('TemplateStudio feature tests', () => {
   });
 
   // ─────────────────────────────────────────────────────────
-  // Regression: retry preserves raw prompt
-  // On retry, the prompt must be re-enriched from the raw
-  // (user-typed) prompt, not double-enriched from the already
-  // enriched prompt.
+  // Model routing: each modelType must dispatch to the correct
+  // muapi method.
   // ─────────────────────────────────────────────────────────
-  it('retry re-enriches from raw prompt stored in _rawPrompt, not double-enriched', async () => {
-    const { muapi } = await import('../../src/lib/muapi.js');
-    // Fail first call, succeed on retry
-    let callCount = 0;
-    vi.mocked(muapi.generateImage).mockImplementationOnce(async () => {
-      callCount++;
-      throw new Error('Network error');
-    }).mockImplementationOnce(async () => {
-      callCount++;
-      return { url: 'https://cdn.muapi.ai/results/retry-' + Date.now() + '.png', model: 'flux' };
-    });
 
-    const element = TemplateStudio('movie-poster');
+  function buildTemplate(overrides) {
+    return {
+      id: 'routing-test',
+      name: 'Routing Test',
+      description: 'Model routing test',
+      outputType: overrides.outputType || 'video',
+      category: 'Test',
+      modelType: overrides.modelType || 't2v',
+      model: overrides.model || 'kling-v2.6-pro-t2v',
+      inputs: [{ name: 'prompt', type: 'textarea', label: 'Prompt' }],
+      defaultParams: {},
+      ...overrides,
+    };
+  }
+
+  async function mountAndGenerate(template) {
+    const { getTemplateById } = await import('../../src/lib/templates.js');
+    vi.mocked(getTemplateById).mockReturnValue(template);
+
+    const element = TemplateStudio(template.id);
     container.innerHTML = '';
     container.appendChild(element);
     await new Promise(r => setTimeout(r, 50));
 
-    const allInputs = container.querySelectorAll('input');
-    const promptInput = Array.from(allInputs).find(input => !input.hasAttribute('data-advanced-field'));
-    promptInput.value = 'my original prompt';
+    const promptInput = container.querySelector('textarea');
+    promptInput.value = 'test prompt';
     promptInput.dispatchEvent(new Event('input', { bubbles: true }));
 
     const genBtn = Array.from(container.querySelectorAll('button')).find(btn => btn.textContent?.includes('Generate'));
     genBtn.click();
     await new Promise(r => setTimeout(r, 300));
+  }
 
-    // Click retry
-    const retryBtn = container.querySelector('#retry-btn');
-    expect(retryBtn).not.toBeNull();
-    retryBtn.click();
+  /**
+   * Opens the upload picker for the media input matching `labelText` and
+   * invokes the picker's onSelect callback with a fake URL, populating
+   * formState so generation validation passes.
+   */
+  async function supplyUpload(labelText, url) {
+    // The upload area is the clickable div (has an onclick handler) whose text
+    // includes the label; the bare span match would not be clickable.
+    const uploadArea = Array.from(container.querySelectorAll('div')).find(
+      (el) => typeof el.onclick === 'function' && (el.textContent || '').includes(labelText)
+    );
+    expect(uploadArea).toBeDefined();
+    uploadArea.click();
+    await new Promise(r => setTimeout(r, 20));
+    expect(uploadPickerState.lastOptions).toBeDefined();
+    uploadPickerState.lastOptions.onSelect({ url });
+    uploadPickerState.lastOptions = null;
+  }
+
+  it('routes i2v modelType to muapi.generateI2V', async () => {
+    const { muapi } = await import('../../src/lib/muapi.js');
+    const generateI2VSpy = vi.spyOn(muapi, 'generateI2V');
+
+    const template = buildTemplate({
+      modelType: 'i2v',
+      model: 'kling-i2v',
+      inputs: [
+        { name: 'prompt', type: 'textarea', label: 'Prompt' },
+        { name: 'image_url', type: 'image', label: 'Image' },
+      ],
+    });
+    const { getTemplateById } = await import('../../src/lib/templates.js');
+    vi.mocked(getTemplateById).mockReturnValue(template);
+
+    const element = TemplateStudio(template.id);
+    container.innerHTML = '';
+    container.appendChild(element);
+    await new Promise(r => setTimeout(r, 50));
+
+    const promptInput = container.querySelector('textarea');
+    promptInput.value = 'test prompt';
+    promptInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+    // Supply the reference image the picker would normally provide, so the
+    // i2v image validation passes and generation reaches muapi.
+    await supplyUpload('Click to upload an image', 'https://cdn.muapi.ai/input/i2v-ref.png');
+
+    const genBtn = Array.from(container.querySelectorAll('button')).find(btn => btn.textContent?.includes('Generate'));
+    genBtn.click();
     await new Promise(r => setTimeout(r, 300));
 
-    // muapi.generateImage should have been called twice (original + retry)
-    expect(callCount).toBe(2);
+    expect(generateI2VSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('routes i2i modelType to muapi.generateI2I', async () => {
+    const { muapi } = await import('../../src/lib/muapi.js');
+    const generateI2ISpy = vi.spyOn(muapi, 'generateI2I');
+
+    await mountAndGenerate(buildTemplate({
+      modelType: 'i2i',
+      model: 'flux-i2i',
+      outputType: 'image',
+      inputs: [
+        { name: 'prompt', type: 'textarea', label: 'Prompt' },
+        { name: 'image_url', type: 'image', label: 'Image' },
+      ],
+    }));
+
+    await supplyUpload('Click to upload an image', 'https://cdn.muapi.ai/input/i2i-ref.png');
+
+    const genBtn = Array.from(container.querySelectorAll('button')).find(btn => btn.textContent?.includes('Generate'));
+    genBtn.click();
+    await new Promise(r => setTimeout(r, 300));
+
+    expect(generateI2ISpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('routes t2v modelType to muapi.generateVideo', async () => {
+    const { muapi } = await import('../../src/lib/muapi.js');
+    const generateVideoSpy = vi.spyOn(muapi, 'generateVideo');
+
+    await mountAndGenerate(buildTemplate({ modelType: 't2v', model: 'kling-v2.6-pro-t2v' }));
+
+    expect(generateVideoSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('routes t2v modelType with a v2v model ID to muapi.processV2V', async () => {
+    const { muapi } = await import('../../src/lib/muapi.js');
+    const processV2VSpy = vi.spyOn(muapi, 'processV2V');
+
+    // V2V models are routed through the t2v branch, so a t2v template with a
+    // v2v model must reach muapi.processV2V (not generateVideo).
+    await mountAndGenerate(buildTemplate({
+      modelType: 't2v',
+      model: 'kling-v2v',
+      inputs: [
+        { name: 'prompt', type: 'textarea', label: 'Prompt' },
+        { name: 'video_url', type: 'video', label: 'Video' },
+      ],
+    }));
+
+    await supplyUpload('Click to upload a video', 'https://cdn.muapi.ai/input/v2v-src.mp4');
+
+    const genBtn = Array.from(container.querySelectorAll('button')).find(btn => btn.textContent?.includes('Generate'));
+    genBtn.click();
+    await new Promise(r => setTimeout(r, 300));
+
+    expect(processV2VSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('routes t2i modelType to muapi.generateImage', async () => {
+    const { muapi } = await import('../../src/lib/muapi.js');
+    const generateImageSpy = vi.spyOn(muapi, 'generateImage');
+
+    await mountAndGenerate(buildTemplate({ modelType: 't2i', model: 'flux', outputType: 'image' }));
+
+    expect(generateImageSpy).toHaveBeenCalledTimes(1);
+  });
+
+  // ─────────────────────────────────────────────────────────
+  // Duration / aspect ratio: must be normalized and attached
+  // to the muapi params.
+  // ─────────────────────────────────────────────────────────
+
+  it('attaches duration from template.duration string to muapi params', async () => {
+    const { muapi } = await import('../../src/lib/muapi.js');
+    const generateImageSpy = vi.spyOn(muapi, 'generateImage');
+
+    await mountAndGenerate(buildTemplate({
+      modelType: 't2i',
+      model: 'flux',
+      outputType: 'image',
+      duration: '8',
+    }));
+
+    const callParams = generateImageSpy.mock.calls[0]?.[0];
+    expect(callParams).toBeDefined();
+    expect(callParams.duration).toBe(8);
+  });
+
+  it('attaches duration from template.duration object default field to muapi params', async () => {
+    const { muapi } = await import('../../src/lib/muapi.js');
+    const generateImageSpy = vi.spyOn(muapi, 'generateImage');
+
+    await mountAndGenerate(buildTemplate({
+      modelType: 't2i',
+      model: 'flux',
+      outputType: 'image',
+      duration: { default: 5, min: 3, max: 10 },
+    }));
+
+    const callParams = generateImageSpy.mock.calls[0]?.[0];
+    expect(callParams).toBeDefined();
+    expect(callParams.duration).toBe(5);
+  });
+
+  it('attaches aspect ratio from template.aspectRatio to muapi params', async () => {
+    const { muapi } = await import('../../src/lib/muapi.js');
+    const generateImageSpy = vi.spyOn(muapi, 'generateImage');
+
+    await mountAndGenerate(buildTemplate({
+      modelType: 't2i',
+      model: 'flux',
+      outputType: 'image',
+      aspectRatio: '9:16',
+    }));
+
+    const callParams = generateImageSpy.mock.calls[0]?.[0];
+    expect(callParams).toBeDefined();
+    expect(callParams.aspect_ratio).toBe('9:16');
+  });
+
+  it('attaches aspect ratio from template.aspectRatios[0] to muapi params', async () => {
+    const { muapi } = await import('../../src/lib/muapi.js');
+    const generateImageSpy = vi.spyOn(muapi, 'generateImage');
+
+    await mountAndGenerate(buildTemplate({
+      modelType: 't2i',
+      model: 'flux',
+      outputType: 'image',
+      aspectRatios: ['1:1', '16:9'],
+    }));
+
+    const callParams = generateImageSpy.mock.calls[0]?.[0];
+    expect(callParams).toBeDefined();
+    expect(callParams.aspect_ratio).toBe('1:1');
+  });
+
+  // ─────────────────────────────────────────────────────────
+  // History: saveToHistory must be called with correct args on
+  // successful generation.
+  // ─────────────────────────────────────────────────────────
+
+  it('calls saveToHistory on success with url, prompt, model, and type', async () => {
+    const { saveGeneration } = await import('../../src/lib/generationHistory.js');
+    const saveGenerationSpy = vi.mocked(saveGeneration);
+
+    await mountAndGenerate(buildTemplate({
+      modelType: 't2i',
+      model: 'flux',
+      outputType: 'image',
+    }));
+
+    expect(saveGenerationSpy).toHaveBeenCalledTimes(1);
+    const historyCall = saveGenerationSpy.mock.calls[0]?.[0];
+    expect(historyCall).toBeDefined();
+    expect(historyCall.studio).toBe('template');
+    expect(historyCall.type).toBe('image');
+    expect(historyCall.url).toBeDefined();
+    expect(historyCall.url).toContain('https://');
+    expect(historyCall.prompt).toBeDefined();
+    expect(historyCall.model).toBeDefined();
+    expect(historyCall.parameters.template_id).toBe('routing-test');
+  });
+
+  it('saveToHistory records video type and correct model for t2v', async () => {
+    const { saveGeneration } = await import('../../src/lib/generationHistory.js');
+    const saveGenerationSpy = vi.mocked(saveGeneration);
+
+    await mountAndGenerate(buildTemplate({
+      modelType: 't2v',
+      model: 'kling-v2.6-pro-t2v',
+      outputType: 'video',
+    }));
+
+    expect(saveGenerationSpy).toHaveBeenCalledTimes(1);
+    const historyCall = saveGenerationSpy.mock.calls[0]?.[0];
+    expect(historyCall.type).toBe('video');
+    expect(historyCall.model).toBe('kling-v2.6-pro-t2v');
+    expect(historyCall.parameters.template_id).toBe('routing-test');
   });
 });

@@ -103,6 +103,7 @@ const stubLegacy = () => ({
     // Never stub imports from the landing page — those are new-style
     // modules that must resolve to their real files.
     if (importer.includes('src/components/landing/')) return null;
+    if (source.startsWith('/') && fs.existsSync(source)) return null;
     const isExternal = !source.startsWith('.') && !source.startsWith('/') && !source.startsWith('\0');
     if (isExternal) {
       const pkgName = source.split('/')[0];
@@ -118,9 +119,9 @@ const stubLegacy = () => ({
           meta: { legacyStub: { source, importer } }
         };
       }
-      const resolved = await this.resolve(source, importer, { skipSelf: true });
-      if (resolved) return null;
     }
+    const resolved = await this.resolve(source, importer, { skipSelf: true });
+    if (resolved) return null;
 
     // Genuinely unresolved legacy import — stub it so the bundle still
     // resolves. Asset imports get a placeholder data URL.

@@ -352,6 +352,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     const candidates = template.modelType === 'i2i' ? i2iModels
       : template.modelType === 't2i' ? t2iModels
       : template.modelType === 't2v' ? t2vModels
+      : template.modelType === 'v2v' ? v2vModels
       : i2vModels;
 
     // Prefer template.model if valid, otherwise use first candidate

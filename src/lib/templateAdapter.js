@@ -249,6 +249,13 @@ export function normalizeTemplate(template) {
   const specs = TEMPLATE_SPECS[template.id] || {};
   const type = detectTemplateType(template);
 
+  // Generation config
+  // Ensure the resolved model is a real catalog ID: if a template carries a
+  // stale/unknown model or modelType, fall back to a valid ID for its output
+  // type so generation can actually run. Templates with no model field (all
+  // CINEMATIC_TEMPLATES / niche templates) resolve via inferModel.
+  const computedModelType = template.modelType || inferModelType(template.outputType);
+
   return {
     // Core identification
     id: template.id,
@@ -276,13 +283,9 @@ export function normalizeTemplate(template) {
     quickInputs: template.quickInputs || [],
     advancedInputs: template.advancedInputs || [],
     
-    // Generation config
-    // Ensure the resolved model is a real catalog ID: if a template carries a
-    // stale/unknown model or modelType, fall back to a valid ID for its output
-    // type so generation can actually run. Templates with no model field (all
-    // CINEMATIC_TEMPLATES / niche templates) resolve via inferModel.
-    model: inferModel(type, template.outputType, template.model, template.modelType),
-    modelType: template.modelType || inferModelType(template.outputType),
+    // Generation config (computedModelType is declared above the object literal)
+    model: inferModel(type, template.outputType, template.model, computedModelType),
+    modelType: computedModelType,
     basePrompt: template.basePrompt || buildBasePrompt(template, specs),
     aspectRatio: template.aspectRatio || template.aspectRatios?.[0] || '16:9',
     duration: normalizeDuration(template.duration),

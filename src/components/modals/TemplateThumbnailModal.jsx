@@ -2785,7 +2785,10 @@ export class TemplateThumbnailModal extends BaseModal {
     const bindSelect = (id, key, prop = 'controls') => {
       const el = container.querySelector(id);
       if (!el) return;
-      el.addEventListener('change', (e) => { this[prop][key] = e.target.value; });
+      el.addEventListener('change', (e) => {
+        if (prop === 'this') this[key] = e.target.value;
+        else this[prop][key] = e.target.value;
+      });
     };
     bindSelect('#thumb-responses-model', 'responsesModel', 'this');
     bindSelect('#thumb-custom-size', 'customSize', 'this');
@@ -3162,10 +3165,18 @@ export class TemplateThumbnailModal extends BaseModal {
     if (this.selectedIndex >= 0 && this.candidates[this.selectedIndex]) {
       const preview = document.createElement('div');
       preview.className = 'generated-preview';
+      preview.style.position = 'relative';
       const img = document.createElement('img');
       const candidate = this.candidates[this.selectedIndex];
       img.src = candidate.dataUrl || ThumbnailService.b64ToDataUrl(candidate.b64_json);
       preview.appendChild(img);
+      if (this.partialPreview) {
+        const overlay = document.createElement('img');
+        overlay.src = this.partialPreview;
+        overlay.alt = 'Partial preview';
+        overlay.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.85;pointer-events:none;';
+        preview.appendChild(overlay);
+      }
       container.appendChild(preview);
     }
 

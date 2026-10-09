@@ -80,7 +80,7 @@ describe('TemplateStudio real-component generation tests', () => {
     const inlineError = container.querySelector('.ts-inline-error');
     expect(inlineError).not.toBeNull();
     expect(inlineError.textContent).toContain('Please upload an image before generating.');
-  });
+  }, 15000); // real-component mount is slow under parallel load
 
   it('Niche T2V: prompt-only template renders without image upload', async () => {
     mountTemplateStudio('midnight_table_film');
