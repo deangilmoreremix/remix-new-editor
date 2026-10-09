@@ -94,7 +94,7 @@ describe('RenderPage bug fixes', () => {
 
   it('B3: hero Start Render button triggers the Export Video action', () => {
     const el = RenderPage();
-    const startBtn = el.querySelector('#startRenderBtn');
+    const startBtn = el.querySelector('.start-render-btn');
     expect(startBtn).toBeTruthy();
     startBtn.click();
     const exportBtn = [...el.querySelectorAll('#actionButtonsRow button')].find(

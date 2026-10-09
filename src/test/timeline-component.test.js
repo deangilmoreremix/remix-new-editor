@@ -1,13 +1,39 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Timeline } from '../components/Timeline.js';
 
+const createTimelineInitialState = () => ({
+  tracks: [
+    {
+      id: 'track-video',
+      name: 'Video',
+      muted: false,
+      solo: false,
+      locked: false,
+      clips: [
+        { id: 1, name: 'Opening Shot', type: 'video', left: 8, width: 18 },
+        { id: 2, name: 'Generated Clip', type: 'video', left: 28, width: 20 }
+      ]
+    },
+    {
+      id: 'track-audio',
+      name: 'Audio',
+      muted: false,
+      solo: false,
+      locked: false,
+      clips: [
+        { id: 3, name: 'Music Bed', type: 'audio', left: 0, width: 100 }
+      ]
+    }
+  ]
+});
+
 describe('Timeline Component - UI Integration and Timeline Features', () => {
   let timeline;
   let container;
   let consoleSpy;
 
   beforeEach(() => {
-    timeline = new Timeline();
+    timeline = new Timeline({ initialState: createTimelineInitialState() });
     container = timeline.render();
 
     consoleSpy = {

@@ -684,7 +684,7 @@ genAllBtn.type = 'button';
       const action = item.dataset.enhance;
       if (action === 'gtm') {
         import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-          openGTMPromptModal('storyboard', (prompt) => {
+          openGTMPromptModal('storyboard-studio', (prompt) => {
             enhancedConcept = prompt;
             renderFrames();
           });
@@ -1313,7 +1313,7 @@ const compareBtn = document.createElement('button');
       frameEnhanceBtn.title = 'Enhance this frame with GTM conversion frameworks';
       frameEnhanceBtn.addEventListener('click', () => {
         import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-          openGTMPromptModal('storyboard', (prompt) => {
+          openGTMPromptModal('storyboard-studio', (prompt) => {
             frame.enhancedPrompt = prompt;
             frameEnhanceBtn.textContent = '🎯 Enhanced';
             frameEnhanceBtn.classList.add('active');

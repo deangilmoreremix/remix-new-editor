@@ -874,6 +874,20 @@ export class MuapiClient {
             throw lastErr;
         }
 
+        // Deliberate graceful degradation for retryable upstream failures
+        // (5xx, timeout, network). Store the file in the public Supabase
+        // `uploads` bucket instead and return that URL, which MuAPI models can
+        // fetch the same way they fetch a /upload_file URL — so the user still
+        // gets a working upload when the MuAPI upload endpoint is degraded.
+        //
+        // Client-side auth/quota/size failures (402/403/413/422 and other
+        // non-retryable errors) are rethrown above rather than silently swapped
+        // for a different storage backend: those mean "fix the input", not
+        // "MuAPI is unavailable".
+        //
+        // NOTE: this depends on the `uploads` bucket accepting the file's MIME
+        // type. src/test/uploads-bucket-allowlist.test.ts asserts the bucket
+        // allowlist stays a superset of src/lib/editor/uploadLimits.js.
         try {
             return await uploadFileToStorage(file);
         } catch (fallbackErr) {
