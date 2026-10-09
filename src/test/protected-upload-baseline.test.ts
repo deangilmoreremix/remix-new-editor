@@ -40,7 +40,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { resolve, join } from 'node:path';
 import { createElement, act } from 'react';
@@ -176,7 +176,13 @@ function readSource(rel: string): string {
 }
 
 function sha256(rel: string): string {
-  return createHash('sha256').update(readFileSync(join(ROOT, rel))).digest('hex');
+  const path = join(ROOT, rel);
+  if (!existsSync(path)) {
+    expect.fail(
+      `PROTECTED FILE DELETED: ${rel} is expected to exist for the byte-integrity baseline but was not found. Protected applications (Timeline Studio/Timeline Editor, CineGen, Chat) must not be removed by the upload-pipeline repair. If deleting this file was intentional and approved, remove its entry from PROTECTED_BASELINE in src/test/protected-upload-baseline.test.ts deliberately.`,
+    );
+  }
+  return createHash('sha256').update(readFileSync(path)).digest('hex');
 }
 
 // Minimal React renderer (the repo has no @testing-library/dom installed, so
@@ -445,27 +451,61 @@ describe('protected applications — upload import surface', () => {
   }
 
   it('no protected application file imports a NEW upload module outside the shared contract set', () => {
-    // The protected apps may only reach upload services through the eight
-    // shared modules guarded above. Any other import specifier that looks like
-    // an upload service in a protected file is a red flag.
+    // The protected apps may only reach upload services through the shared
+    // modules guarded above. Any other specifier — static OR dynamically
+    // loaded — that looks like an upload service is a red flag.
+    //
+    // The specifier scan recognises all three forms, in either quote style:
+    //   * static:    `import ... from 'x'` / `export ... from 'x'`
+    //   * dynamic:   `import('x')` (lazy-loaded upload paths)
+    //   * commonjs:  `require('x')`
+    // A previous revision matched only `from '...'`, so a dynamic import or a
+    // require of an upload module in any file that is not byte-pinned was
+    // completely invisible to this check.
+    const IMPORT_SPECIFIER =
+      /(?:\bfrom\s+|\bimport\s*\(\s*|\brequire\s*\(\s*)['"]([^'"]+)['"]/g;
+    // Every relative specifier form through which the upload call sites below
+    // legitimately reach those shared modules, plus the protected Timeline
+    // entry point's direct reach into uploadSources.js / dragDrop.js.
     const allowed = [
-      '../lib/hybrid-supabase.js',
-      './hybrid-supabase.js',
-      '../lib/uploadService.js',
-      '../lib/editor/uploadPipeline.js',
-      './uploadPipeline.js',
-      '../lib/editor/upload.js',
+      // shared upload contract modules
       '../lib/muapi.js',
       './muapi.js',
       '../../lib/muapi.js',
+      '../lib/uploadService.js',
+      './uploadService.js',
+      '../lib/editor/upload.js',
+      './upload.js',
+      '../lib/editor/uploadPipeline.js',
+      './uploadPipeline.js',
+      '../lib/editor/uploadLimits.js',
+      './uploadLimits.js',
+      '../lib/editor/validateFile.js',
+      './validateFile.js',
       '../lib/supabase.js',
       './supabase.js',
       '../../supabase.js',
+      '../supabase.js',
+      '../lib/hybrid-supabase.js',
+      './hybrid-supabase.js',
+      // protected Timeline entry-point internals
       '../lib/editor/uploadSources.js',
+      './uploadSources.js',
       '../lib/editor/dragDrop.js',
+      './dragDrop.js',
     ];
-    const protectedFiles = [
+    // Files with live upload call sites. Superset of the byte baseline: it also
+    // covers non-byte-pinned upload call sites (the shared caption modal and
+    // its action wrapper), so a re-route there stays visible even though those
+    // files are not protected application files.
+    const uploadCallSiteFiles = [
       'src/components/TimelineEditorPage.jsx',
+      'src/lib/editor/dragDrop.js',
+      'src/lib/editor/uploadSources.js',
+      'src/lib/editor/mediaLibrary.js',
+      'src/lib/editor/aiTools.js',
+      'src/lib/editor/captionActions.js',
+      'src/components/modals/AICaptionsModal.jsx',
       'src/components/ChatStudio.js',
       'src/components/chat/ChatStudio.jsx',
       'src/components/chat/ChatInput.jsx',
@@ -479,15 +519,15 @@ describe('protected applications — upload import surface', () => {
       'src/components/elements/element-generate.jsx',
       'src/components/create/nodes/music-prompt-node.jsx',
     ];
-    for (const file of protectedFiles) {
+    for (const file of uploadCallSiteFiles) {
       const source = readSource(file);
-      const specs = [...source.matchAll(/from\s+'([^']+)'/g)].map((m) => m[1]);
-      for (const spec of specs) {
-        if (/(upload|muapi|supabase|storage|hybrid)/i.test(spec)) {
+      for (const match of source.matchAll(IMPORT_SPECIFIER)) {
+        const specifier = match[1];
+        if (/(upload|muapi|supabase|storage|hybrid)/i.test(specifier)) {
           expect(
             allowed,
-            `${file} imports upload-related module '${spec}' which is outside the shared upload contract set`,
-          ).toContain(spec);
+            `${file} reaches upload module '${specifier}' which is outside the shared upload contract set. The protected application must keep resolving uploads through the same shared entry point. If this re-route is intentional and approved, update this baseline deliberately.`,
+          ).toContain(specifier);
         }
       }
     }
@@ -534,6 +574,16 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     ['src/components/modals/MusicGenerationModal.jsx', 'a4c551e4f9eb1cd39002a20db266fd54a949f9af29821a094e8e8113ea8d3a72'],
     ['src/components/timeline/AIChatPanel.js', '192992eb516b5d44e1d670b79fc3799f74e277447bf33d94c0653b4260667873'],
     ['src/components/create/nodes/music-prompt-node.jsx', '466215193c99448ae2c2b52ae63da76e57cca7735157bbdab87ad508ae207089'],
+    // Timeline Editor upload internals. These hold live protected upload call
+    // sites (dragDrop.js:172/:229 Supabase-direct uploadFileToStorage and
+    // :1559 processFileUpload; uploadSources.js:73/:182/:198 processFileUpload;
+    // mediaLibrary.js:968 processFileUpload; aiTools.js:318 uploadFileToStorage
+    // from src/lib/supabase.js), so they are pinned byte-for-byte — not merely
+    // through their import statements — to catch an in-body re-route.
+    ['src/lib/editor/dragDrop.js', '222285d3a03aec02b2ee7841f3d2689bc9f0dad1c83c1211d68c47df71c0840a'],
+    ['src/lib/editor/uploadSources.js', 'ac2de04ff10f76003461acb507db7697da0e9ea6d5fcf9f7a24e5c5d686b0bc1'],
+    ['src/lib/editor/mediaLibrary.js', '32caa774b2ee2e19fe849fa18fc4b3c03d065e9ee132e89a4355822d2d49ed84'],
+    ['src/lib/editor/aiTools.js', '3bb112b66ca30009f467353a22dc452fdf57bf480e5c067339c9178630e1ea19'],
     // Protected applications' own tests must not change either.
     ['src/components/elements/__tests__/elements.test.jsx', '4df4e6a1788252bab3553b1e52c129cbc4dbf70e87ebe92cdc2b0b168bf9086e'],
     ['src/lib/__tests__/elements-helpers.test.js', '3987f6642fbfdfe7a2d50e2d82d3bbc0bea7ec0da11983dad4e0d1c6f64d75d1'],
