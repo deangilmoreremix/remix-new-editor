@@ -192,7 +192,7 @@ export function VideoAgentStudioShell({ initialProjectId } = {}) {
     if (data.type === 'studio.error') {
       // Best-effort: log to console; the existing error splash will
       // surface if the iframe never reaches a usable state.
-      // eslint-disable-next-line no-console
+       
       console.warn('[VideoAgentStudio2] studio reported error', data);
     }
   };

@@ -29,7 +29,7 @@ export function evaluateVisibility(expression, state) {
   if (eqMatch) {
     const field = eqMatch[1].trim();
     const op = eqMatch[2];
-    let rawVal = eqMatch[3].trim().replace(/^["']|["']$/g, '');
+    const rawVal = eqMatch[3].trim().replace(/^["']|["']$/g, '');
     const val = state.values[field];
 
     // Numeric coercion if both sides look numeric

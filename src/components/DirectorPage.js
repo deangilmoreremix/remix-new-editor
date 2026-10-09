@@ -409,7 +409,7 @@ export function DirectorPage() {
     const videoId = urlParams.get('videoId') || '';
     const videoUrl = urlParams.get('videoUrl') || '';
 
-    let activeAgents = new Set();
+    const activeAgents = new Set();
     let isProcessing = false;
     let pollAbort = null;
 

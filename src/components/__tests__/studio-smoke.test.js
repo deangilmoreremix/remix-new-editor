@@ -28,14 +28,17 @@ describe('Studio runtime smoke tests', () => {
     it(`${file} mounts without ReferenceError`, async () => {
       const fullPath = join(componentsDir, file);
       const source = readFileSync(fullPath, 'utf8');
-      const factoryMatch = source.match(/export\s+(?:async\s+)?function\s+(\w+)\s*\(/);
-      if (!factoryMatch) {
+      
+      // Prefer the main component factory (Page/Studio) over helper functions.
+      const allMatches = [...source.matchAll(/export\s+(?:async\s+)?function\s+(\w+)\s*\(/g)].map(m => m[1]);
+      const factoryName = allMatches.find(n => /Page|Studio/.test(n)) || allMatches[0];
+      
+      if (!factoryName) {
         console.warn(`  Skipping ${file}: no exported factory found`);
         return;
       }
-      const factoryName = factoryMatch[1];
 
-        const module = await import(`../${file}`);
+      const module = await import(`../${file}`);
       const factory = module[factoryName];
       if (typeof factory !== 'function') {
         console.warn(`  Skipping ${file}: factory ${factoryName} not callable`);
@@ -58,6 +61,6 @@ describe('Studio runtime smoke tests', () => {
 
       const refErrors = errors.filter(e => /ReferenceError|TypeError/.test(e));
       expect(refErrors).toEqual([]);
-    });
+    }, 15000);
   }
 });

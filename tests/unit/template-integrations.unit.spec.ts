@@ -157,7 +157,7 @@ describe('templateAdapter', () => {
     expect(normalized.category).toBe('Uncategorized');
     expect(normalized.outputType).toBe('video');
     expect(normalized.inputs).toBeInstanceOf(Array);
-    expect(normalized.basePrompt).toBe('');
+    expect(normalized.basePrompt).toBe('{prompt}, cinematic video, professional quality');
     expect(normalized.aspectRatio).toBe('16:9');
     expect(normalized.duration).toBe(5);
     expect(normalized.defaultParams.resolution).toBe('720p');

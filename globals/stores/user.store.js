@@ -136,7 +136,6 @@ export default class UserStore {
       });
       this.roles = user.roles;
     } catch (e) {
-      console.log(e);
       throw e;
     }
   };
@@ -154,7 +153,6 @@ export default class UserStore {
       });
       this.downloadVideoUrl = url;
     } catch (e) {
-      console.log(e);
       throw e;
     }
   };
@@ -172,7 +170,6 @@ export default class UserStore {
       });
       return details
     } catch (e) {
-      console.log(e);
       throw e;
     }
   };
@@ -226,7 +223,6 @@ export default class UserStore {
       }
       return link
     } catch (e) {
-      console.log(e);
       throw e;
     }
   };
@@ -241,7 +237,6 @@ export default class UserStore {
         },
       });
     } catch (e) {
-      console.log(e);
       throw e;
     }
   };
@@ -258,7 +253,6 @@ export default class UserStore {
       });
       return user.ttsAmountOfAvailableCharacters;
     } catch (e) {
-      console.log(e);
       throw e;
     }
   };
@@ -277,7 +271,6 @@ export default class UserStore {
       this.currentUser.cutoutProCreditAvailableBalance = user.ttsAmountOfAvailableCredit;
       // return user.ttsAmountOfAvailableCredit;
     } catch (e) {
-      console.log(e);
       throw e;
     }
   };
@@ -296,7 +289,6 @@ export default class UserStore {
       this.currentUser.availableDownloadVideoLimit = user.ttsAmountOfAvailableCredit;
             // return user.ttsAmountOfAvailableCredit;
     } catch (e) {
-      console.log(e);
       throw e;
     }
   };
@@ -446,7 +438,6 @@ export default class UserStore {
         this.currentUser.txtVideoKey = key;
       }
     } catch (e) {
-      console.log(e);
       throw e;
     }
   };
@@ -675,7 +666,6 @@ export default class UserStore {
 
   @computed
   get revolutionDownloadVideoEnabled() {
-    console.log( this.isfeatureEnabled(FEATURES.REVOLUTION_DOWNLOAD_VIDEO),"dfkdfdhfjdfhjd")
     return this.isfeatureEnabled(FEATURES.REVOLUTION_DOWNLOAD_VIDEO);
   }
   

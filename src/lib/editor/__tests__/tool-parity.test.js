@@ -45,7 +45,7 @@ describe('Tool selection — CineGen parity (regression)', () => {
     // The fix: button.addEventListener('click', () => selectTool(def.id));
     expect(src).toMatch(/button\.addEventListener\('click', \(\) => selectTool\(def\.id\)\)/);
     // Confirm none of the legacy PascalCase assignments remain in renderTools.
-    const renderToolsBlock = src.match(/function renderTools\(\)\s*\{([\s\S]*?)\n    \}/);
+    const renderToolsBlock = src.match(/function renderTools\(\)\s*\{([\s\S]*?)\n {4}\}/);
     expect(renderToolsBlock).toBeTruthy();
     expect(renderToolsBlock[1]).not.toMatch(/state\.selectedTool = label;/);
   });

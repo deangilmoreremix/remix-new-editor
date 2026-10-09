@@ -158,8 +158,8 @@ export function clampTimeRange(range, sourceDuration) {
   ) {
     return null;
   }
-  let start = Math.max(0, range.start);
-  let end = Math.min(sourceDuration, range.end);
+  const start = Math.max(0, range.start);
+  const end = Math.min(sourceDuration, range.end);
   if (start >= end) return null;
   return { start, end };
 }

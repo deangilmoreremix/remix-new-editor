@@ -6,6 +6,9 @@ import { LLM_MODES } from '../ai-features/llmAssistant.js';
 import { EXPORT_PRESETS } from '../ai-features/exportSystem.js';
 
 vi.mock('../../muapi.js', () => ({
+  MuapiClient: class MockMuapiClient {
+    constructor() {}
+  },
   muapi: {
     generateVideo: vi.fn().mockResolvedValue({ url: 'test.mp4' }),
     generateImage: vi.fn().mockResolvedValue({ url: 'test.jpg' }),

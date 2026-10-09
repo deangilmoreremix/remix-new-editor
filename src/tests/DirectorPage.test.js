@@ -1,13 +1,11 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('../lib/apiKeyManager.js', () => ({
-    apiKeyManager: {
-        getOpenAIKey: () => 'test-openai-key',
-        getVideoDBKey: () => 'test-videodb-key',
-        getMuapiKey: () => 'test-muapi-key',
-        getKey: () => 'test-key',
-    }
-}));
+global.apiKeyManager = {
+    getOpenAIKey: () => 'test-openai-key',
+    getVideoDBKey: () => 'test-videodb-key',
+    getMuapiKey: () => 'test-muapi-key',
+    getKey: () => 'test-key',
+};
 
 vi.mock('../lib/router.js', () => ({ navigate: vi.fn() }));
 vi.mock('../lib/loading.js', () => ({ showToast: vi.fn() }));

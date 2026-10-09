@@ -1908,14 +1908,12 @@ export default class ProjectStore extends BaseStore {
 
   @action
   processRunning = async (id) => {
-    console.log('call processRunning')
     const result = await this.request(`/api/users/me/makes/${id}`, {
       method: 'GET',
       headers: {
         'on-behalf': this.currentUser.id,
       },
     });
-    console.log(result.isVideoMergeProcess, "result.isVideoMergeProcess=>")
     if (result.isVideoMergeProcess) {
       setTimeout(this.processRunning(id), 10000); // Call the function again after 10 seconds
     }

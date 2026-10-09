@@ -15,8 +15,8 @@ export function SmartVideoScheduler() {
 
   let activeTab = 'Calendar';
   let aiPanelOpen = false;
-  let aiLoading = false;
-  let contentIdeas = [];
+  const aiLoading = false;
+  const contentIdeas = [];
 
   const wrapper = document.createElement('div');
   wrapper.className = 'flex flex-col flex-1 overflow-hidden';

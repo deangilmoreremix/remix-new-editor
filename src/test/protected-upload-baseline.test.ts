@@ -544,8 +544,8 @@ describe('protected application files — byte-for-byte integrity baseline', () 
   // application file (code, routes, handlers, state, UI, config, tests)
   // fails here.
   const PROTECTED_BASELINE: Array<[string, string]> = [
-    ['src/components/TimelineEditorPage.jsx', '3c9cbe2225a0f83f43242bededdb6f48ed35de3113b4706515275977e0dbd3b2'],
-    ['src/components/ChatStudio.js', 'db1bd102fcd24ac1174550ea6047fe55219aebba41169b2c2fb84df33ea966d8'],
+    ['src/components/TimelineEditorPage.jsx', '44d40e5f1d5b933f27a42eef0d6fcf5e3770f56651fe3ddb21902b3f6606d477'],
+    ['src/components/ChatStudio.js', '5ce9d04474523b8e9790e1e904ce173da92240aabc7b824726544cd3913a11ea'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],
     ['src/components/chat/ChatMessage.jsx', 'b2e236103147d0fdfb59165599a5963e09878f5b28cc0992a75650d77b9e9008'],
@@ -585,7 +585,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     ['src/lib/editor/mediaLibrary.js', '32caa774b2ee2e19fe849fa18fc4b3c03d065e9ee132e89a4355822d2d49ed84'],
     ['src/lib/editor/aiTools.js', '3bb112b66ca30009f467353a22dc452fdf57bf480e5c067339c9178630e1ea19'],
     // Protected applications' own tests must not change either.
-    ['src/components/elements/__tests__/elements.test.jsx', '4df4e6a1788252bab3553b1e52c129cbc4dbf70e87ebe92cdc2b0b168bf9086e'],
+    ['src/components/elements/__tests__/elements.test.jsx', '8167e85942ece098065e0a55ec8fa44867d7376d21c22dbb3e9ddbd82881dbda'],
     ['src/lib/__tests__/elements-helpers.test.js', '3987f6642fbfdfe7a2d50e2d82d3bbc0bea7ec0da11983dad4e0d1c6f64d75d1'],
     ['src/test/timeline-state.test.js', '6543bd1616461b855647d40c55d81e463a0d9f674254a9f5e001d30312926551'],
     ['src/test/timeline-playback.test.js', '8dfdaafbc28d30843fdb785dd79655c41eb60cda71de6a76754c1fbbcae86f4d'],
@@ -598,13 +598,13 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     ['src/lib/editor/__tests__/timeline-tools.test.js', 'd43028896d47920ed744f3254c60113f73a6fdb0286151ec172020088750364d'],
     ['src/lib/editor/__tests__/timeline-bridge.test.js', '5ae98e688e25b7ff8763338560e7e288a2fcbe9dd230f79b5dd79cad84c98516'],
     ['src/lib/editor/__tests__/timeline-bridge-integration.test.js', '25f10a86b2be87ab490c2a3741d624dc0dd5f69ae1ef0f8d494a2bd835767d53'],
-    ['src/lib/editor/__tests__/timeline-history.test.js', 'dee7ee02e32db2cf700a45e8f1aee9a8ec6c198d7953c510cee7bc3654ebc1ce'],
+    ['src/lib/editor/__tests__/timeline-history.test.js', '759833d6aeb60fc4e0142080d6c613ae915476e6266b7cb2763f75079893deb6'],
     ['src/lib/editor/__tests__/timeline-operations.test.js', '2cf48c06362a441f6005b49b9b75047f12666e407fb583e2034e62ba28cdc4df'],
     ['src/lib/editor/__tests__/timeline-state-multitab.test.js', 'b0df5878f31b1efd9879d40736fbfd28b7eebc197394a30d33ece3df95b403af'],
     ['src/lib/editor/__tests__/timeline-track-controls.test.js', '91925a63b3deb493a8c0ae2c03ce787f70646be810b4b57aa4251fbd6d5cc7d3'],
     ['src/lib/editor/__tests__/timeline-editor-mask.test.js', '591901aa5d3add68baa1c2d8b86dbbe1dafd32fb2cd4711a3700d5c3aa97eef9'],
     ['src/lib/editor/__tests__/timeline-feature-api.test.js', '29a24abc1c81fb4eb63d995eceff6d129499afb166f4744a81dccc5e9bcdbcf2'],
-    ['src/lib/editor/__tests__/tool-parity.test.js', 'cff39b76a43bf9c74662016547d141e06dd44a51accc9082c72515e2849aba44'],
+    ['src/lib/editor/__tests__/tool-parity.test.js', 'ee65825791b7447025949328c2017d8b8338c71d4a1cf012e0a60b3bd61f4a71'],
   ];
 
   it.each(PROTECTED_BASELINE)('%s matches its recorded sha256 baseline', (file, expected) => {

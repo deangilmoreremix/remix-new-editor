@@ -1,7 +1,7 @@
 // Test setup for Vitest
 // Mock browser APIs and global objects
 
-/* eslint-disable no-undef, no-redeclare */
+ 
 // Polyfill minimal browser globals so lib files that touch `window`/`document`
 // at module load time don't crash in node env (e.g. analytics.js registers
 // a `pageview` listener on import).
@@ -111,3 +111,53 @@ if (!globalThis.process.env) {
 globalThis.process.env.VITE_SUPABASE_URL = globalThis.process.env.VITE_SUPABASE_URL || 'http://localhost:54321';
 globalThis.process.env.VITE_SUPABASE_ANON_KEY = globalThis.process.env.VITE_SUPABASE_ANON_KEY || 'test-anon-key';
 globalThis.process.env.FAL_KEY = globalThis.process.env.FAL_KEY || 'test-fal-key';
+
+// Mock interactjs (used by Personalizer.js for drag/resize)
+if (typeof globalThis.interact === 'undefined') {
+  globalThis.interact = () => ({
+    draggable: () => ({
+      modifiers: [],
+      on: () => {},
+    }),
+    resizable: () => ({
+      restrictEdges: {},
+      modifiers: [],
+      on: () => {},
+    }),
+    modifiers: {
+      restrictRect: () => ({}),
+    },
+  });
+}
+
+// Mock JSX/demo imports that break in the test environment
+try {
+  vi.mock('../../src/components/demos/DemoRail.jsx', () => ({
+    createDemoRail: () => document.createElement('div'),
+  }));
+} catch {
+  // vi not available or mock already registered
+}
+
+// Polyfill scrollIntoView for jsdom (not implemented in jsdom)
+if (typeof HTMLElement !== 'undefined' && !HTMLElement.prototype.scrollIntoView) {
+  HTMLElement.prototype.scrollIntoView = () => {};
+}
+
+// Fix TextEncoder/Uint8Array invariant for esbuild compatibility.
+// jsdom's TextEncoder may produce instances that fail the `instanceof Uint8Array`
+// check esbuild relies on. We wrap it so the result is always a real Uint8Array.
+if (typeof globalThis.TextEncoder !== 'undefined') {
+  const _NativeTextEncoder = globalThis.TextEncoder;
+  globalThis.TextEncoder = class SafeTextEncoder {
+    constructor() { return new _NativeTextEncoder(); }
+    get encoding() { return 'utf-8'; }
+    encode(input) {
+      const result = new _NativeTextEncoder().encode(input);
+      if (!(result instanceof Uint8Array)) {
+        return new Uint8Array(Array.from(result));
+      }
+      return result;
+    }
+  };
+}

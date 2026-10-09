@@ -994,7 +994,7 @@ export const CINEMATIC_TEMPLATES = [
     shotBuilder: true,
     storyboardBuilder: true,
     includeCTA: true,
-    ctaOptions: ['book_now', 'visit_us', 'menu'],
+    ctaOptions: ['book_now', 'visit_us', 'call_now'],
     includeBrandContext: true
   },
   {
@@ -1828,12 +1828,12 @@ export class PromptAssemblyEngine {
     parts.push(this.buildAudioSection());
 
     // 10. Brand context injection
-    if (this.template.includeBrandContext) {
+    if (this.template?.includeBrandContext) {
       parts.push(this.getBrandPrompt());
     }
 
     // 11. CTA (if applicable)
-    if (this.template.includeCTA && this.options.includeCTA !== false) {
+    if (this.template?.includeCTA && this.options.includeCTA !== false) {
       parts.push(this.getCTAPrompt());
     }
 
@@ -1843,26 +1843,34 @@ export class PromptAssemblyEngine {
     // 13. Style references / film grammar
     parts.push(this.buildStyleReferenceSection());
 
-    return parts.filter(Boolean).join(', ');
+    const prompt = parts.filter(Boolean).join(', ');
+    if (!prompt || !prompt.trim()) {
+      const fallbackSubject =
+        (this.inputs && (this.inputs.subject || this.inputs.product || this.inputs.premise || this.inputs.story)) ||
+        this.template?.name ||
+        'cinematic video';
+      return `Cinematic video featuring ${fallbackSubject}, professional cinematography, 4K quality.`;
+    }
+    return prompt;
   }
 
   buildNarrativeSection() {
-    const typeLabel = this.template.name || 'Cinematic video';
-    const outputStyle = this.template.outputStyle;
+    const typeLabel = this.template?.name || 'Cinematic video';
+    const outputStyle = this.template?.outputStyle;
     const styleDesc = outputStyle ? outputStyle.description : '';
     const characteristics = outputStyle && outputStyle.characteristics
       ? outputStyle.characteristics.slice(0, 3).join(', ')
       : 'cinematic, high-production, emotionally engaging';
 
     const storyBeats = getStoryBeats(
-      inferFilmTypeFromBlueprint(this.template.storyBlueprint || this.template.sceneStructure || '')
+      inferFilmTypeFromBlueprint(this.template?.storyBlueprint || this.template?.sceneStructure || '')
     );
 
     let narrative = `${typeLabel}. ${styleDesc}. `;
     narrative += `Visual narrative structure: ${storyBeats.join(' → ')}. `;
     narrative += `Key qualities: ${characteristics}. `;
 
-    const coreInputs = this.inputs;
+    const coreInputs = this.inputs || {};
     const premise =
       coreInputs.premise ||
       coreInputs.story ||
@@ -1894,7 +1902,7 @@ export class PromptAssemblyEngine {
   }
 
   buildSubjectSection() {
-    const i = this.inputs;
+    const i = this.inputs || {};
     const parts = [];
 
     const subject = i.subject || i.product || i.brandName || i.company || i.startupName || i.clientName || i.founderName || i.character || '';
@@ -1945,7 +1953,7 @@ export class PromptAssemblyEngine {
   }
 
   buildSettingSection() {
-    const i = this.inputs;
+    const i = this.inputs || {};
     const parts = [];
 
     const setting = i.setting || i.location || i.environment || '';
@@ -1978,7 +1986,7 @@ export class PromptAssemblyEngine {
   }
 
   buildCinematographySection() {
-    const i = this.inputs;
+    const i = this.inputs || {};
     const parts = [];
 
     // Shot type
@@ -2023,7 +2031,7 @@ export class PromptAssemblyEngine {
   }
 
   buildLightingSection() {
-    const i = this.inputs;
+    const i = this.inputs || {};
     const parts = [];
 
     const visualStyle = (i.visualStyle || 'commercial').toLowerCase();
@@ -2045,7 +2053,7 @@ export class PromptAssemblyEngine {
     parts.push(profile);
 
     // Add film-specific lighting hints
-    const outputStyleId = this.template.outputStyle?.id || '';
+    const outputStyleId = this.template?.outputStyle?.id || '';
     if (outputStyleId.includes('luxury') || outputStyleId.includes('emotional')) {
       parts.push('soft luxury glow, premium interior atmosphere');
     } else if (outputStyleId.includes('dramatic') || outputStyleId.includes('trailer')) {
@@ -2058,7 +2066,7 @@ export class PromptAssemblyEngine {
   }
 
   buildColorSection() {
-    const i = this.inputs;
+    const i = this.inputs || {};
     const visualStyle = (i.visualStyle || 'commercial').toLowerCase();
 
     const palettes = {
@@ -2079,7 +2087,7 @@ export class PromptAssemblyEngine {
     let color = `${palette}. `;
     color += 'Professional color grading, LUT-applied finish, cinematic color science, wide color gamut, HDR-ready. ';
 
-    const outputStyleId = this.template.outputStyle?.id || '';
+    const outputStyleId = this.template?.outputStyle?.id || '';
     if (outputStyleId.includes('luxury')) {
       color += 'Soft Kodak Portra-like tones, luxurious warmth, refined highlight roll-off.';
     } else if (outputStyleId.includes('dramatic') || outputStyleId.includes('trailer')) {
@@ -2094,7 +2102,7 @@ export class PromptAssemblyEngine {
   }
 
   buildMoodSection() {
-    const i = this.inputs;
+    const i = this.inputs || {};
     const parts = [];
 
     const tone = i.tone || '';
@@ -2104,7 +2112,7 @@ export class PromptAssemblyEngine {
     if (tone) parts.push(`Overall tone: ${tone}`);
     if (emotion) parts.push(`Primary emotion: ${emotion}`);
 
-    const outputStyle = this.template.outputStyle?.id || '';
+    const outputStyle = this.template?.outputStyle?.id || '';
     if (outputStyle.includes('emotional')) {
       parts.push('Emotionally resonant, intimate, human-centered, heartfelt');
     } else if (outputStyle.includes('dramatic')) {
@@ -2129,7 +2137,7 @@ export class PromptAssemblyEngine {
   }
 
   buildPacingSection() {
-    const i = this.inputs;
+    const i = this.inputs || {};
     const pacing = i.pacing || '';
 
     if (pacing && PACING_OPTIONS[pacing.toUpperCase()]) {
@@ -2137,7 +2145,7 @@ export class PromptAssemblyEngine {
       return `${pace.name} editing rhythm. ${pace.description}. Deliberate transitions, purposeful shot duration, narrative-driven timing.`;
     }
 
-    const outputStyle = this.template.outputStyle?.id || '';
+    const outputStyle = this.template?.outputStyle?.id || '';
     if (outputStyle.includes('dramatic') || outputStyle.includes('trailer')) {
       return 'Fast-cut pacing with rising tension. Impactful transitions, hook-first rhythm, escalating visual intensity, theatrical trailer energy.';
     }
@@ -2155,7 +2163,7 @@ export class PromptAssemblyEngine {
   }
 
   buildAudioSection() {
-    const i = this.inputs;
+    const i = this.inputs || {};
     const parts = [];
 
     const musicMood = i.musicMood || i.musicScore || '';
@@ -2163,7 +2171,7 @@ export class PromptAssemblyEngine {
       parts.push(`Background music: ${musicMood}`);
     }
 
-    const outputStyle = this.template.outputStyle?.id || '';
+    const outputStyle = this.template?.outputStyle?.id || '';
     if (outputStyle.includes('dramatic') || outputStyle.includes('trailer')) {
       parts.push('Epic orchestral score or intense electronic soundscape, hit-and-hold audio transitions');
     } else if (outputStyle.includes('documentary')) {
@@ -2182,10 +2190,10 @@ export class PromptAssemblyEngine {
   }
 
   buildStyleReferenceSection() {
-    const i = this.inputs;
+    const i = this.inputs || {};
     const visualStyle = (i.visualStyle || '').toLowerCase();
-    const outputStyle = this.template.outputStyle?.id || '';
-    const filmType = inferFilmTypeFromBlueprint(this.template.storyBlueprint || this.template.sceneStructure || '');
+    const outputStyle = this.template?.outputStyle?.id || '';
+    const filmType = inferFilmTypeFromBlueprint(this.template?.storyBlueprint || this.template?.sceneStructure || '');
 
     const references = [];
 
@@ -2265,7 +2273,7 @@ export class PromptAssemblyEngine {
 
     // Subject / narrative
     const subjectParts = [];
-    const i = this.inputs;
+    const i = this.inputs || {};
     const subject = i.subject || i.product || i.brandName || i.company || i.character || '';
     const premise = i.premise || i.story || i.brandStory || i.keyMessage || '';
     if (subject) subjectParts.push(subject);
@@ -2342,11 +2350,33 @@ export class PromptAssemblyEngine {
     });
   }
 
+  getBrandPrompt() {
+    const i = this.inputs || {};
+    const parts = [];
+    const brandName = i.brandName || i.company || i.startupName || '';
+    if (brandName) parts.push(`Brand: ${brandName}`);
+    const brandVoice = i.brandVoice || '';
+    if (brandVoice) parts.push(`Brand voice: ${brandVoice}`);
+    if (!parts.length) {
+      parts.push('Professional brand presentation, consistent brand identity');
+    }
+    return parts.join('. ') + '.';
+  }
+
+  getCTAPrompt() {
+    const i = this.inputs || {};
+    const ctaType = i.ctaType || i.cta || '';
+    if (ctaType) {
+      return `Call to action: ${ctaType}. End card with clear CTA.`;
+    }
+    return 'Call to action: end card with clear next step.';
+  }
+
   getTechnicalSpecs() {
-    const i = this.inputs;
+    const i = this.inputs || {};
     const specs = [];
     const resolution = i.resolution || '4K';
-    const aspectRatio = i.aspectRatio || this.template.aspectRatios?.[0] || '16:9';
+    const aspectRatio = i.aspectRatio || this.template?.aspectRatios?.[0] || '16:9';
     const frameRate = i.frameRate || 24;
     specs.push(`${resolution} resolution, ${aspectRatio} aspect ratio, ${frameRate}fps`);
     if (i.colorSpace) specs.push(`${i.colorSpace} color space`);
@@ -2364,7 +2394,7 @@ export class PromptAssemblyEngine {
 
   // Generate multiple prompts for scene-based templates
   assembleScenePrompts() {
-    if (!this.template.sceneBuilder || !this.template.sceneStructure) {
+    if (!this.template?.sceneBuilder || !this.template?.sceneStructure) {
       return [this.assemble()];
     }
 
@@ -2387,22 +2417,23 @@ export class PromptAssemblyEngine {
   }
 
   buildScenes() {
-    const structure = this.template.sceneStructure;
-    if (!structure) return [];
+    const structure = this.template?.sceneStructure;
+    if (!structure || !Array.isArray(structure.acts)) return [];
 
     const scenes = [];
-    const totalDuration = this.inputs.duration || this.template.duration?.default || 60;
+    const totalDuration = this.inputs?.duration || this.template?.duration?.default || 60;
 
     structure.acts.forEach((act) => {
-      const actDuration = (parseInt(act.duration) / 100) * totalDuration;
-      
-      act.beats.forEach((beat) => {
+      const rawDuration = parseInt(act.duration);
+      const actDuration = (Number.isNaN(rawDuration) ? 0 : rawDuration / 100) * totalDuration;
+      const beats = Array.isArray(act.beats) ? act.beats : [];
+      beats.forEach((beat) => {
         scenes.push({
           sceneNumber: scenes.length + 1,
           act: act.act,
           actName: act.name,
-          beat: beat,
-          duration: actDuration / act.beats.length,
+          beat,
+          duration: beats.length ? actDuration / beats.length : actDuration,
           shots: this.buildShotsForScene(beat)
         });
       });
@@ -2642,13 +2673,15 @@ export class StoryboardBuilder {
 
 export class TemplateInputBuilder {
   constructor(template, mode = 'quick') {
-    this.template = template;
+    this.template = template || {};
     this.mode = mode;
-    this.inputs = mode === 'quick' ? template.quickInputs : [...template.quickInputs, ...template.advancedInputs];
+    const quick = this.template.quickInputs || [];
+    const advanced = this.template.advancedInputs || [];
+    this.inputs = mode === 'quick' ? [...quick] : [...quick, ...advanced];
   }
 
   buildFormSchema() {
-    return this.inputs.map(input => ({
+    return (this.inputs || []).map(input => ({
       name: input.name,
       type: input.type,
       label: input.label,
@@ -2684,27 +2717,27 @@ export class TemplateInputBuilder {
 
   validateInputs(values) {
     const errors = [];
-    
-    this.inputs.forEach(input => {
-      if (input.required && !values[input.name]) {
+    const safeValues = values || {};
+    (this.inputs || []).forEach(input => {
+      if (input.required && !safeValues[input.name]) {
         errors.push({
           field: input.name,
-          message: `${input.label} is required`
+          message: `${input.label || input.name} is required`
         });
       }
       
-      if (input.type === 'number' && values[input.name]) {
-        const num = parseInt(values[input.name]);
+      if (input.type === 'number' && safeValues[input.name]) {
+        const num = parseInt(safeValues[input.name]);
         if (input.min && num < input.min) {
           errors.push({
             field: input.name,
-            message: `${input.label} must be at least ${input.min}`
+            message: `${input.label || input.name} must be at least ${input.min}`
           });
         }
         if (input.max && num > input.max) {
           errors.push({
             field: input.name,
-            message: `${input.label} must be no more than ${input.max}`
+            message: `${input.label || input.name} must be no more than ${input.max}`
           });
         }
       }
@@ -2715,7 +2748,7 @@ export class TemplateInputBuilder {
 
   getDefaults() {
     const defaults = {};
-    this.inputs.forEach(input => {
+    (this.inputs || []).forEach(input => {
       if (input.type === 'select' && input.options?.length > 0) {
         defaults[input.name] = input.options[0];
       } else if (input.type === 'number' && input.min) {
