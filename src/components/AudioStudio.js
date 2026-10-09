@@ -251,8 +251,6 @@ function renderSchemaControls(selectedModel, schemaParams, setSchemaParams, cont
 
   Object.entries(selectedModel.inputs).forEach(([key, schema]) => {
     if (key === 'model') return;
-    const hardcodedKeys = ['prompt', 'style', 'duration', 'voice', 'tone', 'emotion', 'speed', 'pitch'];
-    if (hardcodedKeys.includes(key)) return;
 
     if (schema.type === 'string' && schema.field === 'audio') {
       const uploader = createAudioFileUploader(schema.title || key, schemaParams[key] || '', (url) => {
@@ -584,7 +582,8 @@ export function AudioStudio() {
       if (data.view) view = data.view;
     }
   } catch (err) {
-
+    console.error('AudioStudio: failed to load persisted state', err);
+    showToast('Could not restore previous session. Starting fresh.', 'error');
   }
 
   let persistTimer = null;
@@ -602,7 +601,8 @@ export function AudioStudio() {
         };
         localStorage.setItem(PERSIST_KEY, JSON.stringify(state));
       } catch (err) {
-
+        console.error('AudioStudio: failed to persist state', err);
+        showToast('Could not save your session. Changes may be lost.', 'error');
       }
     }, 500);
   }
@@ -1442,6 +1442,10 @@ export function AudioStudio() {
     });
     container.appendChild(rail);
   }).catch(() => {});
+
+  container.cleanup = () => {
+    window.removeEventListener('click', closeEnhanceMenu);
+  };
 
   return container;
 }

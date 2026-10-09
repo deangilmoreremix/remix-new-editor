@@ -38,6 +38,14 @@ const MAX_VIDEO_BYTES = 50 * 1024 * 1024;  // UPLOAD_LIMITS.video
 const PROXY_BODY_LIMIT_BYTES = 8 * 1024 * 1024; // SUPABASE_PROXY_BODY_LIMIT_BYTES
 const MAX_RETRIES = 2;
 const RETRYABLE_STATUSES = new Set([502, 503, 429]);
+const MUAPI_BASE_URL = (() => {
+  const configured = Deno.env.get('MUAPI_BASE_URL');
+  if (!configured) {
+    console.warn('[muapi-proxy] MUAPI_BASE_URL is not set; falling back to default production URL https://api.muapi.ai. This should be set in production environments.');
+    return 'https://api.muapi.ai';
+  }
+  return configured;
+})();
 
 // --- Output Integrity ---
 
@@ -555,7 +563,7 @@ Deno.serve(async (req: Request) => {
       const effectiveApiKey = userApiKey;
 
       const normalizedEndpoint = normalizeLegacyEndpoint(endpoint);
-      const muapiUrl = `https://api.muapi.ai/api/v1/${normalizedEndpoint}`;
+      const muapiUrl = `${MUAPI_BASE_URL}/api/v1/${normalizedEndpoint}`;
 
       const { passThrough, sizeLimit } = setupMultipartBodyStream(req);
 
@@ -749,7 +757,7 @@ Deno.serve(async (req: Request) => {
       delete (params as Record<string, unknown>).openai_api_key;
     }
 
-    const muapiUrl = `https://api.muapi.ai/api/v1/${normalizedEndpoint}`;
+    const muapiUrl = `${MUAPI_BASE_URL}/api/v1/${normalizedEndpoint}`;
 
     console.log(`[muapi-proxy] Forwarding ${generationType ?? 'request'} to ${endpoint} (normalized: ${normalizedEndpoint})`);
 
