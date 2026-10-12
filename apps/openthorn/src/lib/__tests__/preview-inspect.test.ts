@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, it, expect } from 'vitest'
 import {
   parseCssColor,
@@ -163,6 +164,13 @@ describe('formatInspectReport', () => {
 
 describe('inspectPreview without a DOM', () => {
   it('returns ran:false gracefully in node', async () => {
+    // openthorn imports this module under Node in production (no browser), where
+    // `document`/`window` are absent and inspectPreview returns { ran: false }.
+    // The shared vitest setup injects minimal window/document shims for jsdom-free
+    // suites that need them; remove them here so this suite exercises the genuine
+    // "no DOM" path it is named for (assertions below are unchanged).
+    delete globalThis.document;
+    delete globalThis.window;
     const result = await inspectPreview('<html><body></body></html>')
     expect(result.ran).toBe(false)
     expect(result.issues).toEqual([])

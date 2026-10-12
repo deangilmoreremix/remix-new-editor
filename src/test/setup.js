@@ -145,19 +145,24 @@ if (typeof HTMLElement !== 'undefined' && !HTMLElement.prototype.scrollIntoView)
 }
 
 // Fix TextEncoder/Uint8Array invariant for esbuild compatibility.
-// jsdom's TextEncoder may produce instances that fail the `instanceof Uint8Array`
-// check esbuild relies on. We wrap it so the result is always a real Uint8Array.
+// Under the jsdom environment Vitest copies jsdom's realm globals onto the global
+// object, so `globalThis.Uint8Array` belongs to jsdom's realm. The native
+// TextEncoder, however, produces a Node-realm Uint8Array, so the
+// `new TextEncoder().encode("") instanceof Uint8Array` check esbuild runs at
+// import time is cross-realm-false and esbuild throws an invariant violation.
+// Wrap the encoder so `encode()` always returns an array built with the current
+// (global) Uint8Array constructor, restoring the instanceof check to true.
 if (typeof globalThis.TextEncoder !== 'undefined') {
-  const _NativeTextEncoder = globalThis.TextEncoder;
-  globalThis.TextEncoder = class SafeTextEncoder {
-    constructor() { return new _NativeTextEncoder(); }
-    get encoding() { return 'utf-8'; }
+  const NativeTextEncoder = globalThis.TextEncoder;
+  class SafeTextEncoder {
     encode(input) {
-      const result = new _NativeTextEncoder().encode(input);
-      if (!(result instanceof Uint8Array)) {
-        return new Uint8Array(Array.from(result));
-      }
-      return result;
+      const result = new NativeTextEncoder().encode(input);
+      return result instanceof Uint8Array ? result : Uint8Array.from(result);
     }
-  };
+    encodeInto(src, dest) {
+      return new NativeTextEncoder().encodeInto(src, dest);
+    }
+    get encoding() { return 'utf-8'; }
+  }
+  globalThis.TextEncoder = SafeTextEncoder;
 }
