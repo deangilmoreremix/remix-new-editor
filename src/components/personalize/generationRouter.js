@@ -15,8 +15,10 @@
  *     as INSTANCE METHODS. We therefore call them on the singleton
  *     (e.g. `muapi.generateI2I(...)`).
  *   - `processRecast` does not exist on the canonical MuAPI client; the
- *     recast model in the source catalog is `kling-v3.0-pro-recast`,
- *     which is implemented as a V2V motion-control call. We shim it
+ *     recast model is `kling-v3.0-pro-motion-control` (verified against
+ *     live MuAPI docs: `POST /api/v1/kling-v3.0-pro-motion-control`;
+ *     MuAPI has no `kling-v3.0-pro-recast` endpoint), which is
+ *     implemented as a V2V motion-control call. We shim it
  *     here as a thin wrapper around `muapi.processV2V` with the same
  *     payload shape, so callers can keep using the source's
  *     `processRecast` naming.
@@ -45,7 +47,7 @@ import {
  * @param {Record<string, unknown>} params
  */
 async function processRecast(apiKey, params) {
-  // kling-v3.0-pro-recast is a motion-control V2V call in the canonical
+  // kling-v3.0-pro-motion-control is a motion-control V2V call in the canonical
   // client; forward all params and tag with `_recast: true` for analytics.
   return muapi.processV2V({
     ...params,

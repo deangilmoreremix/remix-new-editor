@@ -11,8 +11,11 @@
  *     (`src/lib/models.js`) instead of `@/packages/studio/src/models.js`.
  *     The local catalog does NOT export a `recastModels` array or
  *     `getRecastModelById` helper, so recast capability is detected
- *     via the model-id regex alone (matches `kling-v3.0-pro-recast`
- *     and similar IDs).
+ *     via the model-id regex alone (matches `kling-v3.0-pro-motion-control`
+ *     and similar IDs). Verified against live MuAPI docs (2026-10-12):
+ *     MuAPI exposes the recast function as the motion-control endpoint
+ *     `POST /api/v1/kling-v3.0-pro-motion-control` — there is no
+ *     `kling-v3.0-pro-recast` endpoint in MuAPI's catalog.
  *   - The `getGenerationAssetUrl` helper from the source
  *     `DemoPersonalizeProvider.tsx` is inlined here (the only caller
  *     is this module) and gated on `uploadStatus === 'ready'`,
@@ -37,9 +40,9 @@ import {
 // These must match actual IDs in src/lib/models.js.
 
 export const FACE_SWAP_MODEL = 'ai-video-face-swap';
-export const FULL_BODY_MODEL = 'kling-v3.0-pro-recast';
+export const FULL_BODY_MODEL = 'kling-v3.0-pro-motion-control';
 export const DEFAULT_T2V_MODEL = 'veo-4-text-to-video';
-export const DEFAULT_I2I_MODEL = 'gpt-image-2-edit';
+export const DEFAULT_I2I_MODEL = 'gpt-image-2-image-to-image';
 
 /**
  * @typedef {Object} ModelCapabilities
@@ -152,7 +155,7 @@ export function resolveModelCapabilities(source, options) {
   const supportsAudioPreservation =
     isInCatalog(modelId, v2vModels) ||
     isFaceSwap ||
-    /v2v|recast/.test(lowerId);
+    /v2v|recast|motion.?control/.test(lowerId);
 
   const aspectRatioOptions = Array.isArray(model?.inputs?.aspect_ratio?.enum)
     ? model.inputs.aspect_ratio.enum
@@ -173,7 +176,7 @@ export function resolveModelCapabilities(source, options) {
       modelId === FACE_SWAP_MODEL ||
       isFaceSwap,
     supportsPersonReplacement:
-      /recast|person|character|swap|animate/.test(lowerId),
+      /recast|motion.?control|person|character|swap|animate/.test(lowerId),
     supportsI2I:
       isInCatalog(modelId, i2iModels) ||
       /i2i|image.?to.?image|flux|midjourney|gpt.?image|ideogram|seedream/.test(lowerId),
@@ -182,7 +185,7 @@ export function resolveModelCapabilities(source, options) {
       isInCatalog(modelId, v2vModels) ||
       isFaceSwap ||
       isV2VByRegex,
-    supportsRecast: /recast/.test(lowerId),
+    supportsRecast: /recast|motion.?control/.test(lowerId),
     supportsLipSync:
       isInCatalog(modelId, lipsyncModels) ||
       /lipsync|lip.?sync/.test(lowerId),

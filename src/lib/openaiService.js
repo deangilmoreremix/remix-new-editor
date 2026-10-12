@@ -674,8 +674,11 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
           n: 1,
           size: resolvedSize,
           quality,
-          output_format: outputFormat,
-          response_format: 'b64_json'
+          output_format: outputFormat
+          // NOTE: `response_format` is intentionally NOT sent. Per the OpenAI
+          // API reference ("This parameter isn't supported for the GPT image
+          // models, which always return base64-encoded images"), GPT image
+          // models always return b64_json; the legacy parameter is rejected.
         })
       });
 

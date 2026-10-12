@@ -144,7 +144,7 @@ describe('runGeneration — image source', () => {
     expect(muapiMock.generateI2I).toHaveBeenCalledTimes(1);
     expect(muapiMock.generateImage).not.toHaveBeenCalled();
     const call = muapiMock.generateI2I.mock.calls[0][0];
-    expect(call.model).toBe('gpt-image-2-edit');
+    expect(call.model).toBe('gpt-image-2-image-to-image');
     expect(call.image_url).toBe('https://example.com/face.png');
     expect(call.studioType).toBe('personalize-i2i');
   });
@@ -243,7 +243,7 @@ describe('runGeneration — video source', () => {
     });
     expect(muapiMock.processV2V).toHaveBeenCalledTimes(1);
     const call = muapiMock.processV2V.mock.calls[0][0];
-    expect(call.model).toBe('kling-v3.0-pro-recast');
+    expect(call.model).toBe('kling-v3.0-pro-motion-control');
     expect(call.studioType).toBe('personalize-recast');
   });
 
