@@ -95,11 +95,16 @@ class OpenAIConfig {
       // Mainline model used by the Responses API image generation tool. The
       // tool selects the underlying GPT Image model; this is the conversational
       // model that supports calling the image_generation tool.
-      responsesModel: 'gpt-5.6',
+      // Verified against the OpenAI model catalog (2026-10-12): the current
+      // GPT-5.6 family IDs are `gpt-5.6-sol` / `-terra` / `-luna`; a bare
+      // `gpt-5.6` is not a documented model ID. `gpt-5.1` is deprecated
+      // (shutdown 2027-04-01, replacement `gpt-6-sol`); `gpt-5.5` and `gpt-5`
+      // remain current catalog entries.
+      responsesModel: 'gpt-5.6-sol',
       supportedResponsesModels: [
-        'gpt-5.6',
+        'gpt-5.6-sol',
         'gpt-5.5',
-        'gpt-5.1',
+        'gpt-6-sol',
         'gpt-5'
       ],
       // Thumbnail overrides used by ThumbnailService / ai-thumbnail-generator
@@ -185,9 +190,9 @@ class OpenAIConfig {
         generate: 'Always generate new',
         edit: 'Always edit existing',
       },
-      // Mainline Responses API model override (gpt-5.6, gpt-5.5, etc.)
-      thumbnailResponsesModel: 'gpt-5.6',
-      thumbnailResponsesModelOptions: ['gpt-5.6', 'gpt-5.5', 'gpt-5.1', 'gpt-5'],
+      // Mainline Responses API model override (gpt-5.6-sol, gpt-5.5, etc.)
+      thumbnailResponsesModel: 'gpt-5.6-sol',
+      thumbnailResponsesModelOptions: ['gpt-5.6-sol', 'gpt-5.5', 'gpt-6-sol', 'gpt-5'],
       // `include` for Responses API — configurable, default to reasoning.
       thumbnailIncludeOptions: [
         'reasoning.encrypted_content',
@@ -365,7 +370,13 @@ class OpenAIConfig {
   }
 
   /**
-   * Get default output settings for image generation
+   * Get default output settings for image generation.
+   *
+   * NOTE (verified 2026-10-12): the `quality: 'standard'` / `style: 'vivid'`
+   * values are legacy DALL·E-era settings. GPT image models use
+   * low/medium/high quality and have no `style` parameter, but this method
+   * (and `validateOutputSettings`) currently has NO callers — nothing sends
+   * these values to GPT image models. Kept for API compatibility only.
    * @returns {object} Default output settings
    */
   getDefaultOutputSettings() {

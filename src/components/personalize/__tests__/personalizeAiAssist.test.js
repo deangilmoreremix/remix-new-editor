@@ -212,6 +212,115 @@ describe('runAiAssistEdit - OpenAI image editing path', () => {
     expect(entry.outputUrls).toEqual(['B64']);
   });
 
+  // ── Provider image-shape contract ────────────────────────────────────────
+  // openaiService.editImageResponses resolves through _parseResponsesOutput,
+  // which returns images as { base64, revised_prompt, callId } — NOT
+  // { b64_json }. Both shapes must be accepted so a successful provider
+  // response never filters down to NO_IMAGE_OUTPUT.
+
+  it('accepts the { base64 } shape returned by openaiService._parseResponsesOutput', async () => {
+    editImageResponses.mockResolvedValue({
+      responseId: 'resp_b64',
+      images: [{ base64: 'QUJD', revised_prompt: 'cleaned', callId: 'call_1', status: 'completed' }],
+    });
+    const lib = makeLibrary({
+      logos: [{ id: 'l1', url: 'https://x.test/logo.png', isPrimary: true }],
+    });
+
+    const res = await runAiAssistEdit({
+      role: 'logo',
+      instruction: 'clean the logo',
+      options: { library: lib },
+    });
+
+    expect(res.ok).toBe(true);
+    expect(res.images).toEqual(['QUJD']);
+    expect(addEntry.mock.calls[0][0].outputUrls).toEqual(['QUJD']);
+    expect(addEntry.mock.calls[0][0].outputIsBase64).toBe(true);
+  });
+
+  it('accepts the legacy { b64_json } shape', async () => {
+    editImageResponses.mockResolvedValue({
+      responseId: 'resp_legacy',
+      images: [{ b64_json: 'QUJD' }],
+    });
+    const lib = makeLibrary({
+      logos: [{ id: 'l1', url: 'https://x.test/logo.png', isPrimary: true }],
+    });
+
+    const res = await runAiAssistEdit({
+      role: 'logo',
+      instruction: 'clean the logo',
+      options: { library: lib },
+    });
+
+    expect(res.ok).toBe(true);
+    expect(res.images).toEqual(['QUJD']);
+  });
+
+  it('accepts { image_base64 } and string entries', async () => {
+    editImageResponses.mockResolvedValue({
+      responseId: 'resp_mixed',
+      images: [{ image_base64: 'QUJD' }, 'RAVG'],
+    });
+    const lib = makeLibrary({
+      logos: [{ id: 'l1', url: 'https://x.test/logo.png', isPrimary: true }],
+    });
+
+    const res = await runAiAssistEdit({
+      role: 'logo',
+      instruction: 'clean the logo',
+      options: { library: lib },
+    });
+
+    expect(res.ok).toBe(true);
+    expect(res.images).toEqual(['QUJD', 'RAVG']);
+  });
+
+  it('drops entries that carry no image payload (avoid NO_IMAGE_OUTPUT on mixed results)', async () => {
+    editImageResponses.mockResolvedValue({
+      responseId: 'resp_partial',
+      images: [{ revised_prompt: 'no result yet' }, { base64: 'QUJD' }],
+    });
+    const lib = makeLibrary({
+      logos: [{ id: 'l1', url: 'https://x.test/logo.png', isPrimary: true }],
+    });
+
+    const res = await runAiAssistEdit({
+      role: 'logo',
+      instruction: 'clean the logo',
+      options: { library: lib },
+    });
+
+    expect(res.ok).toBe(true);
+    expect(res.images).toEqual(['QUJD']);
+  });
+
+  it('all six edit operations return ok:true with the { base64 } provider shape', async () => {
+    const lib = makeLibrary({
+      identities: [{ id: 'face', url: 'https://x.test/face.png', isPrimary: true }],
+      logos: [{ id: 'logo', url: 'https://x.test/logo.png', isPrimary: true }],
+      products: [{ id: 'prod', url: 'https://x.test/prod.png', isPrimary: true }],
+      brandReferences: [{ id: 'brand', url: 'https://x.test/brand.png', isPrimary: true }],
+      firstFrame: { id: 'ff', url: 'https://x.test/ff.png' },
+      lastFrame: { id: 'lf', url: 'https://x.test/lf.png' },
+    });
+
+    for (const role of AI_ASSIST_ROLES) {
+      editImageResponses.mockReset();
+      addEntry.mockReset();
+      editImageResponses.mockResolvedValue({
+        responseId: `resp_${role}`,
+        images: [{ base64: 'QUJD' }],
+      });
+
+      const res = await runAiAssistEdit({ role, instruction: 'retouch', options: { library: lib } });
+
+      expect(res.ok, `role ${role} should succeed`).toBe(true);
+      expect(res.images).toEqual(['QUJD']);
+    }
+  });
+
   it('sets the correct asset-id column per role', async () => {
     editImageResponses.mockResolvedValue({ responseId: 'r', images: ['B'] });
     const cases = [

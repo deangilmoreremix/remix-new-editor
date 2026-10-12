@@ -270,8 +270,16 @@ export async function runAiAssistEdit({
       signal: options.signal,
     });
 
+    // openaiService.editImageResponses resolves through _parseResponsesOutput,
+    // which maps each image_generation_call to { base64, revised_prompt, callId }.
+    // Accept the legacy { b64_json } shape (and { image_base64 } / url / plain
+    // string) defensively so a provider shape change degrades gracefully
+    // instead of failing every successful edit with NO_IMAGE_OUTPUT.
     const images = Array.isArray(res.images)
-      ? res.images.map((img) => (typeof img === 'string' ? img : img && img.b64_json))
+      ? res.images
+          .map((img) => (typeof img === 'string'
+            ? img
+            : img && (img.base64 || img.b64_json || img.image_base64 || img.url)))
           .filter((u) => typeof u === 'string' && u.length > 0)
       : [];
 
@@ -285,7 +293,7 @@ export async function runAiAssistEdit({
       asset: target,
       instruction,
       outputUrls: images,
-      // OpenAI responses always return b64_json for GPT image models.
+      // OpenAI responses image results are raw base64 (not URLs).
       isBase64: true,
       model: options.model || OPENAI_IMAGE_EDIT_MODEL,
       outputType: 'image',
