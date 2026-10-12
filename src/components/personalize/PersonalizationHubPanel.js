@@ -16,10 +16,16 @@
 // The panel owns NO personalization state of its own — the only local state
 // is DOM handles plus the website-discovery poll timer.
 //
-// The OpenAI-backed AI Assist module and the Node-only discovery pipeline are
-// loaded lazily (dynamic import on first use), exactly like the popover
-// lazy-loads PersonalizeModal, so mounting the hub never pulls the provider
-// SDK graph into the host page.
+// The OpenAI-backed AI Assist module is loaded lazily (dynamic import on
+// first use), exactly like the popover lazy-loads PersonalizeModal, so
+// mounting the hub never pulls the provider SDK graph into the host page.
+//
+// Website discovery is the exception: the pipeline is Node-only (SSRF-safe
+// DNS resolution and private-IP checks require node:dns/node:crypto), so
+// the discovery module is dynamic-imported ONLY when the hub actually runs
+// under Node (API/server context). In the browser the discovery section
+// shows a "runs on the server pipeline" state — the discovery module must
+// never reach the client bundle.
 //
 // Lifecycle:
 //   const hub = mountPersonalizationHub(container); // renders + subscribes
@@ -643,6 +649,22 @@ let discoveryJobId = null;
 /** @type {ReturnType<typeof setInterval> | null} */
 let discoveryTimer = null;
 
+/**
+ * Website discovery performs SSRF-safe DNS resolution and private-IP checks
+ * with Node builtins (node:dns, node:crypto) that no browser provides. The
+ * discovery module is therefore importable ONLY under Node; the browser
+ * bundle must never contain it.
+ *
+ * @returns {boolean}
+ */
+function isNodeRuntime() {
+  return typeof process !== 'undefined' && !!(process.versions && process.versions.node);
+}
+
+/** Shown in place of the discovery controls' result state in a browser. */
+const DISCOVERY_SERVER_ONLY_MESSAGE =
+  'Website discovery runs on the server pipeline — available in API/server contexts, not in the browser.';
+
 function buildDiscoverySection() {
   const { section, body } = buildSection('Discover from website');
 
@@ -660,6 +682,9 @@ function buildDiscoverySection() {
   const status = document.createElement('p');
   status.className = 'pzh-muted';
   status.dataset.hubDiscoverStatus = 'true';
+  if (!isNodeRuntime()) {
+    status.textContent = DISCOVERY_SERVER_ONLY_MESSAGE;
+  }
 
   const results = document.createElement('div');
   results.className = 'pzh-results';
@@ -673,8 +698,23 @@ async function startDiscovery(url) {
   const status = liveRegions.discoverStatus;
   const results = liveRegions.discoverResults;
   try {
+    // Discovery is a Node/server capability: its SSRF guard resolves DNS
+    // with node:dns, which no browser provides. Only attempt the (dynamic)
+    // module load under Node — in the browser this stays an explanation and
+    // the discovery module never enters the client bundle.
+    if (!isNodeRuntime()) {
+      if (status) status.textContent = DISCOVERY_SERVER_ONLY_MESSAGE;
+      if (results) results.replaceChildren();
+      return;
+    }
     if (!discoveryApi) {
-      discoveryApi = await import('./discovery/index.js');
+      // The discovery pipeline is Node-only (node:dns / node:crypto /
+      // puppeteer). The specifier is deliberately indirect AND @vite-ignore'd
+      // so no bundler statically follows it into the browser bundle — it is
+      // only ever resolved at runtime under Node (guard above); in tests,
+      // vitest's module runner intercepts it and applies the mock.
+      const discoveryModule = './discovery/index.js';
+      discoveryApi = await import(/* @vite-ignore */ discoveryModule);
     }
     stopDiscoveryPolling();
     const submitted = discoveryApi.discoverAssets(url);

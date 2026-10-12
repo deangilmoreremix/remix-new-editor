@@ -32,8 +32,38 @@
 //     (e.g. cloud metadata of a co-located VM). Only loopback and RFC1918
 //     of THIS process are rejected.
 
-import { promises as dns } from 'node:dns';
 import { URL } from 'node:url';
+
+/**
+ * Lazily-loaded Node DNS resolver (`node:dns` `promises` API).
+ *
+ * It is loaded on first use — NEVER statically imported — because this
+ * module is shared code: a static `import ... from 'node:dns'` cannot
+ * resolve in non-Node runtimes and breaks any bundle that reaches it.
+ * Outside Node (or if the builtin cannot be loaded) the loader returns
+ * null and every validation path fails CLOSED (the fetch is refused),
+ * which is the safe default for this SSRF guard.
+ *
+ * @type {{ lookup: (hostname: string, options: object) => Promise<{ address: string }[]> } | null}
+ */
+let dnsResolver = null;
+
+/**
+ * Load `node:dns` lazily. Callers MUST treat a null result as "cannot
+ * validate" — never as "URL is fine".
+ *
+ * @returns {Promise<{ lookup: Function } | null>}
+ */
+async function loadDns() {
+  if (dnsResolver) return dnsResolver;
+  try {
+    const mod = await import('node:dns');
+    dnsResolver = mod.promises || (mod.default && mod.default.promises) || null;
+  } catch {
+    dnsResolver = null;
+  }
+  return dnsResolver;
+}
 
 /** Maximum allowed URL length, characters. Conservative default matching most browsers. */
 export const MAX_URL_LENGTH = 2048;
@@ -232,13 +262,18 @@ export async function validateUrl(inputUrl) {
     }
     addresses = [bareHost];
   } else {
+    const dns = await loadDns();
+    if (!dns) {
+      // Fail closed: without DNS resolution we cannot prove the host is
+      // public, so the URL is not safe to fetch.
+      return { safe: false, reason: 'DNS resolution requires a Node runtime' };
+    }
     let lookupResult;
     try {
-      const lookup = dns.lookup;
       const ac = new AbortController();
       const timer = setTimeout(() => ac.abort(), DNS_LOOKUP_TIMEOUT_MS);
       try {
-        lookupResult = await lookup(host, { all: true, verbatim: true });
+        lookupResult = await dns.lookup(host, { all: true, verbatim: true });
       } finally {
         clearTimeout(timer);
       }
@@ -311,6 +346,11 @@ export async function reResolveGuard(host, originalAddresses) {
     return { safe: true, addresses: [bare] };
   }
 
+  const dns = await loadDns();
+  if (!dns) {
+    // Fail closed: without DNS resolution the host cannot be re-validated.
+    return { safe: false, reason: 'Rebind guard: DNS resolution requires a Node runtime' };
+  }
   let lookupResult;
   try {
     const ac = new AbortController();
