@@ -264,6 +264,7 @@ const triggerBtn = document.createElement('button');
   formCard.appendChild(modelPickerBtn);
 
   // Enhancement tools overflow menu (GTM Boost, Recipes, Monetize, Prompts)
+    const enhanceMenu = document.createElement('div');
     enhanceMenu.className = 'overflow-menu shrink-0';
     enhanceMenu.innerHTML = `
       <button type="button" class="overflow-menu__trigger" data-tooltip="More tools" aria-label="More enhancement tools">
