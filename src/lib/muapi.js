@@ -1180,34 +1180,23 @@ export class MuapiClient {
         const modelInputKeys = new Set(
             Object.keys(modelInfo?.inputs || {}).map(k => k.trim())
         );
+        // Only skip keys that the explicit handlers above actually copy into
+        // finalPayload (the model's video field and thumbnail_url), plus
+        // `webhook_url`, which is proxy-managed and must never be forwarded
+        // from caller params.
+        //
+        // This set previously ALSO listed `prompt`, `aspect_ratio`,
+        // `images_list`, `resolution`, `output_format`, and the advanced
+        // controls while nothing ever copied them into finalPayload — so every
+        // V2V call (face swap, motion-control recast, nano-banana edit, …)
+        // reached the provider with only video_url/image_url and the user's
+        // instruction was silently dropped. Anything the model declares in its
+        // input schema is now forwarded.
         const alreadyForwarded = new Set([
+            videoField,
             'video_url',
             'thumbnail_url',
             'webhook_url',
-            'prompt',
-            'images_list',
-            'aspect_ratio',
-            'resolution',
-            'quality',
-            'output_format',
-            'name',
-            'negative_prompt',
-            'seed',
-            'guidance_scale',
-            'steps',
-            'denoise_strength',
-            'effect_strength',
-            'cfg_scale',
-            'prompt_extend',
-            'reference_images',
-            'reference_videos',
-            'reference_audios',
-            'last_image_url',
-            'sheet_url',
-            'first_frame_url',
-            'last_frame_url',
-            'character_consistency',
-            'native_audio',
         ]);
         for (const [key, value] of Object.entries(params)) {
             if (alreadyForwarded.has(key)) continue;

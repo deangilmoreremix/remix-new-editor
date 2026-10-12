@@ -35,7 +35,7 @@
 const TIMEOUT_MS = 120_000;
 
 const IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL || 'gpt-image-2';
-const RESPONSES_MODEL = process.env.OPENAI_RESPONSES_TEXT_MODEL || 'gpt-5.6';
+const RESPONSES_MODEL = process.env.OPENAI_RESPONSES_TEXT_MODEL || 'gpt-5.6-sol';
 
 const fetchWithTimeout = async (url, options = {}, timeoutMs = TIMEOUT_MS) => {
   const controller = new AbortController();
@@ -189,7 +189,7 @@ export async function handler(event) {
       try {
         const errJson = await respRefine.json();
         detail = errJson?.error?.message || errJson?.details || '';
-      } catch {}
+      } catch { /* error body is not JSON */ }
       return jsonResponse(respRefine.status, { ok: false, error: `OpenAI Responses API error (${respRefine.status})${detail ? `: ${detail}` : ''}` });
     }
     let refineData;
@@ -241,7 +241,7 @@ export async function handler(event) {
       const errJson = await imageRes.json();
       detail = errJson?.error?.message || errJson?.details || '';
     } catch {
-      try { detail = await imageRes.text(); } catch {}
+      try { detail = await imageRes.text(); } catch { /* body already consumed or not text */ }
     }
     return jsonResponse(imageRes.status, { ok: false, error: `OpenAI Images API error (${imageRes.status})${detail ? `: ${detail}` : ''}` });
   }
