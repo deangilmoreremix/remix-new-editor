@@ -6,6 +6,12 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/test/setup.js'],
+    // The default 5s testTimeout is too tight for async/fetch-loop suites (e.g. the
+    // apps/openthorn agent tests) under full-suite CPU contention; they pass quickly
+    // in isolation but flake past 5s when every worker competes for the machine.
+    // Raising the timeout is non-weakening — no assertion changes — and mirrors the
+    // per-mount headroom added for studio-smoke.
+    testTimeout: 30000,
     // E2E specs are run by Playwright, not vitest (they need a browser + dev server).
     // Agent worktrees under .kilo are scratch space and must not be collected.
     // Backend Jest suites live under backend/__tests__ and root __tests__; keep them out of vitest.
