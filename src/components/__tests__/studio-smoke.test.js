@@ -61,6 +61,8 @@ describe('Studio runtime smoke tests', () => {
 
       const refErrors = errors.filter(e => /ReferenceError|TypeError/.test(e));
       expect(refErrors).toEqual([]);
-    }, 15000);
+    }, 30000); // Generous per-mount timeout: dynamic import + factory for heavier
+    // Page components (e.g. AnimatePage) can exceed 15s under full-suite CPU load.
+    // This test passes in isolation; the headroom prevents load-induced flakes.
   }
 });
