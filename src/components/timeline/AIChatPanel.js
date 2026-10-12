@@ -221,7 +221,7 @@ export default class AIChatPanel {
   }
 
   async _callLLM(message, context) {
-    const { runTimelineAITool } = await import('../cinegenIntegration.js');
+    const { runTimelineAITool } = await import('../../lib/cinegenIntegration.js');
     const result = await runTimelineAITool('llm_chat', {
       message,
       context: {
