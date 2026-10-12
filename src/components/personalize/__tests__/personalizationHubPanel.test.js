@@ -96,14 +96,10 @@ vi.mock('../personalizeAiAssist.js', () => ({
   },
 }));
 
-const discoverAssets = vi.fn(() => ({ jobId: 'job-1', status: 'pending' }));
-const getJobStatus = vi.fn(() => ({ status: 'pending', errors: [] }));
-const cancelJob = vi.fn(() => true);
+const getSession = vi.fn(async () => ({ data: { session: { access_token: 'test-token' } } }));
 
-vi.mock('../discovery/index.js', () => ({
-  discoverAssets: (url, options) => discoverAssets(url, options),
-  getJobStatus: (jobId) => getJobStatus(jobId),
-  cancelJob: (jobId) => cancelJob(jobId),
+vi.mock('../../../lib/supabase.js', () => ({
+  supabase: { auth: { getSession: () => getSession() } },
 }));
 
 const {
@@ -114,6 +110,7 @@ const {
   discoveryResultBuckets,
   planDiscoveryImport,
   HUB_ROLES,
+  HUB_DISCOVERY_ENDPOINT,
   HUB_DISCOVERY_POLL_MS,
 } = await import('../PersonalizationHubPanel.js');
 
@@ -161,11 +158,8 @@ beforeEach(() => {
   runAiAssistEdit.mockImplementation(async () => ({ ok: true, id: 'pzo_test', images: [], videos: [] }));
   checkAiAssistAvailability.mockClear();
   checkAiAssistAvailability.mockReturnValue({ ok: true });
-  discoverAssets.mockClear();
-  discoverAssets.mockImplementation(() => ({ jobId: 'job-1', status: 'pending' }));
-  getJobStatus.mockClear();
-  getJobStatus.mockImplementation(() => ({ status: 'pending', errors: [] }));
-  cancelJob.mockClear();
+  getSession.mockClear();
+  getSession.mockImplementation(async () => ({ data: { session: { access_token: 'test-token' } } }));
   vi.useRealTimers();
 });
 
@@ -457,38 +451,79 @@ describe('AI assist section', () => {
 });
 
 // ─── Website discovery ────────────────────────────────────────────────────
+//
+// The panel no longer imports the Node-only discovery engine; it talks to
+// the personalization-discovery Netlify function over fetch. Deeper failure
+// and cleanup coverage lives in hubDiscoveryIntegration.test.js — these
+// tests pin the panel-level wiring.
 
 describe('discover from website section', () => {
+  function jsonResponse(body, status = 200) {
+    return { ok: status >= 200 && status < 300, status, json: async () => body };
+  }
+
+  /**
+   * Fetch stub: first POST starts a job, every GET poll answers `running`
+   * until `doneAfter` polls, then returns the completed payload.
+   */
+  function stubDiscoveryServer(doneAfter = 1, found) {
+    const calls = { posts: [], gets: [], deletes: [] };
+    let polls = 0;
+    global.fetch = vi.fn(async (url, options = {}) => {
+      const target = String(url);
+      const method = (options && options.method) || 'GET';
+      if (target === HUB_DISCOVERY_ENDPOINT && method === 'POST') {
+        calls.posts.push(options);
+        return jsonResponse({ jobId: 'job-1', status: 'pending' });
+      }
+      if (target.startsWith(`${HUB_DISCOVERY_ENDPOINT}?jobId=`) && method === 'DELETE') {
+        calls.deletes.push(target);
+        return jsonResponse({ jobId: 'job-1', status: 'cancelled' });
+      }
+      polls += 1;
+      calls.gets.push(target);
+      if (polls < doneAfter) return jsonResponse({ jobId: 'job-1', status: 'running', errors: [] });
+      return jsonResponse({
+        jobId: 'job-1',
+        status: 'done',
+        errors: [],
+        found: found || {
+          logos: ['https://s.test/logo.png'],
+          products: ['https://s.test/product.png'],
+          brandReferences: [],
+          urls: [],
+        },
+      });
+    });
+    return calls;
+  }
+
   function startDiscovery(url) {
     const body = sectionBody('Discover from website');
     body.querySelector('[data-hub-discover-input]').value = url;
     Array.from(body.querySelectorAll('button')).find((b) => b.textContent === 'Discover').click();
-    return body;
   }
 
-  it('starts a job, polls it and renders found assets', async () => {
+  function discoveryStatus() {
+    return sectionBody('Discover from website').querySelector('[data-hub-discover-status]').textContent;
+  }
+
+  afterEach(() => {
+    delete global.fetch;
+  });
+
+  it('posts the url to the function, polls and renders found assets', async () => {
     vi.useFakeTimers();
-    getJobStatus.mockImplementation(() => ({
-      status: 'completed',
-      errors: [],
-      found: {
-        logos: ['https://s.test/logo.png'],
-        products: ['https://s.test/product.png'],
-        brandReferences: [],
-        urls: [],
-      },
-    }));
+    const calls = stubDiscoveryServer(1);
     mountHub();
     startDiscovery('https://s.test');
     await vi.advanceTimersByTimeAsync(HUB_DISCOVERY_POLL_MS);
-
-    expect(discoverAssets).toHaveBeenCalledWith('https://s.test', undefined);
-    expect(getJobStatus).toHaveBeenCalledWith('job-1');
+    expect(calls.posts).toHaveLength(1);
+    expect(JSON.parse(calls.posts[0].body)).toEqual({ url: 'https://s.test' });
     const results = sectionBody('Discover from website').querySelector('[data-hub-discover-results]');
     expect(results.textContent).toContain('Logos (1)');
     expect(results.textContent).toContain('Products (1)');
-    expect(sectionBody('Discover from website').querySelector('[data-hub-discover-status]').textContent)
-      .toContain('Discovery complete');
+    expect(discoveryStatus()).toContain('Discovery complete');
   });
 
   it('imports discovered assets into the library', async () => {
@@ -497,16 +532,16 @@ describe('discover from website section', () => {
       assets: [{ id: 'a-logo', role: 'logo', name: 'logo.png', url: 'https://s.test/logo.png', isPrimary: true }],
       removed: [], hydrated: true,
     };
-    getJobStatus.mockImplementation(() => ({
-      status: 'completed',
-      errors: [],
-      found: { logos: ['https://s.test/logo.png'], products: [], brandReferences: [], urls: ['https://s.test/other.png'] },
-    }));
+    stubDiscoveryServer(1, {
+      logos: ['https://s.test/logo.png'], products: [], brandReferences: [], urls: ['https://s.test/other.png'],
+    });
     mountHub();
     startDiscovery('https://s.test');
     await vi.advanceTimersByTimeAsync(HUB_DISCOVERY_POLL_MS);
 
-    buttonByText('Import selected').click();
+    Array.from(sectionBody('Discover from website').querySelectorAll('button'))
+      .find((b) => b.textContent === 'Import selected')
+      .click();
     // Existing URL -> import marker; new URL -> addAsset.
     expect(importSelectedAssetIds).toHaveBeenCalledWith(['a-logo']);
     expect(addAsset).toHaveBeenCalledWith({ role: 'saved_reference', name: 'other.png', url: 'https://s.test/other.png' });
@@ -514,29 +549,36 @@ describe('discover from website section', () => {
 
   it('reports job errors and stops polling', async () => {
     vi.useFakeTimers();
-    getJobStatus.mockImplementation(() => ({ status: 'failed', errors: ['blocked domain'] }));
+    const calls = { gets: [] };
+    global.fetch = vi.fn(async (url) => {
+      const target = String(url);
+      if (target === HUB_DISCOVERY_ENDPOINT) return { ok: true, status: 200, json: async () => ({ jobId: 'job-1', status: 'pending' }) };
+      calls.gets.push(target);
+      return { ok: true, status: 200, json: async () => ({ jobId: 'job-1', status: 'failed', errors: ['blocked domain'] }) };
+    });
     mountHub();
     startDiscovery('https://s.test');
     await vi.advanceTimersByTimeAsync(HUB_DISCOVERY_POLL_MS);
-    expect(sectionBody('Discover from website').querySelector('[data-hub-discover-status]').textContent)
-      .toContain('blocked domain');
-    const callsBefore = getJobStatus.mock.calls.length;
+    expect(discoveryStatus()).toContain('blocked domain');
+    const getsBefore = calls.gets.length;
     await vi.advanceTimersByTimeAsync(HUB_DISCOVERY_POLL_MS * 3);
-    expect(getJobStatus.mock.calls.length).toBe(callsBefore);
+    expect(calls.gets.length).toBe(getsBefore);
   });
 
-  it('cancels a running job on unmount', async () => {
+  it('cancels the server-side job on unmount', async () => {
     vi.useFakeTimers();
-    getJobStatus.mockImplementation(() => ({ status: 'running', errors: [] }));
+    const calls = stubDiscoveryServer(Number.MAX_SAFE_INTEGER);
     mountHub();
     startDiscovery('https://s.test');
     await vi.advanceTimersByTimeAsync(HUB_DISCOVERY_POLL_MS);
-    expect(getJobStatus).toHaveBeenCalled();
+    expect(calls.gets.length).toBeGreaterThanOrEqual(1);
     unmountPersonalizationHub();
-    expect(cancelJob).toHaveBeenCalledWith('job-1');
-    const callsBefore = getJobStatus.mock.calls.length;
+    await vi.advanceTimersByTimeAsync(0);
+    expect(calls.deletes).toHaveLength(1);
+    expect(calls.deletes[0]).toContain('jobId=job-1');
+    const getsBefore = calls.gets.length;
     await vi.advanceTimersByTimeAsync(HUB_DISCOVERY_POLL_MS * 3);
-    expect(getJobStatus.mock.calls.length).toBe(callsBefore);
+    expect(calls.gets.length).toBe(getsBefore);
   });
 });
 

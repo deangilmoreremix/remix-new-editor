@@ -20,12 +20,12 @@
 // first use), exactly like the popover lazy-loads PersonalizeModal, so
 // mounting the hub never pulls the provider SDK graph into the host page.
 //
-// Website discovery is the exception: the pipeline is Node-only (SSRF-safe
-// DNS resolution and private-IP checks require node:dns/node:crypto), so
-// the discovery module is dynamic-imported ONLY when the hub actually runs
-// under Node (API/server context). In the browser the discovery section
-// shows a "runs on the server pipeline" state — the discovery module must
-// never reach the client bundle.
+// Website discovery runs on the SERVER: the pipeline is Node-only (SSRF-safe
+// DNS resolution and private-IP checks require node:dns/node:crypto), so it
+// is exposed through the personalization-discovery Netlify function. The
+// discovery module itself is NEVER imported here — the panel only talks to
+// that endpoint over fetch, which is also why no Node-only discovery code
+// can reach the client bundle.
 //
 // Lifecycle:
 //   const hub = mountPersonalizationHub(container); // renders + subscribes
@@ -57,8 +57,22 @@ export const HUB_ROLES = Object.freeze([
   Object.freeze({ role: 'last_frame', label: 'Last frame' }),
 ]);
 
-/** Website-discovery poll cadence (ms). */
-export const HUB_DISCOVERY_POLL_MS = 700;
+/**
+ * Endpoint of the server-side discovery function (Netlify Functions v1
+ * route). The Node-only discovery engine — SSRF-hardened DNS resolution and
+ * private-IP checks — runs behind it; the panel only speaks HTTP to it.
+ */
+export const HUB_DISCOVERY_ENDPOINT = '/.netlify/functions/personalization-discovery';
+
+/** Website-discovery poll cadence (ms) — kept between 800 and 1200ms. */
+export const HUB_DISCOVERY_POLL_MS = 900;
+
+/** Hard caps so a stuck or abandoned job can never poll forever. */
+export const HUB_DISCOVERY_MAX_POLLS = 120;
+export const HUB_DISCOVERY_TIMEOUT_MS = 150_000;
+
+/** Matches the engine's URL length cap; the server enforces it too. */
+export const HUB_DISCOVERY_MAX_URL_LENGTH = 2048;
 
 /** Discovery buckets, mapped onto the asset-library roles they import as. */
 const DISCOVERY_BUCKETS = Object.freeze([
@@ -68,7 +82,8 @@ const DISCOVERY_BUCKETS = Object.freeze([
   Object.freeze({ key: 'urls', label: 'Other images', role: 'saved_reference' }),
 ]);
 
-const TERMINAL_JOB_STATUSES = Object.freeze(['completed', 'failed', 'cancelled', 'not_found']);
+/** Server job statuses that end the polling loop. */
+const TERMINAL_JOB_STATUSES = Object.freeze(['done', 'failed', 'cancelled', 'unknown']);
 
 /** @type {{ element: HTMLElement, refresh: () => void, destroy: () => void } | null} */
 let activeHub = null;
@@ -643,27 +658,34 @@ function renderAiResults() {
 
 // ─── Website discovery section ────────────────────────────────────────────
 
-/** @type {typeof import('./discovery/index.js') | null} */
-let discoveryApi = null;
+/** @type {string | null} */
 let discoveryJobId = null;
 /** @type {ReturnType<typeof setInterval> | null} */
 let discoveryTimer = null;
+let discoveryPollCount = 0;
+let discoveryDeadline = 0;
 
 /**
- * Website discovery performs SSRF-safe DNS resolution and private-IP checks
- * with Node builtins (node:dns, node:crypto) that no browser provides. The
- * discovery module is therefore importable ONLY under Node; the browser
- * bundle must never contain it.
+ * Attach the caller's Supabase session token, the same idiom
+ * PersonalizeModal uses for /api/personalizer: the discovery function
+ * verifies the token server-side, so no shared secret is ever sent to (or
+ * embedded in) the browser. Signed-out callers simply get a 401, which the
+ * panel explains.
  *
- * @returns {boolean}
+ * @returns {Promise<Record<string, string>>}
  */
-function isNodeRuntime() {
-  return typeof process !== 'undefined' && !!(process.versions && process.versions.node);
+async function discoveryHeaders() {
+  const headers = { 'Content-Type': 'application/json' };
+  try {
+    const { supabase } = await import('../../lib/supabase.js');
+    const { data } = await supabase.auth.getSession();
+    const token = data && data.session && data.session.access_token;
+    if (token) headers.Authorization = `Bearer ${token}`;
+  } catch {
+    /* no session available — the server answers 401 and the panel says so */
+  }
+  return headers;
 }
-
-/** Shown in place of the discovery controls' result state in a browser. */
-const DISCOVERY_SERVER_ONLY_MESSAGE =
-  'Website discovery runs on the server pipeline — available in API/server contexts, not in the browser.';
 
 function buildDiscoverySection() {
   const { section, body } = buildSection('Discover from website');
@@ -673,18 +695,13 @@ function buildDiscoverySection() {
   const urlInput = makeInput('https://example.com');
   urlInput.dataset.hubDiscoverInput = 'true';
   const startBtn = makeButton('Discover', 'pzh-btn-primary', () => {
-    const url = urlInput.value.trim();
-    if (!url) return;
-    startDiscovery(url);
+    startDiscovery(urlInput.value);
   });
   row.append(urlInput, startBtn);
 
   const status = document.createElement('p');
   status.className = 'pzh-muted';
   status.dataset.hubDiscoverStatus = 'true';
-  if (!isNodeRuntime()) {
-    status.textContent = DISCOVERY_SERVER_ONLY_MESSAGE;
-  }
 
   const results = document.createElement('div');
   results.className = 'pzh-results';
@@ -694,69 +711,169 @@ function buildDiscoverySection() {
   return { section, results, status };
 }
 
+/**
+ * Message to show when the server rejects a discovery request. SSRF and
+ * validation rejections carry the engine's `reason` verbatim, so a blocked
+ * URL explains WHY it was blocked.
+ *
+ * @param {any} data parsed JSON body (may be null)
+ * @param {Response} [res]
+ * @returns {string}
+ */
+function discoveryRejectionMessage(data, res) {
+  if (data && typeof data.reason === 'string' && data.reason) return data.reason;
+  if (data && typeof data.message === 'string' && data.message) return data.message;
+  if (res && res.status === 401) {
+    return 'Sign in to run website discovery — the discovery pipeline runs on the server under your account.';
+  }
+  if (res && res.status === 429) return 'The discovery service is busy — try again in a moment.';
+  if (res && (res.status === 502 || res.status === 503)) return 'Discovery service unavailable. Please try again later.';
+  return `Discovery failed${res ? ` (HTTP ${res.status})` : ''}.`;
+}
+
 async function startDiscovery(url) {
   const status = liveRegions.discoverStatus;
   const results = liveRegions.discoverResults;
-  try {
-    // Discovery is a Node/server capability: its SSRF guard resolves DNS
-    // with node:dns, which no browser provides. Only attempt the (dynamic)
-    // module load under Node — in the browser this stays an explanation and
-    // the discovery module never enters the client bundle.
-    if (!isNodeRuntime()) {
-      if (status) status.textContent = DISCOVERY_SERVER_ONLY_MESSAGE;
-      if (results) results.replaceChildren();
-      return;
-    }
-    if (!discoveryApi) {
-      // The discovery pipeline is Node-only (node:dns / node:crypto /
-      // puppeteer). The specifier is deliberately indirect AND @vite-ignore'd
-      // so no bundler statically follows it into the browser bundle — it is
-      // only ever resolved at runtime under Node (guard above); in tests,
-      // vitest's module runner intercepts it and applies the mock.
-      const discoveryModule = './discovery/index.js';
-      discoveryApi = await import(/* @vite-ignore */ discoveryModule);
-    }
-    stopDiscoveryPolling();
-    const submitted = discoveryApi.discoverAssets(url);
-    if (submitted && submitted.error) {
-      if (status) status.textContent = submitted.message || submitted.error;
-      return;
-    }
-    discoveryJobId = submitted.jobId;
-    if (status) status.textContent = `Discovering assets from ${url}…`;
-    discoveryTimer = setInterval(() => {
-      pollDiscoveryJob();
-    }, HUB_DISCOVERY_POLL_MS);
-    pollDiscoveryJob();
-  } catch (err) {
-    if (status) status.textContent = (err && err.message) || 'Discovery failed to start.';
-    if (results) results.replaceChildren();
-  }
-}
 
-function pollDiscoveryJob() {
-  if (!discoveryApi || !discoveryJobId) return;
-  const status = liveRegions.discoverStatus;
-  const results = liveRegions.discoverResults;
-  let job;
-  try {
-    job = discoveryApi.getJobStatus(discoveryJobId);
-  } catch (err) {
-    stopDiscoveryPolling();
-    if (status) status.textContent = (err && err.message) || 'Discovery status unavailable.';
+  const trimmed = typeof url === 'string' ? url.trim() : '';
+  if (!trimmed) {
+    if (status) status.textContent = 'Enter a website URL to discover its images.';
     return;
   }
-  if (!TERMINAL_JOB_STATUSES.includes(job.status)) return;
+  if (!/^https?:\/\//i.test(trimmed)) {
+    if (status) status.textContent = 'URL must start with http:// or https:// — only public web pages can be discovered.';
+    return;
+  }
+  if (trimmed.length > HUB_DISCOVERY_MAX_URL_LENGTH) {
+    if (status) status.textContent = `URL is too long (max ${HUB_DISCOVERY_MAX_URL_LENGTH} characters).`;
+    return;
+  }
 
-  stopDiscoveryPolling();
+  // The url is viable: stop any previous poll loop (and cancel its
+  // server-side job) before starting the new one.
+  await stopDiscoveryPolling();
+
+  if (status) status.textContent = `Discovering assets from ${trimmed}…`;
+  if (results) results.replaceChildren();
+
+  let jobId;
+  try {
+    const res = await fetch(HUB_DISCOVERY_ENDPOINT, {
+      method: 'POST',
+      headers: await discoveryHeaders(),
+      body: JSON.stringify({ url: trimmed }),
+    });
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !data || !data.jobId) {
+      if (status) status.textContent = discoveryRejectionMessage(data, res);
+      return;
+    }
+    jobId = data.jobId;
+  } catch {
+    if (status) status.textContent = 'Discovery service unavailable. Please try again later.';
+    return;
+  }
+
+  discoveryJobId = jobId;
+  discoveryPollCount = 0;
+  discoveryDeadline = Date.now() + HUB_DISCOVERY_TIMEOUT_MS;
+  await pollDiscoveryJob();
+  // The first poll may already be terminal — then no timer is needed.
+  if (!discoveryJobId) return;
+  discoveryTimer = setInterval(() => {
+    pollDiscoveryJob();
+  }, HUB_DISCOVERY_POLL_MS);
+}
+
+async function pollDiscoveryJob() {
+  const jobId = discoveryJobId;
+  if (!jobId) return;
+  const status = liveRegions.discoverStatus;
+  const results = liveRegions.discoverResults;
+
+  discoveryPollCount += 1;
+  if (discoveryPollCount > HUB_DISCOVERY_MAX_POLLS || Date.now() > discoveryDeadline) {
+    // Timed out: stop locally and cancel the server-side job best-effort.
+    await stopDiscoveryPolling();
+    if (status) status.textContent = 'Discovery timed out. The site may be too slow — try again.';
+    return;
+  }
+
+  let res;
+  let data;
+  try {
+    res = await fetch(`${HUB_DISCOVERY_ENDPOINT}?jobId=${encodeURIComponent(jobId)}`, {
+      headers: await discoveryHeaders(),
+    });
+    data = await res.json().catch(() => null);
+  } catch {
+    // Transient network failure: keep polling until the deadline.
+    if (status) status.textContent = `Discovery service unreachable — retrying (${discoveryPollCount}/${HUB_DISCOVERY_MAX_POLLS})…`;
+    return;
+  }
+
+  if (res.status === 404 || (data && data.status === 'unknown')) {
+    stopDiscoveryTimer();
+    discoveryJobId = null;
+    if (status) status.textContent = 'Discovery job is no longer running (it may have expired). Re-submit the URL to try again.';
+    if (results) results.replaceChildren();
+    return;
+  }
+  if (!res.ok || !data) {
+    // Transient server error: keep polling until the deadline.
+    if (status) status.textContent = `Waiting for the discovery service (${discoveryPollCount}/${HUB_DISCOVERY_MAX_POLLS})…`;
+    return;
+  }
+
+  if (!TERMINAL_JOB_STATUSES.includes(data.status)) {
+    if (status) status.textContent = `Discovering assets… (${data.status || 'working'}, ${discoveryPollCount}/${HUB_DISCOVERY_MAX_POLLS})`;
+    return;
+  }
+
+  // Terminal: stop the timer. The job is already finished server-side, so
+  // there is nothing to cancel.
+  stopDiscoveryTimer();
   discoveryJobId = null;
-  if (job.status !== 'completed') {
-    if (status) status.textContent = `Discovery ${job.status}${job.errors && job.errors.length ? `: ${job.errors[0]}` : ''}.`;
+  if (data.status !== 'done') {
+    const reason = (Array.isArray(data.errors) && data.errors[0]) || data.message || data.error || '';
+    if (status) {
+      status.textContent = data.status === 'cancelled'
+        ? 'Discovery cancelled.'
+        : `Discovery ${data.status}${reason ? `: ${reason}` : ''}.`;
+    }
     if (results) results.replaceChildren();
     return;
   }
   if (status) status.textContent = 'Discovery complete. Select assets to import.';
-  renderDiscoveryResults(job.found);
+  renderDiscoveryResults(data.found);
+}
+
+function stopDiscoveryTimer() {
+  if (discoveryTimer) {
+    clearInterval(discoveryTimer);
+    discoveryTimer = null;
+  }
+}
+
+/**
+ * Stop the poll loop AND cancel the in-flight server-side job (cooperative —
+ * the engine may already have finished). Safe to call when idle.
+ */
+async function stopDiscoveryPolling() {
+  const jobId = discoveryJobId;
+  stopDiscoveryTimer();
+  discoveryJobId = null;
+  discoveryPollCount = 0;
+  discoveryDeadline = 0;
+  if (!jobId) return;
+  try {
+    await fetch(`${HUB_DISCOVERY_ENDPOINT}?jobId=${encodeURIComponent(jobId)}`, {
+      method: 'DELETE',
+      headers: await discoveryHeaders(),
+    });
+  } catch {
+    /* best-effort cancel — the engine GCs abandoned jobs on its own */
+  }
 }
 
 function renderDiscoveryResults(found) {
@@ -827,17 +944,6 @@ function renderDiscoveryResults(found) {
 function renderDiscoveryStatus() {
   const status = document.querySelector('[data-hub-discover-status]');
   if (status && !status.textContent) status.textContent = 'Paste a website URL to import its images.';
-}
-
-function stopDiscoveryPolling() {
-  if (discoveryTimer) {
-    clearInterval(discoveryTimer);
-    discoveryTimer = null;
-  }
-  if (discoveryJobId && discoveryApi) {
-    try { discoveryApi.cancelJob(discoveryJobId); } catch { /* job already finished */ }
-  }
-  discoveryJobId = null;
 }
 
 function showInlineError(host, message) {
