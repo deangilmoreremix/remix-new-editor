@@ -14,10 +14,33 @@
  *     `Store` class to expose reactive `useSharedMediaStore` for
  *     React components. Plain function API (`addEntry`, `getEntriesByClient`,
  *     etc.) is preserved.
+ *
+ * OWNERSHIP (this worktree's identity seam — see
+ * ../../lib/personalizationAuth.js and
+ * supabase/migrations/20261013000000_fix_personalization_outputs_rls.sql):
+ *   - addEntry stamps every entry with `clerk_user_id` (the authoritative
+ *     getPersonalizationUserId() value; a caller-supplied owner is never
+ *     trusted).
+ *   - every read (getEntries/getEntriesByClient/getEntryById) is
+ *     owner-filtered, and updateEntry/removeEntry reject foreign rows.
+ *   - There is no `supabaseSharedMedia.js` in this port (the port manifest
+ *     mentioned it, but the Supabase write path was never landed). The owner
+ *     stamping therefore lives here, in the store every writer already goes
+ *     through, so the future Supabase persistence path inherits it: when it
+ *     lands it must insert `clerk_user_id` verbatim and announce the owner
+ *     via announcePersonalizationOwner(supabase) before the statement.
  */
 
 import Store from '../../stores/base/Store.js';
 import { useSyncExternalStore } from 'react';
+import {
+  withPersonalizationOwner,
+  assertOwner,
+  canAccess,
+  filterPersonalizationEntries,
+  getPersonalizationOwner,
+  PERSONALIZATION_OWNER_FIELD,
+} from '../../lib/personalizationAuth.js';
 
 const STORAGE_KEY = 'remix_personalization_shared_media_v1';
 
@@ -77,11 +100,17 @@ class SharedMediaStore extends Store {
    * match the `personalization_outputs` SQL row shape (1:1 with the
    * type definition in types.js).
    *
+   * The entry is stamped with the current user's owner id
+   * (`clerk_user_id`, via withPersonalizationOwner) so every persisted
+   * row — local or the future Supabase-backed `personalization_outputs`
+   * table — carries ownership. A caller-supplied owner is always
+   * overwritten: ownership can never be forged at write time.
+   *
    * @param {Partial<import('./types.js').SharedMediaEntry>} entry
    * @returns {import('./types.js').SharedMediaEntry}
    */
   addEntry(entry = {}) {
-    const full = {
+    const full = withPersonalizationOwner({
       id: entry.id || `sm-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       originStudio: 'demo-personalization',
       sourceType: entry.sourceType || 'unknown',
@@ -104,25 +133,88 @@ class SharedMediaStore extends Store {
       outputType: entry.outputType || 'prompt',
       clientId: entry.clientId,
       createdAt: entry.createdAt || new Date().toISOString(),
-    };
+    });
     const next = sortByCreatedDesc([...this.get('entries'), full]);
     this.setState({ entries: next });
     writeToStorage(next);
     return full;
   }
 
-  /** Read-only selectors. */
+  /**
+   * Update an entry in place. Owner-checked: a foreign user's entry can
+   * never be updated (returns the unchanged entry list unchanged). The
+   * patch cannot change ownership — `clerk_user_id` is stripped.
+   *
+   * @param {string} id
+   * @param {Record<string, unknown>} patch
+   * @returns {import('./types.js').SharedMediaEntry | null} the updated entry, or null
+   */
+  updateEntry(id, patch = {}) {
+    const current = this.get('entries');
+    const target = current.find((e) => e.id === id);
+    if (!target) return null;
+    try {
+      assertOwner(target, 'update');
+    } catch {
+      return null;
+    }
+    // The patch cannot change ownership: the owner fields are stripped.
+    const safePatch = { ...patch };
+    delete safePatch[PERSONALIZATION_OWNER_FIELD];
+    delete safePatch.clerkUserId;
+    const updated = { ...target, ...safePatch };
+    const next = sortByCreatedDesc(current.map((e) => (e.id === id ? updated : e)));
+    this.setState({ entries: next });
+    writeToStorage(next);
+    return updated;
+  }
+
+  /**
+   * Remove an entry. Owner-checked: only the owner may delete (returns
+   * false for a foreign user's entry instead of deleting it).
+   *
+   * @param {string} id
+   * @returns {boolean} whether an entry owned by the current user was removed
+   */
+  removeEntry(id) {
+    const current = this.get('entries');
+    const target = current.find((e) => e.id === id);
+    if (!target) return false;
+    try {
+      assertOwner(target, 'delete');
+    } catch {
+      return false;
+    }
+    const next = current.filter((e) => e.id !== id);
+    this.setState({ entries: next });
+    writeToStorage(next);
+    return true;
+  }
+
+  /**
+   * Read-only selectors — all owner-filtered, so a row belonging to
+   * another user is never returned, even if it exists in storage.
+   */
   getEntries() {
-    return this.get('entries');
+    return filterPersonalizationEntries(this.get('entries'));
   }
 
   getEntriesByClient(clientId) {
-    if (!clientId) return this.get('entries');
-    return this.get('entries').filter((e) => e.clientId === clientId);
+    const own = filterPersonalizationEntries(this.get('entries'));
+    if (!clientId) return own;
+    return own.filter((e) => e.clientId === clientId);
   }
 
   getEntryById(id) {
-    return this.get('entries').find((e) => e.id === id) || null;
+    const own = filterPersonalizationEntries(this.get('entries'));
+    return own.find((e) => e.id === id) || null;
+  }
+
+  /** Is this entry the current user's? (exposes the ownership check). */
+  ownsEntry(id) {
+    const entry = this.get('entries').find((e) => e.id === id);
+    if (!entry) return false;
+    return canAccess(entry) && getPersonalizationOwner(entry) !== undefined && getPersonalizationOwner(entry) !== null;
   }
 
   /**

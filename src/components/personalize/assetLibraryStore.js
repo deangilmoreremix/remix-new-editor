@@ -9,18 +9,32 @@
  * reorder, etc.) and ported to the integration worktree's pub/sub idiom.
  *
  * DEVIATIONS:
- *   - localStorage key is `remix_personalization_assets_v1` (NOT
- *     `smartvideo_*`).
+ *   - localStorage key is `remix_personalization_assets_v1` NOT
+ *     `smartvideo_*` — and it is namespaced per user via
+ *     getPersonalizationStorageKey() (assets are user-scoped; the raw key
+ *     above is the base, the effective key is
+ *     `remix_personalization_assets_v1:<userId>`).
  *   - Implemented as a Store subclass (not zustand) because zustand
  *     is not in the integration worktree's package.json.
  *   - The `removed` stack (for `restoreAsset`) is bounded to 50 entries
  *     to prevent unbounded growth; pop the oldest if exceeded.
+ *   - Owner scoping: every asset record is stamped with the current
+ *     user's `clerk_user_id` (withPersonalizationOwner) and every read is
+ *     owner-filtered (canAccess), so another user's rows are never
+ *     returned — see ../../lib/personalizationAuth.js.
  */
 
 import Store from '../../stores/base/Store.js';
 import { useSyncExternalStore } from 'react';
+import {
+  withPersonalizationOwner,
+  assertOwner,
+  canAccess,
+  filterPersonalizationEntries,
+  getPersonalizationStorageKey,
+} from '../../lib/personalizationAuth.js';
 
-const STORAGE_KEY = 'remix_personalization_assets_v1';
+const STORAGE_KEY_BASE = 'remix_personalization_assets_v1';
 const REMOVED_LIMIT = 50;
 
 /**
@@ -56,7 +70,9 @@ function readFromStorage() {
     return { assets: [], removed: [] };
   }
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    // Namespaced per user: key resolved at read time so a user switch (or a
+    // Clerk sign-in between hydrations) reads only that user's bucket.
+    const raw = window.localStorage.getItem(getPersonalizationStorageKey(STORAGE_KEY_BASE));
     if (!raw) return { assets: [], removed: [] };
     const parsed = JSON.parse(raw);
     return {
@@ -72,7 +88,7 @@ function writeToStorage(assets, removed) {
   if (typeof window === 'undefined' || !window.localStorage) return;
   try {
     window.localStorage.setItem(
-      STORAGE_KEY,
+      getPersonalizationStorageKey(STORAGE_KEY_BASE),
       JSON.stringify({ assets, removed }),
     );
   } catch (err) {
@@ -111,7 +127,8 @@ class AssetLibraryStore extends Store {
   /**
    * Add an asset to the library. The new asset is appended to its role
    * bucket. If `isPrimary` is true OR this is the first asset of its
-   * role, it becomes primary.
+   * role, it becomes primary. The record is stamped with the current
+   * user's owner id (`clerk_user_id`).
    *
    * @param {{ role: import('./types.js').AssetRole; name: string; url: string; isPrimary?: boolean; [k: string]: unknown }} input
    * @returns {AssetRecord}
@@ -121,8 +138,9 @@ class AssetLibraryStore extends Store {
       throw new Error('assetLibraryStore.addAsset: role and url are required');
     }
     const now = new Date().toISOString();
-    const firstOfRole = !this.get('assets').some((a) => a.role === input.role);
-    const record = {
+    const own = filterPersonalizationEntries(this.get('assets'));
+    const firstOfRole = !own.some((a) => a.role === input.role);
+    const record = withPersonalizationOwner({
       id: input.id || makeId(input.role),
       role: input.role,
       name: input.name || input.url.split('/').pop() || 'asset',
@@ -135,7 +153,7 @@ class AssetLibraryStore extends Store {
       createdAt: now,
       uploadStatus: input.uploadStatus || 'local',
       uploadError: input.uploadError || null,
-    };
+    });
 
     let assets = [...this.get('assets'), record];
     if (record.isPrimary) {
@@ -154,12 +172,18 @@ class AssetLibraryStore extends Store {
 
   /**
    * Remove an asset by id. Single-slot roles are hard-removed; multi-slot
-   * roles keep a bounded history for `restoreAsset`.
+   * roles keep a bounded history for `restoreAsset`. Owner-checked: a
+   * foreign user's asset is never removed (returns false).
    */
   removeAsset(id) {
     const assets = this.get('assets');
     const target = assets.find((a) => a.id === id);
     if (!target) return false;
+    try {
+      assertOwner(target, 'remove');
+    } catch {
+      return false;
+    }
 
     const nextAssets = assets.filter((a) => a.id !== id);
     let removed = this.get('removed');
@@ -192,8 +216,11 @@ class AssetLibraryStore extends Store {
   /**
    * Mark an asset as primary for its role. Demotes any other primary of
    * the same role. For single-slot roles, replaces the current primary.
+   * Owner-checked: a foreign user's asset is never promoted (no-op).
    */
   setPrimary(role, id) {
+    const target = this.get('assets').find((a) => a.role === role && a.id === id);
+    if (target && !canAccess(target)) return;
     const assets = this.get('assets').map((a) => {
       if (a.role !== role) return a;
       return { ...a, isPrimary: a.id === id };
@@ -204,34 +231,37 @@ class AssetLibraryStore extends Store {
 
   /**
    * Reorder assets within a role bucket. Indices are relative to the
-   * role-filtered view. `fromIdx` and `toIdx` are 0-based.
+   * current user's view of the role bucket (0-based); foreign users'
+   * assets keep their slots and order — their rows are never dropped or
+   * reordered by another user's action.
    */
   reorderAssets(role, fromIdx, toIdx) {
     const all = this.get('assets');
-    const roleAssets = all
+    const ownEntries = all
       .map((a, idx) => ({ a, idx }))
-      .filter((x) => x.a.role === role);
+      .filter((x) => x.a.role === role && canAccess(x.a));
     if (
       fromIdx < 0 ||
       toIdx < 0 ||
-      fromIdx >= roleAssets.length ||
-      toIdx >= roleAssets.length
+      fromIdx >= ownEntries.length ||
+      toIdx >= ownEntries.length
     ) {
       return;
     }
-    const moving = roleAssets[fromIdx];
-    const filtered = roleAssets.filter((_, i) => i !== fromIdx);
+    const moving = ownEntries[fromIdx];
+    const filtered = ownEntries.filter((_, i) => i !== fromIdx);
     filtered.splice(toIdx, 0, moving);
-    // Reassemble: keep the same non-role assets in their original slots,
-    // but splice the new role order back in.
-    const next = all.filter((a) => a.role !== role);
-    // Insert role bucket in the slot of the first role asset.
-    const insertAt = all.findIndex((a) => a.role === role);
     const newRoleAssets = filtered.map((x) => x.a);
-    if (insertAt === -1) {
-      next.push(...newRoleAssets);
-    } else {
-      next.splice(insertAt, 0, ...newRoleAssets);
+
+    // Rebuild: the current user's role-bucket slots (in original order)
+    // receive the reordered assets; every other asset keeps its position.
+    const slotSet = new Set(ownEntries.map((x) => x.idx));
+    const next = all.slice();
+    let k = 0;
+    for (let i = 0; i < next.length; i++) {
+      if (slotSet.has(i)) {
+        next[i] = newRoleAssets[k++];
+      }
     }
     this.setState({ assets: next });
     this._persist();
@@ -240,11 +270,13 @@ class AssetLibraryStore extends Store {
   /**
    * Restore a previously-removed asset (multi-slot roles only).
    * Returns the restored record, or null if it can't be restored.
+   * Owner-checked: a foreign user's removed asset is never restored.
    */
   restoreAsset(id) {
     const removed = this.get('removed');
     const target = removed.find((r) => r.id === id);
     if (!target) return null;
+    if (!canAccess(target)) return null;
     const restored = { ...target, isPrimary: false };
     const nextRemoved = removed.filter((r) => r.id !== id);
     const nextAssets = [...this.get('assets'), restored];
@@ -258,6 +290,7 @@ class AssetLibraryStore extends Store {
    * asset library for the current project). In this local-only
    * implementation we store the imported ids on each asset; a
    * Supabase-backed variant would instead upsert to a join table.
+   * Only the current user's assets are touched.
    *
    * @param {string[]} ids
    */
@@ -265,28 +298,31 @@ class AssetLibraryStore extends Store {
     if (!Array.isArray(ids)) return;
     const set = new Set(ids);
     const next = this.get('assets').map((a) =>
-      set.has(a.id) ? { ...a, uploadStatus: a.uploadStatus || 'ready' } : a,
+      set.has(a.id) && canAccess(a)
+        ? { ...a, uploadStatus: a.uploadStatus || 'ready' }
+        : a,
     );
     this.setState({ assets: next });
     this._persist();
   }
 
-  // Selectors
+  // Selectors — owner-filtered: a row owned by another user is never
+  // returned, even if it exists in storage.
 
   getAssets() {
-    return this.get('assets');
+    return filterPersonalizationEntries(this.get('assets'));
   }
 
   getAssetsByRole(role) {
-    return this.get('assets').filter((a) => a.role === role);
+    return filterPersonalizationEntries(this.get('assets')).filter((a) => a.role === role);
   }
 
   getPrimary(role) {
-    return this.get('assets').find((a) => a.role === role && a.isPrimary) || null;
+    return this.getAssetsByRole(role).find((a) => a.isPrimary) || null;
   }
 
   getRemoved() {
-    return this.get('removed');
+    return filterPersonalizationEntries(this.get('removed'));
   }
 }
 

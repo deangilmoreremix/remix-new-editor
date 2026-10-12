@@ -39,6 +39,7 @@
  */
 
 import { openaiService } from '../../lib/openaiService.js';
+import { withPersonalizationOwner } from '../../lib/personalizationAuth.js';
 import { runGeneration } from './generationRouter.js';
 import { sharedMediaStore } from './sharedMediaStore.js';
 
@@ -312,6 +313,10 @@ export async function runAiAssistEdit({
  * transient (MuAPI URLs expire ~1h; OpenAI b64 is in-memory). The
  * record is the permanent handle the rest of the app uses.
  *
+ * The record is stamped with the current user's owner id
+ * (`clerk_user_id`) via withPersonalizationOwner() so AI Assist outputs
+ * are owner-scoped exactly like every other personalization row.
+ *
  * @param {Object} params
  * @returns {import('./types.js').SharedMediaEntry}
  */
@@ -319,7 +324,7 @@ function recordOutput({
   clientId, role, asset, instruction, outputUrls, model, outputType,
   isBase64 = false, responseId = null,
 }) {
-  const entry = {
+  const entry = withPersonalizationOwner({
     id: `pzo_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
     clientId: clientId,
     originStudio: 'personalize-ai-assist',
@@ -343,7 +348,7 @@ function recordOutput({
     firstFrameAssetId: role === 'first_frame' ? asset.id : null,
     lastFrameAssetId: role === 'last_frame' ? asset.id : null,
     createdAt: new Date().toISOString(),
-  };
+  });
 
   sharedMediaStore.addEntry(entry);
   return entry;
