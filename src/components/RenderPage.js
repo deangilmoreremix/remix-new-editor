@@ -27,6 +27,11 @@ import {
 
 import { generateSubtitles, generateHighlights, generateVoiceover, createShorts, runAiAutoEdit } from '../lib/editor/renderAiActions.js';
 
+// Personalization bridge for Render Studio exports. One imported call per
+// capture site: it is a no-op by reference when personalization is empty and
+// can never throw into the render. See personalize/studioBridge.js.
+import { applyRenderStudioPersonalization } from './personalize/studioBridge.js';
+
 // Repository endpoints
 const REPO_ENDPOINTS = {
   'open-higgsfield': { label: 'Open Higgsfield', status: 'connected', description: 'Core generation and render orchestration engine.' },
@@ -1191,18 +1196,20 @@ export function RenderPage() {
     if (progressPercent) progressPercent.textContent = '0%';
 
     try {
-      const result = await captureRealVideo({
-        videoUrl: payload.videoUrl,
-        action: payload.action,
-        settings: payload.settings || {},
-        timeRange: payload.timeRange,
-        effects: payload.effects,
-        preset: payload.preset || selectedPreset,
-        onProgress: (pct) => {
-          if (progressBar) progressBar.style.width = `${pct}%`;
-          if (progressPercent) progressPercent.textContent = `${pct}%`;
-        },
-      });
+      const result = await captureRealVideo(
+        applyRenderStudioPersonalization({
+          videoUrl: payload.videoUrl,
+          action: payload.action,
+          settings: payload.settings || {},
+          timeRange: payload.timeRange,
+          effects: payload.effects,
+          preset: payload.preset || selectedPreset,
+          onProgress: (pct) => {
+            if (progressBar) progressBar.style.width = `${pct}%`;
+            if (progressPercent) progressPercent.textContent = `${pct}%`;
+          },
+        }),
+      );
       if (onDone) onDone(result);
     } finally {
       if (activeExportCleanup) {
@@ -1221,13 +1228,15 @@ export function RenderPage() {
     if (!sourceUrl) {
       throw new Error('Queued job has no video source to render');
     }
-    return captureRealVideo({
-      videoUrl: sourceUrl,
-      action: 'export-video',
-      settings: (job && job.outputSettings) || getOutputSettings(),
-      preset: selectedPreset,
-      onProgress,
-    });
+    return captureRealVideo(
+      applyRenderStudioPersonalization({
+        videoUrl: sourceUrl,
+        action: 'export-video',
+        settings: (job && job.outputSettings) || getOutputSettings(),
+        preset: selectedPreset,
+        onProgress,
+      }),
+    );
   });
   stopBackgroundProcessor = startProcessor(5000);
 

@@ -19,9 +19,15 @@
  * INTEGRATION POINTS (documented, minimal, additive)
  * ------------------------------------------------
  * Render Studio (`src/components/RenderPage.js`):
- *   At the point where the studio already uploads a reference image,
- *   call `resolveForRenderStudio()` and merge the returned
- *   `referenceImages` / `promptPrefix` into the existing payload.
+ *   Applied at the two `captureRealVideo()` call sites inside
+ *   `runExportWorker()` (`:1194`) and the queued-job executor (`:1224`):
+ *
+ *     const result = await captureRealVideo(
+ *       applyRenderStudioPersonalization({ ...existing payload })
+ *     );
+ *
+ *   One imported call per site. When personalization is empty the payload is
+ *   returned by reference and the render is byte-identical to before.
  *
  * CineGen (`src/lib/cinegen.js`):
  *   Inside `generateElement(params)` / `generateVideo(params)`, call
@@ -131,6 +137,45 @@ function collect(library, roles) {
 }
 
 /**
+ * Read the *current* client profile without editing `clientProfileStore.js`.
+ *
+ * `clientProfileStore` exposes `getCurrentClientId()` / `getClientById()` and
+ * `getState()` — there is no `getCurrent()` — so the naive
+ * `store.getCurrent ? store.getCurrent() : null` guard silently returned
+ * `null` and personalization never saw a client profile in production.
+ * `getCurrent()` is still honoured first so existing callers/mocks keep
+ * working, then the same value is resolved through the real store API.
+ *
+ * @returns {import('./clientProfileStore.js').ClientProfile|null}
+ */
+function readCurrentClient() {
+  const store = clientProfileStore;
+  if (!store) return null;
+
+  if (typeof store.getCurrent === 'function') {
+    try {
+      return store.getCurrent() || null;
+    } catch {
+      return null;
+    }
+  }
+
+  try {
+    const id = typeof store.getCurrentClientId === 'function' ? store.getCurrentClientId() : null;
+    if (!id) return null;
+    if (typeof store.getClientById === 'function') return store.getClientById(id) || null;
+    if (typeof store.getState === 'function') {
+      const state = store.getState() || {};
+      const clients = Array.isArray(state.clients) ? state.clients : [];
+      return clients.find((c) => c && c.id === id) || null;
+    }
+  } catch {
+    /* fall through */
+  }
+  return null;
+}
+
+/**
  * Build the personalization slice for a still-render request.
  *
  * @param {Object} [opts]
@@ -139,7 +184,7 @@ function collect(library, roles) {
  */
 export function resolveForRenderStudio(opts = {}) {
   const library = assetLibraryStore.getState ? assetLibraryStore.getState() : assetLibraryStore;
-  const client = clientProfileStore.getCurrent ? clientProfileStore.getCurrent() : null;
+  const client = readCurrentClient();
   const maxImages = opts.maxImages || 6;
 
   const refs = collect(library, IMAGE_REFERENCE_ROLES).slice(0, maxImages);
@@ -176,7 +221,7 @@ export function resolveForRenderStudio(opts = {}) {
  */
 export function resolveForCineGen(params = {}) {
   const library = assetLibraryStore.getState ? assetLibraryStore.getState() : assetLibraryStore;
-  const client = clientProfileStore.getCurrent ? clientProfileStore.getCurrent() : null;
+  const client = readCurrentClient();
 
   const refs = collect(library, IMAGE_REFERENCE_ROLES);
   if (refs.length === 0 && !client) {
@@ -274,6 +319,271 @@ export function useStudioBridge(selector) {
  */
 export function hasPersonalizationData() {
   const library = assetLibraryStore.getState ? assetLibraryStore.getState() : assetLibraryStore;
-  const client = clientProfileStore.getCurrent ? clientProfileStore.getCurrent() : null;
+  const client = readCurrentClient();
   return Boolean(client) || collect(library, IMAGE_REFERENCE_ROLES).length > 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * RENDER STUDIO PROJECTION
+ *
+ * A *projection* of the personalization state onto the parameters
+ * `captureRealVideo()` in `src/components/RenderPage.js:827` actually reads.
+ * Nothing here re-generates, re-renders or re-decides anything, and nothing
+ * edits the studio.
+ *
+ * VERIFIED PARAMETER SET (src/components/RenderPage.js:827–1182)
+ * -------------------------------------------------------------
+ *   videoUrl                :840   source video URL
+ *   action                  :889   'export-video' | 'trailer-cut' | 'social-resize'
+ *   settings.format         :907   container/codec to encode
+ *   settings.frameRate      :916   capture fps
+ *   settings.quality        :922   bitrate quality
+ *   settings.aspectRatio    :889   canvas size (social-resize only)
+ *   settings.contain        :1025  letterbox instead of cover (social-resize only)
+ *   settings.duration       :942   render window, seconds
+ *   settings.validateDecode :1121  run the decode probe
+ *   timeRange               :940   { start, end } seconds (trailer-cut only)
+ *   effects.brightness      :1045  colour multiplier
+ *   effects.contrast        :1045  colour multiplier
+ *   preset                  :1037  PRESET_CONFIG look (studio/user selection)
+ *   onProgress              :953   (percent) => void
+ *
+ * NOTE: `settings.width` / `settings.height` are NOT read by the capture path
+ * (canvas size comes from the source video or ASPECT_DIMS). Only the separate
+ * web worker `src/lib/editor/renderExportWorker.js` reads them, and Render
+ * Studio's `runExportWorker` does not use that worker.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+/**
+ * The `settings` keys `captureRealVideo()` reads. Anything else in `settings`
+ * is ignored by the capture path.
+ * @type {readonly string[]}
+ */
+export const RENDER_STUDIO_SETTINGS_KEYS = Object.freeze([
+  'format',
+  'frameRate',
+  'quality',
+  'aspectRatio',
+  'contain',
+  'duration',
+  'validateDecode',
+]);
+
+/**
+ * The personalization concepts Render Studio could brand an export with, and
+ * whether the capture pipeline has a real parameter for each.
+ *
+ * Every flag is `false` today: `captureRealVideo()` composites exactly one
+ * image per frame — the source video, drawn once at `:1051` — with no
+ * `fillText`/`strokeText` anywhere in the file and no image, logo, watermark,
+ * text or prompt parameter in its signature. Writing a personalization value
+ * onto a key the pipeline ignores would be fabrication (and would silently do
+ * nothing), so the bridge refuses to. See `RENDER_STUDIO_OVERLAY_GAP`.
+ *
+ * @type {Readonly<Record<string, boolean>>}
+ */
+export const RENDER_STUDIO_OVERLAY_SUPPORT = Object.freeze({
+  referenceImages: false,
+  logoUrl: false,
+  lastFrameUrl: false,
+  textOverlay: false,
+  prompt: false,
+  branding: false,
+});
+
+/**
+ * Machine-readable record of the gap, so it can be closed without being
+ * re-derived. `unblock` is the exact change that lights the projection up.
+ *
+ * @type {Readonly<{supported: readonly string[], missing: readonly string[],
+ *   evidence: string, unblock: string}>}
+ */
+export const RENDER_STUDIO_OVERLAY_GAP = Object.freeze({
+  supported: Object.freeze(
+    Object.keys(RENDER_STUDIO_OVERLAY_SUPPORT).filter((k) => RENDER_STUDIO_OVERLAY_SUPPORT[k]),
+  ),
+  missing: Object.freeze(
+    Object.keys(RENDER_STUDIO_OVERLAY_SUPPORT).filter((k) => !RENDER_STUDIO_OVERLAY_SUPPORT[k]),
+  ),
+  evidence:
+    'captureRealVideo() (src/components/RenderPage.js:827) has exactly one draw call — '
+    + 'ctx.drawImage(video, sourceRect…) at :1051 — no fillText/strokeText anywhere in the file, '
+    + 'and its only inputs are videoUrl, action, timeRange, effects{brightness,contrast}, preset '
+    + 'and settings{format,frameRate,quality,aspectRatio,contain,duration,validateDecode}. None of '
+    + 'those can carry a client brand, and every one is either an output-encoding choice or an '
+    + 'explicit studio/user selection.',
+  unblock:
+    'Give captureRealVideo() an `overlays` (or `branding`) parameter and composite it inside '
+    + 'drawFrame() — a second ctx.drawImage for the logo/reference image plus fillText for the '
+    + 'brand text — then flip the matching RENDER_STUDIO_OVERLAY_SUPPORT flag to true. The '
+    + 'projection below already builds the values; only the pipeline is missing.',
+});
+
+/**
+ * True when a projected overlay value actually carries something.
+ * @param {unknown} value
+ * @returns {boolean}
+ */
+function hasOverlayValue(value) {
+  if (value == null) return false;
+  if (typeof value === 'string') return value.trim() !== '';
+  if (Array.isArray(value)) return value.length > 0;
+  if (typeof value === 'object') return Object.keys(value).length > 0;
+  return true;
+}
+
+/**
+ * Find the first reference image with the given role.
+ *
+ * @param {{url: string, role: string}[]} references
+ * @param {string} role
+ * @returns {string|null}
+ */
+function firstReferenceByRole(references, role) {
+  const match = (Array.isArray(references) ? references : []).find((r) => r && r.role === role);
+  return match ? match.url : null;
+}
+
+/**
+ * Brand text a real overlay step would render. Only emitted when the render
+ * pipeline has a text parameter (it does not — see RENDER_STUDIO_OVERLAY_GAP).
+ *
+ * @param {import('./clientProfileStore.js').ClientProfile|null} client
+ * @returns {string}
+ */
+function buildBrandOverlayText(client) {
+  if (!client) return '';
+  const lines = [];
+  if (client.businessName) lines.push(client.businessName);
+  if (client.ctaHeadline) lines.push(client.ctaHeadline);
+  if (client.callToAction) lines.push(client.callToAction);
+  if (client.website) lines.push(client.website);
+  return lines.join('\n');
+}
+
+/**
+ * Branding block an overlay step would consume. Only emitted when the render
+ * pipeline has a branding parameter (it does not — see RENDER_STUDIO_OVERLAY_GAP).
+ *
+ * @param {import('./clientProfileStore.js').ClientProfile|null} client
+ * @returns {object|null}
+ */
+function buildBrandingBlock(client) {
+  if (!client) return null;
+  const block = {};
+  if (client.businessName) block.businessName = client.businessName;
+  if (client.industry) block.industry = client.industry;
+  if (client.productService) block.productService = client.productService;
+  if (client.offer) block.offer = client.offer;
+  if (client.website) block.website = client.website;
+  if (client.phone) block.phone = client.phone;
+  return hasOverlayValue(block) ? block : null;
+}
+
+/**
+ * Project personalization into the branding/overlay payload Render Studio can
+ * consume. Returns ONLY fields that map to a REAL `captureRealVideo`
+ * parameter, and `{}` when personalization has nothing to contribute.
+ *
+ * The capture pipeline has no overlay/watermark/logo/text/branding/prompt
+ * parameter at all (see `RENDER_STUDIO_OVERLAY_SUPPORT` and
+ * `RENDER_STUDIO_OVERLAY_GAP`), so this returns a neutral `{}` today. That is
+ * deliberate: the projection is written, the capability flags are explicit,
+ * and the moment the render pipeline gains a parameter the mapping is a
+ * one-flag change rather than a second integration pass.
+ *
+ * @param {{ settings?: object }} [options] - the studio's own output settings
+ * @returns {object} the supported branding/overlay payload (possibly empty)
+ */
+export function buildRenderStudioOverlays({ settings } = {}) {
+  const personalization = resolveForRenderStudio();
+  const client = personalization.clientProfile;
+  const references = personalization.referenceImages;
+
+  // Everything personalization *could* contribute, keyed by the render
+  // parameter it would land in.
+  const candidates = {
+    referenceImages: references.map((r) => r.url),
+    logoUrl: firstReferenceByRole(references, 'logo'),
+    lastFrameUrl: personalization.lastFrameUrl,
+    textOverlay: buildBrandOverlayText(client),
+    prompt: personalization.promptPrefix,
+    branding: buildBrandingBlock(client),
+  };
+
+  // A value the studio already supplied always wins — personalization never
+  // overrides an explicit studio selection.
+  const studioSettings = settings && typeof settings === 'object' ? settings : {};
+
+  const out = {};
+  for (const [key, value] of Object.entries(candidates)) {
+    if (!RENDER_STUDIO_OVERLAY_SUPPORT[key]) continue;
+    if (!hasOverlayValue(value)) continue;
+    if (studioSettings[key] != null) continue;
+    out[key] = value;
+  }
+  return out;
+}
+
+/**
+ * Merge the Render Studio personalization projection into a
+ * `captureRealVideo()` payload.
+ *
+ * - Returns a NEW object; the input is never mutated.
+ * - STUDIO-SUPPLIED VALUES ALWAYS WIN. A contest is detected on both the
+ *   payload root and `settings`, so a studio image/overlay/text value is kept
+ *   verbatim.
+ * - Never throws: any failure logs a warning and falls back to the original
+ *   payload, so personalization can never break a render.
+ *
+ * @param {object} payload - the studio's existing payload
+ * @param {{ settings?: object }} [options]
+ * @returns {object} a new payload
+ */
+export function mergeRenderPersonalization(payload, options = {}) {
+  const base = payload && typeof payload === 'object' ? payload : {};
+  try {
+    const overlays = buildRenderStudioOverlays(options);
+    if (Object.keys(overlays).length === 0) return { ...base };
+
+    const merged = { ...base };
+    for (const [key, value] of Object.entries(overlays)) {
+      // Some overlay parameters are read out of `settings` rather than the
+      // payload root; contest is checked against whichever holds the key.
+      const settingsScoped = RENDER_STUDIO_SETTINGS_KEYS.includes(key);
+      const container = settingsScoped ? (base.settings || {}) : base;
+      if (container[key] != null) continue; // studio wins
+      if (settingsScoped) {
+        merged.settings = { ...(base.settings || {}), [key]: value };
+      } else {
+        merged[key] = value;
+      }
+    }
+    return merged;
+  } catch (err) {
+    console.warn('[studioBridge] mergeRenderPersonalization failed, using the original payload:', err);
+    return { ...base };
+  }
+}
+
+/**
+ * One-call bridge for Render Studio capture sites.
+ *
+ * Returns the payload UNCHANGED (same reference) when personalization has
+ * nothing to contribute, so existing parameters and defaults stay
+ * byte-identical. Otherwise returns a new payload with the supported
+ * projection merged in. Never throws.
+ *
+ * @param {object} payload - the studio's existing `captureRealVideo` payload
+ * @param {{ settings?: object }} [options]
+ * @returns {object} the payload to capture with
+ */
+export function applyRenderStudioPersonalization(payload, options = {}) {
+  try {
+    if (!hasPersonalizationData()) return payload;
+    return mergeRenderPersonalization(payload, options);
+  } catch (err) {
+    console.warn('[studioBridge] personalization skipped for this render:', err);
+    return payload;
+  }
 }
