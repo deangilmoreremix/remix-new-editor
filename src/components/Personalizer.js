@@ -16,6 +16,7 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { showToast } from '../lib/loading.js';
 import { escapeHtml } from '../lib/security.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt, inspectPromptTokens, getSelectedContactId, setSelectedContactId } from './personalize/personalizePopover.js';
+import { mountPersonalizationHub, unmountPersonalizationHub } from './personalize/PersonalizationHubPanel.js';
 import { TOKEN_KEYS, TOKEN_LABELS, buildVariables } from './personalize/tokenSchema.js';
 import { getActiveProfile, listProfiles } from '../lib/contactStore.js';
 import { getSocialProfiles } from '../lib/socialIdentity.js';
@@ -728,6 +729,15 @@ export function Personalizer() {
     });
   }
   sidebar.appendChild(tokenList);
+
+  // Personalization Hub: client profiles, asset library, AI Assist, website
+  // discovery and the studio handoff summary — the user-reachable surface for
+  // the personalization subsystem, rendered from the existing stores.
+  const hubHost = document.createElement('div');
+  hubHost.className = 'dom-hub-host';
+  hubHost.style.cssText = 'border-top: 1px solid rgba(255,255,255,0.06); margin-top: 4px;';
+  sidebar.appendChild(hubHost);
+  mountPersonalizationHub(hubHost);
 
   // Sidebar: Actions
   const actionsTitle = document.createElement('div');
@@ -1663,6 +1673,7 @@ export function Personalizer() {
   // away from this studio.
   container.cleanup = () => {
     document.removeEventListener('keydown', onKeyDown);
+    unmountPersonalizationHub();
     if (triggerDestroy) triggerDestroy();
   };
 

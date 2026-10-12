@@ -4,14 +4,47 @@
  * Production-ready with error handling
  */
 import { muapi } from './muapi.js';
+import { resolveForCineGen } from '../components/personalize/studioBridge.js';
+
+/**
+ * Merge the personalization slice (persona reference images + CTA copy) into
+ * outgoing studio params.
+ *
+ * STUDIO-SUPPLIED VALUES ALWAYS WIN: the merge only fills keys the studio did
+ * not set, so an explicit `image_url` / `images_list` / `prompt` is never
+ * clobbered. With no personalization data the personalization resolver
+ * returns neutral values and this is a no-op copy of `params`.
+ *
+ * @param {object} params - the studio's existing params
+ * @returns {object} params + personalization gaps filled
+ */
+function withPersonalization(params = {}) {
+  const merged = { ...params };
+  const personalization = resolveForCineGen(params);
+  if (personalization.image_url && !merged.image_url) {
+    merged.image_url = personalization.image_url;
+  }
+  if (!merged.images_list?.length && personalization.images_list?.length) {
+    merged.images_list = personalization.images_list;
+  }
+  if (
+    personalization.promptSuffix &&
+    typeof merged.prompt === 'string' &&
+    !merged.prompt.includes(personalization.promptSuffix)
+  ) {
+    merged.prompt = `${merged.prompt}${personalization.promptSuffix}`;
+  }
+  return merged;
+}
 
 export const cinegen = {
   async generateElement(params) {
     try {
+      const merged = withPersonalization(params);
       const result = await muapi.generateImage({
-        prompt: params.prompt,
-        model: params.model || 'flux-dev',
-        ...params
+        prompt: merged.prompt,
+        model: merged.model || 'flux-dev',
+        ...merged
       });
       return {
         success: true,
@@ -36,7 +69,9 @@ export const cinegen = {
           result = await muapi.generateVideoEffect({ type: 'gap-fill', ...params });
           break;
         case 'extend':
-          result = await muapi.generateVideo({ prompt: params.prompt, duration: params.extendDuration, ...params });
+          // The file's video entry point: persona references + CTA copy flow
+          // into the existing MuAPI call through the same studio-first merge.
+          result = await muapi.generateVideo(withPersonalization({ prompt: params.prompt, duration: params.extendDuration, ...params }));
           break;
         case 'music':
           result = await muapi.generateAudio({ type: 'music', prompt: params.prompt, ...params });

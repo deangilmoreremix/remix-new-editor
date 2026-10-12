@@ -559,7 +559,12 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     ['src/lib/chatApi.js', '277372658b0a9b978441ae747ef32960680505575178036d5f566c2be27f9a3c'],
     ['src/lib/chatStore.js', 'bf656c016fc8f4ca01ce5aaa6dd7261a0caa4a8693943335f47ca2b0afd86b77'],
     ['src/lib/chatPersistence.js', '2d81dd7bb1edc0298f61f111f1adc5cdf35d32eaa03e4800600852ff83e39bfe'],
-    ['src/lib/cinegen.js', '5ade4ff2985ef2fb594156909564e0755051258693e3e6aeeeb4134f26ec741c'],
+    // Re-recorded deliberately after the intentional personalization
+    // integration point (Task 2 of the personalization wiring): cinegen now
+    // merges `resolveForCineGen()` into generateElement / the extend edit
+    // tool with studio-supplied values always winning. No upload-pipeline
+    // behaviour changed. See src/lib/cinegen.js `withPersonalization`.
+    ['src/lib/cinegen.js', '1a96e9fc4e7d0d17ba1c9cce9b2c1c2e539d3cf54fb0107c444c62dc9c2df531'],
     ['src/lib/cinegenIntegration.js', 'd73459062a6ff89b78b3196a7fc90c140ff491c1ffeafc18f28769d24cec706d'],
     ['src/modules/CineGen/src/layout/CineGenLayout.tsx', 'b3b232c358d01931e066ddf5d779a80a7280de70a13c8ab6c72c93b31def9e3a'],
     ['src/components/elements/element-card.jsx', 'd6bcaa6ec593761739b590a6370241f280ef7fda6e30354eb07da03c6e779bf1'],
