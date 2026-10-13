@@ -185,7 +185,7 @@ vi.mock('../../src/lib/supabase.js', () => ({
 import { createUploadPicker, queueAssetForStudio } from '../../src/components/UploadPicker.js';
 import { resolveMuapiMediaRefs, resolvePersonalizationMediaRef } from '../../src/lib/muapiStudioMedia.js';
 import { showToast } from '../../src/lib/loading.js';
-import { resolveMuapiMediaRef } from '../../src/lib/muapiStudioMedia.js';
+import { resolveMuapiMediaRef, getMuapiAuthContext } from '../../src/lib/muapiStudioMedia.js';
 import { muapi } from '../../src/lib/muapi.js';
 import * as adapter from '../../src/lib/muapiUpload.js';
 import * as authContextModule from '../../src/lib/authContext.js';
@@ -402,6 +402,47 @@ describe('UploadPicker → MuAPI studio upload flow', () => {
     expect(adapter.resolveMuAPIMediaInput).toHaveBeenCalledWith('asset-99', expect.objectContaining({ userId: 'user-a' }));
     expect(studio.reference.assetId).toBe('asset-99');
     expect(studio.reference.url).toBe('https://storage.test.local/brand.png');
+    expect(adapter.uploadImageToMuAPI).not.toHaveBeenCalled();
+  });
+
+  test('keeps the Clerk identity when no MuAPI key is configured yet', async () => {
+    // A signed-in user without a BYOK key must not fall back to the shared
+    // 'anonymous' owner — durable assets are saved under the Clerk identity
+    // and BYOK is enforced at upload time instead.
+    authContextModule.getAuthContext.mockResolvedValueOnce({
+      userId: 'user-a',
+      workspaceId: 'ws-1',
+      muapiKey: '',
+      hasMuapiKey: false,
+      isAnonymous: false,
+    });
+    const auth = await getMuapiAuthContext();
+    expect(auth.userId).toBe('user-a');
+    expect(auth.workspaceId).toBe('ws-1');
+  });
+
+  test('multi-image studios receive normalized library asset entries', async () => {
+    library.assets = [
+      { id: 'asset-11', name: 'one.png', url: 'https://storage.test.local/one.png', category: 'image' },
+      { id: 'asset-12', name: 'two.png', url: 'https://storage.test.local/two.png', category: 'image' },
+    ];
+    const picker = createUploadPicker({
+      anchorContainer: document.createElement('div'),
+      muapiStudio: true,
+      studioId: 'multi-studio',
+      maxImages: 3,
+      onSelect: () => {},
+    });
+    await picker.selectAsset({ id: 'asset-11', name: 'one.png', url: 'https://storage.test.local/one.png', category: 'image' });
+    await picker.selectAsset({ id: 'asset-12', name: 'two.png', url: 'https://storage.test.local/two.png', category: 'image' });
+    await flush();
+
+    // getSelectedUrls() (and the Done action's fireOnSelect payload) read
+    // `entry.url`; library entries must be normalized to that shape.
+    expect(picker.getSelectedUrls()).toEqual([
+      'https://storage.test.local/one.png',
+      'https://storage.test.local/two.png',
+    ]);
     expect(adapter.uploadImageToMuAPI).not.toHaveBeenCalled();
   });
 

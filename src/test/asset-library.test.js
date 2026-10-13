@@ -14,6 +14,7 @@ import { describe, test, expect, beforeEach, vi } from 'vitest';
 const state = {
   rows: [],
   uploads: [],
+  removes: [],
   inserts: [],
   filters: {},
   missingWorkspaceColumn: false,
@@ -24,6 +25,10 @@ function storageFrom() {
     upload: vi.fn(async (path, file, options) => {
       state.uploads.push({ path, file, options });
       return { data: { path }, error: null };
+    }),
+    remove: vi.fn(async (paths) => {
+      state.removes.push(paths);
+      return { data: paths, error: null };
     }),
     getPublicUrl: vi.fn((path) => ({
       data: { publicUrl: `https://storage.test.local/${path}` },
@@ -107,12 +112,17 @@ const {
   resolvePermanentMediaReference,
   deleteAsset,
   findDuplicateAsset,
-  downloadAssetBytes,
-  resetAssetCache,
+  downloadAssetBytes,  resetAssetCache,
 } = await import('../lib/assetLibrary.js');
 
 const AUTH = { userId: 'user-a', workspaceId: 'ws-1', muapiKey: 'key' };
 const OTHER_AUTH = { userId: 'user-b', workspaceId: 'ws-2', muapiKey: 'key' };
+
+// Every test starts with an empty storage-removal record (deleteAsset tests
+// assert on it, so it must not leak across tests).
+beforeEach(() => {
+  state.removes = [];
+});
 
 function makeFile(name, type, size = 2048) {
   return new File([new Uint8Array(size)], name, { type });
@@ -228,6 +238,17 @@ describe('Asset Library — listAssets / getAsset', () => {
     await deleteAsset('asset-1', AUTH);
     expect(state.rows.map((r) => r.id)).toEqual(['asset-2', 'asset-3']);
     await expect(deleteAsset('asset-3', AUTH)).rejects.toMatchObject({ code: 'ASSET_ACCESS_DENIED' });
+  });
+
+  test('delete removes the stored object, not just the row', async () => {
+    await deleteAsset('asset-1', AUTH);
+    expect(state.removes).toEqual([['user-a/a.png']]);
+    expect(state.rows.map((r) => r.id)).not.toContain('asset-1');
+  });
+
+  test('a denied delete never removes another owner\'s stored object', async () => {
+    await expect(deleteAsset('asset-3', AUTH)).rejects.toMatchObject({ code: 'ASSET_ACCESS_DENIED' });
+    expect(state.removes).toEqual([]);
   });
 });
 

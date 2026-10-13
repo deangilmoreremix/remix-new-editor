@@ -321,7 +321,20 @@ export async function resolvePermanentMediaReference(assetId, authContext) {
  */
 export async function deleteAsset(assetId, authContext) {
   // Ownership check first so another workspace's row can never be deleted.
-  await getAsset(assetId, authContext);
+  const asset = await getAsset(assetId, authContext);
+  // Remove the durable original from storage before dropping the row so a
+  // "Delete" never leaves the file publicly reachable.
+  if (asset?.path) {
+    try {
+      const { error: storageError } = await supabase.storage.from(ASSET_BUCKET).remove([asset.path]);
+      if (storageError) {
+        console.error('[AssetLibrary] Failed to remove stored object:', storageError.message);
+      }
+    } catch (err) {
+      // Storage cleanup must not block the row deletion.
+      console.error('[AssetLibrary] Storage removal threw:', err);
+    }
+  }
   const { error } = await supabase.from(MEDIA_TABLE).delete().eq('id', assetId);
   if (error) {
     throw assetError(`Asset could not be deleted: ${error.message || 'delete failed'}`, 'ASSET_DELETE_FAILED', error);

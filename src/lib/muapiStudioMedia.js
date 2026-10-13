@@ -57,11 +57,15 @@ export async function getMuapiAuthContext() {
     const get = mod.getAuthContext || mod.default?.getAuthContext;
     if (typeof get === 'function') {
       const ctx = await get();
-      if (ctx && ctx.muapiKey) {
+      // Return the resolved Clerk identity even when no MuAPI key is
+      // configured: dropping it here would save durable assets under the
+      // shared 'anonymous' owner and strand them once a key is added.
+      // BYOK is enforced by the adapter at upload time (MUAPI_KEY_MISSING).
+      if (ctx && ctx.userId) {
         return {
           userId: ctx.userId,
           workspaceId: ctx.workspaceId || '',
-          muapiKey: ctx.muapiKey,
+          muapiKey: ctx.muapiKey || '',
         };
       }
     }

@@ -10,17 +10,38 @@ import { UPLOAD_LIMITS, SUPABASE_PROXY_BODY_LIMIT_BYTES, categoryFromMimeType } 
 // Lets the Library page hand an existing Asset Library asset to a studio's own
 // picker (the studio is then updated through its normal onSelect contract) even
 // though each picker lives inside its studio's closure.
+//
+// A studio may create several pickers (EditStudio creates six, the watermark
+// picker last) and re-creates them on re-render. Pickers are kept in
+// registration order; detached entries are pruned on registration and "Use in
+// studio" targets the earliest-registered picker that is still mounted, so a
+// stale or auxiliary picker never receives the asset.
 const _studioPickers = new Map();
 const PENDING_ASSET_KEY = 'pending_muapi_asset';
+
+function _isPickerConnected(picker) {
+    try {
+        return !!picker?.trigger?.isConnected;
+    } catch {
+        return false;
+    }
+}
+
+function _registerStudioPicker(studioId, picker) {
+    const live = (_studioPickers.get(studioId) || []).filter(_isPickerConnected);
+    live.push(picker);
+    _studioPickers.set(studioId, live.slice(-8));
+}
 
 /**
  * Hand an Asset Library asset to a mounted MuAPI studio picker.
  * @returns {Promise<boolean>} true when a live picker accepted the asset.
  */
 export async function selectAssetInStudio(studioId, asset) {
-    const picker = _studioPickers.get(studioId);
-    if (!picker || typeof picker.selectAsset !== 'function') return false;
-    await picker.selectAsset(asset);
+    const list = _studioPickers.get(studioId) || [];
+    const target = list.find(_isPickerConnected) || list[0];
+    if (!target || typeof target.selectAsset !== 'function') return false;
+    await target.selectAsset(asset);
     return true;
 }
 
@@ -1383,7 +1404,19 @@ export function createUploadPicker({
             return;
         }
 
-        if (selectedEntries.length < maxImages) selectedEntries.push(entry);
+        if (selectedEntries.length < maxImages) {
+            // Normalize to the same shape as newly picked files: consumers
+            // (fireOnSelect / getSelectedUrls) read `entry.url`.
+            selectedEntries.push({
+                url: entry.uploadedUrl,
+                thumbnail: entry.thumbnail,
+                type: entry.type,
+                assetId: entry.assetId,
+                assetUrl: entry.uploadedUrl,
+                muapiUrl: entry.muapiUrl,
+                name: entry.name || '',
+            });
+        }
         updateTrigger();
         renderPanel();
     };
@@ -1488,7 +1521,9 @@ export function createUploadPicker({
     };
 
     if (muapiStudio && studioId) {
-        _studioPickers.set(studioId, { selectAsset, reset });
+        // Register this picker for "Use in studio" hand-offs (see the registry
+        // above: earliest-registered mounted picker wins).
+        _registerStudioPicker(studioId, { selectAsset, reset, trigger });
 
         // A cross-page request ("Use in studio" from the Library) waits here.
         const queued = consumeQueuedAsset();
