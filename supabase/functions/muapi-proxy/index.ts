@@ -808,7 +808,7 @@ Deno.serve(async (req: Request) => {
       form.append('file', new Blob([bytes], { type: mime }), fileName);
 
       const uploadResp = await fetchWithRetry(
-        `${MUAPI_BASE_URL}/api/v1/upload_file`,
+        'https://api.muapi.ai/api/v1/upload_file',
         { method: 'POST', headers: { 'x-api-key': effectiveApiKey }, body: form },
         AbortSignal.timeout(UPSTREAM_TIMEOUT_MS)
       );

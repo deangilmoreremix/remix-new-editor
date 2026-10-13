@@ -27,7 +27,8 @@ import fs from 'node:fs/promises';
 import fssync from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const KEY = process.env.MUAPI_TEST_API_KEY || process.env.MUAPI_API_KEY;
 if (!KEY) {
@@ -119,19 +120,30 @@ async function headStatus(url) {
 
     const pngBytes = makeRealPng(0x33, 0x66, 0x99);
     const jpegBytes = makeSmallJpeg();
-    const mp4Bytes = fssync.readFileSync(path.join(__dirname, 'fixtures', 'sample.mp4'));
+    const mp4Bytes = fssync.readFileSync(path.join(__dirname, '..', 'fixtures', 'sample.mp4'));
 
     // Pre-check: is the Asset Library module loadable under plain Node? Its
     // graph (supabase.js) reads import.meta.env, which plain Node does not
-    // populate. Steps 7–8 depend on it; the cache/re-upload logic is covered by
-    // the vitest suite (src/lib/editor/__tests__/muapiUpload.test.js).
+    // populate, and the offline-storage.js hop instantiates an IndexedDB-backed
+    // service at module scope whose init promise rejects unhandled under Node
+    // (no indexedDB). Importing it HERE would hard-crash this process with a
+    // raw stack before the classified provider errors below can print, so the
+    // probe runs in a THROWAWAY CHILD PROCESS: only a fully clean import counts
+    // as loadable. Steps 7–8 depend on it; the cache/re-upload logic is covered
+    // by the vitest suite (src/lib/editor/__tests__/muapiUpload.test.js).
     let assetLibraryLoadable = true;
     let assetLibraryLoadError = '';
-    try {
-        await import('../../src/lib/assetLibrary.js');
-    } catch (e) {
+    const assetLibraryUrl = pathToFileURL(path.join(__dirname, '..', 'src', 'lib', 'assetLibrary.js')).href;
+    const probe = spawnSync(
+        process.execPath,
+        ['--input-type=module', '-e', `await import(${JSON.stringify(assetLibraryUrl)}).then(() => process.exit(0));`],
+        { encoding: 'utf8', timeout: 30000, stdio: ['ignore', 'ignore', 'pipe'] }
+    );
+    if (probe.status !== 0) {
         assetLibraryLoadable = false;
-        assetLibraryLoadError = e && e.message ? e.message : String(e);
+        const firstLine = String((probe.stderr || '') + (probe.error ? probe.error.message : ''))
+            .split('\n').map((l) => l.trim()).filter(Boolean)[0] || '';
+        assetLibraryLoadError = (firstLine || `child exited with status ${probe.status}`).slice(0, 160);
     }
 
     // (1) uploadImageToMuAPI — real PNG
@@ -170,18 +182,23 @@ async function headStatus(url) {
     // (4) returned URLs parse (https) and are reachable (HEAD 200)
     try {
         const urls = [pngUrl, jpegUrl, mp4Url].filter(Boolean);
-        let allOk = true;
-        const details = [];
-        for (const url of urls) {
-            const u = new URL(url);
-            const https = u.protocol === 'https:';
-            let status = 0;
-            try { status = await headStatus(url); } catch (he) { status = -1; }
-            const ok = https && status === 200;
-            allOk = allOk && ok;
-            details.push(`${u.host} → HEAD ${status}`);
+        if (urls.length === 0) {
+            // Never claim a pass there is nothing to verify (all uploads failed).
+            report('4. urls https + reachable (HEAD 200)', false, '— no uploaded URLs to verify');
+        } else {
+            let allOk = true;
+            const details = [];
+            for (const url of urls) {
+                const u = new URL(url);
+                const https = u.protocol === 'https:';
+                let status = 0;
+                try { status = await headStatus(url); } catch (he) { status = -1; }
+                const ok = https && status === 200;
+                allOk = allOk && ok;
+                details.push(`${u.host} → HEAD ${status}`);
+            }
+            report('4. urls https + reachable (HEAD 200)', allOk, details.join(' | '));
         }
-        report('4. urls https + reachable (HEAD 200)', allOk, details.join(' | '));
     } catch (e) {
         report('4. urls https + reachable (HEAD 200)', false, `— ${e.message}`);
     }
@@ -209,7 +226,8 @@ async function headStatus(url) {
     // (6) the permanent original is still available (temp durable copy re-read)
     try {
         const tmp = path.join(os.tmpdir(), `muapi-int-original-${Date.now()}.png`);
-        fs.writeFileSync(tmp, pngBytes);
+        fssync.mkdirSync(os.tmpdir(), { recursive: true });
+        fssync.writeFileSync(tmp, pngBytes);
         const reread = await fs.readFile(tmp);
         await fs.unlink(tmp).catch(() => {});
         const ok = Buffer.compare(Buffer.from(reread), Buffer.from(pngBytes)) === 0;
