@@ -3,6 +3,7 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { showToast } from '../lib/loading.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
 
 // OpenMontage backend is accessed via our Express proxy at /openmontage
 const getOpenMontageBase = () => {
@@ -1388,7 +1389,11 @@ export function OpenMontagePage() {
 
   function updateKeyStatus() {
     if (!keyStatus) return;
-    const hasOpenAI = !!((typeof window !== 'undefined' && window.__OPENAI_KEY__) || (typeof import.meta !== 'undefined' && import.meta.env?.VITE_OPENAI_KEY));
+    // OpenAI keys are resolved via apiKeyManager (user-supplied in Settings,
+    // forwarded to the server proxy only). Any VITE_-prefixed variable is
+    // inlined into the public client bundle by Vite, so the browser must
+    // never read one.
+    const hasOpenAI = apiKeyManager.hasOpenAIKey();
     keyStatus.textContent = hasOpenAI ? 'OpenAI key detected ✓' : 'No OpenAI key — some agents will use local fallbacks';
   }
 
