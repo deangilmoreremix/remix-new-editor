@@ -2062,6 +2062,22 @@ export function TimelineEditorPage() {
       }
     }
 
+    /**
+     * Canonical tool token for the current selection.
+     *
+     * `state.selectedTool` is written from two places: `selectTool()` stores the
+     * tool's DISPLAY LABEL (what the toolbar highlight and the mask overlay
+     * compare against), while the keyboard shortcut stores the lowercase tool
+     * ID from `toolMap`. Both spell the same tool, so resolve either one back
+     * to the canonical label before comparing.
+     */
+    function selectedToolLabel() {
+      const selected = state.selectedTool;
+      if (!selected) return null;
+      const def = TOOL_DEFS.find(t => t.id === selected || t.label === selected);
+      return def ? def.label : selected;
+    }
+
     function renderTools() {
       els.toolGroup.innerHTML = '';
       const toolTooltips = {
@@ -2075,9 +2091,10 @@ export function TimelineEditorPage() {
         Hand: 'Hand tool - Click and drag to pan across the timeline (H)'
       };
       const tools = TOOL_DEFS;
+      const activeTool = selectedToolLabel();
       tools.forEach((def) => {
         const button = document.createElement('button');
-        button.className = `tool-btn ${state.selectedTool === def.label ? 'active' : ''}`;
+        button.className = `tool-btn ${activeTool === def.label ? 'active' : ''}`;
         button.textContent = def.icon;
         button.setAttribute('data-tooltip', def.hint ? `${def.label} (${def.hint})` : def.label);
         button.title = def.label;
@@ -5909,7 +5926,7 @@ export function TimelineEditorPage() {
       const maskOverlay = root.querySelector('#maskOverlay');
       if (maskOverlay) {
         maskOverlay.addEventListener('click', (e) => {
-          if (state.selectedTool !== 'Mask') return;
+          if (selectedToolLabel() !== 'Mask') return;
           const rect = maskOverlay.getBoundingClientRect();
           maskClickPoint = {
             x: Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)),
@@ -5917,14 +5934,14 @@ export function TimelineEditorPage() {
           };
         });
         maskOverlay.addEventListener('mousedown', (e) => {
-          if (state.selectedTool !== 'Mask') return;
+          if (selectedToolLabel() !== 'Mask') return;
           const rect = maskOverlay.getBoundingClientRect();
           normStartX = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
           normStartY = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
           maskSelectionBox = null;
         });
         maskOverlay.addEventListener('mouseup', (e) => {
-          if (state.selectedTool !== 'Mask') return;
+          if (selectedToolLabel() !== 'Mask') return;
           const rect = maskOverlay.getBoundingClientRect();
           const endX = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
           const endY = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));

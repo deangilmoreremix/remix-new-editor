@@ -33,10 +33,18 @@
  *      uploadFileToStorage into the `uploads` bucket, that Chat generation
  *      still streams through muapi.generateTextStream, and that CineGen
  *      generation/Element upload still resolve through the same entry points.
+ *   5. SEMANTIC INTEGRITY — for files whose byte hash had to be re-recorded
+ *      because of an INTENTIONAL, approved edit, real assertions that survive
+ *      formatting and inline edits but still catch the dangerous ones: a
+ *      browser-exposed provider key, a re-route around the proxy, or a shrunken
+ *      public API. A byte hash alone cannot tell an approved edit from an
+ *      accidental one, so these carry the weight those hashes gave up.
  *
  * If a change to a protected app or a shared contract is intentional and
  * approved, update this baseline deliberately (re-record the sha256 values and
- * signatures) — do not weaken or delete the assertions.
+ * signatures) — do not weaken or delete the assertions. When you re-record a
+ * hash for an intentional edit, ALSO add the semantic assertions for that file
+ * in section 5, so the byte relaxation is paid for.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -543,8 +551,20 @@ describe('protected application files — byte-for-byte integrity baseline', () 
   // fix/unified-media-upload-pipeline. Any modification to a protected
   // application file (code, routes, handlers, state, UI, config, tests)
   // fails here.
+  //
+  // Three entries below were re-recorded deliberately for intentional,
+  // reviewed edits (cinegen personalization merge; two import repairs). Each
+  // re-recorded file is additionally covered by the SEMANTIC INTEGRITY
+  // assertions in section 5, which are what now stop a dangerous edit — a byte
+  // hash cannot distinguish an approved edit from an accidental one, so those
+  // files are guarded by meaning rather than by bytes.
   const PROTECTED_BASELINE: Array<[string, string]> = [
-    ['src/components/TimelineEditorPage.jsx', '44d40e5f1d5b933f27a42eef0d6fcf5e3770f56651fe3ddb21902b3f6606d477'],
+    // Re-recorded deliberately: the keyboard tool shortcut stored the lowercase
+    // tool id while the toolbar / mask overlay compared display labels, so the
+    // shortcut appeared to do nothing. Fixed by resolving the stored token
+    // through a single normaliser (`selectedToolLabel()`). No upload-pipeline
+    // behaviour changed. Semantic coverage in section 5.
+    ['src/components/TimelineEditorPage.jsx', '77cddd200205c9a1b0c55ef18ab34080f0ee66990cf9554193ea4760cceab3de'],
     ['src/components/ChatStudio.js', '5ce9d04474523b8e9790e1e904ce173da92240aabc7b824726544cd3913a11ea'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],
@@ -564,6 +584,8 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // merges `resolveForCineGen()` into generateElement / the extend edit
     // tool with studio-supplied values always winning. No upload-pipeline
     // behaviour changed. See src/lib/cinegen.js `withPersonalization`.
+    // The byte hash is the accepted new baseline for that approved edit; the
+    // real guard now lives in the semantic assertions in section 5.
     ['src/lib/cinegen.js', '1a96e9fc4e7d0d17ba1c9cce9b2c1c2e539d3cf54fb0107c444c62dc9c2df531'],
     ['src/lib/cinegenIntegration.js', 'd73459062a6ff89b78b3196a7fc90c140ff491c1ffeafc18f28769d24cec706d'],
     ['src/modules/CineGen/src/layout/CineGenLayout.tsx', 'b3b232c358d01931e066ddf5d779a80a7280de70a13c8ab6c72c93b31def9e3a'],
@@ -580,7 +602,8 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // Re-recorded deliberately after commit dfd5fb3e6 repaired a broken
     // relative import in this file (`../cinegenIntegration.js` →
     // `../../lib/cinegenIntegration.js`) so the timeline AI tool resolves
-    // again. No upload-pipeline behaviour changed.
+    // again. No upload-pipeline behaviour changed. Semantic coverage in
+    // section 5.
     ['src/components/timeline/AIChatPanel.js', '78c426c7d1ee9006a57abd37613b8e24b66dcdc3ccfb9d750a6a07a87f4aa575'],
     ['src/components/create/nodes/music-prompt-node.jsx', '466215193c99448ae2c2b52ae63da76e57cca7735157bbdab87ad508ae207089'],
     // Timeline Editor upload internals. These hold live protected upload call
@@ -592,10 +615,19 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     ['src/lib/editor/dragDrop.js', '222285d3a03aec02b2ee7841f3d2689bc9f0dad1c83c1211d68c47df71c0840a'],
     // Re-recorded deliberately after commit dfd5fb3e6 repaired a broken
     // relative import in this file (`../mediaLibrary.js` →
-    // `./mediaLibrary.js`). No upload-pipeline behaviour changed.
+    // `./mediaLibrary.js`). No upload-pipeline behaviour changed. Semantic
+    // coverage in section 5.
     ['src/lib/editor/uploadSources.js', '8518c38c4bb2da9c28e7a1a0a99111c54625e6c0dbce0234a53f4cf2012b78b0'],
     ['src/lib/editor/mediaLibrary.js', '32caa774b2ee2e19fe849fa18fc4b3c03d065e9ee132e89a4355822d2d49ed84'],
     ['src/lib/editor/aiTools.js', '3bb112b66ca30009f467353a22dc452fdf57bf480e5c067339c9178630e1ea19'],
+    // NEW entries — Timeline Editor internals that carry no upload call site
+    // but are core to the protected Timeline Editor, and whose paired suites
+    // were already byte-pinned below. Neither file has been touched by this
+    // branch, so these are genuine (not re-recorded) byte-stability guards.
+    // `timelineHistory` is the undo/redo engine the editor's state contract
+    // depends on; `timelineRenderer` draws every track/clip the user sees.
+    ['src/lib/editor/timelineHistory.js', '8924274638c1cac78a829d80b18b0e4a1ba86d50e5a4d7f7ef738cec73a790f5'],
+    ['src/lib/editor/timelineRenderer.js', '67b68f369eafe1b309fd26e959c62690714889d028fe8bbc7c7f5de9479446d9'],
     // Protected applications' own tests must not change either.
     ['src/components/elements/__tests__/elements.test.jsx', '8167e85942ece098065e0a55ec8fa44867d7376d21c22dbb3e9ddbd82881dbda'],
     ['src/lib/__tests__/elements-helpers.test.js', '3987f6642fbfdfe7a2d50e2d82d3bbc0bea7ec0da11983dad4e0d1c6f64d75d1'],
@@ -624,6 +656,158 @@ describe('protected application files — byte-for-byte integrity baseline', () 
       sha256(file),
       `PROTECTED FILE MODIFIED: ${file}. Protected applications (Timeline Studio/Timeline Editor, CineGen, Chat) must not be changed by the upload-pipeline repair. If this change was intentional and approved, re-record the baseline sha256 in this guard deliberately.`,
     ).toBe(expected);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 5. SEMANTIC INTEGRITY
+//
+// A byte hash is an all-or-nothing guard: the moment it is re-recorded for an
+// approved edit, it stops protecting the file entirely. Every file whose hash
+// was deliberately re-recorded (cinegen.js, AIChatPanel.js, uploadSources.js,
+// TimelineEditorPage.jsx) therefore gets these assertions instead. They are
+// written to survive formatting and harmless inline edits while still failing
+// on the edits that actually hurt:
+//
+//   * a browser-exposed provider key (`import.meta.env.VITE_*KEY|SECRET|TOKEN`)
+//   * a re-route that bypasses the shared proxy / shared upload entry points
+//   * a shrunken or renamed public API
+//   * removal of an approved, intentional integration (personalization merge)
+// ---------------------------------------------------------------------------
+
+/** A Vite env var that inlines a credential into the client bundle. */
+const BROWSER_EXPOSED_KEY = /import\.meta\.env\.VITE_[A-Z0-9_]*(?:KEY|SECRET|TOKEN)/i;
+/** A direct provider fetch from a protected app (must go through the proxy). */
+const DIRECT_PROVIDER_FETCH = /fetch\(\s*[`'"](?:https?:\/\/)?[^`'")]*(?:api\.muapi\.ai|api\.openai\.com)/i;
+
+const SEMANTIC_GUARDED: Array<{ file: string; app: string; exports: string[] }> = [
+  {
+    file: 'src/lib/cinegen.js',
+    app: 'CineGen — integration layer',
+    // The public API the protected CineGen behaviour contracts in section 4
+    // and the Timeline editor both call.
+    exports: ['generateElement', 'applyEditTool', 'getElementsForTimeline'],
+  },
+  {
+    file: 'src/components/timeline/AIChatPanel.js',
+    app: 'Timeline Studio — AI chat panel',
+    exports: ['AIChatPanel'],
+  },
+  {
+    file: 'src/lib/editor/uploadSources.js',
+    app: 'Timeline Editor — upload sources',
+    exports: ['setupUploadSources', 'apiUpload', 'importFromUrl', 'normalizeCloudUrl', 'wireClipboardUpload'],
+  },
+  {
+    file: 'src/components/TimelineEditorPage.jsx',
+    app: 'Timeline Studio / Timeline Editor',
+    exports: ['TimelineEditorPage'],
+  },
+];
+
+describe('protected files — semantic integrity assertions', () => {
+  for (const { file, app, exports } of SEMANTIC_GUARDED) {
+    describe(`${file} (${app})`, () => {
+      it('exposes no browser-side provider credential', () => {
+        const source = readSource(file);
+        expect(
+          BROWSER_EXPOSED_KEY.test(source),
+          `${file} references an import.meta.env.VITE_* KEY/SECRET/TOKEN variable. A provider credential must never be inlined into the browser bundle — route it through the Supabase edge function / Netlify function instead.`,
+        ).toBe(false);
+      });
+
+      it('makes no direct provider call that bypasses the shared proxy', () => {
+        const source = readSource(file);
+        expect(
+          DIRECT_PROVIDER_FETCH.test(source),
+          `${file} fetches a provider endpoint directly. Protected applications must reach providers through the shared muapi proxy (src/lib/muapi.js → /functions/v1/muapi-proxy) so credentials stay server-side.`,
+        ).toBe(false);
+      });
+
+      it('keeps the public entry points the protected apps depend on', () => {
+        const source = readSource(file);
+        for (const name of exports) {
+          expect(
+            source,
+            `${file} no longer declares "${name}", an entry point the protected app contract depends on.`,
+          ).toContain(name);
+        }
+      });
+    });
+  }
+
+  it('cinegen.js keeps its public API surface and its personalization merge', () => {
+    const source = readSource('src/lib/cinegen.js');
+
+    // Export shape
+    expect(source).toContain('export const cinegen = {');
+    expect(source).toContain('export default cinegen;');
+    for (const fn of ['generateElement', 'applyEditTool', 'getElementsForTimeline']) {
+      expect(source, `CineGen lost the exported ${fn}() entry point`).toContain(`${fn}(`);
+    }
+
+    // The LIVE object, not just the source text — catches a renamed or
+    // deleted method even if the source still mentions the name in a comment.
+    for (const fn of ['generateElement', 'applyEditTool', 'getElementsForTimeline']) {
+      expect(typeof (cinegen as any)[fn], `cinegen.${fn} is not a function`).toBe('function');
+    }
+
+    // Provider access still goes through the shared muapi singleton
+    expect(source).toContain("import { muapi } from './muapi.js';");
+    for (const call of ['muapi.generateImage(', 'muapi.generateVideo(', 'muapi.generateAudio(', 'muapi.listAssets(']) {
+      expect(source, `CineGen no longer routes through ${call}`).toContain(call);
+    }
+
+    // The intentional personalization merge must stay applied (studio-supplied
+    // values always win). Deleting it would silently drop personalization.
+    expect(source).toContain('function withPersonalization(');
+    expect(source).toContain('const merged = withPersonalization(params);');
+    expect(source).toContain('await muapi.generateVideo(withPersonalization({');
+  });
+
+  it('the shared muapi proxy is still there for the protected apps to route through', () => {
+    const source = readSource('src/lib/muapi.js');
+    expect(source).toContain("this.proxyUrl = '/functions/v1/muapi-proxy';");
+    expect(source).toContain('await fetch(this.proxyUrl');
+  });
+
+  it('AIChatPanel.js still imports the CineGen integration and exports its class', async () => {
+    const source = readSource('src/components/timeline/AIChatPanel.js');
+    expect(source).toContain("await import('../../lib/cinegenIntegration.js')");
+    expect(source).toContain('export default class AIChatPanel {');
+    expect(source).toContain('export { AIChatPanel };');
+
+    const imported = await import('../components/timeline/AIChatPanel.js');
+    expect(typeof (imported as any).default).toBe('function');
+    expect(typeof (imported as any).AIChatPanel).toBe('function');
+  });
+
+  it('uploadSources.js still imports the shared upload pipeline and exports its API', async () => {
+    const source = readSource('src/lib/editor/uploadSources.js');
+    expect(source).toContain(
+      "import { processFileUpload, fetchUrlAsFile, processUrlUpload } from './uploadPipeline.js';",
+    );
+    for (const fn of ['setupUploadSources', 'apiUpload', 'importFromUrl', 'normalizeCloudUrl', 'wireClipboardUpload']) {
+      expect(source, `uploadSources lost the exported ${fn}() entry point`).toMatch(
+        new RegExp(`export (?:async )?function ${fn}\\(`),
+      );
+    }
+
+    // The api fallback endpoint is relative — it must not carry a provider host.
+    expect(source).not.toMatch(DIRECT_PROVIDER_FETCH);
+
+    const imported = await import('../lib/editor/uploadSources.js');
+    for (const fn of ['setupUploadSources', 'apiUpload', 'importFromUrl', 'normalizeCloudUrl', 'wireClipboardUpload']) {
+      expect(typeof (imported as any)[fn], `uploadSources.${fn} is not a function`).toBe('function');
+    }
+  });
+
+  it('TimelineEditorPage.jsx still exports its page factory and wires the shared upload entry points', () => {
+    const source = readSource('src/components/TimelineEditorPage.jsx');
+    expect(source).toContain('export function TimelineEditorPage()');
+    // The keyboard tool shortcut must keep writing toolMap's value verbatim —
+    // src/lib/editor/__tests__/timeline-editor-mask.test.js pins this line.
+    expect(source).toContain('state.selectedTool = toolMap[toolKey]');
   });
 });
 

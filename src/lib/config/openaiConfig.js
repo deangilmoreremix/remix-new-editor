@@ -7,6 +7,46 @@ import { apiKeyManager } from '../apiKeyManager.js';
 import { t2iModels } from '../models.js';
 
 /**
+ * OpenAI Images API family matcher.
+ *
+ * Shape: `gpt-image-<version>[-<brand>]`, where `<version>` is `2`, `2.5`, …
+ * and `<brand>` is a single lowercase token (`sunburst`, `flare`, `mini`, …).
+ * A prefix/startsWith rule is tempting and future-proof, but it is NOT safe
+ * here: the muapi catalog in `src/lib/models.js` reuses the family name for its
+ * own endpoint IDs — `gpt-image-2-text-to-image`, `gpt-image-2-image-to-image`,
+ * `gpt-image-1.5-edit`. Those are muapi-routed and must stay muapi-routed, or
+ * thumbnail generation would call OpenAI with a model OpenAI does not serve.
+ * So the family is matched by SHAPE, and any modality / `-edit` role suffix
+ * disqualifies the ID.
+ *
+ * SELECTABILITY is a separate, narrower concern: see
+ * `defaultConfig.supportedImageModels`, which lists only the current,
+ * non-deprecated IDs a user may pick.
+ */
+const OPENAI_IMAGE_MODEL_VERSION = /^gpt-image-\d+(?:\.\d+)?$/i;
+const OPENAI_IMAGE_MODEL_BRANDED = /^gpt-image-\d+(?:\.\d+)?-[a-z][a-z0-9]*$/i;
+const MUAPI_ENDPOINT_ROLE = /-(?:text-to-image|image-to-image|edit)$/i;
+
+/**
+ * Standalone form of {@link OpenAIConfig.isOpenAIImageModel}, for callers that
+ * have not imported the singleton (and for the server-side twin).
+ *
+ * Recognises the current catalog — `gpt-image-2`, `gpt-image-2.5-sunburst`,
+ * `gpt-image-2.5-flare` — plus the legacy `gpt-image-1.x` family, which is
+ * still served until its shutdown dates and therefore still routes to OpenAI.
+ * The deprecated IDs are intentionally absent from `supportedImageModels`, so
+ * no NEW generation can select them.
+ * @param {string} modelId
+ * @returns {boolean}
+ */
+export function isOpenAIImageModelId(modelId) {
+  if (typeof modelId !== 'string') return false;
+  const id = modelId.trim();
+  if (MUAPI_ENDPOINT_ROLE.test(id)) return false;
+  return OPENAI_IMAGE_MODEL_VERSION.test(id) || OPENAI_IMAGE_MODEL_BRANDED.test(id);
+}
+
+/**
  * The one studio color scheme.
  *
  * Every studio surface (Image Studio is the reference implementation) renders
@@ -353,11 +393,17 @@ class OpenAIConfig {
    * OpenAI path until then. They are intentionally absent from
    * `supportedImageModels` / `thumbnailAllModels`, so no NEW generation can
    * pick them.
+   *
+   * Matching is by family prefix rather than an enumerated list: the catalog
+   * already shipped the selectable `gpt-image-2.5-sunburst` / `-flare` IDs
+   * (see `supportedImageModels`), and an allowlist that only knew `gpt-image-2`
+   * sent those brand-new models down the muapi proxy instead of OpenAI. Any
+   * future `gpt-image-*` release now routes correctly without a code change.
    * @param {string} modelId
    * @returns {boolean}
    */
   isOpenAIImageModel(modelId) {
-    return ['gpt-image-2', 'gpt-image-1.5', 'gpt-image-1', 'gpt-image-1-mini'].includes(modelId);
+    return isOpenAIImageModelId(modelId);
   }
 
   /**
