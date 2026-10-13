@@ -136,5 +136,4 @@ componentAdapter.registerAdapter('VideoPlayer', {
   })
 });
 
-export { componentAdapter, ComponentAdapter };</content>
-<parameter name="filePath">/workspaces/SmartVideo/src/lib/enhancedComponentAdapter.js
+export { componentAdapter, ComponentAdapter };

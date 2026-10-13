@@ -7,6 +7,25 @@ import { segmentVideoWithSAM3, segmentVideoToRLE } from './providers/falSam3.js'
 
 const MUAPI_BASE_URL = 'https://api.muapi.ai/api/v1';
 
+// Mirror of isStaticPlaceholderUrl in supabase/functions/muapi-proxy (same
+// KNOWN_STATIC_PATTERNS: exact path prefixes only, to avoid false positives
+// on legitimate CDN URLs). MuAPI sometimes returns static demo assets
+// (homepage/demo/sandbox) instead of real generated output; those must never
+// surface as generated media. The Supabase function is Deno-only and cannot
+// be imported here, so the predicate is duplicated deliberately.
+const KNOWN_STATIC_PLACEHOLDER_PATTERNS = [
+  '/muapi/homepage/',
+  '/muapi/demo/',
+  '/muapi/sandbox/',
+  '/static/demo/',
+];
+
+function isStaticPlaceholderUrl(url) {
+  if (!url || typeof url !== 'string') return false;
+  const lower = url.toLowerCase();
+  return KNOWN_STATIC_PLACEHOLDER_PATTERNS.some(pattern => lower.includes(pattern));
+}
+
 function getApiKey() {
   const key = process.env.MUAPI_API_KEY;
   if (!key) {
@@ -334,7 +353,7 @@ export async function providerShotBoard(params = {}) {
   });
 
   const urls = Array.isArray(result.outputs)
-    ? result.outputs.filter(u => typeof u === 'string' && !isStaticPlaceholder(u))
+    ? result.outputs.filter(u => typeof u === 'string' && !isStaticPlaceholderUrl(u))
     : [];
 
   if (urls.length === 0) {

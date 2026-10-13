@@ -94,8 +94,8 @@ export function VideoAgentPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const videoId = urlParams.get('videoId') || '';
     let videoUrl = urlParams.get('videoUrl') || '';
-    let lastFailedAction = null;
-    let retryButton = null;
+    const lastFailedAction = null;
+    const retryButton = null;
     
     const processingQueue = [];
     let isProcessing = false;

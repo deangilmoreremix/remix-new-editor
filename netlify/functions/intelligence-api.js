@@ -49,7 +49,7 @@ function validateInput(value, type, maxLength = 500) {
   if (typeof value !== 'string') return null;
   const trimmed = value.trim();
   if (trimmed.length > maxLength) return null;
-  if (type === 'username' && !/^[a-zA-Z0-9_\-]+$/.test(trimmed)) return null;
+  if (type === 'username' && !/^[a-zA-Z0-9_-]+$/.test(trimmed)) return null;
   return trimmed;
 }
 
@@ -846,7 +846,10 @@ async function runDiscoveryPipeline(contactId, sources) {
           storage_path: a.storagePath || null,
           metadata: { ...(a.metadata || {}), discoveredFrom: a.source },
         });
-      } catch {}
+      } catch {
+        // no-op: a single asset insert failure must not abort persisting the
+        // rest of the discovered assets or the profile response.
+      }
     }
 
     profile.assets = {

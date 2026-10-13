@@ -78,7 +78,12 @@ pixabay_music_*
 Thumbs.db
 
 # Node
+# `node_modules/` only matches real directories; git worktrees are often
+# given a node_modules *symlink* to the main checkout to avoid duplicating
+# multiple GB. The bare pattern also covers that symlink so it is never
+# accidentally committed as a link file.
 node_modules/
+node_modules
 dist
 dist-ssr
 *.local

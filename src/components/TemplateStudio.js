@@ -6,6 +6,7 @@ import { getTemplateSpecs, hasEnhancedSpecs } from '../lib/templateSpecs.js';
 import { muapi } from '../lib/muapi.js';
 import { saveGeneration } from '../lib/generationHistory.js';
 import { getNicheTerms, enrichPromptString, deriveEngineInputFromTemplate, composeNegativePrompt } from '../lib/templateEngine.js';
+import { resolveModel, normalizeAspectRatio, normalizeDuration, applyFormStateToParams, attachThumbnail, buildNegativePrompt, validateBeforeGenerate, formatGenerationError } from '../lib/templateGenerationOrchestrator.js';
 import { NICHE_ENRICHMENT, FILM_FAMILIES } from '../lib/templateMatrix.js';
 import { t2iModels, i2iModels, i2vModels, t2vModels, v2vModels, getV2VModelById } from '../lib/models.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
@@ -66,7 +67,18 @@ export function TemplateStudio(templateId) {
   let uploadedUrl = null;
   let isGenerating = false;
   let lastGeneratedUrl = '';
-  let selectedModel = template.model || (template.modelType === 't2v' ? 'kling-v2.6-pro-t2v' : undefined);
+  // Validate the template's default model against its modelType so video
+  // generation always starts with a real, type-compatible model ID.
+  // Effect models (ai-video-effects, motion-controls, video-effects, vfx, …)
+  // ARE valid i2v IDs in models.js — keep them when they match the type.
+  const modelListsByType = { i2i: i2iModels, t2i: t2iModels, i2v: i2vModels, t2v: t2vModels, v2v: v2vModels };
+  const getFallbackList = (modelType) => modelListsByType[modelType] || [];
+  const isValidModelForType = (modelId, modelType) => {
+    if (!modelId || !modelType) return false;
+    return !!getFallbackList(modelType).find(m => m && m.id === modelId);
+  };
+  const getValidModel = (tpl, preferred) => resolveModel(tpl, preferred, modelListsByType);
+  let selectedModel = getValidModel(template);
   let loadedModels = [];
   let primaryPromptField = null;
   let customThumbnailUrl = getCustomThumbnailFromCache(template.id);
@@ -539,17 +551,15 @@ export function TemplateStudio(templateId) {
 
   // Model selector (async - fetches enriched catalog with descriptions)
   const outputType = template.outputType || (template.modelType === 't2i' || template.modelType === 'i2i' ? 'image' : 'video');
-  if (outputType === 'video' || ['i2i', 't2i', 'i2v', 't2v'].includes(template.modelType)) {
+  if (outputType === 'video' || ['i2i', 't2i', 'i2v', 't2v', 'v2v'].includes(template.modelType)) {
     const modelWrapper = document.createElement('div');
     modelWrapper.className = 'mt-6';
-let fallbackList = [];
-     if (template.modelType === 'i2v') fallbackList = i2vModels;
-     else if (template.modelType === 'i2i') fallbackList = i2iModels;
-     else if (template.modelType === 't2i') fallbackList = t2iModels;
-     else if (template.modelType === 't2v') fallbackList = t2vModels;
-     else if (template.modelType === 'v2v') fallbackList = v2vModels;
+    const fallbackList = getFallbackList(template.modelType);
 
-     loadedModels = fallbackList;
+    loadedModels = fallbackList;
+    // Re-validate the initial selection against the resolved list so the
+    // picker trigger never renders an unknown model name.
+    selectedModel = getValidModel(template, selectedModel);
     const getModelName = (id) => {
       const m = loadedModels.find(x => x.id === id) || fallbackList.find(x => x.id === id);
       return m ? m.name : id;
@@ -654,6 +664,15 @@ let fallbackList = [];
           .then(enriched => {
             const models = enriched && enriched.length > 0 ? enriched : fallbackList;
             loadedModels = models;
+            // Keep the selection valid even if the enriched catalog differs
+            // from the fallback list (e.g. renamed or missing IDs).
+            if (!models.find(m => m && m.id === selectedModel)) {
+              selectedModel = getValidModel(template, selectedModel);
+              if (!models.find(m => m && m.id === selectedModel)) {
+                selectedModel = models[0]?.id || selectedModel;
+              }
+              updateTrigger();
+            }
             renderModelPanel(models);
             modelLoadingStatus.textContent = models.length + ' models';
             modelLoadingStatus.className = 'text-[10px] text-emerald-400/70';
@@ -820,6 +839,9 @@ let fallbackList = [];
   genBtn.className = 'mt-6 flex h-14 w-full items-center justify-center rounded-[20px] bg-white text-lg font-semibold text-black shadow-xl transition hover:opacity-90';
   genBtn.textContent = 'Generate';
   genBtn.setAttribute('aria-label', 'Generate template');
+  const errorContainer = document.createElement('div');
+  errorContainer.className = 'ts-error-container';
+  leftPanel.appendChild(errorContainer);
   leftPanel.appendChild(genBtn);
   mountPersonalizeTrigger({
     controlsContainer: leftPanel,
@@ -1110,7 +1132,7 @@ let fallbackList = [];
     if (!errEl) {
       errEl = document.createElement('div');
       errEl.className = 'ts-inline-error mt-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200';
-      genBtn.insertAdjacentElement('afterend', errEl);
+      errorContainer.appendChild(errEl);
     }
     errEl.innerHTML = message;
     clearTimeout(errEl.__dismissTimer);
@@ -1134,7 +1156,8 @@ let fallbackList = [];
 
   // Generate button handler
   genBtn.onclick = async () => {
-    if (isGenerating) return;
+    try {
+      if (isGenerating) return;
 
     // SECURITY ISSUE: API keys stored in localStorage are accessible to XSS attacks
     // TODO: Replace with server-side session storage or httpOnly cookies
@@ -1155,76 +1178,50 @@ let fallbackList = [];
     }
 
     // Validate that the selected model matches the template's model type.
-    const modelTypeMap = {
-      i2i: i2iModels,
-      t2i: t2iModels,
-      i2v: i2vModels,
-      t2v: t2vModels,
-      v2v: v2vModels,
-    };
-    const allowedModels = modelTypeMap[template.modelType];
-    if (allowedModels && !allowedModels.find(m => m.id === (selectedModel || template.model))) {
-      const fallback = allowedModels[0]?.id || template.model;
+    // V2V models are an accepted exception: they are routed through the t2v
+    // branch below, so a t2v template may use a v2v model.
+    const allowedModels = getFallbackList(template.modelType);
+    const isV2VSelection = !!getV2VModelById(selectedModel || template.model);
+    if (allowedModels.length > 0
+      && !isValidModelForType(selectedModel || template.model, template.modelType)
+      && !isV2VSelection) {
+      const fallback = getValidModel(template, selectedModel);
       showInlineError(container, `Model "${selectedModel || template.model}" is not compatible with this template type. Falling back to ${fallback}.`);
       selectedModel = fallback;
     }
 
     // Build params for potential retry
-    const params = { model: selectedModel || template.model, ...(template.defaultParams || {}) };
-    
-    // Normalize aspect ratio for standard and matrix templates
-    const aspectRatio = template.aspectRatio || (template.aspectRatios ? template.aspectRatios[0] : null);
-    if (aspectRatio) params.aspect_ratio = aspectRatio;
+    const params = { ...(template.defaultParams || {}), model: getValidModel(template, selectedModel) };
 
-    // Normalize duration from template or defaultParams
-    const duration = template.duration
-      ? (typeof template.duration === 'object' ? template.duration.default : template.duration)
-      : template.defaultParams?.duration;
-    if (duration) params.duration = duration;
-
-    allInputs.forEach(input => {
-      if (formState[input.name]) {
-        params[input.name] = formState[input.name];
-      }
-    });
+    if (normalizeAspectRatio(template)) params.aspect_ratio = normalizeAspectRatio(template);
+    if (normalizeDuration(template)) params.duration = normalizeDuration(template);
+    applyFormStateToParams(params, formState, allInputs);
 
     // Build prompt from all available template metadata and advanced options
     const promptForBuild = lastBuiltPrompt || params.prompt || '';
     params.prompt = buildEnrichedPrompt(template, specs, formState, promptForBuild);
     lastBuiltPrompt = params.prompt;
 
-    const negNiche = (formState.niche && formState.niche !== 'auto-detect') ? formState.niche : (template.niche || '');
-    const negativePrompt = formState['_customNegativePrompt'] || composeNegativePrompt(template.filmFamily || '', negNiche, formState.visualStyle || 'commercial') || specs.negativePrompt || '';
+    const negativePrompt = formState['_customNegativePrompt'] || buildNegativePrompt(template, formState, specs);
     if (negativePrompt) params.negative_prompt = negativePrompt;
 
-    // Attach the user-generated custom thumbnail if one exists
-    if (customThumbnailUrl) {
-      params.thumbnail_url = customThumbnailUrl;
-    }
+    attachThumbnail(params, customThumbnailUrl);
 
     // Client-side validation before muapi call
-    const EFFECT_MODELS = ['ai-video-effects', 'motion-controls', 'video-effects', 'vfx'];
-    const needsImageUrl = template.modelType === 'i2v' || template.modelType === 'i2i';
-    if (needsImageUrl && !params.image_url) {
-      showInlineError(container, 'Please upload an image before generating.');
-      return;
-    }
-     // V2V models need a video_url instead of image_url
-     const selectedModelObj = loadedModels.find(m => m.id === selectedModel);
-     const isV2V = v2vModels.includes(selectedModelObj) || (selectedModelObj && selectedModelObj.videoField === 'video_url');
-     if (isV2V && !params.video_url) {
-      showInlineError(container, 'Please upload a video before generating.');
-      return;
-    }
-    if (EFFECT_MODELS.includes(params.model) && !params.name) {
-      showInlineError(container, 'Please enter a name before generating.');
+    const validationError = validateBeforeGenerate(template, params, allInputs, selectedModel);
+    if (validationError) {
+      showInlineError(container, validationError);
       return;
     }
 
     // Store params for retry and run generation
-    lastGenerationParams = params;
+    lastGenerationParams = { ...params, _rawPrompt: promptForBuild };
     retryCount = 0;
     await runGeneration(params);
+    } catch (err) {
+      console.error('[TemplateStudio] genBtn.onclick', err);
+      showInlineError(container, err.message || 'Generation failed');
+    }
   };
 
   async function runGeneration(params) {
@@ -1235,32 +1232,23 @@ let fallbackList = [];
     genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Generating...';
 
     try {
-      // Merge template defaults with the params built by genBtn.onclick
-      const mergedParams = { model: selectedModel || template.model, ...(template.defaultParams || {}), ...params };
+      // Merge template defaults with the params built by genBtn.onclick.
+      // Always resolve to a validated model so a stale/invalid selection
+      // can never reach the muapi call.
+      const validatedModel = getValidModel(template, selectedModel || params.model);
+      selectedModel = validatedModel;
+      const mergedParams = { model: validatedModel, ...(template.defaultParams || {}), ...params };
       params = mergedParams;
 
-      // Normalize aspect ratio for standard and matrix templates
-      const aspectRatio = template.aspectRatio || (template.aspectRatios ? template.aspectRatios[0] : null);
-      if (aspectRatio) params.aspect_ratio = aspectRatio;
-
-      // Normalize duration from template or defaultParams
-      const duration = template.duration
-        ? (typeof template.duration === 'object' ? template.duration.default : template.duration)
-        : template.defaultParams?.duration;
-      if (duration) params.duration = duration;
-
-      allInputs.forEach(input => {
-        if (formState[input.name]) {
-          params[input.name] = formState[input.name];
-        }
-      });
+      if (normalizeAspectRatio(template)) params.aspect_ratio = normalizeAspectRatio(template);
+      if (normalizeDuration(template)) params.duration = normalizeDuration(template);
+      applyFormStateToParams(params, formState, allInputs);
 
       // Build prompt from all available template metadata and advanced options
-      params.prompt = buildEnrichedPrompt(template, specs, formState, params.prompt);
+      params.prompt = buildEnrichedPrompt(template, specs, formState, params._rawPrompt || params.prompt);
       lastBuiltPrompt = params.prompt;
 
-      const negNiche = (formState.niche && formState.niche !== 'auto-detect') ? formState.niche : (template.niche || '');
-      const negativePrompt = composeNegativePrompt(template.filmFamily || '', negNiche, formState.visualStyle || 'commercial') || specs.negativePrompt || '';
+      const negativePrompt = formState['_customNegativePrompt'] || buildNegativePrompt(template, formState, specs);
       if (negativePrompt) params.negative_prompt = negativePrompt;
 
        let result;
@@ -1269,7 +1257,7 @@ let fallbackList = [];
        } else if (template.modelType === 'i2i') {
          result = await muapi.generateI2I(params);
        } else if (template.modelType === 't2v') {
-         const isV2V = getV2VModelById(selectedModel);
+          const isV2V = !!getV2VModelById(selectedModel);
          if (isV2V) {
            result = await muapi.processV2V(params);
          } else {
@@ -1281,17 +1269,14 @@ let fallbackList = [];
 
       if (result && result.url) {
         showResult(result.url);
-        saveToHistory(result.url, params.prompt || template.name);
+        saveToHistory(result.url, params.prompt || template.name, params.model || selectedModel, template.outputType || 'video');
         retryCount = 0; // Reset on success
         updateApiKeyIndicator();
       } else {
         throw new Error('No output URL returned');
       }
     } catch (err) {
-      console.error('[TemplateStudio]', err);
-      const message = err.message || 'Generation failed';
-      const userMessage = message.length > 80 ? 'Generation failed. Please try again.' : message;
-      const retryHtml = retryCount < MAX_RETRIES ? ' <button id="retry-btn" class="ml-2 underline text-emerald-200 hover:text-white">Retry</button>' : '';
+      const { userMessage, retryHtml } = formatGenerationError(err, retryCount, MAX_RETRIES);
       showInlineError(container, `${userMessage}${retryHtml}`);
       const retryBtn = container.querySelector('#retry-btn');
       if (retryBtn && lastGenerationParams) {
@@ -1302,23 +1287,18 @@ let fallbackList = [];
           runGeneration(lastGenerationParams);
         };
       }
-      setTimeout(() => {
-        genBtn.textContent = 'Generate';
-        genBtn.disabled = false;
-      }, 3000);
-      return;
+    } finally {
+      isGenerating = false;
+      genBtn.disabled = false;
+      genBtn.textContent = 'Generate';
     }
-
-    isGenerating = false;
-    genBtn.disabled = false;
-    genBtn.textContent = 'Generate';
   };
 
   function buildEnrichedPrompt(template, specs, formState, userPrompt) {
     const parts = [];
 
     // User prompt first as the core idea
-    if (userPrompt) parts.push(userPrompt);
+    if (typeof userPrompt === 'string' && userPrompt) parts.push(userPrompt);
 
     // Subject
     const subject = formState['subject'];
@@ -1414,15 +1394,7 @@ let fallbackList = [];
       }
     }
 
-    // Niche-aware negative prompt (engine special-cases all canonical niches)
-    const negNiche = (formState.niche && formState.niche !== 'auto-detect') ? formState.niche : (template.niche || '');
-    const negFilm = template.filmFamily || '';
-    const negVisual = formState.visualStyle || 'commercial';
-    const engineNegative = composeNegativePrompt(negFilm, negNiche, negVisual);
-    const negativePrompt = engineNegative || specs.negativePrompt || 'Low quality, blurry, amateur, poorly lit, generic stock look';
-    parts.push(`Negative prompt: ${negativePrompt}`);
-
-    // Join, clean up duplicates and extra whitespace
+    // AI ENHANCER: final polishing layer
     let prompt = parts.filter(Boolean).join('. ');
     prompt = prompt
       .replace(/\s*\.\s*/g, '. ')
@@ -1459,7 +1431,7 @@ let fallbackList = [];
           }
         </div>
         <div class="flex gap-3 mt-4">
-          <a href="${url}" download="${template.id}-${Date.now()}" class="flex-1 bg-white text-black py-3 rounded-xl font-bold text-sm text-center hover:opacity-90 transition">Download</a>
+          <a href="${sanitizeUrl(url)}" download="${template.id}-${Date.now()}" class="flex-1 bg-white text-black py-3 rounded-xl font-bold text-sm text-center hover:opacity-90 transition">Download</a>
           <button type="button" class="publish-social-btn flex-1 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-3 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
           <button id="generateAgainBtn" class="flex-1 border border-white/10 bg-white/[0.04] text-white py-3 rounded-xl font-bold text-sm hover:bg-white/[0.08] transition">Generate Again</button>
         </div>
@@ -1479,13 +1451,13 @@ let fallbackList = [];
     }, 0);
   }
 
-  function saveToHistory(url, prompt) {
+  function saveToHistory(url, prompt, model, type) {
     saveGeneration({
       studio: 'template',
-      type: 'image',
+      type: type || 'image',
       url,
       prompt,
-      model: template.model,
+      model: model || template.model,
       parameters: { template_id: template.id },
       timestamp: new Date().toISOString(),
     });

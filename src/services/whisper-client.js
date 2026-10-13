@@ -12,13 +12,18 @@ class WhisperService {
   constructor(options = {}) {
     // Configuration
     this.muapiUrl = options.muapiUrl || import.meta.env.VITE_MUAPI_URL || 'https://api.muapi.ai';
-    this.apiKey = options.apiKey || import.meta.env.VITE_MUAPI_KEY || '';
-    this.useMuAPI = options.useMuAPI !== false && Boolean(this.apiKey);
+    // MuAPI provider keys are SERVER-ONLY. Any VITE_-prefixed variable is
+    // inlined into the public client bundle by Vite, so this client must
+    // never read one. MuAPI access is routed exclusively through the
+    // muapi-proxy server function (supabase/functions/muapi-proxy), which
+    // resolves the key server-side; a user may also supply their own key
+    // in Settings (apiKeyManager) and it is forwarded to the proxy only.
     this.proxyUrl = options.proxyUrl || (() => {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       if (!supabaseUrl) return '';
       return `${supabaseUrl}/functions/v1/muapi-proxy`;
     })();
+    this.useMuAPI = options.useMuAPI !== false && Boolean(this.proxyUrl);
     this.localWhisperUrl = options.localWhisperUrl || import.meta.env.VITE_WHISPER_LOCAL_URL || 'http://localhost:8080';
     this.backendUrl = options.backendUrl || (import.meta.env.VITE_BACKEND_URL || '');
 
@@ -238,6 +243,19 @@ class WhisperService {
   async _transcribeWithMuAPI(audioSource, options) {
     await this.rateLimiter.waitForSlot();
 
+    // Fail closed: MuAPI provider keys never reach the browser, so the
+    // direct-to-MuAPI path is gone. Transcription must go through the
+    // muapi-proxy server function, which requires a configured proxy URL
+    // and (per the proxy's multipart contract) the user's own key.
+    if (!this.proxyUrl) {
+      throw new Error(
+        'MuAPI transcription requires the server proxy (muapi-proxy). Set VITE_SUPABASE_URL so transcription routes through the server function — the MuAPI provider key is never sent to the browser.'
+      );
+    }
+    if (!apiKeyManager.hasMuapiKey()) {
+      throw new Error('MuAPI API key not configured. Add your key in Settings.');
+    }
+
     const formData = new FormData();
 
     if (audioSource instanceof File || audioSource instanceof Blob) {
@@ -253,12 +271,12 @@ class WhisperService {
     formData.append('model', options.model);
     formData.append('word_timestamps', options.wordTimestamps.toString());
 
-    const proxyUrl = this.proxyUrl || `${this.muapiUrl}/transcribe`;
-    const response = await fetch(proxyUrl, {
+    const response = await fetch(this.proxyUrl, {
       method: 'POST',
-      headers: this.proxyUrl
-        ? { 'x-endpoint': 'transcribe' }
-        : { 'Authorization': `Bearer ${this.apiKey}` },
+      headers: {
+        'x-endpoint': 'transcribe',
+        'x-api-key': apiKeyManager.getMuapiKey(),
+      },
       body: formData
     });
 

@@ -1,4 +1,4 @@
-/* eslint-disable no-undef */
+ 
 import { BaseModal } from './BaseModal.jsx';
 import { seedThumbnailFieldsFromSocialCopy, validateSelectedThumbnail, getThumbnailPublishMetadata } from '../../lib/socialPublisherThumbnail.js';
 import { ThumbnailSocialPublisherBridge } from './thumbnail-explore/ThumbnailSocialPublisherBridge.jsx';

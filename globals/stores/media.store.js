@@ -221,7 +221,6 @@ export default class Media extends BaseStore {
       }
       return { blob, audio };
     } catch (err) {
-      console.log(err, "jdhfdjhfdjhdjdhs");
     }
   };
 
@@ -263,7 +262,6 @@ export default class Media extends BaseStore {
       }
       return { blob, audio };
     } catch (err) {
-      console.log(err, "erp======================");
     }
   };
 
@@ -288,7 +286,6 @@ export default class Media extends BaseStore {
       });
       return response;
     } catch (err) {
-      console.log(err);
       throw err;
     }
   };

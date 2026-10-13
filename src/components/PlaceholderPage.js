@@ -1,6 +1,6 @@
 import { getPageThumbnail, createThumbnailImg } from '../lib/thumbnails.js';
 
-export function PlaceholderPage(pageName) {
+export function PlaceholderPage(pageName = 'This Page') {
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col items-center justify-center bg-app-bg p-6';
 

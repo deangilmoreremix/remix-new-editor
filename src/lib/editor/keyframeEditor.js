@@ -504,7 +504,7 @@ export class KeyframeEditor {
     const p2y = this.container.querySelector('#p2y');
 
     let draggingPoint = null;
-    let points = [0.25, 0.1, 0.25, 1]; // Default bezier points
+    const points = [0.25, 0.1, 0.25, 1]; // Default bezier points
 
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -764,5 +764,4 @@ export class KeyframeEditor {
       bezierEditor.style.display = 'none';
     }
   }
-}</content>
-<parameter name="filePath">/workspaces/SmartVideo/src/lib/editor/keyframeEditor.js
+}

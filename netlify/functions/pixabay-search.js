@@ -90,7 +90,10 @@ export async function handler(event) {
 
   if (!res.ok) {
     let detail = '';
-    try { detail = await res.text(); } catch {}
+    try { detail = await res.text(); } catch {
+      // no-op: reading the upstream error body is best-effort; the status
+      // code alone is enough for the error response.
+    }
     return jsonResponse(res.status, { ok: false, error: `Pixabay API error (${res.status})${detail ? `: ${detail.slice(0, 200)}` : ''}` });
   }
 

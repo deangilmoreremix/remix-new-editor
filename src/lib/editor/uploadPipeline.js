@@ -293,7 +293,7 @@ function computeStartTime(track, duration, dropPercent) {
  * left/width fields as derived properties for compatibility.
  */
 export function buildClipFromAsset(asset, start, end) {
-  let s = Math.round((Number(start) || 0) * 1000) / 1000;
+  const s = Math.round((Number(start) || 0) * 1000) / 1000;
   let e = Math.round((Number(end) || 0) * 1000) / 1000;
   // Ensure minimum 0.1s duration (add exact 0.1, then round to avoid float drift)
   if (e - s < 0.1) {

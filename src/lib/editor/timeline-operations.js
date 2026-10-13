@@ -492,6 +492,48 @@ export function createDefaultTimeline(name) {
   };
 }
 
+export function createSyncedTimeline(name, videoClipId, audioClipId, offsetSeconds) {
+  const timeline = createDefaultTimeline(name);
+  const videoTrack = timeline.tracks.find(t => t.kind === 'video');
+  const audioTrack = timeline.tracks.find(t => t.kind === 'audio');
+  const videoClip = {
+    id: videoClipId || generateId(),
+    trackId: videoTrack.id,
+    name: 'Video',
+    startTime: 0,
+    duration: 10,
+    trimStart: 0,
+    trimEnd: 0,
+    speed: 1,
+    opacity: 1,
+    volume: 1,
+    flipH: false,
+    flipV: false,
+    keyframes: [],
+    linkedClipIds: audioClipId ? [audioClipId] : undefined,
+  };
+  const audioClip = {
+    id: audioClipId || generateId(),
+    trackId: audioTrack.id,
+    name: 'Audio',
+    startTime: Math.max(0, offsetSeconds || 0),
+    duration: 10,
+    trimStart: 0,
+    trimEnd: 0,
+    speed: 1,
+    opacity: 1,
+    volume: 1,
+    flipH: false,
+    flipV: false,
+    keyframes: [],
+    linkedClipIds: videoClipId ? [videoClipId] : undefined,
+  };
+  return withDuration({
+    ...timeline,
+    clips: [videoClip, audioClip],
+  });
+}
+
 /* ------------------------------------------------------------------
    Advanced Editing Operations
    ------------------------------------------------------------------ */

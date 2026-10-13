@@ -1,4 +1,4 @@
-/* eslint-disable no-undef */
+ 
 /**
  * Production-readiness regression tests.
  *
@@ -272,7 +272,7 @@ describe('openaiService AbortSignal support', () => {
       'data: {"type":"response.completed","response":{"id":"resp_4","output":[]}}\n\n' +
       'data: [DONE]\n\n';
     const encoder = new TextEncoder();
-    // eslint-disable-next-line no-undef
+     
     const stream = new ReadableStream({
       start(controller) {
         controller.enqueue(encoder.encode(sse));

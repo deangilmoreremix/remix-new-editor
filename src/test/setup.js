@@ -1,7 +1,7 @@
 // Test setup for Vitest
 // Mock browser APIs and global objects
 
-/* eslint-disable no-undef, no-redeclare */
+ 
 // Polyfill minimal browser globals so lib files that touch `window`/`document`
 // at module load time don't crash in node env (e.g. analytics.js registers
 // a `pageview` listener on import).
@@ -111,3 +111,58 @@ if (!globalThis.process.env) {
 globalThis.process.env.VITE_SUPABASE_URL = globalThis.process.env.VITE_SUPABASE_URL || 'http://localhost:54321';
 globalThis.process.env.VITE_SUPABASE_ANON_KEY = globalThis.process.env.VITE_SUPABASE_ANON_KEY || 'test-anon-key';
 globalThis.process.env.FAL_KEY = globalThis.process.env.FAL_KEY || 'test-fal-key';
+
+// Mock interactjs (used by Personalizer.js for drag/resize)
+if (typeof globalThis.interact === 'undefined') {
+  globalThis.interact = () => ({
+    draggable: () => ({
+      modifiers: [],
+      on: () => {},
+    }),
+    resizable: () => ({
+      restrictEdges: {},
+      modifiers: [],
+      on: () => {},
+    }),
+    modifiers: {
+      restrictRect: () => ({}),
+    },
+  });
+}
+
+// Mock JSX/demo imports that break in the test environment
+try {
+  vi.mock('../../src/components/demos/DemoRail.jsx', () => ({
+    createDemoRail: () => document.createElement('div'),
+  }));
+} catch {
+  // vi not available or mock already registered
+}
+
+// Polyfill scrollIntoView for jsdom (not implemented in jsdom)
+if (typeof HTMLElement !== 'undefined' && !HTMLElement.prototype.scrollIntoView) {
+  HTMLElement.prototype.scrollIntoView = () => {};
+}
+
+// Fix TextEncoder/Uint8Array invariant for esbuild compatibility.
+// Under the jsdom environment Vitest copies jsdom's realm globals onto the global
+// object, so `globalThis.Uint8Array` belongs to jsdom's realm. The native
+// TextEncoder, however, produces a Node-realm Uint8Array, so the
+// `new TextEncoder().encode("") instanceof Uint8Array` check esbuild runs at
+// import time is cross-realm-false and esbuild throws an invariant violation.
+// Wrap the encoder so `encode()` always returns an array built with the current
+// (global) Uint8Array constructor, restoring the instanceof check to true.
+if (typeof globalThis.TextEncoder !== 'undefined') {
+  const NativeTextEncoder = globalThis.TextEncoder;
+  class SafeTextEncoder {
+    encode(input) {
+      const result = new NativeTextEncoder().encode(input);
+      return result instanceof Uint8Array ? result : Uint8Array.from(result);
+    }
+    encodeInto(src, dest) {
+      return new NativeTextEncoder().encodeInto(src, dest);
+    }
+    get encoding() { return 'utf-8'; }
+  }
+  globalThis.TextEncoder = SafeTextEncoder;
+}

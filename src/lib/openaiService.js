@@ -50,7 +50,7 @@ function resolveOpenAISize(value) {
 class OpenAIService {
   constructor() {
     this.config = openaiConfig;
-    this.model = 'gpt-4';
+    this.model = 'gpt-4.1-mini';
     this.maxTokens = 2000;
     this.temperature = 0.7;
     this.missingKeyMessage = 'OpenAI API key not configured. Add your OpenAI API key in Settings.';
@@ -126,7 +126,7 @@ Please enhance this prompt using the specified GTM methodologies and create a co
           params: this._withOpenAIKey({
             prompt: userPrompt,
             system_prompt: systemPrompt,
-            model: this.config.getImageModel?.() || 'gpt-4',
+            model: this.config.getImageModel?.() || 'gpt-4.1-mini',
             temperature: this.temperature,
             max_tokens: this.maxTokens,
           }),
@@ -674,8 +674,11 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
           n: 1,
           size: resolvedSize,
           quality,
-          output_format: outputFormat,
-          response_format: 'b64_json'
+          output_format: outputFormat
+          // NOTE: `response_format` is intentionally NOT sent. Per the OpenAI
+          // API reference ("This parameter isn't supported for the GPT image
+          // models, which always return base64-encoded images"), GPT image
+          // models always return b64_json; the legacy parameter is rejected.
         })
       });
 
@@ -958,7 +961,7 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
 
   /**
    * Generate a single image via the **Responses API** image generation tool.
-   * Unlike the Image API, you pick a *mainline* model (e.g. gpt-5.6) that
+   * Unlike the Image API, you pick a *mainline* model (e.g. gpt-5.6-sol) that
    * supports the tool; the tool selects the underlying GPT Image model. Returns
    * the response id (for multi-turn follow-ups) plus the generated images.
    *
@@ -1008,7 +1011,7 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
     ];
 
     const body = {
-      model: model || this.config.getResponsesModel?.() || 'gpt-5.6',
+      model: model || this.config.getResponsesModel?.() || 'gpt-5.6-sol',
       input: [{ role: 'user', content }],
       tools: [tool],
     };
@@ -1081,7 +1084,7 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
     ];
 
     const body = {
-      model: model || this.config.getResponsesModel?.() || 'gpt-5.6',
+      model: model || this.config.getResponsesModel?.() || 'gpt-5.6-sol',
       input: [{ role: 'user', content }],
       tools: [tool],
     };
@@ -1167,7 +1170,7 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
     ];
 
     const body = {
-      model: model || this.config.getResponsesModel?.() || 'gpt-5.6',
+      model: model || this.config.getResponsesModel?.() || 'gpt-5.6-sol',
       input: [{ role: 'user', content }],
       tools: [tool],
     };
@@ -1239,7 +1242,7 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
     ];
 
     const body = {
-      model: model || this.config.getResponsesModel?.() || 'gpt-5.6',
+      model: model || this.config.getResponsesModel?.() || 'gpt-5.6-sol',
       input: [{ role: 'user', content }],
       tools: [tool],
       stream: true,

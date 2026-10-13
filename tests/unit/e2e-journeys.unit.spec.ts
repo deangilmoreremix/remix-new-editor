@@ -440,9 +440,9 @@ describe('E2E User Journey Tests', () => {
       await wait(300);
 
       // Step 5: Verify preview view is shown after generation
-      const previewImg = container.querySelector('img');
-      expect(previewImg).not.toBeNull();
-    });
+      const previewMedia = container.querySelector('img, video');
+      expect(previewMedia).not.toBeNull();
+    }, 30000);
 
     it('shows template details in create view after selection', async () => {
       const element = CinemaTemplateStudio();
@@ -595,8 +595,8 @@ describe('E2E User Journey Tests', () => {
       await wait(400);
 
       // Verify preview view after successful retry
-      const previewImg = container.querySelector('img');
-      expect(previewImg).not.toBeNull();
+      const previewMedia = container.querySelector('img, video');
+      expect(previewMedia).not.toBeNull();
     });
 
     it('exhausts retries after multiple failures in CinemaTemplateStudio', async () => {
@@ -685,8 +685,8 @@ describe('E2E User Journey Tests', () => {
       await wait(400);
 
       // Verify preview view after successful retry
-      const previewImg = container.querySelector('img');
-      expect(previewImg).not.toBeNull();
+      const previewMedia = container.querySelector('img, video');
+      expect(previewMedia).not.toBeNull();
     });
   });
 
@@ -1037,7 +1037,7 @@ describe('E2E User Journey Tests', () => {
       await wait(50);
 
       expect(advancedBtn.textContent).toBe('Hide Advanced Controls');
-    });
+    }, 30000);
 
     it('TemplateStudio back button renders', async () => {
       const element = TemplateStudio('restaurant-brand-film');

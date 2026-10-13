@@ -34,7 +34,6 @@ export function AssetOutputNode({ id, data, selected }) {
       />
 
       {url && (
-        // eslint-disable-next-line @next/next/no-img-element
         <img src={url} alt={name} className="cinegen-node__thumbnail" />
       )}
 

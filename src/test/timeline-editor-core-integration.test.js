@@ -4,6 +4,55 @@ import { Timeline } from '../components/Timeline.js';
 import { isFeatureEnabled, getAllFeatureFlags } from '../lib/featureFlags.js';
 import { TIMELINE_DESIGN_SYSTEM, enforceDesignSystem } from '../lib/designSystemEnforcer.js';
 
+const createTimelineInitialState = () => ({
+  zoom: 1,
+  playheadPercent: 32,
+  timelineSeconds: 60,
+  tracks: [
+    {
+      id: 'track-video',
+      name: 'Video',
+      muted: false,
+      solo: false,
+      locked: false,
+      clips: [
+        { id: 1, name: 'Opening Shot', type: 'video', left: 8, width: 18 },
+        { id: 2, name: 'Generated Clip', type: 'video', left: 28, width: 20 }
+      ]
+    },
+    {
+      id: 'track-audio',
+      name: 'Audio',
+      muted: false,
+      solo: false,
+      locked: false,
+      clips: [
+        { id: 3, name: 'Music Bed', type: 'audio', left: 0, width: 100 }
+      ]
+    },
+    {
+      id: 'track-text',
+      name: 'Text',
+      muted: false,
+      solo: false,
+      locked: false,
+      clips: [
+        { id: 4, name: 'Title Card', type: 'text', left: 20, width: 15 }
+      ]
+    },
+    {
+      id: 'track-broll',
+      name: 'B-Roll',
+      muted: false,
+      solo: false,
+      locked: false,
+      clips: [
+        { id: 5, name: 'City Cutaway', type: 'video', left: 40, width: 25 }
+      ]
+    }
+  ]
+});
+
 // Setup JSDOM environment
 let window, document;
 beforeAll(() => {
@@ -29,7 +78,7 @@ describe('Timeline Editor Core Integration Test', () => {
     document.body.appendChild(container);
 
     // Initialize timeline
-    timeline = new Timeline();
+    timeline = new Timeline({ initialState: createTimelineInitialState() });
     const timelineElement = timeline.render();
     container.appendChild(timelineElement);
 

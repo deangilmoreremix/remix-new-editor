@@ -41,8 +41,32 @@ import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { selectScenes } from '../lib/sceneSelector.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
 import { renderProviderLogoImg, mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
-import { enrichPromptString, composeNegativePrompt } from '../lib/templateEngine.js';
+import { enrichPromptString } from '../lib/templateEngine.js';
+import { resolveModel, normalizeAspectRatio, normalizeDuration, attachThumbnail, buildNegativePrompt, formatGenerationError } from '../lib/templateGenerationOrchestrator.js';
 import { saveGeneration } from '../lib/generationHistory.js';
+
+/**
+ * Resolve the `W:H` aspect ratio for a generation request.
+ *
+ * Precedence: the user's explicit choice (`inputs.aspectRatio`, written by the
+ * aspect-ratio control and by the video-intent form) wins over the template
+ * metadata. The template metadata is only the default for a user who has not
+ * picked one, and `16:9` is the safe last resort for a template that carries no
+ * aspect-ratio metadata at all.
+ *
+ * Every branch returns the same `W:H` string shape — the value `muapi.js`
+ * forwards verbatim as `aspect_ratio` for BOTH `generateImage` and
+ * `generateVideo` — so no per-endpoint translation is needed and the format the
+ * API expects is preserved.
+ *
+ * @param {{ aspectRatio?: unknown }} [inputs] user-entered form state
+ * @param {{ aspectRatio?: unknown, aspectRatios?: unknown[] }} [template] template metadata
+ * @returns {string} e.g. '16:9', '9:16', '1:1'
+ */
+export function resolveGenerationAspectRatio(inputs, template) {
+  const requested = typeof inputs?.aspectRatio === 'string' ? inputs.aspectRatio.trim() : '';
+  return requested || normalizeAspectRatio(template || {}) || '16:9';
+}
 
 export function CinemaTemplateStudio() {
   const container = document.createElement('div');
@@ -52,7 +76,7 @@ export function CinemaTemplateStudio() {
   const studioDrawer = mountStudioDrawer(document.body, { currentRoute: 'cinema' });
 
   // State
-  let registry = getTemplateRegistry();
+  const registry = getTemplateRegistry();
   let currentTemplate = null;
   let currentMode = 'quick';
   let currentInputs = {};
@@ -71,7 +95,7 @@ export function CinemaTemplateStudio() {
 
   let _modelSelectorOutsideClickHandler = null;
 
-  let selectedModel = 'kling-v2.6-pro-t2v';
+  let selectedModel = undefined;
   let lastModelType = null;
   let isAiEnhancer = true;
   let customThumbnailUrl = null;
@@ -347,10 +371,16 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     currentTemplate = template;
     currentMode = 'quick';
     currentInputs = new TemplateInputBuilder(template, currentMode).getDefaults();
-    if (lastModelType !== template.modelType) {
-      const defaultModel = template.model || 'kling-v2.6-pro-t2v';
-      const candidates = template.modelType === 'i2i' ? i2iModels : template.modelType === 't2i' ? t2iModels : template.modelType === 't2v' ? t2vModels : i2vModels;
-      selectedModel = candidates.find(m => m.id === defaultModel) ? defaultModel : (candidates[0]?.id || defaultModel);
+    // Select appropriate default model based on modelType
+    const candidates = template.modelType === 'i2i' ? i2iModels
+      : template.modelType === 't2i' ? t2iModels
+      : template.modelType === 't2v' ? t2vModels
+      : template.modelType === 'v2v' ? v2vModels
+      : i2vModels;
+
+    // Prefer template.model if valid, otherwise use first candidate
+    if (lastModelType !== template.modelType || !candidates.find(m => m.id === selectedModel)) {
+      selectedModel = resolveModel(template, selectedModel, { i2i: i2iModels, t2i: t2iModels, i2v: i2vModels, t2v: t2vModels, v2v: v2vModels });
       lastModelType = template.modelType;
     }
     outputTabValues = {};
@@ -388,6 +418,8 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
   // ================================
   function renderCreateView() {
     if (!currentTemplate) return;
+
+    retryCount = 0;
 
     const header = document.createElement('div');
     header.className = 'flex items-center justify-between p-4 border-b border-white/10 bg-black/50';
@@ -1548,21 +1580,26 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         pexelsBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 7.76"/></svg>';
         pexelsBtn.onclick = async (e) => {
           e.stopPropagation();
-          const { browsePexelsImages } = await import('../lib/studioPexels.js');
-          browsePexelsImages({
-            title: isFrame ? 'Select Reference Frames' : 'Select Image',
-            studioName: 'Cinema Template Studio',
-            onSelect: (asset) => {
-              const url = asset.src?.large || asset.src?.original || asset.url;
-              if (isFrame) {
-                currentInputs[input.name] = { startUrl: url, endUrl: null, urls: [url] };
-                uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-primary/40 bg-primary/10 text-lg">📷</div><span class="text-sm text-primary">Start frame from Pexels</span>`;
-              } else {
-                currentInputs[input.name] = url;
-                uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-primary/40 bg-primary/10 text-lg">📷</div><span class="text-sm text-primary">Image from Pexels</span>`;
-              }
-            },
-          });
+          try {
+            const { browsePexelsImages } = await import('../lib/studioPexels.js');
+            await browsePexelsImages({
+              title: isFrame ? 'Select Reference Frames' : 'Select Image',
+              studioName: 'Cinema Template Studio',
+              onSelect: (asset) => {
+                const url = asset.src?.large || asset.src?.original || asset.url;
+                if (isFrame) {
+                  currentInputs[input.name] = { startUrl: url, endUrl: null, urls: [url] };
+                  uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-primary/40 bg-primary/10 text-lg">📷</div><span class="text-sm text-primary">Start frame from Pexels</span>`;
+                } else {
+                  currentInputs[input.name] = url;
+                  uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-primary/40 bg-primary/10 text-lg">📷</div><span class="text-sm text-primary">Image from Pexels</span>`;
+                }
+              },
+            });
+          } catch (err) {
+            console.error('[CinemaTemplateStudio] Pexels image browse failed:', err);
+            showToast('Failed to load stock images', 'error');
+          }
         };
 
         const row = document.createElement('div');
@@ -1610,16 +1647,21 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         pexelsBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 7.76"/></svg>';
         pexelsBtn.onclick = async (e) => {
           e.stopPropagation();
-          const { browsePexelsVideos } = await import('../lib/studioPexels.js');
-          browsePexelsVideos({
-            title: 'Select Video',
-            studioName: 'Cinema Template Studio',
-            onSelect: (asset) => {
-              const url = (asset.video_files?.find(f => f.quality === 'hd') || asset.video_files?.[0])?.link || asset.url;
-              currentInputs[input.name] = url;
-              uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-primary/40 bg-primary/10 text-lg">🎬</div><span class="text-sm text-primary">Video from Pexels</span>`;
-            },
-          });
+          try {
+            const { browsePexelsVideos } = await import('../lib/studioPexels.js');
+            await browsePexelsVideos({
+              title: 'Select Video',
+              studioName: 'Cinema Template Studio',
+              onSelect: (asset) => {
+                const url = (asset.video_files?.find(f => f.quality === 'hd') || asset.video_files?.[0])?.link || asset.url;
+                currentInputs[input.name] = url;
+                uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-primary/40 bg-primary/10 text-lg">🎬</div><span class="text-sm text-primary">Video from Pexels</span>`;
+              },
+            });
+          } catch (err) {
+            console.error('[CinemaTemplateStudio] Pexels video browse failed:', err);
+            showToast('Failed to load stock videos', 'error');
+          }
         };
 
         const row = document.createElement('div');
@@ -2286,6 +2328,12 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     genBtn.setAttribute('aria-label', 'Generate template');
     formPanel.appendChild(genBtn);
 
+    // Set disabled state based on isGenerating when rendering
+    if (isGenerating) {
+      genBtn.disabled = true;
+      genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Generating...';
+    }
+
     // AI Captions button — always visible in the create-view controls for video templates
     if (currentTemplate?.outputType === 'video') {
       const captionBtn = document.createElement('button');
@@ -2293,6 +2341,10 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       captionBtn.textContent = '💬 Add AI Captions';
       captionBtn.setAttribute('data-caption-test', 'cinema-template-studio-v1');
       captionBtn.className = 'mt-3 flex w-full items-center justify-center rounded-[18px] bg-white/10 px-4 py-3 text-sm font-bold text-white border border-white/10 transition-all hover:bg-white/20';
+      if (!generationResult) {
+        captionBtn.disabled = true;
+        captionBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      }
       captionBtn.onclick = () => {
         const target = generationResult || '';
         addCaptionButton({
@@ -2426,6 +2478,17 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       return;
     }
 
+    // Validate selected model matches template modelType
+    const candidates = currentTemplate.modelType === 'i2i' ? i2iModels
+      : currentTemplate.modelType === 't2i' ? t2iModels
+      : currentTemplate.modelType === 't2v' ? t2vModels
+      : i2vModels;
+
+    const validModel = candidates.find(m => m.id === selectedModel);
+    if (!validModel) {
+      selectedModel = resolveModel(currentTemplate, selectedModel, { i2i: i2iModels, t2i: t2iModels, i2v: i2vModels, t2v: t2vModels, v2v: v2vModels });
+    }
+
     let model = selectedModel;
     if (!model) {
       if (imageUrl && isVideo) {
@@ -2484,12 +2547,24 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     const negNiche = (currentInputs.niche && currentInputs.niche !== 'auto-detect') ? currentInputs.niche : (currentTemplate.niche || '');
 
     if (isAiEnhancer) {
-      prompt = enrichPromptString(prompt, {
-        niche: negNiche,
-        visualStyle: currentInputs.visualStyle || 'commercial',
-        filmType: currentTemplate.filmFamily || undefined
-      });
-      lastBuiltPrompt = prompt;
+      try {
+        prompt = enrichPromptString(prompt, {
+          niche: negNiche,
+          visualStyle: currentInputs.visualStyle || 'commercial',
+          filmType: currentTemplate.filmFamily || undefined
+        });
+        lastBuiltPrompt = prompt;
+      } catch (err) {
+        console.warn('[CinemaTemplateStudio] Enrichment failed, using raw prompt:', err);
+        showToast('AI enhancement failed, using raw prompt', 'warning');
+      }
+    }
+
+    // Validate that there's some prompt content to work with
+    const trimmedPrompt = (prompt || '').trim();
+    if (!trimmedPrompt && !currentTemplate?.basePrompt) {
+      showToast('Please enter a prompt or description before generating.', 'error');
+      return;
     }
 
     promptManuallyEdited = false;
@@ -2498,7 +2573,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       showToast(`Prompt is ${prompt.length.toLocaleString()} characters — this may exceed model limits. Consider shortening.`, 'warning');
     }
 
-    const negativePrompt = composeNegativePrompt(currentTemplate.filmFamily || undefined, negNiche, currentInputs.visualStyle || 'commercial') || 'Low quality, blurry, amateur, poorly lit, generic stock look';
+    const negativePrompt = currentInputs['_customNegativePrompt'] || buildNegativePrompt(currentTemplate, currentInputs, {}) || 'Low quality, blurry, amateur, poorly lit, generic stock look';
 
     const params = {
       model,
@@ -2506,17 +2581,21 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       studioType: 'cinema-template',
     };
 
+    // The user's explicit aspect-ratio choice (form control / video intent) wins
+    // over the template metadata — otherwise changing the aspect-ratio control
+    // would silently regenerate at the template's default. Fall back to the
+    // template metadata only when the user has not chosen one, then to 16:9.
+    const aspectRatio = resolveGenerationAspectRatio(currentInputs, currentTemplate);
+    if (aspectRatio) params.aspect_ratio = aspectRatio;
+
     if (isVideo) {
-      params.aspect_ratio = currentInputs.aspectRatio || currentTemplate.aspectRatios?.[0] || '16:9';
-      const duration = currentTemplate.duration;
+      const duration = normalizeDuration(currentTemplate);
       if (duration) {
-        let rawDuration = typeof duration === 'object' ? duration.default : duration;
+        const rawDuration = currentInputs.duration || duration;
         // The MuAPI video endpoint only accepts 5 or 10 seconds.
         // Clamp template durations to the nearest supported value.
         params.duration = rawDuration <= 5 ? 5 : 10;
       }
-    } else {
-      params.aspect_ratio = currentInputs.aspectRatio || '16:9';
     }
 
      if (imageUrl) {
@@ -2531,9 +2610,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       params.negative_prompt = negativePrompt;
     }
 
-    if (customThumbnailUrl) {
-      params.thumbnail_url = customThumbnailUrl;
-    }
+    attachThumbnail(params, customThumbnailUrl);
 
     const outputTextarea = container.querySelector('#outputTextarea');
     if (outputTextarea) {
@@ -2560,7 +2637,9 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
 
     try {
       sessionStorage.setItem('cinematic_last_generation_params', JSON.stringify(params));
-    } catch { /* ignore */ }
+    } catch (error) {
+      console.warn('[CinemaTemplateStudio] Failed to store generation params in sessionStorage:', error);
+    }
 
     runGeneration(params);
   }
@@ -2593,10 +2672,11 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
 
       if (result && result.url) {
         generationResult = result.url;
-        customThumbnailUrl = result.url;
         try {
           sessionStorage.setItem('cinematic_generation_result', result.url);
-        } catch { /* ignore */ }
+        } catch (error) {
+          console.warn('[CinemaTemplateStudio] Failed to store generation result in sessionStorage:', error);
+        }
         saveToHistory(result.url, params.prompt, params.model, currentTemplate.id);
         retryCount = 0;
         view = 'preview';
@@ -2605,10 +2685,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         throw new Error('No output URL returned');
       }
     } catch (err) {
-      console.error('[CinemaTemplateStudio]', err);
-      const message = err.message || 'Generation failed';
-      const userMessage = message.length > 80 ? 'Generation failed. Please try again.' : message;
-
+      const { userMessage } = formatGenerationError(err, retryCount, MAX_RETRIES);
       const errEl = document.createElement('div');
       errEl.className = 'mt-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200';
       errEl.textContent = userMessage;
@@ -2652,7 +2729,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
   function saveToHistory(url, prompt, model, templateId) {
     saveGeneration({
       studio: 'cinema',
-      type: 'image',
+      type: currentTemplate?.outputType === 'video' ? 'video' : 'image',
       url,
       prompt,
       model: model || selectedModel,
@@ -2701,10 +2778,16 @@ const firstChild = storyboardRoot.firstElementChild;
     const preview = document.createElement('div');
     preview.className = 'flex-1 flex flex-col items-center justify-center p-8';
 
-    const resultImg = document.createElement('img');
-    resultImg.src = generationResult || '';
-    resultImg.className = 'max-w-full max-h-[60vh] rounded-xl border border-white/10';
-    resultImg.alt = 'Generated result';
+    const isVideoOutput = currentTemplate?.outputType === 'video';
+    const resultMedia = document.createElement(isVideoOutput ? 'video' : 'img');
+    resultMedia.src = generationResult || '';
+    resultMedia.className = 'max-w-full max-h-[60vh] rounded-xl border border-white/10';
+    resultMedia.alt = 'Generated result';
+    if (isVideoOutput) {
+      resultMedia.controls = true;
+      resultMedia.autoplay = true;
+      resultMedia.loop = true;
+    }
 
     const actions = document.createElement('div');
     actions.className = 'mt-6 flex items-center gap-3';
@@ -2740,12 +2823,12 @@ const firstChild = storyboardRoot.firstElementChild;
     publishBtn.className = 'publish-social-btn px-4 py-2 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white text-sm font-bold rounded-lg hover:scale-105 transition-transform';
     publishBtn.textContent = 'Publish to Social';
     publishBtn.onclick = () => {
-      const target = generationResult || resultImg.src || '';
+      const target = generationResult || resultMedia.src || '';
       if (target) openSocialPublish({ mediaUrl: target, mediaType });
     };
     actions.appendChild(publishBtn);
 
-    preview.appendChild(resultImg);
+    preview.appendChild(resultMedia);
     preview.appendChild(actions);
     container.appendChild(preview);
   }

@@ -23,7 +23,8 @@
  * Returns: { ok: true, text, responseId, model } | { ok: false, error }
  *
  * Model: uses the current SmartVideo Responses API text model
- * (resolved via the same pattern as intelligence-api.js — gpt-5.6 family).
+ * (resolved via the same pattern as intelligence-api.js — gpt-5.6 family,
+ * concretely `gpt-5.6-sol`; a bare `gpt-5.6` is not a documented model ID).
  *
  * Security: OPENAI_API_KEY is read from process.env only. Never echoed back.
  */
@@ -40,7 +41,7 @@ const fetchWithTimeout = async (url, options = {}, timeoutMs = TIMEOUT_MS) => {
   }
 };
 
-const RESPONSES_MODEL = process.env.OPENAI_RESPONSES_TEXT_MODEL || 'gpt-5.6';
+const RESPONSES_MODEL = process.env.OPENAI_RESPONSES_TEXT_MODEL || 'gpt-5.6-sol';
 
 const ACTION_INSTRUCTIONS = {
   generate: `You are an expert short-form video scriptwriter.
@@ -201,7 +202,7 @@ export async function handler(event) {
       const errJson = await openaiRes.json();
       detail = errJson?.error?.message || errJson?.details || '';
     } catch {
-      try { detail = await openaiRes.text(); } catch {}
+      try { detail = await openaiRes.text(); } catch { /* body already consumed or not text */ }
     }
     return jsonResponse(openaiRes.status, {
       ok: false,

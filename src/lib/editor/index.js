@@ -60,5 +60,4 @@ export { PerformanceManager } from './performanceManager.js';
  * });
  *
  * // That's it! The animation system is now fully integrated.
- */</content>
-<parameter name="filePath">/workspaces/SmartVideo/src/lib/editor/index.js
+ */

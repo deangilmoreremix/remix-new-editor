@@ -7,6 +7,46 @@ import { apiKeyManager } from '../apiKeyManager.js';
 import { t2iModels } from '../models.js';
 
 /**
+ * OpenAI Images API family matcher.
+ *
+ * Shape: `gpt-image-<version>[-<brand>]`, where `<version>` is `2`, `2.5`, …
+ * and `<brand>` is a single lowercase token (`sunburst`, `flare`, `mini`, …).
+ * A prefix/startsWith rule is tempting and future-proof, but it is NOT safe
+ * here: the muapi catalog in `src/lib/models.js` reuses the family name for its
+ * own endpoint IDs — `gpt-image-2-text-to-image`, `gpt-image-2-image-to-image`,
+ * `gpt-image-1.5-edit`. Those are muapi-routed and must stay muapi-routed, or
+ * thumbnail generation would call OpenAI with a model OpenAI does not serve.
+ * So the family is matched by SHAPE, and any modality / `-edit` role suffix
+ * disqualifies the ID.
+ *
+ * SELECTABILITY is a separate, narrower concern: see
+ * `defaultConfig.supportedImageModels`, which lists only the current,
+ * non-deprecated IDs a user may pick.
+ */
+const OPENAI_IMAGE_MODEL_VERSION = /^gpt-image-\d+(?:\.\d+)?$/i;
+const OPENAI_IMAGE_MODEL_BRANDED = /^gpt-image-\d+(?:\.\d+)?-[a-z][a-z0-9]*$/i;
+const MUAPI_ENDPOINT_ROLE = /-(?:text-to-image|image-to-image|edit)$/i;
+
+/**
+ * Standalone form of {@link OpenAIConfig.isOpenAIImageModel}, for callers that
+ * have not imported the singleton (and for the server-side twin).
+ *
+ * Recognises the current catalog — `gpt-image-2`, `gpt-image-2.5-sunburst`,
+ * `gpt-image-2.5-flare` — plus the legacy `gpt-image-1.x` family, which is
+ * still served until its shutdown dates and therefore still routes to OpenAI.
+ * The deprecated IDs are intentionally absent from `supportedImageModels`, so
+ * no NEW generation can select them.
+ * @param {string} modelId
+ * @returns {boolean}
+ */
+export function isOpenAIImageModelId(modelId) {
+  if (typeof modelId !== 'string') return false;
+  const id = modelId.trim();
+  if (MUAPI_ENDPOINT_ROLE.test(id)) return false;
+  return OPENAI_IMAGE_MODEL_VERSION.test(id) || OPENAI_IMAGE_MODEL_BRANDED.test(id);
+}
+
+/**
  * The one studio color scheme.
  *
  * Every studio surface (Image Studio is the reference implementation) renders
@@ -86,20 +126,28 @@ class OpenAIConfig {
       baseURL: 'https://api.muapi.ai/api/v1/',
       timeout: 120000, // 2 minutes for image generation
       maxRetries: 3,
+      // Verified against the OpenAI catalog + deprecations (2026-10-12):
+      // `gpt-image-1` shuts down 2026-10-23, `gpt-image-1.5` / `gpt-image-1-mini`
+      // on 2026-12-01 — all three are removed here. Current IDs:
+      // `gpt-image-2`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-flare`.
       supportedImageModels: [
         'gpt-image-2',
-        'gpt-image-1.5',
-        'gpt-image-1',
-        'gpt-image-1-mini'
+        'gpt-image-2.5-sunburst',
+        'gpt-image-2.5-flare'
       ],
       // Mainline model used by the Responses API image generation tool. The
       // tool selects the underlying GPT Image model; this is the conversational
       // model that supports calling the image_generation tool.
-      responsesModel: 'gpt-5.6',
+      // Verified against the OpenAI model catalog (2026-10-12): the current
+      // GPT-5.6 family IDs are `gpt-5.6-sol` / `-terra` / `-luna`; a bare
+      // `gpt-5.6` is not a documented model ID. `gpt-5.1` is deprecated
+      // (shutdown 2027-04-01, replacement `gpt-6-sol`); `gpt-5.5` and `gpt-5`
+      // remain current catalog entries.
+      responsesModel: 'gpt-5.6-sol',
       supportedResponsesModels: [
-        'gpt-5.6',
+        'gpt-5.6-sol',
         'gpt-5.5',
-        'gpt-5.1',
+        'gpt-6-sol',
         'gpt-5'
       ],
       // Thumbnail overrides used by ThumbnailService / ai-thumbnail-generator
@@ -107,7 +155,7 @@ class OpenAIConfig {
       // is the out-of-the-box experience (muapi models remain selectable).
       thumbnailModel: 'gpt-image-2',
       thumbnailAllModels: [
-        ...['gpt-image-2', 'gpt-image-1.5', 'gpt-image-1', 'gpt-image-1-mini'].map(id => ({
+        ...['gpt-image-2', 'gpt-image-2.5-sunburst', 'gpt-image-2.5-flare'].map(id => ({
           id, name: id, provider: 'openai', provider_name: 'OpenAI',
         })),
         ...t2iModels.map(m => ({
@@ -117,30 +165,32 @@ class OpenAIConfig {
           provider_name: m.provider_name || m.provider || 'MuAPI',
         })),
       ],
-      // Per-model allowlist — gpt-image-2 supports any resolution; the older
-      // gpt-image-1.x models only support the three fixed sizes.
+      // Per-model allowlist — gpt-image-2 and the gpt-image-2.5 models accept
+      // arbitrary WxH sizes (multiples of 16, aspect 1:3–3:1, ≤3840 per edge);
+      // the deprecated gpt-image-1.x models only supported the three fixed
+      // sizes and are no longer selectable.
       thumbnailModelSizes: {
         'gpt-image-2': 'any',
-        'gpt-image-1.5': ['1024x1024', '1536x1024', '1024x1536', 'auto'],
-        'gpt-image-1': ['1024x1024', '1536x1024', '1024x1536', 'auto'],
-        'gpt-image-1-mini': ['1024x1024', '1536x1024', '1024x1536', 'auto'],
+        'gpt-image-2.5-sunburst': 'any',
+        'gpt-image-2.5-flare': 'any',
       },
-      // 1.5/1/1-mini do not support `vivid`/`natural`; only gpt-image-2 does.
-      // muapi-routed models (blackforest, midjourney, google, etc.) do not
-      // support OpenAI's style/background parameters and are omitted here so
-      // the UI hides those controls for them.
+      // No `vivid`/`natural` style parameter is documented for the
+      // gpt-image-2.5 family (only gpt-image-2 exposes it). muapi-routed
+      // models (blackforest, midjourney, google, etc.) do not support
+      // OpenAI's style/background parameters and are omitted here so the
+      // UI hides those controls for them.
       thumbnailModelStyles: {
         'gpt-image-2': ['vivid', 'natural'],
-        'gpt-image-1.5': [],
-        'gpt-image-1': [],
-        'gpt-image-1-mini': [],
+        'gpt-image-2.5-sunburst': [],
+        'gpt-image-2.5-flare': [],
       },
-      // gpt-image-2 does not currently support transparent backgrounds.
+      // gpt-image-2 does not currently support transparent backgrounds; the
+      // gpt-image-2.5 models do (`background: 'transparent'` with
+      // output_format png/webp).
       thumbnailModelBackgrounds: {
         'gpt-image-2': ['auto', 'opaque'],
-        'gpt-image-1.5': ['auto', 'opaque', 'transparent'],
-        'gpt-image-1': ['auto', 'opaque', 'transparent'],
-        'gpt-image-1-mini': ['auto', 'opaque', 'transparent'],
+        'gpt-image-2.5-sunburst': ['auto', 'opaque', 'transparent'],
+        'gpt-image-2.5-flare': ['auto', 'opaque', 'transparent'],
       },
       // `n` (number of candidates) — OpenAI allows up to 10, but most studios
       // use 3 for layout reasons. Surfaced to the UI as a slider.
@@ -185,9 +235,9 @@ class OpenAIConfig {
         generate: 'Always generate new',
         edit: 'Always edit existing',
       },
-      // Mainline Responses API model override (gpt-5.6, gpt-5.5, etc.)
-      thumbnailResponsesModel: 'gpt-5.6',
-      thumbnailResponsesModelOptions: ['gpt-5.6', 'gpt-5.5', 'gpt-5.1', 'gpt-5'],
+      // Mainline Responses API model override (gpt-5.6-sol, gpt-5.5, etc.)
+      thumbnailResponsesModel: 'gpt-5.6-sol',
+      thumbnailResponsesModelOptions: ['gpt-5.6-sol', 'gpt-5.5', 'gpt-6-sol', 'gpt-5'],
       // `include` for Responses API — configurable, default to reasoning.
       thumbnailIncludeOptions: [
         'reasoning.encrypted_content',
@@ -334,11 +384,26 @@ class OpenAIConfig {
   /**
    * Check whether a model ID belongs to the OpenAI Images API family.
    * muapi-routed models (blackforest, google, midjourney, etc.) return false.
+   *
+   * This is a ROUTING check (OpenAI-direct vs muapi proxy), not a selectability
+   * check. The deprecated `gpt-image-1` / `-1.5` / `-1-mini` IDs remain listed
+   * here on purpose: they are still OpenAI Images API family models and are
+   * still served (until their shutdown dates — 2026-10-23 for gpt-image-1,
+   * 2026-12-01 for 1.5/1-mini), so existing selections keep routing to the
+   * OpenAI path until then. They are intentionally absent from
+   * `supportedImageModels` / `thumbnailAllModels`, so no NEW generation can
+   * pick them.
+   *
+   * Matching is by family prefix rather than an enumerated list: the catalog
+   * already shipped the selectable `gpt-image-2.5-sunburst` / `-flare` IDs
+   * (see `supportedImageModels`), and an allowlist that only knew `gpt-image-2`
+   * sent those brand-new models down the muapi proxy instead of OpenAI. Any
+   * future `gpt-image-*` release now routes correctly without a code change.
    * @param {string} modelId
    * @returns {boolean}
    */
   isOpenAIImageModel(modelId) {
-    return ['gpt-image-2', 'gpt-image-1.5', 'gpt-image-1', 'gpt-image-1-mini'].includes(modelId);
+    return isOpenAIImageModelId(modelId);
   }
 
   /**
@@ -365,7 +430,13 @@ class OpenAIConfig {
   }
 
   /**
-   * Get default output settings for image generation
+   * Get default output settings for image generation.
+   *
+   * NOTE (verified 2026-10-12): the `quality: 'standard'` / `style: 'vivid'`
+   * values are legacy DALL·E-era settings. GPT image models use
+   * low/medium/high quality and have no `style` parameter, but this method
+   * (and `validateOutputSettings`) currently has NO callers — nothing sends
+   * these values to GPT image models. Kept for API compatibility only.
    * @returns {object} Default output settings
    */
   getDefaultOutputSettings() {
@@ -473,7 +544,14 @@ class OpenAIConfig {
    * Estimate cost in USD for a generation, based on the OpenAI pricing table
    * from the Image Generation guide (gpt-image-2 + legacy models).
    * Returns null if the model/size isn't in the table.
-   * @param {string} model — e.g. 'gpt-image-2', 'gpt-image-1'
+   *
+   * The deprecated gpt-image-1 / -1.5 / -1-mini rows were removed (they can no
+   * longer be selected — see `supportedImageModels`). The gpt-image-2.5 family
+   * intentionally has no per-image rows: the pricing page publishes only
+   * per-token image rates and points to the calculator in the image-generation
+   * guide, so `estimateCost` returns null for them and the UI hides the cost
+   * line (callers guard with `typeof cost === 'number'`).
+   * @param {string} model — e.g. 'gpt-image-2'
    * @param {string} quality — 'low' | 'medium' | 'high'
    * @param {string} size — e.g. '1024x1024', '1536x1024'
    * @param {number} n — number of candidates
@@ -488,21 +566,6 @@ class OpenAIConfig {
         '1024x1024': { low: 0.006, medium: 0.053, high: 0.211 },
         '1024x1536': { low: 0.005, medium: 0.041, high: 0.165 },
         '1536x1024': { low: 0.005, medium: 0.041, high: 0.165 },
-      },
-      'gpt-image-1.5': {
-        '1024x1024': { low: 0.009, medium: 0.034, high: 0.133 },
-        '1024x1536': { low: 0.013, medium: 0.05, high: 0.2 },
-        '1536x1024': { low: 0.013, medium: 0.05, high: 0.2 },
-      },
-      'gpt-image-1': {
-        '1024x1024': { low: 0.011, medium: 0.042, high: 0.167 },
-        '1024x1536': { low: 0.016, medium: 0.063, high: 0.25 },
-        '1536x1024': { low: 0.016, medium: 0.063, high: 0.25 },
-      },
-      'gpt-image-1-mini': {
-        '1024x1024': { low: 0.005, medium: 0.011, high: 0.036 },
-        '1024x1536': { low: 0.006, medium: 0.015, high: 0.052 },
-        '1536x1024': { low: 0.006, medium: 0.015, high: 0.052 },
       },
     };
     const modelTable = TABLE[model];

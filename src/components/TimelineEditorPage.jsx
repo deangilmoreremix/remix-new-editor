@@ -415,6 +415,7 @@ export function TimelineEditorPage() {
             <div class="viewer-stage" id="viewerStage">
               <div class="viewer-frame" id="viewerFrame">
                 <div class="preview-stage" id="previewStage"></div>
+                <div class="mask-overlay" id="maskOverlay" hidden></div>
                 <div class="vf-gradient"></div>
                 <div class="preview-empty" id="previewEmpty">
                   <div class="vf-subtitle" id="vfSubtitle">Your story starts here.</div>
@@ -458,6 +459,7 @@ export function TimelineEditorPage() {
               <button class="tool-btn active" id="tbInsertMode" data-tooltip="Insert mode: push downstream when dropping" aria-label="Insert mode" aria-pressed="true">Insert</button>
               <button class="tool-btn" id="tbOverwriteMode" data-tooltip="Overwrite mode: replace existing media" aria-label="Overwrite mode">Overwrite</button>
               <button class="tool-btn active" id="tbSnap" data-tooltip="Snap clips to grid / edges / playhead" aria-label="Snap toggled">Snap</button>
+              <button class="tool-btn" id="tbMask" data-tooltip="Mask tool - AI object isolation (X)" aria-label="Mask tool">🎭</button>
             </div>
           </div>
           <div class="zoom" role="group" aria-label="Zoom">
@@ -738,6 +740,12 @@ export function TimelineEditorPage() {
       return { ...track, type: inferred };
     });
   }
+
+  // Mask tool state for click/box capture on preview stage
+  let maskClickPoint = null;
+  let maskSelectionBox = null;
+  let normStartX = 0;
+  let normStartY = 0;
 
   // Enhanced state management with local storage persistence
   function loadProjectFromStorage() {
@@ -2019,6 +2027,57 @@ export function TimelineEditorPage() {
       if (saveBtn) saveBtn.addEventListener('click', () => openSaveProjectModal(state, showToast));
     }
 
+    const TOOL_DEFS = [
+      { id: 'select', icon: '🔍', label: 'Select', hint: 'V' },
+      { id: 'blade', icon: '✂️', label: 'Blade', hint: 'B' },
+      { id: 'ripple', icon: '↗️', label: 'Ripple', hint: 'R' },
+      { id: 'roll', icon: '↔️', label: 'Roll', hint: 'N' },
+      { id: 'slip', icon: '↕️', label: 'Slip', hint: 'Y' },
+      { id: 'slide', icon: '↔️', label: 'Slide', hint: 'U' },
+      { id: 'music', icon: '🎵', label: 'Music', hint: 'M' },
+      { id: 'fillGap', icon: '✨', label: 'Fill Gap', hint: '' },
+      { id: 'extend', icon: '➡️', label: 'Extend', hint: 'E' },
+      { id: 'mask', icon: '🎭', label: 'Mask', hint: 'X' },
+    ];
+
+    const toolMap = {
+      'v': 'select',
+      'b': 'blade',
+      'r': 'ripple',
+      'n': 'roll',
+      'y': 'slip',
+      'u': 'slide',
+      'm': 'music',
+      'e': 'extend',
+      'x': 'mask',
+    };
+
+    function selectTool(id) {
+      const def = TOOL_DEFS.find(t => t.id === id);
+      state.selectedTool = def ? def.label : id;
+      renderTools();
+      updatePreview();
+      if (id === 'mask') {
+        showToast('Mask tool active — select a clip and open AI Tools to segment');
+      }
+    }
+
+    /**
+     * Canonical tool token for the current selection.
+     *
+     * `state.selectedTool` is written from two places: `selectTool()` stores the
+     * tool's DISPLAY LABEL (what the toolbar highlight and the mask overlay
+     * compare against), while the keyboard shortcut stores the lowercase tool
+     * ID from `toolMap`. Both spell the same tool, so resolve either one back
+     * to the canonical label before comparing.
+     */
+    function selectedToolLabel() {
+      const selected = state.selectedTool;
+      if (!selected) return null;
+      const def = TOOL_DEFS.find(t => t.id === selected || t.label === selected);
+      return def ? def.label : selected;
+    }
+
     function renderTools() {
       els.toolGroup.innerHTML = '';
       const toolTooltips = {
@@ -2031,28 +2090,16 @@ export function TimelineEditorPage() {
         Zoom: 'Zoom tool - Click to zoom in, Alt+click to zoom out (Z)',
         Hand: 'Hand tool - Click and drag to pan across the timeline (H)'
       };
-      const tools = state.tools || [
-        ['🔍', 'Select'],
-        ['✂️', 'Blade'],
-        ['↗️', 'Ripple'],
-        ['↔️', 'Roll'],
-        ['↕️', 'Slip'],
-        ['↔️', 'Slide'],
-        ['🔍', 'Zoom'],
-        ['✋', 'Hand']
-      ];
-      tools.forEach(([icon, label]) => {
+      const tools = TOOL_DEFS;
+      const activeTool = selectedToolLabel();
+      tools.forEach((def) => {
         const button = document.createElement('button');
-        button.className = `tool-btn ${state.selectedTool === label ? 'active' : ''}`;
-        button.textContent = icon;
-        button.setAttribute('data-tooltip', toolTooltips[label] || label);
-        button.title = toolTooltips[label] || label;
+        button.className = `tool-btn ${activeTool === def.label ? 'active' : ''}`;
+        button.textContent = def.icon;
+        button.setAttribute('data-tooltip', def.hint ? `${def.label} (${def.hint})` : def.label);
+        button.title = def.label;
         button.setAttribute('aria-label', button.title);
-        button.addEventListener('click', () => {
-          state.selectedTool = label;
-          renderTools();
-          updatePreview();
-        });
+        button.addEventListener('click', () => selectTool(def.id));
         els.toolGroup.appendChild(button);
       });
     }
@@ -2910,7 +2957,7 @@ export function TimelineEditorPage() {
       // eslint-disable-next-line no-unreachable
       renderMediaGrid(state.media, els.mediaGrid, (media, index, showToast) => {
         const generatedId = Date.now();
-        let clipData = {
+        const clipData = {
           id: generatedId,
           name: media.label || `Media ${generatedId}`,
           start: (state.playheadPercent / 100) * (state.timelineSeconds || 60),
@@ -5798,6 +5845,7 @@ export function TimelineEditorPage() {
       const tbInsertMode = root.querySelector('#tbInsertMode');
       const tbOverwriteMode = root.querySelector('#tbOverwriteMode');
       const tbSnap = root.querySelector('#tbSnap');
+      const tbMask = root.querySelector('#tbMask');
       if (tbRewind) tbRewind.addEventListener('click', rewindPlayback);
       if (tbPlay) tbPlay.addEventListener('click', togglePlayback);
       if (tbStop) tbStop.addEventListener('click', jumpToEndPlayback);
@@ -5823,6 +5871,7 @@ export function TimelineEditorPage() {
         tbSnap.setAttribute('aria-pressed', String(state.snapEnabled));
         showToast(`Snap ${state.snapEnabled ? 'ON' : 'OFF'}`, 'info');
       });
+      if (tbMask) tbMask.addEventListener('click', () => selectTool('mask'));
 
       if (els.addTimelineTabBtn) {
         els.addTimelineTabBtn.addEventListener('click', () => {
@@ -5852,6 +5901,16 @@ export function TimelineEditorPage() {
         else if (key === ']') { nudgeSelectedClip(0.5); }
         else if ((ev.ctrlKey || ev.metaKey) && key === 'c') { ev.preventDefault(); copySelectedClip(); }
         else if ((ev.ctrlKey || ev.metaKey) && key === 'v') { ev.preventDefault(); pasteClipAtPlayhead(); }
+        else if (toolMap[key] && !ev.ctrlKey && !ev.metaKey) {
+          ev.preventDefault();
+          const toolKey = key;
+          state.selectedTool = toolMap[toolKey];
+          renderTools();
+          updatePreview();
+          if (toolMap[toolKey] === 'mask') {
+            showToast('Mask tool active — select a clip and open AI Tools to segment');
+          }
+        }
       });
 
       // Zoom controls (prototype: out / track / in / fit)
@@ -5862,6 +5921,38 @@ export function TimelineEditorPage() {
       if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => setZoom((state.zoom || 1) - 0.25));
       if (zoomInBtn) zoomInBtn.addEventListener('click', () => setZoom((state.zoom || 1) + 0.25));
       if (zoomFitBtn) zoomFitBtn.addEventListener('click', () => setZoom(1));
+
+      // Mask overlay click/box capture for AI segmentation
+      const maskOverlay = root.querySelector('#maskOverlay');
+      if (maskOverlay) {
+        maskOverlay.addEventListener('click', (e) => {
+          if (selectedToolLabel() !== 'Mask') return;
+          const rect = maskOverlay.getBoundingClientRect();
+          maskClickPoint = {
+            x: Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)),
+            y: Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height)),
+          };
+        });
+        maskOverlay.addEventListener('mousedown', (e) => {
+          if (selectedToolLabel() !== 'Mask') return;
+          const rect = maskOverlay.getBoundingClientRect();
+          normStartX = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+          normStartY = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+          maskSelectionBox = null;
+        });
+        maskOverlay.addEventListener('mouseup', (e) => {
+          if (selectedToolLabel() !== 'Mask') return;
+          const rect = maskOverlay.getBoundingClientRect();
+          const endX = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+          const endY = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+          maskSelectionBox = {
+            x: Math.min(normStartX, endX),
+            y: Math.min(normStartY, endY),
+            w: Math.abs(endX - normStartX),
+            h: Math.abs(endY - normStartY),
+          };
+        });
+      }
 
       // The preview is always edge-to-edge (see .preview-large CSS in
       // timeline-editor-page.css) — no toggle, no button, always on.
@@ -6616,7 +6707,7 @@ export function TimelineEditorPage() {
     function applyInsertMode(track, insertLeft, insertWidth) {
       if (!state.insertMode || !track || !Array.isArray(track.items)) return;
       const sorted = [...track.items].sort((a, b) => (a.left || 0) - (b.left || 0));
-      let drift = 0;
+      const drift = 0;
       for (const clip of sorted) {
         const clipStart = clip.left || 0;
         if (clipStart >= insertLeft - 0.05) {
@@ -6677,7 +6768,7 @@ export function TimelineEditorPage() {
     function mergeAdjacentClipWithNeighbor() {
       const selId = state.selectedClipId;
       if (!selId) { showToast('Select a clip that is touching another clip to merge', 'info'); return null; }
-      let found = null;
+      const found = null;
       for (const track of state.tracks) {
         if (!Array.isArray(track.items)) continue;
         if (!track.items.some(c => c.id === selId)) continue;
