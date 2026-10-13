@@ -1370,19 +1370,31 @@ class DirectorAgentRuntime {
    */
   async uploadVideo(file, muapiClient) {
     try {
-      const result = await muapiClient.uploadFile(file);
-      
-      if (result.url) {
-        this.setVideoUrl(result.url);
+      // MuAPI-bound upload: validate through the shared adapter, store the file
+      // in the permanent Asset Library and upload fresh bytes to MuAPI. The
+      // permanent asset id is kept on the runtime for later reuse.
+      const { ingestStudioUpload } = await import('./muapiStudioMedia.js');
+      const stored = await ingestStudioUpload(file, { studioId: 'director-agent' });
+
+      if (stored.muapiUrl || stored.url) {
+        this.setVideoUrl(stored.muapiUrl || stored.url);
         this.setVideoMetadata({
           name: file.name,
           size: file.size,
           type: file.type,
-          uploadedAt: new Date().toISOString()
+          uploadedAt: new Date().toISOString(),
+          assetId: stored.assetId,
+          assetUrl: stored.url
         });
       }
-      
-      return result;
+
+      // Backwards-compatible descriptor (same shape the MuapiClient returned).
+      return {
+        url: stored.muapiUrl || stored.url,
+        assetId: stored.assetId,
+        category: stored.category,
+        source: 'file'
+      };
     } catch (error) {
       console.error('Video upload failed:', error);
       throw error;

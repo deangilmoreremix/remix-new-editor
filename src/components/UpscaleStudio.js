@@ -29,6 +29,7 @@ export function UpscaleStudio() {
   let selectedMethod = UPSCALE_METHODS[0];
   let selectedFactor = '2';
   let uploadedUrl = null;
+  let uploadedAssetId = null;
   let lastOutputUrl = null;
   let customThumbnailUrl = getCustomThumbnailFromCache('upscale-studio');
 
@@ -136,8 +137,10 @@ const triggerBtn = document.createElement('button');
   uploadRow.className = 'flex items-center gap-4';
   const picker = createUploadPicker({
     anchorContainer: container,
-    onSelect: ({ url }) => { uploadedUrl = url; },
-    onClear: () => { uploadedUrl = null; },
+    muapiStudio: true,
+    studioId: 'upscale-studio',
+    onSelect: ({ url, assetId }) => { uploadedUrl = url; uploadedAssetId = assetId || null; },
+    onClear: () => { uploadedUrl = null; uploadedAssetId = null; },
   });
   uploadRow.appendChild(picker.trigger);
 
@@ -153,6 +156,7 @@ const triggerBtn = document.createElement('button');
       studioName: 'Upscale Suite',
       onSelect: (asset) => {
         uploadedUrl = asset.src?.large || asset.url || asset.original;
+        uploadedAssetId = null;
         const attrContainer = document.getElementById('pexels-upscale-attribution');
         if (attrContainer) {
           attrContainer.innerHTML = '';
@@ -184,14 +188,16 @@ const triggerBtn = document.createElement('button');
     acceptAudio: false,
     onUpload: async (key, file) => {
       try {
-        const { uploadFileToStorage } = await import('../lib/uploadService.js');
-        const url = await uploadFileToStorage(file);
+        // MuAPI-bound reference: validated by the shared adapter and stored in
+        // the permanent Asset Library; resolved at generation time.
+        const { ingestStudioUpload, describeMuapiUploadError } = await import('../lib/muapiStudioMedia.js');
+        const stored = await ingestStudioUpload(file, { studioId: 'upscale-studio', uploadToMuapi: false });
         upscaleAttachmentState[key] = upscaleAttachmentState[key] || [];
-        upscaleAttachmentState[key].push(url);
+        upscaleAttachmentState[key].push({ url: stored.url, assetId: stored.assetId });
         showToast('Reference uploaded', 'success');
       } catch (err) {
-        console.error('[UpscaleStudio] attachment upload failed:', err);
-        showToast('Attachment upload failed: ' + err.message, 'error');
+        const { describeMuapiUploadError } = await import('../lib/muapiStudioMedia.js');
+        showToast(await describeMuapiUploadError(err), 'error');
       }
     },
   });
@@ -337,18 +343,32 @@ genBtn.type = 'button';
     genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Upscaling...';
 
     try {
-      const params = { model: selectedMethod.id, image_url: uploadedUrl, customThumbnailUrl: customThumbnailUrl || undefined };
+      // Resolve the source image and every attachment to a FRESH MuAPI URL
+      // through the shared adapter (permanent asset references only).
+      const { resolveMuapiMediaRef, resolveMuapiMediaRefs } = await import('../lib/muapiStudioMedia.js');
+      const sourceUrl = await resolveMuapiMediaRef({ url: uploadedUrl, assetId: uploadedAssetId });
+      const attachmentImages = upscaleAttachmentState.images?.length
+        ? await resolveMuapiMediaRefs(upscaleAttachmentState.images)
+        : [];
+      const attachmentVideos = upscaleAttachmentState.videos?.length
+        ? await resolveMuapiMediaRefs(upscaleAttachmentState.videos)
+        : [];
+      const attachmentAudios = upscaleAttachmentState.audios?.length
+        ? await resolveMuapiMediaRefs(upscaleAttachmentState.audios)
+        : [];
+
+      const params = { model: selectedMethod.id, image_url: sourceUrl, thumbnail_url: customThumbnailUrl || undefined, signal: controller.signal };
       if (selectedFactor) params.upscale_factor = parseInt(selectedFactor);
 
       // Merge attachment URLs from the unified toolbar.
-      if (upscaleAttachmentState.images?.length && !params.images_list) {
-        params.reference_images = upscaleAttachmentState.images;
+      if (attachmentImages.length && !params.images_list) {
+        params.reference_images = attachmentImages;
       }
-      if (upscaleAttachmentState.videos?.length) {
-        params.reference_videos = upscaleAttachmentState.videos;
+      if (attachmentVideos.length) {
+        params.reference_videos = attachmentVideos;
       }
-      if (upscaleAttachmentState.audios?.length) {
-        params.reference_audios = upscaleAttachmentState.audios;
+      if (attachmentAudios.length) {
+        params.reference_audios = attachmentAudios;
       }
 
       const result = await muapi.generateI2I(params);

@@ -6,6 +6,43 @@ import { showToast } from '../lib/loading.js';
 import { formatErrorMessage } from '../lib/errorMessages.js';
 import { UPLOAD_LIMITS, SUPABASE_PROXY_BODY_LIMIT_BYTES, categoryFromMimeType } from '../lib/editor/uploadLimits.js';
 
+// ── Module-level: registry of MuAPI-bound studio pickers ───────────────────────
+// Lets the Library page hand an existing Asset Library asset to a studio's own
+// picker (the studio is then updated through its normal onSelect contract) even
+// though each picker lives inside its studio's closure.
+const _studioPickers = new Map();
+const PENDING_ASSET_KEY = 'pending_muapi_asset';
+
+/**
+ * Hand an Asset Library asset to a mounted MuAPI studio picker.
+ * @returns {Promise<boolean>} true when a live picker accepted the asset.
+ */
+export async function selectAssetInStudio(studioId, asset) {
+    const picker = _studioPickers.get(studioId);
+    if (!picker || typeof picker.selectAsset !== 'function') return false;
+    await picker.selectAsset(asset);
+    return true;
+}
+
+/** Remember an asset id for a studio that is not mounted yet (one-shot). */
+export function queueAssetForStudio(studioId, assetId) {
+    try {
+        localStorage.setItem(PENDING_ASSET_KEY, JSON.stringify({ studioId, assetId }));
+    } catch { /* storage disabled — the asset must be picked manually */ }
+}
+
+function consumeQueuedAsset() {
+    try {
+        const raw = localStorage.getItem(PENDING_ASSET_KEY);
+        if (!raw) return null;
+        localStorage.removeItem(PENDING_ASSET_KEY);
+        const parsed = JSON.parse(raw);
+        return parsed && parsed.studioId && parsed.assetId ? parsed : null;
+    } catch {
+        return null;
+    }
+}
+
 // ── Module-level: dedupe global listeners across all picker instances ──────────
 const _globalCleanups = new Set();
 const _registeredOutsideClick = new WeakSet();
@@ -108,6 +145,12 @@ export function createUploadPicker({
     onFilePreview = null,
     singleLabel,
     multiLabel,
+    // MuAPI destination: picked files are validated with the shared MuAPI
+    // adapter, stored in the permanent Asset Library and re-resolved through
+    // the adapter (never re-uploaded twice for the same file).
+    muapiStudio = false,
+    studioId = '',
+    projectId = '',
 }) {
     let panelOpen = false;
     let maxImages = initialMaxImages;
@@ -117,6 +160,10 @@ export function createUploadPicker({
 
     // Per-instance abort controller for in-flight uploads
     let abortController = null;
+
+    // Duplicate-submission guard: while a batch is in flight the trigger is
+    // disabled and further picks are ignored (no double upload).
+    let uploadInFlight = false;
 
     // When a slot-specific upload is triggered in frame mode, this records
     // which slot the next file selection belongs to.
@@ -357,6 +404,10 @@ export function createUploadPicker({
                 urls,
                 startThumbnail: frameEntries.start?.thumbnail || null,
                 endThumbnail: frameEntries.end?.thumbnail || null,
+                startAssetId: frameEntries.start?.assetId || null,
+                endAssetId: frameEntries.end?.assetId || null,
+                startMuapiUrl: frameEntries.start?.muapiUrl || null,
+                endMuapiUrl: frameEntries.end?.muapiUrl || null,
             });
             return;
         }
@@ -366,7 +417,20 @@ export function createUploadPicker({
             url: urls[0],           // backward-compatible single URL
             urls,                   // full array for multi-image models
             thumbnail: selectedEntries[0].thumbnail,
-            type: selectedEntries[0].type
+            type: selectedEntries[0].type,
+            // Permanent Asset Library references — studios resolve a fresh
+            // MuAPI URL from these at generation time (never store temp URLs).
+            assetId: selectedEntries[0].assetId || null,
+            assetIds: selectedEntries.map(e => e.assetId || null),
+            muapiUrl: selectedEntries[0].muapiUrl || null,
+            assets: selectedEntries.map(e => ({
+                url: e.url,
+                assetId: e.assetId || null,
+                muapiUrl: e.muapiUrl || null,
+                name: e.name || '',
+                type: e.type,
+                thumbnail: e.thumbnail || null,
+            })),
         });
     };
 
@@ -467,6 +531,22 @@ export function createUploadPicker({
             }
         };
         headerRight.appendChild(fromUrlBtn);
+
+        // "From library" — reuse an asset that was already saved to the
+        // permanent Asset Library (no second upload).
+        if (muapiStudio) {
+            const fromLibraryBtn = document.createElement('button');
+            fromLibraryBtn.type = 'button';
+            fromLibraryBtn.className = 'flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/80 rounded-xl text-xs font-bold transition-all border border-white/10';
+            fromLibraryBtn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg> Library`;
+            fromLibraryBtn.onclick = (e) => {
+                e.stopPropagation();
+                const existing = panel.querySelector('.asset-source');
+                if (existing) existing.remove();
+                else appendAssetSource();
+            };
+            headerRight.appendChild(fromLibraryBtn);
+        }
         header.appendChild(headerRight);
         panel.appendChild(header);
 
@@ -722,6 +802,20 @@ export function createUploadPicker({
         uploadNewBtn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Upload new`;
         uploadNewBtn.onclick = (e) => { e.stopPropagation(); closePanel(); pendingFrameSlot = firstEmptyFrameSlot(); fileInput.click(); };
         header.appendChild(uploadNewBtn);
+
+        if (muapiStudio) {
+            const fromLibraryBtn = document.createElement('button');
+            fromLibraryBtn.type = 'button';
+            fromLibraryBtn.className = 'flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/80 rounded-xl text-xs font-bold transition-all border border-white/10';
+            fromLibraryBtn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg> Library`;
+            fromLibraryBtn.onclick = (e) => {
+                e.stopPropagation();
+                const existing = panel.querySelector('.asset-source');
+                if (existing) existing.remove();
+                else appendAssetSource();
+            };
+            header.appendChild(fromLibraryBtn);
+        }
         panel.appendChild(header);
 
         const buildSlot = (slot, label, badge) => {
@@ -1033,6 +1127,9 @@ export function createUploadPicker({
     const uploadFiles = async (files) => {
         if (!files || !files.length) return;
 
+        // Duplicate submission guard — one batch in flight per picker.
+        if (uploadInFlight) return;
+
         // Local preview is network-free, so show it immediately — even when no
         // API key is present. The user still gets responsive feedback; the key
         // is only required to actually upload to MuAPI.
@@ -1053,12 +1150,19 @@ export function createUploadPicker({
             return;
         }
 
+        uploadInFlight = true;
+        trigger.disabled = true;
         showSpinner();
 
         // One signal per upload batch; aborting cancels all in-flight requests
         const signal = getAbortSignal();
 
         try {
+            if (muapiStudio) {
+                await ingestFilesForMuapi(files);
+                return;
+            }
+
             if (frameMode) {
                 // Upload a single file into the targeted frame slot.
                 const slot = pendingFrameSlot || firstEmptyFrameSlot();
@@ -1157,7 +1261,186 @@ export function createUploadPicker({
             fileInput.value = '';
             // Always restore spinner/icon state, even on abort or error
             showIcon();
+            // Re-open the trigger for the next submission
+            uploadInFlight = false;
+            trigger.disabled = false;
         }
+    };
+
+    // ── MuAPI destination: validate → permanent Asset Library → adapter ────────
+    // Picked files are never handed to a studio as a raw temporary URL. They
+    // are validated with the shared adapter, stored durably in the Asset
+    // Library, and the entry carries the permanent asset id so the studio can
+    // resolve a fresh URL at generation time. Files already in the library
+    // (same name + size) are reused — no second upload.
+    const ingestFilesForMuapi = async (files) => {
+        const { ingestStudioUpload, describeMuapiUploadError } = await import('../lib/muapiStudioMedia.js');
+
+        const slots = frameMode ? 1 : (maxImages > 1 ? maxImages - selectedEntries.length : 1);
+        const toIngest = files.slice(0, Math.max(slots, 1));
+
+        const results = await Promise.allSettled(toIngest.map(async (file) => {
+            const ingested = await ingestStudioUpload(file, { studioId, projectId });
+            return {
+                id: `upload-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+                name: file.name,
+                uploadedUrl: ingested.url,        // permanent storage URL
+                assetUrl: ingested.url,
+                assetId: ingested.assetId,
+                muapiUrl: ingested.muapiUrl,      // fresh temp URL (may be null)
+                thumbnail: ingested.category === 'image'
+                    ? ingested.url
+                    : fileIconSvg(ingested.category),
+                type: ingested.category,
+            };
+        }));
+
+        const rejected = results.filter(r => r.status === 'rejected');
+        const entries = results.filter(r => r.status === 'fulfilled').map(r => r.value);
+
+        if (entries.length === 0 && rejected.length > 0) {
+            showToast(await describeMuapiUploadError(rejected[0].reason), 'error');
+            updateTrigger();
+            return;
+        }
+
+        entries.forEach(entry => saveUpload(entry));
+
+        if (frameMode) {
+            const slot = pendingFrameSlot || firstEmptyFrameSlot();
+            const entry = entries[0];
+            if (entry) {
+                setFrameEntry(slot, entry);
+                pendingFrameSlot = null;
+                if (frameEntries.start && frameEntries.end) closePanel();
+            }
+            updateTrigger();
+            return;
+        }
+
+        const selected = entries.map(entry => ({
+            url: entry.uploadedUrl,       // permanent storage URL (preview-safe)
+            thumbnail: entry.thumbnail,
+            type: entry.type,
+            assetId: entry.assetId,
+            assetUrl: entry.uploadedUrl,
+            muapiUrl: entry.muapiUrl,
+            name: entry.name || '',
+        }));
+
+        if (maxImages === 1) {
+            selectedEntries = selected.length ? [selected[0]] : selectedEntries;
+            updateTrigger();
+            fireOnSelect();
+            return;
+        }
+
+        selected.forEach(entry => {
+            if (selectedEntries.length < maxImages) selectedEntries.push(entry);
+        });
+        updateTrigger();
+        openPanel();
+    };
+
+    // ── Existing asset source (Asset Library reuse — no re-upload) ────────────
+    const selectExistingAsset = async (asset) => {
+        const { resolveMuapiMediaRef } = await import('../lib/muapiStudioMedia.js');
+        const muapiUrl = await resolveMuapiMediaRef({ assetId: asset.id, url: asset.url });
+        const entry = {
+            id: `asset-${asset.id}`,
+            name: asset.name,
+            uploadedUrl: asset.url,             // permanent storage URL
+            assetUrl: asset.url,
+            assetId: asset.id,
+            muapiUrl: muapiUrl || null,
+            thumbnail: asset.category === 'image' ? asset.url : fileIconSvg(asset.category),
+            type: asset.category,
+        };
+        saveUpload(entry);
+
+        if (frameMode) {
+            const slot = pendingFrameSlot || firstEmptyFrameSlot();
+            setFrameEntry(slot, entry);
+            pendingFrameSlot = null;
+            if (frameEntries.start && frameEntries.end) closePanel();
+            else renderPanel();
+            return;
+        }
+
+        if (maxImages === 1) {
+            selectedEntries = [{
+                url: entry.uploadedUrl,
+                thumbnail: entry.thumbnail,
+                type: entry.type,
+                assetId: entry.assetId,
+                assetUrl: entry.uploadedUrl,
+                muapiUrl: entry.muapiUrl,
+                name: entry.name || '',
+            }];
+            updateTrigger();
+            fireOnSelect();
+            closePanel();
+            return;
+        }
+
+        if (selectedEntries.length < maxImages) selectedEntries.push(entry);
+        updateTrigger();
+        renderPanel();
+    };
+
+    // Renders (and lazily fills) the "pick an asset you already uploaded" grid.
+    const appendAssetSource = () => {
+        const wrap = document.createElement('div');
+        wrap.className = 'asset-source mb-3 p-2.5 rounded-xl bg-white/5 border border-white/10';
+
+        const label = document.createElement('div');
+        label.className = 'text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5';
+        label.textContent = 'From your library';
+        wrap.appendChild(label);
+
+        const grid = document.createElement('div');
+        grid.className = 'grid grid-cols-3 gap-2 max-h-44 overflow-y-auto custom-scrollbar';
+        const status = document.createElement('div');
+        status.className = 'text-[10px] text-muted py-2';
+        status.textContent = 'Loading assets…';
+        wrap.appendChild(status);
+        wrap.appendChild(grid);
+
+        const header = panel.querySelector('.flex.items-center.justify-between');
+        if (header && header.nextSibling) panel.insertBefore(wrap, header.nextSibling);
+        else panel.appendChild(wrap);
+
+        (async () => {
+            try {
+                const { getMuapiAuthContext } = await import('../lib/muapiStudioMedia.js');
+                const { listAssets } = await import('../lib/assetLibrary.js');
+                const auth = await getMuapiAuthContext();
+                const assets = await listAssets(auth, {});
+                status.remove();
+                if (assets.length === 0) {
+                    const empty = document.createElement('div');
+                    empty.className = 'col-span-3 text-[10px] text-muted py-3 text-center';
+                    empty.textContent = 'No saved assets yet — upload one and it lands here.';
+                    grid.appendChild(empty);
+                    return;
+                }
+                assets.forEach(asset => {
+                    const cell = document.createElement('div');
+                    cell.className = 'asset-source-cell relative rounded-lg overflow-hidden border-2 border-white/10 hover:border-primary/60 aspect-square transition-all';
+                    cell.title = asset.name;
+                    const img = document.createElement('img');
+                    img.src = asset.category === 'image' ? asset.url : fileIconSvg(asset.category);
+                    img.className = 'w-full h-full object-cover';
+                    img.onerror = () => { img.src = fileIconSvg(asset.category); };
+                    cell.appendChild(img);
+                    cell.onclick = (e) => { e.stopPropagation(); selectExistingAsset(asset); };
+                    grid.appendChild(cell);
+                });
+            } catch {
+                status.className = 'text-[10px] text-rose-400 py-2';
+                status.textContent = 'Could not load your library. Upload a file instead.';
+            }
+        })();
     };
 
     // ── Public API ────────────────────────────────────────────────────────────
@@ -1197,5 +1480,31 @@ export function createUploadPicker({
         fireOnSelect();
     };
 
-    return { trigger, panel, reset, setMaxImages, getSelectedUrls, setImage };
+    // Accept an Asset Library asset from outside the picker (Library page —
+    // "Use in studio"). The asset id never reaches the studio as a URL: it is
+    // resolved through the adapter first.
+    const selectAsset = async (asset) => {
+        if (asset && asset.id) await selectExistingAsset(asset);
+    };
+
+    if (muapiStudio && studioId) {
+        _studioPickers.set(studioId, { selectAsset, reset });
+
+        // A cross-page request ("Use in studio" from the Library) waits here.
+        const queued = consumeQueuedAsset();
+        if (queued && queued.studioId === studioId) {
+            (async () => {
+                try {
+                    const { listAssets } = await import('../lib/assetLibrary.js');
+                    const { getMuapiAuthContext } = await import('../lib/muapiStudioMedia.js');
+                    const auth = await getMuapiAuthContext();
+                    const assets = await listAssets(auth, {});
+                    const asset = assets.find(a => a.id === queued.assetId);
+                    if (asset) await selectExistingAsset(asset);
+                } catch { /* the user can still pick the asset manually */ }
+            })();
+        }
+    }
+
+    return { trigger, panel, reset, setMaxImages, getSelectedUrls, setImage, selectAsset };
 }

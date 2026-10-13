@@ -1361,6 +1361,69 @@ export function Personalizer() {
     if (el.src !== undefined) {
       addField('Source URL', el.src, (v) => updateElement(el.id, { src: String(v) }));
     }
+
+    // MuAPI-bound personalization media: instead of pasting an external URL
+    // (which expires, or leaks someone else's bucket), store the file once in
+    // the permanent Asset Library through the shared adapter and keep the
+    // asset reference on the element. Studios then resolve a fresh MuAPI URL
+    // from that id.
+    if (el.type === ELEMENT_TYPES.IMAGE) {
+      const uploadRow = document.createElement('div');
+      uploadRow.style.cssText = 'display: flex; align-items: center; gap: 8px;';
+
+      const uploadBtn = document.createElement('button');
+      uploadBtn.type = 'button';
+      uploadBtn.innerText = el.assetId ? 'Replace asset…' : 'Upload image…';
+      Object.assign(uploadBtn.style, {
+        flex: '1',
+        padding: '7px 10px',
+        borderRadius: '6px',
+        border: '1px solid rgba(217,255,0,0.35)',
+        background: 'rgba(217,255,0,0.12)',
+        color: '#d9ff00',
+        fontSize: '11px',
+        fontWeight: '700',
+        cursor: 'pointer',
+      });
+
+      const hiddenInput = document.createElement('input');
+      hiddenInput.type = 'file';
+      hiddenInput.accept = 'image/*';
+      hiddenInput.style.display = 'none';
+
+      uploadBtn.addEventListener('click', () => hiddenInput.click());
+
+      hiddenInput.addEventListener('change', async () => {
+        const file = hiddenInput.files && hiddenInput.files[0];
+        hiddenInput.value = '';
+        if (!file) return;
+        uploadBtn.innerText = 'Uploading…';
+        uploadBtn.disabled = true;
+        try {
+          // Validate + store durably + upload fresh bytes, all through the
+          // shared MuAPI studio media bridge.
+          const { ingestStudioUpload } = await import('../lib/muapiStudioMedia.js');
+          const stored = await ingestStudioUpload(file, { studioId: 'personalizer' });
+          updateElement(el.id, { src: stored.url, assetId: stored.assetId });
+          uploadBtn.innerText = 'Replace asset…';
+        } catch (err) {
+          const { describeMuapiUploadError } = await import('../lib/muapiStudioMedia.js');
+          uploadBtn.innerText = await describeMuapiUploadError(err) || 'Upload failed';
+        } finally {
+          uploadBtn.disabled = false;
+        }
+      });
+
+      uploadRow.append(uploadBtn, hiddenInput);
+      form.appendChild(uploadRow);
+
+      if (el.assetId) {
+        const assetHint = document.createElement('div');
+        assetHint.style.cssText = 'font-size: 10px; color: rgba(255,255,255,0.35);';
+        assetHint.innerText = 'Stored in your Asset Library — reused across studios without re-uploading.';
+        form.appendChild(assetHint);
+      }
+    }
     if (el.href !== undefined) {
       addField('Link URL', el.href, (v) => updateElement(el.id, { href: String(v) }));
     }

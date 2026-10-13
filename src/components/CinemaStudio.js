@@ -360,24 +360,32 @@ let showAdvanced = false;
       getTextarea: () => textarea,
       onUpload: async (key, file) => {
         try {
-          const { uploadFileToStorage } = await import('../lib/hybrid-supabase.js');
-          const url = await uploadFileToStorage(file);
+          // MuAPI-bound reference: validated by the shared adapter and stored in
+          // the permanent Asset Library; resolved at generation time.
+          const { ingestStudioUpload, describeMuapiUploadError } = await import('../lib/muapiStudioMedia.js');
+          const stored = await ingestStudioUpload(file, { studioId: 'cinema-studio', uploadToMuapi: false });
           if (key === 'startFrame' || key === 'endFrame') {
-            if (key === 'startFrame') currentSettings.referenceUrl = url;
-            if (key === 'endFrame') currentSettings.endFrameUrl = url;
-            showReferenceThumb(url);
-            if (url && !i2vModels.some(m => m.id === currentSettings.model)) {
+            if (key === 'startFrame') {
+              currentSettings.referenceUrl = stored.url;
+              currentSettings.referenceAssetId = stored.assetId;
+            }
+            if (key === 'endFrame') {
+              currentSettings.endFrameUrl = stored.url;
+              currentSettings.endFrameAssetId = stored.assetId;
+            }
+            showReferenceThumb(stored.url);
+            if (stored.url && !i2vModels.some(m => m.id === currentSettings.model)) {
               currentSettings.model = (i2vModels[0] && i2vModels[0].id) || currentSettings.model;
             }
             updateModelBtn();
             updateControlsForModel();
           } else if (key === 'image' || key === 'video' || key === 'audio') {
             if (!currentSettings.referenceUrls) currentSettings.referenceUrls = [];
-            currentSettings.referenceUrls.push({ type: key, url, file });
+            currentSettings.referenceUrls.push({ type: key, url: stored.url, assetId: stored.assetId, file });
           }
         } catch (err) {
-          console.error('[CinemaStudio] attachment upload failed:', err);
-          showToast('Attachment upload failed: ' + err.message, 'error');
+          const { describeMuapiUploadError } = await import('../lib/muapiStudioMedia.js');
+          showToast(await describeMuapiUploadError(err), 'error');
         }
       },
     });
@@ -1370,16 +1378,22 @@ let showAdvanced = false;
                 if (ref?.imageUrl) refImages = [ref.imageUrl];
             }
 
-            // Merge additional attachments from the unified toolbar.
-            const extraImages = (currentSettings.referenceUrls || [])
-              .filter(entry => entry.type === 'image')
-              .map(entry => entry.url);
-            const extraVideos = (currentSettings.referenceUrls || [])
-              .filter(entry => entry.type === 'video')
-              .map(entry => entry.url);
-            const extraAudios = (currentSettings.referenceUrls || [])
-              .filter(entry => entry.type === 'audio')
-              .map(entry => entry.url);
+            // Frames and reference attachments resolve to FRESH MuAPI URLs
+            // through the shared adapter (permanent Asset Library refs only).
+            const { resolveMuapiMediaRef, resolveMuapiMediaRefs } = await import('../lib/muapiStudioMedia.js');
+            const firstFrameUrl = currentSettings.referenceUrl
+              ? await resolveMuapiMediaRef({ url: currentSettings.referenceUrl, assetId: currentSettings.referenceAssetId })
+              : null;
+            const lastFrameUrl = currentSettings.endFrameUrl
+              ? await resolveMuapiMediaRef({ url: currentSettings.endFrameUrl, assetId: currentSettings.endFrameAssetId })
+              : null;
+
+            const extraImages = await resolveMuapiMediaRefs((currentSettings.referenceUrls || [])
+              .filter(entry => entry.type === 'image'));
+            const extraVideos = await resolveMuapiMediaRefs((currentSettings.referenceUrls || [])
+              .filter(entry => entry.type === 'video'));
+            const extraAudios = await resolveMuapiMediaRefs((currentSettings.referenceUrls || [])
+              .filter(entry => entry.type === 'audio'));
             if (extraImages.length) {
                 refImages = refImages ? [...refImages, ...extraImages] : extraImages;
             }
@@ -1389,8 +1403,8 @@ let showAdvanced = false;
                 // First/last-frame: pin both the start and end of the clip.
                 res = await muapi.generateI2V({
                     model: resolvedModel,
-                    firstFrameUrl: currentSettings.referenceUrl,
-                    lastFrameUrl: currentSettings.endFrameUrl,
+                    firstFrameUrl,
+                    lastFrameUrl,
                     prompt: finalPrompt,
                     aspect_ratio: currentSettings.aspect_ratio,
                     duration,
@@ -1403,7 +1417,7 @@ let showAdvanced = false;
                 // Image-to-video: use the uploaded still as the seed.
                 const i2vParams = {
                     model: resolvedModel,
-                    image_url: currentSettings.referenceUrl,
+                    image_url: firstFrameUrl,
                     prompt: finalPrompt,
                     aspect_ratio: currentSettings.aspect_ratio,
                     duration,

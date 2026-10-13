@@ -40,7 +40,7 @@ try {
   };
 }
 
-export { supabase };
+export { supabase, getUserKey };
 
 export function isSupabaseConfigured() {
   return !!(supabaseUrl && supabaseAnonKey);
