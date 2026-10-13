@@ -131,7 +131,11 @@ describe('MuapiClient.uploadFile integration', () => {
     expect(mockValidateFile).toHaveBeenCalledWith(mockFile);
   });
 
-  it('falls back to Supabase Storage on 401 auth error', async () => {
+  it('surfaces the API key error on 401 without falling back to storage', async () => {
+    // Contract change (upload requirements §5): an invalid API key must reach
+    // the user as an understandable error. The legacy behavior fell back to
+    // Supabase Storage here, which masked the broken key until generation
+    // failed downstream with a confusing provider error.
     const mockFile = new File(['test'], 'test.png', { type: 'image/png' });
     mockValidateFile.mockResolvedValue({ valid: true, type: 'image' });
 
@@ -145,8 +149,12 @@ describe('MuapiClient.uploadFile integration', () => {
       } as Response)
     );
 
-    const result = await client.uploadFile(mockFile);
-    expect(result).toBe('https://supabase.example.com/test.png');
+    const { uploadFileToStorage } = await import('../../src/lib/supabase.js');
+    // Earlier tests in this file exercise the storage fallback; clear the
+    // shared mock so the assertion below only sees this test's calls.
+    (uploadFileToStorage as unknown as { mockClear: () => void }).mockClear();
+    await expect(client.uploadFile(mockFile)).rejects.toThrow(/API key/);
+    expect(uploadFileToStorage).not.toHaveBeenCalled();
   });
 
   it('falls back to Supabase Storage on 500 server error', async () => {
