@@ -8,16 +8,36 @@
 // instance per process to amortize the ~2s launch cost. Hard timeout
 // 30 seconds per page.
 //
-// SECURITY: We pass the URL through `validateUrl` first (same path as
-// static fetch). The browser is constrained to a 5s wait for JS; we do
-// not execute any user-supplied JS on the page. The browser fetches the
-// rendered DOM, and we hand it to the same parser as static fetch.
+// SECURITY: The initial URL passes through `validateUrl` first (same
+// path as static fetch). Request interception then guards EVERY
+// subresource the page makes: each request URL is re-validated through
+// `validateUrl` and the per-host DNS rebind guard (`reResolveGuard`,
+// the same mechanism staticFetch.js applies to redirect hops) BEFORE
+// the request is issued, and anything that fails validation — or whose
+// resource type is not explicitly allowed — is ABORTED, not continued.
+// Without this, an attacker-controlled page could drive the server to
+// fetch http://169.254.169.254/… or any internal host, and the response
+// body would feed straight into the parsing logic (SSRF).
+//
+// The engine only needs the rendered document and its images, so the
+// allowlist is `document` / `image` / `font` / `stylesheet`; `script`,
+// `xhr`, `fetch`, `websocket` and `media` are blocked by default.
 
-import { validateUrl } from './urlSafety.js';
+import { validateUrl, reResolveGuard } from './urlSafety.js';
 import { extractAssetUrls } from './htmlParser.js';
 
 const HARD_TIMEOUT_MS = 30_000;
 const RENDER_WAIT_MS = 5_000;
+
+/**
+ * Resource types the discovery engine is allowed to fetch. Everything
+ * else (script, xhr, fetch, websocket, media, manifest, …) is aborted:
+ * the page is untrusted input and the engine only reads images.
+ * @type {ReadonlySet<string>}
+ */
+export const ALLOWED_RESOURCE_TYPES = Object.freeze(new Set([
+  'document', 'image', 'font', 'stylesheet',
+]));
 
 let browserInstance = null;
 let browserInitPromise = null;
@@ -44,6 +64,94 @@ async function getBrowser() {
     browserInitPromise = null;
   });
   return browserInitPromise;
+}
+
+/**
+ * Decide whether one intercepted page request may proceed.
+ *
+ * Checks, in order:
+ *   1. resource type is on the allowlist (fail closed otherwise);
+ *   2. the URL passes `validateUrl` (fresh DNS resolution, private /
+ *      loopback / link-local / metadata rejection, protocol + userinfo
+ *      + length checks);
+ *   3. for any host already seen on this page, the DNS rebind guard
+ *      (`reResolveGuard`, same mechanism staticFetch.js uses on
+ *      redirect hops) confirms the address set has not changed.
+ *
+ * `hostAddresses` is a per-page Map<host, addresses[]> that seeds the
+ * rebind guard; it is mutated in place as hosts are validated.
+ *
+ * Exported for tests: a fake request object (`url()`, `resourceType()`)
+ * is enough to exercise the guard without a browser.
+ *
+ * @param {{ url: () => string, resourceType: () => string }} req
+ * @param {Map<string, string[]>} hostAddresses
+ * @returns {Promise<{ allow: true } | { allow: false, reason: string }>}
+ */
+export async function guardHeadlessRequest(req, hostAddresses) {
+  let url;
+  let resourceType;
+  try {
+    url = req.url();
+    resourceType = req.resourceType();
+  } catch {
+    return { allow: false, reason: 'request introspection failed' };
+  }
+
+  if (!ALLOWED_RESOURCE_TYPES.has(resourceType)) {
+    return { allow: false, reason: `resource type "${resourceType}" is not allowed` };
+  }
+
+  const validation = await validateUrl(url);
+  if (!validation.safe) {
+    return { allow: false, reason: validation.reason };
+  }
+
+  let host;
+  try {
+    host = new URL(validation.normalized).hostname.toLowerCase();
+  } catch {
+    return { allow: false, reason: 'URL is not parseable' };
+  }
+
+  const known = hostAddresses instanceof Map ? hostAddresses.get(host) : undefined;
+  if (known) {
+    // Seen before on this page: re-resolve and require the address set
+    // to still be the (public) one we validated — the rebind guard.
+    const guard = await reResolveGuard(host, known);
+    if (!guard.safe) {
+      return { allow: false, reason: guard.reason };
+    }
+    hostAddresses.set(host, guard.addresses);
+  } else if (hostAddresses instanceof Map) {
+    hostAddresses.set(host, validation.addresses);
+  }
+
+  return { allow: true };
+}
+
+/**
+ * Attach the SSRF request guard to a puppeteer page. Seeded with the
+ * initial page URL's resolved addresses so the document request itself
+ * is covered by the rebind guard.
+ *
+ * @param {import('puppeteer').Page} page
+ * @param {{ normalized: string, addresses?: string[] }} initial
+ */
+export function installHeadlessRequestGuard(page, initial) {
+  const hostAddresses = new Map();
+  try {
+    const host = new URL(initial.normalized).hostname.toLowerCase();
+    hostAddresses.set(host, initial.addresses || []);
+  } catch {
+    // Unparseable initial URL — the map simply starts empty and every
+    // request still goes through validateUrl.
+  }
+  page.on('request', (req) => {
+    guardHeadlessRequest(req, hostAddresses)
+      .then((decision) => (decision.allow ? req.continue() : req.abort()))
+      .catch(() => req.abort().catch(() => {}));
+  });
 }
 
 /**
@@ -83,14 +191,9 @@ export async function headlessDiscover(url) {
   try {
     await page.setUserAgent('remix-new-editor/1.0 (+asset-discovery)');
     await page.setRequestInterception(true);
-    page.on('request', (req) => {
-      const t = req.resourceType();
-      if (t === 'image' || t === 'font') {
-        req.abort().catch(() => {});
-      } else {
-        req.continue().catch(() => {});
-      }
-    });
+    // SSRF guard: every request — the document, redirects, subresources,
+    // XHR/fetch — is validated before it leaves the process.
+    installHeadlessRequestGuard(page, v);
     const response = await page.goto(v.normalized, { waitUntil: 'domcontentloaded', timeout: HARD_TIMEOUT_MS });
     if (!response) {
       clearTimeout(hardTimer);

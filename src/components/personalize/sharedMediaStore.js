@@ -100,6 +100,14 @@ class SharedMediaStore extends Store {
    * match the `personalization_outputs` SQL row shape (1:1 with the
    * type definition in types.js).
    *
+   * Every field a writer sets is preserved through normalization — in
+   * particular the AI Assist provenance/decoding fields (`role`,
+   * `sourceAssetId`, `outputIsBase64`, `outputMime`, `outputFormat`,
+   * `openAIResponseId`). Dropping `outputIsBase64` made the hub render
+   * a raw base64 payload as an image URL (a broken image on every AI
+   * Assist output), so the normalization must never silently discard
+   * a caller-supplied field.
+   *
    * The entry is stamped with the current user's owner id
    * (`clerk_user_id`, via withPersonalizationOwner) so every persisted
    * row — local or the future Supabase-backed `personalization_outputs`
@@ -112,7 +120,7 @@ class SharedMediaStore extends Store {
   addEntry(entry = {}) {
     const full = withPersonalizationOwner({
       id: entry.id || `sm-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      originStudio: 'demo-personalization',
+      originStudio: entry.originStudio || 'demo-personalization',
       sourceType: entry.sourceType || 'unknown',
       sourceDemoId: entry.sourceDemoId,
       sourceDemoSlug: entry.sourceDemoSlug,
@@ -120,6 +128,9 @@ class SharedMediaStore extends Store {
       sourceMedia: entry.sourceMedia || null,
       sourceUrl: entry.sourceUrl || null,
       personalizationMode: entry.personalizationMode || null,
+      // AI Assist provenance (personalizeAiAssist.recordOutput).
+      role: entry.role ?? null,
+      sourceAssetId: entry.sourceAssetId ?? null,
       model: entry.model || null,
       originalPrompt: entry.originalPrompt || '',
       personalizedPrompt: entry.personalizedPrompt || '',
@@ -131,6 +142,13 @@ class SharedMediaStore extends Store {
       lastFrameAssetId: entry.lastFrameAssetId || null,
       outputUrls: entry.outputUrls || [],
       outputType: entry.outputType || 'prompt',
+      // How the outputs must be decoded: raw base64 payloads (OpenAI
+      // Responses image results) need a `data:<mime>;base64,` prefix
+      // before they can be rendered; real URLs pass through untouched.
+      outputIsBase64: Boolean(entry.outputIsBase64),
+      outputMime: entry.outputMime || null,
+      outputFormat: entry.outputFormat || null,
+      openAIResponseId: entry.openAIResponseId ?? null,
       clientId: entry.clientId,
       createdAt: entry.createdAt || new Date().toISOString(),
     });

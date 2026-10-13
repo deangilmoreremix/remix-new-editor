@@ -63,8 +63,34 @@ describe('sitemap.discoverFromSitemap', () => {
     ]);
     const r = await discoverFromSitemap('https://example.com/');
     expect(r.locs.length).toBe(2);
-    expect(r.unique).toContain('https://example.com/a');
-    expect(r.unique).toContain('https://example.com/b');
+    // A plain <urlset> lists HTML PAGE urls, not media: they are crawl
+    // targets only and must never be returned as image assets.
+    expect(r.unique).not.toContain('https://example.com/a');
+    expect(r.unique).not.toContain('https://example.com/b');
+  });
+
+  it('returns <image:loc> media URLs from an image sitemap as assets', async () => {
+    const imageSitemap = `<?xml version="1.0"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://example.com/gallery</loc>
+    <image:image>
+      <image:loc>https://example.com/img/hero.png</image:loc>
+      <image:loc>https://example.com/img/shoe.jpg</image:loc>
+    </image:image>
+  </url>
+</urlset>`;
+    global.fetch = makeFetchSequence([
+      { status: 200, body: imageSitemap, headers: { 'content-type': 'application/xml' } },
+      { status: 200, body: '<html><body></body></html>', headers: { 'content-type': 'text/html' } },
+    ]);
+    const r = await discoverFromSitemap('https://example.com/');
+    expect(r.unique).toContain('https://example.com/img/hero.png');
+    expect(r.unique).toContain('https://example.com/img/shoe.jpg');
+    // The hosting HTML page is still a crawl target, never an asset.
+    expect(r.unique).not.toContain('https://example.com/gallery');
+    expect(r.locs).toContain('https://example.com/gallery');
   });
 
   it('falls back to /sitemap_index.xml when sitemap.xml 404s', async () => {

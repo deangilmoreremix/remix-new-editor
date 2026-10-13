@@ -39,6 +39,7 @@
  */
 
 import { openaiService } from '../../lib/openaiService.js';
+import { apiKeyManager } from '../../lib/apiKeyManager.js';
 import { withPersonalizationOwner } from '../../lib/personalizationAuth.js';
 import { runGeneration } from './generationRouter.js';
 import { sharedMediaStore } from './sharedMediaStore.js';
@@ -287,18 +288,19 @@ export async function runAiAssistEdit({
       return { ok: false, code: 'NO_IMAGE_OUTPUT', reason: 'The image provider returned no images.' };
     }
 
-    const entry = recordOutput({
-      clientId,
-      role,
-      asset: target,
-      instruction,
-      outputUrls: images,
-      // OpenAI responses image results are raw base64 (not URLs).
-      isBase64: true,
-      model: options.model || OPENAI_IMAGE_EDIT_MODEL,
-      outputType: 'image',
-      responseId: res.responseId || null,
-    });
+      const entry = recordOutput({
+        clientId,
+        role,
+        asset: target,
+        instruction,
+        outputUrls: images,
+        // OpenAI responses image results are raw base64 (not URLs).
+        isBase64: true,
+        model: options.model || OPENAI_IMAGE_EDIT_MODEL,
+        outputType: 'image',
+        outputFormat: options.outputFormat || 'png',
+        responseId: res.responseId || null,
+      });
 
     onProgress('image.done', { id: entry.id, responseId: res.responseId || null });
     return {
@@ -330,7 +332,7 @@ export async function runAiAssistEdit({
  */
 function recordOutput({
   clientId, role, asset, instruction, outputUrls, model, outputType,
-  isBase64 = false, responseId = null,
+  isBase64 = false, outputFormat = null, responseId = null,
 }) {
   const entry = withPersonalizationOwner({
     id: `pzo_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
@@ -348,6 +350,12 @@ function recordOutput({
     outputUrls: outputUrls.slice(0, 16),
     outputType,
     outputIsBase64: Boolean(isBase64),
+    // Base64 payloads are rendered through a data URL; the MIME must
+    // match the format the provider actually returned (OpenAI defaults
+    // to png but honors an explicit outputFormat), otherwise the image
+    // decodes as the wrong type and shows as broken.
+    outputMime: isBase64 ? `image/${outputFormat || 'png'}` : null,
+    outputFormat: outputFormat || null,
     openAIResponseId: responseId,
     identityAssetIds: role === 'face_identity' ? [asset.id] : [],
     logoAssetIds: role === 'logo' ? [asset.id] : [],
@@ -376,9 +384,34 @@ function describe(err) {
 }
 
 /**
+ * Is a MuAPI key actually configured? Resolved through the canonical
+ * resolver (`src/lib/apiKeyManager.js`) — the same manager
+ * `src/lib/muapi.js` gates its own requests on. Fail-safe: if the
+ * resolver is missing or throws, this reads as "no key" so the UI can
+ * never advertise video intent as available when generation would
+ * immediately fail.
+ *
+ * @returns {boolean}
+ */
+function hasMuapiKey() {
+  try {
+    const manager = apiKeyManager;
+    if (manager && typeof manager.hasMuapiKey === 'function') {
+      return Boolean(manager.hasMuapiKey());
+    }
+    if (manager && typeof manager.getMuapiKey === 'function') {
+      return Boolean(manager.getMuapiKey());
+    }
+  } catch {
+    // Resolver unavailable — treat as "no key" (fail closed).
+  }
+  return false;
+}
+
+/**
  * Convenience: is AI Assist usable right now?
  * True when the OpenAI service has a key available. Video intent
- * additionally needs a MuAPI key.
+ * additionally needs a real MuAPI key.
  * @param {'image'|'video'} [intent='image']
  * @returns {{ ok: boolean, reason?: string }}
  */
@@ -389,9 +422,8 @@ export function checkAiAssistAvailability(intent = 'image') {
   if (!hasOpenAI) {
     return { ok: false, reason: 'An OpenAI API key is required for AI image editing.' };
   }
-  if (intent === 'video') {
-    const hasMuapi = typeof openaiService === 'object';
-    if (!hasMuapi) return { ok: false, reason: 'A MuAPI API key is required for video edits.' };
+  if (intent === 'video' && !hasMuapiKey()) {
+    return { ok: false, reason: 'A MuAPI API key is required for video edits.' };
   }
   return { ok: true };
 }

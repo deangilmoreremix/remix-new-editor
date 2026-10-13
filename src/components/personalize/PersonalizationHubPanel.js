@@ -141,6 +141,9 @@ export function buildLibraryProjection(assets) {
 /**
  * Resolve the display src for an output URL on a shared-media entry.
  * AI Assist image outputs are base64 payloads and must become data URLs.
+ * A value that is already a data URL (a provider that returned one, or a
+ * re-render of a persisted record) passes through untouched — never
+ * double-prefix it.
  *
  * @param {import('./types.js').SharedMediaEntry} entry
  * @param {string} url
@@ -149,6 +152,7 @@ export function buildLibraryProjection(assets) {
 export function toOutputSrc(entry, url) {
   if (typeof url !== 'string' || url.length === 0) return '';
   if (entry && entry.outputIsBase64) {
+    if (url.slice(0, 5).toLowerCase() === 'data:') return url;
     return `data:${entry.outputMime || 'image/png'};base64,${url}`;
   }
   return url;
@@ -352,8 +356,11 @@ function renderClientSection(body) {
   if (current) {
     const summary = document.createElement('div');
     summary.className = 'pzh-summary';
+    summary.dataset.hubActiveClient = current.id;
     [
-      ['Business', current.businessName],
+      // Which profile is active must be explicit: every studio render
+      // and every AI Assist output is scoped to THIS client.
+      ['Active profile', current.businessName || current.name || current.id],
       ['Industry', current.industry],
       ['Product / service', current.productService],
     ].forEach(([label, value]) => {
@@ -373,6 +380,25 @@ function renderClientSection(body) {
     hint.className = 'pzh-muted';
     hint.textContent = 'No client profile yet. Create one to personalize every studio render.';
     body.appendChild(hint);
+  }
+
+  // Client selector: with more than one profile the user must be able
+  // to see and switch which one is active.
+  if (clients.length > 1 && typeof clientProfileStore.setCurrentClientId === 'function') {
+    const select = document.createElement('select');
+    select.className = 'pzh-select';
+    select.dataset.hubClientSelect = 'true';
+    clients.forEach((c) => {
+      const option = document.createElement('option');
+      option.value = c.id;
+      option.textContent = c.businessName || c.name || c.id;
+      if (current && c.id === current.id) option.selected = true;
+      select.appendChild(option);
+    });
+    select.addEventListener('change', () => {
+      clientProfileStore.setCurrentClientId(select.value);
+    });
+    body.appendChild(select);
   }
 
   const form = document.createElement('div');
@@ -400,7 +426,18 @@ function renderClientSection(body) {
     if (current) {
       clientProfileStore.updateClient(current.id, patch);
     } else {
-      clientProfileStore.addClient(patch);
+      const created = clientProfileStore.addClient(patch);
+      // A freshly created profile must become the ACTIVE client —
+      // `addClient` alone leaves `currentClientId` null, so the form
+      // would keep re-rendering empty and studio resolution would
+      // still see "no personalization data". Activate it, then
+      // re-render from the newly current client.
+      if (created && created.id && typeof clientProfileStore.setCurrentClientId === 'function') {
+        clientProfileStore.setCurrentClientId(created.id);
+      }
+      if (activeHub && typeof activeHub.refresh === 'function') {
+        activeHub.refresh();
+      }
     }
   });
   form.appendChild(save);

@@ -10,6 +10,10 @@
 //
 // The job store is in-memory only (per spec). Concurrent jobs are capped
 // at 3 — new submissions above that limit receive an immediate error.
+// Finished jobs are RETAINED for 60s so clients can poll their results;
+// they do not occupy a concurrency slot (only `pending` / `running`
+// jobs count against the limit), so three sequential jobs never block
+// a fourth submission.
 //
 // Jobs run async via setImmediate to keep the call synchronous to the
 // caller (the caller only sees the jobId and polls later). The actual
@@ -27,6 +31,24 @@ const DEFAULT_URL_TIMEOUT_MS = 60_000;
 
 /** @type {Map<string, { status: string, found: any, errors: string[], url: string, startedAt: number, finishedAt: number|null, options: object }>} */
 const jobStore = new Map();
+
+/**
+ * Count the jobs that currently occupy a concurrency slot. Completed /
+ * failed / cancelled jobs stay in the store for the 60s poll window and
+ * must NOT count against the limit — counting them wrongly rejected
+ * every submission once three jobs had finished.
+ *
+ * @returns {number}
+ */
+function countActiveJobs() {
+  let active = 0;
+  for (const job of jobStore.values()) {
+    if (job.status === 'pending' || job.status === 'running') {
+      active += 1;
+    }
+  }
+  return active;
+}
 
 /**
  * Submit a discovery job. Returns synchronously with a job ID; the
@@ -49,7 +71,7 @@ export function discoverAssets(url, options = {}) {
       message: `Domain "${social.domain}" is not supported`,
     };
   }
-  if (jobStore.size >= MAX_CONCURRENT_JOBS) {
+  if (countActiveJobs() >= MAX_CONCURRENT_JOBS) {
     return { error: 'JOB_LIMIT_REACHED', message: `Concurrent job limit (${MAX_CONCURRENT_JOBS}) reached` };
   }
   const jobId = randomUUID();
