@@ -85,7 +85,6 @@
 //   guard.
 
 import { createClerkClient } from '@clerk/backend';
-import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
 
 const LOG_PREFIX = '[stripe-webhook]';
@@ -218,11 +217,22 @@ function resolveEntitlementKey(object, priceIds) {
   return null;
 }
 
-function createSupabaseFromEnv() {
+// Supabase is OPTIONAL (ledger/dedupe only). It is loaded lazily so that a
+// bundling or module-resolution problem in @supabase/supabase-js (observed as
+// Runtime.ImportModuleError on a missing transitive dep in a partial tree)
+// cannot take down the whole webhook — grants only need Stripe + Clerk. Never
+// throws: returns null when unavailable, which every caller handles.
+async function createSupabaseFromEnv() {
   const url = envValue('SUPABASE_URL');
   const serviceKey = envValue('SUPABASE_SERVICE_ROLE_KEY') || envValue('SUPABASE_SERVICE_KEY');
   if (!url || !serviceKey) return null;
-  return createClient(url, serviceKey);
+  try {
+    const { createClient } = await import('@supabase/supabase-js');
+    return createClient(url, serviceKey);
+  } catch (err) {
+    errorLog('supabase-js unavailable, continuing without ledger/dedupe:', err?.message || err);
+    return null;
+  }
 }
 
 // Existing Clerk users only — this webhook never creates users.
@@ -421,7 +431,7 @@ export const handler = async (event) => {
 
   const stripe = new Stripe(stripeSecretKey);
   const clerkClient = createClerkClient({ secretKey: clerkSecretKey });
-  const supabase = createSupabaseFromEnv();
+  const supabase = await createSupabaseFromEnv();
 
   const signature = getHeader(event.headers, 'stripe-signature');
   if (!signature) {
