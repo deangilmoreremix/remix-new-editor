@@ -356,6 +356,426 @@ export function buildDeliveryManifest(entries, options = {}) {
   };
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+ * RENDER OVERLAYS — personalized logo / brand-reference / text compositing
+ * ═══════════════════════════════════════════════════════════════════════════
+ * The capture path composites one base image per frame — the source video,
+ * drawn by `ctx.drawImage(video, sourceRect…)` in `drawFrame()`. Overlays are
+ * the additive step on top of that base frame, so an export can carry a client
+ * logo, an optional brand reference and the business name / call to action.
+ *
+ * TWO-PHASE CONTRACT (the important part)
+ * ---------------------------------------
+ *  1. SETUP, once, before the capture starts:
+ *       const prepared = await prepareRenderOverlays(overlays);
+ *     Every image overlay is turned into a decoded `Image` here. This is the
+ *     only async step.
+ *  2. PER FRAME, fully synchronous, inside `drawFrame()`:
+ *       drawOverlays(ctx, prepared, { width, height, visibleRect });
+ *     No `await`, no `new Image()`, no network — a frame draw must never
+ *     stall the MediaRecorder capture. An overlay whose image failed to load
+ *     is skipped with a warning; a draw failure never throws.
+ *
+ * GEOMETRY IS RESOLUTION-INDEPENDENT
+ * ----------------------------------
+ * `x` / `y` / `width` / `height` / `fontSize` / `maxWidth` are FRACTIONS of
+ * the visible video area (0..1), never pixels, so the same descriptor renders
+ * identically at 1080p and 4K. Overlays are positioned inside the VISIBLE
+ * area (the drawn video rect), so `settings.contain` letterbox bars are never
+ * covered: pass the contain rect as `visibleRect`.
+ *
+ * DESCRIPTOR SCHEMA
+ * -----------------
+ * Image overlay (logo / brand reference):
+ *   { id, type: 'image', url, x, y, width, height, opacity, source }
+ *     x, y      top-left corner, fraction of the visible area (0..1)
+ *     width     fraction of the visible width (0..1)
+ *     height    fraction of the visible height (0..1), or null to preserve the
+ *               decoded image's aspect ratio
+ *     opacity   0..1
+ * Text overlay (business name / CTA):
+ *   { id, type: 'text', text, x, y, fontSize, color, fontFamily, align,
+ *     opacity, maxWidth, lineHeight, fontWeight, shadow, source }
+ *     x, y      anchor point, fraction of the visible area; `x` is interpreted
+ *               per `align` ('left' | 'center' | 'right')
+ *     fontSize  fraction of the visible height (0..1)
+ *     maxWidth  wrapping width, fraction of the visible width
+ * `id` is the merge key: a studio-supplied overlay with the same id replaces
+ * the personalization one (studio values always win).
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+/** Font stack used by text overlays when the descriptor does not pick one. */
+export const RENDER_OVERLAY_FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+
+/** Text alignments `drawOverlays` understands. */
+export const RENDER_OVERLAY_ALIGN = Object.freeze(['left', 'center', 'right']);
+
+/** Per-type defaults for any descriptor field the caller left out. */
+export const RENDER_OVERLAY_DEFAULTS = Object.freeze({
+  image: Object.freeze({ x: 0.84, y: 0.04, width: 0.12, height: null, opacity: 0.9 }),
+  text: Object.freeze({
+    x: 0.5,
+    y: 0.86,
+    fontSize: 0.05,
+    color: '#ffffff',
+    fontFamily: RENDER_OVERLAY_FONT,
+    align: 'center',
+    opacity: 1,
+    maxWidth: 0.9,
+    lineHeight: 1.2,
+    fontWeight: 600,
+    shadow: true,
+  }),
+});
+
+function clampFraction(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return 0;
+  return Math.max(0, Math.min(1, n));
+}
+
+function clampOpacity(value, fallback) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.max(0, Math.min(1, n));
+}
+
+/**
+ * Normalize the visible video area (the rect the base frame is drawn into).
+ * Falls back to the whole canvas when a caller passes nothing usable.
+ *
+ * @param {{x?: number, y?: number, width?: number, height?: number}} [visible]
+ * @param {{width: number, height: number}} canvas
+ */
+export function normalizeOverlayVisibleRect(visible, canvas) {
+  const canvasWidth = Number(canvas && canvas.width) || 0;
+  const canvasHeight = Number(canvas && canvas.height) || 0;
+  const full = { x: 0, y: 0, width: canvasWidth, height: canvasHeight };
+  if (!visible || typeof visible !== 'object') return full;
+
+  const x = Number.isFinite(visible.x) ? visible.x : 0;
+  const y = Number.isFinite(visible.y) ? visible.y : 0;
+  const width = Number.isFinite(visible.width) ? visible.width : canvasWidth - x;
+  const height = Number.isFinite(visible.height) ? visible.height : canvasHeight - y;
+  const clampedWidth = Math.max(0, Math.min(width, canvasWidth - x));
+  const clampedHeight = Math.max(0, Math.min(height, canvasHeight - y));
+  if (clampedWidth <= 0 || clampedHeight <= 0) return full;
+  return { x, y, width: clampedWidth, height: clampedHeight };
+}
+
+/**
+ * Read the aspect ratio (height / width) of a decoded image, when known.
+ * @param {{naturalWidth?: number, naturalHeight?: number, width?: number, height?: number}} image
+ * @returns {number|null}
+ */
+export function overlayImageAspect(image) {
+  if (!image) return null;
+  const w = Number(image.naturalWidth) || Number(image.width) || 0;
+  const h = Number(image.naturalHeight) || Number(image.height) || 0;
+  if (!(w > 0) || !(h > 0)) return null;
+  return h / w;
+}
+
+function resolveOverlayType(raw) {
+  if (raw.type === 'image' || raw.type === 'text') return raw.type;
+  return typeof raw.text === 'string' && raw.text.trim() !== '' ? 'text' : 'image';
+}
+
+function fallbackOverlayId(type, raw) {
+  if (typeof raw.id === 'string' && raw.id.trim() !== '') return raw.id.trim();
+  if (typeof raw.key === 'string' && raw.key.trim() !== '') return raw.key.trim();
+  if (type === 'image') return `image:${String(raw.url || '').slice(0, 80)}`;
+  return `text:${String(raw.text || '').trim().slice(0, 40)}`;
+}
+
+/**
+ * Coerce one caller-supplied overlay into the canonical descriptor shape.
+ * Returns `null` for anything that cannot be drawn (no url / no text), so a
+ * malformed entry is dropped instead of failing the render.
+ *
+ * @param {object} raw
+ * @returns {object|null}
+ */
+export function normalizeOverlayDescriptor(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const type = resolveOverlayType(raw);
+  const defaults = RENDER_OVERLAY_DEFAULTS[type];
+  const base = {
+    id: fallbackOverlayId(type, raw),
+    type,
+    x: clampFraction(raw.x != null ? raw.x : defaults.x),
+    y: clampFraction(raw.y != null ? raw.y : defaults.y),
+    opacity: clampOpacity(raw.opacity, defaults.opacity),
+    source: typeof raw.source === 'string' && raw.source.trim() !== '' ? raw.source : 'studio',
+  };
+  if (type === 'text') {
+    const text = typeof raw.text === 'string' ? raw.text : '';
+    if (text.trim() === '') return null;
+    const align = RENDER_OVERLAY_ALIGN.includes(raw.align) ? raw.align : defaults.align;
+    const lineHeight = Number(raw.lineHeight);
+    return {
+      ...base,
+      text,
+      color: typeof raw.color === 'string' && raw.color.trim() !== '' ? raw.color : defaults.color,
+      fontFamily: typeof raw.fontFamily === 'string' && raw.fontFamily.trim() !== '' ? raw.fontFamily : defaults.fontFamily,
+      align,
+      fontSize: clampFraction(raw.fontSize != null ? raw.fontSize : defaults.fontSize),
+      maxWidth: clampFraction(raw.maxWidth != null ? raw.maxWidth : defaults.maxWidth),
+      lineHeight: Number.isFinite(lineHeight) && lineHeight > 0 ? lineHeight : defaults.lineHeight,
+      fontWeight: raw.fontWeight != null ? raw.fontWeight : defaults.fontWeight,
+      shadow: raw.shadow !== false,
+    };
+  }
+  const url = typeof raw.url === 'string' ? raw.url.trim() : '';
+  if (url === '') return null;
+  return {
+    ...base,
+    url,
+    width: clampFraction(raw.width != null ? raw.width : defaults.width),
+    // null = keep the decoded aspect ratio (height derived at draw time).
+    height: raw.height == null ? null : clampFraction(raw.height),
+  };
+}
+
+/**
+ * Resolve one overlay's normalized geometry into pixel coordinates inside the
+ * VISIBLE video area, so letterbox bars are never covered.
+ *
+ * @param {object} descriptor - raw or already-normalized descriptor
+ * @param {number} canvasWidth
+ * @param {number} canvasHeight
+ * @param {{x?: number, y?: number, width?: number, height?: number}} [visibleRect]
+ * @param {number|null} [aspect] - decoded image height/width, for `height: null`
+ * @returns {object|null} pixel placement, or null when nothing is drawable
+ */
+export function resolveOverlayRect(descriptor, canvasWidth, canvasHeight, visibleRect, aspect) {
+  const d = normalizeOverlayDescriptor(descriptor);
+  if (!d) return null;
+  const canvas = { width: Number(canvasWidth) || 0, height: Number(canvasHeight) || 0 };
+  const vis = normalizeOverlayVisibleRect(visibleRect, canvas);
+  if (vis.width <= 0 || vis.height <= 0) return null;
+
+  if (d.type === 'image') {
+    const width = d.width * vis.width;
+    const ratio = Number.isFinite(aspect) && aspect > 0
+      ? aspect
+      : (d.height == null ? 1 : (d.height * vis.height) / (width || 1));
+    const height = Math.max(1, d.height == null ? width * ratio : d.height * vis.height);
+    const maxX = Math.max(vis.x, vis.x + vis.width - width);
+    const maxY = Math.max(vis.y, vis.y + vis.height - height);
+    return {
+      type: 'image',
+      x: Math.max(vis.x, Math.min(vis.x + d.x * vis.width, maxX)),
+      y: Math.max(vis.y, Math.min(vis.y + d.y * vis.height, maxY)),
+      width,
+      height,
+      opacity: d.opacity,
+    };
+  }
+
+  const fontSize = Math.max(6, d.fontSize * vis.height);
+  const anchorX = vis.x + d.x * vis.width;
+  // Keep the first line (and the anchor) inside the visible band.
+  const lineStep = fontSize * d.lineHeight;
+  const maxY = Math.max(vis.y, vis.y + vis.height - lineStep);
+  // Clamp the wrap box so a long line cannot spill over a letterbox bar.
+  const available = d.align === 'left'
+    ? vis.x + vis.width - anchorX
+    : (d.align === 'right'
+      ? anchorX - vis.x
+      : 2 * Math.min(anchorX - vis.x, vis.x + vis.width - anchorX));
+  const maxWidth = Math.max(8, Math.min(d.maxWidth * vis.width, available));
+  return {
+    type: 'text',
+    x: Math.max(vis.x, Math.min(anchorX, vis.x + vis.width)),
+    y: Math.max(vis.y, Math.min(vis.y + d.y * vis.height, maxY)),
+    width: maxWidth,
+    height: lineStep,
+    fontSize,
+    maxWidth,
+    align: d.align,
+    color: d.color,
+    fontFamily: d.fontFamily,
+    fontWeight: d.fontWeight,
+    opacity: d.opacity,
+    lineHeight: d.lineHeight,
+    shadow: d.shadow,
+  };
+}
+
+/**
+ * True when there is something to composite AND the user has not disabled
+ * overlays. This is the global `overlaysEnabled` switch: when it is false the
+ * render is byte-identical to an export with no overlays at all.
+ *
+ * @param {unknown} overlays
+ * @param {unknown} [enabled]
+ * @returns {boolean}
+ */
+export function shouldCompositeOverlays(overlays, enabled) {
+  if (enabled === false) return false;
+  return Array.isArray(overlays) && overlays.length > 0;
+}
+
+/**
+ * Decode ONE image overlay into an `Image`. Never rejects: a failed load
+ * resolves to `null` so the caller can skip that overlay.
+ *
+ * @param {string} url
+ * @param {{ ImageCtor?: Function, timeoutMs?: number }} [options]
+ * @returns {Promise<Image|null>}
+ */
+function loadOverlayImage(url, options = {}) {
+  const ImageCtor = options.ImageCtor || (typeof globalThis !== 'undefined' ? globalThis.Image : null);
+  // Same bounded decode budget as inspectMediaBlob(): a hanging asset is
+  // skipped, so it can never stall the start of a capture.
+  const timeoutMs = Number.isFinite(options.timeoutMs) ? options.timeoutMs : 8000;
+  return new Promise((resolve) => {
+    if (!ImageCtor || typeof url !== 'string' || url === '') {
+      resolve(null);
+      return;
+    }
+    let image;
+    try {
+      image = new ImageCtor();
+    } catch {
+      resolve(null);
+      return;
+    }
+    let settled = false;
+    const finish = (ok) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve(ok ? image : null);
+    };
+    const timer = setTimeout(() => finish(false), timeoutMs);
+    image.onload = () => finish(true);
+    image.onerror = () => finish(false);
+    try {
+      // Anonymous CORS: a cross-origin logo without CORS headers fails to load
+      // (and is skipped) rather than tainting the canvas — a tainted canvas
+      // would break canvas.captureStream() and take the whole export down.
+      if ('crossOrigin' in image) image.crossOrigin = 'anonymous';
+      image.src = url;
+    } catch {
+      finish(false);
+    }
+  });
+}
+
+/**
+ * SETUP phase: normalize the overlay list and decode every image ONCE, before
+ * the capture starts. Each entry comes back as `{ ...descriptor, ready, image }`
+ * — `ready: false` means "skip this overlay", never "fail the render".
+ *
+ * @param {object[]} overlays - raw overlay descriptors
+ * @param {{ ImageCtor?: Function, timeoutMs?: number }} [options]
+ * @returns {Promise<object[]>}
+ */
+export async function prepareRenderOverlays(overlays, options = {}) {
+  const normalized = (Array.isArray(overlays) ? overlays : [])
+    .map(normalizeOverlayDescriptor)
+    .filter(Boolean);
+  return Promise.all(normalized.map(async (descriptor) => {
+    if (descriptor.type !== 'image') return { ...descriptor, ready: true, image: null };
+    const image = await loadOverlayImage(descriptor.url, options);
+    if (!image) {
+      console.warn('[Render] overlay image skipped (failed to load/decode):', descriptor.url);
+      return { ...descriptor, ready: false, image: null };
+    }
+    return { ...descriptor, ready: true, image };
+  }));
+}
+
+function wrapOverlayText(ctx, text, maxWidth) {
+  const lines = [];
+  for (const paragraph of String(text).split('\n')) {
+    const words = paragraph.split(/\s+/).filter(Boolean);
+    if (words.length === 0) {
+      lines.push('');
+      continue;
+    }
+    let line = '';
+    for (const word of words) {
+      const candidate = line === '' ? word : `${line} ${word}`;
+      let width;
+      try {
+        width = ctx.measureText ? ctx.measureText(candidate).width : candidate.length;
+      } catch {
+        width = candidate.length;
+      }
+      if (width > maxWidth && line !== '') {
+        lines.push(line);
+        line = word;
+      } else {
+        line = candidate;
+      }
+    }
+    if (line !== '') lines.push(line);
+  }
+  return lines.length > 0 ? lines : [''];
+}
+
+/**
+ * FRAME phase: composite prepared overlays on top of the already-drawn base
+ * frame. Synchronous, never throws (a failing overlay is skipped with a
+ * warning), and returns the number of overlays actually drawn.
+ *
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {object[]} overlays - output of `prepareRenderOverlays()`
+ * @param {{ width?: number, height?: number, visibleRect?: object }} [options]
+ * @returns {number}
+ */
+export function drawOverlays(ctx, overlays, options = {}) {
+  if (!ctx || typeof ctx.drawImage !== 'function' || !Array.isArray(overlays) || overlays.length === 0) {
+    return 0;
+  }
+  const width = Number(options.width) || 0;
+  const height = Number(options.height) || 0;
+  const visible = normalizeOverlayVisibleRect(options.visibleRect, { width, height });
+  let drawn = 0;
+
+  for (const entry of overlays) {
+    let saved = false;
+    try {
+      const descriptor = normalizeOverlayDescriptor(entry);
+      if (!descriptor) continue;
+      if (descriptor.type === 'image' && !(entry && entry.image)) continue; // failed preload
+      const placement = resolveOverlayRect(descriptor, width, height, visible, overlayImageAspect(entry && entry.image));
+      if (!placement) continue;
+
+      ctx.save();
+      saved = true;
+      ctx.globalAlpha = placement.opacity;
+      if (descriptor.type === 'image') {
+        ctx.drawImage(entry.image, placement.x, placement.y, placement.width, placement.height);
+      } else {
+        ctx.font = `${placement.fontWeight} ${placement.fontSize}px ${placement.fontFamily}`;
+        ctx.textAlign = placement.align;
+        ctx.textBaseline = 'top';
+        if (placement.shadow) {
+          ctx.shadowColor = 'rgba(0,0,0,0.55)';
+          ctx.shadowBlur = Math.max(2, placement.fontSize * 0.35);
+          ctx.shadowOffsetY = Math.max(1, placement.fontSize * 0.06);
+        }
+        ctx.fillStyle = placement.color;
+        wrapOverlayText(ctx, descriptor.text, placement.maxWidth).forEach((line, index) => {
+          ctx.fillText(line, placement.x, placement.y + index * placement.fontSize * placement.lineHeight);
+        });
+      }
+      drawn++;
+    } catch (err) {
+      console.warn('[Render] overlay skipped after a draw failure:', err && err.message);
+    } finally {
+      if (saved) {
+        try { ctx.restore(); } catch { /* ignore */ }
+      }
+    }
+  }
+  return drawn;
+}
+
 export function buildRenderFilename(base, action, extension) {
   const safeBase = buildFilenameStem(base || 'clip', 'clip');
   const safeAction = String(action || 'export').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
