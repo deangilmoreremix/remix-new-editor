@@ -30,7 +30,17 @@
 //     scope; no browser secret is ever exposed for auth.
 //   - Server-to-server callers may instead send the internal shared secret
 //     `X-Discovery-Secret: <PERSONALIZATION_DISCOVERY_SECRET>`, following the
-//     MAIGRET_WORKER_SECRET precedent in netlify.toml.
+//     MAIGRET_WORKER_SECRET precedent in netlify.toml. The secret is
+//     compared in constant time.
+//
+// Ownership (there is deliberately NO cross-caller job access): status
+// reads, cancels and durable rows are ownership-checked against the
+// verified caller's identity — the in-memory (engine) path included, which
+// previously returned any warm job to any authenticated caller. A verified
+// user may only touch jobs owned by their own id (matched case- and
+// whitespace-insensitively), and the shared-secret caller may only touch
+// jobs owned by nobody (user_id null), so it can never read or cancel
+// another user's job. Identity paths fail closed.
 //
 // SSRF: the engine already validates every URL (and every redirect hop).
 // As defence in depth this function ALSO re-validates the submitted URL with
@@ -274,8 +284,52 @@ function secretsMatch(provided, expected) {
 }
 
 /**
+ * Warm-instance ownership index: jobId -> the verified caller id that
+ * started the job through this function (null for internal shared-secret
+ * callers). The discovery engine's in-memory job records are NOT
+ * owner-scoped, so this map is the ownership record for every job the
+ * function itself creates; handleStart() registers it BEFORE the jobId is
+ * ever returned to a client — which is what makes the in-memory status
+ * path enforceable at all.
+ *
+ * @type {Map<string, string | null>}
+ */
+const jobOwners = new Map();
+
+/** Case- and whitespace-insensitive identity normalization. */
+function normalizeIdentity(value) {
+  return typeof value === 'string' ? value.trim().toLowerCase() : '';
+}
+
+/**
+ * The ONE ownership check, shared by the in-memory (engine) path, the
+ * durable-row path and cancel. Fail-closed:
+ *   - a verified user may only touch jobs owned by their OWN id (compared
+ *     case- and whitespace-insensitively, so a padded or case-varied id
+ *     can never slip past the match);
+ *   - the internal shared-secret caller (no user id) may only touch jobs
+ *     owned by nobody (`user_id` null) — it can NEVER read, poll or cancel
+ *     another user's job, warm or durable;
+ *   - jobs with no owner information are never exposed to a verified user
+ *     (they belong to internal callers).
+ *
+ * @param {string | null | undefined} ownerId the job's recorded owner
+ * @param {string | null} callerId the verified caller's identity (null for the shared-secret path)
+ * @returns {boolean}
+ */
+function callerOwnsJob(ownerId, callerId) {
+  const owner = normalizeIdentity(ownerId);
+  const caller = normalizeIdentity(callerId);
+  if (!caller) {
+    return ownerId === null;
+  }
+  return owner !== '' && owner === caller;
+}
+
+/**
  * Verify the caller. Returns `{ userId }` for Supabase-session callers,
- * `{ userId: null }` for the internal shared-secret path, or `{ error }`.
+ * `{ userId: null }` for the internal shared-secret path (which
+ * callerOwnsJob() then restricts to jobs owned by nobody), or `{ error }`.
  * Fails closed: any doubt rejects the request.
  */
 async function verifyAuth(event) {
@@ -370,6 +424,10 @@ async function handleStart(event, auth) {
   }
 
   const jobId = submitted.jobId;
+  // Register warm-instance ownership BEFORE the jobId reaches a client, so
+  // GET/cancel can enforce the SAME ownership check the durable-row path
+  // performs (the engine's in-memory records are not owner-scoped).
+  jobOwners.set(jobId, auth.userId ?? null);
   await persistJobRecord({
     jobId,
     userId: auth.userId,
@@ -397,6 +455,15 @@ async function handleStatus(event, auth) {
   }
 
   if (status.status !== 'not_found') {
+    // Same ownership verification as the durable-row path below: the
+    // engine's in-memory record is not owner-scoped, so the job's owner
+    // (registered by handleStart when this function created it) must match
+    // the verified caller before ANY status is returned.
+    const warmOwner = jobOwners.get(jobId);
+    if (warmOwner !== undefined && !callerOwnsJob(warmOwner, auth.userId)) {
+      // Never leak another caller's job state.
+      return jsonResponse(404, { error: 'Unknown jobId', jobId, status: 'not_found' });
+    }
     return jsonResponse(200, jobResponse(jobId, toApiStatus(status.status), status.found, status.errors));
   }
 
@@ -406,8 +473,10 @@ async function handleStatus(event, auth) {
   if (!row) {
     return jsonResponse(404, { error: 'Unknown jobId', jobId, status: 'not_found' });
   }
-  if (row.user_id && auth.userId && row.user_id !== auth.userId) {
-    // Never leak another caller's job state.
+  if (!callerOwnsJob(row.user_id, auth.userId)) {
+    // Never leak another caller's job state: a verified user only ever
+    // reads their own rows, and the internal shared-secret caller (userId
+    // null) only ever reads rows owned by nobody.
     return jsonResponse(404, { error: 'Unknown jobId', jobId, status: 'not_found' });
   }
   if (!TERMINAL_STATUSES.has(row.status)) {
@@ -423,7 +492,17 @@ async function handleCancel(event, auth, jobId) {
 
   const engine = await loadEngine();
   const row = await loadDurableJob(jobId);
-  if (row && row.user_id && auth.userId && row.user_id !== auth.userId) {
+  // Ownership BEFORE any state change, from both records when present:
+  //   - the warm owner index (jobs this function started on this instance);
+  //   - the durable row (the persisted owner).
+  // Without this, an authenticated caller could cancel another user's warm
+  // job — and, worse, re-persist the row under their own user_id.
+  const warmOwner = jobOwners.get(jobId);
+  if (warmOwner !== undefined && !callerOwnsJob(warmOwner, auth.userId)) {
+    // Never leak another caller's job state.
+    return jsonResponse(404, { error: 'Unknown jobId', jobId, status: 'not_found' });
+  }
+  if (row && !callerOwnsJob(row.user_id, auth.userId)) {
     // Never leak another caller's job state.
     return jsonResponse(404, { error: 'Unknown jobId', jobId, status: 'not_found' });
   }

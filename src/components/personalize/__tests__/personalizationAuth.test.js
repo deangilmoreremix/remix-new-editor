@@ -3,28 +3,40 @@
  *
  * Authorization tests for the personalization identity seam:
  * ownership stamping on write, owner filtering on read, cross-user
- * isolation, anonymous/fallback isolation, and CRUD rejection.
+ * isolation, signed-out fail-closed behaviour, and CRUD rejection.
  *
  * Mock-depth note (same convention as __tests__/generationRouter.test.js):
  * this spec lives in __tests__/, one level deeper than the modules under
  * test, so lib modules are ../../../lib/x.js.
  *
- * The identity source (../../../lib/userKey.js) is mocked so the "current
- * user" can be switched between calls without a Clerk session.
+ * IDENTITY SOURCE (updated for the DB-enforced contract): the verified
+ * CLERK SESSION. ../../../lib/clerkInit.js is mocked so the "current user"
+ * can be switched between calls — the identity is NEVER a client-supplied
+ * value, a MuAPI-key hash, or a shared 'anonymous' bucket. This spec used
+ * to mock ../../../lib/userKey.js and assert the app-enforced Phase-2
+ * contract (getUserKey fallback chain + 'anonymous' bucket + the
+ * set_app_clerk_user_id RPC); that contract is superseded by
+ * src/lib/personalizationAuth.js's verified-Clerk-session source and by
+ * supabase/migrations/20261013120000_harden_personalization_rls.sql, which
+ * drops the RPC and enforces ownership against the verified JWT sub claim
+ * in the database. See src/lib/__tests__/clerkSupabaseAuth.test.js and
+ * src/lib/__tests__/personalizationRlsPolicy.test.js for the new contract's
+ * dedicated specs.
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 const identity = vi.hoisted(() => ({
   userId: 'user_a',
-  throwNext: false,
 }));
 
-vi.mock('../../../lib/userKey.js', () => ({
-  getUserKey: () => {
-    if (identity.throwNext) throw new Error('identity unavailable');
-    return identity.userId;
-  },
+vi.mock('../../../lib/clerkInit.js', () => ({
+  getClerkInstance: () => (
+    identity.userId
+      ? { loaded: true, user: { id: identity.userId }, session: { user: { id: identity.userId } } }
+      : { loaded: true, user: null, session: null }
+  ),
+  ensureClerkLoaded: async () => {},
 }));
 
 const {
@@ -37,7 +49,6 @@ const {
   assertOwner,
   filterPersonalizationEntries,
   getPersonalizationStorageKey,
-  announcePersonalizationOwner,
   PERSONALIZATION_OWNER_FIELD,
 } = await import('../../../lib/personalizationAuth.js');
 const { sharedMediaStore } = await import('../sharedMediaStore.js');
@@ -45,17 +56,14 @@ const { assetLibraryStore } = await import('../assetLibraryStore.js');
 
 function actAsUserA() {
   identity.userId = 'user_a';
-  identity.throwNext = false;
 }
 
 function actAsUserB() {
   identity.userId = 'user_b';
-  identity.throwNext = false;
 }
 
-function actAsAnonymous() {
-  identity.userId = 'anonymous';
-  identity.throwNext = false;
+function signOut() {
+  identity.userId = null;
 }
 
 beforeEach(() => {
@@ -70,32 +78,28 @@ beforeEach(() => {
 });
 
 describe('personalizationAuth — identity resolution', () => {
-  it('getPersonalizationUserId returns the app identity (Clerk userId slot)', () => {
+  it('getPersonalizationUserId returns the VERIFIED Clerk session id', () => {
     expect(getPersonalizationUserId()).toBe('user_a');
     actAsUserB();
     expect(getPersonalizationUserId()).toBe('user_b');
   });
 
-  it('falls back to anonymous when the identity source throws', () => {
-    identity.throwNext = true;
-    expect(getPersonalizationUserId()).toBe('anonymous');
+  it('returns null when signed out (no anonymous fallback)', () => {
+    signOut();
+    expect(getPersonalizationUserId()).toBeNull();
   });
 
-  it('isPersonalizationAuthReady is true whenever an id resolves', () => {
+  it('isPersonalizationAuthReady / isPersonalizationSignedIn track the verified session', () => {
     expect(isPersonalizationAuthReady()).toBe(true);
-    identity.throwNext = true;
-    expect(isPersonalizationAuthReady()).toBe(true); // 'anonymous' fallback is still usable
-  });
-
-  it('isPersonalizationSignedIn is false for the anonymous fallback', () => {
     expect(isPersonalizationSignedIn()).toBe(true);
-    actAsAnonymous();
+    signOut();
+    expect(isPersonalizationAuthReady()).toBe(false);
     expect(isPersonalizationSignedIn()).toBe(false);
   });
 });
 
 describe('personalizationAuth — ownership stamping', () => {
-  it('withPersonalizationOwner stamps clerk_user_id with the current user', () => {
+  it('withPersonalizationOwner stamps clerk_user_id with the verified user', () => {
     const entry = withPersonalizationOwner({ id: 'x1', sourceType: 'image' });
     expect(entry[PERSONALIZATION_OWNER_FIELD]).toBe('user_a');
     expect(entry.clerkUserId).toBe('user_a');
@@ -118,6 +122,13 @@ describe('personalizationAuth — ownership stamping', () => {
     const entry = withPersonalizationOwner({ id: 'x3' });
     expect(entry[PERSONALIZATION_OWNER_FIELD]).toBe('user_b');
   });
+
+  it('stamps no owner when signed out — never a shared bucket', () => {
+    signOut();
+    const entry = withPersonalizationOwner({ id: 'x4', clerk_user_id: 'user_victim' });
+    expect(entry[PERSONALIZATION_OWNER_FIELD]).toBeNull();
+    expect(entry.clerkUserId).toBeNull();
+  });
 });
 
 describe('personalizationAuth — canAccess', () => {
@@ -129,12 +140,6 @@ describe('personalizationAuth — canAccess', () => {
   it('false for a mismatched owner', () => {
     expect(canAccess({ clerk_user_id: 'user_b' })).toBe(false);
     expect(canAccess({ clerk_user_id: 'user_a' })).toBe(true);
-  });
-
-  it('true for null/undefined owner (legacy rows written before stamping)', () => {
-    expect(canAccess({ id: 'legacy' })).toBe(true);
-    expect(canAccess({ id: 'legacy', clerk_user_id: null })).toBe(true);
-    expect(canAccess({ id: 'legacy', clerk_user_id: undefined })).toBe(true);
   });
 
   it('false for a malformed (empty string) owner', () => {
@@ -150,54 +155,46 @@ describe('personalizationAuth — canAccess', () => {
     const rows = [
       { id: 'a', clerk_user_id: 'user_a' },
       { id: 'b', clerk_user_id: 'user_b' },
-      { id: 'legacy' },
+      { id: 'c', clerk_user_id: 'user_a' },
     ];
     const visible = filterPersonalizationEntries(rows);
-    expect(visible.map((e) => e.id)).toEqual(['a', 'legacy']);
+    expect(visible.map((e) => e.id)).toEqual(['a', 'c']);
   });
 
-  it('an anonymous/fallback user cannot read a signed-in user\'s rows', () => {
+  it('a signed-out session cannot read a signed-in user\'s rows', () => {
     const ownRow = { id: 'a', clerk_user_id: 'user_a' };
     expect(canAccess(ownRow)).toBe(true);
-    actAsAnonymous();
+    signOut();
     expect(canAccess(ownRow)).toBe(false);
-    expect(filterPersonalizationEntries([ownRow, { id: 'anon', clerk_user_id: 'anonymous' }]))
-      .toEqual([{ id: 'anon', clerk_user_id: 'anonymous' }]);
+    expect(filterPersonalizationEntries([ownRow])).toEqual([]);
   });
 
-  it('a signed-in user cannot read an anonymous user\'s rows', () => {
-    actAsAnonymous();
-    const anonRow = { id: 'anon', clerk_user_id: 'anonymous' };
-    expect(canAccess(anonRow)).toBe(true);
+  it('legacy rows stamped with the old shared "anonymous" bucket are orphaned', () => {
+    // The shared 'anonymous' bucket is gone: no verified session ever
+    // presents that id, so such rows are unreachable by design (and the DB
+    // migration NULLs the stamps out).
     actAsUserA();
-    expect(canAccess(anonRow)).toBe(false);
+    expect(canAccess({ id: 'anon', clerk_user_id: 'anonymous' })).toBe(false);
+    signOut();
+    expect(canAccess({ id: 'anon', clerk_user_id: 'anonymous' })).toBe(false);
   });
 });
 
-describe('personalizationAuth — storage keys + RLS handshake', () => {
-  it('getPersonalizationStorageKey namespaces by the current user', () => {
+describe('personalizationAuth — storage keys + fail-closed writes', () => {
+  it('getPersonalizationStorageKey namespaces by the verified user', () => {
     expect(getPersonalizationStorageKey('base')).toBe('base:user_a');
     actAsUserB();
     expect(getPersonalizationStorageKey('base')).toBe('base:user_b');
   });
 
-  it('announcePersonalizationOwner calls the set_config RPC with the current owner', async () => {
-    const rpc = vi.fn().mockResolvedValue({ data: null, error: null });
-    const ok = await announcePersonalizationOwner({ rpc });
-    expect(ok).toBe(true);
-    expect(rpc).toHaveBeenCalledWith('set_app_clerk_user_id', { p_user_id: 'user_a' });
-  });
-
-  it('announcePersonalizationOwner is a no-op without a client and swallows RPC errors', async () => {
-    expect(await announcePersonalizationOwner(null)).toBe(false);
-    expect(await announcePersonalizationOwner({})).toBe(false);
-    const rpc = vi.fn().mockRejectedValue(new Error('network'));
-    expect(await announcePersonalizationOwner({ rpc })).toBe(false);
+  it('a signed-out session gets its own device-local bucket', () => {
+    signOut();
+    expect(getPersonalizationStorageKey('base')).toBe('base:signed-out');
   });
 });
 
 describe('personalizationAuth — cross-user CREATE/READ/UPDATE/DELETE through sharedMediaStore', () => {
-  it('CREATE stamps the owner with the writer identity', () => {
+  it('CREATE stamps the owner with the verified writer identity', () => {
     const entry = sharedMediaStore.addEntry({ sourceType: 'image-demo' });
     expect(entry.clerk_user_id).toBe('user_a');
   });
@@ -213,9 +210,9 @@ describe('personalizationAuth — cross-user CREATE/READ/UPDATE/DELETE through s
     expect(sharedMediaStore.getEntriesByClient('c1')).toEqual([]);
   });
 
-  it('READ: an anonymous/fallback user cannot see a signed-in user\'s entries', () => {
+  it('READ: a signed-out session cannot see a signed-in user\'s entries', () => {
     const entry = sharedMediaStore.addEntry({ sourceType: 'image-demo' });
-    actAsAnonymous();
+    signOut();
     expect(sharedMediaStore.getEntries().map((e) => e.id)).not.toContain(entry.id);
     expect(sharedMediaStore.getEntryById(entry.id)).toBeNull();
   });
@@ -243,6 +240,7 @@ describe('personalizationAuth — cross-user CREATE/READ/UPDATE/DELETE through s
 
   it('DELETE: user B cannot delete user A\'s entry; user A can', () => {
     const entry = sharedMediaStore.addEntry({ sourceType: 'image-demo' });
+
     actAsUserB();
     expect(sharedMediaStore.removeEntry(entry.id)).toBe(false);
 
@@ -251,10 +249,12 @@ describe('personalizationAuth — cross-user CREATE/READ/UPDATE/DELETE through s
     expect(sharedMediaStore.getEntryById(entry.id)).toBeNull();
   });
 
-  it('DELETE: an anonymous user cannot delete a signed-in user\'s entry', () => {
+  it('DELETE: a signed-out session cannot delete a signed-in user\'s entry', () => {
     const entry = sharedMediaStore.addEntry({ sourceType: 'image-demo' });
-    actAsAnonymous();
+
+    signOut();
     expect(sharedMediaStore.removeEntry(entry.id)).toBe(false);
+
     actAsUserA();
     expect(sharedMediaStore.getEntryById(entry.id)?.id).toBe(entry.id);
   });
