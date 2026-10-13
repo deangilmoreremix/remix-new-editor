@@ -40,6 +40,37 @@ try {
   };
 }
 
+/**
+ * Attach the caller identity (`x-user-key`) to every request. The RLS
+ * policies derive the row owner from this header, and the identity can
+ * change at runtime (Clerk sign-in/out), so it is refreshed lazily on
+ * every `.from()` / `.storage` access instead of being frozen at startup.
+ */
+function refreshUserHeader(client) {
+  try {
+    const key = getUserKey();
+    if (client?.rest?.headers) client.rest.headers['x-user-key'] = key;
+    if (client?.storage?.headers) client.storage.headers['x-user-key'] = key;
+  } catch { /* identity unavailable — policies fall back to the anonymous owner */ }
+}
+
+/** Refresh the shared client's identity header (also called internally). */
+export function refreshSupabaseUserHeader() {
+  refreshUserHeader(supabase);
+}
+
+// Wrap the client so identity-bearing requests always carry a fresh
+// `x-user-key`; the proxy is transparent to all existing consumers.
+supabase = new Proxy(supabase, {
+  get(target, prop) {
+    if (prop === 'from' || prop === 'storage' || prop === 'rpc' || prop === 'functions') {
+      refreshUserHeader(target);
+    }
+    const value = target[prop];
+    return typeof value === 'function' ? value.bind(target) : value;
+  }
+});
+
 export { supabase, getUserKey };
 
 export function isSupabaseConfigured() {

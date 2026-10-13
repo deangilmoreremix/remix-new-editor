@@ -7,12 +7,12 @@
 -- with
 --   current_setting('request.headers', true)::json->>'x-user-key'
 --
--- Backward compatibility: the app's Supabase client does not send
--- `x-user-key` today (see the comment in 20260715000000_create_projects_and_media.sql),
--- so the media policies below keep working for legacy local/anonymous flows
--- when no header is present, while denying cross-USER reads and writes as
--- soon as a caller sends its own x-user-key (the new upload flows and the
--- integration tests do). The new muapi_upload_cache table is fully
+-- Backward compatibility: the shared Supabase client and hybrid-supabase now
+-- attach `x-user-key` to every request (refreshed per call, since the Clerk
+-- identity can change at runtime). When no header is present the caller is
+-- treated as the shared 'anonymous' owner — the app's legacy local identity —
+-- so anonymous local flows keep working without granting access to any
+-- authenticated user's rows. The muapi_upload_cache table is strictly
 -- header-scoped: no header, no access.
 
 -- Idempotent: safe to re-run.
@@ -48,22 +48,28 @@ CREATE INDEX IF NOT EXISTS idx_muapi_upload_cache_expires_at
   ON public.muapi_upload_cache(expires_at);
 
 -- 3. media policies: replace the blanket USING (true) policy with
---    header-scoped policies. When no x-user-key header is sent (legacy
---    anonymous local flows), access matches the previous blanket behavior;
---    once a caller sends its own x-user-key, only that user's rows are
---    readable/writable — cross-user access is denied by RLS.
+--    header-scoped policies. The caller identity is the `x-user-key` header
+--    (the shared Supabase client and hybrid-supabase both attach it on every
+--    request now). When no header is present the caller is treated as the
+--    shared 'anonymous' owner — the app's legacy local identity — instead of
+--    matching every row, so cross-user access is always denied. Presenting a
+--    different user's id never grants access to their rows.
 DROP POLICY IF EXISTS "Allow anon full access to media" ON public.media;
 
 CREATE POLICY "Users can access own media rows"
   ON public.media FOR ALL
   TO anon, authenticated
   USING (
-    user_id = current_setting('request.headers', true)::json->>'x-user-key'
-    OR current_setting('request.headers', true)::json->>'x-user-key' IS NULL
+    user_id = coalesce(
+      current_setting('request.headers', true)::json->>'x-user-key',
+      'anonymous'
+    )
   )
   WITH CHECK (
-    user_id = current_setting('request.headers', true)::json->>'x-user-key'
-    OR current_setting('request.headers', true)::json->>'x-user-key' IS NULL
+    user_id = coalesce(
+      current_setting('request.headers', true)::json->>'x-user-key',
+      'anonymous'
+    )
   );
 
 -- 4. muapi_upload_cache policies: strictly scoped to the caller's user id.
@@ -96,4 +102,34 @@ CREATE POLICY "Users can delete own muapi upload cache"
   TO anon, authenticated
   USING (
     user_id = current_setting('request.headers', true)::json->>'x-user-key'
+  );
+
+-- 5. uploads storage bucket: keep public read (AI providers fetch uploaded
+--    media by URL — that is the documented bucket design) but stop anonymous
+--    callers from writing into or deleting other owners' prefixes. Every
+--    writer in the app stores objects under `${getUserKey()}/...`, so the
+--    first path segment is the owner identity.
+DROP POLICY IF EXISTS "Allow anonymous uploads" ON storage.objects;
+DROP POLICY IF EXISTS "Allow anonymous delete on uploads" ON storage.objects;
+
+CREATE POLICY "Owners can upload own uploads objects"
+  ON storage.objects FOR INSERT
+  TO anon, authenticated
+  WITH CHECK (
+    bucket_id = 'uploads'
+    AND (storage.foldername(name))[1] = coalesce(
+      current_setting('request.headers', true)::json->>'x-user-key',
+      'anonymous'
+    )
+  );
+
+CREATE POLICY "Owners can delete own uploads objects"
+  ON storage.objects FOR DELETE
+  TO anon, authenticated
+  USING (
+    bucket_id = 'uploads'
+    AND (storage.foldername(name))[1] = coalesce(
+      current_setting('request.headers', true)::json->>'x-user-key',
+      'anonymous'
+    )
   );

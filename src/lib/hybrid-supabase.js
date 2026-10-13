@@ -198,8 +198,23 @@ class HybridSupabaseClient {
     }
   }
 
+  /**
+   * Attach the caller identity (`x-user-key`) to this client's requests.
+   * The media RLS policies derive the row owner from that header, so every
+   * media/storage operation must refresh it (the identity changes when the
+   * user signs in or out).
+   */
+  refreshUserHeader() {
+    try {
+      const key = getSharedUserKey();
+      if (this.supabase?.rest?.headers) this.supabase.rest.headers['x-user-key'] = key;
+      if (this.supabase?.storage?.headers) this.supabase.storage.headers['x-user-key'] = key;
+    } catch { /* offline mode — nothing to attach */ }
+  }
+
   async syncMediaToRemote(media) {
     try {
+      this.refreshUserHeader();
       // First upload the file to Supabase storage
       const file = await this.blobToFile(media.blob, media.name);
       const filePath = `${media.user_id}/${media.id}_${media.name}`;
@@ -280,6 +295,7 @@ class HybridSupabaseClient {
       }
 
       // Sync remote media to local
+      this.refreshUserHeader();
       const { data: remoteMedia, error: mediaError } = await this.supabase
         .from('media')
         .select('*')
@@ -852,6 +868,9 @@ export async function uploadFileToStorage(file) {
   const ext = sanitizeFileExtension(file.name);
   const uniqueName = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}.${ext}`;
   const path = `${userKey}/${uniqueName}`;
+
+  // Owner-scoped storage policies read the identity from x-user-key.
+  hybridSupabase.refreshUserHeader();
 
   const timeoutMs = 60000;
   const uploadPromise = hybridSupabase.storage
