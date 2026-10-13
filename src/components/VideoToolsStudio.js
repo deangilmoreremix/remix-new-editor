@@ -428,26 +428,8 @@ genBtn.type = 'button';
     genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Processing...';
 
     try {
-      const params = { 
-        model: selectedModel.id,
-        [selectedModel.videoField]: uploadedVideoUrl,
-        customThumbnailUrl: customThumbnailUrl || undefined,
-      };
-
-      const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
-      if (prompt && selectedModel.hasPrompt) {
-        params.prompt = replaceTokensInPrompt(prompt, activeProfile);
-      }
-      if (dynamicControls) {
-        Object.assign(params, dynamicControls.getPayload({}));
-      }
-
-      genBtn.disabled = true;
-      genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Processing...';
-
-      try {
-        // Resolve the source video + attachments to FRESH MuAPI URLs through
-        // the shared adapter (permanent asset references only).
+      // Resolve the source video + attachments to FRESH MuAPI URLs through
+      // the shared adapter (permanent asset references only).
         const { resolveMuapiMediaRef, resolveMuapiMediaRefs } = await import('../lib/muapiStudioMedia.js');
         const sourceVideoUrl = await resolveMuapiMediaRef({ url: uploadedVideoUrl, assetId: uploadedVideoAssetId });
         const attachmentImages = videoToolsAttachmentState.images?.length
