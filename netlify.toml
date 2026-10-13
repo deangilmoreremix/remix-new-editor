@@ -7,6 +7,18 @@
   NODE_VERSION = "22"
   SECRETS_SCAN_OMIT_KEYS = "CLERK_SECRET_KEY,MAIGRET_WORKER_SECRET,MAIGRET_WORKER_URL"
 
+# MEDIA UPLOADS DO NOT TRANSIT NETLIFY FUNCTIONS.
+# Netlify synchronous functions cap the request payload at 6 MB (≈4.5 MB for
+# binary bytes after ~30% Base64 overhead) and the sync execution limit is 60s
+# (https://docs.netlify.com/build/functions/configuration). A 50 MB video cannot
+# pass through a sync function, so media bytes NEVER relay here. Media rides the
+# dedicated browser paths (see docs/MUAPI_UPLOAD_ARCHITECTURE.md):
+#   • small files  → Supabase edge proxy (supabase/functions/muapi-proxy)
+#   • large files  → direct browser → MuAPI using the user's own BYOK key
+#   • saved assets → refetch the durable Supabase original in-browser, then
+#                    re-upload through the same shared adapter
+# Do NOT add a Netlify function that relays media bytes.
+
 # Serve the model catalog as a static file in production.
 # The vite build plugin emits dist/api/model-catalog.json containing all
 # three pools (t2i / i2i / i2v); the frontend filters by modelType client-side.

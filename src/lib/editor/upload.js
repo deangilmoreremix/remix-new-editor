@@ -11,7 +11,8 @@
  * the URL".
  *
  * Responsibilities, centralized here so they cannot drift per-caller:
- *   - Validate type/size (delegated to `muapi.uploadFile`).
+ *   - Validate type/size (delegated to `muapi.uploadFile`, which routes
+ *     through the single shared MuAPI upload adapter in `muapiUpload.js`).
  *   - Return the public URL string, or throw.
  *   - Preserve the HTTP `status` on the thrown error.
  *   - Map the error to a user-facing message via `formatErrorMessage`, so

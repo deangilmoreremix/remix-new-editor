@@ -458,7 +458,10 @@ export async function processFileUpload(file, options = {}) {
     rotation: fullMeta.rotation
   };
 
-  // Step 3: Upload (with retry on transient network errors)
+  // Step 3: Upload (with retry on transient network errors).
+  // `muapi.uploadFile` delegates to the single shared MuAPI upload adapter
+  // (src/lib/muapiUpload.js): validate + Supabase edge proxy (small files) /
+  // direct-to-MuAPI (large files), bounded retries, and the user's BYOK key.
   let publicUrl;
   try {
     publicUrl = await uploadWithRetry(() => muapi.uploadFile(file), opts);

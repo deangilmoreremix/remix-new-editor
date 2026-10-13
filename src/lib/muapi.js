@@ -1,10 +1,9 @@
 import { getModelById, getVideoModelById, getI2IModelById, getI2VModelById, getV2VModelById, getLipSyncModelById, getAudioModelById, getVideoToolById, getAvatarModelById, getTextModelById, getTrainingModelById, i2vModels } from './models.js';
 import { apiKeyManager, isDevBypass } from './apiKeyManager.js';
 import { uploadFileToStorage } from './supabase.js';
-import { validateFile } from './editor/validateFile.js';
 import { analytics } from './analytics.js';
 import { rateLimiter } from './services/RateLimiter.js';
-import { UPLOAD_LIMITS, UPLOAD_RETRY_CONFIG, SUPABASE_PROXY_BODY_LIMIT_BYTES, UPLOAD_TIMEOUT_MS, UPLOAD_LARGE_TIMEOUT_MS } from './editor/uploadLimits.js';
+import { validateMuAPIUpload, uploadImageToMuAPI, uploadVideoToMuAPI, uploadFileToMuapi } from './muapiUpload.js';
 import {
   validateEffectParams,
   validateEffectName,
@@ -705,421 +704,91 @@ export class MuapiClient {
         this._requireMuapiKey();
         await acquireRateLimitToken();
 
-        const key = this.getKey();
-        const muapiKey = this.apiKeyManager.getMuapiKey();
-        if (key !== muapiKey) {
-            console.warn('[MuapiClient] getKey() and getMuapiKey() returned different values:', { getKey: key, getMuapiKey: muapiKey });
-        }
+        // BYOK: the MuAPI key is the user's own, held client-side. The shared
+        // adapter (./muapiUpload.js) is now the SINGLE upload implementation:
+        // validation, size limits, the Supabase edge proxy path for small
+        // files, the direct-to-MuAPI path for large files, bounded retries, and
+        // the XHR progress path all live there. userId/workspaceId are not
+        // available to this client, so empty strings are passed (the adapter
+        // tolerates them). Kept for API stability — callers still get the URL.
+        const authContext = {
+            userId: '',
+            workspaceId: '',
+            muapiKey: this.apiKeyManager.getMuapiKey() || this.getKey(),
+        };
 
-        let validation;
+        let category;
         try {
-            validation = await validateFile(file);
-        } catch (e) {
-            throw new Error(`Validation failed: ${e.message}`);
+            ({ category } = await validateMuAPIUpload(file));
+        } catch (err) {
+            throw this._toLegacyUploadError(err);
         }
 
-        const isImage = validation.type === 'image';
-        const isVideo = validation.type === 'video';
-        const maxSize = isImage ? UPLOAD_LIMITS.image : isVideo ? UPLOAD_LIMITS.video : UPLOAD_LIMITS.other;
-        if (file.size > maxSize) {
-            const typeLabel = isImage ? 'Images' : isVideo ? 'Videos' : 'Files';
-            throw new Error(`${typeLabel} must be under ${maxSize / 1024 / 1024}MB for muapi.ai upload`);
-        }
-
-        // Supabase Edge Functions have a ~10MB request body limit. For files
-        // larger than 8MB (leaving headroom for multipart overhead), bypass the
-        // proxy and upload directly to MuAPI to avoid silent failures.
-        if (file.size > SUPABASE_PROXY_BODY_LIMIT_BYTES) {
-            return this._uploadDirectToMuapi(file, key, validation, signal, onProgress);
-        }
-
-        // Use XMLHttpRequest when progress tracking is requested
-        if (onProgress) {
-            return this._uploadWithProgress(file, key, validation, signal, onProgress);
-        }
-
-        const formData = new FormData();
-        formData.append('file', file);
-
-        const maxRetries = UPLOAD_RETRY_CONFIG.maxRetries;
-        const retryableStatuses = new Set(UPLOAD_RETRY_CONFIG.retryableStatuses);
-        let lastErr;
-
-        for (let attempt = 0; attempt <= maxRetries; attempt++) {
-            const controller = new AbortController();
-            let abortedByTimeout = false;
-
-            if (signal?.aborted) {
-                throw new Error('Request cancelled by user');
+        try {
+            let result;
+            if (category === 'image') {
+                result = await uploadImageToMuAPI(file, authContext, { signal, onProgress });
+            } else if (category === 'video') {
+                result = await uploadVideoToMuAPI(file, authContext, { signal, onProgress });
+            } else {
+                result = await uploadFileToMuapi(file, authContext, { signal, onProgress });
             }
-
-            const timeoutId = setTimeout(() => {
-                abortedByTimeout = true;
-                controller.abort();
-            }, UPLOAD_TIMEOUT_MS);
-
-            const onCallerAbort = () => {
-                clearTimeout(timeoutId);
-                controller.abort();
-            };
-            signal?.addEventListener('abort', onCallerAbort, { once: true });
-
-            try {
-                const response = await fetch(this.proxyUrl, {
-                    method: 'POST',
-                    headers: {
-                        'x-api-key': key,
-                        'x-endpoint': 'upload_file',
-                    },
-                    body: formData,
-                    signal: controller.signal
-                });
-
-                clearTimeout(timeoutId);
-                signal?.removeEventListener('abort', onCallerAbort);
-
-                if (!response.ok) {
-                    let errText;
-                    try {
-                        const errData = await response.json();
-                        errText = JSON.stringify(errData);
-                    } catch {
-                        errText = await response.text();
-                    }
-
-                    const status = response.status;
-                    const err = new Error(`Upload failed: ${errText.slice(0, 200)}`);
-                    err.status = status;
-
-                    if (status === 402 || status === 403 || status === 413 || status === 422) {
-                        err.retryable = false;
-                        throw err;
-                    }
-
-                    if (retryableStatuses.has(status) && attempt < maxRetries) {
-                        const backoff = Math.pow(2, attempt) * 1000;
-                        console.warn(`[MuapiClient] Upload failed with ${status}, retrying in ${backoff}ms...`);
-                        await new Promise(resolve => setTimeout(resolve, backoff));
-                        lastErr = err;
-                        continue;
-                    }
-
-                    err.retryable = true;
-                    throw err;
-                }
-
-                let result;
+            return result.url;
+        } catch (err) {
+            const legacy = this._toLegacyUploadError(err);
+            // Compatibility contract pinned by src/test/upload-file.test.ts and
+            // src/test/muapi-fixes.test.js: retryable provider failures
+            // (network, timeout, 429, 5xx) fall back to durable Supabase
+            // Storage so existing callers keep a usable permanent URL.
+            // Auth (401/403), credit (402), oversize (413), and format
+            // (415/422) errors are surfaced instead — silently swapping in a
+            // storage URL would mask a broken key or an empty balance, which
+            // the upload requirements forbid.
+            if (legacy.fallbackToStorage) {
                 try {
-                    result = await response.json();
-                } catch (e) {
-                    const err = new Error('Upload Failed: Non-JSON response from server');
-                    err.status = response.status;
-                    err.retryable = true;
-                    throw err;
+                    return await uploadFileToStorage(file);
+                } catch (fallbackErr) {
+                    throw legacy;
                 }
-
-                if (result.error) {
-                    const err = new Error(`Upload Failed: ${result.error}`);
-                    err.retryable = true;
-                    throw err;
-                }
-
-                const publicUrl = result.url || result.data?.url;
-                if (!publicUrl) {
-                    const err = new Error('Upload Failed: No URL returned by the server');
-                    err.retryable = false;
-                    throw err;
-                }
-                return publicUrl;
-
-            } catch (err) {
-                clearTimeout(timeoutId);
-                signal?.removeEventListener('abort', onCallerAbort);
-
-                if (err.name === 'AbortError') {
-                    if (abortedByTimeout && attempt < maxRetries) {
-                        const backoff = Math.pow(2, attempt) * 1000;
-                        console.warn(`[MuapiClient] Upload attempt ${attempt + 1} timed out, retrying in ${backoff}ms...`);
-                        await new Promise(resolve => setTimeout(resolve, backoff));
-                        continue;
-                    }
-                    throw new Error('Request cancelled by user');
-                }
-
-                lastErr = err;
-                const status = err.status || (err.response?.status);
-
-                if (retryableStatuses.has(status) && attempt < maxRetries) {
-                    const backoff = Math.pow(2, attempt) * 1000;
-                    console.warn(`[MuapiClient] Upload attempt ${attempt + 1} failed with ${status}, retrying in ${backoff}ms...`);
-                    await new Promise(resolve => setTimeout(resolve, backoff));
-                    continue;
-                }
-
-                if (!status && attempt < maxRetries) {
-                    const backoff = Math.pow(2, attempt) * 1000;
-                    console.warn(`[MuapiClient] Upload attempt ${attempt + 1} failed with network error, retrying in ${backoff}ms...`);
-                    await new Promise(resolve => setTimeout(resolve, backoff));
-                    continue;
-                }
-
-                break;
             }
-        }
-
-        if (!lastErr) {
-            throw new Error('Upload failed: unknown error');
-        }
-
-        if (lastErr.retryable === false) {
-            throw lastErr;
-        }
-        const status = lastErr.status || (lastErr.response?.status);
-        if (status === 402 || status === 403 || status === 413 || status === 422) {
-            throw lastErr;
-        }
-
-        console.warn('[MuapiClient] Proxy upload failed, falling back to Supabase Storage:', lastErr);
-        try {
-            return await uploadFileToStorage(file);
-        } catch (fallbackErr) {
-            console.error('[MuapiClient] Fallback upload also failed:', fallbackErr);
-            throw new Error(`Upload failed: ${lastErr.message || fallbackErr.message}`);
+            throw legacy;
         }
     }
 
     /**
-     * Upload directly to MuAPI, bypassing the Supabase Edge Function proxy.
-     * Used for files larger than the proxy's body size limit (~10MB).
-     * Includes retry logic and progress tracking support.
+     * Normalize a shared-adapter MuapiUploadError into the plain Error shape
+     * existing callers expect (numeric `.status`, English `.message`, and the
+     * legacy cancellation string). The adapter's `userMessage` is UI-safe and
+     * never contains the API key. `fallbackToStorage` marks the errors the
+     * legacy `uploadFile` contract routed to durable Supabase Storage.
      */
-    async _uploadDirectToMuapi(file, key, validation, signal, onProgress) {
-        const MUAPI_UPLOAD_URL = 'https://api.muapi.ai/api/v1/upload_file';
-        const maxRetries = UPLOAD_RETRY_CONFIG.maxRetries;
-        const retryableStatuses = new Set(UPLOAD_RETRY_CONFIG.retryableStatuses);
-        let lastErr;
-
-        console.info(`[MuapiClient] File size ${file.size} exceeds proxy threshold, uploading directly to MuAPI`);
-
-        for (let attempt = 0; attempt <= maxRetries; attempt++) {
-            const controller = new AbortController();
-            let abortedByTimeout = false;
-
-            if (signal?.aborted) {
-                throw new Error('Request cancelled by user');
-            }
-
-            const timeoutId = setTimeout(() => {
-                abortedByTimeout = true;
-                controller.abort();
-            }, UPLOAD_LARGE_TIMEOUT_MS); // 120s timeout for large direct uploads
-
-            const onCallerAbort = () => {
-                clearTimeout(timeoutId);
-                controller.abort();
-            };
-            signal?.addEventListener('abort', onCallerAbort, { once: true });
-
-            try {
-                const formData = new FormData();
-                formData.append('file', file);
-
-                const response = await fetch(MUAPI_UPLOAD_URL, {
-                    method: 'POST',
-                    headers: {
-                        'x-api-key': key,
-                    },
-                    body: formData,
-                    signal: controller.signal
-                });
-
-                clearTimeout(timeoutId);
-                signal?.removeEventListener('abort', onCallerAbort);
-
-                if (!response.ok) {
-                    let errText;
-                    try {
-                        const errData = await response.json();
-                        errText = JSON.stringify(errData);
-                    } catch {
-                        errText = await response.text();
-                    }
-
-                    const status = response.status;
-                    const err = new Error(`Upload failed: ${errText.slice(0, 200)}`);
-                    err.status = status;
-
-                    if (status === 402 || status === 403 || status === 413 || status === 422) {
-                        err.retryable = false;
-                        throw err;
-                    }
-
-                    if (retryableStatuses.has(status) && attempt < maxRetries) {
-                        const backoff = Math.pow(2, attempt) * 1000;
-                        console.warn(`[MuapiClient] Direct upload failed with ${status}, retrying in ${backoff}ms...`);
-                        await new Promise(resolve => setTimeout(resolve, backoff));
-                        lastErr = err;
-                        continue;
-                    }
-
-                    throw err;
-                }
-
-                let result;
-                try {
-                    result = await response.json();
-                } catch (e) {
-                    const err = new Error('Upload Failed: Non-JSON response from server');
-                    err.status = response.status;
-                    throw err;
-                }
-
-                if (result.error) {
-                    throw new Error(`Upload Failed: ${result.error}`);
-                }
-
-                const publicUrl = result.url || result.data?.url;
-                if (!publicUrl) {
-                    throw new Error('Upload Failed: No URL returned by the server');
-                }
-                return publicUrl;
-
-            } catch (err) {
-                clearTimeout(timeoutId);
-                signal?.removeEventListener('abort', onCallerAbort);
-
-                if (err.name === 'AbortError') {
-                    if (abortedByTimeout && attempt < maxRetries) {
-                        const backoff = Math.pow(2, attempt) * 1000;
-                        console.warn(`[MuapiClient] Direct upload attempt ${attempt + 1} timed out, retrying in ${backoff}ms...`);
-                        await new Promise(resolve => setTimeout(resolve, backoff));
-                        continue;
-                    }
-                    throw new Error('Request cancelled by user');
-                }
-
-                lastErr = err;
-                const status = err.status || (err.response?.status);
-
-                if (retryableStatuses.has(status) && attempt < maxRetries) {
-                    const backoff = Math.pow(2, attempt) * 1000;
-                    console.warn(`[MuapiClient] Direct upload attempt ${attempt + 1} failed with ${status}, retrying in ${backoff}ms...`);
-                    await new Promise(resolve => setTimeout(resolve, backoff));
-                    continue;
-                }
-
-                if (!status && attempt < maxRetries) {
-                    const backoff = Math.pow(2, attempt) * 1000;
-                    console.warn(`[MuapiClient] Direct upload attempt ${attempt + 1} failed with network error, retrying in ${backoff}ms...`);
-                    await new Promise(resolve => setTimeout(resolve, backoff));
-                    continue;
-                }
-
-                break;
-            }
+    _toLegacyUploadError(err) {
+        if (!err) {
+            const out = new Error('Upload failed');
+            out.fallbackToStorage = true;
+            return out;
         }
-
-        if (!lastErr) {
-            throw new Error('Upload failed: unknown error');
+        if (err.code === 'MUAPI_CANCELLED') {
+            return new Error('Request cancelled by user');
         }
-        throw lastErr;
+        const status = typeof err.status === 'number' ? err.status : undefined;
+        const retryable = err.retryable === true;
+        const detail = err.userMessage || err.message || 'Upload failed';
+        let message;
+        if (err.code === 'MUAPI_INVALID_RESPONSE') {
+            // Legacy string pinned by src/test/upload-file.test.ts.
+            message = 'Upload Failed: No URL returned by the server';
+        } else if (typeof status === 'number') {
+            message = `Upload failed: ${detail}`;
+        } else {
+            message = detail;
+        }
+        const out = new Error(message);
+        if (status !== undefined) out.status = status;
+        out.cause = err;
+        out.fallbackToStorage = retryable;
+        return out;
     }
-
-    /**
-     * Upload with progress tracking via XMLHttpRequest.
-     * Used when caller needs progress events (e.g., UI progress bar).
-     */
-    async _uploadWithProgress(file, key, validation, signal, onProgress) {
-        const MUAPI_UPLOAD_URL = this.proxyUrl;
-        const maxRetries = 2;
-        const retryableStatuses = new Set([502, 503, 429]);
-        let lastErr;
-
-        for (let attempt = 0; attempt <= maxRetries; attempt++) {
-            if (signal?.aborted) {
-                throw new Error('Request cancelled by user');
-            }
-
-            const result = await new Promise((resolve, reject) => {
-                const xhr = new XMLHttpRequest();
-
-                xhr.upload.addEventListener('progress', (e) => {
-                    if (e.lengthComputable && typeof onProgress === 'function') {
-                        const percent = Math.round((e.loaded / e.total) * 100);
-                        try { onProgress(percent); } catch (e) { /* ignore progress callback errors */ }
-                    }
-                });
-
-                xhr.addEventListener('load', () => {
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        try {
-                            const data = JSON.parse(xhr.responseText);
-                            resolve(data);
-                        } catch {
-                            reject(new Error('Upload Failed: Non-JSON response from server'));
-                        }
-                    } else {
-                        const err = new Error(`Upload failed: ${xhr.status} ${xhr.statusText}`);
-                        err.status = xhr.status;
-                        reject(err);
-                    }
-                });
-
-                xhr.addEventListener('error', () => {
-                    const err = new Error('Upload failed: Network error');
-                    err.status = 0;
-                    reject(err);
-                });
-
-                xhr.addEventListener('abort', () => {
-                    reject(new Error('Request cancelled by user'));
-                });
-
-                // Forward abort signal to xhr
-                if (signal) {
-                    signal.addEventListener('abort', () => xhr.abort(), { once: true });
-                }
-
-                xhr.open('POST', MUAPI_UPLOAD_URL);
-                xhr.setRequestHeader('x-api-key', key);
-                xhr.setRequestHeader('x-endpoint', 'upload_file');
-
-                const formData = new FormData();
-                formData.append('file', file);
-                xhr.send(formData);
-            }).catch(err => {
-                if (err.name === 'AbortError' || err.message === 'Request cancelled by user') {
-                    throw err;
-                }
-                lastErr = err;
-                const status = err.status;
-                if (retryableStatuses.has(status) && attempt < maxRetries) {
-                    const backoff = Math.pow(2, attempt) * 1000;
-                    console.warn(`[MuapiClient] Progress upload failed with ${status}, retrying in ${backoff}ms...`);
-                    return new Promise(r => setTimeout(r, backoff));
-                }
-                throw err;
-            });
-
-            // Success - parse result
-            if (result) {
-                if (result.error) {
-                    throw new Error(`Upload Failed: ${result.error}`);
-                }
-                const publicUrl = result.url || result.data?.url;
-                if (!publicUrl) {
-                    throw new Error('Upload Failed: No URL returned by the server');
-                }
-                return publicUrl;
-            }
-        }
-
-        if (!lastErr) {
-            throw new Error('Upload failed: unknown error');
-        }
-        throw lastErr;
-    }
-
     async processV2V(params, signal) {
         this._requireMuapiKey();
         await acquireRateLimitToken();
