@@ -265,6 +265,7 @@ export async function EffectsStudio() {
 
   const inputPreview = createMediaPreview({ maxHeight: '40vh', showDownload: false, showMeta: true, onClear: () => {
     uploadedUrl = null;
+    uploadedAssetId = null;
     inputPreview.clear();
   }});
   inputCol.appendChild(inputPreview.element);
@@ -305,6 +306,9 @@ export async function EffectsStudio() {
       studioName: 'Effects Studio',
       onSelect: (asset) => {
         uploadedUrl = asset.src?.large || asset.url || asset.original;
+        // Pexels photos are not Asset Library rows — drop any previously
+        // picked asset identity so a stale id is never resolved.
+        uploadedAssetId = null;
         inputPreview.load(asset.src?.large || asset.url || asset.original, { filename: 'Pexels image' });
         const attrContainer = document.getElementById('pexels-effects-attribution');
         if (attrContainer) {

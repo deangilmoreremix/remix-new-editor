@@ -171,6 +171,9 @@ const triggerBtn = document.createElement('button');
       studioName: 'Video Tools Studio',
       onSelect: (asset) => {
         uploadedVideoUrl = asset.video_files?.[0]?.link || asset.url || asset.original;
+        // Pexels videos are not Asset Library rows — drop any previously
+        // picked asset identity so a stale id is never resolved.
+        uploadedVideoAssetId = null;
         const attrContainer = document.getElementById('pexels-tools-attribution');
         if (attrContainer) {
           attrContainer.innerHTML = '';

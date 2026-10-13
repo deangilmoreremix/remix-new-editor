@@ -532,6 +532,9 @@ export function AudioStudio() {
   let activeResultUrl = null;
   let activeResultTitle = '';
   let view = 'input';
+  // Aborts the in-flight generation. Assigned a fresh controller at handler
+  // start (genBtn.onclick) and reset in the finally block.
+  let audioAbortController = null;
 
   const apiKey = apiKeyManager.getMuapiKey();
   const PERSIST_KEY = scopedPersistKey('hg_audio_studio_persistent', apiKey);
@@ -1313,6 +1316,8 @@ export function AudioStudio() {
       return;
     }
 
+    audioAbortController = new AbortController();
+
     genBtn.disabled = true;
     genBtn.textContent = 'Generating...';
     showLoading();
@@ -1339,10 +1344,20 @@ export function AudioStudio() {
         const key = schemaKeys[i];
         const value = schemaParams[key];
         if (Array.isArray(value)) {
-          resolvedSchemaParams[key] = await resolveMuapiMediaRefs(value.map(asRef));
-        } else {
-          resolvedSchemaParams[key] = await resolveMuapiMediaRef(asRef(value));
+          const resolvedList = await resolveMuapiMediaRefs(value.map(asRef));
+          if (resolvedList.length) resolvedSchemaParams[key] = resolvedList;
+          continue;
         }
+        const resolved = await resolveMuapiMediaRef(asRef(value));
+        if (resolved !== null && resolved !== undefined) {
+          resolvedSchemaParams[key] = resolved;
+        } else if (value !== null && value !== undefined && typeof value !== 'string') {
+          // Non-media params (numbers/booleans) are not media references —
+          // pass the original value through instead of dropping or nulling it.
+          resolvedSchemaParams[key] = value;
+        }
+        // A media reference that no longer resolves (e.g. a cleared upload)
+        // is omitted entirely — never sent to MuAPI as an explicit null.
       }
       const resolvedAudioUrl = audioAttachmentState.audio
         ? await resolveMuapiMediaRef(audioAttachmentState.audio)
@@ -1416,6 +1431,7 @@ export function AudioStudio() {
       showToast(errMsg, 'error');
     } finally {
       hideLoading();
+      audioAbortController = null;
       genBtn.disabled = false;
       genBtn.textContent = 'Generate Audio';
     }

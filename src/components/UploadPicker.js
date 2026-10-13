@@ -35,11 +35,16 @@ function _registerStudioPicker(studioId, picker) {
 
 /**
  * Hand an Asset Library asset to a mounted MuAPI studio picker.
+ *
+ * Targets the earliest-registered picker that is still mounted. Detached
+ * (unmounted / re-created) pickers never receive the asset: when no live
+ * picker is found this returns false so the caller can queue the asset for
+ * the studio's next mount instead of handing it to a stale instance.
  * @returns {Promise<boolean>} true when a live picker accepted the asset.
  */
 export async function selectAssetInStudio(studioId, asset) {
     const list = _studioPickers.get(studioId) || [];
-    const target = list.find(_isPickerConnected) || list[0];
+    const target = list.find(_isPickerConnected);
     if (!target || typeof target.selectAsset !== 'function') return false;
     await target.selectAsset(asset);
     return true;
@@ -455,6 +460,20 @@ export function createUploadPicker({
         });
     };
 
+    // Re-selecting a file from the upload history keeps its PERMANENT asset
+    // identity (MuAPI uploads save it on the history entry) so the studio
+    // re-resolves a fresh URL from the asset instead of losing — or keeping
+    // stale — the previous file's id.
+    const historySelection = (entry) => ({
+        url: entry.uploadedUrl,
+        thumbnail: entry.thumbnail,
+        type: entry.type,
+        assetId: entry.assetId || null,
+        assetUrl: entry.uploadedUrl,
+        muapiUrl: entry.muapiUrl || null,
+        name: entry.name || '',
+    });
+
     // ── Frame-mode helpers ────────────────────────────────────────────────────
     const firstEmptyFrameSlot = () => {
         if (!frameEntries.start) return 'start';
@@ -747,7 +766,7 @@ export function createUploadPicker({
 
                 if (!isMulti) {
                     // Single-select: select & close immediately
-                    selectedEntries = [{ url: entry.uploadedUrl, thumbnail: entry.thumbnail, type: entry.type }];
+                    selectedEntries = [historySelection(entry)];
                     updateTrigger();
                     fireOnSelect();
                     closePanel();
@@ -757,7 +776,7 @@ export function createUploadPicker({
                         selectedEntries.splice(selIdx, 1);
                         if (selectedEntries.length === 0) onClear?.();
                     } else {
-                        selectedEntries.push({ url: entry.uploadedUrl, thumbnail: entry.thumbnail, type: entry.type });
+                        selectedEntries.push(historySelection(entry));
                     }
                     updateTrigger();
                     renderPanel(); // re-render to update badges / dim state
@@ -931,7 +950,17 @@ export function createUploadPicker({
                 cell.onclick = (e) => {
                     e.stopPropagation();
                     const slot = firstEmptyFrameSlot();
-                    setFrameEntry(slot, { id: entry.id, name: entry.name, uploadedUrl: entry.uploadedUrl, thumbnail: entry.thumbnail, type: entry.type });
+                    const { id, name, thumbnail, type } = entry;
+                    setFrameEntry(slot, {
+                        id,
+                        name,
+                        uploadedUrl: entry.uploadedUrl,
+                        thumbnail,
+                        type,
+                        assetId: entry.assetId || null,
+                        assetUrl: entry.uploadedUrl,
+                        muapiUrl: entry.muapiUrl || null,
+                    });
                     if (frameEntries.start && frameEntries.end) closePanel();
                     else renderPanel();
                 };

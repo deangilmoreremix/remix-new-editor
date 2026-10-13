@@ -29,6 +29,7 @@ import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { openModelPicker } from '../lib/modelPickerIntegration.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
+import { getCharacterReference, saveCharacterReference } from '../lib/characterConsistency.js';
 
 // Camera movements promised by the Cinema Studio intro copy
 // ("Select camera movement … dolly, crane, orbit, FPV drone").
@@ -76,6 +77,11 @@ export function CinemaStudio() {
         look: 'Natural',
         referenceUrl: null,
         endFrameUrl: null,
+        // Permanent Asset Library identities for the frames — the first/last
+        // frame references are re-resolved through the shared adapter at
+        // generation time.
+        referenceAssetId: null,
+        endFrameAssetId: null,
         // Selected generation model. Cinema Studio exposes the same catalog
         // picker as Video Studio; defaults to the first text-to-video model.
         model: (t2vModels[0] && t2vModels[0].id) || 'kling-v2.6-pro-t2v',
@@ -84,7 +90,9 @@ export function CinemaStudio() {
     
     // Camera builder panel state
     let showCameraBuilder = false;
-let showAdvanced = false;
+    let showAdvanced = false;
+    // Character Lock: reuses a stored character reference across shots.
+    let characterLock = false;
     let customThumbnailUrl = getCustomThumbnailFromCache('cinema-studio');
 
     // Listen for thumbnails generated via GTM Boost and apply them.
@@ -456,9 +464,16 @@ let showAdvanced = false;
       anchorContainer: container,
       // Accept images, videos, and documents (MuAPI file-upload supports all).
       frameMode: true,
-      onSelect: ({ startUrl, endUrl }) => {
+      // MuAPI-bound frames: picked files are validated through the shared
+      // adapter and stored in the permanent Asset Library, so the first/last
+      // frame references can be re-resolved at generation time.
+      muapiStudio: true,
+      studioId: 'cinema-studio',
+      onSelect: ({ startUrl, endUrl, startAssetId, endAssetId }) => {
         currentSettings.referenceUrl = startUrl || null;
+        currentSettings.referenceAssetId = startAssetId || null;
         currentSettings.endFrameUrl = endUrl || null;
+        currentSettings.endFrameAssetId = endAssetId || null;
         showReferenceThumb(startUrl);
         // Switch the model picker to image-to-video models and refresh the
         // label/controls so the selection stays valid for the new mode.
@@ -470,7 +485,9 @@ let showAdvanced = false;
       },
       onClear: () => {
         currentSettings.referenceUrl = null;
+        currentSettings.referenceAssetId = null;
         currentSettings.endFrameUrl = null;
+        currentSettings.endFrameAssetId = null;
         showReferenceThumb(null);
         if (!t2vModels.some(m => m.id === currentSettings.model)) {
           currentSettings.model = (t2vModels[0] && t2vModels[0].id) || currentSettings.model;
@@ -496,6 +513,9 @@ let showAdvanced = false;
         studioName: 'Cinema Studio',
         onSelect: (asset) => {
           currentSettings.referenceUrl = asset.src?.large || asset.url;
+          // Pexels scenes are not Asset Library rows — drop any previously
+          // picked asset identity so a stale id is never resolved.
+          currentSettings.referenceAssetId = null;
           showReferenceThumb(asset.src?.large || asset.url);
           if (!i2vModels.some(m => m.id === currentSettings.model)) {
             currentSettings.model = (i2vModels[0] && i2vModels[0].id) || currentSettings.model;

@@ -9,7 +9,7 @@ import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
-import { mountModelSelector, getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
+import { mountModelSelector, getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
@@ -30,6 +30,9 @@ export function UpscaleStudio() {
   let selectedFactor = '2';
   let uploadedUrl = null;
   let uploadedAssetId = null;
+  // Aborts the in-flight upscale. Assigned a fresh controller at handler start
+  // (genBtn.onclick) and reset in the finally block.
+  let controller = null;
   let lastOutputUrl = null;
   let customThumbnailUrl = getCustomThumbnailFromCache('upscale-studio');
 
@@ -339,6 +342,8 @@ genBtn.type = 'button';
     const apiKey = apiKeyManager.getMuapiKey();
     if (!apiKey) { AuthModal(() => genBtn.click()); return; }
 
+    controller = new AbortController();
+
     genBtn.disabled = true;
     genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Upscaling...';
 
@@ -388,6 +393,7 @@ genBtn.type = 'button';
     } catch (err) {
       alert(`Error: ${err.message}`);
     } finally {
+      controller = null;
       genBtn.disabled = false;
       genBtn.textContent = 'Upscale Image';
     }
