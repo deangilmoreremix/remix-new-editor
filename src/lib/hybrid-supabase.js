@@ -5,7 +5,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { offlineStorage } from './offline-storage.js';
-import { getUserKey as getSharedUserKey } from './userKey.js';
+import { getUserKey as getSharedUserKey, primeSupabaseIdentity } from './supabase.js';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -199,25 +199,26 @@ class HybridSupabaseClient {
   }
 
   /**
-   * Attach the caller identity (`x-user-key`) to this client's requests.
-   * The media RLS policies derive the row owner from that header, so every
-   * media/storage operation must refresh it (the identity changes when the
-   * user signs in or out).
+   * Attach the caller identity to this client's requests. When a Clerk
+   * session exists the verified Supabase access token (minted by the
+   * supabase-token Netlify function) is attached as `Authorization`, so the
+   * RLS policies see the verified `sub` claim; anonymous callers keep the
+   * `x-user-key` header identity. The identity changes when the user signs
+   * in or out, so every media/storage operation refreshes it.
    */
-  refreshUserHeader() {
-    try {
-      const key = getSharedUserKey();
-      if (this.supabase?.rest?.headers) this.supabase.rest.headers['x-user-key'] = key;
-      if (this.supabase?.storage?.headers) this.supabase.storage.headers['x-user-key'] = key;
-    } catch { /* offline mode — nothing to attach */ }
+  async refreshUserHeader() {
+    await primeSupabaseIdentity(this.supabase);
   }
 
   async syncMediaToRemote(media) {
     try {
-      this.refreshUserHeader();
+      await this.refreshUserHeader();
+      // One identity for every writer: the verified Clerk user id when
+      // signed in, else the local anonymous key.
+      const ownerId = await getUserKey();
       // First upload the file to Supabase storage
       const file = await this.blobToFile(media.blob, media.name);
-      const filePath = `${media.user_id}/${media.id}_${media.name}`;
+      const filePath = `${ownerId}/${media.id}_${media.name}`;
 
       const { error: uploadError } = await this.supabase.storage
         .from('media')
@@ -229,7 +230,7 @@ class HybridSupabaseClient {
           .from('media')
           .upsert({
             id: media.id,
-            user_id: media.user_id,
+            user_id: ownerId,
             project_id: media.project_id,
             name: media.name,
             type: media.type,
@@ -295,7 +296,7 @@ class HybridSupabaseClient {
       }
 
       // Sync remote media to local
-      this.refreshUserHeader();
+      await this.refreshUserHeader();
       const { data: remoteMedia, error: mediaError } = await this.supabase
         .from('media')
         .select('*')
@@ -857,7 +858,17 @@ export function getSupabaseAnonKey() {
   return SUPABASE_ANON_KEY || '';
 }
 
+/**
+ * Caller identity for this client: the verified Clerk user id when signed
+ * in, the Supabase auth session when one exists, otherwise the local
+ * (anonymous) key. Matches authContext.js / supabase.js so every writer
+ * path resolves to the same owner.
+ */
 export async function getUserKey() {
+  try {
+    const clerkId = window.Clerk?.user?.id;
+    if (clerkId) return clerkId;
+  } catch { /* Clerk unavailable — fall through */ }
   const { data: { user } } = await hybridSupabase.auth.getUser();
   if (user?.id) return user.id;
   return getSharedUserKey();
@@ -869,8 +880,9 @@ export async function uploadFileToStorage(file) {
   const uniqueName = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}.${ext}`;
   const path = `${userKey}/${uniqueName}`;
 
-  // Owner-scoped storage policies read the identity from x-user-key.
-  hybridSupabase.refreshUserHeader();
+  // Owner-scoped storage policies resolve the owner from the verified JWT's
+  // `sub` claim (falling back to the header identity for anonymous callers).
+  await hybridSupabase.refreshUserHeader();
 
   const timeoutMs = 60000;
   const uploadPromise = hybridSupabase.storage

@@ -71,10 +71,13 @@ export async function getMuapiAuthContext() {
     }
   } catch { /* authContext module unavailable — use the local fallback */ }
 
+  // Fallback identity must match what assetLibrary/authContext write: the
+  // verified Clerk user id when signed in (getUserKey prefers it), else the
+  // local anonymous key — never a drifted 'anonymous' for a signed-in user.
   const userId = await getUserKey();
   return {
     userId,
-    workspaceId: readStoredWorkspaceId(),
+    workspaceId: readStoredWorkspaceId() || 'personal',
     muapiKey: apiKeyManager.getMuapiKey?.() || '',
     source: 'fallback',
   };

@@ -125,6 +125,42 @@ export async function verifyClerkToken(token) {
   }
 }
 
+// ─── Supabase access-token claim contract ────────────────────────────────────
+
+/**
+ * Validate the claims of a Supabase access token (the payload
+ * netlify/functions/supabase-token.js mints).
+ *
+ * The contract shared by the token function and the browser client:
+ *   sub          — verified Clerk user id (required, non-empty)
+ *   workspace_id — Clerk org id or 'personal' (defaults to 'personal')
+ *   exp          — expiry in seconds since the epoch (optional)
+ *
+ * @returns {{ok: true, sub: string, workspaceId: string, expiresAt: number|null}
+ *          | {ok: false, error: string}}
+ */
+export function validateSupabaseTokenClaims(claims) {
+  if (!claims || typeof claims !== 'object') {
+    return { ok: false, error: 'claims required' };
+  }
+  const sub = claims.sub;
+  if (typeof sub !== 'string' || !sub) {
+    return { ok: false, error: 'missing subject claim' };
+  }
+  const workspaceId = typeof claims.workspace_id === 'string' && claims.workspace_id
+    ? claims.workspace_id
+    : 'personal';
+  let expiresAt = null;
+  if (claims.exp !== undefined) {
+    const exp = Number(claims.exp);
+    if (!Number.isFinite(exp) || exp <= 0) {
+      return { ok: false, error: 'invalid expiry claim' };
+    }
+    expiresAt = exp * 1000;
+  }
+  return { ok: true, sub, workspaceId, expiresAt };
+}
+
 // ─── CORS (house pattern — see netlify/functions/intelligence-api.js) ────────
 
 export function corsHeaders() {

@@ -5,8 +5,13 @@
 //
 //   { userId, workspaceId, muapiKey, hasMuapiKey, isAnonymous }
 //
-//   - userId: Clerk user id when signed in, else 'anonymous' (mirrors the
-//     hybrid-supabase.js getUserKey() fallback semantics).
+//   - userId: Clerk user id when signed in, else the shared local identity
+//     ('anonymous' for the app's legacy local usage). Resolved through
+//     src/lib/userKey.js — the SAME helper supabase.js and
+//     hybrid-supabase.js use for their request identity — so every writer
+//     path (authContext, assetLibrary, hybrid sync, token exchange) agrees
+//     on one owner id. A signed-in caller therefore always resolves to the
+//     Clerk user id and never to a hashed 'user_xxx' fallback.
 //   - workspaceId: the user's authorized workspace (active Clerk organization
 //     id when available, else 'personal').
 //   - muapiKey: the caller's own MuAPI key, resolved client-side via
@@ -19,6 +24,7 @@
 // this module does not need to import the Clerk SDK itself.
 
 import { apiKeyManager } from './apiKeyManager.js';
+import { getUserKey as getSharedUserKey } from './userKey.js';
 
 // Error codes. These mirror the MuAPI upload error contract; they are
 // declared locally (not imported) to keep this module dependency-free and
@@ -28,7 +34,6 @@ export const ERROR_CODES = {
   WORKSPACE_ACCESS_DENIED: 'WORKSPACE_ACCESS_DENIED',
 };
 
-const ANONYMOUS_USER_ID = 'anonymous';
 const DEFAULT_WORKSPACE_ID = 'personal';
 
 /**
@@ -78,12 +83,14 @@ function resolveWorkspaceId(clerk, user) {
 }
 
 // Synchronous identity read shared by getAuthContext() / getAuthContextSync().
+// The Clerk id wins when signed in; otherwise the shared local identity
+// keeps this context and the Supabase clients on the same owner id.
 function resolveIdentity() {
   const clerk = getClerkClient();
   const user = getClerkUser(clerk);
   const isAnonymous = !user;
   return {
-    userId: user ? user.id : ANONYMOUS_USER_ID,
+    userId: user ? user.id : getSharedUserKey(),
     workspaceId: isAnonymous ? DEFAULT_WORKSPACE_ID : resolveWorkspaceId(clerk, user),
     isAnonymous,
   };

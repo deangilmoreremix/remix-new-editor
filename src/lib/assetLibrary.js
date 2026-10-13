@@ -23,10 +23,11 @@
  *   2. DB level — RLS policies (owned by the auth/RLS work).
  */
 
-import { supabase, isSupabaseConfigured, getUserKey } from './supabase.js';
+import { supabase, isSupabaseConfigured, getUserKey, primeSupabaseIdentity } from './supabase.js';
 
 const MEDIA_TABLE = 'media';
 const ASSET_BUCKET = 'uploads';
+const DEFAULT_WORKSPACE_ID = 'personal';
 
 // ── Errors ─────────────────────────────────────────────────────────────────
 
@@ -85,6 +86,23 @@ function buildObjectPath(file, userId) {
 }
 
 // ── Row helpers ────────────────────────────────────────────────────────────
+
+/**
+ * Resolve the caller identity and prime the verified Supabase access token
+ * (Authorization) on the shared client before any DB/storage operation, so
+ * every read and write carries the verified `sub` claim rather than relying
+ * on the spoofable header alone. No-ops for anonymous callers (which keep
+ * the header identity) and when the token exchange is unavailable.
+ */
+async function resolveIdentity(authContext) {
+  try {
+    await primeSupabaseIdentity();
+  } catch { /* client without token exchange — header identity still applies */ }
+  return {
+    userId: authContext?.userId || (await getUserKey()),
+    workspaceId: authContext?.workspaceId || DEFAULT_WORKSPACE_ID,
+  };
+}
 
 export function categoryFromMime(mime) {
   const m = String(mime || '').toLowerCase();
@@ -166,8 +184,7 @@ export async function saveAsset(file, authContext, meta = {}) {
   requireConfigured();
   if (!file) throw assetError('No file supplied to the Asset Library.', 'ASSET_NO_FILE');
 
-  const userId = authContext?.userId || (await getUserKey());
-  const workspaceId = authContext?.workspaceId || '';
+  const { userId, workspaceId } = await resolveIdentity(authContext);
   const path = buildObjectPath(file, userId);
   const mime = file.type || `application/${normalizeExtension(file.name)}`;
 
@@ -230,8 +247,7 @@ export async function saveAsset(file, authContext, meta = {}) {
  */
 export async function listAssets(authContext, { type } = {}) {
   requireConfigured();
-  const userId = authContext?.userId || (await getUserKey());
-  const workspaceId = authContext?.workspaceId || '';
+  const { userId, workspaceId } = await resolveIdentity(authContext);
   const scope = { userId, workspaceId };
 
   let rows;
@@ -277,8 +293,7 @@ export async function listAssets(authContext, { type } = {}) {
  */
 export async function getAsset(assetId, authContext) {
   requireConfigured();
-  const userId = authContext?.userId || (await getUserKey());
-  const workspaceId = authContext?.workspaceId || '';
+  const { userId, workspaceId } = await resolveIdentity(authContext);
 
   let result = await supabase
     .from(MEDIA_TABLE)
