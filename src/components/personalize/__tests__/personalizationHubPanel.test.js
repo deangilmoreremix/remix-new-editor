@@ -96,10 +96,13 @@ vi.mock('../personalizeAiAssist.js', () => ({
   },
 }));
 
-const getSession = vi.fn(async () => ({ data: { session: { access_token: 'test-token' } } }));
+// The panel authenticates discovery with the CLERK session token
+// (getPersonalizationAccessToken) — the app authenticates with Clerk, not
+// Supabase Auth, so that is the only identity seam discovery uses.
+const getPersonalizationAccessToken = vi.fn(async () => 'test-token');
 
-vi.mock('../../../lib/supabase.js', () => ({
-  supabase: { auth: { getSession: () => getSession() } },
+vi.mock('../../../lib/personalizationAuth.js', () => ({
+  getPersonalizationAccessToken: (...args) => getPersonalizationAccessToken(...args),
 }));
 
 const {
@@ -158,8 +161,8 @@ beforeEach(() => {
   runAiAssistEdit.mockImplementation(async () => ({ ok: true, id: 'pzo_test', images: [], videos: [] }));
   checkAiAssistAvailability.mockClear();
   checkAiAssistAvailability.mockReturnValue({ ok: true });
-  getSession.mockClear();
-  getSession.mockImplementation(async () => ({ data: { session: { access_token: 'test-token' } } }));
+  getPersonalizationAccessToken.mockClear();
+  getPersonalizationAccessToken.mockImplementation(async () => 'test-token');
   vi.useRealTimers();
 });
 

@@ -40,6 +40,7 @@ import {
   resolveForCineGen,
   resolveForRenderStudio,
 } from './studioBridge.js';
+import { getPersonalizationAccessToken } from '../../lib/personalizationAuth.js';
 
 /**
  * The six spec roles the hub manages, with their display labels.
@@ -703,25 +704,78 @@ let discoveryPollCount = 0;
 let discoveryDeadline = 0;
 
 /**
- * Attach the caller's Supabase session token, the same idiom
- * PersonalizeModal uses for /api/personalizer: the discovery function
- * verifies the token server-side, so no shared secret is ever sent to (or
- * embedded in) the browser. Signed-out callers simply get a 401, which the
- * panel explains.
- *
- * @returns {Promise<Record<string, string>>}
+ * Shown when the browser has no Clerk session token: the request is never
+ * sent, so the server is never asked to reject it.
  */
-async function discoveryHeaders() {
-  const headers = { 'Content-Type': 'application/json' };
+const HUB_DISCOVERY_SIGN_IN_MESSAGE =
+  'Sign in to run website discovery — the discovery pipeline runs on the server under your account.';
+
+/**
+ * Shown when the server rejects an otherwise-authorized request as
+ * expired/invalid. The client never retries automatically: the user must
+ * sign in again, which mints a fresh token.
+ */
+const HUB_DISCOVERY_EXPIRED_MESSAGE = 'Your session expired — sign in again.';
+
+/**
+ * The server-to-server shared secret, ONLY when this module is imported
+ * outside the browser (e.g. a server context). The browser never has it:
+ * `PERSONALIZATION_DISCOVERY_SECRET` is a Netlify function env var and is
+ * never exposed to client bundles, so this returns null there.
+ *
+ * @returns {string | null}
+ */
+function discoveryServerSecret() {
   try {
-    const { supabase } = await import('../../lib/supabase.js');
-    const { data } = await supabase.auth.getSession();
-    const token = data && data.session && data.session.access_token;
-    if (token) headers.Authorization = `Bearer ${token}`;
+    if (typeof process !== 'undefined' && process && process.env && process.env.PERSONALIZATION_DISCOVERY_SECRET) {
+      return process.env.PERSONALIZATION_DISCOVERY_SECRET;
+    }
   } catch {
-    /* no session available — the server answers 401 and the panel says so */
+    /* no process object in the browser */
   }
-  return headers;
+  return null;
+}
+
+/**
+ * Authorization for every discovery request (start, poll, cancel).
+ *
+ * The app authenticates with CLERK, not Supabase Auth — so the identity
+ * token is a fresh Clerk session token from the verified session
+ * (getPersonalizationAccessToken), exactly what src/lib/supabase.js sends
+ * on every Supabase request and what the discovery function verifies
+ * server-side. A caller with no Clerk session is NEVER sent to the server:
+ * it gets an explicit sign-in state instead, so it cannot 401.
+ *
+ * Server contexts may instead present the internal `X-Discovery-Secret`
+ * (see discoveryServerSecret).
+ *
+ * @returns {Promise<{ headers: Record<string, string> } | { error: string }>}
+ */
+async function discoveryAuth() {
+  const secret = discoveryServerSecret();
+  if (secret) {
+    return {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Discovery-Secret': secret,
+      },
+    };
+  }
+
+  let token;
+  try {
+    token = await getPersonalizationAccessToken();
+  } catch (err) {
+    const detail = err && err.message ? err.message : 'unknown error';
+    return { error: `Could not read your session (${detail}) — try signing in again.` };
+  }
+  if (!token) return { error: HUB_DISCOVERY_SIGN_IN_MESSAGE };
+  return {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  };
 }
 
 function buildDiscoverySection() {
@@ -761,7 +815,7 @@ function discoveryRejectionMessage(data, res) {
   if (data && typeof data.reason === 'string' && data.reason) return data.reason;
   if (data && typeof data.message === 'string' && data.message) return data.message;
   if (res && res.status === 401) {
-    return 'Sign in to run website discovery — the discovery pipeline runs on the server under your account.';
+    return HUB_DISCOVERY_EXPIRED_MESSAGE;
   }
   if (res && res.status === 429) return 'The discovery service is busy — try again in a moment.';
   if (res && (res.status === 502 || res.status === 503)) return 'Discovery service unavailable. Please try again later.';
@@ -790,6 +844,14 @@ async function startDiscovery(url) {
   // server-side job) before starting the new one.
   await stopDiscoveryPolling();
 
+  // Authorize FIRST: a caller without a Clerk session never reaches the
+  // server (and can never collect a 401).
+  const auth = await discoveryAuth();
+  if (auth.error) {
+    if (status) status.textContent = auth.error;
+    return;
+  }
+
   if (status) status.textContent = `Discovering assets from ${trimmed}…`;
   if (results) results.replaceChildren();
 
@@ -797,10 +859,16 @@ async function startDiscovery(url) {
   try {
     const res = await fetch(HUB_DISCOVERY_ENDPOINT, {
       method: 'POST',
-      headers: await discoveryHeaders(),
+      headers: auth.headers,
       body: JSON.stringify({ url: trimmed }),
     });
     const data = await res.json().catch(() => null);
+    if (res.status === 401) {
+      // Expired/invalid token: explain and NEVER auto-retry — the user must
+      // sign in again, which mints a fresh token.
+      if (status) status.textContent = HUB_DISCOVERY_EXPIRED_MESSAGE;
+      return;
+    }
     if (!res.ok || !data || !data.jobId) {
       if (status) status.textContent = discoveryRejectionMessage(data, res);
       return;
@@ -839,13 +907,31 @@ async function pollDiscoveryJob() {
   let res;
   let data;
   try {
+    // A fresh token per poll: long discovery jobs outlive short-lived tokens.
+    const auth = await discoveryAuth();
+    if (auth.error) {
+      // Session lost mid-job: stop polling, explain, never auto-retry.
+      await stopDiscoveryPolling();
+      if (status) status.textContent = auth.error;
+      return;
+    }
     res = await fetch(`${HUB_DISCOVERY_ENDPOINT}?jobId=${encodeURIComponent(jobId)}`, {
-      headers: await discoveryHeaders(),
+      headers: auth.headers,
     });
     data = await res.json().catch(() => null);
   } catch {
     // Transient network failure: keep polling until the deadline.
     if (status) status.textContent = `Discovery service unreachable — retrying (${discoveryPollCount}/${HUB_DISCOVERY_MAX_POLLS})…`;
+    return;
+  }
+
+  if (res.status === 401) {
+    // Expired/invalid token mid-job: stop the loop and explain. The user
+    // must sign in again — the client never auto-retries on a 401.
+    stopDiscoveryTimer();
+    discoveryJobId = null;
+    if (status) status.textContent = HUB_DISCOVERY_EXPIRED_MESSAGE;
+    if (results) results.replaceChildren();
     return;
   }
 
@@ -903,10 +989,15 @@ async function stopDiscoveryPolling() {
   discoveryPollCount = 0;
   discoveryDeadline = 0;
   if (!jobId) return;
+  // Cancel is ownership-checked server-side, so it needs authorization too.
+  // Best-effort: skip it (rather than fire a guaranteed-401 request) when
+  // the session is gone — the engine GCs abandoned jobs on its own.
+  const auth = await discoveryAuth();
+  if (auth.error) return;
   try {
     await fetch(`${HUB_DISCOVERY_ENDPOINT}?jobId=${encodeURIComponent(jobId)}`, {
       method: 'DELETE',
-      headers: await discoveryHeaders(),
+      headers: auth.headers,
     });
   } catch {
     /* best-effort cancel — the engine GCs abandoned jobs on its own */

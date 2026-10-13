@@ -6,16 +6,19 @@
  * `applyRenderStudioPersonalization` and `buildRenderStudioOverlays`.
  *
  * WHAT THE BRIDGE MAY PROMISE IS BOUNDED BY WHAT THE RENDER ACCEPTS.
- * `captureRealVideo()` (src/components/RenderPage.js:827) composites exactly
- * one image per frame — the source video, drawn once at `:1051` — has no
- * `fillText`/`strokeText` anywhere in the file, and its only inputs are
- * `videoUrl`, `action`, `timeRange`, `effects{brightness,contrast}`, `preset`
- * and `settings{format,frameRate,quality,aspectRatio,contain,duration,
- * validateDecode}`. None of those can carry a client brand.
+ * `captureRealVideo()` (src/components/RenderPage.js) reads exactly one
+ * branding parameter — `overlays[]`, composited per frame by drawOverlays()
+ * right after the base frame's ctx.drawImage — plus `videoUrl`, `action`,
+ * `settings{format,frameRate,quality,aspectRatio,contain,duration,
+ * validateDecode}`, `timeRange`, `effects{brightness,contrast}`, `preset`
+ * and `onProgress`.
  *
  * These tests therefore assert BOTH halves of the contract:
- *   - nothing is fabricated onto a parameter the render ignores,
- *   - every studio-supplied value survives the merge untouched.
+ *   - every studio-supplied value survives the merge untouched,
+ *   - the supported concepts (logo, business name, call to action, brand
+ *     reference) are composited as `overlays[]` descriptors with explicit
+ *     normalized geometry, and NOTHING is fabricated onto a parameter the
+ *     render ignores (`prompt`, `lastFrameUrl`, `watermark` stay absent).
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
@@ -149,41 +152,79 @@ describe('a client profile + logo + product + brand references', () => {
     expect(p.promptPrefix).toContain('Acme Roofing');
   });
 
-  it('projects NO overlay field, because the render has no parameter for any of them', () => {
-    expect(buildRenderStudioOverlays({ settings: { format: 'mp4' } })).toEqual({});
+  it('projects the supported overlay descriptors: logo, business name, call to action', () => {
+    const overlays = buildRenderStudioOverlays({ settings: { format: 'mp4' } }).overlays;
+    expect(overlays.map((o) => o.id)).toEqual([
+      'personalization-logo', 'personalization-business-name', 'personalization-call-to-action',
+    ]);
+    // Normalized geometry — every value is a fraction of the visible video
+    // area (height: null preserves the logo's decoded aspect ratio). Numbers
+    // below are the projection's LOGO_OVERLAY_GEOMETRY /
+    // BUSINESS_NAME_OVERLAY_GEOMETRY / CALL_TO_ACTION_OVERLAY_GEOMETRY.
+    expect(overlays[0]).toEqual({
+      id: 'personalization-logo', type: 'image', url: 'https://cdn.test/logo.png',
+      source: 'personalization', x: 0.84, y: 0.04, width: 0.12, height: null, opacity: 0.9,
+    });
+    expect(overlays[1]).toEqual({
+      id: 'personalization-business-name', type: 'text', text: 'Acme Roofing',
+      source: 'personalization', x: 0.5, y: 0.8, fontSize: 0.05, color: '#ffffff',
+      align: 'center', opacity: 1, maxWidth: 0.9, fontWeight: 700,
+    });
+    expect(overlays[2]).toEqual({
+      id: 'personalization-call-to-action', type: 'text', text: 'Call now',
+      source: 'personalization', x: 0.5, y: 0.88, fontSize: 0.038, color: '#ffffff',
+      align: 'center', opacity: 0.95, maxWidth: 0.9, fontWeight: 600,
+    });
+    // The brand reference is a PHOTO, not a logo: opt-in only, so no
+    // brand-reference overlay exists without settings.brandReferenceOverlay.
+    expect(overlays.some((o) => o.id === 'personalization-brand-reference')).toBe(false);
   });
 
-  it('does not fabricate a reference-image parameter: the first reference image maps to none', () => {
+  it('composites ONLY the primary logo as an image overlay — other references are opt-in', () => {
     const payload = studioPayload();
     const merged = mergeRenderPersonalization(payload, { settings: payload.settings });
 
-    // No key was added, removed or rewritten.
-    expect(Object.keys(merged)).toEqual(Object.keys(payload));
-    expect(merged).toEqual(payload);
-    // None of the personalization image URLs leaked into the payload under
-    // any key — there is no render parameter for them to land in.
+    // No studio key was added, removed or rewritten — the projection adds
+    // exactly one key, the overlay descriptor list.
+    expect(Object.keys(merged)).toEqual([...Object.keys(payload), 'overlays']);
+    expect(merged).toEqual({ ...payload, overlays: merged.overlays });
+    // The only composited IMAGE is the primary logo.
+    const imageOverlays = merged.overlays.filter((o) => o.type === 'image');
+    expect(imageOverlays.map((o) => o.url)).toEqual(['https://cdn.test/logo.png']);
+    // Product and brand-reference URLs are NOT composited: the brand
+    // reference is opt-in (settings.brandReferenceOverlay) and products are
+    // never overlay images, so their URLs must not leak into the payload.
     const urls = resolveForRenderStudio().referenceImages.map((r) => r.url);
     const serialized = JSON.stringify(merged);
-    urls.forEach((url) => expect(serialized).not.toContain(url));
+    urls
+      .filter((url) => url !== 'https://cdn.test/logo.png')
+      .forEach((url) => expect(serialized).not.toContain(url));
   });
 
-  it('omits promptPrefix / client-profile text — the capture path accepts no text parameter', () => {
+  it('never fabricates a prompt parameter — client text rides the overlay projection', () => {
     const payload = studioPayload();
     const merged = mergeRenderPersonalization(payload);
 
     // The text IS produced by the projection layer…
     expect(resolveForRenderStudio().promptPrefix).toContain('Acme Roofing');
-    // …but the render pipeline declares no text/prompt support, so it is not
-    // forced into the payload at the root or inside settings.
+    // …but the capture path still accepts no prompt parameter: the support
+    // flag stays false and no `prompt` key is forced onto the payload root
+    // or inside settings.
     expect(RENDER_STUDIO_OVERLAY_SUPPORT.prompt).toBe(false);
-    expect(merged.prompt).toBeUndefined();
-    expect(merged.textOverlay).toBeUndefined();
     expect(Object.prototype.hasOwnProperty.call(merged.settings, 'prompt')).toBe(false);
+    // The client text is composited through the text overlay descriptors
+    // instead — business name first, call to action below it.
+    expect(merged.overlays.filter((o) => o.type === 'text').map((o) => o.text))
+      .toEqual(['Acme Roofing', 'Call now']);
   });
 
-  it('omits branding and the logo — no logo/watermark/overlay parameter exists', () => {
+  it('omits branding and the logo — no root-level branding parameter exists', () => {
     const merged = mergeRenderPersonalization(studioPayload());
-    ['logoUrl', 'branding', 'lastFrameUrl', 'referenceImages', 'overlays', 'watermark'].forEach((key) => {
+    // No root-level fabrication of any branding concept: the supported ones
+    // ride the `overlays` descriptor list (asserted above), while the still
+    // unsupported ones (no still-frame parameter, no watermark parameter)
+    // stay absent at the payload root.
+    ['logoUrl', 'branding', 'lastFrameUrl', 'referenceImages', 'watermark'].forEach((key) => {
       expect(merged[key]).toBeUndefined();
     });
   });
@@ -204,9 +245,10 @@ describe('a client profile + logo + product + brand references', () => {
     expect(keys).toEqual([
       'referenceImages', 'logoUrl', 'lastFrameUrl', 'textOverlay', 'prompt', 'branding',
     ]);
-    // Nothing is supported today, so the gap lists all of them.
-    expect(RENDER_STUDIO_OVERLAY_GAP.supported).toEqual([]);
-    expect(RENDER_STUDIO_OVERLAY_GAP.missing).toEqual(keys);
+    // Four of the six are composited through the `overlays` parameter; only
+    // the still frame and the prompt remain missing.
+    expect(RENDER_STUDIO_OVERLAY_GAP.supported).toEqual(['referenceImages', 'logoUrl', 'textOverlay', 'branding']);
+    expect(RENDER_STUDIO_OVERLAY_GAP.missing).toEqual(['lastFrameUrl', 'prompt']);
     expect(RENDER_STUDIO_OVERLAY_GAP.evidence).toMatch(/drawImage/);
     expect(RENDER_STUDIO_OVERLAY_GAP.unblock).toMatch(/drawFrame/);
   });
@@ -227,9 +269,14 @@ describe('studio-supplied values always win', () => {
       onProgress,
     };
     const merged = mergeRenderPersonalization(payload, { settings: payload.settings });
-    expect(merged).toEqual(payload);
+    // Every studio-supplied parameter survives untouched — studio values
+    // always win, and personalization only ADDS the overlay descriptors.
+    expect(merged).toEqual({ ...payload, overlays: merged.overlays });
     expect(merged.settings).toEqual(payload.settings);
     expect(merged.onProgress).toBe(onProgress);
+    expect(merged.overlays.map((o) => o.id)).toEqual([
+      'personalization-logo', 'personalization-business-name', 'personalization-call-to-action',
+    ]);
   });
 
   it('keeps a studio value for every contested overlay key, at the payload root', () => {

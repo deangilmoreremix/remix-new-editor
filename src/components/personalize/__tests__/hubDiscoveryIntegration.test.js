@@ -93,13 +93,15 @@ vi.mock('../personalizeAiAssist.js', () => ({
   AI_ASSIST_ROLE_LABELS: {},
 }));
 
-// The panel reads the caller's Supabase session token (sent to the function,
-// exactly like PersonalizeModal does) — mock it so the Authorization header
-// is deterministic.
-const getSession = vi.fn(async () => ({ data: { session: { access_token: 'test-session-token' } } }));
+// The panel authenticates discovery with the CLERK session token
+// (getPersonalizationAccessToken, the same verified identity token
+// src/lib/supabase.js sends on Supabase requests) — mock it so the
+// Authorization header is deterministic. Supabase Auth is NOT the app's
+// auth and must never be consulted.
+const getPersonalizationAccessToken = vi.fn(async () => 'test-session-token');
 
-vi.mock('../../../lib/supabase.js', () => ({
-  supabase: { auth: { getSession: () => getSession() } },
+vi.mock('../../../lib/personalizationAuth.js', () => ({
+  getPersonalizationAccessToken: (...args) => getPersonalizationAccessToken(...args),
 }));
 
 const {
@@ -194,8 +196,8 @@ beforeEach(() => {
   sharedState = { entries: [], hydrated: true };
   addAsset.mockClear();
   importSelectedAssetIds.mockClear();
-  getSession.mockClear();
-  getSession.mockImplementation(async () => ({ data: { session: { access_token: 'test-session-token' } } }));
+  getPersonalizationAccessToken.mockClear();
+  getPersonalizationAccessToken.mockImplementation(async () => 'test-session-token');
   fetchMock.mockReset();
   global.fetch = fetchMock;
   vi.useFakeTimers();
@@ -326,12 +328,12 @@ describe('discovery failure handling', () => {
     expect(discoveryStatusText()).toContain('http:// or https://');
   });
 
-  it('explains that sign-in is required on 401', async () => {
+  it('explains that the session expired on 401', async () => {
     stubServer({ start: () => jsonResponse({ error: 'Unauthorized' }, 401) });
     mountHub();
     startDiscovery('https://s.test');
     await vi.advanceTimersByTimeAsync(HUB_DISCOVERY_POLL_MS);
-    expect(discoveryStatusText()).toContain('Sign in');
+    expect(discoveryStatusText()).toContain('session expired');
     expect(getCalls('GET')).toHaveLength(0);
   });
 

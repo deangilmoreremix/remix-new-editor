@@ -1,3 +1,7 @@
+// This root config file is not covered by the src/** globals block in
+// eslint.config.js; declare the Node global it uses (Vite shims it at load
+// time, so it is available at runtime despite the flat config).
+/* global __dirname */
 import { defineConfig } from 'vitest/config';
 import path from 'path';
 
@@ -28,6 +32,15 @@ export default defineConfig({
   resolve: {
     alias: {
       '../../lib/socialPublishHelpers': path.resolve(__dirname, 'src/lib/socialPublishHelpers.js'),
+      // tests/unit/timeline-*.unit.spec.ts import through the `@/` layout:
+      // `@` is the PROJECT ROOT, so `@/src/components/Timeline` resolves to
+      // src/components/Timeline.js and `@/components/base/Component` to
+      // components/base/Component.js (the base class the components import
+      // via their own relative specifier — one module instance, so
+      // `instanceof` holds). Vite only matches a string alias when the
+      // importee equals it or starts with it + '/', so scoped packages such
+      // as @clerk/*, @supabase/* and @vue/* are unaffected.
+      '@': path.resolve(__dirname),
     },
   },
 });
