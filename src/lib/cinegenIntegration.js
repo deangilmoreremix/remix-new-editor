@@ -6,6 +6,8 @@
  * production-ready client that preserves existing editor behavior.
  */
 
+import { getClerkToken } from './clerkToken.js';
+
 export const TIMELINE_AI_TOOLS = {
   FILL_GAP: 'fill_gap',
   EXTEND: 'extend',
@@ -37,9 +39,15 @@ export async function runTimelineAITool(tool, params = {}) {
   };
 
   try {
+    // The Netlify function is entitlement-gated — attach the Clerk session
+    // token when available (server answers 401 AUTH_REQUIRED without one).
+    const clerkToken = await getClerkToken();
     const res = await fetch(ENDPOINT, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(clerkToken ? { Authorization: `Bearer ${clerkToken}` } : {}),
+      },
       body: JSON.stringify(payload)
     });
 

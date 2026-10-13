@@ -24,6 +24,8 @@
 
 const TIMEOUT_MS = 30_000;
 
+import { requireClerkAuth } from './_clerk-auth.js';
+
 const fetchWithTimeout = async (url, options = {}, timeoutMs = TIMEOUT_MS) => {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -41,6 +43,11 @@ export async function handler(event) {
   if (event.httpMethod !== 'POST') {
     return jsonResponse(405, { ok: false, error: 'Method not allowed' });
   }
+
+  // Authentication only (no entitlement check — stock search is cheap).
+  // Deny BEFORE the PIXABAY_API_KEY server key is used.
+  const denial = await requireClerkAuth(event, corsHeaders());
+  if (denial) return denial;
 
   const apiKey = process.env.PIXABAY_API_KEY;
   if (!apiKey) {

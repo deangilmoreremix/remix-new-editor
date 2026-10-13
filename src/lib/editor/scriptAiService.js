@@ -12,6 +12,8 @@
  * returns a responseId.
  */
 
+import { getClerkToken } from '../clerkToken.js';
+
 const SCRIPT_API_PATH = '/api/timeline-script';
 
 // Stateful chain — kept per-browser-session so sequential refinements
@@ -24,9 +26,15 @@ export function resetScriptResponseChain() { lastResponseId = null; }
 async function callScriptEndpoint(payload) {
   let res;
   try {
+    // The Netlify function is entitlement-gated — attach the Clerk session
+    // token when available (server answers 401 AUTH_REQUIRED without one).
+    const clerkToken = await getClerkToken();
     res = await fetch(SCRIPT_API_PATH, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(clerkToken ? { Authorization: `Bearer ${clerkToken}` } : {}),
+      },
       body: JSON.stringify({ ...payload, previousResponseId: lastResponseId }),
     });
   } catch (e) {

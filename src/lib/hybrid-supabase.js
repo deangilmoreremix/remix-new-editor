@@ -743,10 +743,13 @@ class HybridSupabaseClient {
   // Edge Functions - try online first, fallback to offline processing
   get functions() {
     return {
-      invoke: async (functionName, { body }) => {
+      // `headers` is forwarded to the real client so gated functions
+      // (muapi-proxy, ai-thumbnail-generator, ...) receive the Clerk
+      // session bearer token the entitlement gate requires.
+      invoke: async (functionName, { body, headers } = {}) => {
         try {
           if (this.connectionState === CONNECTION_STATES.ONLINE && this.supabase) {
-            const { data, error } = await this.supabase.functions.invoke(functionName, { body });
+            const { data, error } = await this.supabase.functions.invoke(functionName, { body, headers });
             if (!error) {
               return { data, error: null };
             }

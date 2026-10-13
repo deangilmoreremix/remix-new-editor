@@ -13,8 +13,30 @@ export default defineConfig({
     exclude: ['**/node_modules/**', '**/tests/e2e/**', '**/e2e/**', '**/dist/**', '**/.kilo/**', '**/tests/studio-demo/**', 'backend/__tests__/**', '__tests__/**', 'backend/tests/**'],
   },
   resolve: {
-    alias: {
-      '../../lib/socialPublishHelpers': path.resolve(__dirname, 'src/lib/socialPublishHelpers.js'),
-    },
+    alias: [
+      // Deno-only import specifiers used by supabase/functions — stubbed so the
+      // edge-function handlers can be unit-tested under Node/vitest.
+      // (Additive: no existing module references these specifiers.)
+      {
+        find: 'jsr:@supabase/functions-js/edge-runtime.d.ts',
+        replacement: path.resolve(__dirname, 'tests/unit/__stubs__/deno-edge-runtime.js'),
+      },
+      {
+        find: /^npm:@supabase\/supabase-js@.*/,
+        replacement: path.resolve(__dirname, 'tests/unit/__stubs__/supabase-js.js'),
+      },
+      {
+        find: /^npm:openai@?.*/,
+        replacement: path.resolve(__dirname, 'tests/unit/__stubs__/openai.js'),
+      },
+      {
+        find: 'npm:./_registry.js',
+        replacement: path.resolve(__dirname, 'tests/unit/__stubs__/thumbnail-registry.js'),
+      },
+      {
+        find: '../../lib/socialPublishHelpers',
+        replacement: path.resolve(__dirname, 'src/lib/socialPublishHelpers.js'),
+      },
+    ],
   },
 });

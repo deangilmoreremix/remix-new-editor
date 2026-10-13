@@ -6,6 +6,7 @@
 import { openaiConfig } from './config/openaiConfig.js';
 import { apiKeyManager } from './apiKeyManager.js';
 import { muapi } from './muapi.js';
+import { getClerkToken } from './clerkToken.js';
 
 const MUAPI_PROXY_URL = (typeof window !== 'undefined' && window.__MUAPI_PROXY_URL__)
   || (typeof import.meta !== 'undefined' && import.meta.env?.DEV
@@ -71,11 +72,15 @@ class OpenAIService {
     return apiKeyManager.hasOpenAIKey();
   }
 
-  _headers() {
+  async _headers() {
     const key = this._getKey();
+    // The muapi-proxy Edge Function is entitlement-gated — attach the Clerk
+    // session token when available (server answers 401/403 without one).
+    const clerkToken = await getClerkToken();
     return {
       'Content-Type': 'application/json',
       ...(key ? { 'x-api-key': key } : {}),
+      ...(clerkToken ? { Authorization: `Bearer ${clerkToken}` } : {}),
     };
   }
 
@@ -120,7 +125,7 @@ Please enhance this prompt using the specified GTM methodologies and create a co
     try {
       const response = await fetch(MUAPI_PROXY_URL, {
         method: 'POST',
-        headers: this._headers(),
+        headers: await this._headers(),
         body: JSON.stringify({
           endpoint: 'text',
           params: this._withOpenAIKey({
@@ -591,7 +596,7 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
 
       const response = await fetch(MUAPI_PROXY_URL, {
         method: 'POST',
-        headers: this._headers(),
+        headers: await this._headers(),
           body: JSON.stringify({
             endpoint: imageModel,
             params: this._withOpenAIKey(requestBody),
@@ -708,7 +713,7 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
       try {
         const response = await fetch(MUAPI_PROXY_URL, {
           method: 'POST',
-          headers: this._headers(),
+          headers: await this._headers(),
           body: JSON.stringify({
             endpoint: `predictions/${requestId}/result`,
             params: {},
@@ -794,7 +799,7 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
 
       const response = await fetch(MUAPI_PROXY_URL, {
         method: 'POST',
-        headers: this._headers(),
+        headers: await this._headers(),
         body: JSON.stringify({
           endpoint: 'i2i',
           params: this._withOpenAIKey({
@@ -859,7 +864,7 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
 
       const response = await fetch(MUAPI_PROXY_URL, {
         method: 'POST',
-        headers: this._headers(),
+        headers: await this._headers(),
         body: JSON.stringify({
           endpoint: 'i2i',
           params: this._withOpenAIKey({

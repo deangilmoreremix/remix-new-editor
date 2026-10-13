@@ -13,6 +13,8 @@
  * standalone use via /v1/images/generations with gpt-image-2.
  */
 
+import { getClerkToken } from '../clerkToken.js';
+
 const NETLIFY_ENDPOINT = '/api/timeline-image-generate';
 
 /**
@@ -46,9 +48,15 @@ export async function generateImage({
   }
 
   try {
+    // The Netlify function is entitlement-gated — attach the Clerk session
+    // token when available (server answers 401 AUTH_REQUIRED without one).
+    const clerkToken = await getClerkToken();
     const res = await fetch(NETLIFY_ENDPOINT, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(clerkToken ? { Authorization: `Bearer ${clerkToken}` } : {}),
+      },
       body: JSON.stringify({
         prompt: prompt.trim(),
         niche,

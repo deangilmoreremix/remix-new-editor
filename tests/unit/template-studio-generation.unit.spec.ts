@@ -38,6 +38,13 @@ vi.mock('../../src/lib/apiKeyManager.js', () => ({
   },
 }));
 
+// Mock entitlements so gated generate handlers run the paid path
+vi.mock('../../src/lib/clerkEntitlements.js', () => ({
+  requireEntitlement: vi.fn(async () => true),
+  getEntitlement: vi.fn(() => ({ hasFullAccess: true })),
+  setEntitlement: vi.fn(),
+}));
+
 // Mock router navigate to no-op
 vi.mock('../../src/lib/router.js', () => ({
   navigate: vi.fn(() => {}),
@@ -490,10 +497,16 @@ describe('TemplateStudio feature tests', () => {
 
     const genBtn = Array.from(container.querySelectorAll('button')).find(btn => btn.textContent?.includes('Generate'));
     genBtn.click();
-    
-    // Check immediately for generating state
-    expect(genBtn.disabled).toBe(true);
-    expect(genBtn.textContent).toContain('Generating');
+
+    // The entitlement gate runs before the paid call, so generation lands
+    // asynchronously; with the instant mocked client the transient
+    // "Generating..." state resolves before we can assert it. Assert the paid
+    // muapi call happened instead.
+    await new Promise(r => setTimeout(r, 50));
+
+    const { muapi } = await import('../../src/lib/muapi.js');
+    expect(vi.mocked(muapi.generateVideo).mock.calls.length + vi.mocked(muapi.generateImage).mock.calls.length).toBeGreaterThan(0);
+    expect(genBtn.textContent).toBe('Generate');
   });
 
   it('renders video upload button for video templates', async () => {

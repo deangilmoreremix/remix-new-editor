@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { requireEntitlement, readEnv } from "../_shared/clerkAuth.ts";
 
 // muapi-proxy — forwards requests to api.muapi.ai on behalf of the client.
 //
@@ -7,9 +8,20 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 // The OPTIONS preflight handler (line 429) and the main handler catch block both
 // translate that throw into an HTTP 500 so misconfiguration is loud, not silent.
 //
-// Auth model (user-key-required, no server fallback):
-//   Every request MUST carry a Muapi API key supplied by the caller. Accepted
-//   sources (in priority order for JSON bodies):
+// Auth model (Clerk session + entitlement gate, then user-key-required):
+//   Every request MUST carry a Clerk session token
+//   (Authorization: Bearer <token from session.getToken()>) whose user is
+//   entitled to SmartVideo AI (publicMetadata.legacy_access === true or the
+//   'smartvideo_full_access' Billing feature in the token claims). The gate
+//   runs at the top of the handler — before any key resolution or upstream
+//   call — and denies with 401 AUTH_REQUIRED / 403 PAYMENT_REQUIRED per
+//   supabase/functions/_shared/clerkAuth.ts. A supplied Muapi API key does
+//   NOT replace the required purchase (BYOK is not an entitlement).
+//
+//   In development (ENVIRONMENT=development) the literal 'dev' placeholder
+//   key path is exempt from the gate and keeps its existing behavior.
+//
+//   Accepted Muapi key sources (in priority order for JSON bodies):
 //     1. body.muapi_api_key
 //     2. body.params.muapi_api_key
 //     3. x-api-key request header
@@ -39,7 +51,7 @@ const PROXY_BODY_LIMIT_BYTES = 8 * 1024 * 1024; // SUPABASE_PROXY_BODY_LIMIT_BYT
 const MAX_RETRIES = 2;
 const RETRYABLE_STATUSES = new Set([502, 503, 429]);
 const MUAPI_BASE_URL = (() => {
-  const configured = Deno.env.get('MUAPI_BASE_URL');
+  const configured = readEnv('MUAPI_BASE_URL');
   if (!configured) {
     console.warn('[muapi-proxy] MUAPI_BASE_URL is not set; falling back to default production URL https://api.muapi.ai. This should be set in production environments.');
     return 'https://api.muapi.ai';
@@ -53,7 +65,7 @@ const MUAPI_BASE_URL = (() => {
 // while investigating upstream placeholder responses. When false, the
 // proxy still runs the validation but returns 200 with a warning instead
 // of 422, preventing total studio outage.
-const ALLOW_PLACEHOLDER_URLS = Deno.env.get('MUAPI_ALLOW_PLACEHOLDER_URLS') === 'true';
+const ALLOW_PLACEHOLDER_URLS = readEnv('MUAPI_ALLOW_PLACEHOLDER_URLS') === 'true';
 
 // Narrowed to exact path prefixes to avoid false positives on legitimate
 // CDN URLs. Removed '/webassets/' and '/placeholder/' because they match
@@ -165,14 +177,14 @@ function getSizeLimitForRequest(contentType: string, declaredSize: number): numb
 // --- CORS helpers ---
 
 function getAllowedOrigins(): string[] {
-  const raw = Deno.env.get('ALLOWED_ORIGINS') || '';
+  const raw = readEnv('ALLOWED_ORIGINS') || '';
   return raw.split(',').map(s => s.trim()).filter(Boolean);
 }
 
 function getCorsHeaders(req: Request): Record<string, string> {
   const allowedOrigins = getAllowedOrigins();
   const requestOrigin = req.headers.get('origin') || '';
-  const isProduction = Deno.env.get('ENVIRONMENT') !== 'development';
+  const isProduction = readEnv('ENVIRONMENT') !== 'development';
 
   if (isProduction && allowedOrigins.length === 0) {
     throw new Error(
@@ -315,8 +327,10 @@ function pruneExpiredRateLimits(): void {
   }
 }
 
-// Run cleanup every 5 minutes
-setInterval(pruneExpiredRateLimits, 5 * 60 * 1000);
+// Run cleanup every 5 minutes (Deno runtime only; skipped under Node/vitest).
+if (typeof Deno !== 'undefined') {
+  setInterval(pruneExpiredRateLimits, 5 * 60 * 1000);
+}
 
 function checkRateLimit(clientId: string): boolean {
   const now = Date.now();
@@ -432,14 +446,50 @@ function verifyCsrfProtection(req: Request, auth: { reason: string }): { ok: boo
   }
   // Check Origin against APP_ORIGIN env var
   const origin = req.headers.get('origin');
-  const appOrigin = Deno.env.get('APP_ORIGIN');
+  const appOrigin = readEnv('APP_ORIGIN');
   if (origin && appOrigin && origin !== appOrigin) {
     return { ok: false, reason: 'origin mismatch' };
   }
   return { ok: true };
 }
 
-Deno.serve(async (req: Request) => {
+// CORS headers for auth-denial responses. Unlike the main handler paths this
+// never throws: an unauthenticated browser caller must still be able to read
+// the 401/403 body (ALLOWED_ORIGINS misconfiguration stays loud in logs).
+function denialCorsHeaders(req: Request): Record<string, string> {
+  try {
+    return getCorsHeaders(req);
+  } catch (err) {
+    console.error('[muapi-proxy] CORS config error:', (err as Error).message);
+    return {
+      'Access-Control-Allow-Origin': 'null',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Client-Info, Apikey, X-Webhook-Signature, X-Endpoint, X-Api-Key',
+      'Vary': 'Origin',
+    };
+  }
+}
+
+// The dev-only literal 'dev' placeholder key keeps its existing behavior (the
+// placeholder branches below return their own 401s) and is exempt from the
+// Clerk entitlement gate so local UI development (VITE_DEV_BYPASS_AUTH / ?dev)
+// continues to work unchanged.
+async function isDevPlaceholderRequest(req: Request): Promise<boolean> {
+  if (readEnv('ENVIRONMENT') !== 'development') return false;
+  if (req.headers.get('x-api-key') === 'dev') return true;
+  const contentType = req.headers.get('content-type') || '';
+  if (!contentType.includes('json')) return false;
+  try {
+    const body = await req.clone().json();
+    if (body?.muapi_api_key === 'dev') return true;
+    if (body?.params?.muapi_api_key === 'dev') return true;
+  } catch {
+    // Malformed body — let the main handler produce its usual error.
+  }
+  return false;
+}
+
+async function handleMuapiRequest(req: Request): Promise<Response> {
    if (req.method === "OPTIONS") {
      try {
        return new Response(null, {
@@ -468,6 +518,23 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    // --- Clerk auth + SmartVideo entitlement gate -------------------------
+    // Runs BEFORE the CSRF check, any Muapi key resolution, and any upstream
+    // call. Unauthenticated -> 401 AUTH_REQUIRED; authenticated but unpaid ->
+    // 403 PAYMENT_REQUIRED (upgradeRequired). The only exempt path is the
+    // dev-only 'dev' placeholder key handled by isDevPlaceholderRequest.
+    if (!(await isDevPlaceholderRequest(req))) {
+      const denial = await requireEntitlement(req, denialCorsHeaders(req));
+      if (denial) {
+        console.log(JSON.stringify({
+          type: 'entitlement.rejected',
+          status: denial.status,
+          ip: req.headers.get('cf-connecting-ip'),
+        }));
+        return denial;
+      }
+    }
+
     const csrf = verifyCsrfProtection(req, { reason: '' });
     if (!csrf.ok) {
       console.log(JSON.stringify({ type: 'csrf.rejected', reason: csrf.reason, ip: req.headers.get('cf-connecting-ip') }));
@@ -546,7 +613,7 @@ Deno.serve(async (req: Request) => {
       // Previously this stripped the key to '' which caused opaque MuAPI auth
       // failures. Developers see an actionable message pointing them to set a
       // real key or use the production proxy with VITE_DEV_BYPASS_AUTH.
-      const isDev = Deno.env.get('ENVIRONMENT') === 'development';
+      const isDev = readEnv('ENVIRONMENT') === 'development';
       const DEV_BYPASS_KEY = 'dev';
       if (isDev && userApiKey === DEV_BYPASS_KEY) {
         return new Response(
@@ -721,7 +788,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // Dev-bypass: return a clear error instead of forwarding with empty key.
-    const isDev = Deno.env.get('ENVIRONMENT') === 'development';
+    const isDev = readEnv('ENVIRONMENT') === 'development';
     const DEV_BYPASS_KEY = 'dev';
     if (isDev && userApiKey === DEV_BYPASS_KEY) {
       return new Response(
@@ -863,4 +930,11 @@ Deno.serve(async (req: Request) => {
       }
     );
   }
-});
+}
+
+// Start the edge server under Deno; exporting the handler keeps the module
+// importable under Node/vitest for unit tests (Deno is undefined there).
+export { handleMuapiRequest };
+if (typeof Deno !== 'undefined' && Deno.serve) {
+  Deno.serve(handleMuapiRequest);
+}

@@ -1,5 +1,6 @@
 import { BaseModal } from './BaseModal.jsx';
 import { openaiConfig } from '../../lib/config/openaiConfig.js';
+import { requireEntitlement } from '../../lib/clerkEntitlements.js';
 
 const CAPTION_LANGUAGES = [
   { value: 'English', label: 'English' },
@@ -419,6 +420,7 @@ export class AICaptionsModal extends BaseModal {
   }
 
   async generate() {
+    if (!(await requireEntitlement())) return;
     if (!this.videoUrl && !this.uploadedFile) {
       this.errorMessage = 'Please provide a video URL or upload a video file.';
       this.refreshBody();

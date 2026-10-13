@@ -3,6 +3,7 @@ import { apiKeyManager } from './apiKeyManager.js';
 import { uploadFileToStorage } from './supabase.js';
 import { validateFile } from './editor/validateFile.js';
 import { analytics } from './analytics.js';
+import { getClerkToken } from './clerkToken.js';
 import { rateLimiter } from './services/RateLimiter.js';
 import { UPLOAD_LIMITS, UPLOAD_RETRY_CONFIG, SUPABASE_PROXY_BODY_LIMIT_BYTES, UPLOAD_TIMEOUT_MS, UPLOAD_LARGE_TIMEOUT_MS } from './editor/uploadLimits.js';
 import {
@@ -117,6 +118,20 @@ export class MuapiClient {
             return { 'Content-Type': 'application/json', 'x-api-key': key };
         }
         return { 'Content-Type': 'application/json' };
+    }
+
+    // Headers for calls routed through the muapi-proxy Edge Function (and the
+    // other gated Supabase functions). The entitlement gate requires a Clerk
+    // session bearer token, so attach one whenever Clerk has a session.
+    // Falls back to the previous no-token behavior when Clerk is unavailable —
+    // the server then answers 401/403 as before.
+    async _getProxyHeaders() {
+        const headers = this._getMuapiHeaders();
+        const token = await getClerkToken();
+        if (token) {
+            headers.Authorization = `Bearer ${token}`;
+        }
+        return headers;
     }
 
     async getModelSchema(modelId) {
@@ -251,7 +266,7 @@ export class MuapiClient {
         try {
             const response = await fetch(this.proxyUrl, {
                 method: 'POST',
-                headers: this._getMuapiHeaders(),
+                headers: await this._getProxyHeaders(),
                 body: JSON.stringify({
                     endpoint,
                     params: finalPayload,
@@ -317,7 +332,7 @@ export class MuapiClient {
             try {
                 const response = await fetch(this.proxyUrl, {
                     method: 'POST',
-                    headers: this._getMuapiHeaders(),
+                    headers: await this._getProxyHeaders(),
                     body: JSON.stringify({
                         endpoint: `predictions/${requestId}/result`,
                         params: {},
@@ -418,7 +433,7 @@ export class MuapiClient {
         try {
             const response = await fetch(this.proxyUrl, {
                 method: 'POST',
-                headers: this._getMuapiHeaders(),
+                headers: await this._getProxyHeaders(),
                 body: JSON.stringify({
                      endpoint,
                      params: finalPayload,
@@ -561,7 +576,7 @@ export class MuapiClient {
         try {
             const response = await fetch(this.proxyUrl, {
                 method: 'POST',
-                headers: this._getMuapiHeaders(),
+                headers: await this._getProxyHeaders(),
                 body: JSON.stringify({
                      endpoint,
                      params: finalPayload,
@@ -668,7 +683,7 @@ export class MuapiClient {
         try {
              const response = await fetch(this.proxyUrl, {
                  method: 'POST',
-                 headers: this._getMuapiHeaders(),
+                 headers: await this._getProxyHeaders(),
                  body: JSON.stringify({
                      endpoint,
                      params: finalPayload,
@@ -740,6 +755,14 @@ export class MuapiClient {
         const formData = new FormData();
         formData.append('file', file);
 
+        // The proxy is entitlement-gated — attach the Clerk session token.
+        const clerkToken = await getClerkToken();
+        const proxyUploadHeaders = {
+            'x-api-key': key,
+            'x-endpoint': 'upload_file',
+        };
+        if (clerkToken) proxyUploadHeaders.Authorization = `Bearer ${clerkToken}`;
+
         const maxRetries = UPLOAD_RETRY_CONFIG.maxRetries;
         const retryableStatuses = new Set(UPLOAD_RETRY_CONFIG.retryableStatuses);
         let lastErr;
@@ -766,10 +789,7 @@ export class MuapiClient {
             try {
                 const response = await fetch(this.proxyUrl, {
                     method: 'POST',
-                    headers: {
-                        'x-api-key': key,
-                        'x-endpoint': 'upload_file',
-                    },
+                    headers: proxyUploadHeaders,
                     body: formData,
                     signal: controller.signal
                 });
@@ -1020,6 +1040,8 @@ export class MuapiClient {
      */
     async _uploadWithProgress(file, key, validation, signal, onProgress) {
         const MUAPI_UPLOAD_URL = this.proxyUrl;
+        // The proxy is entitlement-gated — attach the Clerk session token.
+        const clerkToken = await getClerkToken();
         const maxRetries = 2;
         const retryableStatuses = new Set([502, 503, 429]);
         let lastErr;
@@ -1077,6 +1099,9 @@ export class MuapiClient {
                 xhr.open('POST', MUAPI_UPLOAD_URL);
                 xhr.setRequestHeader('x-api-key', key);
                 xhr.setRequestHeader('x-endpoint', 'upload_file');
+                if (clerkToken) {
+                    xhr.setRequestHeader('Authorization', `Bearer ${clerkToken}`);
+                }
 
                 const formData = new FormData();
                 formData.append('file', file);
@@ -1171,7 +1196,7 @@ export class MuapiClient {
         try {
              const response = await fetch(this.proxyUrl, {
                  method: 'POST',
-                 headers: this._getMuapiHeaders(),
+                 headers: await this._getProxyHeaders(),
                  body: JSON.stringify({
                       endpoint,
                       params: finalPayload,
@@ -1234,7 +1259,7 @@ export class MuapiClient {
         try {
              const response = await fetch(this.proxyUrl, {
                  method: 'POST',
-                 headers: this._getMuapiHeaders(),
+                 headers: await this._getProxyHeaders(),
                  body: JSON.stringify({
                      endpoint,
                      params: finalPayload,
@@ -1302,7 +1327,7 @@ export class MuapiClient {
         try {
              const response = await fetch(this.proxyUrl, {
                  method: 'POST',
-                 headers: this._getMuapiHeaders(),
+                 headers: await this._getProxyHeaders(),
                  body: JSON.stringify({
                      endpoint,
                      params: finalPayload,
@@ -1360,7 +1385,7 @@ export class MuapiClient {
         try {
              const response = await fetch(this.proxyUrl, {
                  method: 'POST',
-                 headers: this._getMuapiHeaders(),
+                 headers: await this._getProxyHeaders(),
                  body: JSON.stringify({
                      endpoint,
                      params: finalPayload,
@@ -1470,7 +1495,7 @@ export class MuapiClient {
         try {
             const response = await fetch(this.proxyUrl, {
                 method: 'POST',
-                headers: this._getMuapiHeaders(),
+                headers: await this._getProxyHeaders(),
                 body: JSON.stringify({
                     endpoint,
                     params: finalPayload,
@@ -1520,7 +1545,7 @@ export class MuapiClient {
         try {
              const response = await fetch(`${base}/functions/v1/assets`, {
                  method: 'POST',
-                 headers: this._getMuapiHeaders(),
+                 headers: await this._getProxyHeaders(),
                  body: JSON.stringify(finalPayload),
                  signal: effectiveSignal
              });
@@ -1547,7 +1572,7 @@ export class MuapiClient {
         try {
             const response = await fetch(this.proxyUrl, {
                 method: 'POST',
-                headers: this._getMuapiHeaders(),
+                headers: await this._getProxyHeaders(),
                 body: JSON.stringify({
                     endpoint,
                     params: params || {},
@@ -1607,7 +1632,7 @@ export class MuapiClient {
         try {
             const response = await fetch(this.proxyUrl, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: await this._getProxyHeaders(),
                 body: JSON.stringify(body),
                 signal,
             });
@@ -1659,7 +1684,7 @@ export class MuapiClient {
          try {
              const response = await fetch(this.proxyUrl, {
                  method: 'POST',
-                 headers: this._getMuapiHeaders(),
+                 headers: await this._getProxyHeaders(),
                  body: JSON.stringify({
                      endpoint,
                      params: finalPayload,
@@ -1717,7 +1742,7 @@ export class MuapiClient {
         try {
             const response = await fetch(this.proxyUrl, {
                 method: 'POST',
-                headers: this._getMuapiHeaders(),
+                headers: await this._getProxyHeaders(),
                 body: JSON.stringify({
                     endpoint,
                     params: finalPayload,
@@ -1797,7 +1822,7 @@ export class MuapiClient {
         try {
             const response = await fetch(this.proxyUrl, {
                 method: 'POST',
-                headers: this._getMuapiHeaders(),
+                headers: await this._getProxyHeaders(),
                 body: JSON.stringify({
                     endpoint,
                     params: finalPayload,
@@ -1878,7 +1903,7 @@ export class MuapiClient {
         try {
             const response = await fetch(this.proxyUrl, {
                 method: 'POST',
-                headers: this._getMuapiHeaders(),
+                headers: await this._getProxyHeaders(),
                 body: JSON.stringify({
                     endpoint,
                     params: finalPayload,
@@ -1964,7 +1989,7 @@ export class MuapiClient {
          try {
              const response = await fetch(this.proxyUrl, {
                  method: 'POST',
-                 headers: this._getMuapiHeaders(),
+                 headers: await this._getProxyHeaders(),
                  body: JSON.stringify({
                      endpoint,
                      params: finalPayload,
@@ -2017,7 +2042,7 @@ export class MuapiClient {
         const url = this.proxyUrl;
         const response = await fetch(url, {
             method: 'POST',
-            headers: this._getMuapiHeaders(),
+            headers: await this._getProxyHeaders(),
             body: JSON.stringify({
                 endpoint,
                 params: payload,
@@ -2042,7 +2067,7 @@ export class MuapiClient {
         try {
             const response = await fetch(url, {
                 method: 'POST',
-                headers: this._getMuapiHeaders(),
+                headers: await this._getProxyHeaders(),
                 body: JSON.stringify({
                     endpoint: `predictions/${requestId}/result`,
                     params: {},

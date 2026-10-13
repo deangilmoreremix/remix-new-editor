@@ -9,6 +9,7 @@ import { replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
 import { createMediaRemoveButton } from '../lib/studioHelpers.js';
 import { showToast } from '../lib/loading.js';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
 
 const EDIT_TOOLS = [
   {
@@ -1071,6 +1072,7 @@ export function EditStudio() {
   }
 
   editBtn.onclick = async () => {
+    if (!(await requireEntitlement())) return;
     if (!activeTool) return;
     if (activeTool.mode === 't2i' && !promptField.value.trim()) { showError('Enter a prompt first'); return; }
     if (activeTool.mode === 'i2i' && !uploadedUrl && multiImageUrls.length === 0) { showError('Upload a source image first'); return; }

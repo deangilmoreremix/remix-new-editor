@@ -10,8 +10,18 @@ async function dismissModalIfPresent(page) {
 
 test.describe('Director Staging', () => {
   test.beforeEach(async ({ page }) => {
+    // Grant entitlement through the private setter. The entitlement cache is
+    // module-private, so the old writable __smartvideo_entitlement__ global no
+    // longer works; window.__smartvideo_entitlement_override() is the only
+    // supported test override. The app module may not have executed yet when
+    // this init script runs, so apply it as soon as the function exists.
     await page.addInitScript(() => {
-      (globalThis as any).__smartvideo_entitlement__ = { hasFullAccess: true };
+      const grant = () => (window as any).__smartvideo_entitlement_override?.({ hasFullAccess: true });
+      if (grant()) return;
+      const timer = setInterval(() => {
+        if (grant()) clearInterval(timer);
+      }, 100);
+      setTimeout(() => clearInterval(timer), 30000);
     });
     await page.goto('/director?videoUrl=https://example.com/test.mp4');
     await dismissModalIfPresent(page);

@@ -7,6 +7,7 @@
 import { RateLimiter } from '../lib/services/RateLimiter.js';
 import { CircuitBreaker } from '../lib/services/CircuitBreaker.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
+import { getClerkToken } from '../lib/clerkToken.js';
 
 class WhisperService {
   constructor(options = {}) {
@@ -254,10 +255,13 @@ class WhisperService {
     formData.append('word_timestamps', options.wordTimestamps.toString());
 
     const proxyUrl = this.proxyUrl || `${this.muapiUrl}/transcribe`;
+    // When routing through the muapi-proxy Edge Function, attach the Clerk
+    // session token the entitlement gate requires.
+    const clerkToken = this.proxyUrl ? await getClerkToken() : null;
     const response = await fetch(proxyUrl, {
       method: 'POST',
       headers: this.proxyUrl
-        ? { 'x-endpoint': 'transcribe' }
+        ? { 'x-endpoint': 'transcribe', ...(clerkToken ? { Authorization: `Bearer ${clerkToken}` } : {}) }
         : { 'Authorization': `Bearer ${this.apiKey}` },
       body: formData
     });

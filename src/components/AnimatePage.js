@@ -11,6 +11,7 @@ import { apiCall } from '../lib/brandApi.js';
 import { muapi } from '../lib/muapi.js';
 import { saveGeneration } from '../lib/generationHistory.js';
 import { i2vModels } from '../lib/models.js';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
 
 function getBackendBase() {
   if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_BACKEND_URL) {
@@ -405,6 +406,7 @@ export function AnimatePage() {
   generateBtn.className = 'btn-primary-modern w-full';
   generateBtn.textContent = 'Animate';
   generateBtn.onclick = async () => {
+    if (!(await requireEntitlement())) return;
     if (!state.sourceImageUrl) {
       showToast('Please upload an image first', 'error');
       return;

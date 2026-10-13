@@ -32,6 +32,7 @@ import { initTimelineAgentIntegration } from '../timelineAgentIntegration.js';
 import { ColorCorrectionSystem } from '../lib/editor/colorCorrectionSystem.jsx';
 import { runCineGenTool, CINEGEN_TOOLS } from '../lib/cinegenIntegration.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
+import { getClerkAuthHeaders } from '../lib/clerkToken.js';
 
 // CutAI integration loaded dynamically to avoid syntax issues in AIStoryboardStudio.jsx
 // import { AIStoryboardStudio } from './ai-storyboard/AIStoryboardStudio.jsx';
@@ -5500,8 +5501,11 @@ export function TimelineEditorPage() {
         }
 
         if (state.generateType === 'Image' || state.generateType === 'B-Roll') {
-          // Generate image using muapi-proxy
+          // Generate image using muapi-proxy (entitlement-gated — attach the
+          // Clerk session token the gate requires)
+          const authHeaders = await getClerkAuthHeaders();
           const { data, error } = await supabase.functions.invoke('muapi-proxy', {
+            headers: authHeaders,
             body: {
               endpoint: 'predictions',
               method: 'POST',
@@ -5526,8 +5530,11 @@ export function TimelineEditorPage() {
             text: item.text || item.name
           })) || [];
 
-          // Video generation with timeline subtitles
+          // Video generation with timeline subtitles (entitlement-gated —
+          // attach the Clerk session token the gate requires)
+          const authHeaders = await getClerkAuthHeaders();
           const { data, error } = await supabase.functions.invoke('muapi-proxy', {
+            headers: authHeaders,
             body: {
               endpoint: 'video-generation',
               method: 'POST',
@@ -6059,6 +6066,7 @@ export function TimelineEditorPage() {
       }
       if (musicBtn) {
         musicBtn.addEventListener('click', async () => {
+          if (!(await requireEntitlement())) return;
           try {
             const { default: muapi } = await import('../lib/muapi.js');
             const model = musicBtn.dataset.model || 'suno-create-music';

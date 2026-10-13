@@ -25,6 +25,7 @@ import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { getTemplateStudioAsset } from '../lib/personalizerAdapters.js';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
 
 export function TemplateStudio(templateId) {
   let template = getTemplateById(templateId);
@@ -1228,6 +1229,7 @@ let fallbackList = [];
   };
 
   async function runGeneration(params) {
+    if (!(await requireEntitlement())) return;
     if (isGenerating) return;
 
     isGenerating = true;

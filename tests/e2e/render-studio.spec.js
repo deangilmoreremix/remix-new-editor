@@ -474,11 +474,23 @@ test.describe('Render Studio', () => {
     await page.waitForFunction(() => typeof window.__setRenderVideoSource === 'function', { timeout: 60000 }).catch(() => {});
     await page.waitForTimeout(500);
 
-    // Bypass entitlement and enable test hooks for testing
-    await page.evaluate(() => {
+    // Bypass entitlement and enable test hooks for testing.
+    // The entitlement cache is module-private; the only supported override is
+    // the window.__smartvideo_entitlement_override function (assigning the old
+    // __smartvideo_entitlement__ global no longer affects the gate).
+    await page.evaluate(async () => {
       try {
-        globalThis['__smartvideo_entitlement__'] = { hasFullAccess: true };
         globalThis['__DEV__'] = true;
+        // The override function is defined when clerkEntitlements.js executes;
+        // poll briefly in case the route chunk is still loading.
+        const deadline = Date.now() + 10000;
+        while (Date.now() < deadline) {
+          if (typeof window.__smartvideo_entitlement_override === 'function') {
+            window.__smartvideo_entitlement_override({ hasFullAccess: true });
+            break;
+          }
+          await new Promise((r) => setTimeout(r, 100));
+        }
       } catch {}
     });
   });
@@ -532,10 +544,20 @@ test.describe('Render Studio', () => {
     await page.waitForTimeout(2000);
     
     // Bypass entitlement check for testing
-    await page.evaluate(() => {
+    await page.evaluate(async () => {
       try {
-        // Directly set the entitlement cache so requireEntitlement() passes
-        globalThis['__smartvideo_entitlement__'] = { hasFullAccess: true };
+        // Grant entitlement through the private setter via the override
+        // function so requireEntitlement() passes. Reassigning a writable
+        // global has no effect on the gate anymore. Poll briefly in case the
+        // route chunk (which defines the override) is still loading.
+        const deadline = Date.now() + 10000;
+        while (Date.now() < deadline) {
+          if (typeof window.__smartvideo_entitlement_override === 'function') {
+            window.__smartvideo_entitlement_override({ hasFullAccess: true });
+            break;
+          }
+          await new Promise((r) => setTimeout(r, 100));
+        }
       } catch {}
     });
     

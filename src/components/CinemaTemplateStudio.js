@@ -6,6 +6,7 @@
 import { mountStudioDrawer, createStudioMenuButton } from '../lib/studioChrome.js';
 import { showToast } from '../lib/loading.js';
 import { escapeHtml } from '../lib/security.js';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { resolveTemplate } from '../lib/showcaseTemplateResolver.js';
 import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 import { muapi } from '../lib/muapi.js';
@@ -2566,6 +2567,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
   }
 
   async function runGeneration(params) {
+    if (!(await requireEntitlement())) return;
     if (isGenerating) return;
 
     isGenerating = true;

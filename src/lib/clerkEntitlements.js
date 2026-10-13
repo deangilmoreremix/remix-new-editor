@@ -15,30 +15,43 @@ export function useEntitlement() {
   return { loading: false, hasFullAccess, isSignedIn: true };
 }
 
-const ENTITLEMENT_CACHE_KEY = '__smartvideo_entitlement__';
+// Module-private entitlement state. The entitlement object is intentionally
+// NOT exposed on globalThis/window: anything writable there can be tampered
+// with from the console (or e2e globals) to unlock every paid gate.
+// setEntitlement() is the ONLY writer.
+let entitlementState = { hasFullAccess: false };
 
-function getCache() {
-  try {
-    return globalThis[ENTITLEMENT_CACHE_KEY] || { hasFullAccess: false };
-  } catch {
-    return { hasFullAccess: false };
-  }
-}
+const ENTITLEMENT_OVERRIDE_KEY = '__smartvideo_entitlement_override';
 
 export function getEntitlement() {
-  return getCache();
+  return { ...entitlementState };
 }
 
 export function setEntitlement(value) {
+  entitlementState = { hasFullAccess: value?.hasFullAccess === true };
+}
+
+// Explicit test/e2e override: a function (not a writable data slot) that
+// writes through the private setter. Defined non-writable/non-configurable so
+// neither reassigning this property nor assigning the old global
+// (window.__smartvideo_entitlement__) has any effect on the gate.
+function defineEntitlementOverride() {
+  if (typeof window === 'undefined') return;
   try {
-    globalThis[ENTITLEMENT_CACHE_KEY] = value;
+    Object.defineProperty(window, ENTITLEMENT_OVERRIDE_KEY, {
+      value: (value) => { setEntitlement(value); return hasFullAccess(); },
+      writable: false,
+      configurable: false,
+      enumerable: false,
+    });
   } catch {
     // ignore
   }
 }
+defineEntitlementOverride();
 
 export function hasFullAccess() {
-  return getCache().hasFullAccess === true;
+  return entitlementState.hasFullAccess === true;
 }
 
 export async function requireEntitlement() {

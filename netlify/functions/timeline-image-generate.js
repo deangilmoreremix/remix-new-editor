@@ -34,6 +34,8 @@
 
 const TIMEOUT_MS = 120_000;
 
+import { requireClerkEntitlement } from './_clerk-auth.js';
+
 const IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL || 'gpt-image-2';
 const RESPONSES_MODEL = process.env.OPENAI_RESPONSES_TEXT_MODEL || 'gpt-5.6';
 
@@ -123,6 +125,11 @@ export async function handler(event) {
   if (event.httpMethod !== 'POST') {
     return jsonResponse(405, { ok: false, error: 'Method not allowed' });
   }
+
+  // --- Clerk auth + SmartVideo entitlement gate ---------------------------
+  // Deny BEFORE reading the server OPENAI_API_KEY or calling OpenAI.
+  const denial = await requireClerkEntitlement(event, corsHeaders());
+  if (denial) return denial;
 
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {

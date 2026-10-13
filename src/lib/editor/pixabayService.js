@@ -13,6 +13,8 @@
  * the Netlify function which holds the real secret.
  */
 
+import { getClerkToken } from '../clerkToken.js';
+
 const NETLIFY_ENDPOINT = '/api/pixabay-search';
 
 /**
@@ -38,9 +40,15 @@ export async function searchPixabay({
   maxDuration,
 } = {}) {
   try {
+    // The Netlify function is auth-gated — attach the Clerk session token
+    // when available (server answers 401 AUTH_REQUIRED without one).
+    const clerkToken = await getClerkToken();
     const res = await fetch(NETLIFY_ENDPOINT, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(clerkToken ? { Authorization: `Bearer ${clerkToken}` } : {}),
+      },
       body: JSON.stringify({ type, query, page, perPage, orientation, minDuration, maxDuration }),
     });
     if (!res.ok) {

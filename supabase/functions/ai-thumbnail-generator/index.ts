@@ -1,6 +1,11 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import OpenAI from "npm:openai";
+import {
+  extractBearerToken,
+  readEnv,
+  requireEntitlement,
+} from "../_shared/clerkAuth.ts";
 
 const OPENAI_IMAGE_MODELS = new Set(['gpt-image-2', 'gpt-image-1.5', 'gpt-image-1', 'gpt-image-1-mini']);
 
@@ -25,11 +30,11 @@ function jsonResponse(body: Record<string, unknown>, status = 200) {
 // Config
 // ---------------------------------------------------------------------------
 
-const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+const OPENAI_API_KEY = readEnv("OPENAI_API_KEY");
+const SUPABASE_URL = readEnv("SUPABASE_URL");
+const SUPABASE_SERVICE_ROLE_KEY = readEnv("SUPABASE_SERVICE_ROLE_KEY");
 
-const IMG_GEN_MAINLINE_MODEL = Deno.env.get("IMG_GEN_MAINLINE_MODEL") || "gpt-4.1";
+const IMG_GEN_MAINLINE_MODEL = readEnv("IMG_GEN_MAINLINE_MODEL") || "gpt-4.1";
 const MODEL_FALLBACK_CHAIN = [IMG_GEN_MAINLINE_MODEL, "gpt-4.1-mini", "gpt-4o"].filter(
   (m, i, arr) => arr.indexOf(m) === i
 );
@@ -670,7 +675,7 @@ Each prompt must:
   }
 }
 
-async function handleGenerate(body: GenerateRequest) {
+async function handleGenerate(body: GenerateRequest, clerkToken: string | null = null) {
   let openai: OpenAI;
   let keySource: "user" | "server";
   try {
@@ -687,7 +692,7 @@ async function handleGenerate(body: GenerateRequest) {
     return handleGenerateOpenAI(body, model, openai, keySource);
   }
 
-  return handleGenerateMuapi(body, model, keySource);
+  return handleGenerateMuapi(body, model, keySource, clerkToken);
 }
 
 // ---------------------------------------------------------------------------
@@ -780,12 +785,28 @@ async function handleGenerateOpenAI(
 // muapi-proxy path (all non-OpenAI models)
 // ---------------------------------------------------------------------------
 
+// Map legacy/short model names to the canonical muapi API endpoint names.
+// Kept in sync with the same helper in muapi-proxy/index.ts. (This function
+// was called below but missing, so every MuAPI-model generate request
+// failed with a ReferenceError before reaching the proxy.)
+function normalizeLegacyEndpoint(endpoint: string): string {
+  const map: Record<string, string> = {
+    'flux-dev': 'flux-dev-image',
+    'flux-schnell': 'flux-schnell-image',
+    'latent-sync': 'latentsync-video',
+    'ai-video-effects': 'generate_wan_ai_effects',
+    'ai-image-upscaler': 'ai-image-upscale',
+  };
+  return map[endpoint] || endpoint;
+}
+
 async function handleGenerateMuapi(
   body: GenerateRequest,
   model: string,
-  keySource: "user" | "server"
+  keySource: "user" | "server",
+  clerkToken: string | null = null
 ) {
-  const muapiKey = body.muapi_api_key || Deno.env.get("MUAPI_API_KEY");
+  const muapiKey = body.muapi_api_key || readEnv("MUAPI_API_KEY");
   if (!muapiKey) {
     return jsonResponse({
       error: "Muapi API key required for this model. Set MUAPI_API_KEY on the server or provide muapi_api_key in the request.",
@@ -809,7 +830,9 @@ async function handleGenerateMuapi(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        // Forward the caller's verified Clerk session token so muapi-proxy
+        // enforces the same entitlement gate on this server-to-server hop.
+        Authorization: `Bearer ${clerkToken || SUPABASE_SERVICE_ROLE_KEY}`,
         apikey: SUPABASE_SERVICE_ROLE_KEY || "",
       },
       body: JSON.stringify({
@@ -1652,13 +1675,26 @@ async function handleSave(body: SaveRequest) {
 // Main
 // ---------------------------------------------------------------------------
 
-Deno.serve(async (req: Request) => {
+async function handleThumbnailRequest(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
   }
   if (req.method !== "POST") {
     return jsonResponse({ error: "Method Not Allowed" }, 405);
   }
+
+  // --- Clerk auth + SmartVideo entitlement gate ---------------------------
+  // Runs BEFORE any OpenAI/Muapi call and before ANY server-key use,
+  // including the OPENAI_API_KEY fallback and the MUAPI_API_KEY fallback in
+  // handleGenerateMuapi. Unauthenticated -> 401 AUTH_REQUIRED; authenticated
+  // but unpaid -> 403 PAYMENT_REQUIRED (upgradeRequired). BYOK does not
+  // replace the required purchase.
+  const denial = await requireEntitlement(req, corsHeaders);
+  if (denial) return denial;
+
+  // The verified Clerk session token is forwarded to muapi-proxy so the
+  // proxy's own gate re-verifies the same session (identical semantics).
+  const clerkToken = extractBearerToken(req);
 
   // Multipart form requests (e.g. upload-reference) bypass JSON parsing.
   const contentType = req.headers.get("content-type") || "";
@@ -1688,7 +1724,7 @@ Deno.serve(async (req: Request) => {
       case "prompts":
         return handlePrompts(parsed as PromptsRequest);
       case "generate":
-        return handleGenerate(parsed as GenerateRequest);
+        return handleGenerate(parsed as GenerateRequest, clerkToken);
       case "refine":
         if ((parsed as RefineRequest).stream) return streamRefine(parsed as RefineRequest);
         return handleRefine(parsed as RefineRequest);
@@ -1715,4 +1751,11 @@ Deno.serve(async (req: Request) => {
   } catch (error) {
     return jsonResponse({ error: error instanceof Error ? error.message : "Unexpected error" }, 500);
   }
-});
+}
+
+// Start the edge server under Deno; exporting the handler keeps the module
+// importable under Node/vitest for unit tests (Deno is undefined there).
+export { handleThumbnailRequest };
+if (typeof Deno !== 'undefined' && Deno.serve) {
+  Deno.serve(handleThumbnailRequest);
+}

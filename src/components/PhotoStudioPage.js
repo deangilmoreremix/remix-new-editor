@@ -12,6 +12,7 @@ import { apiCall } from '../lib/brandApi.js';
 import { muapi } from '../lib/muapi.js';
 import { saveGeneration } from '../lib/generationHistory.js';
 import { i2iModels, v2vModels } from '../lib/models.js';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
 
 const CONCURRENCY = 2;
 const RESOLUTIONS = ['1k', '2k', '4k'];
@@ -310,6 +311,7 @@ export function PhotoStudioPage() {
   generateBtn.className = 'btn-primary-modern w-full mb-6';
   generateBtn.textContent = 'Generate Product Photos';
   generateBtn.onclick = async () => {
+    if (!(await requireEntitlement())) return;
     if (!state.productImageUrl) {
       showToast('Please upload a product image first', 'error');
       return;

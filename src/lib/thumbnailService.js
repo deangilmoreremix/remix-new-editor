@@ -16,6 +16,7 @@
 import { supabase, getSupabaseUrl, getSupabaseAnonKey } from './supabase.js';
 import { apiKeyManager } from './apiKeyManager.js';
 import { openaiConfig } from './config/openaiConfig.js';
+import { getClerkAuthHeaders, getClerkToken } from './clerkToken.js';
 
 const EDGE_FUNCTION = 'ai-thumbnail-generator';
 
@@ -113,7 +114,7 @@ export class ThumbnailService {
     const userKey = resolveUserOpenAIKey();
     if (userKey) body.apiKey = userKey;
 
-    const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body });
+    const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body, headers: await getClerkAuthHeaders() });
     if (error) throw new Error(error.message || 'Failed to build prompt variants');
     return { variants: data?.variants || [], responseId: data?.response_id || null };
   }
@@ -147,7 +148,7 @@ export class ThumbnailService {
       if (userKey) body.apiKey = userKey;
     }
 
-    const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body });
+    const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body, headers: await getClerkAuthHeaders() });
     if (error) {
       const hint = this.moderationHintFromError(error);
       throw new Error(hint ?? (error.message || 'Failed to generate candidates'));
@@ -204,13 +205,16 @@ export class ThumbnailService {
       if (userKey) body.apiKey = userKey;
     }
 
+    // The entitlement gate expects the Clerk session token in Authorization;
+    // fall back to the anon key (previous behavior) when Clerk is unavailable.
+    const clerkToken = await getClerkToken();
     let res;
     try {
       res = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${getSupabaseAnonKey()}`,
+          Authorization: `Bearer ${clerkToken || getSupabaseAnonKey()}`,
           apikey: getSupabaseAnonKey(),
         },
         body: JSON.stringify(body),
@@ -275,8 +279,10 @@ export class ThumbnailService {
     if (userKey) body.apiKey = userKey;
 
     const TIMEOUT_MS = 120_000;
+    // The edge function is entitlement-gated — pass the Clerk session token.
+    const authHeaders = await getClerkAuthHeaders();
     const { data, error } = await Promise.race([
-      supabase.functions.invoke(EDGE_FUNCTION, { body }),
+      supabase.functions.invoke(EDGE_FUNCTION, { body, headers: authHeaders }),
       new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Video thumbnail generation timed out (120s)')), TIMEOUT_MS)
       ),
@@ -336,7 +342,7 @@ export class ThumbnailService {
     const userKey = resolveUserOpenAIKey(opts.apiKey);
     if (userKey) body.apiKey = userKey;
 
-    const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body });
+    const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body, headers: await getClerkAuthHeaders() });
     if (error) {
       const hint = this.moderationHintFromError(error);
       throw new Error(hint ?? (error.message || 'Failed to refine image'));
@@ -398,13 +404,16 @@ export class ThumbnailService {
     const userKey = resolveUserOpenAIKey(opts.apiKey);
     if (userKey) body.apiKey = userKey;
 
+    // The entitlement gate expects the Clerk session token in Authorization;
+    // fall back to the anon key (previous behavior) when Clerk is unavailable.
+    const clerkToken = await getClerkToken();
     let res;
     try {
       res = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${getSupabaseAnonKey()}`,
+          Authorization: `Bearer ${clerkToken || getSupabaseAnonKey()}`,
           apikey: getSupabaseAnonKey(),
         },
         body: JSON.stringify(body),
@@ -475,7 +484,7 @@ export class ThumbnailService {
     const userKey = resolveUserOpenAIKey(opts.apiKey);
     if (userKey) body.apiKey = userKey;
 
-    const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body });
+    const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body, headers: await getClerkAuthHeaders() });
     if (error) throw new Error(error.message || 'Failed to inpaint image');
     return data?.result;
   }
@@ -487,7 +496,7 @@ export class ThumbnailService {
       ...params,
     };
 
-    const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body });
+    const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body, headers: await getClerkAuthHeaders() });
     if (error) throw new Error(error.message || 'Failed to track thumbnail analytics');
     return data;
   }
@@ -513,7 +522,7 @@ export class ThumbnailService {
       body.gifData = opts.gifData || opts.imageB64;
     }
 
-    const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body });
+    const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body, headers: await getClerkAuthHeaders() });
     if (error) throw new Error(error.message || 'Failed to save thumbnail');
     return data;
   }
@@ -724,10 +733,13 @@ export class ThumbnailService {
     if (userKey) form.append('apiKey', userKey);
 
     const url = `${getSupabaseUrl()}/functions/v1/${EDGE_FUNCTION}`;
+    // The entitlement gate expects the Clerk session token in Authorization;
+    // fall back to the anon key (previous behavior) when Clerk is unavailable.
+    const clerkToken = await getClerkToken();
     const res = await fetch(url, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${getSupabaseAnonKey()}`,
+        Authorization: `Bearer ${clerkToken || getSupabaseAnonKey()}`,
         apikey: getSupabaseAnonKey(),
       },
       body: form,

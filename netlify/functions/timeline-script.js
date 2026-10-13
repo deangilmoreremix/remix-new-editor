@@ -30,6 +30,8 @@
 
 const TIMEOUT_MS = 60_000;
 
+import { requireClerkEntitlement } from './_clerk-auth.js';
+
 const fetchWithTimeout = async (url, options = {}, timeoutMs = TIMEOUT_MS) => {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -151,6 +153,11 @@ export async function handler(event) {
   if (event.httpMethod !== 'POST') {
     return jsonResponse(405, { ok: false, error: 'Method not allowed' });
   }
+
+  // --- Clerk auth + SmartVideo entitlement gate ---------------------------
+  // Deny BEFORE reading the server OPENAI_API_KEY or calling OpenAI.
+  const denial = await requireClerkEntitlement(event, corsHeaders());
+  if (denial) return denial;
 
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {

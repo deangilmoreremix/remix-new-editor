@@ -18,6 +18,7 @@ import {
   providerProxyPlayback,
   providerLayerDecompose,
 } from './cinegenProviders.js';
+import { requireClerkEntitlement } from './_clerk-auth.js';
 
 const ALLOWED_TOOLS = new Set([
   'gap_fill',
@@ -93,6 +94,13 @@ export async function handler(event) {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
   }
+
+  // --- Clerk auth + SmartVideo entitlement gate ---------------------------
+  // Deny BEFORE any provider dispatch — providers may spend server keys
+  // (MUAPI_API_KEY / FAL_KEY). Unauthenticated -> 401 AUTH_REQUIRED;
+  // authenticated but unpaid -> 403 PAYMENT_REQUIRED (upgradeRequired).
+  const denial = await requireClerkEntitlement(event, headers);
+  if (denial) return denial;
 
   const body = parseBody(event);
   const tool = body.tool || body.params?.tool;

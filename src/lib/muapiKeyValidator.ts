@@ -36,6 +36,29 @@ function isStaticUrl(url: string): boolean {
   return STATIC_OUTPUT_PATTERNS.some(pattern => lower.includes(pattern));
 }
 
+/**
+ * Headers for a muapi-proxy call. The proxy is entitlement-gated, so attach
+ * the Clerk session bearer token when the vanilla clerk-js instance
+ * (window.Clerk, see lib/clerkInit.js) has a session. Inline rather than
+ * importing clerkToken.js so this .ts module keeps building standalone.
+ */
+async function getProxyHeaders(apiKey: string): Promise<Record<string, string>> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'x-api-key': apiKey,
+  };
+  try {
+    const clerk = window.Clerk as
+      | { session?: { getToken?: () => Promise<string | null> } }
+      | undefined;
+    const token = await clerk?.session?.getToken?.();
+    if (token) headers.Authorization = `Bearer ${token}`;
+  } catch {
+    // Clerk not loaded / signed out — the server gate answers 401.
+  }
+  return headers;
+}
+
 function extractOutputUrls(result: Record<string, unknown>): string[] {
   const urls: string[] = [];
   if (Array.isArray(result.outputs)) urls.push(...result.outputs);
@@ -67,10 +90,7 @@ async function pollForStaticCheck(
     try {
       const res = await fetch(proxyUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-        },
+        headers: await getProxyHeaders(apiKey),
         body: JSON.stringify({
           endpoint: `predictions/${requestId}/result`,
           params: {},
@@ -131,10 +151,7 @@ export async function validateMuapiKey(
     // Submit a minimal validation request
     const submitRes = await fetch(proxyUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-      },
+      headers: await getProxyHeaders(apiKey),
       body: JSON.stringify({
         endpoint: 'flux-dev-image',
         params: {

@@ -12,6 +12,7 @@ import { ThumbnailSearch } from './ThumbnailSearch.jsx';
 import { ThumbnailConfigurator } from './ThumbnailConfigurator.jsx';
 import { THUMBNAIL_TEMPLATES, getAllTemplates, getTemplateCategories } from '../../../lib/thumbnailTemplateRegistry.js';
 import { supabase } from '../../../lib/supabase.js';
+import { getClerkAuthHeaders } from '../../../lib/clerkToken.js';
 
 const EDGE_FUNCTION = 'ai-thumbnail-generator';
 
@@ -62,7 +63,7 @@ export class ThumbnailExploreIdeas {
           searchQuery: this.searchQuery,
         },
       };
-      const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body });
+      const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body, headers: await getClerkAuthHeaders() });
       if (!error && data?.templates) {
         this.recommendedTemplates = data.templates.recommended || [];
         this.popularTemplates = data.templates.popular || [];
@@ -90,7 +91,7 @@ export class ThumbnailExploreIdeas {
           searchQuery: this.searchQuery,
         },
       };
-      const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body });
+      const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body, headers: await getClerkAuthHeaders() });
       if (!error && data?.template) {
         return data.template;
       }

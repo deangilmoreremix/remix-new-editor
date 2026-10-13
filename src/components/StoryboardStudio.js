@@ -1652,6 +1652,7 @@ const compareBtn = document.createElement('button');
     }
 
   genAllBtn.onclick = async () => {
+    if (!(await requireEntitlement())) return;
     const hasKey = apiKeyManager.hasOpenAIKey() || apiKeyManager.hasMuapiKey();
     if (!hasKey) { AuthModal(() => genAllBtn.click()); return; }
 
