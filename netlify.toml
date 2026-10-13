@@ -5,7 +5,12 @@
 
 [build.environment]
   NODE_VERSION = "22"
-  SECRETS_SCAN_OMIT_KEYS = "CLERK_SECRET_KEY,MAIGRET_WORKER_SECRET,MAIGRET_WORKER_URL,PERSONALIZATION_DISCOVERY_SECRET,SUPABASE_SERVICE_ROLE_KEY,CLERK_WEBHOOK_SIGNING_SECRET"
+  # Server-only secrets that the Netlify functions read at runtime. Listing them
+  # here keeps the build-time secrets scanner from failing a deploy when one of
+  # them legitimately appears in a log line or build output. Every name below is
+  # read ONLY by code under netlify/functions/ (server-side) — none is inlined
+  # into the client bundle, and none carries a VITE_ prefix.
+  SECRETS_SCAN_OMIT_KEYS = "CLERK_SECRET_KEY,MAIGRET_WORKER_SECRET,MAIGRET_WORKER_URL,PERSONALIZATION_DISCOVERY_SECRET,SUPABASE_SERVICE_ROLE_KEY,CLERK_WEBHOOK_SIGNING_SECRET,OPENAI_API_KEY,MUAPI_API_KEY,PIXABAY_API_KEY,FAL_KEY,GEMINI_API_KEY,GITHUB_TOKEN"
 
 # Serve the model catalog as a static file in production.
 # The vite build plugin emits dist/api/model-catalog.json containing all
