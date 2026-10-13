@@ -56,6 +56,7 @@ export function VideoStudio() {
     let autoGenerate = false;
     let dropdownOpen = null;
     let selectedProvider = 'all';
+    let _videoStudioOutsideClickHandler = null;
     let uploadedImageUrl = null;
     let uploadedEndImageUrl = null;
     let imageMode = false; // false = t2v models, true = i2v models

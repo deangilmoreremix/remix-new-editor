@@ -16,7 +16,7 @@ import { createUploadPicker } from './UploadPicker.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
-import { categorizeGenerationError, createAbortAwareGenerateButton, showInlineError, hideInlineError } from '../lib/studioHelpers.js';
+import { categorizeGenerationError, createAbortAwareGenerateButton, showInlineError, hideInlineError, startGenerationProgress } from '../lib/studioHelpers.js';
 import { getCharacterReference, saveCharacterReference } from '../lib/characterConsistency.js';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
@@ -1364,6 +1364,30 @@ let showAdvanced = false;
             AuthModal(() => generateBtn.click());
             return;
         }
+
+        // Compile Prompt — include camera movement + film look so the
+        // "Render the shot" step produces a real cinematic video.
+        const cameraDesc = `${CAMERA_MAP[currentSettings.camera] || currentSettings.camera}`;
+        const lensDesc = `${LENS_MAP[currentSettings.lens] || currentSettings.lens}`;
+        const perspective = FOCAL_PERSPECTIVE[currentSettings.focal] || '';
+        const depthEffect = APERTURE_EFFECT[currentSettings.aperture] || '';
+        const movementDesc = CAMERA_MOVEMENTS[currentSettings.movement] || '';
+        const lookDesc = FILM_LOOKS[currentSettings.look] || '';
+
+        const finalPrompt = [
+            basePrompt,
+            `shot on a ${cameraDesc}`,
+            `using a ${lensDesc} at ${currentSettings.focal}mm${perspective ? ` (${perspective})` : ''}`,
+            `aperture ${currentSettings.aperture}`,
+            depthEffect,
+            movementDesc,
+            lookDesc,
+            'cinematic lighting',
+            'natural color science',
+            'high dynamic range',
+            'professional cinematography',
+            '8K resolution'
+        ].filter(Boolean).join(', ');
 
         isLoading = true;
         heroSection.classList.add('opacity-0', 'scale-95', '-translate-y-10', 'pointer-events-none');

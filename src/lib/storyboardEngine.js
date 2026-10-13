@@ -1,6 +1,7 @@
 import { muapi } from './muapi.js';
 import { openaiService } from './openaiService.js';
 import { apiKeyManager } from './apiKeyManager.js';
+import { t2iModels } from './models.js';
 
 const SHOT_TYPES = ['Wide Shot', 'Medium Shot', 'Close-Up', 'Extreme Close-Up', 'POV', 'Overhead', 'Low Angle'];
 const TONE_MAP = {
