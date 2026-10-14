@@ -261,17 +261,13 @@ describe('shared-DB identity — signed-out callers with a BYOK MuAPI key', () =
     expect(upload.path.startsWith('smartvideo/anonymous/')).toBe(true);
     expect(upload.path).not.toContain(offlineHash);
 
-    await saveAsset(makeFile('clip.mp4', 'video/mp4'), ctx);
-    const assetUpload = shared.uploads.at(-1);
-    const { row } = shared.inserts.at(-1);
-    expect(assetUpload.path.startsWith('smartvideo/anonymous/')).toBe(true);
-    expect(assetUpload.path).not.toContain(offlineHash);
-    expect(row.user_id).toBe('anonymous');
-    expect(row.user_id).not.toBe(offlineHash);
-    expect(row.app_id).toBe('smartvideo');
-    // (c) object path and row still agree on the SAME identity
-    expect(assetUpload.path.split('/')[1]).toBe('anonymous');
-    expect(assetUpload.path.split('/')[1]).toBe(row.user_id);
+    // Durable assets require a real account: the shared 'anonymous' owner
+    // must never pool "permanent" files across signed-out callers, so saveAsset
+    // refuses (and nothing is written) instead of tagging an anonymous row.
+    await expect(saveAsset(makeFile('clip.mp4', 'video/mp4'), ctx))
+      .rejects.toMatchObject({ code: 'ASSET_SIGN_IN_REQUIRED' });
+    expect(shared.inserts).toHaveLength(0);
+    expect(shared.uploads.filter((u) => u.path.includes('clip.mp4'))).toHaveLength(0);
   });
 
   test('(b) the hybrid offline-sync writer also writes anonymous, never the hash', async () => {
@@ -316,11 +312,10 @@ describe('shared-DB identity — consistency across writers', () => {
     signedOut();
     shared.byok.key = BYOK_KEY;
 
-    await saveAsset(makeFile('clip.mp4', 'video/mp4'), null);
-    const assetUpload = shared.uploads.at(-1);
-    const { row } = shared.inserts.at(-1);
-    expect(assetUpload.path.startsWith('smartvideo/anonymous/')).toBe(true);
-    expect(row.user_id).toBe('anonymous');
-    expect(assetUpload.path.split('/')[1]).toBe(row.user_id);
+    // No auth context (and no Clerk session) = anonymous owner: durable
+    // saves are refused rather than pooled under the shared identity.
+    await expect(saveAsset(makeFile('clip.mp4', 'video/mp4'), null))
+      .rejects.toMatchObject({ code: 'ASSET_SIGN_IN_REQUIRED' });
+    expect(shared.inserts).toHaveLength(0);
   });
 });

@@ -38,7 +38,7 @@
  *   2. DB level — RLS policies (owned by the auth/RLS work).
  */
 
-import { supabase, isSupabaseConfigured, getUserKey, primeSupabaseIdentity } from './supabase.js';
+import { supabase, isSupabaseConfigured, getUserKey, primeSupabaseIdentity, assertVerifiedWriteIdentity } from './supabase.js';
 
 const MEDIA_TABLE = 'media';
 const ASSET_BUCKET = 'uploads';
@@ -213,6 +213,21 @@ export async function saveAsset(file, authContext, meta = {}) {
   // `smartvideo/`), so any drift between them would lock the caller out of
   // their own object. The path is built from this same identity below.
   const { userId, workspaceId } = await resolveIdentity(authContext);
+
+  // Durable assets require a real account: without one every signed-out user
+  // would share the single 'anonymous' owner and could read or delete each
+  // other's "permanent" files. Sign in instead of silently pooling assets.
+  if (!userId || userId === 'anonymous') {
+    throw assetError(
+      'Sign in to save assets to your permanent Asset Library.',
+      'ASSET_SIGN_IN_REQUIRED',
+    );
+  }
+  // Fail closed: a signed-in caller whose verified Supabase token cannot be
+  // obtained (token exchange down / SUPABASE_JWT_SECRET missing) must not
+  // silently degrade to the spoofable x-user-key header identity.
+  await assertVerifiedWriteIdentity(userId);
+
   const path = buildObjectPath(file, userId);
   const mime = file.type || `application/${normalizeExtension(file.name)}`;
 

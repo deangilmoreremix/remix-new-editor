@@ -195,6 +195,34 @@ export async function getSupabaseAccessToken({ forceRefresh = false } = {}) {
 }
 
 /**
+ * FAIL-CLOSED guard for shared-database writes.
+ *
+ * The `x-user-key` header is client-controlled and is no longer trusted by any
+ * RLS policy, so a signed-in caller whose verified Supabase token cannot be
+ * obtained (token exchange unreachable, SUPABASE_JWT_SECRET not configured)
+ * must NOT silently degrade to that header identity — otherwise a broken
+ * exchange would quietly turn authenticated writes into unauthenticated ones.
+ * Callers with a real identity must present a verified token; anonymous
+ * callers are the caller's responsibility (the Asset Library requires sign-in
+ * for durable assets).
+ *
+ * @param {string} identity the resolved database identity (Clerk id or 'anonymous')
+ * @throws Error with code SECURE_SESSION_UNAVAILABLE when a non-anonymous
+ *         identity cannot be backed by a verified token.
+ */
+export async function assertVerifiedWriteIdentity(identity) {
+  if (!identity || identity === 'anonymous') return; // anonymous scope, not a verified identity
+  const token = await getSupabaseAccessToken();
+  if (!token) {
+    const err = new Error(
+      'Secure session unavailable — cannot verify your identity for this upload. Please try again shortly.',
+    );
+    err.code = 'SECURE_SESSION_UNAVAILABLE';
+    throw err;
+  }
+}
+
+/**
  * Attach the caller identity to a raw Supabase client:
  *   - verified JWT present  → `Authorization: Bearer <jwt>` (the RLS policies
  *     then derive the owner from the verified `sub` claim and ignore the

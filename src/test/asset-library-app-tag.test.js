@@ -111,6 +111,7 @@ vi.mock('../lib/supabase.js', () => ({
   isSupabaseConfigured: () => true,
   getUserKey: vi.fn(async () => 'user-a'),
   primeSupabaseIdentity: vi.fn(async () => null),
+  assertVerifiedWriteIdentity: vi.fn(async () => undefined),
 }));
 
 const {
@@ -163,12 +164,14 @@ describe('Asset Library — application tag', () => {
     expect(asset.path).toBe(row.path);
   });
 
-  test('anonymous callers are tagged under smartvideo/anonymous/', async () => {
-    await saveAsset(makeFile('clip.mp4', 'video/mp4'), null);
-    expect(state.uploads[0].path.startsWith('smartvideo/')).toBe(true);
-    // getUserKey() (mocked) returns 'user-a' when no auth context is supplied.
-    expect(state.uploads[0].path.startsWith('smartvideo/user-a/')).toBe(true);
-    expect(state.inserts[0].app_id).toBe('smartvideo');
+  test('anonymous callers cannot save durable assets (no shared-identity pooling)', async () => {
+    // Durable assets require a real account: without one every signed-out user
+    // would share the single 'anonymous' owner and could read/delete each
+    // other's "permanent" files.
+    await expect(saveAsset(makeFile('clip.mp4', 'video/mp4'), { userId: 'anonymous', workspaceId: 'personal' }))
+      .rejects.toMatchObject({ code: 'ASSET_SIGN_IN_REQUIRED' });
+    expect(state.uploads).toHaveLength(0);
+    expect(state.inserts).toHaveLength(0);
   });
 });
 
