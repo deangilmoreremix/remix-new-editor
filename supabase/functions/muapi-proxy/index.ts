@@ -1,3 +1,4 @@
+import { PassThrough } from 'node:stream';
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 // muapi-proxy — forwards requests to api.muapi.ai on behalf of the client.
@@ -129,6 +130,23 @@ function sizeLimitForMime(mime: string | null): number {
   if (!mime) return MAX_IMAGE_BYTES;
   if (mime.startsWith('video/')) return MAX_VIDEO_BYTES;
   return MAX_IMAGE_BYTES;
+}
+
+/**
+ * Extract the file MIME type from a multipart/form-data Content-Type header.
+ *
+ * For `multipart/form-data; boundary=...` the header itself does NOT contain
+ * the file's MIME type — the file MIME lives in the individual part headers
+ * (Content-Disposition / Content-Type) inside the body stream, which we cannot
+ * read here without consuming the body. Returns null so callers fall back to
+ * the heuristic in `getSizeLimitForRequest`. Actual magic-byte sniffing of the
+ * real file bytes is performed later in `setupMultipartBodyStream` via
+ * `sniffMimeType`.
+ */
+function sniffMimeTypeFromMultipart(contentType: string): string | null {
+    if (!contentType || !contentType.startsWith('multipart/')) return null;
+    // Multipart Content-Type carries only the boundary; no file MIME info.
+    return null;
 }
 
 /**
@@ -516,8 +534,12 @@ Deno.serve(async (req: Request) => {
         }
         // Enforce size limit based on detected MIME type, not just header.
         // This prevents videos with missing/wrong Content-Type from being
-        // rejected at the smaller image limit.
-        const maxAllowed = isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
+        // rejected at the smaller image limit. When sniffMimeTypeFromMultipart
+        // returns null (the normal case for multipart/form-data), fall back to
+        // getSizeLimitForRequest which uses a size-based heuristic.
+        const maxAllowed = detectedMime
+            ? (isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES)
+            : getSizeLimitForRequest(contentType, declaredSize);
         if (declaredSize > maxAllowed) {
           const actualType = detectedMime || (isVideo ? 'video' : 'image');
           return new Response(
