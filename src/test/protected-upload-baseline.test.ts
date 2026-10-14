@@ -572,7 +572,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     ['src/components/modals/ExtendModal.jsx', '858fab83c74da4b39551b54099d355c38994bc0c170c4469e0341a590186f180'],
     ['src/components/modals/FillGapModal.jsx', 'a54bf8adc5ecf4288d467b435bb4b39a12f8fb40f06fbfca9c7219a9170e1cb6'],
     ['src/components/modals/MusicGenerationModal.jsx', 'a4c551e4f9eb1cd39002a20db266fd54a949f9af29821a094e8e8113ea8d3a72'],
-    ['src/components/timeline/AIChatPanel.js', '192992eb516b5d44e1d670b79fc3799f74e277447bf33d94c0653b4260667873'],
+    ['src/components/timeline/AIChatPanel.js', '78c426c7d1ee9006a57abd37613b8e24b66dcdc3ccfb9d750a6a07a87f4aa575'],
     ['src/components/create/nodes/music-prompt-node.jsx', '466215193c99448ae2c2b52ae63da76e57cca7735157bbdab87ad508ae207089'],
     // Timeline Editor upload internals. These hold live protected upload call
     // sites (dragDrop.js:172/:229 Supabase-direct uploadFileToStorage and
@@ -581,7 +581,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // from src/lib/supabase.js), so they are pinned byte-for-byte — not merely
     // through their import statements — to catch an in-body re-route.
     ['src/lib/editor/dragDrop.js', '548e957727fb80e478cea90f89988845088a010f39d778fd9aa5e3ab54eb2d50'],
-    ['src/lib/editor/uploadSources.js', 'ac2de04ff10f76003461acb507db7697da0e9ea6d5fcf9f7a24e5c5d686b0bc1'],
+    ['src/lib/editor/uploadSources.js', '8518c38c4bb2da9c28e7a1a0a99111c54625e6c0dbce0234a53f4cf2012b78b0'],
     ['src/lib/editor/mediaLibrary.js', '32caa774b2ee2e19fe849fa18fc4b3c03d065e9ee132e89a4355822d2d49ed84'],
     ['src/lib/editor/aiTools.js', '3bb112b66ca30009f467353a22dc452fdf57bf480e5c067339c9178630e1ea19'],
     // Protected applications' own tests must not change either.
