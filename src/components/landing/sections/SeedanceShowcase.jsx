@@ -1,3 +1,4 @@
+/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 // Seedance 2.5 showcase — curated prompt examples from the upstream repo.
 //
 // Mirrors the MiniMax H3 gallery pattern so Seedance demos get the same

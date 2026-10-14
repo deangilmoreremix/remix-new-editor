@@ -1,3 +1,4 @@
+/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 // JSX to DOM Conversion Utilities
 // Provides createElementFromHTML and JSX-like functionality for vanilla JS
 

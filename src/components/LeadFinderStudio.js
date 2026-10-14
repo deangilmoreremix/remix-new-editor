@@ -1,3 +1,4 @@
+/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { saveLeads, loadLeads, deleteLead, exportCSV, getCities, buildMessage, buildFoundryLinks, checkInstagram, generateMessage, generateBrief, getFoundryLinks } from '../lib/leadFinderApi.js';
 import { NICHES, getGroupedNiches } from '../lib/leadFinderCategories.js';

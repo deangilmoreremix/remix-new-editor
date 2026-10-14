@@ -1,3 +1,4 @@
+/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 const PROGRESS_INTERVAL_MS = 500;
 
 const ASPECT_RATIO_MAP = {

@@ -1,3 +1,4 @@
+/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 /**
  * PROTECTED-APPLICATION UPLOAD SAFETY BASELINE — Task 1 of the unified
  * upload-pipeline repair (branch: fix/unified-media-upload-pipeline).

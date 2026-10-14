@@ -1,3 +1,4 @@
+/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 /**
  * Ported from CineGen: src/components/create/nodes/shot-board-node.tsx
  * Original: https://github.com/deangilmoremix/CineGen/blob/main/src/components/create/nodes/shot-board-node.tsx

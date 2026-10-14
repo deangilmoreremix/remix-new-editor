@@ -1,3 +1,4 @@
+/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 /**
  * Real-time Performance Features for Timeline Editor
  * Provides hardware acceleration, proxy editing, background rendering, and memory optimization

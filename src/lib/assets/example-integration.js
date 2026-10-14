@@ -1,3 +1,4 @@
+/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 import { saveGeneratedAsset } from '../../../src/lib/assets/assetActions.js';
 
 export async function generateVideoWithAssetPipeline(prompt, options = {}) {

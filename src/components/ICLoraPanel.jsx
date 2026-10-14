@@ -1,3 +1,4 @@
+/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 import { cinegen } from '../lib/cinegen.js';
 
 export function ICLoraPanel({ onApply, onClose }) {

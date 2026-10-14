@@ -1,3 +1,4 @@
+/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 /**
  * Multi-Camera Editing Module
  * Handles PIP, split-screen, and camera angle management for the timeline editor

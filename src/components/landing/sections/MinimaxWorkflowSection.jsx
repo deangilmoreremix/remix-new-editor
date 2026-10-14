@@ -1,3 +1,4 @@
+/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 // "One Creative Platform. Every AI Workflow."
 //
 // Uses the Ice Gunslinger interactive web loop as the centrepiece and wraps it

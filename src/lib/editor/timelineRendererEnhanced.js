@@ -1,3 +1,4 @@
+/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 /**
  * Timeline Renderer Module (Enhanced)
  * Handles rendering of tracks, media, pills, and UI elements

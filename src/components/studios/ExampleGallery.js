@@ -1,3 +1,4 @@
+/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 import { handleViewPrompt, handleCreateThisStyle } from '../../lib/exampleGalleryBridge.js';
 import { MediaDetailView } from '../MediaDetailView.js';
 import { getRelatedAssets } from '../../data/exampleGalleryAssets.js';

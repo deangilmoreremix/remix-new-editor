@@ -136,7 +136,7 @@ export default [
       'object-curly-newline': ['warn', { multiline: true, consistent: true }],
       'no-plusplus': 'off',
       'no-use-before-define': 'off',
-      'no-undef': 'warn',
+      'no-undef': 'error',
       'no-useless-assignment': 'warn',
       'no-case-declarations': 'warn',
       'no-redeclare': 'warn',

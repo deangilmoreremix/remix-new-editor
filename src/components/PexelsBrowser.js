@@ -1,3 +1,4 @@
+/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { createSafeImage, safeSetText } from '../lib/security.js';
 import { showToast } from '../lib/loading.js';

@@ -1,3 +1,4 @@
+/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 // "Made With SmartVideo" — premium commercial reel.
 //
 // Desktop: 3-column grid. Tablet: 2 columns. Mobile: horizontal snap carousel.

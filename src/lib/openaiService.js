@@ -1,3 +1,4 @@
+/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 /**
  * OpenAI Service - Handles AI-powered content generation for GTM prompts
  * Integrates with OpenAI API for prompt enhancement and content creation

@@ -1,3 +1,4 @@
+/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 // MuAPI Client Fix Verification
 // Tests the fixes for upload routing, endpoint resolution, response parsing,
 // and output integrity / placeholder detection.
