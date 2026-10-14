@@ -1,8 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
-import { getUserKey as getLocalUserKey } from './userKey.js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+// The shared owner identity for callers without a verified Clerk session.
+// The app-tagged RLS policies scope a no-JWT caller to strictly this owner,
+// so it must never be replaced by a per-key hash or any other local value.
+const ANONYMOUS_USER_ID = 'anonymous';
 
 // Validate environment variables at startup
 if (!supabaseUrl || !supabaseAnonKey) {
@@ -51,21 +55,21 @@ function getClerkUserId() {
 }
 
 /**
- * Single source of truth for the caller identity used by this client:
+ * Single source of truth for the caller identity used by this client — and
+ * by every shared-database write derived from it (storage paths and
+ * public.media row identity):
  *   - the verified Clerk user id when a Clerk session exists,
- *   - otherwise the local identity (offlineStorage user id → hashed BYOK
- *     key fallback → 'anonymous').
- * Signed-in callers therefore always produce the Clerk user id — the same
- * identity authContext.js exposes — so every writer path agrees.
+ *   - otherwise STRICTLY the shared 'anonymous' owner.
+ * The offline per-key hash from userKey.js is never an identity here: under
+ * the app-tagged RLS policies a caller without a verified JWT is scoped to
+ * 'anonymous' only, so a hashed owner would be denied. Signed-in callers
+ * always produce the Clerk user id — the same identity authContext.js
+ * exposes — so every writer path agrees.
  */
 function getIdentity() {
   const clerkId = getClerkUserId();
   if (clerkId) return clerkId;
-  try {
-    return getLocalUserKey() || 'anonymous';
-  } catch {
-    return 'anonymous';
-  }
+  return ANONYMOUS_USER_ID;
 }
 
 /** Reconciles the requested identity with the cached token. */
@@ -288,7 +292,9 @@ function refreshUserHeader(client) {
 
 /**
  * Caller identity shared by every consumer of this module: the verified
- * Clerk user id when signed in, otherwise the local (anonymous) identity.
+ * Clerk user id when signed in, otherwise STRICTLY 'anonymous'. Every
+ * shared-database write built on it (upload path identity, media row
+ * identity, the identity headers) follows this same rule.
  */
 export function getUserKey() {
   return getIdentity();
@@ -331,7 +337,12 @@ export async function uploadFileToStorage(file) {
   await primeSupabaseIdentity();
   const ext = sanitizeFileExtension(file.name);
   const uniqueName = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}.${ext}`;
-  const path = `${getUserKey()}/${uniqueName}`;
+  // App-tagged prefix: the `uploads` bucket is shared with other apps, so
+  // this app's objects live under `smartvideo/${userId}/...` (governed by the
+  // smartvideo_uploads_* storage policies). The path identity is the same
+  // shared-DB identity every writer uses — the Clerk user id when signed
+  // in, otherwise 'anonymous' — never the offline BYOK hash.
+  const path = `smartvideo/${getIdentity()}/${uniqueName}`;
 
   const timeoutMs = 60000;
   const uploadPromise = supabase.storage

@@ -5,13 +5,14 @@
 //
 //   { userId, workspaceId, muapiKey, hasMuapiKey, isAnonymous }
 //
-//   - userId: Clerk user id when signed in, else the shared local identity
-//     ('anonymous' for the app's legacy local usage). Resolved through
-//     src/lib/userKey.js — the SAME helper supabase.js and
-//     hybrid-supabase.js use for their request identity — so every writer
-//     path (authContext, assetLibrary, hybrid sync, token exchange) agrees
-//     on one owner id. A signed-in caller therefore always resolves to the
-//     Clerk user id and never to a hashed 'user_xxx' fallback.
+//   - userId: the SHARED-DATABASE caller identity — the Clerk user id when a
+//     Clerk session exists, otherwise the shared 'anonymous' owner. This is
+//     the only identity that may be written to the shared Supabase database
+//     (storage paths AND public.media rows): the app-tagged RLS policies
+//     scope callers to the verified JWT `sub` (the Clerk id) or strictly to
+//     the shared 'anonymous' owner. The offline per-key hash from
+//     src/lib/userKey.js is a BYOK/local-scoping concept — it is never a
+//     shared-DB identity (a hashed owner would be denied by the policies).
 //   - workspaceId: the user's authorized workspace (active Clerk organization
 //     id when available, else 'personal').
 //   - muapiKey: the caller's own MuAPI key, resolved client-side via
@@ -24,7 +25,6 @@
 // this module does not need to import the Clerk SDK itself.
 
 import { apiKeyManager } from './apiKeyManager.js';
-import { getUserKey as getSharedUserKey } from './userKey.js';
 
 // Error codes. These mirror the MuAPI upload error contract; they are
 // declared locally (not imported) to keep this module dependency-free and
@@ -35,6 +35,10 @@ export const ERROR_CODES = {
 };
 
 const DEFAULT_WORKSPACE_ID = 'personal';
+// The one owner identity every caller without a verified Clerk session
+// shares. Also the only owner the no-JWT branch of the app-tagged RLS
+// policies accepts, so it must never be replaced by a per-key hash.
+const ANONYMOUS_USER_ID = 'anonymous';
 
 /**
  * Returns the live Clerk instance, or null when Clerk is unavailable
@@ -83,14 +87,15 @@ function resolveWorkspaceId(clerk, user) {
 }
 
 // Synchronous identity read shared by getAuthContext() / getAuthContextSync().
-// The Clerk id wins when signed in; otherwise the shared local identity
-// keeps this context and the Supabase clients on the same owner id.
+// The Clerk id wins when signed in; otherwise the caller is the shared
+// 'anonymous' owner — never the offline BYOK hash from userKey.js, which
+// must not reach the shared database.
 function resolveIdentity() {
   const clerk = getClerkClient();
   const user = getClerkUser(clerk);
   const isAnonymous = !user;
   return {
-    userId: user ? user.id : getSharedUserKey(),
+    userId: user ? user.id : ANONYMOUS_USER_ID,
     workspaceId: isAnonymous ? DEFAULT_WORKSPACE_ID : resolveWorkspaceId(clerk, user),
     isAnonymous,
   };

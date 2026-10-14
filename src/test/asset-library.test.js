@@ -141,13 +141,16 @@ describe('Asset Library — saveAsset', () => {
     const asset = await saveAsset(makeFile('hero.png', 'image/png'), AUTH, { projectId: 'proj-9' });
 
     expect(state.uploads).toHaveLength(1);
-    expect(state.uploads[0].path.startsWith('user-a/')).toBe(true);
+    // Application-tagged path: the app tag scopes the shared `uploads` bucket
+    // (see supabase/migrations/20261014120000_smartvideo_media_rls_tagged.sql).
+    expect(state.uploads[0].path.startsWith('smartvideo/user-a/')).toBe(true);
     expect(state.uploads[0].path).toMatch(/hero\.png$/);
 
     expect(state.inserts).toHaveLength(1);
     const row = state.inserts[0];
     expect(row.user_id).toBe('user-a');
     expect(row.workspace_id).toBe('ws-1');
+    expect(row.app_id).toBe('smartvideo');
     expect(row.project_id).toBe('proj-9');
     expect(row.type).toBe('image/png');
     expect(row.size).toBe(2048);

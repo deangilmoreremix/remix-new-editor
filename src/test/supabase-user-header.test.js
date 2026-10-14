@@ -1,29 +1,64 @@
-// The shared Supabase client must attach the caller identity (`x-user-key`)
-// to every request: the media RLS policies and the owner-scoped storage
-// policies derive the row/object owner from that header, and the identity
-// changes at runtime when the user signs in or out.
+// The shared Supabase client still attaches an identity header on every
+// request (the generation-history function and other app-level consumers read
+// it), but under the verified-identity model its VALUE is the database
+// identity — Clerk user id when signed in, strictly 'anonymous' otherwise.
+// The RLS policies no longer trust this header (they read the verified JWT),
+// so the offline BYOK hash from userKey.js must never leak into it.
 
-import { describe, test, expect, vi } from 'vitest';
+import { describe, test, expect, vi, beforeEach } from 'vitest';
 
-const identity = { value: 'user-test-1' };
-
-vi.mock('../lib/userKey.js', () => ({
-  getUserKey: () => identity.value,
+vi.mock('../lib/apiKeyManager.js', () => ({
+  apiKeyManager: {
+    getMuapiKey: () => 'test-muapi-key',
+    hasMuapiKey: () => true,
+    getKey: () => 'test-muapi-key',
+  },
 }));
 
+// The offline BYOK hash exists (a MuAPI key is configured) — prove it is NOT
+// what the shared client sends.
+vi.mock('../lib/userKey.js', () => ({
+  getUserKey: () => 'user_offlinehash',
+}));
+
+function setClerkUser(user) {
+  globalThis.window.Clerk = user ? { user: { id: user } } : {};
+}
+
 describe('shared Supabase client identity header', () => {
-  test('attaches x-user-key to PostgREST and storage clients', async () => {
+  beforeEach(() => {
+    setClerkUser(null);
+  });
+
+  test('signed-in callers send their Clerk user id', async () => {
+    setClerkUser('user-clerk-42');
     const { supabase } = await import('../lib/supabase.js');
     supabase.from('media');
     supabase.storage.from('uploads');
-    expect(supabase.rest.headers['x-user-key']).toBe('user-test-1');
-    expect(supabase.storage.headers['x-user-key']).toBe('user-test-1');
+    expect(supabase.rest.headers['x-user-key']).toBe('user-clerk-42');
+    expect(supabase.storage.headers['x-user-key']).toBe('user-clerk-42');
   });
 
-  test('refreshSupabaseUserHeader picks up an identity change', async () => {
+  test('signed-out callers are strictly anonymous — never the offline BYOK hash', async () => {
+    setClerkUser(null);
+    const { supabase } = await import('../lib/supabase.js');
+    supabase.from('media');
+    supabase.storage.from('uploads');
+    expect(supabase.rest.headers['x-user-key']).toBe('anonymous');
+    expect(supabase.storage.headers['x-user-key']).toBe('anonymous');
+    expect(supabase.rest.headers['x-user-key']).not.toBe('user_offlinehash');
+  });
+
+  test('refreshSupabaseUserHeader follows a sign-in change', async () => {
     const { supabase, refreshSupabaseUserHeader } = await import('../lib/supabase.js');
-    identity.value = 'user-test-2';
+    setClerkUser('user-clerk-1');
     refreshSupabaseUserHeader();
-    expect(supabase.rest.headers['x-user-key']).toBe('user-test-2');
+    expect(supabase.rest.headers['x-user-key']).toBe('user-clerk-1');
+    setClerkUser('user-clerk-2');
+    refreshSupabaseUserHeader();
+    expect(supabase.rest.headers['x-user-key']).toBe('user-clerk-2');
+    setClerkUser(null);
+    refreshSupabaseUserHeader();
+    expect(supabase.rest.headers['x-user-key']).toBe('anonymous');
   });
 });

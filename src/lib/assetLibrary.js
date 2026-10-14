@@ -7,9 +7,24 @@
  * temporary URL (those expire after 1 hour and must never become an
  * identifier or a canonical `media.url`).
  *
- * Storage layout (identical to the existing durable upload path):
+ * Storage layout (identical to the existing durable upload path, prefixed
+ * with the app tag so the shared `uploads` bucket can scope this app's
+ * objects):
  *   bucket : 'uploads'  (see uploadService.resolveSupabaseBucket)
- *   path   : `${userId}/${unique}_${safeBase}.${ext}`
+ *   path   : `smartvideo/${userId}/${unique}_${safeBase}.${ext}`
+ *
+ * Every media row is tagged `app_id: 'smartvideo'` so the shared public.media
+ * table can route this app's rows to the owner-scoped `smartvideo_media_owner_all`
+ * RLS policy while other apps keep the blanket policy (migration
+ * 20261014120000_smartvideo_media_rls_tagged.sql). Reads/deletes use the
+ * stored `path` unchanged.
+ *
+ * Caller identity: `authContext.userId` is the shared-database identity (the
+ * Clerk user id when signed in, otherwise 'anonymous' — see authContext.js).
+ * The media row AND the storage object are written under that SAME identity
+ * (path segment 2 after `smartvideo/` always equals `media.user_id`), because
+ * the RLS policies scope both to one owner; the offline BYOK hash from
+ * userKey.js is never used for either.
  *
  * Database: public.media (id, user_id, workspace_id, project_id, name, type,
  * size, path, url, created_at). `workspace_id` is written when the column
@@ -28,6 +43,11 @@ import { supabase, isSupabaseConfigured, getUserKey, primeSupabaseIdentity } fro
 const MEDIA_TABLE = 'media';
 const ASSET_BUCKET = 'uploads';
 const DEFAULT_WORKSPACE_ID = 'personal';
+// Application tag: identifies this app's rows (public.media.app_id) and
+// objects (`smartvideo/` prefix in the shared uploads bucket) so the
+// shared-database RLS policies can scope them to their owner.
+const APP_ID = 'smartvideo';
+const APP_STORAGE_PREFIX = 'smartvideo';
 
 // ── Errors ─────────────────────────────────────────────────────────────────
 
@@ -82,7 +102,7 @@ function buildObjectPath(file, userId) {
   const safeBase = raw.replace(/[^a-zA-Z0-9_.-]/g, '_').replace(/\.[^.]*$/, '').slice(0, 80) || 'asset';
   const unique = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
   const userPrefix = userId && userId !== 'anonymous' ? userId : 'anonymous';
-  return `${userPrefix}/${unique}_${safeBase}.${ext}`;
+  return `${APP_STORAGE_PREFIX}/${userPrefix}/${unique}_${safeBase}.${ext}`;
 }
 
 // ── Row helpers ────────────────────────────────────────────────────────────
@@ -93,6 +113,10 @@ function buildObjectPath(file, userId) {
  * every read and write carries the verified `sub` claim rather than relying
  * on the spoofable header alone. No-ops for anonymous callers (which keep
  * the header identity) and when the token exchange is unavailable.
+ *
+ * The identity is the shared-database one: `authContext.userId` (Clerk id
+ * when signed in, else 'anonymous'), falling back to the supabase.js client
+ * identity (same rule) — never the offline BYOK hash from userKey.js.
  */
 async function resolveIdentity(authContext) {
   try {
@@ -184,6 +208,10 @@ export async function saveAsset(file, authContext, meta = {}) {
   requireConfigured();
   if (!file) throw assetError('No file supplied to the Asset Library.', 'ASSET_NO_FILE');
 
+  // ONE identity for the media row AND the storage object: the RLS policies
+  // scope both to the same owner (media.user_id and path segment 2 after
+  // `smartvideo/`), so any drift between them would lock the caller out of
+  // their own object. The path is built from this same identity below.
   const { userId, workspaceId } = await resolveIdentity(authContext);
   const path = buildObjectPath(file, userId);
   const mime = file.type || `application/${normalizeExtension(file.name)}`;
@@ -203,6 +231,7 @@ export async function saveAsset(file, authContext, meta = {}) {
   const permanentUrl = urlData.publicUrl;
   const row = {
     id: makeUuid(),
+    app_id: APP_ID,
     user_id: userId,
     workspace_id: workspaceId,
     project_id: meta.projectId || '',
