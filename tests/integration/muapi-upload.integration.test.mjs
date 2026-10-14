@@ -14,7 +14,7 @@
  *
  *   MUAPI_TEST_API_KEY   (or MUAPI_API_KEY)  — required to run the live checks
  *   MUAPI_TEST_I2V_MODEL                    — optional model override for the
- *                                             step-5 generation (default 'kling-v3.0-pro-i2v')
+ *                                             step-5 generation (default 'kling-v3.0-pro-image-to-video')
  *
  * Small files (<8MB) upload DIRECT to MuAPI under plain Node (there is no
  * same-origin Supabase proxy there); set VITE_SUPABASE_URL to route them through
@@ -207,7 +207,7 @@ async function headStatus(url) {
     try {
         if (!pngUrl) throw new Error('no uploaded PNG URL available');
         const client = new MuapiClient(KEY);
-        const model = process.env.MUAPI_TEST_I2V_MODEL || 'kling-v3.0-pro-i2v';
+        const model = process.env.MUAPI_TEST_I2V_MODEL || 'kling-v3.0-pro-image-to-video';
         const result = await client.generateImageToVideo({
             model,
             image_url: pngUrl,
