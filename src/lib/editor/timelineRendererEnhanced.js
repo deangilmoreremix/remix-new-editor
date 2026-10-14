@@ -1,4 +1,3 @@
-/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 /**
  * Timeline Renderer Module (Enhanced)
  * Handles rendering of tracks, media, pills, and UI elements
@@ -239,7 +238,7 @@ function formatTime(seconds) {
 }
 
 // Initialize core timeline engine components
-export function initializeTimelineEngine(state, els) {
+export function initializeTimelineEngine(state, els, showToast = null) {
   // Initialize play button
   if (!playButton && els.playBtn) {
     playButton = new PlayButton({
@@ -463,7 +462,7 @@ export function renderTracks(state, els, showToast) {
 
   // Initialize timeline engine if not already done
   if (!playButton) {
-    initializeTimelineEngine(state, els);
+    initializeTimelineEngine(state, els, showToast);
   }
 
   els.trackRows.innerHTML = '';

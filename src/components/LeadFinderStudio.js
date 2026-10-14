@@ -1,6 +1,5 @@
-/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 import { mountStudioChrome } from '../lib/studioChrome.js';
-import { saveLeads, loadLeads, deleteLead, exportCSV, getCities, buildMessage, buildFoundryLinks, checkInstagram, generateMessage, generateBrief, getFoundryLinks } from '../lib/leadFinderApi.js';
+import { saveLeads, loadLeads, deleteLead, exportCSV, getCities, buildMessage, buildFoundryLinks, checkInstagram, generateMessage, generateBrief, getFoundryLinks, searchLeads } from '../lib/leadFinderApi.js';
 import { NICHES, getGroupedNiches } from '../lib/leadFinderCategories.js';
 
 const ACCENT = '#c96a4a', ACCENT_DARK = '#b25a3c', BG = '#f7f5f1', BORDER = '#e7e2d8', BORDER2 = '#ddd6c8', INK2 = '#5d5b53', MUTED = '#8f8c81';

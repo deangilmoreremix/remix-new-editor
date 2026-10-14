@@ -1,4 +1,3 @@
-/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 /**
  * Ported from CineGen: src/components/create/nodes/shot-board-node.tsx
  * Original: https://github.com/deangilmoremix/CineGen/blob/main/src/components/create/nodes/shot-board-node.tsx
@@ -19,6 +18,25 @@ import { ALL_MODELS, getModelDefinition } from '../../lib/fal/models.js';
 import { CATEGORY_COLORS, PORT_COLORS } from '../../lib/workflows/node-registry.js';
 import { getApiKey, getKieApiKey, getRunpodApiKey, getRunpodEndpointId, getPodUrl } from '../../lib/utils/api-key.js';
 import { WorkflowNodeData } from '/src/types/workflow.js';
+
+/** The nine shot cells offered by the shot board, in board order. */
+const SHOT_LABELS = [
+  'Wide Shot',
+  'Medium Shot',
+  'Close-Up',
+  'Extreme Close-Up',
+  'POV',
+  'Overhead',
+  'Low Angle',
+  'Medium Close-Up',
+  'Medium Wide',
+];
+
+/** Height of the node header — input handles start below it. */
+const HEADER_HEIGHT = 44;
+
+/** Vertical spacing between stacked input handles. */
+const PORT_SPACING = 28;
 
 function ShotBoardNodeInner({ id, data, selected }) {
   const { updateNodeData, getEdges, getNode } = useReactFlow();

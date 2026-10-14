@@ -1,4 +1,3 @@
-/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 // AUTO-GENERATED FILE — do not edit by hand.
 //
 // Regenerate with:
@@ -284,10 +283,12 @@ export const SEEDANCE_CATEGORIES = [
 ];
 
 export function getCategoryCounts() {
-  return seedanceDemos.reduce<Record<string, number>>((acc, demo) => {
+  /** @type {{ [category: string]: number }} */
+  const counts = {};
+  return seedanceDemos.reduce((acc, demo) => {
     acc[demo.category] = (acc[demo.category] || 0) + 1;
     return acc;
-  }, {});
+  }, counts);
 }
 
 export function ratioToNumber(aspectRatio, fallback = 16 / 9) {

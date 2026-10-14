@@ -2,6 +2,7 @@
 // Combines Canvas, Timeline, and Sidebar components
 
 import Component from './base/Component.js';
+import { showToast } from '../lib/loading.js';
 
 export default class VideoEditorPage extends Component {
   constructor(props = {}) {
@@ -279,7 +280,7 @@ export default class VideoEditorPage extends Component {
       }
     } catch (error) {
       console.error('Failed to save project:', error);
-      alert('Failed to save project. Please try again.');
+      showToast('Failed to save project. Please try again.', 'error');
     }
   }
 
@@ -307,7 +308,7 @@ export default class VideoEditorPage extends Component {
       console.log('Project loaded:', this.currentProject.name);
     } catch (error) {
       console.error('Failed to load project:', error);
-      alert('Failed to load project. Please try again.');
+      showToast('Failed to load project. Please try again.', 'error');
     }
   }
 
@@ -541,7 +542,7 @@ export default class VideoEditorPage extends Component {
 
   async exportVideo() {
     if (!window.videoEngine) {
-      alert('Video engine not available. Please refresh the page.');
+      showToast('Video engine not available. Please refresh the page.', 'error');
       return;
     }
 
@@ -569,7 +570,7 @@ export default class VideoEditorPage extends Component {
 
     } catch (error) {
       console.error('Export failed:', error);
-      alert('Video export failed. Please try again.');
+      showToast('Video export failed. Please try again.', 'error');
     } finally {
       this.hideRenderProgress();
     }
@@ -597,7 +598,7 @@ export default class VideoEditorPage extends Component {
 
   showProjectBrowser() {
     // Show modal to browse saved projects
-    alert('Project browser not implemented yet');
+    showToast('Project browser not implemented yet', 'warning');
   }
 
   // ========== UTILITIES ==========

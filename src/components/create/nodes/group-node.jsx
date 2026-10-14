@@ -1,4 +1,3 @@
-/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 /**
  * Ported from CineGen: src/components/create/nodes/group-node.tsx
  * Original: https://github.com/deangilmoremix/CineGen/blob/main/src/components/create/nodes/group-node.tsx
@@ -11,6 +10,21 @@ import { createPortal } from 'react-dom';
 import { NodeResizer } from '@xyflow/react';
 import { useWorkspace } from '../../lib/workspace/workspace-context.jsx';
 import { WorkflowNodeData } from '/src/types/workflow.js';
+
+/** Swatches offered by the group settings panel. */
+const PRESET_COLORS = [
+  '#d4a054',
+  '#38bdf8',
+  '#a78bfa',
+  '#34d399',
+  '#f87171',
+  '#fbbf24',
+  '#f472b6',
+  '#94a3b8',
+];
+
+/** Label font sizes offered by the group settings panel. */
+const SIZE_OPTIONS = [12, 14, 16, 20, 24, 32];
 
 function GroupNodeInner({ id, data, selected }) {
   const { dispatch } = useWorkspace();

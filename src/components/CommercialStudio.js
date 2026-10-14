@@ -1,5 +1,5 @@
-/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 import { muapi } from '../lib/muapi.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { saveGeneration } from '../lib/generationHistory.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
@@ -42,8 +42,10 @@ export async function CommercialStudio() {
   let selectedScene = SCENE_PRESETS[0];
   let selectedFormat = FORMAT_PRESETS[0];
   let selectedModel = 'ai-product-shot';
-let dynamicControls = null;
+  let dynamicControls = null;
   let dynamicControlsContainer = null;
+  let commercialPrompt = null;
+  let _modelSelectorOutsideClickHandler = null;
   let customThumbnailUrl = getCustomThumbnailFromCache('commercial-studio');
 
   const header = document.createElement('div');
@@ -434,10 +436,11 @@ const COMMERCIAL_MODELS = [
       if (dynamicControls) {
         Object.assign(params, dynamicControls.getPayload({}));
       }
+      const gallerySuffix = commercialPrompt ? `, ${commercialPrompt.trim()}` : '';
       if (selectedModel === 'ai-product-shot') {
-        params.scene_description = `${selectedScene}, professional product photography, commercial quality`;
+        params.scene_description = `${selectedScene}, professional product photography, commercial quality${gallerySuffix}`;
       } else {
-        params.prompt = `${selectedScene}, professional product photography, commercial quality`;
+        params.prompt = `${selectedScene}, professional product photography, commercial quality${gallerySuffix}`;
         params.aspect_ratio = selectedFormat.ar;
       }
       const result = await muapi.generateI2I(params);

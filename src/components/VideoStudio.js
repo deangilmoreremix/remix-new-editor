@@ -1,4 +1,3 @@
-/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 import { muapi } from '../lib/muapi.js';
 import { saveGeneration, deleteGeneration } from '../lib/generationHistory.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
@@ -24,7 +23,7 @@ import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
-import { categorizeGenerationError, createAbortAwareGenerate, startGenerationProgress, showInlineError, hideInlineError } from '../lib/studioHelpers.js';
+import { categorizeGenerationError, createAbortAwareGenerateButton, startGenerationProgress, showInlineError, hideInlineError } from '../lib/studioHelpers.js';
 import { showToast, createLoadingOverlay, createProgressBar } from '../lib/loading.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import ExampleGallery from './studios/ExampleGallery.js';
@@ -58,6 +57,14 @@ export function VideoStudio() {
     let dropdownOpen = null;
     let selectedProvider = 'all';
     let _videoStudioOutsideClickHandler = null;
+    // Generation lifecycle state. Declared in the component scope because it is
+    // both written and read from the generate handler, the prompt-bar reset
+    // path, and the finally/cleanup block below.
+    let isLoading = false;
+    let abortController = null;
+    let loadingOverlay = null;
+    let progressHandle = null;
+    let generationError = null;
     let uploadedImageUrl = null;
     let uploadedEndImageUrl = null;
     let imageMode = false; // false = t2v models, true = i2v models
@@ -1390,6 +1397,8 @@ generateBtn.type = 'button';
             dropdown.style.transform = 'translateX(-50%)';
         }
         dropdown.style.bottom = '';
+        const btnRect = anchorBtn.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
         dropdown.style.top = `${btnRect.bottom - containerRect.top + 8}px`;
     };
 
@@ -1972,7 +1981,7 @@ generateBtn.type = 'button';
         hero.classList.add('opacity-0', 'scale-95', '-translate-y-10', 'pointer-events-none');
 
         abortController = new AbortController();
-        const { controller, showCancel, reset: resetCancel } = createAbortAwareGenerate(generateBtn);
+        const { controller, showCancel, reset: resetCancel } = createAbortAwareGenerateButton(generateBtn);
         abortController = controller;
 
         loadingOverlay = createLoadingOverlay('Generating video...');

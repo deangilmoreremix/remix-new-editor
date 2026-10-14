@@ -1,4 +1,3 @@
-/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 const PROGRESS_INTERVAL_MS = 500;
 
 const ASPECT_RATIO_MAP = {
@@ -136,7 +135,7 @@ async function createRecording(canvas, videoBitmap, durationMs, onProgress) {
 
 self.onmessage = async (event) => {
   try {
-    const { action, videoUrl, settings = {}, timeRange, effects } = event.data || {};
+    const { action, videoUrl, settings = {}, timeRange, effects, layers } = event.data || {};
     
     if (!action || !['export-video', 'trailer-cut', 'social-resize', 'remix-scene', 'composite-layers'].includes(action)) {
       throw new Error(`Unsupported action: ${action}`);

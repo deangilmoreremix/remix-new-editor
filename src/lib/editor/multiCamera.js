@@ -1,4 +1,3 @@
-/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 /**
  * Multi-Camera Editing Module
  * Handles PIP, split-screen, and camera angle management for the timeline editor
@@ -57,7 +56,7 @@ export function renderMultiCameraToolbar(state, container) {
   anglesBtn.innerHTML = '<span class="emoji">🎬</span><span>Angles</span>';
   anglesBtn.title = 'Manage camera angles';
   anglesBtn.setAttribute('data-tooltip', 'Camera Angles: Open the camera angles panel to create, switch between, and manage different camera perspectives');
-  anglesBtn.onclick = () => showCameraAnglesPanel(state);
+  anglesBtn.onclick = () => renderCameraAnglesPanel(state);
   container.appendChild(anglesBtn);
 }
 

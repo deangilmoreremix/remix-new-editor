@@ -1,4 +1,3 @@
-/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 import { supabase, uploadFileToStorage } from '../lib/hybrid-supabase.js';
 import { setupEnhancedTooltips } from '../lib/editor/dragDrop.js';
 import { processFileUpload } from '../lib/editor/uploadPipeline.js';
@@ -9,6 +8,7 @@ import { assetStore } from '../lib/assets/assetStore.js';
 import { extendClipContextMenu, extendGenerationPanel, extendMediaLibrary, openGTMPromptModal } from '../lib/uiIntegration.js';
 import { integrateMediaIngest, GiphyIntegration, StickersLibrary, LowerThirds, VideoGallery, AnimationList } from '../lib/mediaIngest.js';
 import { renderMultiCameraToolbar, renderPipControls, renderSplitScreenControls } from '../lib/editor/multiCamera.js';
+import { renderTimelineControls } from '../lib/editor/timelineRendererEnhanced.js';
 import { createTimelineState } from '../lib/editor/timelineEditorState.js';
 import { legacyToTimeline, getPreviewClipFromTimeline, syncTimelineFromState } from '../lib/editor/timeline-bridge.js';
 import { KeyframeSystem } from '../lib/editor/keyframeSystem.jsx';
@@ -98,7 +98,7 @@ export function TimelineEditorPage() {
   // CutAI integration - popup storyboard UX with timeline communication
   // Uses dynamic import to avoid syntax issues in AIStoryboardStudio.jsx
   // Styled consistently with timeline editor design system
-  const showCutAI = async () => {
+  const showCutAI = async (timelineState) => {
     const cutaiContainer = document.createElement('div');
     cutaiContainer.className = 'fixed inset-0 z-[999] bg-black/95 flex items-center justify-center p-4';
     
@@ -227,46 +227,46 @@ export function TimelineEditorPage() {
                   
                   if (isBroll || isInsertShot) {
                     // B-roll and insert shots go to B-Roll track
-                    targetTrack = state.project?.tracks?.find(t => 
+                    targetTrack = timelineState.project?.tracks?.find(t => 
                       t.type === 'b-roll' || t.type === 'B-Roll' || t.type === 'overlay'
                     );
-                    if (!targetTrack && state.addTrack) {
-                      state.addTrack('B-Roll');
-                      targetTrack = state.project?.tracks?.find(t => 
+                    if (!targetTrack && timelineState.addTrack) {
+                      timelineState.addTrack('B-Roll');
+                      targetTrack = timelineState.project?.tracks?.find(t => 
                         t.type === 'b-roll' || t.type === 'B-Roll' || t.type === 'overlay'
                       );
                     }
                   } else if (clip.type === 'video' || clip.type === 'image') {
-                    targetTrack = state.project?.tracks?.find(t => t.type === 'video' || t.type === 'Video');
+                    targetTrack = timelineState.project?.tracks?.find(t => t.type === 'video' || t.type === 'Video');
                   } else if (clip.type === 'audio') {
-                    targetTrack = state.project?.tracks?.find(t => t.type === 'audio' || t.type === 'Audio');
+                    targetTrack = timelineState.project?.tracks?.find(t => t.type === 'audio' || t.type === 'Audio');
                   } else if (clip.type === 'text') {
-                    targetTrack = state.project?.tracks?.find(t => t.type === 'text' || t.type === 'Text' || t.type === 'subtitle');
+                    targetTrack = timelineState.project?.tracks?.find(t => t.type === 'text' || t.type === 'Text' || t.type === 'subtitle');
                   }
                   
                   // Fallback to first available track or create appropriate track
                   if (!targetTrack) {
-                    targetTrack = state.project?.tracks?.[0];
+                    targetTrack = timelineState.project?.tracks?.[0];
                   }
                   
-                  if (!targetTrack && state.addTrack) {
-                    state.addTrack(clip.type === 'audio' ? 'Audio' : clip.type === 'text' ? 'Text' : 'Video');
-                    targetTrack = state.project?.tracks?.find(t => 
+                  if (!targetTrack && timelineState.addTrack) {
+                    timelineState.addTrack(clip.type === 'audio' ? 'Audio' : clip.type === 'text' ? 'Text' : 'Video');
+                    targetTrack = timelineState.project?.tracks?.find(t => 
                       t.type === (clip.type === 'audio' ? 'audio' : clip.type === 'text' ? 'text' : 'video')
-                    ) || state.project?.tracks?.[0];
+                    ) || timelineState.project?.tracks?.[0];
                   }
                   
-                  if (targetTrack && state.addClip) {
+                  if (targetTrack && timelineState.addClip) {
                     const clipData = {
                       ...clip,
                       trackId: targetTrack.id,
                       name: clip.name || clip.label
                     };
-                    state.addClip(targetTrack.id, clipData);
+                    timelineState.addClip(targetTrack.id, clipData);
                     addedCount++;
                     
                     // Apply mood-based color correction if mood data exists
-                    if (clip.metadata?.mood && state.addColorCorrection) {
+                    if (clip.metadata?.mood && timelineState.addColorCorrection) {
                       const mood = clip.metadata.mood;
                       const colorGrade = {
                         brightness: mood.tension > 0.7 ? -0.1 : mood.energy > 0.7 ? 0.05 : 0,
@@ -274,11 +274,11 @@ export function TimelineEditorPage() {
                         saturation: mood.emotion === 'dark' || mood.darkness > 0.5 ? 0.85 : 1.0,
                         temperature: mood.emotion === 'warm' ? 200 : mood.emotion === 'cold' ? -200 : 0
                       };
-                      state.addColorCorrection(targetTrack.id, clip.id, colorGrade);
+                      timelineState.addColorCorrection(targetTrack.id, clip.id, colorGrade);
                     }
                     
                     // Add camera movement as keyframe effect if present
-                    if (clip.metadata?.cameraMovement && state.addEffect) {
+                    if (clip.metadata?.cameraMovement && timelineState.addEffect) {
                       const movementMap = {
                         'Pan Left': { type: 'pan', direction: -1 },
                         'Pan Right': { type: 'pan', direction: 1 },
@@ -290,7 +290,7 @@ export function TimelineEditorPage() {
                       };
                       const movement = movementMap[clip.metadata.cameraMovement];
                       if (movement) {
-                        state.addEffect(targetTrack.id, clip.id, {
+                        timelineState.addEffect(targetTrack.id, clip.id, {
                           type: 'camera-move',
                           ...movement,
                           duration: clip.duration
@@ -350,7 +350,7 @@ export function TimelineEditorPage() {
       cutaiContainer.remove();
     }
   };
-  window.showCutAIFromTimeline = showCutAI;
+  window.showCutAIFromTimeline = () => showCutAI(window.timelineState);
 
   // Central namespace for timeline-editor global hooks. Prevents collisions with
   // other modules while keeping all feature bridges intact. Each bridge function
@@ -3723,11 +3723,11 @@ export function TimelineEditorPage() {
         clip.volume = parseFloat(e.target.value);
         e.target.previousElementSibling.textContent = `Volume: ${Math.round(clip.volume * 100)}%`;
       });
-      els.clipEditorContainer.querySelector('#clip-mute').addEventListener('click', () => {
+      els.clipEditorContainer.querySelector('#clip-mute').addEventListener('click', (e) => {
         clip.mute = !clip.mute;
         e.target.textContent = clip.mute ? 'Unmute' : 'Mute';
       });
-      els.clipEditorContainer.querySelector('#clip-visibility').addEventListener('click', () => {
+      els.clipEditorContainer.querySelector('#clip-visibility').addEventListener('click', (e) => {
         clip.hidden = !clip.hidden;
         e.target.textContent = clip.hidden ? 'Show' : 'Hide';
         renderTracks();
@@ -3792,8 +3792,8 @@ export function TimelineEditorPage() {
           timelineSeconds: state.timelineSeconds,
           seekTo: (time) => {
             state.playheadPercent = (time / state.timelineSeconds) * 100;
-            renderPlayhead();
-            renderPreview();
+            updatePlaybackUI();
+            updatePreview();
           }
         }, {
           showToast: showToast
@@ -3808,11 +3808,11 @@ export function TimelineEditorPage() {
           timelineState: state,
           onPreviewUpdate: (clipId, transform) => {
             // Update preview with camera effect transform
-            renderPreview();
+            updatePreview();
           },
           onKeyframeUpdate: () => {
             // Refresh timeline and keyframe displays
-            renderTimeline();
+            renderTracks();
             renderKeyframes();
           }
         });
@@ -4406,33 +4406,6 @@ export function TimelineEditorPage() {
       insertClipIntoTrack(callClip, 'Text');
     };
     TLEditor.addClickToCall = window.addClickToCall;
-
-    // Global function to apply dynamic personalization layer to current clip
-    window.applyPersonalizationLayer = async (clipId, scanData) => {
-      try {
-        const layer = assetReplacementEngine.createPersonalizationLayer(scanData, {
-          textOverlays: [
-            { text: 'Hello {{first_name}}!', position: 'top-center' },
-            { text: '{{company}}', position: 'bottom-right' }
-          ]
-        });
-        
-        // Store the layer on the clip for rendering
-        const track = state.tracks.find(t => t.clips.some(c => c.id === clipId));
-        if (track) {
-          const clip = track.clips.find(c => c.id === clipId);
-          if (clip) {
-            clip.personalizationLayer = layer;
-            renderTracks();
-            
-          }
-        }
-      } catch (err) {
-        console.error('Failed to apply personalization layer:', err);
-        
-      }
-    };
-    TLEditor.applyPersonalizationLayer = window.applyPersonalizationLayer;
 
     // Global function to add personalized image overlay
     window.addPersonalizationImage = () => {
@@ -5048,7 +5021,7 @@ export function TimelineEditorPage() {
       }
     }
 
-    async function showRetakePanel(clip) {
+    async function showRetakePanel(clip, onRetake) {
       const panel = document.createElement('div');
       panel.className = 'retake-panel-fixed';
       panel.innerHTML = `
@@ -5295,15 +5268,11 @@ export function TimelineEditorPage() {
                 // Push to the global clips array if available
                 if (typeof window !== 'undefined' && Array.isArray(window.__timelineClips)) {
                   window.__timelineClips.push(clip);
-                } else if (typeof clips !== 'undefined' && Array.isArray(clips)) {
-                  clips.push(clip);
                 }
               });
               // Trigger a re-render of the timeline if a render function is exposed
               if (typeof window !== 'undefined' && typeof window.__timelineRender === 'function') {
                 window.__timelineRender();
-              } else if (typeof renderTimeline === 'function') {
-                renderTimeline();
               }
               autoTimelineBtn.textContent = `✓ Added ${scenes.length} scenes`;
               setTimeout(() => { autoTimelineBtn.textContent = originalLabel; autoTimelineBtn.disabled = false; }, 2500);
@@ -5482,6 +5451,25 @@ export function TimelineEditorPage() {
           </div>
         </div>
       `;
+    }
+
+    // Serialize the current timeline into the payload sent with video
+    // generation requests. Mirrors the subtitle collection in generateClip:
+    // reads the same tracks/items model and emits start/end seconds.
+    function prepareTimelineForVideoGeneration() {
+      const tracks = state.project?.tracks || state.tracks || [];
+      const clips = tracks.flatMap(t => (t.items || t.clips || []).map(c => ({
+        id: c.id,
+        type: c.type || t.type,
+        start: c.start ?? ((c.left || 0) / 100) * (state.timelineSeconds || 60),
+        end: c.end ?? (((c.left || 0) + (c.width || 0)) / 100) * (state.timelineSeconds || 60),
+        text: c.text || c.name || ''
+      })));
+      return {
+        durationSeconds: state.timelineSeconds || 60,
+        playheadPercent: state.playheadPercent || 0,
+        clips
+      };
     }
 
     async function generateClip() {
@@ -6090,7 +6078,7 @@ export function TimelineEditorPage() {
       // Zoom in/out are bound once in the zoom-controls block above (single binding).
 
       const cutaiBtn = root.querySelector('#cutaiStoryboardBtn');
-      if (cutaiBtn) cutaiBtn.addEventListener('click', () => showCutAI());
+      if (cutaiBtn) cutaiBtn.addEventListener('click', () => showCutAI(state));
 
       const cinegenBtn = root.querySelector('#cinegenToolsBtn');
       if (cinegenBtn) {
@@ -6153,7 +6141,7 @@ export function TimelineEditorPage() {
                   type: 'audio'
                 });
                 
-                if (typeof render === 'function') render();
+                renderTracks();
               }
             } else {
               
@@ -6346,11 +6334,15 @@ export function TimelineEditorPage() {
           const effect = btn.dataset.cameraEffect;
           const selected = findSelectedClip();
           if (!selected) {
-            
+
             return;
           }
 
-          applyCameraEffect(effect);
+          if (cameraEffects && cameraEffects.selectEffect && cameraEffects.applyEffect) {
+            cameraEffects.setSelectedClip(selected.id);
+            cameraEffects.selectEffect(effect);
+            cameraEffects.applyEffect();
+          }
         });
       });
     }

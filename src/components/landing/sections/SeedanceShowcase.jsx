@@ -1,4 +1,3 @@
-/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 // Seedance 2.5 showcase — curated prompt examples from the upstream repo.
 //
 // Mirrors the MiniMax H3 gallery pattern so Seedance demos get the same
@@ -79,7 +78,7 @@ function createGalleryCard(demo) {
     loadPrompt: loadDemoPrompt,
     model: SEEDANCE_MODEL,
   }));
-  primaryActions.appendChild(createStyleLink(demo, { label: 'Create This Type of Video', getTarget, loadPrompt: loadDemoPrompt, model: SEEDANCE_MODEL }));
+  primaryActions.appendChild(createStyleLink(demo, { label: 'Create This Type of Video', getTarget: getCreateTarget, loadPrompt: loadDemoPrompt, model: SEEDANCE_MODEL }));
 
   const target = getCreateTarget(demo);
   const templateId = target.params.template;

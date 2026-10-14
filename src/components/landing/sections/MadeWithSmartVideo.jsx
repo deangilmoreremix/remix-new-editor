@@ -1,12 +1,11 @@
-/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 // "Made With SmartVideo" — premium commercial reel.
 //
 // Desktop: 3-column grid. Tablet: 2 columns. Mobile: horizontal snap carousel.
 // Videos never all autoplay: cards use hover (desktop) / tap (mobile) playback,
 // and the shared governor in mediaFrame.js caps concurrent playback at two.
 
-import { minimaxH3Demos, formatDuration, getCreateTarget as getMinimaxCreateTarget, loadDemoPrompt as loadDemoPromptMinimax } from '../../../data/minimaxH3Demos.js';
-import { seedanceDemos, getCreateTarget as getCreateTargetSeedance, loadDemoPrompt as loadDemoPromptSeedance } from '../../../data/seedanceDemos.js';
+import { minimaxH3Demos, formatDuration, getCreateTarget as getMinimaxCreateTarget, loadDemoPrompt as loadDemoPromptMinimax, ratioToNumber as minimaxRatioToNumber } from '../../../data/minimaxH3Demos.js';
+import { seedanceDemos, getCreateTarget as getCreateTargetSeedance, loadDemoPrompt as loadDemoPromptSeedance, ratioToNumber as seedanceRatioToNumber } from '../../../data/seedanceDemos.js';
 import { createMediaFrame, cleanupFrames, revealOnScroll } from './minimax/mediaFrame.js';
 import {
   injectMinimaxStyles,

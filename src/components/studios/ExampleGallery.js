@@ -1,7 +1,16 @@
-/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 import { handleViewPrompt, handleCreateThisStyle } from '../../lib/exampleGalleryBridge.js';
 import { MediaDetailView } from '../MediaDetailView.js';
 import { getRelatedAssets } from '../../data/exampleGalleryAssets.js';
+
+/** Fallback thumbnail shown when an example has no image of its own. */
+const PLACEHOLDER_SVG =
+  'data:image/svg+xml,' +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180">' +
+      '<rect width="320" height="180" fill="#0a0a0a"/>' +
+      '<path d="M136 62l52 30-52 30z" fill="#3f3f46"/>' +
+      '</svg>'
+  );
 
 function sortAssets(assets, sortBy) {
   const sorted = [...assets];

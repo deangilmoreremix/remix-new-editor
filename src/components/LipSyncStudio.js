@@ -1,4 +1,3 @@
-/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 import { muapi } from '../lib/muapi.js';
 import { saveGeneration } from '../lib/generationHistory.js';
 import { showToast } from '../lib/loading.js';
@@ -12,7 +11,7 @@ import { savePendingJob, removePendingJob, getPendingJobs } from '../lib/pending
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
-import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
+import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
@@ -42,6 +41,7 @@ export function LipSyncStudio() {
     let dropdownOpen = null;
     let showAdvanced = false;
     let lipsyncAbortController = null;
+    let _lipsyncOutsideClickHandler = null;
 
     const getCurrentModels = () => inputMode === 'image' ? imageLipSyncModels : videoLipSyncModels;
     const getCurrentModel = () => lipsyncModels.find(m => m.id === selectedModel);

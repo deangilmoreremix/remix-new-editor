@@ -1,4 +1,3 @@
-/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 // MuAPI Client Fix Verification
 // Tests the fixes for upload routing, endpoint resolution, response parsing,
 // and output integrity / placeholder detection.
@@ -803,7 +802,7 @@ describe('MuapiClient regression tests', () => {
   // ─────────────────────────────────────────────────────────
   describe('AbortError translation', () => {
     test('generateImage throws "Request cancelled by user" on AbortError', async () => {
-      global.fetch = vi.fn(() => Promise.reject(new DOMException('Aborted', 'AbortError')));
+      global.fetch = vi.fn(() => Promise.reject(new globalThis.DOMException('Aborted', 'AbortError')));
 
       vi.doMock('../lib/services/RateLimiter.js', () => ({
         rateLimiter: { acquire: vi.fn(() => Promise.resolve()) },

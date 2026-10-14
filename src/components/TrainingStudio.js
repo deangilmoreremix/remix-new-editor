@@ -1,4 +1,3 @@
-/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 import { muapi } from '../lib/muapi.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { trainingModels } from '../lib/models.js';
@@ -8,7 +7,8 @@ import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCa
 import { createInlineInstructions } from './InlineInstructions.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
-import { getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
+import { PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { showToast } from '../lib/loading.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
@@ -24,6 +24,7 @@ export function TrainingStudio() {
   let triggerWord = '';
   let epochs = '10';
   let uploadedImages = [];
+  let _modelSelectorOutsideClickHandler = null;
   let customThumbnailUrl = getCustomThumbnailFromCache('training-studio');
 
   // Header with hero banner

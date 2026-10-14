@@ -1,4 +1,3 @@
-/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 import { muapi } from '../lib/muapi.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { textModels } from '../lib/models.js';
@@ -22,6 +21,7 @@ export function ChatStudio() {
   let isGenerating = false;
   let customThumbnailUrl = getCustomThumbnailFromCache('chat-studio');
   let abortController = null;
+  let _modelSelectorOutsideClickHandler = null;
 
   // Header with hero banner
   const header = document.createElement('div');

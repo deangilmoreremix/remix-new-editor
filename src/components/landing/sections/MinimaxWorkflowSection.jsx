@@ -1,4 +1,3 @@
-/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 // "One Creative Platform. Every AI Workflow."
 //
 // Uses the Ice Gunslinger interactive web loop as the centrepiece and wraps it
@@ -10,6 +9,7 @@ import { getDemoBySlug, getCreateTarget as minimaxGetCreateTarget, loadDemoPromp
 import { createMediaFrame, cleanupFrames, prefersReducedMotion, revealOnScroll } from './minimax/mediaFrame.js';
 import { injectMinimaxStyles, sectionHeading, createStyleLink, createStudioIcon, escapeHtml } from './minimax/ui.js';
 import { createViewPromptButton } from './minimax/ui.js';
+import { handleViewPrompt } from './minimax/DemoPromptModal.js';
 
 const DEMO_SLUG = 'ice-gunslinger-interactive-web-loop';
 

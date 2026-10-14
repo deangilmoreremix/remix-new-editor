@@ -1,4 +1,3 @@
-/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 /**
  * Render Studio — media inspection and result model.
  *
@@ -56,6 +55,25 @@ export async function inspectMediaBlob(blob, options = {}) {
         resolve(value);
       };
 
+      const read = () => {
+        const duration = Number.isFinite(video.duration) ? video.duration : 0;
+        // Cheap audio hints only — never captureStream() in this hot path.
+        let decodedAudioBytes = 0;
+        try {
+          decodedAudioBytes = video.webkitAudioDecodedByteCount || video.mozHasAudio ? 1 : 0;
+        } catch {
+          decodedAudioBytes = 0;
+        }
+        finish({
+          ok: true,
+          decodable: true,
+          width: video.videoWidth || 0,
+          height: video.videoHeight || 0,
+          duration,
+          hasAudioHint: decodedAudioBytes > 0,
+        });
+      };
+
       const timer = setTimeout(
         () => finish({ ok: false, error: `Timed out decoding media after ${timeoutMs}ms` }),
         timeoutMs
@@ -67,25 +85,6 @@ export async function inspectMediaBlob(blob, options = {}) {
         // NOT call captureStream() here: it is comparatively expensive and this
         // runs on every render. Whether audio was captured is already known by
         // the renderer (`sourceHadAudio`); this only proves the file decodes.
-        const read = () => {
-          const duration = Number.isFinite(video.duration) ? video.duration : 0;
-          // Cheap audio hints only — never captureStream() in this hot path.
-          let decodedAudioBytes = 0;
-          try {
-            decodedAudioBytes = video.webkitAudioDecodedByteCount || video.mozHasAudio ? 1 : 0;
-          } catch {
-            decodedAudioBytes = 0;
-          }
-          finish({
-            ok: true,
-            decodable: true,
-            width: video.videoWidth || 0,
-            height: video.videoHeight || 0,
-            duration,
-            hasAudioHint: decodedAudioBytes > 0,
-          });
-        };
-
         if (video.readyState >= 2) {
           read();
         } else {

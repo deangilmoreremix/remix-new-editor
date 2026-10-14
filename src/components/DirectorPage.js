@@ -1,8 +1,9 @@
-/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 import { navigate } from '../lib/router.js';
 import { showToast } from '../lib/loading.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { supabase } from '../lib/supabase.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { createIcons, icons } from 'lucide';
 import { escapeHtml } from '../lib/security.js';
 

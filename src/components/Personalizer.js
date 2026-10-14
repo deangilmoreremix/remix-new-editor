@@ -1,4 +1,3 @@
-/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 /**
  * Personalizer
  *
@@ -15,6 +14,7 @@
 
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { showToast } from '../lib/loading.js';
+import { navigate } from '../lib/router.js';
 import { escapeHtml } from '../lib/security.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt, inspectPromptTokens, getSelectedContactId, setSelectedContactId } from './personalize/personalizePopover.js';
 import { TOKEN_KEYS, TOKEN_LABELS, buildVariables } from './personalize/tokenSchema.js';
@@ -1620,7 +1620,10 @@ export function Personalizer() {
   // global in production; guard here so the studio remains usable (elements
   // can still be placed and edited) if it fails to load.
   try {
-    if (typeof interact === 'function') {
+    // interactjs is loaded as a global script in production; resolve it through
+    // globalThis so the studio stays usable when the script is absent.
+    const interact = typeof globalThis.interact === 'function' ? globalThis.interact : null;
+    if (interact) {
       interact('.dom-element-wrapper')
         .draggable({
           inertia: true,

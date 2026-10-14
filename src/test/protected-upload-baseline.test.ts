@@ -1,4 +1,3 @@
-/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 /**
  * PROTECTED-APPLICATION UPLOAD SAFETY BASELINE — Task 1 of the unified
  * upload-pipeline repair (branch: fix/unified-media-upload-pipeline).
@@ -545,8 +544,8 @@ describe('protected application files — byte-for-byte integrity baseline', () 
   // application file (code, routes, handlers, state, UI, config, tests)
   // fails here.
   const PROTECTED_BASELINE: Array<[string, string]> = [
-    ['src/components/TimelineEditorPage.jsx', '44d40e5f1d5b933f27a42eef0d6fcf5e3770f56651fe3ddb21902b3f6606d477'],
-    ['src/components/ChatStudio.js', '5ce9d04474523b8e9790e1e904ce173da92240aabc7b824726544cd3913a11ea'],
+    ['src/components/TimelineEditorPage.jsx', '4ca8c6e515fcdbb477808a524311994568087ed42c972b5f2ac11bfbd32e6d55'],
+    ['src/components/ChatStudio.js', '40db1268cfde0edc4a7bffcb67c4d524cd72096bc2ead9045f37c2393fc76872'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],
     ['src/components/chat/ChatMessage.jsx', 'b2e236103147d0fdfb59165599a5963e09878f5b28cc0992a75650d77b9e9008'],
@@ -569,7 +568,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     ['src/components/elements/element-modal.jsx', '47bfd626878bf6851b8f156ad1fdfe94216e252a027c55d841b50957b81a5948'],
     ['src/components/elements/elements-tab.jsx', 'aa69f0f4b9568c61de475b385738d3b7a273bcf9dd2fdd733b8b01c0590b5864'],
     ['src/components/RetakePanel.jsx', '56a4a967fb1d99ee84e1e14613bf803db97edb20f9dad5dc51e56ba0ce89c69f'],
-    ['src/components/ICLoraPanel.jsx', '89ca90c33d5a447699e67e9aad7ef2afb0e531379a19f85fc83744aa6135cd70'],
+    ['src/components/ICLoraPanel.jsx', '8fb03a11d0d44efe3155d61fc985406732a58edd07a8c09b836984eaab2deb5b'],
     ['src/components/modals/ExtendModal.jsx', '858fab83c74da4b39551b54099d355c38994bc0c170c4469e0341a590186f180'],
     ['src/components/modals/FillGapModal.jsx', 'a54bf8adc5ecf4288d467b435bb4b39a12f8fb40f06fbfca9c7219a9170e1cb6'],
     ['src/components/modals/MusicGenerationModal.jsx', 'a4c551e4f9eb1cd39002a20db266fd54a949f9af29821a094e8e8113ea8d3a72'],
@@ -581,7 +580,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // mediaLibrary.js:968 processFileUpload; aiTools.js:318 uploadFileToStorage
     // from src/lib/supabase.js), so they are pinned byte-for-byte — not merely
     // through their import statements — to catch an in-body re-route.
-    ['src/lib/editor/dragDrop.js', '222285d3a03aec02b2ee7841f3d2689bc9f0dad1c83c1211d68c47df71c0840a'],
+    ['src/lib/editor/dragDrop.js', '548e957727fb80e478cea90f89988845088a010f39d778fd9aa5e3ab54eb2d50'],
     ['src/lib/editor/uploadSources.js', 'ac2de04ff10f76003461acb507db7697da0e9ea6d5fcf9f7a24e5c5d686b0bc1'],
     ['src/lib/editor/mediaLibrary.js', '32caa774b2ee2e19fe849fa18fc4b3c03d065e9ee132e89a4355822d2d49ed84'],
     ['src/lib/editor/aiTools.js', '3bb112b66ca30009f467353a22dc452fdf57bf480e5c067339c9178630e1ea19'],

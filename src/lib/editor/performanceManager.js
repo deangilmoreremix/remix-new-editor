@@ -1,4 +1,3 @@
-/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 /**
  * Real-time Performance Features for Timeline Editor
  * Provides hardware acceleration, proxy editing, background rendering, and memory optimization
@@ -480,7 +479,7 @@ export class PerformanceManager {
     if (!this.previewContext) return;
 
     // Hardware-accelerated frame rendering
-    if (this.previewContext instanceof WebGLRenderingContext) {
+    if (this.previewContext instanceof window.WebGLRenderingContext) {
       this.renderWebGLFrame(time);
     } else {
       this.renderCanvas2DFrame(time);

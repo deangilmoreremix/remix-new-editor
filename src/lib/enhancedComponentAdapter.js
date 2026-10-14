@@ -1,4 +1,3 @@
-/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 /**
  * Enhanced Component Adapter System for Timeline Integration
  * Converts React components to vanilla JS integration points
@@ -54,7 +53,7 @@ class ComponentAdapter {
     return {
       name: componentName,
       render: function(props) { return '<div class="adapted-component" data-component="' + componentName + '">' + componentName + ' Component</div>'; },
-      props
+      props: {}
     };
   }
 

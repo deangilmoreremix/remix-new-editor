@@ -1,4 +1,3 @@
-/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 /**
  * Advanced Drag and Drop Module
  * Handles comprehensive drag and drop functionality including:
@@ -1201,6 +1200,26 @@ function handleKeyUp(e) {
   // Handle any key up events if needed
 }
 
+// Highlight the track lane under the cursor during a clip drag.
+function highlightDropZones(e) {
+  // Remove previous highlights
+  document.querySelectorAll('.drop-highlight').forEach(el => {
+    el.classList.remove('drop-highlight');
+  });
+
+  const elementsUnderCursor = document.elementsFromPoint(e.clientX, e.clientY);
+  const trackLane = elementsUnderCursor.find(el => el.classList.contains('track-lane'));
+
+  if (trackLane) {
+    trackLane.classList.add('drop-highlight');
+  }
+}
+
+function setupTrackDropZones(_state, _els) {
+  // Drop zones are already the track lanes
+  dragState.dropZones = document.querySelectorAll('.track-lane');
+}
+
 // Shared drag cleanup utility used by clip-drag and cancelAllDrags.
 // (Originally shared with the retired media-library mouse-drag fallback.)
 function cleanupDrag() {
@@ -1377,7 +1396,6 @@ function initializeThrottledUpdates() {
 
   // Replace existing mousemove handlers
   document.removeEventListener('mousemove', handleClipMouseMove);
-  document.removeEventListener('mousemove', handleMediaMouseMove);
 
   document.addEventListener('mousemove', throttledUpdateDrag);
 }

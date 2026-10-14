@@ -1,5 +1,6 @@
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { videoDb } from '../lib/videoDb.js';
+import { showToast } from '../lib/loading.js';
 
 /**
  * Build a self-contained settings form for a single provider.
@@ -132,7 +133,7 @@ function buildProviderForm({ title, description, grabUrl, getKey, setKey, clearK
             saveBtn.textContent = 'Saved ✓';
             setTimeout(() => { saveBtn.textContent = 'Save ' + title; }, 1500);
         } catch (err) {
-            alert('Failed to save ' + title + ': ' + err.message);
+            showToast('Failed to save ' + title + ': ' + err.message, 'error');
         }
     });
 

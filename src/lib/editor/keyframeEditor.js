@@ -1,8 +1,9 @@
-/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 /**
  * Keyframe Editor Interface
  * Timeline-based keyframe visualization and editing interface
  */
+
+import { ANIMATION_PROPERTIES } from './keyframeSystem.jsx';
 
 export class KeyframeEditor {
   constructor(container, keyframeSystem, timelineState) {

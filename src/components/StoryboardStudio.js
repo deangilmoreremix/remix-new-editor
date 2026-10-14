@@ -1,4 +1,3 @@
-/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 import { muapi } from '../lib/muapi.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
@@ -11,6 +10,7 @@ import { apiKeyManager } from '../lib/apiKeyManager.js';
 import Store from '../stores/base/Store.js';
 import { t2iModels, getAspectRatiosForModel, getModelById, getI2IModelById, getI2VModelById, getV2VModelById, i2vModels } from '../lib/models.js';
 import { showToast } from '../lib/loading.js';
+import { navigate } from '../lib/router.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { saveGeneration } from '../lib/generationHistory.js';
 import { CINEMATIC_THEME } from '../lib/cinematicTheme.js';
@@ -20,8 +20,9 @@ import { createAutosave, saveProject, loadProject } from '../lib/editor/persiste
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { createUploadPicker } from './UploadPicker.js';
+import { createFullscreenPreview } from '../components/MediaPreview.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
-import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
+import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
@@ -59,6 +60,10 @@ let selectedModelName = defaultModel.name;
 let selectedAr = defaultModel.inputs?.aspect_ratio?.default || '1:1';
 let selectedProvider = 'all';
 let customThumbnailUrl = null;
+
+// Supabase reachability for project load/save. Resolved lazily on first use so
+// the studio never blocks module init on the optional Supabase client.
+let supabaseAvailable = false;
 
 // Enhancement state
 let selectedStyle = 'None';
@@ -158,6 +163,21 @@ export async function StoryboardStudio(options = {}) {
   container.className = 'w-full h-full flex flex-col bg-app-bg overflow-y-auto relative storyboard-studio';
   mountStudioChrome(container, { currentRoute: 'storyboard' });
   container.setAttribute('data-app', 'storyboard');
+
+  // Fullscreen preview overlay for generated frame/media results.
+  const fullscreen = createFullscreenPreview();
+  container.appendChild(fullscreen.element);
+
+  // Advanced-control settings captured by the control engine's onChange. The
+  // sibling studios (CinemaStudio/VideoStudio) keep the same shape so the
+  // captured values survive on the studio instance.
+  const currentSettings = {
+    negativePrompt: '',
+  };
+
+  // Compare-frames overlay state.
+  let comparisonMode = false;
+  const compareIndices = [0, 0];
 
   // Read gallery / deep-link params and apply them as studio defaults.
   try {
@@ -563,6 +583,14 @@ export async function StoryboardStudio(options = {}) {
     const id = projectIdInput.value.trim();
     if (!id) { showToast('Enter a project ID', 'warning'); return; }
     let loadedFromSupabase = false;
+    if (!supabaseAvailable) {
+      try {
+        const supabaseProbe = await import('../lib/supabase.js');
+        supabaseAvailable = !!(supabaseProbe.isSupabaseConfigured && supabaseProbe.isSupabaseConfigured());
+      } catch {
+        supabaseAvailable = false;
+      }
+    }
     if (supabaseAvailable) {
       try {
         const supabaseModule = await import('../lib/supabase.js');
@@ -997,6 +1025,13 @@ const compareBtn = document.createElement('button');
   const arBtn = createControlBtn(`
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-60 text-secondary"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
   `, selectedAr, 'ar-btn', 'Change aspect ratio');
+
+  // Keeps the aspect-ratio control label in sync when the value changes from
+  // anywhere (dropdown, advanced panel, template/param restore).
+  const updateArBtn = () => {
+    const arLabel = document.getElementById('ar-btn-label');
+    if (arLabel) arLabel.textContent = selectedAr;
+  };
 
   controlBar.appendChild(modelBtn);
   controlBar.appendChild(arBtn);

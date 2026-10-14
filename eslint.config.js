@@ -149,6 +149,20 @@ export default [
     },
   },
   {
+    files: ['src/**/*.{ts,tsx}'],
+    languageOptions: {
+      parserOptions: {
+        ecmaVersion: 2022,
+        sourceType: 'module',
+        ecmaFeatures: {
+          jsx: true,
+        },
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+  },
+  {
     files: ['backend/**/*.js', 'scripts/**/*.mjs'],
     languageOptions: {
       ecmaVersion: 2022,

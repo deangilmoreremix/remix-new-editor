@@ -1,4 +1,3 @@
-/* eslint-disable no-undef -- PRE-EXISTING DEBT: documented in docs/audits/MUAPI-PRODUCTION-READINESS-REPORT.md */
 export const T2I_DIMENSION_RATIOS = Object.freeze(['1:1', '16:9', '9:16', '4:3', '3:2', '21:9']);
 export const I2I_DIMENSION_RATIOS = Object.freeze(['1:1', '16:9', '9:16']);
 
@@ -91,7 +90,7 @@ export const getAspectRatioOptions = (model, dimensionRatios) => {
 export const buildImageSizePayload = (model, aspectRatio) => {
   const capability = getImageSizeCapability(model);
   if (capability.type === 'aspect_ratio') {
-    return capability.input.enum.includes(aspectRatio) ? { aspect_ratio } : {};
+    return capability.input.enum.includes(aspectRatio) ? { aspect_ratio: aspectRatio } : {};
   }
   const dimensions = resolveImageDimensions(model, aspectRatio);
   return dimensions || {};
