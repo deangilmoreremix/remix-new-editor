@@ -164,8 +164,9 @@ describe('verified identity is primed before any storage/DB work', () => {
     expect(primedAt).toBeGreaterThanOrEqual(0);
     expect(uploadedAt).toBeGreaterThan(primedAt);
     // The authenticated bearer (verified sub) is attached through the same
-    // call, so the RLS policies never depend on the header alone.
-    expect(state.uploads[0].path.startsWith('user-a/')).toBe(true);
+    // call, so the RLS policies never depend on the header alone. The path
+    // is app-tagged: smartvideo/<userId>/... (shared uploads bucket).
+    expect(state.uploads[0].path.startsWith('smartvideo/user-a/')).toBe(true);
   });
 
   test('listAssets / getAsset / deleteAsset prime identity too', async () => {
