@@ -38,7 +38,7 @@
  *   2. DB level — RLS policies (owned by the auth/RLS work).
  */
 
-import { supabase, isSupabaseConfigured, getUserKey, primeSupabaseIdentity, assertVerifiedWriteIdentity } from './supabase.js';
+import { supabase, isSupabaseConfigured, getUserKey, getClerkUserId, primeSupabaseIdentity, assertVerifiedWriteIdentity } from './supabase.js';
 
 const MEDIA_TABLE = 'media';
 const ASSET_BUCKET = 'uploads';
@@ -117,13 +117,33 @@ function buildObjectPath(file, userId) {
  * The identity is the shared-database one: `authContext.userId` (Clerk id
  * when signed in, else 'anonymous'), falling back to the supabase.js client
  * identity (same rule) — never the offline BYOK hash from userKey.js.
+ *
+ * IDOR guard (fail-closed): `authContext.userId` is caller-supplied data, so
+ * it is never trusted on its own. The verified Clerk identity is re-read from
+ * the Clerk singleton (`getClerkUserId`, independent of authContext) and a
+ * claimed id that contradicts it is rejected before any storage/DB write, so
+ * a spoofed `authContext.userId` can never redirect the storage path or the
+ * media row to another user's identity. When no verified Clerk identity is
+ * present (signed out, or an environment with no Clerk session) there is
+ * nothing to cross-check, so the claim is accepted and the write stays
+ * guarded by RLS plus `assertVerifiedWriteIdentity`.
  */
 async function resolveIdentity(authContext) {
   try {
     await primeSupabaseIdentity();
   } catch { /* client without token exchange — header identity still applies */ }
+
+  const verifiedUserId = getClerkUserId();
+  const claimedUserId = authContext?.userId;
+  if (claimedUserId && verifiedUserId && claimedUserId !== verifiedUserId) {
+    throw assetError(
+      'Identity mismatch: the supplied user id does not match the verified Clerk identity.',
+      'ASSET_IDENTITY_MISMATCH',
+    );
+  }
+
   return {
-    userId: authContext?.userId || (await getUserKey()),
+    userId: claimedUserId || (await getUserKey()),
     workspaceId: authContext?.workspaceId || DEFAULT_WORKSPACE_ID,
   };
 }

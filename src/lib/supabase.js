@@ -44,8 +44,15 @@ const DEFAULT_TOKEN_TTL_MS = 60 * 60 * 1000;
 let cachedToken = null; // { value, subject, expiresAt }
 let tokenInFlight = null;
 
-/** Authenticated user id from the Clerk singleton (null when signed out). */
-function getClerkUserId() {
+/**
+ * Authenticated user id from the Clerk singleton (null when signed out).
+ *
+ * Exported so security-sensitive writers (e.g. the Asset Library) can
+ * cross-check a caller-supplied identity against the verified session
+ * instead of trusting the supplied value. Reads `window.Clerk` directly, so
+ * it is independent of any caller-provided object.
+ */
+export function getClerkUserId() {
   try {
     const user = window.Clerk?.user;
     return user && user.id ? user.id : null;

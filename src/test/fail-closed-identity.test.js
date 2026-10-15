@@ -107,6 +107,7 @@ describe('saveAsset fail-closed wiring', () => {
       },
       isSupabaseConfigured: () => true,
       getUserKey: async () => 'user-clerk-1',
+      getClerkUserId: () => null,
       primeSupabaseIdentity: vi.fn(async () => null),
       assertVerifiedWriteIdentity: vi.fn(async () => {
         const err = new Error('Secure session unavailable');

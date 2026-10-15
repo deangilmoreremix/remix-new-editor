@@ -5,6 +5,7 @@ import { analytics } from './analytics.js';
 import { rateLimiter } from './services/RateLimiter.js';
 import { validateMuAPIUpload, uploadImageToMuAPI, uploadVideoToMuAPI, uploadFileToMuapi } from './muapiUpload.js';
 import {
+  EffectParamError,
   validateEffectParams,
   validateEffectName,
   validateResolution,
@@ -1232,7 +1233,7 @@ export class MuapiClient {
         try {
             const response = await fetch(this.proxyUrl, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: this._getMuapiHeaders(),
                 body: JSON.stringify(body),
                 signal,
             });

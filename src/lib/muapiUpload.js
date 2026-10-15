@@ -825,7 +825,13 @@ export async function resolveMuAPIMediaInput(assetId, authContext, options = {})
     let descriptor;
     try {
         descriptor = await coreUpload(file, authContext, options, null);
-    } catch {
+    } catch (err) {
+        // Preserve retryable transport failures (network, 429, 5xx) so callers
+        // can retry; only collapse non-retryable failures (missing key, auth)
+        // to the re-upload-specific code.
+        if (err && err.retryable === true) {
+            throw err;
+        }
         throw reuploadFailedError();
     }
 

@@ -110,6 +110,7 @@ vi.mock('../lib/supabase.js', () => ({
   },
   isSupabaseConfigured: () => true,
   getUserKey: vi.fn(async () => 'user-a'),
+  getClerkUserId: () => null,
   primeSupabaseIdentity: vi.fn(async () => null),
   assertVerifiedWriteIdentity: vi.fn(async () => undefined),
 }));

@@ -625,7 +625,7 @@ Deno.serve(async (req: Request) => {
         return new Response(
           JSON.stringify({
             error: `API Request Failed: ${muapiResponse.status} ${muapiResponse.statusText}`,
-            details: errorText.slice(0, 200)
+            details: redactSecrets(errorText, effectiveApiKey).slice(0, 200)
           }),
           {
             status: muapiResponse.status,
@@ -901,12 +901,12 @@ Deno.serve(async (req: Request) => {
 
     if (!muapiResponse.ok) {
       const errorText = await muapiResponse.text();
-      console.error(`[muapi-proxy] API error: ${muapiResponse.status} - ${errorText}`);
+      console.error(`[muapi-proxy] API error: ${muapiResponse.status} - ${redactSecrets(errorText, effectiveApiKey)}`);
 
       return new Response(
         JSON.stringify({
           error: `API Request Failed: ${muapiResponse.status} ${muapiResponse.statusText}`,
-          details: errorText.slice(0, 200)
+          details: redactSecrets(errorText, effectiveApiKey).slice(0, 200)
         }),
         {
           status: muapiResponse.status,
