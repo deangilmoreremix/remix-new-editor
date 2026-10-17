@@ -3,26 +3,23 @@ import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { createHeroSection, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { openaiService } from '../lib/openaiService.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import Store from '../stores/base/Store.js';
-import { t2iModels, getAspectRatiosForModel, getModelById, getI2IModelById, getI2VModelById, getV2VModelById, i2vModels } from '../lib/models.js';
+import { t2iModels, getAspectRatiosForModel, getModelById, getI2IModelById, getI2VModelById, getV2VModelById } from '../lib/models.js';
 import { showToast } from '../lib/loading.js';
-import { navigate } from '../lib/router.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
-import { saveGeneration } from '../lib/generationHistory.js';
 import { CINEMATIC_THEME } from '../lib/cinematicTheme.js';
 import { getVideoIntent, setVideoIntent } from '../lib/videoIntentStore.js';
-import { generateStoryboardFromIntent, generateFrameImage as engineGenerateFrameImage } from '../lib/storyboardEngine.js';
+import { generateStoryboardFromIntent, generateFrameImage as engineGenerateFrameImage, resolveOpenAISize } from '../lib/storyboardEngine.js';
 import { createAutosave, saveProject, loadProject } from '../lib/editor/persistence.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { createUploadPicker } from './UploadPicker.js';
-import { createFullscreenPreview } from '../components/MediaPreview.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
-import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
+import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
@@ -60,10 +57,6 @@ let selectedModelName = defaultModel.name;
 let selectedAr = defaultModel.inputs?.aspect_ratio?.default || '1:1';
 let selectedProvider = 'all';
 let customThumbnailUrl = null;
-
-// Supabase reachability for project load/save. Resolved lazily on first use so
-// the studio never blocks module init on the optional Supabase client.
-let supabaseAvailable = false;
 
 // Enhancement state
 let selectedStyle = 'None';
@@ -155,29 +148,12 @@ export async function StoryboardStudio(options = {}) {
   const autosave = createAutosave({
     debounceMs: 1500,
     onSave: () => {},
-    onError: (err) => {
-      showToast('Autosave encountered an issue', 'error');
-    },
+    onError: (err) => console.warn('[StoryboardStudio] Autosave failed:', err),
   });
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col bg-app-bg overflow-y-auto relative storyboard-studio';
   mountStudioChrome(container, { currentRoute: 'storyboard' });
   container.setAttribute('data-app', 'storyboard');
-
-  // Fullscreen preview overlay for generated frame/media results.
-  const fullscreen = createFullscreenPreview();
-  container.appendChild(fullscreen.element);
-
-  // Advanced-control settings captured by the control engine's onChange. The
-  // sibling studios (CinemaStudio/VideoStudio) keep the same shape so the
-  // captured values survive on the studio instance.
-  const currentSettings = {
-    negativePrompt: '',
-  };
-
-  // Compare-frames overlay state.
-  let comparisonMode = false;
-  const compareIndices = [0, 0];
 
   // Read gallery / deep-link params and apply them as studio defaults.
   try {
@@ -378,13 +354,16 @@ export async function StoryboardStudio(options = {}) {
     acceptEndFrame: false,
     onUpload: async (key, file) => {
       try {
-        const { uploadFileToStorage } = await import('../lib/uploadService.js');
-        const url = await uploadFileToStorage(file);
+        // MuAPI-bound reference: validated by the shared adapter and stored in
+        // the permanent Asset Library; resolved at generation time.
+        const { ingestStudioUpload, describeMuapiUploadError } = await import('../lib/muapiStudioMedia.js');
+        const stored = await ingestStudioUpload(file, { studioId: 'storyboard-studio', uploadToMuapi: false });
         storyboardAttachments[key] = storyboardAttachments[key] || [];
-        storyboardAttachments[key].push(url);
+        storyboardAttachments[key].push({ url: stored.url, assetId: stored.assetId });
         showToast('Reference uploaded', 'success');
       } catch (err) {
-        showToast('Attachment upload failed: ' + err.message, 'error');
+        const { describeMuapiUploadError } = await import('../lib/muapiStudioMedia.js');
+        showToast(await describeMuapiUploadError(err), 'error');
       }
     },
   });
@@ -427,14 +406,23 @@ export async function StoryboardStudio(options = {}) {
 
   generateBtn.addEventListener('click', async () => {
     if (!(await requireEntitlement())) return;
+    // Attachments resolve to FRESH MuAPI URLs through the shared adapter
+    // (permanent Asset Library references only).
+    const { resolveMuapiMediaRefs } = await import('../lib/muapiStudioMedia.js');
     const intent = {
       ...getVideoIntent(),
       model: selectedModel,
-      thumbnail_url: customThumbnailUrl || undefined,
+      customThumbnailUrl: customThumbnailUrl || undefined,
       // Merge attachment URLs from the unified toolbar.
-      reference_images: storyboardAttachments.images?.length ? storyboardAttachments.images : undefined,
-      reference_videos: storyboardAttachments.videos?.length ? storyboardAttachments.videos : undefined,
-      reference_audios: storyboardAttachments.audios?.length ? storyboardAttachments.audios : undefined,
+      reference_images: storyboardAttachments.images?.length
+        ? await resolveMuapiMediaRefs(storyboardAttachments.images)
+        : undefined,
+      reference_videos: storyboardAttachments.videos?.length
+        ? await resolveMuapiMediaRefs(storyboardAttachments.videos)
+        : undefined,
+      reference_audios: storyboardAttachments.audios?.length
+        ? await resolveMuapiMediaRefs(storyboardAttachments.audios)
+        : undefined,
     };
 
     generateBtn.disabled = true;
@@ -583,14 +571,6 @@ export async function StoryboardStudio(options = {}) {
     const id = projectIdInput.value.trim();
     if (!id) { showToast('Enter a project ID', 'warning'); return; }
     let loadedFromSupabase = false;
-    if (!supabaseAvailable) {
-      try {
-        const supabaseProbe = await import('../lib/supabase.js');
-        supabaseAvailable = !!(supabaseProbe.isSupabaseConfigured && supabaseProbe.isSupabaseConfigured());
-      } catch {
-        supabaseAvailable = false;
-      }
-    }
     if (supabaseAvailable) {
       try {
         const supabaseModule = await import('../lib/supabase.js');
@@ -618,7 +598,7 @@ export async function StoryboardStudio(options = {}) {
           }
         }
       } catch (e) {
-        showToast('Supabase load failed: ' + e.message, 'error');
+        console.warn('[StoryboardStudio] Supabase load failed:', e);
       }
     }
     if (loadedFromSupabase) return;
@@ -713,18 +693,18 @@ genAllBtn.type = 'button';
       const action = item.dataset.enhance;
       if (action === 'gtm') {
         import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-          openGTMPromptModal('storyboard-studio', (prompt) => {
+          openGTMPromptModal('storyboard', (prompt) => {
             enhancedConcept = prompt;
             renderFrames();
           });
-        }).catch(() => {});
+        }).catch((err) => console.error('[StoryboardStudio] GTM Boost failed:', err));
       } else if (action === 'recipe') {
         openRecipeModal({
           onRunRecipe: (url) => {
           }
-        }).catch(() => {});
+        }).catch((err) => console.error('[Recipe] open failed:', err));
       } else if (action === 'monetize') {
-        openMonetizationHub().catch(() => {});
+        openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
       } else if (action === 'prompts') {
         openPromptGallery({
           appTheme: 'storyboard-studio',
@@ -736,7 +716,7 @@ genAllBtn.type = 'button';
               ta.focus();
             }
           }
-        }).catch(() => {});
+        }).catch((err) => console.error('[PromptGallery] open failed:', err));
       }
       enhanceMenu.classList.remove('is-open');
     });
@@ -1025,13 +1005,6 @@ const compareBtn = document.createElement('button');
   const arBtn = createControlBtn(`
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-60 text-secondary"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
   `, selectedAr, 'ar-btn', 'Change aspect ratio');
-
-  // Keeps the aspect-ratio control label in sync when the value changes from
-  // anywhere (dropdown, advanced panel, template/param restore).
-  const updateArBtn = () => {
-    const arLabel = document.getElementById('ar-btn-label');
-    if (arLabel) arLabel.textContent = selectedAr;
-  };
 
   controlBar.appendChild(modelBtn);
   controlBar.appendChild(arBtn);
@@ -1349,12 +1322,12 @@ const compareBtn = document.createElement('button');
       frameEnhanceBtn.title = 'Enhance this frame with GTM conversion frameworks';
       frameEnhanceBtn.addEventListener('click', () => {
         import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-          openGTMPromptModal('storyboard-studio', (prompt) => {
+          openGTMPromptModal('storyboard', (prompt) => {
             frame.enhancedPrompt = prompt;
             frameEnhanceBtn.textContent = '🎯 Enhanced';
             frameEnhanceBtn.classList.add('active');
           });
-        }).catch(() => {});
+        }).catch((err) => console.error('[StoryboardStudio] Frame GTM Boost failed:', err));
       });
       const enhanceRow = document.createElement('div');
       enhanceRow.className = 'flex items-center justify-between -mt-1';
@@ -1492,40 +1465,6 @@ const compareBtn = document.createElement('button');
       };
       card.appendChild(genFrameBtn);
 
-      const genVideoBtn = document.createElement('button');
-      genVideoBtn.type = 'button';
-      genVideoBtn.className = 'w-full bg-white/5 text-white py-2 rounded-lg text-xs font-bold hover:bg-white/10 transition-all mt-1';
-      genVideoBtn.textContent = '🎬 Generate Video Clip';
-      genVideoBtn.setAttribute('aria-label', 'Generate video from this frame');
-      genVideoBtn.onclick = async () => {
-        if (!frame.imageUrl) { showToast('Generate the frame image first', 'warning'); return; }
-        if (!(await requireEntitlement())) return;
-        const defaultI2VModel = i2vModels[0]?.id;
-        if (!defaultI2VModel) { showToast('No video model available', 'error'); return; }
-        genVideoBtn.disabled = true;
-        genVideoBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Generating...';
-        try {
-          const res = await muapi.generateI2V({
-            model: defaultI2VModel,
-            image_url: frame.imageUrl,
-            prompt: frame.prompt,
-            aspect_ratio: selectedAr,
-          });
-          if (res?.url) {
-            window.open(res.url, '_blank');
-            showToast('Video clip generated', 'success');
-          } else {
-            throw new Error('No video URL returned');
-          }
-        } catch (err) {
-          showToast(`Video generation failed: ${err.message}`, 'error');
-        } finally {
-          genVideoBtn.disabled = false;
-          genVideoBtn.textContent = '🎬 Generate Video Clip';
-        }
-      };
-      card.appendChild(genVideoBtn);
-
       const publishFrameBtn = document.createElement('button');
       publishFrameBtn.type = 'button';
       publishFrameBtn.textContent = 'Publish to Social';
@@ -1614,7 +1553,7 @@ const compareBtn = document.createElement('button');
 
   async function generateFrame(idx, btn, imageArea) {
     const frame = frames[idx];
-    if (!frame.prompt.trim()) { showToast('Enter a scene description', 'error'); return; }
+    if (!frame.prompt.trim()) { alert('Enter a scene description'); return; }
     const hasKey = apiKeyManager.hasOpenAIKey() || apiKeyManager.hasMuapiKey();
     if (!hasKey) { AuthModal(() => generateFrame(idx, btn, imageArea)); return; }
 
@@ -1640,16 +1579,6 @@ const compareBtn = document.createElement('button');
       if (url) {
         frame.imageUrl = url;
         imageArea.innerHTML = `<img src="${url}" class="w-full h-full object-cover">`;
-        saveGeneration({
-          studio: 'storyboard',
-          type: 'image',
-          url,
-          prompt: frame.prompt,
-          model: selectedModel,
-          parameters: { aspect_ratio: selectedAr, shot: frame.shot },
-          timestamp: new Date().toISOString(),
-          id: `storyboard-${Date.now()}-${idx}`,
-        });
       }
     } catch (err) {
       showToast(`Error: ${err.message}`, 'error');
@@ -1667,25 +1596,27 @@ const compareBtn = document.createElement('button');
    * @param {string} prompt
    * @returns {Promise<string|null>} image URL/data-URL or null
    */
-    async function generateFrameImage(prompt) {
-      if (apiKeyManager.hasOpenAIKey()) {
-        try {
-          const { images } = await openaiService.generateImageResponses({
-            input: prompt,
-            size: '16:9',
-            quality: 'auto',
-            outputFormat: 'png',
-          });
-          const img = images?.[0];
-          if (!img) return null;
-          return img.base64 ? `data:image/png;base64,${img.base64}` : img.url || null;
-        } catch (err) {
-          if (!apiKeyManager.hasMuapiKey()) throw err;
-        }
-      }
-      const result = await muapi.generateImage({ model: selectedModel, prompt, aspect_ratio: selectedAr });
-      return result?.url || null;
-    }
+   async function generateFrameImage(prompt) {
+     if (apiKeyManager.hasOpenAIKey()) {
+       try {
+         const { images } = await openaiService.generateImageResponses({
+           input: prompt,
+           size: '16:9',
+           quality: 'auto',
+           outputFormat: 'png',
+         });
+         const img = images?.[0];
+         if (!img) return null;
+         return img.base64 ? `data:image/png;base64,${img.base64}` : img.url || null;
+       } catch (err) {
+         // Surface OpenAI-specific failures clearly; MuAPI fallback below.
+         if (!apiKeyManager.hasMuapiKey()) throw err;
+         console.warn('[StoryboardStudio] OpenAI Responses generation failed, falling back to MuAPI:', err.message);
+       }
+     }
+     const result = await muapi.generateImage({ model: 'nano-banana', prompt, aspect_ratio: '16:9' });
+     return result?.url || null;
+   }
 
   genAllBtn.onclick = async () => {
     const hasKey = apiKeyManager.hasOpenAIKey() || apiKeyManager.hasMuapiKey();

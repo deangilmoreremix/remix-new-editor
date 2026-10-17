@@ -1,5 +1,4 @@
 import { muapi } from '../lib/muapi.js';
-import { saveGeneration } from '../lib/generationHistory.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
@@ -12,9 +11,10 @@ import { createInlineInstructions } from './InlineInstructions.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
-import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
+import { mountModelSelector, getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
+import { getModelById } from '../lib/models.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
@@ -29,6 +29,7 @@ export function VideoToolsStudio() {
   let selectedModel = videoToolsModels[0];
   let nativeAudio = false;
   let uploadedVideoUrl = null;
+  let uploadedVideoAssetId = null;
   let lastOutputUrl = null;
   let prompt = '';
   let customThumbnailUrl = getCustomThumbnailFromCache('videotools-studio');
@@ -148,10 +149,13 @@ const triggerBtn = document.createElement('button');
   const videoPicker = createUploadPicker({
     anchorContainer: container,
     acceptVideo: true,
-    onSelect: ({ url }) => { 
+    muapiStudio: true,
+    studioId: 'video-tools-studio',
+    onSelect: ({ url, assetId }) => { 
       uploadedVideoUrl = url; 
+      uploadedVideoAssetId = assetId || null;
     },
-    onClear: () => { uploadedVideoUrl = null; },
+    onClear: () => { uploadedVideoUrl = null; uploadedVideoAssetId = null; },
   });
   videoUploadGroup.appendChild(videoPicker.trigger);
 
@@ -167,6 +171,9 @@ const triggerBtn = document.createElement('button');
       studioName: 'Video Tools Studio',
       onSelect: (asset) => {
         uploadedVideoUrl = asset.video_files?.[0]?.link || asset.url || asset.original;
+        // Pexels videos are not Asset Library rows — drop any previously
+        // picked asset identity so a stale id is never resolved.
+        uploadedVideoAssetId = null;
         const attrContainer = document.getElementById('pexels-tools-attribution');
         if (attrContainer) {
           attrContainer.innerHTML = '';
@@ -211,13 +218,16 @@ const triggerBtn = document.createElement('button');
      acceptAudio: false,
      onUpload: async (key, file) => {
        try {
-         const { uploadFileToStorage } = await import('../lib/uploadService.js');
-         const url = await uploadFileToStorage(file);
+         // MuAPI-bound reference: validated by the shared adapter and stored in
+         // the permanent Asset Library; resolved at generation time.
+         const { ingestStudioUpload, describeMuapiUploadError } = await import('../lib/muapiStudioMedia.js');
+         const stored = await ingestStudioUpload(file, { studioId: 'video-tools-studio', uploadToMuapi: false });
          videoToolsAttachmentState[key] = videoToolsAttachmentState[key] || [];
-         videoToolsAttachmentState[key].push(url);
+         videoToolsAttachmentState[key].push({ url: stored.url, assetId: stored.assetId });
          showToast('Reference uploaded', 'success');
        } catch (err) {
-        showToast('Attachment upload failed: ' + err.message, 'error');
+        const { describeMuapiUploadError } = await import('../lib/muapiStudioMedia.js');
+        showToast(await describeMuapiUploadError(err), 'error');
        }
      },
    });
@@ -260,14 +270,14 @@ const triggerBtn = document.createElement('button');
               promptInput.dispatchEvent(new Event('input', { bubbles: true }));
               promptInput.focus();
             });
-          }).catch(() => {});
+          }).catch((err) => console.error('[VideoToolsStudio] GTM Boost failed:', err));
         } else if (action === 'recipe') {
           openRecipeModal({
             onRunRecipe: (url) => {
             }
-          }).catch(() => {});
+          }).catch((err) => console.error('[Recipe] open failed:', err));
         } else if (action === 'monetize') {
-          openMonetizationHub().catch(() => {});
+          openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
         } else if (action === 'prompts') {
           openPromptGallery({
             appTheme: 'video-tools',
@@ -279,7 +289,7 @@ const triggerBtn = document.createElement('button');
                 ta.focus();
               }
             }
-          }).catch(() => {});
+          }).catch((err) => console.error('[PromptGallery] open failed:', err));
         }
         enhanceMenu.classList.remove('is-open');
       });
@@ -349,7 +359,7 @@ const triggerBtn = document.createElement('button');
 
   // Generate button
   const genBtn = document.createElement('button');
- genBtn.type = 'button';
+genBtn.type = 'button';
   genBtn.className = 'btn-primary-modern w-full px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all';
   genBtn.textContent = 'Process Video';
   genBtn.setAttribute('aria-label', 'Process video');
@@ -405,25 +415,39 @@ const triggerBtn = document.createElement('button');
   }
 
   // Generate button handler
-    genBtn.onclick = async () => {
-      if (!(await requireEntitlement())) return;
-      if (!uploadedVideoUrl && selectedModel.videoField) {
-        showToast('Upload a source video first', 'error');
-        return;
-      }
-      const apiKey = apiKeyManager.getMuapiKey();
-      if (!apiKey) { 
-        AuthModal(() => genBtn.click()); 
-        return; 
-      }
+  genBtn.onclick = async () => {
+    if (!(await requireEntitlement())) return;
+    if (!uploadedVideoUrl && selectedModel.videoField) {
+      alert('Upload a source video first');
+      return;
+    }
+    const apiKey = apiKeyManager.getMuapiKey();
+    if (!apiKey) { 
+      AuthModal(() => genBtn.click()); 
+      return; 
+    }
 
-      genBtn.disabled = true;
-      genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Processing...';
+    genBtn.disabled = true;
+    genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Processing...';
 
-      try {
+    try {
+      // Resolve the source video + attachments to FRESH MuAPI URLs through
+      // the shared adapter (permanent asset references only).
+        const { resolveMuapiMediaRef, resolveMuapiMediaRefs } = await import('../lib/muapiStudioMedia.js');
+        const sourceVideoUrl = await resolveMuapiMediaRef({ url: uploadedVideoUrl, assetId: uploadedVideoAssetId });
+        const attachmentImages = videoToolsAttachmentState.images?.length
+          ? await resolveMuapiMediaRefs(videoToolsAttachmentState.images)
+          : [];
+        const attachmentVideos = videoToolsAttachmentState.videos?.length
+          ? await resolveMuapiMediaRefs(videoToolsAttachmentState.videos)
+          : [];
+        const attachmentAudios = videoToolsAttachmentState.audios?.length
+          ? await resolveMuapiMediaRefs(videoToolsAttachmentState.audios)
+          : [];
+
         const params = { 
           model: selectedModel.id,
-          [selectedModel.videoField]: uploadedVideoUrl,
+          [selectedModel.videoField]: sourceVideoUrl,
           thumbnail_url: customThumbnailUrl || undefined,
           webhook_url: undefined,
           signal: undefined,
@@ -438,30 +462,27 @@ const triggerBtn = document.createElement('button');
         }
 
         // Merge attachment URLs from the unified toolbar.
-        if (videoToolsAttachmentState.images?.length) {
-          params.reference_images = videoToolsAttachmentState.images;
+        if (attachmentImages.length) {
+          params.reference_images = attachmentImages;
         }
-        if (videoToolsAttachmentState.videos?.length) {
-          params.reference_videos = videoToolsAttachmentState.videos;
+        if (attachmentVideos.length) {
+          params.reference_videos = attachmentVideos;
         }
-        if (videoToolsAttachmentState.audios?.length) {
-          params.reference_audios = videoToolsAttachmentState.audios;
+        if (attachmentAudios.length) {
+          params.reference_audios = attachmentAudios;
         }
 
-        const controller = new AbortController();
-        params.signal = controller.signal;
-
-        const result = await muapi.processVideoTool(params);
-        if (result?.url) {
-          lastOutputUrl = result.url;
-          resultArea.classList.remove('hidden');
-          resultArea.innerHTML = `
-            <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4">
-              <video controls class="w-full rounded-xl mb-3" src="${result.url}"></video>
-              <a href="${result.url}" download class="block w-full btn-secondary-modern py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download Video</a>
-              <button type="button" class="publish-social-btn block w-full mt-2 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
-            </div>
-          `;
+       const result = await muapi.processVideoTool(params);
+       if (result?.url) {
+         lastOutputUrl = result.url;
+         resultArea.classList.remove('hidden');
+         resultArea.innerHTML = `
+           <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4">
+             <video controls class="w-full rounded-xl mb-3" src="${result.url}"></video>
+             <a href="${result.url}" download class="block w-full btn-secondary-modern py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download Video</a>
+             <button type="button" class="publish-social-btn block w-full mt-2 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
+           </div>
+         `;
           const publishBtn = resultArea.querySelector('.publish-social-btn');
            if (publishBtn) publishBtn.onclick = () => openSocialPublish({ mediaUrl: lastOutputUrl, mediaType: 'video' });
            if (/\.(mp4|webm|mov|avi|mkv|m4v|ogv)(\?.*)?$/i.test(result.url) || result.url.startsWith('blob:')) {
@@ -484,19 +505,10 @@ const triggerBtn = document.createElement('button');
              };
              resultArea.appendChild(captionBtn);
            }
-           saveGeneration({
-             studio: 'videotools',
-             type: 'video',
-             url: result.url,
-             prompt: prompt,
-             model: selectedModel.id,
-             parameters: { native_audio: nativeAudio, ...(dynamicControls ? dynamicControls.getPayload({}) : {}) },
-           });
-           showToast('Video processed successfully!', 'success');
          }
-        } catch (err) {
-          showToast(`Error: ${err.message}`, 'error');
-        } finally {
+       } catch (err) {
+      alert(`Error: ${err.message}`);
+    } finally {
       genBtn.disabled = false;
       genBtn.textContent = 'Process Video';
     }

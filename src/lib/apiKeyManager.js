@@ -39,6 +39,16 @@ function deobfuscate(obfuscated) {
     }
 }
 
+// BYOK hygiene: a stored value that decodes to empty/whitespace-only is
+// treated as "no key" (null) rather than an empty string, so callers that do
+// truthiness checks (`getMuapiKey()`) can never receive or forward `''`.
+// The key value itself is never logged here.
+function normalizeKeyValue(value) {
+    if (typeof value !== 'string') return null;
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+}
+
 // Hash the key for quick validation without exposing it
 async function hashKey(key) {
     const encoder = new TextEncoder();
@@ -98,7 +108,12 @@ export class ApiKeyManager {
     }
 
     _getKeyFor(kind) {
-        if (this._cache[kind].key) return this._cache[kind].key;
+        const cached = normalizeKeyValue(this._cache[kind].key);
+        if (cached) {
+            this._cache[kind].key = cached;
+            return cached;
+        }
+        this._cache[kind].key = null;
 
         // Try sessionStorage first
         let sessionKey = null;
@@ -108,8 +123,9 @@ export class ApiKeyManager {
             // Storage may be disabled (e.g. SecurityError in some browsers).
         }
         if (sessionKey) {
-            this._cache[kind].key = deobfuscate(sessionKey);
-            return this._cache[kind].key;
+            const fromSession = normalizeKeyValue(deobfuscate(sessionKey));
+            this._cache[kind].key = fromSession;
+            return fromSession;
         }
 
         // Fall back to localStorage
@@ -120,7 +136,7 @@ export class ApiKeyManager {
             // Storage may be disabled.
         }
         if (localKey) {
-            const decoded = deobfuscate(localKey);
+            const decoded = normalizeKeyValue(deobfuscate(localKey));
             if (decoded) {
                 this._cache[kind].key = decoded;
                 // Restore to sessionStorage
@@ -137,20 +153,9 @@ export class ApiKeyManager {
     }
 
     _hasKeyFor(kind) {
-        if (this._cache[kind].key) return true;
-        let sessionValue = null;
-        let localValue = null;
-        try {
-            sessionValue = sessionStorage.getItem(KEY_STORAGE[kind]);
-        } catch {
-            // Storage may be disabled.
-        }
-        try {
-            localValue = localStorage.getItem(KEY_STORAGE[kind]);
-        } catch {
-            // Storage may be disabled.
-        }
-        return !!(sessionValue || localValue);
+        // Whitespace-only or malformed stored values decode to null and are
+        // therefore treated as absent.
+        return !!this._getKeyFor(kind);
     }
 
     _getStoredHashFor(kind) {

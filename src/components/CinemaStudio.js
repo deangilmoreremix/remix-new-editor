@@ -1,5 +1,5 @@
 
-import { showToast, createLoadingOverlay, createProgressBar } from '../lib/loading.js';
+import { showToast } from '../lib/loading.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { muapi } from '../lib/muapi.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
@@ -16,8 +16,6 @@ import { createUploadPicker } from './UploadPicker.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
-import { categorizeGenerationError, createAbortAwareGenerateButton, showInlineError, hideInlineError, startGenerationProgress } from '../lib/studioHelpers.js';
-import { getCharacterReference, saveCharacterReference } from '../lib/characterConsistency.js';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
@@ -31,6 +29,7 @@ import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { openModelPicker } from '../lib/modelPickerIntegration.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
+import { getCharacterReference, saveCharacterReference } from '../lib/characterConsistency.js';
 
 // Camera movements promised by the Cinema Studio intro copy
 // ("Select camera movement … dolly, crane, orbit, FPV drone").
@@ -78,25 +77,22 @@ export function CinemaStudio() {
         look: 'Natural',
         referenceUrl: null,
         endFrameUrl: null,
+        // Permanent Asset Library identities for the frames — the first/last
+        // frame references are re-resolved through the shared adapter at
+        // generation time.
+        referenceAssetId: null,
+        endFrameAssetId: null,
         // Selected generation model. Cinema Studio exposes the same catalog
-        // picker as Video Studio; requires at least one text-to-video model.
-        model: (() => {
-            const first = t2vModels[0];
-            if (first && first.id) return first.id;
-            showToast('No text-to-video models available in catalog', 'error');
-            throw new Error('No text-to-video models available in catalog');
-        })(),
+        // picker as Video Studio; defaults to the first text-to-video model.
+        model: (t2vModels[0] && t2vModels[0].id) || 'kling-v2.6-pro-t2v',
     };
     const selectedProvider = 'all';
-    let characterLock = false;
-    let abortController = null;
-    let loadingOverlay = null;
-    let progressHandle = null;
-    let isLoading = false;
-
+    
     // Camera builder panel state
     let showCameraBuilder = false;
-let showAdvanced = false;
+    let showAdvanced = false;
+    // Character Lock: reuses a stored character reference across shots.
+    let characterLock = false;
     let customThumbnailUrl = getCustomThumbnailFromCache('cinema-studio');
 
     // Listen for thumbnails generated via GTM Boost and apply them.
@@ -360,7 +356,7 @@ let showAdvanced = false;
         });
     }
 
-     if (!textarea.value && currentSettings.prompt) {
+    if (!textarea.value && currentSettings.prompt) {
         textarea.value = currentSettings.prompt;
     }
 
@@ -372,23 +368,32 @@ let showAdvanced = false;
       getTextarea: () => textarea,
       onUpload: async (key, file) => {
         try {
-          const { uploadFileToStorage } = await import('../lib/hybrid-supabase.js');
-          const url = await uploadFileToStorage(file);
+          // MuAPI-bound reference: validated by the shared adapter and stored in
+          // the permanent Asset Library; resolved at generation time.
+          const { ingestStudioUpload, describeMuapiUploadError } = await import('../lib/muapiStudioMedia.js');
+          const stored = await ingestStudioUpload(file, { studioId: 'cinema-studio', uploadToMuapi: false });
           if (key === 'startFrame' || key === 'endFrame') {
-            if (key === 'startFrame') currentSettings.referenceUrl = url;
-            if (key === 'endFrame') currentSettings.endFrameUrl = url;
-            showReferenceThumb(url);
-            if (url && !i2vModels.some(m => m.id === currentSettings.model)) {
+            if (key === 'startFrame') {
+              currentSettings.referenceUrl = stored.url;
+              currentSettings.referenceAssetId = stored.assetId;
+            }
+            if (key === 'endFrame') {
+              currentSettings.endFrameUrl = stored.url;
+              currentSettings.endFrameAssetId = stored.assetId;
+            }
+            showReferenceThumb(stored.url);
+            if (stored.url && !i2vModels.some(m => m.id === currentSettings.model)) {
               currentSettings.model = (i2vModels[0] && i2vModels[0].id) || currentSettings.model;
             }
             updateModelBtn();
             updateControlsForModel();
           } else if (key === 'image' || key === 'video' || key === 'audio') {
             if (!currentSettings.referenceUrls) currentSettings.referenceUrls = [];
-            currentSettings.referenceUrls.push({ type: key, url, file });
+            currentSettings.referenceUrls.push({ type: key, url: stored.url, assetId: stored.assetId, file });
           }
         } catch (err) {
-          showToast('Attachment upload failed: ' + err.message, 'error');
+          const { describeMuapiUploadError } = await import('../lib/muapiStudioMedia.js');
+          showToast(await describeMuapiUploadError(err), 'error');
         }
       },
     });
@@ -428,9 +433,7 @@ let showAdvanced = false;
               textarea.dispatchEvent(new Event('input', { bubbles: true }));
               textarea.focus();
             });
-          }).catch(() => {
-            showToast('GTM Boost failed', 'error');
-          });
+          }).catch((err) => console.error('[CinemaStudio] GTM Boost failed:', err));
         }
         enhanceMenu.classList.remove('is-open');
       });
@@ -461,9 +464,16 @@ let showAdvanced = false;
       anchorContainer: container,
       // Accept images, videos, and documents (MuAPI file-upload supports all).
       frameMode: true,
-      onSelect: ({ startUrl, endUrl }) => {
+      // MuAPI-bound frames: picked files are validated through the shared
+      // adapter and stored in the permanent Asset Library, so the first/last
+      // frame references can be re-resolved at generation time.
+      muapiStudio: true,
+      studioId: 'cinema-studio',
+      onSelect: ({ startUrl, endUrl, startAssetId, endAssetId }) => {
         currentSettings.referenceUrl = startUrl || null;
+        currentSettings.referenceAssetId = startAssetId || null;
         currentSettings.endFrameUrl = endUrl || null;
+        currentSettings.endFrameAssetId = endAssetId || null;
         showReferenceThumb(startUrl);
         // Switch the model picker to image-to-video models and refresh the
         // label/controls so the selection stays valid for the new mode.
@@ -475,7 +485,9 @@ let showAdvanced = false;
       },
       onClear: () => {
         currentSettings.referenceUrl = null;
+        currentSettings.referenceAssetId = null;
         currentSettings.endFrameUrl = null;
+        currentSettings.endFrameAssetId = null;
         showReferenceThumb(null);
         if (!t2vModels.some(m => m.id === currentSettings.model)) {
           currentSettings.model = (t2vModels[0] && t2vModels[0].id) || currentSettings.model;
@@ -501,6 +513,9 @@ let showAdvanced = false;
         studioName: 'Cinema Studio',
         onSelect: (asset) => {
           currentSettings.referenceUrl = asset.src?.large || asset.url;
+          // Pexels scenes are not Asset Library rows — drop any previously
+          // picked asset identity so a stale id is never resolved.
+          currentSettings.referenceAssetId = null;
           showReferenceThumb(asset.src?.large || asset.url);
           if (!i2vModels.some(m => m.id === currentSettings.model)) {
             currentSettings.model = (i2vModels[0] && i2vModels[0].id) || currentSettings.model;
@@ -611,54 +626,9 @@ let showAdvanced = false;
           updateModelBtn();
           updateControlsForModel();
         }
-      }).catch(() => {});
+      }).catch((err) => console.error('[ModelPicker] open failed:', err));
     });
     settingsToolbar.appendChild(modelPickerBtn);
-
-    // Prompt Gallery button
-    const promptGalleryBtn = document.createElement('button');
-    promptGalleryBtn.type = 'button';
-    promptGalleryBtn.textContent = '📚 Prompts';
-    promptGalleryBtn.title = 'Browse prompt gallery';
-    promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
-    promptGalleryBtn.className = 'btn-ghost-modern shrink-0';
-    promptGalleryBtn.addEventListener('click', () => {
-      openPromptGallery({
-        appTheme: 'cinema-studio',
-        onSelect: (prompt) => {
-          const ta = document.querySelector('textarea') || document.querySelector('[data-prompt]');
-          if (ta) {
-            ta.value = prompt;
-            ta.dispatchEvent(new Event('input', { bubbles: true }));
-            ta.focus();
-          }
-        }
-      }).catch(() => {});
-    });
-
-    // Recipe Engine button
-    const recipeBtn = document.createElement('button');
-    recipeBtn.type = 'button';
-    recipeBtn.textContent = '📋 Recipes';
-    recipeBtn.title = 'Browse AI recipes';
-    recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-    recipeBtn.className = 'btn-ghost-modern shrink-0';
-    recipeBtn.addEventListener('click', () => {
-      openRecipeModal().catch(() => {});
-    });
-
-    // Monetization Hub button
-    const monetizationBtn = document.createElement('button');
-    monetizationBtn.type = 'button';
-    monetizationBtn.textContent = "💼 Smart Video AI Monetize";
-    monetizationBtn.title = "Open Smart Video AI Monetization Hub";
-    monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-    monetizationBtn.className = 'btn-ghost-modern shrink-0';
-    monetizationBtn.addEventListener('click', () => {
-      openMonetizationHub().catch(() => {});
-    });
-    if (!settingsToolbar.querySelector('[aria-label="Open recipe engine"]')) settingsToolbar.appendChild(recipeBtn);
-    if (!settingsToolbar.querySelector('[aria-label="Open Smart Video AI Monetization Hub"]')) settingsToolbar.appendChild(monetizationBtn);
 
     // Shared model dropdown (glass panel) — lists T2V models, or I2V models
     // when a reference image is loaded, with live search + per-model metadata.
@@ -849,16 +819,16 @@ let showAdvanced = false;
 
     // Generate Button
     const generateBtn = document.createElement('button');
-    generateBtn.type = 'button';
-    generateBtn.className = 'btn-primary-modern px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:scale-105 active:scale-95 transition-all w-full sm:w-auto shadow-lg disabled:opacity-50 disabled:cursor-not-allowed';
+     generateBtn.type = 'button';
+     generateBtn.className = 'btn-primary-modern px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:scale-105 active:scale-95 transition-all w-full sm:w-auto shadow-lg disabled:opacity-50 disabled:cursor-not-allowed';
     generateBtn.setAttribute('data-tooltip', 'Generate cinema shot');
     generateBtn.setAttribute('aria-label', 'Generate cinema shot');
     generateBtn.innerHTML = `GENERATE ✨`;
 
-    // Thumbnail Button — integrated into the creation workflow alongside
-    // the Generate button so users can create a custom thumbnail during
-    // the cinema generation process.
-    const thumbBtn = document.createElement('button');
+     // Thumbnail Button — integrated into the creation workflow alongside
+     // the Generate button so users can create a custom thumbnail during
+     // the cinema generation process.
+       const thumbBtn = document.createElement('button');
        thumbBtn.type = 'button';
        thumbBtn.textContent = '🖼 Thumbnail';
        thumbBtn.title = 'Generate a custom thumbnail';
@@ -1352,9 +1322,6 @@ let showAdvanced = false;
     // ==========================================
     generateBtn.onclick = async () => {
         if (!(await requireEntitlement())) return;
-
-        if (isLoading) return;
-
         const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
         const basePrompt = replaceTokensInPrompt(textarea.value.trim(), activeProfile);
         if (!basePrompt) return;
@@ -1364,6 +1331,9 @@ let showAdvanced = false;
             AuthModal(() => generateBtn.click());
             return;
         }
+
+        generateBtn.disabled = true;
+        generateBtn.innerHTML = "SHOOTING...";
 
         // Compile Prompt — include camera movement + film look so the
         // "Render the shot" step produces a real cinematic video.
@@ -1389,63 +1359,35 @@ let showAdvanced = false;
             '8K resolution'
         ].filter(Boolean).join(', ');
 
-        isLoading = true;
-        heroSection.classList.add('opacity-0', 'scale-95', '-translate-y-10', 'pointer-events-none');
-
-        abortController = new AbortController();
-        const { controller, showCancel, reset: resetCancel } = createAbortAwareGenerateButton(generateBtn);
-        abortController = controller;
-
-        loadingOverlay = createLoadingOverlay('Generating cinema shot...');
-        const progressBar = createProgressBar(0);
-        loadingOverlay.appendChild(progressBar);
-        container.appendChild(loadingOverlay);
-        progressHandle = startGenerationProgress({
-            parent: loadingOverlay,
-            type: 'video',
-            message: 'Generating cinema shot (this may take a few minutes)...'
-        });
-        showCancel();
-
-        let simulatedProgress = 0;
-        const progressInterval = setInterval(() => {
-            if (abortController.signal.aborted) return;
-            simulatedProgress = Math.min(simulatedProgress + Math.random() * 3, 90);
-            if (progressBar.setProgress) progressBar.setProgress(simulatedProgress);
-        }, 1500);
-
         try {
             const resolution = (resBtn.dataset.value || '1k').toLowerCase();
             const hasStartFrame = !!currentSettings.referenceUrl;
             const hasEndFrame = !!currentSettings.endFrameUrl;
+            const isRef = hasStartFrame;
+
+            // When both a start and end frame are supplied, generate a
+            // first/last-frame clip that pins both ends of the video.
             const useFrameToFrame = hasStartFrame && hasEndFrame;
 
+            // Use the model the user picked in the catalog picker. Resolve it
+            // through the catalog so an unknown/renamed id degrades gracefully
+            // instead of 404-ing the backend. Falls back to a known-good Kling
+            // model when the selected id isn't in the catalog.
             let resolvedModel;
             if (useFrameToFrame) {
-                const flf = i2vModels.find(m => m.inputs?.first_frame_url && m.inputs?.last_frame_url)
-                    || t2vModels.find(m => m.inputs?.first_frame_url && m.inputs?.last_frame_url);
-                if (!flf) {
-                    showToast('No frame-to-frame model available in catalog', 'error');
-                    throw new Error('No frame-to-frame model available in catalog');
-                }
-                resolvedModel = flf.id;
-            } else if (hasStartFrame) {
+                const flf = getI2VModelById('seedance-2.5-first-last-frame');
+                resolvedModel = (flf && flf.id) || 'seedance-2.5-first-last-frame';
+            } else if (isRef) {
                 const catalogModel = getI2VModelById(currentSettings.model);
-                if (!catalogModel) {
-                    showToast(`I2V model "${currentSettings.model}" not found in catalog`, 'error');
-                    throw new Error(`I2V model "${currentSettings.model}" not found in catalog`);
-                }
-                resolvedModel = catalogModel.id;
+                resolvedModel = (catalogModel && catalogModel.id) || currentSettings.model || 'kling-v2.6-pro-i2v';
             } else {
                 const catalogModel = getVideoModelById(currentSettings.model);
-                if (!catalogModel) {
-                    showToast(`Video model "${currentSettings.model}" not found in catalog`, 'error');
-                    throw new Error(`Video model "${currentSettings.model}" not found in catalog`);
-                }
-                resolvedModel = catalogModel.id;
+                resolvedModel = (catalogModel && catalogModel.id) || currentSettings.model || 'kling-v2.6-pro-t2v';
             }
 
-            const durations = (hasStartFrame || useFrameToFrame)
+            // Honor the per-model duration if the catalog advertises one,
+            // otherwise keep the default 5s.
+            const durations = (isRef || useFrameToFrame)
                 ? getDurationsForI2VModel(resolvedModel)
                 : getDurationsForModel(resolvedModel);
             const duration = (durations && durations.length > 0) ? durations[0] : (currentSettings.duration || 5);
@@ -1456,44 +1398,51 @@ let showAdvanced = false;
                 if (ref?.imageUrl) refImages = [ref.imageUrl];
             }
 
-            const extraImages = (currentSettings.referenceUrls || [])
-              .filter(entry => entry.type === 'image')
-              .map(entry => entry.url);
-            const extraVideos = (currentSettings.referenceUrls || [])
-              .filter(entry => entry.type === 'video')
-              .map(entry => entry.url);
-            const extraAudios = (currentSettings.referenceUrls || [])
-              .filter(entry => entry.type === 'audio')
-              .map(entry => entry.url);
+            // Frames and reference attachments resolve to FRESH MuAPI URLs
+            // through the shared adapter (permanent Asset Library refs only).
+            const { resolveMuapiMediaRef, resolveMuapiMediaRefs } = await import('../lib/muapiStudioMedia.js');
+            const firstFrameUrl = currentSettings.referenceUrl
+              ? await resolveMuapiMediaRef({ url: currentSettings.referenceUrl, assetId: currentSettings.referenceAssetId })
+              : null;
+            const lastFrameUrl = currentSettings.endFrameUrl
+              ? await resolveMuapiMediaRef({ url: currentSettings.endFrameUrl, assetId: currentSettings.endFrameAssetId })
+              : null;
+
+            const extraImages = await resolveMuapiMediaRefs((currentSettings.referenceUrls || [])
+              .filter(entry => entry.type === 'image'));
+            const extraVideos = await resolveMuapiMediaRefs((currentSettings.referenceUrls || [])
+              .filter(entry => entry.type === 'video'));
+            const extraAudios = await resolveMuapiMediaRefs((currentSettings.referenceUrls || [])
+              .filter(entry => entry.type === 'audio'));
             if (extraImages.length) {
                 refImages = refImages ? [...refImages, ...extraImages] : extraImages;
             }
 
             let res;
             if (useFrameToFrame) {
+                // First/last-frame: pin both the start and end of the clip.
                 res = await muapi.generateI2V({
                     model: resolvedModel,
-                    firstFrameUrl: currentSettings.referenceUrl,
-                    lastFrameUrl: currentSettings.endFrameUrl,
+                    firstFrameUrl,
+                    lastFrameUrl,
                     prompt: finalPrompt,
                     aspect_ratio: currentSettings.aspect_ratio,
                     duration,
                     resolution,
                     thumbnail_url: customThumbnailUrl || undefined,
-                    signal: abortController.signal,
                     ...(extraVideos.length ? { reference_videos: extraVideos } : {}),
                     ...(extraAudios.length ? { reference_audios: extraAudios } : {}),
                 });
-            } else if (hasStartFrame) {
+            } else if (isRef) {
+                // Image-to-video: use the uploaded still as the seed.
                 const i2vParams = {
                     model: resolvedModel,
-                    image_url: currentSettings.referenceUrl,
+                    image_url: firstFrameUrl,
                     prompt: finalPrompt,
                     aspect_ratio: currentSettings.aspect_ratio,
                     duration,
                     resolution,
                     thumbnail_url: customThumbnailUrl || undefined,
-                    signal: abortController.signal,
                 };
                 if (refImages) i2vParams.reference_images = refImages;
                 if (characterLock && refImages) i2vParams.character_consistency = true;
@@ -1508,7 +1457,6 @@ let showAdvanced = false;
                     duration,
                     resolution,
                     thumbnail_url: customThumbnailUrl || undefined,
-                    signal: abortController.signal,
                 };
                 if (refImages) t2vParams.reference_images = refImages;
                 if (characterLock && refImages) t2vParams.character_consistency = true;
@@ -1517,6 +1465,54 @@ let showAdvanced = false;
                 res = await muapi.generateVideo(t2vParams);
             }
 
+
+    // Prompt Gallery button
+    const promptGalleryBtn = document.createElement('button');
+    promptGalleryBtn.type = 'button';
+    promptGalleryBtn.textContent = '📚 Prompts';
+    promptGalleryBtn.title = 'Browse prompt gallery';
+    promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
+    promptGalleryBtn.className = 'btn-ghost-modern shrink-0';
+    promptGalleryBtn.addEventListener('click', () => {
+      openPromptGallery({
+        appTheme: 'cinema-studio',
+        onSelect: (prompt) => {
+          // Default: try to find a textarea in the studio
+          const ta = document.querySelector('textarea') || document.querySelector('[data-prompt]');
+          if (ta) {
+            ta.value = prompt;
+            ta.dispatchEvent(new Event('input', { bubbles: true }));
+            ta.focus();
+          }
+        }
+      }).catch((err) => console.error('[PromptGallery] open failed:', err));
+    });
+
+    // Recipe Engine button
+    const recipeBtn = document.createElement('button');
+    recipeBtn.type = 'button';
+    recipeBtn.textContent = '📋 Recipes';
+    recipeBtn.title = 'Browse AI recipes';
+    recipeBtn.setAttribute('aria-label', 'Open recipe engine');
+    recipeBtn.className = 'btn-ghost-modern shrink-0';
+    recipeBtn.addEventListener('click', () => {
+      openRecipeModal().catch((err) => console.error('[Recipe] open failed:', err));
+    });
+
+
+    // Monetization Hub button
+    const monetizationBtn = document.createElement('button');
+    monetizationBtn.type = 'button';
+    monetizationBtn.textContent = "💼 Smart Video AI Monetize";
+    monetizationBtn.title = "Open Smart Video AI Monetization Hub";
+    monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
+    monetizationBtn.className = 'btn-ghost-modern shrink-0';
+    monetizationBtn.addEventListener('click', () => {
+      openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+    });
+    if (!toolbar.querySelector('[aria-label="Open recipe engine"]')) toolbar.appendChild(recipeBtn);
+    if (!toolbar.querySelector('[aria-label="Open Smart Video AI Monetization Hub"]')) toolbar.appendChild(monetizationBtn);
+
             if (res && res.url) {
                 addToHistory({
                     url: res.url,
@@ -1524,7 +1520,7 @@ let showAdvanced = false;
                     settings: {
                         prompt: basePrompt,
                         ...currentSettings,
-                        resolution: resBtn.dataset.value
+                        resolution: dynamicPayload.resolution || resBtn.dataset.value
                     }
                 });
 
@@ -1536,25 +1532,13 @@ let showAdvanced = false;
             } else {
                 throw new Error('No Data');
             }
+
         } catch (e) {
-            const { message } = categorizeGenerationError(e);
-            showInlineError(container, message, 0);
-            resetCancel();
-            generateBtn.disabled = false;
-            generateBtn.innerHTML = `GENERATE ✨`;
-            generateBtn.classList.add('border-red-500/50');
-            return;
+            console.error(e);
+            showToast('Generation Failed: ' + e.message, 'error');
         } finally {
-            clearInterval(progressInterval);
-            if (progressHandle) { progressHandle.stop(); progressHandle = null; }
-            if (loadingOverlay && loadingOverlay.parentNode) { loadingOverlay.remove(); loadingOverlay = null; }
-            resetCancel();
-            isLoading = false;
-            abortController = null;
-            heroSection.classList.remove('opacity-0', 'scale-95', '-translate-y-10', 'pointer-events-none');
             generateBtn.disabled = false;
             generateBtn.innerHTML = `GENERATE ✨`;
-            generateBtn.classList.remove('border-red-500/50');
         }
     };
 
@@ -1564,9 +1548,5 @@ let showAdvanced = false;
       container.appendChild(gallery);
     }
 
-    container.cleanup = () => {
-      window.removeEventListener('click', closeEnhanceMenu);
-    };
-
-  return container;
+    return container;
 }

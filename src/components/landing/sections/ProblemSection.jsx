@@ -1,20 +1,5 @@
 // Problem Section - AI Video Is Exploding... But Most People Can't Turn It Into A Real Business
 
-const SHOWCASE_CONFIG = {
-  getStudioThumbnail: () => '/thumbnails/studios/video.webp',
-  getToolThumbnail: () => null,
-  getTemplateThumbnail: () => null,
-  getEffectPreview: () => null,
-  categoryThumbnails: {
-    camera: '/thumbnails/categories/camera.webp',
-    commercial: '/thumbnails/categories/commercial.webp',
-    social: '/thumbnails/categories/social.webp',
-    portrait: '/thumbnails/categories/portrait.webp',
-    vfx: '/thumbnails/categories/vfx.webp',
-    style: '/thumbnails/categories/style.webp',
-  },
-};
-
 export function ProblemSection() {
   const section = document.createElement('section');
   section.className = 'py-20 px-4 bg-gradient-to-b from-[#020205] to-[#05070b]';
@@ -29,18 +14,6 @@ export function ProblemSection() {
         <p class="text-xl text-gray-300 max-w-4xl mx-auto leading-relaxed">
           Everyone's talking about AI video tools, but here's the harsh reality: Most creators and agencies are stuck buying 10+ different tools, learning complex workflows, and still delivering mediocre results that don't impress clients.
         </p>
-      </div>
-
-      <!-- Scattered tools visual - historical category thumbnails added as enhancement -->
-      <div class="flex flex-wrap justify-center gap-3 mb-12">
-        ${['camera', 'commercial', 'social', 'portrait', 'vfx', 'style'].map((cat, i) => {
-          const thumb = SHOWCASE_CONFIG.categoryThumbnails[cat];
-          return `
-          <div class="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden border border-white/10 hover:border-red-400/30 hover:scale-110 transition-all duration-300 opacity-0 translate-y-4" style="transition-delay: ${i * 60}ms;">
-            <img src="${thumb}" alt="${cat} category" class="w-full h-full object-cover opacity-70" loading="lazy" />
-          </div>
-          `;
-        }).join('')}
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 problem-cards">

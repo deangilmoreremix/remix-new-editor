@@ -1,7 +1,5 @@
 // Six Creative Engines Section - Animated with parallax and hover effects
 
-import SHOWCASE_CONFIG from '../../../content/showcaseConfig.js';
-
 export function SixEnginesSection() {
   const engines = [
     {
@@ -11,8 +9,7 @@ export function SixEnginesSection() {
       icon: '🎨',
       gradient: 'from-cyan-500 to-cyan-400',
       apps: ['Image', 'Video', 'Cinema Studio', 'Character', 'Influencer', 'Commercial'],
-      color: 'cyan',
-      thumbnail: SHOWCASE_CONFIG.getStudioThumbnail('image')
+      color: 'cyan'
     },
     {
       id: 'enhance',
@@ -21,8 +18,7 @@ export function SixEnginesSection() {
       icon: '✨',
       gradient: 'from-emerald-500 to-emerald-400',
       apps: ['Effects', 'VFX', 'AI-VFX', 'Motion', 'Upscale', 'Edit'],
-      color: 'emerald',
-      thumbnail: SHOWCASE_CONFIG.getStudioThumbnail('edit')
+      color: 'emerald'
     },
     {
       id: 'produce',
@@ -31,8 +27,7 @@ export function SixEnginesSection() {
       icon: '🎬',
       gradient: 'from-purple-500 to-purple-400',
       apps: ['Storyboard', 'Director', 'Timeline', 'Render', 'Video Tools', 'Audio'],
-      color: 'purple',
-      thumbnail: SHOWCASE_CONFIG.getStudioThumbnail('cinema')
+      color: 'purple'
     },
     {
       id: 'localize',
@@ -41,8 +36,7 @@ export function SixEnginesSection() {
       icon: '🌍',
       gradient: 'from-pink-500 to-pink-400',
       apps: ['Dubbing', 'Lip Sync', 'Avatar', 'TikTok', 'Social Content'],
-      color: 'pink',
-      thumbnail: SHOWCASE_CONFIG.getStudioThumbnail('avatar')
+      color: 'pink'
     },
     {
       id: 'automate',
@@ -50,9 +44,8 @@ export function SixEnginesSection() {
       description: 'Streamline workflows with AI assistance',
       icon: '🤖',
       gradient: 'from-yellow-500 to-yellow-400',
-      apps: ['Video Agent', 'Agents', 'Workflows', 'Assist', 'Chat', 'MCP & CLI'],
-      color: 'yellow',
-      thumbnail: SHOWCASE_CONFIG.getStudioThumbnail('videoAgent')
+      apps: ['Video Agent', 'Agents', 'Assist', 'Chat'],
+      color: 'yellow'
     },
     {
       id: 'scale',
@@ -61,8 +54,7 @@ export function SixEnginesSection() {
       icon: '📊',
       gradient: 'from-indigo-500 to-indigo-400',
       apps: ['Templates', 'Explore', 'Library', 'Community', 'Training'],
-      color: 'indigo',
-      thumbnail: SHOWCASE_CONFIG.getStudioThumbnail('templates')
+      color: 'indigo'
     }
   ];
 
@@ -123,17 +115,8 @@ export function SixEnginesSection() {
             
             <!-- Content -->
             <div class="relative z-10">
-              <div class="relative mb-4 rounded-xl overflow-hidden border border-white/10">
-                <img 
-                  src="${engine.thumbnail}" 
-                  alt="${engine.title} studio preview"
-                  class="w-full h-40 object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
-                  loading="lazy"
-                />
-                <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                <div class="absolute bottom-3 left-3 w-10 h-10 bg-gradient-to-br ${engine.gradient} rounded-lg flex items-center justify-center shadow-lg">
-                  <span class="text-xl">${engine.icon}</span>
-                </div>
+              <div class="w-16 h-16 bg-gradient-to-br ${engine.gradient} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg">
+                <span class="text-3xl">${engine.icon}</span>
               </div>
               <h3 class="text-xl font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors duration-300">${engine.title}</h3>
               <p class="text-gray-400 text-sm mb-4">${engine.description}</p>

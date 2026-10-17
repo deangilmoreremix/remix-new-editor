@@ -143,6 +143,7 @@ async function fetchDynamicModels() {
         (t2iData || []).forEach(m => merged.set(m.id, m));
         return Array.from(merged.values());
     } catch (e) {
+        console.warn('[EditStudio] Failed to fetch dynamic model catalog:', e);
         return [];
     }
 }
@@ -290,11 +291,17 @@ export function EditStudio() {
 
   let activeTool = null;
   let uploadedUrl = null;
+  let uploadedAssetId = null;
   let maskUrl = null;
+  let maskAssetId = null;
   let garmentUrl = null;
+  let garmentAssetId = null;
   let swapUrl = null;
+  let swapAssetId = null;
   let watermarkImageUrl = null;
+  let watermarkImageAssetId = null;
   let multiImageUrls = [];
+  let multiImageAssetIds = [];
   let dynamicSchema = null;
   let dynamicModels = [];
   let dynamicModelsLoading = false;
@@ -389,6 +396,7 @@ export function EditStudio() {
   const previewRemoveBtn = createMediaRemoveButton(() => {
     picker.reset();
     uploadedUrl = null;
+    uploadedAssetId = null;
     previewImg.classList.add('hidden');
     previewImg.src = '';
     previewWrapper.classList.add('hidden');
@@ -415,8 +423,11 @@ export function EditStudio() {
 
   const picker = createUploadPicker({
     anchorContainer: container,
-    onSelect: ({ url }) => {
+    muapiStudio: true,
+    studioId: 'edit-studio',
+    onSelect: ({ url, assetId }) => {
       uploadedUrl = url;
+      uploadedAssetId = assetId || null;
       previewImg.src = url;
       previewImg.classList.remove('hidden');
       previewWrapper.classList.remove('hidden');
@@ -426,6 +437,7 @@ export function EditStudio() {
     },
     onClear: () => {
       uploadedUrl = null;
+      uploadedAssetId = null;
       previewImg.classList.add('hidden');
       previewImg.src = '';
       previewWrapper.classList.add('hidden');
@@ -504,8 +516,11 @@ export function EditStudio() {
   const multiImagePicker = createUploadPicker({
     anchorContainer: container,
     multiple: true,
-    onSelect: ({ urls }) => {
+    muapiStudio: true,
+    studioId: 'edit-studio',
+    onSelect: ({ urls, assetIds }) => {
       multiImageUrls = urls;
+      multiImageAssetIds = assetIds || [];
       multiImagePreviewGrid.innerHTML = '';
       urls.forEach((url, index) => {
         const thumbWrapper = document.createElement('div');
@@ -518,6 +533,7 @@ export function EditStudio() {
 
         const removeBtn = createMediaRemoveButton(() => {
           multiImageUrls = multiImageUrls.filter((_, i) => i !== index);
+          multiImageAssetIds = multiImageAssetIds.filter((_, i) => i !== index);
           if (multiImageUrls.length === 0) {
             multiImagePreviewGrid.classList.add('hidden');
             multiImageHint.classList.add('hidden');
@@ -562,14 +578,18 @@ export function EditStudio() {
   // Mask upload for ai-object-eraser
   const maskPicker = createUploadPicker({
     anchorContainer: container,
-    onSelect: ({ url }) => {
+    muapiStudio: true,
+    studioId: 'edit-studio',
+    onSelect: ({ url, assetId }) => {
       maskUrl = url;
+      maskAssetId = assetId || null;
       maskHint.textContent = 'Mask uploaded';
       maskHint.classList.remove('hidden');
       maskClearBtn.classList.remove('hidden');
     },
     onClear: () => {
       maskUrl = null;
+      maskAssetId = null;
       maskHint.textContent = 'Upload mask image';
       maskHint.classList.add('hidden');
       maskClearBtn.classList.add('hidden');
@@ -588,6 +608,7 @@ export function EditStudio() {
     e.stopPropagation();
     maskPicker.reset();
     maskUrl = null;
+    maskAssetId = null;
     maskHint.textContent = 'Upload mask image';
     maskHint.classList.add('hidden');
     maskClearBtn.classList.add('hidden');
@@ -600,14 +621,18 @@ export function EditStudio() {
   // Garment upload for ai-dress-change
   const garmentPicker = createUploadPicker({
     anchorContainer: container,
-    onSelect: ({ url }) => {
+    muapiStudio: true,
+    studioId: 'edit-studio',
+    onSelect: ({ url, assetId }) => {
       garmentUrl = url;
+      garmentAssetId = assetId || null;
       garmentHint.textContent = 'Garment uploaded';
       garmentHint.classList.remove('hidden');
       garmentClearBtn.classList.remove('hidden');
     },
     onClear: () => {
       garmentUrl = null;
+      garmentAssetId = null;
       garmentHint.textContent = 'Upload garment image';
       garmentHint.classList.add('hidden');
       garmentClearBtn.classList.add('hidden');
@@ -626,6 +651,7 @@ export function EditStudio() {
     e.stopPropagation();
     garmentPicker.reset();
     garmentUrl = null;
+    garmentAssetId = null;
     garmentHint.textContent = 'Upload garment image';
     garmentHint.classList.add('hidden');
     garmentClearBtn.classList.add('hidden');
@@ -638,14 +664,18 @@ export function EditStudio() {
   // Swap image upload for ai-image-face-swap
   const swapPicker = createUploadPicker({
     anchorContainer: container,
-    onSelect: ({ url }) => {
+    muapiStudio: true,
+    studioId: 'edit-studio',
+    onSelect: ({ url, assetId }) => {
       swapUrl = url;
+      swapAssetId = assetId || null;
       swapHint.textContent = 'Swap image uploaded';
       swapHint.classList.remove('hidden');
       swapClearBtn.classList.remove('hidden');
     },
     onClear: () => {
       swapUrl = null;
+      swapAssetId = null;
       swapHint.textContent = 'Upload swap face image';
       swapHint.classList.add('hidden');
       swapClearBtn.classList.add('hidden');
@@ -664,6 +694,7 @@ export function EditStudio() {
     e.stopPropagation();
     swapPicker.reset();
     swapUrl = null;
+    swapAssetId = null;
     swapHint.textContent = 'Upload swap face image';
     swapHint.classList.add('hidden');
     swapClearBtn.classList.add('hidden');
@@ -676,14 +707,18 @@ export function EditStudio() {
   // Watermark image upload for add-image-watermark
   const watermarkImagePicker = createUploadPicker({
     anchorContainer: container,
-    onSelect: ({ url }) => {
+    muapiStudio: true,
+    studioId: 'edit-studio',
+    onSelect: ({ url, assetId }) => {
       watermarkImageUrl = url;
+      watermarkImageAssetId = assetId || null;
       watermarkImageHint.textContent = 'Watermark image uploaded';
       watermarkImageHint.classList.remove('hidden');
       watermarkImageClearBtn.classList.remove('hidden');
     },
     onClear: () => {
       watermarkImageUrl = null;
+      watermarkImageAssetId = null;
       watermarkImageHint.textContent = 'Upload watermark image';
       watermarkImageHint.classList.add('hidden');
       watermarkImageClearBtn.classList.add('hidden');
@@ -702,6 +737,7 @@ export function EditStudio() {
     e.stopPropagation();
     watermarkImagePicker.reset();
     watermarkImageUrl = null;
+    watermarkImageAssetId = null;
     watermarkImageHint.textContent = 'Upload watermark image';
     watermarkImageHint.classList.add('hidden');
     watermarkImageClearBtn.classList.add('hidden');
@@ -807,13 +843,16 @@ export function EditStudio() {
     acceptAudio: false,
     onUpload: async (key, file) => {
       try {
-        const { uploadFileToStorage } = await import('../lib/uploadService.js');
-        const url = await uploadFileToStorage(file);
+        // MuAPI-bound reference: validated by the shared adapter and stored in
+        // the permanent Asset Library; resolved at generation time.
+        const { ingestStudioUpload, describeMuapiUploadError } = await import('../lib/muapiStudioMedia.js');
+        const stored = await ingestStudioUpload(file, { studioId: 'edit-studio', uploadToMuapi: false });
         editAttachmentState[key] = editAttachmentState[key] || [];
-        editAttachmentState[key].push(url);
+        editAttachmentState[key].push({ url: stored.url, assetId: stored.assetId });
         showToast('Reference uploaded', 'success');
       } catch (err) {
-        showToast('Attachment upload failed: ' + err.message, 'error');
+        const { describeMuapiUploadError } = await import('../lib/muapiStudioMedia.js');
+        showToast(await describeMuapiUploadError(err), 'error');
       }
     },
   });
@@ -912,6 +951,7 @@ export function EditStudio() {
     uploadHint.textContent = 'Upload source image or video';
     picker.reset();
     uploadedUrl = null;
+    uploadedAssetId = null;
 
     multiImageRow.classList.add('hidden');
     multiImagePreviewGrid.innerHTML = '';
@@ -920,6 +960,7 @@ export function EditStudio() {
     multiImageClearBtn.classList.add('hidden');
     multiImageHint.textContent = 'Upload reference images';
     multiImageUrls = [];
+    multiImageAssetIds = [];
 
     if (isT2I) {
       uploadRow.classList.add('hidden');
@@ -1019,6 +1060,7 @@ export function EditStudio() {
       dynamicStatus.textContent = `${dynamicModels.length} models available`;
     } catch (e) {
       dynamicStatus.textContent = 'Failed to load models';
+      console.error(e);
     } finally {
       dynamicModelsLoading = false;
     }
@@ -1126,7 +1168,6 @@ export function EditStudio() {
 
     cancelBtn.classList.remove('hidden');
     cancelBtn.onclick = () => {
-      controller.abort();
       if (progressPoll) { clearInterval(progressPoll); progressPoll = null; }
       updateProgress(null);
       editBtn.disabled = false;
@@ -1134,48 +1175,70 @@ export function EditStudio() {
       cancelBtn.classList.add('hidden');
     };
 
-    const controller = new AbortController();
-
     try {
       const params = {
         model: activeTool.id,
-        signal: controller.signal,
       };
+
+      // Every uploaded reference resolves to a FRESH MuAPI URL through the
+      // shared adapter (permanent Asset Library references only).
+      const { resolveMuapiMediaRef, resolveMuapiMediaRefs } = await import('../lib/muapiStudioMedia.js');
+      const resolvedMainUrl = uploadedUrl
+        ? await resolveMuapiMediaRef({ url: uploadedUrl, assetId: uploadedAssetId })
+        : null;
+      const resolvedMultiUrls = multiImageUrls.length
+        ? await resolveMuapiMediaRefs(multiImageUrls.map((url, i) => ({ url, assetId: multiImageAssetIds[i] || null })))
+        : [];
+      const resolvedMaskUrl = maskUrl ? await resolveMuapiMediaRef({ url: maskUrl, assetId: maskAssetId }) : null;
+      const resolvedGarmentUrl = garmentUrl ? await resolveMuapiMediaRef({ url: garmentUrl, assetId: garmentAssetId }) : null;
+      const resolvedSwapUrl = swapUrl ? await resolveMuapiMediaRef({ url: swapUrl, assetId: swapAssetId }) : null;
+      const resolvedWatermarkUrl = watermarkImageUrl
+        ? await resolveMuapiMediaRef({ url: watermarkImageUrl, assetId: watermarkImageAssetId })
+        : null;
+      const resolvedEditImages = editAttachmentState.images?.length
+        ? await resolveMuapiMediaRefs(editAttachmentState.images)
+        : [];
+      const resolvedEditVideos = editAttachmentState.videos?.length
+        ? await resolveMuapiMediaRefs(editAttachmentState.videos)
+        : [];
+      const resolvedEditAudios = editAttachmentState.audios?.length
+        ? await resolveMuapiMediaRefs(editAttachmentState.audios)
+        : [];
 
       if (activeTool.mode === 't2i') {
         params.prompt = replaceTokensInPrompt(promptField.value.trim());
       } else if (activeTool.mode === 'i2i') {
-        if (multiImageUrls.length > 0) {
-          params.images_list = multiImageUrls;
-        } else if (uploadedUrl) {
-          params.image_url = uploadedUrl;
+        if (resolvedMultiUrls.length > 0) {
+          params.images_list = resolvedMultiUrls;
+        } else if (resolvedMainUrl) {
+          params.image_url = resolvedMainUrl;
         }
         if (promptField.value.trim()) {
           const promptKey = activeTool.promptKey || 'prompt';
           params[promptKey] = replaceTokensInPrompt(promptField.value.trim());
         }
       } else {
-        if (uploadedUrl) params.image_url = uploadedUrl;
+        if (resolvedMainUrl) params.image_url = resolvedMainUrl;
         if (activeTool.hasPrompt && promptField.value.trim()) {
           const promptKey = activeTool.promptKey || 'prompt';
           params[promptKey] = replaceTokensInPrompt(promptField.value.trim());
         }
       }
 
-      if (maskUrl) params.mask_image_url = maskUrl;
-      if (garmentUrl) params.garment_image_url = garmentUrl;
-      if (swapUrl) params.swap_url = swapUrl;
-      if (watermarkImageUrl) params.watermark_image_url = watermarkImageUrl;
+      if (resolvedMaskUrl) params.mask_image_url = resolvedMaskUrl;
+      if (resolvedGarmentUrl) params.garment_image_url = resolvedGarmentUrl;
+      if (resolvedSwapUrl) params.swap_url = resolvedSwapUrl;
+      if (resolvedWatermarkUrl) params.watermark_image_url = resolvedWatermarkUrl;
 
       // Merge attachment URLs from the unified toolbar.
-      if (editAttachmentState.images?.length && !params.images_list) {
-        params.reference_images = editAttachmentState.images;
+      if (resolvedEditImages.length && !params.images_list) {
+        params.reference_images = resolvedEditImages;
       }
-      if (editAttachmentState.videos?.length) {
-        params.reference_videos = editAttachmentState.videos;
+      if (resolvedEditVideos.length) {
+        params.reference_videos = resolvedEditVideos;
       }
-      if (editAttachmentState.audios?.length) {
-        params.reference_audios = editAttachmentState.audios;
+      if (resolvedEditAudios.length) {
+        params.reference_audios = resolvedEditAudios;
       }
 
       // Collect control values from DOM

@@ -93,20 +93,6 @@ export function HeroSection() {
         </div>
       </div>
 
-      <!-- Studio Visual Gallery - Historical thumbnails added as visual enhancement -->
-      <div class="mt-16 relative">
-        <div class="flex flex-wrap justify-center gap-4 md:gap-6 max-w-6xl mx-auto">
-          ${['image', 'video', 'cinema', 'character', 'edit', 'audio', 'avatar', 'effects'].map((studioId, i) => {
-            const thumb = SHOWCASE_CONFIG.getStudioThumbnail(studioId);
-            return `
-            <div class="studio-thumb-item w-20 h-20 md:w-24 md:h-24 rounded-xl overflow-hidden border-2 border-white/10 hover:border-cyan-400/50 hover:scale-110 transition-all duration-300 opacity-0 translate-y-4" style="transition-delay: ${i * 80}ms;">
-              <img src="${thumb}" alt="${studioId} studio" class="w-full h-full object-cover" loading="lazy" />
-            </div>
-            `;
-          }).join('')}
-        </div>
-      </div>
-
       <!-- Scroll indicator with bounce animation -->
       <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
         <svg class="w-6 h-6 text-cyan-400/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">

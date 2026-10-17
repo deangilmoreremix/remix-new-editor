@@ -18,7 +18,7 @@ import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { navigate } from '../lib/router.js';
 import { saveGeneratedAsset } from '../lib/assets/assetActions.js';
 import { showToast } from '../lib/loading.js';
-import { createSliderControl } from '../lib/effectParamValidator.js';
+import { validateEffectParams, EFFECT_PARAM_SCHEMA, createSliderControl, createAdvancedSection } from '../lib/effectParamValidator.js';
 import { EffectCompositor } from '../lib/editor/effectCompositor.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import ExampleGallery from './studios/ExampleGallery.js';
@@ -55,6 +55,7 @@ export async function EffectsStudio() {
   let activeTab = EFFECT_TABS[0];
   let selectedEffect = null;
   let uploadedUrl = null;
+  let uploadedAssetId = null;
   let customThumbnailUrl = getCustomThumbnailFromCache('effects-studio');
   let comparisonMode = false;
   let lastResultUrl = null;
@@ -190,7 +191,7 @@ export async function EffectsStudio() {
       const tab = EFFECT_TABS.find(t => t.id === id);
       if (tab) switchTab(tab);
       }
-    }).catch(() => {});
+    }).catch((err) => console.error('[ModelPicker] open failed:', err));
   });
   tabRow.appendChild(modelPickerBtn);
 
@@ -264,6 +265,7 @@ export async function EffectsStudio() {
 
   const inputPreview = createMediaPreview({ maxHeight: '40vh', showDownload: false, showMeta: true, onClear: () => {
     uploadedUrl = null;
+    uploadedAssetId = null;
     inputPreview.clear();
   }});
   inputCol.appendChild(inputPreview.element);
@@ -274,15 +276,19 @@ export async function EffectsStudio() {
   const picker = createUploadPicker({
     anchorContainer: container,
     acceptVideo: true,
+    muapiStudio: true,
+    studioId: 'effects-studio',
     onFilePreview: (file) => {
       inputPreview.loadFile(file);
     },
-    onSelect: ({ url }) => {
+    onSelect: ({ url, assetId }) => {
       uploadedUrl = url;
+      uploadedAssetId = assetId || null;
       inputPreview.load(url, { filename: 'Uploaded media' });
     },
     onClear: () => {
       uploadedUrl = null;
+      uploadedAssetId = null;
       inputPreview.clear();
     },
   });
@@ -300,6 +306,9 @@ export async function EffectsStudio() {
       studioName: 'Effects Studio',
       onSelect: (asset) => {
         uploadedUrl = asset.src?.large || asset.url || asset.original;
+        // Pexels photos are not Asset Library rows — drop any previously
+        // picked asset identity so a stale id is never resolved.
+        uploadedAssetId = null;
         inputPreview.load(asset.src?.large || asset.url || asset.original, { filename: 'Pexels image' });
         const attrContainer = document.getElementById('pexels-effects-attribution');
         if (attrContainer) {
@@ -375,6 +384,7 @@ export async function EffectsStudio() {
       }, 'effects-studio');
       showToast('Added to media library', 'success');
     } catch (err) {
+      console.error('[EffectsStudio] Failed to save asset:', err);
       showToast('Failed to add to library', 'error');
     }
   };
@@ -399,6 +409,7 @@ export async function EffectsStudio() {
       navigate('timeline', { asset: asset.id });
       showToast('Inserting into timeline...', 'success');
     } catch (err) {
+      console.error('[EffectsStudio] Failed to insert into timeline:', err);
       showToast('Failed to insert into timeline', 'error');
     }
   };
@@ -450,13 +461,16 @@ export async function EffectsStudio() {
     acceptAudio: false,
     onUpload: async (key, file) => {
       try {
-        const { uploadFileToStorage } = await import('../lib/uploadService.js');
-        const url = await uploadFileToStorage(file);
+        // MuAPI-bound reference: validated by the shared adapter and stored in
+        // the permanent Asset Library. MuAPI URLs are resolved at generation.
+        const { ingestStudioUpload, describeMuapiUploadError } = await import('../lib/muapiStudioMedia.js');
+        const stored = await ingestStudioUpload(file, { studioId: 'effects-studio', uploadToMuapi: false });
         effectsAttachmentState[key] = effectsAttachmentState[key] || [];
-        effectsAttachmentState[key].push(url);
+        effectsAttachmentState[key].push({ url: stored.url, assetId: stored.assetId });
         showToast('Reference uploaded', 'success');
       } catch (err) {
-        showToast('Attachment upload failed: ' + err.message, 'error');
+        const { describeMuapiUploadError } = await import('../lib/muapiStudioMedia.js');
+        showToast(await describeMuapiUploadError(err), 'error');
       }
     },
   });
@@ -490,7 +504,7 @@ export async function EffectsStudio() {
   promptRow.appendChild(thumbBtn);
 
   const generateBtn = document.createElement('button');
-  generateBtn.type = 'button';
+generateBtn.type = 'button';
   generateBtn.className = 'btn-primary-modern px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all whitespace-nowrap';
   generateBtn.textContent = 'Apply Effect';
   generateBtn.setAttribute('aria-label', 'Apply effect');
@@ -536,9 +550,9 @@ export async function EffectsStudio() {
           openRecipeModal({
             onRunRecipe: (url) => {
             }
-          }).catch(() => {});
+          }).catch((err) => console.error('[Recipe] open failed:', err));
         } else if (action === 'monetize') {
-          openMonetizationHub().catch(() => {});
+          openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
         } else if (action === 'prompts') {
           openPromptGallery({
             appTheme: 'video-studio',
@@ -546,7 +560,7 @@ export async function EffectsStudio() {
               const ta = promptInput;
               if (ta) { ta.value = prompt; ta.dispatchEvent(new Event('input', { bubbles: true })); ta.focus(); }
             }
-          }).catch(() => {});
+          }).catch((err) => console.error('[PromptGallery] open failed:', err));
         }
         enhanceMenu.classList.remove('is-open');
       });
@@ -950,13 +964,17 @@ export async function EffectsStudio() {
   const mobilePicker = createUploadPicker({
     anchorContainer: container,
     acceptVideo: true,
+    muapiStudio: true,
+    studioId: 'effects-studio',
     onFilePreview: (file) => { mobileInputPreview.loadFile(file); },
-    onSelect: ({ url }) => {
+    onSelect: ({ url, assetId }) => {
       uploadedUrl = url;
+      uploadedAssetId = assetId || null;
       mobileInputPreview.load(url);
     },
     onClear: () => {
       uploadedUrl = null;
+      uploadedAssetId = null;
       mobileInputPreview.clear();
     },
   });
@@ -1147,8 +1165,8 @@ export async function EffectsStudio() {
 
   async function handleGenerate() {
     if (!(await requireEntitlement())) return;
-    if (!selectedEffect) { showToast('Select an effect first', 'error'); return; }
-    if (!uploadedUrl) { showToast('Upload an image or video first', 'error'); return; }
+    if (!selectedEffect) { alert('Select an effect first'); return; }
+    if (!uploadedUrl) { alert('Upload an image or video first'); return; }
     const apiKey = apiKeyManager.getMuapiKey();
     if (!apiKey) { AuthModal(() => handleGenerate()); return; }
 
@@ -1193,11 +1211,27 @@ export async function EffectsStudio() {
   }
 
   async function buildBaseParams() {
+    const { resolveMuapiMediaRef, resolveMuapiMediaRefs } = await import('../lib/muapiStudioMedia.js');
+    // Picked media and every attachment reference resolve to a FRESH MuAPI
+    // URL through the shared adapter (never a temp URL stored permanently).
+    const mainUrl = uploadedUrl
+      ? await resolveMuapiMediaRef({ url: uploadedUrl, assetId: uploadedAssetId })
+      : null;
+    const attachmentImages = effectsAttachmentState.images?.length
+      ? await resolveMuapiMediaRefs(effectsAttachmentState.images)
+      : [];
+    const attachmentVideos = effectsAttachmentState.videos?.length
+      ? await resolveMuapiMediaRefs(effectsAttachmentState.videos)
+      : [];
+    const attachmentAudios = effectsAttachmentState.audios?.length
+      ? await resolveMuapiMediaRefs(effectsAttachmentState.audios)
+      : [];
+
     const params = {
       model: activeTab.id,
-      image_url: uploadedUrl,
+      image_url: mainUrl,
       [activeTab.field]: selectedEffect,
-      thumbnail_url: customThumbnailUrl || undefined,
+      customThumbnailUrl: customThumbnailUrl || undefined,
       guidance_scale: advancedSettings.guidanceScale,
       steps: advancedSettings.steps,
       seed: advancedSettings.seed,
@@ -1221,14 +1255,14 @@ export async function EffectsStudio() {
     if (prompt) params.prompt = prompt;
 
     // Merge attachment URLs from the unified toolbar.
-    if (effectsAttachmentState.images?.length) {
-      params.reference_images = effectsAttachmentState.images;
+    if (attachmentImages.length) {
+      params.reference_images = attachmentImages;
     }
-    if (effectsAttachmentState.videos?.length) {
-      params.reference_videos = effectsAttachmentState.videos;
+    if (attachmentVideos.length) {
+      params.reference_videos = attachmentVideos;
     }
-    if (effectsAttachmentState.audios?.length) {
-      params.reference_audios = effectsAttachmentState.audios;
+    if (attachmentAudios.length) {
+      params.reference_audios = attachmentAudios;
     }
 
     return params;
@@ -1273,14 +1307,6 @@ export async function EffectsStudio() {
       baseResult = await muapi.generateI2I(baseParams, controller.signal);
     }
     layerResults.push({ url: baseResult.url, blendMode: 'normal', opacity: 1.0 });
-    saveGeneration({
-      studio: 'effects',
-      type: activeTab.type === 'i2v' ? 'video' : 'image',
-      url: baseResult.url,
-      prompt: selectedEffect,
-      model: activeTab.id,
-      parameters: { layer_name: 'base', blend_mode: 'normal', opacity: 1.0 },
-    });
 
     // Generate each layer
     for (const layer of fxLayers) {
@@ -1300,14 +1326,6 @@ export async function EffectsStudio() {
       } else {
         layerResult = await muapi.generateI2I(layerParams, controller.signal);
       }
-      saveGeneration({
-        studio: 'effects',
-        type: activeTab.type === 'i2v' ? 'video' : 'image',
-        url: layerResult.url,
-        prompt: selectedEffect,
-        model: activeTab.id,
-        parameters: { layer_name: layer.name, blend_mode: layer.blendMode, opacity: layer.opacity },
-      });
       layerResults.push({ url: layerResult.url, blendMode: layer.blendMode, opacity: layer.opacity });
     }
 
@@ -1579,15 +1597,7 @@ export async function EffectsStudio() {
       url,
       prompt: selectedEffect,
       model: activeTab.id,
-      parameters: {
-        guidance_scale: advancedSettings.guidanceScale,
-        steps: advancedSettings.steps,
-        seed: advancedSettings.seed,
-        negative_prompt: advancedSettings.negativePrompt || undefined,
-        denoise_strength: advancedSettings.denoiseStrength,
-        effect_strength: advancedSettings.effectStrength,
-        cfg_scale: advancedSettings.cfgScale,
-      },
+      parameters: {},
       timestamp: new Date().toISOString(),
     });
   }
@@ -1610,11 +1620,11 @@ export async function EffectsStudio() {
   };
 
   switchTab(EFFECT_TABS[0]);
-  const galleryAssets = getAssetsForStudio('effects');
-  if (galleryAssets.length > 0) {
-    const gallery = ExampleGallery({ studioId: 'effects', assets: galleryAssets, maxCards: 28 });
-    container.appendChild(gallery);
-  }
+    const galleryAssets = getAssetsForStudio('effects');
+    if (galleryAssets.length > 0) {
+      const gallery = ExampleGallery({ studioId: 'effects', assets: galleryAssets, maxCards: 28 });
+      container.appendChild(gallery);
+    }
 
-  return container;
+    return container;
 }

@@ -125,22 +125,6 @@ export function AgencySection() {
               </div>
             </div>
           </div>
-
-          <!-- Historical sample gallery added as visual enhancement -->
-          <div class="mt-8">
-            <h4 class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-4">Sample Client Work</h4>
-            <div class="grid grid-cols-3 gap-2">
-              <div class="aspect-square rounded-lg overflow-hidden border border-white/10 hover:border-cyan-400/30 transition-colors">
-                <img src="/thumbnails/categories/commercial.webp" alt="Commercial sample" class="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity" loading="lazy" />
-              </div>
-              <div class="aspect-square rounded-lg overflow-hidden border border-white/10 hover:border-cyan-400/30 transition-colors">
-                <img src="/thumbnails/categories/social.webp" alt="Social media sample" class="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity" loading="lazy" />
-              </div>
-              <div class="aspect-square rounded-lg overflow-hidden border border-white/10 hover:border-cyan-400/30 transition-colors">
-                <img src="/thumbnails/categories/portrait.webp" alt="Portrait sample" class="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity" loading="lazy" />
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>

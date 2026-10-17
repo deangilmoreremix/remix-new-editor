@@ -1,7 +1,5 @@
 // Workflow Section - Go From Simple Idea To Finished Client Asset In Minutes
 
-import SHOWCASE_CONFIG from '../../../content/showcaseConfig.js';
-
 export function WorkflowSection() {
   const section = document.createElement('section');
   section.className = 'py-20 px-4 bg-[#05070b]';
@@ -14,8 +12,7 @@ export function WorkflowSection() {
       icon: '💡',
       description: 'Use AI chat and explore features to brainstorm creative concepts, write compelling prompts, and plan your video strategy.',
       tags: 'Chat • Explore • Assist',
-      gradient: 'from-cyan-500 to-cyan-400',
-      thumb: SHOWCASE_CONFIG.getStudioThumbnail('chat')
+      gradient: 'from-cyan-500 to-cyan-400'
     },
     {
       step: 2,
@@ -23,8 +20,7 @@ export function WorkflowSection() {
       icon: '🎬',
       description: 'Create cinematic videos, stunning images, and visual effects using our 200+ AI models and professional-grade tools.',
       tags: 'Image • Video • Cinema',
-      gradient: 'from-emerald-500 to-emerald-400',
-      thumb: SHOWCASE_CONFIG.getStudioThumbnail('image')
+      gradient: 'from-emerald-500 to-emerald-400'
     },
     {
       step: 3,
@@ -32,8 +28,7 @@ export function WorkflowSection() {
       icon: '✨',
       description: 'Add VFX, effects, motion, upscale quality, and apply professional editing techniques to polish your content.',
       tags: 'VFX • Effects • Edit',
-      gradient: 'from-purple-500 to-purple-400',
-      thumb: SHOWCASE_CONFIG.getStudioThumbnail('edit')
+      gradient: 'from-purple-500 to-purple-400'
     },
     {
       step: 4,
@@ -41,8 +36,7 @@ export function WorkflowSection() {
       icon: '🎯',
       description: 'Arrange scenes in timeline, add audio, dub for multiple languages, and finalize your professional video production.',
       tags: 'Timeline • Audio • Dubbing',
-      gradient: 'from-pink-500 to-pink-400',
-      thumb: SHOWCASE_CONFIG.getStudioThumbnail('cinema')
+      gradient: 'from-pink-500 to-pink-400'
     },
     {
       step: 5,
@@ -50,8 +44,7 @@ export function WorkflowSection() {
       icon: '🚀',
       description: 'Export in multiple formats, organize in your library, and deliver polished client-ready packages with professional branding.',
       tags: 'Render • Library • Commercial',
-      gradient: 'from-yellow-500 to-yellow-400',
-      thumb: SHOWCASE_CONFIG.getStudioThumbnail('commercial')
+      gradient: 'from-yellow-500 to-yellow-400'
     }
   ];
 
@@ -77,9 +70,6 @@ export function WorkflowSection() {
             <div class="relative mb-4">
               <div class="w-16 h-16 bg-gradient-to-br ${step.gradient} rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300 shadow-lg">
                 <span class="text-2xl">${step.icon}</span>
-              </div>
-              <div class="absolute -bottom-1 -right-1 w-8 h-8 rounded-md overflow-hidden border-2 border-[#05070b]">
-                <img src="${step.thumb}" alt="${step.title}" class="w-full h-full object-cover" loading="lazy" />
               </div>
             </div>
             <h3 class="text-lg font-bold text-white mb-2">${step.step}. ${step.title}</h3>
