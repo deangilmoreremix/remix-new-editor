@@ -104,6 +104,8 @@ export class AICaptionsModal extends BaseModal {
     this.captionedUrl = '';
     this.uploadProgress = 0;
     this.uploading = false;
+    this.uploadErrorMessage = '';
+    this.mediaAssetId = null;
 
     this.onComplete = options.onComplete || (() => {});
     this.onError = options.onError || (() => {});
@@ -230,6 +232,7 @@ export class AICaptionsModal extends BaseModal {
             <span class="progress-text">Uploading... ${this.uploadProgress}%</span>
           </div>
         ` : ''}
+        ${this.uploadErrorMessage ? `<div class="error-message" role="alert">⚠ ${this.escapeHtml(this.uploadErrorMessage)}</div>` : ''}
       </div>
     `;
   }
@@ -388,6 +391,8 @@ export class AICaptionsModal extends BaseModal {
 
   async uploadFileIfNeeded() {
     if (this.inputMode !== 'upload' || !this.uploadedFile) return this.videoUrl;
+    // Duplicate submissions are dropped while an upload is already running.
+    if (this.uploading) return this.videoUrl;
 
     this.uploading = true;
     this.uploadProgress = 0;
@@ -399,22 +404,38 @@ export class AICaptionsModal extends BaseModal {
     }, 300);
 
     try {
-      const { muapi } = await import('../../lib/muapi.js');
-      const publicUrl = await muapi.uploadFile(this.uploadedFile);
+      // MuAPI-bound upload: validate through the shared adapter, store the file
+      // in the permanent Asset Library, then upload fresh bytes to MuAPI. Only
+      // the temporary URL is handed to the captioning call — the permanent
+      // asset reference is kept on the modal for reuse.
+      const { ingestStudioUpload } = await import('../../lib/muapiStudioMedia.js');
+      const uploaded = await ingestStudioUpload(this.uploadedFile, { studioId: 'ai-captions' });
+      this.videoUrl = uploaded.muapiUrl || uploaded.url;
+      this.mediaAssetId = uploaded.assetId;
       clearInterval(progressInterval);
       this.uploadProgress = 100;
-      this.videoUrl = publicUrl;
       this.uploading = false;
       this.uploadedFile = null;
       this.uploadedFileName = '';
       this.inputMode = 'url';
       this.refreshBody();
-      return publicUrl;
+      return this.videoUrl;
     } catch (err) {
       clearInterval(progressInterval);
       this.uploading = false;
       this.uploadProgress = 0;
+      this.uploadErrorMessage = await AICaptionsModal.describeUploadError(err);
+      this.refreshBody();
       throw err;
+    }
+  }
+
+  static async describeUploadError(err) {
+    try {
+      const { describeMuapiUploadError } = await import('../../lib/muapiStudioMedia.js');
+      return describeMuapiUploadError(err);
+    } catch {
+      return err?.message || 'Upload failed';
     }
   }
 

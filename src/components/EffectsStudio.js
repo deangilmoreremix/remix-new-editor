@@ -55,6 +55,7 @@ export async function EffectsStudio() {
   let activeTab = EFFECT_TABS[0];
   let selectedEffect = null;
   let uploadedUrl = null;
+  let uploadedAssetId = null;
   let customThumbnailUrl = getCustomThumbnailFromCache('effects-studio');
   let comparisonMode = false;
   let lastResultUrl = null;
@@ -264,6 +265,7 @@ export async function EffectsStudio() {
 
   const inputPreview = createMediaPreview({ maxHeight: '40vh', showDownload: false, showMeta: true, onClear: () => {
     uploadedUrl = null;
+    uploadedAssetId = null;
     inputPreview.clear();
   }});
   inputCol.appendChild(inputPreview.element);
@@ -274,15 +276,19 @@ export async function EffectsStudio() {
   const picker = createUploadPicker({
     anchorContainer: container,
     acceptVideo: true,
+    muapiStudio: true,
+    studioId: 'effects-studio',
     onFilePreview: (file) => {
       inputPreview.loadFile(file);
     },
-    onSelect: ({ url }) => {
+    onSelect: ({ url, assetId }) => {
       uploadedUrl = url;
+      uploadedAssetId = assetId || null;
       inputPreview.load(url, { filename: 'Uploaded media' });
     },
     onClear: () => {
       uploadedUrl = null;
+      uploadedAssetId = null;
       inputPreview.clear();
     },
   });
@@ -300,6 +306,9 @@ export async function EffectsStudio() {
       studioName: 'Effects Studio',
       onSelect: (asset) => {
         uploadedUrl = asset.src?.large || asset.url || asset.original;
+        // Pexels photos are not Asset Library rows — drop any previously
+        // picked asset identity so a stale id is never resolved.
+        uploadedAssetId = null;
         inputPreview.load(asset.src?.large || asset.url || asset.original, { filename: 'Pexels image' });
         const attrContainer = document.getElementById('pexels-effects-attribution');
         if (attrContainer) {
@@ -452,14 +461,16 @@ export async function EffectsStudio() {
     acceptAudio: false,
     onUpload: async (key, file) => {
       try {
-        const { uploadFileToStorage } = await import('../lib/uploadService.js');
-        const url = await uploadFileToStorage(file);
+        // MuAPI-bound reference: validated by the shared adapter and stored in
+        // the permanent Asset Library. MuAPI URLs are resolved at generation.
+        const { ingestStudioUpload, describeMuapiUploadError } = await import('../lib/muapiStudioMedia.js');
+        const stored = await ingestStudioUpload(file, { studioId: 'effects-studio', uploadToMuapi: false });
         effectsAttachmentState[key] = effectsAttachmentState[key] || [];
-        effectsAttachmentState[key].push(url);
+        effectsAttachmentState[key].push({ url: stored.url, assetId: stored.assetId });
         showToast('Reference uploaded', 'success');
       } catch (err) {
-        console.error('[EffectsStudio] attachment upload failed:', err);
-        showToast('Attachment upload failed: ' + err.message, 'error');
+        const { describeMuapiUploadError } = await import('../lib/muapiStudioMedia.js');
+        showToast(await describeMuapiUploadError(err), 'error');
       }
     },
   });
@@ -953,13 +964,17 @@ generateBtn.type = 'button';
   const mobilePicker = createUploadPicker({
     anchorContainer: container,
     acceptVideo: true,
+    muapiStudio: true,
+    studioId: 'effects-studio',
     onFilePreview: (file) => { mobileInputPreview.loadFile(file); },
-    onSelect: ({ url }) => {
+    onSelect: ({ url, assetId }) => {
       uploadedUrl = url;
+      uploadedAssetId = assetId || null;
       mobileInputPreview.load(url);
     },
     onClear: () => {
       uploadedUrl = null;
+      uploadedAssetId = null;
       mobileInputPreview.clear();
     },
   });
@@ -1196,9 +1211,25 @@ generateBtn.type = 'button';
   }
 
   async function buildBaseParams() {
+    const { resolveMuapiMediaRef, resolveMuapiMediaRefs } = await import('../lib/muapiStudioMedia.js');
+    // Picked media and every attachment reference resolve to a FRESH MuAPI
+    // URL through the shared adapter (never a temp URL stored permanently).
+    const mainUrl = uploadedUrl
+      ? await resolveMuapiMediaRef({ url: uploadedUrl, assetId: uploadedAssetId })
+      : null;
+    const attachmentImages = effectsAttachmentState.images?.length
+      ? await resolveMuapiMediaRefs(effectsAttachmentState.images)
+      : [];
+    const attachmentVideos = effectsAttachmentState.videos?.length
+      ? await resolveMuapiMediaRefs(effectsAttachmentState.videos)
+      : [];
+    const attachmentAudios = effectsAttachmentState.audios?.length
+      ? await resolveMuapiMediaRefs(effectsAttachmentState.audios)
+      : [];
+
     const params = {
       model: activeTab.id,
-      image_url: uploadedUrl,
+      image_url: mainUrl,
       [activeTab.field]: selectedEffect,
       customThumbnailUrl: customThumbnailUrl || undefined,
       guidance_scale: advancedSettings.guidanceScale,
@@ -1224,14 +1255,14 @@ generateBtn.type = 'button';
     if (prompt) params.prompt = prompt;
 
     // Merge attachment URLs from the unified toolbar.
-    if (effectsAttachmentState.images?.length) {
-      params.reference_images = effectsAttachmentState.images;
+    if (attachmentImages.length) {
+      params.reference_images = attachmentImages;
     }
-    if (effectsAttachmentState.videos?.length) {
-      params.reference_videos = effectsAttachmentState.videos;
+    if (attachmentVideos.length) {
+      params.reference_videos = attachmentVideos;
     }
-    if (effectsAttachmentState.audios?.length) {
-      params.reference_audios = effectsAttachmentState.audios;
+    if (attachmentAudios.length) {
+      params.reference_audios = attachmentAudios;
     }
 
     return params;

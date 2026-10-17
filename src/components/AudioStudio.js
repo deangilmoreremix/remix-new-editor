@@ -40,43 +40,12 @@ function migrateLegacyPersistKey(baseKey, scopedKey) {
   } catch { /* localStorage unavailable */ }
 }
 
-async function uploadAudioFile(file, onProgress, apiKey) {
-  return new Promise((resolve, reject) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', muapi.proxyUrl);
-    xhr.setRequestHeader('x-api-key', apiKey);
-    xhr.setRequestHeader('x-endpoint', 'upload_file');
+// Permanent Asset Library references for uploaded audio tracks:
+// permanent storage URL -> assetId. Lets generation resolve a FRESH MuAPI URL
+// through the shared adapter instead of storing a temporary one.
+const audioAssetRefs = new Map();
 
-    if (onProgress) {
-      xhr.upload.onprogress = (e) => {
-        if (e.lengthComputable) {
-          onProgress(Math.round((e.loaded / e.total) * 100));
-        }
-      };
-    }
-
-    xhr.onload = () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        try {
-          const data = JSON.parse(xhr.responseText);
-          const url = data.url || data.data?.url;
-          if (!url) reject(new Error('No URL returned from upload'));
-          else resolve(url);
-        } catch {
-          reject(new Error('Failed to parse upload response'));
-        }
-      } else {
-        reject(new Error(`Upload failed: ${xhr.status}`));
-      }
-    };
-    xhr.onerror = () => reject(new Error('Network error during upload'));
-    xhr.send(formData);
-  });
-}
-
-function createAudioFileUploader(label, value, onChange, apiKey) {
+function createAudioFileUploader(label, value, onChange) {
   const UPLOAD_STATES = { IDLE: 'idle', UPLOADING: 'uploading', READY: 'ready' };
   let uploadState = value ? UPLOAD_STATES.READY : UPLOAD_STATES.IDLE;
   let progress = 0;
@@ -184,17 +153,21 @@ function createAudioFileUploader(label, value, onChange, apiKey) {
     progress = 0;
     render();
     try {
-      const url = await uploadAudioFile(file, (pct) => {
-        progress = pct;
-        render();
-      }, apiKey);
+      // MuAPI-bound upload: validate through the shared adapter, store the file
+      // in the permanent Asset Library and upload fresh bytes to MuAPI. Only
+      // the PERMANENT url is stored in studio state — the temp URL is resolved
+      // again from the asset at generation time.
+      const { ingestStudioUpload } = await import('../lib/muapiStudioMedia.js');
+      const stored = await ingestStudioUpload(file, { studioId: 'audio-studio' });
       fileName = file.name;
       uploadState = UPLOAD_STATES.READY;
-      onChange(url);
+      onChange(stored.url);
+      audioAssetRefs.set(stored.url, stored.assetId);
     } catch (err) {
       uploadState = UPLOAD_STATES.IDLE;
       fileName = '';
-      showToast(`Upload failed: ${err.message}`, 'error');
+      const { describeMuapiUploadError } = await import('../lib/muapiStudioMedia.js');
+      showToast(await describeMuapiUploadError(err), 'error');
     } finally {
       progress = 0;
       fileInput.value = '';
@@ -235,8 +208,7 @@ function createAudioListUploader(label, value, onChange, apiKey, maxItems = 2) {
           }
           onChange(newItems.filter(Boolean));
           renderList();
-        },
-        apiKey
+        }
       );
       listContainer.appendChild(uploader);
     }
@@ -260,7 +232,7 @@ function renderSchemaControls(selectedModel, schemaParams, setSchemaParams, cont
     if (schema.type === 'string' && schema.field === 'audio') {
       const uploader = createAudioFileUploader(schema.title || key, schemaParams[key] || '', (url) => {
         setSchemaParams(prev => ({ ...prev, [key]: url }));
-      }, apiKey);
+      });
       controlsContainer.appendChild(uploader);
       return;
     }
@@ -560,6 +532,9 @@ export function AudioStudio() {
   let activeResultUrl = null;
   let activeResultTitle = '';
   let view = 'input';
+  // Aborts the in-flight generation. Assigned a fresh controller at handler
+  // start (genBtn.onclick) and reset in the finally block.
+  let audioAbortController = null;
 
   const apiKey = apiKeyManager.getMuapiKey();
   const PERSIST_KEY = scopedPersistKey('hg_audio_studio_persistent', apiKey);
@@ -697,18 +672,23 @@ export function AudioStudio() {
             AuthModal(() => {});
             return;
           }
-          const url = await uploadAudioFile(file, null, apiKey);
-          audioAttachmentState.audio = url;
+          const { ingestStudioUpload } = await import('../lib/muapiStudioMedia.js');
+          const stored = await ingestStudioUpload(file, { studioId: 'audio-studio' });
+          audioAttachmentState.audio = { url: stored.url, assetId: stored.assetId };
+          audioAssetRefs.set(stored.url, stored.assetId);
         } else {
-          const { uploadFileToStorage } = await import('../lib/uploadService.js');
-          const url = await uploadFileToStorage(file);
+          // MuAPI-bound reference (image / video): validated by the shared
+          // adapter and stored in the permanent Asset Library; resolved at
+          // generation time.
+          const { ingestStudioUpload } = await import('../lib/muapiStudioMedia.js');
+          const stored = await ingestStudioUpload(file, { studioId: 'audio-studio', uploadToMuapi: false });
           audioAttachmentState[key] = audioAttachmentState[key] || [];
-          audioAttachmentState[key].push(url);
+          audioAttachmentState[key].push({ url: stored.url, assetId: stored.assetId });
         }
         showToast('Reference uploaded', 'success');
       } catch (err) {
-        console.error('[AudioStudio] attachment upload failed:', err);
-        showToast('Attachment upload failed: ' + err.message, 'error');
+        const { describeMuapiUploadError } = await import('../lib/muapiStudioMedia.js');
+        showToast(await describeMuapiUploadError(err), 'error');
       }
     },
   });
@@ -1336,6 +1316,8 @@ export function AudioStudio() {
       return;
     }
 
+    audioAbortController = new AbortController();
+
     genBtn.disabled = true;
     genBtn.textContent = 'Generating...';
     showLoading();
@@ -1348,16 +1330,54 @@ export function AudioStudio() {
       let result;
       const modelType = selectedModel.type;
 
-      // Merge attachment URLs from the unified toolbar into schema params.
-      const mergedSchemaParams = { ...schemaParams };
-      if (audioAttachmentState.audio && !mergedSchemaParams.audio_url) {
-        mergedSchemaParams.audio_url = audioAttachmentState.audio;
+      // Audio / image / video references resolve to FRESH MuAPI URLs through
+      // the shared adapter (permanent Asset Library references only).
+      const { resolveMuapiMediaRef, resolveMuapiMediaRefs } = await import('../lib/muapiStudioMedia.js');
+      // Any schema param holding a permanent asset URL is resolved through the
+      // adapter instead of being passed to MuAPI directly.
+      const asRef = (value) => (typeof value === 'string' && audioAssetRefs.has(value)
+        ? { url: value, assetId: audioAssetRefs.get(value) }
+        : value);
+      const resolvedSchemaParams = {};
+      const schemaKeys = Object.keys(schemaParams);
+      for (let i = 0; i < schemaKeys.length; i += 1) {
+        const key = schemaKeys[i];
+        const value = schemaParams[key];
+        if (Array.isArray(value)) {
+          const resolvedList = await resolveMuapiMediaRefs(value.map(asRef));
+          if (resolvedList.length) resolvedSchemaParams[key] = resolvedList;
+          continue;
+        }
+        const resolved = await resolveMuapiMediaRef(asRef(value));
+        if (resolved !== null && resolved !== undefined) {
+          resolvedSchemaParams[key] = resolved;
+        } else if (value !== null && value !== undefined && typeof value !== 'string') {
+          // Non-media params (numbers/booleans) are not media references —
+          // pass the original value through instead of dropping or nulling it.
+          resolvedSchemaParams[key] = value;
+        }
+        // A media reference that no longer resolves (e.g. a cleared upload)
+        // is omitted entirely — never sent to MuAPI as an explicit null.
       }
-      if (audioAttachmentState.images?.length && !mergedSchemaParams.reference_images) {
-        mergedSchemaParams.reference_images = audioAttachmentState.images;
+      const resolvedAudioUrl = audioAttachmentState.audio
+        ? await resolveMuapiMediaRef(audioAttachmentState.audio)
+        : null;
+      const resolvedImages = audioAttachmentState.images?.length
+        ? await resolveMuapiMediaRefs(audioAttachmentState.images)
+        : [];
+      const resolvedVideos = audioAttachmentState.videos?.length
+        ? await resolveMuapiMediaRefs(audioAttachmentState.videos)
+        : [];
+
+      const mergedSchemaParams = { ...resolvedSchemaParams, signal: audioAbortController.signal };
+      if (resolvedAudioUrl && !mergedSchemaParams.audio_url) {
+        mergedSchemaParams.audio_url = resolvedAudioUrl;
       }
-      if (audioAttachmentState.videos?.length && !mergedSchemaParams.reference_videos) {
-        mergedSchemaParams.reference_videos = audioAttachmentState.videos;
+      if (resolvedImages.length && !mergedSchemaParams.reference_images) {
+        mergedSchemaParams.reference_images = resolvedImages;
+      }
+      if (resolvedVideos.length && !mergedSchemaParams.reference_videos) {
+        mergedSchemaParams.reference_videos = resolvedVideos;
       }
 
       if (modelType === 'music') {
@@ -1411,6 +1431,7 @@ export function AudioStudio() {
       showToast(errMsg, 'error');
     } finally {
       hideLoading();
+      audioAbortController = null;
       genBtn.disabled = false;
       genBtn.textContent = 'Generate Audio';
     }

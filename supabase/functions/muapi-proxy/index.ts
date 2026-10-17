@@ -1,3 +1,4 @@
+import { PassThrough } from 'node:stream';
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 // muapi-proxy — forwards requests to api.muapi.ai on behalf of the client.
@@ -132,6 +133,23 @@ function sizeLimitForMime(mime: string | null): number {
 }
 
 /**
+ * Extract the file MIME type from a multipart/form-data Content-Type header.
+ *
+ * For `multipart/form-data; boundary=...` the header itself does NOT contain
+ * the file's MIME type — the file MIME lives in the individual part headers
+ * (Content-Disposition / Content-Type) inside the body stream, which we cannot
+ * read here without consuming the body. Returns null so callers fall back to
+ * the heuristic in `getSizeLimitForRequest`. Actual magic-byte sniffing of the
+ * real file bytes is performed later in `setupMultipartBodyStream` via
+ * `sniffMimeType`.
+ */
+function sniffMimeTypeFromMultipart(contentType: string): string | null {
+    if (!contentType || !contentType.startsWith('multipart/')) return null;
+    // Multipart Content-Type carries only the boundary; no file MIME info.
+    return null;
+}
+
+/**
  * Determine the appropriate size limit for an upload based on Content-Type.
  * When Content-Type is missing or generic (e.g., application/octet-stream),
  * we use the larger video limit as a safe default. This prevents false
@@ -180,6 +198,39 @@ function getCorsHeaders(req: Request): Record<string, string> {
 }
 
 // --- Retry logic ---
+
+/**
+ * SECURITY (BYOK): the caller's MuAPI key must NEVER be written to function
+ * logs. Scrub the key from any upstream text before it reaches the console, so
+ * a misconfigured upstream that echoes credentials cannot leak them. Used on
+ * the upload_file path before logging any upstream error body.
+ */
+function redactSecrets(text: string, key?: string | null): string {
+  if (!text) return text;
+  let out = String(text);
+  if (key && key.length > 0) {
+    out = out.split(key).join('[REDACTED]');
+  }
+  return out;
+}
+
+/**
+ * Host allowlist for the optional JSON `source_url` server-side re-upload mode.
+ * ONLY the project's own Supabase Storage origin (SUPABASE_URL) is permitted,
+ * over https, with an EXACT hostname match — no wildcards, no redirects. This
+ * is not an open SSRF proxy. When SUPABASE_URL is unset the mode is disabled.
+ */
+function getAllowedSourceHost(): { hostname: string } | null {
+  const raw = Deno.env.get('SUPABASE_URL');
+  if (!raw) return null;
+  try {
+    const u = new URL(raw);
+    if (u.protocol !== 'https:') return null;
+    return { hostname: u.hostname };
+  } catch {
+    return null;
+  }
+}
 
 async function fetchWithRetry(
   url: string,
@@ -483,8 +534,12 @@ Deno.serve(async (req: Request) => {
         }
         // Enforce size limit based on detected MIME type, not just header.
         // This prevents videos with missing/wrong Content-Type from being
-        // rejected at the smaller image limit.
-        const maxAllowed = isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
+        // rejected at the smaller image limit. When sniffMimeTypeFromMultipart
+        // returns null (the normal case for multipart/form-data), fall back to
+        // getSizeLimitForRequest which uses a size-based heuristic.
+        const maxAllowed = detectedMime
+            ? (isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES)
+            : getSizeLimitForRequest(contentType, declaredSize);
         if (declaredSize > maxAllowed) {
           const actualType = detectedMime || (isVideo ? 'video' : 'image');
           return new Response(
@@ -565,12 +620,12 @@ Deno.serve(async (req: Request) => {
 
       if (!muapiResponse.ok) {
         const errorText = await muapiResponse.text();
-        console.error(`[muapi-proxy] API error: ${muapiResponse.status} - ${errorText}`);
+        console.error(`[muapi-proxy] API error: ${muapiResponse.status} - ${redactSecrets(errorText, effectiveApiKey)}`);
 
         return new Response(
           JSON.stringify({
             error: `API Request Failed: ${muapiResponse.status} ${muapiResponse.statusText}`,
-            details: errorText.slice(0, 200)
+            details: redactSecrets(errorText, effectiveApiKey).slice(0, 200)
           }),
           {
             status: muapiResponse.status,
@@ -707,6 +762,96 @@ Deno.serve(async (req: Request) => {
     }
     const effectiveApiKey = userApiKey;
 
+    // --- Optional server-side re-upload from a durable original ---
+    // For cases where the browser cannot fetch bytes itself, a caller may send
+    // { endpoint: "upload_file", source_url, file_name? }: the proxy fetches the
+    // original from the app's OWN Supabase Storage host (strict allowlist:
+    // https + exact hostname from SUPABASE_URL — no wildcards, no redirects,
+    // no open SSRF) and forwards it to MuAPI as multipart via the user's BYOK
+    // key. Disabled unless SUPABASE_URL is configured.
+    const maybe = body as Record<string, unknown>;
+    if (maybe.source_url && normalizedEndpoint === 'upload_file') {
+      const allowed = getAllowedSourceHost();
+      let sourceUrl: URL;
+      try {
+        sourceUrl = new URL(String(maybe.source_url));
+      } catch {
+        return new Response(
+          JSON.stringify({ error: 'Invalid source_url' }),
+          { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        );
+      }
+      if (!allowed || sourceUrl.protocol !== 'https:' || sourceUrl.hostname !== allowed.hostname) {
+        return new Response(
+          JSON.stringify({ error: 'source_url is not on the allowed storage host' }),
+          { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        );
+      }
+
+      let upstream: Response;
+      try {
+        upstream = await fetch(sourceUrl.toString(), { signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS) });
+      } catch (e) {
+        return new Response(
+          JSON.stringify({ error: `Failed to fetch source_url: ${(e as Error).message}` }),
+          { status: 502, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        );
+      }
+      if (!upstream.ok) {
+        return new Response(
+          JSON.stringify({ error: `Failed to fetch source_url: ${upstream.status}` }),
+          { status: 502, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const declaredLen = Number(upstream.headers.get('content-length') || '0');
+      if (Number.isFinite(declaredLen) && declaredLen > 0 && declaredLen > MAX_BUFFER_BYTES) {
+        return new Response(
+          JSON.stringify({ error: 'source_url exceeds the re-upload size limit' }),
+          { status: 413, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const bytes = new Uint8Array(await upstream.arrayBuffer());
+      if (bytes.byteLength > MAX_BUFFER_BYTES) {
+        return new Response(
+          JSON.stringify({ error: 'source_url exceeds the re-upload size limit' }),
+          { status: 413, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const fileName = typeof maybe.file_name === 'string' && String(maybe.file_name).trim()
+        ? String(maybe.file_name)
+        : 'upload';
+      const mime = upstream.headers.get('content-type') || 'application/octet-stream';
+      const form = new FormData();
+      // The runtime derives the multipart boundary from the FormData; never
+      // hardcode the Content-Type.
+      form.append('file', new Blob([bytes], { type: mime }), fileName);
+
+      const uploadResp = await fetchWithRetry(
+        'https://api.muapi.ai/api/v1/upload_file',
+        { method: 'POST', headers: { 'x-api-key': effectiveApiKey }, body: form },
+        AbortSignal.timeout(UPSTREAM_TIMEOUT_MS)
+      );
+      if (!uploadResp.ok) {
+        const errText = await uploadResp.text();
+        return new Response(
+          JSON.stringify({
+            error: `Upload failed: ${uploadResp.status}`,
+            details: redactSecrets(errText, effectiveApiKey).slice(0, 200),
+          }),
+          { status: uploadResp.status, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        );
+      }
+      let outRaw = await uploadResp.json().catch(() => null);
+      outRaw = unwrapResponse(outRaw);
+      return new Response(
+        JSON.stringify(outRaw),
+        { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Strip the key from the request body before forwarding so it is never
     // leaked as a model parameter to muapi.ai.
     if (typeof body.muapi_api_key === 'string') {
@@ -756,12 +901,12 @@ Deno.serve(async (req: Request) => {
 
     if (!muapiResponse.ok) {
       const errorText = await muapiResponse.text();
-      console.error(`[muapi-proxy] API error: ${muapiResponse.status} - ${errorText}`);
+      console.error(`[muapi-proxy] API error: ${muapiResponse.status} - ${redactSecrets(errorText, effectiveApiKey)}`);
 
       return new Response(
         JSON.stringify({
           error: `API Request Failed: ${muapiResponse.status} ${muapiResponse.statusText}`,
-          details: errorText.slice(0, 200)
+          details: redactSecrets(errorText, effectiveApiKey).slice(0, 200)
         }),
         {
           status: muapiResponse.status,

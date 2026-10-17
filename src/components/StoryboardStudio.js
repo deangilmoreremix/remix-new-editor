@@ -63,11 +63,11 @@ let selectedStyle = 'None';
 let selectedLighting = 'None';
 let selectedColor = 'None';
 let selectedPreset = null;
-let frameNotes = '';
-let revisedPrompt = '';
-let referenceImages = [];
-let generationProgress = { current: 0, total: 0, failed: [] };
-let batchRetryCount = 0;
+const frameNotes = '';
+const revisedPrompt = '';
+const referenceImages = [];
+const generationProgress = { current: 0, total: 0, failed: [] };
+const batchRetryCount = 0;
 const MAX_RETRIES = 3;
 const RETRY_BASE_DELAY = 1000;
 
@@ -112,7 +112,7 @@ const storyboardStore = new Store({
 });
 
 function createUndoRedo() {
-  let undoStack = [];
+  const undoStack = [];
   let redoStack = [];
   const maxHistory = 50;
 
@@ -354,14 +354,16 @@ export async function StoryboardStudio(options = {}) {
     acceptEndFrame: false,
     onUpload: async (key, file) => {
       try {
-        const { uploadFileToStorage } = await import('../lib/uploadService.js');
-        const url = await uploadFileToStorage(file);
+        // MuAPI-bound reference: validated by the shared adapter and stored in
+        // the permanent Asset Library; resolved at generation time.
+        const { ingestStudioUpload, describeMuapiUploadError } = await import('../lib/muapiStudioMedia.js');
+        const stored = await ingestStudioUpload(file, { studioId: 'storyboard-studio', uploadToMuapi: false });
         storyboardAttachments[key] = storyboardAttachments[key] || [];
-        storyboardAttachments[key].push(url);
+        storyboardAttachments[key].push({ url: stored.url, assetId: stored.assetId });
         showToast('Reference uploaded', 'success');
       } catch (err) {
-        console.error('[StoryboardStudio] attachment upload failed:', err);
-        showToast('Attachment upload failed: ' + err.message, 'error');
+        const { describeMuapiUploadError } = await import('../lib/muapiStudioMedia.js');
+        showToast(await describeMuapiUploadError(err), 'error');
       }
     },
   });
@@ -404,14 +406,23 @@ export async function StoryboardStudio(options = {}) {
 
   generateBtn.addEventListener('click', async () => {
     if (!(await requireEntitlement())) return;
+    // Attachments resolve to FRESH MuAPI URLs through the shared adapter
+    // (permanent Asset Library references only).
+    const { resolveMuapiMediaRefs } = await import('../lib/muapiStudioMedia.js');
     const intent = {
       ...getVideoIntent(),
       model: selectedModel,
       customThumbnailUrl: customThumbnailUrl || undefined,
       // Merge attachment URLs from the unified toolbar.
-      reference_images: storyboardAttachments.images?.length ? storyboardAttachments.images : undefined,
-      reference_videos: storyboardAttachments.videos?.length ? storyboardAttachments.videos : undefined,
-      reference_audios: storyboardAttachments.audios?.length ? storyboardAttachments.audios : undefined,
+      reference_images: storyboardAttachments.images?.length
+        ? await resolveMuapiMediaRefs(storyboardAttachments.images)
+        : undefined,
+      reference_videos: storyboardAttachments.videos?.length
+        ? await resolveMuapiMediaRefs(storyboardAttachments.videos)
+        : undefined,
+      reference_audios: storyboardAttachments.audios?.length
+        ? await resolveMuapiMediaRefs(storyboardAttachments.audios)
+        : undefined,
     };
 
     generateBtn.disabled = true;

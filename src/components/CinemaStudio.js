@@ -29,6 +29,7 @@ import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { openModelPicker } from '../lib/modelPickerIntegration.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
+import { getCharacterReference, saveCharacterReference } from '../lib/characterConsistency.js';
 
 // Camera movements promised by the Cinema Studio intro copy
 // ("Select camera movement … dolly, crane, orbit, FPV drone").
@@ -76,6 +77,11 @@ export function CinemaStudio() {
         look: 'Natural',
         referenceUrl: null,
         endFrameUrl: null,
+        // Permanent Asset Library identities for the frames — the first/last
+        // frame references are re-resolved through the shared adapter at
+        // generation time.
+        referenceAssetId: null,
+        endFrameAssetId: null,
         // Selected generation model. Cinema Studio exposes the same catalog
         // picker as Video Studio; defaults to the first text-to-video model.
         model: (t2vModels[0] && t2vModels[0].id) || 'kling-v2.6-pro-t2v',
@@ -84,7 +90,9 @@ export function CinemaStudio() {
     
     // Camera builder panel state
     let showCameraBuilder = false;
-let showAdvanced = false;
+    let showAdvanced = false;
+    // Character Lock: reuses a stored character reference across shots.
+    let characterLock = false;
     let customThumbnailUrl = getCustomThumbnailFromCache('cinema-studio');
 
     // Listen for thumbnails generated via GTM Boost and apply them.
@@ -360,24 +368,32 @@ let showAdvanced = false;
       getTextarea: () => textarea,
       onUpload: async (key, file) => {
         try {
-          const { uploadFileToStorage } = await import('../lib/hybrid-supabase.js');
-          const url = await uploadFileToStorage(file);
+          // MuAPI-bound reference: validated by the shared adapter and stored in
+          // the permanent Asset Library; resolved at generation time.
+          const { ingestStudioUpload, describeMuapiUploadError } = await import('../lib/muapiStudioMedia.js');
+          const stored = await ingestStudioUpload(file, { studioId: 'cinema-studio', uploadToMuapi: false });
           if (key === 'startFrame' || key === 'endFrame') {
-            if (key === 'startFrame') currentSettings.referenceUrl = url;
-            if (key === 'endFrame') currentSettings.endFrameUrl = url;
-            showReferenceThumb(url);
-            if (url && !i2vModels.some(m => m.id === currentSettings.model)) {
+            if (key === 'startFrame') {
+              currentSettings.referenceUrl = stored.url;
+              currentSettings.referenceAssetId = stored.assetId;
+            }
+            if (key === 'endFrame') {
+              currentSettings.endFrameUrl = stored.url;
+              currentSettings.endFrameAssetId = stored.assetId;
+            }
+            showReferenceThumb(stored.url);
+            if (stored.url && !i2vModels.some(m => m.id === currentSettings.model)) {
               currentSettings.model = (i2vModels[0] && i2vModels[0].id) || currentSettings.model;
             }
             updateModelBtn();
             updateControlsForModel();
           } else if (key === 'image' || key === 'video' || key === 'audio') {
             if (!currentSettings.referenceUrls) currentSettings.referenceUrls = [];
-            currentSettings.referenceUrls.push({ type: key, url, file });
+            currentSettings.referenceUrls.push({ type: key, url: stored.url, assetId: stored.assetId, file });
           }
         } catch (err) {
-          console.error('[CinemaStudio] attachment upload failed:', err);
-          showToast('Attachment upload failed: ' + err.message, 'error');
+          const { describeMuapiUploadError } = await import('../lib/muapiStudioMedia.js');
+          showToast(await describeMuapiUploadError(err), 'error');
         }
       },
     });
@@ -448,9 +464,16 @@ let showAdvanced = false;
       anchorContainer: container,
       // Accept images, videos, and documents (MuAPI file-upload supports all).
       frameMode: true,
-      onSelect: ({ startUrl, endUrl }) => {
+      // MuAPI-bound frames: picked files are validated through the shared
+      // adapter and stored in the permanent Asset Library, so the first/last
+      // frame references can be re-resolved at generation time.
+      muapiStudio: true,
+      studioId: 'cinema-studio',
+      onSelect: ({ startUrl, endUrl, startAssetId, endAssetId }) => {
         currentSettings.referenceUrl = startUrl || null;
+        currentSettings.referenceAssetId = startAssetId || null;
         currentSettings.endFrameUrl = endUrl || null;
+        currentSettings.endFrameAssetId = endAssetId || null;
         showReferenceThumb(startUrl);
         // Switch the model picker to image-to-video models and refresh the
         // label/controls so the selection stays valid for the new mode.
@@ -462,7 +485,9 @@ let showAdvanced = false;
       },
       onClear: () => {
         currentSettings.referenceUrl = null;
+        currentSettings.referenceAssetId = null;
         currentSettings.endFrameUrl = null;
+        currentSettings.endFrameAssetId = null;
         showReferenceThumb(null);
         if (!t2vModels.some(m => m.id === currentSettings.model)) {
           currentSettings.model = (t2vModels[0] && t2vModels[0].id) || currentSettings.model;
@@ -488,6 +513,9 @@ let showAdvanced = false;
         studioName: 'Cinema Studio',
         onSelect: (asset) => {
           currentSettings.referenceUrl = asset.src?.large || asset.url;
+          // Pexels scenes are not Asset Library rows — drop any previously
+          // picked asset identity so a stale id is never resolved.
+          currentSettings.referenceAssetId = null;
           showReferenceThumb(asset.src?.large || asset.url);
           if (!i2vModels.some(m => m.id === currentSettings.model)) {
             currentSettings.model = (i2vModels[0] && i2vModels[0].id) || currentSettings.model;
@@ -1370,16 +1398,22 @@ let showAdvanced = false;
                 if (ref?.imageUrl) refImages = [ref.imageUrl];
             }
 
-            // Merge additional attachments from the unified toolbar.
-            const extraImages = (currentSettings.referenceUrls || [])
-              .filter(entry => entry.type === 'image')
-              .map(entry => entry.url);
-            const extraVideos = (currentSettings.referenceUrls || [])
-              .filter(entry => entry.type === 'video')
-              .map(entry => entry.url);
-            const extraAudios = (currentSettings.referenceUrls || [])
-              .filter(entry => entry.type === 'audio')
-              .map(entry => entry.url);
+            // Frames and reference attachments resolve to FRESH MuAPI URLs
+            // through the shared adapter (permanent Asset Library refs only).
+            const { resolveMuapiMediaRef, resolveMuapiMediaRefs } = await import('../lib/muapiStudioMedia.js');
+            const firstFrameUrl = currentSettings.referenceUrl
+              ? await resolveMuapiMediaRef({ url: currentSettings.referenceUrl, assetId: currentSettings.referenceAssetId })
+              : null;
+            const lastFrameUrl = currentSettings.endFrameUrl
+              ? await resolveMuapiMediaRef({ url: currentSettings.endFrameUrl, assetId: currentSettings.endFrameAssetId })
+              : null;
+
+            const extraImages = await resolveMuapiMediaRefs((currentSettings.referenceUrls || [])
+              .filter(entry => entry.type === 'image'));
+            const extraVideos = await resolveMuapiMediaRefs((currentSettings.referenceUrls || [])
+              .filter(entry => entry.type === 'video'));
+            const extraAudios = await resolveMuapiMediaRefs((currentSettings.referenceUrls || [])
+              .filter(entry => entry.type === 'audio'));
             if (extraImages.length) {
                 refImages = refImages ? [...refImages, ...extraImages] : extraImages;
             }
@@ -1389,8 +1423,8 @@ let showAdvanced = false;
                 // First/last-frame: pin both the start and end of the clip.
                 res = await muapi.generateI2V({
                     model: resolvedModel,
-                    firstFrameUrl: currentSettings.referenceUrl,
-                    lastFrameUrl: currentSettings.endFrameUrl,
+                    firstFrameUrl,
+                    lastFrameUrl,
                     prompt: finalPrompt,
                     aspect_ratio: currentSettings.aspect_ratio,
                     duration,
@@ -1403,7 +1437,7 @@ let showAdvanced = false;
                 // Image-to-video: use the uploaded still as the seed.
                 const i2vParams = {
                     model: resolvedModel,
-                    image_url: currentSettings.referenceUrl,
+                    image_url: firstFrameUrl,
                     prompt: finalPrompt,
                     aspect_ratio: currentSettings.aspect_ratio,
                     duration,

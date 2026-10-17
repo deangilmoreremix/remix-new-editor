@@ -29,6 +29,7 @@ export function VideoToolsStudio() {
   let selectedModel = videoToolsModels[0];
   let nativeAudio = false;
   let uploadedVideoUrl = null;
+  let uploadedVideoAssetId = null;
   let lastOutputUrl = null;
   let prompt = '';
   let customThumbnailUrl = getCustomThumbnailFromCache('videotools-studio');
@@ -148,10 +149,13 @@ const triggerBtn = document.createElement('button');
   const videoPicker = createUploadPicker({
     anchorContainer: container,
     acceptVideo: true,
-    onSelect: ({ url }) => { 
+    muapiStudio: true,
+    studioId: 'video-tools-studio',
+    onSelect: ({ url, assetId }) => { 
       uploadedVideoUrl = url; 
+      uploadedVideoAssetId = assetId || null;
     },
-    onClear: () => { uploadedVideoUrl = null; },
+    onClear: () => { uploadedVideoUrl = null; uploadedVideoAssetId = null; },
   });
   videoUploadGroup.appendChild(videoPicker.trigger);
 
@@ -167,6 +171,9 @@ const triggerBtn = document.createElement('button');
       studioName: 'Video Tools Studio',
       onSelect: (asset) => {
         uploadedVideoUrl = asset.video_files?.[0]?.link || asset.url || asset.original;
+        // Pexels videos are not Asset Library rows — drop any previously
+        // picked asset identity so a stale id is never resolved.
+        uploadedVideoAssetId = null;
         const attrContainer = document.getElementById('pexels-tools-attribution');
         if (attrContainer) {
           attrContainer.innerHTML = '';
@@ -211,14 +218,16 @@ const triggerBtn = document.createElement('button');
      acceptAudio: false,
      onUpload: async (key, file) => {
        try {
-         const { uploadFileToStorage } = await import('../lib/uploadService.js');
-         const url = await uploadFileToStorage(file);
+         // MuAPI-bound reference: validated by the shared adapter and stored in
+         // the permanent Asset Library; resolved at generation time.
+         const { ingestStudioUpload, describeMuapiUploadError } = await import('../lib/muapiStudioMedia.js');
+         const stored = await ingestStudioUpload(file, { studioId: 'video-tools-studio', uploadToMuapi: false });
          videoToolsAttachmentState[key] = videoToolsAttachmentState[key] || [];
-         videoToolsAttachmentState[key].push(url);
+         videoToolsAttachmentState[key].push({ url: stored.url, assetId: stored.assetId });
          showToast('Reference uploaded', 'success');
        } catch (err) {
-         console.error('[VideoToolsStudio] attachment upload failed:', err);
-         showToast('Attachment upload failed: ' + err.message, 'error');
+        const { describeMuapiUploadError } = await import('../lib/muapiStudioMedia.js');
+        showToast(await describeMuapiUploadError(err), 'error');
        }
      },
    });
@@ -422,30 +431,46 @@ genBtn.type = 'button';
     genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Processing...';
 
     try {
-      const params = { 
-        model: selectedModel.id,
-        [selectedModel.videoField]: uploadedVideoUrl,
-        customThumbnailUrl: customThumbnailUrl || undefined,
-      };
+      // Resolve the source video + attachments to FRESH MuAPI URLs through
+      // the shared adapter (permanent asset references only).
+        const { resolveMuapiMediaRef, resolveMuapiMediaRefs } = await import('../lib/muapiStudioMedia.js');
+        const sourceVideoUrl = await resolveMuapiMediaRef({ url: uploadedVideoUrl, assetId: uploadedVideoAssetId });
+        const attachmentImages = videoToolsAttachmentState.images?.length
+          ? await resolveMuapiMediaRefs(videoToolsAttachmentState.images)
+          : [];
+        const attachmentVideos = videoToolsAttachmentState.videos?.length
+          ? await resolveMuapiMediaRefs(videoToolsAttachmentState.videos)
+          : [];
+        const attachmentAudios = videoToolsAttachmentState.audios?.length
+          ? await resolveMuapiMediaRefs(videoToolsAttachmentState.audios)
+          : [];
 
-      const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
-      if (prompt && selectedModel.hasPrompt) {
-        params.prompt = replaceTokensInPrompt(prompt, activeProfile);
-      }
-      if (dynamicControls) {
-        Object.assign(params, dynamicControls.getPayload({}));
-      }
+        const params = { 
+          model: selectedModel.id,
+          [selectedModel.videoField]: sourceVideoUrl,
+          thumbnail_url: customThumbnailUrl || undefined,
+          webhook_url: undefined,
+          signal: undefined,
+        };
 
-      // Merge attachment URLs from the unified toolbar.
-      if (videoToolsAttachmentState.images?.length) {
-        params.reference_images = videoToolsAttachmentState.images;
-      }
-      if (videoToolsAttachmentState.videos?.length) {
-        params.reference_videos = videoToolsAttachmentState.videos;
-      }
-      if (videoToolsAttachmentState.audios?.length) {
-        params.reference_audios = videoToolsAttachmentState.audios;
-      }
+        const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
+        if (prompt && selectedModel.hasPrompt) {
+          params.prompt = replaceTokensInPrompt(prompt, activeProfile);
+        }
+        if (dynamicControls) {
+          Object.assign(params, dynamicControls.getPayload({}));
+        }
+
+        // Merge attachment URLs from the unified toolbar.
+        if (attachmentImages.length) {
+          params.reference_images = attachmentImages;
+        }
+        if (attachmentVideos.length) {
+          params.reference_videos = attachmentVideos;
+        }
+        if (attachmentAudios.length) {
+          params.reference_audios = attachmentAudios;
+        }
 
        const result = await muapi.processVideoTool(params);
        if (result?.url) {
