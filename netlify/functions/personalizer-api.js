@@ -1,4 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
+import { IMAGE_EDIT_OPERATIONS } from '../../src/lib/personalization/imageEditRegistry.js';
+import {
+  discoverBusinessAssetsFreeFirst,
+  downloadPersonalizationImage,
+  mirrorPersonalizationAsset,
+  researchBusinessWebsite,
+} from './_personalizationAssets.js';
+import { findNearbyBusinesses } from './_businessDiscovery.js';
 
 const supabaseService = createClient(
   process.env.SUPABASE_URL,
@@ -20,6 +28,29 @@ async function checkRateLimit(userId) {
     return (count || 0) < RATE_LIMIT_REQUESTS;
   } catch { return true; }
 }
+
+async function recordBillablePersonalizationRequest(userId, mode) {
+  const now = new Date().toISOString();
+  const { error } = await supabaseService
+    .from('personalization_projects')
+    .insert({
+      user_id: userId,
+      app_id: 'personalization-image-editor',
+      mode,
+      target_name: 'image-vision',
+      status: 'complete',
+      created_at: now,
+      updated_at: now,
+    });
+
+  if (error) {
+    console.error('[personalizer] Failed to record billable Vision request:', error.message || error);
+    const recordError = new Error('Vision usage could not be recorded. Please try again.');
+    recordError.status = 503;
+    throw recordError;
+  }
+}
+
 
 async function verifyAuth(event) {
   const authHeader = event.headers.authorization || event.headers.Authorization;
@@ -317,6 +348,304 @@ function escapeCypherString(str) {
     .replace(/\r/g, '\\r');
 }
 
+
+const OPENAI_RESPONSES_URL = 'https://api.openai.com/v1/responses';
+const VISION_MODEL = process.env.SMARTVIDEO_VISION_MODEL || process.env.OPENAI_MODEL || 'gpt-4o-mini';
+const MAX_VISION_IMAGES = 8;
+const MAX_IMAGE_REFERENCE_CHARS = 14_000_000;
+const VISION_CATEGORIES = [
+  'person', 'logo', 'product', 'service', 'completed_work', 'storefront',
+  'office', 'branded_vehicle', 'team', 'brand', 'irrelevant',
+];
+const IMAGE_EDIT_OPERATION_IDS = new Set(Object.keys(IMAGE_EDIT_OPERATIONS));
+
+function isSupportedImageReference(value) {
+  if (typeof value !== 'string' || !value.trim()) return false;
+  if (value.length > MAX_IMAGE_REFERENCE_CHARS) return false;
+  if (value.startsWith('data:image/')) return true;
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' || url.protocol === 'http:';
+  } catch {
+    return false;
+  }
+}
+
+function visionDetail(categoryHint, validation = false) {
+  if (validation) return 'original';
+  if (['logo', 'product', 'branded_vehicle'].includes(categoryHint)) return 'original';
+  return 'high';
+}
+
+function extractResponsesOutputText(payload) {
+  if (typeof payload?.output_text === 'string') return payload.output_text;
+  if (!Array.isArray(payload?.output)) return '';
+  for (const item of payload.output) {
+    if (item?.type !== 'message' || !Array.isArray(item?.content)) continue;
+    for (const content of item.content) {
+      if (content?.type === 'output_text' && typeof content?.text === 'string') {
+        return content.text;
+      }
+    }
+  }
+  return '';
+}
+
+function personalizationAnalysisSchema() {
+  return {
+    type: 'object',
+    additionalProperties: false,
+    required: ['analyses'],
+    properties: {
+      analyses: {
+        type: 'array',
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          required: [
+            'id', 'category', 'confidence', 'qualityScore', 'relevanceScore',
+            'targetRole', 'preserve', 'issues', 'recommendedOperations',
+            'transparencyRecommended', 'precisionRecommended', 'textDetected',
+            'duplicateLikely', 'summary',
+          ],
+          properties: {
+            id: { type: 'string' },
+            category: { type: 'string', enum: VISION_CATEGORIES },
+            confidence: { type: 'number', minimum: 0, maximum: 100 },
+            qualityScore: { type: 'number', minimum: 0, maximum: 100 },
+            relevanceScore: { type: 'number', minimum: 0, maximum: 100 },
+            targetRole: { type: 'string' },
+            preserve: { type: 'array', items: { type: 'string' } },
+            issues: { type: 'array', items: { type: 'string' } },
+            recommendedOperations: { type: 'array', items: { type: 'string' } },
+            transparencyRecommended: { type: 'boolean' },
+            precisionRecommended: { type: 'boolean' },
+            textDetected: { type: 'boolean' },
+            duplicateLikely: { type: 'boolean' },
+            summary: { type: 'string' },
+          },
+        },
+      },
+    },
+  };
+}
+
+function personalizationValidationSchema() {
+  return {
+    type: 'object',
+    additionalProperties: false,
+    required: ['passed', 'confidence', 'issues', 'preserved', 'changed', 'summary'],
+    properties: {
+      passed: { type: 'boolean' },
+      confidence: { type: 'number', minimum: 0, maximum: 100 },
+      issues: { type: 'array', items: { type: 'string' } },
+      preserved: { type: 'array', items: { type: 'string' } },
+      changed: { type: 'array', items: { type: 'string' } },
+      summary: { type: 'string' },
+    },
+  };
+}
+
+async function callOpenAIResponses(apiKey, requestBody) {
+  const response = await fetchWithTimeout(OPENAI_RESPONSES_URL, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(requestBody),
+  }, 110000);
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const message = payload?.error?.message || payload?.error || `OpenAI Responses request failed (HTTP ${response.status})`;
+    const error = new Error(String(message));
+    error.status = response.status;
+    throw error;
+  }
+  return payload;
+}
+
+function normalizeVisionStringList(value, maxItems = 20, maxLength = 240) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => typeof item === 'string' ? item.trim().slice(0, maxLength) : '')
+    .filter(Boolean)
+    .slice(0, maxItems);
+}
+
+async function handlePersonalizationImageVision(body) {
+  if (!process.env.OPENAI_API_KEY) {
+    const error = new Error('OPENAI_KEY_REQUIRED');
+    error.status = 503;
+    throw error;
+  }
+
+  const mode = body.mode === 'validate' ? 'validate' : 'analyze';
+
+  if (mode === 'validate') {
+    const originalImageUrl = body.originalImageUrl;
+    const editedImageUrl = body.editedImageUrl;
+    if (!isSupportedImageReference(originalImageUrl) || !isSupportedImageReference(editedImageUrl)) {
+      const error = new Error('Two valid image references are required.');
+      error.status = 400;
+      throw error;
+    }
+
+    const preserve = normalizeVisionStringList(body.preserve);
+    const intendedOperation = validateInput(String(body.intendedOperation || 'image edit'), 'text', 200) || 'image edit';
+    const businessName = validateInput(String(body.businessContext?.businessName || ''), 'text', 200) || '';
+    const industry = validateInput(String(body.businessContext?.industry || ''), 'text', 120) || '';
+
+    const prompt = [
+      'You are SmartVideo AI visual QA. Compare image 1 (original) with image 2 (edited).',
+      'Judge whether the intended edit succeeded without unintended changes.',
+      'Pay special attention to identity, logos, product geometry, packaging, printed text, signage, phone numbers, URLs, brand colors, cropping, missing subjects, and artifacts.',
+      `Intended operation: ${intendedOperation}.`,
+      preserve.length ? `Things that should be preserved: ${preserve.join(', ')}.` : '',
+      businessName ? `Business: ${businessName}.` : '',
+      industry ? `Industry: ${industry}.` : '',
+      'Set passed=false only when there is a meaningful unintended change or the intended edit clearly failed.',
+    ].filter(Boolean).join(' ');
+
+    const payload = await callOpenAIResponses(process.env.OPENAI_API_KEY, {
+      model: VISION_MODEL,
+      input: [{
+        role: 'user',
+        content: [
+          { type: 'input_text', text: prompt },
+          { type: 'input_text', text: 'Image 1 — original' },
+          { type: 'input_image', image_url: originalImageUrl, detail: visionDetail(undefined, true) },
+          { type: 'input_text', text: 'Image 2 — edited' },
+          { type: 'input_image', image_url: editedImageUrl, detail: visionDetail(undefined, true) },
+        ],
+      }],
+      text: {
+        format: {
+          type: 'json_schema',
+          name: 'smartvideo_ai_image_validation',
+          strict: true,
+          schema: personalizationValidationSchema(),
+        },
+      },
+      max_output_tokens: 1600,
+    });
+
+    const outputText = extractResponsesOutputText(payload);
+    if (!outputText) throw new Error('Vision validation returned no structured output.');
+    const parsed = JSON.parse(outputText);
+    return {
+      validation: {
+        passed: Boolean(parsed.passed),
+        confidence: Number(parsed.confidence) || 0,
+        issues: normalizeVisionStringList(parsed.issues),
+        preserved: normalizeVisionStringList(parsed.preserved),
+        changed: normalizeVisionStringList(parsed.changed),
+        summary: String(parsed.summary || '').slice(0, 1200),
+        analyzedAt: new Date().toISOString(),
+        model: VISION_MODEL,
+      },
+    };
+  }
+
+  const images = Array.isArray(body.images) ? body.images.slice(0, MAX_VISION_IMAGES) : [];
+  if (!images.length) {
+    const error = new Error('At least one image is required.');
+    error.status = 400;
+    throw error;
+  }
+
+  for (const image of images) {
+    if (!image?.id || !isSupportedImageReference(image.imageUrl)) {
+      const error = new Error('Each image requires an id and valid imageUrl.');
+      error.status = 400;
+      throw error;
+    }
+  }
+
+  const businessName = validateInput(String(body.businessContext?.businessName || ''), 'text', 200) || '';
+  const industry = validateInput(String(body.businessContext?.industry || ''), 'text', 120) || '';
+  const productService = validateInput(String(body.businessContext?.productService || ''), 'text', 300) || '';
+  const brandDescription = validateInput(String(body.businessContext?.brandDescription || ''), 'text', 800) || '';
+  const targetVideoFormat = validateInput(String(body.targetVideoFormat || ''), 'text', 80) || '';
+
+  const prompt = [
+    'You are the SmartVideo AI personalization vision planner. Analyze each supplied business image independently and return one analysis for every image id.',
+    'Classify each asset into the allowed categories, score visual quality and business relevance from 0-100, identify important details AI editing should preserve, identify practical visual issues, and recommend only useful editing operation ids.',
+    'Do not recommend destructive creative changes unless clearly justified by the business context.',
+    'For logos, products, branded vehicles, packaging, signage, CTA graphics, and images with small text, prioritize exact visual fidelity.',
+    'For people, prioritize identity, face, hair, skin tone, clothing, and body proportions.',
+    'Use duplicateLikely only when another supplied image appears to show essentially the same asset/content.',
+    `Allowed operation ids: ${Array.from(IMAGE_EDIT_OPERATION_IDS).join(', ')}.`,
+    businessName ? `Business: ${businessName}.` : '',
+    industry ? `Industry: ${industry}.` : '',
+    productService ? `Product/service: ${productService}.` : '',
+    brandDescription ? `Brand description: ${brandDescription}.` : '',
+    targetVideoFormat ? `Target video format: ${targetVideoFormat}.` : '',
+  ].filter(Boolean).join(' ');
+
+  const content = [{ type: 'input_text', text: prompt }];
+  for (const image of images) {
+    const categoryHint = VISION_CATEGORIES.includes(image.categoryHint) ? image.categoryHint : undefined;
+    const roleHint = validateInput(String(image.roleHint || ''), 'text', 80) || '';
+    content.push({
+      type: 'input_text',
+      text: [
+        `Asset id: ${String(image.id).slice(0, 120)}.`,
+        categoryHint ? `Existing category hint: ${categoryHint}.` : '',
+        roleHint ? `Existing personalization role hint: ${roleHint}.` : '',
+      ].filter(Boolean).join(' '),
+    });
+    content.push({
+      type: 'input_image',
+      image_url: image.imageUrl,
+      detail: visionDetail(categoryHint),
+    });
+  }
+
+  const payload = await callOpenAIResponses(process.env.OPENAI_API_KEY, {
+    model: VISION_MODEL,
+    input: [{ role: 'user', content }],
+    text: {
+      format: {
+        type: 'json_schema',
+        name: 'smartvideo_ai_asset_analysis',
+        strict: true,
+        schema: personalizationAnalysisSchema(),
+      },
+    },
+    max_output_tokens: 4000,
+  });
+
+  const outputText = extractResponsesOutputText(payload);
+  if (!outputText) throw new Error('Vision analysis returned no structured output.');
+  const parsed = JSON.parse(outputText);
+  const inputIds = new Set(images.map((image) => String(image.id)));
+  const analyses = (Array.isArray(parsed?.analyses) ? parsed.analyses : [])
+    .filter((analysis) => inputIds.has(String(analysis?.id)))
+    .map((analysis) => ({
+      id: String(analysis.id),
+      category: VISION_CATEGORIES.includes(analysis.category) ? analysis.category : 'irrelevant',
+      confidence: Math.max(0, Math.min(100, Number(analysis.confidence) || 0)),
+      qualityScore: Math.max(0, Math.min(100, Number(analysis.qualityScore) || 0)),
+      relevanceScore: Math.max(0, Math.min(100, Number(analysis.relevanceScore) || 0)),
+      targetRole: String(analysis.targetRole || '').slice(0, 240),
+      preserve: normalizeVisionStringList(analysis.preserve),
+      issues: normalizeVisionStringList(analysis.issues),
+      recommendedOperations: normalizeVisionStringList(analysis.recommendedOperations, 20, 80)
+        .filter((id) => IMAGE_EDIT_OPERATION_IDS.has(id)),
+      transparencyRecommended: Boolean(analysis.transparencyRecommended),
+      precisionRecommended: Boolean(analysis.precisionRecommended),
+      textDetected: Boolean(analysis.textDetected),
+      duplicateLikely: Boolean(analysis.duplicateLikely),
+      summary: String(analysis.summary || '').slice(0, 1200),
+      analyzedAt: new Date().toISOString(),
+      model: VISION_MODEL,
+    }));
+
+  return { analyses, model: VISION_MODEL };
+}
+
 /**
  * Normalize the incoming request path to a route relative to this function.
  *
@@ -463,6 +792,136 @@ export async function handler(event, context) {
       if (scanError) throw scanError;
 
       return { statusCode: 200, headers, body: JSON.stringify({ scanId: scan.id, scanData, usernames }) };
+    }
+
+    // POST /api/personalizer/find-businesses
+    // Free OpenStreetMap/Overpass discovery + Nominatim geocoding.
+    if (path === '/find-businesses' && event.httpMethod === 'POST') {
+      const niche = validateInput(String(body.niche || 'general-business'), 'text', 80) || 'general-business';
+      const location = validateInput(String(body.location || ''), 'text', 240);
+      const radiusMiles = Number(body.radiusMiles || 15);
+      const limit = Number(body.limit || 20);
+      if (!location) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: 'location is required' }) };
+      }
+      try {
+        const result = await findNearbyBusinesses({ niche, location, radiusMiles, limit });
+        return { statusCode: 200, headers, body: JSON.stringify(result) };
+      } catch (businessError) {
+        const message = businessError?.message || 'Business discovery failed.';
+        const status = /required|unsupported|not found|invalid/i.test(message) ? 400 : 502;
+        return { statusCode: status, headers, body: JSON.stringify({ error: message }) };
+      }
+    }
+
+    // POST /api/personalizer/research-business
+    // Free static website research used after a user selects a business.
+    if (path === '/research-business' && event.httpMethod === 'POST') {
+      const websiteUrl = validateInput(String(body.websiteUrl || ''), 'text', 2000);
+      if (!websiteUrl) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: 'websiteUrl is required' }) };
+      }
+      try {
+        const research = await researchBusinessWebsite(websiteUrl);
+        return { statusCode: 200, headers, body: JSON.stringify({ research }) };
+      } catch (businessError) {
+        const message = businessError?.message || 'Business research failed.';
+        const status = /required|allowed|private|resolve/i.test(message) ? 400 : 502;
+        return { statusCode: status, headers, body: JSON.stringify({ error: message }) };
+      }
+    }
+
+    // POST /api/personalizer/discover-assets
+    // Free-first website image discovery. This endpoint deliberately does not
+    // invoke Vision or Firecrawl; it returns review candidates for the user.
+    if (path === '/discover-assets' && event.httpMethod === 'POST') {
+      const websiteUrl = validateInput(String(body.websiteUrl || ''), 'text', 2000);
+      if (!websiteUrl) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: 'websiteUrl is required' }) };
+      }
+      try {
+        const result = await discoverBusinessAssetsFreeFirst({
+          websiteUrl,
+          maxPages: body.maxPages,
+          maxImages: body.maxImages,
+        });
+        return { statusCode: 200, headers, body: JSON.stringify(result) };
+      } catch (assetError) {
+        const message = assetError?.message || 'Asset discovery failed.';
+        const status = /required|allowed|private|resolve/i.test(message) ? 400 : 502;
+        return { statusCode: status, headers, body: JSON.stringify({ error: message }) };
+      }
+    }
+
+    // POST /api/personalizer/download-image
+    // Same-origin, authenticated image preparation for local canvas and mask edits.
+    if (path === '/download-image' && event.httpMethod === 'POST') {
+      const sourceUrl = validateInput(String(body.sourceUrl || ''), 'text', 15000000);
+      if (!sourceUrl) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: 'sourceUrl is required' }) };
+      }
+      try {
+        const image = await downloadPersonalizationImage(sourceUrl);
+        return { statusCode: 200, headers, body: JSON.stringify({ image }) };
+      } catch (imageError) {
+        const message = imageError?.message || 'Image download failed.';
+        const status = /required|allowed|private|resolve|exceeds/i.test(message) ? 400 : 502;
+        return { statusCode: status, headers, body: JSON.stringify({ error: message }) };
+      }
+    }
+
+    // POST /api/personalizer/import-asset
+    // Mirrors only a user-approved image into SmartVideo-controlled storage.
+    if (path === '/import-asset' && event.httpMethod === 'POST') {
+      const sourceUrl = validateInput(String(body.sourceUrl || ''), 'text', 15000000);
+      const role = validateInput(String(body.role || ''), 'text', 80);
+      const name = validateInput(String(body.name || ''), 'text', 200) || '';
+      if (!sourceUrl || !role) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: 'sourceUrl and role are required' }) };
+      }
+      try {
+        const imported = await mirrorPersonalizationAsset({
+          supabase: supabaseService,
+          userId,
+          sourceUrl,
+          role,
+          name,
+        });
+        return { statusCode: 200, headers, body: JSON.stringify({ asset: imported }) };
+      } catch (assetError) {
+        const message = assetError?.message || 'Asset import failed.';
+        const status = /required|unsupported|allowed|private|resolve/i.test(message) ? 400 : 502;
+        return { statusCode: status, headers, body: JSON.stringify({ error: message }) };
+      }
+    }
+
+    // POST /api/personalizer/image-analyze
+    // Auth + rate limiting are enforced by the outer Personalizer handler.
+    // mode=analyze evaluates up to 8 assets; mode=validate compares original
+    // vs edited and returns preservation QA.
+    if (path === '/image-analyze' && event.httpMethod === 'POST') {
+      try {
+        // Record every paid Vision analysis/validation request before calling
+        // OpenAI so the existing per-user project-window limiter actually
+        // advances. If accounting fails, fail closed rather than incur
+        // unmetered API cost.
+        const usageMode = body.mode === 'validate'
+          ? 'image-vision-validate'
+          : 'image-vision-analyze';
+        await recordBillablePersonalizationRequest(userId, usageMode);
+
+        const result = await handlePersonalizationImageVision(body);
+        return { statusCode: 200, headers, body: JSON.stringify(result) };
+      } catch (visionError) {
+        const status = Number.isInteger(visionError?.status) && visionError.status >= 400
+          ? visionError.status
+          : 500;
+        return {
+          statusCode: status,
+          headers,
+          body: JSON.stringify({ error: visionError?.message || 'Vision analysis failed.' }),
+        };
+      }
     }
 
     // POST /api/personalizer/generate

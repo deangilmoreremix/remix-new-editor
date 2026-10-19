@@ -14,6 +14,11 @@ import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
+import { getCinemaStudioAsset } from '../lib/personalizerAdapters.js';
+import {
+    applyPersonalizationInputsToParams,
+    resolvePersonalizationForModel,
+} from '../lib/personalization/studioContext.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
@@ -94,6 +99,7 @@ export function CinemaStudio() {
     // Character Lock: reuses a stored character reference across shots.
     let characterLock = false;
     let customThumbnailUrl = getCustomThumbnailFromCache('cinema-studio');
+    let activePersonalizationContext = null;
 
     // Listen for thumbnails generated via GTM Boost and apply them.
     subscribeToGtmThumbnails(({ imageUrl }) => {
@@ -774,6 +780,45 @@ export function CinemaStudio() {
         controlsContainer: settingsToolbar,
         getTextarea: () => textarea,
         appId: 'cinema-studio',
+        studioId: 'cinema',
+        studioName: 'Cinema Studio',
+        returnRoute: 'cinema',
+        getAsset: () => getCinemaStudioAsset({
+          textarea,
+          settings: currentSettings,
+          customThumbnailUrl,
+          previewUrl: customThumbnailUrl || currentSettings.referenceUrl || '',
+        }),
+        getProject: () => ({}),
+        getPreview: () => customThumbnailUrl || currentSettings.referenceUrl || '',
+        onApply: ({ personalization }) => {
+          activePersonalizationContext = personalization || null;
+          if (!activePersonalizationContext) return;
+          const model = getModelById(currentSettings.model)
+            || getI2VModelById(currentSettings.model)
+            || getVideoModelById(currentSettings.model);
+          const resolved = resolvePersonalizationForModel(activePersonalizationContext, model, { studio: 'cinema' });
+          if (resolved.firstFrameUrl) currentSettings.referenceUrl = resolved.firstFrameUrl;
+          if (resolved.lastFrameUrl) currentSettings.endFrameUrl = resolved.lastFrameUrl;
+          if (resolved.referenceImages?.length) {
+            const existing = (currentSettings.referenceUrls || []).filter((entry) => entry?.url);
+            const existingUrls = new Set(existing.map((entry) => entry.url));
+            const added = resolved.referenceImages
+              .filter((url) => !existingUrls.has(url))
+              .map((url) => ({ type: 'image', url, source: 'personalization' }));
+            currentSettings.referenceUrls = [...existing, ...added];
+          }
+          if (resolved.referenceAudios?.length) {
+            const existing = currentSettings.referenceUrls || [];
+            const existingUrls = new Set(existing.map((entry) => entry.url));
+            currentSettings.referenceUrls = [
+              ...existing,
+              ...resolved.referenceAudios.filter((url) => !existingUrls.has(url)).map((url) => ({ type: 'audio', url, source: 'personalization' })),
+            ];
+          }
+          if (resolved.warnings.length) showToast(resolved.warnings.join(' '), 'info');
+          else showToast('Personalization assets ready for Cinema Studio', 'success');
+        },
     });
 
     promptBar.appendChild(inputArea);
@@ -1418,6 +1463,31 @@ export function CinemaStudio() {
                 refImages = refImages ? [...refImages, ...extraImages] : extraImages;
             }
 
+            if (activePersonalizationContext) {
+                const personalizationModel = getModelById(resolvedModel)
+                  || getI2VModelById(resolvedModel)
+                  || getVideoModelById(resolvedModel);
+                const personalizationInputs = resolvePersonalizationForModel(
+                  activePersonalizationContext,
+                  personalizationModel,
+                  { studio: 'cinema' },
+                );
+                if (personalizationInputs.firstFrameUrl && !currentSettings.referenceUrl) {
+                  currentSettings.referenceUrl = personalizationInputs.firstFrameUrl;
+                }
+                if (personalizationInputs.lastFrameUrl && !currentSettings.endFrameUrl) {
+                  currentSettings.endFrameUrl = personalizationInputs.lastFrameUrl;
+                }
+                if (personalizationInputs.referenceImages.length) {
+                  refImages = Array.from(new Set([...(refImages || []), ...personalizationInputs.referenceImages]));
+                }
+                if (personalizationInputs.referenceAudios.length) {
+                  for (const url of personalizationInputs.referenceAudios) {
+                    if (!extraAudios.includes(url)) extraAudios.push(url);
+                  }
+                }
+            }
+
             let res;
             if (useFrameToFrame) {
                 // First/last-frame: pin both the start and end of the clip.
@@ -1435,7 +1505,7 @@ export function CinemaStudio() {
                 });
             } else if (isRef) {
                 // Image-to-video: use the uploaded still as the seed.
-                const i2vParams = {
+                let i2vParams = {
                     model: resolvedModel,
                     image_url: firstFrameUrl,
                     prompt: finalPrompt,
@@ -1448,9 +1518,19 @@ export function CinemaStudio() {
                 if (characterLock && refImages) i2vParams.character_consistency = true;
                 if (extraVideos.length) i2vParams.reference_videos = extraVideos;
                 if (extraAudios.length) i2vParams.reference_audios = extraAudios;
+                if (activePersonalizationContext) {
+                  i2vParams = applyPersonalizationInputsToParams(
+                    i2vParams,
+                    resolvePersonalizationForModel(
+                      activePersonalizationContext,
+                      getModelById(resolvedModel) || getI2VModelById(resolvedModel),
+                      { studio: 'cinema' },
+                    ),
+                  );
+                }
                 res = await muapi.generateI2V(i2vParams);
             } else {
-                const t2vParams = {
+                let t2vParams = {
                     model: resolvedModel,
                     prompt: finalPrompt,
                     aspect_ratio: currentSettings.aspect_ratio,
@@ -1462,6 +1542,16 @@ export function CinemaStudio() {
                 if (characterLock && refImages) t2vParams.character_consistency = true;
                 if (extraVideos.length) t2vParams.reference_videos = extraVideos;
                 if (extraAudios.length) t2vParams.reference_audios = extraAudios;
+                if (activePersonalizationContext) {
+                  t2vParams = applyPersonalizationInputsToParams(
+                    t2vParams,
+                    resolvePersonalizationForModel(
+                      activePersonalizationContext,
+                      getModelById(resolvedModel) || getVideoModelById(resolvedModel),
+                      { studio: 'cinema' },
+                    ),
+                  );
+                }
                 res = await muapi.generateVideo(t2vParams);
             }
 
