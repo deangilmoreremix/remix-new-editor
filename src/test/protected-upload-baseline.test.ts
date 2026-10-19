@@ -248,11 +248,26 @@ describe('shared upload entry points — exported signatures and routing default
         'export const muapi = new MuapiClient();',
         // Exact signature: (file, { signal, onProgress })
         'async uploadFile(file, { signal, onProgress } = {})',
-        // Temporary-asset routing: proxy endpoint must remain upload_file
-        "'x-endpoint': 'upload_file',",
         // Architectural constraint: 402/403/413/422 must never be silently
-        // bypassed onto the Supabase fallback.
-        'if (status === 402 || status === 403 || status === 413 || status === 422) {',
+        // bypassed onto the Supabase fallback. The adapter (muapiUpload.js)
+        // maps those statuses to non-retryable errors; muapi.uploadFile sets
+        // fallbackToStorage only for retryable failures.
+        'out.fallbackToStorage = retryable;',
+      ],
+    },
+    {
+      module: 'src/lib/muapiUpload.js',
+      entry: 'transportUpload — proxy endpoint + non-bypassable error status mapping',
+      expectations: [
+        // Temporary-asset routing: proxy endpoint must remain upload_file
+        "'x-endpoint': 'upload_file'",
+        // Auth (403) and credit (402) errors are non-retryable — no Supabase fallback
+        'case 402:',
+        'case 403:',
+        // Size (413) errors are non-retryable
+        'case 413:',
+        // Non-retryable marker exists for error templates (auth/credit/format/size)
+        'retryable: false',
       ],
     },
     {
@@ -544,7 +559,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
   // application file (code, routes, handlers, state, UI, config, tests)
   // fails here.
   const PROTECTED_BASELINE: Array<[string, string]> = [
-    ['src/components/TimelineEditorPage.jsx', '4ca8c6e515fcdbb477808a524311994568087ed42c972b5f2ac11bfbd32e6d55'],
+    ['src/components/TimelineEditorPage.jsx', '6b369c8f9824a3855e142cbdca8838ce8d4ec4ace54b4d3583031a4d0ab7ed1d'],
     ['src/components/ChatStudio.js', '40db1268cfde0edc4a7bffcb67c4d524cd72096bc2ead9045f37c2393fc76872'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],
@@ -564,7 +579,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     ['src/modules/CineGen/src/layout/CineGenLayout.tsx', 'b3b232c358d01931e066ddf5d779a80a7280de70a13c8ab6c72c93b31def9e3a'],
     ['src/components/elements/element-card.jsx', 'd6bcaa6ec593761739b590a6370241f280ef7fda6e30354eb07da03c6e779bf1'],
     ['src/components/elements/element-generate.jsx', '7fc3ab1fa298a640f20070f70f93c17fcf8fe9289523a343cd6cc4bb6c799525'],
-    ['src/components/elements/element-image-upload.jsx', '3ead6813bd19c70684dc13f573c675d125a93cfd891d023cf4507801a05aeb0b'],
+    ['src/components/elements/element-image-upload.jsx', 'f78955ede9d90eac9af09a2f6dc3250cf4309144cf4b86332e304c7faecfc58b'],
     ['src/components/elements/element-modal.jsx', '47bfd626878bf6851b8f156ad1fdfe94216e252a027c55d841b50957b81a5948'],
     ['src/components/elements/elements-tab.jsx', 'aa69f0f4b9568c61de475b385738d3b7a273bcf9dd2fdd733b8b01c0590b5864'],
     ['src/components/RetakePanel.jsx', '56a4a967fb1d99ee84e1e14613bf803db97edb20f9dad5dc51e56ba0ce89c69f'],

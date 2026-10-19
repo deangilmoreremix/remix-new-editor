@@ -1,5 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
-import { ingestStudioUpload, describeMuapiUploadError } from '../../lib/muapiStudioMedia.js';
+import { MuapiClient } from '../../lib/muapi.js';
+
+const muapi = new MuapiClient();
 
 export function ElementImageUpload({ onUpload }) {
   const inputRef = useRef(null);
@@ -22,22 +24,16 @@ export function ElementImageUpload({ onUpload }) {
     const uploaded = [];
     for (const file of imageFiles) {
       try {
-        // MuAPI-bound upload: validated by the shared adapter, stored in the
-        // permanent Asset Library, then uploaded to MuAPI. The entry keeps the
-        // permanent reference (assetId + storage URL) so generation can resolve
-        // a fresh MuAPI URL later instead of re-uploading.
-        const stored = await ingestStudioUpload(file, { studioId: 'element-library' });
+        const url = await muapi.uploadFile(file);
         uploaded.push({
           id: crypto.randomUUID(),
-          url: stored.url,
-          assetId: stored.assetId,
-          muapiUrl: stored.muapiUrl,
+          url,
           createdAt: new Date().toISOString(),
           source: 'upload',
         });
       } catch (err) {
         console.error('[element-upload] Failed to upload:', file.name, err);
-        setErrorMessage(await describeMuapiUploadError(err));
+        setErrorMessage(err?.message || 'Upload failed');
       }
       setUploading((prev) => prev - 1);
     }

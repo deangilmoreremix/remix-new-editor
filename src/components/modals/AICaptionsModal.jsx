@@ -404,14 +404,9 @@ export class AICaptionsModal extends BaseModal {
     }, 300);
 
     try {
-      // MuAPI-bound upload: validate through the shared adapter, store the file
-      // in the permanent Asset Library, then upload fresh bytes to MuAPI. Only
-      // the temporary URL is handed to the captioning call — the permanent
-      // asset reference is kept on the modal for reuse.
-      const { ingestStudioUpload } = await import('../../lib/muapiStudioMedia.js');
-      const uploaded = await ingestStudioUpload(this.uploadedFile, { studioId: 'ai-captions' });
-      this.videoUrl = uploaded.muapiUrl || uploaded.url;
-      this.mediaAssetId = uploaded.assetId;
+      const { muapi } = await import('../../lib/muapi.js');
+      const url = await muapi.uploadFile(this.uploadedFile);
+      this.videoUrl = url;
       clearInterval(progressInterval);
       this.uploadProgress = 100;
       this.uploading = false;
@@ -431,12 +426,7 @@ export class AICaptionsModal extends BaseModal {
   }
 
   static async describeUploadError(err) {
-    try {
-      const { describeMuapiUploadError } = await import('../../lib/muapiStudioMedia.js');
-      return describeMuapiUploadError(err);
-    } catch {
-      return err?.message || 'Upload failed';
-    }
+    return err?.message || 'Upload failed';
   }
 
   async generate() {
