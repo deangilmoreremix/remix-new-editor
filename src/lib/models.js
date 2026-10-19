@@ -2266,6 +2266,18 @@ export const t2vModels = [
     }
   },
   {
+    "id": "veo-4-text-to-video",
+    "name": "Veo 4",
+    "provider": "muapi",
+    "provider_name": "MuAPI",
+    "inputs": {
+      "prompt": { "type": "string", "title": "Prompt", "name": "prompt", "description": "Text prompt describing the video." },
+      "aspect_ratio": { "enum": ["16:9", "9:16"], "title": "Aspect Ratio", "name": "aspect_ratio", "type": "string", "description": "Aspect ratio of the output video.", "default": "16:9" },
+      "duration": { "enum": [8], "title": "Duration", "name": "duration", "type": "int", "description": "The duration of the generated video in seconds", "default": 8 },
+      "resolution": { "enum": ["1080p"], "title": "Resolution", "name": "resolution", "type": "string", "description": "The resolution of the generated video.", "default": "1080p" }
+    }
+  },
+  {
     "id": "runway-text-to-video",
     "name": "Runway Gen-3",
     "provider": "runway",
@@ -4705,6 +4717,53 @@ export const i2iModels = [
           "high"
         ],
         "default": "medium"
+      }
+    }
+  },
+  {
+    "id": "gpt-image-2-image-to-image",
+    "name": "GPT Image 2 (Edit)",
+    "provider": "muapi",
+    "provider_name": "MuAPI",
+    "endpoint": "gpt-image-2-image-to-image",
+    "family": "gpt",
+    "imageField": "images_list",
+    "hasPrompt": true,
+    "maxImages": 16,
+    "inputs": {
+      "prompt": {
+        "type": "string",
+        "title": "Prompt",
+        "name": "prompt",
+        "description": "Text instructions describing the desired transformation."
+      },
+      "images_list": {
+        "type": "array",
+        "title": "Image URLs",
+        "name": "images_list",
+        "items": { "type": "string" },
+        "maxItems": 16
+      },
+      "aspect_ratio": {
+        "type": "string",
+        "title": "Aspect Ratio",
+        "name": "aspect_ratio",
+        "enum": ["auto", "1:1", "16:9", "9:16", "4:3", "3:4"],
+        "default": "auto"
+      },
+      "resolution": {
+        "type": "string",
+        "title": "Resolution",
+        "name": "resolution",
+        "enum": ["1K", "2K", "4K"],
+        "default": "2K"
+      },
+      "quality": {
+        "type": "string",
+        "title": "Quality",
+        "name": "quality",
+        "enum": ["low", "medium", "high"],
+        "default": "high"
       }
     }
   },
@@ -8536,53 +8595,6 @@ export const v2vModels = [
     "description": "Remove watermarks, logos, captions, and unwanted text from videos."
   },
   {
-    "id": "gpt-image-2-image-to-image",
-    "name": "GPT Image 2 (Edit)",
-    "provider": "muapi",
-    "provider_name": "MuAPI",
-    "endpoint": "gpt-image-2-image-to-image",
-    "family": "gpt",
-    "imageField": "images_list",
-    "hasPrompt": true,
-    "maxImages": 16,
-    "inputs": {
-      "prompt": {
-        "type": "string",
-        "title": "Prompt",
-        "name": "prompt",
-        "description": "Text instructions describing the desired transformation."
-      },
-      "images_list": {
-        "type": "array",
-        "title": "Image URLs",
-        "name": "images_list",
-        "items": { "type": "string" },
-        "maxItems": 16
-      },
-      "aspect_ratio": {
-        "type": "string",
-        "title": "Aspect Ratio",
-        "name": "aspect_ratio",
-        "enum": ["auto", "1:1", "16:9", "9:16", "4:3", "3:4"],
-        "default": "auto"
-      },
-      "resolution": {
-        "type": "string",
-        "title": "Resolution",
-        "name": "resolution",
-        "enum": ["1K", "2K", "4K"],
-        "default": "2K"
-      },
-      "quality": {
-        "type": "string",
-        "title": "Quality",
-        "name": "quality",
-        "enum": ["low", "medium", "high"],
-        "default": "high"
-      }
-    }
-  },
-  {
     "id": "nano-banana-2-edit",
     "name": "Nano Banana 2 (Edit)",
     "provider": "muapi",
@@ -8708,8 +8720,100 @@ export const v2vModels = [
         "default": "1K"
       }
     }
+  },
+  {
+    "id": "ai-video-face-swap",
+    "name": "AI Video Face Swap",
+    "provider": "muapi",
+    "provider_name": "MuAPI",
+    "endpoint": "ai-video-face-swap",
+    "family": "tools",
+    "videoField": "video_url",
+    "imageField": "image_url",
+    "hasPrompt": true,
+    "description": "Swap a face from a reference image onto a target video.",
+    "inputs": {
+      "image_url": {
+        "type": "string",
+        "title": "Image URL",
+        "name": "image_url",
+        "description": "URL of the face image to swap into the video."
+      },
+      "prompt": {
+        "type": "string",
+        "title": "Prompt",
+        "name": "prompt",
+        "description": "Optional text prompt to guide the face swap."
+      }
+    }
+  },
+  {
+    "id": "kling-v3.0-pro-motion-control",
+    "name": "Kling v3.0 Pro Motion Control",
+    "provider": "muapi",
+    "provider_name": "MuAPI",
+    "endpoint": "kling-v3.0-pro-motion-control",
+    "family": "tools",
+    "videoField": "video_url",
+    "imageField": "image_url",
+    "hasPrompt": true,
+    "description": "Motion-control recast: drive a target video with a reference identity image.",
+    "inputs": {
+      "image_url": {
+        "type": "string",
+        "title": "Image URL",
+        "name": "image_url",
+        "description": "URL of the reference identity image driving the motion."
+      },
+      "prompt": {
+        "type": "string",
+        "title": "Prompt",
+        "name": "prompt",
+        "description": "Optional text prompt to guide the recast."
+      }
+    }
+  },
+  {
+    "id": "add-video-watermark",
+    "name": "Add Video Watermark",
+    "provider": "muapi",
+    "provider_name": "MuAPI",
+    "endpoint": "add-video-watermark",
+    "family": "watermark",
+    "videoField": "video_url",
+    "hasPrompt": false,
+    "inputs": {
+      "position": {
+        "type": "string",
+        "title": "Position",
+        "name": "position",
+        "description": "Position of the watermark on the video",
+        "enum": [
+          "top-left",
+          "top-right",
+          "bottom-left",
+          "bottom-right",
+          "center"
+        ],
+        "default": "bottom-right"
+      },
+      "opacity": {
+        "type": "number",
+        "title": "Opacity",
+        "name": "opacity",
+        "description": "Watermark transparency (0 = invisible, 1 = fully opaque)",
+        "default": 0.7
+      },
+      "scale": {
+        "type": "number",
+        "title": "Scale",
+        "name": "scale",
+        "description": "Watermark size relative to video (0.1 = 10%, 1.0 = 100%)",
+        "default": 0.2
+      }
+    }
   }
- ];
+];
 
 export const getV2VModelById = (id) => v2vModels.find(m => m.id === id);
 

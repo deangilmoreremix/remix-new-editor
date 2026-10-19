@@ -18,6 +18,9 @@ import {
   computeContainRect,
   computeTrailerDuration,
   buildFrameFilename,
+  prepareRenderOverlays,
+  drawOverlays,
+  shouldCompositeOverlays,
 } from '../lib/editor/renderHelpers.js';
 import {
   inspectMediaBlob,
@@ -26,6 +29,11 @@ import {
 } from '../lib/editor/renderMedia.js';
 
 import { generateSubtitles, generateHighlights, generateVoiceover, createShorts, runAiAutoEdit } from '../lib/editor/renderAiActions.js';
+
+// Personalization bridge for Render Studio exports. One imported call per
+// capture site: it is a no-op by reference when personalization is empty and
+// can never throw into the render. See personalize/studioBridge.js.
+import { applyRenderStudioPersonalization } from './personalize/studioBridge.js';
 
 // Repository endpoints
 const REPO_ENDPOINTS = {
@@ -824,7 +832,7 @@ export function RenderPage() {
     });
   }
 
-  async function captureRealVideo({ videoUrl, action, settings = {}, timeRange, effects, preset, onProgress }) {
+  async function captureRealVideo({ videoUrl, action, settings = {}, timeRange, effects, preset, onProgress, overlays = [], overlaysEnabled = true }) {
     // Result identity for the shared Render result model (filename stem).
     const videoIdForResult = resolvedVideoId || '';
     const labelForResult = resolvedTitle || '';
@@ -1027,6 +1035,22 @@ export function RenderPage() {
       ? computeContainRect(vw, vh, cw, ch)
       : computeCoverRect(vw, vh, cw, ch);
 
+    // Overlays (personalized logo / brand reference / business name / CTA) are
+    // composited on top of the decoded frame. Their geometry is normalized to
+    // the VISIBLE video area, so `contain` letterbox bars are never covered.
+    //
+    // SETUP HAPPENS HERE, ONCE: every image overlay is decoded before the
+    // capture starts, so the per-frame draw step below stays synchronous —
+    // no await, no `new Image()` and no network inside the frame loop. A failed
+    // image is skipped with a warning and never stalls or fails the render.
+    const overlayVisibleRect = useContain
+      ? { x: sourceRect.dx, y: sourceRect.dy, width: sourceRect.dw, height: sourceRect.dh }
+      : { x: 0, y: 0, width: cw, height: ch };
+    const compositeOverlays = shouldCompositeOverlays(overlays, overlaysEnabled);
+    const preparedOverlays = compositeOverlays
+      ? await prepareRenderOverlays(overlays)
+      : [];
+
     let rafId = null;
     let frameCount = 0;
     let renderStage = 'preparing';
@@ -1050,6 +1074,12 @@ export function RenderPage() {
       }
       ctx.drawImage(video, sourceRect.sx, sourceRect.sy, sourceRect.sw, sourceRect.sh, sourceRect.dx, sourceRect.dy, sourceRect.dw, sourceRect.dh);
       ctx.restore();
+      // Overlays are drawn AFTER the base frame, so the source video is
+      // composited first and the branding sits on top of it, inside the
+      // visible video area. Synchronous: images were decoded at setup.
+      if (preparedOverlays.length > 0) {
+        drawOverlays(ctx, preparedOverlays, { width: cw, height: ch, visibleRect: overlayVisibleRect });
+      }
       frameCount++;
     } catch (err) {
       console.warn('[Render] drawImage failed', { error: err.message, readyState: video.readyState, currentTime: video.currentTime, paused: video.paused });
@@ -1191,18 +1221,23 @@ export function RenderPage() {
     if (progressPercent) progressPercent.textContent = '0%';
 
     try {
-      const result = await captureRealVideo({
-        videoUrl: payload.videoUrl,
-        action: payload.action,
-        settings: payload.settings || {},
-        timeRange: payload.timeRange,
-        effects: payload.effects,
-        preset: payload.preset || selectedPreset,
-        onProgress: (pct) => {
-          if (progressBar) progressBar.style.width = `${pct}%`;
-          if (progressPercent) progressPercent.textContent = `${pct}%`;
-        },
-      });
+      const result = await captureRealVideo(
+        applyRenderStudioPersonalization({
+          videoUrl: payload.videoUrl,
+          action: payload.action,
+          settings: payload.settings || {},
+          timeRange: payload.timeRange,
+          effects: payload.effects,
+          preset: payload.preset || selectedPreset,
+          // Personalized overlays (logo / business name / CTA). `undefined`
+          // means "not disabled", so the default stays enabled.
+          overlaysEnabled: (payload.settings || {}).overlaysEnabled,
+          onProgress: (pct) => {
+            if (progressBar) progressBar.style.width = `${pct}%`;
+            if (progressPercent) progressPercent.textContent = `${pct}%`;
+          },
+        }),
+      );
       if (onDone) onDone(result);
     } finally {
       if (activeExportCleanup) {
@@ -1221,13 +1256,18 @@ export function RenderPage() {
     if (!sourceUrl) {
       throw new Error('Queued job has no video source to render');
     }
-    return captureRealVideo({
-      videoUrl: sourceUrl,
-      action: 'export-video',
-      settings: (job && job.outputSettings) || getOutputSettings(),
-      preset: selectedPreset,
-      onProgress,
-    });
+    const outputSettings = (job && job.outputSettings) || getOutputSettings();
+    return captureRealVideo(
+      applyRenderStudioPersonalization({
+        videoUrl: sourceUrl,
+        action: 'export-video',
+        settings: outputSettings,
+        // Personalized overlays; `undefined` keeps them enabled by default.
+        overlaysEnabled: outputSettings.overlaysEnabled,
+        preset: selectedPreset,
+        onProgress,
+      }),
+    );
   });
   stopBackgroundProcessor = startProcessor(5000);
 

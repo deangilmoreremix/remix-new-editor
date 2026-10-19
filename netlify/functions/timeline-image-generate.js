@@ -26,6 +26,7 @@
  *   referenceImageUrl?: string,  // for editing
  *   editInstruction?: string,    // for editing
  *   n?: number (1-4),
+ *   model?: 'gpt-image-2' | 'gpt-image-2.5-sunburst' | 'gpt-image-2.5-flare',
  * }
  *
  * Returns: { ok: true, assets: [{ id, type, url, prompt, model, ... }] }
@@ -35,7 +36,34 @@
 const TIMEOUT_MS = 120_000;
 
 const IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL || 'gpt-image-2';
-const RESPONSES_MODEL = process.env.OPENAI_RESPONSES_TEXT_MODEL || 'gpt-5.6';
+const RESPONSES_MODEL = process.env.OPENAI_RESPONSES_TEXT_MODEL || 'gpt-5.6-sol';
+
+/**
+ * Models this function is allowed to call directly on the OpenAI Images API.
+ *
+ * Server-side twin of the family matcher in `src/lib/config/openaiConfig.js`
+ * (`isOpenAIImageModelId` / `isOpenAIImageModel`) — Netlify functions bundle
+ * separately and cannot import from `src/`. It covers the whole current
+ * catalog — `gpt-image-2` plus the `gpt-image-2.5-*` family — so a request
+ * pinned to one of the new IDs is served here instead of being bounced back as
+ * an unknown model. The deprecated `gpt-image-1` / `-1.5` / `-1-mini` IDs are
+ * deliberately NOT included: `gpt-image-1` shuts down 2026-10-23 (1.5/1-mini on
+ * 2026-12-01), so a request naming one is rejected rather than proxied to a
+ * model OpenAI is retiring.
+ *
+ * Unlike the client matcher this is an exact allowlist, not a shape rule: a
+ * server-side allowlist fails closed on an unknown ID instead of forwarding it
+ * to a provider that may 404.
+ */
+const OPENAI_IMAGE_MODELS = Object.freeze([
+  'gpt-image-2',
+  'gpt-image-2.5-sunburst',
+  'gpt-image-2.5-flare',
+]);
+
+function isSupportedImageModel(modelId) {
+  return OPENAI_IMAGE_MODELS.includes(modelId);
+}
 
 const fetchWithTimeout = async (url, options = {}, timeoutMs = TIMEOUT_MS) => {
   const controller = new AbortController();
@@ -146,11 +174,23 @@ export async function handler(event) {
     referenceImageUrl,
     editInstruction,
     n = 1,
+    model,
   } = body;
 
   if (!prompt || !prompt.trim()) {
     return jsonResponse(400, { ok: false, error: 'Prompt is required' });
   }
+
+  // A caller may pin a specific image model. Only the current OpenAI catalog is
+  // accepted — an unknown or deprecated ID is a caller bug, and silently falling
+  // back would generate with a model the caller never asked for.
+  if (model !== undefined && !isSupportedImageModel(model)) {
+    return jsonResponse(400, {
+      ok: false,
+      error: `Unsupported image model: ${model}. Supported: ${OPENAI_IMAGE_MODELS.join(', ')}`,
+    });
+  }
+  const imageModel = model || IMAGE_MODEL;
 
   const resolvedSize = size && size !== 'auto' ? size : aspectToSize(aspectRatio);
   const { width, height } = parseDimensions(resolvedSize);
@@ -189,7 +229,7 @@ export async function handler(event) {
       try {
         const errJson = await respRefine.json();
         detail = errJson?.error?.message || errJson?.details || '';
-      } catch {}
+      } catch { /* error body is not JSON */ }
       return jsonResponse(respRefine.status, { ok: false, error: `OpenAI Responses API error (${respRefine.status})${detail ? `: ${detail}` : ''}` });
     }
     let refineData;
@@ -204,7 +244,7 @@ export async function handler(event) {
 
     // Now call the direct image generation endpoint with the refined prompt
     const directBody = {
-      model: IMAGE_MODEL,
+      model: imageModel,
       prompt: revisedPrompt,
       size: resolvedSize,
       n: Math.min(Math.max(n, 1), 4),
@@ -220,7 +260,7 @@ export async function handler(event) {
   } else {
     // Direct path
     const directBody = {
-      model: IMAGE_MODEL,
+      model: imageModel,
       prompt: prompt.trim(),
       size: resolvedSize,
       n: Math.min(Math.max(n, 1), 4),
@@ -241,7 +281,7 @@ export async function handler(event) {
       const errJson = await imageRes.json();
       detail = errJson?.error?.message || errJson?.details || '';
     } catch {
-      try { detail = await imageRes.text(); } catch {}
+      try { detail = await imageRes.text(); } catch { /* body already consumed or not text */ }
     }
     return jsonResponse(imageRes.status, { ok: false, error: `OpenAI Images API error (${imageRes.status})${detail ? `: ${detail}` : ''}` });
   }
@@ -261,7 +301,7 @@ export async function handler(event) {
         type: 'image',
         source: 'openai',
         provider: 'openai',
-        model: IMAGE_MODEL,
+        model: imageModel,
         name: prompt.slice(0, 60),
         url: `data:image/png;base64,${item.b64_json}`,
         thumbnail: `data:image/png;base64,${item.b64_json}`,
@@ -283,7 +323,7 @@ export async function handler(event) {
         type: 'image',
         source: 'openai',
         provider: 'openai',
-        model: IMAGE_MODEL,
+        model: imageModel,
         name: prompt.slice(0, 60),
         url: item.url,
         thumbnail: item.url,

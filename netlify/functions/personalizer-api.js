@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import crypto from 'node:crypto';
 import { IMAGE_EDIT_OPERATIONS } from '../../src/lib/personalization/imageEditRegistry.js';
 import {
   discoverBusinessAssetsFreeFirst,
@@ -102,7 +103,7 @@ async function callOpenAI(apiKey, systemPrompt, userPrompt) {
     const res = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-      body: JSON.stringify({ model: 'gpt-4-turbo-preview', messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }], temperature: 0.7, max_tokens: 2000 }),
+      body: JSON.stringify({ model: 'gpt-4.1-mini', messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }], temperature: 0.7, max_tokens: 2000 }),
       signal: controller.signal
     });
     if (!res.ok) { const text = await res.text(); throw new Error(`OpenAI API error (${res.status}): ${text}`); }
@@ -1107,7 +1108,7 @@ export async function handler(event, context) {
         try {
           if (process.env.GEMINI_API_KEY) {
             generatedContent = await callGemini(process.env.GEMINI_API_KEY, systemPrompt, userPrompt);
-          } else { throw new Error('Gemini API key not configured'); }
+          } else { throw new Error('Gemini API key not configured', { cause: openaiError }); }
         } catch (geminiError) {
           console.error('Gemini failed:', geminiError.message);
           generatedContent = `Generated ${mode} for ${targetName} at ${targetCompany || 'N/A'}.\n\nNotes: ${manualNotes || 'None'}\n\nScan Data: ${scanDataText}`;
@@ -1214,7 +1215,7 @@ export async function handler(event, context) {
         try {
           if (process.env.GEMINI_API_KEY) {
             generatedContent = await callGemini(process.env.GEMINI_API_KEY, systemPrompt, userPrompt);
-          } else { throw new Error('Gemini API key not configured'); }
+          } else { throw new Error('Gemini API key not configured', { cause: openaiError }); }
         } catch (geminiError) {
           console.error('Gemini failed:', geminiError.message);
           generatedContent = `Visual ${mode} prompt for ${targetName} at ${targetCompany || 'N/A'}. Style: ${visualStyle}. Aspect: ${aspectRatio}. Duration: ${durationSeconds}s.`;
@@ -1686,7 +1687,7 @@ Keep it concise. Do not invent information. If unsure, say "Unknown".`;
               'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
             },
             body: JSON.stringify({
-              model: 'gpt-4-turbo-preview',
+              model: 'gpt-4.1-mini',
               messages: [
                 { role: 'system', content: systemPrompt },
                 { role: 'user', content: markdownReport },

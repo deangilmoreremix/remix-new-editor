@@ -37,8 +37,13 @@ export function initializePexelsIntegration(state, showToast) {
      * @returns {boolean}
      */
     isEnabled: () => {
-      return import.meta.env.VITE_PEXELS_ENABLED === 'true' && 
-             import.meta.env.VITE_PEXELS_API_KEY;
+      // The Pexels API key is SERVER-ONLY. Any VITE_-prefixed variable is
+      // inlined into the public client bundle by Vite, so this client must
+      // never read one. Pexels search goes through the existing /api/pexels
+      // server proxy (src/lib/pexelsApi.js → backend/services/pexelsProxyService.js),
+      // which resolves the key server-side; a user may also supply their own
+      // key in Settings (apiKeyManager) and it is forwarded to the proxy only.
+      return import.meta.env.VITE_PEXELS_ENABLED === 'true';
     }
   };
 }

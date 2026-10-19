@@ -45,6 +45,29 @@ import { enrichPromptString } from '../lib/templateEngine.js';
 import { resolveModel, normalizeAspectRatio, normalizeDuration, attachThumbnail, buildNegativePrompt, formatGenerationError } from '../lib/templateGenerationOrchestrator.js';
 import { saveGeneration } from '../lib/generationHistory.js';
 
+/**
+ * Resolve the `W:H` aspect ratio for a generation request.
+ *
+ * Precedence: the user's explicit choice (`inputs.aspectRatio`, written by the
+ * aspect-ratio control and by the video-intent form) wins over the template
+ * metadata. The template metadata is only the default for a user who has not
+ * picked one, and `16:9` is the safe last resort for a template that carries no
+ * aspect-ratio metadata at all.
+ *
+ * Every branch returns the same `W:H` string shape — the value `muapi.js`
+ * forwards verbatim as `aspect_ratio` for BOTH `generateImage` and
+ * `generateVideo` — so no per-endpoint translation is needed and the format the
+ * API expects is preserved.
+ *
+ * @param {{ aspectRatio?: unknown }} [inputs] user-entered form state
+ * @param {{ aspectRatio?: unknown, aspectRatios?: unknown[] }} [template] template metadata
+ * @returns {string} e.g. '16:9', '9:16', '1:1'
+ */
+export function resolveGenerationAspectRatio(inputs, template) {
+  const requested = typeof inputs?.aspectRatio === 'string' ? inputs.aspectRatio.trim() : '';
+  return requested || normalizeAspectRatio(template || {}) || '16:9';
+}
+
 export function CinemaTemplateStudio() {
   const container = document.createElement('div');
   container.className = 'cinema-template-studio w-full h-full flex flex-col bg-black overflow-hidden';
@@ -2558,7 +2581,11 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       studioType: 'cinema-template',
     };
 
-    const aspectRatio = normalizeAspectRatio(currentTemplate) || '16:9';
+    // The user's explicit aspect-ratio choice (form control / video intent) wins
+    // over the template metadata — otherwise changing the aspect-ratio control
+    // would silently regenerate at the template's default. Fall back to the
+    // template metadata only when the user has not chosen one, then to 16:9.
+    const aspectRatio = resolveGenerationAspectRatio(currentInputs, currentTemplate);
     if (aspectRatio) params.aspect_ratio = aspectRatio;
 
     if (isVideo) {

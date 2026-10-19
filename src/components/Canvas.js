@@ -17,6 +17,7 @@ export class Canvas {
   }
 
   handleDragOver(event) {
+    // A dragover must call preventDefault or the browser will not allow a drop.
     if (event && typeof event.preventDefault === 'function') {
       event.preventDefault();
     }
