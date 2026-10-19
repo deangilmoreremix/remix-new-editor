@@ -45,6 +45,7 @@ const pageLoaders = {
   image: () => import('../components/ImageStudio.js').then(m => m.ImageStudio()),
   video: () => import('../components/VideoStudio.js').then(m => m.VideoStudio()),
   cinema: () => import('../components/CinemaStudio.js').then(m => m.CinemaStudio()),
+  'cinema-template': () => import('../components/CinemaTemplateStudio.js').then(m => m.CinemaTemplateStudio()),
   apps: () => import('../components/AppsHub.js').then(m => m.AppsHub()),
   templates: () => import('../components/TemplatesPage.js').then(m => m.TemplatesPage()),
   effects: () => import('../components/EffectsStudio.js').then(m => m.EffectsStudio()),
