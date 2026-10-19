@@ -1,4 +1,6 @@
 import { muapi } from '../lib/muapi.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
+import { saveGeneration } from '../lib/generationHistory.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
@@ -8,10 +10,9 @@ import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/pe
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
-import { mountModelSelector, getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
+import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
-import { getModelById } from '../lib/models.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import ExampleGallery from './studios/ExampleGallery.js';
 import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
@@ -20,6 +21,7 @@ import { openModelPicker } from '../lib/modelPickerIntegration.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
+import { showToast } from '../lib/loading.js';
 
 const CHARACTER_MODELS = [
   { id: 'flux-pulid', name: 'Flux PuLID', description: 'Face ID preservation with text prompt', provider: 'blackforest', provider_name: 'Black Forest Labs' },
@@ -34,8 +36,9 @@ export function CharacterStudio() {
   let uploadedUrl = null;
   let customThumbnailUrl = getCustomThumbnailFromCache('character-studio');
   let selectedModel = CHARACTER_MODELS[0];
-const dynamicControls = null;
-  const dynamicControlsContainer = null;
+  let dynamicControls = null;
+  let dynamicControlsContainer = null;
+  let _modelSelectorOutsideClickHandler = null;
 
   // Read gallery / deep-link params and apply them as studio defaults.
   try {
@@ -192,7 +195,7 @@ const dynamicControls = null;
       onSelectModel: (id) => {
         selectedModel = CHARACTER_MODELS.find(x => x.id === id) || selectedModel;
       }
-    }).catch((err) => console.error('[ModelPicker] open failed:', err));
+    }).catch(() => {});
   });
   formCard.appendChild(modelPickerBtn);
 
@@ -255,6 +258,28 @@ const pexelsBtn = document.createElement('button');
   promptInput.setAttribute('aria-label', 'Character description');
   formCard.appendChild(promptInput);
 
+  // Dynamic model-specific advanced controls
+  dynamicControlsContainer = document.createElement('div');
+  dynamicControlsContainer.className = 'flex flex-col gap-3';
+  formCard.appendChild(dynamicControlsContainer);
+
+  function buildDynamicControls() {
+    if (!dynamicControlsContainer) return;
+    if (dynamicControls) dynamicControls.destroy();
+    const model = getExtendedModel(selectedModel);
+    if (!model || !model.inputs || Object.keys(model.inputs).length === 0) {
+      dynamicControlsContainer.classList.add('hidden');
+      return;
+    }
+    dynamicControlsContainer.classList.remove('hidden');
+    dynamicControls = createAdvancedControls({
+      model,
+      container: dynamicControlsContainer,
+      exclude: new Set(['prompt', 'image_url']),
+    });
+  }
+  buildDynamicControls();
+
     // Enhancement tools overflow menu (GTM Boost, Recipes, Monetize, Prompts)
     const enhanceMenu = document.createElement('div');
     enhanceMenu.className = 'overflow-menu shrink-0';
@@ -293,14 +318,14 @@ const pexelsBtn = document.createElement('button');
               promptInput.dispatchEvent(new Event('input', { bubbles: true }));
               promptInput.focus();
             });
-          }).catch((err) => console.error('[CharacterStudio] GTM Boost failed:', err));
+          }).catch(() => {});
         } else if (action === 'recipe') {
           openRecipeModal({
             onRunRecipe: (url) => {
             }
-          }).catch((err) => console.error('[Recipe] open failed:', err));
+          }).catch(() => {});
         } else if (action === 'monetize') {
-          openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+          openMonetizationHub().catch(() => {});
         } else if (action === 'prompts') {
           openPromptGallery({
             appTheme: 'character-studio',
@@ -312,7 +337,7 @@ const pexelsBtn = document.createElement('button');
                 ta.focus();
               }
             }
-          }).catch((err) => console.error('[PromptGallery] open failed:', err));
+          }).catch(() => {});
         }
         enhanceMenu.classList.remove('is-open');
       });
@@ -367,7 +392,7 @@ const pexelsBtn = document.createElement('button');
   formCard.appendChild(thumbBtn);
 
   const genBtn = document.createElement('button');
-genBtn.type = 'button';
+ genBtn.type = 'button';
   genBtn.className = 'btn-primary-modern w-full px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all mt-2';
   genBtn.textContent = 'Generate Character';
   genBtn.setAttribute('aria-label', 'Generate character');
@@ -451,7 +476,7 @@ genBtn.type = 'button';
       if (char) {
         uploadedUrl = char.imageUrl;
         promptInput.value = char.description || '';
-        alert(`Loaded character: ${char.name}`);
+        showToast(`Loaded character: ${char.name}`, 'success');
       }
     };
   });
@@ -464,12 +489,17 @@ genBtn.type = 'button';
 
   genBtn.onclick = async () => {
     if (!(await requireEntitlement())) return;
-    if (!uploadedUrl) { alert('Upload a reference face first'); return; }
+    if (!uploadedUrl) {
+      showToast('Upload a reference face first', 'error');
+      return;
+    }
     const apiKey = apiKeyManager.getMuapiKey();
     if (!apiKey) { AuthModal(() => genBtn.click()); return; }
 
     genBtn.disabled = true;
     genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Generating...';
+
+    const controller = new AbortController();
 
     try {
       const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
@@ -477,7 +507,8 @@ genBtn.type = 'button';
         model: selectedModel.id,
         image_url: uploadedUrl,
         prompt: replaceTokensInPrompt(promptInput.value.trim(), activeProfile) || 'professional portrait photo',
-customThumbnailUrl: customThumbnailUrl || undefined,
+        thumbnail_url: customThumbnailUrl || undefined,
+        signal: controller.signal,
       };
       if (dynamicControls) {
         Object.assign(params, dynamicControls.getPayload({}));
@@ -490,7 +521,7 @@ customThumbnailUrl: customThumbnailUrl || undefined,
              <img src="${result.url}" class="w-full rounded-xl mb-3">
              <div class="flex gap-3">
                <a href="${result.url}" download class="flex-1 btn-secondary-modern py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
-               <button class="flex-1 bg-white/10 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-white/20 transition-all" onclick="this.closest('.bg-\\\\[\\\\#111\\\\]').remove()">Generate Again</button>
+               <button class="flex-1 bg-white/10 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-white/20 transition-all regen-btn">Generate Again</button>
                <button type="button" class="publish-social-btn flex-1 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
              </div>
            </div>
@@ -498,9 +529,18 @@ customThumbnailUrl: customThumbnailUrl || undefined,
          const publishBtn = resultArea.querySelector('.publish-social-btn');
          if (publishBtn) publishBtn.onclick = () => openSocialPublish({ mediaUrl: result.url, mediaType: 'image' });
          resultArea.querySelector('button').onclick = () => genBtn.click();
+         saveGeneration({
+           studio: 'character',
+           type: 'image',
+           url: result.url,
+           prompt: promptInput.value.trim(),
+           model: selectedModel.id,
+           parameters: {},
+         });
+         showToast('Character generated successfully!', 'success');
        }
     } catch (err) {
-      alert(`Error: ${err.message}`);
+      showToast(`Error: ${err.message}`, 'error');
     } finally {
       genBtn.disabled = false;
       genBtn.textContent = 'Generate Character';

@@ -135,7 +135,7 @@ async function createRecording(canvas, videoBitmap, durationMs, onProgress) {
 
 self.onmessage = async (event) => {
   try {
-    const { action, videoUrl, settings = {}, timeRange, effects } = event.data || {};
+    const { action, videoUrl, settings = {}, timeRange, effects, layers } = event.data || {};
     
     if (!action || !['export-video', 'trailer-cut', 'social-resize', 'remix-scene', 'composite-layers'].includes(action)) {
       throw new Error(`Unsupported action: ${action}`);

@@ -60,7 +60,7 @@ function buildRunningResult(nodeType, stage, message, extras = {}) {
  * @param {Map<string, Record<string, unknown>>} results
  * @returns {Record<string, unknown>}
  */
-function resolveInputs(portDefs, edges, nodeId, results) {
+export function resolveInputs(portDefs, edges, nodeId, results) {
   const inputs = {};
   for (const input of portDefs) {
     const incomingEdge = edges.find((e) => e.target === nodeId && e.targetHandle === input.id);
@@ -104,7 +104,7 @@ function resolveElementListInputs(edges, nodeId, results) {
  * @param {WorkflowDispatch} dispatch
  * @returns {Record<string, unknown>}
  */
-function resolveUtilityOutputs(nodeType, outputs, data, dispatch) {
+export function resolveUtilityOutputs(nodeType, outputs, data, dispatch) {
   const output = {};
   for (const port of outputs) {
     switch (nodeType) {

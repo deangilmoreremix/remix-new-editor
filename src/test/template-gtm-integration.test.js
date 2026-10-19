@@ -31,18 +31,17 @@ describe('GTM Boost rollout across all studios', () => {
   for (const studio of STUDIOS_WITH_GTM) {
     it(`includes GTM Boost button + modal + theme in ${studio}`, () => {
       const src = fs.readFileSync(path.join(root, `src/components/${studio}.js`), 'utf8');
+      // The GTM Boost trigger lives in the shared enhancement overflow menu
+      // (commit fa8692414 "standardize studio control strips with overflow
+      // menus" replaced the standalone `.gtm-boost-btn` element with
+      // `.overflow-menu__item[data-enhance="gtm"]`), so assert on that marker
+      // instead of the legacy class.
+      expect(src).toContain('data-enhance="gtm"');
       expect(src).toContain('🎯 GTM Boost');
-      expect(src).toContain('gtm-boost-btn');
-      // TemplateStudio uses an inline `import('./modals/GTMPromptModal.jsx')`
-      // (it also captures lastBuiltPrompt), so it has no openGTMPromptModal call.
-      // Every other studio wires the shared openGTMPromptModal helper.
-      if (studio === 'TemplateStudio') {
-        expect(src).toContain('GTMPromptModal');
-      } else {
-        expect(src).toContain('openGTMPromptModal');
-      }
+      // Every studio — TemplateStudio included — wires the shared helper.
+      expect(src).toContain('openGTMPromptModal');
       // Each studio must invoke the modal with its own theme key.
-      expect(src).toContain(`'${EXPECTED_THEMES[studio]}'`);
+      expect(src).toContain(`openGTMPromptModal('${EXPECTED_THEMES[studio]}'`);
     });
   }
 
@@ -73,7 +72,9 @@ describe('Template engine + spec reconciliation (runtime)', () => {
     expect(new Set(idMatches).size).toBe(idMatches.length);
     const missing = idMatches.filter((id) => !specs.TEMPLATE_SPECS[id]);
     expect(missing).toEqual([]);
-  });
+    // templateSpecs.js (~145KB) + templateMatrix.js (~104KB) take several
+    // seconds to transform/import; budget well above the 5s default.
+  }, 30000);
 
   it('enrichPromptString upgrades a plain prompt with niche + cinematography terms', async () => {
     const engine = await import('../lib/templateEngine.js');
@@ -97,7 +98,7 @@ describe('Template engine + spec reconciliation (runtime)', () => {
     const input = engine.deriveEngineInputFromTemplate(t, { niche: 'auto-detect' });
     expect(input).toBeTypeOf('object');
     expect(input.niche).toBe(t.niche);
-  });
+  }, 30000);
 
   it('getNicheTerms returns real terms (no silent GENERAL fallback) for every canonical niche', async () => {
     const engine = await import('../lib/templateEngine.js');

@@ -5,12 +5,13 @@
   "version": "1.0.0",
   "type": "module",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "apps/*"
   ],
   "scripts": {
     "dev": "vite --port 3100",
     "dev:all": "concurrently -n root,video-agent-studio -c magenta,cyan \"npm run dev\" \"npm run dev:video-agent-studio\"",
-    "build": "rm -rf dist && vite build",
+    "build": "npm run build:openthorn && rm -rf dist && vite build",
     "build:ai-vfx": "npm run build --workspace apps/ai-vfx",
     "build:analyze": "vite build --mode analyze",
     "preview": "vite preview",
@@ -31,6 +32,8 @@
     "test:video-agent-studio": "cd apps/video-agent-studio && npm test --if-present",
     "lint:video-agent-studio": "cd apps/video-agent-studio && npm run lint --if-present",
     "verify:video-agent-studio": "node scripts/verify-video-agent-studio.mjs",
+    "build:openthorn": "cd apps/openthorn && npx vite build && rm -rf ../../public/openthorn && cp -r dist ../../public/openthorn",
+    "dev:openthorn": "cd apps/openthorn && npm run dev",
     "update:video-agent-studio-subtree": "git fetch openchatcut && git subtree pull --prefix=apps/video-agent-studio openchatcut main --squash"
   },
   "devDependencies": {
@@ -40,8 +43,10 @@
     "@babel/preset-react": "^8.0.1",
     "@babel/preset-typescript": "^7.29.7",
     "@eslint/compat": "^2.1.1",
+    "@eslint/eslintrc": "^3.3.7",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.61.1",
+    "@testing-library/dom": "^10.4.2",
     "@testing-library/react": "^16.3.2",
     "@typescript-eslint/parser": "^8.70.0",
     "@vitejs/plugin-react": "^4.7.0",
@@ -58,6 +63,7 @@
     "popcorn-js": "https://github.com/strategic-limited/popcorn-js.git#060d40cb3b1a9aff4f67f9c479071b49aa27959a",
     "postcss": "^8.5.6",
     "puppeteer": "^24.43.1",
+    "supertest": "^7.2.2",
     "tailwindcss": "^4.3.2",
     "terser": "^5.48.0",
     "typescript": "^5.4.0",
@@ -68,6 +74,7 @@
     "@chakra-ui/react": "^2.10.10",
     "@clerk/clerk-js": "^6.20.0",
     "@clerk/react": "^6.12.4",
+    "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/modifiers": "^9.0.0",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
@@ -100,6 +107,7 @@
     "@tailwindcss/vite": "^4.3.2",
     "@tanstack/react-virtual": "^3.13.24",
     "@xstate/react": "^6.1.0",
+    "caniuse-lite": "^1.0.30001813",
     "class-variance-authority": "^0.7.1",
     "classnames": "^2.5.1",
     "clsx": "^2.1.1",

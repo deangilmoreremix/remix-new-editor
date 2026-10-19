@@ -90,7 +90,7 @@ export const getAspectRatioOptions = (model, dimensionRatios) => {
 export const buildImageSizePayload = (model, aspectRatio) => {
   const capability = getImageSizeCapability(model);
   if (capability.type === 'aspect_ratio') {
-    return capability.input.enum.includes(aspectRatio) ? { aspect_ratio } : {};
+    return capability.input.enum.includes(aspectRatio) ? { aspect_ratio: aspectRatio } : {};
   }
   const dimensions = resolveImageDimensions(model, aspectRatio);
   return dimensions || {};

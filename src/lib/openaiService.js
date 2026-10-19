@@ -1051,6 +1051,8 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
    * @param {string} [params.outputFormat] - 'png'|'jpeg'|'webp'
    * @param {number} [params.outputCompression] - 0-100 (jpeg/webp)
    * @param {string} [params.moderation] - 'auto'|'low'
+   * @param {string} [params.inputFidelity] - 'low'|'medium'|'high' (non gpt-image-2)
+   * @param {AbortSignal} [params.signal] - optional abort signal for the request
    * @returns {Promise<{ responseId, images, usage? }>}
    */
   async multiTurnImageEditing({
@@ -1066,6 +1068,8 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
     outputFormat = 'png',
     outputCompression,
     moderation = 'auto',
+    inputFidelity,
+    signal,
   } = {}) {
     if (!this._hasKey()) throw new Error(this.missingKeyMessage);
     const openaiKey = this._getOpenAIKey();

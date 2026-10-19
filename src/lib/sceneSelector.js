@@ -11,7 +11,7 @@
 import { getSceneClass, SCENE_CLASSES } from './sceneTaxonomy.js';
 import { getFlowById, getFlowsForTemplate } from './sceneFlows.js';
 import { PACING_OPTIONS } from './cinematicTemplates.js';
-import { sceneTemplateRegistry, createEmptyScene, SHOT_TYPES, CAMERA_MOVEMENTS } from './sceneSchema.js';
+import { sceneTemplateRegistry, createEmptyScene, SHOT_TYPES, CAMERA_MOVEMENTS, SCENE_TYPES, EMOTIONAL_TONES } from './sceneSchema.js';
 
 const DEFAULT_DURATION_BUDGET = 90; // seconds
 const DEFAULT_PACING = PACING_OPTIONS?.MODERATE || { id: 'moderate', beatsPerMinute: 90 };

@@ -25,20 +25,49 @@ import { videoDb } from '../videoDb.js';
  * The redesign stores clips under `project.tracks[].items[]` with `start`/`end`
  * and a `src` (or `assetId`); the worker only needs type + a renderable src.
  */
-function toWorkerTimelineData(state) {
+export function toWorkerTimelineData(state) {
   const project = state?.project || state;
   const tracks = Array.isArray(project?.tracks) ? project.tracks : [];
+  const transitions = Array.isArray(project?.transitions) ? project.transitions : [];
   return {
     duration: state?.duration || state?.timelineSeconds ? (state.timelineSeconds || 5) * 1000 : 5000,
     tracks: tracks.map((track) => {
       const clips = (track.items || track.clips || []).map((clip) => ({
+        id: clip.id,
         type: clip.type || track.type || 'video',
+        // NEVER use proxy sources for export — always use original media
         src: clip.src || clip.url || clip.assetId || null,
         start: clip.start ?? 0,
         end: clip.end ?? (clip.start ?? 0) + 5,
+        duration: clip.duration ?? 5,
+        trimStart: clip.trimStart ?? 0,
+        trimEnd: clip.trimEnd ?? 0,
+        speed: clip.speed ?? 1,
+        opacity: clip.opacity ?? 1,
+        volume: clip.volume ?? 1,
+        flipH: clip.flipH ?? false,
+        flipV: clip.flipV ?? false,
+        width: clip.width ?? 1,
+        height: clip.height ?? 1,
+        keyframes: Array.isArray(clip.keyframes) ? clip.keyframes : [],
+        text: clip.text || clip.content || '',
+        fontFamily: clip.fontFamily || 'sans-serif',
+        fontSize: clip.fontSize || 48,
+        color: clip.color || '#ffffff',
+        textAlign: clip.textAlign || 'center',
+        x: clip.x ?? 0,
+        y: clip.y ?? 0,
       }));
-      return { type: track.type, clips };
+      return { id: track.id, type: track.type, clips };
     }),
+    transitions: transitions.map((t) => ({
+      id: t.id,
+      type: t.type,
+      duration: t.duration,
+      startTime: t.startTime,
+      clipAId: t.clipAId,
+      clipBId: t.clipBId,
+    })),
   };
 }
 

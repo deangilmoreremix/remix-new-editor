@@ -1,5 +1,6 @@
 // Personalize Page component - vanilla JS version
 import ContactImporterModal from './ContactImporterModal.js';
+import { showToast } from '../lib/loading.js';
 
 export default class PersonalizePage {
   constructor(options = {}) {
@@ -220,10 +221,10 @@ export default class PersonalizePage {
         window.analyticsService.trackEvent('contacts_imported', { count: contacts.length });
       }
 
-      alert(`Successfully imported ${contacts.length} contacts!`);
+      showToast(`Successfully imported ${contacts.length} contacts!`, 'success');
     } catch (error) {
-      console.error('Error parsing CSV:', error);
-      alert('Error parsing CSV file. Please check the format.');
+      console.error('PersonalizePage: failed to parse CSV', error);
+      showToast('Error parsing CSV file. Please check the format.', 'error');
     }
   }
 
@@ -269,7 +270,7 @@ export default class PersonalizePage {
 
   async generateVideos() {
     if (this.contacts.length === 0) {
-      alert('Please import contacts first!');
+      showToast('Please import contacts first!', 'warning');
       return;
     }
 
@@ -313,7 +314,7 @@ export default class PersonalizePage {
     progressIndicator.style.display = 'none';
     generateBtn.disabled = false;
 
-    alert(`Successfully generated ${this.contacts.length} personalized videos!`);
+    showToast(`Successfully generated ${this.contacts.length} personalized videos!`, 'success');
 
     // Switch to results view or show download options
     this.showGenerationResults();
@@ -337,7 +338,7 @@ export default class PersonalizePage {
       window.analyticsService.trackEvent('contacts_imported', { count: contacts.length });
     }
 
-    alert(`Successfully imported ${contacts.length} contacts!`);
+    showToast(`Successfully imported ${contacts.length} contacts!`, 'success');
   }
 
   // Close contact importer modal

@@ -1,4 +1,6 @@
 // Contact Importer Modal - Vanilla JS version
+import { showToast } from '../lib/loading.js';
+
 export default class ContactImporterModal {
   constructor(options = {}) {
     this.onClose = options.onClose || (() => {});
@@ -333,7 +335,7 @@ export default class ContactImporterModal {
     if (this.step === 1) {
       if (!this.importSource) return;
       if (this.importSource === 'csv' && !this.file) {
-        alert('Please select a CSV file first.');
+        showToast('Please select a CSV file first.', 'warning');
         return;
       }
     }
@@ -395,7 +397,7 @@ export default class ContactImporterModal {
       const text = await file.text();
       const parsedContacts = this.parseCSV(text);
       if (parsedContacts.length === 0) {
-        alert('No valid contacts found in the CSV file.');
+        showToast('No valid contacts found in the CSV file.', 'warning');
         return;
       }
       this.previewContacts = parsedContacts.slice(0, 5);
@@ -403,8 +405,8 @@ export default class ContactImporterModal {
       this.step = 2;
       this.render();
     } catch (error) {
-      console.error('Error parsing CSV:', error);
-      alert('Error parsing CSV file. Please check the format.');
+      console.error('ContactImporterModal: failed to parse CSV', error);
+      showToast('Error parsing CSV file. Please check the format.', 'error');
     }
   }
 
@@ -432,7 +434,7 @@ export default class ContactImporterModal {
 
   importContacts() {
     if (this.contacts.length === 0) {
-      alert('No contacts to import.');
+      showToast('No contacts to import.', 'warning');
       return;
     }
     this.onContactsImported(this.contacts);

@@ -327,9 +327,20 @@ export function getPreviewClipFromTimeline(timeline, selectedClipId, state) {
     || (original && (original.name || original.heading))
     || '';
 
-  const src = (original && original.src)
+  let src = (original && original.src)
     || (asset && (asset.url || asset.path))
     || undefined;
+
+  // Proxy Playback: use proxy source when proxy mode is active
+  if (state && state.proxyMode) {
+    const proxySrc = (original && original.proxySrc)
+      || clip.proxySrc
+      || (asset && asset.proxySrc)
+      || undefined;
+    if (proxySrc) {
+      src = proxySrc;
+    }
+  }
 
   return {
     id: clip.id,

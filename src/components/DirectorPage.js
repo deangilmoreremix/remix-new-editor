@@ -2,6 +2,8 @@ import { navigate } from '../lib/router.js';
 import { showToast } from '../lib/loading.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { supabase } from '../lib/supabase.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { createIcons, icons } from 'lucide';
 import { escapeHtml } from '../lib/security.js';
 
@@ -409,7 +411,7 @@ export function DirectorPage() {
     const videoId = urlParams.get('videoId') || '';
     const videoUrl = urlParams.get('videoUrl') || '';
 
-    let activeAgents = new Set();
+    const activeAgents = new Set();
     let isProcessing = false;
     let pollAbort = null;
 

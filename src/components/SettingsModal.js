@@ -1,5 +1,6 @@
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { videoDb } from '../lib/videoDb.js';
+import { showToast } from '../lib/loading.js';
 
 /**
  * Build a self-contained settings form for a single provider.
@@ -132,7 +133,7 @@ function buildProviderForm({ title, description, grabUrl, getKey, setKey, clearK
             saveBtn.textContent = 'Saved ✓';
             setTimeout(() => { saveBtn.textContent = 'Save ' + title; }, 1500);
         } catch (err) {
-            alert('Failed to save ' + title + ': ' + err.message);
+            showToast('Failed to save ' + title + ': ' + err.message, 'error');
         }
     });
 
@@ -288,31 +289,6 @@ export function SettingsModal(onClose) {
         },
     });
 
-    const pexelsForm = buildProviderForm({
-        title: 'Pexels API Key',
-        description: 'Used for browsing stock photos and videos in the Pexels media browser. If left empty, the app will use the built-in server key.',
-        grabUrl: 'https://www.pexels.com/api/',
-        getKey: () => apiKeyManager.getPexelsKey(),
-        setKey: (k, p) => apiKeyManager.setPexelsKey(k, p),
-        clearKey: () => apiKeyManager.clearPexelsKey(),
-        placeholder: 'Pexels API key',
-        testConnection: async (key) => {
-            await apiKeyManager.setPexelsKey(key, false);
-            const res = await fetch('/api/pexels/photos/curated', {
-                headers: { 'x-pexels-api-key': key },
-            });
-            if (res.ok) {
-                return { ok: true, message: 'Pexels key is valid ✓' };
-            }
-            let msg = `Connection failed (${res.status}).`;
-            try {
-                const body = await res.json();
-                if (body?.error?.message) msg = body.error.message;
-            } catch { /* ignore */ }
-            return { ok: false, message: msg };
-        },
-    });
-
     const closeRow = document.createElement('div');
     closeRow.className = 'mt-2 flex items-center justify-between gap-3';
 
@@ -334,7 +310,6 @@ export function SettingsModal(onClose) {
     modal.appendChild(muapiForm);
     modal.appendChild(openaiForm);
     modal.appendChild(videodbForm);
-    modal.appendChild(pexelsForm);
     modal.appendChild(closeRow);
     modal.appendChild(closeX);
 

@@ -1,8 +1,9 @@
+import { muapi } from '../muapi.js';
 import { saveGeneratedAsset } from '../../../src/lib/assets/assetActions.js';
 
 export async function generateVideoWithAssetPipeline(prompt, options = {}) {
   // Your existing generation logic here
-  const result = await callMuAPI('/generate/video', { prompt, ...options });
+  const result = await muapi.generateVideo({ prompt, ...options });
   
   // Save to universal asset pipeline
   const asset = await saveGeneratedAsset('video', {
@@ -23,7 +24,7 @@ export async function generateVideoWithAssetPipeline(prompt, options = {}) {
 
 export async function generateImageWithAssetPipeline(prompt, options = {}) {
   // Your existing generation logic here
-  const result = await callMuAPI('/generate/image', { prompt, ...options });
+  const result = await muapi.generateImage({ prompt, ...options });
   
   // Save to universal asset pipeline
   const asset = await saveGeneratedAsset('image', {

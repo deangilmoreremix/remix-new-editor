@@ -2,6 +2,10 @@
 // Hosts Brand Studio inside smartvid.app as an iframe, using the same build.
 // The iframe loads the app's own /brand route with ?iframe=true so it can
 // detect embedded mode and skip its own chrome.
+//
+// NOTE: This component is an iframe shell — it has NO MuAPI integration.
+// All generation logic lives inside the iframe's own Brand Studio. No
+// saveGeneration, brandApi, or muapi calls are made here by design.
 
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { navigate } from '../lib/router.js';
@@ -31,10 +35,8 @@ export function BrandStudioIframe() {
         break;
       case 'save':
         // Handle save from iframe if needed
-        console.log('[BrandStudioIframe] Save requested:', event.data.payload);
         break;
       case 'error':
-        console.error('[BrandStudioIframe] iframe error:', event.data.error);
         break;
       default:
         break;

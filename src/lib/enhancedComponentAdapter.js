@@ -53,7 +53,7 @@ class ComponentAdapter {
     return {
       name: componentName,
       render: function(props) { return '<div class="adapted-component" data-component="' + componentName + '">' + componentName + ' Component</div>'; },
-      props
+      props: {}
     };
   }
 
@@ -136,5 +136,4 @@ componentAdapter.registerAdapter('VideoPlayer', {
   })
 });
 
-export { componentAdapter, ComponentAdapter };</content>
-<parameter name="filePath">/workspaces/SmartVideo/src/lib/enhancedComponentAdapter.js
+export { componentAdapter, ComponentAdapter };

@@ -4,8 +4,8 @@
 // Videos never all autoplay: cards use hover (desktop) / tap (mobile) playback,
 // and the shared governor in mediaFrame.js caps concurrent playback at two.
 
-import { minimaxH3Demos, formatDuration, getCreateTarget as getMinimaxCreateTarget, loadDemoPrompt as loadDemoPromptMinimax } from '../../../data/minimaxH3Demos.js';
-import { seedanceDemos, getCreateTarget as getCreateTargetSeedance, loadDemoPrompt as loadDemoPromptSeedance } from '../../../data/seedanceDemos.js';
+import { minimaxH3Demos, formatDuration, getCreateTarget as getMinimaxCreateTarget, loadDemoPrompt as loadDemoPromptMinimax, ratioToNumber as minimaxRatioToNumber } from '../../../data/minimaxH3Demos.js';
+import { seedanceDemos, getCreateTarget as getCreateTargetSeedance, loadDemoPrompt as loadDemoPromptSeedance, ratioToNumber as seedanceRatioToNumber } from '../../../data/seedanceDemos.js';
 import { createMediaFrame, cleanupFrames, revealOnScroll } from './minimax/mediaFrame.js';
 import {
   injectMinimaxStyles,
@@ -88,7 +88,7 @@ function createReelCard(demo) {
 
   primaryActions.appendChild(createViewPromptButton(demo, handleViewPrompt));
   primaryActions.appendChild(createStyleLink(demo, {
-    label: 'Create This Style',
+    label: 'Create This Type of Video',
     getTarget,
     loadPrompt,
   }));

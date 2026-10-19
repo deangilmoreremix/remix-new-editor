@@ -227,7 +227,7 @@ export class ApiKeyManager {
      * Whether any provider key is configured.
      */
     hasAnyKey() {
-        return this.hasMuapiKey() || this.hasOpenAIKey() || this.hasVideoDBKey() || this.hasPexelsKey();
+        return this.hasMuapiKey() || this.hasOpenAIKey() || this.hasVideoDBKey();
     }
 
     /**

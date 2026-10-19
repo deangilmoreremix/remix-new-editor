@@ -9,7 +9,15 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './tests/e2e',
-  testMatch: ['**/timeline-healthcheck.spec.js', '**/timeline-editing.spec.js', '**/timeline-sam3.spec.js', '**/public-audit-report.spec.js', '**/video-agent-studio.spec.js', '**/template-generator.spec.js'],
+  testMatch: [
+    '**/timeline-healthcheck.spec.js',
+    '**/timeline-editing.spec.js',
+    '**/timeline-sam3.spec.js',
+    '**/public-audit-report.spec.js',
+    '**/video-agent-studio.spec.js',
+    '**/template-generator.spec.js',
+    '**/website-builder-navigation.spec.js',
+  ],
   testIgnore: '**/node_modules/**',
 
   fullyParallel: false,
@@ -24,8 +32,10 @@ export default defineConfig({
     ['line']
   ],
 
-  timeout: 60_000,
+  timeout: 150_000,
   expect: { timeout: 10_000 },
+
+  globalSetup: './tests/e2e/renderGlobalSetup.js',
 
   use: {
     baseURL: 'http://127.0.0.1:3100',

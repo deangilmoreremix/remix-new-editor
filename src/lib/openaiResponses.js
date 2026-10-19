@@ -142,5 +142,12 @@ export async function planAutoEdit(meta = {}, { signal } = {}) {
   }
 }
 
+/**
+ * Edit plan wrapper: consumers access .plan.summary, .plan.sceneOrder, etc.
+ */
+export function wrapEditPlan(parsed) {
+  return { plan: parsed };
+}
+
 export const openaiResponses = { planAutoEdit };
 export default openaiResponses;

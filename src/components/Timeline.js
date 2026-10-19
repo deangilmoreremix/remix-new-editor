@@ -4,25 +4,12 @@ export class Timeline extends Component {
   constructor(props = {}) {
     super(props);
 
+    const initialState = props.initialState || {};
     this.state = {
-      zoom: 1,
-      playheadPercent: 32,
-      timelineSeconds: 60,
-      tracks: [
-        { id: 'video-1', name: 'Video', muted: false, solo: false, locked: true, clips: [
-            { id: 1, name: 'Opening Shot', left: 8, width: 18, type: 'video' },
-            { id: 2, name: 'Generated Clip', left: 34, width: 16, type: 'video' }
-          ]},
-        { id: 'audio-1', name: 'Audio', muted: false, solo: false, locked: false, clips: [
-            { id: 3, name: 'Music Bed', left: 5, width: 42, type: 'audio' }
-          ]},
-        { id: 'text-1', name: 'Text', muted: false, solo: false, locked: false, clips: [
-            { id: 4, name: 'Title Card', left: 14, width: 12, type: 'text' }
-          ]},
-        { id: 'broll-1', name: 'B-Roll', muted: false, solo: false, locked: false, clips: [
-            { id: 5, name: 'City Cutaway', left: 52, width: 20, type: 'broll' }
-          ]}
-      ]
+      zoom: initialState.zoom ?? 1,
+      playheadPercent: initialState.playheadPercent ?? 32,
+      timelineSeconds: initialState.timelineSeconds ?? 60,
+      tracks: initialState.tracks || []
     };
 
     // Bind methods to preserve context

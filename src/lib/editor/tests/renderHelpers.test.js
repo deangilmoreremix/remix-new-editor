@@ -3,9 +3,19 @@ import {
   extensionForMime,
   resolveExportMimeType,
   getVideoBitrate,
-  computeFitSourceRect,
+  computeCoverRect,
+  computeContainRect,
   computeTrailerDuration,
   buildFrameFilename,
+  normalizeSourceDescriptor,
+  clampTimeRange,
+  normalizeHighlightSegments,
+  normalizeSubtitleSegments,
+  validateAutoEditPlan,
+  buildDeliveryManifest,
+  buildRenderFilename,
+  SUPPORTED_TRANSITIONS,
+  SUPPORTED_EFFECTS,
 } from '../renderHelpers.js';
 
 // Mock MediaRecorder for format resolution tests.
@@ -93,24 +103,61 @@ describe('renderHelpers', () => {
     });
   });
 
-  describe('computeFitSourceRect', () => {
-    it('centers-crops when source is wider than destination (contain)', () => {
-      const rect = computeFitSourceRect(1920, 1080, 1080, 1920);
+  describe('computeCoverRect', () => {
+    it('center-crops when source is wider than destination (cover)', () => {
+      const rect = computeCoverRect(1920, 1080, 1080, 1920);
       expect(rect.sw).toBeLessThan(1920);
       expect(rect.sh).toBe(1080);
       expect(rect.sx).toBeGreaterThan(0);
+      expect(rect.dx).toBe(0);
+      expect(rect.dy).toBe(0);
+      expect(rect.dw).toBe(1080);
+      expect(rect.dh).toBe(1920);
     });
 
-    it('centers-crops when source is taller than destination', () => {
-      const rect = computeFitSourceRect(1080, 1920, 1920, 1080);
+    it('center-crops when source is taller than destination', () => {
+      const rect = computeCoverRect(1080, 1920, 1920, 1080);
       expect(rect.sw).toBe(1080);
       expect(rect.sh).toBeLessThan(1920);
       expect(rect.sy).toBeGreaterThan(0);
     });
 
-    it('does not stretch when source and destination match', () => {
-      const rect = computeFitSourceRect(1920, 1080, 1920, 1080);
-      expect(rect).toEqual({ sx: 0, sy: 0, sw: 1920, sh: 1080 });
+    it('does not crop when source and destination match', () => {
+      const rect = computeCoverRect(1920, 1080, 1920, 1080);
+      expect(rect).toEqual({ sx: 0, sy: 0, sw: 1920, sh: 1080, dx: 0, dy: 0, dw: 1920, dh: 1080 });
+    });
+  });
+
+  describe('computeContainRect', () => {
+    it('letterboxes when source is wider than destination', () => {
+      const rect = computeContainRect(1920, 1080, 1080, 1920);
+      // Source is 16:9, destination is 9:16 portrait.
+      // The full width fits, height is reduced, and vertical letterboxing is added.
+      expect(rect.dw).toBe(1080);
+      expect(rect.dh).toBeLessThan(1920);
+      expect(rect.dy).toBeGreaterThan(0);
+      expect(rect.sx).toBe(0);
+      expect(rect.sy).toBe(0);
+      expect(rect.sw).toBe(1920);
+      expect(rect.sh).toBe(1080);
+    });
+
+    it('pillarboxes when source is taller than destination', () => {
+      const rect = computeContainRect(1080, 1920, 1920, 1080);
+      // Source is 9:16 portrait, destination is 16:9 landscape.
+      // The full height fits, width is reduced, and horizontal pillarboxing is added.
+      expect(rect.dw).toBeLessThan(1920);
+      expect(rect.dh).toBe(1080);
+      expect(rect.dx).toBeGreaterThan(0);
+      expect(rect.sx).toBe(0);
+      expect(rect.sy).toBe(0);
+      expect(rect.sw).toBe(1080);
+      expect(rect.sh).toBe(1920);
+    });
+
+    it('does not letterbox when source and destination match', () => {
+      const rect = computeContainRect(1920, 1080, 1920, 1080);
+      expect(rect).toEqual({ sx: 0, sy: 0, sw: 1920, sh: 1080, dx: 0, dy: 0, dw: 1920, dh: 1080 });
     });
   });
 

@@ -1,4 +1,4 @@
-/* eslint-disable no-undef */
+ 
 /**
  * Production-readiness regression tests.
  *
@@ -20,6 +20,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import React from 'react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 
 import {
   escapeHtml,
@@ -246,11 +247,12 @@ describe('openaiService AbortSignal support', () => {
     expect(init.signal).toBe(controller.signal);
   });
 
-  it.skip('multiTurnImageEditing forwards the AbortSignal to fetch (skipped: source bug — `inputFidelity` not destructured in multiTurnImageEditing)', async () => {
-    // Source: src/lib/openaiService.js:1075 throws `ReferenceError: inputFidelity is not defined`
-    // because multiTurnImageEditing does not destructure `inputFidelity` from its
-    // params before passing it to _buildImageGenTool. Filing as a known source bug
-    // — the test would otherwise verify the signal is forwarded.
+  it('multiTurnImageEditing forwards the AbortSignal to fetch', async () => {
+    // Previously skipped (source bug): multiTurnImageEditing did not
+    // destructure `inputFidelity` from its params, so
+    // src/lib/openaiService.js threw `ReferenceError: inputFidelity is not
+    // defined` before the fetch call. The source is now fixed and this
+    // verifies the signal is forwarded.
     globalThis.fetch.mockResolvedValue({
       ok: true,
       json: async () => ({ id: 'resp_3', output: [] }),
@@ -272,7 +274,7 @@ describe('openaiService AbortSignal support', () => {
       'data: {"type":"response.completed","response":{"id":"resp_4","output":[]}}\n\n' +
       'data: [DONE]\n\n';
     const encoder = new TextEncoder();
-    // eslint-disable-next-line no-undef
+     
     const stream = new ReadableStream({
       start(controller) {
         controller.enqueue(encoder.encode(sse));

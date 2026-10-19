@@ -391,7 +391,7 @@ export function SmartVideoViral() {
   let hasMore = true;
   let isLoadingMore = false;
   let heroCollapsed = false;
-  let lastScrollY = 0;
+  const lastScrollY = 0;
   const HERO_COLLAPSE_OFFSET = 120;
   let scrollSpyEl = null;
   let railSections = [];

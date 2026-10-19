@@ -52,6 +52,7 @@ const NAV_ITEMS = [
   { label: 'Cinema',        route: 'cinema' },
   { label: 'Character',     route: 'character' },
   { label: 'Influencer',    route: 'influencer' },
+  { label: 'Website Builder', route: 'website-builder' },
   { label: 'Storyboard',    route: 'storyboard' },
   { label: 'Effects',       route: 'effects' },
   { label: 'Edit',          route: 'edit' },

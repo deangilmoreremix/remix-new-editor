@@ -1,4 +1,6 @@
 import os
+import re
+import logging
 from datetime import datetime
 
 from flask import Blueprint, request, current_app as app
@@ -7,11 +9,24 @@ from werkzeug.utils import secure_filename
 from director.db import load_db
 from director.handler import ChatHandler, SessionHandler, VideoDBHandler, ConfigHandler
 
+logger = logging.getLogger(__name__)
+
 
 agent_bp = Blueprint("agent", __name__, url_prefix="/agent")
 session_bp = Blueprint("session", __name__, url_prefix="/session")
 videodb_bp = Blueprint("videodb", __name__, url_prefix="/videodb")
 config_bp = Blueprint("config", __name__, url_prefix="/config")
+render_bp = Blueprint("render", __name__, url_prefix="/api/render")
+
+
+_RENDER_AGENT_WHITELIST = {
+    "subtitle",
+    "scenes",
+    "highlight_reel",
+    "voiceover",
+    "dubbing",
+    "social",
+}
 
 
 @agent_bp.route("/", methods=["GET", "POST"], strict_slashes=False)
@@ -329,6 +344,61 @@ def videoagent_workflow():
         "command": payload.get("command"),
         "result": "workflow received by Director backend",
     }
+
+
+@render_bp.route("/agent/<agent_name>", methods=["POST"])
+def render_agent(agent_name):
+    """Deterministic direct agent execution for Render Studio finishing ops.
+
+    Request body:
+        {
+            "session_id": "...",
+            "conv_id": "...",
+            "collection_id": "...",
+            "video_id": "...",
+            "params": { ... }
+        }
+
+    Returns normalized agent result or validation error.
+    """
+    if not agent_name or not re.fullmatch(r"[a-z0-9_]+", agent_name):
+        return {"status": "error", "error": "Invalid agent name"}, 400
+
+    if agent_name not in _RENDER_AGENT_WHITELIST:
+        return {
+            "status": "error",
+            "error": f"Agent '{agent_name}' is not allowed for direct render execution",
+            "allowed_agents": sorted(_RENDER_AGENT_WHITELIST),
+        }, 400
+
+    payload = request.get_json(silent=True) or {}
+    params = payload.get("params") or {}
+    if not isinstance(params, dict):
+        return {"status": "error", "error": "params must be a JSON object"}, 400
+
+    collection_id = payload.get("collection_id")
+    video_id = payload.get("video_id")
+    if not collection_id or not video_id:
+        return {"status": "error", "error": "collection_id and video_id are required"}, 400
+
+    try:
+        chat_handler = ChatHandler(
+            db=load_db(os.getenv("SERVER_DB_TYPE", app.config["DB_TYPE"]))
+        )
+        agent_params = {
+            "session_id": payload.get("session_id"),
+            "conv_id": payload.get("conv_id"),
+            "collection_id": collection_id,
+            "video_id": video_id,
+            **params,
+        }
+        result = chat_handler.execute_agent(agent_name, agent_params)
+        return result, 200
+    except ValueError as e:
+        return {"status": "error", "error": str(e)}, 400
+    except Exception as e:
+        logger.exception(f"Direct agent execution failed: {e}")
+        return {"status": "error", "error": str(e)}, 500
 
 
 health_bp = Blueprint("health", __name__)

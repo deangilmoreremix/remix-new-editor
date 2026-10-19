@@ -2,6 +2,7 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { createUploadPicker } from '../components/UploadPicker.js';
 import { createSafeVideo, createSafeImage, safeSetText } from '../lib/security.js';
 import { listContentLibrary, saveContentLibraryEntry, deleteFromContentLibrary } from '../lib/contentLibrary.js';
+import { showToast } from '../lib/loading.js';
 
 export function ContentLibraryPage() {
   const container = document.createElement('div');
@@ -276,7 +277,7 @@ export function ContentLibraryPage() {
         if (confirm(`Delete "${item.filename}"?`)) {
           deleteFromContentLibrary(item.id)
             .then(() => refreshContent())
-            .catch((err) => alert(`Failed to delete: ${err.message}`));
+            .catch((err) => showToast(`Failed to delete: ${err.message}`, 'error'));
         }
       };
       card.appendChild(deleteBtn);

@@ -230,5 +230,41 @@ export const createTimelineState = () => {
     state.timeline = timeline;
   };
 
+  // Proxy Playback Support
+  state.proxyMode = false;
+
+  state.setProxyMode = function(enabled) {
+    state.proxyMode = enabled;
+    if (enabled) {
+      state.generateProxyFiles();
+    } else {
+      state.clearProxyFiles();
+    }
+  };
+
+  state.getClipSource = function(clip) {
+    if (state.proxyMode && clip.proxySrc) {
+      return clip.proxySrc;
+    }
+    return clip.src || clip.url || clip.assetId || null;
+  };
+
+  state.generateProxyFiles = async function() {
+    const { PerformanceManager } = await import('./performanceManager.js');
+    const pm = new PerformanceManager(null, state);
+    await pm.generateProxyFiles();
+  };
+
+  state.clearProxyFiles = function() {
+    const videoTracks = state.tracks.filter(track => track.type === 'video');
+    for (const track of videoTracks) {
+      for (const clip of track.clips) {
+        if (clip.proxySrc) {
+          delete clip.proxySrc;
+        }
+      }
+    }
+  };
+
   return state;
 };

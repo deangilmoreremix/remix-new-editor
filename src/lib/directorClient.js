@@ -1,47 +1,78 @@
 /**
  * Director (VideoDB) client for Render Studio finishing operations.
  *
- * All finishing ops (subtitles, highlights, shorts, voiceover, dubbing, etc.)
- * are delegated to the Director backend, which orchestrates VideoDB. This keeps
- * the actual media work server-side and on VideoDB (per project decision), and
- * removes the MuAPI mock fallbacks that previously violated the "fail loudly"
- * rule (no silent/placeholder results).
- *
  * Transport:
  *  - Video ingest uses the HTTP blueprint  POST /videodb/collection/<id>/video
- *    (confirmed present in apps/director/backend director/entrypoint/api/routes.py).
- *  - Agent execution uses the Director Socket.IO `/chat` namespace (the only
- *    transport — Director exposes chat ONLY over Socket.IO at namespace "/chat").
- *    We connect to that namespace and emit a `chat` event with
- *    { message, agents:[name], collection_id, video_id }, then listen for the
- *    streamed `chat` events carrying the agent output (video stream_url / status).
- *    There is NO HTTP /chat route, so a dropped connection is a loud failure.
- *  - In production the WS upgrade may not traverse the HTTP proxy; set
- *    VITE_DIRECTOR_SOCKET_URL (a wss:// URL) to connect the socket directly.
+ *  - Deterministic Render agent execution uses HTTP POST /api/render/agent/:agentName
+ *  - Interactive Director chat still uses Socket.IO `/chat` namespace.
  *
- * Fail-loud contract: every function either returns a real result (with a
- * `url`/`stream_url` from VideoDB, or structured metadata) or throws. There is
- * intentionally no `simulated` / mock fallback here.
+ * Fail-loud contract: every function either returns a real result or throws.
  */
 
 import { io } from 'socket.io-client';
 
 const DIRECTOR_BASE = '/director-api'; // Vite proxy -> Director backend (localhost:8000 / Render)
-// Socket.IO namespace the Director backend listens on. The backend registers
-// ChatNamespace("/chat") and only handles the "chat" event there — connecting
-// to the default namespace ("/") means the event is never received.
-const DIRECTOR_CHAT_NS = '/chat';
-// In production the HTTP proxy (Netlify) may not forward the Socket.IO WS
-// upgrade, so allow a direct wss:// URL override (set DIRECTOR_SOCKET_URL).
 const DIRECTOR_SOCKET_URL =
   (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_DIRECTOR_SOCKET_URL) ||
   (typeof process !== 'undefined' && process.env && process.env.VITE_DIRECTOR_SOCKET_URL) ||
-  `${DIRECTOR_BASE}${DIRECTOR_CHAT_NS}`;
+  `${DIRECTOR_BASE}/chat`;
 const DEFAULT_COLLECTION_ID = 'default';
-const AGENT_TIMEOUT_MS = 180000; // 3 min — VideoDB ops can be slow
+const AGENT_TIMEOUT_MS = 180000; // 3 min
 
 function resolveCollectionId(collectionId) {
   return collectionId || DEFAULT_COLLECTION_ID;
+}
+
+function assertString(value, name) {
+  if (typeof value !== 'string' || !value.trim()) {
+    throw new TypeError(`${name} must be a non-empty string`);
+  }
+}
+
+function assertObject(value, name) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new TypeError(`${name} must be a JSON object`);
+  }
+}
+
+/**
+ * Normalize a raw Director agent response into the Render contract.
+ */
+export function normalizeDirectorResult(raw, agent) {
+  if (!raw || typeof raw !== 'object') {
+    return {
+      status: 'error',
+      agent,
+      sessionId: null,
+      conversationId: null,
+      collectionId: null,
+      videoId: null,
+      videoUrl: null,
+      scenes: [],
+      highlights: [],
+      subtitles: null,
+      data: {},
+      error: 'Empty or invalid Director response',
+    };
+  }
+
+  const data = raw.data || {};
+  const streamUrl = raw.videoUrl || data.stream_url || data.videoUrl || data.url || null;
+
+  return {
+    status: raw.status === 'error' ? 'error' : 'success',
+    agent: raw.agent || agent,
+    sessionId: raw.sessionId || raw.session_id || null,
+    conversationId: raw.conversationId || raw.conv_id || null,
+    collectionId: raw.collectionId || raw.collection_id || null,
+    videoId: raw.videoId || raw.video_id || null,
+    videoUrl: streamUrl,
+    scenes: Array.isArray(data.scenes) ? data.scenes : [],
+    highlights: Array.isArray(data.highlights) ? data.highlights : [],
+    subtitles: data.subtitles ?? data.transcript ?? null,
+    data: data || {},
+    error: raw.error || null,
+  };
 }
 
 async function postJson(path, body, { signal } = {}) {
@@ -99,15 +130,56 @@ export async function uploadVideoToDirector(videoUrl, { collectionId, name, sign
 }
 
 /**
+ * Execute a named Director agent via the direct HTTP Render API.
+ *
+ * This is the preferred path for deterministic Render Studio actions because it:
+ *  - skips the LLM reasoning layer,
+ *  - returns a normalized JSON contract,
+ *  - does not require Socket.IO.
+ *
+ * @param {object} opts
+ * @param {string} opts.agent            Director agent name (e.g. 'subtitle')
+ * @param {string} opts.videoId          VideoDB video id (from uploadVideoToDirector)
+ * @param {string} [opts.collectionId]
+ * @param {object} [opts.params]         Extra agent parameters
+ * @returns {Promise<object>} normalized result
+ */
+export async function executeDirectAgent({
+  agent,
+  videoId,
+  collectionId,
+  params = {},
+  signal,
+} = {}) {
+  assertString(agent, 'agent');
+  assertString(videoId, 'videoId');
+  const cid = resolveCollectionId(collectionId);
+  assertObject(params, 'params');
+
+  const body = {
+    session_id: params.session_id || '',
+    conv_id: params.conv_id || '',
+    collection_id: cid,
+    video_id: videoId,
+    params: { ...params },
+  };
+
+  const raw = await postJson(`/render/agent/${encodeURIComponent(agent)}`, body, { signal });
+  return normalizeDirectorResult(raw, agent);
+}
+
+/**
  * Invoke a named Director agent against an uploaded video over Socket.IO.
+ * Kept for interactive Director chat; deterministic Render actions should
+ * prefer executeDirectAgent().
  *
  * @param {object} opts
  * @param {string} opts.agent            Director agent name (e.g. 'subtitle')
  * @param {string} opts.videoId          VideoDB video id (from uploadVideoToDirector)
  * @param {string} [opts.collectionId]
  * @param {string} [opts.message]        Free-text instruction for the agent
- * @param {object} [opts.params]         Extra agent parameters (video_language, etc.)
- * @returns {Promise<object>} normalized result { status, url, data }
+ * @param {object} [opts.params]         Extra agent parameters
+ * @returns {Promise<object>} normalized result
  */
 export function invokeDirectorAgent({
   agent,
@@ -155,23 +227,6 @@ export function invokeDirectorAgent({
       });
     }
 
-    const extractUrl = (outputMessage) => {
-      const contents = outputMessage?.content || [];
-      for (const part of contents) {
-        if (part?.agent_name === agent || !part?.agent_name) {
-          const url = part?.video?.stream_url || part?.video?.url;
-          if (url) return url;
-        }
-      }
-      // Fallback: scan any video content.
-      for (const part of contents) {
-        if (part?.video?.stream_url || part?.video?.url) {
-          return part.video.stream_url || part.video.url;
-        }
-      }
-      return null;
-    };
-
     socket.on('connect_error', (err) => {
       clearTimeout(timer);
       finish(reject, new Error(`Director Socket.IO connection failed: ${err?.message || err}`));
@@ -182,42 +237,21 @@ export function invokeDirectorAgent({
     });
 
     socket.on('chat', (outputMessage) => {
-      const status = outputMessage?.status;
-      const url = extractUrl(outputMessage);
-      const agentError = (outputMessage?.content || []).find(
-        (p) => p?.agent_name === agent && p?.status === 'error'
-      );
-
-      if (agentError) {
+      const normalized = normalizeDirectorResult(outputMessage, agent);
+      if (normalized.status === 'error' || normalized.error) {
         clearTimeout(timer);
-        finish(reject, new Error(agentError?.status_message || `Director agent "${agent}" failed`));
+        finish(reject, new Error(normalized.error || `Director agent "${agent}" failed`));
         return;
       }
 
-      if (status === 'error') {
+      if (normalized.videoUrl || normalized.status === 'success') {
         clearTimeout(timer);
-        finish(reject, new Error(outputMessage?.status_message || `Director agent "${agent}" failed`));
-        return;
-      }
-
-      // Resolve as soon as the agent has produced a usable URL or reported success.
-      if (url || status === 'success') {
-        clearTimeout(timer);
-        finish(resolve, {
-          status: status || 'success',
-          url,
-          data: outputMessage,
-          agent,
-        });
+        finish(resolve, normalized);
       }
     });
 
     socket.on('disconnect', () => {
       if (!settled) {
-        // Director exposes agent execution ONLY over the Socket.IO /chat
-        // namespace — there is no HTTP /chat route to fall back to. A dropped
-        // connection without a terminal event is a real failure; surface it
-        // loudly rather than silently substituting a result.
         clearTimeout(timer);
         finish(reject, new Error(`Director agent "${agent}" disconnected before completing`));
       }
@@ -233,7 +267,7 @@ export async function runDirectorFinishingOp(agent, videoUrl, opts = {}) {
   const { collectionId, videoId } = opts.videoId
     ? { collectionId: opts.collectionId, videoId: opts.videoId }
     : await uploadVideoToDirector(videoUrl, opts);
-  const result = await invokeDirectorAgent({ agent, videoId, collectionId, ...opts });
+  const result = await executeDirectAgent({ agent, videoId, collectionId, params: opts.params || {} });
   return { collectionId, videoId, result };
 }
 
@@ -246,9 +280,11 @@ export async function checkDirectorHealth(signal) {
 
 export const directorClient = {
   uploadVideoToDirector,
+  executeDirectAgent,
   invokeDirectorAgent,
   runDirectorFinishingOp,
   checkDirectorHealth,
+  normalizeDirectorResult,
 };
 
 export default directorClient;

@@ -1,6 +1,8 @@
 // JSX to DOM Conversion Utilities
 // Provides createElementFromHTML and JSX-like functionality for vanilla JS
 
+import Component from '../components/base/Component.js';
+
 // Main JSX conversion function
 export function jsx(tag, props, ...children) {
   return { tag, props: props || {}, children: children.flat() };

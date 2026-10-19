@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { cinegen } from '../lib/cinegen.js';
 
 export function ICLoraPanel({ onApply, onClose }) {

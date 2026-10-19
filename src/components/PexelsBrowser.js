@@ -7,6 +7,7 @@ import {
   getCuratedPhotos,
   getPopularVideos,
   getFeaturedCollections,
+  getMyCollections,
   getCollectionMedia,
   clearPexelsCache,
 } from '../lib/pexelsApi.js';

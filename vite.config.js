@@ -103,13 +103,23 @@ const stubLegacy = () => ({
     // Never stub imports from the landing page — those are new-style
     // modules that must resolve to their real files.
     if (importer.includes('src/components/landing/')) return null;
-    // Try Vite's full resolution. If the import resolves to a real file it
-    // should be loaded for real — UNLESS it is genuine (pre-existing) broken
-    // legacy code that fails to parse, in which case we stub it so the build
-    // still completes. Previously a resolved *legacy* target always fell
-    // through to the stub, which replaced real components like VideoStudio.js
-    // with empty `MissingStub` modules that had no named exports (so
-    // `m.VideoStudio` was undefined -> "e.VideoStudio is not a function").
+    if (source.startsWith('/') && fs.existsSync(source)) return null;
+    const isExternal = !source.startsWith('.') && !source.startsWith('/') && !source.startsWith('\0');
+    if (isExternal) {
+      const pkgName = source.split('/')[0];
+      const pkgDir = path.resolve('node_modules', pkgName);
+      if (!fs.existsSync(pkgDir)) {
+        console.warn('[STUB]', source, '<-', importer.replace(process.cwd() + '/', ''));
+        if (process.env.STRICT_IMPORTS) {
+          throw new Error(`Unresolved import "${source}" from ${importer.replace(process.cwd() + '/', '')}`);
+        }
+        const isAsset = /\.(svg|png|jpe?g|webp|gif|ico)(\?|$)/i.test(source);
+        return {
+          id: '\0legacy-' + (isAsset ? 'asset-' : '') + 'stub:' + source + '::' + importer,
+          meta: { legacyStub: { source, importer } }
+        };
+      }
+    }
     const resolved = await this.resolve(source, importer, { skipSelf: true });
     if (resolved) return null;
 
@@ -149,15 +159,16 @@ const stubLegacy = () => ({
       const [source, ...rest] = payload.split('::');
       const importer = rest.join('::');
       console.warn('[stub-legacy] Stubbing unresolved import:', source, '←', importer);
-      console.warn('[stub-legacy] Stubbing unresolved import:', source, '←', importer);
       // Match the exact quoted import path so subpath imports like
       // '@pqina/pintura/pintura.module.css' don't shadow a main-entry
       // import like '@pqina/pintura' in the same file.
       const matchesSource = (line) =>
         line.includes("'" + source + "'") || line.includes('"' + source + '"');
       let names = [];
+      let isDefaultImport = false;
+      let importerText = '';
       try {
-        const importerText = fs.readFileSync(importer, 'utf8');
+        importerText = fs.readFileSync(importer, 'utf8');
         const lines = importerText.split(/\n/);
         for (const line of lines) {
           if (!matchesSource(line)) continue;
@@ -180,10 +191,8 @@ const stubLegacy = () => ({
       } catch (_) {}
       const seen = new Set();
       const uniq = names.filter(n => { if (seen.has(n)) return false; seen.add(n); return true; });
-      let isDefaultImport = false;
       try {
-        const importerText = fs.readFileSync(importer, 'utf8');
-        for (const line of importerText.split(/\n/)) {
+        for (const line of (importerText || '').split(/\n/)) {
           if (!matchesSource(line)) continue;
           if (/^import\s+\w+\s+from\s*['"][^'"]+['"]/.test(line) && !/\{/.test(line) && !/\*/.test(line)) {
             isDefaultImport = true;

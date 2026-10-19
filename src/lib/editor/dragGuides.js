@@ -202,9 +202,9 @@ export function snapToGuides(draggingClip, guides, threshold = 8) {
   const start = draggingClip.start || 0;
   const end = draggingClip.end || start + 5;
   // For each guide, check if start or end is within threshold
-  let bestStart = start;
-  let bestEnd = end;
-  let bestDist = threshold;
+  const bestStart = start;
+  const bestEnd = end;
+  const bestDist = threshold;
   for (const g of guides) {
     // We need to know the scale to compare pixels to time
     // Assume guides already include the time in their label or we use the x
