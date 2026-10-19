@@ -40,9 +40,19 @@
 -- public.generations cross-check lives in the DO block below (dynamic SQL),
 -- because a static view would fail to create on databases where that table
 -- is absent.
+--
+-- WARNING: generations.url exclusion is applied at REPORT TIME ONLY (see the
+-- DO block below), not in this view. A static NOT EXISTS against
+-- public.generations cannot live here because the generations table may not
+-- exist on all databases, and the view would then fail to create. Treat every
+-- row of this view as "unreferenced except possibly by generations.url" and
+-- always apply the report-time generations filter before acting on it.
+-- NOTE: the exposed column is named `url` (full URL semantics), NOT `path`.
+-- Never interpret it as a storage-object key / bucket key; resolving a bucket
+-- key requires parsing the URL first.
 CREATE OR REPLACE VIEW public.muapi_upload_retention_dry_run AS
 SELECT
-  public.muapi_upload_cache.url AS path,
+  public.muapi_upload_cache.url AS url,
   public.muapi_upload_cache.user_id AS user_id,
   public.muapi_upload_cache.asset_id AS asset_id,
   public.muapi_upload_cache.category AS category,
@@ -97,31 +107,41 @@ BEGIN
       IF has_generations THEN
         EXECUTE
           'SELECT count(*) FROM public.muapi_upload_retention_dry_run v '
-          'WHERE EXISTS (SELECT 1 FROM public.generations g WHERE g.url = v.path)'
+          'WHERE EXISTS (SELECT 1 FROM public.generations g WHERE g.url = v.url)'
           INTO gen_protected_total;
-        RAISE NOTICE '[retention dry-run] % candidates are still referenced via generations.url and stay protected.',
+        RAISE NOTICE '[retention dry-run] % candidates are still referenced via generations.url and stay protected (excluded from WOULD-REMOVE below).',
           gen_protected_total;
         FOR sample IN EXECUTE
-          'SELECT v.path, v.user_id, v.asset_id, v.category, v.expires_at, v.days_expired '
+          'SELECT v.url, v.user_id, v.asset_id, v.category, v.expires_at, v.days_expired '
           'FROM public.muapi_upload_retention_dry_run v '
-          'WHERE EXISTS (SELECT 1 FROM public.generations g WHERE g.url = v.path) '
+          'WHERE EXISTS (SELECT 1 FROM public.generations g WHERE g.url = v.url) '
           'ORDER BY v.expires_at LIMIT 25'
         LOOP
-          RAISE NOTICE '[retention dry-run] generations-protected path=% user_id=% asset_id=% category=% expires_at=% days_expired=%',
-            sample.path, sample.user_id, sample.asset_id, sample.category, sample.expires_at, sample.days_expired;
+          RAISE NOTICE '[retention dry-run] generations-protected url=% user_id=% asset_id=% category=% expires_at=% days_expired=%',
+            sample.url, sample.user_id, sample.asset_id, sample.category, sample.expires_at, sample.days_expired;
+        END LOOP;
+
+        -- WOULD-REMOVE sample: only candidates NOT referenced by generations.url.
+        FOR sample IN EXECUTE
+          'SELECT v.url, v.user_id, v.asset_id, v.category, v.expires_at, v.days_expired '
+          'FROM public.muapi_upload_retention_dry_run v '
+          'WHERE NOT EXISTS (SELECT 1 FROM public.generations g WHERE g.url = v.url) '
+          'ORDER BY v.expires_at LIMIT 50'
+        LOOP
+          RAISE NOTICE '[retention dry-run] WOULD-REMOVE candidate url=% user_id=% asset_id=% category=% expires_at=% days_expired=% (no removal performed)',
+            sample.url, sample.user_id, sample.asset_id, sample.category, sample.expires_at, sample.days_expired;
         END LOOP;
       ELSE
         RAISE NOTICE '[retention dry-run] LIMITATION: public.generations is absent, so generation-output references cannot be cross-checked on this database.';
+        FOR sample IN
+          SELECT v.url, v.user_id, v.asset_id, v.category, v.expires_at, v.days_expired
+          FROM public.muapi_upload_retention_dry_run v
+          ORDER BY v.expires_at LIMIT 50
+        LOOP
+          RAISE NOTICE '[retention dry-run] WOULD-REMOVE candidate url=% user_id=% asset_id=% category=% expires_at=% days_expired=% (no removal performed)',
+            sample.url, sample.user_id, sample.asset_id, sample.category, sample.expires_at, sample.days_expired;
+        END LOOP;
       END IF;
-
-      FOR sample IN
-        SELECT v.path, v.user_id, v.asset_id, v.category, v.expires_at, v.days_expired
-        FROM public.muapi_upload_retention_dry_run v
-        ORDER BY v.expires_at LIMIT 50
-      LOOP
-        RAISE NOTICE '[retention dry-run] WOULD-REMOVE candidate path=% user_id=% asset_id=% category=% expires_at=% days_expired=% (no removal performed)',
-          sample.path, sample.user_id, sample.asset_id, sample.category, sample.expires_at, sample.days_expired;
-      END LOOP;
 
       RAISE NOTICE '[retention dry-run] complete: % WOULD-be-removed candidates listed above; 0 objects removed.', candidate_total;
     END IF;
