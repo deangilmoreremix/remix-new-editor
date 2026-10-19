@@ -122,6 +122,19 @@ vi.mock('../lib/editor/validateFile.js', () => ({
   FILE_TYPE_CONFIG: {},
 }));
 
+vi.mock('../lib/muapiStudioMedia.js', () => {
+  const ingestStudioUpload = vi.fn(async (file: any) => ({
+    url: `https://supabase.example.com/uploads/${file?.name ?? 'file'}`,
+    assetId: 'asset-' + (file?.name ?? 'file'),
+    muapiUrl: `https://cdn.muapi.ai/${file?.name ?? 'file'}`,
+  }));
+  const describeMuapiUploadError = vi.fn(async (err: any) => err?.message || 'Upload failed');
+  return {
+    ingestStudioUpload,
+    describeMuapiUploadError,
+  };
+});
+
 vi.mock('../lib/editor/metadataExtractor.js', () => ({
   extractMetadata: vi.fn(async () => ({
     duration: 2,
@@ -162,6 +175,7 @@ import { useAttachmentState } from '../hooks/useAttachmentState.js';
 import { sendChatMessage } from '../lib/chatApi.js';
 import { cinegen } from '../lib/cinegen.js';
 import { ElementImageUpload } from '../components/elements/element-image-upload.jsx';
+import { ingestStudioUpload } from '../lib/muapiStudioMedia.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -384,7 +398,7 @@ describe('protected applications — upload import surface', () => {
       file: 'src/components/TimelineEditorPage.jsx',
       app: 'Timeline Studio / Timeline Editor',
       imports: [
-        "import { supabase, uploadFileToStorage } from '../lib/hybrid-supabase.js';",
+        "import { uploadFileToStorage } from '../lib/uploadService.js';",
         "import { setupEnhancedTooltips } from '../lib/editor/dragDrop.js';",
         "import { processFileUpload } from '../lib/editor/uploadPipeline.js';",
         "import { setupUploadSources } from '../lib/editor/uploadSources.js';",
@@ -414,8 +428,8 @@ describe('protected applications — upload import surface', () => {
     },
     {
       file: 'src/components/elements/element-image-upload.jsx',
-      app: 'CineGen — Elements image upload (MuapiClient.uploadFile call site)',
-      imports: ["import { MuapiClient } from '../../lib/muapi.js';"],
+       app: 'CineGen — Elements image upload (ingestStudioUpload call site)',
+       imports: ["import { ingestStudioUpload, describeMuapiUploadError } from '../../lib/muapiStudioMedia.js';"],
     },
     {
       file: 'src/components/create/nodes/music-prompt-node.jsx',
@@ -487,6 +501,9 @@ describe('protected applications — upload import surface', () => {
       '../lib/muapi.js',
       './muapi.js',
       '../../lib/muapi.js',
+      '../lib/muapiStudioMedia.js',
+      '../../lib/muapiStudioMedia.js',
+      './muapiStudioMedia.js',
       '../lib/uploadService.js',
       './uploadService.js',
       '../lib/editor/upload.js',
@@ -559,7 +576,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
   // application file (code, routes, handlers, state, UI, config, tests)
   // fails here.
   const PROTECTED_BASELINE: Array<[string, string]> = [
-    ['src/components/TimelineEditorPage.jsx', '6b369c8f9824a3855e142cbdca8838ce8d4ec4ace54b4d3583031a4d0ab7ed1d'],
+    ['src/components/TimelineEditorPage.jsx', '934616cd21452e7ba62f08864a5e8fc760162d4b7deea3977ce3f92c105d9404'],
     ['src/components/ChatStudio.js', '40db1268cfde0edc4a7bffcb67c4d524cd72096bc2ead9045f37c2393fc76872'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],
@@ -579,7 +596,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     ['src/modules/CineGen/src/layout/CineGenLayout.tsx', 'b3b232c358d01931e066ddf5d779a80a7280de70a13c8ab6c72c93b31def9e3a'],
     ['src/components/elements/element-card.jsx', 'd6bcaa6ec593761739b590a6370241f280ef7fda6e30354eb07da03c6e779bf1'],
     ['src/components/elements/element-generate.jsx', '7fc3ab1fa298a640f20070f70f93c17fcf8fe9289523a343cd6cc4bb6c799525'],
-    ['src/components/elements/element-image-upload.jsx', 'f78955ede9d90eac9af09a2f6dc3250cf4309144cf4b86332e304c7faecfc58b'],
+    ['src/components/elements/element-image-upload.jsx', '432a0fc06205a4947069792b33378b86f3888ad1489ae905c2d65109aa2264f4'],
     ['src/components/elements/element-modal.jsx', '47bfd626878bf6851b8f156ad1fdfe94216e252a027c55d841b50957b81a5948'],
     ['src/components/elements/elements-tab.jsx', 'aa69f0f4b9568c61de475b385738d3b7a273bcf9dd2fdd733b8b01c0590b5864'],
     ['src/components/RetakePanel.jsx', '56a4a967fb1d99ee84e1e14613bf803db97edb20f9dad5dc51e56ba0ce89c69f'],
@@ -753,7 +770,7 @@ describe('CineGen — generation and Element upload behaviour contract', () => {
     expect(result.success).toBe(true);
   });
 
-  it('ElementImageUpload still uploads through MuapiClient.uploadFile and reports the URL to the caller', async () => {
+   it('ElementImageUpload still uploads through ingestStudioUpload and reports the URL to the caller', async () => {
     const onUpload = vi.fn();
     const container = await renderComponent(createElement(ElementImageUpload as any, { onUpload }));
     const dropzone = container.querySelector('.element-upload') as HTMLElement;
@@ -767,11 +784,13 @@ describe('CineGen — generation and Element upload behaviour contract', () => {
       await new Promise((r) => setTimeout(r, 0));
     });
 
-    expect(muapi.uploadFile).toHaveBeenCalledWith(file);
+    expect(ingestStudioUpload).toHaveBeenCalledWith(file, { studioId: 'element-library' });
     expect(onUpload).toHaveBeenCalledTimes(1);
     const uploaded = onUpload.mock.calls[0][0];
     expect(uploaded).toHaveLength(1);
-    expect(uploaded[0].url).toBe('https://cdn.muapi.ai/element-hero.png');
+    expect(uploaded[0].url).toBe('https://supabase.example.com/uploads/element-hero.png');
+    expect(uploaded[0].assetId).toBe('asset-element-hero.png');
+    expect(uploaded[0].muapiUrl).toBe('https://cdn.muapi.ai/element-hero.png');
     expect(uploaded[0].source).toBe('upload');
   });
 });

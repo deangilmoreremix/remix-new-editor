@@ -474,7 +474,11 @@ export function VideoStudio() {
             textarea.disabled = true;
         } catch (err) {
             showVideoIcon();
-            window.alert(err.message);
+            if (err.message === 'Please sign in and add api credits.') {
+              window.alert(err.message);
+            } else {
+              showInlineError(container, 'Video upload failed: ' + err.message);
+            }
         }
         videoFileInput.value = '';
     };
