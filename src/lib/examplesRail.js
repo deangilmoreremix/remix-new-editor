@@ -8,8 +8,8 @@
 // Used by: Video/Cinema/Commercial/Influencer/Character/Effects/Storyboard
 // studios (MiniMax demos) and the Academy assets gallery.
 
-import { navigate } from '../router.js';
-import { stageStudioPrefill, consumeStudioPrefill } from '../studioPrefill.js';
+import { navigate } from './router.js';
+import { stageStudioPrefill, consumeStudioPrefill } from './studioPrefill.js';
 import {
   getDemoBySlug,
   getMiniMaxDemosWithTargets,

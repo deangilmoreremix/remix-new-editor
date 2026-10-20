@@ -630,11 +630,104 @@ export function TimelineEditorPage() {
     // Initialize keyframe system
     baseState.keyframeSystem = new KeyframeSystem();
 
-    // Unify track.clips and track.items on the base state.
+    // Page-level legacy defaults (restored from pre-regression shape).
+    // Canonical TimelineState provides project.tracks + timelines MAP +
+    // activeTimelineId; the page below also reads top-level tracks, pills,
+    // media, generateTypes, railActions, tools, undo/redo stacks, etc.
+    // These defaults carry NO demo media overlay semantics — tracks are
+    // the prototype seed the page has always shipped with.
+    const demoState = {
+      projectTitle: 'Untitled Sequence',
+      selectedTool: 'Select',
+      selectedClipId: 'clip-hero',
+      generateType: 'Text',
+      playing: false,
+      playheadPercent: 34,
+      viewerMode: 'timeline',
+      proxyEnabled: false,
+      timelineTabs: [],
+      selectedTimelineId: null,
+      activeTimelineId: null,
+      zoom: 1,
+      timelineSeconds: 45,
+      tracks: [
+        { id: 'track-video', type: 'video', name: 'Main Video', muted: false, solo: false, locked: false,
+          clips: [
+            { id: 'clip-hero', name: 'Hero Wide', left: 2, width: 22, type: 'video' },
+            { id: 'clip-product', name: 'Product Spin', left: 25, width: 16, type: 'video' },
+            { id: 'clip-lifestyle', name: 'Lifestyle B', left: 46, width: 20, type: 'video' }
+          ],
+          transitions: [{ left: 40, width: 5, duration: 0.5, name: 'Crossfade' }] },
+        { id: 'track-audio', type: 'audio', name: 'Voiceover', muted: false, solo: false, locked: true,
+          clips: [
+            { id: 'clip-vo1', name: 'VO Take 1', left: 2, width: 40, type: 'audio' },
+            { id: 'clip-vo2', name: 'VO Take 2', left: 44, width: 30, type: 'audio' }
+          ] },
+        { id: 'track-text', type: 'text', name: 'Titles', muted: false, solo: false, locked: false,
+          clips: [
+            { id: 'clip-lower', name: 'Lower Third', left: 8, width: 14, type: 'text' },
+            { id: 'clip-title', name: 'Title Card', left: 30, width: 20, type: 'text' },
+            { id: 'clip-end', name: 'End Card', left: 54, width: 12, type: 'text' }
+          ],
+          markers: [52] },
+        { id: 'track-fx', type: 'effects', name: 'Effects', muted: false, solo: false, locked: false,
+          clips: [
+            { id: 'clip-grade', name: 'Color Grade', left: 2, width: 60, type: 'effects' }
+          ] }
+      ],
+      tools: baseState.tools,
+      pills: ['Text to Video', 'Image to Video', 'Retake', 'Extend', 'B-Roll', 'Music Gen', 'Audio Sync', 'Fill Gap AI', 'Elements', 'Import Timeline', 'IC-LoRA'],
+      topIcons: ['↶','↷','▦','⚙','🔗','🤖','💾'],
+      media: [
+        { icon: '🎬', label: 'Clip 01', type: 'video', desc: '0:14 · 1080p', src: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4' },
+        { icon: '🎙️', label: 'VO Raw', type: 'audio', desc: '0:48 · WAV', src: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3' },
+        { icon: '🖼️', label: 'Logo', type: 'image', desc: 'PNG · 512', src: 'https://picsum.photos/seed/smartvideo/640/360' },
+        { icon: '🎵', label: 'Track', type: 'audio', desc: '2:10 · MP3', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' }
+      ],
+      generateTypes: [['✍️', 'Text'], ['🖼️', 'Image'], ['🔄', 'Retake'], ['➡️', 'Extend'], ['🎞️', 'B-Roll']],
+      quickCommands: ['⚡Generate','Retake','Extend','B-Roll','🎬 Detect Scenes'],
+      railActions: [
+        ['＋', 'Media'],
+        ['✨', 'Generate', true],
+        ['⬆', 'Export'],
+        ['🎬', 'Scene Detector'],
+        ['🎥', 'Camera FX'],
+        ['📊', 'Color Scopes'],
+        ['🎞️', 'Multi-Cam'],
+        ['✂️', 'Clip Editor'],
+        ['🔄', 'Transitions Panel'],
+        ['🎨', 'CineGen Results'],
+        ['🎭', 'Anim Demo'],
+        ['🎨', 'Canvas'],
+        ['🏷️', 'Token Editor'],
+        ['📦', 'Batch Generator'],
+        ['🔄', 'Workflow'],
+        ['👤', 'Personalization'],
+        ['✏️', 'Personalization Editor']
+      ],
+      projectId: null,
+      undoStack: [],
+      redoStack: [],
+      mediaLibrary: [],
+      generationQueue: [],
+      isProcessing: false,
+      insertMode: true,
+      overwriteMode: false,
+      rippleMode: false,
+      snapToGap: true,
+      clipGroups: [],
+      selectedClipIds: new Set(),
+      clipboard: null,
+      timelines: {}
+    };
+
+    const state = { ...baseState, ...demoState };
+
+    // Unify track.clips and track.items on the merged state.
     // track.items is the canonical model; track.clips is a compatibility
     // alias for the 58+ legacy call sites. They reference the SAME array
     // so writes via either name are visible through both.
-    (baseState.tracks || []).forEach(track => {
+    (state.tracks || []).forEach(track => {
       if (!track || typeof track !== 'object') return;
       if (Array.isArray(track.items)) {
         track.clips = track.items;
@@ -649,20 +742,76 @@ export function TimelineEditorPage() {
     // Mirror the legacy store into the new Timeline model. This is the
     // single source of truth going forward; legacy code still reads
     // state.tracks and is kept in sync via the bridge.
-    baseState.timeline = legacyToTimeline(baseState);
+    state.timeline = legacyToTimeline(state);
 
-    return baseState;
+    return state;
+  }
+
+  // Canonical TimelineState shape: state.timelines is a MAP {id: timeline}
+  // keyed by id, with state.activeTimelineId as the pointer.
+  // These helpers present a stable ordered-array view over the map so the
+  // legacy multi-tab UI below keeps working without changing architecture.
+  function timelineList(state) {
+    if (Array.isArray(state.timelines)) return state.timelines;
+    if (state.timelines && typeof state.timelines === 'object') return Object.values(state.timelines);
+    return [];
+  }
+
+  function timelineCount(state) {
+    if (Array.isArray(state.timelines)) return state.timelines.length;
+    if (state.timelines && typeof state.timelines === 'object') return Object.keys(state.timelines).length;
+    return 0;
+  }
+
+  function getTimelineById(state, id) {
+    if (!id) return null;
+    if (Array.isArray(state.timelines)) return state.timelines.find(t => t && t.id === id) || null;
+    if (state.timelines && typeof state.timelines === 'object') return state.timelines[id] || null;
+    return null;
+  }
+
+  function currentTimelineId(state) {
+    return state.activeTimelineId || state.selectedTimelineId || null;
+  }
+
+  function setCurrentTimelineId(state, id) {
+    state.activeTimelineId = id;
+    state.selectedTimelineId = id;
+  }
+
+  function putTimeline(state, tl) {
+    if (Array.isArray(state.timelines)) {
+      const idx = state.timelines.findIndex(t => t && t.id === tl.id);
+      if (idx > -1) state.timelines[idx] = tl; else state.timelines.push(tl);
+    } else {
+      state.timelines = { ...(state.timelines || {}), [tl.id]: tl };
+    }
+  }
+
+  function removeTimelineById(state, id) {
+    if (Array.isArray(state.timelines)) {
+      const idx = state.timelines.findIndex(t => t && t.id === id);
+      if (idx > -1) state.timelines.splice(idx, 1);
+      return idx;
+    }
+    if (state.timelines && typeof state.timelines === 'object' && id in state.timelines) {
+      const next = { ...state.timelines };
+      delete next[id];
+      state.timelines = next;
+      return 0;
+    }
+    return -1;
   }
 
   function getCurrentTimeline(state) {
-    if (!state.timelines || state.timelines.length === 0) {
+    if (!state.timelines || timelineCount(state) === 0) {
       return null;
     }
-    return state.timelines.find(t => t.id === state.selectedTimelineId) || state.timelines[0];
+    return getTimelineById(state, currentTimelineId(state)) || timelineList(state)[0];
   }
 
   function ensureCurrentTimeline(state) {
-    if (!state.timelines || state.timelines.length === 0) {
+    if (!state.timelines || timelineCount(state) === 0) {
       const firstTimeline = {
         id: 'timeline-' + Date.now(),
         projectTitle: state.projectTitle || 'Untitled Sequence',
@@ -671,8 +820,8 @@ export function TimelineEditorPage() {
         timelineSeconds: state.timelineSeconds || 45,
         zoom: state.zoom || 1
       };
-      state.timelines = [firstTimeline];
-      state.selectedTimelineId = firstTimeline.id;
+      putTimeline(state, firstTimeline);
+      setCurrentTimelineId(state, firstTimeline.id);
     }
     return getCurrentTimeline(state);
   }
@@ -690,9 +839,9 @@ export function TimelineEditorPage() {
 
   function switchToTimeline(state, timelineId) {
     syncCurrentTimelineFromState(state);
-    const target = state.timelines.find(t => t.id === timelineId);
+    const target = getTimelineById(state, timelineId);
     if (!target) return;
-    state.selectedTimelineId = timelineId;
+    setCurrentTimelineId(state, timelineId);
     state.projectTitle = target.projectTitle;
     state.tracks = target.tracks;
     state.playheadPercent = target.playheadPercent;
@@ -705,15 +854,14 @@ export function TimelineEditorPage() {
     syncCurrentTimelineFromState(state);
     const newTimeline = {
       id: 'timeline-' + Date.now(),
-      projectTitle: 'Timeline ' + (state.timelines.length + 1),
+      projectTitle: 'Timeline ' + (timelineCount(state) + 1),
       tracks: createState().tracks,
       playheadPercent: 0,
       timelineSeconds: 45,
       zoom: 1
     };
-    state.timelines = state.timelines || [];
-    state.timelines.push(newTimeline);
-    state.selectedTimelineId = newTimeline.id;
+    putTimeline(state, newTimeline);
+    setCurrentTimelineId(state, newTimeline.id);
     state.projectTitle = newTimeline.projectTitle;
     state.tracks = newTimeline.tracks;
     state.playheadPercent = newTimeline.playheadPercent;
@@ -761,18 +909,30 @@ export function TimelineEditorPage() {
         }
         state.tracks = normalizeTrackTypes(state.tracks);
         
-        // Ensure timelines array exists
-        if (!state.timelines || !Array.isArray(state.timelines) || state.timelines.length === 0) {
-          state.timelines = [{
+        // Ensure timelines map exists (canonical TimelineState shape).
+        const migratedList = Array.isArray(state.timelines)
+          ? state.timelines
+          : (state.timelines && typeof state.timelines === 'object' ? Object.values(state.timelines) : null);
+        if (!migratedList || migratedList.length === 0) {
+          const firstTimeline = {
             id: 'timeline-' + Date.now(),
             projectTitle: state.projectTitle || 'Untitled Sequence',
             tracks: state.tracks,
             playheadPercent: state.playheadPercent || 34,
             timelineSeconds: state.timelineSeconds || 45,
             zoom: state.zoom || 1
-          }];
+          };
+          state.timelines = { [firstTimeline.id]: firstTimeline };
+          setCurrentTimelineId(state, firstTimeline.id);
+        } else if (Array.isArray(state.timelines)) {
+          // Normalize legacy array shape to canonical map shape.
+          const map = {};
+          for (const t of state.timelines) { if (t && t.id) map[t.id] = t; }
+          state.timelines = map;
+          setCurrentTimelineId(state, currentTimelineId(state) || migratedList[0].id);
+        } else if (!currentTimelineId(state) || !state.timelines[currentTimelineId(state)]) {
+          setCurrentTimelineId(state, migratedList[0].id);
         }
-        state.selectedTimelineId = state.selectedTimelineId || state.timelines[0].id;
         
         // Mirror the legacy store into the new Timeline model so the
         // editor can start reading from it without waiting for every
@@ -6405,8 +6565,8 @@ export function TimelineEditorPage() {
 
     function renderTimelineTabs() {
       if (!els.timelineTabsContainer) return;
-      const timelines = state.timelines || [];
-      const selectedId = state.selectedTimelineId;
+      const timelines = timelineList(state);
+      const selectedId = currentTimelineId(state);
       els.timelineTabsContainer.innerHTML = timelines.map(t => `
         <button class="mini-btn timeline-tab-btn ${t.id === selectedId ? 'active' : ''}" data-timeline-id="${t.id}" title="${escapeHtml(t.projectTitle || 'Untitled')}">
           ${escapeHtml(t.projectTitle || 'Timeline')}
@@ -6419,11 +6579,11 @@ export function TimelineEditorPage() {
           if (e.target.classList.contains('tab-close')) {
             e.stopPropagation();
             const id = e.target.dataset.timelineId;
-            const idx = (state.timelines || []).findIndex(t => t.id === id);
-            if (idx > -1 && (state.timelines || []).length > 1) {
-              state.timelines.splice(idx, 1);
-              if (state.selectedTimelineId === id) {
-                switchToTimeline(state, state.timelines[0]?.id || state.timelines[0]?.id);
+            const idx = timelineList(state).findIndex(t => t.id === id);
+            if (idx > -1 && timelineCount(state) > 1) {
+              removeTimelineById(state, id);
+              if (currentTimelineId(state) === id) {
+                switchToTimeline(state, timelineList(state)[0]?.id);
               }
               renderAll();
             }

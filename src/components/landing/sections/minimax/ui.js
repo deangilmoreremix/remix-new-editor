@@ -217,7 +217,6 @@ export function createStyleLink(demo, options = {}) {
     event.preventDefault();
     // Stage the prefill and route in-app with the full prompt text.
     const { stageStudioPrefill } = await import('../../../../lib/studioPrefill.js');
-    const { navigate } = await import('../../../../lib/router.js');
     const route = target.route;
     // Load the prompt text if a loader was provided
     let promptText = '';
@@ -234,8 +233,11 @@ export function createStyleLink(demo, options = {}) {
       ref: target.params?.ref || 'minimax-h3',
       autoGenerate: Boolean(autoGenerate),
     });
-    // Navigate with params so the studio can resolve the template from the URL
-    navigate(route, target.params || {});
+    // Navigate with params so the studio can resolve the template from the URL.
+    // Use goToRoute (not navigate): on the standalone landing page the
+    // in-app router is never mounted (main.js returns early), so navigate()
+    // is a no-op; goToRoute falls back to a full page load there.
+    goToRoute(route, target.params || {});
   });
 
   return link;

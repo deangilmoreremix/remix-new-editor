@@ -393,6 +393,7 @@ const COMMERCIAL_MODELS = [
     const { consumeAndApply, renderExamplesRail, getMiniMaxDemosWithTargets } = await import('../lib/examplesRail.js');
     consumeAndApply('commercial', (staged) => {
       if (staged.model) selectedModel = staged.model;
+      if (staged.prompt) commercialPrompt = staged.prompt;
     });
     const demos = getMiniMaxDemosWithTargets().filter((d) => d.__route === 'commercial');
     const rail = renderExamplesRail({
