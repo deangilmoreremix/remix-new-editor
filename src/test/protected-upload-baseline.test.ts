@@ -116,6 +116,48 @@ vi.mock('../lib/hybrid-supabase.js', () => ({
   isSupabaseConfigured: () => true,
 }));
 
+// The studio media bridge (src/lib/muapiStudioMedia.js) is the APPROVED upload
+// path for studio components: ElementImageUpload calls
+// ingestStudioUpload(file, { studioId }) and the bridge validates, stores a
+// permanent Asset Library row, then uploads through the shared adapter
+// (src/lib/muapiUpload.js → official MuAPI File Upload API). Mocking here
+// keeps the behaviour contract deterministic without touching the network;
+// the delegation itself is pinned by source-text assertions below.
+vi.mock('../lib/muapiStudioMedia.js', () => ({
+  getMuapiAuthContext: vi.fn(async () => ({
+    userId: 'user-a',
+    workspaceId: 'ws-1',
+    muapiKey: 'test-muapi-key',
+  })),
+  ingestStudioUpload: vi.fn(async (file: any) => ({
+    assetId: `asset-${file?.name ?? 'file'}`,
+    url: `https://storage.test.local/${file?.name ?? 'file'}`,
+    path: `user-a/${file?.name ?? 'file'}`,
+    name: file?.name ?? 'file',
+    type: file?.type ?? 'image/png',
+    category: 'image',
+    mime: file?.type ?? 'image/png',
+    sizeBytes: file?.size ?? 0,
+    reused: false,
+    muapiUrl: `https://api.muapi.ai/tmp/${file?.name ?? 'file'}`,
+  })),
+  resolveMuapiMediaRef: vi.fn(async (ref: any) =>
+    typeof ref === 'string' ? ref : (ref?.url ?? null),
+  ),
+  resolveMuapiMediaRefs: vi.fn(async (refs: any) =>
+    (Array.isArray(refs) ? refs : [])
+      .map((r: any) => (typeof r === 'string' ? r : r?.url))
+      .filter(Boolean),
+  ),
+  resolvePersonalizationMediaRef: vi.fn(async (el: any) => el?.src || el?.url || null),
+  describeMuapiUploadError: vi.fn(async (error: any) => error?.message || 'Upload failed.'),
+  createStudioInFlightGuard: vi.fn(() => ({
+    isBusy: () => false,
+    keys: () => [],
+    run: async (_key: string, fn: () => Promise<any>) => ({ skipped: false, value: await fn() }),
+  })),
+}));
+
 vi.mock('../lib/editor/validateFile.js', () => ({
   validateFile: vi.fn(async (file: any) => ({
     valid: true,
@@ -166,6 +208,7 @@ import { muapi } from '../lib/muapi.js';
 import { supabase } from '../lib/supabase.js';
 import { uploadFileToStorage } from '../lib/uploadService.js';
 import { processFileUpload } from '../lib/editor/uploadPipeline.js';
+import { ingestStudioUpload } from '../lib/muapiStudioMedia.js';
 import { useAttachmentState } from '../hooks/useAttachmentState.js';
 import { sendChatMessage } from '../lib/chatApi.js';
 import { cinegen } from '../lib/cinegen.js';
@@ -258,9 +301,11 @@ describe('shared upload entry points — exported signatures and routing default
         'async uploadFile(file, { signal, onProgress } = {})',
         // Temporary-asset routing: proxy endpoint must remain upload_file
         "'x-endpoint': 'upload_file',",
-        // Architectural constraint: 402/403/413/422 must never be silently
-        // bypassed onto the Supabase fallback.
-        'if (status === 402 || status === 403 || status === 413 || status === 422) {',
+        // Architectural constraint: 401/402/403/413/415/422 must never be
+        // silently bypassed onto the Supabase fallback. 401 (invalid key)
+        // and 415 (unsupported media type) were added deliberately so they
+        // reject instead of falling back to storage.
+        'if (status === 401 || status === 402 || status === 403 || status === 413 || status === 415 || status === 422) {',
       ],
     },
     {
@@ -407,8 +452,8 @@ describe('protected applications — upload import surface', () => {
     },
     {
       file: 'src/components/elements/element-image-upload.jsx',
-      app: 'CineGen — Elements image upload (MuapiClient.uploadFile call site)',
-      imports: ["import { MuapiClient } from '../../lib/muapi.js';"],
+      app: 'CineGen — Elements image upload (studio media bridge call site)',
+      imports: ["import { ingestStudioUpload, describeMuapiUploadError } from '../../lib/muapiStudioMedia.js';"],
     },
     {
       file: 'src/components/create/nodes/music-prompt-node.jsx',
@@ -496,6 +541,19 @@ describe('protected applications — upload import surface', () => {
       '../supabase.js',
       '../lib/hybrid-supabase.js',
       './hybrid-supabase.js',
+      // approved studio media bridge (muapiStudioMedia.js → muapiUpload.js →
+      // official MuAPI File Upload API). Owned by the upload-pipeline repair;
+      // the bridge is the CORRECT upload path for studio components (Element
+      // image upload, AI Captions modal) — it validates, stores a permanent
+      // Asset Library row, then uploads through the shared adapter. Any
+      // component outside the bridge call-site list reaching muapiStudioMedia
+      // still fails this guard.
+      '../lib/muapiStudioMedia.js',
+      './muapiStudioMedia.js',
+      '../../lib/muapiStudioMedia.js',
+      '../lib/muapiUpload.js',
+      './muapiUpload.js',
+      '../../lib/muapiUpload.js',
       // protected Timeline entry-point internals
       '../lib/editor/uploadSources.js',
       './uploadSources.js',
@@ -553,11 +611,16 @@ describe('protected application files — byte-for-byte integrity baseline', () 
   // fails here.
   //
   // Three entries below were re-recorded deliberately for intentional,
-  // reviewed edits (cinegen personalization merge; two import repairs). Each
-  // re-recorded file is additionally covered by the SEMANTIC INTEGRITY
-  // assertions in section 5, which are what now stop a dangerous edit — a byte
-  // hash cannot distinguish an approved edit from an accidental one, so those
-  // files are guarded by meaning rather than by bytes.
+  // reviewed edits (cinegen personalization merge; two import repairs). Four
+  // further entries (ChatStudio.js, element-image-upload.jsx, ICLoraPanel.jsx,
+  // dragDrop.js) were re-recorded deliberately for the release tree: the
+  // recorded hashes came from PR #28's tree and never matched the release
+  // tree's actual bytes (the files themselves are byte-identical to
+  // origin/main). Each re-recorded file is additionally covered by the
+  // SEMANTIC INTEGRITY assertions in section 5, which are what now stop a
+  // dangerous edit — a byte hash cannot distinguish an approved edit from an
+  // accidental one, so those files are guarded by meaning rather than by
+  // bytes.
   const PROTECTED_BASELINE: Array<[string, string]> = [
     // Re-recorded deliberately: the keyboard tool shortcut stored the lowercase
     // tool id while the toolbar / mask overlay compared display labels, so the
@@ -565,7 +628,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // through a single normaliser (`selectedToolLabel()`). No upload-pipeline
     // behaviour changed. Semantic coverage in section 5.
     ['src/components/TimelineEditorPage.jsx', '77cddd200205c9a1b0c55ef18ab34080f0ee66990cf9554193ea4760cceab3de'],
-    ['src/components/ChatStudio.js', '5ce9d04474523b8e9790e1e904ce173da92240aabc7b824726544cd3913a11ea'],
+    ['src/components/ChatStudio.js', '40db1268cfde0edc4a7bffcb67c4d524cd72096bc2ead9045f37c2393fc76872'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],
     ['src/components/chat/ChatMessage.jsx', 'b2e236103147d0fdfb59165599a5963e09878f5b28cc0992a75650d77b9e9008'],
@@ -591,11 +654,11 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     ['src/modules/CineGen/src/layout/CineGenLayout.tsx', 'b3b232c358d01931e066ddf5d779a80a7280de70a13c8ab6c72c93b31def9e3a'],
     ['src/components/elements/element-card.jsx', 'd6bcaa6ec593761739b590a6370241f280ef7fda6e30354eb07da03c6e779bf1'],
     ['src/components/elements/element-generate.jsx', '7fc3ab1fa298a640f20070f70f93c17fcf8fe9289523a343cd6cc4bb6c799525'],
-    ['src/components/elements/element-image-upload.jsx', '3ead6813bd19c70684dc13f573c675d125a93cfd891d023cf4507801a05aeb0b'],
+    ['src/components/elements/element-image-upload.jsx', '432a0fc06205a4947069792b33378b86f3888ad1489ae905c2d65109aa2264f4'],
     ['src/components/elements/element-modal.jsx', '47bfd626878bf6851b8f156ad1fdfe94216e252a027c55d841b50957b81a5948'],
     ['src/components/elements/elements-tab.jsx', 'aa69f0f4b9568c61de475b385738d3b7a273bcf9dd2fdd733b8b01c0590b5864'],
     ['src/components/RetakePanel.jsx', '56a4a967fb1d99ee84e1e14613bf803db97edb20f9dad5dc51e56ba0ce89c69f'],
-    ['src/components/ICLoraPanel.jsx', '89ca90c33d5a447699e67e9aad7ef2afb0e531379a19f85fc83744aa6135cd70'],
+    ['src/components/ICLoraPanel.jsx', '8fb03a11d0d44efe3155d61fc985406732a58edd07a8c09b836984eaab2deb5b'],
     ['src/components/modals/ExtendModal.jsx', '858fab83c74da4b39551b54099d355c38994bc0c170c4469e0341a590186f180'],
     ['src/components/modals/FillGapModal.jsx', 'a54bf8adc5ecf4288d467b435bb4b39a12f8fb40f06fbfca9c7219a9170e1cb6'],
     ['src/components/modals/MusicGenerationModal.jsx', 'a4c551e4f9eb1cd39002a20db266fd54a949f9af29821a094e8e8113ea8d3a72'],
@@ -612,7 +675,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // mediaLibrary.js:968 processFileUpload; aiTools.js:318 uploadFileToStorage
     // from src/lib/supabase.js), so they are pinned byte-for-byte — not merely
     // through their import statements — to catch an in-body re-route.
-    ['src/lib/editor/dragDrop.js', '222285d3a03aec02b2ee7841f3d2689bc9f0dad1c83c1211d68c47df71c0840a'],
+    ['src/lib/editor/dragDrop.js', '548e957727fb80e478cea90f89988845088a010f39d778fd9aa5e3ab54eb2d50'],
     // Re-recorded deliberately after commit dfd5fb3e6 repaired a broken
     // relative import in this file (`../mediaLibrary.js` →
     // `./mediaLibrary.js`). No upload-pipeline behaviour changed. Semantic
@@ -665,7 +728,9 @@ describe('protected application files — byte-for-byte integrity baseline', () 
 // A byte hash is an all-or-nothing guard: the moment it is re-recorded for an
 // approved edit, it stops protecting the file entirely. Every file whose hash
 // was deliberately re-recorded (cinegen.js, AIChatPanel.js, uploadSources.js,
-// TimelineEditorPage.jsx) therefore gets these assertions instead. They are
+// TimelineEditorPage.jsx, plus the four release-tree re-records ChatStudio.js,
+// element-image-upload.jsx, ICLoraPanel.jsx, dragDrop.js) therefore gets these
+// assertions instead. They are
 // written to survive formatting and harmless inline edits while still failing
 // on the edits that actually hurt:
 //
@@ -702,6 +767,30 @@ const SEMANTIC_GUARDED: Array<{ file: string; app: string; exports: string[] }> 
     file: 'src/components/TimelineEditorPage.jsx',
     app: 'Timeline Studio / Timeline Editor',
     exports: ['TimelineEditorPage'],
+  },
+  // Re-recorded deliberately for the release tree (hashes computed against
+  // #28's tree no longer match the release tree; the files themselves are
+  // byte-identical to origin/main). Each gets the same three semantic guards
+  // as the files above so the byte relaxation is paid for.
+  {
+    file: 'src/components/ChatStudio.js',
+    app: 'Chat — studio entry point',
+    exports: ['ChatStudio'],
+  },
+  {
+    file: 'src/components/elements/element-image-upload.jsx',
+    app: 'CineGen — Elements image upload',
+    exports: ['ElementImageUpload'],
+  },
+  {
+    file: 'src/components/ICLoraPanel.jsx',
+    app: 'CineGen — IC-LoRA panel',
+    exports: ['ICLoraPanel'],
+  },
+  {
+    file: 'src/lib/editor/dragDrop.js',
+    app: 'Timeline Editor — drag & drop',
+    exports: ['setupEnhancedTooltips', 'uploadFile', 'processMultipleFiles'],
   },
 ];
 
@@ -808,6 +897,64 @@ describe('protected files — semantic integrity assertions', () => {
     // The keyboard tool shortcut must keep writing toolMap's value verbatim —
     // src/lib/editor/__tests__/timeline-editor-mask.test.js pins this line.
     expect(source).toContain('state.selectedTool = toolMap[toolKey]');
+  });
+
+  it('ChatStudio.js still routes generation through the shared muapi singleton', () => {
+    // Re-recorded file: the byte hash alone no longer protects the Chat
+    // generation path, so these assertions carry that weight.
+    const source = readSource('src/components/ChatStudio.js');
+    expect(source).toContain("import { muapi } from '../lib/muapi.js';");
+    expect(source).toContain('export function ChatStudio()');
+    expect(source).toContain('muapi.generateText({');
+    // Must not bypass the proxy with a direct provider fetch or a new upload
+    // module outside the shared contract set.
+    expect(source).not.toMatch(DIRECT_PROVIDER_FETCH);
+    expect(source).not.toContain('muapiStudioMedia');
+    expect(source).not.toContain('ingestStudioUpload');
+  });
+
+  it('element-image-upload.jsx keeps its bridge delegation and public entry point', () => {
+    // Re-recorded file: the byte hash alone no longer protects the Element
+    // upload path. (The section 4 behaviour contract additionally proves the
+    // live delegation end-to-end through the mocked bridge.)
+    const source = readSource('src/components/elements/element-image-upload.jsx');
+    expect(source).toContain('export function ElementImageUpload(');
+    expect(source).toContain(
+      "import { ingestStudioUpload, describeMuapiUploadError } from '../../lib/muapiStudioMedia.js';",
+    );
+    expect(source).toContain("await ingestStudioUpload(file, { studioId: 'element-library' })");
+    expect(source).toContain('await describeMuapiUploadError(err)');
+    // Must not re-implement an upload transport or route around the bridge.
+    expect(source).not.toContain('MuapiClient');
+    expect(source).not.toMatch(DIRECT_PROVIDER_FETCH);
+  });
+
+  it('ICLoraPanel.jsx still applies through cinegen and exports its panel', () => {
+    // Re-recorded file: the byte hash alone no longer protects the CineGen
+    // LoRA apply path.
+    const source = readSource('src/components/ICLoraPanel.jsx');
+    expect(source).toContain('export function ICLoraPanel(');
+    expect(source).toContain('export default ICLoraPanel;');
+    expect(source).toContain("import { cinegen } from '../lib/cinegen.js';");
+    expect(source).toContain('cinegen.applyEditTool(');
+    expect(source).not.toMatch(DIRECT_PROVIDER_FETCH);
+  });
+
+  it('dragDrop.js keeps its shared upload entry points and live call sites', () => {
+    // Re-recorded file: the byte hash alone no longer protects the Timeline
+    // drag-and-drop upload call sites (Supabase-direct uploadFileToStorage at
+    // :172/:229 and processFileUpload at :1559).
+    const source = readSource('src/lib/editor/dragDrop.js');
+    expect(source).toContain("import { uploadFileToStorage } from '../lib/uploadService.js';");
+    expect(source).toContain("import { processFileUpload } from './uploadPipeline.js';");
+    expect(source).toContain('await uploadFileToStorage(file)');
+    expect(source).toContain('await processFileUpload(file,');
+    expect(source).toContain('export function setupEnhancedTooltips()');
+    // Must not bypass the shared entry points with a direct provider fetch or
+    // a new upload module outside the shared contract set.
+    expect(source).not.toMatch(DIRECT_PROVIDER_FETCH);
+    expect(source).not.toContain('muapiStudioMedia');
+    expect(source).not.toContain('ingestStudioUpload');
   });
 });
 
@@ -934,7 +1081,15 @@ describe('CineGen — generation and Element upload behaviour contract', () => {
     expect(result.success).toBe(true);
   });
 
-  it('ElementImageUpload still uploads through MuapiClient.uploadFile and reports the URL to the caller', async () => {
+  it('ElementImageUpload still uploads through the studio media bridge and reports the URL to the caller', async () => {
+    // CURRENT, CORRECT path (byte-identical to origin/main): the component
+    // calls ingestStudioUpload(file, { studioId: 'element-library' }) from
+    // src/lib/muapiStudioMedia.js, which validates, stores a permanent Asset
+    // Library row, then uploads through the shared adapter
+    // (src/lib/muapiUpload.js → official MuAPI File Upload API). The import
+    // surface above pins the bridge import; these assertions pin the live
+    // behaviour: the bridge receives the file and the caller gets back one
+    // entry per file with the permanent URL and source 'upload'.
     const onUpload = vi.fn();
     const container = await renderComponent(createElement(ElementImageUpload as any, { onUpload }));
     const dropzone = container.querySelector('.element-upload') as HTMLElement;
@@ -948,11 +1103,48 @@ describe('CineGen — generation and Element upload behaviour contract', () => {
       await new Promise((r) => setTimeout(r, 0));
     });
 
-    expect(muapi.uploadFile).toHaveBeenCalledWith(file);
+    // The bridge — not a direct MuapiClient call — receives the file with the
+    // element-library studio scope.
+    expect(ingestStudioUpload).toHaveBeenCalledTimes(1);
+    expect(ingestStudioUpload).toHaveBeenCalledWith(
+      file,
+      expect.objectContaining({ studioId: 'element-library' }),
+    );
+    // ...and the permanent URL it returned is reported to the caller.
     expect(onUpload).toHaveBeenCalledTimes(1);
     const uploaded = onUpload.mock.calls[0][0];
     expect(uploaded).toHaveLength(1);
-    expect(uploaded[0].url).toBe('https://cdn.muapi.ai/element-hero.png');
+    expect(uploaded[0].url).toBe('https://storage.test.local/element-hero.png');
+    expect(uploaded[0].assetId).toBe('asset-element-hero.png');
+    expect(uploaded[0].muapiUrl).toBe('https://api.muapi.ai/tmp/element-hero.png');
     expect(uploaded[0].source).toBe('upload');
+  });
+
+  it('ElementImageUpload still routes through the shared bridge into the shared upload adapter', () => {
+    // Source-text pin: the component must keep delegating to ingestStudioUpload
+    // (and surface bridge errors via describeMuapiUploadError) rather than
+    // re-implementing an upload transport or importing MuapiClient directly.
+    const source = readSource('src/components/elements/element-image-upload.jsx');
+    expect(source).toContain(
+      "import { ingestStudioUpload, describeMuapiUploadError } from '../../lib/muapiStudioMedia.js';",
+    );
+    expect(source).toContain("await ingestStudioUpload(file, { studioId: 'element-library' })");
+    expect(source).toContain('await describeMuapiUploadError(err)');
+    expect(source).not.toContain('MuapiClient');
+    expect(source).not.toContain('uploadFileToStorage');
+
+    // Bridge-text pin: the bridge must keep delegating to the shared adapter
+    // (never a second upload implementation).
+    const bridge = readSource('src/lib/muapiStudioMedia.js');
+    expect(bridge).toContain("return import('./muapiUpload.js');");
+    expect(bridge).toContain('await muapiUpload.validateMuAPIUpload(file)');
+    expect(bridge).toContain('await muapiUpload.uploadImageToMuAPI(file, authContext)');
+    expect(bridge).toContain('await muapiUpload.resolveMuAPIMediaInput(asset.id, authContext)');
+
+    // Adapter-text pin: the adapter's image path must stay a thin wrapper over
+    // the single shared transport (coreUpload) — no forked implementation.
+    const adapter = readSource('src/lib/muapiUpload.js');
+    expect(adapter).toContain('export function uploadImageToMuAPI(file, authContext, options = {}) {');
+    expect(adapter).toContain("return coreUpload(file, authContext, options, 'image');");
   });
 });

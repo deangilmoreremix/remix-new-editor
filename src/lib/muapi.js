@@ -46,6 +46,8 @@ const STATIC_OUTPUT_PATTERNS = [
   '/muapi/homepage/',
   '/muapi/demo/',
   '/muapi/sandbox/',
+  '/webassets/videomodels/',
+  '/webassets/',
   '/placeholder/',
   '/sample/',
   '/static/demo/',
@@ -821,10 +823,12 @@ export class MuapiClient {
                     }
 
                     const status = response.status;
-                    const err = new Error(`Upload failed: ${errText.slice(0, 200)}`);
+                    const err = status === 401
+                        ? new Error(`Upload failed: Invalid API key — ${errText.slice(0, 200)}`)
+                        : new Error(`Upload failed: ${errText.slice(0, 200)}`);
                     err.status = status;
 
-                    if (status === 402 || status === 403 || status === 413 || status === 422) {
+                    if (status === 401 || status === 402 || status === 403 || status === 413 || status === 415 || status === 422) {
                         err.retryable = false;
                         throw err;
                     }
@@ -904,7 +908,7 @@ export class MuapiClient {
             throw lastErr;
         }
         const status = lastErr.status || (lastErr.response?.status);
-        if (status === 402 || status === 403 || status === 413 || status === 422) {
+        if (status === 401 || status === 402 || status === 403 || status === 413 || status === 415 || status === 422) {
             throw lastErr;
         }
 
@@ -987,10 +991,12 @@ export class MuapiClient {
                     }
 
                     const status = response.status;
-                    const err = new Error(`Upload failed: ${errText.slice(0, 200)}`);
+                    const err = status === 401
+                        ? new Error(`Upload failed: Invalid API key — ${errText.slice(0, 200)}`)
+                        : new Error(`Upload failed: ${errText.slice(0, 200)}`);
                     err.status = status;
 
-                    if (status === 402 || status === 403 || status === 413 || status === 422) {
+                    if (status === 401 || status === 402 || status === 403 || status === 413 || status === 415 || status === 422) {
                         err.retryable = false;
                         throw err;
                     }
