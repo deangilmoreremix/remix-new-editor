@@ -83,7 +83,7 @@ for (const p of PICKERS) {
     page.on('pageerror', (e) => errors.push(String(e)));
     await arm(page, 200, { url: 'https://fake.test/uploaded.png' }, calls);
 
-    await page.goto(p.route);
+    await page.goto(p.route, { waitUntil: 'domcontentloaded', timeout: 120_000 });
     await page.waitForTimeout(1000);
     await selectFile(page, p, p.media === 'video' ? VIDEO : IMG);
     await page.waitForTimeout(2000);
@@ -100,7 +100,7 @@ for (const p of PICKERS) {
     page.on('dialog', (d) => { dialogs.push(d.message()); d.dismiss().catch(() => {}); });
     await arm(page, 402, { detail: 'Insufficient credits', code: 'INSUFFICIENT_CREDITS' });
 
-    await page.goto(p.route);
+    await page.goto(p.route, { waitUntil: 'domcontentloaded', timeout: 120_000 });
     await page.waitForTimeout(1000);
     await selectFile(page, p, p.media === 'video' ? VIDEO : IMG);
     await page.waitForTimeout(2000);

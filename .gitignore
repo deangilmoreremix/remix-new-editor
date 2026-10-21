@@ -153,3 +153,7 @@ venv/
 package-lock.json
 test-results/
 playwright-report/
+
+# Generated e2e fixture outputs (created at test time by upload-boundary.spec.js)
+e2e/fixtures/boundary-*
+e2e/fixtures/corrupt-metadata.png

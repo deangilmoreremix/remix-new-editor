@@ -19,18 +19,32 @@ const IMG = path.join(SPEC_DIR, 'fixtures', 'start-image.png');
 // Studios that mount the shared UploadPicker and are cheap to mount.
 const STUDIOS = ['image', 'video', 'cinema', 'character', 'commercial', 'upscale', 'edit', 'effects'];
 
+// Cold on-demand compile of a studio route can take a while; the picker input
+// appears once the route has mounted.
+const READY_TIMEOUT = 60_000;
+
+// The Cinema studio opens a modal over the page; it intercepts clicks on the
+// picker trigger, so dismiss it before driving the picker.
+async function dismissCinemaModal(page) {
+  const overlay = page.locator('.fixed.inset-0.z-\\[100\\]').first();
+  if (await overlay.isVisible().catch(() => false)) {
+    await page.keyboard.press('Escape');
+    await overlay.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+  }
+}
+
 test.describe('UploadPicker — no API key (graceful, no crashes)', () => {
   for (const route of STUDIOS) {
     test(`studio "${route}" picker handles a file selection without throwing when no key is set`, async ({ page }) => {
       const pageErrors = [];
       page.on('pageerror', (e) => pageErrors.push(String(e)));
 
-      await page.goto(`/#/${route}`);
+      await page.goto(`/#/${route}`, { waitUntil: 'domcontentloaded', timeout: 120_000 });
       await page.waitForTimeout(1000);
 
       // The picker renders a hidden file input.
       const fileInput = page.locator('input[type="file"]').first();
-      await expect(fileInput).toBeAttached();
+      await expect(fileInput).toBeAttached({ timeout: READY_TIMEOUT });
 
       // Even without a key, selecting a file must NOT throw.
       await fileInput.setInputFiles(IMG);
@@ -39,7 +53,7 @@ test.describe('UploadPicker — no API key (graceful, no crashes)', () => {
       expect(pageErrors, `Uncaught errors in ${route}: ${pageErrors.join(' | ')}`).toEqual([]);
 
       // The upload panel exists (mounted) somewhere on the page.
-      await expect(page.locator('.upload-panel').first()).toBeAttached();
+      await expect(page.locator('.upload-panel').first()).toBeAttached({ timeout: 10_000 });
     });
   }
 
@@ -47,17 +61,19 @@ test.describe('UploadPicker — no API key (graceful, no crashes)', () => {
     const pageErrors = [];
     page.on('pageerror', (e) => pageErrors.push(String(e)));
 
-    await page.goto('/#/cinema');
+    await page.goto('/#/cinema', { waitUntil: 'domcontentloaded', timeout: 120_000 });
+    await dismissCinemaModal(page);
     await page.waitForTimeout(1000);
 
     // Open the upload picker (frame mode) via its trigger button.
     const trigger = page.locator('button[title="Reference media"], button[title*="frame"], button[title*="Frame"]').first();
+    await trigger.waitFor({ state: 'visible', timeout: READY_TIMEOUT });
     await trigger.click();
     await page.waitForTimeout(400);
 
     // START / END frame slots should be present in frame mode.
-    await expect(page.getByText('START', { exact: true }).first()).toBeVisible();
-    await expect(page.getByText('END', { exact: true }).first()).toBeVisible();
+    await expect(page.getByText('START', { exact: true }).first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText('END', { exact: true }).first()).toBeVisible({ timeout: 10_000 });
 
     expect(pageErrors, `Uncaught errors in cinema frame picker: ${pageErrors.join(' | ')}`).toEqual([]);
   });
@@ -119,12 +135,12 @@ test.describe('UploadPicker — successful upload path (offline mock)', () => {
   });
 
   test('image studio uploads a selected file end-to-end (mocked proxy)', async ({ page }) => {
-    await page.goto('/#/image');
+    await page.goto('/#/image', { waitUntil: 'domcontentloaded', timeout: 120_000 });
     await page.waitForTimeout(1000);
 
     // The picker renders a hidden file input.
     const fileInput = page.locator('input[type="file"]').first();
-    await expect(fileInput).toBeAttached();
+    await expect(fileInput).toBeAttached({ timeout: READY_TIMEOUT });
 
     // Select a real (valid) PNG fixture — validates → fetch mock → processFileUpload.
     await fileInput.setInputFiles(IMG);
@@ -148,17 +164,19 @@ test.describe('UploadPicker — successful upload path (offline mock)', () => {
   });
 
   test('cinema frame-mode uploads both START and END frames', async ({ page }) => {
-    await page.goto('/#/cinema');
+    await page.goto('/#/cinema', { waitUntil: 'domcontentloaded', timeout: 120_000 });
+    await dismissCinemaModal(page);
     await page.waitForTimeout(1000);
 
     // Open the upload picker (frame mode) via its trigger button.
     const trigger = page.locator('button[title="Reference media"], button[title*="frame"], button[title*="Frame"]').first();
+    await trigger.waitFor({ state: 'visible', timeout: READY_TIMEOUT });
     await trigger.click();
     await page.waitForTimeout(400);
 
     // START / END frame slots should be present in frame mode.
-    await expect(page.getByText('START', { exact: true }).first()).toBeVisible();
-    await expect(page.getByText('END', { exact: true }).first()).toBeVisible();
+    await expect(page.getByText('START', { exact: true }).first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText('END', { exact: true }).first()).toBeVisible({ timeout: 10_000 });
 
     // The frame picker reuses one hidden file input; uploads are routed to the
     // next empty slot (START first, then END via firstEmptyFrameSlot()).
@@ -216,7 +234,7 @@ test.describe('Upload — insufficient credits (402) shows actionable message', 
     const pageErrors = [];
     page.on('pageerror', (e) => pageErrors.push(String(e)));
 
-    await page.goto('/#/image');
+    await page.goto('/#/image', { waitUntil: 'domcontentloaded', timeout: 120_000 });
     await page.waitForTimeout(1000);
 
     const fileInput = page.locator('input[type="file"]').first();
@@ -238,7 +256,7 @@ test.describe('Upload — insufficient credits (402) shows actionable message', 
       d.dismiss().catch(() => {});
     });
 
-    await page.goto('/#/video');
+    await page.goto('/#/video', { waitUntil: 'domcontentloaded', timeout: 120_000 });
     await page.waitForTimeout(1000);
 
     // Open the video upload picker, then choose a file via the file chooser.
@@ -259,7 +277,8 @@ test.describe('Upload — insufficient credits (402) shows actionable message', 
     const pageErrors = [];
     page.on('pageerror', (e) => pageErrors.push(String(e)));
 
-    await page.goto('/#/cinema');
+    await page.goto('/#/cinema', { waitUntil: 'domcontentloaded', timeout: 120_000 });
+    await dismissCinemaModal(page);
     await page.waitForTimeout(1000);
 
     // Cinema renders the shared UploadPicker in frame mode; its reference-media
@@ -267,7 +286,7 @@ test.describe('Upload — insufficient credits (402) shows actionable message', 
     // the trigger — setInputFiles works on the (hidden) input directly, matching
     // the SUCCESS cinema test above.
     const fileInput = page.locator('input[type="file"]').first();
-    await expect(fileInput).toBeAttached();
+    await expect(fileInput).toBeAttached({ timeout: READY_TIMEOUT });
     await fileInput.setInputFiles(IMG);
 
     // The shared picker maps 402 → the single actionable toast.
@@ -295,7 +314,7 @@ test.describe('Upload — insufficient credits (402) shows actionable message', 
 test.describe('AudioStudio — reference audio upload (offline mock)', () => {
   // Self-contained: each test injects a fake key + arms its own proxy response
   // (200 vs 402), so the two paths don't depend on describe-level route setup.
-  const AUDIO_FIXTURE = path.join(SPEC_DIR, 'fixtures', 'sample-audio.mp3');
+  const AUDIO_FIXTURE = path.join(SPEC_DIR, 'fixtures', 'sample-audio.wav');
 
   // /#/audio lazy-imports AudioStudio from a heavy shared bundle (includes video
   // plugin machinery), so cold-start render of the model list can exceed 10s.
@@ -327,7 +346,7 @@ test.describe('AudioStudio — reference audio upload (offline mock)', () => {
       });
     });
 
-    await page.goto('/#/audio');
+    await page.goto('/#/audio', { waitUntil: 'domcontentloaded', timeout: 120_000 });
     // Wait for the heavy lazy bundle to settle before asserting the model list.
     await page.waitForLoadState('networkidle', { timeout: 25000 }).catch(() => {});
     await page.waitForSelector('[data-model-id="minimax-voice-clone"]', { timeout: 30000 });
@@ -370,7 +389,7 @@ test.describe('AudioStudio — reference audio upload (offline mock)', () => {
       })
     );
 
-    await page.goto('/#/audio');
+    await page.goto('/#/audio', { waitUntil: 'domcontentloaded', timeout: 120_000 });
     await page.waitForSelector('[data-model-id="minimax-voice-clone"]', { timeout: 10000 });
 
     await page.click('[data-model-id="minimax-voice-clone"]');

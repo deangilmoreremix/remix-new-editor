@@ -22,7 +22,12 @@ export default defineConfig({
   webServer: {
     command: 'npx vite --port 3100',
     url: 'http://127.0.0.1:3100',
-    reuseExistingServer: true,
+    // Always boot a fresh dev server. A long-lived reused Vite server can keep
+    // serving pre-fix source (its file watcher does not always invalidate
+    // across edits), which silently runs the suite against stale code — the
+    // upload matrix reported credit-error failures that no longer existed in
+    // the working tree. Failing loudly on a busy port is the safe trade.
+    reuseExistingServer: false,
     timeout: 120_000,
   },
 });
