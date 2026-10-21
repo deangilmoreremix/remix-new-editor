@@ -6,7 +6,7 @@
   "type": "module",
   "workspaces": [
     "packages/*",
-    "apps/*"
+    "apps/openthorn"
   ],
   "scripts": {
     "dev": "vite --port 3100",
@@ -119,6 +119,7 @@
     "http-proxy-middleware": "^2.0.10",
     "idb-keyval": "^6.2.6",
     "interactjs": "^1.10.2",
+    "jose": "^6.2.12",
     "jquery": "^3.7.1",
     "jquery-textfill": "^0.6.0",
     "lodash": "^4.18.1",
