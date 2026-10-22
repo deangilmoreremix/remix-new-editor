@@ -32,7 +32,7 @@
     "test:video-agent-studio": "cd apps/video-agent-studio && npm test --if-present",
     "lint:video-agent-studio": "cd apps/video-agent-studio && npm run lint --if-present",
     "verify:video-agent-studio": "node scripts/verify-video-agent-studio.mjs",
-    "build:openthorn": "cd apps/openthorn && npx vite build && rm -rf ../../public/openthorn && cp -r dist ../../public/openthorn",
+    "build:openthorn": "cd apps/openthorn && npx vite build --base=/openthorn/ && rm -rf ../../public/openthorn && cp -r dist ../../public/openthorn",
     "dev:openthorn": "cd apps/openthorn && npm run dev",
     "update:video-agent-studio-subtree": "git fetch openchatcut && git subtree pull --prefix=apps/video-agent-studio openchatcut main --squash"
   },

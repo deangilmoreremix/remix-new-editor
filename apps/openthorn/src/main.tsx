@@ -25,7 +25,7 @@ const container = document.getElementById('root')!
 const app = (
   <StrictMode>
     <ErrorBoundary>
-      <BrowserRouter>
+      <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/+$/, '')}>
         <SupabaseAuthProvider>
           <App />
         </SupabaseAuthProvider>

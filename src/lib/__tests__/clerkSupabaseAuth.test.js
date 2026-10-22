@@ -241,45 +241,109 @@ describe('fail-closed: signed-out sessions cannot write', () => {
   });
 });
 
-// ─── supabase.js: created with the Clerk accessToken callback ──────────────
+// ─── supabase.js: Clerk-verified minted Supabase JWT (fail-closed) ─────────
+//
+// supabase.js does NOT pass an `accessToken` callback to createClient. The
+// verified identity is a Supabase JWT minted by netlify/functions/supabase-token
+// (sub = the verified Clerk user id) and attached as `Authorization: Bearer`
+// by the header-injecting proxy. Signed-out callers never receive a bearer;
+// a failed exchange fails closed for verified writes.
 
-describe('supabase.js — Clerk third-party auth client wiring', () => {
-  it('is created with an accessToken callback that returns the Clerk token', async () => {
+describe('supabase.js — Clerk-verified minted-token client wiring', () => {
+  it('creates a plain client, sends the minted Supabase JWT as Authorization, and fails closed when the exchange is unavailable', async () => {
+    const MINTED = 'minted-supabase-jwt';
+    const originalFetch = globalThis.fetch;
     const createCalls = [];
     vi.doMock('@supabase/supabase-js', () => ({
       createClient: vi.fn((url, key, options) => {
         createCalls.push({ url, key, options });
         return {
+          rest: { headers: {} },
+          storage: {
+            headers: {},
+            from: () => ({ upload: async () => ({}), getPublicUrl: () => ({ data: { publicUrl: null } }) }),
+          },
+          from: () => ({}),
           auth: { getSession: async () => ({ data: { session: null } }) },
-          storage: { from: () => ({ upload: async () => ({}), getPublicUrl: () => ({ data: { publicUrl: null } }) }) },
         };
       }),
     }));
-    vi.resetModules();
-    const { supabase } = await import('../supabase.js');
 
-    // The main client is created WITH the Clerk accessToken callback.
-    const main = createCalls.find((c) => c.options?.auth?.accessToken);
-    expect(main, 'createClient must be called with auth.accessToken').toBeTruthy();
-    expect(typeof main.options.auth.accessToken).toBe('function');
+    const signInAs = (userId) => {
+      window.Clerk = {
+        loaded: true,
+        user: { id: userId },
+        session: { getToken: async () => 'clerk-session-jwt' },
+      };
+    };
 
-    // ...and that callback resolves the Clerk session token.
-    const token = await main.options.auth.accessToken();
-    expect(token).toBe('clerk-session-jwt');
-    expect(clerkState.getTokenCalls).toContain(null); // plain session token, no template
+    try {
+      // ── 1. Signed in, token exchange succeeds ─────────────────────────────
+      signInAs('user_2verifiedclerkid');
+      globalThis.fetch = vi.fn(async () => ({
+        ok: true,
+        json: async () => ({ token: MINTED, expires_in: 3600 }),
+      }));
+      window.sessionStorage.clear();
+      vi.resetModules();
+      const { supabase, rawClient, primeSupabaseIdentity, getSupabaseAccessToken, assertVerifiedWriteIdentity } =
+        await import('../supabase.js');
 
-    // A real Supabase Auth client is grafted so supabase.auth.getSession()
-    // keeps working for the existing Supabase-session flows.
-    expect(supabase).toBeTruthy();
-    const { data } = await supabase.auth.getSession();
-    expect(data.session).toBeNull();
+      // No Clerk accessToken callback: the minted-token path is the only
+      // source of Authorization.
+      expect(createCalls).toHaveLength(1);
+      expect(createCalls[0].options.auth.accessToken).toBeUndefined();
 
-    // Signed out, the callback falls back to the (null) Supabase session,
-    // i.e. the anon key — never a forged Clerk token.
-    signOut();
-    expect(await main.options.auth.accessToken()).toBeNull();
+      // The Clerk session token is presented to the token exchange, which
+      // returns the minted Supabase JWT.
+      expect(await primeSupabaseIdentity(rawClient)).toBe(MINTED);
+      expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+      const [endpoint, init] = globalThis.fetch.mock.calls[0];
+      expect(String(endpoint)).toMatch(/supabase-token/);
+      expect(init.headers.Authorization).toBe('Bearer clerk-session-jwt');
 
-    vi.doUnmock('@supabase/supabase-js');
-    vi.resetModules();
+      // Requests carry the minted bearer plus the verified x-user-key.
+      expect(rawClient.rest.headers.Authorization).toBe(`Bearer ${MINTED}`);
+      expect(rawClient.rest.headers['x-user-key']).toBe('user_2verifiedclerkid');
+      expect(rawClient.storage.headers.Authorization).toBe(`Bearer ${MINTED}`);
+
+      // The header-injecting proxy re-applies the bearer on every access.
+      delete rawClient.rest.headers.Authorization;
+      supabase.from('media');
+      expect(rawClient.rest.headers.Authorization).toBe(`Bearer ${MINTED}`);
+
+      // A real Supabase Auth client is still grafted for existing flows.
+      const { data } = await supabase.auth.getSession();
+      expect(data.session).toBeNull();
+
+      // The verified-write gate passes when a minted token exists.
+      await expect(assertVerifiedWriteIdentity('user_2verifiedclerkid')).resolves.toBeUndefined();
+      expect(await getSupabaseAccessToken()).toBe(MINTED);
+
+      // ── 2. Signed out: no forged bearer, anonymous scope only ─────────────
+      window.Clerk = { loaded: true, user: null };
+      globalThis.fetch.mockClear();
+      expect(await primeSupabaseIdentity(rawClient)).toBeNull();
+      expect(rawClient.rest.headers.Authorization).toBeUndefined();
+      expect(rawClient.rest.headers['x-user-key']).toBe('anonymous');
+      expect(globalThis.fetch).not.toHaveBeenCalled();
+      await expect(assertVerifiedWriteIdentity('anonymous')).resolves.toBeUndefined();
+
+      // ── 3. Fail closed: signed in, exchange unavailable ───────────────────
+      signInAs('user_2verifiedclerkid');
+      globalThis.fetch = vi.fn(async () => ({ ok: false, status: 500, json: async () => ({}) }));
+      window.sessionStorage.clear();
+      vi.resetModules();
+      const failClosed = await import('../supabase.js');
+      expect(await failClosed.primeSupabaseIdentity(failClosed.rawClient)).toBeNull();
+      expect(failClosed.rawClient.rest.headers.Authorization).toBeUndefined();
+      await expect(failClosed.assertVerifiedWriteIdentity('user_2verifiedclerkid'))
+        .rejects.toMatchObject({ code: 'SECURE_SESSION_UNAVAILABLE' });
+    } finally {
+      delete window.Clerk;
+      globalThis.fetch = originalFetch;
+      vi.doUnmock('@supabase/supabase-js');
+      vi.resetModules();
+    }
   });
 });

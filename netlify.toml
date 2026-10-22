@@ -101,6 +101,15 @@ to = "/index.html"
 status = 200
 force = false
 
+# The embed mount itself has no trailing slash. Without this, /openthorn
+# falls through to the parent SPA shell; force = false still prefers a real
+# file if one ever exists at that path.
+[[redirects]]
+  from = "/openthorn"
+  to = "/openthorn/index.html"
+  status = 200
+  force = false
+
 # SPA fallback for the embedded Website Builder.
 # Without this, /openthorn/* client-side routes would fall through to
 # the parent SPA shell. `force = false` keeps real files like

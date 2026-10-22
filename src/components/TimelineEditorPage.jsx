@@ -929,7 +929,12 @@ export function TimelineEditorPage() {
           const map = {};
           for (const t of state.timelines) { if (t && t.id) map[t.id] = t; }
           state.timelines = map;
-          setCurrentTimelineId(state, currentTimelineId(state) || migratedList[0].id);
+          const preservedId = currentTimelineId(state);
+          if (preservedId && Object.prototype.hasOwnProperty.call(map, preservedId)) {
+            setCurrentTimelineId(state, preservedId);
+          } else {
+            setCurrentTimelineId(state, migratedList[0].id);
+          }
         } else if (!currentTimelineId(state) || !state.timelines[currentTimelineId(state)]) {
           setCurrentTimelineId(state, migratedList[0].id);
         }
@@ -6581,10 +6586,15 @@ export function TimelineEditorPage() {
             const id = e.target.dataset.timelineId;
             const idx = timelineList(state).findIndex(t => t.id === id);
             if (idx > -1 && timelineCount(state) > 1) {
-              removeTimelineById(state, id);
+              // Switch before removing: switchToTimeline syncs the live state
+              // into the current tab, which must still be the tab being closed
+              // here. Removing first makes the pointer dangle, so the sync
+              // would land on (and overwrite) the surviving fallback tab.
               if (currentTimelineId(state) === id) {
-                switchToTimeline(state, timelineList(state)[0]?.id);
+                const fallback = timelineList(state).find(t => t.id !== id);
+                if (fallback) switchToTimeline(state, fallback.id);
               }
+              removeTimelineById(state, id);
               renderAll();
             }
             return;

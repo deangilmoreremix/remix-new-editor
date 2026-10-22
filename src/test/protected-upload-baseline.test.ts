@@ -299,13 +299,16 @@ describe('shared upload entry points — exported signatures and routing default
         'export const muapi = new MuapiClient();',
         // Exact signature: (file, { signal, onProgress })
         'async uploadFile(file, { signal, onProgress } = {})',
-        // Temporary-asset routing: proxy endpoint must remain upload_file
-        "'x-endpoint': 'upload_file',",
-        // Architectural constraint: 401/402/403/413/415/422 must never be
-        // silently bypassed onto the Supabase fallback. 401 (invalid key)
-        // and 415 (unsupported media type) were added deliberately so they
-        // reject instead of falling back to storage.
-        'if (status === 401 || status === 402 || status === 403 || status === 413 || status === 415 || status === 422) {',
+        // Temporary-asset routing: uploadFile must delegate transport to the
+        // single shared adapter (which owns the upload_file proxy endpoint).
+        "import { validateMuAPIUpload, uploadImageToMuAPI, uploadVideoToMuAPI, uploadFileToMuapi } from './muapiUpload.js';",
+        // Architectural constraint: 401/402/403/413/415/422 (and other
+        // non-retryable adapter errors) must never be silently bypassed onto
+        // the Supabase fallback. _toLegacyUploadError marks only retryable
+        // provider failures fallbackToStorage, so auth (401/403), credit
+        // (402), oversize (413), and format (415/422) errors are surfaced
+        // instead of being swapped for a storage URL.
+        'out.fallbackToStorage = retryable;',
       ],
     },
     {
@@ -627,7 +630,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // shortcut appeared to do nothing. Fixed by resolving the stored token
     // through a single normaliser (`selectedToolLabel()`). No upload-pipeline
     // behaviour changed. Semantic coverage in section 5.
-    ['src/components/TimelineEditorPage.jsx', 'd46c5ebc6a8441a5762cd9331e21c9fdf73801eaf162347de77ab054deba6e7b'],
+    ['src/components/TimelineEditorPage.jsx', '33b10e84bfe15f8b5f14c96d2e2e0de8b7e91c9b61bc420ba4f1029e9054d9a8'],
     ['src/components/ChatStudio.js', '40db1268cfde0edc4a7bffcb67c4d524cd72096bc2ead9045f37c2393fc76872'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],
