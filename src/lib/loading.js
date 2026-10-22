@@ -24,8 +24,11 @@ export function createLoadingSpinner(size = 'medium') {
 /**
  * Create a full-coverage loading overlay.
  *
+ * The returned element carries `.show()` and `.hide()` methods and standard
+ * DOM methods (appendChild, remove, parentNode) work on it directly.
+ *
  * @param {string} [message='Loading...']
- * @returns {{ show(): void, hide(): void, element: HTMLDivElement }}
+ * @returns {HTMLDivElement}
  */
 export function createLoadingOverlay(message = 'Loading...') {
   const overlay = document.createElement('div');
@@ -55,7 +58,7 @@ export function createLoadingOverlay(message = 'Loading...') {
     }, 300);
   };
 
-  return { show: overlay.show, hide: overlay.hide, element: overlay };
+  return overlay;
 }
 
 /**
