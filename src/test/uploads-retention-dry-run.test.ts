@@ -74,6 +74,12 @@ describe('supabase uploads retention dry-run (Task 5)', () => {
     expect(sql).not.toContain('DROP POLICY');
   });
 
+  it('runs the dry-run view as invoker and grants nothing to PUBLIC', () => {
+    const sql = readSql();
+    expect(sql).toMatch(/ALTER VIEW public\.muapi_upload_retention_dry_run SET \(security_invoker = true\)/i);
+    expect(sql).toContain('REVOKE ALL ON public.muapi_upload_retention_dry_run FROM PUBLIC');
+  });
+
   it('is idempotent (replaceable view + DO blocks)', () => {
     const sql = readSql();
     expect(sql).toContain('DO $$');

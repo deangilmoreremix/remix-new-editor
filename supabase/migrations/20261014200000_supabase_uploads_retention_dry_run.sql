@@ -71,6 +71,23 @@ WHERE public.muapi_upload_cache.expires_at < now()
        OR public.content_library.storage_path = public.muapi_upload_cache.url
   );
 
+-- ══ Security posture for the view (report-only; grant model) ═══════════════
+-- With security_invoker the view executes with the CALLER's rights, so the
+-- verified-identity RLS on public.muapi_upload_cache (see
+-- 20261014120000_smartvideo_media_rls_tagged.sql) applies exactly as if the
+-- caller had selected the table directly; the view can no longer expose rows
+-- the table's own policies would deny. security_barrier makes no difference
+-- to this definition (plain equality / NOT EXISTS predicates only) and simply
+-- blocks leaky-function workarounds if the definition is extended later.
+-- Default PUBLIC grants are revoked so other apps' anon clients on the shared
+-- database get nothing; only the service role may read the report (house
+-- idiom: GRANT ... TO service_role). Statements are re-applied on every run,
+-- keeping this migration idempotent.
+ALTER VIEW public.muapi_upload_retention_dry_run SET (security_invoker = true);
+ALTER VIEW public.muapi_upload_retention_dry_run SET (security_barrier = true);
+REVOKE ALL ON public.muapi_upload_retention_dry_run FROM PUBLIC;
+GRANT SELECT ON public.muapi_upload_retention_dry_run TO service_role;
+
 -- ══ Dry-run audit report (report-only; removes nothing) ════════════════════
 DO $$
 DECLARE
