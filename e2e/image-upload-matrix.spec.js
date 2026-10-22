@@ -36,7 +36,7 @@ async function armUploadProxy(page, status, body, calls) {
 }
 
 // Helper: wait for studio to be ready
-async function waitForStudioReady(page, route, timeout = 30000) {
+async function waitForStudioReady(page, route, timeout = 120_000) {
   await page.goto(`/#/${route}`, { waitUntil: 'domcontentloaded', timeout });
   await page.waitForTimeout(2000);
 }

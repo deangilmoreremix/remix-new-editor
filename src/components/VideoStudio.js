@@ -356,7 +356,11 @@ export function VideoStudio() {
                 showToast('End frame loaded', 'success');
             }
         } catch (err) {
-            showToast('Failed to upload end frame: ' + err.message, 'error');
+            if (err.message === 'Please sign in and add api credits.') {
+              window.alert(err.message);
+            } else {
+              showToast('Failed to upload end frame: ' + err.message, 'error');
+            }
         } finally {
             endFrameBtn.disabled = false;
             endFrameInput.value = '';
@@ -470,7 +474,11 @@ export function VideoStudio() {
             textarea.disabled = true;
         } catch (err) {
             showVideoIcon();
-            showInlineError(container, 'Video upload failed: ' + err.message);
+            if (err.message === 'Please sign in and add api credits.') {
+              window.alert(err.message);
+            } else {
+              showInlineError(container, 'Video upload failed: ' + err.message);
+            }
         }
         videoFileInput.value = '';
     };
@@ -617,7 +625,11 @@ export function VideoStudio() {
             textarea.disabled = true;
           }
         } catch (err) {
-          showToast('Attachment upload failed: ' + err.message, 'error');
+          if (err.message === 'Please sign in and add api credits.') {
+            window.alert(err.message);
+          } else {
+            showToast('Attachment upload failed: ' + err.message, 'error');
+          }
         }
       },
     });

@@ -224,7 +224,11 @@ const triggerBtn = document.createElement('button');
     try {
       uploadedAudioUrl = await uploadMediaFile(file);
     } catch (err) {
-      showToast(`Audio upload failed: ${err.message}`, 'error');
+      if (err.message === 'Please sign in and add api credits.') {
+        window.alert(err.message);
+      } else {
+        showToast(`Audio upload failed: ${err.message}`, 'error');
+      }
     } finally {
       audioInput.value = '';
     }
