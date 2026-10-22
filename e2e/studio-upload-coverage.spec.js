@@ -61,6 +61,7 @@ import { fileURLToPath } from 'node:url';
 
 const SPEC_DIR = path.dirname(fileURLToPath(import.meta.url));
 const IMG_FIXTURE = path.join(SPEC_DIR, 'fixtures', 'start-image.png');
+const SAMPLE_VIDEO = path.join(SPEC_DIR, 'fixtures', 'sample-video.mp4');
 
 const FAKE_MUAPI_KEY = 'test-muapi-key-0001';
 const MUAPI_STORAGE_KEY = 'muapi_key';
@@ -255,34 +256,103 @@ test.describe('Studio upload coverage — Phase 3 (six unreached surfaces)', () 
   });
 
   // ── 4. AI Captions (modals/AICaptionsModal.jsx) ───────────────────────────
-  // Unreachable in the current build, probed twice with the entitlement cache
-  // re-seeded AND a fully mocked, successful generation (submit → request_id,
-  // poll → completed). The modal only opens from post-generation result
-  // handlers (8 addCaptionButton call sites across studios), and VideoStudio's
-  // generate flow crashes BEFORE any network call:
-  //   VideoStudio.js:1999-2002 calls loadingOverlay.appendChild(...) on the
-  //   object returned by createLoadingOverlay (src/lib/loading.js:58), which
-  //   is { show, hide, element } — no appendChild. TypeError becomes an
-  //   unhandled promise rejection; the Generate button stays disabled and no
-  //   muapi-proxy request is ever fired (trace-verified: 0 proxy requests).
-  // If that API-mismatch bug is fixed, the drive path in this file's history
-  // (prompt → Generate → "Add AI Captions" → upload tab → file → generate)
-  // documents how to reach the modal.
-  test('ai captions: modal opens via mocked VideoStudio generation and its upload surfaces the raw sign-in-gate message', async () => {
-    test.skip(true, 'surface unreachable in current build: AICaptionsModal opens only from post-generation handlers, and VideoStudio generate crashes first — createLoadingOverlay (lib/loading.js:58) returns {show,hide,element} but VideoStudio.js:1999-2002 calls .appendChild() on it, throwing TypeError (unhandled rejection, probe/trace-verified: button stuck disabled, zero proxy requests). Requires the loading-overlay API mismatch fix plus real Clerk sign-in (saveAsset gate) for the upload itself');
+  // Reachability restored by the loading-overlay fix (R3): createLoadingOverlay
+  // (src/lib/loading.js) now returns the overlay element itself, so
+  // VideoStudio.js:1999-2002's .appendChild() calls no longer throw and the
+  // generate flow reaches the mocked proxy (verified end-to-end below).
+  // The modal opens from the post-generation result handler via the
+  // "💬 Add AI Captions" button that showVideoInCanvas appends.
+  //
+  // NOTE (R3 finding, pre-existing defect in a read-only file): the modal's
+  // upload tab cannot be driven because AICaptionsModal.jsx defines
+  // setupEventListeners() twice (lines 300 and 494) — the second definition
+  // shadows the first, so bindBodyListeners() never runs at open() and the
+  // mode-switch/dropzone listeners are never attached. Uploading a file
+  // through the modal therefore requires (a) that fix and (b) real Clerk
+  // sign-in (saveAsset gate) — see the two skips below.
+  test('ai captions: modal opens via mocked VideoStudio generation and URL-mode caption generation completes through the mocked proxy', async ({ page }) => {
+    const errors = [];
+    page.on('pageerror', (e) => errors.push(String(e)));
+
+    await injectKey(page);
+    await mockMediaWorker(page);
+    await mockSupabaseDataPlane(page);
+    // muapi.generateVideo POSTs a submit, then polls
+    // `predictions/<request_id>/result` until status=completed. The submit
+    // must return an id/request_id and every poll a completed result with an
+    // output URL (avoiding the STATIC_OUTPUT_PATTERNS demo-URL blocklist).
+    const proxy = { n: 0 };
+    await page.route('**/muapi-proxy**', (route) => {
+      proxy.n += 1;
+      const req = route.request().postDataJSON() || {};
+      if (req.generationType === 'poll') {
+        return route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ status: 'completed', outputs: ['https://fake.test/generated-video.mp4'] }),
+        });
+      }
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ id: 'gen-r3-captions-1', request_id: 'gen-r3-captions-1' }),
+      });
+    });
+    await page.route('**/api.muapi.ai/**', (route) => { proxy.n += 1; return route.fulfill({ status: 200, contentType: 'application/json', body: '{}' }); });
+    // Serve the mocked generation result with real mp4 bytes so the result
+    // <video> fires loadeddata — showVideoInCanvas only un-hides the canvas
+    // (opacity-0 → opacity-100) inside onloadeddata, making the captions
+    // button clickable.
+    await page.route('**/fake.test/**', (route) =>
+      route.fulfill({ status: 200, contentType: 'video/mp4', path: SAMPLE_VIDEO })
+    );
+
+    await page.goto('/#/video', { waitUntil: 'domcontentloaded', timeout: 120_000 });
+    await dismissSetupModal(page);
+    const prompt = page.locator('#v-v-prompt-textarea');
+    await expect(prompt).toBeVisible({ timeout: 90_000 });
+    // Seed the entitlement cache (clerkEntitlements.js requireEntitlement):
+    // signed-out users get a silent UpgradePrompt early-return before the
+    // generate flow runs (R2 probe noted the same "entitlement cache
+    // re-seeded" trick).
+    await page.evaluate(() => { window.__smartvideo_entitlement__ = { hasFullAccess: true }; });
+    await prompt.fill('A slow pan across a mountain ridge at dawn');
+    await page.locator('button[aria-label="Generate video"]').click();
+
+    // Generate → mocked proxy 200 → showVideoInCanvas appends the captions
+    // button. Before the loading-overlay fix this never happened: the
+    // generate flow crashed on the {show,hide,element} wrapper and the button
+    // stayed disabled with zero proxy requests (probe-verified).
+    const captionBtn = page.locator('button', { hasText: 'Add AI Captions' });
+    await expect(captionBtn).toBeAttached({ timeout: 60_000 });
+    await expect(captionBtn).toBeVisible({ timeout: 30_000 });
+    expect(proxy.n, 'generation must go through the MuAPI transport').toBeGreaterThan(0);
+
+    await captionBtn.click();
+    const modal = page.locator('.ai-captions-modal');
+    await expect(modal).toBeVisible({ timeout: 30_000 });
+
+    // URL mode is pre-filled with the generated video URL (addCaptionButton
+    // passes videoUrl → inputMode 'url'). Generate Captions →
+    // muapi.processVideoTool (submit → poll, both mocked) → renderResult.
+    await page.locator('[data-action="generate"]').click();
+    await expect(modal).toContainText('Captioned Video', { timeout: 60_000 });
+    expect(proxy.n, 'caption generation must also go through the MuAPI transport').toBeGreaterThan(1);
+    expect(errors, `Uncaught page errors: ${errors.join(' | ')}`).toEqual([]);
   });
 
   // AICaptionsModal.uploadFileIfNeeded → ingestStudioUpload → saveAsset
-  // throws ASSET_SIGN_IN_REQUIRED before the MuAPI upload — and in the
-  // current build the modal cannot even be opened (VideoStudio generate
-  // crashes first, see the AI Captions skip above), so the mocked proxy
-  // statuses are doubly unreachable offline.
+  // throws ASSET_SIGN_IN_REQUIRED for the signed-out user BEFORE the MuAPI
+  // transport call (assetLibrary.js:238-244) — and the upload tab itself is
+  // dead code until the duplicate-setupEventListeners shadowing bug in
+  // AICaptionsModal.jsx (read-only file) is fixed, see the note above. Both
+  // blockers must be resolved before a mocked proxy 200 can be observed.
   test('ai captions: mocked proxy 200 success path', async () => {
-    test.skip(true, 'unreachable offline: the modal cannot be opened at all in this build (VideoStudio generate crashes at the createLoadingOverlay API mismatch before any network call) and, once open, uploadFileIfNeeded → ingestStudioUpload → saveAsset throws ASSET_SIGN_IN_REQUIRED for the signed-out user BEFORE the MuAPI transport call — a mocked proxy 200 can never be observed');
+    test.skip(true, 'unreachable offline: (1) the modal upload tab cannot be driven — AICaptionsModal.jsx defines setupEventListeners() twice (lines 300 and 494), the second shadows the first so bindBodyListeners() never runs and the mode-switch/dropzone listeners are never attached (observed: clicking "Upload Video" leaves the URL form mounted; file is read-only/protected); (2) once drivable, uploadFileIfNeeded → ingestStudioUpload → saveAsset throws ASSET_SIGN_IN_REQUIRED for the signed-out user BEFORE the MuAPI transport call — a mocked proxy 200 can never be observed without real Clerk sign-in');
   });
 
   test('ai captions: mocked proxy 402 credits error path', async () => {
-    test.skip(true, 'unreachable offline: the modal cannot be opened at all in this build (VideoStudio generate crashes at the createLoadingOverlay API mismatch before any network call) and, once open, uploadFileIfNeeded → ingestStudioUpload → saveAsset throws ASSET_SIGN_IN_REQUIRED for the signed-out user BEFORE the MuAPI transport call — a mocked proxy 402 can never be observed');
+    test.skip(true, 'unreachable offline: same two blockers as the proxy 200 skip (AICaptionsModal.jsx duplicate setupEventListeners shadowing kills the upload tab; saveAsset ASSET_SIGN_IN_REQUIRED gate for signed-out users) — a mocked proxy 402 can never be observed');
   });
 
   // Probe fact: /#/chat renders vanilla ChatStudio.js — zero input[type=file]
