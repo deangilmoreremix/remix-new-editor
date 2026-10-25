@@ -1,0 +1,80 @@
+{
+  "name": "cinegen-desktop",
+  "productName": "CineGen",
+  "version": "1.0.19",
+  "description": "AI Film Production Studio — Desktop Application",
+  "private": true,
+  "main": "dist-electron/main.js",
+  "type": "module",
+  "scripts": {
+    "build:native": "node scripts/build-native-avf.mjs",
+    "higgsfield:catalog": "node scripts/higgsfield/update-model-catalog.mjs",
+    "higgsfield:catalog:check": "node scripts/higgsfield/update-model-catalog.mjs --check",
+    "dev": "npm run build:native && npm run build:mcp && vite",
+    "build:mcp": "node scripts/build-mcp.mjs",
+    "build": "npm run build:native && vite build && npm run build:mcp",
+    "preview": "npm run build && electron .",
+    "package": "npm run build && electron-builder --config electron-builder.yml",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:funding": "node scripts/cloud/owner-funding-smoke.mjs",
+    "screenshots": "npm run build && node scripts/take-screenshots.mjs",
+    "build:vercel": "vite build --config vercel/vite.config.ts"
+  },
+  "build": {
+    "appId": "com.cinegen.desktop",
+    "productName": "CineGen",
+    "files": [
+      "dist/**/*",
+      "mcp/**/*",
+      "dist-electron/**/*",
+      "build/**/*",
+      "electron/**/*",
+      "native/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "buildResources": "build"
+    },
+    "mac": {
+      "icon": "build/CineGen.icns",
+      "category": "public.app-category.video"
+    }
+  },
+  "dependencies": {
+    "@fal-ai/client": "^1.9.4",
+    "@radix-ui/react-icons": "^1.3.2",
+    "@sparkjsdev/spark": "^2.2.0",
+    "@xyflow/react": "^12.10.1",
+    "better-sqlite3": "^12.6.2",
+    "ffmpeg-static": "^5.3.0",
+    "ffprobe-static": "^3.1.0",
+    "firebase": "^12.18.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "three": "^0.186.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^25.3.5",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@types/three": "^0.186.0",
+    "@vitejs/plugin-react": "^5.1.4",
+    "electron": "^35.0.0",
+    "electron-builder": "^26.0.0",
+    "jsdom": "^28.1.0",
+    "playwright": "^1.58.2",
+    "typescript": "^5.9.3",
+    "vite": "^6.3.0",
+    "vite-plugin-electron": "^0.29.0",
+    "vite-plugin-electron-renderer": "^0.14.6",
+    "vitest": "^4.0.18"
+  }
+}

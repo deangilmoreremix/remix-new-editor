@@ -1,0 +1,89 @@
+import type { CliLlmProviderId } from '@/lib/llm/claude-code-session';
+import type { CopilotVisualRefInput } from '@/lib/llm/copilot-visual-refs';
+import { cliChatErrorMessage } from './cli-chat-error';
+import type { LlmImageAttachment } from './image-attachments';
+
+export interface CliCopilotChatParams {
+  requestId?: string;
+  model?: string;
+  resumeSessionId?: string;
+  injectProjectContext?: boolean;
+  contextRefresh?: boolean;
+  purpose?: 'copilot' | 'enhance-prompt' | 'json-job';
+  systemPrompt?: string;
+  userMessage: string;
+  messages?: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>;
+  visualRefs?: CopilotVisualRefInput[];
+  images?: LlmImageAttachment[];
+}
+
+export interface CliCopilotChatResult {
+  message: string;
+  sessionId?: string;
+  resumed?: boolean;
+  usage?: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+    cost: number;
+  };
+}
+
+export async function invokeCliCopilotChat(
+  provider: CliLlmProviderId,
+  params: CliCopilotChatParams,
+): Promise<CliCopilotChatResult> {
+  try {
+    switch (provider) {
+      case 'claude-code':
+        return await window.electronAPI.llm.claudeCodeChat(params);
+      case 'codex':
+        return await window.electronAPI.llm.codexChat(params);
+      case 'gemini':
+        return await window.electronAPI.llm.geminiChat(params);
+      default:
+        throw new Error(`Unsupported CLI provider: ${provider satisfies never}`);
+    }
+  } catch (error) {
+    throw new Error(cliChatErrorMessage(error));
+  }
+}
+
+export interface CliCopilotStreamEvent {
+  requestId: string;
+  token?: string;
+  done?: boolean;
+  status?: string;
+}
+
+export function subscribeCliCopilotStream(
+  provider: CliLlmProviderId,
+  handler: (data: CliCopilotStreamEvent) => void,
+): () => void {
+  switch (provider) {
+    case 'claude-code':
+      return window.electronAPI.llm.onClaudeCodeStream(handler);
+    case 'codex':
+      return window.electronAPI.llm.onCodexStream(handler);
+    case 'gemini':
+      return window.electronAPI.llm.onGeminiStream(handler);
+    default:
+      return () => {};
+  }
+}
+
+export async function cancelCliCopilotChat(provider: CliLlmProviderId, requestId: string): Promise<void> {
+  switch (provider) {
+    case 'claude-code':
+      await window.electronAPI.llm.claudeCodeCancel(requestId);
+      return;
+    case 'codex':
+      await window.electronAPI.llm.codexCancel(requestId);
+      return;
+    case 'gemini':
+      await window.electronAPI.llm.geminiCancel(requestId);
+      return;
+    default:
+      return;
+  }
+}

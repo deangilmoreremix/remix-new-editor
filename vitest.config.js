@@ -27,7 +27,7 @@ export default defineConfig({
     // .agents/skills/media-use/scripts tests are Node test-runner scripts (`node:test`) plus a custom
     // self-executing harness (not Vitest suites); they run/pass via `node --test`, so keep them out of
     // this Vitest collector. **/.git/** is never test source — exclude it defensively.
-    exclude: ['**/node_modules/**', '**/tests/e2e/**', '**/e2e/**', '**/dist/**', '**/.kilo/**', '**/tests/studio-demo/**', 'backend/__tests__/**', '__tests__/**', 'backend/tests/**', 'apps/vimax/**', '.agents/skills/media-use/**', '**/.git/**'],
+    exclude: ['**/node_modules/**', '**/tests/e2e/**', '**/e2e/**', '**/dist/**', '**/.kilo/**', '**/tests/studio-demo/**', 'backend/__tests__/**', '__tests__/**', 'backend/tests/**', 'apps/vimax/**', 'apps/cinegen/**', '.agents/skills/media-use/**', '**/.git/**'],
   },
   resolve: {
     alias: {
