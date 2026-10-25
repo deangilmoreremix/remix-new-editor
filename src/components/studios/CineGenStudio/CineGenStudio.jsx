@@ -1,13 +1,16 @@
 /**
- * CineGen Studio — standalone studio port of
- * https://github.com/deangilmoremix/CineGen (web build).
+ * CineGen Studio — hosts the full CineGen web build (vendored in apps/cinegen,
+ * upstream https://github.com/deangilmoremix/CineGen) as its own studio:
+ * Elements, Spaces, Director, Edit, LLM and Export.
  *
- * Tabs mirror the upstream app: Elements → Spaces → Edit. All tabs share one
- * WorkspaceShell so elements created here are available to Element nodes and
- * `@` mentions in Spaces.
+ * CineGen's web build needs its own Node server (apps/cinegen/web/server) for
+ * LLM, FFmpeg export, transcription, SAM3 and provider jobs, so it runs as a
+ * separate service (see the `cinegen-web` service in render.yaml) and is
+ * embedded here like the other iframe studios.
  *
- * Like the other studios, the router appends the returned DOM node, so the
- * React tree is rendered imperatively into a container.
+ * URL: VITE_CINEGEN_WEB_URL, or the local `npm --prefix apps/cinegen/web run
+ * start` server in development. When neither is reachable, a lightweight
+ * in-app version (Elements / Spaces / Edit) is shown instead.
  */
 
 import { useCallback, useEffect, useRef, useState, createElement as h } from 'react';
@@ -15,12 +18,25 @@ import { createRoot } from 'react-dom/client';
 import { ReactFlowProvider } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
+import { mountStudioChrome } from '../../../lib/studioChrome.js';
 import { WorkspaceShell, useWorkspace, generateId, timestamp } from '../../../lib/workspace/workspace-context.jsx';
 import { WorkflowCanvasInner } from '../../SpacesCanvas.jsx';
 import { ElementsTab } from '../../elements/elements-tab.jsx';
 import './cinegen-studio.css';
 
-const TABS = [
+const DEV_CINEGEN_WEB_URL = 'http://localhost:8787';
+
+export function getCineGenWebUrl() {
+  const configured = import.meta.env.VITE_CINEGEN_WEB_URL;
+  if (configured) return configured.replace(/\/+$/, '');
+  return import.meta.env.DEV ? DEV_CINEGEN_WEB_URL : '';
+}
+
+// ---------------------------------------------------------------------------
+// Lightweight fallback (used only when the CineGen web service is unavailable)
+// ---------------------------------------------------------------------------
+
+const LITE_TABS = [
   { id: 'elements', label: 'Elements' },
   { id: 'spaces', label: 'Spaces' },
   { id: 'edit', label: 'Edit' },
@@ -31,7 +47,7 @@ const TAB_STORAGE_KEY = 'cinegen_studio_tab';
 function readSavedTab() {
   try {
     const saved = localStorage.getItem(TAB_STORAGE_KEY);
-    return TABS.some((t) => t.id === saved) ? saved : 'spaces';
+    return LITE_TABS.some((t) => t.id === saved) ? saved : 'spaces';
   } catch {
     return 'spaces';
   }
@@ -101,7 +117,7 @@ function EditPanel() {
   return <div className="cgs-panel" ref={hostRef} />;
 }
 
-function CineGenStudioApp() {
+function CineGenLiteApp({ notice }) {
   const [tab, setTab] = useState(readSavedTab);
   // Edit is mounted lazily on first visit, then kept mounted.
   const [editMounted, setEditMounted] = useState(tab === 'edit');
@@ -117,7 +133,7 @@ function CineGenStudioApp() {
       <header className="cgs__bar">
         <span className="cgs__brand">CineGen Studio</span>
         <nav className="cgs__tabs" role="tablist">
-          {TABS.map((t) => (
+          {LITE_TABS.map((t) => (
             <button
               key={t.id}
               type="button"
@@ -131,6 +147,7 @@ function CineGenStudioApp() {
           ))}
         </nav>
       </header>
+      {notice && <div className="cgs__notice">{notice}</div>}
       <main className="cgs__body">
         {tab === 'elements' && <ElementsPanel />}
         {tab === 'spaces' && <SpacesPanel />}
@@ -144,15 +161,72 @@ function CineGenStudioApp() {
   );
 }
 
+function mountLite(host, notice) {
+  const root = createRoot(host);
+  root.render(h(WorkspaceShell, null, h(CineGenLiteApp, { notice })));
+  return () => {
+    try { root.unmount(); } catch {}
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Full CineGen (iframe)
+// ---------------------------------------------------------------------------
+
+async function isReachable(url) {
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 4000);
+    await fetch(url, { mode: 'no-cors', signal: controller.signal });
+    clearTimeout(timer);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function CineGenStudio() {
   const container = document.createElement('div');
-  container.className = 'cgs-root';
+  container.className = 'w-full h-full flex flex-col overflow-hidden bg-app-bg';
+  mountStudioChrome(container, { currentRoute: 'cinegen', title: 'CineGen Studio' });
 
-  const root = createRoot(container);
-  root.render(h(WorkspaceShell, null, h(CineGenStudioApp)));
+  const host = document.createElement('div');
+  host.className = 'cgs-root';
+  container.appendChild(host);
+
+  let unmountLite = null;
+  let iframe = null;
+  let disposed = false;
+  const url = getCineGenWebUrl();
+
+  const showLite = (notice) => {
+    if (disposed) return;
+    host.innerHTML = '';
+    unmountLite = mountLite(host, notice);
+  };
+
+  if (!url) {
+    showLite('Full CineGen (Director, LLM, Export) is not configured — set VITE_CINEGEN_WEB_URL to the cinegen-web service. Showing the lightweight version.');
+  } else {
+    isReachable(url).then((ok) => {
+      if (disposed) return;
+      if (!ok) {
+        showLite(`Can't reach the CineGen service at ${url}. Showing the lightweight version.`);
+        return;
+      }
+      iframe = document.createElement('iframe');
+      iframe.src = url;
+      iframe.title = 'CineGen Studio';
+      iframe.className = 'cgs-frame';
+      iframe.setAttribute('allow', 'clipboard-read; clipboard-write; fullscreen; microphone');
+      host.appendChild(iframe);
+    });
+  }
 
   container.cleanup = () => {
-    try { root.unmount(); } catch {}
+    disposed = true;
+    unmountLite?.();
+    if (iframe) iframe.src = 'about:blank';
   };
 
   return container;

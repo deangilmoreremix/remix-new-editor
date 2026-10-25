@@ -1,0 +1,1701 @@
+import type { ReactNode } from 'react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { ShapeShotTarget } from '@/lib/sets/shape-shot';
+import type { Asset } from '@/types/project';
+import type { ModelDefinition, WorkflowNodeData } from '@/types/workflow';
+import { topviewMediaToolDefinitions } from '@/lib/topview/media-tools';
+import { buildHiggsfieldModelRegistry } from '@/lib/higgsfield/model-catalog';
+
+const mediaModels = vi.hoisted(() => ({} as Record<string, ModelDefinition>));
+
+const workspaceHarness = vi.hoisted(() => ({
+  dispatch: vi.fn(),
+  state: null as Record<string, unknown> | null,
+}));
+
+const models = vi.hoisted(() => {
+  const prompt = {
+    id: 'prompt',
+    portType: 'text',
+    label: 'Prompt',
+    required: true,
+    falParam: 'prompt',
+    fieldType: 'port',
+  };
+  return {
+    'video-one': {
+      id: 'video-one-id',
+      nodeType: 'video-one',
+      name: 'Video Model',
+      category: 'video',
+      description: 'Video test model',
+      provider: 'topview',
+      outputType: 'video',
+      responseMapping: { path: 'video.url' },
+      inputs: [
+        prompt,
+        {
+          id: 'duration',
+          portType: 'config',
+          label: 'Duration',
+          required: false,
+          falParam: 'duration',
+          fieldType: 'select',
+          default: '5',
+          options: Array.from({ length: 12 }, (_, index) => ({
+            value: String(index + 4),
+            label: String(index + 4),
+          })),
+        },
+        {
+          id: 'bitrate',
+          portType: 'config',
+          label: 'Bitrate',
+          required: false,
+          falParam: 'bitrate',
+          fieldType: 'select',
+          default: 'high',
+          options: [
+            { value: 'high', label: 'High', description: 'Less compression · larger size' },
+            { value: 'standard', label: 'Standard', description: 'More compression · smaller size' },
+          ],
+        },
+        {
+          id: 'start_image',
+          portType: 'image',
+          label: 'Start image',
+          required: false,
+          falParam: 'start_image',
+          fieldType: 'port',
+          mediaRole: 'start_image',
+        },
+        {
+          id: 'end_image',
+          portType: 'image',
+          label: 'End image',
+          required: false,
+          falParam: 'end_image',
+          fieldType: 'port',
+          mediaRole: 'end_image',
+        },
+      ],
+    },
+    'video-seedance': {
+      id: 'video-seedance-id',
+      nodeType: 'video-seedance',
+      name: 'Seedance 2.5',
+      category: 'video',
+      description: 'The model the composer opens on',
+      provider: 'topview',
+      outputType: 'video',
+      responseMapping: { path: 'video.url' },
+      inputs: [
+        prompt,
+        { id: 'audio_references', portType: 'audio', label: 'Audio References', required: false, falParam: 'audio_urls', fieldType: 'port', multiple: true, mediaRole: 'audio' },
+        {
+          id: 'image_url',
+          portType: 'image',
+          label: 'References',
+          required: false,
+          falParam: 'reference_images',
+          fieldType: 'port',
+          multiple: true,
+          mediaRole: 'image',
+        },
+        {
+          id: 'duration',
+          portType: 'config',
+          label: 'Duration',
+          required: false,
+          falParam: 'duration',
+          fieldType: 'select',
+          default: '5',
+          options: Array.from({ length: 12 }, (_, index) => ({
+            value: String(index + 4),
+            label: String(index + 4),
+          })),
+        },
+        {
+          id: 'resolution',
+          portType: 'config',
+          label: 'Resolution',
+          required: false,
+          falParam: 'resolution',
+          fieldType: 'select',
+          default: '720',
+          options: [
+            { value: '480', label: '480p' },
+            { value: '720', label: '720p' },
+            { value: '1080', label: '1080p' },
+          ],
+        },
+      ],
+    },
+    'video-ref': {
+      id: 'video-ref-id',
+      nodeType: 'video-ref',
+      name: 'Reference Video',
+      category: 'video',
+      description: 'Reference-capable video test model',
+      provider: 'topview',
+      outputType: 'video',
+      responseMapping: { path: 'video.url' },
+      inputs: [
+        prompt,
+        {
+          id: 'image_url',
+          portType: 'image',
+          label: 'References',
+          required: false,
+          falParam: 'reference_images',
+          fieldType: 'port',
+          multiple: true,
+          mediaRole: 'image',
+        },
+      ],
+    },
+    'video-two': {
+      id: 'video-two-id',
+      nodeType: 'video-two',
+      name: 'Alternate Video',
+      category: 'video',
+      description: 'Alternate video test model',
+      provider: 'higgsfield',
+      outputType: 'video',
+      responseMapping: { path: 'video.url' },
+      inputs: [
+        prompt,
+        {
+          id: 'resolution',
+          portType: 'config',
+          label: 'Resolution',
+          required: false,
+          falParam: 'resolution',
+          fieldType: 'select',
+          default: '720p',
+          options: [{ value: '720p', label: '720p' }, { value: '1080p', label: '1080p' }],
+        },
+      ],
+    },
+    'image-one': {
+      id: 'image-one-id',
+      nodeType: 'image-one',
+      name: 'Image Model',
+      category: 'image',
+      description: 'Image test model',
+      provider: 'topview',
+      outputType: 'image',
+      responseMapping: { path: 'images.0.url' },
+      inputs: [
+        prompt,
+        {
+          id: 'aspect_ratio',
+          portType: 'config',
+          label: 'Aspect ratio',
+          required: false,
+          falParam: 'aspect_ratio',
+          fieldType: 'select',
+          default: '16:9',
+          options: [{ value: '16:9', label: '16:9' }],
+        },
+        {
+          id: 'extra_images',
+          portType: 'image',
+          label: 'Reference',
+          required: false,
+          falParam: 'image_urls',
+          fieldType: 'element-list',
+          max: 15,
+        },
+      ],
+    },
+  } as Record<string, ModelDefinition>;
+});
+
+vi.mock('@/components/workspace/workspace-shell', () => ({
+  useWorkspace: () => ({
+    state: workspaceHarness.state,
+    dispatch: workspaceHarness.dispatch,
+    projectId: 'studio-test-project',
+  }),
+}));
+
+vi.mock('@/components/create/workflow-canvas', () => ({
+  WorkflowCanvas: () => <div data-testid="workflow-canvas" />,
+}));
+vi.mock('@/components/create/create-timeline', () => ({
+  CreateTimeline: () => <div data-testid="create-timeline" />,
+}));
+vi.mock('@/components/create/toolbar/workflows-panel', () => ({ WorkflowsPanel: () => null }));
+vi.mock('@/components/create/toolbar/models-panel', () => ({ ModelsPanel: () => null }));
+vi.mock('@/components/create/toolbar/history-panel', () => ({ HistoryPanel: () => null }));
+
+vi.mock('@/components/create/nodes/video-node-preview', () => ({
+  VideoNodePreview: ({
+    sourceUrl,
+    className,
+    ariaLabel,
+  }: {
+    sourceUrl: string;
+    className?: string;
+    ariaLabel?: string;
+  }) => <video src={sourceUrl} className={className} aria-label={ariaLabel} />,
+}));
+vi.mock('@/components/create/use-topview-model-catalog', () => ({
+  useTopviewModelCatalogVersion: () => 1,
+}));
+vi.mock('@/lib/fal/models', () => ({
+  ALL_MODELS: models,
+  getModelDefinition: (nodeType: string) => models[nodeType] ?? mediaModels[nodeType],
+}));
+vi.mock('@/lib/workflows/provider-model-options', () => ({
+  modelProviderLabel: (model: ModelDefinition) => (
+    model.provider === 'higgsfield' ? 'Higgsfield' : 'Topview AI'
+  ),
+  providerModelOptions: (categories: string[]) => (
+    [...(categories.includes('video')
+      ? [
+          { key: 'video-one', label: 'Topview AI · Video Model' },
+          { key: 'video-two', label: 'Higgsfield · Alternate Video' },
+          { key: 'video-ref', label: 'Topview AI · Reference Video' },
+          // Listed last so the default is chosen by name, not by position.
+          { key: 'video-seedance', label: 'Topview AI · Seedance 2.5' },
+        ]
+      : []), ...(categories.includes('image') ? [{ key: 'image-one', label: 'Topview AI · Image Model' }] : []), ...Object.values(mediaModels)
+        .filter(model => categories.includes(model.category))
+        .map(model => ({key: model.nodeType, label: `${model.provider} · ${model.name}`}))]
+  ),
+}));
+vi.mock('@/lib/elements/variations', () => ({
+  elementImagesForVariation: (element: { id: string }) => (
+    element.id === 'el-sky' ? [{ id: 'i1', url: 'local-media://sky.png' }] : []
+  ),
+}));
+vi.mock('@/lib/workflows/execute', () => ({ executeFromNode: vi.fn() }));
+vi.mock('@/lib/llm/space-node-factory', () => ({
+  createWorkflowNodeFromSpec: vi.fn(),
+}));
+// Not mocked: the real module is localStorage plus an event, and beforeEach
+// clears storage, so it already reports Topview until something switches it.
+vi.mock('@/lib/providers/project-usage', () => ({ requestProviderUsageRefresh: vi.fn() }));
+
+import { CreateTab } from '@/components/create/create-tab';
+import { renewalCountdown } from '@/lib/providers/renewal';
+import { SpaceStudio } from '@/components/create/space-studio';
+import { createWorkflowNodeFromSpec } from '@/lib/llm/space-node-factory';
+import { executeFromNode } from '@/lib/workflows/execute';
+import { splitPromptMentions } from '@/lib/studio/mentions';
+
+function node(
+  id: string,
+  type: string,
+  data: Partial<WorkflowNodeData>,
+): Record<string, unknown> {
+  return {
+    id,
+    type,
+    position: { x: 0, y: 0 },
+    data: {
+      type,
+      label: models[type].name,
+      config: {},
+      ...data,
+    },
+  };
+}
+
+function makeState(nodes: Record<string, unknown>[] = []) {
+  const activeSpace = {
+    id: 'space-a',
+    name: 'Scene Lab',
+    createdAt: '2026-08-31T12:00:00.000Z',
+    nodes,
+    edges: [],
+  };
+  return {
+    spaces: [activeSpace],
+    activeSpaceId: activeSpace.id,
+    openSpaceIds: new Set([activeSpace.id]),
+    nodes,
+    edges: [],
+    assets: [],
+    elements: [],
+    sets: [],
+    runningNodeIds: new Set<string>(),
+    providerUsage: { topview: { connected: true, creditsRemaining: 100, creditsUsed: 0 } },
+  };
+}
+
+describe('Space Studio', () => {
+  beforeEach(() => {
+    HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', ''); };
+    HTMLDialogElement.prototype.close = function () { this.removeAttribute('open'); };
+    workspaceHarness.state = makeState();
+    workspaceHarness.dispatch.mockClear();
+    vi.mocked(executeFromNode).mockClear();
+    vi.mocked(createWorkflowNodeFromSpec).mockClear();
+    vi.mocked(executeFromNode).mockResolvedValue(undefined as never);
+    vi.mocked(createWorkflowNodeFromSpec).mockImplementation((spec, position) => ({
+      id: `new-${spec.nodeType}`, type: spec.nodeType, position,
+      data: {type: spec.nodeType, label: spec.label, config: spec.config},
+    }) as never);
+    localStorage.clear();
+    // Most of these tests read the list cards; the grid has its own suite.
+    localStorage.setItem('cinegen_studio_feed_view', 'list');
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      value: vi.fn(() => ({
+        matches: false,
+        media: '(max-width: 767px)',
+        onchange: null,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      })),
+    });
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.restoreAllMocks();
+    for (const key of Object.keys(mediaModels)) delete mediaModels[key];
+  });
+
+  it.each(['hf-hf-mult-motion-control', 'hf-hf-mult-replace-object'])('runs %s with image and video references kept separate and an optional prompt', nodeType => {
+    const model = buildHiggsfieldModelRegistry()[nodeType];
+    mediaModels[nodeType] = model;
+    render(<SpaceStudio transfer={{ id: 'genjutsu-source', spaceId: 'space-a', attachments: [
+      { id: 'photo', name: 'Subject.png', kind: 'image', url: 'https://media.test/subject.png' },
+      { id: 'clip', name: 'Motion.mp4', kind: 'video', url: 'https://media.test/motion.mp4' },
+    ] }} />);
+    fireEvent.click(screen.getByRole('combobox', { name: 'Model' }));
+    fireEvent.click(screen.getByRole('option', { name: new RegExp(model.name) }));
+    expect(screen.getByTestId('space-studio-generate')).toBeEnabled();
+    fireEvent.submit(screen.getByTestId('space-studio-generate').closest('form')!);
+    const action = workspaceHarness.dispatch.mock.calls.map(([action]) => action).find(action => action.type === 'SET_NODES');
+    expect(action.nodes[0].type).toBe(nodeType);
+    expect(action.nodes[0].data.config).toMatchObject({ image_references: { urls: ['https://media.test/subject.png'] }, video_references: 'https://media.test/motion.mp4', resolution: '720p', prompt: '' });
+    expect(action.nodes[0].data.config.duration).toBeUndefined();
+    expect(action.nodes[0].data.config.aspect_ratio).toBeUndefined();
+  });
+
+  it('blocks Genjutsu without a source video before creating a job', () => {
+    const model = buildHiggsfieldModelRegistry()['hf-hf-mult-motion-control'];
+    mediaModels[model.nodeType] = model;
+    render(<SpaceStudio />);
+    fireEvent.click(screen.getByRole('combobox', { name: 'Model' }));
+    fireEvent.click(screen.getByRole('option', { name: /Genjutsu/ }));
+    fireEvent.submit(screen.getByTestId('space-studio-generate').closest('form')!);
+    expect(screen.getByText('Genjutsu requires exactly one source video.')).toBeInTheDocument();
+    expect(workspaceHarness.dispatch.mock.calls.some(([action]) => action.type === 'SET_NODES')).toBe(false);
+  });
+
+  it('runs a selected Topaz image upscale with dimensions and a source, without a prompt', async () => {
+    const model = buildHiggsfieldModelRegistry()['hf-topaz-image'];
+    mediaModels[model.nodeType] = model;
+    render(<SpaceStudio transfer={{ id: 'upscale-source', spaceId: 'space-a', attachments: [
+      { id: 'photo', name: 'Source.png', kind: 'image', url: 'https://media.test/source.png' },
+    ] }} />);
+    fireEvent.click(within(screen.getByRole('group', {name: 'Output type'})).getByRole('button', {name: 'Image'}));
+    fireEvent.click(screen.getByRole('combobox', {name: 'Model'}));
+    fireEvent.click(screen.getByRole('option', {name: /Topaz Image Upscale/}));
+    expect(workspaceHarness.dispatch).not.toHaveBeenCalled();
+    fireEvent.change(screen.getByRole('spinbutton', {name: 'Output width (px)'}), {target: {value: '2048'}});
+    fireEvent.change(screen.getByRole('spinbutton', {name: 'Output height (px)'}), {target: {value: '1024'}});
+    expect(screen.getByTestId('space-studio-generate')).toBeEnabled();
+    fireEvent.submit(screen.getByTestId('space-studio-generate').closest('form')!);
+    const action = workspaceHarness.dispatch.mock.calls.map(([action]) => action).find(action => action.type === 'SET_NODES');
+    expect(action.nodes).toHaveLength(1);
+    expect(action.nodes[0].data.config).toMatchObject({image_references: ['https://media.test/source.png'], output_width: 2048, output_height: 1024});
+    expect(action.nodes[0].data.config.prompt).toBeUndefined();
+  });
+
+  it('keeps Avatar 4 optional, with separate image and dialogue references', () => {
+    const model = topviewMediaToolDefinitions(['topview_avatar_video']).find(model => model.name === 'Avatar 4')!;
+    mediaModels[model.nodeType] = model;
+    render(<SpaceStudio transfer={{ id: 'avatar-source', spaceId: 'space-a', attachments: [
+      { id: 'photo', name: 'Source.png', kind: 'image', url: 'https://media.test/source.png' },
+      { id: 'voice', name: 'Voice.wav', kind: 'audio', url: 'https://media.test/voice.wav' },
+    ] }} />);
+    expect(screen.getByRole('combobox', {name: 'Model'})).toHaveAttribute('data-value', 'video-seedance');
+    fireEvent.click(screen.getByRole('combobox', {name: 'Model'}));
+    fireEvent.click(screen.getByRole('option', {name: /Avatar 4/}));
+    expect(workspaceHarness.dispatch).not.toHaveBeenCalled();
+    expect(screen.getByTestId('space-studio-generate')).toBeEnabled();
+    fireEvent.submit(screen.getByTestId('space-studio-generate').closest('form')!);
+    const action = workspaceHarness.dispatch.mock.calls.map(([action]) => action).find(action => action.type === 'SET_NODES');
+    expect(action.nodes[0].data.config).toMatchObject({image_url: {urls: ['https://media.test/source.png']}, audio_references: ['https://media.test/voice.wav'], prompt: ''});
+  });
+
+  it('explains unavailable Topview processing before a run can start', () => {
+    const model = topviewMediaToolDefinitions().find(model => model.name === 'Video Upscale')!;
+    mediaModels[model.nodeType] = model;
+    render(<SpaceStudio />);
+    fireEvent.click(screen.getByRole('combobox', {name: 'Model'}));
+    fireEvent.click(screen.getByRole('option', {name: /Video Upscale/}));
+    expect(screen.getByText(model.unavailableReason!)).toBeInTheDocument();
+    expect(screen.getByTestId('space-studio-generate')).toBeDisabled();
+    expect(workspaceHarness.dispatch).not.toHaveBeenCalled();
+  });
+
+  it('accepts a Canvas prompt and media once, keeps existing references, and does not start a generation', async () => {
+    localStorage.setItem('cinegen_studio_draft:studio-test-project', JSON.stringify({ prompt: 'Earlier draft', attachments: [
+      { id: 'existing', url: 'https://media.test/existing.png', name: 'Existing.png', kind: 'image' },
+    ] }));
+    const consumed = vi.fn();
+    const transfer = { id: 'transfer-1', spaceId: 'space-a', prompt: 'A side view of this shot.', attachments: [
+      { id: 'canvas-file', url: 'https://media.test/uploaded.mp4', name: 'Uploaded.mp4', kind: 'video' as const },
+    ] };
+    const { rerender } = render(<SpaceStudio transfer={transfer} onTransferConsumed={consumed} />);
+    expect(screen.getByRole('textbox', { name: 'Prompt' })).toHaveValue(transfer.prompt);
+    expect(screen.getAllByRole('button', { name: 'Remove Uploaded.mp4' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('button', { name: 'Remove Existing.png' }).length).toBeGreaterThan(0);
+    expect(consumed).toHaveBeenCalledTimes(1);
+    expect(workspaceHarness.dispatch.mock.calls.some(([action]) => action.type === 'SET_NODES')).toBe(false);
+    fireEvent.change(screen.getByRole('textbox', { name: 'Prompt' }), { target: { value: 'Edited after sending' } });
+    rerender(<SpaceStudio transfer={transfer} onTransferConsumed={consumed} />);
+    expect(screen.getByRole('textbox', { name: 'Prompt' })).toHaveValue('Edited after sending');
+    expect(consumed).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows an imported image in Studio and attaches it as a reference without selecting a fake generation model', () => {
+    workspaceHarness.state = makeState([{ id: 'canvas-import', type: 'filePicker', position: { x: 0, y: 0 }, data: {
+      type: 'filePicker', label: 'Desktop photo.png', config: { __studioGenerated: true, __studioMedia: true,
+        __studioOutputType: 'image', fileUrl: 'https://media.test/desktop.png', fileName: 'Desktop photo.png' },
+      result: { status: 'complete', url: 'https://media.test/desktop.png' },
+    } }]);
+    render(<SpaceStudio />);
+    const card = screen.getByTestId('space-studio-feed-item-canvas-import');
+    expect(within(card).getByText('From Canvas')).toBeInTheDocument();
+    fireEvent.click(within(card).getByRole('button', { name: 'Use as reference' }));
+    expect(screen.getAllByRole('button', { name: 'Remove Desktop photo.png' }).length).toBeGreaterThan(0);
+    expect(screen.getByRole('combobox', { name: 'Model' })).toHaveAttribute('data-value', 'video-seedance');
+  });
+
+  it('switches between Canvas and Studio without unmounting or mutating the workflow', () => {
+    render(<CreateTab />);
+
+    const viewSwitch = screen.getByRole('group', { name: 'Space view' });
+    const canvasButton = within(viewSwitch).getByRole('button', { name: 'Canvas' });
+    const studioButton = within(viewSwitch).getByRole('button', { name: 'Studio' });
+    const workflowCanvas = screen.getByTestId('workflow-canvas');
+
+    expect(canvasButton).toHaveAttribute('aria-pressed', 'true');
+    expect(studioButton).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.queryByTestId('space-studio')).not.toBeInTheDocument();
+    expect(screen.getByTestId('create-timeline')).toBeInTheDocument();
+
+    fireEvent.click(studioButton);
+
+    expect(studioButton).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByTestId('space-studio')).toBeInTheDocument();
+    expect(workflowCanvas).toBeInTheDocument();
+    expect(workflowCanvas.closest('.create-tab__canvas')).toHaveAttribute('aria-hidden', 'true');
+    expect(screen.queryByTestId('create-timeline')).not.toBeInTheDocument();
+    expect(localStorage.getItem('cinegen_spaces_view_mode')).toBe('studio');
+    expect(workspaceHarness.dispatch).not.toHaveBeenCalled();
+
+    fireEvent.click(canvasButton);
+
+    expect(canvasButton).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.queryByTestId('space-studio')).not.toBeInTheDocument();
+    expect(workflowCanvas.closest('.create-tab__canvas')).toHaveAttribute('aria-hidden', 'false');
+    expect(screen.getByTestId('create-timeline')).toBeInTheDocument();
+  });
+
+  it('renders semantic composer controls and updates them when the model or media type changes', async () => {
+    render(<SpaceStudio />);
+
+    expect(screen.getByRole('heading', { name: 'Generate in Studio' })).toBeInTheDocument();
+    expect(screen.getByText('Scene Lab')).toBeInTheDocument();
+
+    const outputType = screen.getByRole('group', { name: 'Output type' });
+    expect(within(outputType).getByRole('button', { name: 'Video' })).toHaveAttribute('aria-pressed', 'true');
+    expect(within(outputType).getByRole('button', { name: 'Image' })).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByRole('textbox', { name: 'Prompt' })).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Video guidance' })).toBeInTheDocument();
+    // References is the opening mode, and Seedance 2.5 the opening model, even
+    // though it is listed last.
+    expect(screen.getByRole('button', { name: 'References' })).toHaveAttribute('aria-pressed', 'true');
+
+    // The model picker is a searchable overlay, so the selection lives on the
+    // trigger rather than in a native select value.
+    const modelTrigger = screen.getByRole('combobox', { name: 'Model' });
+    await waitFor(() => expect(modelTrigger).toHaveAttribute('data-value', 'video-seedance'));
+    expect(modelTrigger).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByTestId('space-studio-control-duration-trigger')).toBeInTheDocument();
+
+    fireEvent.click(modelTrigger);
+    expect(modelTrigger).toHaveAttribute('aria-expanded', 'true');
+    fireEvent.click(screen.getByRole('option', { name: /Alternate Video/ }));
+
+    expect(modelTrigger).toHaveAttribute('data-value', 'video-two');
+    expect(modelTrigger).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByRole('combobox', { name: 'Resolution' })).toBeInTheDocument();
+    expect(screen.queryByTestId('space-studio-control-duration-trigger')).not.toBeInTheDocument();
+
+    const generate = screen.getByTestId('space-studio-generate');
+    expect(generate).toBeDisabled();
+    fireEvent.change(screen.getByRole('textbox', { name: 'Prompt' }), {
+      target: { value: 'A slow dolly toward the subject.' },
+    });
+    expect(generate).toBeEnabled();
+    expect(generate).toHaveAttribute('type', 'submit');
+
+    fireEvent.click(within(outputType).getByRole('button', { name: 'Image' }));
+    await waitFor(() => expect(modelTrigger).toHaveAttribute('data-value', 'image-one'));
+    expect(within(outputType).getByRole('button', { name: 'Image' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.queryByRole('group', { name: 'Video guidance' })).not.toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: 'Aspect ratio' })).toBeInTheDocument();
+    expect(screen.getByTestId('space-studio-generate')).toHaveTextContent('Generate image');
+  });
+
+  it('completes an @ mention from the prompt and adds it as a reference', async () => {
+    workspaceHarness.state = {
+      ...makeState(),
+      elements: [{
+        id: 'el-sky',
+        name: 'Sky Diver',
+        type: 'character',
+        description: '',
+        images: [{ id: 'i1', url: 'local-media://sky.png', createdAt: '', source: 'upload' }],
+        createdAt: '',
+        updatedAt: '',
+      }],
+    };
+
+    render(<SpaceStudio />);
+
+    // A mention only attaches a reference on a model that accepts one.
+    const outputType = screen.getByRole('group', { name: 'Output type' });
+    fireEvent.click(within(outputType).getByRole('button', { name: 'Image' }));
+
+    const promptBox = screen.getByRole('textbox', { name: 'Prompt' }) as HTMLTextAreaElement;
+    fireEvent.change(promptBox, { target: { value: 'A shot of @sky' } });
+
+    // Typing @ offers the matching Elements without leaving the prompt.
+    const option = await screen.findByTestId('space-studio-mention-el-sky');
+    expect(option).toHaveTextContent('@Sky-Diver');
+
+    fireEvent.click(option);
+
+    // The mention token survives Topview's prompt sanitiser, which turns
+    // @Sky-Diver back into "Sky Diver".
+    await waitFor(() => expect(promptBox.value).toBe('A shot of @Sky-Diver '));
+    expect(screen.getByTestId('space-studio-element-el-sky')).toBeInTheDocument();
+  });
+
+  it('opens the element picker from the prompt chip', async () => {
+    workspaceHarness.state = {
+      ...makeState(),
+      elements: [{
+        id: 'el-sky',
+        name: 'Sky Diver',
+        type: 'character',
+        description: '',
+        images: [{ id: 'i1', url: 'local-media://sky.png', createdAt: '', source: 'upload' }],
+        createdAt: '',
+        updatedAt: '',
+      }],
+    };
+
+    render(<SpaceStudio />);
+
+    const outputType = screen.getByRole('group', { name: 'Output type' });
+    fireEvent.click(within(outputType).getByRole('button', { name: 'Image' }));
+
+    // Nothing from the library is shown until something is chosen.
+    expect(screen.queryByTestId('space-studio-modal-element-el-sky')).not.toBeInTheDocument();
+
+    fireEvent.click(await screen.findByTestId('space-studio-elements-chip'));
+
+    const modal = await screen.findByTestId('space-studio-element-modal');
+    fireEvent.click(within(modal).getByTestId('space-studio-modal-element-el-sky'));
+
+    expect(within(modal).getByTestId('space-studio-modal-element-el-sky'))
+      .toHaveAttribute('aria-checked', 'true');
+  });
+
+  it('remembers the prompt, settings, and references a generation used', () => {
+    const skyDiver = {
+      id: 'el-sky',
+      name: 'Sky Diver',
+      type: 'character' as const,
+      description: '',
+      images: [{ id: 'i1', url: 'local-media://sky.png', createdAt: '', source: 'upload' as const }],
+      createdAt: '',
+      updatedAt: '',
+    };
+    workspaceHarness.state = {
+      ...makeState([
+        node('video-feed', 'video-one', {
+          config: {
+            __studioGenerated: true,
+            __studioCreatedAt: '2026-09-01T12:00:00.000Z',
+            __studioPrompt: 'Move toward camera.',
+            __studioElementIds: ['el-sky'],
+            duration: '5',
+          },
+          generations: ['https://media.example/v1.mp4'],
+          activeGeneration: 0,
+          result: { status: 'complete', url: 'https://media.example/v1.mp4' },
+        }),
+      ]),
+      elements: [skyDiver],
+    };
+
+    render(<SpaceStudio />);
+
+    const card = screen.getByRole('article', { name: 'Video Model generation' });
+    // The settings it actually ran with, read back off the node.
+    expect(within(card).getByLabelText('Settings used')).toHaveTextContent('5s');
+    // And the references it used, resolved against the current library.
+    expect(within(card).getByRole('img', { name: 'Sky Diver' })).toBeInTheDocument();
+    expect(within(card).getByText('1 reference')).toBeInTheDocument();
+
+    // Clicking the prompt itself loads the recipe back into the composer, as
+    // does the explicit Reuse action.
+    fireEvent.click(within(card).getByTestId('space-studio-prompt-load-video-feed'));
+    expect(screen.getByRole('textbox', { name: 'Prompt' })).toHaveValue('Move toward camera.');
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Prompt' }), { target: { value: 'edited' } });
+    fireEvent.click(within(card).getByTestId('space-studio-reuse-video-feed'));
+    expect(screen.getByRole('textbox', { name: 'Prompt' })).toHaveValue('Move toward camera.');
+  });
+
+  it('marks every mention in a prompt, not every other one', () => {
+    // A global regex reused across parts carries lastIndex; this pins the fix.
+    const parts = splitPromptMentions('a @Sky-Diver b @Sky-Diver c', ['Sky Diver']);
+
+    expect(parts.filter((part) => part.mention)).toHaveLength(2);
+    expect(parts.map((part) => part.text).join('')).toBe('a @Sky-Diver b @Sky-Diver c');
+    expect(splitPromptMentions('no tags here', ['Sky Diver'])).toEqual([
+      { text: 'no tags here', mention: false },
+    ]);
+  });
+
+  it('writes the tag into the prompt when an element is picked, and removes it', async () => {
+    workspaceHarness.state = {
+      ...makeState(),
+      elements: [{
+        id: 'el-sky',
+        name: 'Sky Diver',
+        type: 'character',
+        description: '',
+        images: [{ id: 'i1', url: 'local-media://sky.png', createdAt: '', source: 'upload' }],
+        createdAt: '',
+        updatedAt: '',
+      }],
+    };
+
+    render(<SpaceStudio />);
+    const outputType = screen.getByRole('group', { name: 'Output type' });
+    fireEvent.click(within(outputType).getByRole('button', { name: 'Image' }));
+
+    const promptBox = screen.getByRole('textbox', { name: 'Prompt' }) as HTMLTextAreaElement;
+    fireEvent.change(promptBox, { target: { value: 'A wide shot' } });
+
+    fireEvent.click(await screen.findByTestId('space-studio-elements-chip'));
+    const picker = await screen.findByTestId('space-studio-element-modal');
+    fireEvent.click(within(picker).getByTestId('space-studio-modal-element-el-sky'));
+
+    expect(promptBox).toHaveValue('A wide shot @Sky-Diver ');
+
+    // Deselecting takes the tag back out rather than stranding it.
+    fireEvent.click(within(picker).getByTestId('space-studio-modal-element-el-sky'));
+    expect(promptBox.value).not.toContain('@Sky-Diver');
+  });
+
+  it('uses a slider for a dense numeric range and a described flyout for other settings', async () => {
+    render(<SpaceStudio />);
+
+    // The bitrate setting belongs to the first mock model, not the default one.
+    fireEvent.click(screen.getByRole('combobox', { name: 'Model' }));
+    fireEvent.click(screen.getByRole('option', { name: /Video Model/ }));
+
+    // 12 durations is past the point a menu stays scannable.
+    fireEvent.click(screen.getByTestId('space-studio-control-duration-trigger'));
+    const slider = await screen.findByTestId('space-studio-control-duration');
+    expect(slider).toHaveAttribute('type', 'range');
+    fireEvent.change(slider, { target: { value: '3' } });
+    expect(screen.getByTestId('space-studio-control-duration-trigger')).toHaveTextContent('7s');
+
+    // Dragging a 12-stop range inside a pill-width popover left everything but
+    // the ends unreachable, so every accepted value is also a target of its own.
+    const stops = screen.getByTestId('space-studio-control-duration-stops');
+    expect(within(stops).getAllByRole('button')).toHaveLength(12);
+    fireEvent.click(within(stops).getByRole('button', { name: '11s' }));
+    expect(screen.getByTestId('space-studio-control-duration-trigger')).toHaveTextContent('11s');
+
+    // And a nudge lands on the neighbouring second, not two away.
+    fireEvent.click(screen.getByTestId('space-studio-control-duration-up'));
+    expect(screen.getByTestId('space-studio-control-duration-trigger')).toHaveTextContent('12s');
+    fireEvent.click(screen.getByTestId('space-studio-control-duration-down'));
+    expect(screen.getByTestId('space-studio-control-duration-trigger')).toHaveTextContent('11s');
+
+    // Bitrate is not one of the three pills, so it becomes a row with a
+    // flyout that carries each option's explanation.
+    fireEvent.click(screen.getByTestId('space-studio-control-bitrate-trigger'));
+    const flyout = await screen.findByTestId('space-studio-control-bitrate');
+    expect(within(flyout).getByText('Less compression · larger size')).toBeInTheDocument();
+    fireEvent.click(within(flyout).getByRole('option', { name: /Standard/ }));
+    expect(screen.getByTestId('space-studio-control-bitrate-trigger')).toHaveTextContent('Standard');
+  });
+
+  it('shows a flat clip grid that opens a viewer', () => {
+    workspaceHarness.state = makeState([
+      node('a', 'video-one', {
+        config: { __studioGenerated: true, __studioCreatedAt: '2026-09-01T12:00:00.000Z' },
+        generations: ['https://media.example/a.mp4'],
+        result: { status: 'complete', url: 'https://media.example/a.mp4' },
+      }),
+      node('b', 'video-one', {
+        config: { __studioGenerated: true, __studioCreatedAt: '2026-08-30T12:00:00.000Z' },
+        generations: ['https://media.example/b.mp4'],
+        result: { status: 'complete', url: 'https://media.example/b.mp4' },
+      }),
+    ]);
+
+    render(<SpaceStudio />);
+    fireEvent.click(screen.getByTestId('space-studio-view-grid'));
+
+    // A flat wall of clips, newest first, with no date headings to break it up.
+    const grid = screen.getByTestId('space-studio-feed-grid');
+    expect(within(grid).queryByRole('heading')).not.toBeInTheDocument();
+    const tiles = within(grid).getAllByTestId(/^space-studio-tile-/);
+    expect(tiles.map((tile) => tile.getAttribute('data-testid'))).toEqual(['space-studio-tile-a', 'space-studio-tile-b']);
+    expect(screen.queryByRole('article', { name: 'Video Model generation' })).not.toBeInTheDocument();
+
+    // Opening a clip shows the viewer for it; the arrow keys walk the grid.
+    fireEvent.click(within(tiles[0]).getByRole('button', { name: 'Open Video Model video' }));
+    const viewer = screen.getByTestId('space-studio-clip-viewer');
+    expect(within(viewer).getByText('1 of 2')).toBeInTheDocument();
+    fireEvent.keyDown(viewer, { key: 'ArrowRight' });
+    expect(within(screen.getByTestId('space-studio-clip-viewer')).getByText('2 of 2')).toBeInTheDocument();
+    fireEvent.keyDown(screen.getByTestId('space-studio-clip-viewer'), { key: 'Escape' });
+    expect(screen.queryByTestId('space-studio-clip-viewer')).not.toBeInTheDocument();
+    // The opened clip is remembered as the last one viewed.
+    expect(JSON.parse(localStorage.getItem('cinegen_studio_seen:studio-test-project') ?? '{}').lastViewed).toBe('b');
+  });
+
+  it('docks the composer as a bar over the grid and restores the panel for the list', () => {
+    localStorage.removeItem('cinegen_studio_feed_view');
+    workspaceHarness.state = makeState([
+      node('a', 'video-one', {
+        config: { __studioGenerated: true, __studioCreatedAt: '2026-09-01T12:00:00.000Z' },
+        generations: ['https://media.example/a.mp4'],
+        result: { status: 'complete', url: 'https://media.example/a.mp4' },
+      }),
+    ]);
+
+    render(<SpaceStudio />);
+    expect(screen.getByTestId('space-studio')).toHaveClass('space-studio--dock');
+    expect(screen.getByTestId('space-studio-generate')).toHaveTextContent(/^Generate/);
+
+    // The guidance pill drives the same state as the panel's segmented control.
+    const modePill = screen.getByTestId('space-studio-dock-mode');
+    expect(modePill).toHaveTextContent('References');
+    fireEvent.click(modePill);
+    expect(screen.getByRole('menuitemradio', { name: 'References' })).toHaveAttribute('aria-checked', 'true');
+    fireEvent.click(screen.getByRole('menuitemradio', { name: 'Frames' }));
+    expect(screen.getByTestId('space-studio-dock-mode')).toHaveTextContent('Frames');
+    expect(within(screen.getByRole('group', { name: 'Video guidance' })).getByRole('button', { name: 'Frames' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.queryByRole('menu', { name: 'Video guidance' })).not.toBeInTheDocument();
+
+    // The Elements chip sits in the tool row while docked, and back in the prompt card for the list.
+    expect(screen.getByTestId('space-studio-elements-chip').closest('.space-studio__tools')).not.toBeNull();
+    expect(screen.getByTestId('space-studio-dock-add')).toBeInTheDocument();
+    expect(screen.getByTestId('space-studio-dock-resize')).toBeInTheDocument();
+    expect(screen.getByTestId('space-studio')).toHaveStyle({ '--dock-prompt-h': '40px' });
+    fireEvent.click(screen.getByTestId('space-studio-view-list'));
+    expect(screen.getByTestId('space-studio')).not.toHaveClass('space-studio--dock');
+    expect(screen.getByTestId('space-studio-elements-chip').closest('.space-studio__prompt-chips')).not.toBeNull();
+    expect(screen.queryByTestId('space-studio-dock-add')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('space-studio-dock-resize')).not.toBeInTheDocument();
+    expect(screen.getByTestId('space-studio-generate')).toHaveTextContent('Generate video');
+  });
+
+  it('prices the run on the Generate button, and drops the badge when the price is a guess', () => {
+    localStorage.removeItem('cinegen_studio_feed_view');
+    render(<SpaceStudio />);
+
+    const price = () => screen.getByTestId('space-studio-generate')
+      .querySelector('.space-studio__generate-cost')?.textContent?.trim();
+
+    // Seedance 2.5 at the default 5s / 720p: 1.5 credits a second, less the
+    // fifth Topview takes off its own quote — 7.5 list, 6 billed.
+    expect(price()).toBe('6');
+
+    // Two versions are two clips, so twice the credits.
+    fireEvent.click(screen.getByRole('button', { name: 'More versions' }));
+    expect(price()).toBe('12');
+
+    // 1080p costs its own rate, not a multiple of the 720p one: 2.2 a second.
+    fireEvent.click(screen.getByTestId('space-studio-control-resolution'));
+    fireEvent.click(screen.getByTestId('space-studio-control-resolution-1080'));
+    expect(price()).toBe('22');
+
+    // A model the rate card has never been read on shows no number rather than
+    // a wrong one, however tempting the neighbouring model's rate is.
+    fireEvent.click(screen.getByRole('combobox', { name: 'Model' }));
+    fireEvent.click(screen.getByRole('option', { name: /Video Model/ }));
+    expect(price()).toBeUndefined();
+  });
+
+  it('grows the docked bar from the top-right handle, and a double-click restores the compact size', () => {
+    localStorage.removeItem('cinegen_studio_feed_view');
+    render(<SpaceStudio />);
+    const handle = screen.getByTestId('space-studio-dock-resize');
+    // jsdom reports a zero-width box, which would clamp every drag to the
+    // minimum and hide the horizontal direction. Pin a realistic start width.
+    const rect = vi.spyOn(Element.prototype, 'getBoundingClientRect')
+      .mockReturnValue({ width: 900, height: 120, top: 0, left: 0, right: 900, bottom: 120, x: 0, y: 0, toJSON: () => ({}) } as DOMRect);
+    fireEvent.pointerDown(handle, { clientX: 900, clientY: 500, pointerId: 1 });
+    // Up and to the right: the grip pulls the bar open on both axes.
+    fireEvent.pointerMove(handle, { clientX: 940, clientY: 460, pointerId: 1 });
+    fireEvent.pointerUp(handle, { pointerId: 1 });
+    rect.mockRestore();
+    expect(screen.getByTestId('space-studio')).toHaveStyle({ '--dock-prompt-h': '80px' });
+    expect(screen.getByTestId('space-studio')).toHaveStyle({ '--dock-bar-max': '940px' });
+    fireEvent.doubleClick(handle);
+    expect(screen.getByTestId('space-studio')).toHaveStyle({ '--dock-prompt-h': '40px' });
+    expect(screen.getByTestId('space-studio')).toHaveStyle({ '--dock-bar-max': '1040px' });
+  });
+
+  it('shrinks the docked bar when the top-right handle is dragged inward', () => {
+    localStorage.removeItem('cinegen_studio_feed_view');
+    render(<SpaceStudio />);
+    const handle = screen.getByTestId('space-studio-dock-resize');
+    const rect = vi.spyOn(Element.prototype, 'getBoundingClientRect')
+      .mockReturnValue({ width: 900, height: 120, top: 0, left: 0, right: 900, bottom: 120, x: 0, y: 0, toJSON: () => ({}) } as DOMRect);
+    fireEvent.pointerDown(handle, { clientX: 900, clientY: 500, pointerId: 1 });
+    // Dragging left must narrow the bar, not widen it.
+    fireEvent.pointerMove(handle, { clientX: 840, clientY: 500, pointerId: 1 });
+    fireEvent.pointerUp(handle, { pointerId: 1 });
+    rect.mockRestore();
+    expect(screen.getByTestId('space-studio')).toHaveStyle({ '--dock-bar-max': '840px' });
+  });
+
+  it('makes one node and one run per version when the stepper asks for more than one', () => {
+    let counter = 0;
+    // The real executor returns a promise; a bare vi.fn() would throw on `.catch`.
+    vi.mocked(executeFromNode).mockResolvedValue(undefined as never);
+    vi.mocked(createWorkflowNodeFromSpec).mockImplementation((spec: { nodeType: string; label: string; config: Record<string, unknown> }, position: { x: number; y: number }) => ({
+      id: `made-${++counter}`,
+      type: spec.nodeType,
+      position,
+      data: { type: spec.nodeType, label: spec.label, config: spec.config },
+    }) as never);
+    workspaceHarness.state = makeState([]);
+
+    render(<SpaceStudio />);
+    fireEvent.change(screen.getByRole('textbox', { name: 'Prompt' }), { target: { value: 'Three takes of the same push in.' } });
+    fireEvent.click(screen.getByRole('button', { name: 'More versions' }));
+    fireEvent.click(screen.getByRole('button', { name: 'More versions' }));
+    expect(screen.getByTestId('space-studio-batch')).toHaveTextContent('3/4');
+    expect(screen.getByTestId('space-studio-generate')).toHaveTextContent('Generate 3 videos');
+
+    fireEvent.submit(screen.getByTestId('space-studio-generate').closest('form') as HTMLFormElement);
+
+    const setNodes = workspaceHarness.dispatch.mock.calls.map(([action]) => action).find((action) => action.type === 'SET_NODES') as { nodes: Array<{ id: string; data: { config: Record<string, unknown> } }> };
+    expect(setNodes.nodes.map((made) => made.id)).toEqual(['made-1', 'made-2', 'made-3']);
+    expect(setNodes.nodes.map((made) => made.data.config.__studioBatchIndex)).toEqual([1, 2, 3]);
+    expect(setNodes.nodes.every((made) => made.data.config.__studioBatchSize === 3)).toBe(true);
+    expect(vi.mocked(executeFromNode)).toHaveBeenCalledTimes(3);
+    // Never past four, never below one.
+    fireEvent.click(screen.getByRole('button', { name: 'More versions' }));
+    fireEvent.click(screen.getByRole('button', { name: 'More versions' }));
+    expect(screen.getByTestId('space-studio-batch')).toHaveTextContent('4/4');
+    expect(screen.getByRole('button', { name: 'More versions' })).toBeDisabled();
+  });
+
+  it('submits Edit video as an edit of the chosen clip, with the length left to the clip', () => {
+    vi.mocked(executeFromNode).mockResolvedValue(undefined as never);
+    vi.mocked(createWorkflowNodeFromSpec).mockImplementation((spec: { nodeType: string; label: string; config: Record<string, unknown> }, position: { x: number; y: number }) => ({
+      id: 'made-edit',
+      type: spec.nodeType,
+      position,
+      data: { type: spec.nodeType, label: spec.label, config: spec.config },
+    }) as never);
+    workspaceHarness.state = {
+      ...makeState(),
+      assets: [{
+        id: 'clip-1',
+        name: 'tunnel-walkout.mp4',
+        type: 'video',
+        url: 'local-media://file/Users/chris/Movies/tunnel-walkout.mp4',
+        createdAt: '2026-09-01T12:00:00.000Z',
+      }] as Asset[],
+    };
+
+    render(<SpaceStudio />);
+    // Seedance 2.5 is the opening model, and it is the one that can edit.
+    fireEvent.click(screen.getByTestId('space-studio-video-mode-edit'));
+    expect(screen.getByTestId('space-studio-video-mode-edit')).toHaveAttribute('aria-pressed', 'true');
+    // Seconds are the clip's to give, so the control is gone rather than ignored.
+    expect(screen.queryByTestId('space-studio-control-duration-trigger')).not.toBeInTheDocument();
+
+    // Choosing the clip: from the Space's own assets, or from the machine.
+    expect(screen.getByTestId('space-studio-edit-video-upload')).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('space-studio-edit-video-clip-1'));
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Prompt' }), {
+      target: { value: 'Replace the player wearing 13 with the character sheet.' },
+    });
+    fireEvent.submit(screen.getByTestId('space-studio-generate').closest('form') as HTMLFormElement);
+
+    const setNodes = workspaceHarness.dispatch.mock.calls
+      .map(([action]) => action)
+      .find((action) => action.type === 'SET_NODES') as { nodes: Array<{ data: { config: Record<string, unknown> } }> };
+    const config = setNodes.nodes[0].data.config;
+    // The sentinel goes out on the first submit, so Seedance never has to reject
+    // the task to tell us it read the prompt as an edit.
+    expect(config.duration).toBe(-1);
+    expect(config.__studioVideoMode).toBe('edit');
+    expect(config.__studioEditAssetId).toBe('clip-1');
+    expect(config.video_mode).toBe('edit');
+    expect(config.aspect_ratio).toBe('adaptive');
+    expect(config.source_video).toContain('tunnel-walkout.mp4');
+    expect(screen.queryByTestId('space-studio-control-aspect_ratio-trigger')).not.toBeInTheDocument();
+  });
+
+  it('removes a multi-selection from the grid after one confirmation', () => {
+    localStorage.removeItem('cinegen_studio_feed_view');
+    workspaceHarness.state = makeState([
+      node('a', 'video-one', { config: { __studioGenerated: true, __studioCreatedAt: '2026-09-01T12:00:00.000Z' }, generations: ['https://media.example/a.mp4'], result: { status: 'complete', url: 'https://media.example/a.mp4' } }),
+      node('b', 'video-one', { config: { __studioGenerated: true, __studioCreatedAt: '2026-09-01T11:00:00.000Z' }, generations: ['https://media.example/b.mp4'], result: { status: 'complete', url: 'https://media.example/b.mp4' } }),
+      node('c', 'video-one', { config: { __studioGenerated: true, __studioCreatedAt: '2026-09-01T10:00:00.000Z' }, generations: ['https://media.example/c.mp4'], result: { status: 'complete', url: 'https://media.example/c.mp4' } }),
+    ]);
+
+    render(<SpaceStudio />);
+    expect(screen.queryByTestId('space-studio-selection')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('space-studio-select-a'));
+    fireEvent.click(screen.getByTestId('space-studio-select-c'));
+    expect(screen.getByText('2 selected')).toBeInTheDocument();
+
+    // While selecting, a tap on a tile toggles it instead of opening the viewer.
+    fireEvent.click(within(screen.getByTestId('space-studio-tile-b')).getByRole('button', { name: 'Open Video Model video' }));
+    expect(screen.getByText('3 selected')).toBeInTheDocument();
+    expect(screen.queryByTestId('space-studio-clip-viewer')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('space-studio-select-b'));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Remove selected' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Remove' }));
+    const setNodes = workspaceHarness.dispatch.mock.calls.map(([action]) => action).filter((action) => action.type === 'SET_NODES').pop() as { nodes: Array<{ id: string }> };
+    expect(setNodes.nodes.map((kept) => kept.id)).toEqual(['b']);
+  });
+
+  it('opens docked menus above the bar, not inside the tool row that clips them', () => {
+    localStorage.removeItem('cinegen_studio_feed_view');
+    workspaceHarness.state = makeState([
+      node('a', 'video-one', {
+        config: { __studioGenerated: true, __studioCreatedAt: '2026-09-01T12:00:00.000Z' },
+        generations: ['https://media.example/a.mp4'],
+        result: { status: 'complete', url: 'https://media.example/a.mp4' },
+      }),
+    ]);
+
+    render(<SpaceStudio />);
+
+    // The tool row scrolls sideways, so an absolutely positioned menu would be
+    // clipped by it: docked menus are placed against the viewport instead.
+    const guidance = screen.getByTestId('space-studio-dock-mode');
+    guidance.getBoundingClientRect = () => ({ x: 300, y: 700, left: 300, top: 700, right: 460, bottom: 742, width: 160, height: 42, toJSON: () => ({}) });
+    fireEvent.click(guidance);
+    const menu = screen.getByRole('menu', { name: 'Video guidance' });
+    expect(menu.style.position).toBe('fixed');
+    expect(menu.style.bottom).toBe(`${window.innerHeight - 700 + 8}px`);
+    expect(Number(menu.style.zIndex)).toBeGreaterThan(60);
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    // The model picker is anchored to the bar and must size to its content: with
+    // a bottom offset it would otherwise stretch from the CSS `top` to the bar.
+    fireEvent.click(screen.getByRole('combobox', { name: 'Model' }));
+    const flyout = document.querySelector('.space-studio__flyout') as HTMLElement;
+    expect(flyout).not.toBeNull();
+    expect(flyout.style.top).toBe('auto');
+    expect(flyout.style.bottom).not.toBe('');
+  });
+
+  it('closes a docked menu on a second click, on a click away, and lets its options through', () => {
+    localStorage.removeItem('cinegen_studio_feed_view');
+    workspaceHarness.state = makeState([
+      node('a', 'video-one', {
+        config: { __studioGenerated: true, __studioCreatedAt: '2026-09-01T12:00:00.000Z' },
+        generations: ['https://media.example/a.mp4'],
+        result: { status: 'complete', url: 'https://media.example/a.mp4' },
+      }),
+    ]);
+
+    render(<SpaceStudio />);
+
+    // A model with a short option list, so a selection is visible on the pill.
+    fireEvent.click(screen.getByRole('combobox', { name: 'Model' }));
+    fireEvent.click(screen.getByRole('option', { name: /Alternate Video/ }));
+    const pill = screen.getByRole('combobox', { name: 'Resolution' });
+    pill.getBoundingClientRect = () => ({ x: 400, y: 700, left: 400, top: 700, right: 520, bottom: 742, width: 120, height: 42, toJSON: () => ({}) });
+
+    // Both bounds are pinned: a fixed menu would otherwise take `min-width: 100%`
+    // from the viewport and run off the screen.
+    const open = () => { fireEvent.mouseDown(pill); fireEvent.click(pill); };
+    open();
+    const menu = screen.getByRole('listbox', { name: 'Resolution' });
+    expect(menu.style.position).toBe('fixed');
+    expect(menu.style.width).toBe('168px');
+    expect(menu.style.minWidth).toBe('168px');
+    expect(menu.style.maxWidth).toBe('168px');
+
+    // A second click on the same control closes it.
+    open();
+    expect(screen.queryByRole('listbox', { name: 'Resolution' })).not.toBeInTheDocument();
+
+    // A click anywhere else closes it.
+    open();
+    fireEvent.mouseDown(document.body);
+    expect(screen.queryByRole('listbox', { name: 'Resolution' })).not.toBeInTheDocument();
+
+    // An option still receives its click instead of being swallowed by the dismissal.
+    open();
+    const option = screen.getByTestId('space-studio-control-resolution-1080p');
+    fireEvent.mouseDown(option);
+    fireEvent.click(option);
+    expect(screen.queryByRole('listbox', { name: 'Resolution' })).not.toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: 'Resolution' })).toHaveAttribute('data-value', '1080p');
+  });
+
+  it('opens aspect as a shape grid and resolution as a titled list, without ticks', async () => {
+    render(<SpaceStudio />);
+    fireEvent.click(within(screen.getByRole('group', { name: 'Output type' })).getByRole('button', { name: 'Image' }));
+    fireEvent.click(await screen.findByRole('combobox', { name: 'Aspect ratio' }));
+    const aspect = screen.getByRole('listbox', { name: 'Aspect ratio' });
+    expect(aspect).toHaveClass('space-studio__pill-menu--grid');
+    expect(within(aspect).getByRole('option', { name: '16:9' }).querySelector('svg')).not.toBeNull();
+    expect(within(aspect).queryByText('✓')).not.toBeInTheDocument();
+
+    fireEvent.click(within(screen.getByRole('group', { name: 'Output type' })).getByRole('button', { name: 'Video' }));
+    fireEvent.click(screen.getByRole('combobox', { name: 'Model' }));
+    fireEvent.click(screen.getByRole('option', { name: /Alternate Video/ }));
+    fireEvent.click(screen.getByRole('combobox', { name: 'Resolution' }));
+    const quality = screen.getByRole('listbox', { name: 'Resolution' });
+    expect(quality).not.toHaveClass('space-studio__pill-menu--grid');
+    expect(within(quality).getByRole('option', { name: '720p' })).toHaveClass('is-active');
+    expect(within(quality).queryByText('✓')).not.toBeInTheDocument();
+  });
+
+  it('offers Edit video in the docked guidance menu for Seedance', async () => {
+    localStorage.removeItem('cinegen_studio_feed_view');
+    render(<SpaceStudio />);
+    await waitFor(() => expect(screen.getByRole('combobox', { name: 'Model' })).toHaveAttribute('data-value', 'video-seedance'));
+    fireEvent.click(screen.getByTestId('space-studio-dock-mode'));
+    const menu = screen.getByRole('menu', { name: 'Video guidance' });
+    expect(within(menu).getByRole('menuitemradio', { name: 'Edit video' })).toHaveAttribute('aria-checked', 'false');
+    expect(within(menu).getByRole('menuitemradio', { name: 'References' })).toHaveAttribute('aria-checked', 'true');
+    expect(within(menu).getByRole('menuitemradio', { name: 'Frames' })).toBeInTheDocument();
+  });
+
+  it('uploads images, videos, and audio from the References picker into generation', async () => {
+    localStorage.removeItem('cinegen_studio_feed_view');
+    workspaceHarness.state = makeState([]);
+    (window as unknown as { electronAPI: unknown }).electronAPI = {
+      file: { getPathForFile: (file: File) => `/Users/chris/Movies/${file.name}` },
+    };
+
+    vi.mocked(executeFromNode).mockResolvedValue(undefined as never);
+    let made = 0;
+    vi.mocked(createWorkflowNodeFromSpec).mockImplementation((spec: { nodeType: string; label: string; config: Record<string, unknown> }, position: { x: number; y: number }) => ({
+      id: `made-${++made}`,
+      type: spec.nodeType,
+      position,
+      data: { type: spec.nodeType, label: spec.label, config: spec.config },
+    }) as never);
+
+    render(<SpaceStudio />);
+    const modeBefore = screen.getByTestId('space-studio-dock-mode').textContent;
+
+    const input = screen.getByTestId('space-studio-attach-input');
+    expect(input).toHaveAttribute('accept', 'image/*,video/*,audio/*');
+    expect(input).toHaveAttribute('multiple');
+
+    fireEvent.click(screen.getByTestId('space-studio-elements-chip'));
+    fireEvent.click(screen.getByRole('button', { name: /Upload images, video, or audio/ }));
+    expect(input).toHaveAttribute('accept', 'image/*,video/*,audio/*');
+
+    // A whole set at once, mixed media — that is what a reference pack is.
+    fireEvent.change(input, {
+      target: {
+        files: [
+          new File(['x'], 'jordan.png', { type: 'image/png' }),
+          new File(['x'], 'jordan-travis.mp4', { type: 'video/mp4' }),
+          new File(['x'], 'rhythm.wav', { type: 'audio/wav' }),
+        ],
+      },
+    });
+
+    expect(await screen.findByText('rhythm.wav added as a reference.')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Play rhythm.wav' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('slider', { name: 'Seek rhythm.wav' })).not.toBeInTheDocument();
+    for (const name of ['jordan.png', 'jordan-travis.mp4', 'rhythm.wav']) {
+      fireEvent.click(within(screen.getByTestId('space-studio-dock-refs')).getByRole('button', { name: `Preview ${name}` }));
+      expect(screen.getByRole('dialog', { name })).toBeInTheDocument();
+      if (name === 'rhythm.wav') expect(within(screen.getByRole('dialog', { name })).getByRole('button', { name: 'Play rhythm.wav' })).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: 'Close reference preview' }));
+      expect(within(screen.getByTestId('space-studio-dock-refs')).getByRole('button', { name: `Remove ${name}` })).toBeInTheDocument();
+    }
+    // The video used to stop at "saved to Assets"; both are references now.
+    expect(screen.getAllByRole('button', { name: 'Remove jordan.png' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('button', { name: 'Remove jordan-travis.mp4' }).length).toBeGreaterThan(0);
+    // Attaching must not move the shot to Frames.
+    expect(screen.getByTestId('space-studio-dock-mode')).toHaveTextContent(modeBefore ?? '');
+
+    // They ride into the generation on the model's reference field.
+    fireEvent.change(screen.getByRole('textbox', { name: 'Prompt' }), { target: { value: 'He walks out of the tunnel.' } });
+    fireEvent.submit(screen.getByTestId('space-studio-generate').closest('form') as HTMLFormElement);
+    const setNodes = workspaceHarness.dispatch.mock.calls
+      .map(([action]) => action)
+      .find((action) => action.type === 'SET_NODES') as { nodes: Array<{ data: { config: Record<string, unknown> } }> };
+    const reference = setNodes.nodes[0].data.config.image_url as { urls?: string[] };
+    expect(reference.urls).toHaveLength(2);
+    expect(setNodes.nodes[0].data.config.audio_references).toEqual(['local-media://file/Users/chris/Movies/rhythm.wav']);
+    expect(setNodes.nodes[0].data.config.__studioAttachedRefs).toHaveLength(3);
+    expect(reference.urls?.[0]).toContain('jordan.png');
+    expect(reference.urls?.[1]).toContain('jordan-travis.mp4');
+
+    delete (window as unknown as { electronAPI?: unknown }).electronAPI;
+  });
+
+  it('shows first and last frame slots above the bar in Frames mode and fills the one you click', async () => {
+    localStorage.removeItem('cinegen_studio_feed_view');
+    workspaceHarness.state = makeState([]);
+    (window as unknown as { electronAPI: unknown }).electronAPI = {
+      file: { getPathForFile: () => '/Users/chris/Pictures/last.png' },
+    };
+    // The slot reads the asset back out of workspace state, so the harness has
+    // to actually keep what the Studio files away.
+    workspaceHarness.dispatch.mockImplementation((action: { type: string; asset?: Asset }) => {
+      if (action.type === 'ADD_ASSET' && action.asset) {
+        workspaceHarness.state = { ...workspaceHarness.state, assets: [...workspaceHarness.state.assets, action.asset] };
+      }
+    });
+
+    render(<SpaceStudio />);
+    // The default model takes references and no frames: nothing to show.
+    expect(screen.getByTestId('space-studio-dock-mode')).toHaveTextContent('References');
+    expect(screen.queryByTestId('space-studio-dock-frames')).not.toBeInTheDocument();
+
+    // A frames model puts the two slots above the bar.
+    fireEvent.click(screen.getByRole('combobox', { name: 'Model' }));
+    fireEvent.click(screen.getByRole('option', { name: /Video Model/ }));
+    await waitFor(() => expect(screen.getByTestId('space-studio-dock-mode')).toHaveTextContent('Frames'));
+    expect(screen.getByTestId('space-studio-dock-frames')).toBeInTheDocument();
+    expect(screen.getByTestId('space-studio-dock-start-frame')).toHaveAttribute('aria-label', 'Add first frame from your computer');
+
+    // Clicking the last-frame slot aims the picker at that slot.
+    fireEvent.click(screen.getByTestId('space-studio-dock-end-frame'));
+    const file = new File(['x'], 'last.png', { type: 'image/png' });
+    fireEvent.change(screen.getByTestId('space-studio-attach-input'), { target: { files: [file] } });
+
+    expect(await screen.findByText('last.png is the last frame.')).toBeInTheDocument();
+    const added = workspaceHarness.dispatch.mock.calls
+      .map(([action]) => action)
+      .find((action) => action.type === 'ADD_ASSET') as { asset: { id: string; name: string } };
+    expect(added.asset.name).toBe('last.png');
+    // The slot now shows that image, and only that slot.
+    await waitFor(() => expect(screen.getByTestId('space-studio-dock-end-frame')).toHaveAttribute('aria-label', 'Last frame: last.png. Replace'));
+    expect(screen.getByTestId('space-studio-dock-start-frame')).toHaveAttribute('aria-label', 'Add first frame from your computer');
+    expect(screen.getByRole('button', { name: 'Remove last frame' })).toBeInTheDocument();
+
+    // A video cannot be a frame.
+    fireEvent.click(screen.getByTestId('space-studio-dock-start-frame'));
+    fireEvent.change(screen.getByTestId('space-studio-attach-input'), { target: { files: [new File(['x'], 'clip.mp4', { type: 'video/mp4' })] } });
+    expect(await screen.findByText('A frame has to be an image.')).toBeInTheDocument();
+
+    delete (window as unknown as { electronAPI?: unknown }).electronAPI;
+  });
+
+  it('folds the composer into a bottom sheet on a phone so the clips come first', () => {
+    localStorage.removeItem('cinegen_studio_feed_view');
+    // jsdom reports no matchMedia, which the Studio reads as a desktop width.
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      configurable: true,
+      value: (query: string) => ({
+        matches: /max-width:\s*780px/.test(query),
+        media: query,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        addListener: () => {},
+        removeListener: () => {},
+        onchange: null,
+        dispatchEvent: () => false,
+      }),
+    });
+    workspaceHarness.state = makeState([
+      node('a', 'video-one', {
+        config: { __studioGenerated: true, __studioCreatedAt: '2026-09-01T12:00:00.000Z' },
+        generations: ['https://media.example/a.mp4'],
+        result: { status: 'complete', url: 'https://media.example/a.mp4' },
+      }),
+    ]);
+
+    render(<SpaceStudio />);
+
+    const studio = screen.getByTestId('space-studio');
+    expect(studio).toHaveClass('space-studio--sheet');
+    expect(studio).not.toHaveClass('space-studio--dock');
+    expect(studio).not.toHaveClass('is-composing');
+
+    // The collapsed bar shows what the prompt says, and opens the composer.
+    const peek = screen.getByTestId('space-studio-peek');
+    expect(peek).toHaveTextContent('Describe the shot…');
+    fireEvent.click(peek);
+    expect(screen.getByTestId('space-studio')).toHaveClass('is-composing');
+    expect(screen.queryByTestId('space-studio-peek')).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Prompt' }), { target: { value: 'A slow push through the ferns.' } });
+    fireEvent.click(screen.getByTestId('space-studio-sheet-close'));
+    expect(screen.getByTestId('space-studio')).not.toHaveClass('is-composing');
+    expect(screen.getByTestId('space-studio-peek')).toHaveTextContent('A slow push through the ferns.');
+
+    // The list keeps the full panel: the sheet belongs to the grid.
+    fireEvent.click(screen.getByTestId('space-studio-view-list'));
+    expect(screen.getByTestId('space-studio')).not.toHaveClass('space-studio--sheet');
+    expect(screen.queryByTestId('space-studio-peek')).not.toBeInTheDocument();
+
+    delete (window as unknown as { matchMedia?: unknown }).matchMedia;
+  });
+
+  it('shows the Topview credit reset in the provider card instead of a project tally', () => {
+    workspaceHarness.state = makeState([]);
+
+    render(<CreateTab />);
+
+    const card = screen.getByLabelText('Topview AI project usage');
+    expect(within(card).getByText('Credits left')).toBeInTheDocument();
+    expect(within(card).queryByText('Used in project')).not.toBeInTheDocument();
+    expect(within(card).getByText('Renews in')).toBeInTheDocument();
+    // The countdown is derived from today, so assert against the same helper
+    // rather than a date that would rot.
+    expect(screen.getByTestId('cs-provider-renewal')).toHaveTextContent(renewalCountdown());
+    // The reset sentence is gone; the countdown metric carries it.
+    expect(within(card).queryByText(/resets? on the 27th of each month/i)).not.toBeInTheDocument();
+  });
+
+  it('pins the models worth reaching for above the provider groups', () => {
+    localStorage.removeItem('cinegen_studio_feed_view');
+    render(<SpaceStudio />);
+
+    fireEvent.click(screen.getByRole('combobox', { name: 'Model' }));
+    const groups = screen.getAllByRole('listbox', { name: 'Models' })[0]
+      .querySelectorAll('.space-studio__picker-group');
+    expect(groups[0].querySelector('h4')?.textContent).toContain('Favorites');
+    // Video favourites, in the order named.
+    expect(screen.getByTestId('space-studio-model-favorite-video-seedance')).toBeInTheDocument();
+    // Still listed under its provider too, so either route finds it.
+    expect(screen.getByTestId('space-studio-model-option-video-seedance')).toBeInTheDocument();
+
+    // Picking from Favorites selects the same model as the provider row would.
+    fireEvent.click(screen.getByTestId('space-studio-model-option-video-one'));
+    expect(screen.getByRole('combobox', { name: 'Model' })).toHaveTextContent('Video Model');
+    fireEvent.click(screen.getByRole('combobox', { name: 'Model' }));
+    fireEvent.click(screen.getByTestId('space-studio-model-favorite-video-seedance'));
+    expect(screen.getByRole('combobox', { name: 'Model' })).toHaveTextContent('Seedance 2.5');
+  });
+
+  it('switches provider from the card without a trip through Settings', () => {
+    workspaceHarness.state = makeState([]);
+
+    render(<CreateTab />);
+
+    const swap = screen.getByTestId('cs-provider-switch');
+    expect(swap).toHaveTextContent('Topview AI');
+    expect(swap).toHaveAttribute('title', 'Switch to Higgsfield');
+
+    fireEvent.click(swap);
+
+    expect(screen.getByTestId('cs-provider-switch')).toHaveTextContent('Higgsfield');
+    expect(JSON.parse(localStorage.getItem('cinegen_settings') ?? '{}').videoGenerationProvider)
+      .toBe('higgsfield');
+    // And back, so a stray click is one click to undo.
+    fireEvent.click(screen.getByTestId('cs-provider-switch'));
+    expect(screen.getByTestId('cs-provider-switch')).toHaveTextContent('Topview AI');
+  });
+
+  it('shows every attached reference above the bar, Elements and files alike', async () => {
+    localStorage.removeItem('cinegen_studio_feed_view');
+    workspaceHarness.state = {
+      ...makeState([]),
+      elements: [{
+        id: 'el-sky',
+        name: 'Sky Diver',
+        type: 'character',
+        description: '',
+        images: [{ id: 'i1', url: 'local-media://sky.png', createdAt: '', source: 'upload' }],
+        createdAt: '',
+        updatedAt: '',
+      }],
+    };
+    (window as unknown as { electronAPI: unknown }).electronAPI = {
+      file: { getPathForFile: (file: File) => `/Users/chris/Movies/${file.name}` },
+    };
+
+    render(<SpaceStudio />);
+    // Nothing attached yet, so no strip.
+    expect(screen.queryByTestId('space-studio-dock-refs')).not.toBeInTheDocument();
+
+    // An Element picked from the picker.
+    fireEvent.click(screen.getByTestId('space-studio-elements-chip'));
+    fireEvent.click(screen.getByTestId('space-studio-modal-element-el-sky'));
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    // And a file attached from disk.
+    fireEvent.change(screen.getByTestId('space-studio-attach-input'), {
+      target: { files: [new File(['x'], 'run-cycle.mp4', { type: 'video/mp4' })] },
+    });
+    await screen.findByText('run-cycle.mp4 added as a reference.');
+
+    const strip = screen.getByTestId('space-studio-dock-refs');
+    expect(within(strip).getByText('Sky Diver')).toBeInTheDocument();
+    expect(within(strip).getByText('run-cycle.mp4')).toBeInTheDocument();
+    // A clip shows a still of itself, so you can tell which video it is.
+    const clip = strip.querySelector('video');
+    expect(clip).not.toBeNull();
+    expect(clip?.getAttribute('src')).toContain('run-cycle.mp4');
+    expect(clip?.getAttribute('preload')).toBe('metadata');
+
+    fireEvent.click(within(strip).getByRole('button', { name: 'Preview Sky Diver' }));
+    expect(screen.getByRole('dialog', { name: 'Sky Diver' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Close reference preview' }));
+
+    // Each tile can be taken off the shot from here.
+    fireEvent.click(within(strip).getByRole('button', { name: 'Remove run-cycle.mp4' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(within(screen.getByTestId('space-studio-dock-refs')).queryByText('run-cycle.mp4')).not.toBeInTheDocument();
+    fireEvent.click(within(screen.getByTestId('space-studio-dock-refs')).getByRole('button', { name: 'Remove Sky Diver' }));
+    expect(screen.queryByTestId('space-studio-dock-refs')).not.toBeInTheDocument();
+
+    delete (window as unknown as { electronAPI?: unknown }).electronAPI;
+  });
+
+  it('opens on the grid by default and remembers a switch to the list', () => {
+    localStorage.removeItem('cinegen_studio_feed_view');
+    workspaceHarness.state = makeState([
+      node('a', 'video-one', {
+        config: { __studioGenerated: true, __studioCreatedAt: '2026-09-01T12:00:00.000Z' },
+        generations: ['https://media.example/a.mp4'],
+        result: { status: 'complete', url: 'https://media.example/a.mp4' },
+      }),
+    ]);
+
+    render(<SpaceStudio />);
+    expect(screen.getByTestId('space-studio-view-grid')).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByTestId('space-studio-feed-grid')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId('space-studio-view-list'));
+    expect(localStorage.getItem('cinegen_studio_feed_view')).toBe('list');
+    expect(screen.getByRole('article', { name: 'Video Model generation' })).toBeInTheDocument();
+  });
+
+  it('recovers a re-created reference by name and reports one that is truly gone', () => {
+    // The library was re-imported: "Sky Diver" now has a new id, and "Cave" is gone.
+    workspaceHarness.state = {
+      ...makeState([
+        node('old-video', 'video-ref', {
+          config: {
+            __studioGenerated: true,
+            __studioCreatedAt: '2026-08-27T12:00:00.000Z',
+            __studioPrompt: 'Hold on the diver.',
+            __studioElementIds: ['el-sky-OLD', 'el-cave-OLD'],
+            __studioElementNames: ['Sky Diver', 'Cave'],
+          },
+          generations: ['https://media.example/old.mp4'],
+          result: { status: 'complete', url: 'https://media.example/old.mp4' },
+        }),
+      ]),
+      elements: [{
+        id: 'el-sky',
+        name: 'Sky Diver',
+        type: 'character',
+        description: '',
+        images: [{ id: 'i1', url: 'local-media://sky.png', createdAt: '', source: 'upload' }],
+        createdAt: '',
+        updatedAt: '',
+      }],
+    };
+
+    render(<SpaceStudio />);
+    fireEvent.click(screen.getByTestId('space-studio-prompt-load-old-video'));
+
+    // Sky Diver came back under its NEW id via the stored name.
+    expect(screen.getByTestId('space-studio-element-el-sky')).toBeInTheDocument();
+    // Cave could not, and the user is told instead of shown an empty strip.
+    expect(screen.getByTestId('space-studio-missing-references')).toHaveTextContent('1 reference');
+    expect(screen.getByRole('button', { name: 'References' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('does not land in References mode when every stored reference is gone', () => {
+    workspaceHarness.state = {
+      ...makeState([
+        node('orphan', 'video-one', {
+          config: {
+            __studioGenerated: true,
+            __studioCreatedAt: '2026-08-27T12:00:00.000Z',
+            __studioPrompt: 'Push in.',
+            __studioElementIds: ['el-gone'],
+          },
+          generations: ['https://media.example/o.mp4'],
+          result: { status: 'complete', url: 'https://media.example/o.mp4' },
+        }),
+      ]),
+      elements: [],
+    };
+
+    render(<SpaceStudio />);
+    fireEvent.click(screen.getByTestId('space-studio-prompt-load-orphan'));
+
+    expect(screen.getByTestId('space-studio-missing-references')).toHaveTextContent('1 reference');
+    expect(screen.getByRole('button', { name: 'Frames' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('routes an auth failure to Settings instead of offering a retry that would fail the same way', () => {
+    workspaceHarness.state = makeState([
+      node('unauth', 'video-one', {
+        config: { __studioGenerated: true, __studioCreatedAt: '2026-09-01T12:00:00.000Z' },
+        result: {
+          status: 'error',
+          error: "Error invoking remote method 'topview:submit': Error: Connect your Topview account in Settings before generating.",
+        },
+      }),
+    ]);
+
+    render(<SpaceStudio />);
+
+    const card = screen.getByRole('article', { name: 'Video Model generation' });
+    // The raw Electron wrapper never reaches the user.
+    expect(within(card).getByRole('alert')).toHaveTextContent('Connect your Topview account in Settings before generating.');
+    expect(within(card).getByRole('alert')).not.toHaveTextContent('invoking remote method');
+    expect(within(card).queryByTestId('space-studio-retry-unauth')).not.toBeInTheDocument();
+
+    fireEvent.click(within(card).getByTestId('space-studio-open-settings-unauth'));
+    expect(workspaceHarness.dispatch).toHaveBeenCalledWith({ type: 'SET_TAB', tab: 'settings' });
+  });
+
+  it('shows completed video and image generations, version navigation, and feed filters', () => {
+    workspaceHarness.state = makeState([
+      node('video-feed', 'video-one', {
+        config: {
+          __studioGenerated: true,
+          __studioCreatedAt: '2026-08-31T12:00:00.000Z',
+          __studioPrompt: 'Move toward camera.',
+        },
+        generations: [
+          'https://media.example/video-v1.mp4',
+          'https://media.example/video-v2.mp4',
+        ],
+        activeGeneration: 1,
+        result: { status: 'complete', url: 'https://media.example/video-v2.mp4' },
+      }),
+      node('image-feed', 'image-one', {
+        config: {
+          __studioGenerated: true,
+          __studioCreatedAt: '2026-08-31T12:01:00.000Z',
+          __studioPrompt: 'A wide production still.',
+        },
+        generations: ['https://media.example/image-v1.webp'],
+        activeGeneration: 0,
+        result: { status: 'complete', url: 'https://media.example/image-v1.webp' },
+      }),
+    ]);
+
+    render(<SpaceStudio />);
+
+    expect(screen.getByRole('article', { name: 'Video Model generation' })).toBeInTheDocument();
+    expect(screen.getByRole('article', { name: 'Image Model generation' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Video Model, version 2')).toHaveAttribute(
+      'src',
+      'https://media.example/video-v2.mp4',
+    );
+    expect(screen.getByRole('img', { name: 'Image Model result, version 1' })).toHaveAttribute(
+      'src',
+      'https://media.example/image-v1.webp',
+    );
+
+    const versions = screen.getByRole('tablist', { name: 'Video Model versions' });
+    expect(within(versions).getByRole('tab', { name: 'V2' })).toHaveAttribute('aria-selected', 'true');
+    fireEvent.click(within(versions).getByRole('tab', { name: 'V1' }));
+    expect(screen.getByLabelText('Video Model, version 1')).toHaveAttribute(
+      'src',
+      'https://media.example/video-v1.mp4',
+    );
+
+    const filters = screen.getByRole('group', { name: 'Filter generations' });
+    fireEvent.click(within(filters).getByRole('button', { name: 'Video' }));
+    expect(screen.getByRole('article', { name: 'Video Model generation' })).toBeInTheDocument();
+    expect(screen.queryByRole('article', { name: 'Image Model generation' })).not.toBeInTheDocument();
+    expect(within(filters).getByRole('button', { name: 'Video' })).toHaveAttribute('aria-pressed', 'true');
+  });
+  it('sends every attached reference to a multi-slot field instead of refusing the submit', async () => {
+    // Regression: the guard used to key on `field.multiple`, which element-list
+    // fields almost never set — so a reference pack of four images was rejected
+    // with "Choose one reference." even though the field takes 15. Shape Shot
+    // attaches exactly this shape, so the block is load-bearing for it.
+    let counter = 0;
+    (window as unknown as { electronAPI: unknown }).electronAPI = {
+      file: { getPathForFile: (file: File) => `/Users/chris/Pictures/${file.name}` },
+    };
+    vi.mocked(executeFromNode).mockResolvedValue(undefined as never);
+    vi.mocked(createWorkflowNodeFromSpec).mockImplementation((spec: { nodeType: string; label: string; config: Record<string, unknown> }, position: { x: number; y: number }) => ({
+      id: `made-${++counter}`,
+      type: spec.nodeType,
+      position,
+      data: { type: spec.nodeType, label: spec.label, config: spec.config },
+    }) as never);
+    workspaceHarness.state = makeState([]);
+
+    render(<SpaceStudio />);
+    fireEvent.click(within(screen.getByRole('group', { name: 'Output type' })).getByRole('button', { name: 'Image' }));
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Prompt' }), { target: { value: 'A booth by the window.' } });
+    fireEvent.change(screen.getByTestId('space-studio-attach-input'), {
+      target: {
+        files: [
+          new File(['x'], 'plate.png', { type: 'image/png' }),
+          new File(['x'], 'composite.png', { type: 'image/png' }),
+          new File(['x'], 'depth.png', { type: 'image/png' }),
+          new File(['x'], 'standin.png', { type: 'image/png' }),
+        ],
+      },
+    });
+    await screen.findByText(/added as a reference/);
+
+    fireEvent.submit(screen.getByTestId('space-studio-generate').closest('form') as HTMLFormElement);
+
+    // The old guard aborted here, leaving an alert and making no node at all.
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    const setNodes = workspaceHarness.dispatch.mock.calls
+      .map(([action]) => action)
+      .find((action) => action.type === 'SET_NODES') as { nodes: Array<{ data: { config: Record<string, unknown> } }> };
+    expect(setNodes).toBeDefined();
+    const config = setNodes.nodes[0].data.config;
+    // The reference field carries the element-list composite; all four urls ride in `urls`.
+    expect((config.extra_images as { urls: string[] }).urls).toHaveLength(4);
+    // And the ordered mirror keeps them in attach order, which is what the
+    // @imageN numbering downstream depends on.
+    expect(config.__studioAttachedRefs as string[]).toHaveLength(4);
+    expect((config.__studioAttachedRefs as string[]).map((url) => url.split('/').pop())).toEqual([
+      'plate.png', 'composite.png', 'depth.png', 'standin.png',
+    ]);
+
+    delete (window as unknown as { electronAPI?: unknown }).electronAPI;
+  });
+  it('receives a Set shot first in reference order, appends the prompt, and carries its camera into generation', async () => {
+    localStorage.setItem('cinegen_studio_draft:studio-test-project', JSON.stringify({
+      prompt: 'Keep the original action.', videoMode: 'frames', attachments: [
+        { id: 'earlier', url: 'https://media.test/earlier.png', name: 'Earlier.png', kind: 'image' },
+      ],
+    }));
+    (window as unknown as { electronAPI: unknown }).electronAPI = {
+      file: { getPathForFile: (file: File) => `/Users/chris/Pictures/${file.name}` },
+    };
+    let count = 0;
+    vi.mocked(createWorkflowNodeFromSpec).mockImplementation((spec: any, position: any) => ({
+      id: `set-shot-${++count}`, type: spec.nodeType, position,
+      data: { type: spec.nodeType, label: spec.label, config: spec.config },
+    }) as never);
+    const receiveTarget = vi.fn();
+    const mounted = render(<SpaceStudio onShapeShotTarget={receiveTarget} />);
+    await waitFor(() => expect(receiveTarget.mock.lastCall?.[0].maxReferences).toBe(4));
+    const target: ShapeShotTarget = receiveTarget.mock.lastCall![0];
+    expect(target).toMatchObject({ width: 1280, height: 720, aspect: '16:9' });
+    const camera = { id:'saved-angle',name:'Angle',createdAt:'2026-09-15',position:[0,1.6,4],target:[0,1,0],focalMm:50,sensorWidthMm:36,sensorHeightMm:24,aspect:'16:9',fovDiagonal:47 } as any;
+    await act(async () => target.attach({ setId:'room', camera, promptBlock:'@image1 is the plate. Preserve this camera.',
+      files:['plate','composite','depth','standin'].map(kind => new File(['x'],`shape-shot-${kind}.png`,{type:'image/png'})) }));
+    expect(screen.getByRole('textbox',{name:'Prompt'})).toHaveValue('Keep the original action.\n\n@image1 is the plate. Preserve this camera.');
+    const persisted = JSON.parse(localStorage.getItem('cinegen_studio_draft:studio-test-project')!);
+    expect(persisted.videoMode).toBe('references');
+    expect(persisted.attachments.map((entry:any)=>entry.name)).toEqual(['shape-shot-plate.png','shape-shot-composite.png','shape-shot-depth.png','shape-shot-standin.png','Earlier.png']);
+    expect(persisted.shapeShotCamera.camera.id).toBe('saved-angle');
+    // Remount tests the actual draft path used when leaving and returning to Studio.
+    mounted.unmount(); render(<SpaceStudio />);
+    fireEvent.submit(screen.getByTestId('space-studio-generate').closest('form')!);
+    const action = workspaceHarness.dispatch.mock.calls.map(([action])=>action).find(action=>action.type==='SET_NODES');
+    expect(action).toBeDefined();
+    const config = action.nodes[0].data.config;
+    expect(config.__studioShapeShotSetId).toBe('room');
+    expect(config.__studioShapeShotCamera).toEqual(camera);
+    expect((config.__studioAttachedRefs as string[]).map(url=>url.split('/').pop())).toEqual(['shape-shot-plate.png','shape-shot-composite.png','shape-shot-depth.png','shape-shot-standin.png','earlier.png']);
+    expect(config.start_image).toBeUndefined();
+    delete (window as unknown as { electronAPI?: unknown }).electronAPI;
+  });
+
+  it('sends a connected Set shot to Canvas without changing the Studio draft or launching a run', async () => {
+    localStorage.setItem('cinegen_studio_draft:studio-test-project', JSON.stringify({prompt:'Original action.',videoMode:'frames'}));
+    (window as unknown as {electronAPI:unknown}).electronAPI={file:{getPathForFile:(file:File)=>`/Users/chris/Pictures/${file.name}`}};
+    let count=0;
+    vi.mocked(createWorkflowNodeFromSpec).mockImplementation((spec:any,position:any)=>({id:`canvas-shot-${++count}`,type:spec.nodeType,position,
+      data:{type:spec.nodeType,label:spec.label,config:spec.config}}) as never);
+    const received=vi.fn();render(<SpaceStudio onShapeShotTarget={received}/>);
+    await waitFor(()=>expect(received.mock.lastCall?.[0].maxReferences).toBe(4));
+    const target:ShapeShotTarget=received.mock.lastCall![0];
+    const camera={id:'cam',name:'Angle',createdAt:'',position:[0,2,4],target:[0,1,0],focalMm:50,sensorWidthMm:36,sensorHeightMm:24,aspect:'16:9',fovDiagonal:47} as any;
+    let id=''; await act(async()=>{id=await target.sendToCanvas!({setId:'room',camera,promptBlock:'@image1 is the plate.',files:['plate','composite','depth','standin'].map(pass=>new File(['x'],`${pass}.png`,{type:'image/png'}))});});
+    const actions=workspaceHarness.dispatch.mock.calls.map(([action])=>action);
+    const nodes=actions.find(action=>action.type==='SET_NODES').nodes;
+    const edges=actions.find(action=>action.type==='SET_EDGES').edges;
+    const shot=nodes.find((node:any)=>node.id===id);
+    expect(shot.data.config).toMatchObject({__studioCanvasPlaced:true,__studioVideoMode:'references',__studioShapeShotSetId:'room',__studioShapeShotCamera:camera});
+    expect(shot.data.config.prompt).toContain('Original action.\n\n@image1 is the plate.');
+    expect(nodes.filter((node:any)=>node.type==='filePicker').map((node:any)=>node.data.config.fileName)).toEqual(['plate.png','composite.png','depth.png','standin.png']);
+    expect(edges.filter((edge:any)=>edge.target===id)).toHaveLength(5);
+    expect(edges.some((edge:any)=>edge.targetHandle==='start_image')).toBe(false);
+    expect(screen.getByRole('textbox',{name:'Prompt'})).toHaveValue('Original action.');
+    expect(executeFromNode).not.toHaveBeenCalled();
+    delete (window as unknown as {electronAPI?:unknown}).electronAPI;
+  });
+
+  it('switches the Set send target to an image model and sends one screenshot to either destination', async () => {
+    localStorage.setItem('cinegen_studio_draft:studio-test-project', JSON.stringify({ prompt: '@image1 old plate @image2 old composite @image3 depth @image4 standin',
+      shapeShotCamera: { setId: 'old', camera: { id: 'old-camera' }, block: '@image1 old plate @image2 old composite @image3 depth @image4 standin' },
+      attachments: Array.from({ length: 15 }, (_, index) => ({ id: `old-${index}`, name: `old-${index}.png`, url: `https://media.test/old-${index}.png`, kind: 'image' })),
+      elementIds: ['character-old'] }));
+    (window as any).electronAPI = { file: { getPathForFile: (file: File) => `/Users/chris/Pictures/${file.name}` } };
+    let count = 0;
+    vi.mocked(createWorkflowNodeFromSpec).mockImplementation((spec: any, position: any) => ({ id: `single-view-${++count}`, type: spec.nodeType, position,
+      data: { type: spec.nodeType, label: spec.label, config: spec.config } }) as never);
+    const received = vi.fn(); render(<SpaceStudio onShapeShotTarget={received} />);
+    await waitFor(() => expect(received.mock.lastCall?.[0].models.some((model: any) => model.key === 'image-one')).toBe(true));
+    await act(async () => received.mock.lastCall![0].selectModel('image-one'));
+    await waitFor(() => expect(received.mock.lastCall?.[0].modelId).toBe('image-one'));
+    const target: ShapeShotTarget = received.mock.lastCall![0];
+    expect(target.unavailable).toBeUndefined();
+    expect(target.maxReferences).toBe(0);
+    expect(target.viewMaxReferences).toBe(15);
+    expect(target.outputControls?.[0].id).toBe('aspect_ratio');
+    const result = { mode: 'view' as const, setId: 'room', camera: { id: 'angle' } as any, promptBlock: '',
+      files: [new File(['png'], 'set-view.png', { type: 'image/png' })] };
+    let id = ''; await act(async () => { id = await target.sendToCanvas!(result); });
+    const nodes = workspaceHarness.dispatch.mock.calls.map(([action]) => action).find(action => action.type === 'SET_NODES').nodes;
+    const node = nodes.find((entry: any) => entry.id === id);
+    expect(node.type).toBe('image-one');
+    expect(node.data.config.__studioOutputType).toBe('image');
+    expect(node.data.config.__studioAttachedRefs).toHaveLength(1);
+    expect(node.data.config.prompt).toBe('');
+    expect(node.data.config.__studioElementIds).toEqual([]);
+    expect(nodes.filter((entry: any) => entry.type === 'prompt')).toHaveLength(0);
+    expect(screen.getByRole('textbox', { name: 'Prompt' })).toHaveValue('@image1 old plate @image2 old composite @image3 depth @image4 standin');
+    expect(nodes.filter((entry: any) => entry.type === 'filePicker')).toHaveLength(1);
+    expect(executeFromNode).not.toHaveBeenCalled();
+    await act(async () => target.attach(result));
+    expect(screen.getByRole('textbox', { name: 'Prompt' })).toHaveValue('');
+    const draft = JSON.parse(localStorage.getItem('cinegen_studio_draft:studio-test-project')!);
+    expect(draft.attachments).toHaveLength(1);
+    expect(draft.attachments[0].name).toBe('set-view.png');
+    expect(draft.elementIds).toEqual([]);
+    expect(draft.videoMode).toBe('references');
+    expect(draft.modelType).toBe('image-one');
+    delete (window as any).electronAPI;
+  });
+
+});

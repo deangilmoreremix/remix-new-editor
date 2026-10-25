@@ -1,0 +1,40 @@
+import { PromptNode } from './prompt-node';
+import { ElevenLabsAudioNode } from './elevenlabs-audio-node';
+import { AssetOutputNode } from './asset-output-node';
+import { MultiPromptNode } from './multi-prompt-node';
+import { CompositionPlanNode } from './composition-plan-node';
+import { MusicPromptNode } from './music-prompt-node';
+import { ElementNode } from './element-node';
+import { TrimNode } from './trim-node';
+import { FilePickerNode } from './file-picker-node';
+import { ShotBoardNode } from './shot-board-node';
+import { StoryboarderNode } from './storyboarder-node';
+import { GroupNode } from './group-node';
+import { ModelNode } from './model-node';
+import { getAllModelNodeTypes } from '@/lib/fal/models';
+
+const utilityNodeTypes: Record<string, React.ComponentType<any>> = {
+  group: GroupNode,
+  prompt: PromptNode,
+  elevenLabsAudio: ElevenLabsAudioNode,
+  assetOutput: AssetOutputNode,
+  multiPrompt: MultiPromptNode,
+  shotPrompt: MultiPromptNode,
+  compositionPlan: CompositionPlanNode,
+  musicPrompt: MusicPromptNode,
+  element: ElementNode,
+  trim: TrimNode,
+  filePicker: FilePickerNode,
+  shotBoard: ShotBoardNode,
+  storyboarder: StoryboarderNode,
+};
+
+/** Read after catalog updates, rather than freezing the renderer list at startup. */
+export function getCanvasNodeTypes(): Record<string, React.ComponentType<any>> {
+  return {
+    ...utilityNodeTypes,
+    ...Object.fromEntries(getAllModelNodeTypes().map(nodeType => [nodeType, ModelNode])),
+  };
+}
+
+export { BaseNode } from './base-node';

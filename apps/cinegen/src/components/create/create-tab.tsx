@@ -1,0 +1,700 @@
+import { registerMcpCommands } from '@/lib/mcp/app-commands';
+
+import { useState, useCallback, useMemo, useRef, useEffect, Suspense, lazy } from 'react';
+import { WorkflowCanvas } from './workflow-canvas';
+import { SpaceStudio } from './space-studio';
+import { CreateTimeline } from './create-timeline';
+// three + Spark are large and none of the three Vite configs chunks; keep them
+// out of the main bundle by only reaching Sets through a dynamic import.
+const SetsView = lazy(() => import('@/components/sets/sets-view').then((m) => ({ default: m.SetsView })));
+import type { ShapeShotTarget } from '@/lib/sets/shape-shot';
+import type { PreviewMode } from './timeline-preview';
+import { useWorkspace } from '@/components/workspace/workspace-shell';
+import { generateId, timestamp } from '@/lib/utils/ids';
+import type { WorkflowSpace } from '@/types/workspace';
+import { WorkflowsPanel } from './toolbar/workflows-panel';
+import { ModelsPanel } from './toolbar/models-panel';
+import { HistoryPanel } from './toolbar/history-panel';
+import {
+  getVideoGenerationProvider,
+  setVideoGenerationProvider,
+  type VideoGenerationProvider,
+} from '@/lib/utils/video-generation-provider';
+import { requestProviderUsageRefresh } from '@/lib/providers/project-usage';
+import { renewalCountdown } from '@/lib/providers/renewal';
+import { placeStudioNodeOnCanvas, removeStudioNodeFromCanvas } from '@/lib/studio/canvas-placement';
+import { canvasMedia, canvasPrompt, importCanvasMedia, syncCanvasVideosToStudio, type StudioTransfer } from '@/lib/studio/canvas-import';
+
+type SidebarPanel = 'workflows' | 'models' | 'history' | null;
+type SpaceViewMode = 'canvas' | 'studio' | 'sets';
+
+const SPACE_VIEW_STORAGE_KEY = 'cinegen_spaces_view_mode';
+
+function getInitialSpaceViewMode(): SpaceViewMode {
+  if (typeof window === 'undefined') return 'canvas';
+
+  try {
+    const storedMode = window.localStorage.getItem(SPACE_VIEW_STORAGE_KEY);
+    if (storedMode === 'studio' || storedMode === 'sets') return storedMode;
+    return 'canvas';
+  } catch {
+    return 'canvas';
+  }
+}
+
+const PROVIDER_LABELS: Record<VideoGenerationProvider, string> = {
+  topview: 'Topview AI',
+  higgsfield: 'Higgsfield',
+  artlist: 'Artlist',
+  runpod: 'RunPod',
+};
+
+/** The card flips between the two credit-metered providers; the rest are set in Settings. */
+const SWITCHABLE_PROVIDERS: VideoGenerationProvider[] = ['topview', 'higgsfield'];
+
+function formatCredits(value: number): string {
+  return new Intl.NumberFormat(undefined, {
+    maximumFractionDigits: 2,
+    minimumFractionDigits: value > 0 && value < 1 ? 2 : 0,
+  }).format(value);
+}
+
+function ProviderBudgetCard() {
+  const { state } = useWorkspace();
+  const [provider, setProvider] = useState<VideoGenerationProvider>(() => getVideoGenerationProvider());
+  const [refreshing, setRefreshing] = useState(false);
+  const usage = state.providerUsage[provider];
+  const hasCreditBalance = provider === 'topview' || provider === 'higgsfield';
+  const generatedAssets = state.assets.filter((asset) => asset.metadata?.generationProvider === provider).length;
+
+  useEffect(() => {
+    const syncProvider = () => setProvider(getVideoGenerationProvider());
+    window.addEventListener('cinegen:settings-changed', syncProvider);
+    return () => window.removeEventListener('cinegen:settings-changed', syncProvider);
+  }, []);
+
+  useEffect(() => {
+    if (!refreshing) return;
+    const timeout = window.setTimeout(() => setRefreshing(false), 900);
+    return () => window.clearTimeout(timeout);
+  }, [refreshing, usage?.updatedAt]);
+
+  const refresh = () => {
+    setRefreshing(true);
+    requestProviderUsageRefresh(provider);
+  };
+
+  // One click swaps the two credit providers. Anything else set in Settings —
+  // Artlist, RunPod — comes back to Topview rather than picking for the user.
+  const nextProvider = SWITCHABLE_PROVIDERS[
+    (SWITCHABLE_PROVIDERS.indexOf(provider) + 1) % SWITCHABLE_PROVIDERS.length
+  ];
+  const switchProvider = () => {
+    setVideoGenerationProvider(nextProvider);
+    setProvider(nextProvider);
+    requestProviderUsageRefresh(nextProvider);
+  };
+
+  // Topview resets its balance monthly, which is more use here than a
+  // per-project tally.
+  const isTopview = provider === 'topview';
+  const remaining = hasCreditBalance
+    ? usage?.connected === false
+      ? 'Not connected'
+      : typeof usage?.creditsRemaining === 'number'
+        ? formatCredits(usage.creditsRemaining)
+        : 'Checking…'
+    : provider === 'runpod' ? 'Hourly billing' : 'Not reported';
+  const used = hasCreditBalance
+    ? typeof usage?.lastObservedCredits === 'number'
+      ? formatCredits(usage.creditsUsed)
+      : 'Tracking now'
+    : `${generatedAssets} generation${generatedAssets === 1 ? '' : 's'}`;
+
+  return (
+    <section className="cs-provider-budget" aria-label={`${PROVIDER_LABELS[provider]} project usage`}>
+      <div className="cs-provider-budget__head">
+        <div className="cs-provider-budget__identity">
+          <span className={`cs-provider-budget__status${usage?.connected === false ? ' is-offline' : usage?.connected === undefined ? ' is-unknown' : ''}`} aria-hidden="true" />
+          <div>
+            <span>Current provider</span>
+            <button
+              type="button"
+              className="cs-provider-budget__switch"
+              data-testid="cs-provider-switch"
+              title={`Switch to ${PROVIDER_LABELS[nextProvider]}`}
+              aria-label={`Current provider ${PROVIDER_LABELS[provider]}. Switch to ${PROVIDER_LABELS[nextProvider]}`}
+              onClick={switchProvider}
+            >
+              <strong>{PROVIDER_LABELS[provider]}</strong>
+              <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                <path d="M2.5 6h9M9 3.5 11.5 6 9 8.5M13.5 10h-9M7 7.5 4.5 10 7 12.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <button
+          type="button"
+          className={`cs-provider-budget__refresh${refreshing ? ' is-refreshing' : ''}`}
+          onClick={refresh}
+          title="Refresh provider balance"
+          aria-label={`Refresh ${PROVIDER_LABELS[provider]} balance`}
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <polyline points="23 4 23 10 17 10" />
+            <polyline points="1 20 1 14 7 14" />
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+          </svg>
+        </button>
+      </div>
+      <div className="cs-provider-budget__metrics">
+        <div>
+          <span>{hasCreditBalance ? 'Credits left' : 'Billing'}</span>
+          <strong>{remaining}</strong>
+        </div>
+        <div>
+          <span>{isTopview ? 'Renews in' : hasCreditBalance ? 'Used in project' : 'Project activity'}</span>
+          <strong data-testid={isTopview ? 'cs-provider-renewal' : undefined}>{isTopview ? renewalCountdown() : used}</strong>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function CreateTab() {
+  const { state, dispatch, projectId } = useWorkspace();
+  const [timelineOpen, setTimelineOpen] = useState(false);
+  const [previewMode, setPreviewMode] = useState<PreviewMode>('pip');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+  const [viewMode, setViewMode] = useState<SpaceViewMode>(getInitialSpaceViewMode);
+  const [shapeShotTarget, setShapeShotTarget] = useState<ShapeShotTarget | null>(null);
+  const [studioTransfer, setStudioTransfer] = useState<StudioTransfer | null>(null);
+  const [activePanel, setActivePanel] = useState<SidebarPanel>(null);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState('');
+  const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number; spaceId: string } | null>(null);
+  const renameInputRef = useRef<HTMLInputElement>(null);
+  // (canvas ref removed — node addition uses custom event)
+
+  useEffect(() => {
+    const query = window.matchMedia('(max-width: 767px)');
+    const syncLayout = () => {
+      setIsMobile(query.matches);
+      setSidebarOpen(!query.matches);
+      if (!query.matches) setActivePanel(null);
+    };
+    syncLayout();
+    query.addEventListener('change', syncLayout);
+    return () => query.removeEventListener('change', syncLayout);
+  }, []);
+
+  const handlePreviewModeChange = useCallback((mode: PreviewMode) => {
+    setPreviewMode(mode);
+  }, []);
+
+  const handleViewModeChange = useCallback((mode: SpaceViewMode) => {
+    setViewMode(mode);
+    try {
+      window.localStorage.setItem(SPACE_VIEW_STORAGE_KEY, mode);
+    } catch {
+      // The view still switches when storage is unavailable.
+    }
+
+    if (mode !== 'canvas') {
+      setTimelineOpen(false);
+      setPreviewMode('pip');
+    }
+  }, []);
+
+  // Also bring existing board videos into Studio when opening an older Space.
+  useEffect(() => {
+    const nodes = syncCanvasVideosToStudio(state.nodes, timestamp());
+    if (nodes !== state.nodes) dispatch({ type: 'SET_NODES', nodes });
+  }, [dispatch, state.nodes]);
+
+  const handleSendToStudio = useCallback((nodeIds: string[], content: 'media' | 'prompt', mediaUrl?: string) => {
+    const selected = state.nodes.filter(node => nodeIds.includes(node.id));
+    const allMedia = selected.flatMap(node => canvasMedia(node, state.elements));
+    const clicked = mediaUrl ? allMedia.find(media => media.url === mediaUrl) : undefined;
+    const media = content === 'media' ? (clicked ? [clicked] : allMedia) : [];
+    const prompt = content === 'prompt' ? (clicked?.prompt || selected.map(canvasPrompt).filter(Boolean).join('\n\n')) : undefined;
+    if (!media.length && !prompt) return;
+    const nodes = importCanvasMedia(state.nodes, media, timestamp(), true);
+    if (nodes !== state.nodes) dispatch({ type: 'SET_NODES', nodes });
+    setStudioTransfer({ id: generateId(), spaceId: state.activeSpaceId, attachments: media, prompt });
+    handleViewModeChange('studio');
+  }, [dispatch, handleViewModeChange, state.activeSpaceId, state.elements, state.nodes]);
+
+  useEffect(() => registerMcpCommands({ view: (args) => {
+    const mode = args.view;
+    if (mode !== 'canvas' && mode !== 'studio' && mode !== 'sets') throw new Error('Unknown Space view.');
+    handleViewModeChange(mode);
+    return { view: mode };
+  } }), [handleViewModeChange]);
+
+  // Switching to the canvas is only half of "open in canvas" — on a large Space
+  // the node is usually off-screen, so centre it too. The canvas is display:none
+  // until the switch commits, and fitView measures nothing while hidden, so the
+  // event has to wait a frame.
+  // A Studio generation lives off-canvas until this runs, so opening one places
+  // it — along with the prompt, elements and frames that produced it — before
+  // centring. A node already placed is only focused, never duplicated.
+  const handleOpenNodeInCanvas = useCallback((nodeId: string) => {
+    const node = state.nodes.find(candidate => candidate.id === nodeId);
+    const sourceId = node?.data.config.__studioMedia ? node.data.config.__studioSourceNodeId : undefined;
+    const canvasNodeId = typeof sourceId === 'string' && state.nodes.some(candidate => candidate.id === sourceId) ? sourceId : nodeId;
+    const placement = placeStudioNodeOnCanvas(state.nodes, state.edges, canvasNodeId, state.assets);
+    if (placement.changed) {
+      dispatch({ type: 'SET_NODES', nodes: placement.nodes });
+      dispatch({ type: 'SET_EDGES', edges: placement.edges });
+    }
+    handleViewModeChange('canvas');
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.dispatchEvent(new CustomEvent('cinegen:fit-node', { detail: canvasNodeId }));
+      });
+    });
+  }, [dispatch, handleViewModeChange, state.assets, state.edges, state.nodes]);
+
+  const handleHideNodeFromCanvas = useCallback((nodeId: string) => {
+    const placement = removeStudioNodeFromCanvas(state.nodes, state.edges, nodeId);
+    if (!placement.changed) return;
+    dispatch({ type: 'SET_NODES', nodes: placement.nodes });
+    dispatch({ type: 'SET_EDGES', edges: placement.edges });
+  }, [dispatch, state.edges, state.nodes]);
+
+  const openSpaces = useMemo(
+    () => state.spaces.filter((space) => state.openSpaceIds.has(space.id)),
+    [state.spaces, state.openSpaceIds],
+  );
+
+  const handleCreateSpace = useCallback(() => {
+    dispatch({
+      type: 'ADD_SPACE',
+      space: {
+        id: generateId(),
+        name: `Space ${state.spaces.length + 1}`,
+        createdAt: timestamp(),
+        nodes: [],
+        edges: [],
+      },
+    });
+  }, [dispatch, state.spaces.length]);
+
+  const togglePanel = useCallback((panel: SidebarPanel) => {
+    setActivePanel((prev) => prev === panel ? null : panel);
+    if (!sidebarOpen) setSidebarOpen(true);
+  }, [sidebarOpen]);
+
+  const handleAddNode = useCallback((nodeType: string) => {
+    window.dispatchEvent(new CustomEvent('cinegen:add-node', { detail: nodeType }));
+    setActivePanel(null);
+    if (isMobile) setSidebarOpen(false);
+  }, [isMobile]);
+
+  /* ── Rename ── */
+
+  const startRename = useCallback((space: WorkflowSpace) => {
+    setRenamingId(space.id);
+    setRenameValue(space.name);
+  }, []);
+
+  const commitRename = useCallback(() => {
+    if (!renamingId) return;
+    const trimmed = renameValue.trim();
+    if (trimmed) {
+      const space = state.spaces.find((s) => s.id === renamingId);
+      if (space && space.name !== trimmed) {
+        dispatch({ type: 'RENAME_SPACE', spaceId: renamingId, name: trimmed });
+      }
+    }
+    setRenamingId(null);
+  }, [renamingId, renameValue, state.spaces, dispatch]);
+
+  useEffect(() => {
+    if (renamingId && renameInputRef.current) {
+      renameInputRef.current.focus();
+      renameInputRef.current.select();
+    }
+  }, [renamingId]);
+
+  /* ── Context menu ── */
+
+  const handleSpaceContextMenu = useCallback((e: React.MouseEvent, spaceId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCtxMenu({ x: e.clientX, y: e.clientY, spaceId });
+  }, []);
+
+  useEffect(() => {
+    if (!ctxMenu) return;
+    const close = () => setCtxMenu(null);
+    window.addEventListener('click', close);
+    return () => window.removeEventListener('click', close);
+  }, [ctxMenu]);
+
+  const isFullscreen = previewMode === 'fullscreen' && timelineOpen;
+  const activeSpace = state.spaces.find((space) => space.id === state.activeSpaceId);
+
+  /* ── Tool buttons config ── */
+  const tools: { id: SidebarPanel; title: string; icon: React.ReactNode }[] = [
+    {
+      id: 'workflows', title: 'Workflows',
+      icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></svg>,
+    },
+    {
+      id: 'models', title: 'Models',
+      icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></svg>,
+    },
+    {
+      id: 'history', title: 'History',
+      icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>,
+    },
+  ];
+
+  return (
+    <div className={`create-tab${viewMode === 'sets' ? ' create-tab--sets' : ''}${timelineOpen ? ' create-tab--timeline-open' : ''}${!sidebarOpen ? ' create-tab--sidebar-collapsed' : ''}${isMobile ? ' create-tab--mobile' : ''}`}>
+      {viewMode !== 'sets' && isMobile && sidebarOpen && (
+        <button
+          type="button"
+          className="cs-mobile-scrim"
+          aria-label="Close Spaces menu"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      {/* ── Sidebar ── */}
+      <aside
+        className={`cs-sidebar${sidebarOpen ? '' : ' cs-sidebar--collapsed'}${isMobile && sidebarOpen ? ' cs-sidebar--mobile-open' : ''}`}
+        aria-hidden={isMobile && !sidebarOpen}
+      >
+        {sidebarOpen ? (
+          <>
+            {/* Tool buttons row */}
+            <div className="cs-sidebar__tools">
+              <button
+                className="cs-sidebar__tool-btn"
+                onClick={() => setSidebarOpen(false)}
+                title="Collapse sidebar"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <line x1="9" y1="3" x2="9" y2="21" />
+                </svg>
+              </button>
+              <div className="cs-sidebar__tool-sep" />
+              {tools.map((tool) => (
+                <button
+                  key={tool.id}
+                  className={`cs-sidebar__tool-btn${activePanel === tool.id ? ' cs-sidebar__tool-btn--active' : ''}`}
+                  onClick={() => togglePanel(tool.id)}
+                  title={tool.title}
+                >
+                  {tool.icon}
+                </button>
+              ))}
+            </div>
+
+            {/* Active tool panel OR spaces list */}
+            {activePanel ? (
+              <div className="cs-sidebar__panel">
+                <div className="cs-sidebar__panel-head">
+                  <span className="cs-sidebar__panel-title">
+                    {activePanel === 'workflows' && 'Workflows'}
+                    {activePanel === 'models' && 'Models'}
+                    {activePanel === 'history' && 'History'}
+                  </span>
+                  <button className="cs-sidebar__icon-btn" onClick={() => setActivePanel(null)} title="Close panel">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="cs-sidebar__panel-body">
+                  {activePanel === 'workflows' && <WorkflowsPanel />}
+                  {activePanel === 'models' && (
+                    <ModelsPanel onSelect={handleAddNode} />
+                  )}
+                  {activePanel === 'history' && <HistoryPanel />}
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="cs-sidebar__section-head">
+                  <span className="cs-sidebar__title">Spaces</span>
+                  <button
+                    className="cs-sidebar__icon-btn"
+                    onClick={handleCreateSpace}
+                    title="New space"
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="5" x2="12" y2="19" />
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                  </button>
+                </div>
+                <nav className="cs-sidebar__list">
+                  {state.spaces.map((space) => {
+                    const isActive = space.id === state.activeSpaceId;
+                    const isRenaming = renamingId === space.id;
+                    return (
+                      <div
+                        key={space.id}
+                        className={`cs-sidebar__item${isActive ? ' cs-sidebar__item--active' : ''}`}
+                        onClick={() => {
+                          dispatch({ type: 'OPEN_SPACE', spaceId: space.id });
+                          if (isMobile) setSidebarOpen(false);
+                        }}
+                        onDoubleClick={() => startRename(space)}
+                        onContextMenu={(e) => handleSpaceContextMenu(e, space.id)}
+                        title={isRenaming ? undefined : space.name}
+                      >
+                        <svg className="cs-sidebar__item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="3" width="7" height="7" rx="1" />
+                          <rect x="14" y="3" width="7" height="7" rx="1" />
+                          <rect x="3" y="14" width="7" height="7" rx="1" />
+                          <rect x="14" y="14" width="7" height="7" rx="1" />
+                        </svg>
+                        {isRenaming ? (
+                          <input
+                            ref={renameInputRef}
+                            className="cs-sidebar__rename-input"
+                            value={renameValue}
+                            onChange={(e) => setRenameValue(e.target.value)}
+                            onBlur={commitRename}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') commitRename();
+                              if (e.key === 'Escape') setRenamingId(null);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        ) : (
+                          <span className="cs-sidebar__item-name">{space.name}</span>
+                        )}
+                        <span className="cs-sidebar__item-count">
+                          {space.nodes.length}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </nav>
+                <ProviderBudgetCard />
+              </>
+            )}
+
+          </>
+        ) : (
+          <div className="cs-sidebar__rail">
+            <button
+              className="cs-sidebar__rail-btn cs-sidebar__rail-btn--expand"
+              onClick={() => setSidebarOpen(true)}
+              title="Expand sidebar"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <line x1="9" y1="3" x2="9" y2="21" />
+              </svg>
+            </button>
+            <div className="cs-sidebar__rail-sep" />
+            {tools.map((tool) => (
+              <button
+                key={tool.id}
+                className={`cs-sidebar__rail-btn${activePanel === tool.id ? ' cs-sidebar__rail-btn--active' : ''}`}
+                onClick={() => { setSidebarOpen(true); togglePanel(tool.id); }}
+                title={tool.title}
+              >
+                {tool.icon}
+              </button>
+            ))}
+          </div>
+        )}
+      </aside>
+
+      {/* ── Workspace ── */}
+      <div className="create-tab__workspace">
+        {isMobile && (
+          <div className="cs-mobile-bar">
+            <button
+              type="button"
+              className="cs-mobile-bar__button"
+              onClick={() => { setActivePanel(null); setSidebarOpen(true); }}
+              aria-label="Open Spaces menu"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                <line x1="4" y1="7" x2="20" y2="7" />
+                <line x1="4" y1="12" x2="20" y2="12" />
+                <line x1="4" y1="17" x2="20" y2="17" />
+              </svg>
+            </button>
+            <div className="cs-mobile-bar__identity">
+              <span>Space</span>
+              <strong>{activeSpace?.name ?? 'Untitled'}</strong>
+            </div>
+            {viewMode === 'canvas' && (
+              <button
+                type="button"
+                className="cs-mobile-bar__models"
+                onClick={() => {
+                  setActivePanel(null);
+                  setSidebarOpen(false);
+                  window.dispatchEvent(new Event('cinegen:open-node-palette'));
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                Add node
+              </button>
+            )}
+          </div>
+        )}
+        {openSpaces.length > 1 && (
+          <div className="cs-tabs">
+            {openSpaces.map((space) => {
+              const isActive = space.id === state.activeSpaceId;
+              const isTabRenaming = renamingId === space.id;
+              return (
+                <button
+                  key={space.id}
+                  className={`cs-tabs__tab${isActive ? ' cs-tabs__tab--active' : ''}`}
+                  onClick={() => dispatch({ type: 'SET_ACTIVE_SPACE', spaceId: space.id })}
+                  onDoubleClick={() => startRename(space)}
+                  title={space.name}
+                >
+                  {isTabRenaming ? (
+                    <input
+                      ref={isActive ? renameInputRef : undefined}
+                      className="cs-tabs__rename-input"
+                      value={renameValue}
+                      onChange={(e) => setRenameValue(e.target.value)}
+                      onBlur={commitRename}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') commitRename();
+                        if (e.key === 'Escape') setRenamingId(null);
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  ) : (
+                    <span className="cs-tabs__tab-text">{space.name}</span>
+                  )}
+                  {openSpaces.length > 1 && (
+                    <span
+                      className="cs-tabs__close"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        dispatch({ type: 'CLOSE_SPACE', spaceId: space.id });
+                      }}
+                      title="Close tab"
+                    >
+                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        <div className="cs-view-switch" role="group" aria-label="Space view">
+          <button
+            type="button"
+            aria-pressed={viewMode === 'canvas'}
+            className={viewMode === 'canvas' ? 'is-active' : undefined}
+            onClick={() => handleViewModeChange('canvas')}
+          >
+            Canvas
+          </button>
+          <button
+            type="button"
+            aria-pressed={viewMode === 'studio'}
+            className={viewMode === 'studio' ? 'is-active' : undefined}
+            onClick={() => handleViewModeChange('studio')}
+          >
+            Studio
+          </button>
+          <button
+            type="button"
+            aria-pressed={viewMode === 'sets'}
+            className={viewMode === 'sets' ? 'is-active' : undefined}
+            onClick={() => handleViewModeChange('sets')}
+          >
+            Sets
+          </button>
+        </div>
+
+        <div className="create-tab__view-host">
+          <div
+            className={`create-tab__canvas${isFullscreen ? ' create-tab__canvas--blurred' : ''}${viewMode !== 'canvas' ? ' create-tab__canvas--studio-hidden' : ''}`}
+            aria-hidden={viewMode !== 'canvas'}
+            inert={viewMode !== 'canvas'}
+          >
+            <WorkflowCanvas key={state.activeSpaceId} onSendToStudio={handleSendToStudio} />
+            {isFullscreen && (
+              <div
+                className="create-tab__fullscreen-overlay"
+                onClick={() => setPreviewMode('pip')}
+              />
+            )}
+          </div>
+          {viewMode === 'sets' && (
+            <div className="create-tab__studio">
+              <Suspense fallback={null}><SetsView key={projectId} target={shapeShotTarget} onSent={(destination = 'studio', nodeId) => {
+                handleViewModeChange(destination);
+                if (nodeId) requestAnimationFrame(() => requestAnimationFrame(() => {
+                  window.dispatchEvent(new CustomEvent('cinegen:fit-node', { detail: nodeId }));
+                }));
+              }} /></Suspense>
+            </div>
+          )}
+          {(viewMode === 'studio' || viewMode === 'sets') && (
+            <div className="create-tab__studio" hidden={viewMode !== 'studio'}>
+              <SpaceStudio onOpenInCanvas={handleOpenNodeInCanvas} onHideFromCanvas={handleHideNodeFromCanvas}
+                onShapeShotTarget={setShapeShotTarget} transfer={studioTransfer} onTransferConsumed={() => setStudioTransfer(null)} />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {viewMode === 'canvas' && (
+        <CreateTimeline
+          open={timelineOpen}
+          onToggle={() => setTimelineOpen((v) => !v)}
+          previewMode={previewMode}
+          onPreviewModeChange={handlePreviewModeChange}
+        />
+      )}
+
+      {/* ── Context menu ── */}
+      {ctxMenu && (
+        <div
+          className="cs-ctx"
+          style={{ left: ctxMenu.x, top: ctxMenu.y }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button className="cs-ctx__item" onClick={() => {
+            dispatch({ type: 'OPEN_SPACE', spaceId: ctxMenu.spaceId });
+            setCtxMenu(null);
+          }}>Open</button>
+          <button className="cs-ctx__item" onClick={() => {
+            const space = state.spaces.find((s) => s.id === ctxMenu.spaceId);
+            if (space) startRename(space);
+            setCtxMenu(null);
+          }}>Rename</button>
+          {state.spaces.length > 1 && (
+            <>
+              <div className="cs-ctx__divider" />
+              <button className="cs-ctx__item cs-ctx__item--danger" onClick={() => {
+                dispatch({ type: 'REMOVE_SPACE', spaceId: ctxMenu.spaceId });
+                setCtxMenu(null);
+              }}>Delete</button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
