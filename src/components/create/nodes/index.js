@@ -17,8 +17,8 @@ import { ShotBoardNode } from './shot-board-node.jsx';
 import { StoryboarderNode } from './storyboarder-node.jsx';
 import { GroupNode } from './group-node.jsx';
 import { ModelNode } from './model-node.jsx';
-import { getAllModelNodeTypes } from '../../lib/fal/models.js';
-import { NODE_REGISTRY } from '../../lib/workflows/node-registry.js';
+import { getAllModelNodeTypes } from '../../../lib/fal/models.js';
+import { NODE_REGISTRY } from '../../../lib/workflows/node-registry.js';
 
 const allModelKeys = new Set(getAllModelNodeTypes());
 for (const key of Object.keys(NODE_REGISTRY)) {

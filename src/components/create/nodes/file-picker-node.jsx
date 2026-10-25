@@ -16,7 +16,7 @@
 import { memo, useCallback, useRef, useState, useEffect } from 'react';
 import { useReactFlow } from '@xyflow/react';
 import { BaseNodeWrapper } from './base-node.jsx';
-import { detectMediaType, resolveMediaFileUrl } from '../../lib/utils/media-file.js';
+import { detectMediaType, resolveMediaFileUrl } from '../../../lib/utils/media-file.js';
 
 const ACCEPT = 'image/*,video/*,audio/*';
 

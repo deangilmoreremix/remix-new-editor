@@ -102,6 +102,7 @@ const pageLoaders = {
   'video-agent': () => import('../components/VideoAgentPage.js').then(m => m.VideoAgentPage()),
   'video-agent-studio': () => import('../components/VideoAgentStudioShell.js').then(m => m.VideoAgentStudioShell()),
   director: () => import('../components/DirectorPage.js').then(m => m.DirectorPage()),
+  cinegen: () => import('../components/studios/CineGenStudio/CineGenStudio.jsx').then(m => m.CineGenStudio()),
   timeline: () => import('../components/TimelineEditorPage.jsx').then(m => m.TimelineEditorPage()),
   'ai-vfx': () => import('../components/AIVFXPage.js').then(m => m.AIVFXPage()),
   viral: () => import('../components/SmartVideoViral.js').then(m => m.SmartVideoViral()),

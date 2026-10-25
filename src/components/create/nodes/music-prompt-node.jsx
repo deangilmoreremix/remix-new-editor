@@ -33,7 +33,7 @@
 import { memo, useCallback, useState, useRef } from 'react';
 import { useReactFlow, useEdges } from '@xyflow/react';
 import { BaseNodeWrapper } from './base-node.jsx';
-import { muapi } from '../../lib/muapi.js';
+import { muapi } from '../../../lib/muapi.js';
 
 function composeMusicPrompt({ style, genre, mood, tempo, notes }) {
   const parts = [];

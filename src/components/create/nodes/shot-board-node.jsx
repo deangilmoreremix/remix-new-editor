@@ -14,9 +14,9 @@
 
 import { memo, useCallback, useRef, useState } from 'react';
 import { Handle, Position, useReactFlow, Node } from '@xyflow/react';
-import { ALL_MODELS, getModelDefinition } from '../../lib/fal/models.js';
-import { CATEGORY_COLORS, PORT_COLORS } from '../../lib/workflows/node-registry.js';
-import { getApiKey, getKieApiKey, getRunpodApiKey, getRunpodEndpointId, getPodUrl } from '../../lib/utils/api-key.js';
+import { ALL_MODELS, getModelDefinition } from '../../../lib/fal/models.js';
+import { CATEGORY_COLORS, PORT_COLORS } from '../../../lib/workflows/node-registry.js';
+import { getApiKey, getKieApiKey, getRunpodApiKey, getRunpodEndpointId, getPodUrl } from '../../../lib/utils/api-key.js';
 import { WorkflowNodeData } from '/src/types/workflow.js';
 
 /** The nine shot cells offered by the shot board, in board order. */
