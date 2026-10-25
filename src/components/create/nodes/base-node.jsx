@@ -8,7 +8,7 @@
 import { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import { WorkflowNodeData } from '/src/types/workflow.js';
-import { CATEGORY_COLORS, NODE_REGISTRY } from '../../lib/workflows/node-registry.js';
+import { CATEGORY_COLORS, NODE_REGISTRY } from '../../../lib/workflows/node-registry.js';
 
 export function BaseNode({ data, selected, nodeType }) {
   const type = data?.type ?? nodeType;

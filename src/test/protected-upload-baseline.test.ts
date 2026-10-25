@@ -461,7 +461,7 @@ describe('protected applications — upload import surface', () => {
     {
       file: 'src/components/create/nodes/music-prompt-node.jsx',
       app: 'CineGen — workflow node (music prompt)',
-      imports: ["import { muapi } from '../../lib/muapi.js';"],
+      imports: ["import { muapi } from '../../../lib/muapi.js';"],
     },
     // Shared infrastructure that the protected apps depend on: these files sit
     // between the protected apps and the shared entry points.
@@ -528,6 +528,7 @@ describe('protected applications — upload import surface', () => {
       '../lib/muapi.js',
       './muapi.js',
       '../../lib/muapi.js',
+      '../../../lib/muapi.js',
       '../lib/uploadService.js',
       './uploadService.js',
       '../lib/editor/upload.js',
@@ -671,7 +672,11 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // again. No upload-pipeline behaviour changed. Semantic coverage in
     // section 5.
     ['src/components/timeline/AIChatPanel.js', '78c426c7d1ee9006a57abd37613b8e24b66dcdc3ccfb9d750a6a07a87f4aa575'],
-    ['src/components/create/nodes/music-prompt-node.jsx', '466215193c99448ae2c2b52ae63da76e57cca7735157bbdab87ad508ae207089'],
+    // Re-recorded deliberately after repairing a broken relative import
+    // (`../../lib/muapi.js` → `../../../lib/muapi.js`): from create/nodes/ the
+    // old path pointed at a non-existent src/components/lib and the build
+    // silently stubbed muapi. No upload-pipeline behaviour changed.
+    ['src/components/create/nodes/music-prompt-node.jsx', 'd49f26f72c8909244e777e34603c714313cde5dccb22266388e739182ee9a535'],
     // Timeline Editor upload internals. These hold live protected upload call
     // sites (dragDrop.js:172/:229 Supabase-direct uploadFileToStorage and
     // :1559 processFileUpload; uploadSources.js:73/:182/:198 processFileUpload;

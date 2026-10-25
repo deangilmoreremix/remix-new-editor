@@ -47,7 +47,7 @@ const VIEWPORT_STORAGE_KEY = 'cinegen_canvas_viewport';
 const RunNodeContext = createContext(() => {});
 export function useRunNode() { return useContext(RunNodeContext); }
 
-function WorkflowCanvasInner() {
+export function WorkflowCanvasInner() {
   const { state, dispatch } = useWorkspace();
   const { screenToFlowPosition, fitView } = useReactFlow();
 
