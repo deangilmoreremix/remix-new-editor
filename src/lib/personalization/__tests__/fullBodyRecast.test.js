@@ -18,6 +18,8 @@ import {
 } from '../fullBodyRecast.js';
 import {
   createPersonalizationImageEditorSession,
+  formatElapsed,
+  recastSteps,
   renderPersonalizationImageEditorPanel,
 } from '../imageEditorPanel.js';
 
@@ -174,5 +176,74 @@ describe('advanced editor workspace rendering', () => {
     expect(html).toContain('data-recast-video="result"');
     expect(html).toContain('https://cdn.muapi.ai/recast.mp4');
     expect(html).not.toMatch(/data-editor-action="recast-save"\s+disabled/);
+  });
+});
+
+describe('guided recast view', () => {
+  const person = {
+    id: 'person-1',
+    name: 'Ana',
+    url: 'https://cdn.example.com/ana.png',
+    role: 'presenter_identity',
+    sourceCategory: 'person',
+  };
+
+  const openRecast = (patch = {}) => {
+    const session = createPersonalizationImageEditorSession(person);
+    session.mode = 'advanced';
+    Object.assign(session.recast, { open: true, characterId: 'person-1' }, patch);
+    return session;
+  };
+
+  const activeStep = (recast) => recastSteps(recast).find((step) => step.active)?.id;
+
+  it('moves the stepper from upload to recast to save', () => {
+    expect(activeStep({})).toBe('upload');
+    expect(activeStep({ sourceUrl: 'https://cdn/s.mp4' })).toBe('recast');
+    expect(activeStep({ sourceUrl: 'https://cdn/s.mp4', resultUrl: 'https://cdn/r.mp4' })).toBe('save');
+    const saved = recastSteps({ sourceUrl: 'x', resultUrl: 'y', saved: true });
+    expect(saved.every((step) => step.done)).toBe(true);
+    expect(saved.some((step) => step.active)).toBe(false);
+  });
+
+  it('renders the stepper and tips', () => {
+    const html = renderPersonalizationImageEditorPanel(openRecast());
+    expect(html).toContain('pm-recast-steps');
+    expect(html).toContain('aria-current="step"');
+    expect(html).toContain('Tips for a great result');
+  });
+
+  it('shows the person picker only with two or more people', () => {
+    expect(renderPersonalizationImageEditorPanel(openRecast())).not.toContain('data-recast-character');
+
+    const html = renderPersonalizationImageEditorPanel(openRecast({
+      characterId: 'person-2',
+      characters: [
+        { id: 'person-1', name: 'Ana', url: 'https://cdn.example.com/ana.png' },
+        { id: 'person-2', name: 'Ben', url: 'https://cdn.example.com/ben.png' },
+      ],
+    }));
+    expect(html).toContain('data-recast-character="person-2"');
+    expect(html).toMatch(/class="pm-recast-person active"[^>]*data-recast-character="person-2"/);
+    expect(html).toContain('alt="Ben"');
+  });
+
+  it('shows the elapsed timer while generating and offers Recast Another once saved', () => {
+    let html = renderPersonalizationImageEditorPanel(openRecast({
+      sourceUrl: 'https://cdn/s.mp4', status: 'generating', startedAt: Date.now() - 65000,
+    }));
+    expect(html).toContain('data-recast-elapsed');
+    expect(html).toContain('1:05');
+
+    html = renderPersonalizationImageEditorPanel(openRecast({
+      sourceUrl: 'https://cdn/s.mp4', status: 'done', resultUrl: 'https://cdn/r.mp4', saved: true,
+    }));
+    expect(html).toContain('data-editor-action="recast-another"');
+    expect(html).not.toContain('data-editor-action="recast-save"');
+  });
+
+  it('formats elapsed time', () => {
+    expect(formatElapsed(0)).toBe('0:00');
+    expect(formatElapsed(84000)).toBe('1:24');
   });
 });
