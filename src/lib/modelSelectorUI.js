@@ -148,6 +148,7 @@ function createModelItem(entry, isSelected, activeItemRef) {
  * @param {string[]} options.allowedModelTypes - Allowed workflow modes (e.g. ['t2i','i2i'])
  * @param {Function} options.onSelectModel - Called with (pickerEntry, categoryId)
  * @param {Function} options.onClose - Called when dropdown closes
+ * @param {Function} [options.onSelectCategory] - Called with the new category id when a category tab is clicked
  * @param {string} [options.placeholder='Select model'] - Placeholder text
  * @param {boolean} [options.loading=false] - Show loading state
  * @param {string} [copy.searchPlaceholder='Search models...']
@@ -161,6 +162,7 @@ export function mountTemplateModelSelector({
   selectedModelId,
   allowedModelTypes = [],
   onSelectModel,
+  onSelectCategory,
   onClose,
   placeholder = "Select model",
   loading = false,
@@ -174,8 +176,8 @@ export function mountTemplateModelSelector({
     categories = {},
   } = copy;
 
-  // Resolve selected entry from catalog
-  const selectedEntry = selectedModelId
+  // Resolve selected entry from catalog (mutable so refresh() can re-sync after category switch)
+  let selectedEntry = selectedModelId
     ? imageModelPickerEntryByVariantId.get(selectedModelId) ||
       videoModelPickerEntryByVariantId.get(selectedModelId) ||
       null
@@ -392,6 +394,7 @@ export function mountTemplateModelSelector({
     const categoryBtn = e.target.closest('[data-category]');
     if (categoryBtn) {
       selectedCategory = categoryBtn.dataset.category;
+      onSelectCategory?.(selectedCategory);
       selectedProvider = "all";
       panel.innerHTML = render();
       requestAnimationFrame(() => {
@@ -479,9 +482,29 @@ export function mountTemplateModelSelector({
     if (panel.parentNode) panel.parentNode.removeChild(panel);
   };
 
+  // Re-sync the highlighted model after an external state change (e.g. category
+  // switch that resets the selected model) without remounting the whole picker.
+  const refresh = (newSelectedModelId) => {
+    selectedEntry = newSelectedModelId
+      ? imageModelPickerEntryByVariantId.get(newSelectedModelId) ||
+        videoModelPickerEntryByVariantId.get(newSelectedModelId) ||
+        null
+      : null;
+    if (panel.parentNode) {
+      panel.innerHTML = render();
+      requestAnimationFrame(() => {
+        const active = panel.querySelector('[aria-pressed="true"]');
+        if (active && typeof active.scrollIntoView === "function") {
+          active.scrollIntoView({ block: "nearest" });
+        }
+      });
+    }
+  };
+
   return {
     open,
     close,
+    refresh,
     panel,
     cleanup,
   };
