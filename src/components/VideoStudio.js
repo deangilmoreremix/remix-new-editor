@@ -22,7 +22,7 @@ import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateTh
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
-import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
+import { mountVideoModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
 import { categorizeGenerationError, createAbortAwareGenerateButton, startGenerationProgress, showInlineError, hideInlineError } from '../lib/studioHelpers.js';
 import { showToast, createLoadingOverlay, createProgressBar } from '../lib/loading.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
@@ -1223,89 +1223,95 @@ generateBtn.type = 'button';
         }
     };
 
+    // ---- Upstream split-pane video model picker integration ----------------
+    let videoPickerController = null;
+
+    // Sets mode flags + model + label + control refresh; returns mode flags for v2v reset logic.
+    const videoModelBase = (modelId, catId) => {
+        const newV2V = catId === 'v2v';
+        const newI2V = catId === 'i2v';
+        const wasV2V = v2vMode;
+        v2vMode = newV2V;
+        imageMode = newI2V;
+        const model = getCurrentModels().find((m) => m.id === modelId);
+        selectedModel = modelId;
+        selectedModelName = model?.name || modelId;
+        document.getElementById('v-model-btn-label').textContent = selectedModelName;
+        updateControlsForModel(selectedModel);
+        updateModelBtnIcon();
+        return { newV2V, newI2V, wasV2V };
+    };
+
+    // Open the upstream picker; a fresh instance is mounted per open so the
+    // selected-model highlight reflects the current model id.
+    const openVideoModelPicker = (anchorBtn) => {
+        videoPickerController?.close();
+        videoPickerController = null;
+        videoPickerController = mountVideoModelSelector({
+            anchor: anchorBtn,
+            selectedModelId: selectedModel,
+            allowedModelTypes: ['t2v', 'i2v', 'v2v'],
+            copy: {
+                categories: { t2v: 'Text to Video', i2v: 'Image to Video', v2v: 'Video to Video' },
+                searchPlaceholder: 'Search models...',
+            },
+            onSelectCategory: (catId) => {
+                const nextModels = catId === 'v2v' ? v2vModels : (catId === 'i2v' ? i2vModels : t2vModels);
+                const modelId = nextModels[0]?.id || selectedModel;
+                const { newV2V, newI2V } = videoModelBase(modelId, catId);
+                if (newV2V) {
+                    picker.reset();
+                    uploadedImageUrl = null;
+                    uploadedVideoUrl = null;
+                    textarea.placeholder = 'Upload a video using the 🎥 button, then click Generate';
+                    textarea.disabled = true;
+                } else {
+                    textarea.disabled = false;
+                    textarea.placeholder = newI2V
+                        ? 'Describe the motion or effect (optional)'
+                        : 'Describe the video you want to create';
+                }
+                videoPickerController?.refresh(modelId);
+            },
+            onSelectModel: (entry, catId) => {
+                const variant = entry.variantsByMode[catId] || entry.defaultVariant;
+                const modelId = variant?.model?.id || selectedModel;
+                const { newV2V, newI2V, wasV2V } = videoModelBase(modelId, catId);
+                if (newV2V) {
+                    picker.reset();
+                    uploadedImageUrl = null;
+                    uploadedVideoUrl = null;
+                    textarea.placeholder = 'Upload a video using the 🎥 button, then click Generate';
+                    textarea.disabled = true;
+                } else {
+                    if (wasV2V) {
+                        uploadedVideoUrl = null;
+                        showVideoIcon();
+                        textarea.disabled = false;
+                    }
+                    textarea.placeholder = newI2V
+                        ? 'Describe the motion or effect (optional)'
+                        : 'Describe the video you want to create';
+                }
+                closeDropdown();
+            },
+            onClose: () => { videoPickerController = null; },
+        });
+        videoPickerController.open();
+    };
+
     const showDropdown = (type, anchorBtn) => {
         dropdown.innerHTML = '';
         dropdown.classList.remove('opacity-0', 'pointer-events-none');
         dropdown.classList.add('opacity-100', 'pointer-events-auto');
 
-        if (type === 'model') {
-            dropdown.classList.add('w-[calc(100vw-2rem)]', 'md:w-[480px]', 'max-w-md');
-            dropdown.classList.remove('max-w-xs', 'max-w-[240px]', 'max-w-[200px]');
-            selectedProvider = 'all';
+        // Dismiss the upstream model picker when another dropdown opens.
+        if (videoPickerController) {
+            videoPickerController.close();
+            videoPickerController = null;
+        }
 
-            const generationModels = [...t2vModels, ...i2vModels];
-            const allCurrentModels = [...generationModels, ...v2vModels];
-
-            mountModelSelector(dropdown, {
-              models: allCurrentModels,
-              categories: [
-                { id: 't2v', label: 'Text to Video', models: t2vModels },
-                { id: 'i2v', label: 'Image to Video', models: i2vModels },
-                { id: 'v2v', label: 'Video to Video', models: v2vModels },
-              ],
-              selectedCategory: v2vMode ? 'v2v' : (imageMode ? 'i2v' : 't2v'),
-              selectedModelId: selectedModel,
-              showProviderName: true,
-              onSelectCategory: (catId) => {
-                const newV2V = catId === 'v2v';
-                const newI2V = catId === 'i2v';
-                v2vMode = newV2V;
-                imageMode = newI2V;
-                const nextModels = newV2V ? v2vModels : (newI2V ? i2vModels : t2vModels);
-                selectedModel = nextModels[0].id;
-                selectedModelName = nextModels[0].name;
-                document.getElementById('v-model-btn-label').textContent = selectedModelName;
-                updateControlsForModel(selectedModel);
-                if (newV2V) {
-                  picker.reset();
-                  uploadedImageUrl = null;
-                  uploadedVideoUrl = null;
-                  textarea.placeholder = 'Upload a video using the 🎥 button, then click Generate';
-                  textarea.disabled = true;
-                } else {
-                  textarea.disabled = false;
-                  textarea.placeholder = newI2V ? 'Describe the motion or effect (optional)' : 'Describe the video you want to create';
-                }
-                updateModelBtnIcon();
-              },
-              onSelectModel: (model, categoryId) => {
-                const isV2V = categoryId === 'v2v';
-                const newI2V = categoryId === 'i2v';
-
-                if (isV2V) {
-                  v2vMode = true;
-                  imageMode = false;
-                  picker.reset();
-                  uploadedImageUrl = null;
-                  uploadedVideoUrl = null;
-                  selectedModel = model.id;
-                  selectedModelName = model.name;
-                  document.getElementById('v-model-btn-label').textContent = selectedModelName;
-                  updateControlsForModel(selectedModel);
-                  textarea.placeholder = 'Upload a video using the 🎥 button, then click Generate';
-                  textarea.disabled = true;
-                } else {
-                  if (v2vMode) {
-                    v2vMode = false;
-                    uploadedVideoUrl = null;
-                    showVideoIcon();
-                    textarea.disabled = false;
-                  }
-                  imageMode = newI2V;
-                  selectedModel = model.id;
-                  selectedModelName = model.name;
-                  document.getElementById('v-model-btn-label').textContent = selectedModelName;
-                  updateControlsForModel(selectedModel);
-                  textarea.placeholder = newI2V
-                    ? 'Describe the motion or effect (optional)'
-                    : 'Describe the video you want to create';
-                }
-                updateModelBtnIcon();
-                closeDropdown();
-              },
-            });
-
-        } else if (type === 'ar') {
+        if (type === 'ar') {
             dropdown.classList.add('max-w-[240px]');
             dropdown.innerHTML = `<div class="text-[10px] font-bold text-muted uppercase tracking-widest px-3 py-2 border-b border-white/5 mb-2">Aspect Ratio</div>`;
             const list = document.createElement('div');
@@ -1415,6 +1421,10 @@ generateBtn.type = 'button';
     };
 
     const closeDropdown = () => {
+        if (videoPickerController) {
+            videoPickerController.close();
+            videoPickerController = null;
+        }
         dropdown.classList.add('opacity-0', 'pointer-events-none');
         dropdown.classList.remove('opacity-100', 'pointer-events-auto');
         dropdownOpen = null;
@@ -1441,7 +1451,17 @@ generateBtn.type = 'button';
         }
     };
 
-    modelBtn.onclick = toggleDropdown('model', modelBtn);
+    // The model picker uses the upstream split-pane picker; other dropdowns keep the toggle flow.
+    modelBtn.onclick = (e) => {
+        e.stopPropagation();
+        if (videoPickerController) {
+            videoPickerController.close();
+            videoPickerController = null;
+        } else {
+            closeDropdown();
+            openVideoModelPicker(modelBtn);
+        }
+    };
     arBtn.onclick = toggleDropdown('ar', arBtn);
     durationBtn.onclick = toggleDropdown('duration', durationBtn);
     resolutionBtn.onclick = toggleDropdown('resolution', resolutionBtn);
