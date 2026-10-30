@@ -206,7 +206,11 @@ export function CineGenStudio() {
   };
 
   if (!url) {
-    showLite('Full CineGen (Director, LLM, Export) is not configured — set VITE_CINEGEN_WEB_URL to the cinegen-web service. Showing the lightweight version.');
+    // Only developers need to know the full service isn't wired up; end users
+    // just get the in-app Elements / Spaces / Edit version.
+    showLite(import.meta.env.DEV
+      ? 'Full CineGen (Director, LLM, Export) is not configured — set VITE_CINEGEN_WEB_URL to the cinegen-web service. Showing the lightweight version.'
+      : null);
   } else {
     isReachable(url).then((ok) => {
       if (disposed) return;

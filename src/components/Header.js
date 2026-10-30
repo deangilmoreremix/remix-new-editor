@@ -66,6 +66,7 @@ export function Header(navigate) {
     { label: 'Personalizer', route: 'personalizer' },
     { label: 'Video Agent', route: 'video-agent' },
     { label: 'AI VFX', route: 'ai-vfx' },
+    { label: 'CineGen Studio', route: 'cinegen' },
     { label: 'Brand Studio', route: 'brand' },
     { label: 'Animate', route: 'animate' },
     { label: 'Social', route: 'social' },
