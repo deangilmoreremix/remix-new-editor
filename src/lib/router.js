@@ -105,7 +105,7 @@ const pageLoaders = {
   'ai-vfx': () => import('../components/AIVFXPage.js').then(m => m.AIVFXPage()),
   viral: () => import('../components/SmartVideoViral.js').then(m => m.SmartVideoViral()),
   'timeline-iframe-warning': () => Promise.resolve(document.createElement('div')),
-  brand: () => import('../components/BrandStudioIframe.js').then(m => m.BrandStudioIframe()),
+  brand: () => import('../components/BrandStudio.js').then(m => m.BrandStudio()),
   'brand-dna': () => import('../components/BrandDnaEditor.js').then(m => m.BrandDnaEditor()),
   campaign: () => import('../components/CampaignWizard.js').then(m => m.CampaignWizard()),
   'campaign-page': () => import('../components/CampaignPage.js').then(m => m.CampaignPage()),
