@@ -25,10 +25,10 @@ export function Header(navigate) {
   logoContainer.onclick = () => navigate('apps');
 
   const menu = document.createElement('nav');
-  menu.className = 'hidden lg:flex items-center gap-5 text-[13px] font-bold text-secondary';
+  menu.className = 'hidden xl:flex items-center gap-4 text-[13px] font-bold text-secondary';
   // Primary studios stay top-level; everything else lives under Tools so the
   // bar fits on one line instead of overflowing.
-  const items = ['Explore', 'Image', 'Video', 'Tools', 'Storyboard', 'Edit', 'Character', 'Vibe Motion', 'Cinema Studio', 'Cinema Template Studio', 'AI Influencer', 'Smart Video Viral', 'Apps', 'Templates', 'Assist', 'Community', 'Content Library'];
+  const items = ['Explore', 'Image', 'Video', 'Tools', 'Storyboard', 'Edit', 'Character', 'Vibe Motion', 'Cinema Studio', 'Cinema Template Studio', 'AI Influencer', 'Smart Video Viral', 'Templates'];
 
   const links = {};
 
@@ -72,6 +72,10 @@ export function Header(navigate) {
     { label: 'Social', route: 'social' },
     { label: 'Landing', route: 'landing' },
     { label: 'Website Builder', route: 'website-builder' },
+    { label: 'All Apps', route: 'apps' },
+    { label: 'Assist', route: 'assist' },
+    { label: 'Community', route: 'community' },
+    { label: 'Content Library', route: 'content-library' },
   ];
 
   items.forEach(item => {
@@ -183,11 +187,11 @@ export function Header(navigate) {
   leftPart.appendChild(menu);
 
   const mobileMenuBtn = document.createElement('button');
-  mobileMenuBtn.className = 'lg:hidden p-2 text-secondary hover:text-white transition-colors';
+  mobileMenuBtn.className = 'xl:hidden p-2 text-secondary hover:text-white transition-colors';
   mobileMenuBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
 
   const mobileMenu = document.createElement('div');
-  mobileMenu.className = 'lg:hidden fixed inset-0 bg-black/95 z-[100] flex flex-col items-center justify-start overflow-y-auto py-16 gap-4 opacity-0 pointer-events-none transition-opacity duration-300';
+  mobileMenu.className = 'xl:hidden fixed inset-0 bg-black/95 z-[100] flex flex-col items-center justify-start overflow-y-auto py-16 gap-4 opacity-0 pointer-events-none transition-opacity duration-300';
 
   const closeBtn = document.createElement('button');
   closeBtn.className = 'absolute top-4 right-4 p-2 text-white';
