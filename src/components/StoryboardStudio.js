@@ -19,7 +19,7 @@ import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateTh
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
-import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
+import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, renderProviderLogoImg, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
@@ -693,7 +693,7 @@ genAllBtn.type = 'button';
       const action = item.dataset.enhance;
       if (action === 'gtm') {
         import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-          openGTMPromptModal('storyboard', (prompt) => {
+          openGTMPromptModal('storyboard-studio', (prompt) => {
             enhancedConcept = prompt;
             renderFrames();
           });
@@ -1322,7 +1322,7 @@ const compareBtn = document.createElement('button');
       frameEnhanceBtn.title = 'Enhance this frame with GTM conversion frameworks';
       frameEnhanceBtn.addEventListener('click', () => {
         import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-          openGTMPromptModal('storyboard', (prompt) => {
+          openGTMPromptModal('storyboard-studio', (prompt) => {
             frame.enhancedPrompt = prompt;
             frameEnhanceBtn.textContent = '🎯 Enhanced';
             frameEnhanceBtn.classList.add('active');

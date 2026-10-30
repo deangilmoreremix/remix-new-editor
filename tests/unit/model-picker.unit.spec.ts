@@ -5,7 +5,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { imageModelPickerEntries, videoModelPickerEntries, imageModelPickerEntryByVariantId, videoModelPickerEntryByVariantId } from '../../src/lib/modelFamilies.js';
-import { mountTemplateModelSelector, mountVideoModelSelector, mountImageModelSelector } from '../../src/lib/modelSelectorUI.js';
+import { mountTemplateModelSelector, mountVideoModelSelector, mountImageModelSelector, mountModelSelector } from '../../src/lib/modelSelectorUI.js';
 
 describe('Model Families and Picker Entries', () => {
   it('imageModelPickerEntries has entries', () => {
@@ -432,5 +432,24 @@ describe('Model Selector UI', () => {
     }
     
     picker.cleanup();
+  });
+});
+
+
+describe('Shared studio picker category contract', () => {
+  it.each(['t2v', 'i2v', 'v2v', 't2i', 'i2i'])('passes the selected %s mode with the chosen model', (mode) => {
+    const container = document.createElement('div');
+    const model = { id: 'mode-specific-model', name: 'Model' };
+    const onSelectModel = vi.fn();
+    mountModelSelector(container, {
+      models: [{ id: 'wrong-pool', name: 'Wrong pool' }],
+      categories: [{ id: mode, label: mode, models: [model] }],
+      selectedCategory: mode,
+      onSelectModel,
+    });
+    const button = [...container.querySelectorAll('button')].find(button => button.textContent === 'Model');
+    expect(button).toBeDefined();
+    button.click();
+    expect(onSelectModel).toHaveBeenCalledWith(model, mode);
   });
 });
