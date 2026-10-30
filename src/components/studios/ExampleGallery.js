@@ -191,9 +191,13 @@ export default function ExampleGallery({ studioId, assets, maxCards = 20 }) {
         }
       };
       img.onload = applyAspectRatio;
-      if (img.complete && img.naturalWidth) applyAspectRatio;
+      img.onerror = () => {
+        img.onerror = null;
+        img.src = PLACEHOLDER_SVG;
+      };
 
       img.src = thumbnailSrc;
+      if (img.complete && img.naturalWidth) applyAspectRatio();
       media.appendChild(img);
 
       function openAssetDetail(asset) {

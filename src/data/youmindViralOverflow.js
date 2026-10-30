@@ -18,8 +18,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1766940094520_1mg5pd_G8_m2ZVWEAAMG7y.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1766940094520_1mg5pd_G8_m2ZVWEAAMG7y.jpg"
+      previewUrl: "/thumbnails/gallery/1766940094520_1mg5pd_G8_m2ZVWEAAMG7y.webp",
+      sourceUrl: "/thumbnails/gallery/1766940094520_1mg5pd_G8_m2ZVWEAAMG7y.webp"
     }],
     categories: ["App / Web Design"],
     tags: ["app-/-web-design"],
@@ -49,8 +49,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1786344499918_eo7cpi_HO4FP3kXkAAl5eH.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1786344499918_eo7cpi_HO4FP3kXkAAl5eH.jpg"
+      previewUrl: "/thumbnails/gallery/1786344499918_eo7cpi_HO4FP3kXkAAl5eH.webp",
+      sourceUrl: "/thumbnails/gallery/1786344499918_eo7cpi_HO4FP3kXkAAl5eH.webp"
     }],
     categories: ["Infographic / Edu"],
     tags: ["infographic-/-edu", "food", "infographic"],
@@ -80,8 +80,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1785395942795_27fdn3_HOCZo_5WoAAiXCa.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1785395942795_27fdn3_HOCZo_5WoAAiXCa.jpg"
+      previewUrl: "/thumbnails/gallery/1785395942795_27fdn3_HOCZo_5WoAAiXCa.webp",
+      sourceUrl: "/thumbnails/gallery/1785395942795_27fdn3_HOCZo_5WoAAiXCa.webp"
     }],
     categories: ["Infographic / Edu"],
     tags: ["infographic-/-edu", "photorealistic", "3d", "architecture", "infographic"],
@@ -111,8 +111,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1784963088586_p7yftd_HN5zRI_WAAABKw4.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1784963088586_p7yftd_HN5zRI_WAAABKw4.jpg"
+      previewUrl: "/thumbnails/gallery/1784963088586_p7yftd_HN5zRI_WAAABKw4.webp",
+      sourceUrl: "/thumbnails/gallery/1784963088586_p7yftd_HN5zRI_WAAABKw4.webp"
     }],
     categories: ["Infographic / Edu"],
     tags: ["infographic-/-edu", "infographic"],
@@ -142,8 +142,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1784790709051_m3gcao_HNEgWh8XsAAGxv2.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1784790709051_m3gcao_HNEgWh8XsAAGxv2.jpg"
+      previewUrl: "/thumbnails/gallery/1784790709051_m3gcao_HNEgWh8XsAAGxv2.webp",
+      sourceUrl: "/thumbnails/gallery/1784790709051_m3gcao_HNEgWh8XsAAGxv2.webp"
     }],
     categories: ["Infographic / Edu"],
     tags: ["infographic-/-edu", "3d", "infographic"],
@@ -173,8 +173,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1783149741330_an29tc_HMUlkZJXYAADL8_.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1783149741330_an29tc_HMUlkZJXYAADL8_.jpg"
+      previewUrl: "/thumbnails/gallery/1783149741330_an29tc_HMUlkZJXYAADL8_.webp",
+      sourceUrl: "/thumbnails/gallery/1783149741330_an29tc_HMUlkZJXYAADL8_.webp"
     }],
     categories: ["Infographic / Edu"],
     tags: ["infographic-/-edu", "interior", "infographic"],
@@ -204,8 +204,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1782117036837_n3f07d_HLUol_YWoAA1ntQ.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1782117036837_n3f07d_HLUol_YWoAA1ntQ.png"
+      previewUrl: "/thumbnails/gallery/1782117036837_n3f07d_HLUol_YWoAA1ntQ.webp",
+      sourceUrl: "/thumbnails/gallery/1782117036837_n3f07d_HLUol_YWoAA1ntQ.webp"
     }],
     categories: ["Infographic / Edu"],
     tags: ["infographic-/-edu", "3d", "render", "minimalist", "infographic"],
@@ -235,8 +235,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1783494606284_z6704d_HMoGfz7XwAA46Vy.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1783494606284_z6704d_HMoGfz7XwAA46Vy.jpg"
+      previewUrl: "/thumbnails/gallery/1783494606284_z6704d_HMoGfz7XwAA46Vy.webp",
+      sourceUrl: "/thumbnails/gallery/1783494606284_z6704d_HMoGfz7XwAA46Vy.webp"
     }],
     categories: ["YouTube Thumbnail"],
     tags: ["youtube-thumbnail", "cinematic", "thumbnail"],
@@ -266,8 +266,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1782977585085_u39h36_HMJuxSOXcAAc3Gw.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1782977585085_u39h36_HMJuxSOXcAAc3Gw.jpg"
+      previewUrl: "/thumbnails/gallery/1782977585085_u39h36_HMJuxSOXcAAc3Gw.webp",
+      sourceUrl: "/thumbnails/gallery/1782977585085_u39h36_HMJuxSOXcAAc3Gw.webp"
     }],
     categories: ["YouTube Thumbnail"],
     tags: ["youtube-thumbnail", "photorealistic", "cinematic", "architecture", "thumbnail"],
@@ -297,8 +297,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1779520912765_xaxki4_HI7WAKoaIAAt_AA.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1779520912765_xaxki4_HI7WAKoaIAAt_AA.jpg"
+      previewUrl: "/thumbnails/gallery/1779520912765_xaxki4_HI7WAKoaIAAt_AA.webp",
+      sourceUrl: "/thumbnails/gallery/1779520912765_xaxki4_HI7WAKoaIAAt_AA.webp"
     }],
     categories: ["YouTube Thumbnail"],
     tags: ["youtube-thumbnail", "cinematic", "landscape", "thumbnail"],
@@ -328,8 +328,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1778830068623_58ehyo_HIRV28ybAAAfAVb.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1778830068623_58ehyo_HIRV28ybAAAfAVb.jpg"
+      previewUrl: "/thumbnails/gallery/1778830068623_58ehyo_HIRV28ybAAAfAVb.webp",
+      sourceUrl: "/thumbnails/gallery/1778830068623_58ehyo_HIRV28ybAAAfAVb.webp"
     }],
     categories: ["Game Asset"],
     tags: ["game-asset", "photorealistic", "cinematic", "3d", "render"],
@@ -359,8 +359,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1775112277740_pkbnuk_HEzF5TzbgAESrQg.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1775112277740_pkbnuk_HEzF5TzbgAESrQg.jpg"
+      previewUrl: "/thumbnails/gallery/1775112277740_pkbnuk_HEzF5TzbgAESrQg.webp",
+      sourceUrl: "/thumbnails/gallery/1775112277740_pkbnuk_HEzF5TzbgAESrQg.webp"
     }],
     categories: ["YouTube Thumbnail"],
     tags: ["youtube-thumbnail", "photorealistic", "cinematic", "thumbnail"],
@@ -390,8 +390,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1775026362379_ejfku4_HExuovobAAAKXJ_.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1775026362379_ejfku4_HExuovobAAAKXJ_.jpg"
+      previewUrl: "/thumbnails/gallery/1775026362379_ejfku4_HExuovobAAAKXJ_.webp",
+      sourceUrl: "/thumbnails/gallery/1775026362379_ejfku4_HExuovobAAAKXJ_.webp"
     }],
     categories: ["YouTube Thumbnail"],
     tags: ["youtube-thumbnail", "thumbnail"],
@@ -421,8 +421,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787293543889_1p4qb1_HQHRazNXYAAu3r1.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787293543889_1p4qb1_HQHRazNXYAAu3r1.jpg"
+      previewUrl: "/thumbnails/gallery/1787293543889_1p4qb1_HQHRazNXYAAu3r1.webp",
+      sourceUrl: "/thumbnails/gallery/1787293543889_1p4qb1_HQHRazNXYAAu3r1.webp"
     }],
     categories: ["Comic / Storyboard"],
     tags: ["comic-/-storyboard", "anime", "comic", "storyboard"],
@@ -452,8 +452,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787034148281_vjkob4_HP76UENbIAEDLI7.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787034148281_vjkob4_HP76UENbIAEDLI7.jpg"
+      previewUrl: "/thumbnails/gallery/1787034148281_vjkob4_HP76UENbIAEDLI7.webp",
+      sourceUrl: "/thumbnails/gallery/1787034148281_vjkob4_HP76UENbIAEDLI7.webp"
     }],
     categories: ["Comic / Storyboard"],
     tags: ["comic-/-storyboard", "cinematic", "comic", "storyboard"],
@@ -483,8 +483,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1786774881858_g2xa9a_HPqJRkEaUAA2lQK.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1786774881858_g2xa9a_HPqJRkEaUAA2lQK.jpg"
+      previewUrl: "/thumbnails/gallery/1786774881858_g2xa9a_HPqJRkEaUAA2lQK.webp",
+      sourceUrl: "/thumbnails/gallery/1786774881858_g2xa9a_HPqJRkEaUAA2lQK.webp"
     }],
     categories: ["Comic / Storyboard"],
     tags: ["comic-/-storyboard", "photorealistic", "cinematic", "comic", "storyboard"],
@@ -514,8 +514,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1786774876094_g9umq5_HPMZUTSWYAA_zyT.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1786774876094_g9umq5_HPMZUTSWYAA_zyT.jpg"
+      previewUrl: "/thumbnails/gallery/1786774876094_g9umq5_HPMZUTSWYAA_zyT.webp",
+      sourceUrl: "/thumbnails/gallery/1786774876094_g9umq5_HPMZUTSWYAA_zyT.webp"
     }],
     categories: ["Comic / Storyboard"],
     tags: ["comic-/-storyboard", "comic", "storyboard"],
@@ -545,8 +545,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787034144901_xn311t_HPmbMXHaAAAswqc.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787034144901_xn311t_HPmbMXHaAAAswqc.jpg"
+      previewUrl: "/thumbnails/gallery/1787034144901_xn311t_HPmbMXHaAAAswqc.webp",
+      sourceUrl: "/thumbnails/gallery/1787034144901_xn311t_HPmbMXHaAAAswqc.webp"
     }],
     categories: ["Comic / Storyboard"],
     tags: ["comic-/-storyboard", "cinematic", "landscape", "interior", "comic"],
@@ -576,8 +576,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1786774884248_2ixnrt_HPsVAUpbMAEn8oh.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1786774884248_2ixnrt_HPsVAUpbMAEn8oh.png"
+      previewUrl: "/thumbnails/gallery/1786774884248_2ixnrt_HPsVAUpbMAEn8oh.webp",
+      sourceUrl: "/thumbnails/gallery/1786774884248_2ixnrt_HPsVAUpbMAEn8oh.webp"
     }],
     categories: ["Game Asset"],
     tags: ["game-asset", "render", "game"],
@@ -607,8 +607,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1786774873705_nwlq8t_HPrlVpcaoAADayY.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1786774873705_nwlq8t_HPrlVpcaoAADayY.jpg"
+      previewUrl: "/thumbnails/gallery/1786774873705_nwlq8t_HPrlVpcaoAADayY.webp",
+      sourceUrl: "/thumbnails/gallery/1786774873705_nwlq8t_HPrlVpcaoAADayY.webp"
     }],
     categories: ["Game Asset"],
     tags: ["game-asset", "cinematic", "3d", "render", "minimalist"],
@@ -638,8 +638,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1786257248830_oedq19_HPNenTpbMAAr1r3.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1786257248830_oedq19_HPNenTpbMAAr1r3.png"
+      previewUrl: "/thumbnails/gallery/1786257248830_oedq19_HPNenTpbMAAr1r3.webp",
+      sourceUrl: "/thumbnails/gallery/1786257248830_oedq19_HPNenTpbMAAr1r3.webp"
     }],
     categories: ["Game Asset"],
     tags: ["game-asset", "render", "game"],
@@ -669,8 +669,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787213829706_sq7a85_HQEQ4QpaYAA-eTz.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787213829706_sq7a85_HQEQ4QpaYAA-eTz.jpg"
+      previewUrl: "/thumbnails/gallery/1787213829706_sq7a85_HQEQ4QpaYAA-eTz.webp",
+      sourceUrl: "/thumbnails/gallery/1787213829706_sq7a85_HQEQ4QpaYAA-eTz.webp"
     }],
     categories: ["Infographic / Edu"],
     tags: ["infographic-/-edu", "photorealistic", "3d", "render", "interior"],
@@ -700,8 +700,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787127646647_xptu17_HP-CjGHbMAAr8uc.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787127646647_xptu17_HP-CjGHbMAAr8uc.jpg"
+      previewUrl: "/thumbnails/gallery/1787127646647_xptu17_HP-CjGHbMAAr8uc.webp",
+      sourceUrl: "/thumbnails/gallery/1787127646647_xptu17_HP-CjGHbMAAr8uc.webp"
     }],
     categories: ["Infographic / Edu"],
     tags: ["infographic-/-edu", "infographic"],
@@ -731,8 +731,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787127634019_cwf45y_HPrdOG8WcAA5i8H.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787127634019_cwf45y_HPrdOG8WcAA5i8H.jpg"
+      previewUrl: "/thumbnails/gallery/1787127634019_cwf45y_HPrdOG8WcAA5i8H.webp",
+      sourceUrl: "/thumbnails/gallery/1787127634019_cwf45y_HPrdOG8WcAA5i8H.webp"
     }],
     categories: ["Infographic / Edu"],
     tags: ["infographic-/-edu", "render", "infographic"],
@@ -762,8 +762,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787213765813_rypvep_HQDsocFa4AAIYAS.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787213765813_rypvep_HQDsocFa4AAIYAS.jpg"
+      previewUrl: "/thumbnails/gallery/1787213765813_rypvep_HQDsocFa4AAIYAS.webp",
+      sourceUrl: "/thumbnails/gallery/1787213765813_rypvep_HQDsocFa4AAIYAS.webp"
     }],
     categories: ["YouTube Thumbnail"],
     tags: ["youtube-thumbnail", "cinematic", "thumbnail"],
@@ -793,8 +793,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787044657410_gg2wvm_HP6knoEa0AAhhdm.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787044657410_gg2wvm_HP6knoEa0AAhhdm.jpg"
+      previewUrl: "/thumbnails/gallery/1787044657410_gg2wvm_HP6knoEa0AAhhdm.webp",
+      sourceUrl: "/thumbnails/gallery/1787044657410_gg2wvm_HP6knoEa0AAhhdm.webp"
     }],
     categories: ["YouTube Thumbnail"],
     tags: ["youtube-thumbnail", "thumbnail"],
@@ -824,8 +824,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1786867777227_3ibag6_HPzbLCGXcAACc7x.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1786867777227_3ibag6_HPzbLCGXcAACc7x.jpg"
+      previewUrl: "/thumbnails/gallery/1786867777227_3ibag6_HPzbLCGXcAACc7x.webp",
+      sourceUrl: "/thumbnails/gallery/1786867777227_3ibag6_HPzbLCGXcAACc7x.webp"
     }],
     categories: ["YouTube Thumbnail"],
     tags: ["youtube-thumbnail", "cinematic", "landscape", "thumbnail"],
@@ -855,8 +855,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1786867769552_40rm7w_HPw2gBdbAAEMvnr.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1786867769552_40rm7w_HPw2gBdbAAEMvnr.jpg"
+      previewUrl: "/thumbnails/gallery/1786867769552_40rm7w_HPw2gBdbAAEMvnr.webp",
+      sourceUrl: "/thumbnails/gallery/1786867769552_40rm7w_HPw2gBdbAAEMvnr.webp"
     }],
     categories: ["YouTube Thumbnail"],
     tags: ["youtube-thumbnail", "photorealistic", "cinematic", "architecture", "thumbnail"],
@@ -886,8 +886,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1786867774073_54lsfx_HPwhzUBakAA0RHV.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1786867774073_54lsfx_HPwhzUBakAA0RHV.jpg"
+      previewUrl: "/thumbnails/gallery/1786867774073_54lsfx_HPwhzUBakAA0RHV.webp",
+      sourceUrl: "/thumbnails/gallery/1786867774073_54lsfx_HPwhzUBakAA0RHV.webp"
     }],
     categories: ["YouTube Thumbnail"],
     tags: ["youtube-thumbnail", "photorealistic", "cinematic", "thumbnail"],
@@ -917,8 +917,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787299904681_ilg13l_HQKRvgObgAAqZaO.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787299904681_ilg13l_HQKRvgObgAAqZaO.jpg"
+      previewUrl: "/thumbnails/gallery/1787299904681_ilg13l_HQKRvgObgAAqZaO.webp",
+      sourceUrl: "/thumbnails/gallery/1787299904681_ilg13l_HQKRvgObgAAqZaO.webp"
     }],
     categories: ["Comic / Storyboard"],
     tags: ["comic-/-storyboard", "photorealistic", "cinematic", "architecture", "comic"],
@@ -948,8 +948,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787299938532_xww5ni_HQIytUMakAAjgs-.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787299938532_xww5ni_HQIytUMakAAjgs-.jpg"
+      previewUrl: "/thumbnails/gallery/1787299938532_xww5ni_HQIytUMakAAjgs-.webp",
+      sourceUrl: "/thumbnails/gallery/1787299938532_xww5ni_HQIytUMakAAjgs-.webp"
     }],
     categories: ["Game Asset"],
     tags: ["game-asset", "cinematic", "cyberpunk", "architecture", "game"],
@@ -979,8 +979,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787299952126_vjyw6v_HQK1pHKbIAARt9X.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787299952126_vjyw6v_HQK1pHKbIAARt9X.jpg"
+      previewUrl: "/thumbnails/gallery/1787299952126_vjyw6v_HQK1pHKbIAARt9X.webp",
+      sourceUrl: "/thumbnails/gallery/1787299952126_vjyw6v_HQK1pHKbIAARt9X.webp"
     }],
     categories: ["Game Asset"],
     tags: ["game-asset", "photorealistic", "cinematic", "landscape", "game"],
@@ -1010,8 +1010,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765359674422_t8le7q_a7f1e1c4d786c8a59b6d56bed9f1794953eaf4c91d925c67b07d1ea281ad9f69-600x800.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765359674422_t8le7q_a7f1e1c4d786c8a59b6d56bed9f1794953eaf4c91d925c67b07d1ea281ad9f69-600x800.png"
+      previewUrl: "/thumbnails/gallery/1765359674422_t8le7q_a7f1e1c4d786c8a59b6d56bed9f1794953eaf4c91d925c67b07d1ea281ad9f69-600x800.webp",
+      sourceUrl: "/thumbnails/gallery/1765359674422_t8le7q_a7f1e1c4d786c8a59b6d56bed9f1794953eaf4c91d925c67b07d1ea281ad9f69-600x800.webp"
     }],
     categories: ["Poster / Flyer"],
     tags: ["poster-/-flyer", "flyer"],
@@ -1041,8 +1041,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765367961890_sii4rm_1f4e43ff4dda6b28373b94aed5aa7bffc4815c1f5d212053ab1a343051b86704-600x750.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765367961890_sii4rm_1f4e43ff4dda6b28373b94aed5aa7bffc4815c1f5d212053ab1a343051b86704-600x750.png"
+      previewUrl: "/thumbnails/gallery/1765367961890_sii4rm_1f4e43ff4dda6b28373b94aed5aa7bffc4815c1f5d212053ab1a343051b86704-600x750.webp",
+      sourceUrl: "/thumbnails/gallery/1765367961890_sii4rm_1f4e43ff4dda6b28373b94aed5aa7bffc4815c1f5d212053ab1a343051b86704-600x750.webp"
     }],
     categories: ["Poster / Flyer"],
     tags: ["poster-/-flyer", "food", "flyer"],
@@ -1072,8 +1072,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765359749886_kp53z5_6e8b4aee7f3968c08d89355e02eac75f80081c5a652af5be3043a2f7ddf122f3-600x900.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765359749886_kp53z5_6e8b4aee7f3968c08d89355e02eac75f80081c5a652af5be3043a2f7ddf122f3-600x900.png"
+      previewUrl: "/thumbnails/gallery/1765359749886_kp53z5_6e8b4aee7f3968c08d89355e02eac75f80081c5a652af5be3043a2f7ddf122f3-600x900.webp",
+      sourceUrl: "/thumbnails/gallery/1765359749886_kp53z5_6e8b4aee7f3968c08d89355e02eac75f80081c5a652af5be3043a2f7ddf122f3-600x900.webp"
     }],
     categories: ["General"],
     tags: ["general"],
@@ -1103,8 +1103,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765359803888_85aak1_7db4d11cf8cb3d575477d6fcb44c884e843e09a9d1c849534498fc289271574c-600x337.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765359803888_85aak1_7db4d11cf8cb3d575477d6fcb44c884e843e09a9d1c849534498fc289271574c-600x337.png"
+      previewUrl: "/thumbnails/gallery/1765359803888_85aak1_7db4d11cf8cb3d575477d6fcb44c884e843e09a9d1c849534498fc289271574c-600x337.webp",
+      sourceUrl: "/thumbnails/gallery/1765359803888_85aak1_7db4d11cf8cb3d575477d6fcb44c884e843e09a9d1c849534498fc289271574c-600x337.webp"
     }],
     categories: ["YouTube Thumbnail"],
     tags: ["youtube-thumbnail", "thumbnail"],
@@ -1134,8 +1134,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765359826384_5thcf7_cf2681b72434f1f9eb3abcd48a02db5ba77094a0806434a7083b13088ea01ca2-600x337.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765359826384_5thcf7_cf2681b72434f1f9eb3abcd48a02db5ba77094a0806434a7083b13088ea01ca2-600x337.png"
+      previewUrl: "/thumbnails/gallery/1765359826384_5thcf7_cf2681b72434f1f9eb3abcd48a02db5ba77094a0806434a7083b13088ea01ca2-600x337.webp",
+      sourceUrl: "/thumbnails/gallery/1765359826384_5thcf7_cf2681b72434f1f9eb3abcd48a02db5ba77094a0806434a7083b13088ea01ca2-600x337.webp"
     }],
     categories: ["YouTube Thumbnail"],
     tags: ["youtube-thumbnail", "food", "thumbnail"],
@@ -1165,8 +1165,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765359826812_3kmm0z_c27c032b4e0eb4dd230eb1dbc5d907728aef5e86c12c00bd34808d2d640ef7f7-600x337.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765359826812_3kmm0z_c27c032b4e0eb4dd230eb1dbc5d907728aef5e86c12c00bd34808d2d640ef7f7-600x337.png"
+      previewUrl: "/thumbnails/gallery/1765359826812_3kmm0z_c27c032b4e0eb4dd230eb1dbc5d907728aef5e86c12c00bd34808d2d640ef7f7-600x337.webp",
+      sourceUrl: "/thumbnails/gallery/1765359826812_3kmm0z_c27c032b4e0eb4dd230eb1dbc5d907728aef5e86c12c00bd34808d2d640ef7f7-600x337.webp"
     }],
     categories: ["YouTube Thumbnail"],
     tags: ["youtube-thumbnail", "thumbnail"],
@@ -1196,8 +1196,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765359826854_zld663_5e728a1a63f054c88f1d7d774ba7d0e36ca40b9fad806abddf954eb7d957ef54-600x337.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765359826854_zld663_5e728a1a63f054c88f1d7d774ba7d0e36ca40b9fad806abddf954eb7d957ef54-600x337.png"
+      previewUrl: "/thumbnails/gallery/1765359826854_zld663_5e728a1a63f054c88f1d7d774ba7d0e36ca40b9fad806abddf954eb7d957ef54-600x337.webp",
+      sourceUrl: "/thumbnails/gallery/1765359826854_zld663_5e728a1a63f054c88f1d7d774ba7d0e36ca40b9fad806abddf954eb7d957ef54-600x337.webp"
     }],
     categories: ["YouTube Thumbnail"],
     tags: ["youtube-thumbnail", "thumbnail"],
@@ -1227,8 +1227,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765359853121_adq5sn_fab0eac438d07ba84861e7fabce5dd05b6a36b2183b7b06b72c5ad546aa7df69-600x337.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765359853121_adq5sn_fab0eac438d07ba84861e7fabce5dd05b6a36b2183b7b06b72c5ad546aa7df69-600x337.png"
+      previewUrl: "/thumbnails/gallery/1765359853121_adq5sn_fab0eac438d07ba84861e7fabce5dd05b6a36b2183b7b06b72c5ad546aa7df69-600x337.webp",
+      sourceUrl: "/thumbnails/gallery/1765359853121_adq5sn_fab0eac438d07ba84861e7fabce5dd05b6a36b2183b7b06b72c5ad546aa7df69-600x337.webp"
     }],
     categories: ["YouTube Thumbnail"],
     tags: ["youtube-thumbnail", "photorealistic", "cinematic", "render", "thumbnail"],
@@ -1258,8 +1258,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765359852520_3t2hlv_4514080c766c42a1255a2246ff4b6261d85db0f25a78dd70994fe22caa05f7cb-600x337.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765359852520_3t2hlv_4514080c766c42a1255a2246ff4b6261d85db0f25a78dd70994fe22caa05f7cb-600x337.png"
+      previewUrl: "/thumbnails/gallery/1765359852520_3t2hlv_4514080c766c42a1255a2246ff4b6261d85db0f25a78dd70994fe22caa05f7cb-600x337.webp",
+      sourceUrl: "/thumbnails/gallery/1765359852520_3t2hlv_4514080c766c42a1255a2246ff4b6261d85db0f25a78dd70994fe22caa05f7cb-600x337.webp"
     }],
     categories: ["YouTube Thumbnail"],
     tags: ["youtube-thumbnail", "thumbnail"],
@@ -1289,8 +1289,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765359875601_ti4vut_5ebeba4d9fc7284defb13ff5cbdf69102cae60e95aaa7af3bfd9e512b2a79d2f-600x337.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765359875601_ti4vut_5ebeba4d9fc7284defb13ff5cbdf69102cae60e95aaa7af3bfd9e512b2a79d2f-600x337.png"
+      previewUrl: "/thumbnails/gallery/1765359875601_ti4vut_5ebeba4d9fc7284defb13ff5cbdf69102cae60e95aaa7af3bfd9e512b2a79d2f-600x337.webp",
+      sourceUrl: "/thumbnails/gallery/1765359875601_ti4vut_5ebeba4d9fc7284defb13ff5cbdf69102cae60e95aaa7af3bfd9e512b2a79d2f-600x337.webp"
     }],
     categories: ["YouTube Thumbnail"],
     tags: ["youtube-thumbnail", "thumbnail"],
@@ -1320,8 +1320,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765359877133_wfrjxo_71b453d5c7354270702bd21ea6ce5c292083909941c78792940f78f07738b929-600x337.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765359877133_wfrjxo_71b453d5c7354270702bd21ea6ce5c292083909941c78792940f78f07738b929-600x337.png"
+      previewUrl: "/thumbnails/gallery/1765359877133_wfrjxo_71b453d5c7354270702bd21ea6ce5c292083909941c78792940f78f07738b929-600x337.webp",
+      sourceUrl: "/thumbnails/gallery/1765359877133_wfrjxo_71b453d5c7354270702bd21ea6ce5c292083909941c78792940f78f07738b929-600x337.webp"
     }],
     categories: ["YouTube Thumbnail"],
     tags: ["youtube-thumbnail", "thumbnail"],
@@ -1351,8 +1351,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765359877066_tmo2mz_8ef67c65974dda9a310ea2835c5dfe9c4503821ef97bdeb9a7fd193f301d5313-600x337.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765359877066_tmo2mz_8ef67c65974dda9a310ea2835c5dfe9c4503821ef97bdeb9a7fd193f301d5313-600x337.png"
+      previewUrl: "/thumbnails/gallery/1765359877066_tmo2mz_8ef67c65974dda9a310ea2835c5dfe9c4503821ef97bdeb9a7fd193f301d5313-600x337.webp",
+      sourceUrl: "/thumbnails/gallery/1765359877066_tmo2mz_8ef67c65974dda9a310ea2835c5dfe9c4503821ef97bdeb9a7fd193f301d5313-600x337.webp"
     }],
     categories: ["YouTube Thumbnail"],
     tags: ["youtube-thumbnail", "render", "thumbnail"],
@@ -1382,8 +1382,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765359900370_9r1704_ab90bfdfcf0d0c7ab2556c996cbd238f4fe239e87325268a10cd40436c3f3634-600x337.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765359900370_9r1704_ab90bfdfcf0d0c7ab2556c996cbd238f4fe239e87325268a10cd40436c3f3634-600x337.png"
+      previewUrl: "/thumbnails/gallery/1765359900370_9r1704_ab90bfdfcf0d0c7ab2556c996cbd238f4fe239e87325268a10cd40436c3f3634-600x337.webp",
+      sourceUrl: "/thumbnails/gallery/1765359900370_9r1704_ab90bfdfcf0d0c7ab2556c996cbd238f4fe239e87325268a10cd40436c3f3634-600x337.webp"
     }],
     categories: ["YouTube Thumbnail"],
     tags: ["youtube-thumbnail", "thumbnail"],
@@ -1413,8 +1413,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765359901359_1x34it_03121fa70e72330556cbd276f62b40bb3b959dd20737ecf355e76d61e5a3e077-600x337.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765359901359_1x34it_03121fa70e72330556cbd276f62b40bb3b959dd20737ecf355e76d61e5a3e077-600x337.png"
+      previewUrl: "/thumbnails/gallery/1765359901359_1x34it_03121fa70e72330556cbd276f62b40bb3b959dd20737ecf355e76d61e5a3e077-600x337.webp",
+      sourceUrl: "/thumbnails/gallery/1765359901359_1x34it_03121fa70e72330556cbd276f62b40bb3b959dd20737ecf355e76d61e5a3e077-600x337.webp"
     }],
     categories: ["YouTube Thumbnail"],
     tags: ["youtube-thumbnail", "render", "food", "thumbnail"],
@@ -1444,8 +1444,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765359903042_30dda6_1b055fabcac0ef74ade652ee5f228fd4eabc9b207be6f70f37a1616a3de931e2-600x337.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765359903042_30dda6_1b055fabcac0ef74ade652ee5f228fd4eabc9b207be6f70f37a1616a3de931e2-600x337.png"
+      previewUrl: "/thumbnails/gallery/1765359903042_30dda6_1b055fabcac0ef74ade652ee5f228fd4eabc9b207be6f70f37a1616a3de931e2-600x337.webp",
+      sourceUrl: "/thumbnails/gallery/1765359903042_30dda6_1b055fabcac0ef74ade652ee5f228fd4eabc9b207be6f70f37a1616a3de931e2-600x337.webp"
     }],
     categories: ["YouTube Thumbnail"],
     tags: ["youtube-thumbnail", "render", "thumbnail"],
@@ -1475,8 +1475,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765359926354_hoegcp_68ca62b3e06921c89f49982ed2dc9c4feff4e9435c2c33f98c1c42669ab38f7e-600x337.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765359926354_hoegcp_68ca62b3e06921c89f49982ed2dc9c4feff4e9435c2c33f98c1c42669ab38f7e-600x337.png"
+      previewUrl: "/thumbnails/gallery/1765359926354_hoegcp_68ca62b3e06921c89f49982ed2dc9c4feff4e9435c2c33f98c1c42669ab38f7e-600x337.webp",
+      sourceUrl: "/thumbnails/gallery/1765359926354_hoegcp_68ca62b3e06921c89f49982ed2dc9c4feff4e9435c2c33f98c1c42669ab38f7e-600x337.webp"
     }],
     categories: ["YouTube Thumbnail"],
     tags: ["youtube-thumbnail", "thumbnail"],
@@ -1506,8 +1506,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765359932380_34jgt9_cf89b086154f3db23cb91cf01007b07ff5b0d1d6de917cbdfd872738fc0d5298-600x337.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765359932380_34jgt9_cf89b086154f3db23cb91cf01007b07ff5b0d1d6de917cbdfd872738fc0d5298-600x337.png"
+      previewUrl: "/thumbnails/gallery/1765359932380_34jgt9_cf89b086154f3db23cb91cf01007b07ff5b0d1d6de917cbdfd872738fc0d5298-600x337.webp",
+      sourceUrl: "/thumbnails/gallery/1765359932380_34jgt9_cf89b086154f3db23cb91cf01007b07ff5b0d1d6de917cbdfd872738fc0d5298-600x337.webp"
     }],
     categories: ["App / Web Design"],
     tags: ["app-/-web-design", "render", "architecture"],
@@ -1537,8 +1537,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765359973271_pdbxwc_c6b94b7b550aac22ddcc5cb218e2579891facd7bf4789233eb0581b2ba0c84d9-600x337.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765359973271_pdbxwc_c6b94b7b550aac22ddcc5cb218e2579891facd7bf4789233eb0581b2ba0c84d9-600x337.png"
+      previewUrl: "/thumbnails/gallery/1765359973271_pdbxwc_c6b94b7b550aac22ddcc5cb218e2579891facd7bf4789233eb0581b2ba0c84d9-600x337.webp",
+      sourceUrl: "/thumbnails/gallery/1765359973271_pdbxwc_c6b94b7b550aac22ddcc5cb218e2579891facd7bf4789233eb0581b2ba0c84d9-600x337.webp"
     }],
     categories: ["App / Web Design"],
     tags: ["app-/-web-design"],
@@ -1568,8 +1568,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765359995792_935v79_451d9e59da9ac0d1e4ab12f3fc35b626497c9a0386c651672c3556e1ec4fc70a-600x337.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765359995792_935v79_451d9e59da9ac0d1e4ab12f3fc35b626497c9a0386c651672c3556e1ec4fc70a-600x337.png"
+      previewUrl: "/thumbnails/gallery/1765359995792_935v79_451d9e59da9ac0d1e4ab12f3fc35b626497c9a0386c651672c3556e1ec4fc70a-600x337.webp",
+      sourceUrl: "/thumbnails/gallery/1765359995792_935v79_451d9e59da9ac0d1e4ab12f3fc35b626497c9a0386c651672c3556e1ec4fc70a-600x337.webp"
     }],
     categories: ["App / Web Design"],
     tags: ["app-/-web-design"],
@@ -1599,8 +1599,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765359996985_swkfjt_025cf48cdf39f10755df260dea0d9796003eb88ba7ff741c5ef20828050b678b-600x337.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765359996985_swkfjt_025cf48cdf39f10755df260dea0d9796003eb88ba7ff741c5ef20828050b678b-600x337.png"
+      previewUrl: "/thumbnails/gallery/1765359996985_swkfjt_025cf48cdf39f10755df260dea0d9796003eb88ba7ff741c5ef20828050b678b-600x337.webp",
+      sourceUrl: "/thumbnails/gallery/1765359996985_swkfjt_025cf48cdf39f10755df260dea0d9796003eb88ba7ff741c5ef20828050b678b-600x337.webp"
     }],
     categories: ["Infographic / Edu"],
     tags: ["infographic-/-edu", "infographic"],
@@ -1630,8 +1630,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765360020018_utsoub_569c26ce3c8be204cf2719b1245fa0d66c9364713f37e088e9c7f89b24103f68-600x1200.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765360020018_utsoub_569c26ce3c8be204cf2719b1245fa0d66c9364713f37e088e9c7f89b24103f68-600x1200.png"
+      previewUrl: "/thumbnails/gallery/1765360020018_utsoub_569c26ce3c8be204cf2719b1245fa0d66c9364713f37e088e9c7f89b24103f68-600x1200.webp",
+      sourceUrl: "/thumbnails/gallery/1765360020018_utsoub_569c26ce3c8be204cf2719b1245fa0d66c9364713f37e088e9c7f89b24103f68-600x1200.webp"
     }],
     categories: ["Infographic / Edu"],
     tags: ["infographic-/-edu", "minimalist", "infographic"],
@@ -1661,8 +1661,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765360046589_xbdktm_7f8ef516875cb2529572760ff3af83434fa448b108c72ee77fbed2f0d0c31349-600x337.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765360046589_xbdktm_7f8ef516875cb2529572760ff3af83434fa448b108c72ee77fbed2f0d0c31349-600x337.png"
+      previewUrl: "/thumbnails/gallery/1765360046589_xbdktm_7f8ef516875cb2529572760ff3af83434fa448b108c72ee77fbed2f0d0c31349-600x337.webp",
+      sourceUrl: "/thumbnails/gallery/1765360046589_xbdktm_7f8ef516875cb2529572760ff3af83434fa448b108c72ee77fbed2f0d0c31349-600x337.webp"
     }],
     categories: ["Infographic / Edu"],
     tags: ["infographic-/-edu"],
@@ -1692,8 +1692,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765360048342_c53zez_ee77452b9f75a5acfcb5d1f9cce49aa48c929b421e9b18173c78f58aaa3340b5-600x337.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765360048342_c53zez_ee77452b9f75a5acfcb5d1f9cce49aa48c929b421e9b18173c78f58aaa3340b5-600x337.png"
+      previewUrl: "/thumbnails/gallery/1765360048342_c53zez_ee77452b9f75a5acfcb5d1f9cce49aa48c929b421e9b18173c78f58aaa3340b5-600x337.webp",
+      sourceUrl: "/thumbnails/gallery/1765360048342_c53zez_ee77452b9f75a5acfcb5d1f9cce49aa48c929b421e9b18173c78f58aaa3340b5-600x337.webp"
     }],
     categories: ["App / Web Design"],
     tags: ["app-/-web-design", "minimalist"],
@@ -1723,8 +1723,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765360049311_aiw2tn_57462cb7394928f1406090ed7f8a63b9f188c3a2475b057361262f1842e3904b-600x337.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765360049311_aiw2tn_57462cb7394928f1406090ed7f8a63b9f188c3a2475b057361262f1842e3904b-600x337.png"
+      previewUrl: "/thumbnails/gallery/1765360049311_aiw2tn_57462cb7394928f1406090ed7f8a63b9f188c3a2475b057361262f1842e3904b-600x337.webp",
+      sourceUrl: "/thumbnails/gallery/1765360049311_aiw2tn_57462cb7394928f1406090ed7f8a63b9f188c3a2475b057361262f1842e3904b-600x337.webp"
     }],
     categories: ["Infographic / Edu"],
     tags: ["infographic-/-edu"],
@@ -1754,8 +1754,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765360073375_zdsx14_642c32b87cf5be86178882a3ce41f082d51ff7403ec7c14a2ff414736abd12fb-600x450.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765360073375_zdsx14_642c32b87cf5be86178882a3ce41f082d51ff7403ec7c14a2ff414736abd12fb-600x450.png"
+      previewUrl: "/thumbnails/gallery/1765360073375_zdsx14_642c32b87cf5be86178882a3ce41f082d51ff7403ec7c14a2ff414736abd12fb-600x450.webp",
+      sourceUrl: "/thumbnails/gallery/1765360073375_zdsx14_642c32b87cf5be86178882a3ce41f082d51ff7403ec7c14a2ff414736abd12fb-600x450.webp"
     }],
     categories: ["Photography"],
     tags: ["photography", "render"],
@@ -1785,8 +1785,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765360098499_qow13s_063678853526af502f0b76f143585a8979a45a67dece2321fc4d79bf0da9f83f-600x337.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765360098499_qow13s_063678853526af502f0b76f143585a8979a45a67dece2321fc4d79bf0da9f83f-600x337.png"
+      previewUrl: "/thumbnails/gallery/1765360098499_qow13s_063678853526af502f0b76f143585a8979a45a67dece2321fc4d79bf0da9f83f-600x337.webp",
+      sourceUrl: "/thumbnails/gallery/1765360098499_qow13s_063678853526af502f0b76f143585a8979a45a67dece2321fc4d79bf0da9f83f-600x337.webp"
     }],
     categories: ["Game Asset"],
     tags: ["game-asset", "game"],
@@ -1816,8 +1816,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765360098798_0ty8mt_27b0b9e3e1c8d2fea5a0be237beb86d21c6c58e79dfea103cc7edb0f15e5f3d0-600x400.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765360098798_0ty8mt_27b0b9e3e1c8d2fea5a0be237beb86d21c6c58e79dfea103cc7edb0f15e5f3d0-600x400.png"
+      previewUrl: "/thumbnails/gallery/1765360098798_0ty8mt_27b0b9e3e1c8d2fea5a0be237beb86d21c6c58e79dfea103cc7edb0f15e5f3d0-600x400.webp",
+      sourceUrl: "/thumbnails/gallery/1765360098798_0ty8mt_27b0b9e3e1c8d2fea5a0be237beb86d21c6c58e79dfea103cc7edb0f15e5f3d0-600x400.webp"
     }],
     categories: ["General"],
     tags: ["general"],
@@ -1847,8 +1847,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765360124674_xzhr1p_7d16592f8f1aa02223f82ae42795ae66da069e1af33fe9e63371d52dd47b894c-600x600.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765360124674_xzhr1p_7d16592f8f1aa02223f82ae42795ae66da069e1af33fe9e63371d52dd47b894c-600x600.png"
+      previewUrl: "/thumbnails/gallery/1765360124674_xzhr1p_7d16592f8f1aa02223f82ae42795ae66da069e1af33fe9e63371d52dd47b894c-600x600.webp",
+      sourceUrl: "/thumbnails/gallery/1765360124674_xzhr1p_7d16592f8f1aa02223f82ae42795ae66da069e1af33fe9e63371d52dd47b894c-600x600.webp"
     }],
     categories: ["Photography"],
     tags: ["photography"],
@@ -1878,8 +1878,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765360125025_ciiseo_5860277b77f24e38e81b2792eb00b894a0519067d7b2aa684e0c7c5536380593-600x800.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765360125025_ciiseo_5860277b77f24e38e81b2792eb00b894a0519067d7b2aa684e0c7c5536380593-600x800.png"
+      previewUrl: "/thumbnails/gallery/1765360125025_ciiseo_5860277b77f24e38e81b2792eb00b894a0519067d7b2aa684e0c7c5536380593-600x800.webp",
+      sourceUrl: "/thumbnails/gallery/1765360125025_ciiseo_5860277b77f24e38e81b2792eb00b894a0519067d7b2aa684e0c7c5536380593-600x800.webp"
     }],
     categories: ["Photography"],
     tags: ["photography", "interior"],
@@ -1909,8 +1909,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765360152044_pk5sb6_e9ddfef112bb3b2bd6c55bfd15e05e2b643bb8e136662189eef61b6b7b729ec6-600x337.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765360152044_pk5sb6_e9ddfef112bb3b2bd6c55bfd15e05e2b643bb8e136662189eef61b6b7b729ec6-600x337.png"
+      previewUrl: "/thumbnails/gallery/1765360152044_pk5sb6_e9ddfef112bb3b2bd6c55bfd15e05e2b643bb8e136662189eef61b6b7b729ec6-600x337.webp",
+      sourceUrl: "/thumbnails/gallery/1765360152044_pk5sb6_e9ddfef112bb3b2bd6c55bfd15e05e2b643bb8e136662189eef61b6b7b729ec6-600x337.webp"
     }],
     categories: ["Photography"],
     tags: ["photography", "food"],
@@ -1940,8 +1940,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765360152223_ecnmvk_9bd9adf33a941d866242521ffec8b0294c759982f041b08601e09f200cc991e2-600x400.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765360152223_ecnmvk_9bd9adf33a941d866242521ffec8b0294c759982f041b08601e09f200cc991e2-600x400.png"
+      previewUrl: "/thumbnails/gallery/1765360152223_ecnmvk_9bd9adf33a941d866242521ffec8b0294c759982f041b08601e09f200cc991e2-600x400.webp",
+      sourceUrl: "/thumbnails/gallery/1765360152223_ecnmvk_9bd9adf33a941d866242521ffec8b0294c759982f041b08601e09f200cc991e2-600x400.webp"
     }],
     categories: ["App / Web Design"],
     tags: ["app-/-web-design", "landscape", "interior"],
@@ -1971,8 +1971,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765360152290_ucceii_2e1174d444139a8eb541644c3eb5020576fe4c220017db9e976b341d2a54a149-600x337.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765360152290_ucceii_2e1174d444139a8eb541644c3eb5020576fe4c220017db9e976b341d2a54a149-600x337.png"
+      previewUrl: "/thumbnails/gallery/1765360152290_ucceii_2e1174d444139a8eb541644c3eb5020576fe4c220017db9e976b341d2a54a149-600x337.webp",
+      sourceUrl: "/thumbnails/gallery/1765360152290_ucceii_2e1174d444139a8eb541644c3eb5020576fe4c220017db9e976b341d2a54a149-600x337.webp"
     }],
     categories: ["Photography"],
     tags: ["photography", "render"],
@@ -2002,8 +2002,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765360179604_xwadaf_4bc42730fac9b6b298ba8f732b6431248ae84dd281657d8709a0c816b1de3304-600x750.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765360179604_xwadaf_4bc42730fac9b6b298ba8f732b6431248ae84dd281657d8709a0c816b1de3304-600x750.png"
+      previewUrl: "/thumbnails/gallery/1765360179604_xwadaf_4bc42730fac9b6b298ba8f732b6431248ae84dd281657d8709a0c816b1de3304-600x750.webp",
+      sourceUrl: "/thumbnails/gallery/1765360179604_xwadaf_4bc42730fac9b6b298ba8f732b6431248ae84dd281657d8709a0c816b1de3304-600x750.webp"
     }],
     categories: ["3D Render"],
     tags: ["3d-render", "render"],
@@ -2033,8 +2033,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765360205636_17iyst_f56f471d208f74fe3b796f5ea9e53dd60401af8e47242309fdc7119c652ee5e1-600x400.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765360205636_17iyst_f56f471d208f74fe3b796f5ea9e53dd60401af8e47242309fdc7119c652ee5e1-600x400.png"
+      previewUrl: "/thumbnails/gallery/1765360205636_17iyst_f56f471d208f74fe3b796f5ea9e53dd60401af8e47242309fdc7119c652ee5e1-600x400.webp",
+      sourceUrl: "/thumbnails/gallery/1765360205636_17iyst_f56f471d208f74fe3b796f5ea9e53dd60401af8e47242309fdc7119c652ee5e1-600x400.webp"
     }],
     categories: ["Photography"],
     tags: ["photography", "render"],
@@ -2064,8 +2064,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1778830063254_js3sqi_HIQOJqjaQAAJP_d.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1778830063254_js3sqi_HIQOJqjaQAAJP_d.jpg"
+      previewUrl: "/thumbnails/gallery/1778830063254_js3sqi_HIQOJqjaQAAJP_d.webp",
+      sourceUrl: "/thumbnails/gallery/1778830063254_js3sqi_HIQOJqjaQAAJP_d.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "photorealistic", "cinematic", "thumbnail"],
@@ -2095,8 +2095,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1778743482684_foflzr_HIM-T2abYAAtTX0.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1778743482684_foflzr_HIM-T2abYAAtTX0.jpg"
+      previewUrl: "/thumbnails/gallery/1778743482684_foflzr_HIM-T2abYAAtTX0.webp",
+      sourceUrl: "/thumbnails/gallery/1778743482684_foflzr_HIM-T2abYAAtTX0.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "cinematic", "thumbnail"],
@@ -2126,8 +2126,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1778570429056_v1z0au_HIBL06KbcAASXvc.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1778570429056_v1z0au_HIBL06KbcAASXvc.jpg"
+      previewUrl: "/thumbnails/gallery/1778570429056_v1z0au_HIBL06KbcAASXvc.webp",
+      sourceUrl: "/thumbnails/gallery/1778570429056_v1z0au_HIBL06KbcAASXvc.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "character", "game", "thumbnail"],
@@ -2157,8 +2157,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1776495135499_o1874c_HGGCN9XbYAAdTKw.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1776495135499_o1874c_HGGCN9XbYAAdTKw.jpg"
+      previewUrl: "/thumbnails/gallery/1776495135499_o1874c_HGGCN9XbYAAdTKw.webp",
+      sourceUrl: "/thumbnails/gallery/1776495135499_o1874c_HGGCN9XbYAAdTKw.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "cinematic", "thumbnail"],
@@ -2188,8 +2188,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1775112286065_i3xthk_HE2rSFhXkAAGgfN.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1775112286065_i3xthk_HE2rSFhXkAAGgfN.jpg"
+      previewUrl: "/thumbnails/gallery/1775112286065_i3xthk_HE2rSFhXkAAGgfN.webp",
+      sourceUrl: "/thumbnails/gallery/1775112286065_i3xthk_HE2rSFhXkAAGgfN.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "photorealistic", "cinematic", "thumbnail"],
@@ -2219,8 +2219,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787208876029_xmncg0_HQF19kdacAATv1I.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787208876029_xmncg0_HQF19kdacAATv1I.jpg"
+      previewUrl: "/thumbnails/gallery/1787208876029_xmncg0_HQF19kdacAATv1I.webp",
+      sourceUrl: "/thumbnails/gallery/1787208876029_xmncg0_HQF19kdacAATv1I.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "cinematic", "product", "food"],
@@ -2250,8 +2250,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787208877458_0x85ko_HQE90xdaYAA8DRm.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787208877458_0x85ko_HQE90xdaYAA8DRm.jpg"
+      previewUrl: "/thumbnails/gallery/1787208877458_0x85ko_HQE90xdaYAA8DRm.webp",
+      sourceUrl: "/thumbnails/gallery/1787208877458_0x85ko_HQE90xdaYAA8DRm.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "cinematic", "product", "food"],
@@ -2281,8 +2281,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787120735839_aux1ho_HQAdQKNXsAAMSvQ.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787120735839_aux1ho_HQAdQKNXsAAMSvQ.jpg"
+      previewUrl: "/thumbnails/gallery/1787120735839_aux1ho_HQAdQKNXsAAMSvQ.webp",
+      sourceUrl: "/thumbnails/gallery/1787120735839_aux1ho_HQAdQKNXsAAMSvQ.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "fashion", "comic", "storyboard"],
@@ -2312,8 +2312,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1786861122193_hdzbyd_HPvngouXMAAzl8D.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1786861122193_hdzbyd_HPvngouXMAAzl8D.jpg"
+      previewUrl: "/thumbnails/gallery/1786861122193_hdzbyd_HPvngouXMAAzl8D.webp",
+      sourceUrl: "/thumbnails/gallery/1786861122193_hdzbyd_HPvngouXMAAzl8D.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "illustration", "landscape", "comic"],
@@ -2343,8 +2343,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1786861133324_kyaunw_HPgULBkbsAACHnj.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1786861133324_kyaunw_HPgULBkbsAACHnj.jpg"
+      previewUrl: "/thumbnails/gallery/1786861133324_kyaunw_HPgULBkbsAACHnj.webp",
+      sourceUrl: "/thumbnails/gallery/1786861133324_kyaunw_HPgULBkbsAACHnj.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "photorealistic", "cinematic", "interior"],
@@ -2374,8 +2374,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1786690123710_56tjj0_HPmRoqiboAAN_uw.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1786690123710_56tjj0_HPmRoqiboAAN_uw.jpg"
+      previewUrl: "/thumbnails/gallery/1786690123710_56tjj0_HPmRoqiboAAN_uw.webp",
+      sourceUrl: "/thumbnails/gallery/1786690123710_56tjj0_HPmRoqiboAAN_uw.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "photorealistic", "cinematic", "architecture"],
@@ -2405,8 +2405,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1786171693311_vej7gc_HPI0ExhWQAA7n1Y.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1786171693311_vej7gc_HPI0ExhWQAA7n1Y.jpg"
+      previewUrl: "/thumbnails/gallery/1786171693311_vej7gc_HPI0ExhWQAA7n1Y.webp",
+      sourceUrl: "/thumbnails/gallery/1786171693311_vej7gc_HPI0ExhWQAA7n1Y.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "render", "comic", "storyboard"],
@@ -2436,8 +2436,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1786171691608_dzid2j_HPIkIBra8AMTGVM.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1786171691608_dzid2j_HPIkIBra8AMTGVM.jpg"
+      previewUrl: "/thumbnails/gallery/1786171691608_dzid2j_HPIkIBra8AMTGVM.webp",
+      sourceUrl: "/thumbnails/gallery/1786171691608_dzid2j_HPIkIBra8AMTGVM.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "photorealistic", "cinematic", "comic"],
@@ -2467,8 +2467,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1786171693502_vxc71o_HPISZ9kXwAAB5rc.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1786171693502_vxc71o_HPISZ9kXwAAB5rc.jpg"
+      previewUrl: "/thumbnails/gallery/1786171693502_vxc71o_HPISZ9kXwAAB5rc.webp",
+      sourceUrl: "/thumbnails/gallery/1786171693502_vxc71o_HPISZ9kXwAAB5rc.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "cinematic", "fashion", "comic"],
@@ -2498,8 +2498,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787293549342_krdloa_HQJBFD2bYAAgr0I.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787293549342_krdloa_HQJBFD2bYAAgr0I.jpg"
+      previewUrl: "/thumbnails/gallery/1787293549342_krdloa_HQJBFD2bYAAgr0I.webp",
+      sourceUrl: "/thumbnails/gallery/1787293549342_krdloa_HQJBFD2bYAAgr0I.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "photorealistic", "cinematic", "minimalist"],
@@ -2529,8 +2529,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787293551960_z08tqg_HQHzy8aXoAAq38e.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787293551960_z08tqg_HQHzy8aXoAAq38e.jpg"
+      previewUrl: "/thumbnails/gallery/1787293551960_z08tqg_HQHzy8aXoAAq38e.webp",
+      sourceUrl: "/thumbnails/gallery/1787293551960_z08tqg_HQHzy8aXoAAq38e.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "product", "fashion", "interior"],
@@ -2560,8 +2560,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787208872652_a9ygyd_HP-sfl_aQAAF3q0.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787208872652_a9ygyd_HP-sfl_aQAAF3q0.jpg"
+      previewUrl: "/thumbnails/gallery/1787208872652_a9ygyd_HP-sfl_aQAAF3q0.webp",
+      sourceUrl: "/thumbnails/gallery/1787208872652_a9ygyd_HP-sfl_aQAAF3q0.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "cinematic", "product", "fashion"],
@@ -2591,8 +2591,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787208881906_ti0c7o_HQDdK24aYAAqw8W.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787208881906_ti0c7o_HQDdK24aYAAqw8W.jpg"
+      previewUrl: "/thumbnails/gallery/1787208881906_ti0c7o_HQDdK24aYAAqw8W.webp",
+      sourceUrl: "/thumbnails/gallery/1787208881906_ti0c7o_HQDdK24aYAAqw8W.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "product", "interior", "marketing"],
@@ -2622,8 +2622,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787120724421_k9ob9j_HP_xor1asAEw6dZ.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787120724421_k9ob9j_HP_xor1asAEw6dZ.jpg"
+      previewUrl: "/thumbnails/gallery/1787120724421_k9ob9j_HP_xor1asAEw6dZ.webp",
+      sourceUrl: "/thumbnails/gallery/1787120724421_k9ob9j_HP_xor1asAEw6dZ.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "photorealistic", "cinematic", "render"],
@@ -2653,8 +2653,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787120727623_jqjb93_HP-Sv8oa8AA3Fuu.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787120727623_jqjb93_HP-Sv8oa8AA3Fuu.jpg"
+      previewUrl: "/thumbnails/gallery/1787120727623_jqjb93_HP-Sv8oa8AA3Fuu.webp",
+      sourceUrl: "/thumbnails/gallery/1787120727623_jqjb93_HP-Sv8oa8AA3Fuu.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "photorealistic", "cinematic", "product"],
@@ -2684,8 +2684,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787034146947_ccdiiv_HP8WOO4XIAAsZSl.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787034146947_ccdiiv_HP8WOO4XIAAsZSl.jpg"
+      previewUrl: "/thumbnails/gallery/1787034146947_ccdiiv_HP8WOO4XIAAsZSl.webp",
+      sourceUrl: "/thumbnails/gallery/1787034146947_ccdiiv_HP8WOO4XIAAsZSl.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "product", "fashion", "marketing"],
@@ -2715,8 +2715,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1786171687766_k7qu58_HPFZRU2bwAE6Gdm.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1786171687766_k7qu58_HPFZRU2bwAE6Gdm.jpg"
+      previewUrl: "/thumbnails/gallery/1786171687766_k7qu58_HPFZRU2bwAE6Gdm.webp",
+      sourceUrl: "/thumbnails/gallery/1786171687766_k7qu58_HPFZRU2bwAE6Gdm.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "product", "fashion"],
@@ -2746,8 +2746,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1784445177188_2blrnj_HNfTZSia4AAgAZp.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1784445177188_2blrnj_HNfTZSia4AAgAZp.jpg"
+      previewUrl: "/thumbnails/gallery/1784445177188_2blrnj_HNfTZSia4AAgAZp.webp",
+      sourceUrl: "/thumbnails/gallery/1784445177188_2blrnj_HNfTZSia4AAgAZp.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "fashion"],
@@ -2777,8 +2777,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1783236276276_7o9mqb_HMZmmczaYAAl6Or.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1783236276276_7o9mqb_HMZmmczaYAAl6Or.jpg"
+      previewUrl: "/thumbnails/gallery/1783236276276_7o9mqb_HMZmmczaYAAl6Or.webp",
+      sourceUrl: "/thumbnails/gallery/1783236276276_7o9mqb_HMZmmczaYAAl6Or.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "minimalist", "character"],
@@ -2808,8 +2808,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787120731463_cj0t5w_HQBN45eXcAAtoxR.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787120731463_cj0t5w_HQBN45eXcAAtoxR.jpg"
+      previewUrl: "/thumbnails/gallery/1787120731463_cj0t5w_HQBN45eXcAAtoxR.webp",
+      sourceUrl: "/thumbnails/gallery/1787120731463_cj0t5w_HQBN45eXcAAtoxR.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "render", "game"],
@@ -2839,8 +2839,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1786774867558_66snrz_HPskDdrW0AA1KBB.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1786774867558_66snrz_HPskDdrW0AA1KBB.jpg"
+      previewUrl: "/thumbnails/gallery/1786774867558_66snrz_HPskDdrW0AA1KBB.webp",
+      sourceUrl: "/thumbnails/gallery/1786774867558_66snrz_HPskDdrW0AA1KBB.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "photorealistic", "cinematic", "minimalist"],
@@ -2870,8 +2870,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1786257237763_15mj7o_HPLB0GgaYAAO7Nz.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1786257237763_15mj7o_HPLB0GgaYAAO7Nz.jpg"
+      previewUrl: "/thumbnails/gallery/1786257237763_15mj7o_HPLB0GgaYAAO7Nz.webp",
+      sourceUrl: "/thumbnails/gallery/1786257237763_15mj7o_HPLB0GgaYAAO7Nz.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "photorealistic", "character", "game"],
@@ -2901,8 +2901,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787299927064_977wyh_HQOEokDbYAAwzqN.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787299927064_977wyh_HQOEokDbYAAwzqN.jpg"
+      previewUrl: "/thumbnails/gallery/1787299927064_977wyh_HQOEokDbYAAwzqN.webp",
+      sourceUrl: "/thumbnails/gallery/1787299927064_977wyh_HQOEokDbYAAwzqN.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "photorealistic", "cinematic", "anime"],
@@ -2932,8 +2932,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787299966430_8ofgb4_HQN8EFzXAAA9o2a.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787299966430_8ofgb4_HQN8EFzXAAA9o2a.jpg"
+      previewUrl: "/thumbnails/gallery/1787299966430_8ofgb4_HQN8EFzXAAA9o2a.webp",
+      sourceUrl: "/thumbnails/gallery/1787299966430_8ofgb4_HQN8EFzXAAA9o2a.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "illustration", "character"],
@@ -2963,8 +2963,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787299912061_ydy7y7_HQN7lYVb0AAchIw.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787299912061_ydy7y7_HQN7lYVb0AAchIw.jpg"
+      previewUrl: "/thumbnails/gallery/1787299912061_ydy7y7_HQN7lYVb0AAchIw.webp",
+      sourceUrl: "/thumbnails/gallery/1787299912061_ydy7y7_HQN7lYVb0AAchIw.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "selfie", "photorealistic"],
@@ -2994,8 +2994,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787299902279_beyzsn_HQNrygMbsAA5G1w.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787299902279_beyzsn_HQNrygMbsAA5G1w.jpg"
+      previewUrl: "/thumbnails/gallery/1787299902279_beyzsn_HQNrygMbsAA5G1w.webp",
+      sourceUrl: "/thumbnails/gallery/1787299902279_beyzsn_HQNrygMbsAA5G1w.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "cinematic", "fashion"],
@@ -3025,8 +3025,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787299906483_5c6qt2_HQNo5NtasAA-OqK.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787299906483_5c6qt2_HQNo5NtasAA-OqK.jpg"
+      previewUrl: "/thumbnails/gallery/1787299906483_5c6qt2_HQNo5NtasAA-OqK.webp",
+      sourceUrl: "/thumbnails/gallery/1787299906483_5c6qt2_HQNo5NtasAA-OqK.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "photorealistic", "cinematic", "fashion"],
@@ -3056,8 +3056,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787299968622_1vsuvx_HQMmjQzWgAAYHK8.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787299968622_1vsuvx_HQMmjQzWgAAYHK8.jpg"
+      previewUrl: "/thumbnails/gallery/1787299968622_1vsuvx_HQMmjQzWgAAYHK8.webp",
+      sourceUrl: "/thumbnails/gallery/1787299968622_1vsuvx_HQMmjQzWgAAYHK8.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "anime", "character"],
@@ -3087,8 +3087,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787299908213_7vw5q7_HQMOzI3aoAAnbWv.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787299908213_7vw5q7_HQMOzI3aoAAnbWv.jpg"
+      previewUrl: "/thumbnails/gallery/1787299908213_7vw5q7_HQMOzI3aoAAnbWv.webp",
+      sourceUrl: "/thumbnails/gallery/1787299908213_7vw5q7_HQMOzI3aoAAnbWv.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "fashion"],
@@ -3118,8 +3118,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787299916362_s7ymmg_HQK2jNSaEAA_q2b.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787299916362_s7ymmg_HQK2jNSaEAA_q2b.jpg"
+      previewUrl: "/thumbnails/gallery/1787299916362_s7ymmg_HQK2jNSaEAA_q2b.webp",
+      sourceUrl: "/thumbnails/gallery/1787299916362_s7ymmg_HQK2jNSaEAA_q2b.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait"],
@@ -3149,8 +3149,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787299951045_vkx0gx_HQKsgNAb0AAw6-W.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787299951045_vkx0gx_HQKsgNAb0AAw6-W.jpg"
+      previewUrl: "/thumbnails/gallery/1787299951045_vkx0gx_HQKsgNAb0AAw6-W.webp",
+      sourceUrl: "/thumbnails/gallery/1787299951045_vkx0gx_HQKsgNAb0AAw6-W.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "cinematic", "anime", "illustration"],
@@ -3180,8 +3180,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787299954422_og201z_HQKliqAaYAAeDi-.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787299954422_og201z_HQKliqAaYAAeDi-.jpg"
+      previewUrl: "/thumbnails/gallery/1787299954422_og201z_HQKliqAaYAAeDi-.webp",
+      sourceUrl: "/thumbnails/gallery/1787299954422_og201z_HQKliqAaYAAeDi-.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "anime", "illustration", "character"],
@@ -3211,8 +3211,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787299950729_t82z6b_HQKgpPeakAAwNZj.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787299950729_t82z6b_HQKgpPeakAAwNZj.jpg"
+      previewUrl: "/thumbnails/gallery/1787299950729_t82z6b_HQKgpPeakAAwNZj.webp",
+      sourceUrl: "/thumbnails/gallery/1787299950729_t82z6b_HQKgpPeakAAwNZj.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "anime", "illustration", "character"],
@@ -3242,8 +3242,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787299909744_a4izkv_HQKIhMtbAAAtN-q.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787299909744_a4izkv_HQKIhMtbAAAtN-q.jpg"
+      previewUrl: "/thumbnails/gallery/1787299909744_a4izkv_HQKIhMtbAAAtN-q.webp",
+      sourceUrl: "/thumbnails/gallery/1787299909744_a4izkv_HQKIhMtbAAAtN-q.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "fashion"],
@@ -3273,8 +3273,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787213850970_2gm16r_HQJdbrqacAAECPY.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787213850970_2gm16r_HQJdbrqacAAECPY.jpg"
+      previewUrl: "/thumbnails/gallery/1787213850970_2gm16r_HQJdbrqacAAECPY.webp",
+      sourceUrl: "/thumbnails/gallery/1787213850970_2gm16r_HQJdbrqacAAECPY.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "anime", "illustration", "interior"],
@@ -3304,8 +3304,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787299966207_zc7v2n_HQJW_via0AAMzLz.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787299966207_zc7v2n_HQJW_via0AAMzLz.jpg"
+      previewUrl: "/thumbnails/gallery/1787299966207_zc7v2n_HQJW_via0AAMzLz.webp",
+      sourceUrl: "/thumbnails/gallery/1787299966207_zc7v2n_HQJW_via0AAMzLz.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "photorealistic", "fashion"],
@@ -3335,8 +3335,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787299929234_frbiya_HQJQCVhbgAAMMJq.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787299929234_frbiya_HQJQCVhbgAAMMJq.jpg"
+      previewUrl: "/thumbnails/gallery/1787299929234_frbiya_HQJQCVhbgAAMMJq.webp",
+      sourceUrl: "/thumbnails/gallery/1787299929234_frbiya_HQJQCVhbgAAMMJq.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "anime", "3d", "render"],
@@ -3366,8 +3366,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787299907822_n70t8f_HQI4HtpagAA9Lzj.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787299907822_n70t8f_HQI4HtpagAA9Lzj.jpg"
+      previewUrl: "/thumbnails/gallery/1787299907822_n70t8f_HQI4HtpagAA9Lzj.webp",
+      sourceUrl: "/thumbnails/gallery/1787299907822_n70t8f_HQI4HtpagAA9Lzj.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "photorealistic", "cinematic", "fashion"],
@@ -3397,8 +3397,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787213762180_tw7nk3_HQIu8z5WwAAVZMG.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787213762180_tw7nk3_HQIu8z5WwAAVZMG.jpg"
+      previewUrl: "/thumbnails/gallery/1787213762180_tw7nk3_HQIu8z5WwAAVZMG.webp",
+      sourceUrl: "/thumbnails/gallery/1787213762180_tw7nk3_HQIu8z5WwAAVZMG.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "photorealistic", "landscape"],
@@ -3428,8 +3428,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787299943725_skve94_HQIYy8na0AAxRnu.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787299943725_skve94_HQIYy8na0AAxRnu.jpg"
+      previewUrl: "/thumbnails/gallery/1787299943725_skve94_HQIYy8na0AAxRnu.webp",
+      sourceUrl: "/thumbnails/gallery/1787299943725_skve94_HQIYy8na0AAxRnu.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "photorealistic", "cinematic"],
@@ -3459,8 +3459,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787213829438_3ojylg_HQHSd-5bAAAUJl1.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787213829438_3ojylg_HQHSd-5bAAAUJl1.jpg"
+      previewUrl: "/thumbnails/gallery/1787213829438_3ojylg_HQHSd-5bAAAUJl1.webp",
+      sourceUrl: "/thumbnails/gallery/1787213829438_3ojylg_HQHSd-5bAAAUJl1.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "food"],
@@ -3490,8 +3490,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787299906618_smr7bc_HQN6sbmaIAAqubc.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787299906618_smr7bc_HQN6sbmaIAAqubc.jpg"
+      previewUrl: "/thumbnails/gallery/1787299906618_smr7bc_HQN6sbmaIAAqubc.webp",
+      sourceUrl: "/thumbnails/gallery/1787299906618_smr7bc_HQN6sbmaIAAqubc.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "cinematic", "interior", "social"],
@@ -3521,8 +3521,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787299929916_9lueie_HQN4noBaYAEUQkW.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787299929916_9lueie_HQN4noBaYAEUQkW.jpg"
+      previewUrl: "/thumbnails/gallery/1787299929916_9lueie_HQN4noBaYAEUQkW.webp",
+      sourceUrl: "/thumbnails/gallery/1787299929916_9lueie_HQN4noBaYAEUQkW.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "photorealistic", "cinematic", "3d"],
@@ -3552,8 +3552,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787299904566_9d2dm5_HQLL3hzaMAAYe3U.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787299904566_9d2dm5_HQLL3hzaMAAYe3U.jpg"
+      previewUrl: "/thumbnails/gallery/1787299904566_9d2dm5_HQLL3hzaMAAYe3U.webp",
+      sourceUrl: "/thumbnails/gallery/1787299904566_9d2dm5_HQLL3hzaMAAYe3U.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "cinematic", "render", "fashion"],
@@ -3583,8 +3583,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787213859560_o4z7wr_HQEXtrOXsAAH_mm.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787213859560_o4z7wr_HQEXtrOXsAAH_mm.jpg"
+      previewUrl: "/thumbnails/gallery/1787213859560_o4z7wr_HQEXtrOXsAAH_mm.webp",
+      sourceUrl: "/thumbnails/gallery/1787213859560_o4z7wr_HQEXtrOXsAAH_mm.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "cinematic", "illustration", "3d", "landscape"],
@@ -3614,8 +3614,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1786867806335_ii43bz_HPwgC4bbgAE_0XF.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1786867806335_ii43bz_HPwgC4bbgAE_0XF.jpg"
+      previewUrl: "/thumbnails/gallery/1786867806335_ii43bz_HPwgC4bbgAE_0XF.webp",
+      sourceUrl: "/thumbnails/gallery/1786867806335_ii43bz_HPwgC4bbgAE_0XF.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "cinematic", "3d", "render", "character"],
@@ -3645,8 +3645,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1786867772425_gnvdtb_HPu-sw8aQAAUREL.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1786867772425_gnvdtb_HPu-sw8aQAAUREL.jpg"
+      previewUrl: "/thumbnails/gallery/1786867772425_gnvdtb_HPu-sw8aQAAUREL.webp",
+      sourceUrl: "/thumbnails/gallery/1786867772425_gnvdtb_HPu-sw8aQAAUREL.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "photorealistic", "cinematic", "interior"],
@@ -3676,8 +3676,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787299902837_hwqdez_HQNcWGfXgAAfS2L.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787299902837_hwqdez_HQNcWGfXgAAfS2L.jpg"
+      previewUrl: "/thumbnails/gallery/1787299902837_hwqdez_HQNcWGfXgAAfS2L.webp",
+      sourceUrl: "/thumbnails/gallery/1787299902837_hwqdez_HQNcWGfXgAAfS2L.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "photorealistic", "cinematic", "minimalist"],
@@ -3707,8 +3707,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787299946926_vo12k4_HQK6nBWW4AAOq4z.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787299946926_vo12k4_HQK6nBWW4AAOq4z.jpg"
+      previewUrl: "/thumbnails/gallery/1787299946926_vo12k4_HQK6nBWW4AAOq4z.webp",
+      sourceUrl: "/thumbnails/gallery/1787299946926_vo12k4_HQK6nBWW4AAOq4z.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "render", "product", "thumbnail", "marketing"],
@@ -3738,8 +3738,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787299968408_ywek3l_HQKUPLYWUAMrqrE.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787299968408_ywek3l_HQKUPLYWUAMrqrE.jpg"
+      previewUrl: "/thumbnails/gallery/1787299968408_ywek3l_HQKUPLYWUAMrqrE.webp",
+      sourceUrl: "/thumbnails/gallery/1787299968408_ywek3l_HQKUPLYWUAMrqrE.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "photorealistic", "cinematic", "render", "watercolor"],
@@ -3769,8 +3769,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787299917875_o0u1aa_HQKDGtxWgAASysC.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787299917875_o0u1aa_HQKDGtxWgAASysC.jpg"
+      previewUrl: "/thumbnails/gallery/1787299917875_o0u1aa_HQKDGtxWgAASysC.webp",
+      sourceUrl: "/thumbnails/gallery/1787299917875_o0u1aa_HQKDGtxWgAASysC.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "cinematic", "product", "fashion"],
@@ -3800,8 +3800,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787213761535_ax89w7_HQJO8zEXEAAQlE5.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787213761535_ax89w7_HQJO8zEXEAAQlE5.jpg"
+      previewUrl: "/thumbnails/gallery/1787213761535_ax89w7_HQJO8zEXEAAQlE5.webp",
+      sourceUrl: "/thumbnails/gallery/1787213761535_ax89w7_HQJO8zEXEAAQlE5.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "photorealistic", "cinematic", "minimalist"],
@@ -3831,8 +3831,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787299912464_b5dibp_HQI2__iaUAAXFhB.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787299912464_b5dibp_HQI2__iaUAAXFhB.jpg"
+      previewUrl: "/thumbnails/gallery/1787299912464_b5dibp_HQI2__iaUAAXFhB.webp",
+      sourceUrl: "/thumbnails/gallery/1787299912464_b5dibp_HQI2__iaUAAXFhB.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "photorealistic", "cinematic", "minimalist"],
@@ -3862,8 +3862,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787213799840_ebcboq_HQI1eVFacAATo0b.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787213799840_ebcboq_HQI1eVFacAATo0b.jpg"
+      previewUrl: "/thumbnails/gallery/1787213799840_ebcboq_HQI1eVFacAATo0b.webp",
+      sourceUrl: "/thumbnails/gallery/1787213799840_ebcboq_HQI1eVFacAATo0b.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "photorealistic", "anime", "illustration", "3d"],
@@ -3893,8 +3893,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787127681236_55etp2_HP-isv1bYAA2QSP.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787127681236_55etp2_HP-isv1bYAA2QSP.jpg"
+      previewUrl: "/thumbnails/gallery/1787127681236_55etp2_HP-isv1bYAA2QSP.webp",
+      sourceUrl: "/thumbnails/gallery/1787127681236_55etp2_HP-isv1bYAA2QSP.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "3d", "render", "product", "interior"],
@@ -3924,8 +3924,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1786781727532_5zix0d_HPqbBwqb0AANm4P.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1786781727532_5zix0d_HPqbBwqb0AANm4P.jpg"
+      previewUrl: "/thumbnails/gallery/1786781727532_5zix0d_HPqbBwqb0AANm4P.webp",
+      sourceUrl: "/thumbnails/gallery/1786781727532_5zix0d_HPqbBwqb0AANm4P.webp"
     }],
     categories: ["Profile / Avatar"],
     tags: ["profile-/-avatar", "portrait", "cinematic", "fashion", "character"],
@@ -3955,8 +3955,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787299940533_ioxv7d_HQNqPjjbYAA1TbV.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787299940533_ioxv7d_HQNqPjjbYAA1TbV.png"
+      previewUrl: "/thumbnails/gallery/1787299940533_ioxv7d_HQNqPjjbYAA1TbV.webp",
+      sourceUrl: "/thumbnails/gallery/1787299940533_ioxv7d_HQNqPjjbYAA1TbV.webp"
     }],
     categories: ["Game Asset"],
     tags: ["game-asset", "illustration", "interior", "character", "game"],
@@ -3986,8 +3986,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787299936737_4gh6he_HQNqPjjbYAA1TbV.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787299936737_4gh6he_HQNqPjjbYAA1TbV.png"
+      previewUrl: "/thumbnails/gallery/1787299936737_4gh6he_HQNqPjjbYAA1TbV.webp",
+      sourceUrl: "/thumbnails/gallery/1787299936737_4gh6he_HQNqPjjbYAA1TbV.webp"
     }],
     categories: ["Game Asset"],
     tags: ["game-asset", "illustration", "interior", "game"],
@@ -4017,8 +4017,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787299961983_7jsdq9_HQNYabXa4AEslei.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787299961983_7jsdq9_HQNYabXa4AEslei.png"
+      previewUrl: "/thumbnails/gallery/1787299961983_7jsdq9_HQNYabXa4AEslei.webp",
+      sourceUrl: "/thumbnails/gallery/1787299961983_7jsdq9_HQNYabXa4AEslei.webp"
     }],
     categories: ["Social Media"],
     tags: ["social-media", "anime", "illustration", "character", "game"],
@@ -4048,8 +4048,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787299956928_bt5zgb_HQMglMCawAAwFkC.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787299956928_bt5zgb_HQMglMCawAAwFkC.jpg"
+      previewUrl: "/thumbnails/gallery/1787299956928_bt5zgb_HQMglMCawAAwFkC.webp",
+      sourceUrl: "/thumbnails/gallery/1787299956928_bt5zgb_HQMglMCawAAwFkC.webp"
     }],
     categories: ["Social Media"],
     tags: ["social-media", "anime", "character", "game"],
@@ -4079,8 +4079,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765359646358_zspn1j_00dc35614217759a1ac037ff108b7f90289c94d0a1d5608a917db3eb67739092-600x900.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765359646358_zspn1j_00dc35614217759a1ac037ff108b7f90289c94d0a1d5608a917db3eb67739092-600x900.png"
+      previewUrl: "/thumbnails/gallery/1765359646358_zspn1j_00dc35614217759a1ac037ff108b7f90289c94d0a1d5608a917db3eb67739092-600x900.webp",
+      sourceUrl: "/thumbnails/gallery/1765359646358_zspn1j_00dc35614217759a1ac037ff108b7f90289c94d0a1d5608a917db3eb67739092-600x900.webp"
     }],
     categories: ["Social Media"],
     tags: ["social-media", "illustration", "poster"],
@@ -4110,8 +4110,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765359700134_ix6s0n_aac15ea93919e9be4354837fd578b1dd1ab5f5eb0fa46415d47b4c11c9d1ae36-600x800.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765359700134_ix6s0n_aac15ea93919e9be4354837fd578b1dd1ab5f5eb0fa46415d47b4c11c9d1ae36-600x800.png"
+      previewUrl: "/thumbnails/gallery/1765359700134_ix6s0n_aac15ea93919e9be4354837fd578b1dd1ab5f5eb0fa46415d47b4c11c9d1ae36-600x800.webp",
+      sourceUrl: "/thumbnails/gallery/1765359700134_ix6s0n_aac15ea93919e9be4354837fd578b1dd1ab5f5eb0fa46415d47b4c11c9d1ae36-600x800.webp"
     }],
     categories: ["Social Media"],
     tags: ["social-media", "illustration", "poster"],
@@ -4141,8 +4141,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765359779471_v1iid4_2be83f81b65155b8bd931d172064c1bc0cc2fb041ac281d6514d194c61e594a6-600x800.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765359779471_v1iid4_2be83f81b65155b8bd931d172064c1bc0cc2fb041ac281d6514d194c61e594a6-600x800.png"
+      previewUrl: "/thumbnails/gallery/1765359779471_v1iid4_2be83f81b65155b8bd931d172064c1bc0cc2fb041ac281d6514d194c61e594a6-600x800.webp",
+      sourceUrl: "/thumbnails/gallery/1765359779471_v1iid4_2be83f81b65155b8bd931d172064c1bc0cc2fb041ac281d6514d194c61e594a6-600x800.webp"
     }],
     categories: ["Poster / Flyer"],
     tags: ["poster-/-flyer", "illustration", "flyer"],
@@ -4172,8 +4172,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765369899639_932wt1_image-600x337.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765369899639_932wt1_image-600x337.png"
+      previewUrl: "/thumbnails/gallery/1765369899639_932wt1_image-600x337.webp",
+      sourceUrl: "/thumbnails/gallery/1765369899639_932wt1_image-600x337.webp"
     }],
     categories: ["Game Asset"],
     tags: ["game-asset", "character", "game", "thumbnail"],
@@ -4203,8 +4203,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765359944420_tw6rfy_77721eb71d52cc73d3605105bd8b7a9888b199ad870f6a4296bfc6c56102fd53-600x800.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765359944420_tw6rfy_77721eb71d52cc73d3605105bd8b7a9888b199ad870f6a4296bfc6c56102fd53-600x800.png"
+      previewUrl: "/thumbnails/gallery/1765359944420_tw6rfy_77721eb71d52cc73d3605105bd8b7a9888b199ad870f6a4296bfc6c56102fd53-600x800.webp",
+      sourceUrl: "/thumbnails/gallery/1765359944420_tw6rfy_77721eb71d52cc73d3605105bd8b7a9888b199ad870f6a4296bfc6c56102fd53-600x800.webp"
     }],
     categories: ["Illustration"],
     tags: ["illustration"],
@@ -4234,8 +4234,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765359951657_6x8wiq_a28d98bfdcf6bcfbf29d169ba7af5ea98ab3794f7bd1909ab4b05462414b7772-600x337.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765359951657_6x8wiq_a28d98bfdcf6bcfbf29d169ba7af5ea98ab3794f7bd1909ab4b05462414b7772-600x337.png"
+      previewUrl: "/thumbnails/gallery/1765359951657_6x8wiq_a28d98bfdcf6bcfbf29d169ba7af5ea98ab3794f7bd1909ab4b05462414b7772-600x337.webp",
+      sourceUrl: "/thumbnails/gallery/1765359951657_6x8wiq_a28d98bfdcf6bcfbf29d169ba7af5ea98ab3794f7bd1909ab4b05462414b7772-600x337.webp"
     }],
     categories: ["App / Web Design"],
     tags: ["app-/-web-design", "illustration", "3d"],
@@ -4265,8 +4265,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765359970268_rcdthd_bf500cba6499874444cf6ff9375a9c765df1bb571a2b8216c70ffa7a3a283d54-600x450.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765359970268_rcdthd_bf500cba6499874444cf6ff9375a9c765df1bb571a2b8216c70ffa7a3a283d54-600x450.png"
+      previewUrl: "/thumbnails/gallery/1765359970268_rcdthd_bf500cba6499874444cf6ff9375a9c765df1bb571a2b8216c70ffa7a3a283d54-600x450.webp",
+      sourceUrl: "/thumbnails/gallery/1765359970268_rcdthd_bf500cba6499874444cf6ff9375a9c765df1bb571a2b8216c70ffa7a3a283d54-600x450.webp"
     }],
     categories: ["App / Web Design"],
     tags: ["app-/-web-design", "illustration"],
@@ -4296,8 +4296,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765359975492_2deaph_df758e9f5d5ddd765d001220d1412d72984f04eb480958eeb7f9ac08e4275cee-600x450.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765359975492_2deaph_df758e9f5d5ddd765d001220d1412d72984f04eb480958eeb7f9ac08e4275cee-600x450.png"
+      previewUrl: "/thumbnails/gallery/1765359975492_2deaph_df758e9f5d5ddd765d001220d1412d72984f04eb480958eeb7f9ac08e4275cee-600x450.webp",
+      sourceUrl: "/thumbnails/gallery/1765359975492_2deaph_df758e9f5d5ddd765d001220d1412d72984f04eb480958eeb7f9ac08e4275cee-600x450.webp"
     }],
     categories: ["Infographic / Edu"],
     tags: ["infographic-/-edu", "illustration", "3d", "render"],
@@ -4327,8 +4327,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765359997080_1prfza_c8269754000f110a97bf65145ca5373a1fc1fbe87f6b30e334dffbd18bc5b5df-600x337.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765359997080_1prfza_c8269754000f110a97bf65145ca5373a1fc1fbe87f6b30e334dffbd18bc5b5df-600x337.png"
+      previewUrl: "/thumbnails/gallery/1765359997080_1prfza_c8269754000f110a97bf65145ca5373a1fc1fbe87f6b30e334dffbd18bc5b5df-600x337.webp",
+      sourceUrl: "/thumbnails/gallery/1765359997080_1prfza_c8269754000f110a97bf65145ca5373a1fc1fbe87f6b30e334dffbd18bc5b5df-600x337.webp"
     }],
     categories: ["Product Marketing"],
     tags: ["product-marketing", "illustration", "3d", "render", "product"],
@@ -4358,8 +4358,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765360021554_hz6eqa_15384c7a700e2f6caf11a1ae450c9b4f2fa7259b6bd2aab631cd7ddbdea697bb-600x337.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765360021554_hz6eqa_15384c7a700e2f6caf11a1ae450c9b4f2fa7259b6bd2aab631cd7ddbdea697bb-600x337.png"
+      previewUrl: "/thumbnails/gallery/1765360021554_hz6eqa_15384c7a700e2f6caf11a1ae450c9b4f2fa7259b6bd2aab631cd7ddbdea697bb-600x337.webp",
+      sourceUrl: "/thumbnails/gallery/1765360021554_hz6eqa_15384c7a700e2f6caf11a1ae450c9b4f2fa7259b6bd2aab631cd7ddbdea697bb-600x337.webp"
     }],
     categories: ["Infographic / Edu"],
     tags: ["infographic-/-edu", "illustration", "3d"],
@@ -4389,8 +4389,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765360021711_vf88g1_375e97890c3e1c912a6be2d5a3238a4fe91a2a3e99abc7e9caeade8d5ebde855-600x450.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765360021711_vf88g1_375e97890c3e1c912a6be2d5a3238a4fe91a2a3e99abc7e9caeade8d5ebde855-600x450.png"
+      previewUrl: "/thumbnails/gallery/1765360021711_vf88g1_375e97890c3e1c912a6be2d5a3238a4fe91a2a3e99abc7e9caeade8d5ebde855-600x450.webp",
+      sourceUrl: "/thumbnails/gallery/1765360021711_vf88g1_375e97890c3e1c912a6be2d5a3238a4fe91a2a3e99abc7e9caeade8d5ebde855-600x450.webp"
     }],
     categories: ["Illustration"],
     tags: ["illustration", "render"],
@@ -4420,8 +4420,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787299904235_0plbdo_HQIrQqNbcAA1xpk.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787299904235_0plbdo_HQIrQqNbcAA1xpk.jpg"
+      previewUrl: "/thumbnails/gallery/1787299904235_0plbdo_HQIrQqNbcAA1xpk.webp",
+      sourceUrl: "/thumbnails/gallery/1787299904235_0plbdo_HQIrQqNbcAA1xpk.webp"
     }],
     categories: ["Product Marketing"],
     tags: ["product-marketing", "photorealistic", "cinematic", "minimalist", "product"],
@@ -4451,8 +4451,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787213826998_symoib_HQGc6kIbwAAl0wk.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787213826998_symoib_HQGc6kIbwAAl0wk.jpg"
+      previewUrl: "/thumbnails/gallery/1787213826998_symoib_HQGc6kIbwAAl0wk.webp",
+      sourceUrl: "/thumbnails/gallery/1787213826998_symoib_HQGc6kIbwAAl0wk.webp"
     }],
     categories: ["Product Marketing"],
     tags: ["product-marketing", "photorealistic", "cinematic", "minimalist", "product"],
@@ -4482,8 +4482,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787213820198_z6fcuk_HQE4irOa4AATlzx.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787213820198_z6fcuk_HQE4irOa4AATlzx.jpg"
+      previewUrl: "/thumbnails/gallery/1787213820198_z6fcuk_HQE4irOa4AATlzx.webp",
+      sourceUrl: "/thumbnails/gallery/1787213820198_z6fcuk_HQE4irOa4AATlzx.webp"
     }],
     categories: ["Social Media"],
     tags: ["social-media", "render", "product", "food", "poster"],
@@ -4513,8 +4513,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787127690572_13fyii_HP-CeTHawAAhxMI.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787127690572_13fyii_HP-CeTHawAAhxMI.jpg"
+      previewUrl: "/thumbnails/gallery/1787127690572_13fyii_HP-CeTHawAAhxMI.webp",
+      sourceUrl: "/thumbnails/gallery/1787127690572_13fyii_HP-CeTHawAAhxMI.webp"
     }],
     categories: ["Product Marketing"],
     tags: ["product-marketing", "product", "food"],
@@ -4544,8 +4544,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1787044667092_t9x94w_HP8I__lXQAAzZlb.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1787044667092_t9x94w_HP8I__lXQAAzZlb.jpg"
+      previewUrl: "/thumbnails/gallery/1787044667092_t9x94w_HP8I__lXQAAzZlb.webp",
+      sourceUrl: "/thumbnails/gallery/1787044667092_t9x94w_HP8I__lXQAAzZlb.webp"
     }],
     categories: ["Product Marketing"],
     tags: ["product-marketing", "photorealistic", "3d", "render", "minimalist"],
@@ -4575,8 +4575,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1786867813200_f60d29_HPwmbgsbUAAiarj.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1786867813200_f60d29_HPwmbgsbUAAiarj.jpg"
+      previewUrl: "/thumbnails/gallery/1786867813200_f60d29_HPwmbgsbUAAiarj.webp",
+      sourceUrl: "/thumbnails/gallery/1786867813200_f60d29_HPwmbgsbUAAiarj.webp"
     }],
     categories: ["E-commerce"],
     tags: ["e-commerce", "photorealistic", "food"],
@@ -4606,8 +4606,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1786867830666_e1lihp_HPwN7fkboAAhgyV.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1786867830666_e1lihp_HPwN7fkboAAhgyV.jpg"
+      previewUrl: "/thumbnails/gallery/1786867830666_e1lihp_HPwN7fkboAAhgyV.webp",
+      sourceUrl: "/thumbnails/gallery/1786867830666_e1lihp_HPwN7fkboAAhgyV.webp"
     }],
     categories: ["Product Marketing"],
     tags: ["product-marketing", "render", "product", "food"],
@@ -4637,8 +4637,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1786867831771_epmknr_HPvqCEPbUAADRhK.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1786867831771_epmknr_HPvqCEPbUAADRhK.jpg"
+      previewUrl: "/thumbnails/gallery/1786867831771_epmknr_HPvqCEPbUAADRhK.webp",
+      sourceUrl: "/thumbnails/gallery/1786867831771_epmknr_HPvqCEPbUAADRhK.webp"
     }],
     categories: ["Product Marketing"],
     tags: ["product-marketing", "product", "food"],
@@ -4668,8 +4668,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1786781736323_1hoqmb_HPrrQyebwAATXH-.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1786781736323_1hoqmb_HPrrQyebwAATXH-.jpg"
+      previewUrl: "/thumbnails/gallery/1786781736323_1hoqmb_HPrrQyebwAATXH-.webp",
+      sourceUrl: "/thumbnails/gallery/1786781736323_1hoqmb_HPrrQyebwAATXH-.webp"
     }],
     categories: ["Product Marketing"],
     tags: ["product-marketing", "cinematic", "minimalist", "product"],
@@ -4699,8 +4699,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1786781736126_qold2y_HPrrKeMakAAf-at.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1786781736126_qold2y_HPrrKeMakAAf-at.jpg"
+      previewUrl: "/thumbnails/gallery/1786781736126_qold2y_HPrrKeMakAAf-at.webp",
+      sourceUrl: "/thumbnails/gallery/1786781736126_qold2y_HPrrKeMakAAf-at.webp"
     }],
     categories: ["Product Marketing"],
     tags: ["product-marketing", "product"],
@@ -4730,8 +4730,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1786695900647_2v304s_HPqpeKFa0AABM8R.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1786695900647_2v304s_HPqpeKFa0AABM8R.jpg"
+      previewUrl: "/thumbnails/gallery/1786695900647_2v304s_HPqpeKFa0AABM8R.webp",
+      sourceUrl: "/thumbnails/gallery/1786695900647_2v304s_HPqpeKFa0AABM8R.webp"
     }],
     categories: ["Product Marketing"],
     tags: ["product-marketing", "photorealistic", "product"],
@@ -4761,8 +4761,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1786781702453_gwxvs1_HPqpZ3xa0AAzeSN.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1786781702453_gwxvs1_HPqpZ3xa0AAzeSN.jpg"
+      previewUrl: "/thumbnails/gallery/1786781702453_gwxvs1_HPqpZ3xa0AAzeSN.webp",
+      sourceUrl: "/thumbnails/gallery/1786781702453_gwxvs1_HPqpZ3xa0AAzeSN.webp"
     }],
     categories: ["E-commerce"],
     tags: ["e-commerce"],
@@ -4792,8 +4792,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1786781677822_6pldaw_HPqGIySaIAAAeVG.jpg",
-      sourceUrl: "https://cms-assets.youmind.com/media/1786781677822_6pldaw_HPqGIySaIAAAeVG.jpg"
+      previewUrl: "/thumbnails/gallery/1786781677822_6pldaw_HPqGIySaIAAAeVG.webp",
+      sourceUrl: "/thumbnails/gallery/1786781677822_6pldaw_HPqGIySaIAAAeVG.webp"
     }],
     categories: ["Product Marketing"],
     tags: ["product-marketing", "product", "interior"],
@@ -4823,8 +4823,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765359675191_mabnp6_d4ff0ab7b9e83178bdb7e5546de94745d68c03ddaa5d94b504aefe6a50e0d7f4-600x900.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765359675191_mabnp6_d4ff0ab7b9e83178bdb7e5546de94745d68c03ddaa5d94b504aefe6a50e0d7f4-600x900.png"
+      previewUrl: "/thumbnails/gallery/1765359675191_mabnp6_d4ff0ab7b9e83178bdb7e5546de94745d68c03ddaa5d94b504aefe6a50e0d7f4-600x900.webp",
+      sourceUrl: "/thumbnails/gallery/1765359675191_mabnp6_d4ff0ab7b9e83178bdb7e5546de94745d68c03ddaa5d94b504aefe6a50e0d7f4-600x900.webp"
     }],
     categories: ["Social Media"],
     tags: ["social-media", "3d", "render", "minimalist", "product"],
@@ -4854,8 +4854,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765359699721_02hotm_a51c96ee3424f33d0b56d9c5ecd63f2ec580c0cd121f9eade399c950ed035404-600x900.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765359699721_02hotm_a51c96ee3424f33d0b56d9c5ecd63f2ec580c0cd121f9eade399c950ed035404-600x900.png"
+      previewUrl: "/thumbnails/gallery/1765359699721_02hotm_a51c96ee3424f33d0b56d9c5ecd63f2ec580c0cd121f9eade399c950ed035404-600x900.webp",
+      sourceUrl: "/thumbnails/gallery/1765359699721_02hotm_a51c96ee3424f33d0b56d9c5ecd63f2ec580c0cd121f9eade399c950ed035404-600x900.webp"
     }],
     categories: ["Social Media"],
     tags: ["social-media", "minimalist", "product", "poster"],
@@ -4885,8 +4885,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765359851834_un6clb_85a267e1d3130620520e2800c5866185ed2faa39f4085ff237d045b4ef4ffce7-600x337.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765359851834_un6clb_85a267e1d3130620520e2800c5866185ed2faa39f4085ff237d045b4ef4ffce7-600x337.png"
+      previewUrl: "/thumbnails/gallery/1765359851834_un6clb_85a267e1d3130620520e2800c5866185ed2faa39f4085ff237d045b4ef4ffce7-600x337.webp",
+      sourceUrl: "/thumbnails/gallery/1765359851834_un6clb_85a267e1d3130620520e2800c5866185ed2faa39f4085ff237d045b4ef4ffce7-600x337.webp"
     }],
     categories: ["Product Marketing"],
     tags: ["product-marketing", "product", "thumbnail"],
@@ -4916,8 +4916,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765359924818_vj5g9z_a672cbbb55c04d0fd842612f03751ff6f71209ee26810d0ecb31fb0006abacf0-600x337.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765359924818_vj5g9z_a672cbbb55c04d0fd842612f03751ff6f71209ee26810d0ecb31fb0006abacf0-600x337.png"
+      previewUrl: "/thumbnails/gallery/1765359924818_vj5g9z_a672cbbb55c04d0fd842612f03751ff6f71209ee26810d0ecb31fb0006abacf0-600x337.webp",
+      sourceUrl: "/thumbnails/gallery/1765359924818_vj5g9z_a672cbbb55c04d0fd842612f03751ff6f71209ee26810d0ecb31fb0006abacf0-600x337.webp"
     }],
     categories: ["Product Marketing"],
     tags: ["product-marketing", "render", "product", "thumbnail"],
@@ -4947,8 +4947,8 @@ export const YOUMIND_VIRAL_OVERFLOW = [
     mediaType: "image",
     media: [{
       type: "image",
-      previewUrl: "https://cms-assets.youmind.com/media/1765360099051_05ebmu_d39be6af8bb56f8a40942d1fb704230eb8b901658fd0e7ceaafa68a04f2499d3-600x337.png",
-      sourceUrl: "https://cms-assets.youmind.com/media/1765360099051_05ebmu_d39be6af8bb56f8a40942d1fb704230eb8b901658fd0e7ceaafa68a04f2499d3-600x337.png"
+      previewUrl: "/thumbnails/gallery/1765360099051_05ebmu_d39be6af8bb56f8a40942d1fb704230eb8b901658fd0e7ceaafa68a04f2499d3-600x337.webp",
+      sourceUrl: "/thumbnails/gallery/1765360099051_05ebmu_d39be6af8bb56f8a40942d1fb704230eb8b901658fd0e7ceaafa68a04f2499d3-600x337.webp"
     }],
     categories: ["Product Marketing"],
     tags: ["product-marketing", "render", "product"],
