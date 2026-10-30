@@ -32,16 +32,19 @@ export function Header(navigate) {
 
   const links = {};
 
+  // Top-bar entries open the studios themselves, never the marketing
+  // landing pages (text-to-image etc. are SEO pages with a "Start" CTA).
   const imageDropdownItems = [
-    { label: 'Text to Image', route: 'text-to-image' },
-    { label: 'Image to Image', route: 'image-to-image' },
+    { label: 'Image Studio', route: 'image' },
+    { label: 'Edit Studio', route: 'edit' },
+    { label: 'Upscale', route: 'upscale' },
   ];
 
   const videoDropdownItems = [
-    { label: 'Text to Video', route: 'text-to-video' },
-    { label: 'Image to Video', route: 'image-to-video' },
-    { label: 'Video to Video', route: 'video-to-video' },
-    { label: 'Watermark Remover', route: 'video-watermark' },
+    { label: 'Video Studio', route: 'video' },
+    { label: 'Cinema Studio', route: 'cinema' },
+    { label: 'Video Tools', route: 'videotools' },
+    { label: 'Lip Sync', route: 'lipsync' },
   ];
 
   const createDropdown = (items, parent) => {
@@ -69,8 +72,6 @@ export function Header(navigate) {
     { label: 'CineGen Studio', route: 'cinegen' },
     { label: 'Brand Studio', route: 'brand' },
     { label: 'Animate', route: 'animate' },
-    { label: 'Social', route: 'social' },
-    { label: 'Landing', route: 'landing' },
     { label: 'Website Builder', route: 'website-builder' },
     { label: 'All Apps', route: 'apps' },
     { label: 'Assist', route: 'assist' },
@@ -89,7 +90,7 @@ export function Header(navigate) {
     if (item === 'Image') {
       link.classList.remove('text-white');
       link.classList.add('text-white', 'dropdown-trigger');
-      link.onclick = () => navigate('text-to-image');
+      link.onclick = () => navigate('image');
       
       const dropdown = document.createElement('div');
       dropdown.className = 'absolute top-full left-0 mt-2 w-48 bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50';
@@ -105,7 +106,7 @@ export function Header(navigate) {
     if (item === 'Video') {
       link.classList.remove('text-white');
       link.classList.add('text-white', 'dropdown-trigger');
-      link.onclick = () => navigate('text-to-video');
+      link.onclick = () => navigate('video');
       
       const dropdown = document.createElement('div');
       dropdown.className = 'absolute top-full left-0 mt-2 w-48 bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50';
@@ -208,7 +209,7 @@ export function Header(navigate) {
     link.className = 'text-xl font-bold text-secondary hover:text-white transition-colors cursor-pointer';
     
     if (item === 'Image' || item === 'Video' || item === 'Tools') {
-      const targetRoute = item === 'Image' ? 'text-to-image' : item === 'Video' ? 'text-to-video' : 'storyboard';
+      const targetRoute = item === 'Image' ? 'image' : item === 'Video' ? 'video' : 'apps';
       link.onclick = () => {
         navigate(targetRoute);
         mobileMenu.classList.add('opacity-0', 'pointer-events-none');

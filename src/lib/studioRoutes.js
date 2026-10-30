@@ -81,7 +81,6 @@ export const STUDIO_ROUTES = {
   chat: { label: 'Chat Studio', category: 'Create' },
   lipsync: { label: 'Lip Sync', category: 'Create' },
   influencer: { label: 'AI Influencer', category: 'Create' },
-  landing: { label: 'Landing Page', category: 'Create' },
   templates: { label: 'Templates', category: 'Home' },
   community: { label: 'Community', category: 'Home' },
   assist: { label: 'Assist', category: 'Tools' },
@@ -101,7 +100,6 @@ export const STUDIO_ROUTES = {
   director: { label: 'Director', category: 'Tools' },
   'ai-vfx': { label: 'AI VFX', category: 'Tools' },
   render: { label: 'Video Render', category: 'Tools' },
-  social: { label: 'Social', category: 'Create' },
   timeline: { label: 'Timeline', category: 'Tools' },
   library: { label: 'Library', category: 'Home' },
   'content-library': { label: 'Content Library', category: 'Home' },
@@ -123,8 +121,10 @@ export const STUDIO_ROUTES = {
   cinegen: { label: 'CineGen Studio', category: 'Create' },
 };
 
-// Ordered category groups for the drawer.
-export const STUDIO_CATEGORIES = ['Home', 'Create', 'Generate', 'Pages', 'Tools'];
+// Ordered category groups for the drawer. 'Generate' and 'Pages' routes are
+// marketing landing pages; they stay routable for SEO links but the in-app
+// drawer only lists the applications themselves.
+export const STUDIO_CATEGORIES = ['Home', 'Create', 'Tools'];
 
 export function getStudioIcon(route) {
   return ICONS[route] || FALLBACK_ICON;
