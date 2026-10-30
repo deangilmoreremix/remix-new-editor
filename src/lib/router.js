@@ -79,6 +79,7 @@ const pageLoaders = {
   lipsync: () => import('../components/LipSyncStudio.js').then(m => m.LipSyncStudio()),
   leadfinder: () => import('../components/LeadFinderStudio.js').then(m => m.LeadFinderStudio()),
   personalizer: () => import('../components/Personalizer.js').then(m => m.Personalizer()),
+  'content-library': () => import('../components/ContentLibraryPage.js').then(m => m.ContentLibraryPage()),
   'website-builder': () => import('../components/OpenThornStudio.js').then(m => m.OpenThornStudio()),
 
   assist: () => import('../components/AssistPage.js').then(m => m.AssistPage()),
@@ -105,7 +106,7 @@ const pageLoaders = {
   'ai-vfx': () => import('../components/AIVFXPage.js').then(m => m.AIVFXPage()),
   viral: () => import('../components/SmartVideoViral.js').then(m => m.SmartVideoViral()),
   'timeline-iframe-warning': () => Promise.resolve(document.createElement('div')),
-  brand: () => import('../components/BrandStudioIframe.js').then(m => m.BrandStudioIframe()),
+  brand: () => import('../components/BrandStudio.js').then(m => m.BrandStudio()),
   'brand-dna': () => import('../components/BrandDnaEditor.js').then(m => m.BrandDnaEditor()),
   campaign: () => import('../components/CampaignWizard.js').then(m => m.CampaignWizard()),
   'campaign-page': () => import('../components/CampaignPage.js').then(m => m.CampaignPage()),
