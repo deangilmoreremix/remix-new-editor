@@ -880,6 +880,9 @@ const compareBtn = document.createElement('button');
   // Model / aspect-ratio dropdowns
   const dropdown = document.createElement('div');
   dropdown.className = 'absolute z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-bottom-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
+  // Position against viewport coordinates and keep both picker panels in the DOM.
+  dropdown.style.position = 'fixed';
+  container.appendChild(dropdown);
 
   function closeDropdown() {
     dropdown.classList.add('opacity-0', 'pointer-events-none');
