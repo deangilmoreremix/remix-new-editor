@@ -26,7 +26,7 @@ export function Header(navigate) {
 
   const menu = document.createElement('nav');
   menu.className = 'hidden lg:flex items-center gap-5 text-[13px] font-bold text-secondary';
-  const items = ['Explore', 'Image', 'Video', 'Storyboard', 'Edit', 'Character', 'Commercial', 'Upscale', 'Vibe Motion', 'Cinema Studio', 'Cinema Template Studio', 'AI Influencer', 'Smart Video Viral', 'Audio', 'Avatar', 'Training', 'Video Tools', 'Chat', 'Lip Sync', 'Personalizer', 'Video Agent', 'AI VFX', 'Brand Studio', 'Apps', 'Templates', 'Assist', 'Community', 'Social', 'Landing', 'Brand DNA', 'Campaign', 'Asset Edit', 'Photo Studio', 'Brand Photo Studio', 'Animate'];
+  const items = ['Explore', 'Image', 'Video', 'Storyboard', 'Edit', 'Character', 'Commercial', 'Upscale', 'Vibe Motion', 'Cinema Studio', 'Cinema Template Studio', 'AI Influencer', 'Smart Video Viral', 'Audio', 'Avatar', 'Training', 'Video Tools', 'Chat', 'Lip Sync', 'Personalizer', 'Video Agent', 'AI VFX', 'Brand Studio', 'Apps', 'Templates', 'Assist', 'Community', 'Social', 'Landing', 'Animate'];
 
   const links = {};
 
@@ -62,11 +62,6 @@ export function Header(navigate) {
     { label: 'Upscale', route: 'upscale' },
     { label: 'Social', route: 'social' },
     { label: 'Landing', route: 'landing' },
-    { label: 'Brand DNA', route: 'brand-dna' },
-    { label: 'Campaign', route: 'campaign' },
-    { label: 'Asset Edit', route: 'asset-edit' },
-    { label: 'Photo Studio', route: 'photo-studio' },
-    { label: 'Brand Photo Studio', route: 'brand-photo-studio' },
     { label: 'Animate', route: 'animate' },
   ];
 
