@@ -9,7 +9,7 @@ import { buildNanoBananaPrompt, CAMERA_MAP, LENS_MAP, FOCAL_PERSPECTIVE, APERTUR
 import { AuthModal } from './AuthModal.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { getVideoModelById, getI2VModelById, getModelById, t2vModels, i2vModels, getDurationsForModel, getDurationsForI2VModel, getResolutionsForVideoModel, getResolutionsForI2VModel } from '../lib/models.js';
-import { mountModelSelector, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
+import { mountVideoModelSelector } from '../lib/modelSelectorUI.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { createUploadPicker } from './UploadPicker.js';
@@ -643,6 +643,7 @@ export function CinemaStudio() {
     settingsToolbar.appendChild(modelDropdown);
 
     let _modelSelectorOutsideClickHandler = null;
+    let cinemaPickerController = null;
 
     const closeModelDropdown = () => {
         modelDropdown.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
@@ -651,52 +652,61 @@ export function CinemaStudio() {
             document.removeEventListener('click', _modelSelectorOutsideClickHandler);
             _modelSelectorOutsideClickHandler = null;
         }
+        if (cinemaPickerController) {
+            cinemaPickerController.close();
+            cinemaPickerController = null;
+        }
     };
 
-    function showModelDropdown() {
-        const isI2V = !!currentSettings.referenceUrl;
-        const models = isI2V ? i2vModels : t2vModels;
-        mountModelSelector(modelDropdown, {
-          models: [...t2vModels, ...i2vModels],
-          categories: [
-            { id: 't2v', label: 'Text to Video', models: t2vModels },
-            { id: 'i2v', label: 'Image to Video', models: i2vModels },
-          ],
-          selectedCategory: isI2V ? 'i2v' : 't2v',
-          selectedModelId: currentSettings.model,
-          showProviderName: true,
-          headerLabel: isI2V ? 'Image-to-video models' : 'Text-to-video models',
-          autoFocus: true,
-          onSelectCategory: (catId) => {
-            const newI2V = catId === 'i2v';
-            if (newI2V && !currentSettings.referenceUrl) {
-              currentSettings.referenceUrl = '';  // trigger i2v mode UI
-            }
-            const nextModels = newI2V ? i2vModels : t2vModels;
-            currentSettings.model = nextModels[0].id;
-            updateModelBtn();
-            updateControlsForModel();
-          },
-          onSelectModel: (model) => {
-            currentSettings.model = model.id;
-            updateModelBtn();
-            updateControlsForModel();
-            closeModelDropdown();
-          },
+    // Rich split-pane model picker (provider sidebar + category tabs + search),
+    // supporting Text-to-Video (t2v) and Image-to-Video (i2v) catalogs.
+    // Reuses the upstream Image/Video catalog + mountVideoModelSelector so the
+    // studio stays in parity with ImageStudio/VideoStudio pickers.
+    function openCinemaModelPicker(anchorBtn) {
+        cinemaPickerController?.close();
+        cinemaPickerController = null;
+
+        cinemaPickerController = mountVideoModelSelector({
+            anchor: anchorBtn,
+            selectedModelId: currentSettings.model,
+            allowedModelTypes: ['t2v', 'i2v'],
+            copy: {
+                categories: { t2v: 'Text to Video', i2v: 'Image to Video' },
+                searchPlaceholder: 'Search models...',
+            },
+            onSelectCategory: (catId) => {
+                const newI2V = catId === 'i2v';
+                if (newI2V && !currentSettings.referenceUrl) {
+                    currentSettings.referenceUrl = ''; // trigger i2v mode UI
+                }
+                const nextModels = newI2V ? i2vModels : t2vModels;
+                currentSettings.model = nextModels[0].id;
+                updateModelBtn();
+                updateControlsForModel();
+                cinemaPickerController?.refresh(nextModels[0]?.id || null);
+            },
+            onSelectModel: (entry, catId) => {
+                const variant = entry.variantsByMode[catId] || entry.defaultVariant;
+                if (variant) currentSettings.model = variant.model.id;
+                updateModelBtn();
+                updateControlsForModel();
+                closeModelDropdown();
+            },
+            onClose: () => {
+                cinemaPickerController = null;
+            },
         });
+        cinemaPickerController.open();
+    }
 
-        modelDropdown.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
-        modelDropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
-
-        if (_modelSelectorOutsideClickHandler) {
-            document.removeEventListener('click', _modelSelectorOutsideClickHandler);
-            _modelSelectorOutsideClickHandler = null;
+    function showModelDropdown() {
+        if (cinemaPickerController) {
+            cinemaPickerController.close();
+            cinemaPickerController = null;
+            return;
         }
-        _modelSelectorOutsideClickHandler = (e) => {
-            if (!modelDropdown.contains(e.target) && e.target !== modelBtn) closeModelDropdown();
-        };
-        document.addEventListener('click', _modelSelectorOutsideClickHandler);
-        positionModelSelectorDropdown(modelDropdown, modelBtn, 8, container);
+        closeModelDropdown();
+        openCinemaModelPicker(modelBtn);
     }
 
     // Sync controls (duration/resolution availability) to the selected model.

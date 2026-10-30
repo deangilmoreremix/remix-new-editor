@@ -22,7 +22,7 @@ import { getGtmContext } from '../lib/gtmContextStore.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { getImageStudioAsset } from '../lib/personalizerAdapters.js';
 import { openModelPicker } from '../lib/modelPickerIntegration.js';
-import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, renderProviderLogoImg, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
+import { mountImageModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, renderProviderLogoImg, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { EXAMPLE_ASSETS } from '../data/exampleGalleryAssets.js';
@@ -895,85 +895,80 @@ generateBtn.type = 'button';
     const dropdown = document.createElement('div');
     dropdown.className = 'absolute top-[102%] left-2 z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-top-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
 
+    let modelPickerController = null;
+
+    // Apply a chosen image model id + mode, preserving every studio side effect
+    // (model/ar/quality labels, resolution list, maxImages, dynamic controls).
+    const applyImageModel = (modelId, isImageMode) => {
+        selectedModel = modelId;
+        selectedModelName = (isImageMode ? getI2IModelById(modelId) : getModelById(modelId))?.name || modelId;
+        imageMode = isImageMode;
+        selectedAr = isImageMode
+            ? getAspectRatiosForI2IModel(modelId)[0]
+            : getAspectRatiosForModel(modelId)[0];
+        const label = document.getElementById('model-btn-label');
+        const arLabel = document.getElementById('ar-btn-label');
+        if (label) label.textContent = selectedModelName;
+        if (arLabel) arLabel.textContent = selectedAr;
+        const validResolutions = isImageMode
+            ? getResolutionsForI2IModel(modelId)
+            : getResolutionsForModel(modelId);
+        qualityBtn.style.display = validResolutions.length > 0 ? 'flex' : 'none';
+        if (validResolutions.length > 0) {
+            const qLabel = document.getElementById('quality-btn-label');
+            if (qLabel) qLabel.textContent = validResolutions[0];
+        }
+        if (isImageMode) {
+            picker.setMaxImages(getMaxImagesForI2IModel(modelId));
+        }
+        updateModelBtnIcon();
+        if (dynamicControls) {
+            const resolved = isImageMode ? getI2IModelById(modelId) : getModelById(modelId);
+            dynamicControls.update(getExtendedModel(resolved));
+        }
+    };
+
+    // Open the upstream split-pane picker (provider sidebar, search, categories).
+    // A fresh instance is mounted per open so the selected-model highlight is live.
+    const openImageModelPicker = (anchorBtn) => {
+        modelPickerController?.close();
+        modelPickerController = null;
+        modelPickerController = mountImageModelSelector({
+            anchor: anchorBtn,
+            selectedModelId: selectedModel,
+            allowedModelTypes: ['t2i', 'i2i'],
+            copy: {
+                categories: { t2i: 'Text to Image', i2i: 'Image to Image' },
+                searchPlaceholder: 'Search models...',
+            },
+            onSelectCategory: (catId) => {
+                const isI2I = catId === 'i2i';
+                const nextModels = isI2I ? i2iModels : t2iModels;
+                if (nextModels.length) applyImageModel(nextModels[0].id, isI2I);
+                modelPickerController?.refresh(nextModels[0]?.id || null);
+            },
+            onSelectModel: (entry, catId) => {
+                const variant = entry.variantsByMode[catId] || entry.defaultVariant;
+                if (variant) applyImageModel(variant.model.id, catId === 'i2i');
+                closeDropdown();
+            },
+            onClose: () => { modelPickerController = null; },
+        });
+        modelPickerController.open();
+    };
+
     const showDropdown = (type, anchorBtn) => {
         dropdown.innerHTML = '';
         dropdown.classList.remove('opacity-0', 'pointer-events-none');
         dropdown.classList.add('opacity-100', 'pointer-events-auto');
 
-        if (type === 'model') {
-            dropdown.classList.add('w-[calc(100vw-2rem)]', 'md:w-[480px]', 'max-w-md');
-            dropdown.classList.remove('max-w-xs', 'max-w-[240px]', 'max-w-[200px]');
-            const currentModels = imageMode ? i2iModels : t2iModels;
-            mountModelSelector(dropdown, {
-              models: currentModels,
-              selectedModelId: selectedModel,
-              showProviderName: true,
-              categories: [
-                { id: 't2i', label: 'Text to Image', models: t2iModels },
-                { id: 'i2i', label: 'Image to Image', models: i2iModels },
-              ],
-              selectedCategory: imageMode ? 'i2i' : 't2i',
-              onSelectCategory: (catId) => {
-                const newImageMode = catId === 'i2i';
-                imageMode = newImageMode;
-                const nextModels = newImageMode ? i2iModels : t2iModels;
-                selectedModel = nextModels[0].id;
-                selectedModelName = nextModels[0].name;
-                selectedAr = newImageMode
-                  ? getAspectRatiosForI2IModel(selectedModel)[0]
-                  : getAspectRatiosForModel(selectedModel)[0];
-                document.getElementById('model-btn-label').textContent = selectedModelName;
-                document.getElementById('ar-btn-label').textContent = selectedAr;
-                const validResolutions = newImageMode
-                  ? getResolutionsForI2IModel(selectedModel)
-                  : getResolutionsForModel(selectedModel);
-                qualityBtn.style.display = validResolutions.length > 0 ? 'flex' : 'none';
-                if (validResolutions.length > 0) {
-                  document.getElementById('quality-btn-label').textContent = validResolutions[0];
-                }
-                if (newImageMode) {
-                  picker.setMaxImages(getMaxImagesForI2IModel(selectedModel));
-                }
-                updateModelBtnIcon();
-                if (dynamicControls) {
-                  const resolved = newImageMode
-                    ? getI2IModelById(selectedModel)
-                    : getModelById(selectedModel);
-                  dynamicControls.update(getExtendedModel(resolved));
-                }
-              },
-              onSelectModel: (model, categoryId) => {
-                const newImageMode = categoryId === 'i2i';
-                imageMode = newImageMode;
-                selectedModel = model.id;
-                selectedModelName = model.name;
-                selectedAr = newImageMode
-                  ? getAspectRatiosForI2IModel(selectedModel)[0]
-                  : getAspectRatiosForModel(selectedModel)[0];
-                document.getElementById('model-btn-label').textContent = selectedModelName;
-                document.getElementById('ar-btn-label').textContent = selectedAr;
-                const validResolutions = newImageMode
-                  ? getResolutionsForI2IModel(selectedModel)
-                  : getResolutionsForModel(selectedModel);
-                qualityBtn.style.display = validResolutions.length > 0 ? 'flex' : 'none';
-                if (validResolutions.length > 0) {
-                  document.getElementById('quality-btn-label').textContent = validResolutions[0];
-                }
-                if (newImageMode) {
-                  picker.setMaxImages(getMaxImagesForI2IModel(selectedModel));
-                }
-                updateModelBtnIcon();
-                if (dynamicControls) {
-                  const resolved = newImageMode
-                    ? getI2IModelById(selectedModel)
-                    : getModelById(selectedModel);
-                  dynamicControls.update(getExtendedModel(resolved));
-                }
-                closeDropdown();
-              },
-            });
+        // Dismiss the upstream model picker when a different dropdown opens.
+        if (modelPickerController) {
+            modelPickerController.close();
+            modelPickerController = null;
+        }
 
-        } else if (type === 'ar') {
+        if (type === 'ar') {
             dropdown.classList.add('max-w-[240px]');
             dropdown.innerHTML = `<div class="text-[10px] font-bold text-muted uppercase tracking-widest px-3 py-2 border-b border-white/5 mb-2">Aspect Ratio</div>`;
             const list = document.createElement('div');
@@ -1041,6 +1036,10 @@ generateBtn.type = 'button';
     };
 
     const closeDropdown = () => {
+        if (modelPickerController) {
+            modelPickerController.close();
+            modelPickerController = null;
+        }
         dropdown.classList.add('opacity-0', 'pointer-events-none');
         dropdown.classList.remove('opacity-100', 'pointer-events-auto');
         dropdownOpen = null;
@@ -1054,19 +1053,12 @@ generateBtn.type = 'button';
 
     modelBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (dropdownOpen === 'model') closeDropdown();
-        else {
-            dropdownOpen = 'model';
-            selectedProvider = 'all';
-            showDropdown('model', modelBtn);
-            const handler = dropdown._outsideClickHandler;
-            if (handler) {
-                window.removeEventListener('click', handler);
-                dropdown._outsideClickHandler = null;
-            }
-            const newHandler = () => closeDropdown();
-            dropdown._outsideClickHandler = newHandler;
-            window.addEventListener('click', newHandler);
+        if (modelPickerController) {
+            modelPickerController.close();
+            modelPickerController = null;
+        } else {
+            closeDropdown();
+            openImageModelPicker(modelBtn);
         }
     });
 
