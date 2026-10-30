@@ -803,7 +803,11 @@ export function LipSyncStudio() {
             updateImageUploadState('ready', file.name);
         } catch (err) {
             updateImageUploadState('idle');
-            showToast(`Image upload failed: ${err.message}`, 'error');
+            if (err.message === 'Please sign in and add api credits.') {
+              window.alert(err.message);
+            } else {
+              showToast(`Image upload failed: ${err.message}`, 'error');
+            }
         }
         imageFileInput.value = '';
     };
@@ -830,7 +834,11 @@ export function LipSyncStudio() {
             updateVideoUploadState('ready', file.name);
         } catch (err) {
             updateVideoUploadState('idle');
-            showToast(`Video upload failed: ${err.message}`, 'error');
+            if (err.message === 'Please sign in and add api credits.') {
+              window.alert(err.message);
+            } else {
+              showToast(`Video upload failed: ${err.message}`, 'error');
+            }
         }
         videoFileInput.value = '';
     };
@@ -857,7 +865,11 @@ export function LipSyncStudio() {
             updateAudioUploadState('ready', file.name);
         } catch (err) {
             updateAudioUploadState('idle');
-            showToast(`Audio upload failed: ${err.message}`, 'error');
+            if (err.message === 'Please sign in and add api credits.') {
+              window.alert(err.message);
+            } else {
+              showToast(`Audio upload failed: ${err.message}`, 'error');
+            }
         }
         audioFileInput.value = '';
     };

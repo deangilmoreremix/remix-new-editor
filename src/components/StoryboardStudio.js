@@ -19,7 +19,7 @@ import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateTh
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
-import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle } from '../lib/modelSelectorUI.js';
+import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, renderProviderLogoImg, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
@@ -693,7 +693,7 @@ genAllBtn.type = 'button';
       const action = item.dataset.enhance;
       if (action === 'gtm') {
         import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-          openGTMPromptModal('storyboard', (prompt) => {
+          openGTMPromptModal('storyboard-studio', (prompt) => {
             enhancedConcept = prompt;
             renderFrames();
           });
@@ -880,6 +880,9 @@ const compareBtn = document.createElement('button');
   // Model / aspect-ratio dropdowns
   const dropdown = document.createElement('div');
   dropdown.className = 'absolute z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-bottom-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
+  // Position against viewport coordinates and keep both picker panels in the DOM.
+  dropdown.style.position = 'fixed';
+  container.appendChild(dropdown);
 
   function closeDropdown() {
     dropdown.classList.add('opacity-0', 'pointer-events-none');
@@ -1322,7 +1325,7 @@ const compareBtn = document.createElement('button');
       frameEnhanceBtn.title = 'Enhance this frame with GTM conversion frameworks';
       frameEnhanceBtn.addEventListener('click', () => {
         import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-          openGTMPromptModal('storyboard', (prompt) => {
+          openGTMPromptModal('storyboard-studio', (prompt) => {
             frame.enhancedPrompt = prompt;
             frameEnhanceBtn.textContent = '🎯 Enhanced';
             frameEnhanceBtn.classList.add('active');

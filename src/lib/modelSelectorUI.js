@@ -681,7 +681,7 @@ export function mountModelSelector(container, options = {}) {
     }
 
     modelBtn.addEventListener('click', () => {
-      onSelectModel(model);
+      onSelectModel(model, selectedCategory);
     });
 
     modelBtn.addEventListener('mouseenter', () => {

@@ -85,6 +85,39 @@ async function arm(page, status, body) {
       body: JSON.stringify(body),
     })
   );
+
+  // Files >8MB bypass the Supabase proxy entirely and go DIRECT to
+  // https://api.muapi.ai/api/v1/upload_file (resolveUploadEndpoint in
+  // src/lib/muapiUpload.js). Without mocking that endpoint the app really
+  // calls the network, gets an HTML error page, and JSON parsing dies with
+  // `SyntaxError: Unexpected token '<'`. Fulfill it with the SAME status/body
+  // contract as the proxy mock — the over-limit tests reject client-side
+  // before any request, so their own status expectations are unaffected.
+  await page.route('**/api.muapi.ai/**', (route) =>
+    route.fulfill({
+      status,
+      contentType: 'application/json',
+      body: JSON.stringify(body),
+    })
+  );
+
+  // The media-worker bootstrap (src/lib/media-worker-manager.js initialize())
+  // fetches './lib/media-worker.js', which does not exist in this repo — the
+  // dev server answers with the SPA fallback (index.html), the blob worker
+  // evaluates that HTML and dies with the UNCAUGHT page-level
+  // `SyntaxError: Unexpected token '<'` (the pipeline's own try/catch cannot
+  // see worker-scope errors). Fulfill it with a minimal worker that answers
+  // every request with a failure, so metadata extraction degrades exactly as
+  // designed (non-fatal, see uploadPipeline "NON-FATAL" comments) instead of
+  // poisoning pageErrors. The over-limit tests reject client-side and never
+  // reach the worker.
+  await page.route('**/lib/media-worker.js', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'text/javascript',
+      body: "self.onmessage = (e) => { const d = e.data || {}; self.postMessage({ success: false, action: d.action, fileId: d.fileId, error: 'media worker unavailable in tests' }); };",
+    })
+  );
 }
 
 test.describe('Upload boundary — size limits enforced correctly', () => {
@@ -114,10 +147,13 @@ test.describe('Upload boundary — size limits enforced correctly', () => {
     page.on('pageerror', (e) => errors.push(String(e)));
     await arm(page, 200, { url: 'https://fake.test/10mb.png' });
 
-    await page.goto('/#/image');
+    await page.goto('/#/image', { waitUntil: 'domcontentloaded', timeout: 120_000 });
     await page.waitForTimeout(1000);
 
     const fileInput = page.locator('input[type="file"]').first();
+    // The input mounts only after the (slow, cold-start) studio finishes
+    // initializing; wait for it explicitly instead of the 15s action timeout.
+    await page.waitForSelector('input[type="file"]', { state: 'attached', timeout: 60000 });
     await fileInput.setInputFiles(path.join(FIXTURES_DIR, 'boundary-image-10mb.jpg'));
     await page.waitForTimeout(2000);
 
@@ -129,10 +165,13 @@ test.describe('Upload boundary — size limits enforced correctly', () => {
     page.on('pageerror', (e) => errors.push(String(e)));
     await arm(page, 200, { url: 'https://fake.test/too-large.png' });
 
-    await page.goto('/#/image');
+    await page.goto('/#/image', { waitUntil: 'domcontentloaded', timeout: 120_000 });
     await page.waitForTimeout(1000);
 
     const fileInput = page.locator('input[type="file"]').first();
+    // The input mounts only after the (slow, cold-start) studio finishes
+    // initializing; wait for it explicitly instead of the 15s action timeout.
+    await page.waitForSelector('input[type="file"]', { state: 'attached', timeout: 60000 });
     await fileInput.setInputFiles(path.join(FIXTURES_DIR, 'boundary-image-10mb-plus1.jpg'));
     await page.waitForTimeout(2000);
 
@@ -149,10 +188,13 @@ test.describe('Upload boundary — size limits enforced correctly', () => {
     page.on('pageerror', (e) => errors.push(String(e)));
     await arm(page, 200, { url: 'https://fake.test/50mb.mp4' });
 
-    await page.goto('/#/video');
+    await page.goto('/#/video', { waitUntil: 'domcontentloaded', timeout: 120_000 });
     await page.waitForTimeout(1000);
 
     const fileInput = page.locator('input[type="file"]').first();
+    // The input mounts only after the (slow, cold-start) studio finishes
+    // initializing; wait for it explicitly instead of the 15s action timeout.
+    await page.waitForSelector('input[type="file"]', { state: 'attached', timeout: 60000 });
     await fileInput.setInputFiles(path.join(FIXTURES_DIR, 'boundary-video-50mb.mp4'));
     await page.waitForTimeout(2000);
 
@@ -164,10 +206,13 @@ test.describe('Upload boundary — size limits enforced correctly', () => {
     page.on('pageerror', (e) => errors.push(String(e)));
     await arm(page, 200, { url: 'https://fake.test/too-large.mp4' });
 
-    await page.goto('/#/video');
+    await page.goto('/#/video', { waitUntil: 'domcontentloaded', timeout: 120_000 });
     await page.waitForTimeout(1000);
 
     const fileInput = page.locator('input[type="file"]').first();
+    // The input mounts only after the (slow, cold-start) studio finishes
+    // initializing; wait for it explicitly instead of the 15s action timeout.
+    await page.waitForSelector('input[type="file"]', { state: 'attached', timeout: 60000 });
     await fileInput.setInputFiles(path.join(FIXTURES_DIR, 'boundary-video-50mb-plus1.mp4'));
     await page.waitForTimeout(2000);
 
@@ -187,9 +232,9 @@ test.describe('Upload boundary — large file handling', () => {
     page.on('pageerror', (e) => errors.push(String(e)));
     await arm(page, 200, { url: 'https://fake.test/large.png' });
 
-    await page.goto('/#/image');
+    await page.goto('/#/image', { waitUntil: 'domcontentloaded', timeout: 120_000 });
     // Wait for the page to fully load and the file input to be available
-    await page.waitForSelector('input[type="file"]', { state: 'attached', timeout: 15000 });
+    await page.waitForSelector('input[type="file"]', { state: 'attached', timeout: 60000 });
 
     // 9MB image should upload without errors (bypasses proxy due to Supabase 10MB limit)
     const fileInput = page.locator('input[type="file"]').first();
@@ -209,13 +254,16 @@ test.describe('Upload boundary — metadata extraction does not block upload', (
     page.on('pageerror', (e) => errors.push(String(e)));
     await arm(page, 200, { url: 'https://fake.test/corrupt-meta.png' });
 
-    await page.goto('/#/image');
+    await page.goto('/#/image', { waitUntil: 'domcontentloaded', timeout: 120_000 });
     await page.waitForTimeout(1000);
 
     // Create a file with corrupt/invalid internal structure but valid extension
     const corruptFile = generateTestFile('corrupt-metadata.png', 1024 * 100, Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]));
 
     const fileInput = page.locator('input[type="file"]').first();
+    // The input mounts only after the (slow, cold-start) studio finishes
+    // initializing; wait for it explicitly instead of the 15s action timeout.
+    await page.waitForSelector('input[type="file"]', { state: 'attached', timeout: 60000 });
     await fileInput.setInputFiles(corruptFile);
     await page.waitForTimeout(2000);
 
