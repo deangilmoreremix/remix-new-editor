@@ -45,6 +45,19 @@
   status = 200
   force = true
 
+# Restored thumbnails are WebP-encoded but keep their historical `.webp.png`
+# filenames so every existing reference resolves; declare the real type.
+[[headers]]
+  for = "/thumbnails/*.webp.png"
+  [headers.values]
+    Content-Type = "image/webp"
+    Cache-Control = "public, max-age=604800"
+
+[[headers]]
+  for = "/thumbnails/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
 # Security headers
 [[headers]]
   for = "/*"
@@ -118,6 +131,15 @@ force = false
   from = "/openthorn/*"
   to = "/openthorn/index.html"
   status = 200
+  force = false
+
+# Missing images must 404, not fall through to the SPA shell. Serving
+# index.html as an image makes every <img> fallback chain wait on an HTML
+# download before it can try the next candidate.
+[[redirects]]
+  from = "/thumbnails/*"
+  to = "/404.html"
+  status = 404
   force = false
 
 # SPA fallback: any path that doesn't match a real file or one of the

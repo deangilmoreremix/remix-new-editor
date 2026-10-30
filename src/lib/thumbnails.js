@@ -128,6 +128,29 @@ const NICHE_THUMBNAILS = {
   'Legal & Attorney Alt 3': '/thumbnails/templates/counsel_on_camera_portrait.webp.png',
   'Legal & Attorney Alt 4': '/thumbnails/templates/practice_area_explainer.webp.png',
   'Legal & Attorney Alt 5': '/thumbnails/templates/settlement_story.webp.png',
+  // Automotive & Car
+  'Automotive & Car': '/thumbnails/templates/automotive_cinematic.webp.png',
+  'Automotive & Car Alt': '/thumbnails/templates/new_car_reveal_trailer.webp.png',
+  'Automotive & Car Alt 2': '/thumbnails/templates/dealership_showcase_film.webp.png',
+  'Automotive & Car Alt 3': '/thumbnails/templates/car_interior_showcase.webp.png',
+  'Automotive & Car Alt 4': '/thumbnails/templates/drive_sequence_showcase.webp.png',
+  'Automotive & Car Alt 5': '/thumbnails/templates/sunset_drive_trailer.webp.png',
+  // Fashion & Style
+  'Fashion & Style': '/thumbnails/templates/fashion_lifestyle.webp.png',
+  'Fashion & Style Alt': '/thumbnails/templates/editorial_fashion_film.webp.png',
+  'Fashion & Style Alt 2': '/thumbnails/templates/fashion_brand_commercial.webp.png',
+  'Fashion & Style Alt 3': '/thumbnails/templates/fashion_jewelry_trailer.webp.png',
+  'Fashion & Style Alt 4': '/thumbnails/templates/street_style_story.webp.png',
+  'Fashion & Style Alt 5': '/thumbnails/templates/fashion-stride.webp',
+  // Events & Celebrations
+  'Events & Celebrations': '/thumbnails/templates/event_recap_film.webp.png',
+  'Events & Celebrations Alt': '/thumbnails/templates/wedding_celebration_reel.webp.png',
+  'Events & Celebrations Alt 2': '/thumbnails/templates/gala_night_trailer.webp.png',
+  'Events & Celebrations Alt 3': '/thumbnails/templates/vip_event_trailer.webp.png',
+  'Events & Celebrations Alt 4': '/thumbnails/templates/music_festival_story.webp.png',
+  'Events & Celebrations Alt 5': '/thumbnails/templates/live_concert_trailer.webp.png',
+  'Events & Celebrations Alt 6': '/thumbnails/templates/charity_gala_trailer.webp.png',
+  'Events & Celebrations Alt 7': '/thumbnails/templates/corporate_event_film.webp.png',
 };
 
 // Some template sources use lowercase/hyphenated niche keys (e.g. templateMatrix.js).
@@ -320,7 +343,7 @@ const HERO_THUMBNAILS = {
   lipsync: '/thumbnails/heroes/lipsync.webp',
   render: '/thumbnails/heroes/render.webp',
   chat: '/thumbnails/heroes/chat.webp',
-  templates: '/thumbnails/heroes/templates.webp',
+  templates: '/thumbnails/pages/templates.webp.png',
   viral: '/thumbnails/heroes/video.webp',
 };
 

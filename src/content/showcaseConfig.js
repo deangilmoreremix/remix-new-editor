@@ -37,7 +37,7 @@ const SHOWCASE_CONFIG = {
     workflows: '/thumbnails/videoagent/commentary.png',
     agents: '/thumbnails/videoagent/audio-tts.webp.png',
     mcpCli: '/thumbnails/videoagent/tab-edit.png',
-    academy: '/thumbnails/studios/academy.webp'
+    academy: '/thumbnails/pages/library.webp'
   },
 
   toolThumbnails: {
@@ -75,20 +75,20 @@ const SHOWCASE_CONFIG = {
   },
 
   templateThumbnails: {
-    restaurant: '/thumbnails/templates/restaurant.webp.png',
-    cafe: '/thumbnails/templates/cafe.webp.png',
+    restaurant: '/thumbnails/templates/restaurant_cafe_cinematic.webp.png',
+    cafe: '/thumbnails/templates/patio_dining_showcase.webp.png',
     medspa: '/thumbnails/templates/medspa-transformation-story.webp.png',
-    beauty: '/thumbnails/templates/beauty.webp.png',
+    beauty: '/thumbnails/templates/med_spa_explainer.webp.png',
     salon: '/thumbnails/templates/salon_transformation_story.webp.png',
-    barbershop: '/thumbnails/templates/barbershop.webp.png',
-    realEstate: '/thumbnails/templates/real-estate.webp.png',
-    automotive: '/thumbnails/templates/automotive.webp.png',
+    barbershop: '/thumbnails/templates/salon_story_film.webp.png',
+    realEstate: '/thumbnails/templates/real_estate_cinematic.webp.png',
+    automotive: '/thumbnails/templates/automotive_cinematic.webp.png',
     fitness: '/thumbnails/templates/fitness_transformation.webp.png',
-    fashion: '/thumbnails/templates/fashion.webp.png',
-    luxury: '/thumbnails/templates/luxury.webp.png',
-    dental: '/thumbnails/templates/dental.webp.png',
-    legal: '/thumbnails/templates/legal.webp.png',
-    events: '/thumbnails/templates/events.webp.png',
+    fashion: '/thumbnails/templates/fashion_lifestyle.webp.png',
+    luxury: '/thumbnails/templates/luxury_brand.webp.png',
+    dental: '/thumbnails/templates/dental_chair_showcase.webp.png',
+    legal: '/thumbnails/templates/authority_case_film.webp.png',
+    events: '/thumbnails/templates/event_recap_film.webp.png',
     superheroTransform: '/thumbnails/templates/superhero-transform.webp'
   },
 
