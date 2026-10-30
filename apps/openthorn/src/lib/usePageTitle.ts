@@ -1,9 +1,9 @@
 import { useEffect } from 'react'
 
-const SITE_NAME = 'OpenThorn'
-const DEFAULT_TITLE = 'OpenThorn — The BYOK AI Website Builder'
+const SITE_NAME = 'Smart Video'
+const DEFAULT_TITLE = 'Smart Video — The BYOK AI Website Builder'
 const DEFAULT_DESCRIPTION =
-  'OpenThorn is the BYOK AI website builder — describe what you want, get a complete, deployable website. No subscription, no lock-in.'
+  'Smart Video is the BYOK AI website builder — describe what you want, get a complete, deployable website. No subscription, no lock-in.'
 const SITE_URL = 'https://www.openthorn.app'
 const DEFAULT_OG_IMAGE = 'https://www.openthorn.app/og-card.png'
 
