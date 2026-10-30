@@ -31,6 +31,7 @@ const PERSONALIZATION_MODELS = Object.freeze({
   'ai-video-face-swap': 'v2v',
   'veo-4-text-to-video': 't2v',
   'kling-v3.0-pro-motion-control': 'v2v',
+  'seedance-2.5-motion-control': 'v2v',
   'add-video-watermark': 'v2v',
   'add-image-watermark': 'i2i',
   'gpt-image-2-image-to-image': 'i2i',
@@ -83,10 +84,21 @@ describe('models.js — personalization model registration', () => {
   });
 
   it('kling-v3.0-pro-motion-control is registered as a V2V motion-control endpoint', () => {
-    const model = getV2VModelById(FULL_BODY_MODEL);
+    const model = getV2VModelById('kling-v3.0-pro-motion-control');
     expect(model.videoField).toBe('video_url');
     expect(model.endpoint).toBe('kling-v3.0-pro-motion-control');
     expect(model.inputs?.image_url).toBeTruthy();
+  });
+
+  it('seedance-2.5-motion-control (FULL_BODY_MODEL) declares the open-genjutsu recast inputs', () => {
+    const model = getV2VModelById(FULL_BODY_MODEL);
+    expect(model.videoField).toBe('video_url');
+    expect(model.endpoint).toBe('seedance-2.5-motion-control');
+    // processV2V only forwards declared inputs, so each recast field must be listed.
+    for (const key of ['images_list', 'prompt', 'aspect_ratio', 'duration', 'generate_audio']) {
+      expect(model.inputs?.[key]).toBeTruthy();
+    }
+    expect(model.inputs.aspect_ratio.enum).toContain('adaptive');
   });
 
   it('watermark tools stay prompt-less (no prompt payload is sent)', () => {
@@ -101,7 +113,7 @@ describe('models.js — personalization model registration', () => {
 
   it('the personalization capability constants match the catalog registrations', () => {
     expect(FACE_SWAP_MODEL).toBe('ai-video-face-swap');
-    expect(FULL_BODY_MODEL).toBe('kling-v3.0-pro-motion-control');
+    expect(FULL_BODY_MODEL).toBe('seedance-2.5-motion-control');
     expect(DEFAULT_T2V_MODEL).toBe('veo-4-text-to-video');
     expect(DEFAULT_I2I_MODEL).toBe('gpt-image-2-image-to-image');
 

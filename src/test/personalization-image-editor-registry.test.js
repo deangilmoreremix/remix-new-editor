@@ -15,8 +15,9 @@ import {
 } from '../lib/personalization/imageEditorService.js';
 
 describe('personalization image edit registry', () => {
-  it('ports all 68 OpenHiggs operations', () => {
-    expect(Object.keys(IMAGE_EDIT_OPERATIONS)).toHaveLength(68);
+  it('ports all 68 OpenHiggs operations plus Full Body Recast', () => {
+    expect(Object.keys(IMAGE_EDIT_OPERATIONS)).toHaveLength(69);
+    expect(IMAGE_EDIT_OPERATIONS.full_body_recast.group).toBe('people');
   });
 
   it('ports all 16 asset recipes', () => {
@@ -37,6 +38,8 @@ describe('personalization image edit registry', () => {
     const logoOps = getOperationsForAsset('logo').map((x) => x.id);
     expect(personOps).toContain('presenter_cutout');
     expect(logoOps).not.toContain('presenter_cutout');
+    expect(personOps).toContain('full_body_recast');
+    expect(logoOps).not.toContain('full_body_recast');
   });
 
   it('marks destructive creative edits explicitly', () => {

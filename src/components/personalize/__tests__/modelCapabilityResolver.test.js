@@ -158,7 +158,7 @@ describe('modelCapabilityResolver — i2i (image source)', () => {
 describe('modelCapabilityResolver — constants and defaults', () => {
   it('exposes the expected model constants', () => {
     expect(FACE_SWAP_MODEL).toBe('ai-video-face-swap');
-    expect(FULL_BODY_MODEL).toBe('kling-v3.0-pro-motion-control');
+    expect(FULL_BODY_MODEL).toBe('seedance-2.5-motion-control');
     expect(DEFAULT_T2V_MODEL).toBe('veo-4-text-to-video');
     expect(DEFAULT_I2I_MODEL).toBe('gpt-image-2-image-to-image');
   });

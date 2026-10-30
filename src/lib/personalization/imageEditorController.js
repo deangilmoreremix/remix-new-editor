@@ -18,6 +18,15 @@ import {
 } from './visionService.js';
 import { makePersonalizationAssetVideoReady } from './videoReady.js';
 import { persistPersonalizationAssetVersion } from './assetDiscoveryService.js';
+import {
+  persistRecastVideo,
+  readVideoDuration,
+  resolveRecastCharacterUrl,
+  runFullBodyRecast,
+  uploadRecastSource,
+  validateRecastDuration,
+  validateRecastSourceFile,
+} from './fullBodyRecast.js';
 
 function isDataImage(value) {
   return typeof value === 'string' && value.startsWith('data:image/');
@@ -69,6 +78,7 @@ export class PersonalizationImageEditorController {
     this.maskController = null;
     this.onChange = onChange;
     this.onPreview = onPreview;
+    this.recastAbort = null;
   }
 
   _change(render = true) {
@@ -84,6 +94,8 @@ export class PersonalizationImageEditorController {
 
   close() {
     this.destroyMask();
+    this.cancelRecast();
+    this._revokeRecastPreview();
     this.session = null;
     this._change(true);
   }
@@ -113,6 +125,12 @@ export class PersonalizationImageEditorController {
     this._change(true);
   }
 
+  setPanelTab(tab) {
+    if (!this.session || !['tools', 'adjust', 'output'].includes(tab)) return;
+    this.session.panelTab = tab;
+    this._change(true);
+  }
+
   setSmartPrompt(value) {
     if (!this.session) return;
     this.session.smartPrompt = String(value || '');
@@ -125,8 +143,9 @@ export class PersonalizationImageEditorController {
       this.session.aspectRatio = value;
       this.session.localControls.aspectRatio = value;
       this.service.aspectRatio = value === 'original' ? '16:9' : value;
-      if (this.service.thumbnailService) {
-        this.service.thumbnailService.aspectRatio = this.service.aspectRatio;
+      // ThumbnailService exposes aspectRatio as a getter over its options.
+      if (this.service.thumbnailService?.options) {
+        this.service.thumbnailService.options.aspectRatio = this.service.aspectRatio;
       }
     }
     if (key === 'outputFormat' && ['png', 'webp', 'jpeg'].includes(value)) {
@@ -222,6 +241,12 @@ export class PersonalizationImageEditorController {
     if (!operation) {
       session.error = 'That edit is not available for this asset type.';
       this._change(true);
+      return;
+    }
+    // Full Body Recast produces a video, so it opens its own workflow instead
+    // of running an image edit.
+    if (operation.video) {
+      this.openRecast();
       return;
     }
 
@@ -514,6 +539,190 @@ export class PersonalizationImageEditorController {
     } finally {
       session.busyLabel = '';
       this._change(true);
+    }
+  }
+
+  // ── Full Body Recast (open-genjutsu flow) ──────────────────────────────
+
+  openRecast() {
+    if (!this.session) return;
+    this.session.mode = 'advanced';
+    this.session.maskMode = false;
+    this.destroyMask();
+    this.session.recast.open = true;
+    this.session.recast.error = '';
+    this._change(true);
+  }
+
+  closeRecast() {
+    if (!this.session) return;
+    this.cancelRecast();
+    this.session.recast.open = false;
+    this._change(true);
+  }
+
+  _revokeRecastPreview() {
+    const preview = this.session?.recast?.sourcePreviewUrl;
+    if (preview && preview.startsWith('blob:')) {
+      try { URL.revokeObjectURL(preview); } catch {}
+    }
+  }
+
+  async setRecastSource(file) {
+    const session = this.session;
+    if (!session) return;
+    const recast = session.recast;
+    const fileError = validateRecastSourceFile(file);
+    if (fileError) {
+      recast.error = fileError;
+      this._change(true);
+      return;
+    }
+
+    this._revokeRecastPreview();
+    const previewUrl = URL.createObjectURL(file);
+    Object.assign(recast, {
+      sourceName: file.name || 'Source clip',
+      sourcePreviewUrl: previewUrl,
+      sourceUrl: '',
+      duration: 0,
+      resultUrl: '',
+      saved: false,
+      error: '',
+      status: 'uploading',
+      statusLabel: 'Reading clip…',
+    });
+    this._change(true);
+
+    try {
+      const duration = await readVideoDuration(previewUrl);
+      const durationError = validateRecastDuration(duration);
+      if (durationError) throw new Error(durationError);
+      recast.duration = duration;
+      recast.statusLabel = 'Uploading source clip…';
+      this._change(true);
+
+      const sourceUrl = await uploadRecastSource(file);
+      if (this.session !== session || recast.sourcePreviewUrl !== previewUrl) return;
+      recast.sourceUrl = sourceUrl;
+      recast.status = 'idle';
+      recast.statusLabel = '';
+    } catch (error) {
+      if (this.session !== session || recast.sourcePreviewUrl !== previewUrl) return;
+      recast.status = 'error';
+      recast.statusLabel = '';
+      recast.error = error?.message || 'The source clip could not be uploaded.';
+      if (!recast.duration) {
+        this._revokeRecastPreview();
+        recast.sourcePreviewUrl = '';
+        recast.sourceName = '';
+      }
+    }
+    this._change(true);
+  }
+
+  setRecastPrompt(value) {
+    if (!this.session) return;
+    this.session.recast.prompt = String(value || '').slice(0, 1000);
+  }
+
+  async runRecast() {
+    const session = this.session;
+    const current = this.currentVersion();
+    if (!session || !current?.dataUrl) return;
+    const recast = session.recast;
+    if (!recast.sourceUrl || recast.status === 'generating') return;
+
+    this.cancelRecast();
+    const controller = new AbortController();
+    this.recastAbort = controller;
+    Object.assign(recast, {
+      status: 'generating',
+      statusLabel: 'Preparing character image…',
+      error: '',
+      resultUrl: '',
+      saved: false,
+    });
+    this._change(true);
+
+    try {
+      const characterUrl = await resolveRecastCharacterUrl(current.dataUrl, {
+        role: session.role,
+        name: session.name,
+      });
+      if (controller.signal.aborted) throw new Error('Recast cancelled');
+      recast.statusLabel = 'Recasting the performer… this usually takes a few minutes.';
+      this._change(true);
+
+      const result = await runFullBodyRecast({
+        sourceUrl: recast.sourceUrl,
+        characterUrl,
+        duration: recast.duration,
+        prompt: recast.prompt,
+        signal: controller.signal,
+      });
+      if (controller.signal.aborted) throw new Error('Recast cancelled');
+      recast.resultUrl = result.url;
+      recast.model = result.model;
+      recast.status = 'done';
+      recast.statusLabel = '';
+    } catch (error) {
+      if (this.session !== session) return;
+      const cancelled = controller.signal.aborted || /cancel/i.test(error?.message || '');
+      recast.status = cancelled ? 'idle' : 'error';
+      recast.statusLabel = '';
+      recast.error = cancelled ? '' : (error?.message || 'Full body recast failed.');
+    } finally {
+      if (this.recastAbort === controller) this.recastAbort = null;
+      if (this.session === session) this._change(true);
+    }
+  }
+
+  cancelRecast() {
+    if (this.recastAbort) {
+      try { this.recastAbort.abort(); } catch {}
+      this.recastAbort = null;
+    }
+  }
+
+  /**
+   * Store the recast result durably and return the asset fields the modal
+   * needs to add it to the profile as a presenter video.
+   */
+  async saveRecast() {
+    const session = this.session;
+    const recast = session?.recast;
+    if (!recast?.resultUrl) throw new Error('Run a recast before saving.');
+    recast.status = 'saving';
+    recast.statusLabel = 'Saving recast video…';
+    this._change(true);
+    try {
+      const stored = await persistRecastVideo(recast.resultUrl, { name: `${session.name} Recast` });
+      recast.status = 'done';
+      recast.statusLabel = '';
+      return {
+        role: 'presenter_video',
+        name: `${session.name} — Full Body Recast`,
+        url: stored.url,
+        originalUrl: stored.url,
+        sourceType: 'AI_GENERATED',
+        mimeType: 'video/mp4',
+        editMetadata: {
+          operation: 'full_body_recast',
+          model: recast.model || null,
+          sourceVideoUrl: recast.sourceUrl,
+          characterAssetId: session.assetId,
+          providerUrl: recast.resultUrl,
+          durable: stored.durable,
+          prompt: recast.prompt || '',
+        },
+      };
+    } catch (error) {
+      recast.status = 'done';
+      recast.statusLabel = '';
+      recast.error = error?.message || 'Could not save the recast video.';
+      this._change(true);
+      throw error;
     }
   }
 

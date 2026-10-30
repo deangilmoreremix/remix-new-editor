@@ -40,7 +40,9 @@ import {
 // These must match actual IDs in src/lib/models.js.
 
 export const FACE_SWAP_MODEL = 'ai-video-face-swap';
-export const FULL_BODY_MODEL = 'kling-v3.0-pro-motion-control';
+// Full body recast follows open-genjutsu: Seedance 2.5 motion control keeps
+// the source clip's movement/location and swaps in the character reference.
+export const FULL_BODY_MODEL = 'seedance-2.5-motion-control';
 export const DEFAULT_T2V_MODEL = 'veo-4-text-to-video';
 export const DEFAULT_I2I_MODEL = 'gpt-image-2-image-to-image';
 

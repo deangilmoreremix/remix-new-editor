@@ -100,6 +100,33 @@ describe('muapi.processV2V — declared inputs reach the provider', () => {
     expect(body.params.prompt).toBe(RECAST_PROMPT);
   });
 
+  test('seedance motion-control recast forwards images_list, adaptive aspect, duration and generate_audio=false', async () => {
+    const mockFetch = makeFetchMock({ outputs: ['https://cdn.muapi.ai/recast.mp4'] });
+    global.fetch = mockFetch;
+
+    await client.processV2V({
+      model: 'seedance-2.5-motion-control',
+      video_url: 'https://cdn.muapi.ai/source-video.mp4',
+      images_list: ['https://cdn.muapi.ai/character.png'],
+      aspect_ratio: 'adaptive',
+      duration: 8,
+      generate_audio: false,
+      prompt: RECAST_PROMPT,
+      studioType: 'personalize-recast',
+    });
+
+    const body = parseSubmittedBody(mockFetch);
+    expect(body.endpoint).toBe('seedance-2.5-motion-control');
+    expect(body.params).toMatchObject({
+      video_url: 'https://cdn.muapi.ai/source-video.mp4',
+      images_list: ['https://cdn.muapi.ai/character.png'],
+      aspect_ratio: 'adaptive',
+      duration: 8,
+      generate_audio: false,
+      prompt: RECAST_PROMPT,
+    });
+  });
+
   test('forwards every declared input: prompt, aspect_ratio, resolution, output_format, images_list', async () => {
     const mockFetch = makeFetchMock({ outputs: ['https://cdn.muapi.ai/edit.mp4'] });
     global.fetch = mockFetch;

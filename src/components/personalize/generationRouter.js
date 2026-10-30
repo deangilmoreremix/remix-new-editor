@@ -95,6 +95,11 @@ function pickImageModel(source, options, mode) {
   return resolveModelId(source, options, DEFAULT_I2I_MODEL);
 }
 
+function clampRecastDuration(seconds) {
+  const value = Math.round(Number(seconds) || 5);
+  return Math.max(4, Math.min(30, value));
+}
+
 function logPersonalizationApi(_phase, _data) {
   // Intentionally no-op in production.
 }
@@ -238,12 +243,18 @@ async function handleVideoGeneration({ source, resolved, prompt, mode, options, 
     const identityUrl = resolved?.directInputs?.image_url;
     if (!identityUrl) throw new Error('No identity image provided for full presenter replacement.');
 
+    // Seedance motion control reads the character from `images_list`;
+    // `image_url` is kept for Kling-style motion-control models. processV2V
+    // only forwards the keys the selected model declares.
     const result = await processRecast(apiKey, {
       model: videoModel,
       video_url: videoUrl,
       image_url: identityUrl,
+      images_list: [identityUrl],
       prompt: options?.preserveAudio ? undefined : prompt,
-      aspect_ratio: options?.aspectRatio || source?.aspectRatio,
+      aspect_ratio: options?.aspectRatio || source?.aspectRatio || 'adaptive',
+      duration: clampRecastDuration(options?.duration || source?.duration),
+      generate_audio: false,
     });
 
     onProgress?.(85, 'Processing...');

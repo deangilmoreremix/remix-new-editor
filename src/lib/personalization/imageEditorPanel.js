@@ -26,6 +26,22 @@ const GROUP_LABELS = Object.freeze({
 const ASPECTS = ['original', '9:16', '16:9', '1:1', '4:5'];
 const FORMATS = ['png', 'webp', 'jpeg'];
 
+export function createRecastState() {
+  return {
+    open: false,
+    sourceName: '',
+    sourcePreviewUrl: '',
+    sourceUrl: '',
+    duration: 0,
+    prompt: '',
+    status: 'idle',
+    statusLabel: '',
+    resultUrl: '',
+    error: '',
+    saved: false,
+  };
+}
+
 function escapeHtml(value) {
   return String(value ?? '')
     .replace(/&/g, '&amp;')
@@ -122,6 +138,8 @@ export function createPersonalizationImageEditorSession(asset, {
     versionIndex: existingVersions.length - 1,
     mode: 'simple',
     activeGroup: 'smart',
+    panelTab: 'tools',
+    recast: createRecastState(),
     compareMode: false,
     safeArea: false,
     maskMode: false,
@@ -309,7 +327,10 @@ function renderSimple(session) {
 
       ${renderVisionRecommendation(session)}
 
-      <div class="pm-editor-quick-actions">${renderQuickActions(session)}</div>
+      <div class="pm-editor-quick-actions">
+        ${renderQuickActions(session)}
+        ${supportsFullBodyRecast(session) ? `<button type="button" class="pm-small-btn pm-editor-recast-cta" data-editor-action="recast-open" ${session.busyLabel ? 'disabled' : ''}>⇄ Full Body Recast</button>` : ''}
+      </div>
 
       <div class="pm-editor-smart">
         <label for="pm-editor-smart-prompt">Ask SmartVideo AI</label>
@@ -344,20 +365,61 @@ function renderSimple(session) {
   `;
 }
 
-function renderOperationSidebar(session) {
+const GROUP_ICONS = Object.freeze({
+  smart: '✦',
+  background: '▧',
+  subject: '◎',
+  people: '☺',
+  product: '▣',
+  brand: '◆',
+  object: '◇',
+  text: 'T',
+  scene: '☀',
+  video: '▶',
+  effects: '✧',
+  transform: '⤢',
+});
+
+const PANEL_TABS = Object.freeze([
+  ['tools', 'AI Tools'],
+  ['adjust', 'Adjust'],
+  ['output', 'Output'],
+]);
+
+const PROTECTION_LABELS = Object.freeze([
+  ['subject', 'Subject'],
+  ['face', 'Face / Identity'],
+  ['product', 'Product'],
+  ['logo', 'Logo'],
+  ['text', 'Text'],
+  ['brandColors', 'Brand Colors'],
+]);
+
+export function supportsFullBodyRecast(session) {
+  return ['person', 'team'].includes(session?.kind);
+}
+
+function renderToolRail(session) {
   const groups = Array.from(operationGroupsForAsset(session.kind).keys());
+  const recastOpen = Boolean(session.recast?.open);
+  const railButton = (attrs, icon, label, active) => `
+    <button type="button" class="pm-editor-rail-btn ${active ? 'active' : ''}" ${attrs} title="${escapeHtml(label)}">
+      <span class="pm-editor-rail-icon" aria-hidden="true">${escapeHtml(icon)}</span>
+      <span class="pm-editor-rail-label">${escapeHtml(label)}</span>
+    </button>
+  `;
   return `
-    <aside class="pm-editor-tool-sidebar">
-      <button type="button" class="pm-small-btn" data-editor-action="simple">← Simple Mode</button>
-      <div class="pm-editor-sidebar-title">AI Tools</div>
-      ${groups.map((group) => `
-        <button type="button" class="pm-editor-group ${session.activeGroup === group ? 'active' : ''}" data-editor-group="${group}">
-          ${escapeHtml(GROUP_LABELS[group] || group)}
-        </button>
-      `).join('')}
-      <div class="pm-editor-sidebar-separator"></div>
-      <button type="button" class="pm-editor-group ${session.maskMode ? 'active' : ''}" data-editor-action="mask">Select / Mask Area</button>
-    </aside>
+    <nav class="pm-editor-rail" aria-label="AI tool groups">
+      ${supportsFullBodyRecast(session) ? railButton('data-editor-action="recast-open"', '⇄', 'Full Body', recastOpen) : ''}
+      ${railButton('data-editor-action="mask"', '⌖', 'Mask', session.maskMode)}
+      <span class="pm-editor-rail-sep" aria-hidden="true"></span>
+      ${groups.map((group) => railButton(
+        `data-editor-group="${escapeHtml(group)}"`,
+        GROUP_ICONS[group] || '•',
+        GROUP_LABELS[group] || group,
+        !recastOpen && !session.maskMode && session.activeGroup === group,
+      )).join('')}
+    </nav>
   `;
 }
 
@@ -370,113 +432,234 @@ function rangeControl(key, label, value, min, max, step = 1, suffix = '') {
   `;
 }
 
-function renderLocalControls(session) {
+function segmented(key, options, current) {
+  return `
+    <div class="pm-editor-segmented" role="group">
+      ${options.map(([value, label]) => `
+        <button type="button" class="${current === value ? 'active' : ''}" data-editor-segment="${escapeHtml(key)}" data-value="${escapeHtml(value)}" aria-pressed="${current === value ? 'true' : 'false'}">${escapeHtml(label)}</button>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderToolsTab(session) {
+  const grouped = operationGroupsForAsset(session.kind);
+  const operations = grouped.get(session.activeGroup) || [];
+  return `
+    <div class="pm-editor-ask">
+      <textarea id="pm-editor-smart-prompt" data-editor-smart-prompt rows="2" placeholder="Describe an edit… e.g. remove the truck behind the contractor">${escapeHtml(session.smartPrompt)}</textarea>
+      <button type="button" class="pm-btn pm-btn-primary" data-editor-action="smart-edit" ${!session.smartPrompt.trim() || session.busyLabel ? 'disabled' : ''}>✦ Edit</button>
+    </div>
+    <div class="pm-editor-sidebar-title">${escapeHtml(GROUP_LABELS[session.activeGroup] || session.activeGroup)}</div>
+    <div class="pm-editor-op-grid">
+      ${operations.map((operation) => `
+        <button type="button" class="pm-editor-op ${operation.video ? 'pm-editor-op-video' : ''}" data-editor-operation="${operation.id}" title="${escapeHtml(operation.description)}" ${session.busyLabel ? 'disabled' : ''}>
+          ${escapeHtml(operation.label)}
+        </button>
+      `).join('') || '<div class="pm-editor-note">No AI tools in this group for this asset.</div>'}
+    </div>
+  `;
+}
+
+function renderAdjustTab(session) {
   const c = session.localControls;
   return `
-    <details class="pm-editor-details" open>
-      <summary>Output & AI</summary>
-      <div class="pm-editor-detail-body">
-        <label class="pm-editor-control">
-          <span>AI Mode</span>
-          <select data-editor-setting="modelMode">
-            ${['auto','fast','precision'].map((mode) => `<option value="${mode}" ${session.modelMode === mode ? 'selected' : ''}>${mode}</option>`).join('')}
-          </select>
-        </label>
-        <label class="pm-editor-control">
-          <span>Aspect Ratio</span>
-          <select data-editor-setting="aspectRatio">
-            ${ASPECTS.map((ratio) => `<option value="${ratio}" ${session.aspectRatio === ratio ? 'selected' : ''}>${ratio}</option>`).join('')}
-          </select>
-        </label>
-        <label class="pm-editor-control">
-          <span>Format</span>
-          <select data-editor-setting="outputFormat">
-            ${FORMATS.map((format) => `<option value="${format}" ${session.outputFormat === format ? 'selected' : ''}>${format}</option>`).join('')}
-          </select>
-        </label>
+    <div class="pm-editor-tab-scroll">
+      <div class="pm-editor-button-grid">
+        <button type="button" class="pm-small-btn" data-editor-local-action="rotate">Rotate 90°</button>
+        <button type="button" class="pm-small-btn ${c.flipX ? 'active' : ''}" data-editor-local-action="flipX">Flip H</button>
+        <button type="button" class="pm-small-btn ${c.flipY ? 'active' : ''}" data-editor-local-action="flipY">Flip V</button>
       </div>
-    </details>
-
-    <details class="pm-editor-details">
-      <summary>Local Canvas Tools</summary>
-      <div class="pm-editor-detail-body">
-        <div class="pm-editor-button-grid">
-          <button type="button" class="pm-small-btn" data-editor-local-action="rotate">Rotate 90°</button>
-          <button type="button" class="pm-small-btn ${c.flipX ? 'active' : ''}" data-editor-local-action="flipX">Flip H</button>
-          <button type="button" class="pm-small-btn ${c.flipY ? 'active' : ''}" data-editor-local-action="flipY">Flip V</button>
+      <label class="pm-editor-control"><span>Fit</span><select data-editor-local-select="fitMode"><option value="contain" ${c.fitMode === 'contain' ? 'selected' : ''}>Fit</option><option value="cover" ${c.fitMode === 'cover' ? 'selected' : ''}>Fill</option></select></label>
+      ${rangeControl('zoom', 'Zoom', c.zoom, 10, 300, 1, '%')}
+      ${rangeControl('brightness', 'Brightness', c.brightness, 0, 250, 1, '%')}
+      ${rangeControl('contrast', 'Contrast', c.contrast, 0, 250, 1, '%')}
+      ${rangeControl('saturation', 'Saturation', c.saturation, 0, 300, 1, '%')}
+      <details class="pm-editor-details">
+        <summary>More adjustments</summary>
+        <div class="pm-editor-detail-body">
+          ${rangeControl('opacity', 'Opacity', c.opacity, 0, 100, 1, '%')}
+          ${rangeControl('blur', 'Blur', c.blur, 0, 30, 1, 'px')}
+          ${rangeControl('grayscale', 'Grayscale', c.grayscale, 0, 100, 1, '%')}
+          ${rangeControl('sepia', 'Sepia', c.sepia, 0, 100, 1, '%')}
+          ${rangeControl('padding', 'Padding', c.padding, 0, 300, 1, 'px')}
+          ${rangeControl('borderSize', 'Border', c.borderSize, 0, 50, 1, 'px')}
+          ${rangeControl('shadow', 'Shadow', c.shadow, 0, 80, 1, 'px')}
+          <label class="pm-editor-control"><span>Canvas Background</span><input type="text" value="${escapeHtml(c.backgroundColor)}" placeholder="transparent or #ffffff" data-editor-local-text="backgroundColor" /></label>
+          <label class="pm-editor-control"><span>Text Overlay</span><input type="text" value="${escapeHtml(c.overlayText)}" data-editor-local-text="overlayText" /></label>
+          ${rangeControl('textSize', 'Text Size', c.textSize, 12, 180, 1, 'px')}
+          <label class="pm-editor-control"><span>Text Position</span><select data-editor-local-select="textPosition"><option value="top" ${c.textPosition === 'top' ? 'selected' : ''}>Top</option><option value="center" ${c.textPosition === 'center' ? 'selected' : ''}>Center</option><option value="bottom" ${c.textPosition === 'bottom' ? 'selected' : ''}>Bottom</option></select></label>
         </div>
-        <label class="pm-editor-control"><span>Fit</span><select data-editor-local-select="fitMode"><option value="contain" ${c.fitMode === 'contain' ? 'selected' : ''}>Fit</option><option value="cover" ${c.fitMode === 'cover' ? 'selected' : ''}>Fill</option></select></label>
-        ${rangeControl('zoom', 'Zoom', c.zoom, 10, 300, 1, '%')}
-        ${rangeControl('brightness', 'Brightness', c.brightness, 0, 250, 1, '%')}
-        ${rangeControl('contrast', 'Contrast', c.contrast, 0, 250, 1, '%')}
-        ${rangeControl('saturation', 'Saturation', c.saturation, 0, 300, 1, '%')}
-        ${rangeControl('opacity', 'Opacity', c.opacity, 0, 100, 1, '%')}
-        ${rangeControl('blur', 'Blur', c.blur, 0, 30, 1, 'px')}
-        ${rangeControl('grayscale', 'Grayscale', c.grayscale, 0, 100, 1, '%')}
-        ${rangeControl('sepia', 'Sepia', c.sepia, 0, 100, 1, '%')}
-        ${rangeControl('padding', 'Padding', c.padding, 0, 300, 1, 'px')}
-        ${rangeControl('borderSize', 'Border', c.borderSize, 0, 50, 1, 'px')}
-        ${rangeControl('shadow', 'Shadow', c.shadow, 0, 80, 1, 'px')}
-        <label class="pm-editor-control"><span>Canvas Background</span><input type="text" value="${escapeHtml(c.backgroundColor)}" placeholder="transparent or #ffffff" data-editor-local-text="backgroundColor" /></label>
-        <label class="pm-editor-control"><span>Text Overlay</span><input type="text" value="${escapeHtml(c.overlayText)}" data-editor-local-text="overlayText" /></label>
-        ${rangeControl('textSize', 'Text Size', c.textSize, 12, 180, 1, 'px')}
-        <label class="pm-editor-control"><span>Text Position</span><select data-editor-local-select="textPosition"><option value="top" ${c.textPosition === 'top' ? 'selected' : ''}>Top</option><option value="center" ${c.textPosition === 'center' ? 'selected' : ''}>Center</option><option value="bottom" ${c.textPosition === 'bottom' ? 'selected' : ''}>Bottom</option></select></label>
-        <button type="button" class="pm-btn pm-btn-primary" data-editor-action="apply-local">Apply Local Edit</button>
-      </div>
-    </details>
+      </details>
+    </div>
+    <div class="pm-editor-tab-footer">
+      <button type="button" class="pm-btn pm-btn-primary" data-editor-action="apply-local" ${session.busyLabel ? 'disabled' : ''}>Apply Adjustments</button>
+      <span>No AI credits used</span>
+    </div>
+  `;
+}
 
-    <details class="pm-editor-details">
-      <summary>Protect</summary>
-      <div class="pm-editor-detail-body pm-editor-protections">
-        ${[
-          ['subject','Subject'],
-          ['face','Face / Identity'],
-          ['product','Product'],
-          ['logo','Logo'],
-          ['text','Text'],
-          ['brandColors','Brand Colors'],
-        ].map(([key,label]) => `
-          <label><input type="checkbox" data-editor-protection="${key}" ${session.protections[key] ? 'checked' : ''}/> ${label}</label>
+function renderOutputTab(session) {
+  return `
+    <div class="pm-editor-control"><span>AI Mode</span>${segmented('modelMode', [['auto', 'Auto'], ['fast', 'Fast'], ['precision', 'Precise']], session.modelMode)}</div>
+    <div class="pm-editor-control"><span>Aspect Ratio</span>${segmented('aspectRatio', ASPECTS.map((ratio) => [ratio, ratio === 'original' ? 'Orig' : ratio]), session.aspectRatio)}</div>
+    <div class="pm-editor-control"><span>Format</span>${segmented('outputFormat', FORMATS.map((format) => [format, format.toUpperCase()]), session.outputFormat)}</div>
+    <div class="pm-editor-control">
+      <span>Protect during AI edits</span>
+      <div class="pm-editor-chips">
+        ${PROTECTION_LABELS.map(([key, label]) => `
+          <label class="pm-editor-chip"><input type="checkbox" data-editor-protection="${key}" ${session.protections[key] ? 'checked' : ''}/><span>${label}</span></label>
         `).join('')}
       </div>
-    </details>
+    </div>
+  `;
+}
+
+function renderPanelTabs(session) {
+  const active = PANEL_TABS.some(([id]) => id === session.panelTab) ? session.panelTab : 'tools';
+  const body = active === 'adjust'
+    ? renderAdjustTab(session)
+    : active === 'output'
+      ? renderOutputTab(session)
+      : renderToolsTab(session);
+  return `
+    <aside class="pm-editor-panel">
+      <div class="pm-editor-tabs" role="tablist" aria-label="Editor panels">
+        ${PANEL_TABS.map(([id, label]) => `
+          <button type="button" role="tab" class="${active === id ? 'active' : ''}" aria-selected="${active === id ? 'true' : 'false'}" data-editor-tab="${id}">${label}</button>
+        `).join('')}
+      </div>
+      <div class="pm-editor-tab-body pm-editor-tab-${active}" role="tabpanel">${body}</div>
+    </aside>
+  `;
+}
+
+function recastPanel(label, content) {
+  return `
+    <figure class="pm-recast-panel">
+      <figcaption>${escapeHtml(label)}</figcaption>
+      <div class="pm-recast-media">${content}</div>
+    </figure>
+  `;
+}
+
+export function renderRecastView(session) {
+  const recast = session.recast || {};
+  const current = currentEditorVersion(session);
+  const busy = recast.status === 'uploading' || recast.status === 'generating' || recast.status === 'saving';
+  const fileInput = '<input type="file" accept="video/mp4,video/quicktime,.mp4,.mov" data-recast-file hidden />';
+
+  const source = recast.sourcePreviewUrl
+    ? `
+      <video src="${escapeHtml(recast.sourcePreviewUrl)}" muted loop playsinline preload="metadata" data-recast-video="source"></video>
+      ${recast.duration ? `<span class="pm-recast-chip">${Math.round(recast.duration)}s</span>` : ''}
+      ${recast.status === 'uploading' ? `<div class="pm-recast-overlay"><span class="pm-spinner"></span>${escapeHtml(recast.statusLabel || 'Uploading…')}</div>` : ''}
+      ${!busy ? `<label class="pm-recast-replace">${fileInput}Replace</label>` : ''}
+    `
+    : `
+      <label class="pm-recast-drop" data-recast-drop>
+        ${fileInput}
+        <span class="pm-recast-drop-icon" aria-hidden="true">⬆</span>
+        <strong>Upload performance clip</strong>
+        <span>Drop or click · MP4 or MOV · 4–30 sec · 50 MB</span>
+      </label>
+    `;
+
+  const character = current?.dataUrl
+    ? `<img src="${escapeHtml(current.dataUrl)}" alt="Character reference" />`
+    : '<div class="pm-recast-empty">No character image</div>';
+
+  let result;
+  if (recast.resultUrl) {
+    result = `<video src="${escapeHtml(recast.resultUrl)}" muted loop playsinline autoplay preload="auto" data-recast-video="result"></video>`;
+  } else if (recast.status === 'generating') {
+    result = `<div class="pm-recast-overlay pm-recast-overlay-static"><span class="pm-spinner"></span>${escapeHtml(recast.statusLabel || 'Recasting…')}</div>`;
+  } else {
+    result = '<div class="pm-recast-empty"><span aria-hidden="true">✦</span>Your recast appears here</div>';
+  }
+
+  const canRun = Boolean(recast.sourceUrl) && !busy && Boolean(current?.dataUrl);
+  return `
+    <div class="pm-recast" data-recast-view>
+      <div class="pm-recast-grid">
+        ${recastPanel('Source performance', source)}
+        ${recastPanel('Character image', character)}
+        ${recastPanel('Recast result', result)}
+      </div>
+      <div class="pm-recast-controls">
+        <input type="text" maxlength="1000" value="${escapeHtml(recast.prompt || '')}" placeholder="Optional direction, e.g. keep the hand gesture natural" data-recast-prompt ${busy ? 'disabled' : ''} />
+        ${recast.status === 'generating'
+          ? '<button type="button" class="pm-btn pm-btn-secondary" data-editor-action="recast-cancel">Cancel</button>'
+          : `<button type="button" class="pm-btn pm-btn-primary" data-editor-action="recast-run" ${canRun ? '' : 'disabled'}>✦ ${recast.resultUrl ? 'Recast Again' : 'Recast Full Body'}</button>`}
+      </div>
+      <p class="pm-recast-note">Keeps the source clip's movement, camera and location and swaps in this character. The result is silent; the source soundtrack is not added back.</p>
+    </div>
+  `;
+}
+
+function renderFooter(session) {
+  const recast = session.recast || {};
+  if (recast.open) {
+    const message = recast.error
+      ? `<span class="pm-editor-footer-error" role="alert">${escapeHtml(recast.error)}</span>`
+      : (recast.saved ? '<span class="pm-editor-good">✓ Saved to Presenter Videos</span>' : '');
+    return `
+      <div class="pm-editor-footer pm-editor-footer-sticky">
+        <div class="pm-editor-footer-msg">${message}</div>
+        <div class="pm-asset-actions">
+          <button type="button" class="pm-btn pm-btn-secondary" data-editor-action="recast-close" ${recast.status === 'saving' ? 'disabled' : ''}>← Back to Image</button>
+          <button type="button" class="pm-btn pm-btn-primary" data-editor-action="recast-save" ${recast.status !== 'done' || !recast.resultUrl || recast.saved ? 'disabled' : ''}>
+            ${recast.saved ? 'Saved' : 'Save Recast Video'}
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  const current = currentEditorVersion(session);
+  let message = '';
+  if (session.error) message = `<span class="pm-editor-footer-error" role="alert">${escapeHtml(session.error)}</span>`;
+  else if (session.maskMode) message = '<span>Paint the area to change, then pick an AI tool.</span>';
+  else if (session.status) message = `<span class="pm-editor-good">${escapeHtml(session.status)}</span>`;
+  return `
+    <div class="pm-editor-footer pm-editor-footer-sticky">
+      <div class="pm-editor-footer-msg">${message}</div>
+      <div class="pm-asset-actions">
+        <button type="button" class="pm-btn pm-btn-secondary" data-editor-action="close">Close Editor</button>
+        <button type="button" class="pm-btn pm-btn-primary" data-editor-action="apply" ${session.versionIndex === 0 || session.busyLabel ? 'disabled' : ''}>
+          ${current?.visionValidation && !current.visionValidation.passed && session.validationOverrideVersionId === current.id ? 'Use Anyway' : 'Use Edited Asset'}
+        </button>
+      </div>
+    </div>
   `;
 }
 
 function renderAdvanced(session) {
-  const grouped = operationGroupsForAsset(session.kind);
-  const operations = grouped.get(session.activeGroup) || [];
-  return `
-    <div class="pm-editor-advanced">
-      ${renderOperationSidebar(session)}
-      <main class="pm-editor-advanced-stage">
-        ${session.maskMode ? '<div class="pm-editor-mask-host" data-editor-mask-host></div>' : renderMediaStage(session)}
-        ${session.maskMode ? '<div class="pm-editor-note">Paint/select the area to change, then choose an AI operation from the right. The selection remains local until you run an edit.</div>' : renderVersions(session)}
-        ${session.error ? `<div class="pm-error" role="alert">${escapeHtml(session.error)}</div>` : ''}
-      </main>
-      <aside class="pm-editor-right-panel">
-        <div class="pm-editor-sidebar-title">${escapeHtml(GROUP_LABELS[session.activeGroup] || session.activeGroup)} AI Tools</div>
-        <div class="pm-editor-operation-list">
-          ${operations.map((operation) => `
-            <button type="button" class="pm-editor-operation" data-editor-operation="${operation.id}" ${session.busyLabel ? 'disabled' : ''}>
-              <strong>${escapeHtml(operation.label)}</strong>
-              <span>${escapeHtml(operation.description)}</span>
-            </button>
-          `).join('')}
-        </div>
-        ${renderLocalControls(session)}
-      </aside>
-    </div>
-    <div class="pm-editor-footer">
-      <div class="pm-asset-actions">
+  const recastOpen = Boolean(session.recast?.open);
+  let canvas;
+  if (recastOpen) {
+    canvas = renderRecastView(session);
+  } else if (session.maskMode) {
+    canvas = '<div class="pm-editor-mask-host" data-editor-mask-host></div>';
+  } else {
+    canvas = `
+      ${renderMediaStage(session)}
+      <div class="pm-editor-float-bar">
+        ${session.versionIndex > 0 ? `<button type="button" class="pm-small-btn ${session.compareMode ? 'active' : ''}" data-editor-action="compare">Compare</button>` : ''}
         <button type="button" class="pm-small-btn ${session.safeArea ? 'active' : ''}" data-editor-action="safe-area">Safe Area</button>
-        ${session.versionIndex > 0 ? '<button type="button" class="pm-small-btn" data-editor-action="compare">Compare</button>' : ''}
+        ${session.versionIndex > 0 ? '<button type="button" class="pm-small-btn" data-editor-action="revert-original">Revert</button>' : ''}
       </div>
-      <div class="pm-asset-actions">
-        <button type="button" class="pm-btn pm-btn-secondary" data-editor-action="close">Close Editor</button>
-        <button type="button" class="pm-btn pm-btn-primary" data-editor-action="apply" ${session.versionIndex === 0 || session.busyLabel ? 'disabled' : ''}>Use Edited Asset</button>
-      </div>
+      ${session.versions.length > 1 ? renderVersions(session) : ''}
+    `;
+  }
+
+  return `
+    <div class="pm-editor-workspace ${recastOpen ? 'is-recast' : ''}">
+      ${renderToolRail(session)}
+      <main class="pm-editor-canvas">${canvas}</main>
+      ${recastOpen ? '' : renderPanelTabs(session)}
     </div>
+    ${renderFooter(session)}
   `;
 }
 
@@ -484,7 +667,7 @@ export function renderPersonalizationImageEditorPanel(session) {
   if (!session) return '';
   const recipe = getAssetRecipe(session.category, session.role);
   return `
-    <section class="pm-editor-shell" data-personalization-image-editor data-editor-asset-id="${escapeHtml(session.assetId)}">
+    <section class="pm-editor-shell pm-editor-shell-${session.mode === 'advanced' ? 'advanced' : 'simple'}" data-personalization-image-editor data-editor-asset-id="${escapeHtml(session.assetId)}">
       <header class="pm-editor-header">
         <div>
           <div class="pm-editor-title">✦ SmartVideo AI Image Editor</div>
@@ -495,6 +678,7 @@ export function renderPersonalizationImageEditorPanel(session) {
             <button type="button" class="pm-small-btn" data-editor-action="undo" ${session.versionIndex === 0 ? 'disabled' : ''}>Undo</button>
             <button type="button" class="pm-small-btn" data-editor-action="redo" ${session.versionIndex >= session.versions.length - 1 ? 'disabled' : ''}>Redo</button>
           ` : ''}
+          ${session.mode === 'advanced' ? '<button type="button" class="pm-small-btn" data-editor-action="simple">← Simple Mode</button>' : ''}
           <button type="button" class="pm-small-btn" data-editor-action="close" aria-label="Close image editor">Close</button>
         </div>
       </header>
