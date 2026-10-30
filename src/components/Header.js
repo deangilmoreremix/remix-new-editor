@@ -26,7 +26,9 @@ export function Header(navigate) {
 
   const menu = document.createElement('nav');
   menu.className = 'hidden lg:flex items-center gap-5 text-[13px] font-bold text-secondary';
-  const items = ['Explore', 'Image', 'Video', 'Storyboard', 'Edit', 'Character', 'Commercial', 'Upscale', 'Vibe Motion', 'Cinema Studio', 'Cinema Template Studio', 'AI Influencer', 'Smart Video Viral', 'Audio', 'Avatar', 'Training', 'Video Tools', 'Chat', 'Lip Sync', 'Personalizer', 'Video Agent', 'AI VFX', 'Brand Studio', 'Apps', 'Templates', 'Assist', 'Community', 'Social', 'Landing', 'Brand DNA', 'Campaign', 'Asset Edit', 'Photo Studio', 'Brand Photo Studio', 'Animate'];
+  // Primary studios stay top-level; everything else lives under Tools so the
+  // bar fits on one line instead of overflowing.
+  const items = ['Explore', 'Image', 'Video', 'Tools', 'Storyboard', 'Edit', 'Character', 'Vibe Motion', 'Cinema Studio', 'Cinema Template Studio', 'AI Influencer', 'Smart Video Viral', 'Apps', 'Templates', 'Assist', 'Community', 'Content Library'];
 
   const links = {};
 
@@ -44,7 +46,7 @@ export function Header(navigate) {
 
   const createDropdown = (items, parent) => {
     const dropdown = document.createElement('div');
-    dropdown.className = 'absolute top-full left-0 mt-2 w-56 bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 py-2';
+    dropdown.className = 'absolute top-full left-0 mt-2 w-[26rem] grid grid-cols-2 bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 py-2';
     dropdown.innerHTML = items.map(d => `<a class="block px-4 py-2 text-sm text-secondary hover:text-white hover:bg-white/5 cursor-pointer">${d.label}</a>`).join('');
     items.forEach((d, i) => {
       dropdown.children[i].onclick = () => navigate(d.route);
@@ -53,21 +55,22 @@ export function Header(navigate) {
   };
 
   const toolsDropdownItems = [
-    { label: 'Storyboard', route: 'storyboard' },
-    { label: 'Character', route: 'character' },
-    { label: 'Vibe Motion', route: 'effects' },
-    { label: 'Cinema Studio', route: 'cinema' },
-    { label: 'AI Influencer', route: 'influencer' },
     { label: 'Commercial', route: 'commercial' },
     { label: 'Upscale', route: 'upscale' },
+    { label: 'Audio', route: 'audio' },
+    { label: 'Avatar', route: 'avatar' },
+    { label: 'Training', route: 'training' },
+    { label: 'Video Tools', route: 'videotools' },
+    { label: 'Chat', route: 'chat' },
+    { label: 'Lip Sync', route: 'lipsync' },
+    { label: 'Personalizer', route: 'personalizer' },
+    { label: 'Video Agent', route: 'video-agent' },
+    { label: 'AI VFX', route: 'ai-vfx' },
+    { label: 'Brand Studio', route: 'brand' },
+    { label: 'Animate', route: 'animate' },
     { label: 'Social', route: 'social' },
     { label: 'Landing', route: 'landing' },
-    { label: 'Brand DNA', route: 'brand-dna' },
-    { label: 'Campaign', route: 'campaign' },
-    { label: 'Asset Edit', route: 'asset-edit' },
-    { label: 'Photo Studio', route: 'photo-studio' },
-    { label: 'Brand Photo Studio', route: 'brand-photo-studio' },
-    { label: 'Animate', route: 'animate' },
+    { label: 'Website Builder', route: 'website-builder' },
   ];
 
   items.forEach(item => {
@@ -161,16 +164,6 @@ export function Header(navigate) {
       link.onclick = () => navigate('social');
     } else if (item === 'Landing') {
       link.onclick = () => navigate('landing');
-    } else if (item === 'Brand DNA') {
-      link.onclick = () => navigate('brand-dna');
-    } else if (item === 'Campaign') {
-      link.onclick = () => navigate('campaign');
-    } else if (item === 'Asset Edit') {
-      link.onclick = () => navigate('asset-edit');
-    } else if (item === 'Photo Studio') {
-      link.onclick = () => navigate('photo-studio');
-    } else if (item === 'Brand Photo Studio') {
-      link.onclick = () => navigate('brand-photo-studio');
     } else if (item === 'Animate') {
       link.onclick = () => navigate('animate');
     } else if (item === 'Image' || item === 'Video' || item === 'Tools') {
@@ -193,7 +186,7 @@ export function Header(navigate) {
   mobileMenuBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
 
   const mobileMenu = document.createElement('div');
-  mobileMenu.className = 'lg:hidden fixed inset-0 bg-black/95 z-[100] flex flex-col items-center justify-center gap-4 opacity-0 pointer-events-none transition-opacity duration-300';
+  mobileMenu.className = 'lg:hidden fixed inset-0 bg-black/95 z-[100] flex flex-col items-center justify-start overflow-y-auto py-16 gap-4 opacity-0 pointer-events-none transition-opacity duration-300';
 
   const closeBtn = document.createElement('button');
   closeBtn.className = 'absolute top-4 right-4 p-2 text-white';
