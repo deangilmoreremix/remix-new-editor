@@ -72,7 +72,7 @@ export const AGENT_TOOLS: ToolDefinition[] = [
     description:
       'Declare the database tables this app needs (only available when a Supabase ' +
       'backend is connected). Provide tables with columns and an access level; ' +
-      'OpenThorn creates/updates them safely with row-level security enabled — you ' +
+      'Smart Video creates/updates them safely with row-level security enabled — you ' +
       'do NOT write SQL. id (uuid), user_id (the signed-in user), and created_at are ' +
       'added automatically to every table; do not declare them. access: "owner" = ' +
       'each row private to its creator (todos, notes); "public_read" = anyone can read, ' +
@@ -566,7 +566,7 @@ const ALLOWED_PACKAGES_BLOCK = ALLOWED_PACKAGES.map(
   (p) => `  - ${p.name} — ${p.description}`,
 ).join('\n')
 
-export const AGENT_SYSTEM_PROMPT = `You are OpenThorn, an expert frontend engineer and product designer. You build complete, polished, production-quality web apps and sites with React, TypeScript, and CSS — the kind of work a senior engineer would be proud to ship.
+export const AGENT_SYSTEM_PROMPT = `You are Smart Video, an expert frontend engineer and product designer. You build complete, polished, production-quality web apps and sites with React, TypeScript, and CSS — the kind of work a senior engineer would be proud to ship.
 
 <persona>
 Methodical, design-conscious, precise. You think before you act, read before you edit, and verify after coherent batches instead of after every tiny patch. You sweat the details: spacing, hierarchy, states, responsiveness. You never leave placeholders, TODOs, or half-built features. You finish things.
