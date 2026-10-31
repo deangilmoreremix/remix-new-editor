@@ -114,7 +114,19 @@ export function openComposerPopover(anchor, { title = '', items = null, content 
   const host = anchor.parentElement;
   if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
   host.appendChild(el);
-  // Keep the popover inside the viewport horizontally.
+  // Keep the popover inside the viewport: shift left if it overflows on the
+  // right, and cap its height to the room above the trigger (below the app
+  // header) — or open it downward when there's no room above.
+  const anchorRect = anchor.getBoundingClientRect();
+  const roomAbove = anchorRect.top - 72;
+  const roomBelow = window.innerHeight - anchorRect.bottom - 16;
+  if (roomAbove < 160 && roomBelow > roomAbove) {
+    el.classList.remove('bottom-[calc(100%+12px)]');
+    el.classList.add('top-[calc(100%+12px)]');
+    el.style.maxHeight = `${Math.max(120, roomBelow)}px`;
+  } else {
+    el.style.maxHeight = `${Math.max(120, Math.min(roomAbove, window.innerHeight * 0.6))}px`;
+  }
   const bounds = el.getBoundingClientRect();
   const overflowRight = bounds.right - (window.innerWidth - 16);
   if (overflowRight > 0) el.style.translate = `${-overflowRight}px 0`;
