@@ -8748,54 +8748,6 @@ export const v2vModels = [
     }
   },
   {
-    "id": "seedance-2.5-motion-control",
-    "name": "Seedance 2.5 Motion Control",
-    "provider": "muapi",
-    "provider_name": "MuAPI",
-    "endpoint": "seedance-2.5-motion-control",
-    "family": "tools",
-    "videoField": "video_url",
-    "imageField": "images_list",
-    "hasPrompt": true,
-    "description": "Full body recast: keep the source clip's movement and location while replacing the performer with a character reference image.",
-    "inputs": {
-      "images_list": {
-        "type": "array",
-        "title": "Character Images",
-        "name": "images_list",
-        "description": "Character reference image URLs. The first image defines the new performer."
-      },
-      "prompt": {
-        "type": "string",
-        "title": "Prompt",
-        "name": "prompt",
-        "description": "Optional short direction for the recast."
-      },
-      "aspect_ratio": {
-        "type": "string",
-        "title": "Aspect Ratio",
-        "name": "aspect_ratio",
-        "enum": ["adaptive", "16:9", "9:16", "1:1", "4:3", "3:4"],
-        "default": "adaptive"
-      },
-      "duration": {
-        "type": "int",
-        "title": "Duration",
-        "name": "duration",
-        "description": "Output length in seconds; match the source clip (4-30).",
-        "minValue": 4,
-        "maxValue": 30,
-        "default": 5
-      },
-      "generate_audio": {
-        "type": "boolean",
-        "title": "Generate Audio",
-        "name": "generate_audio",
-        "default": false
-      }
-    }
-  },
-  {
     "id": "kling-v3.0-pro-motion-control",
     "name": "Kling v3.0 Pro Motion Control",
     "provider": "muapi",

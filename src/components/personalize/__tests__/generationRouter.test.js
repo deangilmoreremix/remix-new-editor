@@ -243,12 +243,8 @@ describe('runGeneration — video source', () => {
     });
     expect(muapiMock.processV2V).toHaveBeenCalledTimes(1);
     const call = muapiMock.processV2V.mock.calls[0][0];
-    expect(call.model).toBe('seedance-2.5-motion-control');
+    expect(call.model).toBe('kling-v3.0-pro-motion-control');
     expect(call.studioType).toBe('personalize-recast');
-    expect(call.images_list).toEqual([call.image_url]);
-    expect(call.generate_audio).toBe(false);
-    expect(call.duration).toBeGreaterThanOrEqual(4);
-    expect(call.duration).toBeLessThanOrEqual(30);
   });
 
   it('routes recreate (no source video) to generateI2V', async () => {

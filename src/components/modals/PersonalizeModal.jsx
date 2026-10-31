@@ -348,12 +348,6 @@ export class PersonalizeModal extends BaseModal {
     const soft = hexToRgba(primary, 0.12);
     const softAccent = hexToRgba(accent, 0.12);
     const activeTab = this._activeTab();
-    // The advanced image editor is a fixed-height workspace; drop the modal's
-    // intro copy and contact list around it so the modal does not scroll.
-    const editorFocus = activeTab === 'assets' && this.imageEditorSession?.mode === 'advanced';
-    // Only fade in on first open; refreshBody re-renders on every editor action.
-    const animate = !this._bodyRendered;
-    this._bodyRendered = true;
 
     const tabAria = (tab) => {
       const selected = activeTab === tab ? 'true' : 'false';
@@ -362,7 +356,7 @@ export class PersonalizeModal extends BaseModal {
     };
 
     return `
-      <div class="pm-modal ${this.darkMode ? 'pm-dark' : 'pm-light'} ${editorFocus ? 'pm-editor-focus' : ''} ${animate ? '' : 'pm-no-anim'}" data-theme="${this.darkMode ? 'dark' : 'light'}" style="--pm-primary: ${primary}; --pm-accent: ${accent}; --pm-on-primary: ${this.appColors.onPrimary || '#000000'}; --pm-soft: ${soft}; --pm-soft-accent: ${softAccent}; --pm-glow: ${hexToRgba(primary, 0.25)}; --app-primary: ${primary}; --app-accent: ${accent}; --app-on-primary: ${this.appColors.onPrimary || '#000000'}; --app-soft: ${soft}; --app-soft-accent: ${softAccent}; --app-glow: ${hexToRgba(primary, 0.25)};">
+      <div class="pm-modal ${this.darkMode ? 'pm-dark' : 'pm-light'}" data-theme="${this.darkMode ? 'dark' : 'light'}" style="--pm-primary: ${primary}; --pm-accent: ${accent}; --pm-on-primary: ${this.appColors.onPrimary || '#000000'}; --pm-soft: ${soft}; --pm-soft-accent: ${softAccent}; --pm-glow: ${hexToRgba(primary, 0.25)}; --app-primary: ${primary}; --app-accent: ${accent}; --app-on-primary: ${this.appColors.onPrimary || '#000000'}; --app-soft: ${soft}; --app-soft-accent: ${softAccent}; --app-glow: ${hexToRgba(primary, 0.25)};">
         <p id="pm-subtitle" class="pm-subtitle">Discover people and businesses, organize brand assets, edit media, and apply SmartVideo AI personalization without leaving your creation workflow.</p>
 
         <div class="pm-sr-only" role="status" aria-live="polite" id="pm-live"></div>
@@ -432,13 +426,6 @@ export class PersonalizeModal extends BaseModal {
           gap: 20px;
           animation: pm-fade-in 280ms ease-out;
         }
-
-        .pm-modal.pm-no-anim,
-        .pm-modal.pm-no-anim .pm-tab-panel-active { animation: none; }
-        .pm-modal.pm-editor-focus { gap: 12px; }
-        .pm-modal.pm-editor-focus > .pm-subtitle,
-        .pm-modal.pm-editor-focus > .pm-section,
-        .pm-modal.pm-editor-focus > .pm-profile { display: none; }
 
         @keyframes pm-fade-in {
           from { opacity: 0; transform: translateY(6px); }
@@ -763,26 +750,6 @@ export class PersonalizeModal extends BaseModal {
         .pm-btn-primary:active:not(:disabled) {
           transform: translateY(0);
         }
-
-        .pm-small-btn {
-          appearance: none;
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
-          border: 1px solid var(--border-color);
-          border-radius: 8px;
-          padding: 5px 10px;
-          background: var(--bg-panel);
-          color: var(--text-secondary);
-          font-family: var(--font-family);
-          font-size: 11px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all var(--transition-fast);
-        }
-        .pm-small-btn:hover:not(:disabled) { color: var(--text-primary); border-color: var(--pm-primary); }
-        .pm-small-btn:disabled { opacity: .45; cursor: not-allowed; }
-        .pm-small-btn.active { background: var(--pm-soft); color: var(--pm-primary); border-color: var(--pm-primary); }
 
         .pm-btn-secondary {
           background: var(--bg-panel);
@@ -2141,7 +2108,25 @@ export class PersonalizeModal extends BaseModal {
         .pm-editor-version img { width:100%; height:52px; object-fit:cover; border-radius:6px; display:block; margin-bottom:3px; }
         .pm-editor-note { border:1px solid var(--border-color); background:var(--bg-panel); border-radius:9px; padding:8px; font-size:9px; line-height:1.45; color:var(--text-muted); }
         .pm-editor-footer { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; border-top:1px solid var(--border-color); padding-top:12px; }
+        .pm-editor-advanced { display:grid; grid-template-columns:170px minmax(0,1fr) 280px; min-height:620px; }
+        .pm-editor-tool-sidebar, .pm-editor-right-panel { padding:12px; background:var(--bg-panel); }
+        .pm-editor-tool-sidebar { border-right:1px solid var(--border-color); }
+        .pm-editor-right-panel { border-left:1px solid var(--border-color); max-height:70vh; overflow:auto; }
+        .pm-editor-advanced-stage { min-width:0; padding:12px; display:flex; flex-direction:column; gap:10px; }
         .pm-editor-sidebar-title { margin:10px 0 6px; font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.12em; color:var(--text-muted); }
+        .pm-editor-group {
+          width:100%; text-align:left; border:0; border-radius:8px; padding:8px; margin:1px 0;
+          background:transparent; color:var(--text-secondary); cursor:pointer; font:inherit; font-size:10px; font-weight:650;
+        }
+        .pm-editor-group.active, .pm-small-btn.active { background:var(--pm-soft); color:var(--pm-primary); }
+        .pm-editor-sidebar-separator { height:1px; background:var(--border-color); margin:10px 0; }
+        .pm-editor-operation-list { display:flex; flex-direction:column; gap:6px; }
+        .pm-editor-operation {
+          width:100%; text-align:left; border:1px solid var(--border-color); background:var(--bg-card);
+          border-radius:10px; padding:9px; color:var(--text-primary); cursor:pointer; font:inherit;
+        }
+        .pm-editor-operation strong { display:block; font-size:10px; }
+        .pm-editor-operation span { display:block; margin-top:3px; color:var(--text-muted); font-size:9px; line-height:1.4; }
         .pm-editor-details { margin-top:9px; border:1px solid var(--border-color); border-radius:10px; background:var(--bg-card); padding:9px; }
         .pm-editor-details summary { cursor:pointer; font-size:10px; font-weight:700; color:var(--text-primary); }
         .pm-editor-detail-body { display:flex; flex-direction:column; gap:9px; margin-top:9px; }
@@ -2154,134 +2139,6 @@ export class PersonalizeModal extends BaseModal {
         .pm-editor-button-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:5px; }
         .pm-editor-protections label { display:flex; gap:6px; align-items:center; font-size:10px; color:var(--text-secondary); }
         .pm-editor-mask-host { min-height:360px; }
-        /* Advanced editor: one fixed-height workspace, only the tab body scrolls */
-        .pm-editor-shell-advanced .pm-editor-header { padding: 10px 14px; }
-        .pm-editor-workspace {
-          --pm-ws-height: clamp(360px, calc(100vh - 380px), 680px);
-          display: grid; grid-template-columns: 76px minmax(0,1fr) 300px;
-          height: var(--pm-ws-height); min-height: 0;
-        }
-        .pm-editor-workspace.is-recast { grid-template-columns: 76px minmax(0,1fr); }
-        .pm-editor-rail {
-          display:flex; flex-direction:column; gap:2px; padding:8px 6px; overflow-y:auto;
-          background:var(--bg-panel); border-right:1px solid var(--border-color);
-        }
-        .pm-editor-rail-btn {
-          display:flex; flex-direction:column; align-items:center; gap:3px; width:100%;
-          border:0; border-radius:10px; padding:5px 2px; background:transparent; cursor:pointer;
-          color:var(--text-secondary); font:inherit;
-        }
-        .pm-editor-rail-btn:hover { background:var(--bg-card); color:var(--text-primary); }
-        .pm-editor-rail-btn.active { background:var(--pm-soft); color:var(--pm-primary); }
-        .pm-editor-rail-icon { font-size:14px; line-height:1; }
-        .pm-editor-rail-label { font-size:9px; font-weight:700; line-height:1.15; text-align:center; }
-        .pm-editor-rail-sep { height:1px; background:var(--border-color); margin:6px 4px; flex:none; }
-        .pm-editor-canvas { position:relative; min-width:0; min-height:0; padding:12px; display:flex; flex-direction:column; }
-        .pm-editor-canvas > .pm-editor-stage,
-        .pm-editor-canvas > .pm-editor-compare { flex:1; min-height:0; max-height:none; }
-        .pm-editor-canvas > .pm-editor-stage > img { max-height:100%; }
-        .pm-editor-canvas > .pm-editor-compare figure { display:flex; flex-direction:column; min-height:0; }
-        .pm-editor-canvas > .pm-editor-compare img { flex:1; min-height:0; aspect-ratio:auto; }
-        .pm-editor-canvas .pm-editor-mask-host { flex:1; min-height:0; overflow:auto; }
-        .pm-editor-float-bar {
-          position:absolute; top:20px; right:20px; display:flex; gap:5px;
-          padding:4px; border-radius:10px; background:rgba(0,0,0,.55); backdrop-filter:blur(6px);
-        }
-        .pm-editor-float-bar .pm-small-btn { background:transparent; color:#fff; border-color:rgba(255,255,255,.18); }
-        .pm-editor-float-bar .pm-small-btn.active { background:rgba(255,255,255,.18); color:#fff; }
-        .pm-editor-panel { display:flex; flex-direction:column; min-height:0; background:var(--bg-panel); border-left:1px solid var(--border-color); }
-        .pm-editor-tabs { display:grid; grid-template-columns:repeat(3,1fr); gap:3px; padding:8px; border-bottom:1px solid var(--border-color); }
-        .pm-editor-tabs button {
-          border:0; border-radius:8px; padding:7px 4px; background:transparent; cursor:pointer;
-          color:var(--text-muted); font:inherit; font-size:10px; font-weight:750;
-        }
-        .pm-editor-tabs button.active { background:var(--bg-card); color:var(--text-primary); box-shadow:0 1px 0 var(--border-color); }
-        .pm-editor-tab-body { flex:1; min-height:0; overflow-y:auto; padding:10px; display:flex; flex-direction:column; gap:10px; }
-        .pm-editor-tab-adjust { padding:0; gap:0; overflow:hidden; }
-        .pm-editor-tab-scroll { flex:1; min-height:0; overflow-y:auto; padding:10px; display:flex; flex-direction:column; gap:10px; }
-        .pm-editor-tab-footer {
-          display:flex; align-items:center; gap:8px; padding:10px; border-top:1px solid var(--border-color);
-          font-size:9px; color:var(--text-muted);
-        }
-        .pm-editor-ask { display:flex; flex-direction:column; gap:6px; }
-        .pm-editor-ask textarea {
-          resize:none; border:1px solid var(--border-color); border-radius:9px; background:var(--bg-app);
-          color:var(--text-primary); padding:8px; font:inherit; font-size:11px;
-        }
-        .pm-editor-ask .pm-btn { align-self:flex-end; }
-        .pm-editor-tab-body .pm-editor-sidebar-title { margin:2px 0 0; }
-        .pm-editor-op-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
-        .pm-editor-op {
-          border:1px solid var(--border-color); background:var(--bg-card); border-radius:9px;
-          padding:8px 7px; color:var(--text-primary); cursor:pointer; font:inherit; font-size:10px;
-          font-weight:650; text-align:left; line-height:1.25; min-height:38px;
-        }
-        .pm-editor-op:hover:not(:disabled) { border-color:var(--pm-primary); }
-        .pm-editor-op:disabled { opacity:.5; cursor:not-allowed; }
-        .pm-editor-op-video { grid-column:1 / -1; border-color:var(--pm-primary); background:var(--pm-soft); color:var(--pm-primary); }
-        .pm-editor-segmented { display:flex; flex-wrap:wrap; gap:3px; padding:3px; border-radius:9px; background:var(--bg-app); border:1px solid var(--border-color); }
-        .pm-editor-segmented button {
-          flex:1; min-width:0; border:0; border-radius:6px; padding:6px 4px; background:transparent; cursor:pointer;
-          color:var(--text-muted); font:inherit; font-size:10px; font-weight:700;
-        }
-        .pm-editor-segmented button.active { background:var(--pm-primary); color:var(--pm-on-primary); }
-        .pm-editor-chips { display:flex; flex-wrap:wrap; gap:5px; }
-        .pm-editor-chip { cursor:pointer; }
-        .pm-editor-chip input { position:absolute; opacity:0; pointer-events:none; }
-        .pm-editor-chip span {
-          display:inline-block; padding:5px 9px; border-radius:999px; border:1px solid var(--border-color);
-          background:var(--bg-card); color:var(--text-secondary); font-size:10px; font-weight:650;
-        }
-        .pm-editor-chip input:checked + span { background:var(--pm-soft); border-color:var(--pm-primary); color:var(--pm-primary); }
-        .pm-editor-chip input:focus-visible + span { outline:2px solid var(--pm-primary); outline-offset:1px; }
-        .pm-editor-canvas { gap:8px; }
-        .pm-editor-canvas > .pm-editor-versions { flex:none; }
-        .pm-editor-shell-advanced .pm-editor-version { flex-basis:72px; }
-        .pm-editor-shell-advanced .pm-editor-version img { height:40px; }
-        .pm-editor-footer-sticky { padding:10px 14px; margin:0; background:var(--bg-card); }
-        .pm-editor-footer-msg { flex:1; min-width:0; font-size:10px; color:var(--text-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-        .pm-editor-footer-msg:hover { white-space:normal; }
-        .pm-editor-footer-error { color:#ef4444; }
-        .pm-editor-recast-cta { border-color:var(--pm-primary); color:var(--pm-primary); }
-
-        /* Full Body Recast: Source | Character | Result */
-        .pm-recast { flex:1; min-height:0; display:flex; flex-direction:column; gap:10px; }
-        .pm-recast-grid { flex:1; min-height:0; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:4px; border-radius:12px; overflow:hidden; background:#000; }
-        .pm-recast-panel { position:relative; margin:0; min-height:0; display:flex; flex-direction:column; background:#0b0d10; }
-        .pm-recast-panel figcaption {
-          position:absolute; top:0; left:0; right:0; z-index:2; padding:8px 10px;
-          background:linear-gradient(rgba(0,0,0,.82), rgba(0,0,0,.55)); color:#fff;
-          font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
-        }
-        .pm-recast-media { position:relative; flex:1; min-height:0; display:flex; align-items:center; justify-content:center; }
-        .pm-recast-media video, .pm-recast-media img { width:100%; height:100%; object-fit:cover; display:block; }
-        .pm-recast-drop {
-          display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; text-align:center;
-          width:calc(100% - 20px); height:calc(100% - 56px); margin-top:36px; padding:10px; cursor:pointer;
-          border:1.5px dashed rgba(255,255,255,.28); border-radius:10px; color:rgba(255,255,255,.7); font-size:10px;
-        }
-        .pm-recast-drop strong { color:#fff; font-size:12px; }
-        .pm-recast-drop:hover, .pm-recast-drop.is-dragging { border-color:var(--pm-primary); background:rgba(255,255,255,.04); }
-        .pm-recast-drop-icon { font-size:20px; color:var(--pm-primary); }
-        .pm-recast-chip, .pm-recast-replace {
-          position:absolute; bottom:8px; z-index:2; padding:4px 8px; border-radius:999px;
-          background:rgba(0,0,0,.7); color:#fff; font-size:9px; font-weight:700;
-        }
-        .pm-recast-chip { left:8px; }
-        .pm-recast-replace { right:8px; cursor:pointer; }
-        .pm-recast-overlay {
-          position:absolute; inset:0; z-index:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
-          gap:8px; padding:16px; text-align:center; background:rgba(0,0,0,.6); color:#fff; font-size:11px; font-weight:650;
-        }
-        .pm-recast-overlay-static { position:static; background:transparent; }
-        .pm-recast-empty { display:flex; flex-direction:column; align-items:center; gap:6px; color:rgba(255,255,255,.45); font-size:11px; }
-        .pm-recast-empty span { font-size:22px; color:var(--pm-primary); }
-        .pm-recast-controls { display:flex; gap:8px; }
-        .pm-recast-controls input {
-          flex:1; min-width:0; border:1px solid var(--border-color); border-radius:9px; background:var(--bg-app);
-          color:var(--text-primary); padding:8px 10px; font:inherit; font-size:11px;
-        }
-        .pm-recast-note { margin:0; font-size:9px; line-height:1.45; color:var(--text-muted); }
         .pm-mask-toolbar {
           display:flex; gap:8px; flex-wrap:wrap; align-items:center; padding:8px;
           border:1px solid var(--border-color); border-radius:10px; background:var(--bg-panel);
@@ -2296,20 +2153,8 @@ export class PersonalizeModal extends BaseModal {
         .pm-mask-help { font-size:9px; line-height:1.4; color:var(--text-muted); margin:7px 0 0; }
 
         @media (max-width: 980px) {
-          .pm-editor-workspace, .pm-editor-workspace.is-recast {
-            grid-template-columns:1fr; grid-template-rows:auto minmax(320px,1fr) auto; height:auto;
-          }
-          .pm-editor-rail { flex-direction:row; overflow-x:auto; overflow-y:hidden; border-right:0; border-bottom:1px solid var(--border-color); }
-          .pm-editor-rail-btn { flex:0 0 64px; }
-          .pm-editor-rail-sep { width:1px; height:auto; margin:4px 2px; }
-          .pm-editor-panel { border-left:0; border-top:1px solid var(--border-color); height:340px; }
-          .pm-editor-workspace.is-recast { grid-template-rows:auto auto; }
-          .pm-recast-grid { flex:none; }
-          .pm-recast-media { aspect-ratio:3 / 5; }
-          .pm-recast-panel figcaption { padding:5px 6px; font-size:8px; letter-spacing:.04em; }
-          .pm-recast-drop { width:calc(100% - 10px); height:calc(100% - 34px); margin-top:24px; padding:6px; font-size:8px; }
-          .pm-recast-drop strong { font-size:10px; }
-          .pm-recast-controls { flex-direction:column; }
+          .pm-editor-advanced { grid-template-columns:1fr; }
+          .pm-editor-tool-sidebar, .pm-editor-right-panel { border:0; border-bottom:1px solid var(--border-color); max-height:none; }
           .pm-editor-compare { grid-template-columns:1fr; }
         }
         @media (max-width: 720px) {
@@ -2695,10 +2540,6 @@ export class PersonalizeModal extends BaseModal {
           ? `<span class="pm-asset-audio-chip">Audio</span>`
           : `<img class="pm-asset-thumb" src="${escapeHtml(url)}" alt="" loading="lazy" />`;
       }
-      const isVideo = asset.role === 'presenter_video' || String(asset.mimeType || '').startsWith('video/');
-      if (isVideo) {
-        return `<span class="pm-asset-thumb-wrap"><video class="pm-asset-thumb" src="${escapeHtml(url)}" muted loop playsinline preload="metadata" title="${escapeHtml(asset.name || title)}" controls></video><button type="button" class="pm-asset-delete" data-action="delete-personalization-asset" data-asset-id="${escapeHtml(asset.id)}" aria-label="Delete ${escapeHtml(asset.name || title)}">×</button></span>`;
-      }
       const preview = uploadRole === 'audio_reference'
         ? `<span class="pm-asset-audio-chip" title="${escapeHtml(asset.name || 'Audio reference')}">♫ ${escapeHtml(asset.name || 'Audio')}</span>`
         : `<button type="button" class="pm-asset-thumb-button" data-action="open-imported-asset-editor" data-asset-id="${escapeHtml(asset.id)}" title="Edit ${escapeHtml(asset.name || title)}"><img class="pm-asset-thumb" src="${escapeHtml(url)}" alt="" loading="lazy" /><span>Edit</span></button>`;
@@ -2841,12 +2682,6 @@ export class PersonalizeModal extends BaseModal {
       ? renderPersonalizationImageEditorPanel(this.imageEditorSession)
       : '';
 
-    // Advanced editing is a focused, fixed-height workspace: hide the rest of
-    // the Assets tab so the modal does not need to scroll around it.
-    if (this.imageEditorSession?.mode === 'advanced') {
-      return `<div class="pm-form">${editorHtml}</div>`;
-    }
-
     return `
       <div class="pm-form">
         ${editorHtml}
@@ -2934,7 +2769,6 @@ export class PersonalizeModal extends BaseModal {
           ${this._assetRoleCard('CTA Graphic', 'Exact CTA/logo/phone/URL graphics for deterministic final use.', single(assets.ctaGraphic), 'cta_graphic')}
           ${this._assetRoleCard('Saved References', 'Reusable references available to compatible generation models.', assets.savedReferences || [], 'saved_reference')}
           ${this._assetRoleCard('Audio References', 'Reusable audio references for models that explicitly support reference audio.', assets.audio || [], 'audio_reference')}
-          ${this._assetRoleCard('Presenter Videos', 'Full Body Recast results: this person performing in a source clip. Create one from a person asset → Edit → Full Body Recast.', assets.presenterVideos || [])}
         </div>
       </div>
     `;
@@ -4244,8 +4078,7 @@ export class PersonalizeModal extends BaseModal {
       // Body actions
       const scope = this.overlay.querySelector('.modal-body');
       if (scope) {
-        // Scoped to the main tab list: the image editor has its own tabs.
-        scope.querySelectorAll('.pm-tabs > [role="tab"]').forEach((btn) => {
+        scope.querySelectorAll('[role="tab"]').forEach((btn) => {
           btn.onclick = (e) => {
             e.stopPropagation();
             if (btn.disabled) return;
@@ -4561,35 +4394,8 @@ export class PersonalizeModal extends BaseModal {
         else if (action === 'mask') this._handleEditorMask();
         else if (action === 'apply-local') this._handleEditorApplyLocal();
         else if (action === 'apply') this._handleEditorApply();
-        else if (action === 'recast-open') controller.openRecast();
-        else if (action === 'recast-close') controller.closeRecast();
-        else if (action === 'recast-run') controller.runRecast();
-        else if (action === 'recast-cancel') controller.cancelRecast();
-        else if (action === 'recast-save') this._handleSaveRecast();
       };
     });
-
-    scope.querySelectorAll('[data-editor-tab]').forEach((btn) => {
-      btn.onclick = (e) => {
-        e.stopPropagation();
-        controller.setPanelTab(btn.dataset.editorTab);
-      };
-    });
-
-    // Segmented Output controls update in place so the panel keeps its state.
-    scope.querySelectorAll('[data-editor-segment]').forEach((btn) => {
-      btn.onclick = (e) => {
-        e.stopPropagation();
-        controller.setSetting(btn.dataset.editorSegment, btn.dataset.value);
-        btn.parentElement?.querySelectorAll('[data-editor-segment]').forEach((sibling) => {
-          const active = sibling === btn;
-          sibling.classList.toggle('active', active);
-          sibling.setAttribute('aria-pressed', active ? 'true' : 'false');
-        });
-      };
-    });
-
-    this._bindRecastView(scope);
 
     scope.querySelectorAll('[data-editor-operation]').forEach((btn) => {
       btn.onclick = (e) => {
@@ -4667,81 +4473,6 @@ export class PersonalizeModal extends BaseModal {
     });
 
     this._mountActiveEditorMask();
-  }
-
-  _bindRecastView(scope) {
-    const controller = this.imageEditorController;
-    const view = scope.querySelector('[data-recast-view]');
-    if (!view) return;
-
-    view.querySelectorAll('[data-recast-file]').forEach((input) => {
-      input.onchange = () => {
-        const file = input.files?.[0];
-        if (file) controller.setRecastSource(file);
-      };
-    });
-
-    const drop = view.querySelector('[data-recast-drop]');
-    if (drop) {
-      drop.ondragover = (e) => {
-        e.preventDefault();
-        drop.classList.add('is-dragging');
-      };
-      drop.ondragleave = () => drop.classList.remove('is-dragging');
-      drop.ondrop = (e) => {
-        e.preventDefault();
-        drop.classList.remove('is-dragging');
-        const file = e.dataTransfer?.files?.[0];
-        if (file) controller.setRecastSource(file);
-      };
-    }
-
-    const prompt = view.querySelector('[data-recast-prompt]');
-    if (prompt) prompt.oninput = () => controller.setRecastPrompt(prompt.value);
-
-    // Play the source and result together so the motion can be compared.
-    const source = view.querySelector('[data-recast-video="source"]');
-    const result = view.querySelector('[data-recast-video="result"]');
-    if (source && result) {
-      result.onplay = () => {
-        source.currentTime = result.currentTime % (source.duration || Infinity);
-        source.play().catch(() => {});
-      };
-      result.onpause = () => source.pause();
-      result.onseeked = () => { source.currentTime = result.currentTime % (source.duration || Infinity); };
-      result.controls = true;
-      if (!result.paused) result.onplay();
-    } else if (source) {
-      source.controls = true;
-    }
-  }
-
-  async _handleSaveRecast() {
-    const controller = this.imageEditorController;
-    const session = controller.session;
-    if (!session?.recast?.resultUrl) return;
-    try {
-      const fields = await controller.saveRecast();
-      const id = getSelectedContactId();
-      let profile = id ? _getProfile(id) : null;
-      if (!profile) throw new Error('Select a contact profile before saving the recast video.');
-
-      profile = addPersonalizationAsset(profile, createPersonalizationAsset(fields));
-      profile.updatedAt = new Date().toISOString();
-      profile.variables = buildVariables(profile, profile.variables || {});
-      if (!this._persistSelectedProfile(profile)) {
-        throw new Error('The recast video could not be saved to the selected profile.');
-      }
-      session.recast.saved = true;
-      session.recast.error = '';
-      this.assetDiscoveryStatus = '✓ Full body recast saved to Presenter Videos';
-    } catch (error) {
-      if (controller.session === session) {
-        session.recast.error = error?.message || 'Could not save the recast video.';
-      }
-    } finally {
-      this.refreshBody();
-    }
   }
 
   /**
@@ -5648,7 +5379,7 @@ export class PersonalizeModal extends BaseModal {
   }
 
   _handleTabKeydown(e) {
-    const tabs = Array.from(this.overlay.querySelectorAll('.pm-tabs > [role="tab"]')).filter((t) => !t.disabled);
+    const tabs = Array.from(this.overlay.querySelectorAll('[role="tab"]')).filter((t) => !t.disabled);
     const idx = tabs.indexOf(document.activeElement);
     if (idx === -1) return;
     let next = null;

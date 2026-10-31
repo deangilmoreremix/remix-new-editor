@@ -13,7 +13,6 @@ export const PERSONALIZATION_ASSET_ROLES = Object.freeze([
   'background_reference',
   'audio_reference',
   'saved_reference',
-  'presenter_video',
 ]);
 
 export const DISCOVERED_ASSET_CATEGORIES = Object.freeze([
@@ -58,7 +57,6 @@ export const EMPTY_PERSONALIZATION_ASSETS = Object.freeze({
   ctaGraphic: null,
   audio: [],
   savedReferences: [],
-  presenterVideos: [],
 });
 
 function cleanString(value) {
@@ -175,7 +173,6 @@ export function normalizePersonalizationAssets(input = {}) {
     ctaGraphic: input.ctaGraphic || null,
     audio: normalizeArray(input.audio),
     savedReferences: normalizeArray(input.savedReferences),
-    presenterVideos: normalizeArray(input.presenterVideos),
   };
 }
 
@@ -264,7 +261,6 @@ export function addPersonalizationAsset(profile, asset) {
     brandReferences: [...normalized.personalization.assets.brandReferences],
     audio: [...normalized.personalization.assets.audio],
     savedReferences: [...normalized.personalization.assets.savedReferences],
-    presenterVideos: [...normalized.personalization.assets.presenterVideos],
   };
 
   const dedupePush = (list, item) => {
@@ -291,10 +287,6 @@ export function addPersonalizationAsset(profile, asset) {
     assets.ctaGraphic = asset;
   } else if (asset.role === 'audio_reference') {
     dedupePush(assets.audio, asset);
-  } else if (asset.role === 'presenter_video') {
-    // Kept apart from savedReferences: those are passed to models as image
-    // references, and a recast video must never be sent as an image input.
-    dedupePush(assets.presenterVideos, asset);
   } else {
     dedupePush(assets.savedReferences, asset);
   }
@@ -318,7 +310,6 @@ export function removePersonalizationAsset(profile, assetId) {
   const brandReferences = a.brandReferences.filter((asset) => asset?.id !== assetId);
   const audio = a.audio.filter((asset) => asset?.id !== assetId);
   const savedReferences = a.savedReferences.filter((asset) => asset?.id !== assetId);
-  const presenterVideos = a.presenterVideos.filter((asset) => asset?.id !== assetId);
 
   const assets = {
     ...a,
@@ -337,7 +328,6 @@ export function removePersonalizationAsset(profile, assetId) {
     ctaGraphic: a.ctaGraphic?.id === assetId ? null : a.ctaGraphic,
     audio,
     savedReferences,
-    presenterVideos,
   };
 
   return {
@@ -388,7 +378,6 @@ export function updatePersonalizationAsset(profile, assetId, updater) {
     ctaGraphic: apply(a.ctaGraphic),
     audio: a.audio.map(apply),
     savedReferences: a.savedReferences.map(apply),
-    presenterVideos: a.presenterVideos.map(apply),
   };
   if (!changed) return normalized;
   return {
@@ -413,6 +402,5 @@ export function getAllPersonalizationAssets(profile = {}) {
     ...(assets.ctaGraphic ? [assets.ctaGraphic] : []),
     ...assets.audio,
     ...assets.savedReferences,
-    ...assets.presenterVideos,
   ];
 }
