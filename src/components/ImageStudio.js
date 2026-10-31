@@ -1,5 +1,6 @@
 import { muapi } from '../lib/muapi.js';
 import { saveGeneration } from '../lib/generationHistory.js';
+import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
@@ -1361,6 +1362,7 @@ generateBtn.type = 'button';
         generateBtn.disabled = true;
         generateBtn.innerHTML = `<span class="animate-spin inline-block mr-2 text-black">◌</span> Generating...`;
         const controller = new AbortController();
+        const pendingJob = createPendingJobTracker('image', { prompt, model: selectedModel, aspect_ratio: selectedAr }, { maxAttempts: 60 });
         const loadingOverlay = createLoadingOverlay('Generating image...');
         const progressBar = createProgressBar(0);
         loadingOverlay.appendChild(progressBar);
@@ -1379,6 +1381,7 @@ generateBtn.type = 'button';
                     image_url: uploadedImageUrls[0], // backward compat for single-image models
                     aspect_ratio: selectedAr,
                     signal: controller.signal,
+                    onRequestId: pendingJob.onRequestId,
                     ...dynamicPayload
                 };
                 if (customThumbnailUrl) genParams.thumbnail_url = customThumbnailUrl;
@@ -1396,12 +1399,8 @@ generateBtn.type = 'button';
                 const supportsStyleParam = 'style' in modelInputs;
 
                 let finalPrompt = prompt;
-                if (selectedStyle && selectedStyle !== 'None') {
-                    if (supportsStyleParam) {
-                        genParams.style = selectedStyle;
-                    } else {
-                        finalPrompt = `${prompt}, ${selectedStyle.toLowerCase()} style`;
-                    }
+                if (selectedStyle && selectedStyle !== 'None' && !supportsStyleParam) {
+                    finalPrompt = `${prompt}, ${selectedStyle.toLowerCase()} style`;
                 }
 
                 const genParams = {
@@ -1409,8 +1408,10 @@ generateBtn.type = 'button';
                     prompt: finalPrompt,
                     aspect_ratio: selectedAr,
                     signal: controller.signal,
+                    onRequestId: pendingJob.onRequestId,
                     ...dynamicPayload
                 };
+                if (selectedStyle && selectedStyle !== 'None' && supportsStyleParam) genParams.style = selectedStyle;
                 if (customThumbnailUrl) genParams.thumbnail_url = customThumbnailUrl;
                 if (batchCount > 1) genParams.batch_count = batchCount;
                 if (selectedLora) genParams.lora = selectedLora;
@@ -1437,6 +1438,7 @@ generateBtn.type = 'button';
                 throw new Error('No image URL returned by API');
             }
         } catch (e) {
+            pendingJob.finish();
             if (loadingOverlay && loadingOverlay.parentNode) loadingOverlay.remove();
             generateBtn.innerHTML = `Error: ${e.message.slice(0, 40)}`;
             setTimeout(() => {
@@ -1445,10 +1447,20 @@ generateBtn.type = 'button';
             }, 3000);
             return;
         }
+        pendingJob.finish();
         if (loadingOverlay && loadingOverlay.parentNode) loadingOverlay.remove();
         generateBtn.disabled = false;
         generateBtn.innerHTML = `Generate ✨`;
     };
+
+    // Pick up generations that were still running when the page was reloaded.
+    resumePendingJobs('image', {
+        poll: (id, attempts, interval) => muapi.pollForResult(id, attempts, interval),
+        onResult: (url, job) => {
+            addToHistory({ id: job.requestId, url, ...job.historyMeta, timestamp: new Date().toISOString() });
+            showToast('Recovered a generation that finished while you were away', 'success');
+        },
+    });
 
     const galleryAssets = EXAMPLE_ASSETS.filter(asset => asset.studio === 'image' && !asset.videoSrc);
     if (galleryAssets.length > 0) {

@@ -2,6 +2,7 @@
 import { showToast } from '../lib/loading.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { muapi } from '../lib/muapi.js';
+import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { createSafeImage } from '../lib/security.js';
 import { CameraControls } from './CameraControls.js';
@@ -1414,7 +1415,11 @@ export function CinemaStudio() {
             '8K resolution'
         ].filter(Boolean).join(', ');
 
+        let pendingJob = null;
         try {
+            // Advanced settings (negative prompt, seed, …). This was referenced
+            // below but never defined, so every successful render threw.
+            const dynamicPayload = dynamicControls ? dynamicControls.getPayload({}) : {};
             const resolution = (resBtn.dataset.value || '1k').toLowerCase();
             const hasStartFrame = !!currentSettings.referenceUrl;
             const hasEndFrame = !!currentSettings.endFrameUrl;
@@ -1498,10 +1503,14 @@ export function CinemaStudio() {
                 }
             }
 
+            pendingJob = createPendingJobTracker('cinema', {
+                settings: { prompt: basePrompt, ...currentSettings, resolution: dynamicPayload.resolution || resBtn.dataset.value },
+            }, { maxAttempts: 180 });
             let res;
             if (useFrameToFrame) {
                 // First/last-frame: pin both the start and end of the clip.
                 res = await muapi.generateI2V({
+                    ...dynamicPayload,
                     model: resolvedModel,
                     firstFrameUrl,
                     lastFrameUrl,
@@ -1512,6 +1521,7 @@ export function CinemaStudio() {
                     thumbnail_url: customThumbnailUrl || undefined,
                     ...(extraVideos.length ? { reference_videos: extraVideos } : {}),
                     ...(extraAudios.length ? { reference_audios: extraAudios } : {}),
+                    onRequestId: pendingJob.onRequestId,
                 });
             } else if (isRef) {
                 // Image-to-video: use the uploaded still as the seed.
@@ -1538,7 +1548,7 @@ export function CinemaStudio() {
                     ),
                   );
                 }
-                res = await muapi.generateI2V(i2vParams);
+                res = await muapi.generateI2V({ ...dynamicPayload, ...i2vParams, onRequestId: pendingJob.onRequestId });
             } else {
                 let t2vParams = {
                     model: resolvedModel,
@@ -1562,7 +1572,7 @@ export function CinemaStudio() {
                     ),
                   );
                 }
-                res = await muapi.generateVideo(t2vParams);
+                res = await muapi.generateVideo({ ...dynamicPayload, ...t2vParams, onRequestId: pendingJob.onRequestId });
             }
 
 
@@ -1637,10 +1647,20 @@ export function CinemaStudio() {
             console.error(e);
             showToast('Generation Failed: ' + e.message, 'error');
         } finally {
+            pendingJob?.finish();
             generateBtn.disabled = false;
             generateBtn.innerHTML = `GENERATE ✨`;
         }
     };
+
+    // Pick up generations that were still running when the page was reloaded.
+    resumePendingJobs('cinema', {
+        poll: (id, attempts, interval) => muapi.pollForResult(id, attempts, interval),
+        onResult: (url, job) => {
+            addToHistory({ url, timestamp: Date.now(), settings: job.historyMeta.settings || {} });
+            showToast('Recovered a generation that finished while you were away', 'success');
+        },
+    });
 
     const galleryAssets = getAssetsForStudio('cinema');
     if (galleryAssets.length > 0) {

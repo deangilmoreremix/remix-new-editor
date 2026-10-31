@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { audioModels } from '../lib/models.js';
@@ -1317,6 +1318,7 @@ export function AudioStudio() {
     }
 
     audioAbortController = new AbortController();
+    let pendingJob = null;
 
     genBtn.disabled = true;
     genBtn.textContent = 'Generating...';
@@ -1369,7 +1371,12 @@ export function AudioStudio() {
         ? await resolveMuapiMediaRefs(audioAttachmentState.videos)
         : [];
 
-      const mergedSchemaParams = { ...resolvedSchemaParams, signal: audioAbortController.signal };
+      pendingJob = createPendingJobTracker('audio', {
+        title: schemaParams.title || prompt || `Generated ${selectedModel.name}`,
+        prompt: processedPrompt,
+        model: selectedModelId,
+      }, { maxAttempts: 180 });
+      const mergedSchemaParams = { ...resolvedSchemaParams, signal: audioAbortController.signal, onRequestId: pendingJob.onRequestId };
       if (resolvedAudioUrl && !mergedSchemaParams.audio_url) {
         mergedSchemaParams.audio_url = resolvedAudioUrl;
       }
@@ -1430,6 +1437,7 @@ export function AudioStudio() {
       const errMsg = formatErrorMessage(err, 'Failed to generate audio');
       showToast(errMsg, 'error');
     } finally {
+      pendingJob?.finish();
       hideLoading();
       audioAbortController = null;
       genBtn.disabled = false;
@@ -1444,6 +1452,15 @@ export function AudioStudio() {
   }
 
   renderHistoryGrid();
+
+  // Pick up generations that were still running when the page was reloaded.
+  resumePendingJobs('audio', {
+    poll: (id, attempts, interval) => muapi.pollForResult(id, attempts, interval),
+    onResult: (url, job) => {
+      addToHistory({ id: job.requestId, url, ...job.historyMeta, timestamp: new Date().toISOString() });
+      showToast('Recovered a generation that finished while you were away', 'success');
+    },
+  });
 
   // MiniMax H3 example styles — demos that align with this studio, shown as
   // examples at the bottom of the controls. Each card opens a detail modal;

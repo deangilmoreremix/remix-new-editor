@@ -1,5 +1,6 @@
 import { muapi } from '../lib/muapi.js';
 import { saveGeneration, deleteGeneration } from '../lib/generationHistory.js';
+import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { uploadMediaFile } from '../lib/editor/upload.js';
@@ -2015,6 +2016,7 @@ generateBtn.type = 'button';
         abortController = new AbortController();
         const { controller, showCancel, reset: resetCancel } = createAbortAwareGenerateButton(generateBtn);
         abortController = controller;
+        const pendingJob = createPendingJobTracker('video', { prompt: enrichedPrompt || '', model: selectedModel }, { maxAttempts: 180 });
 
         loadingOverlay = createLoadingOverlay('Generating video...');
         const progressBar = createProgressBar(0);
@@ -2037,7 +2039,7 @@ generateBtn.type = 'button';
 
         try {
             if (v2vMode) {
-                const v2vParams = { model: selectedModel, video_url: uploadedVideoUrl, signal: abortController.signal };
+                const v2vParams = { model: selectedModel, video_url: uploadedVideoUrl, signal: abortController.signal, onRequestId: pendingJob.onRequestId };
                 if (customThumbnailUrl) v2vParams.thumbnail_url = customThumbnailUrl;
                 if (nativeAudio) v2vParams.native_audio = true;
                 const res = await muapi.processV2V(v2vParams);
@@ -2055,6 +2057,7 @@ generateBtn.type = 'button';
                     model: selectedModel,
                     image_url: uploadedImageUrl,
                     signal: abortController.signal,
+                    onRequestId: pendingJob.onRequestId,
                 };
                 if (uploadedEndImageUrl) {
                     i2vParams.lastFrameUrl = uploadedEndImageUrl;
@@ -2108,7 +2111,7 @@ generateBtn.type = 'button';
                 return;
             }
 
-            const params = { model: selectedModel, signal: abortController.signal };
+            const params = { model: selectedModel, signal: abortController.signal, onRequestId: pendingJob.onRequestId };
 
             if (customThumbnailUrl) params.thumbnail_url = customThumbnailUrl;
             if (enrichedPrompt) params.prompt = enrichedPrompt;
@@ -2175,6 +2178,7 @@ generateBtn.type = 'button';
             generateBtn.classList.add('border-red-500/50');
             return;
         } finally {
+            pendingJob.finish();
             clearInterval(progressInterval);
             if (progressHandle) { progressHandle.stop(); progressHandle = null; }
             if (loadingOverlay && loadingOverlay.parentNode) { loadingOverlay.remove(); loadingOverlay = null; }
@@ -2187,6 +2191,15 @@ generateBtn.type = 'button';
             }
         }
     };
+
+    // Pick up generations that were still running when the page was reloaded.
+    resumePendingJobs('video', {
+        poll: (id, attempts, interval) => muapi.pollForResult(id, attempts, interval),
+        onResult: (url, job) => {
+            addToHistory({ id: job.requestId, url, ...job.historyMeta, timestamp: new Date().toISOString() });
+            showToast('Recovered a generation that finished while you were away', 'success');
+        },
+    });
 
     const galleryAssets = getAssetsForStudio('video');
     if (galleryAssets.length > 0) {

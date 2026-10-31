@@ -284,6 +284,8 @@ export class MuapiClient {
             this.validateResponse(submitData, 'submit');
 
             const requestId = submitData.request_id || submitData.id;
+            // Lets studios persist the job so it can resume after a reload.
+            if (requestId) params?.onRequestId?.(requestId);
             if (!requestId) {
                 this.activeControllers.delete(controllerRequestId);
                 return submitData;
@@ -455,6 +457,8 @@ export class MuapiClient {
              this.validateResponse(submitData, 'submit');
 
              const requestId = submitData.request_id || submitData.id;
+             // Lets studios persist the job so it can resume after a reload.
+             if (requestId) params?.onRequestId?.(requestId);
              if (!requestId) {
                const videoUrl = submitData.outputs?.[0] || submitData.url || submitData.output?.url;
                return { ...submitData, url: videoUrl };
@@ -604,6 +608,8 @@ export class MuapiClient {
              this.validateResponse(submitData, 'submit');
 
              const requestId = submitData.request_id || submitData.id;
+             // Lets studios persist the job so it can resume after a reload.
+             if (requestId) params?.onRequestId?.(requestId);
              if (!requestId) {
                const imageUrl = submitData.outputs?.[0] || submitData.url || submitData.output?.url;
                return { ...submitData, url: imageUrl };
@@ -717,6 +723,8 @@ export class MuapiClient {
              this.validateResponse(submitData, 'submit');
 
              const requestId = submitData.request_id || submitData.id;
+             // Lets studios persist the job so it can resume after a reload.
+             if (requestId) params?.onRequestId?.(requestId);
              if (!requestId) {
                const videoUrl = submitData.outputs?.[0] || submitData.url || submitData.output?.url;
                return { ...submitData, url: videoUrl };
@@ -893,6 +901,8 @@ export class MuapiClient {
              this.validateResponse(submitData, 'submit');
 
              const requestId = submitData.request_id || submitData.id;
+             // Lets studios persist the job so it can resume after a reload.
+             if (requestId) params?.onRequestId?.(requestId);
              if (!requestId) return submitData;
 
              const result = await this.pollForResult(requestId, 120, 2000, effectiveSignal);
@@ -956,6 +966,8 @@ export class MuapiClient {
              this.validateResponse(submitData, 'submit');
 
              const requestId = submitData.request_id || submitData.id;
+             // Lets studios persist the job so it can resume after a reload.
+             if (requestId) params?.onRequestId?.(requestId);
              if (!requestId) return submitData;
 
              const result = await this.pollForResult(requestId, 120, 2000, effectiveSignal);
@@ -1024,6 +1036,8 @@ export class MuapiClient {
              this.validateResponse(submitData, 'submit');
 
              const requestId = submitData.request_id || submitData.id;
+             // Lets studios persist the job so it can resume after a reload.
+             if (requestId) params?.onRequestId?.(requestId);
              if (!requestId) return submitData;
 
              const result = await this.pollForResult(requestId, 120, 2000, effectiveSignal);
@@ -1082,6 +1096,8 @@ export class MuapiClient {
              this.validateResponse(submitData, 'submit');
 
              const requestId = submitData.request_id || submitData.id;
+             // Lets studios persist the job so it can resume after a reload.
+             if (requestId) params?.onRequestId?.(requestId);
              if (!requestId) return submitData;
 
              const result = await this.pollForResult(requestId, 180, 3000, effectiveSignal);
@@ -1197,6 +1213,8 @@ export class MuapiClient {
              this.validateResponse(submitData, 'submit');
 
              const requestId = submitData.request_id || submitData.id;
+             // Lets studios persist the job so it can resume after a reload.
+             if (requestId) params?.onRequestId?.(requestId);
              if (!requestId) {
                const videoUrl = submitData.outputs?.[0] || submitData.url || submitData.output?.url || submitData.video?.url;
                return { ...submitData, url: videoUrl };
@@ -1527,6 +1545,8 @@ export class MuapiClient {
             this.validateResponse(submitData, 'submit');
 
             const requestId = submitData.request_id || submitData.id;
+            // Lets studios persist the job so it can resume after a reload.
+            if (requestId) params?.onRequestId?.(requestId);
             if (!requestId) return submitData;
 
             const result = await this.pollForResult(requestId, 300, 5000, signal);
@@ -1608,6 +1628,8 @@ export class MuapiClient {
             this.validateResponse(submitData, 'submit');
 
             const requestId = submitData.request_id || submitData.id;
+            // Lets studios persist the job so it can resume after a reload.
+            if (requestId) params?.onRequestId?.(requestId);
             if (!requestId) return submitData;
 
             const result = await this.pollForResult(requestId, 120, 2000, effectiveSignal);
@@ -1700,6 +1722,8 @@ export class MuapiClient {
              this.validateResponse(submitData, 'submit');
 
               const requestId = submitData.request_id || submitData.id;
+              // Lets studios persist the job so it can resume after a reload.
+              if (requestId) params?.onRequestId?.(requestId);
               if (!requestId) {
                 const videoUrl = submitData.outputs?.[0] || submitData.url || submitData.output?.url;
                 return { ...submitData, url: videoUrl };
