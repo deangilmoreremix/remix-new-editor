@@ -859,6 +859,31 @@ export function LipSyncStudio() {
         imageFileInput.click();
     };
 
+    // Drop a file on an upload button to use it (upstream Lip Sync supports
+    // dragging media onto each slot); it runs the same handler as a click.
+    const enableDrop = (btn, input, kind) => {
+        let depth = 0;
+        const ring = (on) => { btn.classList.toggle('ring-2', on); btn.classList.toggle('ring-primary', on); };
+        btn.addEventListener('dragenter', (e) => { e.preventDefault(); depth += 1; ring(true); });
+        btn.addEventListener('dragover', (e) => e.preventDefault());
+        btn.addEventListener('dragleave', () => { depth = Math.max(0, depth - 1); if (!depth) ring(false); });
+        btn.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            depth = 0;
+            ring(false);
+            const file = Array.from(e.dataTransfer?.files || []).find((f) => f.type.startsWith(`${kind}/`));
+            if (!file) { showToast(`Drop ${kind === 'audio' ? 'an audio' : `a ${kind}`} file here.`, 'error'); return; }
+            const transfer = new DataTransfer();
+            transfer.items.add(file);
+            input.files = transfer.files;
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+    };
+    enableDrop(imageUploadBtn, imageFileInput, 'image');
+    enableDrop(videoUploadBtn, videoFileInput, 'video');
+    enableDrop(audioUploadBtn, audioFileInput, 'audio');
+
     imageFileInput.onchange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;

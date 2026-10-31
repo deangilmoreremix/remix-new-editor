@@ -920,6 +920,18 @@ export async function InfluencerStudio() {
   };
   actionGroup.appendChild(shuffleActionBtn);
 
+  // Reset clears every chosen attribute (upstream's builder Reset).
+  const resetBtn = document.createElement('button');
+  resetBtn.type = 'button';
+  resetBtn.textContent = 'Reset';
+  resetBtn.className = 'px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-xs font-semibold text-gray-400 hover:text-white hover:bg-white/10 transition-all';
+  resetBtn.onclick = () => {
+    Object.keys(selectedOptions).forEach((key) => delete selectedOptions[key]);
+    refreshAttrGrid();
+    refreshTagsBar();
+  };
+  actionGroup.appendChild(resetBtn);
+
   const previewGenBtn = document.createElement('button');
   previewGenBtn.type = 'button';
   restyleAction(previewGenBtn);
